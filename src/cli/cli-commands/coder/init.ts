@@ -71,7 +71,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 - CODING_AGENT_GIT_EMAIL
                 - CODING_AGENT_GIT_SIGNING_KEY
 
-                Checks that the coding harnesses are installed globally and up to date unless \`--no-harness-update\` is used:
+                Checks that the coding harnesses are installed and up to date unless \`--no-harness-update\` is used:
                 ${block(listCheckedHarnessLabels())}
 
                 ${block(CODER_GIT_SYNC_DESCRIPTION)}

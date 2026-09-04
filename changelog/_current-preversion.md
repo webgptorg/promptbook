@@ -1,3 +1,20 @@
+-   Fixed **ptbk coder** updating a coding harness with `npm install -g` even when npm does not own that harness. A
+    Codex installed by the official standalone installer was reported as outdated and "updated" into a _second_ Codex
+    inside the active Node prefix, while the Codex which actually runs stayed on its old version — and which of the two
+    was used from then on depended on the active Node version.
+
+    -   Before offering an update, `ptbk coder` now resolves which file the harness command really executes _(following
+        symbolic links, using the very same `PATH` which runs the harness)_ and recognizes whether it belongs to a
+        global npm installation, a standalone installation, or Homebrew.
+    -   A **standalone installation is updated with its own updater** — `codex update` for OpenAI Codex — and a
+        **Homebrew installation is never touched**, only `brew upgrade …` is printed. When the harness command cannot
+        be traced to any of these, `ptbk coder` says so and leaves it alone instead of guessing, because
+        `npm install -g` would install a second copy next to it.
+    -   The outdated-harness warning now also prints the resolved command path and how it was installed, and the
+        confirmation question names the exact command which is about to run, so an update can no longer be approved
+        without knowing what it does.
+    -   Installing a harness which is missing altogether is unchanged: it is still installed globally through npm.
+
 -   Added the singular `WRITING RULE` keyword as an equivalent variant of `WRITING RULES`, exactly like `RULE` and
     `RULES` are interchangeable. Both spellings are parsed, applied, documented, and syntax-highlighted identically, so
     a single writing constraint no longer has to be written in plural.

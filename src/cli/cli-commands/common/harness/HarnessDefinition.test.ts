@@ -21,6 +21,24 @@ describe('HARNESS_DEFINITIONS', () => {
         }
     });
 
+    it('fully describes every standalone installation it knows about', () => {
+        for (const { standaloneInstallation } of Object.values(HARNESS_DEFINITIONS)) {
+            if (standaloneInstallation === undefined) {
+                continue;
+            }
+
+            expect(standaloneInstallation.directoryNames.length).toBeGreaterThan(0);
+            expect(standaloneInstallation.updateCommand).not.toBe('');
+        }
+    });
+
+    it('knows how the standalone installation of OpenAI Codex updates itself', () => {
+        expect(HARNESS_DEFINITIONS['openai-codex'].standaloneInstallation).toEqual({
+            directoryNames: ['.codex'],
+            updateCommand: 'codex update',
+        });
+    });
+
     it('uses a unique command for each harness', () => {
         const commandNames = Object.values(HARNESS_DEFINITIONS).map(({ commandName }) => commandName);
 

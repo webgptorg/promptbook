@@ -55,7 +55,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional --isolate runs every prompt in its own temporary git worktree and merges it back when verified
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
-            - Checks that the selected harness is installed globally and up to date before the first prompt unless --no-harness-update is used
+            - Checks that the selected harness is installed and up to date before the first prompt unless --no-harness-update is used
             - In interactive mode, checks local and global Promptbook CLI installations and offers to update them
             - Supports GPG signing of commits
             - Optional pre-coding test run that can stop or repair pre-existing failures

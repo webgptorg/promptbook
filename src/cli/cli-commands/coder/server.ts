@@ -53,7 +53,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
 
             Features:
             - Runs the same prompt processing as \`ptbk coder run\`
-            - Checks that the selected harness is installed globally and up to date on startup unless --no-harness-update is used
+            - Checks that the selected harness is installed and up to date on startup unless --no-harness-update is used
             - Does not exit when all prompts are done; polls for new prompt files instead
             - Serves a kanban board at http://localhost:<port> for visual progress tracking
             - Allows editing prompt files directly from the browser (Trello-style)

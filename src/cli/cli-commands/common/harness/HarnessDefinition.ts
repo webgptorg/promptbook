@@ -3,6 +3,28 @@ import { UnexpectedError } from '../../../../errors/UnexpectedError';
 import type { PromptRunnerHarnessName } from '../promptRunnerCliOptions';
 
 /**
+ * Description of a standalone *(self-managed)* installation of one CLI coding harness.
+ *
+ * Some harnesses are also distributed by their own installer which puts the harness outside of npm and
+ * updates it in place. Such an installation must never be updated with `npm install -g`, because that
+ * installs a second copy of the harness instead of updating the one which is really used.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export type HarnessStandaloneInstallation = {
+    /**
+     * Directory names which appear in the resolved path of a standalone installation of the harness,
+     * for example `.codex` in `~/.codex/packages/standalone/current/bin/codex`.
+     */
+    readonly directoryNames: ReadonlyArray<string>;
+
+    /**
+     * Command which updates the standalone installation in place.
+     */
+    readonly updateCommand: string;
+};
+
+/**
  * Static description of one supported CLI coding harness.
  *
  * @private internal utility of `promptbookCli`
@@ -32,6 +54,13 @@ export type HarnessDefinition = {
      * Extra environment variables required by the global npm installation of this harness.
      */
     readonly npmInstallEnvironment?: Readonly<Record<string, string>>;
+
+    /**
+     * How a standalone installation of this harness is recognized and updated.
+     *
+     * Harnesses which are distributed only through npm leave this undefined.
+     */
+    readonly standaloneInstallation?: HarnessStandaloneInstallation;
 };
 
 /**
@@ -45,6 +74,11 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         label: 'OpenAI Codex',
         commandName: 'codex',
         npmPackageName: '@openai/codex',
+        // Note: The official standalone installer keeps its package in `~/.codex` and links it onto the `PATH`
+        standaloneInstallation: {
+            directoryNames: ['.codex'],
+            updateCommand: 'codex update',
+        },
     },
     'github-copilot': {
         harnessName: 'github-copilot',

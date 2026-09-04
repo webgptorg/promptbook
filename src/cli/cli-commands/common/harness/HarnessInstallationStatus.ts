@@ -1,4 +1,5 @@
 import type { HarnessDefinition } from './HarnessDefinition';
+import type { HarnessInstallationOrigin } from './HarnessInstallationOrigin';
 
 /**
  * Result of comparing the globally installed harness version with the newest published one.
@@ -38,6 +39,11 @@ export type HarnessInstallationStatus = {
      * Newest version published to npm or `null` when it could not be resolved.
      */
     readonly latestVersion: string | null;
+
+    /**
+     * Place where the harness command lives together with the way it was installed there.
+     */
+    readonly installationOrigin: HarnessInstallationOrigin;
 };
 
 // Note: [🟡] Code for CLI harness installation status [HarnessInstallationStatus](src/cli/cli-commands/common/harness/HarnessInstallationStatus.ts) should never be published outside of `@promptbook/cli`

@@ -1,0 +1,13 @@
+Timestamp: 2026-09-04T20:24:45.222Z
+Prompt: prompts/2026-09-0100-ptbk-coder-fix-no-harness-update.md#1
+Prompt file: C:\Users\me\work\ai\promptbook\prompts\2026-09-0100-ptbk-coder-fix-no-harness-update.md
+Prompt section: 1
+Prompt summary: `ptbk coder` updates OpenAI Codex via `npm install -g @openai/codex@latest` even when Codex is the standalone install (`codex update`)
+Runner: Claude Code (claude-opus-5)
+
+CLI output and error:
+Error: fatal: pathspec 'src/cli/cli-commands/common/harness/$installHarness.ts' did not match any files
+    at ChildProcess.finishWithCode (C:\Users\me\work\ai\promptbook\src\utils\execCommand\$execCommand.ts:93:29)
+    at ChildProcess.emit (node:events:519:28)
+    at ChildProcess.emit (node:domain:489:12)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)

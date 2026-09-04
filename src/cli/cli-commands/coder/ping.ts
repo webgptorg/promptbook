@@ -40,7 +40,7 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
             - Starts the hourly/weekly quota window before you need it, so it is already refreshing when you do
             - Optional --period keeps the quota window refreshing by pinging once per period until stopped
             - Leaves the project exactly as it was — nothing is read, written, changed or committed
-            - Checks that the selected harness is installed globally and up to date unless --no-harness-update is used
+            - Checks that the selected harness is installed and up to date unless --no-harness-update is used
             - Use --no-ui to stream the raw harness output instead of only the compact result
         `),
     );

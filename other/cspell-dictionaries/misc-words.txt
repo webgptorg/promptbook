@@ -527,3 +527,4 @@ MJPEG
 trackpad
 spacebar
 bursty
+libexec
