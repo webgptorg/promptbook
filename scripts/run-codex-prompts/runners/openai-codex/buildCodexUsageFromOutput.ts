@@ -40,8 +40,11 @@ type CodexTokenCounts = {
 
 /**
  * Builds usage stats from Codex CLI output.
+ *
+ * The `modelName` is omitted when Codex ran without a model override, in which case only Codex knows which
+ * model it picked and the price can be estimated from the fallback pricing alone.
  */
-export function buildCodexUsageFromOutput(output: string, modelName: string): Usage {
+export function buildCodexUsageFromOutput(output: string, modelName: string | undefined): Usage {
     const breakdown = parseCodexTokenBreakdown(output);
     const counts = resolveCodexTokenCounts(breakdown);
     if (!counts) {
@@ -207,8 +210,17 @@ function parseCodexTokenCount(value: string): number | undefined {
 
 /**
  * Resolves a pricing model to estimate Codex cost from total tokens.
+ *
+ * An unknown model — and a run without any model override, where Codex picked the model itself — is priced
+ * with `CODEX_FALLBACK_PRICING_MODEL`, so the estimate stays in the right order of magnitude.
  */
-function resolveCodexPricing(modelName: string): { prompt: number; output: number } | undefined {
+function resolveCodexPricing(modelName: string | undefined): { prompt: number; output: number } | undefined {
+    const fallbackPricing = OPENAI_MODELS.find((model) => model.modelName === CODEX_FALLBACK_PRICING_MODEL)?.pricing;
+
+    if (modelName === undefined) {
+        return fallbackPricing;
+    }
+
     const exactMatch = OPENAI_MODELS.find((model) => model.modelName === modelName)?.pricing;
     if (exactMatch) {
         return exactMatch;
@@ -219,5 +231,5 @@ function resolveCodexPricing(modelName: string): { prompt: number; output: numbe
         return prefixMatch;
     }
 
-    return OPENAI_MODELS.find((model) => model.modelName === CODEX_FALLBACK_PRICING_MODEL)?.pricing;
+    return fallbackPricing;
 }

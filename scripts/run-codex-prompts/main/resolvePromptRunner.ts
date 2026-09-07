@@ -12,9 +12,9 @@ import { DEFAULT_QWEN_CODE_MODEL, QwenCodeRunner } from '../runners/qwen-code/Qw
 import type { PromptRunner } from '../runners/types/PromptRunner';
 
 /**
- * Constant for default codex model.
+ * Value of `--model` which asks for the default model of the selected harness instead of naming one.
  */
-const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex';
+const DEFAULT_MODEL_NAME = 'default';
 
 /**
  * Constant for cline model.
@@ -81,7 +81,7 @@ export function resolvePromptRunner(options: PromptRunnerSelectionOptions): Prom
     }
 
     if (agentName === 'github-copilot') {
-        const actualRunnerModel = options.model === 'default' ? undefined : options.model;
+        const actualRunnerModel = options.model === DEFAULT_MODEL_NAME ? undefined : options.model;
 
         return createRunnerResolution(
             options,
@@ -132,7 +132,9 @@ function createOpenAiCodexRunnerResolution(options: PromptRunnerSelectionOptions
     const actualRunnerModel = resolveRequiredModel({
         agentName: 'openai-codex',
         providedModel: options.model,
-        defaultModel: DEFAULT_CODEX_MODEL,
+        // Note: Codex must not be pinned to any model of ours, because a ChatGPT-account login only accepts the
+        //       models which Codex itself offers — `default` therefore keeps the model from `~/.codex/config.toml`
+        defaultModel: undefined,
         availableModels: OPENAI_MODELS.filter((model) => model.modelVariant === 'CHAT').map((model) => model.modelName),
         exampleUsages: ['--harness openai-codex --model gpt-5.2-codex', '--harness openai-codex --model default'],
     });
@@ -243,19 +245,22 @@ function isModelRequiringHarnessName(agentName?: string): agentName is ModelRequ
 
 /**
  * Resolves a runner model, allowing `default` but otherwise requiring an explicit value.
+ *
+ * The `defaultModel` of a harness is either the model name which `--model default` stands for, or `undefined`
+ * when the harness must be started **without any model override** and keep the model of its own configuration.
  */
-function resolveRequiredModel(options: {
+function resolveRequiredModel<TDefaultModel extends string | undefined>(options: {
     agentName: ModelRequiringHarnessName;
     providedModel?: string;
-    defaultModel: string;
+    defaultModel: TDefaultModel;
     availableModels?: ReadonlyArray<string>;
     exampleUsages: ReadonlyArray<string>;
-}): string {
+}): string | TDefaultModel {
     if (!options.providedModel) {
         exitForMissingModel(options.agentName, options.availableModels, options.exampleUsages);
     }
 
-    if (options.providedModel === 'default') {
+    if (options.providedModel === DEFAULT_MODEL_NAME) {
         return options.defaultModel;
     }
 

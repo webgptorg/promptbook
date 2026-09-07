@@ -1,3 +1,18 @@
+-   Fixed `ptbk coder --harness openai-codex --model default` failing for everyone signed in to OpenAI Codex with a
+    ChatGPT account. `default` silently stood for `gpt-5.2-codex`, which such an account rejects with
+    _"The 'gpt-5.2-codex' model is not supported when using Codex with a ChatGPT account"_ — so both
+    `ptbk coder ping` and `ptbk coder run` died before doing any work.
+
+    -   `--model default` now overrides **no model at all** for OpenAI Codex: Codex is started without `--model` and
+        keeps the model from its own configuration _(`~/.codex/config.toml`)_, exactly like `--model default` already
+        worked for GitHub Copilot. Whatever a ChatGPT-account login is allowed to use therefore works.
+    -   Naming a model explicitly, for example `--model gpt-5.2-codex`, is unchanged, and `--model` is still required
+        for OpenAI Codex.
+    -   For `gemini` and `qwen-code`, `default` keeps standing for their concrete default model, because those CLIs
+        have no configured default to fall back to.
+    -   When Codex picks the model itself, the reported price is estimated from the fallback pricing, because only
+        Codex knows which model it really used.
+
 -   Fixed **ptbk coder** updating a coding harness with `npm install -g` even when npm does not own that harness. A
     Codex installed by the official standalone installer was reported as outdated and "updated" into a _second_ Codex
     inside the active Node prefix, while the Codex which actually runs stayed on its old version — and which of the two

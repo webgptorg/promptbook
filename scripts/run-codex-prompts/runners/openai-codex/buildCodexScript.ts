@@ -47,6 +47,9 @@ export function buildCodexScript(options: CodexScriptOptions): string {
         fi
     `);
     const thinkingLevel = options.thinkingLevel ?? DEFAULT_CODEX_THINKING_LEVEL;
+    // Note: Without an explicit model Codex keeps the model of its own configuration, which is what a
+    //       ChatGPT-account login needs — it rejects every model that Codex itself does not offer
+    const modelArgument = options.model ? ` --model ${options.model}` : '';
     const lines = [
         'if [ -n "${PTBK_AGENTS_SERVER_ENV_FILE:-}" ] && [ -f "${PTBK_AGENTS_SERVER_ENV_FILE}" ]; then',
         'set -a',
@@ -73,7 +76,7 @@ export function buildCodexScript(options: CodexScriptOptions): string {
         '    "${CODEX_LOGIN_METHOD_ARGUMENTS[@]}" \\',
         `    -c model_reasoning_effort="${thinkingLevel}" \\`,
         `    --ask-for-approval ${options.askForApproval} \\`,
-        `    exec --model ${options.model} \\`,
+        `    exec${modelArgument} \\`,
         ...(options.isMachineReadableProgressEnabled ? ['    --json \\'] : []),
         '    --local-provider none \\',
         `    --sandbox ${options.sandbox} \\`,

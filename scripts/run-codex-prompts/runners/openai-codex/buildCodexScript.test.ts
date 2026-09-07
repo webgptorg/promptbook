@@ -27,6 +27,20 @@ describe('buildCodexScript', () => {
         expect(script).toContain('printf \'%s %s\\n\' \'ptbk-codex-login-method:\' "${CODEX_LOGIN_METHOD}"');
     });
 
+    it('omits the model override when no model is selected', () => {
+        const script = buildCodexScript({
+            prompt: 'Hello from test prompt',
+            projectPath: '/project/path',
+            sandbox: 'danger-full-access',
+            askForApproval: 'never',
+            allowCredits: false,
+            codexCommand: 'codex',
+        });
+
+        expect(script).toContain('    exec \\');
+        expect(script).not.toContain('--model');
+    });
+
     it('uses the provided thinking level override', () => {
         const script = buildCodexScript({
             prompt: 'Hello from test prompt',

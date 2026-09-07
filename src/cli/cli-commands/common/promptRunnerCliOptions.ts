@@ -130,6 +130,8 @@ export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(`
     OpenAI examples: gpt-5.2-codex, default
     Gemini examples: gemini-3-flash-preview, default
     Qwen examples: qwen3.8-max, default
+
+    For openai-codex, "default" overrides no model at all and keeps the one configured in Codex itself, which is what a ChatGPT-account login accepts
 `);
 
 /**
