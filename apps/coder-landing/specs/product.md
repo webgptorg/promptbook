@@ -29,7 +29,7 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 ## Core workflow (the loop the page must explain)
 
 1. `ptbk coder init` scaffolds the project (see [`content/commands.md`](./content/commands.md)).
-2. The developer writes each task as one markdown file in `prompts/`.
+2. The developer writes each task as one markdown file in `prompts/`. A status checkbox is optional: a prompt without one starts ready at priority `0` and gains its status line when processing starts.
 3. `ptbk coder run` (or `ptbk coder server`) feeds prompts one by one to the selected harness, with:
     - an optional agent persona from a `.book` file (`--agent`, see [`content/developer-agent.md`](./content/developer-agent.md)),
     - optional project context (`--context`, e.g. `AGENTS.md`).

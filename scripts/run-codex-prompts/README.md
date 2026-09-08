@@ -124,7 +124,7 @@ ptbk coder run --harness claude-code --git-changes continue
 
 ## Prompt statuses
 
-Every prompt starts with a checklist marker on its first line and the coder rewrites that marker as the task moves along:
+Every prompt can start with a checklist marker on its first line. A prompt without a status marker is ready at priority `0`; when the coder starts it, the first live status line is added before its content and then rewritten as the task moves along:
 
 | Marker | Meaning                                       |
 | ------ | --------------------------------------------- |

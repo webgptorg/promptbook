@@ -130,6 +130,32 @@ describe('buildCoderServerPromptFileResponses', () => {
         });
     });
 
+    it('shows an unmarked prompt as a zero-priority todo prompt', () => {
+        const promptFile = createPromptFile(
+            'prompts/unmarked.md',
+            spaceTrim(`
+                # Implement the feature
+
+                Preserve this prompt content.
+            `),
+        );
+
+        const responses = buildCoderServerPromptFileResponses({
+            promptFiles: [promptFile],
+            finishedPromptFiles: [],
+            priorityFilter: {},
+        });
+
+        expect(responses[0]?.sections[0]).toMatchObject({
+            status: 'todo',
+            column: 'todo',
+            priority: 0,
+            summary: '# Implement the feature',
+            content: '# Implement the feature\n\nPreserve this prompt content.',
+            tags: [],
+        });
+    });
+
     it('uses the implementing tag for the active running prompt', () => {
         const promptFile = createPromptFile(
             'prompts/active.md',

@@ -1,8 +1,18 @@
 import { basename } from 'path';
+import { findFirstNonEmptyLineIndex } from './findFirstNonEmptyLineIndex';
 import { extractPromptRunnerTokens } from './isPromptCompatibleWithRunner';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 import type { PromptStatus } from './types/PromptStatus';
+
+/**
+ * Matches the supported prompt status markers at the start of a line.
+ *
+ * A different bracketed prefix can be ordinary prompt content, for example an emoji tag.
+ *
+ * @private internal constant of `parsePromptFile`
+ */
+const PROMPT_STATUS_MARKER_PATTERN = /^\[(?: |-|[xX]|\^|!)\]/u;
 
 /**
  * Parses a prompt markdown file into sections and metadata.
@@ -25,11 +35,11 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
         }
 
         const endLine = i - 1;
-        const firstNonEmptyLine = findFirstNonEmptyLine(lines, startLine, endLine);
+        const firstNonEmptyLine = findFirstNonEmptyLineIndex(lines, startLine, endLine);
         if (firstNonEmptyLine !== undefined) {
             const statusLine = (lines[firstNonEmptyLine] || '').trim();
             const parsedStatus = parseStatusLine(statusLine);
-            const status = parsedStatus?.status ?? 'not-ready';
+            const status = parsedStatus?.status ?? (hasPromptStatusMarker(statusLine) ? 'not-ready' : 'todo');
             const priority = parsedStatus?.priority ?? 0;
 
             sections.push({
@@ -103,14 +113,10 @@ function parseStatusLine(line: string): { status: PromptStatus; priority: number
 }
 
 /**
- * Finds the first non-empty line index between two bounds.
+ * Checks whether a line starts with one of the supported prompt status markers.
+ *
+ * @private internal utility of `parsePromptFile`
  */
-function findFirstNonEmptyLine(lines: string[], startLine: number, endLine: number): number | undefined {
-    for (let i = startLine; i <= endLine; i++) {
-        const line = lines[i];
-        if (line !== undefined && line.trim() !== '') {
-            return i;
-        }
-    }
-    return undefined;
+function hasPromptStatusMarker(line: string): boolean {
+    return PROMPT_STATUS_MARKER_PATTERN.test(line);
 }

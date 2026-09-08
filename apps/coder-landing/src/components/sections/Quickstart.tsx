@@ -62,10 +62,12 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         title: 'Write your backlog as prompts',
         description: (
             <>
-                <code className="text-promptbook-blue">ptbk coder add</code> writes one ready-to-run markdown file into{' '}
-                <code className="text-promptbook-blue">prompts/</code> for you. Describe the task the same way you would
-                prompt Claude Code or Codex, in plain language and as specific as you like. Pipe in a heredoc for longer
-                descriptions, or run it with no arguments and type one interactively.
+                Put a plain markdown task directly in <code className="text-promptbook-blue">prompts/</code>, or let{' '}
+                <code className="text-promptbook-blue">ptbk coder add</code> create one for you. A status checkbox is
+                optional: a prompt without one is ready at priority 0 and receives its live status when processing
+                begins. Describe the task the same way you would prompt Claude Code or Codex, in plain language and as
+                specific as you like. Pipe in a heredoc for longer descriptions, or run it with no arguments and type
+                one interactively.
             </>
         ),
         command: ADD_COMMAND,

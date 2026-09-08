@@ -1,3 +1,7 @@
+-   Added support for plain markdown prompts without a status checkbox in **ptbk coder**. `ptbk coder run` and
+    `ptbk coder server` now treat them as ready prompts at priority `0`, then insert the normal live `[^]` status line
+    before their content as processing begins and finish them through the usual `[x]` or `[!]` flow.
+
 -   Added project-local harness ignore rules to **ptbk coder**. `ptbk coder init` now adds the rules for every supported
     harness, including `.qwen`; `ptbk coder run`, `ptbk coder server`, and `ptbk coder ping` detect a missing selected
     harness rule and use the same interactive `[y/N]` confirmation as harness installation updates before adding it.

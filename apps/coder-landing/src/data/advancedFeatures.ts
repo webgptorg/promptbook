@@ -121,7 +121,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Live status in the prompt file',
         description:
-            'A prompt turns from [ ] into [^] the moment the agent picks it up, and the line names the step that is running. It only becomes [x] after the work is implemented, verified and committed. ptbk coder never reverts a [^], so if the queue is killed or crashes you can see which task was left half-done.',
+            'A [ ] prompt — or plain markdown with no status checkbox — turns into [^] the moment the agent picks it up, and the line names the step that is running. A prompt without a checkbox starts at priority 0. It only becomes [x] after the work is implemented, verified and committed. ptbk coder never reverts a [^], so if the queue is killed or crashes you can see which task was left half-done.',
         sampleCommand: '[^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
     },
     {

@@ -102,4 +102,25 @@ describe('priority filtering', () => {
         expect(runnable).toHaveLength(1);
         expect(runnable[0]?.section.index).toBe(1);
     });
+
+    it('treats a prompt without a status marker as a zero-priority runnable todo', () => {
+        const file = parsePromptFile(
+            'prompts/unmarked-test.md',
+            spaceTrim(`
+                Implement a plain markdown prompt
+
+                Preserve this prompt content.
+            `),
+        );
+
+        const [section] = file.sections;
+
+        expect(section).toMatchObject({
+            status: 'todo',
+            priority: 0,
+            statusLineIndex: undefined,
+        });
+        expect(listRunnablePrompts([file])).toHaveLength(1);
+        expect(listRunnablePrompts([file], { minimumPriority: 1 })).toHaveLength(0);
+    });
 });
