@@ -1,3 +1,8 @@
+-   Fixed the Agents Server production build failing when its Edge middleware reached standalone SQLite code.
+    SQLite registry loading now lives in a Node.js-only module, and custom-domain routing reads its needed federation
+    settings through the middleware's supplied Supabase client. Edge middleware can therefore route configured domains
+    without compiling `better-sqlite3` into its bundle.
+
 -   Fixed `ptbk coder --harness openai-codex --model default` failing for everyone signed in to OpenAI Codex with a
     ChatGPT account. `default` silently stood for `gpt-5.2-codex`, which such an account rejects with
     _"The 'gpt-5.2-codex' model is not supported when using Codex with a ChatGPT account"_ — so both

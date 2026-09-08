@@ -3,7 +3,8 @@ import { headers } from 'next/headers';
 import { cache } from 'react';
 import { isAgentsServerSqliteMode } from '../database/agentsServerDatabaseMode';
 import { resolveInternalServerOrigin } from '../utils/resolveInternalServerOrigin';
-import { createServerPublicUrl, listRegisteredServersUsingServiceRole } from '../utils/serverRegistry';
+import { createServerPublicUrl } from '../utils/serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../utils/serverRegistryNode';
 import { resolveServerSelection } from '../utils/serverSelection';
 import { getServerContextOverride } from './serverContextOverride';
 

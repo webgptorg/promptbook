@@ -2,20 +2,8 @@ import { spaceTrim } from 'spacetrim';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { book } from '../../../../src/_packages/core.index';
-import {
-    createCustomDomainMatchCandidates,
-    createCustomDomainOrFilter,
-    resolveCustomDomainAgent,
-} from './customDomainRouting';
+import { createCustomDomainMatchCandidates, createCustomDomainOrFilter, resolveCustomDomainAgent } from './customDomainRouting';
 import { SERVER_ENVIRONMENT, type ServerRecord } from './serverRegistry';
-
-jest.mock('./getFederatedServers', () => ({
-    getFederatedServers: jest.fn(async () => []),
-}));
-
-jest.mock('./getWellKnownAgentUrl', () => ({
-    getWellKnownAgentUrl: jest.fn(async () => 'https://core-test.ptbk.io/agents/adam'),
-}));
 
 /**
  * Original fetch implementation restored after each test.
@@ -228,6 +216,12 @@ function createMockSupabase(
                     return builder;
                 },
                 or() {
+                    return builder;
+                },
+                in() {
+                    return builder;
+                },
+                eq() {
                     return builder;
                 },
                 limit() {

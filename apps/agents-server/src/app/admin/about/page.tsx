@@ -30,7 +30,7 @@ import { Card } from '../../../components/Homepage/Card';
 import { Section } from '../../../components/Homepage/Section';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { getSession } from '../../../utils/session';
-import { listRegisteredServersUsingServiceRole } from '../../../utils/serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../../../utils/serverRegistryNode';
 
 /**
  * Constant for promptbook about text.

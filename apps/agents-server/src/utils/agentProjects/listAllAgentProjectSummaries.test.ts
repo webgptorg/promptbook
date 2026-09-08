@@ -5,7 +5,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { PTBK_AGENTS_SERVER_AGENT_ROOT_ENV } from '../localChatRunner/localChatRunnerConstants';
 import { createLocalAgentDirectoryName } from '../localChatRunner/ensureLocalAgentFolder';
 import { getServerContextOverride } from '@/src/tools/serverContextOverride';
-import { listRegisteredServersUsingServiceRole } from '../serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../serverRegistryNode';
 import { listAllAgentProjectSummaries } from './listAllAgentProjectSummaries';
 
 jest.mock('@/src/database/$getTableName', () => ({
@@ -18,6 +18,9 @@ jest.mock('@/src/database/$provideSupabaseForServer', () => ({
 
 jest.mock('../serverRegistry', () => ({
     createServerPublicUrl: jest.fn((domain: string) => new URL(`https://${domain}`)),
+}));
+
+jest.mock('../serverRegistryNode', () => ({
     listRegisteredServersUsingServiceRole: jest.fn(),
 }));
 

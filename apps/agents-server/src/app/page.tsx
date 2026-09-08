@@ -11,10 +11,10 @@ import { isUserAdmin } from '../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
 import {
     createServerPublicUrl,
-    listRegisteredServersUsingServiceRole,
     resolveRegisteredServerByHost,
     type ServerRecord,
 } from '../utils/serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../utils/serverRegistryNode';
 import { isStandaloneVpsRawIpBootstrapActive } from '../utils/standaloneVpsRawIpBootstrap';
 import { getHomePageAgents } from './_data/getHomePageAgents';
 

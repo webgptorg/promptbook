@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { NotFoundError } from '../../../../../src/errors/NotFoundError';
 import type { ServerRecord } from '../serverRegistry';
-import { listRegisteredServersUsingServiceRole } from '../serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../serverRegistryNode';
 import { SERVER_REGISTRY_TABLE_NAME } from './SERVER_REGISTRY_TABLE_NAME';
 
 /**

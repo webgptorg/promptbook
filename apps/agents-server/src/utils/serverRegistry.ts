@@ -140,21 +140,6 @@ export async function listRegisteredServersUsingServiceRole(options?: {
 }): Promise<Array<ServerRecord>> {
     const environmentServers = listEnvironmentRegisteredServers();
 
-    if (isAgentsServerSqliteMode()) {
-        if (isEdgeRuntime()) {
-            // Note: The Edge middleware cannot open SQLite files. It only needs the domain list
-            //       for host matching and never queries server tables in SQLite mode, so the
-            //       environment-derived rows are sufficient there.
-            return environmentServers;
-        }
-
-        // Note: In standalone SQLite mode the VPS registry database is the source of truth.
-        //       Every server row carries its own unique table prefix selecting the isolated
-        //       per-server database file, so servers cannot leak data into each other.
-        const { listStandaloneRegisteredServers } = await import('../database/sqlite/standaloneServerRegistryStore');
-        return listStandaloneRegisteredServers();
-    }
-
     const shouldReuseCache =
         !options?.forceRefresh &&
         cachedServerRegistry !== null &&
@@ -215,15 +200,6 @@ export function listEnvironmentRegisteredServers(): Array<ServerRecord> {
         createdAt: ENVIRONMENT_SERVER_TIMESTAMP,
         updatedAt: ENVIRONMENT_SERVER_TIMESTAMP,
     }));
-}
-
-/**
- * Checks whether the current code runs inside the Next.js Edge runtime.
- *
- * @returns `true` when running in the Edge runtime (for example in middleware).
- */
-function isEdgeRuntime(): boolean {
-    return process.env.NEXT_RUNTIME === 'edge';
 }
 
 /**

@@ -1,4 +1,11 @@
 /**
+ * Metadata key storing the comma-separated federated server URL list.
+ *
+ * @private shared Agents Server constant
+ */
+export const FEDERATED_SERVERS_METADATA_KEY = 'FEDERATED_SERVERS' as const;
+
+/**
  * Metadata key storing the delay between retry attempts when importing federated agent books.
  *
  * @private internal Agents Server constant
