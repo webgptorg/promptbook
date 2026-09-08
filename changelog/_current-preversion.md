@@ -1,3 +1,7 @@
+-   Fixed globally installing `ptbk` on Node.js 26, including macOS arm64. `ptbk coder` can now be installed without
+    `better-sqlite3` 11 falling back to a native build against removed V8 APIs; the generated CLI now receives
+    `better-sqlite3` 12.11.1, which supplies the matching Node 26 binary.
+
 -   Fixed the Agents Server production build failing when its Edge middleware reached standalone SQLite code.
     SQLite registry loading now lives in a Node.js-only module, and custom-domain routing reads its needed federation
     settings through the middleware's supplied Supabase client. Edge middleware can therefore route configured domains
