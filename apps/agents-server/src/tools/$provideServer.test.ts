@@ -1,6 +1,6 @@
 import { headers } from 'next/headers';
 import { $provideServer } from './$provideServer';
-import { listRegisteredServersUsingServiceRole } from '../utils/serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../utils/serverRegistryNode';
 
 jest.mock('react', () => ({
     cache: <TFunction extends (...args: Array<never>) => unknown>(callback: TFunction): TFunction => callback,
@@ -15,14 +15,9 @@ jest.mock('next/headers', () => ({
     headers: jest.fn(),
 }));
 
-jest.mock('../utils/serverRegistry', () => {
-    const actual = jest.requireActual('../utils/serverRegistry');
-
-    return {
-        ...actual,
-        listRegisteredServersUsingServiceRole: jest.fn(),
-    };
-});
+jest.mock('../utils/serverRegistryNode', () => ({
+    listRegisteredServersUsingServiceRole: jest.fn(),
+}));
 
 /**
  * Creates a typed header store for `$provideServer` tests.

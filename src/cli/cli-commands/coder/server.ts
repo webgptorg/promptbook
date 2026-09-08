@@ -25,6 +25,7 @@ import {
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
+import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 
 /**
  * Default port used by `ptbk coder server`.
@@ -54,6 +55,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
             Features:
             - Runs the same prompt processing as \`ptbk coder run\`
             - Checks that the selected harness is installed and up to date on startup unless --no-harness-update is used
+            - Offers to add missing project-local ignore rules for the selected harness
             - Does not exit when all prompts are done; polls for new prompt files instead
             - Serves a kanban board at http://localhost:<port> for visual progress tracking
             - Allows editing prompt files directly from the browser (Trello-style)
@@ -184,6 +186,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
             );
 
             await $ensureHarnessInstallations([runnerOptions.agentName], isHarnessUpdateCheckEnabled);
+            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName);
 
             // [1] Parse the wait options and --no-auto (same logic as `coder run`)
             const waitForUser = !auto;

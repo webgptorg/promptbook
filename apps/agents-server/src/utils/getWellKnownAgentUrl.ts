@@ -1,5 +1,6 @@
 import { CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES } from '../../../../servers';
 import { string_agent_url } from '../../../../src/_packages/types.index'; // <- [🚾]
+import { createWellKnownAgentUrl } from './createWellKnownAgentUrl';
 import { resolveCurrentOrInternalServerOrigin } from './resolveCurrentOrInternalServerOrigin';
 
 /**
@@ -14,7 +15,5 @@ export async function getWellKnownAgentUrl(
     agentName: keyof typeof CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES,
 ): Promise<string_agent_url> {
     const localServerOrigin = await resolveCurrentOrInternalServerOrigin();
-    const normalizedServerOrigin = localServerOrigin.replace(/\/+$/g, '');
-
-    return `${normalizedServerOrigin}/agents/${CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES[agentName]}` as string_agent_url;
+    return createWellKnownAgentUrl(localServerOrigin, agentName);
 }

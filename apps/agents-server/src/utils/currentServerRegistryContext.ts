@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
-import { listRegisteredServersUsingServiceRole, type ServerRecord } from './serverRegistry';
+import type { ServerRecord } from './serverRegistry';
+import { listRegisteredServersUsingServiceRole } from './serverRegistryNode';
 import { resolveServerSelection } from './serverSelection';
 
 /**

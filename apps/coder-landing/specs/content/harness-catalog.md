@@ -6,6 +6,9 @@ Shared facts:
 
 -   Harness identifiers are the exact values accepted by `--harness`.
 -   Thinking levels (for harnesses that support them): `low`, `medium`, `high`, `xhigh`, `max`.
+-   The model example `default` means the default model of that harness. For `openai-codex` it overrides no model at
+    all and keeps the one configured in Codex itself, because a ChatGPT-account login only accepts the models which
+    Codex offers.
 
 | # | Harness id       | Display name       | Vendor          | Model required | Model examples                    | Accent color |
 | - | ---------------- | ------------------ | --------------- | -------------- | --------------------------------- | ------------ |
@@ -20,7 +23,7 @@ Shared facts:
 ## Descriptions (verbatim card copy)
 
 1. **Claude Code** — "The agentic CLI by Anthropic. ptbk coder drives it through your whole prompt queue, with thinking levels up to max."
-2. **OpenAI Codex** — "The OpenAI Codex CLI. It needs an explicit model, and it only spends credits beyond your rate limits when you pass --allow-credits."
+2. **OpenAI Codex** — "The OpenAI Codex CLI. It needs an explicit model — or --model default, which keeps the model configured in Codex itself — and it only spends credits beyond your rate limits when you pass --allow-credits."
 3. **GitHub Copilot CLI** — "GitHub Copilot in your terminal. Works out of the box with your Copilot subscription and supports thinking levels."
 4. **Gemini CLI** — "The Google Gemini CLI. It needs an explicit model, such as one of the fast flash previews."
 5. **Qwen Code** — "The Qwen Code CLI. It needs an explicit model, such as one of the Qwen coder or max models, and signs in with a Qwen account or an OpenAI-compatible API key."

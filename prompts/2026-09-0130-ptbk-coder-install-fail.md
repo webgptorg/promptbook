@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.8340 40 minutes; Testing 26 minutes
 
 [✨🐃] `npm install -g ptbk` fails on Node 26 (better-sqlite3 has no prebuilt binary and does not compile)
 
@@ -17,3 +17,4 @@ Works on Node 22.23.2. Either bump `better-sqlite3` to a release with Node 26 su
 -   Do a proper analysis of installation of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

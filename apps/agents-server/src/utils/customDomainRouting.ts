@@ -12,12 +12,15 @@ import { NotFoundError } from '../../../../src/errors/NotFoundError';
 import { ParseError } from '../../../../src/errors/ParseError';
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { normalizeDomainForMatching } from '../../../../src/utils/validators/url/normalizeDomainForMatching';
-import type { FederatedAgentImportConfiguration } from '../constants/federatedAgentImport';
+import {
+    DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION,
+    FEDERATED_AGENT_IMPORT_MAX_ATTEMPTS,
+    FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
+    FEDERATED_SERVERS_METADATA_KEY,
+    type FederatedAgentImportConfiguration,
+} from '../constants/federatedAgentImport';
 import { isSameAgentPermanentId } from './agentIdentifier';
 import { createServerAgentReferenceResolver } from './agentReferenceResolver/createServerAgentReferenceResolver';
-import { loadFederatedAgentImportConfiguration } from './federatedAgentImportConfiguration';
-import { getFederatedServers } from './getFederatedServers';
-import { getWellKnownAgentUrl } from './getWellKnownAgentUrl';
 import {
     createLocalAgentUrl,
     normalizeLocalAgentUrlReferences,
@@ -26,6 +29,8 @@ import {
 } from './localAgentRouteReferences';
 import { createMissingImportedAgentFallback } from './createMissingImportedAgentFallback';
 import { resolveInheritedAgentSource, type AgentSourceImporter } from './resolveInheritedAgentSource';
+import { createWellKnownAgentUrl } from './createWellKnownAgentUrl';
+import { parseFederatedServers } from './parseFederatedServers';
 import { createServerPublicUrl, type ServerRecord } from './serverRegistry';
 
 /**
@@ -37,6 +42,16 @@ const HTTP_PROTOCOL_PREFIX = 'http://';
  * Prefix used when generating HTTPS URL variants for host matching.
  */
 const HTTPS_PROTOCOL_PREFIX = 'https://';
+
+/**
+ * Metadata values needed to resolve inherited custom-domain agent sources in Edge middleware.
+ *
+ * @private constant of custom-domain routing
+ */
+const CUSTOM_DOMAIN_FEDERATED_METADATA_KEYS = [
+    FEDERATED_SERVERS_METADATA_KEY,
+    FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
+] as const;
 
 /**
  * Candidate values used when searching one custom host in `agentProfile`.
@@ -133,6 +148,35 @@ type CustomDomainAgentRow = {
  * Minimal resolved metadata needed for custom-domain matching.
  */
 type ResolvedCustomDomainMetadata = Pick<AgentBasicInformation, 'links' | 'meta'>;
+
+/**
+ * Metadata row shape needed while resolving a custom-domain agent in Edge middleware.
+ *
+ * @private type of custom-domain routing
+ */
+type CustomDomainMetadataRow = {
+    readonly key: unknown;
+    readonly value: unknown;
+};
+
+/**
+ * Dedicated server-limit row shape needed while resolving a custom-domain agent in Edge middleware.
+ *
+ * @private type of custom-domain routing
+ */
+type CustomDomainServerLimitRow = {
+    readonly value: unknown;
+};
+
+/**
+ * Federation dependencies scoped to the server currently considered for a custom-domain match.
+ *
+ * @private type of custom-domain routing
+ */
+type CustomDomainFederatedDependencies = {
+    readonly federatedAgentImportConfiguration: FederatedAgentImportConfiguration;
+    readonly federatedServers: ReadonlyArray<string>;
+};
 
 /**
  * Creates a minimal local collection used only for compact-reference initialization.
@@ -426,12 +470,6 @@ export async function resolveCustomDomainAgent(
         return null;
     }
 
-    const [federatedServers, adamAgentUrl, federatedAgentImportConfiguration] = await Promise.all([
-        getFederatedServers(),
-        getWellKnownAgentUrl('ADAM'),
-        loadFederatedAgentImportConfiguration(),
-    ]);
-
     for (const server of servers) {
         try {
             const tableName = `${server.tablePrefix}Agent`;
@@ -455,6 +493,9 @@ export async function resolveCustomDomainAgent(
             }
 
             const localServerUrl = createServerPublicUrl(server.domain).href;
+            const { federatedServers, federatedAgentImportConfiguration } =
+                await loadCustomDomainFederatedDependencies(supabase, server);
+            const adamAgentUrl = createWellKnownAgentUrl(localServerUrl, 'ADAM');
             const agentCollection = createResolverAgentCollection(
                 resolverReferenceAgents as Array<CustomDomainAgentRow>,
             );
@@ -500,6 +541,98 @@ export async function resolveCustomDomainAgent(
     }
 
     return null;
+}
+
+/**
+ * Loads federation settings for the server currently checked for a custom-domain agent.
+ *
+ * Middleware already owns an Edge-compatible Supabase client. Reading the needed rows through
+ * that client keeps custom-domain routing usable in the Edge runtime and avoids request-scoped
+ * Node database helpers, which can load the standalone SQLite backend.
+ *
+ * @param supabase - Edge-compatible Supabase client supplied by middleware.
+ * @param server - Candidate server whose inherited agent source is being resolved.
+ * @returns Federation dependencies, falling back to safe defaults when configuration is unavailable.
+ *
+ * @private function of custom-domain routing
+ */
+async function loadCustomDomainFederatedDependencies(
+    supabase: SupabaseClient,
+    server: ServerRecord,
+): Promise<CustomDomainFederatedDependencies> {
+    try {
+        const metadataTableName = `${server.tablePrefix}Metadata`;
+        const serverLimitTableName = `${server.tablePrefix}ServerLimit`;
+        const [metadataResponse, serverLimitResponse] = await Promise.all([
+            supabase.from(metadataTableName).select('key, value').in('key', CUSTOM_DOMAIN_FEDERATED_METADATA_KEYS),
+            supabase
+                .from(serverLimitTableName)
+                .select('value')
+                .eq('key', FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY)
+                .maybeSingle(),
+        ]);
+        const metadataRows = metadataResponse.error
+            ? []
+            : ((Array.isArray(metadataResponse.data) ? metadataResponse.data : []) as Array<CustomDomainMetadataRow>);
+        const serverLimitRow = serverLimitResponse.error
+            ? null
+            : (serverLimitResponse.data as CustomDomainServerLimitRow | null);
+        const federatedServersValue = readCustomDomainMetadataValue(metadataRows, FEDERATED_SERVERS_METADATA_KEY);
+        const legacyRetryDelayValue = readCustomDomainMetadataValue(
+            metadataRows,
+            FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
+        );
+
+        return {
+            federatedServers: parseFederatedServers(federatedServersValue),
+            federatedAgentImportConfiguration: {
+                maxAttempts: FEDERATED_AGENT_IMPORT_MAX_ATTEMPTS,
+                retryDelayMs: normalizeFederatedAgentImportRetryDelayMs(
+                    serverLimitRow?.value ?? legacyRetryDelayValue,
+                ),
+            },
+        };
+    } catch {
+        return {
+            federatedServers: [],
+            federatedAgentImportConfiguration: DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION,
+        };
+    }
+}
+
+/**
+ * Reads one named metadata value from a custom-domain routing query result.
+ *
+ * @param rows - Raw metadata rows loaded for the candidate server.
+ * @param key - Metadata key to read.
+ * @returns Stored string value, or `undefined` when unavailable.
+ *
+ * @private function of custom-domain routing
+ */
+function readCustomDomainMetadataValue(
+    rows: ReadonlyArray<CustomDomainMetadataRow>,
+    key: string,
+): string | undefined {
+    const row = rows.find((candidate) => candidate.key === key);
+    return typeof row?.value === 'string' ? row.value : undefined;
+}
+
+/**
+ * Normalizes the one federation retry delay used by Edge custom-domain routing.
+ *
+ * @param value - Dedicated limit or legacy metadata value.
+ * @returns A finite non-negative retry delay, or the shared default.
+ *
+ * @private function of custom-domain routing
+ */
+function normalizeFederatedAgentImportRetryDelayMs(value: unknown): number {
+    const parsedValue = Number(value);
+
+    if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+        return DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION.retryDelayMs;
+    }
+
+    return Math.floor(parsedValue);
 }
 
 /**

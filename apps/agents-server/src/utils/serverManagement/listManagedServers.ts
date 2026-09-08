@@ -1,5 +1,5 @@
 import type { ServerRecord } from '../serverRegistry';
-import { listRegisteredServersUsingServiceRole } from '../serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../serverRegistryNode';
 
 /**
  * Loads all registered servers directly from the shared registry cache.

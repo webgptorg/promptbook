@@ -21,6 +21,16 @@ describe('HARNESS_DEFINITIONS', () => {
         }
     });
 
+    it('defines project-local ignore rules for every harness', () => {
+        for (const definition of Object.values(HARNESS_DEFINITIONS)) {
+            expect(definition.projectGitignoreRules.length).toBeGreaterThan(0);
+        }
+    });
+
+    it('includes Qwen Code local files in its project ignore rules', () => {
+        expect(HARNESS_DEFINITIONS['qwen-code'].projectGitignoreRules).toContain('.qwen');
+    });
+
     it('fully describes every standalone installation it knows about', () => {
         for (const { standaloneInstallation } of Object.values(HARNESS_DEFINITIONS)) {
             if (standaloneInstallation === undefined) {

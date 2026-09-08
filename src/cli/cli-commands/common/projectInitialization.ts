@@ -113,7 +113,7 @@ export async function ensureProjectGitignoreFile({
 }: EnsureProjectGitignoreFileOptions): Promise<ProjectInitializationStatus> {
     const gitignorePath = join(projectPath, GITIGNORE_FILE_PATH);
     const currentGitignoreContent = await readTextFileIfExists(gitignorePath);
-    const missingRules = rules.filter((rule) => !hasGitignoreRule(currentGitignoreContent || '', rule));
+    const missingRules = getMissingGitignoreRules(currentGitignoreContent || '', rules);
 
     if (currentGitignoreContent !== undefined && missingRules.length === 0) {
         return 'unchanged';
@@ -130,6 +130,21 @@ export async function ensureProjectGitignoreFile({
     );
     await writeFile(gitignorePath, nextGitignoreContent, 'utf-8');
     return currentGitignoreContent === undefined ? 'created' : 'updated';
+}
+
+/**
+ * Lists the ignore rules which are not yet present in a project's `.gitignore` file.
+ *
+ * @private internal utility of Promptbook CLI project initialization
+ */
+export async function getMissingProjectGitignoreRules(
+    projectPath: string,
+    rules: ReadonlyArray<string>,
+): Promise<ReadonlyArray<string>> {
+    const gitignorePath = join(projectPath, GITIGNORE_FILE_PATH);
+    const currentGitignoreContent = (await readTextFileIfExists(gitignorePath)) || '';
+
+    return getMissingGitignoreRules(currentGitignoreContent, rules);
 }
 
 /**
@@ -191,8 +206,16 @@ function parseEnvVariableNames(envContent: string): Set<string> {
  * Detects whether `.gitignore` already covers one exact rule.
  */
 function hasGitignoreRule(gitignoreContent: string, rule: string): boolean {
-    const normalizedRulePattern = rule.startsWith('/') ? `/?${escapeRegExp(rule.slice(1))}` : escapeRegExp(rule);
+    const normalizedRule = rule.startsWith('/') ? rule.slice(1) : rule;
+    const normalizedRulePattern = `/?${escapeRegExp(normalizedRule)}`;
     return new RegExp(`(^|[\\r\\n])${normalizedRulePattern}(?:[\\r\\n]|$)`, 'u').test(gitignoreContent);
+}
+
+/**
+ * Finds the unique rules which are not covered by existing `.gitignore` content.
+ */
+function getMissingGitignoreRules(gitignoreContent: string, rules: ReadonlyArray<string>): ReadonlyArray<string> {
+    return Array.from(new Set(rules)).filter((rule) => !hasGitignoreRule(gitignoreContent, rule));
 }
 
 // Note: [🟡] Code for CLI project initialization [projectInitialization](src/cli/cli-commands/common/projectInitialization.ts) should never be published outside of `@promptbook/cli`

@@ -5,7 +5,12 @@ import type { ThinkingLevel } from '../../../../src/cli/cli-commands/coder/Think
  */
 export type OpenAiCodexRunnerOptions = {
     codexCommand: string;
-    model: string;
+
+    /**
+     * Optional model override. When omitted, Codex is started without `--model` and keeps the model of its own
+     * configuration, which is the only thing a ChatGPT-account login accepts.
+     */
+    model?: string;
     /**
      * Optional reasoning effort override. When omitted, Codex keeps the existing default used by Promptbook.
      */

@@ -1,10 +1,10 @@
 import {
     createServerPublicUrl,
-    listRegisteredServersUsingServiceRole,
     normalizeServerDomain,
     resolveRegisteredServerByHost,
     type ServerRecord,
 } from '../utils/serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../utils/serverRegistryNode';
 import type { ProvidedServer } from './$provideServer';
 import { runWithServerContextOverride } from './serverContextOverride';
 

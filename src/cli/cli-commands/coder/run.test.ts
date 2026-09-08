@@ -1,6 +1,8 @@
 import { Command } from 'commander';
 import { runCodexPrompts } from '../../../../scripts/run-codex-prompts/main/runCodexPrompts';
+import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { $ensurePromptbookCliInstallations } from '../common/promptbook-cli/$ensurePromptbookCliInstallations';
+import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 import { $initializeCoderRunCommand } from './run';
 
 jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPrompts', () => ({
@@ -9,6 +11,14 @@ jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPrompts', () => ({
 
 jest.mock('../common/promptbook-cli/$ensurePromptbookCliInstallations', () => ({
     $ensurePromptbookCliInstallations: jest.fn(),
+}));
+
+jest.mock('../common/harness/$ensureHarnessInstallations', () => ({
+    $ensureHarnessInstallations: jest.fn(),
+}));
+
+jest.mock('./$ensureCoderHarnessGitignoreRules', () => ({
+    $ensureCoderHarnessGitignoreRules: jest.fn(),
 }));
 
 /**
@@ -23,6 +33,13 @@ function getRunCodexPromptsMock(): jest.MockedFunction<typeof runCodexPrompts> {
  */
 function getEnsurePromptbookCliInstallationsMock(): jest.MockedFunction<typeof $ensurePromptbookCliInstallations> {
     return $ensurePromptbookCliInstallations as jest.MockedFunction<typeof $ensurePromptbookCliInstallations>;
+}
+
+/**
+ * Typed Jest mock for the selected-harness local ignore-rule check.
+ */
+function getEnsureCoderHarnessGitignoreRulesMock(): jest.MockedFunction<typeof $ensureCoderHarnessGitignoreRules> {
+    return $ensureCoderHarnessGitignoreRules as jest.MockedFunction<typeof $ensureCoderHarnessGitignoreRules>;
 }
 
 /**
@@ -41,6 +58,7 @@ describe('$initializeCoderRunCommand', () => {
     beforeEach(() => {
         getRunCodexPromptsMock().mockResolvedValue(undefined);
         getEnsurePromptbookCliInstallationsMock().mockResolvedValue(false);
+        getEnsureCoderHarnessGitignoreRulesMock().mockResolvedValue(undefined);
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     });
@@ -91,6 +109,15 @@ describe('$initializeCoderRunCommand', () => {
         await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-auto'], { from: 'node' });
 
         expect($ensurePromptbookCliInstallations).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks local ignore rules for the selected harness before a run', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--harness', 'qwen-code'], { from: 'node' });
+
+        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['qwen-code'], true);
+        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code');
     });
 
     it('stops the current run after a Promptbook CLI installation was updated', async () => {

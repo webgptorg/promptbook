@@ -5,7 +5,8 @@ import { runWithServerContextOverride } from '@/src/tools/serverContextOverride'
 import { DatabaseError } from '../../../../../src/errors/DatabaseError';
 import { spaceTrim } from '../../../../../src/utils/organization/spaceTrim';
 import { createLocalAgentDirectoryName, resolveLocalAgentRootPath } from '../localChatRunner/ensureLocalAgentFolder';
-import { createServerPublicUrl, type ServerRecord, listRegisteredServersUsingServiceRole } from '../serverRegistry';
+import { createServerPublicUrl, type ServerRecord } from '../serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../serverRegistryNode';
 import type { AgentProjectsSummary, AllAgentProjectsReport } from './AgentProjectInfo';
 import { listAgentProjects } from './listAgentProjects';
 

@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.114.0-27",
+    "version": "0.114.0-30",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "--note-0": "    <- [🐊]",
     "private": false,
@@ -337,7 +337,7 @@
         "@xmldom/xmldom": "^0.9.10",
         "@xterm/addon-fit": "0.11.0",
         "@xterm/xterm": "6.0.0",
-        "better-sqlite3": "^11.10.0",
+        "better-sqlite3": "^12.11.1",
         "bottleneck": "2.19.5",
         "colors": "1.4.0",
         "commander": "12.0.0",

@@ -29,6 +29,7 @@ import {
     type TestBeforeMode,
 } from '../../../../scripts/run-codex-prompts/testing/TestBeforeMode';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
+import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 
 /**
  * Initializes `coder run` command for Promptbook CLI utilities
@@ -56,6 +57,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
             - Checks that the selected harness is installed and up to date before the first prompt unless --no-harness-update is used
+            - Offers to add missing project-local ignore rules for the selected harness
             - In interactive mode, checks local and global Promptbook CLI installations and offers to update them
             - Supports GPG signing of commits
             - Optional pre-coding test run that can stop or repair pre-existing failures
@@ -223,6 +225,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             }
 
             await $ensureHarnessInstallations([runnerOptions.agentName], isHarnessUpdateCheckEnabled);
+            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName);
 
             const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
             const waitBetweenPrompts = parseOptionalWaitDuration(waitBetweenPromptsValue, 0);

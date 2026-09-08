@@ -60,6 +60,97 @@ describe('markPromptInProgress', () => {
         expect(file.lines[0]).toBe('[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress');
     });
 
+    it('adds the live status line before an unmarked prompt and later replaces it when the prompt is done', () => {
+        const file = parsePromptFile(
+            'prompts/unmarked-prompt.md',
+            spaceTrim(`
+                Implement the feature
+
+                Preserve this prompt content.
+            `),
+        );
+        const section = file.sections[0]!;
+
+        markPromptInProgress({
+            file,
+            section,
+            steps: [],
+            inProgressStepKind: 'implementation',
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.6-luna',
+            attemptCount: 1,
+        });
+
+        expect(file.lines).toEqual([
+            '[^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
+            'Implement the feature',
+            '',
+            'Preserve this prompt content.',
+        ]);
+        expect(section.statusLineIndex).toBe(0);
+
+        markPromptDone({
+            file,
+            section,
+            steps: [createImplementationStep()],
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.6-luna',
+            attemptCount: 1,
+        });
+
+        expect(file.lines).toEqual([
+            '[x] by OpenAI Codex `gpt-5.6-luna` - Implementation $0.2036 10 minutes',
+            'Implement the feature',
+            '',
+            'Preserve this prompt content.',
+        ]);
+    });
+
+    it('keeps later prompt sections aligned after adding a status line to an unmarked prompt', () => {
+        const file = parsePromptFile(
+            'prompts/two-unmarked-prompts.md',
+            spaceTrim(`
+                Implement the first feature.
+
+                ---
+
+                Implement the second feature.
+            `),
+        );
+        const [firstSection, secondSection] = file.sections;
+
+        markPromptInProgress({
+            file,
+            section: firstSection!,
+            steps: [],
+            inProgressStepKind: 'implementation',
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.6-luna',
+            attemptCount: 1,
+        });
+        markPromptInProgress({
+            file,
+            section: secondSection!,
+            steps: [],
+            inProgressStepKind: 'implementation',
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.6-luna',
+            attemptCount: 1,
+        });
+
+        expect(file.lines).toEqual([
+            '[^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
+            'Implement the first feature.',
+            '',
+            '---',
+            '',
+            '[^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
+            'Implement the second feature.',
+        ]);
+        expect(firstSection?.statusLineIndex).toBe(0);
+        expect(secondSection?.statusLineIndex).toBe(5);
+    });
+
     it('appends the started step behind the steps which already finished', () => {
         const { file, section } = createPromptFile('[ ]');
 

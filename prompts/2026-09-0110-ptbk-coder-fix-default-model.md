@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $6.81 26 minutes; Testing 29 minutes
 
 [✨🌿] `--model default` for `openai-codex` resolves to `gpt-5.2-codex`, which ChatGPT-account logins reject
 
@@ -24,3 +24,4 @@ The CLI help lists `default` as a valid OpenAI model example, but internally it 
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) of needed
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -83,7 +83,7 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         displayName: 'OpenAI Codex',
         vendorName: 'OpenAI',
         description:
-            'The OpenAI Codex CLI. It needs an explicit model, and it only spends credits beyond your rate limits when you pass --allow-credits.',
+            'The OpenAI Codex CLI. It needs an explicit model — or --model default, which keeps the model configured in Codex itself — and it only spends credits beyond your rate limits when you pass --allow-credits.',
         isModelRequired: true,
         modelExamples: ['gpt-5.2-codex', 'default'],
         sampleCommand: 'ptbk coder run --harness openai-codex --model gpt-5.6-terra',

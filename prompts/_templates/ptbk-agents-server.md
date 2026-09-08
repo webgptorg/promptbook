@@ -3,7 +3,7 @@
 
 npm install ptbk
 
-ptbk agents-server start --harness github-copilot --model gpt-5.4 --thinking-level xhigh
+ptbk agents-server start --harness openai-codex --model gpt-5.6-astra --thinking-level max --thinking-level xhigh
 ```
 
 -   @@@
