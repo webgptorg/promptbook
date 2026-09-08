@@ -52,7 +52,8 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
                 <code className="text-promptbook-blue">prompts/done/</code> archive, the default{' '}
                 <code className="text-promptbook-blue">agents/developer.book</code> persona,{' '}
                 <code className="text-promptbook-blue">AGENTS.md</code> project context, and the agent git identity
-                entries in <code className="text-promptbook-blue">.env</code>.
+                entries in <code className="text-promptbook-blue">.env</code>. It also adds local files created by every
+                supported harness to <code className="text-promptbook-blue">.gitignore</code>.
             </>
         ),
         command: INIT_COMMAND,

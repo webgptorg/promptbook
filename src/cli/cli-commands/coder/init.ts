@@ -62,7 +62,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 - ${CODER_DEVELOPER_AGENT_FILE_PATH}
                 - ${AGENTS_FILE_PATH}
                 - ${AGENT_CODING_FILE_PATH}
-                - .gitignore
+                - .gitignore with local artifacts from every supported harness
                 - package.json
                 - .vscode/settings.json
 

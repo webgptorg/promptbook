@@ -1,3 +1,7 @@
+-   Added project-local harness ignore rules to **ptbk coder**. `ptbk coder init` now adds the rules for every supported
+    harness, including `.qwen`; `ptbk coder run`, `ptbk coder server`, and `ptbk coder ping` detect a missing selected
+    harness rule and use the same interactive `[y/N]` confirmation as harness installation updates before adding it.
+
 -   Fixed globally installing `ptbk` on Node.js 26, including macOS arm64. `ptbk coder` can now be installed without
     `better-sqlite3` 11 falling back to a native build against removed V8 APIs; the generated CLI now receives
     `better-sqlite3` 12.11.1, which supplies the matching Node 26 binary.

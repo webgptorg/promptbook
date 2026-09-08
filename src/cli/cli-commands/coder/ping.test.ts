@@ -4,10 +4,15 @@ import { pingCoderHarnessPeriodically } from '../../../../scripts/run-codex-prom
 import { printCoderPingResult } from '../../../../scripts/run-codex-prompts/ping/printCoderPingResult';
 import { ZERO_USAGE } from '../../../execution/utils/usage-constants';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
+import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 import { $initializeCoderPingCommand } from './ping';
 
 jest.mock('../common/harness/$ensureHarnessInstallations', () => ({
     $ensureHarnessInstallations: jest.fn(),
+}));
+
+jest.mock('./$ensureCoderHarnessGitignoreRules', () => ({
+    $ensureCoderHarnessGitignoreRules: jest.fn(),
 }));
 
 jest.mock('../../../../scripts/run-codex-prompts/ping/pingCoderHarness', () => ({
@@ -37,6 +42,13 @@ function getPingCoderHarnessPeriodicallyMock(): jest.MockedFunction<typeof pingC
 }
 
 /**
+ * Typed Jest mock for the selected-harness local ignore-rule check.
+ */
+function getEnsureCoderHarnessGitignoreRulesMock(): jest.MockedFunction<typeof $ensureCoderHarnessGitignoreRules> {
+    return $ensureCoderHarnessGitignoreRules as jest.MockedFunction<typeof $ensureCoderHarnessGitignoreRules>;
+}
+
+/**
  * Creates a Commander program with the `coder ping` subcommand registered.
  */
 function createProgramWithPingCommand(): Command {
@@ -59,6 +71,7 @@ describe('$initializeCoderPingCommand', () => {
             durationMs: 1234,
             usage: ZERO_USAGE,
         });
+        getEnsureCoderHarnessGitignoreRulesMock().mockResolvedValue(undefined);
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     });
@@ -102,6 +115,16 @@ describe('$initializeCoderPingCommand', () => {
         await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code'], { from: 'node' });
 
         expect($ensureHarnessInstallations).toHaveBeenCalledWith(['claude-code'], true);
+    });
+
+    it('checks local ignore rules for the selected harness before pinging it', async () => {
+        const program = createProgramWithPingCommand();
+
+        await program.parseAsync(['node', 'test', 'ping', '--harness', 'qwen-code', '--model', 'qwen3.8-flash'], {
+            from: 'node',
+        });
+
+        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code');
     });
 
     it('skips the harness update check when --no-harness-update is provided', async () => {

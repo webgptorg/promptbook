@@ -103,7 +103,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Ping before you queue',
         description:
-            'ptbk coder ping sends one tiny dummy prompt to a harness and model and reports the answer, the response time and the usage. Use it to check that a harness, model and login work before you queue anything. It also opens the hourly or weekly quota window early, so the quota is already refreshing by the time you need it. It touches nothing in your project.',
+            'ptbk coder ping sends one tiny dummy prompt to a harness and model and reports the answer, the response time and the usage. Use it to check that a harness, model and login work before you queue anything. It also opens the hourly or weekly quota window early, so the quota is already refreshing by the time you need it. If that harness has missing local ignore rules, it asks before adding them to .gitignore.',
         sampleCommand: PING_COMMAND,
     },
     {

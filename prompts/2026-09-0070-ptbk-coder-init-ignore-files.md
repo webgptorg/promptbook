@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` - Implementation ~.10 an hour; Testing 20 minutes
 
 [✨🍭] The promptbook coder `ptbk coder init` should add entries to the ignore file for all harnesses
 
@@ -17,3 +17,4 @@ ptbk coder run --harness qwen-code --model qwen3.8-flash --thinking-level max --
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) if there are any changes that affect the landing page.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

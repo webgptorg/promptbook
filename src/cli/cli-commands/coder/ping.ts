@@ -18,6 +18,7 @@ import {
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
 import { parseOptionalPeriodDuration } from './waitOptions';
+import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 
 /**
  * Initializes `coder ping` command for Promptbook CLI utilities
@@ -39,7 +40,7 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
             - Reports the answer of the harness, the response time and the reported usage
             - Starts the hourly/weekly quota window before you need it, so it is already refreshing when you do
             - Optional --period keeps the quota window refreshing by pinging once per period until stopped
-            - Leaves the project exactly as it was — nothing is read, written, changed or committed
+            - Makes no coding changes or commits; if the selected harness has missing local ignore rules, offers to add them to .gitignore
             - Checks that the selected harness is installed and up to date unless --no-harness-update is used
             - Use --no-ui to stream the raw harness output instead of only the compact result
         `),
@@ -74,6 +75,7 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
             const periodMs = parseOptionalPeriodDuration('--period', periodValue);
 
             await $ensureHarnessInstallations([runnerOptions.agentName], isHarnessUpdateCheckEnabled);
+            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName);
 
             const pingOptions = {
                 agentName: runnerOptions.agentName,

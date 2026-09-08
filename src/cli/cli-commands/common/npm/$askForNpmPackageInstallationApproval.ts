@@ -1,5 +1,4 @@
-import colors from 'colors';
-import { createInterface } from 'readline';
+import { $askForConfirmation } from '../$askForConfirmation';
 
 /**
  * Asks the user in the terminal whether an npm package should be installed or updated now.
@@ -10,22 +9,7 @@ import { createInterface } from 'readline';
  * @private internal utility of `promptbookCli`
  */
 export async function $askForNpmPackageInstallationApproval(question: string): Promise<boolean> {
-    if (!process.stdin.isTTY) {
-        // Note: In non-interactive environments like CI there is nobody who could confirm the installation
-        return false;
-    }
-
-    const readlineInterface = createInterface({ input: process.stdin, output: process.stdout });
-
-    try {
-        const answer = await new Promise<string>((resolve) => {
-            readlineInterface.question(colors.cyan(`${question} [y/N] `), resolve);
-        });
-
-        return ['y', 'yes'].includes(answer.trim().toLowerCase());
-    } finally {
-        readlineInterface.close();
-    }
+    return $askForConfirmation(question);
 }
 
 // Note: [🟡] Code for CLI npm package installation approval [$askForNpmPackageInstallationApproval](src/cli/cli-commands/common/npm/$askForNpmPackageInstallationApproval.ts) should never be published outside of `@promptbook/cli`

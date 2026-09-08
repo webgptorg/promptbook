@@ -56,6 +56,11 @@ export type HarnessDefinition = {
     readonly npmInstallEnvironment?: Readonly<Record<string, string>>;
 
     /**
+     * Project-local files or directories which this harness can create and which should not be committed.
+     */
+    readonly projectGitignoreRules: ReadonlyArray<string>;
+
+    /**
      * How a standalone installation of this harness is recognized and updated.
      *
      * Harnesses which are distributed only through npm leave this undefined.
@@ -74,6 +79,7 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         label: 'OpenAI Codex',
         commandName: 'codex',
         npmPackageName: '@openai/codex',
+        projectGitignoreRules: ['.codex'],
         // Note: The official standalone installer keeps its package in `~/.codex` and links it onto the `PATH`
         standaloneInstallation: {
             directoryNames: ['.codex'],
@@ -85,6 +91,7 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         label: 'GitHub Copilot',
         commandName: 'copilot',
         npmPackageName: '@github/copilot',
+        projectGitignoreRules: ['.github/copilot/settings.local.json'],
         // Note: The GitHub Copilot CLI downloads its native binary in a postinstall script
         npmInstallEnvironment: { npm_config_ignore_scripts: 'false' },
     },
@@ -93,30 +100,35 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         label: 'Cline',
         commandName: 'cline',
         npmPackageName: 'cline',
+        projectGitignoreRules: ['.cline'],
     },
     'claude-code': {
         harnessName: 'claude-code',
         label: 'Claude Code',
         commandName: 'claude',
         npmPackageName: '@anthropic-ai/claude-code',
+        projectGitignoreRules: ['.claude'],
     },
     opencode: {
         harnessName: 'opencode',
         label: 'Opencode',
         commandName: 'opencode',
         npmPackageName: 'opencode-ai',
+        projectGitignoreRules: ['.opencode'],
     },
     gemini: {
         harnessName: 'gemini',
         label: 'Gemini CLI',
         commandName: 'gemini',
         npmPackageName: '@google/gemini-cli',
+        projectGitignoreRules: ['.gemini'],
     },
     'qwen-code': {
         harnessName: 'qwen-code',
         label: 'Qwen Code',
         commandName: 'qwen',
         npmPackageName: '@qwen-code/qwen-code',
+        projectGitignoreRules: ['.qwen'],
     },
 };
 
@@ -139,4 +151,17 @@ export function getHarnessDefinition(harnessName: PromptRunnerHarnessName): Harn
     }
 
     return definition;
+}
+
+/**
+ * Lists the unique project ignore rules required by the selected harnesses, in selection order.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export function getHarnessProjectGitignoreRules(
+    harnessNames: ReadonlyArray<PromptRunnerHarnessName>,
+): ReadonlyArray<string> {
+    return Array.from(
+        new Set(harnessNames.flatMap((harnessName) => getHarnessDefinition(harnessName).projectGitignoreRules)),
+    );
 }
