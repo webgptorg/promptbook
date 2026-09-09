@@ -8,7 +8,7 @@
 @@@
 ```
 
-**Installing on Max:**
+**Installing on Mac:**
 
 ```console
 @@@
