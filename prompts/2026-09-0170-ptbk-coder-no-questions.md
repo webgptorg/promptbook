@@ -1,18 +1,14 @@
 [-]
 
-[✨💥] baz
+[✨💥] Add option `--no-questions`
 
 ```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
-ptbk coder run --harness openai-codex --model gpt-5.6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md
+ptbk coder run --no-questions --harness openai-codex --model gpt-5.6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md
 ```
 
--   @@@
+-   @@@@@@@@
+-   Remove `--no-harness-update`
+-   Go through all `ptbk coder` commands and find all commands where it makes sense to add the `--no-questions` option.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
