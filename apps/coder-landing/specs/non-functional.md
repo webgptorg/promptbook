@@ -28,6 +28,6 @@
 
 ## Performance
 
--   No third-party scripts, no analytics, no external font/CDN calls except Google Fonts via `next/font` (self-hosted at build time).
+-   No third-party scripts, no analytics, no external font/CDN calls except Google Fonts via `next/font` (self-hosted at build time). The [GitHub star call to action](./components/github-star-call-to-action.md) fetches its public count on the server only.
 -   Images (logos) are served via `next/image` from `public/`.
 -   The animated live terminal uses plain `setTimeout` scheduling — no animation libraries.

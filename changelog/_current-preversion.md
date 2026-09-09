@@ -1,3 +1,5 @@
+-   Added a live GitHub star counter and **Star on GitHub** call to action to the **ptbk coder** landing page.
+
 -   Added support for plain markdown prompts without a status checkbox in **ptbk coder**. `ptbk coder run` and
     `ptbk coder server` now treat them as ready prompts at priority `0`, then insert the normal live `[^]` status line
     before their content as processing begins and finish them through the usual `[x]` or `[!]` flow.

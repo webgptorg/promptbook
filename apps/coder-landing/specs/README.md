@@ -41,6 +41,7 @@ Reusable building blocks:
 -   [`components/terminal-block.md`](./components/terminal-block.md)
 -   [`components/live-terminal.md`](./components/live-terminal.md)
 -   [`components/book-editor-embed.md`](./components/book-editor-embed.md)
+-   [`components/github-star-call-to-action.md`](./components/github-star-call-to-action.md)
 
 ## Section specs ([`sections/`](./sections/))
 

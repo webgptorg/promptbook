@@ -4,14 +4,25 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import logoImage from '@public/logo-white-transparent-1024.png';
-import { GITHUB_URL, HEADER_NAVIGATION } from '@/data/links';
+import { GitHubStarCallToAction } from '@/components/GitHubStarCallToAction/GitHubStarCallToAction';
+import { HEADER_NAVIGATION } from '@/data/links';
 
 /**
- * Renders the sticky page header with logo, anchor navigation and GitHub link.
+ * Props accepted by the landing page header.
+ */
+type HeaderProps = {
+    /**
+     * Current total of stars on the Promptbook GitHub repository.
+     */
+    readonly githubStarsCount: number | null;
+};
+
+/**
+ * Renders the sticky page header with logo, anchor navigation and GitHub star call to action.
  *
  * Note: Specified in [`specs/sections/header.md`](../../../specs/sections/header.md)
  */
-export function Header() {
+export function Header({ githubStarsCount }: HeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
@@ -37,12 +48,7 @@ export function Header() {
                 </nav>
 
                 <div className="ml-auto hidden items-center gap-3 md:flex">
-                    <a
-                        href={GITHUB_URL}
-                        className="rounded-lg border border-gray-700 px-3.5 py-1.5 text-sm text-gray-200 transition-colors hover:border-promptbook-blue hover:text-promptbook-blue"
-                    >
-                        GitHub
-                    </a>
+                    <GitHubStarCallToAction githubStarsCount={githubStarsCount} />
                     <a
                         href="#quickstart"
                         className="rounded-lg bg-promptbook-blue px-3.5 py-1.5 text-sm font-semibold text-promptbook-dark-gray transition-colors hover:bg-promptbook-green"
@@ -90,9 +96,7 @@ export function Header() {
                             {link.title}
                         </a>
                     ))}
-                    <a href={GITHUB_URL} className="rounded-lg px-2 py-2 text-gray-200 hover:bg-gray-800">
-                        GitHub
-                    </a>
+                    <GitHubStarCallToAction githubStarsCount={githubStarsCount} />
                 </nav>
             )}
         </header>

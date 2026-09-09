@@ -29,9 +29,14 @@ export type FooterColumn = {
 };
 
 /**
+ * GitHub owner and repository name of the Promptbook repository which hosts `ptbk coder`.
+ */
+export const GITHUB_REPOSITORY = 'webgptorg/promptbook';
+
+/**
  * URL of the Promptbook GitHub repository which hosts `ptbk coder`.
  */
-export const GITHUB_URL = 'https://github.com/webgptorg/promptbook';
+export const GITHUB_URL = `https://github.com/${GITHUB_REPOSITORY}`;
 
 /**
  * URL of the `ptbk` package on npm.

@@ -16,9 +16,9 @@ Sticky page header, always visible at the top (z-index above all content), with 
     | Features     | `#features`     |
     | Comparison   | `#comparison`   |
 
-3. **Actions** (desktop only): outlined `GitHub` button → https://github.com/webgptorg/promptbook, and a filled primary `Get started` button (Promptbook Blue background, dark text, green on hover) → `#quickstart`.
+3. **Actions** (desktop only): outlined [GitHub star call to action](../components/github-star-call-to-action.md), and a filled primary `Get started` button (Promptbook Blue background, dark text, green on hover) → `#quickstart`.
 
 ## Mobile (< `md`)
 
 -   Navigation and action buttons are hidden; a bordered **hamburger button** appears on the right.
--   Tapping it toggles a vertical menu below the header bar with the same six anchor links plus `GitHub`; the icon switches between hamburger and ✕, `aria-expanded` reflects state, and choosing a link closes the menu.
+-   Tapping it toggles a vertical menu below the header bar with the same six anchor links plus the [GitHub star call to action](../components/github-star-call-to-action.md); the icon switches between hamburger and ✕, `aria-expanded` reflects state, and choosing a link closes the menu.

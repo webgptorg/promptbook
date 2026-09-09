@@ -8,17 +8,20 @@ import { Hero } from '@/components/sections/Hero';
 import { HowItWorks } from '@/components/sections/HowItWorks';
 import { Quickstart } from '@/components/sections/Quickstart';
 import { StructuredData } from '@/components/StructuredData/StructuredData';
+import { getGitHubStarsCount } from '@/data/github';
 
 /**
  * Handles the `ptbk coder` landing page.
  *
  * Note: The section order is specified in [`specs/page-structure.md`](../../specs/page-structure.md)
  */
-export default function HomePage() {
+export default async function HomePage() {
+    const githubStarsCount = await getGitHubStarsCount();
+
     return (
         <>
             <StructuredData />
-            <Header />
+            <Header githubStarsCount={githubStarsCount} />
             <main>
                 <Hero />
                 <HowItWorks />
