@@ -1,8 +1,8 @@
 import {
-    DRY_RUN_COMMAND,
     GENERATE_BOILERPLATES_COMMAND,
     GIT_CHANGES_CONTINUE_COMMAND,
     INIT_GIT_SYNC_COMMAND,
+    LIST_COMMAND,
     MODEL_FILTER_COMMAND,
     PING_COMMAND,
     PING_PERIOD_COMMAND,
@@ -96,9 +96,10 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         sampleCommand: 'ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m',
     },
     {
-        title: 'Dry run first',
-        description: 'Preview which prompts would run. No files touched, no tokens spent.',
-        sampleCommand: DRY_RUN_COMMAND,
+        title: 'List before you run',
+        description:
+            'See every ready, fully authored prompt grouped by priority before starting a harness. Narrow the list by harness, model, or priority range; no files change and no tokens are spent.',
+        sampleCommand: LIST_COMMAND,
     },
     {
         title: 'Ping before you queue',

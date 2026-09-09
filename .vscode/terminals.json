@@ -144,6 +144,13 @@
             "focus": false
         },
         {
+            "name": "🐙📋 List prompts ready to run",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder list",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🐙✔ Verify prompts done by Coding Agent",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --order from-latest --ignore Refactor --commit --auto-pull --auto-push",
             "execute": true,

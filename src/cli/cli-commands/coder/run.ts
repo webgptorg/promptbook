@@ -6,7 +6,6 @@ import {
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
-import { createNonNegativeIntegerOptionParser } from '../common/createNonNegativeIntegerOptionParser';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
@@ -23,6 +22,7 @@ import {
     normalizePromptRunnerCliOptions,
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
+import { addPromptPriorityOptions } from '../common/promptPriorityCliOptions';
 import {
     DEFAULT_CODER_TEST_COMMAND,
     TEST_BEFORE_MODE_VALUES,
@@ -107,21 +107,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         `),
         false,
     );
-    command.option(
-        '--priority <minimum-priority>',
-        'Alias for --min-priority; filter prompts by minimum priority level',
-        createNonNegativeIntegerOptionParser('--priority'),
-    );
-    command.option(
-        '--min-priority <minimum-priority>',
-        'Filter prompts by minimum priority level',
-        createNonNegativeIntegerOptionParser('--min-priority'),
-    );
-    command.option(
-        '--max-priority <maximum-priority>',
-        'Filter prompts by maximum priority level',
-        createNonNegativeIntegerOptionParser('--max-priority'),
-    );
+    addPromptPriorityOptions(command);
     command.option(
         '--limit <run-count>',
         'Stop after processing this many prompt runs',

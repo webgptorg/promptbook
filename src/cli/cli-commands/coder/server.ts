@@ -9,7 +9,6 @@ import { assertsError } from '../../../errors/assertsError';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import type { number_port } from '../../../types/number_positive';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
-import { createNonNegativeIntegerOptionParser } from '../common/createNonNegativeIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import {
@@ -24,6 +23,7 @@ import {
     normalizePromptRunnerCliOptions,
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
+import { addPromptPriorityOptions } from '../common/promptPriorityCliOptions';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 
@@ -90,21 +90,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
         false,
     );
     addPromptRunnerExecutionOptions(command);
-    command.option(
-        '--priority <minimum-priority>',
-        'Alias for --min-priority; filter prompts by minimum priority level',
-        createNonNegativeIntegerOptionParser('--priority'),
-    );
-    command.option(
-        '--min-priority <minimum-priority>',
-        'Filter prompts by minimum priority level',
-        createNonNegativeIntegerOptionParser('--min-priority'),
-    );
-    command.option(
-        '--max-priority <maximum-priority>',
-        'Filter prompts by maximum priority level',
-        createNonNegativeIntegerOptionParser('--max-priority'),
-    );
+    addPromptPriorityOptions(command);
     command.option(
         '--wait-after-prompt <duration>',
         spaceTrim(`

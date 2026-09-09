@@ -1,5 +1,5 @@
 import { TerminalBlock } from '@/components/TerminalBlock/TerminalBlock';
-import { ADD_COMMAND, INIT_COMMAND, INSTALL_COMMAND, RUN_COMMAND, SERVER_COMMAND } from '@/data/commands';
+import { ADD_COMMAND, INIT_COMMAND, INSTALL_COMMAND, LIST_COMMAND, RUN_COMMAND, SERVER_COMMAND } from '@/data/commands';
 import type { ReactNode } from 'react';
 
 /**
@@ -77,8 +77,8 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         description: (
             <>
                 Pick a harness and let it work. It implements one prompt, verifies it, commits it, then starts the next
-                one. Add <code className="text-promptbook-blue">--dry-run</code> first if you only want to see what the
-                queue would do.
+                one. Run <code className="text-promptbook-blue">{LIST_COMMAND}</code> first if you only want to see
+                the ready queue grouped by priority.
             </>
         ),
         command: RUN_COMMAND,

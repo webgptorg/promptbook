@@ -94,13 +94,13 @@ export type NormalizedPromptRunnerSelectionCliOptions = Pick<
  */
 export const PROMPT_RUNNER_DESCRIPTION = spaceTrim(`
     Runners:
-    - openai-codex: OpenAI Codex integration (requires --model)
+    - openai-codex: OpenAI Codex integration (requires --model when executing)
     - github-copilot: GitHub Copilot CLI integration
     - cline: Cline CLI integration
     - claude-code: Claude Code integration
     - opencode: Opencode integration
-    - gemini: Google Gemini CLI integration (requires --model)
-    - qwen-code: Qwen Code CLI integration (requires --model)
+    - gemini: Google Gemini CLI integration (requires --model when executing)
+    - qwen-code: Qwen Code CLI integration (requires --model when executing)
 `);
 
 /**
@@ -110,7 +110,7 @@ export const PROMPT_RUNNER_DESCRIPTION = spaceTrim(`
  */
 export const PROMPT_RUNNER_HARNESS_OPTION_DESCRIPTION = `Select runner: ${PROMPT_RUNNER_HARNESS_NAMES.join(
     ', ',
-)} (required for non-dry-run)`;
+)} (required when executing prompts)`;
 
 /**
  * Runner harness names listed as alternatives of the `--harness` option in error messages.
@@ -125,7 +125,7 @@ export const PROMPT_RUNNER_HARNESS_OPTION_HINT = `--harness <${PROMPT_RUNNER_HAR
  * @private internal utility of `promptbookCli`
  */
 export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(`
-    Model to use (required for openai-codex, gemini and qwen-code)
+    Model to use or filter by (required when executing with openai-codex, gemini and qwen-code)
 
     OpenAI examples: gpt-5.2-codex, default
     Gemini examples: gemini-3-flash-preview, default

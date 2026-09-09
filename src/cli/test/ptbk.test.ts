@@ -73,6 +73,11 @@ describe('how promptbookCli works', () => {
             'Initialize Promptbook coder configuration for current project',
         ));
 
+    it('should expose `coder list` command', () =>
+        expect($executePtbkTestCommand('coder list --help')).resolves.toContain(
+            'List ready coding prompts by priority without executing them',
+        ));
+
     it('should expose `agent-folder run-agent` command', () =>
         expect($executePtbkTestCommand('agent-folder run-agent --help')).resolves.toContain(
             'Watch one agent repository continuously and answer queued user questions',

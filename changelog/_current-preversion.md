@@ -1,3 +1,7 @@
+-   Added `ptbk coder list`, a read-only queue preview that lists ready, fully authored prompts in descending priority
+    groups without starting a harness. Its optional `--harness`, `--model`, `--priority`, `--min-priority`, and
+    `--max-priority` filters let you preview exactly the queue a selected runner would receive.
+
 -   Added a live GitHub star counter and **Star on GitHub** call to action to the **ptbk coder** landing page.
 
 -   Added support for plain markdown prompts without a status checkbox in **ptbk coder**. `ptbk coder run` and

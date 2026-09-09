@@ -36,6 +36,11 @@ export const ADD_COMMAND = 'ptbk coder add "Add a dark mode toggle to the settin
 export const RUN_COMMAND = 'ptbk coder run --harness claude-code';
 
 /**
+ * Command which lists ready prompts in priority order without starting a coding harness.
+ */
+export const LIST_COMMAND = 'ptbk coder list';
+
+/**
  * Command which generates prompt boilerplate files with more than one prompt in each of them.
  */
 export const GENERATE_BOILERPLATES_COMMAND = 'ptbk coder generate-boilerplates --count 10*7';

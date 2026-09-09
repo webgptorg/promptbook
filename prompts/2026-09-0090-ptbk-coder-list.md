@@ -1,4 +1,4 @@
-[ ] !!!!!
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.8908 39 minutes; Testing 13 minutes
 
 [✨🤛] Implement `ptbk coder list`
 
@@ -15,3 +15,4 @@ ptbk coder list
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) to a reflect the changes
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

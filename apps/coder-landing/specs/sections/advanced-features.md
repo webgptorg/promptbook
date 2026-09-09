@@ -23,7 +23,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 | 8   | Prompt priorities              | `ptbk coder run --harness claude-code --min-priority 1 --max-priority 5`                         |
 | 9   | Model-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-5.5`                                        |
 | 10  | Pacing and retries             | `ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m`         |
-| 11  | Dry run first                  | `ptbk coder run --dry-run`                                                                       |
+| 11  | List before you run            | `ptbk coder list`                                                                                |
 | 12  | Ping before you queue          | `ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh`              |
 | 13  | Keep the 5-hour window rolling | `ptbk coder ping --harness claude-code --model claude-sonnet-5 --thinking-level low --period 5h` |
 | 14  | Human in the loop              | `ptbk coder run --harness claude-code --no-auto`                                                 |
@@ -44,7 +44,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 8. **Prompt priorities** — "Give prompts a priority and process only the range you want in the current run."
 9. **Model-specific prompts** — "Route a prompt to a model family or harness with a backtick token on its [ ] status line, such as [ ] use model `gpt-5.5`. Other runners skip it."
 10. **Pacing and retries** — "Wait a fixed wall-clock duration between prompts. The clock keeps running through a pause and through sleep, and errors retry after a cool-down. The terminal also shows every subscription window a harness reports, with its remaining allowance and reset time. Whenever S is offered it skips whatever the coder waits for right now, down to the harness session limit that would otherwise hold the run for hours."
-11. **Dry run first** — "Preview which prompts would run. No files touched, no tokens spent."
+11. **List before you run** — "See every ready, fully authored prompt grouped by priority before starting a harness. Narrow the list by harness, model, or priority range; no files change and no tokens are spent."
 12. **Ping before you queue** — "ptbk coder ping sends one tiny dummy prompt to a harness and model and reports the answer, the response time and the usage. Use it to check that a harness, model and login work before you queue anything. It also opens the hourly or weekly quota window early, so the quota is already refreshing by the time you need it. If that harness has missing local ignore rules, it asks before adding them to .gitignore."
 13. **Keep the 5-hour window rolling** — "Add --period and the ping repeats until you stop it with CTRL+C. One ping every 5h holds the Claude Code 5-hour limit window open, so a queue you start at any hour already has a refreshing window waiting for it. That costs a handful of tokens per ping instead of a run you have to babysit."
 14. **Human in the loop** — "Confirm each prompt yourself with --no-auto. Press P to pause a running queue, or X to end it after the current prompt. Every press is answered in the Controls panel on the next frame, so you can tell that the key landed even when it changed nothing."

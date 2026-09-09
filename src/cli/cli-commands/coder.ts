@@ -10,6 +10,7 @@ import { $initializeCoderFindRefactorCandidatesCommand } from './coder/find-refa
 import { $initializeCoderFindUnwrittenCommand } from './coder/find-unwritten';
 import { $initializeCoderGenerateBoilerplatesCommand } from './coder/generate-boilerplates';
 import { $initializeCoderInitCommand } from './coder/init';
+import { $initializeCoderListCommand } from './coder/list';
 import { $initializeCoderPingCommand } from './coder/ping';
 import { $initializeCoderRunCommand } from './coder/run';
 import { $initializeCoderServerCommand } from './coder/server';
@@ -23,6 +24,7 @@ import { $initializeCoderVerifyCommand } from './coder/verify';
  * - add: Add one ready-to-run prompt file to the queue
  * - generate-boilerplates: Generate prompt boilerplate files
  * - find-refactor-candidates: Find files that need refactoring
+ * - list: List ready prompts in priority order without running them
  * - run: Run coding prompts with AI agents
  * - ping: Test one harness and model with a tiny dummy prompt
  * - verify: Verify completed prompts
@@ -44,6 +46,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             - generate-boilerplates: Generate prompt boilerplate files
             - find-refactor-candidates: Find files that need refactoring
             - find-unwritten: List prompt sections that still need to be authored
+            - list: List ready prompts in priority order without running them
             - run: Run coding prompts with AI agents
             - ping: Test the connection, response time and quota of one harness and model
             - server: Start a long-running coder server with a kanban web UI
@@ -58,6 +61,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
     $initializeCoderGenerateBoilerplatesCommand(coderCommand);
     $initializeCoderFindRefactorCandidatesCommand(coderCommand);
     $initializeCoderFindUnwrittenCommand(coderCommand);
+    $initializeCoderListCommand(coderCommand);
     $initializeCoderRunCommand(coderCommand);
     $initializeCoderPingCommand(coderCommand);
     $initializeCoderServerCommand(coderCommand);
