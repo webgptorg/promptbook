@@ -1,4 +1,4 @@
-[ ]
+[ ] !
 
 [✨🎿] Enhance the visual of the hero section and terminal.
 
