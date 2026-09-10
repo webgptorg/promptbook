@@ -1,6 +1,6 @@
-import { INSTALL_COMMAND } from '@/data/commands';
 import { LiveTerminalDemo } from '@/components/LiveTerminalDemo/LiveTerminalDemo';
 import { TerminalBlock } from '@/components/TerminalBlock/TerminalBlock';
+import { INSTALL_COMMAND } from '@/data/commands';
 
 /**
  * Renders the hero section with the value proposition, install command and live terminal preview.
@@ -18,9 +18,6 @@ export function Hero() {
 
             <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-16 md:pt-24 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-promptbook-blue-dark/60 bg-promptbook-blue-dark/10 px-3 py-1 text-xs text-promptbook-blue">
-                        Part of Promptbook
-                    </p>
                     <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl">
                         Your coding agents,
                         <br />
