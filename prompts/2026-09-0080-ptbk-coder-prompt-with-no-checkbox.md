@@ -15,7 +15,7 @@
 
 ---
 
-[ ]
+[ ] !
 
 [✨🤺] When running `ptbk coder run` allow prompts with no `[ ]`
 
