@@ -1,4 +1,4 @@
-[ ] !
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $5.32 26 minutes; Testing 17 minutes
 
 [✨🤲] When running `ptbk coder init` do override scripts in `package.json` and `settings.json`
 
@@ -22,3 +22,4 @@ ptbk coder init
 
 ![do not do this with package.json](screenshots/2026-09-0122-ptbk-coder-enhance-coder-init.png)
 ![do not do this with settings.json](screenshots/2026-09-0122-ptbk-coder-enhance-coder-init-1.png)
+

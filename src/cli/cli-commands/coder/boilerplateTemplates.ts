@@ -25,6 +25,13 @@ export const PROMPTS_DONE_DIRECTORY_PATH = join(PROMPTS_DIRECTORY_PATH, 'done');
 export const PROMPTS_TEMPLATES_DIRECTORY_PATH = join(PROMPTS_DIRECTORY_PATH, 'templates');
 
 /**
+ * Relative path to the project-agnostic `common` boilerplate template referenced by the default coder scripts.
+ *
+ * @private internal utility of `ptbk coder`
+ */
+export const COMMON_PROMPT_TEMPLATE_FILE_PATH = join(PROMPTS_TEMPLATES_DIRECTORY_PATH, 'common.md');
+
+/**
  * Initialization statuses used when creating or updating coder configuration artifacts.
  *
  * @private internal utility of `ptbk coder`
@@ -67,26 +74,6 @@ export type CoderPromptTemplateDefinition = {
 };
 
 /**
- * Result of ensuring one default coder template file exists inside a project.
- *
- * @private internal utility of `ptbk coder`
- */
-export type EnsuredCoderPromptTemplateFile = {
-    /**
-     * Stable built-in identifier of the template.
-     */
-    readonly id: BuiltInCoderPromptTemplate;
-    /**
-     * Project-relative path of the materialized template file.
-     */
-    readonly relativeFilePath: string;
-    /**
-     * Status describing whether the file had to be created.
-     */
-    readonly status: InitializationStatus;
-};
-
-/**
  * Fully resolved boilerplate template used by `coder generate-boilerplates`.
  *
  * @private internal utility of `ptbk coder`
@@ -118,7 +105,7 @@ export type ResolvedCoderPromptTemplate = {
 const DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS = [
     {
         id: 'common',
-        relativeFilePath: join(PROMPTS_TEMPLATES_DIRECTORY_PATH, 'common.md'),
+        relativeFilePath: COMMON_PROMPT_TEMPLATE_FILE_PATH,
         slugPrefix: null,
         content: spaceTrim(`
             -   @@@
@@ -172,35 +159,21 @@ export function getDefaultCoderPromptTemplateDefinition(
 }
 
 /**
- * Ensures the default project-owned coder template files exist without overwriting user customizations.
+ * Ensures one project-owned coder template file exists without overwriting user customizations.
  *
  * @private internal utility of `ptbk coder`
  */
-export async function ensureDefaultCoderPromptTemplateFiles(
+export async function ensureDefaultCoderPromptTemplateFile(
     projectPath: string,
-): Promise<ReadonlyArray<EnsuredCoderPromptTemplateFile>> {
-    const ensuredTemplateFiles: Array<EnsuredCoderPromptTemplateFile> = [];
-
-    for (const definition of DEFAULT_CODER_PROJECT_PROMPT_TEMPLATE_DEFINITIONS) {
-        const absoluteTemplatePath = join(projectPath, definition.relativeFilePath);
-        if (await isExistingFile(absoluteTemplatePath)) {
-            ensuredTemplateFiles.push({
-                id: definition.id,
-                relativeFilePath: definition.relativeFilePath,
-                status: 'unchanged',
-            });
-            continue;
-        }
-
-        await writeFile(absoluteTemplatePath, `${definition.content}\n`, 'utf-8');
-        ensuredTemplateFiles.push({
-            id: definition.id,
-            relativeFilePath: definition.relativeFilePath,
-            status: 'created',
-        });
+    definition: CoderPromptTemplateDefinition,
+): Promise<InitializationStatus> {
+    const absoluteTemplatePath = join(projectPath, definition.relativeFilePath);
+    if (await isExistingFile(absoluteTemplatePath)) {
+        return 'unchanged';
     }
 
-    return ensuredTemplateFiles;
+    await writeFile(absoluteTemplatePath, `${definition.content}\n`, 'utf-8');
+    return 'created';
 }
 
 /**

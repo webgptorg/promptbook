@@ -34,7 +34,7 @@ describe('mergeStringRecordJsonFile', () => {
             'utf-8',
         );
 
-        const status = await mergeStringRecordJsonFile({
+        const { status, addedEntryKeys } = await mergeStringRecordJsonFile({
             projectPath,
             relativeFilePath: 'tsconfig.json',
             fieldPath: 'compilerOptions',
@@ -44,11 +44,59 @@ describe('mergeStringRecordJsonFile', () => {
         });
 
         expect(status).toBe('updated');
+        expect(addedEntryKeys).toEqual(['baseUrl']);
         expect(JSON.parse(await readFile(tsconfigFilePath, 'utf-8'))).toEqual({
             compilerOptions: {
                 module: 'esnext',
                 baseUrl: '.',
             },
         });
+    });
+
+    it('never overrides entries which the file already defines', async () => {
+        const projectPath = await createTemporaryDirectory(temporaryDirectories);
+        const packageJsonFilePath = join(projectPath, 'package.json');
+
+        await writeFile(packageJsonFilePath, '{\n  "scripts": {\n    "coder:run": "echo mine"\n  }\n}\n', 'utf-8');
+
+        const { status, addedEntryKeys } = await mergeStringRecordJsonFile({
+            projectPath,
+            relativeFilePath: 'package.json',
+            fieldPath: 'scripts',
+            nextEntries: {
+                'coder:run': 'npx ptbk coder run',
+                'coder:verify': 'npx ptbk coder verify',
+            },
+        });
+
+        expect(status).toBe('updated');
+        expect(addedEntryKeys).toEqual(['coder:verify']);
+        expect(JSON.parse(await readFile(packageJsonFilePath, 'utf-8'))).toEqual({
+            scripts: {
+                'coder:run': 'echo mine',
+                'coder:verify': 'npx ptbk coder verify',
+            },
+        });
+    });
+
+    it('leaves the file untouched when every entry is already defined', async () => {
+        const projectPath = await createTemporaryDirectory(temporaryDirectories);
+        const packageJsonFilePath = join(projectPath, 'package.json');
+        const originalFileContent = '{\n  "scripts": {\n    "coder:run": "echo mine"\n  }\n}\n';
+
+        await writeFile(packageJsonFilePath, originalFileContent, 'utf-8');
+
+        const { status, addedEntryKeys } = await mergeStringRecordJsonFile({
+            projectPath,
+            relativeFilePath: 'package.json',
+            fieldPath: 'scripts',
+            nextEntries: {
+                'coder:run': 'npx ptbk coder run',
+            },
+        });
+
+        expect(status).toBe('unchanged');
+        expect(addedEntryKeys).toEqual([]);
+        expect(await readFile(packageJsonFilePath, 'utf-8')).toBe(originalFileContent);
     });
 });

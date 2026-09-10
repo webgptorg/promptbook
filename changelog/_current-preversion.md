@@ -1,3 +1,10 @@
+-   Fixed `ptbk coder init` overwriting configuration the project already owns. Existing `package.json` scripts and
+    `.vscode/settings.json` settings are now kept verbatim and only genuinely missing ones are added. Files a default
+    script points at, like `agents/developer.book`, `AGENTS.md` and `prompts/templates/common.md`, are created only
+    together with the script which references them, so a project with its own `coder:run` no longer receives an unused
+    default agent. `ptbk coder init` also initializes the `test-for-ptbk-coder` npm script which the default
+    `coder:run` uses as its verification command.
+
 -   Fixed `ptbk coder init` so it no longer creates an `AGENT_CODING.md` quick-reference file.
 -   Redesigned the three core benefit illustrations on the **ptbk coder** landing page with detailed terminal,
     portable-agent, and synchronized-commit scenes, plus proportional graphics and a more readable tablet layout.

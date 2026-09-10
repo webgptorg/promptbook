@@ -15,18 +15,22 @@ const VSCODE_DIRECTORY_PATH = '.vscode';
 /**
  * Ensures VS Code routes pasted prompt images into `prompts/screenshots`.
  *
+ * Settings which the project already defines are kept as they are, only missing ones are added.
+ *
  * @private function of `initializeCoderProjectConfiguration`
  */
 export async function ensureCoderVscodeSettingsFile(projectPath: string): Promise<InitializationStatus> {
     const [fieldPath, nextEntries] = resolveDefaultCoderVscodeSettingsEntry();
 
-    return mergeStringRecordJsonFile({
+    const { status } = await mergeStringRecordJsonFile({
         projectPath,
         relativeFilePath: VSCODE_SETTINGS_FILE_PATH,
         fieldPath,
         nextEntries,
         ensureParentDirectoryPath: VSCODE_DIRECTORY_PATH,
     });
+
+    return status;
 }
 
 /**

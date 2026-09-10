@@ -1,7 +1,6 @@
 import colors from 'colors';
-import { AGENTS_FILE_PATH } from './agentsFile';
 import type { InitializationStatus } from './boilerplateTemplates';
-import { CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
+import type { CoderReferencedArtifactStatus } from './coderReferencedArtifacts';
 import { formatDisplayPath } from './formatDisplayPath';
 import type { CoderInitializationSummary } from './initializeCoderProjectConfiguration';
 
@@ -15,21 +14,24 @@ export function printInitializationSummary(summary: CoderInitializationSummary):
     printInitializationStatusLine('prompts/', summary.promptsDirectoryStatus);
     printInitializationStatusLine('prompts/done/', summary.promptsDoneDirectoryStatus);
     printInitializationStatusLine('prompts/templates/', summary.promptsTemplatesDirectoryStatus);
-
-    for (const templateFileStatus of summary.promptTemplateFileStatuses) {
-        printInitializationStatusLine(
-            formatDisplayPath(templateFileStatus.relativeFilePath),
-            templateFileStatus.status,
-        );
-    }
-
     printInitializationStatusLine('agents/', summary.agentsDirectoryStatus);
-    printInitializationStatusLine(CODER_DEVELOPER_AGENT_FILE_PATH, summary.developerAgentFileStatus);
-    printInitializationStatusLine(AGENTS_FILE_PATH, summary.agentsFileStatus);
     printInitializationStatusLine('.env', summary.envFileStatus);
     printInitializationStatusLine('.gitignore', summary.gitignoreFileStatus);
     printInitializationStatusLine('package.json', summary.packageJsonFileStatus);
     printInitializationStatusLine('.vscode/settings.json', summary.vscodeSettingsFileStatus);
+
+    for (const referencedArtifactStatus of summary.referencedArtifactStatuses) {
+        printInitializationStatusLine(
+            formatDisplayPath(referencedArtifactStatus.relativeFilePath),
+            referencedArtifactStatus.status,
+        );
+    }
+
+    if (summary.addedPackageJsonScriptNames.length > 0) {
+        printInitializationNote(`Added npm scripts: ${summary.addedPackageJsonScriptNames.join(', ')}`, colors.cyan);
+    } else {
+        printInitializationNote('All Promptbook coder npm scripts are already present.', colors.gray);
+    }
 
     if (summary.initializedEnvVariableNames.length > 0) {
         printInitializationNote(`Added env variables: ${summary.initializedEnvVariableNames.join(', ')}`, colors.cyan);
@@ -41,7 +43,7 @@ export function printInitializationSummary(summary: CoderInitializationSummary):
 /**
  * Formats one initialization status into a human-readable label.
  */
-function formatInitializationStatus(status: InitializationStatus): string {
+function formatInitializationStatus(status: InitializationStatus | CoderReferencedArtifactStatus): string {
     if (status === 'created') {
         return 'created';
     }
@@ -50,13 +52,20 @@ function formatInitializationStatus(status: InitializationStatus): string {
         return 'updated';
     }
 
+    if (status === 'not-referenced') {
+        return 'not referenced by the added scripts, kept as is';
+    }
+
     return 'unchanged';
 }
 
 /**
  * Prints one checked initialization-status line.
  */
-function printInitializationStatusLine(relativePath: string, status: InitializationStatus): void {
+function printInitializationStatusLine(
+    relativePath: string,
+    status: InitializationStatus | CoderReferencedArtifactStatus,
+): void {
     console.info(colors.gray(`✔ ${relativePath}: ${formatInitializationStatus(status)}`));
 }
 

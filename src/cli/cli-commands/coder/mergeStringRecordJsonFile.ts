@@ -31,6 +31,23 @@ type MergeStringRecordJsonFileOptions = {
 };
 
 /**
+ * Result of one additive string-record merge into a JSON file.
+ *
+ * @private internal utility of `coder init` command
+ */
+export type MergedStringRecordJsonFile = {
+    /**
+     * Status describing whether the JSON file had to be created or updated.
+     */
+    readonly status: InitializationStatus;
+
+    /**
+     * Keys which were missing in the JSON file and therefore added by the merge.
+     */
+    readonly addedEntryKeys: ReadonlyArray<string>;
+};
+
+/**
  * Default indentation used when creating new JSON configuration files.
  */
 const DEFAULT_JSON_FILE_INDENTATION = '    ';
@@ -43,6 +60,9 @@ const DEFAULT_JSON_FILE_NEWLINE = '\n';
 /**
  * Ensures one JSON object field contains the provided string-record entries.
  *
+ * Entries which the project already defines are **never** overridden - only missing keys are added,
+ * so hand-tuned scripts and settings survive every repeated `ptbk coder init`.
+ *
  * @private function of `initializeCoderProjectConfiguration`
  */
 export async function mergeStringRecordJsonFile({
@@ -51,7 +71,7 @@ export async function mergeStringRecordJsonFile({
     fieldPath,
     nextEntries,
     ensureParentDirectoryPath,
-}: MergeStringRecordJsonFileOptions): Promise<InitializationStatus> {
+}: MergeStringRecordJsonFileOptions): Promise<MergedStringRecordJsonFile> {
     if (ensureParentDirectoryPath) {
         await mkdir(join(projectPath, ensureParentDirectoryPath), { recursive: true });
     }
@@ -62,23 +82,27 @@ export async function mergeStringRecordJsonFile({
     const jsonObject = fileContent === undefined ? {} : await parseJsonObjectFile(relativeFilePath, fileContent);
     const existingEntries = getStringRecordOrDefault(jsonObject[fieldPath], relativeFilePath, fieldPath);
 
-    let hasChanges = fileContent === undefined;
+    const addedEntryKeys: Array<string> = [];
     const mergedEntries = { ...existingEntries };
     for (const [entryKey, entryValue] of Object.entries(nextEntries)) {
-        if (mergedEntries[entryKey] !== entryValue) {
-            mergedEntries[entryKey] = entryValue;
-            hasChanges = true;
+        if (Object.prototype.hasOwnProperty.call(mergedEntries, entryKey)) {
+            // Note: The project already defines this entry, keep its own value untouched
+            continue;
         }
+
+        mergedEntries[entryKey] = entryValue;
+        addedEntryKeys.push(entryKey);
     }
 
+    const hasChanges = fileContent === undefined || addedEntryKeys.length > 0;
     if (!hasChanges) {
-        return 'unchanged';
+        return { status: 'unchanged', addedEntryKeys };
     }
 
     const nextJsonObject: JsonObject = { ...jsonObject };
     nextJsonObject[fieldPath] = mergedEntries;
     await writeFile(absoluteFilePath, serializeJsonObject(nextJsonObject, formatting), 'utf-8');
-    return fileContent === undefined ? 'created' : 'updated';
+    return { status: fileContent === undefined ? 'created' : 'updated', addedEntryKeys };
 }
 
 /**

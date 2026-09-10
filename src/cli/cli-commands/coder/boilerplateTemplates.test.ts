@@ -8,8 +8,10 @@ import {
     CODER_DEVELOPER_AGENT_FILE_PATH,
     DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH,
 } from './ensureCoderDeveloperAgentFile';
+import type { CoderReferencedArtifactStatus } from './coderReferencedArtifacts';
 import { getDefaultCoderPackageJsonScripts } from './getDefaultCoderPackageJsonScripts';
 import { getDefaultCoderVscodeSettings } from './getDefaultCoderVscodeSettings';
+import type { CoderInitializationSummary } from './initializeCoderProjectConfiguration';
 import { initializeCoderProjectConfiguration } from './initializeCoderProjectConfiguration';
 
 /**
@@ -19,6 +21,18 @@ async function createTemporaryDirectory(trackedDirectories: Array<string>): Prom
     const directory = await mkdtemp(join(tmpdir(), 'promptbook-coder-'));
     trackedDirectories.push(directory);
     return directory;
+}
+
+/**
+ * Reads the status of one artifact referenced by the default coder scripts.
+ */
+function getReferencedArtifactStatus(
+    summary: CoderInitializationSummary,
+    relativeFilePath: string,
+): CoderReferencedArtifactStatus | undefined {
+    return summary.referencedArtifactStatuses.find(
+        (referencedArtifact) => referencedArtifact.relativeFilePath === relativeFilePath,
+    )?.status;
 }
 
 /**
@@ -63,18 +77,15 @@ describe('coder boilerplate templates', () => {
 
         expect(summary.promptsTemplatesDirectoryStatus).toBe('created');
         expect(summary.agentsDirectoryStatus).toBe('created');
-        expect(summary.developerAgentFileStatus).toBe('created');
-        expect(summary.agentsFileStatus).toBe('created');
+        expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('created');
+        expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('created');
         expect(summary.gitignoreFileStatus).toBe('created');
         expect(summary.packageJsonFileStatus).toBe('created');
         expect(summary.vscodeSettingsFileStatus).toBe('created');
-        expect(summary.promptTemplateFileStatuses).toEqual(
-            getDefaultCoderProjectPromptTemplateDefinitions().map(({ id, relativeFilePath }) => ({
-                id,
-                relativeFilePath,
-                status: 'created',
-            })),
-        );
+
+        for (const { relativeFilePath } of getDefaultCoderProjectPromptTemplateDefinitions()) {
+            expect(getReferencedArtifactStatus(summary, relativeFilePath)).toBe('created');
+        }
 
         for (const definition of getDefaultCoderProjectPromptTemplateDefinitions()) {
             const content = await readFile(join(projectPath, definition.relativeFilePath), 'utf-8');
@@ -108,13 +119,16 @@ describe('coder boilerplate templates', () => {
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             scripts: defaultCoderPackageJsonScripts,
         });
-        // Note: Every script goes through NPX, because `ptbk` can be installed globally or locally
+        // Note: Every `coder:*` script goes through NPX, because `ptbk` can be installed globally or locally
         //       and NPX resolves it correctly in either case
         expect(
-            Object.values(defaultCoderPackageJsonScripts).every((scriptCommand) =>
-                scriptCommand.startsWith('npx ptbk'),
-            ),
+            Object.entries(defaultCoderPackageJsonScripts)
+                .filter(([scriptName]) => scriptName.startsWith('coder:'))
+                .every(([, scriptCommand]) => scriptCommand.startsWith('npx ptbk')),
         ).toBe(true);
+        // Note: The verification command of `coder:run` is a project-owned script initialized next to it
+        expect(defaultCoderPackageJsonScripts['coder:run']).toContain('--test "npm run test-for-ptbk-coder"');
+        expect(defaultCoderPackageJsonScripts['test-for-ptbk-coder']).toBe('npm test');
         expect(await readJsonFile(join(projectPath, '.vscode', 'settings.json'))).toEqual(
             getDefaultCoderVscodeSettings(),
         );
@@ -144,21 +158,25 @@ describe('coder boilerplate templates', () => {
         expect(summary.gitignoreFileStatus).toBe('updated');
         expect(summary.packageJsonFileStatus).toBe('updated');
         expect(summary.vscodeSettingsFileStatus).toBe('updated');
-        expect(summary.developerAgentFileStatus).toBe('unchanged');
-        expect(summary.agentsFileStatus).toBe('unchanged');
+        expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('not-referenced');
+        expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('not-referenced');
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe(
             'node_modules\n.tmp\n\n# Promptbook Coder\n/.promptbook\n.env\n.codex\n.github/copilot/settings.local.json\n.cline\n.claude\n.opencode\n.gemini\n.qwen\n',
         );
 
+        // Note: The project-owned `coder:run` and `test` scripts must survive the initialization untouched
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             name: 'demo',
             scripts: {
-                test: 'echo test',
                 ...getDefaultCoderPackageJsonScripts(),
+                test: 'echo test',
+                'coder:run': 'echo old',
             },
         });
+        expect(summary.addedPackageJsonScriptNames).not.toContain('coder:run');
+        expect(summary.addedPackageJsonScriptNames).toContain('test-for-ptbk-coder');
 
         const packageJsonContent = await readFile(join(projectPath, 'package.json'), 'utf-8');
         expect(packageJsonContent).toContain('\n  "scripts": {\n');
@@ -175,6 +193,78 @@ describe('coder boilerplate templates', () => {
         expect(await readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).toBe(
             'Custom developer agent\n',
         );
+    });
+
+    it('keeps existing scripts and settings and skips the artifacts they no longer reference', async () => {
+        const projectPath = await createTemporaryDirectory(temporaryDirectories);
+        const existingCoderRunScript = 'npx ptbk coder run --harness github-copilot --agent agents/my-own.book';
+        const existingScreenshotDestination = 'screenshots/${documentBaseName}.png';
+
+        await writeFile(
+            join(projectPath, 'package.json'),
+            `${JSON.stringify(
+                {
+                    name: 'demo',
+                    scripts: {
+                        'coder:run': existingCoderRunScript,
+                        'coder:add': 'npx ptbk coder add --template ./prompts/templates/my-own.md',
+                        'test-for-ptbk-coder': 'npm run build && npm run test-unit',
+                    },
+                },
+                null,
+                2,
+            )}\n`,
+            'utf-8',
+        );
+        await mkdir(join(projectPath, '.vscode'), { recursive: true });
+        await writeFile(
+            join(projectPath, '.vscode', 'settings.json'),
+            `${JSON.stringify(
+                {
+                    'markdown.copyFiles.destination': {
+                        'prompts/*md': existingScreenshotDestination,
+                    },
+                },
+                null,
+                2,
+            )}\n`,
+            'utf-8',
+        );
+
+        const summary = await initializeCoderProjectConfiguration(projectPath);
+
+        // Note: [1] The existing script and setting values must survive verbatim
+        const packageJson = await readJsonFile<{ readonly scripts: Record<string, string> }>(
+            join(projectPath, 'package.json'),
+        );
+        expect(packageJson.scripts['coder:run']).toBe(existingCoderRunScript);
+        expect(packageJson.scripts['test-for-ptbk-coder']).toBe('npm run build && npm run test-unit');
+        expect(
+            (
+                await readJsonFile<{ readonly 'markdown.copyFiles.destination': Record<string, string> }>(
+                    join(projectPath, '.vscode', 'settings.json'),
+                )
+            )['markdown.copyFiles.destination'],
+        ).toEqual({ 'prompts/*md': existingScreenshotDestination });
+        expect(summary.vscodeSettingsFileStatus).toBe('unchanged');
+
+        // Note: [2] Only the genuinely missing scripts were added
+        expect([...summary.addedPackageJsonScriptNames].sort()).toEqual([
+            'coder:generate-boilerplates',
+            'coder:verify',
+        ]);
+
+        // Note: [3] The artifacts of the kept `coder:run` and `coder:add` scripts must not be created
+        expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('not-referenced');
+        await expect(readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).rejects.toThrow();
+        expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('not-referenced');
+        await expect(readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).rejects.toThrow();
+
+        // Note: [4] The added `coder:generate-boilerplates` script still references the common template
+        for (const { relativeFilePath } of getDefaultCoderProjectPromptTemplateDefinitions()) {
+            expect(getReferencedArtifactStatus(summary, relativeFilePath)).toBe('created');
+            await expect(readFile(join(projectPath, relativeFilePath), 'utf-8')).resolves.toBeTruthy();
+        }
     });
 
     it('does not append duplicate commented coder env variables on repeated init', async () => {

@@ -65,6 +65,11 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 - package.json
                 - .vscode/settings.json
 
+                Never overwrites what the project already owns:
+                - Existing package.json scripts and .vscode/settings.json settings are kept, only missing ones are added
+                - Files referenced by a script, like the agent and context of coder:run, are created only together
+                  with the script which references them
+
                 Ensures required coding-agent environment variables in .env:
                 - CODING_AGENT_GIT_NAME
                 - CODING_AGENT_GIT_EMAIL

@@ -53,7 +53,10 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
                 <code className="text-promptbook-blue">agents/developer.book</code> persona,{' '}
                 <code className="text-promptbook-blue">AGENTS.md</code> project context, and the agent git identity
                 entries in <code className="text-promptbook-blue">.env</code>. It also adds local files created by every
-                supported harness to <code className="text-promptbook-blue">.gitignore</code>.
+                supported harness to <code className="text-promptbook-blue">.gitignore</code>. Nothing you already own
+                is ever overwritten: existing <code className="text-promptbook-blue">package.json</code> scripts and{' '}
+                <code className="text-promptbook-blue">.vscode/settings.json</code> settings are kept as they are, and
+                the files a script points at are created only together with that script. Run it again any time.
             </>
         ),
         command: INIT_COMMAND,
@@ -77,8 +80,8 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         description: (
             <>
                 Pick a harness and let it work. It implements one prompt, verifies it, commits it, then starts the next
-                one. Run <code className="text-promptbook-blue">{LIST_COMMAND}</code> first if you only want to see
-                the ready queue grouped by priority.
+                one. Run <code className="text-promptbook-blue">{LIST_COMMAND}</code> first if you only want to see the
+                ready queue grouped by priority.
             </>
         ),
         command: RUN_COMMAND,
