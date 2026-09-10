@@ -20,18 +20,20 @@ export function HowItWorks() {
                 window full of questions.
             </p>
 
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
+            <div className="mt-12 grid gap-6 lg:grid-cols-3">
                 {CORE_BENEFITS.map((benefit) => (
                     <article
                         key={benefit.title}
-                        className="group overflow-hidden rounded-xl border border-gray-800 bg-gray-900/50 p-5 text-center transition-colors hover:border-promptbook-blue-dark/70"
+                        className="group min-w-0 overflow-hidden rounded-xl border border-gray-800 bg-gray-900/50 p-5 text-center transition-colors hover:border-promptbook-blue-dark/70 sm:grid sm:grid-cols-2 sm:items-center sm:gap-6 sm:text-left lg:block lg:text-center"
                     >
                         <CoreBenefitGraphic illustration={benefit.illustration} />
-                        <p className="mt-6 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-promptbook-blue">
-                            {benefit.label}
-                        </p>
-                        <h3 className="mt-3 font-display text-xl font-semibold text-white">{benefit.title}</h3>
-                        <p className="mt-3 text-sm leading-6 text-gray-400">{benefit.description}</p>
+                        <div className="min-w-0">
+                            <p className="mt-6 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-promptbook-blue sm:mt-0 lg:mt-6">
+                                {benefit.label}
+                            </p>
+                            <h3 className="mt-3 font-display text-xl font-semibold text-white">{benefit.title}</h3>
+                            <p className="mt-3 text-sm leading-6 text-gray-400">{benefit.description}</p>
+                        </div>
                     </article>
                 ))}
             </div>

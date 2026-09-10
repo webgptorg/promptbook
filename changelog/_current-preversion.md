@@ -1,4 +1,6 @@
 -   Fixed `ptbk coder init` so it no longer creates an `AGENT_CODING.md` quick-reference file.
+-   Redesigned the three core benefit illustrations on the **ptbk coder** landing page with detailed terminal,
+    portable-agent, and synchronized-commit scenes, plus proportional graphics and a more readable tablet layout.
 
 -   Fixed `ptbk coder init` to preserve a non-empty `prompts/` directory instead of adding placeholder boilerplate
     prompts while it initializes the remaining coder files.

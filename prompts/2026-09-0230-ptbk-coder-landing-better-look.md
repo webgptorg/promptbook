@@ -1,24 +1,11 @@
-[-]
+[x] by OpenAI Codex `gpt-6-astra` thinking `max` (ChatGPT account) - Implementation ~$0.2316 12 minutes; Testing 3 minutes
 
-[✨🎿] qux
+[✨🎿] Enhance the pictures of 3. benefits on Promptbook coder website 
 
-```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
-ptbk coder run --harness openai-codex --model gpt-5.6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md
-```
-
--   @@@@@@@
--   Section "Ship a backlog, not a stream of interruptions." looks pretty shitty
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
--   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
--   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
--   Update the [`ptbk coder` landing website](apps/coder-landing) if there are any changes that affect the landing page.
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   The images look very shitty and not appealing. Enhance them to look much better. 
+-   I mean images in "Ship a backlog, not a stream of interruptions."
+-   You are working with [`ptbk coder` landing website](apps/coder-landing) if there are any changes that affect the landing page.
+-   The page must look great on all screen sizes, including mobile, tablet, and desktop.
 
 ![alt text](screenshots/2026-09-0230-ptbk-coder-landing-better-look.png)
+
