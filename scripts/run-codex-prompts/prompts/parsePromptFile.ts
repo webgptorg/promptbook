@@ -12,7 +12,7 @@ import type { PromptStatus } from './types/PromptStatus';
  *
  * @private internal constant of `parsePromptFile`
  */
-const PROMPT_STATUS_MARKER_PATTERN = /^\[(?: |-|[xX]|\^|!)\]/u;
+const PROMPT_STATUS_LINE_PATTERN = /^\[(?<marker> |-|\.|[xX]|\^|!)\](?<details>.*)$/u;
 
 /**
  * Parses a prompt markdown file into sections and metadata.
@@ -39,7 +39,7 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
         if (firstNonEmptyLine !== undefined) {
             const statusLine = (lines[firstNonEmptyLine] || '').trim();
             const parsedStatus = parseStatusLine(statusLine);
-            const status = parsedStatus?.status ?? (hasPromptStatusMarker(statusLine) ? 'not-ready' : 'todo');
+            const status = parsedStatus?.status ?? (PROMPT_STATUS_LINE_PATTERN.test(statusLine) ? 'not-ready' : 'todo');
             const priority = parsedStatus?.priority ?? 0;
 
             sections.push({
@@ -71,37 +71,36 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
  * For [x] done, [!] failed and [^] in-progress prompts, allow metadata after the status marker.
  */
 function parseStatusLine(line: string): { status: PromptStatus; priority: number } | undefined {
-    // For done prompts [x], allow any content after (for cost/time metadata)
-    const doneMatch = line.match(/^\[(?<status>[xX])\]/);
-    if (doneMatch) {
+    const statusLineMatch = line.match(PROMPT_STATUS_LINE_PATTERN);
+    const marker = statusLineMatch?.groups?.marker;
+    const details = statusLineMatch?.groups?.details ?? '';
+
+    if (marker === 'x' || marker === 'X') {
+        // For done prompts [x], allow any content after (for cost/time metadata).
         return { status: 'done', priority: 0 };
     }
 
-    // For failed prompts [!], allow any content after (for failure metadata)
-    const failedMatch = line.match(/^\[(?<status>!)\]/);
-    if (failedMatch) {
+    if (marker === '!') {
+        // For failed prompts [!], allow any content after (for failure metadata).
         return { status: 'failed', priority: 0 };
     }
 
-    // For in-progress prompts [^], allow any content after (for the steps recorded so far)
-    const inProgressMatch = line.match(/^\[(?<status>\^)\]/);
-    if (inProgressMatch) {
+    if (marker === '^') {
+        // For in-progress prompts [^], allow any content after (for the steps recorded so far).
         return { status: 'in-progress', priority: 0 };
     }
 
-    // For not-ready [-], keep the historical clean-line syntax.
-    if (/^\[-\]\s*!*\s*$/u.test(line)) {
+    // Treat [.] as the alternative spelling of not-ready [-], preserving the historical clean-line syntax.
+    if ((marker === '-' || marker === '.') && /^[!\s]*$/u.test(details)) {
         return { status: 'not-ready', priority: 0 };
+    }
+
+    if (marker !== ' ') {
+        return undefined;
     }
 
     // Todo [ ] may contain backtick-delimited model/harness tokens and priority markers
     // before or after those tokens. Other trailing text remains an invalid status line.
-    const todoMatch = line.match(/^\[ \](?<details>.*)$/u);
-    if (!todoMatch) {
-        return undefined;
-    }
-
-    const details = todoMatch.groups?.details ?? '';
     const isPriorityOnly = /^[!\s]*$/u.test(details);
     const hasPromptRunnerTokens = extractPromptRunnerTokens(line).length > 0;
 
@@ -110,13 +109,4 @@ function parseStatusLine(line: string): { status: PromptStatus; priority: number
     }
 
     return { status: 'todo', priority: details.match(/!/gu)?.length ?? 0 };
-}
-
-/**
- * Checks whether a line starts with one of the supported prompt status markers.
- *
- * @private internal utility of `parsePromptFile`
- */
-function hasPromptStatusMarker(line: string): boolean {
-    return PROMPT_STATUS_MARKER_PATTERN.test(line);
 }

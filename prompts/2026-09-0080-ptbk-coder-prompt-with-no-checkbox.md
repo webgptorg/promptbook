@@ -15,7 +15,7 @@
 
 ---
 
-[ ] !
+[x] (2 attempts) by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.6221 17 minutes; Testing 6 minutes; Fixing ~.02 an hour; Testing 21 minutes
 
 [✨🤺] When running `ptbk coder run` allow prompts with no `[ ]`
 
@@ -32,3 +32,4 @@
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts) if there are any changes that affect the landing page.
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

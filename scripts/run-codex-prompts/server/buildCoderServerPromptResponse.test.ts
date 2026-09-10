@@ -53,6 +53,9 @@ describe('buildCoderServerPromptFileResponses', () => {
             [-]
             Draft prompt
             ---
+            [.]
+            Alternative draft prompt
+            ---
             [-]
             @@@ Draft unwritten prompt
             ---
@@ -93,6 +96,10 @@ describe('buildCoderServerPromptFileResponses', () => {
             tags: [{ id: 'unwritten', label: '@@@' }],
         });
         expect(findSection(sections, 'Draft prompt')).toMatchObject({
+            column: 'backlog',
+            tags: [{ id: 'not-ready', label: '[-]' }],
+        });
+        expect(findSection(sections, 'Alternative draft prompt')).toMatchObject({
             column: 'backlog',
             tags: [{ id: 'not-ready', label: '[-]' }],
         });

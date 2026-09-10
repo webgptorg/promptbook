@@ -123,4 +123,21 @@ describe('priority filtering', () => {
         expect(listRunnablePrompts([file])).toHaveLength(1);
         expect(listRunnablePrompts([file], { minimumPriority: 1 })).toHaveLength(0);
     });
+
+    it('treats `[.]` as a not-ready prompt', () => {
+        const file = parsePromptFile(
+            'prompts/dotted-not-ready-test.md',
+            spaceTrim(`
+                [.]
+                Keep this task out of the queue.
+            `),
+        );
+
+        expect(file.sections[0]).toMatchObject({
+            status: 'not-ready',
+            priority: 0,
+            statusLineIndex: 0,
+        });
+        expect(listRunnablePrompts([file])).toHaveLength(0);
+    });
 });

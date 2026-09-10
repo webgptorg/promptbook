@@ -5,6 +5,6 @@
  * - `failed` — `[!]`, the prompt could not be implemented
  * - `in-progress` — `[^]`, the implementation has started but has not finished yet
  * - `todo` — `[ ]`, or no status marker, the prompt is waiting to be picked up
- * - `not-ready` — `[-]`, the prompt is not ready to be picked up at all
+ * - `not-ready` — `[-]` or `[.]`, the prompt is not ready to be picked up at all
  */
 export type PromptStatus = 'done' | 'failed' | 'in-progress' | 'todo' | 'not-ready';

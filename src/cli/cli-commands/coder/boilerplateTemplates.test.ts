@@ -173,8 +173,8 @@ describe('coder boilerplate templates', () => {
         expect(await readJsonFile(join(projectPath, '.vscode', 'settings.json'))).toEqual({
             'files.eol': '\n',
             'markdown.copyFiles.destination': {
-                'docs/*md': 'docs/images/${documentBaseName}.png',
-                'prompts/*md': 'screenshots/${documentBaseName}.png',
+                'docs/*md': './docs/images/${documentBaseName}.png',
+                'prompts/*md': './prompts/screenshots/${documentBaseName}.png',
             },
         });
 
