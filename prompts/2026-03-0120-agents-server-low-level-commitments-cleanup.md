@@ -1,3 +1,5 @@
+[.] _<- Should we do this anymore?_
+
 [🛡️🧹] Low-level commitments & commitments alias cleanup
 
 Overview: Create a generic "low-level" flag for commitments (decoupled from `MODEL`), remove `MODEL` from the main book/manual output (/api/docs/book.md), surface low-level commitments in a distinct bottom section of the manual and editor (with special styling), highlight them in the editor but exclude them from autocompletion suggestions, and remove alias variants from suggestion lists while keeping aliases in metadata for backward compatibility.

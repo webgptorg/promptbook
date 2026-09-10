@@ -1,3 +1,5 @@
+<!--ptbk-coder-ignore-->
+
 ## Analysis
 
 -   The main latency was not only model execution. A large part of the delay was repeated server-side preparation that happened again on almost every message.

@@ -1,4 +1,4 @@
-[!!!!!]
+[.] _<- Should we do this anymore?_
 
 [✨🥚] When the agent creates its underlying GPT assistant, the knowledge files are uploaded 1:1 to the OpenAI. Change the logic such as convert the files via scrapers which are already existing in this project and upload just Markdown to OpenAI.
 
