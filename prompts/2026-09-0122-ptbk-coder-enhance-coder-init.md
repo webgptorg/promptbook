@@ -11,6 +11,8 @@ ptbk coder init
 -   Only create new scripts and settings if they do not already exist.
 -   If theese references external some agents / files, theese should be auto-created _(like creation of `developer.book` agent)_ but when they already exist, they should not be overridden and the referenced agents / files should not be created because they are not referenced by the new scripts or settings.
 -   Only add non-existing scripts to `package.json`
+-   But initialize AGENTS.md when referencing it
+-   Also initialize test-for-ptbk-coder if not existing as script
 -   Same pattern applies to `settings.json` as well.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
