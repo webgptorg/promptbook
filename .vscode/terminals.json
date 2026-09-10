@@ -67,6 +67,17 @@
             "focus": false
         },
         {
+            "name": "🐙🚀 Run ptbk coder `gpt-6-astra` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness openai-codex --model gpt-6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push --min-priority 2"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🐙🚀 Run ptbk coder `claude-opus-5` Coding Agent (💤)(💸)(⏳)",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness claude-code --model claude-opus-5 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix  --auto-pull --auto-push",
             "execute": false,
