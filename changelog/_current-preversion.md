@@ -1,3 +1,6 @@
+-   Fixed `ptbk coder init` to preserve a non-empty `prompts/` directory instead of adding placeholder boilerplate
+    prompts while it initializes the remaining coder files.
+
 -   Added `ptbk coder list`, a read-only queue preview that lists ready, fully authored prompts in descending priority
     groups without starting a harness. Its optional `--harness`, `--model`, `--priority`, `--min-priority`, and
     `--max-priority` filters let you preview exactly the queue a selected runner would receive.

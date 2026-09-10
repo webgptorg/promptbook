@@ -21,8 +21,9 @@ import type { PromptRunnerHarnessName } from '../common/promptRunnerCliOptions';
 import { AGENT_CODING_FILE_PATH } from './agentCodingFile';
 import { AGENTS_FILE_PATH } from './agentsFile';
 import { DEFAULT_BOILERPLATE_COUNT } from './boilerplateCount';
-import { getDefaultCoderProjectPromptTemplateDefinitions } from './boilerplateTemplates';
+import { getDefaultCoderProjectPromptTemplateDefinitions, PROMPTS_DIRECTORY_PATH } from './boilerplateTemplates';
 import { CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
+import { isDirectoryEmpty } from './ensureDirectory';
 import { formatDisplayPath } from './formatDisplayPath';
 import { generatePromptBoilerplate } from './generate-boilerplates';
 import { initializeCoderProjectConfiguration } from './initializeCoderProjectConfiguration';
@@ -96,10 +97,14 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             );
 
             const commitScope = await $startCoderGitSync({ gitSync, projectPath });
+            const isPromptsDirectoryEmpty = await isDirectoryEmpty(projectPath, PROMPTS_DIRECTORY_PATH);
 
             const summary = await initializeCoderProjectConfiguration(projectPath);
             printInitializationSummary(summary);
-            await generatePromptBoilerplate({ projectPath, boilerplateCount: DEFAULT_BOILERPLATE_COUNT });
+
+            if (isPromptsDirectoryEmpty) {
+                await generatePromptBoilerplate({ projectPath, boilerplateCount: DEFAULT_BOILERPLATE_COUNT });
+            }
 
             await $commitCoderChanges({
                 gitSync,

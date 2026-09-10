@@ -1,4 +1,4 @@
-[ ] !
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~$0.3775 24 minutes; Testing 28 minutes
 
 [✨🤲] Do not run `generate-boilerplates` during `ptbk coder init` if `prompts/` already contains real prompts
 
@@ -12,3 +12,4 @@ ptbk coder init
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) if necessary.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
