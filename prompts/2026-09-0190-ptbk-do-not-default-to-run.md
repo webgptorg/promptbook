@@ -1,16 +1,15 @@
 [ ]
 
-[✨🥍] brr
+[✨🥍] The `ptbk` CLI should not default to `ptbk run` which is deprecated
 
 ```bash
 ptbk
 ```
 
--   @@@@@@
--   The `ptbk` cli command should not default to `ptbk run`
+-   When running `ptbk` without any subcommand, it should not default to `ptbk run` since it is deprecated.
+-   It should instead display the help message or prompt the user to specify a subcommand.
+-   The `ptbk coder` should be first command among the listed subcommands.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
--   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
--   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
--   Update the [`ptbk coder` landing website](apps/coder-landing) if there are any changes that affect the landing page.
+-   Do a proper analysis of the current functionality of `ptbk` and related functionality before you start implementing.
+-   You are working with [`ptbk`](src/cli/cli-commands/)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)

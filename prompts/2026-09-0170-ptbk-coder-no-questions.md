@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [✨💥] Add option `--no-questions`
 
@@ -6,8 +6,9 @@
 ptbk coder run --no-questions --harness openai-codex --model gpt-5.6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md
 ```
 
--   @@@@@@@@
--   Remove `--no-harness-update`
+-   Remove `--no-harness-update` and replace it with `--no-questions` where appropriate.
+    -   Do not keep backward compatibility with `--no-harness-update`.
+-   The `--no-questions` is relevant for all interactive questions requiring user input to continue.
 -   Go through all `ptbk coder` commands and find all commands where it makes sense to add the `--no-questions` option.
     -   For example `ptbk coder run`, `ptbk coder ping`, `ptbk coder init`,... _(go through all commands and see where it makes sense to add `--no-questions`)_
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
