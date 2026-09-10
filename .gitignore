@@ -24,3 +24,12 @@ other/integration-tests/videos/*
 /logs
 /.logs
 # <- TODO: !!!!! Take one of these two log folders and remove the other one. We should only have one log folder from Agents server
+
+# Promptbook Coder
+.codex
+.github/copilot/settings.local.json
+.cline
+.claude
+.opencode
+.gemini
+.qwen
