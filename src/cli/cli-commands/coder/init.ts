@@ -18,7 +18,6 @@ import {
     type HarnessUpdateCliOptions,
 } from '../common/harnessUpdateCliOptions';
 import type { PromptRunnerHarnessName } from '../common/promptRunnerCliOptions';
-import { AGENT_CODING_FILE_PATH } from './agentCodingFile';
 import { AGENTS_FILE_PATH } from './agentsFile';
 import { DEFAULT_BOILERPLATE_COUNT } from './boilerplateCount';
 import { getDefaultCoderProjectPromptTemplateDefinitions, PROMPTS_DIRECTORY_PATH } from './boilerplateTemplates';
@@ -62,7 +61,6 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 ${block(listDefaultCoderProjectPromptTemplateDisplayPaths())}
                 - ${CODER_DEVELOPER_AGENT_FILE_PATH}
                 - ${AGENTS_FILE_PATH}
-                - ${AGENT_CODING_FILE_PATH}
                 - .gitignore with local artifacts from every supported harness
                 - package.json
                 - .vscode/settings.json

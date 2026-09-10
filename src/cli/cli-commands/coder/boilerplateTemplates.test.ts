@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { AGENT_CODING_FILE_PATH, getDefaultCoderAgentCodingFileContent } from './agentCodingFile';
 import { AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent } from './agentsFile';
 import { getDefaultCoderProjectPromptTemplateDefinitions, resolveCoderPromptTemplate } from './boilerplateTemplates';
 import {
@@ -66,7 +65,6 @@ describe('coder boilerplate templates', () => {
         expect(summary.agentsDirectoryStatus).toBe('created');
         expect(summary.developerAgentFileStatus).toBe('created');
         expect(summary.agentsFileStatus).toBe('created');
-        expect(summary.agentCodingFileStatus).toBe('created');
         expect(summary.gitignoreFileStatus).toBe('created');
         expect(summary.packageJsonFileStatus).toBe('created');
         expect(summary.vscodeSettingsFileStatus).toBe('created');
@@ -93,8 +91,7 @@ describe('coder boilerplate templates', () => {
         const agentsFileContent = await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8');
         expect(normalizeLineEndings(agentsFileContent).trim()).toBe(getDefaultCoderAgentsFileContent());
 
-        const agentCodingFileContent = await readFile(join(projectPath, AGENT_CODING_FILE_PATH), 'utf-8');
-        expect(normalizeLineEndings(agentCodingFileContent).trim()).toBe(getDefaultCoderAgentCodingFileContent());
+        await expect(readFile(join(projectPath, 'AGENT_CODING.md'), 'utf-8')).rejects.toThrow();
 
         await expect(
             readFile(join(projectPath, 'prompts', 'templates', 'agents-server.md'), 'utf-8'),
@@ -118,8 +115,6 @@ describe('coder boilerplate templates', () => {
                 scriptCommand.startsWith('npx ptbk'),
             ),
         ).toBe(true);
-        expect(normalizeLineEndings(agentCodingFileContent)).not.toContain('npx ptbk');
-
         expect(await readJsonFile(join(projectPath, '.vscode', 'settings.json'))).toEqual(
             getDefaultCoderVscodeSettings(),
         );
@@ -137,7 +132,6 @@ describe('coder boilerplate templates', () => {
         await writeFile(join(projectPath, AGENTS_FILE_PATH), 'Custom instructions\n', 'utf-8');
         await mkdir(join(projectPath, 'agents'), { recursive: true });
         await writeFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'Custom developer agent\n', 'utf-8');
-        await writeFile(join(projectPath, AGENT_CODING_FILE_PATH), 'Custom coder guide\n', 'utf-8');
         await mkdir(join(projectPath, '.vscode'), { recursive: true });
         await writeFile(
             join(projectPath, '.vscode', 'settings.json'),
@@ -152,7 +146,6 @@ describe('coder boilerplate templates', () => {
         expect(summary.vscodeSettingsFileStatus).toBe('updated');
         expect(summary.developerAgentFileStatus).toBe('unchanged');
         expect(summary.agentsFileStatus).toBe('unchanged');
-        expect(summary.agentCodingFileStatus).toBe('unchanged');
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe(
@@ -182,7 +175,6 @@ describe('coder boilerplate templates', () => {
         expect(await readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).toBe(
             'Custom developer agent\n',
         );
-        expect(await readFile(join(projectPath, AGENT_CODING_FILE_PATH), 'utf-8')).toBe('Custom coder guide\n');
     });
 
     it('does not append duplicate commented coder env variables on repeated init', async () => {

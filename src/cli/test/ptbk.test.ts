@@ -138,7 +138,7 @@ describe('how promptbookCli works', () => {
             expect(output).toContain('✔ agents/: created');
             expect(output).toContain('✔ agents/developer.book: created');
             expect(output).toContain('✔ AGENTS.md: created');
-            expect(output).toContain('✔ AGENT_CODING.md: created');
+            expect(output).not.toContain('AGENT_CODING.md');
             expect(output).toContain('✔ package.json: created');
             expect(output).toContain('✔ .vscode/settings.json: created');
             expect(output).not.toContain('agents-server.md');

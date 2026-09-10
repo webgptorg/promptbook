@@ -1,4 +1,4 @@
-[ ] !
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~.22 an hour; Testing 18 minutes
 
 [✨🤲] When running `ptbk coder init` do not create `AGENT_CODING.md` file
 
@@ -11,3 +11,4 @@ ptbk coder init
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) if necessary.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

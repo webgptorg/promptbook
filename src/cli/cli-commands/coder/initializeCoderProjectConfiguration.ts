@@ -1,4 +1,3 @@
-import { AGENT_CODING_FILE_PATH, getDefaultCoderAgentCodingFileContent } from './agentCodingFile';
 import { AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent } from './agentsFile';
 import type { EnsuredCoderPromptTemplateFile, InitializationStatus } from './boilerplateTemplates';
 import {
@@ -28,7 +27,6 @@ export type CoderInitializationSummary = {
     readonly agentsDirectoryStatus: InitializationStatus;
     readonly developerAgentFileStatus: InitializationStatus;
     readonly agentsFileStatus: InitializationStatus;
-    readonly agentCodingFileStatus: InitializationStatus;
     readonly envFileStatus: InitializationStatus;
     readonly gitignoreFileStatus: InitializationStatus;
     readonly packageJsonFileStatus: InitializationStatus;
@@ -53,11 +51,6 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
         AGENTS_FILE_PATH,
         getDefaultCoderAgentsFileContent(),
     );
-    const agentCodingFileStatus = await ensureCoderMarkdownFile(
-        projectPath,
-        AGENT_CODING_FILE_PATH,
-        getDefaultCoderAgentCodingFileContent(),
-    );
     const { envFileStatus, initializedEnvVariableNames } = await ensureCoderEnvFile(projectPath);
     const gitignoreFileStatus = await ensureCoderGitignoreFile(projectPath);
     const packageJsonFileStatus = await ensureCoderPackageJsonFile(projectPath);
@@ -71,7 +64,6 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
         agentsDirectoryStatus,
         developerAgentFileStatus,
         agentsFileStatus,
-        agentCodingFileStatus,
         envFileStatus,
         gitignoreFileStatus,
         packageJsonFileStatus,

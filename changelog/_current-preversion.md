@@ -1,3 +1,5 @@
+-   Fixed `ptbk coder init` so it no longer creates an `AGENT_CODING.md` quick-reference file.
+
 -   Fixed `ptbk coder init` to preserve a non-empty `prompts/` directory instead of adding placeholder boilerplate
     prompts while it initializes the remaining coder files.
 
