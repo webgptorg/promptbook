@@ -1,3 +1,4 @@
+import { HeroClaimRotator } from '@/components/HeroClaimRotator/HeroClaimRotator';
 import { LiveTerminalDemo } from '@/components/LiveTerminalDemo/LiveTerminalDemo';
 import { TerminalBlock } from '@/components/TerminalBlock/TerminalBlock';
 import { INSTALL_COMMAND } from '@/data/commands';
@@ -27,15 +28,7 @@ export function Hero() {
                           against the terminal window instead of floating in a section the terminal alone defines */}
                 <div className="flex flex-col justify-center gap-8">
                     <div>
-                        {/* Note: The headline only grows on a viewport whose column is wide enough for its
-                                  longer line, so it keeps its two lines from the narrowest phone to the desktop */}
-                        <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl xl:text-[3.25rem]">
-                            Your coding agents,
-                            <br />
-                            <span className="bg-gradient-to-r from-promptbook-blue to-promptbook-green bg-clip-text text-transparent">
-                                running your backlog.
-                            </span>
-                        </h1>
+                        <HeroClaimRotator />
                         <p className="mt-6 max-w-xl text-lg leading-relaxed text-gray-300 lg:mt-8 lg:text-xl lg:leading-relaxed xl:text-[1.375rem]">
                             <strong className="text-white">ptbk coder</strong> drives Claude Code, OpenAI Codex, Gemini
                             CLI and other coding agents through a queue of plain-markdown prompts. It runs your tests

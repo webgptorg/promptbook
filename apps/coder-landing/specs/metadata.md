@@ -11,7 +11,7 @@ All copy, URLs and identifiers used by the metadata live in **one** data module 
 | Canonical URL       | `https://coder.ptbk.io`                                                                                   |
 | Product name        | `ptbk coder` (split into the lead `ptbk` and the highlighted `coder`)                                     |
 | Alternate name      | `Promptbook Coder`                                                                                        |
-| Tagline             | `Your coding agents,` + `running your backlog` — the two lines of the [hero](./sections/hero.md) headline |
+| Tagline             | The two lines of the primary [hero](./sections/hero.md) claim, read from the hero claims configuration        |
 | Title               | `<product name>: <tagline>`                                                                               |
 | Description         | The one-sentence definition from [`product.md`](./product.md), shown in search results                    |
 | Sharing description | A shorter, punchier variant shown in sharing previews                                                     |

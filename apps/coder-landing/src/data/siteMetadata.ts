@@ -1,5 +1,6 @@
 import { UnexpectedError } from '@promptbook-source/errors/UnexpectedError';
 import { spaceTrim } from 'spacetrim';
+import { PRIMARY_HERO_CLAIM } from './heroClaims';
 
 /**
  * Canonical identity of the `ptbk coder` landing page.
@@ -84,14 +85,16 @@ export const SITE_NAME = `${SITE_NAME_LEAD} ${SITE_NAME_ACCENT}`;
 export const SITE_ALTERNATE_NAME = 'Promptbook Coder';
 
 /**
- * First half of the page tagline, matching the first line of the hero headline.
+ * First half of the page tagline, matching the lead line of the primary hero claim.
  */
-export const SITE_TAGLINE_LEAD = 'Your coding agents,';
+export const SITE_TAGLINE_LEAD = PRIMARY_HERO_CLAIM.leadLine;
 
 /**
- * Second, highlighted half of the page tagline, matching the second line of the hero headline.
+ * Second, highlighted half of the page tagline, matching the accent line of the primary hero claim.
+ *
+ * Note: Kept without the closing sentence mark, because the sharing image adds the mark back itself
  */
-export const SITE_TAGLINE_ACCENT = 'running your backlog';
+export const SITE_TAGLINE_ACCENT = PRIMARY_HERO_CLAIM.accentLine.replace(/\.$/, '');
 
 /**
  * Tagline of the page, used as the second half of the `<title>`.

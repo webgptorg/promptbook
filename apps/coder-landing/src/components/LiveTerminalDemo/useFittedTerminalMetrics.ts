@@ -5,8 +5,11 @@ import { LIVE_DEMO_MAX_TERMINAL_COLUMN_COUNT, LIVE_DEMO_MIN_TERMINAL_COLUMN_COUN
 
 /**
  * Terminal text size the live terminal aims for, in CSS pixels.
+ *
+ * Note: Tuned a step below the size a standalone terminal block uses, so the window stays in balance
+ *       with the hero copy next to it instead of towering over it
  */
-const PREFERRED_TERMINAL_FONT_SIZE_PX = 10;
+const PREFERRED_TERMINAL_FONT_SIZE_PX = 9;
 
 /**
  * Height of one terminal row relative to the terminal text size.

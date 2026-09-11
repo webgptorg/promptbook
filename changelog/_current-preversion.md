@@ -1,3 +1,12 @@
+-   The hero headline of the **ptbk coder** landing page now rotates through seven claims instead of saying one
+    thing forever. Every claim is written once in a single configuration the rotating headline, the page tagline
+    and the sharing image all read, and the claims crossfade with a slight vertical slide - the claim which leaves
+    rises out of the headline while the next one rises into it. All claims share one grid cell, so the headline
+    keeps the height of the tallest of them and nothing around it moves while they rotate. The same reserved
+    height finally balances the hero: together with a terminal text size tuned one step down, the copy column now
+    reaches almost as high as the live terminal next to it, instead of floating in the middle of a section the
+    terminal alone defines. Visitors whose system prefers reduced motion keep the first claim without rotation.
+
 -   Fixed `ptbk coder init` overwriting configuration the project already owns. Existing `package.json` scripts and
     `.vscode/settings.json` settings are now kept verbatim and only genuinely missing ones are added. Files a default
     script points at, like `agents/developer.book`, `AGENTS.md` and `prompts/templates/common.md`, are created only
