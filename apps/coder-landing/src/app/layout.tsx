@@ -43,6 +43,10 @@ const jetBrainsMono = JetBrains_Mono({
     subsets: ['latin'],
     weight: ['400', '500', '700'],
     variable: '--font-jetbrains-mono',
+    // Note: The latin subset of the terminal font has no box drawing characters, and the automatic fallback
+    //       of `next/font` is derived from a proportional font, which draws them in a width and height of
+    //       its own. Falling back to a real monospace font instead keeps the terminal frames on the grid
+    adjustFontFallback: false,
 });
 
 /**

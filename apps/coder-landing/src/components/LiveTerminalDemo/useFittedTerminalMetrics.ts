@@ -10,8 +10,12 @@ const PREFERRED_TERMINAL_FONT_SIZE_PX = 10;
 
 /**
  * Height of one terminal row relative to the terminal text size.
+ *
+ * Note: A terminal row is deliberately kept as tight as a real terminal emulator draws it, because the
+ *       vertical box drawing characters of the dashboard are about one em tall - a looser row would break
+ *       every box border of the dashboard into visibly detached segments.
  */
-const TERMINAL_LINE_HEIGHT_RATIO = 1.25;
+const TERMINAL_LINE_HEIGHT_RATIO = 1.1;
 
 /**
  * Width of one monospace character relative to its font size, used until the real terminal font is measured.
@@ -58,6 +62,11 @@ export type FittedTerminalMetrics = {
     readonly lineHeightPx: number;
 
     /**
+     * Width of the whole character grid, in CSS pixels.
+     */
+    readonly gridWidthPx: number;
+
+    /**
      * Width of one character cell relative to the terminal text size.
      */
     readonly characterCellWidthRatio: number;
@@ -76,38 +85,46 @@ export const DEFAULT_FITTED_TERMINAL_METRICS: FittedTerminalMetrics = {
     columnCount: LIVE_DEMO_MAX_TERMINAL_COLUMN_COUNT,
     fontSizePx: PREFERRED_TERMINAL_FONT_SIZE_PX,
     lineHeightPx: PREFERRED_TERMINAL_FONT_SIZE_PX * TERMINAL_LINE_HEIGHT_RATIO,
+    gridWidthPx:
+        LIVE_DEMO_MAX_TERMINAL_COLUMN_COUNT * PREFERRED_TERMINAL_FONT_SIZE_PX * FALLBACK_TERMINAL_CHARACTER_WIDTH_RATIO,
     characterCellWidthRatio: FALLBACK_TERMINAL_CHARACTER_WIDTH_RATIO,
     characterWidthRatios: new Map(),
 };
 
 /**
- * Fits a terminal into the width of one element, the same way a terminal emulator fits its character grid
+ * Fits a terminal into the width available to it, the same way a terminal emulator fits its character grid
  * into the window: as many character cells as fit at the preferred text size, and a smaller text size when
  * even the narrowest supported terminal would not fit.
  *
  * Because the resulting grid never exceeds the measured width, the terminal never scrolls horizontally.
  *
- * @param terminalContentRef Element which spans the width available to the terminal content.
+ * @param availableWidthRef Element which spans the width available to the whole terminal window.
  * @param measuredCharacters Characters whose real width is measured because the terminal font may not provide them.
+ * @param horizontalInsetPx Width taken by the frame of the terminal window around its character grid, in CSS pixels.
  * @returns Fitted terminal geometry, before the first measurement the default one.
  */
 export function useFittedTerminalMetrics(
-    terminalContentRef: RefObject<HTMLElement | null>,
+    availableWidthRef: RefObject<HTMLElement | null>,
     measuredCharacters: ReadonlyArray<string>,
+    horizontalInsetPx: number,
 ): FittedTerminalMetrics {
     const [terminalMetrics, setTerminalMetrics] = useState<FittedTerminalMetrics>(DEFAULT_FITTED_TERMINAL_METRICS);
 
     useEffect(() => {
-        const terminalContentElement = terminalContentRef.current;
+        const availableWidthElement = availableWidthRef.current;
 
-        if (terminalContentElement === null) {
+        if (availableWidthElement === null) {
             return;
         }
 
         let isCancelled = false;
 
         const updateTerminalMetrics = () => {
-            const measuredTerminalMetrics = measureFittedTerminalMetrics(terminalContentElement, measuredCharacters);
+            const measuredTerminalMetrics = measureFittedTerminalMetrics(
+                availableWidthElement,
+                measuredCharacters,
+                horizontalInsetPx,
+            );
 
             setTerminalMetrics((previousTerminalMetrics) =>
                 areFittedTerminalMetricsEqual(previousTerminalMetrics, measuredTerminalMetrics)
@@ -119,7 +136,7 @@ export function useFittedTerminalMetrics(
         updateTerminalMetrics();
 
         const resizeObserver = new ResizeObserver(updateTerminalMetrics);
-        resizeObserver.observe(terminalContentElement);
+        resizeObserver.observe(availableWidthElement);
 
         // Note: The terminal font is a web font, so the character cell is measured again once the real font is used
         document.fonts.ready.then(() => {
@@ -132,7 +149,7 @@ export function useFittedTerminalMetrics(
             isCancelled = true;
             resizeObserver.disconnect();
         };
-    }, [terminalContentRef, measuredCharacters]);
+    }, [availableWidthRef, measuredCharacters, horizontalInsetPx]);
 
     return terminalMetrics;
 }
@@ -181,11 +198,12 @@ export function resolveTerminalTextLetterSpacing(
  * Measures the terminal geometry which fits into the width of one element.
  */
 function measureFittedTerminalMetrics(
-    terminalContentElement: HTMLElement,
+    availableWidthElement: HTMLElement,
     measuredCharacters: ReadonlyArray<string>,
+    horizontalInsetPx: number,
 ): FittedTerminalMetrics {
-    const availableWidthPx = terminalContentElement.getBoundingClientRect().width;
-    const measuringElement = createTerminalMeasuringElement(terminalContentElement);
+    const availableWidthPx = availableWidthElement.getBoundingClientRect().width - horizontalInsetPx;
+    const measuringElement = createTerminalMeasuringElement(availableWidthElement);
     const characterCellWidthRatio = measureTerminalCharacterWidthRatio(measuringElement, MEASURED_TERMINAL_CHARACTER);
     const characterWidthRatios = new Map(
         measuredCharacters.map((measuredCharacter) => [
@@ -194,7 +212,7 @@ function measureFittedTerminalMetrics(
         ]),
     );
 
-    measuringElement.remove();
+    removeTerminalMeasuringElement(measuringElement);
 
     const columnCount =
         availableWidthPx <= 0
@@ -209,10 +227,7 @@ function measureFittedTerminalMetrics(
     const fontSizePx =
         availableWidthPx <= 0
             ? PREFERRED_TERMINAL_FONT_SIZE_PX
-            : Math.min(
-                  PREFERRED_TERMINAL_FONT_SIZE_PX,
-                  availableWidthPx / (columnCount * characterCellWidthRatio),
-              );
+            : Math.min(PREFERRED_TERMINAL_FONT_SIZE_PX, availableWidthPx / (columnCount * characterCellWidthRatio));
 
     // Note: The text size is rounded down so that rounding can never widen the grid beyond the measured width
     const roundedFontSizePx = Math.floor(fontSizePx * 100) / 100;
@@ -221,6 +236,7 @@ function measureFittedTerminalMetrics(
         columnCount,
         fontSizePx: roundedFontSizePx,
         lineHeightPx: roundedFontSizePx * TERMINAL_LINE_HEIGHT_RATIO,
+        gridWidthPx: columnCount * roundedFontSizePx * characterCellWidthRatio,
         characterCellWidthRatio,
         characterWidthRatios,
     };
@@ -229,18 +245,34 @@ function measureFittedTerminalMetrics(
 /**
  * Creates the hidden element which measures terminal characters in the font of one terminal.
  */
-function createTerminalMeasuringElement(terminalContentElement: HTMLElement): HTMLElement {
+function createTerminalMeasuringElement(availableWidthElement: HTMLElement): HTMLElement {
+    // Note: The measured text is far wider than the terminal, so it is kept inside a host which takes
+    //       no space and clips it - measuring can therefore never widen the page it is measured on
+    const measuringHostElement = document.createElement('div');
+
+    measuringHostElement.setAttribute('aria-hidden', 'true');
+    measuringHostElement.style.position = 'absolute';
+    measuringHostElement.style.visibility = 'hidden';
+    measuringHostElement.style.width = '0';
+    measuringHostElement.style.height = '0';
+    measuringHostElement.style.overflow = 'hidden';
+
     const measuringElement = document.createElement('span');
 
-    measuringElement.setAttribute('aria-hidden', 'true');
-    measuringElement.style.position = 'absolute';
-    measuringElement.style.visibility = 'hidden';
     measuringElement.style.whiteSpace = 'pre';
     measuringElement.style.letterSpacing = 'normal';
     measuringElement.style.fontSize = `${MEASURED_TERMINAL_FONT_SIZE_PX}px`;
-    terminalContentElement.appendChild(measuringElement);
+    measuringHostElement.appendChild(measuringElement);
+    availableWidthElement.appendChild(measuringHostElement);
 
     return measuringElement;
+}
+
+/**
+ * Removes one measuring element together with the host which kept it out of the layout.
+ */
+function removeTerminalMeasuringElement(measuringElement: HTMLElement): void {
+    (measuringElement.parentElement || measuringElement).remove();
 }
 
 /**

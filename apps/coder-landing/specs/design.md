@@ -34,6 +34,8 @@ Per the Promptbook brand kit — two fonts with distinct roles, plus a monospace
 
 All fonts are loaded as latin subsets with weights 400–700 (mono: 400, 500, 700) and exposed as CSS variables.
 
+The monospace font falls back to the monospace fonts of the system, not to the metric-adjusted fallback `next/font` derives from a proportional font, because the terminals draw characters the latin subset does not contain (see [`components/live-terminal.md`](./components/live-terminal.md)).
+
 ## Logo
 
 -   The **white transparent Promptbook mark** (`promptbook-logo-white-transparent-1024.png` from the brand kit) is used in the header and footer, because the page background is dark ("use the white mark on dark UIs").

@@ -45,6 +45,17 @@ const LIVE_DEMO_TONE_CLASS_NAMES: Record<LiveDemoTextTone, string> = {
 const LIVE_DEMO_TERMINAL_BODY_PADDING_PX = 16;
 
 /**
+ * Width of the frame drawn around the terminal window, in CSS pixels.
+ */
+const LIVE_DEMO_TERMINAL_BORDER_WIDTH_PX = 1;
+
+/**
+ * Width the terminal window takes next to its character grid, in CSS pixels.
+ */
+const LIVE_DEMO_TERMINAL_HORIZONTAL_INSET_PX =
+    2 * (LIVE_DEMO_TERMINAL_BODY_PADDING_PX + LIVE_DEMO_TERMINAL_BORDER_WIDTH_PX);
+
+/**
  * How far the scripted session has been played.
  */
 type LiveDemoPlaybackPosition = {
@@ -77,8 +88,12 @@ export function LiveTerminalDemo() {
     const [playbackPosition, setPlaybackPosition] = useState<LiveDemoPlaybackPosition>(
         INITIAL_LIVE_DEMO_PLAYBACK_POSITION,
     );
-    const terminalContentRef = useRef<HTMLDivElement>(null);
-    const terminalMetrics = useFittedTerminalMetrics(terminalContentRef, LIVE_DEMO_MEASURED_CHARACTERS);
+    const terminalAvailableWidthRef = useRef<HTMLDivElement>(null);
+    const terminalMetrics = useFittedTerminalMetrics(
+        terminalAvailableWidthRef,
+        LIVE_DEMO_MEASURED_CHARACTERS,
+        LIVE_DEMO_TERMINAL_HORIZONTAL_INSET_PX,
+    );
     const terminalColumnCount = terminalMetrics.columnCount;
     const liveDemoScript = useMemo(() => createLiveDemoScript(terminalColumnCount), [terminalColumnCount]);
     const terminalRowCount = useMemo(
@@ -125,32 +140,41 @@ export function LiveTerminalDemo() {
     }, []);
 
     return (
-        <div className="overflow-hidden rounded-xl border border-gray-700/70 bg-[#0d1117] shadow-2xl shadow-black/40">
-            <div className="flex items-center gap-2 border-b border-gray-800 bg-[#161b22] px-4 py-2.5">
-                <span className="h-3 w-3 rounded-full bg-[#ff5f57]" aria-hidden />
-                <span className="h-3 w-3 rounded-full bg-[#febc2e]" aria-hidden />
-                <span className="h-3 w-3 rounded-full bg-[#28c840]" aria-hidden />
-                <span className="ml-2 flex-1 truncate font-mono text-xs text-gray-400">ptbk coder run</span>
-                <span className="flex items-center gap-1.5 text-xs text-promptbook-green">
-                    <span className="h-2 w-2 rounded-full bg-promptbook-green" aria-hidden />
-                    sample run
-                </span>
-            </div>
-            {/* Note: The body is as tall as the whole sample session and as wide as its character grid,
-                      so the session never scrolls away from the agent visual and never overflows sideways */}
+        // Note: The wrapper spans the width and height the layout gives to the terminal, so the window
+        //       can be fitted into it and the character grid can be measured against it
+        <div ref={terminalAvailableWidthRef} className="flex min-w-0 font-mono">
+            {/* Note: The window is never wider than the character grid it shows, so no part of it stays
+                      empty, and it fills the height of a taller neighbour like a real terminal window does */}
             <div
-                aria-label="Simulated ptbk coder run terminal session"
-                className="overflow-y-auto overflow-x-hidden font-mono"
-                style={{
-                    height:
-                        Math.ceil(terminalRowCount * terminalMetrics.lineHeightPx) +
-                        2 * LIVE_DEMO_TERMINAL_BODY_PADDING_PX,
-                    padding: LIVE_DEMO_TERMINAL_BODY_PADDING_PX,
-                    fontSize: terminalMetrics.fontSizePx,
-                    lineHeight: `${terminalMetrics.lineHeightPx}px`,
-                }}
+                className="mx-auto flex w-full flex-col overflow-hidden rounded-xl border border-gray-700/70 bg-[#0d1117] shadow-2xl shadow-black/40"
+                style={{ maxWidth: Math.ceil(terminalMetrics.gridWidthPx) + LIVE_DEMO_TERMINAL_HORIZONTAL_INSET_PX }}
             >
-                <div ref={terminalContentRef}>
+                {/* Note: The window chrome is the same as the one of the terminal block, where only the title
+                          itself - the running command - is written in the terminal font */}
+                <div className="flex items-center gap-2 border-b border-gray-800 bg-[#161b22] px-4 py-2.5 font-sans">
+                    <span className="h-3 w-3 rounded-full bg-[#ff5f57]" aria-hidden />
+                    <span className="h-3 w-3 rounded-full bg-[#febc2e]" aria-hidden />
+                    <span className="h-3 w-3 rounded-full bg-[#28c840]" aria-hidden />
+                    <span className="ml-2 flex-1 truncate font-mono text-xs text-gray-400">ptbk coder run</span>
+                    <span className="flex items-center gap-1.5 text-xs text-promptbook-green">
+                        <span className="h-2 w-2 rounded-full bg-promptbook-green" aria-hidden />
+                        sample run
+                    </span>
+                </div>
+                {/* Note: The body is at least as tall as the whole sample session and as wide as its character
+                          grid, so the session never scrolls away from the agent visual and never overflows sideways */}
+                <div
+                    aria-label="Simulated ptbk coder run terminal session"
+                    className="flex-1 overflow-y-auto overflow-x-hidden"
+                    style={{
+                        minHeight:
+                            Math.ceil(terminalRowCount * terminalMetrics.lineHeightPx) +
+                            2 * LIVE_DEMO_TERMINAL_BODY_PADDING_PX,
+                        padding: LIVE_DEMO_TERMINAL_BODY_PADDING_PX,
+                        fontSize: terminalMetrics.fontSizePx,
+                        lineHeight: `${terminalMetrics.lineHeightPx}px`,
+                    }}
+                >
                     {/* Note: The character grid is exactly as wide as the frame the sample is drawn for,
                               so output wraps and the agent visual is centered on the very same width */}
                     <div style={{ width: `${terminalColumnCount}ch` }}>

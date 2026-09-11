@@ -5,6 +5,25 @@
     default agent. `ptbk coder init` also initializes the `test-for-ptbk-coder` npm script which the default
     `coder:run` uses as its verification command.
 
+-   Rebalanced the hero of the **ptbk coder** landing page, whose live terminal used to be much taller than the copy
+    next to it and left the headline, the install command and the buttons floating in the middle of a section the
+    terminal alone defined:
+
+    -   The terminal window is now never wider than the character grid it draws, so a layout with more width than the
+        widest supported terminal - a tablet, a phone in landscape - gets a centered window instead of a window with an
+        empty half, and it fills the height of the copy column whenever the copy is the taller one.
+    -   A terminal row is now as tight as a real terminal emulator draws it, which both shortens the sample session by
+        about one tenth and keeps the frames of the dashboard boxes connected.
+    -   The box drawing characters, the shade of the progress bar and the status marks are missing from the latin
+        subset of the terminal font, so they were drawn from the fallback which `next/font` derives from a
+        **proportional** font - about one and a half character cells wide and shorter than one row, which broke every
+        box border of the dashboard into detached segments. The terminal font now falls back to the monospace fonts of
+        the system, so those characters are drawn one cell wide and one row tall and the boxes are drawn as continuous
+        frames.
+    -   The hero copy is now read at hero size: the headline and the subheadline grow with the viewport, but only as
+        far as their own column can carry them, so the headline keeps its two lines from the narrowest phone to the
+        widest desktop.
+
 -   Fixed `ptbk coder init` so it no longer creates an `AGENT_CODING.md` quick-reference file.
 -   Redesigned the three core benefit illustrations on the **ptbk coder** landing page with detailed terminal,
     portable-agent, and synchronized-commit scenes, plus proportional graphics and a more readable tablet layout.
