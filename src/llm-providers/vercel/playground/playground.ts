@@ -36,7 +36,7 @@ async function playground() {
     const openaiVercelProvider = createOpenAI({
         apiKey: process.env.OPENAI_API_KEY,
         // custom settings, e.g.
-        compatibility: 'strict', // strict mode, enable when using the OpenAI API
+        // organization: '...',
     });
 
     const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({

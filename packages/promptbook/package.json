@@ -87,9 +87,6 @@
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
     },
-    "overrides": {
-        "zod": "$zod"
-    },
     "peerDependencies": {
         "@promptbook/core": "0.114.0-33"
     },

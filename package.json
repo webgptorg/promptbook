@@ -311,9 +311,9 @@
         "yaml": "2.3.4"
     },
     "dependencies": {
-        "@ai-sdk/deepseek": "0.1.17",
-        "@ai-sdk/google": "1.0.17",
-        "@ai-sdk/openai": "1.0.20",
+        "@ai-sdk/deepseek": "1.0.56",
+        "@ai-sdk/google": "2.0.97",
+        "@ai-sdk/openai": "2.0.127",
         "@anthropic-ai/sdk": "0.68.0",
         "@aws-sdk/client-s3": "3.936.0",
         "@azure/openai": "1.0.0-beta.13",

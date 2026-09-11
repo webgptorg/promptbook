@@ -1,3 +1,26 @@
+-   Fixed the wall of `npm warn ERESOLVE overriding peer dependency` warnings printed when installing `ptbk`:
+
+    -   The Vercel AI SDK providers `@ai-sdk/openai`, `@ai-sdk/google` and `@ai-sdk/deepseek` were still on the
+        generation which accepts only Zod 3, while the rest of the ecosystem - the Agents Server, `@openai/agents`,
+        `@modelcontextprotocol/sdk` - needs Zod 4. No single Zod could satisfy both sides, so npm reported a conflict
+        for every one of those packages. They are upgraded to the newest generation which accepts both Zod 3 and
+        Zod 4 and still runs on Node.js 18, so the supported Node.js versions of Promptbook do not change, and
+        `createExecutionToolsFromVercelProvider` is migrated to the model interface of that generation. Settings
+        given as `additionalChatSettings` are now passed to the model call instead of to the model constructor,
+        which is where the Vercel AI SDK expects them, and the `userId` option is no longer sent as the `user`
+        setting, because it has become specific to each provider.
+    -   Generated packages no longer publish dependencies which only look like imports. Package generation infers
+        dependencies by reading the generated bundle, and it used to count module specifiers written inside the
+        source-code templates of the transpilers, so `@promptbook/core` published `zod`, `dotenv` and
+        `@anthropic-ai/sdk` as runtime dependencies although it never imports any of them. The pinned `zod` in
+        particular forced one exact Zod version onto every project which installs Promptbook.
+    -   Generated packages no longer carry the `overrides` field of the repository. npm honors overrides only in the
+        root project of an installation, so publishing them only left a dangling reference to a dependency which the
+        published package does not declare.
+
+    What remains after this are three warnings about React 19 coming from packages inside `swagger-ui-react`, which
+    are declared by projects outside of Promptbook.
+
 -   The hero headline of the **ptbk coder** landing page now rotates through seven claims instead of saying one
     thing forever. Every claim is written once in a single configuration the rotating headline, the page tagline
     and the sharing image all read, and the claims crossfade with a slight vertical slide - the claim which leaves

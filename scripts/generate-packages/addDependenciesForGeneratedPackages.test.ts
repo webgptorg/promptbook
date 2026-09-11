@@ -67,6 +67,30 @@ describe('addDependenciesForGeneratedPackages', () => {
         ).toBe(true);
     });
 
+    it('detects lazily required dependencies when inferring generated package dependencies', () => {
+        expect(
+            bundleReferencesDependency(
+                `        const { createDeepSeek } = require('@ai-sdk/deepseek');`,
+                '@ai-sdk/deepseek',
+            ),
+        ).toBe(true);
+    });
+
+    it('ignores imports of transpiled projects written inside template literals', () => {
+        expect(
+            bundleReferencesDependency(
+                [
+                    `function createTranspiledSource(shouldGenerateToolkit) {`,
+                    `    return \``,
+                    `                \${shouldGenerateToolkit ? \`import { z } from 'zod';\` : ''}`,
+                    `    \`;`,
+                    `}`,
+                ].join('\n'),
+                'zod',
+            ),
+        ).toBe(false);
+    });
+
     it('stubs dependencies which no browser bundler can resolve in browser-facing packages', () => {
         const packageJson = {
             dependencies: {

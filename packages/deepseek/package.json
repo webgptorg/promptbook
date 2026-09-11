@@ -88,9 +88,6 @@
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
     },
-    "overrides": {
-        "zod": "$zod"
-    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "types": "./esm/src/_packages/deepseek.index.d.ts",
@@ -99,7 +96,7 @@
         "@promptbook/core": "0.114.0-33"
     },
     "dependencies": {
-        "@ai-sdk/deepseek": "0.1.17",
+        "@ai-sdk/deepseek": "1.0.56",
         "colors": "1.4.0",
         "crypto-js": "4.2.0",
         "spacetrim": "0.11.60"

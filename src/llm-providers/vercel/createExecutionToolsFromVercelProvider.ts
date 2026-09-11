@@ -34,7 +34,9 @@ const VERCEL_PROVIDER_PROFILE: ChatParticipant = {
  */
 export function createExecutionToolsFromVercelProvider(options: VercelExecutionToolsOptions): LlmExecutionTools {
     let { title, description } = options;
-    const { vercelProvider, availableModels, userId, additionalChatSettings = {} } = options;
+    const { vercelProvider, availableModels, additionalChatSettings = {} } = options;
+    // <- Note: `userId` is not forwarded, because Vercel AI SDK moved provider-specific settings like `user` from
+    //          `vercelProvider.chat(modelName, settings)` into `providerOptions` which are keyed by the provider
 
     if (!/Vercel/i.test(title)) {
         title = `${title} (through Vercel)`;
@@ -89,10 +91,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
                 );
             }
 
-            const model = await vercelProvider.chat(modelName, {
-                user: userId?.toString() || undefined,
-                ...additionalChatSettings,
-            });
+            const model = await vercelProvider.chat(modelName);
 
             const rawPromptContent = templateParameters(content, { ...parameters, modelName });
 
@@ -132,14 +131,9 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
 
             const rawRequest: Parameters<typeof model.doGenerate>[0] = {
                 // <- TODO: [☂]
-                inputFormat: 'messages',
-                mode: {
-                    type: 'regular',
-                    tools: [
-                        /* <- TODO: Pass the tools */
-                    ],
-                },
                 prompt: promptMessages,
+                // <- TODO: Pass the tools via `tools`
+                ...additionalChatSettings,
             };
 
             const start: string_date_iso8601 = $getCurrentDate();
@@ -161,9 +155,16 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
             }
 
-            if (rawResponse.text === undefined) {
+            // Note: Vercel AI SDK returns ordered content parts, the chat message is made only of the text parts
+            const responseTextParts = rawResponse.content.flatMap((contentPart) =>
+                contentPart.type === 'text' ? [contentPart.text] : [],
+            );
+
+            if (responseTextParts.length === 0) {
                 throw new PipelineExecutionError('No response message');
             }
+
+            const responseText = responseTextParts.join('');
 
             const complete: string_date_iso8601 = $getCurrentDate();
 
@@ -173,15 +174,15 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
                 price: UNCERTAIN_ZERO_VALUE, //  <- TODO: [🕘] Price count
                 duration,
                 input: {
-                    tokensCount: uncertainNumber(rawResponse.usage.promptTokens),
+                    tokensCount: uncertainNumber(rawResponse.usage.inputTokens),
                     ...computeUsageCounts(
                         rawPromptContent,
                         // <- TODO: [🕘][🙀] What about system message
                     ),
                 },
                 output: {
-                    tokensCount: uncertainNumber(rawResponse.usage.completionTokens),
-                    ...computeUsageCounts(rawResponse.text),
+                    tokensCount: uncertainNumber(rawResponse.usage.outputTokens),
+                    ...computeUsageCounts(responseText),
                 },
             };
 
@@ -189,7 +190,7 @@ export function createExecutionToolsFromVercelProvider(options: VercelExecutionT
                 name: 'promptResult',
                 message: `Result of \`createExecutionToolsFromVercelProvider.callChatModel\``,
                 value: {
-                    content: rawResponse.text,
+                    content: responseText,
                     modelName,
                     timing: {
                         start,

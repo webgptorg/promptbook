@@ -229,7 +229,20 @@ async function detectBundleDependencies(
 }
 
 /**
+ * Statement keywords which begin a real ESM module reference in a generated bundle.
+ *
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+const BUNDLE_IMPORT_STATEMENT_KEYWORDS = ['import', 'export'] as const;
+
+/**
  * Checks whether a generated bundle references a specific dependency.
+ *
+ * Note: [1] Module specifiers written inside template literals are **not** references of the bundle itself.
+ *       Transpilers like `AgentOsTranspiler` embed source code of the *transpiled* project, so their
+ *       `import { z } from 'zod';` line belongs to that generated project and must never become a published
+ *       dependency. Rollup always emits real `import` and `export` statements at the beginning of a line,
+ *       which is what tells both cases apart.
  *
  * @param bundleContent - Generated bundle content
  * @param dependencyName - Dependency name to search for
@@ -237,25 +250,87 @@ async function detectBundleDependencies(
  * @private internal utility of addDependenciesForGeneratedPackages
  */
 export function bundleReferencesDependency(bundleContent: string, dependencyName: string): boolean {
-    return createDependencyReferenceNeedles(dependencyName).some((dependencyReferenceNeedle) =>
-        bundleContent.includes(dependencyReferenceNeedle),
+    const isLoadedByCall = createDependencyModuleLoadingCallNeedles(dependencyName).some(
+        (dependencyReferenceNeedle) => bundleContent.includes(dependencyReferenceNeedle),
+    );
+
+    if (isLoadedByCall) {
+        return true;
+    }
+
+    return createDependencyImportStatementNeedles(dependencyName).some((dependencyReferenceNeedle) =>
+        isNeedleOnImportStatementLine(bundleContent, dependencyReferenceNeedle),
     );
 }
 
 /**
- * Creates string needles that match exact and subpath bundle references for one dependency.
+ * Creates string needles that match `require` and `import` calls of one dependency.
+ *
+ * Note: These calls are real code wherever they occur, because they are never a part of statement-level syntax.
  *
  * @param dependencyName - Dependency name
  * @returns Bundle substrings that indicate a runtime reference
  * @private internal utility of addDependenciesForGeneratedPackages
  */
-function createDependencyReferenceNeedles(dependencyName: string): Array<string> {
+function createDependencyModuleLoadingCallNeedles(dependencyName: string): Array<string> {
     return [
-        ...createDependencyReferenceNeedlesWithPrefix('import ', dependencyName),
-        ...createDependencyReferenceNeedlesWithPrefix('from ', dependencyName),
         ...createDependencyReferenceNeedlesWithPrefix('require(', dependencyName),
         ...createDependencyReferenceNeedlesWithPrefix('import(', dependencyName),
     ];
+}
+
+/**
+ * Creates string needles that match `import` and `export` statements of one dependency.
+ *
+ * Note: These needles count as a reference only on a line which begins such a statement, see [1]
+ *
+ * @param dependencyName - Dependency name
+ * @returns Bundle substrings that indicate a runtime reference
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+function createDependencyImportStatementNeedles(dependencyName: string): Array<string> {
+    return [
+        ...createDependencyReferenceNeedlesWithPrefix('import ', dependencyName),
+        ...createDependencyReferenceNeedlesWithPrefix('from ', dependencyName),
+    ];
+}
+
+/**
+ * Checks whether a needle occurs on at least one line which begins an `import` or `export` statement.
+ *
+ * @param bundleContent - Generated bundle content
+ * @param dependencyReferenceNeedle - Bundle substring to search for
+ * @returns Whether the needle occurs on a statement-level module reference line
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+function isNeedleOnImportStatementLine(bundleContent: string, dependencyReferenceNeedle: string): boolean {
+    let needleIndex = bundleContent.indexOf(dependencyReferenceNeedle);
+
+    while (needleIndex !== -1) {
+        if (isImportStatementLineStart(bundleContent, needleIndex)) {
+            return true;
+        }
+
+        needleIndex = bundleContent.indexOf(dependencyReferenceNeedle, needleIndex + 1);
+    }
+
+    return false;
+}
+
+/**
+ * Checks whether the line containing one index begins an `import` or `export` statement.
+ *
+ * @param bundleContent - Generated bundle content
+ * @param indexOnLine - Index of any character on the inspected line
+ * @returns Whether the inspected line begins a statement-level module reference
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+function isImportStatementLineStart(bundleContent: string, indexOnLine: number): boolean {
+    const lineStartIndex = bundleContent.lastIndexOf('\n', indexOnLine) + 1;
+
+    return BUNDLE_IMPORT_STATEMENT_KEYWORDS.some((statementKeyword) =>
+        bundleContent.startsWith(`${statementKeyword} `, lineStartIndex),
+    );
 }
 
 /**

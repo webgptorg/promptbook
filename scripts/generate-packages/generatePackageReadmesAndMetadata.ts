@@ -324,6 +324,9 @@ function createGeneratedPackageJson(mainPackageJson: PackageJson, packageFullnam
     delete packageJson.dependencies;
     delete packageJson.devDependencies;
     delete packageJson.peerDependencies;
+    delete packageJson.overrides;
+    // <- Note: `overrides` are honored by npm only in the root project of an installation, so publishing them
+    //          just leaves a dangling `$`-reference to a dependency which the generated package does not declare
 
     for (const key of Object.keys(packageJson)) {
         if (key.startsWith('--')) {
