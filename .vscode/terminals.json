@@ -92,6 +92,61 @@
             "focus": false
         },
         {
+            "name": "🐙🚀 Run ptbk coder `qwen3.8-max` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness qwen-code --model qwen3.8-max --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `qwen3.8-flash` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness qwen-code --model qwen3.8-flash --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `deepseek-v4-pro` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness qwen-code --model deepseek-v4-pro-0813 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `deepseek-v4-flash` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness qwen-code --model deepseek-v4-flash-0731 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `glm-5.2` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness qwen-code --model glm-5.2 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🐙🏭 Generate \"Generic\" prompt boilerplates for Coding Agent",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/_templates/common.md --commit --auto-pull --auto-push",
             "execute": true,
