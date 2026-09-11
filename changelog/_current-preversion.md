@@ -1,3 +1,15 @@
+-   `ptbk coder` no longer answers a harness which is not logged in with a wall of raw CLI output. A harness whose
+    login is missing or whose session has expired now fails with a short branded `AuthenticationError` which names
+    the harness, quotes the one sentence the harness itself reported - such as `Failed to authenticate: OAuth session
+    expired and could not be refreshed` - and says exactly how to sign in again, for example by running `claude` and
+    then the `/login` command inside it. How each harness is signed in is described once, next to how it is installed
+    and detected, and the failure is recognized once for every harness and for every command
+    which runs prompts, so `coder run`, `coder server` and `coder ping` all report it the same way. The terminal and
+    the `.error.log` file written next to the prompt both show those instructions on their own now, instead of
+    following them with a stack trace of a failure nobody can debug. Because no retry of a harness which is not
+    logged in can ever succeed, such a prompt is also no longer retried three times with the `--wait-after-error`
+    delay in between - the instructions are shown right away.
+
 -   Fixed the wall of `npm warn ERESOLVE overriding peer dependency` warnings printed when installing `ptbk`:
 
     -   The Vercel AI SDK providers `@ai-sdk/openai`, `@ai-sdk/google` and `@ai-sdk/deepseek` were still on the

@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation 3.47 30 minutes; Testing 17 minutes
 
 [✨🍺] When the harness is not logged in, or not authenticated, handle the error message more gracefully.
 
@@ -31,3 +31,4 @@ Error: {"type":"system","subtype":"init","cwd":"C:\\Users\\me\\work\\promptbook-
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

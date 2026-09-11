@@ -1,8 +1,10 @@
 import colors from 'colors';
 import { getHarnessDefinition } from '../../../src/cli/cli-commands/common/harness/HarnessDefinition';
+import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import type { RunOptions } from '../cli/RunOptions';
 import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
+import { createAuthenticationAwarePromptRunner } from '../runners/common/createAuthenticationAwarePromptRunner';
 import { ClineRunner } from '../runners/cline/ClineRunner';
 import { DEFAULT_GEMINI_MODEL, GeminiRunner } from '../runners/gemini/GeminiRunner';
 import { GitHubCopilotRunner } from '../runners/github-copilot/GitHubCopilotRunner';
@@ -72,6 +74,23 @@ export function resolvePromptRunner(options: PromptRunnerSelectionOptions): Prom
         throw new Error('Missing --harness in non-dry run mode');
     }
 
+    const resolution = resolveHarnessPromptRunner(agentName, options);
+
+    return {
+        ...resolution,
+        // Note: Every harness is wrapped here, so a harness which is not logged in is reported the same clear
+        //       way no matter which harness it is and which command has resolved the runner
+        runner: createAuthenticationAwarePromptRunner(resolution.runner, agentName),
+    };
+}
+
+/**
+ * Creates the runner of one selected harness together with its status-line metadata.
+ */
+function resolveHarnessPromptRunner(
+    agentName: PromptRunnerHarnessName,
+    options: PromptRunnerSelectionOptions,
+): PromptRunnerResolution {
     if (agentName === 'openai-codex') {
         return createOpenAiCodexRunnerResolution(options);
     }

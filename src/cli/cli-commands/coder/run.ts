@@ -1,4 +1,3 @@
-import colors from 'colors';
 import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
     Option,
@@ -30,6 +29,7 @@ import {
 } from '../../../../scripts/run-codex-prompts/testing/TestBeforeMode';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
+import { printCoderRunFailure } from './printCoderRunFailure';
 
 /**
  * Initializes `coder run` command for Promptbook CLI utilities
@@ -256,8 +256,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 await runCodexPrompts(runOptions);
             } catch (error) {
                 assertsError(error);
-                console.error(colors.bgRed(`${error.name}`));
-                console.error(colors.red(error.stack || error.message));
+                printCoderRunFailure(error);
                 return process.exit(1);
             }
 

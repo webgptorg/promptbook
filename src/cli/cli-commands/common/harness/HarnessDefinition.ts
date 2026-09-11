@@ -25,6 +25,30 @@ export type HarnessStandaloneInstallation = {
 };
 
 /**
+ * Description of how the user signs in to one CLI coding harness again.
+ *
+ * Every harness refuses to work once its login is missing or its session has expired, and each of them is
+ * signed in differently - some have a dedicated login command, others sign in from their own interactive UI.
+ *
+ * @private internal utility of `promptbookCli`
+ */
+export type HarnessAuthenticationMethod = {
+    /**
+     * Command which starts the sign-in flow of the harness.
+     */
+    readonly command: string;
+
+    /**
+     * Step which finishes the sign-in inside the started command.
+     *
+     * Harnesses which sign in from their own interactive user interface leave the user in that interface, so
+     * naming just the command would not be enough to get them signed in. Harnesses with a dedicated login
+     * command leave this undefined.
+     */
+    readonly interactiveStep?: string;
+};
+
+/**
  * Static description of one supported CLI coding harness.
  *
  * @private internal utility of `promptbookCli`
@@ -61,6 +85,11 @@ export type HarnessDefinition = {
     readonly projectGitignoreRules: ReadonlyArray<string>;
 
     /**
+     * How the user signs in to this harness again after its login is missing or has expired.
+     */
+    readonly authenticationMethod: HarnessAuthenticationMethod;
+
+    /**
      * How a standalone installation of this harness is recognized and updated.
      *
      * Harnesses which are distributed only through npm leave this undefined.
@@ -80,6 +109,7 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         commandName: 'codex',
         npmPackageName: '@openai/codex',
         projectGitignoreRules: ['.codex'],
+        authenticationMethod: { command: 'codex login' },
         // Note: The official standalone installer keeps its package in `~/.codex` and links it onto the `PATH`
         standaloneInstallation: {
             directoryNames: ['.codex'],
@@ -92,6 +122,7 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         commandName: 'copilot',
         npmPackageName: '@github/copilot',
         projectGitignoreRules: ['.github/copilot/settings.local.json'],
+        authenticationMethod: { command: 'copilot', interactiveStep: 'running the `/login` command inside it' },
         // Note: The GitHub Copilot CLI downloads its native binary in a postinstall script
         npmInstallEnvironment: { npm_config_ignore_scripts: 'false' },
     },
@@ -101,6 +132,7 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         commandName: 'cline',
         npmPackageName: 'cline',
         projectGitignoreRules: ['.cline'],
+        authenticationMethod: { command: 'cline', interactiveStep: 'signing in to the provider inside it' },
     },
     'claude-code': {
         harnessName: 'claude-code',
@@ -108,6 +140,7 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         commandName: 'claude',
         npmPackageName: '@anthropic-ai/claude-code',
         projectGitignoreRules: ['.claude'],
+        authenticationMethod: { command: 'claude', interactiveStep: 'running the `/login` command inside it' },
     },
     opencode: {
         harnessName: 'opencode',
@@ -115,6 +148,7 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         commandName: 'opencode',
         npmPackageName: 'opencode-ai',
         projectGitignoreRules: ['.opencode'],
+        authenticationMethod: { command: 'opencode auth login' },
     },
     gemini: {
         harnessName: 'gemini',
@@ -122,6 +156,7 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         commandName: 'gemini',
         npmPackageName: '@google/gemini-cli',
         projectGitignoreRules: ['.gemini'],
+        authenticationMethod: { command: 'gemini', interactiveStep: 'running the `/auth` command inside it' },
     },
     'qwen-code': {
         harnessName: 'qwen-code',
@@ -129,6 +164,7 @@ export const HARNESS_DEFINITIONS: Readonly<Record<PromptRunnerHarnessName, Harne
         commandName: 'qwen',
         npmPackageName: '@qwen-code/qwen-code',
         projectGitignoreRules: ['.qwen'],
+        authenticationMethod: { command: 'qwen', interactiveStep: 'running the `/auth` command inside it' },
     },
 };
 

@@ -3,6 +3,7 @@ import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
 import { increaseHeadings } from '../../../book/scripts/import-markdown/increaseHeadings';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
+import { AuthenticationError } from '../../../src/errors/AuthenticationError';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { CliProgressDisplay } from '../common/cliProgressDisplay';
@@ -187,7 +188,9 @@ export async function runPromptRound({
                     uiHandle?.stopCapturingAgentOutput();
                     lastError = error;
 
-                    if (errorRetryAttempt >= MAX_RETRY_ATTEMPTS_AFTER_ERROR) {
+                    // Note: A harness which is not logged in answers every retry the same way, so the user gets
+                    //       the sign-in instructions right away instead of after every retry has waited its delay
+                    if (error instanceof AuthenticationError || errorRetryAttempt >= MAX_RETRY_ATTEMPTS_AFTER_ERROR) {
                         break;
                     }
 
