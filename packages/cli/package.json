@@ -175,7 +175,7 @@
         "node-gzip": "1.1.2",
         "nodemailer": "^7.0.13",
         "qrcode": "1.5.4",
-        "swagger-ui-react": "5.31.2",
+        "swagger-ui-react": "5.32.15",
         "turndown": "7.2.4",
         "type-fest": "4.5.0",
         "web-push": "^3.6.7",

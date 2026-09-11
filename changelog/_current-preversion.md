@@ -17,9 +17,12 @@
     -   Generated packages no longer carry the `overrides` field of the repository. npm honors overrides only in the
         root project of an installation, so publishing them only left a dangling reference to a dependency which the
         published package does not declare.
+    -   `swagger-ui-react` is upgraded, because the newer version asks for a version of `react-copy-to-clipboard`
+        which no longer refuses React 19.
 
-    What remains after this are three warnings about React 19 coming from packages inside `swagger-ui-react`, which
-    are declared by projects outside of Promptbook.
+    What remains after this are two warnings about React 19 coming from `react-debounce-input` and `react-inspector`
+    inside `swagger-ui-react`. `swagger-ui-react` asks for those two by an exact and by an outdated version, so the
+    only project which can stop those two warnings is `swagger-ui-react` itself.
 
 -   The hero headline of the **ptbk coder** landing page now rotates through seven claims instead of saying one
     thing forever. Every claim is written once in a single configuration the rotating headline, the page tagline
