@@ -12,7 +12,7 @@ import type { PromptRunnerIdentity } from '../prompts/isPromptCompatibleWithRunn
  */
 export type ListCoderPromptsOptions = PriorityFilterInput & {
     /**
-     * Optional harness and model selection used to omit prompts routed to other runners.
+     * Optional harness, model and Book-agent selection used to omit prompts routed to other runners.
      */
     readonly promptRunnerIdentity?: PromptRunnerIdentity;
 };

@@ -294,6 +294,35 @@ describe('$initializeCoderRunCommand', () => {
         );
     });
 
+    it('passes an agent selection alongside the harness and model', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(
+            [
+                'node',
+                'test',
+                'run',
+                '--dry-run',
+                '--harness',
+                'openai-codex',
+                '--model',
+                'gpt-5.6-astra',
+                '--agent',
+                'agents/coding/developer.book',
+            ],
+            { from: 'node' },
+        );
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                agentName: 'openai-codex',
+                model: 'gpt-5.6-astra',
+                agent: 'agents/coding/developer.book',
+            }),
+        );
+    });
+
     it('passes the verification command through when provided as unquoted tokens', async () => {
         const program = createProgramWithRunCommand();
 

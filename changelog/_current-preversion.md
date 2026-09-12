@@ -1,3 +1,14 @@
+-   Added agent-specific prompt routing to `ptbk coder`:
+
+    -   A ready `[ ]` prompt can now target the Book passed in `--agent` with a backtick-delimited path, filename,
+        filename without `.book`, or the Book title from its first line. For example, a run using
+        `--agent agents/coding/developer.book` accepts `agents/coding/developer.book`, `developer.book`,
+        `developer`, and `Promptbook Developer` routing tokens.
+    -   Agent references work alongside the existing model and harness routing tokens, and `ptbk coder list --agent
+        <path.book>` previews the same agent-specific queue without starting a harness.
+    -   Added an Unslopper agent preset next to the developer preset in the local VS Code terminal scripts and
+        documented agent-specific routing on the `ptbk coder` landing page.
+
 -   The help of `ptbk` does not advertise the deprecated commands anymore. `run`, `login`, `make`, `prettify`, `test`,
     `list-models`, `list-scrapers`, `start-agents-server` and `start-pipelines-server` are all leftovers of the old
     pipeline system, yet nine of the fifteen commands which `ptbk --help` listed were exactly those, each one with its

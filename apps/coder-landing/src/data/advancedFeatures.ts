@@ -1,4 +1,5 @@
 import {
+    AGENT_FILTER_COMMAND,
     GENERATE_BOILERPLATES_COMMAND,
     GIT_CHANGES_CONTINUE_COMMAND,
     INIT_GIT_SYNC_COMMAND,
@@ -90,6 +91,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         sampleCommand: MODEL_FILTER_COMMAND,
     },
     {
+        title: 'Agent-specific prompts',
+        description:
+            'Route a prompt to the selected Book with its path, filename, stem or title from the first line, such as [ ] use agent `developer`. Other agents skip it.',
+        sampleCommand: AGENT_FILTER_COMMAND,
+    },
+    {
         title: 'Pacing and retries',
         description:
             'Wait a fixed wall-clock duration between prompts. The clock keeps running through a pause and through sleep, and errors retry after a cool-down. The terminal also shows every subscription window a harness reports, with its remaining allowance and reset time. Whenever S is offered it skips whatever the coder waits for right now, down to the harness session limit that would otherwise hold the run for hours.',
@@ -98,7 +105,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'List before you run',
         description:
-            'See every ready, fully authored prompt grouped by priority before starting a harness. Narrow the list by harness, model, or priority range; no files change and no tokens are spent.',
+            'See every ready, fully authored prompt grouped by priority before starting a harness. Narrow the list by harness, model, agent, or priority range; no files change and no tokens are spent.',
         sampleCommand: LIST_COMMAND,
     },
     {

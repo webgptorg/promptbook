@@ -39,6 +39,12 @@ export function AgentsSection() {
                         agent at <code className="text-promptbook-blue">agents/developer.book</code>. Edit it like any
                         other file in your repository to change how your agent codes.
                     </p>
+                    <p className="mt-4 text-gray-400">
+                        Route a ready task to that agent with a status line such as{' '}
+                        <code className="text-promptbook-blue">[ ] use agent `developer`</code>. Its path, filename,
+                        filename without <code className="text-promptbook-blue">.book</code>, or title from the first
+                        line of the Book all work.
+                    </p>
                 </div>
 
                 <div>

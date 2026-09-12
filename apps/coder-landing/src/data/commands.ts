@@ -51,6 +51,12 @@ export const GENERATE_BOILERPLATES_COMMAND = 'ptbk coder generate-boilerplates -
 export const MODEL_FILTER_COMMAND = 'ptbk coder run --harness github-copilot --model gpt-5.5';
 
 /**
+ * Command which runs prompts through a selected Book agent.
+ */
+export const AGENT_FILTER_COMMAND =
+    'ptbk coder run --harness github-copilot --model gpt-5.5 --agent agents/developer.book';
+
+/**
  * Command which runs the existing tests before coding and lets one repair prompt fix pre-existing failures.
  */
 export const TEST_BEFORE_FIX_COMMAND = 'ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix';

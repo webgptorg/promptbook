@@ -1,6 +1,6 @@
 # Section: Agent personas (Book)
 
-Anchor `#agents`. Shows how a run is personalized with `--agent agents/developer.book` and lets the visitor *see* an agent definition in the real Book editor.
+Anchor `#agents`. Shows how a run is personalized with `--agent agents/developer.book`, how tasks can target that agent, and lets the visitor *see* an agent definition in the real Book editor.
 
 ## Copy
 
@@ -16,6 +16,7 @@ Two columns on desktop (stacked on mobile):
 1. Intro line: "Point **ptbk coder** at any agent file with `--agent`:"
 2. A [terminal block](../components/terminal-block.md) with the canonical `AGENT_RUN_COMMAND` (see [`../content/commands.md`](../content/commands.md)).
 3. Follow-up paragraph: `ptbk coder init` creates this default developer agent at `agents/developer.book`. Edit it like any other file in your repository to change how your agent codes.
+4. Prompt-routing paragraph: a ready task can target that agent with the status line ``[ ] use agent `developer` ``. The selected Book's path, filename, filename without `.book`, and title from its first line all work.
 
 ### Right — the agent itself
 

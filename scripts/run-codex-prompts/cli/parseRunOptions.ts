@@ -26,7 +26,7 @@ const DEFAULT_WAIT_AFTER_ERROR_MS = 10 * 60 * 1000;
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--test-before <no|yes-and-fail|yes-and-fix>] [--preserve-logs] [--isolate] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--min-priority <minimum-priority>] [--max-priority <maximum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--git-changes <fail|ignore|continue>] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
+    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--agent <agent-book-path>] [--context <context-or-file>] [--test <test-command...>] [--test-before <no|yes-and-fail|yes-and-fix>] [--preserve-logs] [--isolate] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--min-priority <minimum-priority>] [--max-priority <maximum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--git-changes <fail|ignore|continue>] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
@@ -35,6 +35,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--dry-run',
     '--harness',
     '--model',
+    '--agent',
     '--context',
     '--test',
     '--test-before',
@@ -76,6 +77,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     }
 
     const model = readOptionValue(args, '--model');
+    const agent = readOptionValue(args, '--agent');
     const context = readOptionValue(args, '--context');
     const hasTestCommandFlag = args.includes('--test');
     const testCommand = readVariadicOptionValue(args, '--test');
@@ -170,6 +172,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         noUi,
         agentName,
         model,
+        agent,
         context,
         testCommand,
         testBefore,

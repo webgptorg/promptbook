@@ -161,6 +161,23 @@ describe('parseRunOptions', () => {
         });
     });
 
+    it('parses an agent selection alongside the harness and model', () => {
+        const options = parseRunOptions([
+            '--harness',
+            'openai-codex',
+            '--model',
+            'gpt-5.6-astra',
+            '--agent',
+            'agents/coding/developer.book',
+        ]);
+
+        expect(options).toMatchObject({
+            agentName: 'openai-codex',
+            model: 'gpt-5.6-astra',
+            agent: 'agents/coding/developer.book',
+        });
+    });
+
     it('parses min and max priority filters', () => {
         const options = parseRunOptions([
             '--harness',

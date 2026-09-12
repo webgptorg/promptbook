@@ -80,6 +80,51 @@ describe('prompt runner filtering', () => {
         expect(runnable.map(({ section }) => section.index)).toEqual([0, 1, 2, 3]);
     });
 
+    it('matches agent path aliases and Book titles alongside harness and model tokens', () => {
+        const file = parsePromptFile(
+            'prompts/runner-filtering.md',
+            spaceTrim(`
+                [ ] use \`agents/coding/developer.book\`
+                Full agent path
+                ---
+                [ ] use \`developer.book\`
+                Agent filename
+                ---
+                [ ] use \`developer\`
+                Agent filename without extension
+                ---
+                [ ] use \`Developer Foo bar\`
+                Agent Book title
+                ---
+                [ ] use \`openai-codex\`
+                Harness alongside agent routing
+                ---
+                [ ] use \`gpt-5.6-astra\`
+                Model alongside agent routing
+                ---
+                [ ] use \`unslopper\`
+                Different agent
+            `),
+        );
+
+        const runnable = listRunnablePrompts(
+            [file],
+            {},
+            {
+                harnessName: 'openai-codex',
+                modelName: 'gpt-5.6-astra',
+                agentReferences: [
+                    'agents/coding/developer.book',
+                    'developer.book',
+                    'developer',
+                    'developer-foo-bar',
+                ],
+            },
+        );
+
+        expect(runnable.map(({ section }) => section.index)).toEqual([0, 1, 2, 3, 4, 5]);
+    });
+
     it('does not constrain prompts when no runner identity is provided', () => {
         const file = parsePromptFile(
             'prompts/runner-filtering.md',

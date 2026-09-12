@@ -28,6 +28,7 @@ import {
 import { addPromptPriorityOptions } from '../common/promptPriorityCliOptions';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
+import { addCoderAgentOption, type CoderAgentCliOptions } from './agentCliOptions';
 import { printCoderRunFailure } from './printCoderRunFailure';
 
 /**
@@ -80,10 +81,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     addPromptRunnerSelectionOptions(command);
     addQuestionsOption(command);
-    command.option(
-        '--agent <agent-book-path>',
-        'Path to a .book file whose compiled system message is prepended to each coding prompt',
-    );
+    addCoderAgentOption(command);
     command.option(
         '--context <context-or-file>',
         'Append extra instructions either inline or from a file path relative to the current project',
@@ -168,7 +166,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 readonly auto: boolean;
                 readonly autoMigrate: boolean;
                 readonly allowDestructiveAutoMigrate: boolean;
-            } & PromptRunnerCliOptions;
+            } & PromptRunnerCliOptions & CoderAgentCliOptions;
 
             const port = parseCoderServerPort(rawPort);
             const testCommand = normalizeCommandOptionValue(test);

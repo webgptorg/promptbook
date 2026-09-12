@@ -3,7 +3,7 @@ import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 
 /**
- * Names of the harness and model currently selected for a coder run.
+ * Names of the harness, model and Book agent currently selected for a coder run.
  */
 export type PromptRunnerIdentity = {
     /**
@@ -14,14 +14,19 @@ export type PromptRunnerIdentity = {
      * Effective model identifier, for example `gpt-5.5`.
      */
     readonly modelName?: string;
+    /**
+     * Equivalent agent path and name references, including the Book title from its first line.
+     */
+    readonly agentReferences?: ReadonlyArray<string>;
 };
 
 /**
- * Checks whether a prompt is unrestricted or matches the selected harness/model.
+ * Checks whether a prompt is unrestricted or matches the selected harness, model or Book agent.
  *
- * A prompt status line can contain one or more backtick-delimited model or harness
- * names. Matching is intentionally based on normalized substrings so a token such as
- * `gpt` selects any `gpt-*` model and `opus` selects a `claude-opus-*` model.
+ * A prompt status line can contain one or more backtick-delimited model, harness or agent
+ * references. Matching is intentionally based on normalized substrings so a token such as
+ * `gpt` selects any `gpt-*` model, `developer` selects an agent Book named `developer.book`,
+ * and `opus` selects a `claude-opus-*` model.
  */
 export function isPromptCompatibleWithRunner(
     file: PromptFile,
@@ -39,7 +44,11 @@ export function isPromptCompatibleWithRunner(
         return true;
     }
 
-    const normalizedRunnerNames = [promptRunnerIdentity.harnessName, promptRunnerIdentity.modelName]
+    const normalizedRunnerNames = [
+        promptRunnerIdentity.harnessName,
+        promptRunnerIdentity.modelName,
+        ...(promptRunnerIdentity.agentReferences ?? []),
+    ]
         .filter((name): name is string => name !== undefined && name.trim() !== '')
         .map((name) => normalizeToKebabCase(name))
         .filter((name) => name !== '');
@@ -57,7 +66,7 @@ export function isPromptCompatibleWithRunner(
 }
 
 /**
- * Extracts model and harness tokens from a prompt status line.
+ * Extracts model, harness and Book-agent tokens from a prompt status line.
  */
 export function extractPromptRunnerTokens(statusLine: string): string[] {
     return Array.from(statusLine.matchAll(/`([^`]+)`/gu))

@@ -1,4 +1,6 @@
 import { Command } from 'commander';
+import type { string_book } from '../../../book-2.0/agent-source/string_book';
+import { resolveCoderAgentBook } from '../../../../scripts/run-codex-prompts/common/resolveCoderAgent';
 import { listCoderPrompts } from '../../../../scripts/run-codex-prompts/main/listCoderPrompts';
 import { $initializeCoderListCommand } from './list';
 
@@ -6,11 +8,22 @@ jest.mock('../../../../scripts/run-codex-prompts/main/listCoderPrompts', () => (
     listCoderPrompts: jest.fn(),
 }));
 
+jest.mock('../../../../scripts/run-codex-prompts/common/resolveCoderAgent', () => ({
+    resolveCoderAgentBook: jest.fn(),
+}));
+
 /**
  * Typed Jest mock for the read-only coder prompt listing entrypoint.
  */
 function getListCoderPromptsMock(): jest.MockedFunction<typeof listCoderPrompts> {
     return listCoderPrompts as jest.MockedFunction<typeof listCoderPrompts>;
+}
+
+/**
+ * Typed Jest mock for the selected agent Book resolver.
+ */
+function getResolveCoderAgentBookMock(): jest.MockedFunction<typeof resolveCoderAgentBook> {
+    return resolveCoderAgentBook as jest.MockedFunction<typeof resolveCoderAgentBook>;
 }
 
 /**
@@ -36,6 +49,7 @@ describe('$initializeCoderListCommand', () => {
 
     beforeEach(() => {
         getListCoderPromptsMock().mockResolvedValue(0);
+        getResolveCoderAgentBookMock().mockResolvedValue(undefined);
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
     });
 
@@ -97,6 +111,38 @@ describe('$initializeCoderListCommand', () => {
                 promptRunnerIdentity: {
                     harnessName: 'github-copilot',
                     modelName: 'gpt-5.5',
+                },
+            }),
+        );
+    });
+
+    it('passes selected agent references to the prompt listing', async () => {
+        getResolveCoderAgentBookMock().mockResolvedValue({
+            agentSource: 'Developer Foo bar' as string_book,
+            agentReferences: [
+                'agents/coding/developer.book',
+                'developer.book',
+                'developer',
+                'developer-foo-bar',
+            ],
+        });
+        const program = createProgramWithListCommand();
+
+        await program.parseAsync(['node', 'test', 'list', '--agent', 'agents/coding/developer.book'], {
+            from: 'node',
+        });
+
+        expect(getListCoderPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                promptRunnerIdentity: {
+                    harnessName: undefined,
+                    modelName: undefined,
+                    agentReferences: [
+                        'agents/coding/developer.book',
+                        'developer.book',
+                        'developer',
+                        'developer-foo-bar',
+                    ],
                 },
             }),
         );

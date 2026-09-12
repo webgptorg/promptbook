@@ -118,6 +118,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         const promptRunnerIdentity: PromptRunnerIdentity = {
             harnessName: options.agentName,
             modelName: actualRunnerModel,
+            agentReferences: resolvedCoderAgent?.agentReferences,
         };
         console.info(colors.green(`Running prompts with ${runner.name}`));
 
@@ -856,7 +857,7 @@ function finishWhenNoPromptIsAvailable(
 
     if (promptQueueSnapshot.stats.forAgent > 0) {
         announceRunCompletion(
-            'No prompts match the selected harness or model.',
+            'No prompts match the selected harness, model or agent.',
             colors.yellow,
             isRichUiEnabled,
             uiHandle,
@@ -925,7 +926,7 @@ function announceKeepAliveStatus(
     let message: string;
 
     if (promptQueueSnapshot.stats.forAgent > 0) {
-        message = 'No prompts match the selected harness or model. Watching for changes...';
+        message = 'No prompts match the selected harness, model or agent. Watching for changes...';
     } else if (promptQueueSnapshot.stats.toBeWritten > 0) {
         message = 'No prompts ready for agent. Watching for changes...';
     } else {

@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` (ChatGPT account) - Implementation ~.32 an hour; Testing 17 minutes
 
 [✨🎻] Allow to specify the agent in the prompt
 
@@ -16,3 +16,4 @@ ptbk coder run --harness openai-codex --model gpt-5.6-astra --thinking-level max
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
