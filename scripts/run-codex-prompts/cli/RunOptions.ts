@@ -142,4 +142,13 @@ export type RunOptions = {
      * Used by `ptbk coder server` to keep the process alive as a server.
      */
     keepAlive?: boolean;
+    /**
+     * Whether the run may stop and wait for an answer it does not strictly need, disabled by `--no-questions`.
+     *
+     * A run which may not ask keeps going through a critically full disk instead of pausing at the next
+     * checkpoint, because there is nobody who could free the disk space and resume it.
+     *
+     * When omitted, the run behaves as if the questions were enabled.
+     */
+    isAskingQuestionsEnabled?: boolean;
 };

@@ -6,6 +6,7 @@ import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
+import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import {
@@ -61,6 +62,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional --isolate runs every prompt in its own temporary git worktree and merges it back when verified
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
+            - Refuses to start on a nearly full disk and pauses the run when the free disk space becomes critical, unless --no-questions is used
             - Checks that the selected harness is installed and up to date before the first prompt unless --no-questions is used
             - Offers to add missing project-local ignore rules for the selected harness
             - In interactive mode, checks local and global Promptbook CLI installations and offers to update them
@@ -212,6 +214,10 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
             assertUserConfirmationIsAllowed({ ...questionsOptions, isWaitingForUser: waitForUser });
 
+            // Note: Checked before anything is installed or written, because installing a harness, updating the
+            //       Promptbook CLI and coding itself all need the disk space which is missing
+            await $assertSufficientFreeDiskSpace(process.cwd());
+
             if (await $ensurePromptbookCliInstallations(questionsOptions)) {
                 return process.exit(0);
             }
@@ -252,6 +258,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 allowDestructiveAutoMigrate,
                 autoPush: runnerOptions.autoPush,
                 autoPull: runnerOptions.autoPull,
+                isAskingQuestionsEnabled: questionsOptions.isAskingQuestionsEnabled,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed

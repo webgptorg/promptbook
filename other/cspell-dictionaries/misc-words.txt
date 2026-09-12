@@ -528,3 +528,5 @@ trackpad
 spacebar
 bursty
 libexec
+statfs
+bavail

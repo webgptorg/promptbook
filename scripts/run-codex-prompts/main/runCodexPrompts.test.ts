@@ -1,5 +1,6 @@
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { NotFoundError } from '../../../src/errors/NotFoundError';
+import { createFreeDiskSpaceGuard } from '../common/createFreeDiskSpaceGuard';
 import { resolveCoderContext } from '../common/resolveCoderContext';
 import { toggleEndAfterCurrentPromptState } from '../common/waitForPause';
 import type { RunOptions } from '../cli/RunOptions';
@@ -23,6 +24,11 @@ import { runTestBefore } from '../testing/runTestBefore';
 
 jest.mock('../common/resolveCoderContext', () => ({
     resolveCoderContext: jest.fn(async () => undefined),
+}));
+
+jest.mock('../common/createFreeDiskSpaceGuard', () => ({
+    // Note: The real guard measures the disk of the machine which runs the tests, which is not a stable input
+    createFreeDiskSpaceGuard: jest.fn(() => async () => undefined),
 }));
 
 jest.mock('../git/ensureWorkingTreeClean', () => ({
@@ -139,6 +145,9 @@ function createPromptSelection(): PromptSelection {
 describe('runCodexPrompts', () => {
     beforeEach(() => {
         jest.resetAllMocks();
+        (createFreeDiskSpaceGuard as jest.MockedFunction<typeof createFreeDiskSpaceGuard>).mockReturnValue(
+            async () => undefined,
+        );
         (resolveCoderContext as jest.MockedFunction<typeof resolveCoderContext>).mockResolvedValue(undefined);
         (ensureWorkingTreeClean as jest.MockedFunction<typeof ensureWorkingTreeClean>).mockResolvedValue(undefined);
         (captureCoderCommitScope as jest.MockedFunction<typeof captureCoderCommitScope>).mockResolvedValue(

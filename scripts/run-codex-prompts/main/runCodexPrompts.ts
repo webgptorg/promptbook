@@ -12,6 +12,7 @@ import { parseRunOptions } from '../cli/parseRunOptions';
 import type { CoderRunPauseCheckpointOptions, WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { loadCachedAveragePromptDurationMs } from '../common/coderRunEstimateCache';
+import { createFreeDiskSpaceGuard, type FreeDiskSpaceGuard } from '../common/createFreeDiskSpaceGuard';
 import { resolveCoderAgent } from '../common/resolveCoderAgent';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { resolveCoderContext } from '../common/resolveCoderContext';
@@ -90,7 +91,17 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
     const runStartDate = moment();
     const { isRichUiEnabled, progressDisplay, uiHandle } = createRunDisplays(options, runStartDate);
-    const waitForRequestedPause = createPauseWaiter({ isRichUiEnabled, progressDisplay, uiHandle });
+    const waitForRequestedPause = createPauseWaiter({
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+        // Note: Every pause checkpoint of the whole run goes through this one waiter, so watching the free disk
+        //       space here covers each round, each verification and each runner without repeating the check
+        guardFreeDiskSpace: createFreeDiskSpaceGuard({
+            inspectedPath: process.cwd(),
+            isAskingQuestionsEnabled: options.isAskingQuestionsEnabled ?? true,
+        }),
+    });
 
     startPauseListenerIfNeeded(isRichUiEnabled);
 
@@ -660,13 +671,18 @@ function createPauseWaiter(options: {
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
+    guardFreeDiskSpace: FreeDiskSpaceGuard;
 }): WaitForCoderRunPauseCheckpoint {
-    const { isRichUiEnabled, progressDisplay, uiHandle } = options;
+    const { isRichUiEnabled, progressDisplay, uiHandle, guardFreeDiskSpace } = options;
 
     return async (checkpoint: CoderRunPauseCheckpointOptions): Promise<void> => {
         uiHandle?.state.setPhase(checkpoint.phase);
         uiHandle?.state.setStatusMessage(checkpoint.statusMessage);
         announcePauseTargetLabel(checkpoint.checkpointLabel);
+
+        // Note: Runs after the checkpoint label is announced, so a pause requested because of a full disk
+        //       replaces that label and says why the run is standing still
+        await guardFreeDiskSpace();
 
         await checkPause({
             silent: isRichUiEnabled,

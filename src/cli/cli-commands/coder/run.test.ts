@@ -1,5 +1,7 @@
 import { Command } from 'commander';
 import { runCodexPrompts } from '../../../../scripts/run-codex-prompts/main/runCodexPrompts';
+import { LimitReachedError } from '../../../errors/LimitReachedError';
+import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { $ensurePromptbookCliInstallations } from '../common/promptbook-cli/$ensurePromptbookCliInstallations';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
@@ -7,6 +9,10 @@ import { $initializeCoderRunCommand } from './run';
 
 jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPrompts', () => ({
     runCodexPrompts: jest.fn(),
+}));
+
+jest.mock('../common/disk-space/$assertSufficientFreeDiskSpace', () => ({
+    $assertSufficientFreeDiskSpace: jest.fn(),
 }));
 
 jest.mock('../common/promptbook-cli/$ensurePromptbookCliInstallations', () => ({
@@ -43,6 +49,13 @@ function getEnsureCoderHarnessGitignoreRulesMock(): jest.MockedFunction<typeof $
 }
 
 /**
+ * Typed Jest mock for the free disk space preflight check.
+ */
+function getAssertSufficientFreeDiskSpaceMock(): jest.MockedFunction<typeof $assertSufficientFreeDiskSpace> {
+    return $assertSufficientFreeDiskSpace as jest.MockedFunction<typeof $assertSufficientFreeDiskSpace>;
+}
+
+/**
  * Creates a Commander program with the `coder run` subcommand registered.
  */
 function createProgramWithRunCommand(): Command {
@@ -59,6 +72,7 @@ describe('$initializeCoderRunCommand', () => {
         getRunCodexPromptsMock().mockResolvedValue(undefined);
         getEnsurePromptbookCliInstallationsMock().mockResolvedValue(false);
         getEnsureCoderHarnessGitignoreRulesMock().mockResolvedValue(undefined);
+        getAssertSufficientFreeDiskSpaceMock().mockResolvedValue(undefined);
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     });
@@ -135,6 +149,39 @@ describe('$initializeCoderRunCommand', () => {
             isAskingQuestionsEnabled: false,
         });
         expect(getRunCodexPromptsMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks the free disk space before anything is installed or written', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+
+        expect($assertSufficientFreeDiskSpace).toHaveBeenCalledWith(process.cwd());
+    });
+
+    it('never starts a run on a nearly full disk', async () => {
+        getAssertSufficientFreeDiskSpaceMock().mockRejectedValue(
+            new LimitReachedError('There is not enough free disk space to run `ptbk coder`.'),
+        );
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+
+        expect($ensurePromptbookCliInstallations).not.toHaveBeenCalled();
+        expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('passes the interactive questions setting to the run so it knows whether it may pause', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-questions'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isAskingQuestionsEnabled: false,
+            }),
+        );
     });
 
     it('refuses to combine --no-questions with the per-prompt confirmation of --no-auto', async () => {

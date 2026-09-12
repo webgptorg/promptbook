@@ -1,11 +1,16 @@
 import { Command } from 'commander';
 import { runCodexPromptsServer } from '../../../../scripts/run-codex-prompts/main/runCodexPromptsServer';
+import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 import { $initializeCoderServerCommand } from './server';
 
 jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPromptsServer', () => ({
     runCodexPromptsServer: jest.fn(),
+}));
+
+jest.mock('../common/disk-space/$assertSufficientFreeDiskSpace', () => ({
+    $assertSufficientFreeDiskSpace: jest.fn(),
 }));
 
 jest.mock('../common/harness/$ensureHarnessInstallations', () => ({
@@ -31,6 +36,13 @@ function getEnsureCoderHarnessGitignoreRulesMock(): jest.MockedFunction<typeof $
 }
 
 /**
+ * Typed Jest mock for the free disk space preflight check.
+ */
+function getAssertSufficientFreeDiskSpaceMock(): jest.MockedFunction<typeof $assertSufficientFreeDiskSpace> {
+    return $assertSufficientFreeDiskSpace as jest.MockedFunction<typeof $assertSufficientFreeDiskSpace>;
+}
+
+/**
  * Creates a Commander program with the `coder server` subcommand registered.
  */
 function createProgramWithServerCommand(): Command {
@@ -46,6 +58,7 @@ describe('$initializeCoderServerCommand', () => {
     beforeEach(() => {
         getRunCodexPromptsServerMock().mockResolvedValue(undefined);
         getEnsureCoderHarnessGitignoreRulesMock().mockResolvedValue(undefined);
+        getAssertSufficientFreeDiskSpaceMock().mockResolvedValue(undefined);
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     });

@@ -8,6 +8,7 @@ import { assertsError } from '../../../errors/assertsError';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import type { number_port } from '../../../types/number_positive';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import {
@@ -59,6 +60,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
 
                 Features:
                 - Runs the same prompt processing as \`ptbk coder run\`
+                - Refuses to start on a nearly full disk and pauses the run when the free disk space becomes critical, unless --no-questions is used
                 - Checks that the selected harness is installed and up to date on startup unless --no-questions is used
                 - Offers to add missing project-local ignore rules for the selected harness
                 - Does not exit when all prompts are done; polls for new prompt files instead
@@ -180,6 +182,10 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
 
             assertUserConfirmationIsAllowed({ ...questionsOptions, isWaitingForUser: waitForUser });
 
+            // Note: Checked before anything is installed or written, because installing a harness and coding
+            //       itself both need the disk space which is missing
+            await $assertSufficientFreeDiskSpace(process.cwd());
+
             await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
             await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
 
@@ -213,6 +219,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 allowDestructiveAutoMigrate,
                 autoPush: runnerOptions.autoPush,
                 autoPull: runnerOptions.autoPull,
+                isAskingQuestionsEnabled: questionsOptions.isAskingQuestionsEnabled,
             };
 
             // Note: Import dynamically to avoid loading heavy dependencies until needed

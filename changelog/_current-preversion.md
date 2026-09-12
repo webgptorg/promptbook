@@ -1,3 +1,17 @@
+-   `ptbk coder run` and `ptbk coder server` no longer walk into a full disk. A coding round writes prompt and log
+    artifacts, lets the harness rewrite the project, may install npm packages, may create a git worktree for
+    `--isolate` and usually runs a build, so a run started without enough space used to die somewhere in the middle,
+    after the coding agent had already rewritten a part of the project. The free disk space is now measured before
+    anything is installed or written: with less than 2 GB left the command refuses to start and says how much space
+    is left, how much is needed and how to get it back, instead of failing later with a raw filesystem error. The
+    same measurement is repeated while the run is in progress - at the checkpoints where `ptbk coder` can stop
+    anyway, so it is checked before every round, every verification and every commit - and once less than 1 GB is
+    left the run reports the same warning and pauses there, waiting for the disk space to be freed and for `P` to
+    resume it. The limit to keep running is lower than the limit to start, because interrupting a round which is
+    already in progress costs more than not starting one. A run started with `--no-questions` never pauses, because
+    there is nobody who could free the disk space and resume it - it reports the warning and keeps going. A platform
+    which cannot report its free disk space never stops a run.
+
 -   Added `--no-questions` to every `ptbk coder` command which can stop and wait for an answer it does not strictly
     need. `init`, `add`, `run`, `ping` and `server` still do all their work, but no longer ask anything: installing
     a missing coding harness, updating an outdated one, updating an outdated Promptbook CLI and adding the missing
