@@ -1,3 +1,10 @@
+-   Fixed the rich `ptbk coder run` dashboard so an animated agent avatar can no longer overwrite its own UI in an
+    exact-width terminal pane:
+
+    -   The shared frame layout now leaves one physical terminal column unused, preventing boxed rows from
+        auto-wrapping and keeping incremental cursor-based redraws aligned with their logical frame rows.
+    -   Added a focused VS Code terminal preset and regression coverage for the terminal-width invariant.
+
 -   Added agent-specific prompt routing to `ptbk coder`:
 
     -   A ready `[ ]` prompt can now target the Book passed in `--agent` with a backtick-delimited path, filename,

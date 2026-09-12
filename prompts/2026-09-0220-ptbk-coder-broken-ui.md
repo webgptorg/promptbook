@@ -1,4 +1,4 @@
-[ ]
+[x] by OpenAI Codex `gpt-5.6-terra` thinking `max` - Implementation ~$0.7579 30 minutes; Testing 18 minutes
 
 [✨😶] The Promptbook Coder avatar can be sometimes broken, fix it
 
@@ -65,3 +65,4 @@ hejny@Mac vibehack-26-09-10 % npx ptbk coder run --no-harness-update --harness o
 
 ![alt text](screenshots/2026-09-0220-ptbk-coder-broken-ui.png)
 ![alt text](screenshots/2026-09-0220-ptbk-coder-broken-ui-1.png)
+

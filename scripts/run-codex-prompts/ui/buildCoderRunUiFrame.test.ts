@@ -1,6 +1,6 @@
 import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
 import { buildErrorDisplayLines, SESSION_LABEL_WIDTH } from './buildRunUiFrameShared';
-import { stripAnsi } from './coderRunUiText';
+import { stripAnsi, visibleLength } from './coderRunUiText';
 
 /**
  * Builds one stable frame input so individual tests only override the parts they care about.
@@ -221,6 +221,21 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('▄▀▄▀▄▀▄▀');
         expect(output).toContain('▀▄▀▄▀▄▀▄');
         expect(lines[0]!.startsWith(' ')).toBe(true); // <- Note: The agent visual is centered on the frame width
+    });
+
+    it('leaves a terminal column free so animated avatar redraws cannot auto-wrap dashboard rows', () => {
+        const terminalColumnCount = 96;
+        const lines = buildCoderRunUiFrame(
+            createFrameOptions({
+                terminalWidth: terminalColumnCount,
+                agentVisualLines: ['animated agent avatar'],
+            }),
+        );
+
+        expect(lines.every((line) => visibleLength(line) < terminalColumnCount)).toBe(true);
+        expect(visibleLength(lines.find((line) => stripAnsi(line).startsWith('┌ Session'))!)).toBe(
+            terminalColumnCount - 1,
+        );
     });
 
     it('renders the animated agent visual frame for the current animation time', () => {

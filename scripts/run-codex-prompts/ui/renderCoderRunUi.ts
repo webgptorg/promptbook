@@ -35,17 +35,14 @@ const SPINNER_FRAMES = [
 const DEFAULT_TERMINAL_WIDTH = 80;
 
 /**
- * Maximum terminal width supported by the boxed runner UI.
- */
-const MAX_TERMINAL_WIDTH = 96;
-
-/**
- * Returns the usable terminal width, capped at 96.
+ * Returns the number of columns reported by the current terminal.
+ *
+ * The frame builder owns clamping and reserves its trailing auto-wrap safety column.
  *
  * @private internal utility of coder run UI
  */
-function getTerminalWidth(): number {
-    return Math.min(process.stdout.columns || DEFAULT_TERMINAL_WIDTH, MAX_TERMINAL_WIDTH);
+function getTerminalColumnCount(): number {
+    return process.stdout.columns || DEFAULT_TERMINAL_WIDTH;
 }
 
 /**
@@ -199,7 +196,7 @@ export function renderCoderRunUi(
      */
     function buildFrameLines(): string[] {
         return buildFrameLinesFromState({
-            terminalWidth: getTerminalWidth(),
+            terminalWidth: getTerminalColumnCount(),
             animationFrame: spinnerFrame,
             animationTimeMs: Date.now() - animationStartTimeMs,
             spinner: SPINNER_FRAMES[spinnerFrame]!,

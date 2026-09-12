@@ -34,6 +34,15 @@ const MIN_FRAME_WIDTH = 56;
 const MAX_FRAME_WIDTH = 96;
 
 /**
+ * Number of terminal columns deliberately left unused by the rich coder-run frame.
+ *
+ * A row which fills the final physical terminal column can auto-wrap. The incremental terminal
+ * updater moves by logical rows, so an auto-wrapped row would put its cursor out of sync with the
+ * frame and let a later animated avatar redraw overwrite dashboard content.
+ */
+const TERMINAL_AUTO_WRAP_RESERVED_COLUMNS = 1;
+
+/**
  * Shared pause-state shape between the renderer and the frame builder.
  */
 export type { CoderRunPauseState };
@@ -42,6 +51,9 @@ export type { CoderRunPauseState };
  * Snapshot consumed by the pure coder-run frame builder.
  */
 export type BuildCoderRunUiFrameOptions = {
+    /**
+     * Number of physical columns currently available in the terminal.
+     */
     readonly terminalWidth: number;
     readonly animationFrame: number;
     readonly animationTimeMs: number;
@@ -104,7 +116,7 @@ export type AgentRunMessagePreviewSection = {
  * Builds the complete boxed terminal frame for the rich `ptbk coder run` UI.
  */
 export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): string[] {
-    const totalWidth = Math.max(MIN_FRAME_WIDTH, Math.min(options.terminalWidth, MAX_FRAME_WIDTH));
+    const totalWidth = resolveCoderRunUiFrameWidth(options.terminalWidth);
     const isPromptActive = options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
     const pausePresentation = buildPausePresentation(
@@ -159,6 +171,18 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 
     frame.push(...renderBox('Controls', controlsBoxLines, totalWidth, colors.white.bold));
     return frame;
+}
+
+/**
+ * Resolves the safe width of the rich terminal frame from the available physical terminal columns.
+ *
+ * The reserved trailing column keeps every boxed row from auto-wrapping, which makes the frame's
+ * logical row count match its physical terminal row count during animated incremental redraws.
+ */
+function resolveCoderRunUiFrameWidth(terminalWidth: number): number {
+    const availableFrameWidth = terminalWidth - TERMINAL_AUTO_WRAP_RESERVED_COLUMNS;
+
+    return Math.max(MIN_FRAME_WIDTH, Math.min(availableFrameWidth, MAX_FRAME_WIDTH));
 }
 
 /**

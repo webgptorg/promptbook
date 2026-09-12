@@ -23,6 +23,13 @@
             "focus": true
         },
         {
+            "name": "🐙🧪 Test ptbk coder terminal UI (💤)",
+            "command": "npm run test-unit -- --runTestsByPath scripts/run-codex-prompts/ui/buildCoderRunUiFrame.test.ts scripts/run-codex-prompts/ui/buildCoderRunUiTerminalFrameUpdate.test.ts",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🐙🚀 Run ptbk coder `gpt-5.5` Coding Agent (💤)(💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
