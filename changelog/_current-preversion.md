@@ -1,3 +1,5 @@
+-   Fixed `MockedChat` typing animations blinking for messages without ids by assigning stable playback-only ids before rendering each simulated transcript.
+
 -   Fixed the rich `ptbk coder run` dashboard so an animated agent avatar can no longer overwrite its own UI in an
     exact-width terminal pane:
 

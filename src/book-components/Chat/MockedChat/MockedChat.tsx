@@ -156,6 +156,28 @@ type SimulateMockedChatPlaybackProps = {
 };
 
 /**
+ * Provides stable identifiers for mocked messages that omit them.
+ *
+ * Incremental typing changes the message content on every word. A stable id
+ * lets the chat renderer preserve the message element instead of treating
+ * every content update as a new message.
+ *
+ * @private function of `MockedChat`
+ */
+function ensureMockedChatMessageIds(messages: ReadonlyArray<ChatMessage>): ReadonlyArray<ChatMessage> {
+    return messages.map((message, messageIndex) => {
+        if (message.id) {
+            return message;
+        }
+
+        return {
+            ...message,
+            id: `mocked-chat-message-${messageIndex}`,
+        };
+    });
+}
+
+/**
  * Resolves one delay value, including random ranges.
  *
  * @private function of `MockedChat`
@@ -560,7 +582,7 @@ async function simulateMockedChatPlayback(props: SimulateMockedChatPlaybackProps
 export function MockedChat(props: MockedChatProps) {
     const {
         delayConfig,
-        messages: originalMessages,
+        messages: sourceMessages,
         isResettable = true,
         isPausable = true,
         messageOffsetsMs,
@@ -569,6 +591,8 @@ export function MockedChat(props: MockedChatProps) {
         isSaveButtonEnabled = true,
         ...chatProps
     } = props;
+
+    const originalMessages = useMemo(() => ensureMockedChatMessageIds(sourceMessages), [sourceMessages]);
 
     const delays = {
         ...MOCKED_CHAT_DELAY_CONFIGS.NORMAL_FLOW,
