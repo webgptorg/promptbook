@@ -60,6 +60,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional post-commit git push with explicit --auto-push opt-in
             - Optional pre-prompt git pull with explicit --auto-pull opt-in
             - Optional --isolate runs every prompt in its own temporary git worktree and merges it back when verified
+            - Saves the run trace of every round into prompts/traces/, named after its prompt file
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
             - Refuses to start on a nearly full disk and pauses the run when the free disk space becomes critical, unless --no-questions is used

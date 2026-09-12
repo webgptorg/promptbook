@@ -22,6 +22,7 @@ import { commitChanges } from '../git/commitChanges';
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
+import type { PromptRunTraceOutcome } from '../prompts/buildPromptRunTraceContent';
 import { buildScriptPath } from '../prompts/buildScriptPath';
 import { markPromptDone } from '../prompts/markPromptDone';
 import { markPromptFailed } from '../prompts/markPromptFailed';
@@ -31,6 +32,7 @@ import { resolvePromptStatusLine } from '../prompts/resolvePromptStatusLine';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
+import { writePromptRunTrace } from '../prompts/writePromptRunTrace';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
@@ -214,6 +216,7 @@ export async function runPromptRound({
                 attemptCount,
                 error: lastError,
                 options,
+                logPath,
                 roundCommitScope,
                 uiHandle,
                 waitForRequestedPause,
@@ -421,6 +424,17 @@ async function finalizeSuccessfulPromptRound(options: {
     // Note: The prompt status is always written into the original project, an isolated round transports
     //       its own changes back through the merge instead
     await writePromptFile(nextPrompt.file);
+    // Note: Written before the round is committed, so the trace of the round lands in the very same commit
+    //       as the prompt it describes, and before the live runtime log it is built from is deleted
+    await recordPromptRoundTrace({
+        options: runOptions,
+        nextPrompt,
+        runnerMetadata,
+        promptExecutionStartedDate,
+        attemptCount: result.attemptCount,
+        logPath,
+        outcome: { kind: 'succeeded', steps: result.steps, loginMethod: result.loginMethod },
+    });
     await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
     await recordPromptDurationInEstimateCache({
         options: runOptions,
@@ -480,6 +494,7 @@ async function finalizeFailedPromptRound(options: {
     attemptCount: number;
     error: unknown;
     options: RunOptions;
+    logPath: string;
     roundCommitScope?: CoderCommitScope;
     uiHandle?: CoderRunUiHandle;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
@@ -493,6 +508,7 @@ async function finalizeFailedPromptRound(options: {
         attemptCount,
         error,
         options: runOptions,
+        logPath,
         roundCommitScope,
         uiHandle,
         waitForRequestedPause,
@@ -525,7 +541,62 @@ async function finalizeFailedPromptRound(options: {
         modelName: runnerMetadata.modelName,
         error,
     });
+    // Note: A failed round is exactly the round whose trace is worth reading, so it is written before the live
+    //       runtime log it is built from is deleted
+    await recordPromptRoundTrace({
+        options: runOptions,
+        nextPrompt,
+        runnerMetadata,
+        promptExecutionStartedDate,
+        attemptCount,
+        logPath,
+        outcome: { kind: 'failed', error },
+    });
     await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
+}
+
+/**
+ * Persists the run trace of one prompt round, so the round can still be analyzed after its temporary
+ * artifacts are gone.
+ *
+ * This is the single place where both the successful and the failed round record what they did, which harness,
+ * model and thinking level did it and everything that harness has written while doing it.
+ */
+async function recordPromptRoundTrace(options: {
+    options: RunOptions;
+    nextPrompt: PromptSelection;
+    runnerMetadata: {
+        runnerName: string;
+        modelName?: string;
+    };
+    promptExecutionStartedDate: moment.Moment;
+    attemptCount: number;
+    logPath: string;
+    outcome: PromptRunTraceOutcome;
+}): Promise<void> {
+    const {
+        options: runOptions,
+        nextPrompt,
+        runnerMetadata,
+        promptExecutionStartedDate,
+        attemptCount,
+        logPath,
+        outcome,
+    } = options;
+
+    await writePromptRunTrace({
+        file: nextPrompt.file,
+        section: nextPrompt.section,
+        runnerName: runnerMetadata.runnerName,
+        modelName: runnerMetadata.modelName,
+        thinkingLevel: runOptions.thinkingLevel,
+        testCommand: runOptions.testCommand,
+        attemptCount,
+        startedDate: promptExecutionStartedDate,
+        finishedDate: moment(),
+        outcome,
+        logPath,
+    });
 }
 
 /**

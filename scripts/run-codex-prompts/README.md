@@ -145,6 +145,23 @@ The `[^]` in-progress status is rewritten before every single step of the round,
 
 Only the final `[x]` state is committed, because the round commit is created after the prompt has been implemented and verified. The `[^]` status is deliberately never reverted: when the coder is killed or crashes, the prompt file keeps `[^]` as the signal that this task was left in the middle of its implementation. Such a prompt is not picked up again automatically — decide yourself whether to reset it to `[ ]`, to keep the partial work, or to resume it with `--git-changes continue`.
 
+## Run traces
+
+Every round writes a run trace into `prompts/traces/`, named exactly like the prompt file it belongs to (`prompts/2026-09-0180-ptbk-coder-save-traces.md` is traced in `prompts/traces/2026-09-0180-ptbk-coder-save-traces.md`, and a prompt file holding more than one section appends the same `-2` suffix its temporary scripts use).
+
+Each trace pairs the metadata of the round with the untouched runtime log of the harness:
+
+-   the prompt it implemented, and which section of it when its file holds more than one,
+-   whether the round succeeded or failed,
+-   the harness, model, thinking level and login method which ran it,
+-   how many coding attempts it took, what each step cost and how long each one ran,
+-   the verification command, when one is configured,
+-   when it started, when it finished and how long it took,
+-   the error which ended a failed round,
+-   everything the harness and the verification command have written, including the generated shell scripts and the prompt they embed.
+
+The trace is written before the round is committed, so it lands in the very same commit as the prompt it describes. This is the only place where the live runtime log survives — that log is a temporary artifact which is deleted as soon as a successful round is over (unless `--preserve-logs` keeps it). Re-running the same prompt overwrites its trace; the earlier ones stay in the git history.
+
 ## Dirty working tree
 
 `--git-changes` decides what happens when the working tree still has uncommitted changes before a prompt starts:

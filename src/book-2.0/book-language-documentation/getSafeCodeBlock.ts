@@ -5,7 +5,7 @@
  * @param language - Optional info-string language label.
  * @returns Fenced code block.
  *
- * @private internal utility of `createStandaloneBookLanguageMarkdown`
+ * @private internal utility of `createStandaloneBookLanguageMarkdown` and of the `ptbk coder` run traces
  */
 export function getSafeCodeBlock(content: string, language = 'markdown'): string {
     const maxBacktickCount = Math.max(0, ...(content.match(/`+/g) || []).map((match) => match.length));

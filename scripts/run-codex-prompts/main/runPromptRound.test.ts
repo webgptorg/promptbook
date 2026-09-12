@@ -16,6 +16,7 @@ import { markPromptFailed } from '../prompts/markPromptFailed';
 import { markPromptInProgress } from '../prompts/markPromptInProgress';
 import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
+import { writePromptRunTrace } from '../prompts/writePromptRunTrace';
 import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSection } from '../prompts/types/PromptSection';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
@@ -84,6 +85,10 @@ jest.mock('../prompts/writePromptErrorLog', () => ({
 
 jest.mock('../prompts/writePromptFile', () => ({
     writePromptFile: jest.fn(),
+}));
+
+jest.mock('../prompts/writePromptRunTrace', () => ({
+    writePromptRunTrace: jest.fn(),
 }));
 
 jest.mock('../testing/runPromptWithTestFeedback', () => ({
@@ -615,6 +620,93 @@ describe('runPromptRound', () => {
         expect(markPromptInProgress).toHaveBeenCalled();
         expect(markPromptFailed).toHaveBeenCalled();
         expect(markPromptDone).not.toHaveBeenCalled();
+    });
+
+    it('saves the run trace of a successful round before it is committed', async () => {
+        const runner: PromptRunner = {
+            name: 'OpenAI Codex',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+
+        await runPromptRound({
+            options: createRunOptions({
+                waitForUser: false,
+                thinkingLevel: 'max',
+                testCommand: 'npm test',
+            }),
+            runner,
+            runnerMetadata: {
+                runnerName: 'OpenAI Codex',
+                modelName: 'gpt-5.6-astra',
+            },
+            nextPrompt: createPromptSelection(),
+            promptLabel: 'example.md#1',
+            resolvedCoderContext: undefined,
+            isRichUiEnabled: false,
+            progressDisplay: undefined,
+            uiHandle: undefined,
+            waitForRequestedPause,
+        });
+
+        expect(writePromptRunTrace).toHaveBeenCalledWith(
+            expect.objectContaining({
+                runnerName: 'OpenAI Codex',
+                modelName: 'gpt-5.6-astra',
+                thinkingLevel: 'max',
+                testCommand: 'npm test',
+                attemptCount: 1,
+                logPath: 'C:\\temp\\runtime.log',
+                outcome: expect.objectContaining({ kind: 'succeeded' }),
+            }),
+        );
+        // Note: The trace belongs to the very same commit as the prompt it describes
+        expect((writePromptRunTrace as jest.Mock).mock.invocationCallOrder[0]).toBeLessThan(
+            (commitChanges as jest.Mock).mock.invocationCallOrder[0]!,
+        );
+    });
+
+    it('saves the run trace of a round which ended as failed', async () => {
+        const runner: PromptRunner = {
+            name: 'OpenAI Codex',
+            runPrompt: jest.fn(),
+        };
+        const waitForRequestedPause = jest.fn<
+            ReturnType<WaitForCoderRunPauseCheckpoint>,
+            Parameters<WaitForCoderRunPauseCheckpoint>
+        >(async () => undefined);
+
+        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockRejectedValue(
+            new Error('The harness died'),
+        );
+
+        await expect(
+            runPromptRound({
+                options: createRunOptions({ noCommit: true, waitForUser: false, waitAfterError: 0 }),
+                runner,
+                runnerMetadata: {
+                    runnerName: 'OpenAI Codex',
+                    modelName: 'gpt-5.6-astra',
+                },
+                nextPrompt: createPromptSelection(),
+                promptLabel: 'example.md#1',
+                resolvedCoderContext: undefined,
+                isRichUiEnabled: false,
+                progressDisplay: undefined,
+                uiHandle: undefined,
+                waitForRequestedPause,
+            }),
+        ).rejects.toThrow('The harness died');
+
+        expect(writePromptRunTrace).toHaveBeenCalledWith(
+            expect.objectContaining({
+                logPath: 'C:\\temp\\runtime.log',
+                outcome: expect.objectContaining({ kind: 'failed' }),
+            }),
+        );
     });
 
     it('runs the agent and the commit in the provided project path of an isolated round', async () => {

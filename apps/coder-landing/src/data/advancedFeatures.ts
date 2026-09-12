@@ -138,6 +138,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         sampleCommand: GIT_CHANGES_CONTINUE_COMMAND,
     },
     {
+        title: 'Run traces you can read later',
+        description:
+            'Every round leaves a trace in prompts/traces/, named after the prompt file it belongs to. It holds the harness, model, thinking level and login method that ran the prompt, what each step cost and how long it took, and the whole raw output of the harness. The trace is committed together with the prompt, so the run can still be analyzed long after its temporary logs are gone.',
+        sampleCommand: 'prompts/traces/2026-09-0180-add-dark-mode.md',
+    },
+    {
         title: 'Verify and archive',
         description:
             'Every successful round writes the harness, model and thinking level into the prompt status line. Walk through completed prompts one by one, archive the finished ones to prompts/done/, and get a repair prompt appended for anything left incomplete. Pick the order with --order from-earliest, from-latest or random.',

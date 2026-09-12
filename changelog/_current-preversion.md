@@ -1,3 +1,18 @@
+-   `ptbk coder` now saves the run trace of every prompt round, so a finished run can still be analyzed afterwards.
+    Until now the only durable record of a round was the one status line written into the prompt file: the live
+    runtime log holding everything the harness and the verification command had written was a temporary artifact,
+    deleted as soon as a successful round was over unless `--preserve-logs` was passed, and lost together with the
+    reasoning, the tool calls and the diffs of the run. Each round now writes `prompts/traces/<prompt-file-name>.md`
+    - a trace named exactly like the prompt file it belongs to, with the same `-2` section suffix the temporary
+    scripts of a multi-section prompt file already use. The trace pairs the metadata of the round - which prompt and
+    section it implemented, whether it succeeded or failed, the harness, model, thinking level and login method which
+    ran it, how many coding attempts it took, what each step cost and how long each one ran, the verification
+    command, the start, end and duration, and the error which ended a failed round - with the untouched runtime log
+    of the harness. Because the trace is written before the round is committed, it lands in the very same commit as
+    the prompt it describes, and a task whose isolated worktree cannot be merged back carries its trace into the
+    failure commit instead. A failed round is traced too, next to the `.error.log` it already wrote. Re-running the
+    same prompt overwrites its trace and leaves the earlier ones in the git history.
+
 -   `ptbk coder run` and `ptbk coder server` no longer walk into a full disk. A coding round writes prompt and log
     artifacts, lets the harness rewrite the project, may install npm packages, may create a git worktree for
     `--isolate` and usually runs a build, so a run started without enough space used to die somewhere in the middle,

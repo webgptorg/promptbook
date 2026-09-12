@@ -5,6 +5,7 @@ import { commitChanges } from '../git/commitChanges';
 import type { RunPromptRoundOptions } from '../main/runPromptRound';
 import { runPromptRound } from '../main/runPromptRound';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
+import { buildPromptRunTracePath } from '../prompts/buildPromptRunTracePath';
 import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
 import type { CoderIsolationWorktree } from './CoderIsolationWorktree';
@@ -108,9 +109,13 @@ async function recordIsolationMergeFailure(
     await commitChanges(buildCoderIsolationMergeFailureCommitMessage(worktree), {
         autoPush: options.options.autoPush,
         projectPath: worktree.projectPath,
-        relevantPaths: [nextPrompt.file.path, errorLogPath].map((path) =>
-            toProjectRelativeGitPath(worktree.projectPath, path),
-        ),
+        // Note: The round itself has already succeeded, so it has left its run trace in the original project.
+        //       It belongs to this commit, which is the only one this task still gets.
+        relevantPaths: [
+            nextPrompt.file.path,
+            errorLogPath,
+            buildPromptRunTracePath(nextPrompt.file, nextPrompt.section),
+        ].map((path) => toProjectRelativeGitPath(worktree.projectPath, path)),
     });
 
     uiHandle?.state.addError(mergeFailureError.message);

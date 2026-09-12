@@ -9,7 +9,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 ## Cards
 
-3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these nineteen cards, in this order:
+3-column grid on desktop, 2 on tablet, 1 on mobile. Each card: title (Outfit semibold), description, and a [terminal block](../components/terminal-block.md) snippet. Exactly these twenty cards, in this order:
 
 | #   | Title                          | Snippet                                                                                          |
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
@@ -30,8 +30,9 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 | 15  | Nothing to answer              | `ptbk coder run --harness claude-code --no-questions`                                            |
 | 16  | Live status in the prompt file | `` [^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress ``                            |
 | 17  | Pick up where the run stopped  | `ptbk coder run --harness claude-code --git-changes continue`                                    |
-| 18  | Verify and archive             | `ptbk coder verify --order from-latest`                                                          |
-| 19  | Many prompts per file          | `ptbk coder generate-boilerplates --count 10*7`                                                  |
+| 18  | Run traces you can read later  | `prompts/traces/2026-09-0180-add-dark-mode.md`                                                   |
+| 19  | Verify and archive             | `ptbk coder verify --order from-latest`                                                          |
+| 20  | Many prompts per file          | `ptbk coder generate-boilerplates --count 10*7`                                                  |
 
 ## Descriptions (verbatim card copy)
 
@@ -52,7 +53,8 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 15. **Nothing to answer** — "The opposite end: --no-questions never asks anything at all. Installing a missing harness, updating an outdated one or adding ignore rules is skipped and printed as the command which does it manually, so a queue started from a script or a CI job never stops at a prompt nobody is there to answer. ptbk coder init, add, run, ping and server all take it."
 16. **Live status in the prompt file** — "A [ ] prompt — or plain markdown with no status checkbox — turns into [^] the moment the agent picks it up, and the line names the step that is running. A prompt without a checkbox starts at priority 0. Use [-] or [.] to keep a task out of the queue, or add `<!--ptbk-coder-ignore-->` anywhere in a Markdown file to ignore it entirely. It only becomes [x] after the work is implemented, verified and committed. ptbk coder never reverts a [^], so if the queue is killed or crashes you can see which task was left half-done."
 17. **Pick up where the run stopped** — "A dirty working tree stops ptbk coder by default. --git-changes ignore starts anyway, and --git-changes continue resumes the one prompt left in [^] with its half-finished changes still in place. Any harness can take the work over, and the status line then names both the one that started and the one that finished it."
-18. **Verify and archive** — "Every successful round writes the harness, model and thinking level into the prompt status line. Walk through completed prompts one by one, archive the finished ones to prompts/done/, and get a repair prompt appended for anything left incomplete. Pick the order with --order from-earliest, from-latest or random."
-19. **Many prompts per file** — "ptbk coder generate-boilerplates writes one prompt per file by default (--count 5\*1). Use --count N\*M to pack a whole backlog into fewer files: N files with M prompts each. A --- line separates the sections, every file carries one fresh emoji tag, and each section still runs as its own task."
+18. **Run traces you can read later** — "Every round leaves a trace in prompts/traces/, named after the prompt file it belongs to. It holds the harness, model, thinking level and login method that ran the prompt, what each step cost and how long it took, and the whole raw output of the harness. The trace is committed together with the prompt, so the run can still be analyzed long after its temporary logs are gone."
+19. **Verify and archive** — "Every successful round writes the harness, model and thinking level into the prompt status line. Walk through completed prompts one by one, archive the finished ones to prompts/done/, and get a repair prompt appended for anything left incomplete. Pick the order with --order from-earliest, from-latest or random."
+20. **Many prompts per file** — "ptbk coder generate-boilerplates writes one prompt per file by default (--count 5\*1). Use --count N\*M to pack a whole backlog into fewer files: N files with M prompts each. A --- line separates the sections, every file carries one fresh emoji tag, and each section still runs as its own task."
 
 Option semantics must stay consistent with [`../content/commands.md`](../content/commands.md).
