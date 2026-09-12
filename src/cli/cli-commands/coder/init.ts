@@ -13,10 +13,11 @@ import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { getHarnessDefinition } from '../common/harness/HarnessDefinition';
 import {
-    addHarnessUpdateOption,
-    normalizeHarnessUpdateCliOptions,
-    type HarnessUpdateCliOptions,
-} from '../common/harnessUpdateCliOptions';
+    addQuestionsOption,
+    normalizeQuestionsCliOptions,
+    QUESTIONS_DESCRIPTION,
+    type QuestionsCliOptions,
+} from '../common/questionsCliOptions';
 import type { PromptRunnerHarnessName } from '../common/promptRunnerCliOptions';
 import { AGENTS_FILE_PATH } from './agentsFile';
 import { DEFAULT_BOILERPLATE_COUNT } from './boilerplateCount';
@@ -75,23 +76,23 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 - CODING_AGENT_GIT_EMAIL
                 - CODING_AGENT_GIT_SIGNING_KEY
 
-                Checks that the coding harnesses are installed and up to date unless \`--no-harness-update\` is used:
+                Checks that the coding harnesses are installed and up to date unless \`--no-questions\` is used:
                 ${block(listCheckedHarnessLabels())}
 
                 ${block(CODER_GIT_SYNC_DESCRIPTION)}
+
+                ${block(QUESTIONS_DESCRIPTION)}
             `,
         ),
     );
 
     addCoderGitSyncOptions(command);
-    addHarnessUpdateOption(command);
+    addQuestionsOption(command);
 
     command.action(
         handleActionErrors(async (cliOptions) => {
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
-            const { isHarnessUpdateCheckEnabled } = normalizeHarnessUpdateCliOptions(
-                cliOptions as HarnessUpdateCliOptions,
-            );
+            const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
             const projectPath = process.cwd();
 
             // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
@@ -115,7 +116,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 commitMessage: 'Initialize Promptbook Coder',
             });
 
-            await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES, isHarnessUpdateCheckEnabled);
+            await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES, questionsOptions);
         }),
     );
 }

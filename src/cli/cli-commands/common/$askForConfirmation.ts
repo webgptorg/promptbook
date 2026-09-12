@@ -1,15 +1,25 @@
 import colors from 'colors';
 import { createInterface } from 'readline';
+import type { NormalizedQuestionsCliOptions } from './questionsCliOptions';
 
 /**
  * Asks the user in the terminal to confirm one optional change.
  *
  * Note: `$` is used to indicate that this function is not a pure function - it reads the answer from stdin.
  *
- * @returns `true` when the user confirms, `false` when the user declines or the terminal is not interactive.
+ * @returns `true` when the user confirms, `false` when the user declines, the terminal is not interactive
+ *          or the questions are disabled by `--no-questions`.
  * @private internal utility of `promptbookCli`
  */
-export async function $askForConfirmation(question: string): Promise<boolean> {
+export async function $askForConfirmation(
+    question: string,
+    { isAskingQuestionsEnabled }: NormalizedQuestionsCliOptions,
+): Promise<boolean> {
+    if (!isAskingQuestionsEnabled) {
+        // Note: `--no-questions` forbids asking, so the optional change is declined without blocking the run.
+        return false;
+    }
+
     if (!process.stdin.isTTY) {
         // Note: In non-interactive environments like CI there is nobody who could confirm the change.
         return false;

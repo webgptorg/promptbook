@@ -11,10 +11,12 @@ import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import {
-    addHarnessUpdateOption,
-    normalizeHarnessUpdateCliOptions,
-    type HarnessUpdateCliOptions,
-} from '../common/harnessUpdateCliOptions';
+    addQuestionsOption,
+    assertUserConfirmationIsAllowed,
+    normalizeQuestionsCliOptions,
+    QUESTIONS_DESCRIPTION,
+    type QuestionsCliOptions,
+} from '../common/questionsCliOptions';
 import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
 import {
     addPromptRunnerExecutionOptions,
@@ -47,21 +49,25 @@ const DEFAULT_CODER_SERVER_PORT = '4441';
 export function $initializeCoderServerCommand(program: Program): $side_effect {
     const command = program.command('server');
     command.description(
-        spaceTrim(`
-            Start a coder server that watches for prompts and serves a kanban web UI
+        spaceTrim(
+            (block) => `
+                Start a coder server that watches for prompts and serves a kanban web UI
 
-            ${PROMPT_RUNNER_DESCRIPTION}
+                ${block(PROMPT_RUNNER_DESCRIPTION)}
 
-            Features:
-            - Runs the same prompt processing as \`ptbk coder run\`
-            - Checks that the selected harness is installed and up to date on startup unless --no-harness-update is used
-            - Offers to add missing project-local ignore rules for the selected harness
-            - Does not exit when all prompts are done; polls for new prompt files instead
-            - Serves a kanban board at http://localhost:<port> for visual progress tracking
-            - Allows editing prompt files directly from the browser (Trello-style)
-            - Play / pause button in the browser stays in sync with the CLI pause state
-            - Terminal controls match \`ptbk coder run\`: P pause/resume, S skip waiting, X end after current prompt
-        `),
+                ${block(QUESTIONS_DESCRIPTION)}
+
+                Features:
+                - Runs the same prompt processing as \`ptbk coder run\`
+                - Checks that the selected harness is installed and up to date on startup unless --no-questions is used
+                - Offers to add missing project-local ignore rules for the selected harness
+                - Does not exit when all prompts are done; polls for new prompt files instead
+                - Serves a kanban board at http://localhost:<port> for visual progress tracking
+                - Allows editing prompt files directly from the browser (Trello-style)
+                - Play / pause button in the browser stays in sync with the CLI pause state
+                - Terminal controls match \`ptbk coder run\`: P pause/resume, S skip waiting, X end after current prompt
+            `,
+        ),
     );
 
     command.addOption(
@@ -71,7 +77,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
     );
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     addPromptRunnerSelectionOptions(command);
-    addHarnessUpdateOption(command);
+    addQuestionsOption(command);
     command.option(
         '--agent <agent-book-path>',
         'Path to a .book file whose compiled system message is prepended to each coding prompt',
@@ -167,15 +173,16 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
-            const { isHarnessUpdateCheckEnabled } = normalizeHarnessUpdateCliOptions(
-                cliOptions as HarnessUpdateCliOptions,
-            );
-
-            await $ensureHarnessInstallations([runnerOptions.agentName], isHarnessUpdateCheckEnabled);
-            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName);
+            const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
 
             // [1] Parse the wait options and --no-auto (same logic as `coder run`)
             const waitForUser = !auto;
+
+            assertUserConfirmationIsAllowed({ ...questionsOptions, isWaitingForUser: waitForUser });
+
+            await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
+            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
+
             const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
             const waitBetweenPrompts = parseOptionalWaitDuration(waitBetweenPromptsValue, 0);
             const waitAfterError = parseOptionalWaitDuration(waitAfterErrorValue, DEFAULT_WAIT_AFTER_ERROR_MS);

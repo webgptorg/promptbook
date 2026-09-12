@@ -27,14 +27,14 @@ function createTemporaryProjectDirectory(): Promise<string> {
 /**
  * Runs the registered coder init command inside one temporary project.
  */
-async function runCoderInitCommand(projectPath: string): Promise<void> {
+async function runCoderInitCommand(projectPath: string, args: ReadonlyArray<string> = []): Promise<void> {
     const originalWorkingDirectory = process.cwd();
     const program = new Command();
 
     try {
         process.chdir(projectPath);
         $initializeCoderInitCommand(program);
-        await program.parseAsync(['node', 'test', 'init'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'init', ...args], { from: 'node' });
     } finally {
         process.chdir(originalWorkingDirectory);
     }
@@ -92,5 +92,21 @@ describe('$initializeCoderInitCommand', () => {
         await runCoderInitCommand(temporaryProjectDirectory);
 
         expect(await listPromptFileNames(temporaryProjectDirectory)).toEqual([existingPromptFileName]);
+    });
+
+    it('offers to install the checked coding harnesses by default', async () => {
+        await runCoderInitCommand(temporaryProjectDirectory);
+
+        expect(getEnsureHarnessInstallationsMock()).toHaveBeenCalledWith(expect.anything(), {
+            isAskingQuestionsEnabled: true,
+        });
+    });
+
+    it('asks nothing about the checked coding harnesses when --no-questions is used', async () => {
+        await runCoderInitCommand(temporaryProjectDirectory, ['--no-questions']);
+
+        expect(getEnsureHarnessInstallationsMock()).toHaveBeenCalledWith(expect.anything(), {
+            isAskingQuestionsEnabled: false,
+        });
     });
 });

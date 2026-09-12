@@ -116,8 +116,34 @@ describe('$initializeCoderRunCommand', () => {
 
         await program.parseAsync(['node', 'test', 'run', '--dry-run', '--harness', 'qwen-code'], { from: 'node' });
 
-        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['qwen-code'], true);
-        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code');
+        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['qwen-code'], { isAskingQuestionsEnabled: true });
+        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code', {
+            isAskingQuestionsEnabled: true,
+        });
+    });
+
+    it('asks nothing before a run started with --no-questions', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--harness', 'qwen-code', '--no-questions'], {
+            from: 'node',
+        });
+
+        expect($ensurePromptbookCliInstallations).toHaveBeenCalledWith({ isAskingQuestionsEnabled: false });
+        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['qwen-code'], { isAskingQuestionsEnabled: false });
+        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code', {
+            isAskingQuestionsEnabled: false,
+        });
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('refuses to combine --no-questions with the per-prompt confirmation of --no-auto', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-auto', '--no-questions'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
+        expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('stops the current run after a Promptbook CLI installation was updated', async () => {

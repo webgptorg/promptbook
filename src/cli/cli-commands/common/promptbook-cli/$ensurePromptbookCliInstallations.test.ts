@@ -99,9 +99,11 @@ describe('$ensurePromptbookCliInstallations', () => {
         getCheckPromptbookCliInstallationsMock().mockResolvedValue([localInstallationStatus, globalInstallationStatus]);
         getAskForNpmPackageInstallationApprovalMock().mockResolvedValue(true);
 
-        await expect($ensurePromptbookCliInstallations()).resolves.toBe(true);
+        await expect($ensurePromptbookCliInstallations({ isAskingQuestionsEnabled: true })).resolves.toBe(true);
 
-        expect($askForNpmPackageInstallationApproval).toHaveBeenCalledWith('Update Promptbook CLI now?');
+        expect($askForNpmPackageInstallationApproval).toHaveBeenCalledWith('Update Promptbook CLI now?', {
+            isAskingQuestionsEnabled: true,
+        });
         expect($updatePromptbookCliInstallation).toHaveBeenNthCalledWith(1, localInstallationStatus);
         expect($updatePromptbookCliInstallation).toHaveBeenNthCalledWith(2, globalInstallationStatus);
     });
@@ -109,9 +111,16 @@ describe('$ensurePromptbookCliInstallations', () => {
     it('does not check npm when standard input is not interactive', async () => {
         Object.defineProperty(process.stdin, 'isTTY', { configurable: true, value: false });
 
-        await expect($ensurePromptbookCliInstallations()).resolves.toBe(false);
+        await expect($ensurePromptbookCliInstallations({ isAskingQuestionsEnabled: true })).resolves.toBe(false);
 
         expect($checkPromptbookCliInstallations).not.toHaveBeenCalled();
+    });
+
+    it('does not check npm when the questions are disabled', async () => {
+        await expect($ensurePromptbookCliInstallations({ isAskingQuestionsEnabled: false })).resolves.toBe(false);
+
+        expect($checkPromptbookCliInstallations).not.toHaveBeenCalled();
+        expect($askForNpmPackageInstallationApproval).not.toHaveBeenCalled();
     });
 
     it('continues without updating when the user declines', async () => {
@@ -119,7 +128,7 @@ describe('$ensurePromptbookCliInstallations', () => {
             createPromptbookCliInstallationStatus('local-dependency'),
         ]);
 
-        await expect($ensurePromptbookCliInstallations()).resolves.toBe(false);
+        await expect($ensurePromptbookCliInstallations({ isAskingQuestionsEnabled: true })).resolves.toBe(false);
 
         expect($updatePromptbookCliInstallation).not.toHaveBeenCalled();
     });
@@ -129,6 +138,6 @@ describe('$ensurePromptbookCliInstallations', () => {
         getAskForNpmPackageInstallationApprovalMock().mockResolvedValue(true);
         getUpdatePromptbookCliInstallationMock().mockResolvedValue(false);
 
-        await expect($ensurePromptbookCliInstallations()).resolves.toBe(false);
+        await expect($ensurePromptbookCliInstallations({ isAskingQuestionsEnabled: true })).resolves.toBe(false);
     });
 });

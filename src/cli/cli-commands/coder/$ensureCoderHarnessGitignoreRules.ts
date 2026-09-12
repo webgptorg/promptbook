@@ -1,5 +1,6 @@
 import colors from 'colors';
 import type { PromptRunnerHarnessName } from '../common/promptRunnerCliOptions';
+import type { NormalizedQuestionsCliOptions } from '../common/questionsCliOptions';
 import { $askForConfirmation } from '../common/$askForConfirmation';
 import { getHarnessDefinition } from '../common/harness/HarnessDefinition';
 import { ensureCoderGitignoreRules, getMissingCoderHarnessGitignoreRules } from './ensureCoderGitignoreFile';
@@ -14,6 +15,7 @@ import { ensureCoderGitignoreRules, getMissingCoderHarnessGitignoreRules } from 
 export async function $ensureCoderHarnessGitignoreRules(
     projectPath: string,
     harnessName: PromptRunnerHarnessName | undefined,
+    questionsOptions: NormalizedQuestionsCliOptions,
 ): Promise<void> {
     if (harnessName === undefined) {
         return;
@@ -30,6 +32,7 @@ export async function $ensureCoderHarnessGitignoreRules(
     const entryLabel = missingRules.length === 1 ? 'entry' : 'entries';
     const isAdditionApproved = await $askForConfirmation(
         `Add the missing ${label} ignore ${entryLabel} ${formattedRules} to \`.gitignore\` now?`,
+        questionsOptions,
     );
 
     if (!isAdditionApproved) {

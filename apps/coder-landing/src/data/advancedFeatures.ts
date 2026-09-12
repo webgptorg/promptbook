@@ -120,6 +120,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         sampleCommand: 'ptbk coder run --harness claude-code --no-auto',
     },
     {
+        title: 'Nothing to answer',
+        description:
+            'The opposite end: --no-questions never asks anything at all. Installing a missing harness, updating an outdated one or adding ignore rules is skipped and printed as the command which does it manually, so a queue started from a script or a CI job never stops at a prompt nobody is there to answer. ptbk coder init, add, run, ping and server all take it.',
+        sampleCommand: 'ptbk coder run --harness claude-code --no-questions',
+    },
+    {
         title: 'Live status in the prompt file',
         description:
             'A [ ] prompt — or plain markdown with no status checkbox — turns into [^] the moment the agent picks it up, and the line names the step that is running. A prompt without a checkbox starts at priority 0. Use [-] or [.] to keep a task out of the queue, or add <!--ptbk-coder-ignore--> anywhere in a Markdown file to ignore it entirely. It only becomes [x] after the work is implemented, verified and committed. ptbk coder never reverts a [^], so if the queue is killed or crashes you can see which task was left half-done.',

@@ -63,13 +63,40 @@ describe('$initializeCoderServerCommand', () => {
             from: 'node',
         });
 
-        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['qwen-code'], true);
-        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code');
+        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['qwen-code'], { isAskingQuestionsEnabled: true });
+        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code', {
+            isAskingQuestionsEnabled: true,
+        });
         expect(getRunCodexPromptsServerMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 agentName: 'qwen-code',
                 dryRun: true,
             }),
         );
+    });
+
+    it('asks nothing before starting a server with --no-questions', async () => {
+        const program = createProgramWithServerCommand();
+
+        await program.parseAsync(['node', 'test', 'server', '--dry-run', '--harness', 'qwen-code', '--no-questions'], {
+            from: 'node',
+        });
+
+        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['qwen-code'], { isAskingQuestionsEnabled: false });
+        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code', {
+            isAskingQuestionsEnabled: false,
+        });
+        expect(getRunCodexPromptsServerMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('refuses to combine --no-questions with the per-prompt confirmation of --no-auto', async () => {
+        const program = createProgramWithServerCommand();
+
+        await program.parseAsync(['node', 'test', 'server', '--dry-run', '--no-auto', '--no-questions'], {
+            from: 'node',
+        });
+
+        expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
+        expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 });

@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $0.00 4 hours; Testing 14 minutes
 
 [✨💥] Add option `--no-questions`
 
@@ -17,3 +17,4 @@ ptbk coder run --no-questions --harness openai-codex --model gpt-5.6-astra --thi
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Update the [`ptbk coder` landing website](apps/coder-landing) if there are any changes that affect the landing page.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

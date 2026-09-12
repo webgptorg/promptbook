@@ -32,10 +32,13 @@ describe('$ensureCoderHarnessGitignoreRules', () => {
     });
 
     it('asks before adding missing rules and adds only the selected harness rules', async () => {
-        await $ensureCoderHarnessGitignoreRules(temporaryDirectoryPath, 'qwen-code');
+        await $ensureCoderHarnessGitignoreRules(temporaryDirectoryPath, 'qwen-code', {
+            isAskingQuestionsEnabled: true,
+        });
 
         expect($askForConfirmation).toHaveBeenCalledWith(
             'Add the missing Qwen Code ignore entry `.qwen` to `.gitignore` now?',
+            { isAskingQuestionsEnabled: true },
         );
         await expect(readFile(join(temporaryDirectoryPath, '.gitignore'), 'utf-8')).resolves.toBe(
             '# Promptbook Coder\n.qwen\n',
@@ -45,7 +48,9 @@ describe('$ensureCoderHarnessGitignoreRules', () => {
     it('leaves the project unchanged when the user declines the addition', async () => {
         getAskForConfirmationMock().mockResolvedValue(false);
 
-        await $ensureCoderHarnessGitignoreRules(temporaryDirectoryPath, 'qwen-code');
+        await $ensureCoderHarnessGitignoreRules(temporaryDirectoryPath, 'qwen-code', {
+            isAskingQuestionsEnabled: true,
+        });
 
         await expect(readFile(join(temporaryDirectoryPath, '.gitignore'), 'utf-8')).rejects.toThrow();
     });
@@ -53,8 +58,22 @@ describe('$ensureCoderHarnessGitignoreRules', () => {
     it('does not ask again when the selected harness rule already exists', async () => {
         await writeFile(join(temporaryDirectoryPath, '.gitignore'), '/.qwen\n', 'utf-8');
 
-        await $ensureCoderHarnessGitignoreRules(temporaryDirectoryPath, 'qwen-code');
+        await $ensureCoderHarnessGitignoreRules(temporaryDirectoryPath, 'qwen-code', {
+            isAskingQuestionsEnabled: true,
+        });
 
         expect($askForConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('leaves the project unchanged when the questions are disabled', async () => {
+        // Note: The real `$askForConfirmation` declines every question which it is not allowed to ask
+        getAskForConfirmationMock().mockResolvedValue(false);
+
+        await $ensureCoderHarnessGitignoreRules(temporaryDirectoryPath, 'qwen-code', {
+            isAskingQuestionsEnabled: false,
+        });
+
+        expect($askForConfirmation).toHaveBeenCalledWith(expect.any(String), { isAskingQuestionsEnabled: false });
+        await expect(readFile(join(temporaryDirectoryPath, '.gitignore'), 'utf-8')).rejects.toThrow();
     });
 });

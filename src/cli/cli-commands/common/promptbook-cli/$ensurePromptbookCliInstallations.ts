@@ -1,6 +1,7 @@
 import colors from 'colors';
 import { spaceTrim } from 'spacetrim';
 import { $askForNpmPackageInstallationApproval } from '../npm/$askForNpmPackageInstallationApproval';
+import type { NormalizedQuestionsCliOptions } from '../questionsCliOptions';
 import { $checkPromptbookCliInstallations } from './$checkPromptbookCliInstallations';
 import { $updatePromptbookCliInstallation } from './$updatePromptbookCliInstallation';
 import { buildPromptbookCliInstallCommand } from './buildPromptbookCliInstallCommand';
@@ -20,7 +21,14 @@ import { formatPromptbookCliInstallationWarning } from './formatPromptbookCliIns
  * @returns `true` when at least one installation was updated and the current coder run should stop
  * @private internal utility of `promptbookCli`
  */
-export async function $ensurePromptbookCliInstallations(): Promise<boolean> {
+export async function $ensurePromptbookCliInstallations(
+    questionsOptions: NormalizedQuestionsCliOptions,
+): Promise<boolean> {
+    if (!questionsOptions.isAskingQuestionsEnabled) {
+        // Note: `--no-questions` forbids asking for the approval, so the registry checks would be useless
+        return false;
+    }
+
     if (!process.stdin.isTTY) {
         // Note: Non-interactive runs cannot approve an update and should not wait for registry checks
         return false;
@@ -36,7 +44,10 @@ export async function $ensurePromptbookCliInstallations(): Promise<boolean> {
 
     console.warn(colors.yellow(formatPromptbookCliInstallationWarning(outdatedStatuses)));
 
-    const isUpdateApproved = await $askForNpmPackageInstallationApproval('Update Promptbook CLI now?');
+    const isUpdateApproved = await $askForNpmPackageInstallationApproval(
+        'Update Promptbook CLI now?',
+        questionsOptions,
+    );
 
     if (!isUpdateApproved) {
         reportManualPromptbookCliUpdateCommands(outdatedStatuses);

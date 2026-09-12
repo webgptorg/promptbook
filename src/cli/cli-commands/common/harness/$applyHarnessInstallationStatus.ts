@@ -1,5 +1,6 @@
 import colors from 'colors';
 import { $askForNpmPackageInstallationApproval } from '../npm/$askForNpmPackageInstallationApproval';
+import type { NormalizedQuestionsCliOptions } from '../questionsCliOptions';
 import { $runHarnessInstallationCommand } from './$runHarnessInstallationCommand';
 import { buildHarnessInstallCommand } from './buildHarnessInstallCommand';
 import type { HarnessDefinition } from './HarnessDefinition';
@@ -15,7 +16,10 @@ import { resolveHarnessUpdatePlan } from './resolveHarnessUpdatePlan';
  *
  * @private internal utility of `promptbookCli`
  */
-export async function $applyHarnessInstallationStatus(status: HarnessInstallationStatus): Promise<void> {
+export async function $applyHarnessInstallationStatus(
+    status: HarnessInstallationStatus,
+    questionsOptions: NormalizedQuestionsCliOptions,
+): Promise<void> {
     const { definition, installationState, installedVersion } = status;
 
     if (installationState === 'up-to-date') {
@@ -42,21 +46,25 @@ export async function $applyHarnessInstallationStatus(status: HarnessInstallatio
     console.warn(colors.yellow(formatHarnessInstallationWarning(status)));
 
     if (installationState === 'not-installed') {
-        await $applyMissingHarnessInstallation(definition);
+        await $applyMissingHarnessInstallation(definition, questionsOptions);
         return;
     }
 
-    await $applyOutdatedHarnessInstallation(status);
+    await $applyOutdatedHarnessInstallation(status, questionsOptions);
 }
 
 /**
  * Offers to install a missing harness globally through npm.
  */
-async function $applyMissingHarnessInstallation(definition: HarnessDefinition): Promise<void> {
+async function $applyMissingHarnessInstallation(
+    definition: HarnessDefinition,
+    questionsOptions: NormalizedQuestionsCliOptions,
+): Promise<void> {
     const installCommand = buildHarnessInstallCommand(definition);
 
     const isInstallationApproved = await $askForNpmPackageInstallationApproval(
         `Install ${definition.label} globally now?`,
+        questionsOptions,
     );
 
     if (!isInstallationApproved) {
@@ -75,7 +83,10 @@ async function $applyMissingHarnessInstallation(definition: HarnessDefinition): 
 /**
  * Offers to update an outdated harness exactly where it is installed.
  */
-async function $applyOutdatedHarnessInstallation(status: HarnessInstallationStatus): Promise<void> {
+async function $applyOutdatedHarnessInstallation(
+    status: HarnessInstallationStatus,
+    questionsOptions: NormalizedQuestionsCliOptions,
+): Promise<void> {
     const { definition, latestVersion, installationOrigin } = status;
     const updatePlan = resolveHarnessUpdatePlan(definition, installationOrigin.installationMethod);
 
@@ -86,6 +97,7 @@ async function $applyOutdatedHarnessInstallation(status: HarnessInstallationStat
 
     const isUpdateApproved = await $askForNpmPackageInstallationApproval(
         `Update ${definition.label} to ${latestVersion} with \`${updatePlan.command}\` now?`,
+        questionsOptions,
     );
 
     if (!isUpdateApproved) {

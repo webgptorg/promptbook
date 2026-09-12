@@ -1,3 +1,15 @@
+-   Added `--no-questions` to every `ptbk coder` command which can stop and wait for an answer it does not strictly
+    need. `init`, `add`, `run`, `ping` and `server` still do all their work, but no longer ask anything: installing
+    a missing coding harness, updating an outdated one, updating an outdated Promptbook CLI and adding the missing
+    harness ignore rules to `.gitignore` are all skipped and reported together with the command which does them
+    manually, and `ptbk coder add` refuses a missing description instead of asking for it. Because an outdated
+    harness or CLI can only be updated after a confirmation, `--no-questions` also skips the npm latest-version
+    lookup which would only lead to a question, which is what the never released `--no-harness-update` used to do -
+    that flag is replaced by `--no-questions` and is gone. The one combination which can not work,
+    `--no-auto --no-questions`, is refused right away instead of waiting forever for a confirmation nobody may be
+    asked for. `ptbk coder verify` does not take the flag, because walking through finished prompts and asking about
+    each of them is the only thing it does.
+
 -   `ptbk coder` no longer answers a harness which is not logged in with a wall of raw CLI output. A harness whose
     login is missing or whose session has expired now fails with a short branded `AuthenticationError` which names
     the harness, quotes the one sentence the harness itself reported - such as `Failed to authenticate: OAuth session
@@ -572,10 +584,6 @@
     bundled Stalwart service, use existing agent addresses to pre-fill sender and recipient fields, and inspect the
     persisted result in Messages. Normal administrators are restricted to sender addresses on their current server;
     the VPS superadmin can test any sender domain.
-
--   Added `--no-harness-update` to the harness-aware `ptbk coder` commands. `init`, `run`, `ping`, and `server`
-    still detect a missing global harness, but can now skip the npm latest-version lookup and automatic update offer.
-    The VS Code Coder terminal commands use the flag to avoid a registry check on each development run.
 
 -   Fixed Windows executable discovery to check the system `PATH` before the conventional installation directories, so
     LibreOffice installed through a package manager's command shim can be located for legacy-document processing.

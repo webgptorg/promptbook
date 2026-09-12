@@ -114,7 +114,7 @@ describe('$initializeCoderPingCommand', () => {
 
         await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code'], { from: 'node' });
 
-        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['claude-code'], true);
+        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['claude-code'], { isAskingQuestionsEnabled: true });
     });
 
     it('checks local ignore rules for the selected harness before pinging it', async () => {
@@ -124,17 +124,22 @@ describe('$initializeCoderPingCommand', () => {
             from: 'node',
         });
 
-        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code');
+        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code', {
+            isAskingQuestionsEnabled: true,
+        });
     });
 
-    it('skips the harness update check when --no-harness-update is provided', async () => {
+    it('asks no question about the harness installation when --no-questions is provided', async () => {
         const program = createProgramWithPingCommand();
 
-        await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code', '--no-harness-update'], {
+        await program.parseAsync(['node', 'test', 'ping', '--harness', 'claude-code', '--no-questions'], {
             from: 'node',
         });
 
-        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['claude-code'], false);
+        expect($ensureHarnessInstallations).toHaveBeenCalledWith(['claude-code'], { isAskingQuestionsEnabled: false });
+        expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'claude-code', {
+            isAskingQuestionsEnabled: false,
+        });
     });
 
     it('keeps the compact result without streaming the raw harness output by default', async () => {

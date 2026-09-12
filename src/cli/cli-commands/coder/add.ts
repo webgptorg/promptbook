@@ -18,6 +18,13 @@ import {
 } from '../common/coderGitSyncCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import {
+    addQuestionsOption,
+    normalizeQuestionsCliOptions,
+    QUESTIONS_DESCRIPTION,
+    type NormalizedQuestionsCliOptions,
+    type QuestionsCliOptions,
+} from '../common/questionsCliOptions';
+import {
     buildCoderPromptSection,
     getDefaultCoderPromptTemplateDefinitions,
     PROMPTS_DIRECTORY_PATH,
@@ -66,6 +73,8 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
                 - \`ptbk coder add\`
 
                 ${block(CODER_GIT_SYNC_DESCRIPTION)}
+
+                ${block(QUESTIONS_DESCRIPTION)}
             `,
         ),
     );
@@ -88,6 +97,7 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
         `),
     );
     addCoderGitSyncOptions(command);
+    addQuestionsOption(command);
 
     command.action(
         handleActionErrors(async (descriptionArgument: string | undefined, cliOptions) => {
@@ -97,9 +107,10 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
             } & CoderGitSyncCliOptions;
 
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
+            const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
             const projectPath = process.cwd();
 
-            const description = await resolveCoderPromptDescription(descriptionArgument);
+            const description = await resolveCoderPromptDescription(descriptionArgument, questionsOptions);
 
             // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
             const { $commitCoderChanges, $startCoderGitSync } = await import(
@@ -221,7 +232,10 @@ export async function addCoderPrompt({
  *
  * @private internal utility of `coder add` command
  */
-async function resolveCoderPromptDescription(descriptionArgument: string | undefined): Promise<string> {
+async function resolveCoderPromptDescription(
+    descriptionArgument: string | undefined,
+    { isAskingQuestionsEnabled }: NormalizedQuestionsCliOptions,
+): Promise<string> {
     if (descriptionArgument !== undefined && descriptionArgument.trim() !== '') {
         return descriptionArgument.trim();
     }
@@ -241,6 +255,17 @@ async function resolveCoderPromptDescription(descriptionArgument: string | undef
             );
         }
         return standardInputDescription;
+    }
+
+    if (!isAskingQuestionsEnabled) {
+        throw new ParseError(
+            spaceTrim(`
+                Cannot add a prompt without a description.
+
+                The description can not be typed interactively because \`--no-questions\` is used — provide it as an argument or pipe it through stdin instead:
+                - \`ptbk coder add --no-questions "some new feature"\`
+            `),
+        );
     }
 
     const { default: prompts } = await loadPromptsModule();

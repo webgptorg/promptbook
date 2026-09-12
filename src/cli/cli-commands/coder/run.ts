@@ -9,10 +9,12 @@ import { createPositiveIntegerOptionParser } from '../common/createPositiveInteg
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import {
-    addHarnessUpdateOption,
-    normalizeHarnessUpdateCliOptions,
-    type HarnessUpdateCliOptions,
-} from '../common/harnessUpdateCliOptions';
+    addQuestionsOption,
+    assertUserConfirmationIsAllowed,
+    normalizeQuestionsCliOptions,
+    QUESTIONS_DESCRIPTION,
+    type QuestionsCliOptions,
+} from '../common/questionsCliOptions';
 import { $ensurePromptbookCliInstallations } from '../common/promptbook-cli/$ensurePromptbookCliInstallations';
 import type { PromptRunnerCliOptions } from '../common/promptRunnerCliOptions';
 import {
@@ -41,10 +43,13 @@ import { printCoderRunFailure } from './printCoderRunFailure';
 export function $initializeCoderRunCommand(program: Program): $side_effect {
     const command = program.command('run');
     command.description(
-        spaceTrim(`
+        spaceTrim(
+            (block) => `
             Execute coding prompts through selected AI agent
 
-            ${PROMPT_RUNNER_DESCRIPTION}
+            ${block(PROMPT_RUNNER_DESCRIPTION)}
+
+            ${block(QUESTIONS_DESCRIPTION)}
 
             Features:
             - Automatically stages and commits changes with agent identity unless --no-commit is used
@@ -56,7 +61,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional --isolate runs every prompt in its own temporary git worktree and merges it back when verified
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
-            - Checks that the selected harness is installed and up to date before the first prompt unless --no-harness-update is used
+            - Checks that the selected harness is installed and up to date before the first prompt unless --no-questions is used
             - Offers to add missing project-local ignore rules for the selected harness
             - In interactive mode, checks local and global Promptbook CLI installations and offers to update them
             - Supports GPG signing of commits
@@ -64,12 +69,13 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Optional post-prompt verification with test-feedback retries
             - Progress tracking and interactive P/S/X terminal controls
             - Dry-run mode to preview prompts
-        `),
+        `,
+        ),
     );
 
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     addPromptRunnerSelectionOptions(command);
-    addHarnessUpdateOption(command);
+    addQuestionsOption(command);
     command.option(
         '--agent <agent-book-path>',
         'Path to a .book file whose compiled system message is prepended to each coding prompt',
@@ -194,9 +200,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
-            const { isHarnessUpdateCheckEnabled } = normalizeHarnessUpdateCliOptions(
-                cliOptions as HarnessUpdateCliOptions,
-            );
+            const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
 
             // [1] Parse the wait options and --no-auto:
             //   default: run automatically through the queue (no waiting between prompts)
@@ -206,12 +210,14 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             //   --wait-after-error: wait before retrying after an error (default 10m)
             const waitForUser = !auto;
 
-            if (await $ensurePromptbookCliInstallations()) {
+            assertUserConfirmationIsAllowed({ ...questionsOptions, isWaitingForUser: waitForUser });
+
+            if (await $ensurePromptbookCliInstallations(questionsOptions)) {
                 return process.exit(0);
             }
 
-            await $ensureHarnessInstallations([runnerOptions.agentName], isHarnessUpdateCheckEnabled);
-            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName);
+            await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
+            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
 
             const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
             const waitBetweenPrompts = parseOptionalWaitDuration(waitBetweenPromptsValue, 0);
