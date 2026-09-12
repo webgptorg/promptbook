@@ -99,7 +99,8 @@ export async function promptbookCli(): Promise<void> {
     // Note: These options are valid for all commands
 
     // Note: Commands are listed in the help in the order they are registered,
-    //       `coder` is the most used one so it goes first and the deprecated ones go last
+    //       `coder` is the most used one so it goes first and the deprecated ones,
+    //       which `$deprecateTopLevelCommands` hides from the help entirely, go last
     $initializeCoderCommand(program);
     $initializeAgentCommand(program);
     $initializeAgentFolderCommand(program);
@@ -142,7 +143,7 @@ function isTopLevelVersionRequested(commandLineArguments: ReadonlyArray<string>)
 }
 
 /**
- * Adds one deprecation notice to each configured top-level legacy command.
+ * Marks each configured top-level legacy command as deprecated, which keeps it usable but takes it out of the help.
  */
 function $deprecateTopLevelCommands(program: commander.Command): void {
     for (const command of program.commands) {

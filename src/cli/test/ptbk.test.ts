@@ -39,15 +39,29 @@ describe('how promptbookCli works', () => {
     it('should initiate without errors', () =>
         expect($executePtbkTestCommand('--help')).resolves.toContain('Usage: promptbook|ptbk [options] [command]'));
 
-    it('should mark legacy top-level commands as deprecated in help', async () => {
+    it('should not list legacy top-level commands which are deprecated in help', async () => {
         const helpOutput = await $executePtbkTestCommand('--help');
 
-        expect(helpOutput).toContain('run|execute');
-        expect(helpOutput).toContain('Deprecated: This command is part of the old pipeline system.');
-        expect(helpOutput).toContain('list-models|models');
-        expect(helpOutput).toContain('Deprecated: This command is part of the old system.');
-        expect(helpOutput).toContain('start-agents-server|start');
-        expect(helpOutput).toContain('Deprecated: Use `ptbk agents-server start` instead.');
+        expect(helpOutput).toContain('coder [options]');
+        expect(helpOutput).toContain('agents-server [options]');
+        expect(helpOutput).not.toContain('Deprecated:');
+        expect(helpOutput).not.toContain('run|execute');
+        expect(helpOutput).not.toContain('make|compile');
+        expect(helpOutput).not.toContain('list-models|models');
+        expect(helpOutput).not.toContain('list-scrapers|scrapers');
+        expect(helpOutput).not.toContain('start-agents-server|start');
+        expect(helpOutput).not.toContain('start-pipelines-server');
+    });
+
+    it('should keep legacy top-level commands which are deprecated usable and documented in their own help', async () => {
+        const [runHelpOutput, startAgentsServerHelpOutput] = await Promise.all([
+            $executePtbkTestCommand('run --help'),
+            $executePtbkTestCommand('help start-agents-server'),
+        ]);
+
+        expect(runHelpOutput).toContain('Usage: promptbook run|execute');
+        expect(runHelpOutput).toContain('Deprecated: This command is part of the old pipeline system.');
+        expect(startAgentsServerHelpOutput).toContain('Deprecated: Use `ptbk agents-server start` instead.');
     });
 
     it('should ask for a subcommand and print the top-level help when started without arguments', async () => {

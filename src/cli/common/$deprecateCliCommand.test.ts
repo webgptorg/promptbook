@@ -12,7 +12,7 @@ describe('$deprecateCliCommand', () => {
         consoleWarnSpy.mockRestore();
     });
 
-    it('adds deprecation guidance to help output and warns when the command is used', async () => {
+    it('adds deprecation guidance to the help of the command and warns when the command is used', async () => {
         const program = new Command();
         const deprecatedCommand = program.command('legacy');
         deprecatedCommand.description('Legacy command');
@@ -20,12 +20,28 @@ describe('$deprecateCliCommand', () => {
 
         $deprecateCliCommand(deprecatedCommand, 'Use `ptbk replacement` instead.');
 
-        expect(program.helpInformation()).toContain('Deprecated: Use `ptbk replacement` instead.');
+        expect(deprecatedCommand.helpInformation()).toContain('Deprecated: Use `ptbk replacement` instead.');
 
         await program.parseAsync(['node', 'test', 'legacy'], { from: 'node' });
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
             expect.stringContaining('Warning: `ptbk legacy` is deprecated. Use `ptbk replacement` instead.'),
         );
+    });
+
+    it('does not offer the deprecated command among the commands of its parent command', () => {
+        const program = new Command();
+        const deprecatedCommand = program.command('legacy');
+        deprecatedCommand.description('Legacy command');
+        deprecatedCommand.action(() => undefined);
+        program.command('modern').description('Modern command');
+
+        $deprecateCliCommand(deprecatedCommand, 'Use `ptbk replacement` instead.');
+
+        const helpInformation = program.helpInformation();
+
+        expect(helpInformation).toContain('modern');
+        expect(helpInformation).not.toContain('legacy');
+        expect(helpInformation).not.toContain('Deprecated:');
     });
 });

@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $3.59 12 minutes; Testing 15 minutes
 
 [✨💘] Do not show deprecated commands in the `ptbk` CLI help
 
@@ -89,3 +89,4 @@ Commands:
 -   Do a proper analysis of the current functionality of `ptbk` and related functionality before you start implementing.
 -   You are working with [`ptbk`](src/cli/cli-commands/)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

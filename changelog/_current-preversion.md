@@ -1,3 +1,15 @@
+-   The help of `ptbk` does not advertise the deprecated commands anymore. `run`, `login`, `make`, `prettify`, `test`,
+    `list-models`, `list-scrapers`, `start-agents-server` and `start-pipelines-server` are all leftovers of the old
+    pipeline system, yet nine of the fifteen commands which `ptbk --help` listed were exactly those, each one with its
+    own `Deprecated:` paragraph, so the listing which is supposed to introduce the CLI was mostly made of commands
+    nobody should start using. `ptbk --help`, and the same listing which plain `ptbk` prints when it asks for a
+    subcommand, now offers only the commands which are meant to be used - `coder`, `agent`, `agent-folder`,
+    `agents-server`, `about` and `hello`. Nothing was removed: every deprecated command still runs, still warns that it
+    is deprecated when it is used, still explains the deprecation in its own help - `ptbk run --help` - and is still
+    reachable through `ptbk help run`. Only the "did you mean" hint for a mistyped command stops pointing at them.
+    Being left out of the help is now simply a part of what deprecating a command means, written once in
+    `$deprecateCliCommand`, so any command deprecated later disappears from the help on its own.
+
 -   `ptbk` without a subcommand no longer falls back to the deprecated `ptbk run`. Until now `run` was registered as
     the default command of the CLI, so everything which did not name a command - `ptbk ./write-cv.book`, a mistyped
     `ptbk codr` or a stray option - was quietly handed over to the pipeline runner of the old system, which was the
