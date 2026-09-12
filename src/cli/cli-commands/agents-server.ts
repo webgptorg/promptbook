@@ -1,9 +1,9 @@
-import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
+import { $requireCliSubcommand } from '../common/$requireCliSubcommand';
 import { $initializeAgentsServerInitCommand } from './agents-server/init';
 import {
     $initializeAgentsServerBuildCommand,
@@ -35,11 +35,7 @@ export function $initializeAgentsServerCommand(program: Program): $side_effect {
     $initializeAgentsServerInitCommand(agentsServerCommand);
     $initializeAgentsServerStartCommand(agentsServerCommand);
 
-    agentsServerCommand.action(() => {
-        console.info(colors.yellow('Please specify a subcommand.'));
-        console.info('');
-        agentsServerCommand.help();
-    });
+    $requireCliSubcommand(agentsServerCommand);
 }
 
 // Note: [🟡] Code for CLI command [agents-server](src/cli/cli-commands/agents-server.ts) should never be published outside of `@promptbook/cli`

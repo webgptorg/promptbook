@@ -13,7 +13,9 @@ import type { RunCommandCliOptions } from './run/runCommandAction';
  * @private internal function of `promptbookCli`
  */
 export function $initializeRunCommand(program: Program): $side_effect {
-    const runCommand = program.command('run', { isDefault: true });
+    // Note: `run` is deprecated, so it is intentionally NOT the default command of `ptbk`
+    //       and it must be asked for explicitly
+    const runCommand = program.command('run');
 
     configureRunCommand(runCommand);
     runCommand.action(

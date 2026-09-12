@@ -22,6 +22,7 @@ import { $initializeStartPipelinesServerCommand } from './cli-commands/start-pip
 import { $initializeTestCommand } from './cli-commands/test-command';
 import { $addGlobalOptionsToCommand } from './common/$addGlobalOptionsToCommand';
 import { $deprecateCliCommand } from './common/$deprecateCliCommand';
+import { $reportMissingCliSubcommand } from './common/$requireCliSubcommand';
 
 /**
  * Shared deprecation text for top-level CLI commands backed by the old pipeline system.
@@ -97,10 +98,16 @@ export async function promptbookCli(): Promise<void> {
 
     // Note: These options are valid for all commands
 
+    // Note: Commands are listed in the help in the order they are registered,
+    //       `coder` is the most used one so it goes first and the deprecated ones go last
+    $initializeCoderCommand(program);
+    $initializeAgentCommand(program);
+    $initializeAgentFolderCommand(program);
+    $initializeAgentsServerCommand(program);
     $initializeAboutCommand(program);
+    $initializeHelloCommand(program);
     $initializeRunCommand(program);
     $initializeLoginCommand(program);
-    $initializeHelloCommand(program);
     $initializeMakeCommand(program);
     $initializePrettifyCommand(program);
     $initializeTestCommand(program);
@@ -108,19 +115,16 @@ export async function promptbookCli(): Promise<void> {
     $initializeListScrapersCommand(program);
     $initializeStartAgentsServerCommand(program);
     $initializeStartPipelinesServerCommand(program);
-    $initializeAgentCommand(program);
-    $initializeAgentFolderCommand(program);
-    $initializeAgentsServerCommand(program);
-    $initializeCoderCommand(program);
 
     $deprecateTopLevelCommands(program);
 
     // TODO: [🧠] Should it be here or not> $addGlobalOptionsToCommand(program);
     program.commands.forEach($addGlobalOptionsToCommand);
 
+    // Note: There is no default command, so `ptbk` without a subcommand asks for one
+    //       instead of running the deprecated `ptbk run`
     if (commandLineArguments.length === 0) {
-        program.outputHelp();
-        return process.exit(0);
+        return $reportMissingCliSubcommand(program);
     }
 
     program.parse(process.argv);
@@ -151,7 +155,6 @@ function $deprecateTopLevelCommands(program: commander.Command): void {
 }
 
 // Note: [🟡] Code for CLI program [promptbookCli](src/cli/promptbookCli.ts) should never be published outside of `@promptbook/cli`
-// TODO: [🧠] Maybe `run` command the default, instead of `ptbk run ./foo.book` -> `ptbk ./foo.book`
 // TODO: [🥠] Do not export, its just for CLI script
 // TODO: [🕌] When more functionalities, rename
 // Note: 11:11

@@ -1,3 +1,15 @@
+-   `ptbk` without a subcommand no longer falls back to the deprecated `ptbk run`. Until now `run` was registered as
+    the default command of the CLI, so everything which did not name a command - `ptbk ./write-cv.book`, a mistyped
+    `ptbk codr` or a stray option - was quietly handed over to the pipeline runner of the old system, which was the
+    last thing a deprecated command should be doing. Plain `ptbk` now asks to specify a subcommand and prints the
+    top-level help, exactly like `ptbk coder`, `ptbk agent`, `ptbk agent-folder` and `ptbk agents-server` already did
+    when they were called without one of their own subcommands, and that one shared behavior is now written once
+    instead of five times. Anything which is not a command is refused with `unknown command` and a "did you mean"
+    hint instead of being executed as a pipeline, so a script which still passes a book path to `ptbk` fails loudly
+    rather than appearing to succeed. `ptbk run` itself is untouched and keeps working for everyone who asks for it
+    explicitly. The command list in the help now starts with `coder`, followed by `agent`, `agent-folder` and
+    `agents-server`, and the deprecated commands of the old pipeline system are listed after them.
+
 -   `ptbk coder` now saves the run trace of every prompt round, so a finished run can still be analyzed afterwards.
     Until now the only durable record of a round was the one status line written into the prompt file: the live
     runtime log holding everything the harness and the verification command had written was a temporary artifact,

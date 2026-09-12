@@ -1,9 +1,9 @@
-import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
+import { $requireCliSubcommand } from '../common/$requireCliSubcommand';
 import { $initializeAgentChatCommand } from './agent/chat';
 import { $initializeAgentExecCommand } from './agent/exec';
 
@@ -33,11 +33,7 @@ export function $initializeAgentCommand(program: Program): $side_effect {
     $initializeAgentChatCommand(agentCommand);
     $initializeAgentExecCommand(agentCommand);
 
-    agentCommand.action(() => {
-        console.info(colors.yellow('Please specify a subcommand.'));
-        console.info('');
-        agentCommand.help();
-    });
+    $requireCliSubcommand(agentCommand);
 }
 
 // Note: [🟡] Code for CLI command [agent](src/cli/cli-commands/agent.ts) should never be published outside of `@promptbook/cli`

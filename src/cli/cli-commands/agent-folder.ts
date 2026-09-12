@@ -1,9 +1,9 @@
-import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
+import { $requireCliSubcommand } from '../common/$requireCliSubcommand';
 import { $initializeAgentInitCommand } from './agent-folder/init';
 import { $initializeAgentRunMultipleCommand } from './agent-folder/runMultiple';
 import { $initializeAgentRunCommand } from './agent-folder/run';
@@ -41,11 +41,7 @@ export function $initializeAgentFolderCommand(program: Program): $side_effect {
     $initializeAgentRunCommand(agentFolderCommand);
     $initializeAgentRunMultipleCommand(agentFolderCommand);
 
-    agentFolderCommand.action(() => {
-        console.info(colors.yellow('Please specify a subcommand.'));
-        console.info('');
-        agentFolderCommand.help();
-    });
+    $requireCliSubcommand(agentFolderCommand);
 }
 
 // Note: [🟡] Code for CLI command [agent-folder](src/cli/cli-commands/agent-folder.ts) should never be published outside of `@promptbook/cli`

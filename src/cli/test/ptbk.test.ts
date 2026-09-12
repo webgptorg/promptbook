@@ -50,13 +50,29 @@ describe('how promptbookCli works', () => {
         expect(helpOutput).toContain('Deprecated: Use `ptbk agents-server start` instead.');
     });
 
-    it('should print the same top-level help when started without arguments', async () => {
+    it('should ask for a subcommand and print the top-level help when started without arguments', async () => {
         const [helpOutput, defaultOutput] = await Promise.all([
             $executePtbkTestCommand('--help'),
             $executePtbkTestCommand(),
         ]);
 
-        expect(defaultOutput).toBe(helpOutput);
+        expect(defaultOutput).toContain('Please specify a subcommand.');
+        expect(defaultOutput).toContain(helpOutput);
+    });
+
+    it('should list `coder` as the first top-level command', async () => {
+        const helpOutput = await $executePtbkTestCommand('--help');
+        const [, listedCommands] = helpOutput.split('Commands:');
+
+        expect(listedCommands).toBeDefined();
+        expect(listedCommands!.trimStart()).toMatch(/^coder\b/);
+    });
+
+    it('should not fall back to the deprecated `run` command for a stray argument', async () => {
+        const strayArgumentOutput = await $executePtbkTestCommand('./nonexistent-file.book');
+
+        expect(strayArgumentOutput).toContain(`unknown command './nonexistent-file.book'`);
+        expect(strayArgumentOutput).not.toContain('`ptbk run` is deprecated');
     });
 
     it('should report version', () =>

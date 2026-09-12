@@ -1,9 +1,9 @@
-import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
+import { $requireCliSubcommand } from '../common/$requireCliSubcommand';
 import { $initializeCoderAddCommand } from './coder/add';
 import { $initializeCoderFindFreshEmojiTagCommand } from './coder/find-fresh-emoji-tags';
 import { $initializeCoderFindRefactorCandidatesCommand } from './coder/find-refactor-candidates';
@@ -69,11 +69,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
     $initializeCoderFindFreshEmojiTagCommand(coderCommand);
 
     // If no subcommand is provided, show help
-    coderCommand.action(() => {
-        console.info(colors.yellow('Please specify a subcommand.'));
-        console.info('');
-        coderCommand.help();
-    });
+    $requireCliSubcommand(coderCommand);
 }
 
 // Note: [🟡] Code for CLI command [coder](src/cli/cli-commands/coder.ts) should never be published outside of `@promptbook/cli`

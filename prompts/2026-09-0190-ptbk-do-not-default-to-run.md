@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code `claude-opus-5` thinking `max` - Implementation $4.32 21 minutes; Testing 17 minutes
 
 [✨🥍] The `ptbk` CLI should not default to `ptbk run` which is deprecated
 
@@ -13,3 +13,4 @@ ptbk
 -   Do a proper analysis of the current functionality of `ptbk` and related functionality before you start implementing.
 -   You are working with [`ptbk`](src/cli/cli-commands/)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
