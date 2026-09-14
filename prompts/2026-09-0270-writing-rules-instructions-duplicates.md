@@ -1,18 +1,17 @@
-[-]
+[ ]
 
-[✨🔘] foo
+[✨🚓] baz
 
-```bash
-@@@
+```
+### Writing rules
+These instructions apply only to how you write: tone, formatting, length, emoji usage, punctuation, and similar presentation choices.
+They do not change your task-solving behavior, business logic, or factual decision-making rules.
+If multiple writing-rules blocks conflict, prefer the newer writing-rules blocks.
+If a writing rule conflicts with a writing sample, follow the explicit writing rule while keeping the writing sample as the primary voice exemplar.
 
-npm install ptbk
-
-ptbk coder init
-
-ptbk coder run --harness openai-codex --model gpt-5.6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md
 ```
 
--   @@@
+-   @@@@@@@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
