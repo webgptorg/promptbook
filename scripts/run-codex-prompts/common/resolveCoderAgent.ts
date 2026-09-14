@@ -16,6 +16,14 @@ export type ResolvedCoderAgentBook = {
     readonly agentSource: string_book;
 
     /**
+     * Human-readable name of the agent, as it is reported in prompt status lines and run traces.
+     *
+     * Comes from the `META FULLNAME` of the Book, or from the plain title on its first line, so it is the
+     * display name of the agent and not its normalized identifier.
+     */
+    readonly agentName: string;
+
+    /**
      * Equivalent references by which a prompt may target this agent.
      *
      * Includes the configured path, relative path, filename, filename without `.book`, and the
@@ -63,13 +71,17 @@ export async function resolveCoderAgentBook(
         throw error;
     })) as string_book;
 
+    // Note: Parsed once here, because both the display name of the agent and its routing references need it
+    const parsedAgentSource = parseAgentSource(agentSource);
+
     return {
         agentSource,
+        agentName: parsedAgentSource.meta.fullname || parsedAgentSource.agentName,
         agentReferences: createCoderAgentReferences({
             agentBookReference: normalizedAgentBookReference,
             resolvedAgentBookPath,
             currentWorkingDirectory,
-            agentSource,
+            normalizedAgentNameFromBook: parsedAgentSource.agentName,
         }),
     };
 }
@@ -104,7 +116,7 @@ function createCoderAgentReferences(options: {
     readonly agentBookReference: string;
     readonly resolvedAgentBookPath: string;
     readonly currentWorkingDirectory: string;
-    readonly agentSource: string_book;
+    readonly normalizedAgentNameFromBook: string;
 }): string[] {
     const relativeAgentBookPath = relative(options.currentWorkingDirectory, options.resolvedAgentBookPath).replaceAll(
         '\\',
@@ -112,7 +124,6 @@ function createCoderAgentReferences(options: {
     );
     const agentBookFileName = basename(options.resolvedAgentBookPath);
     const agentBookName = basename(options.resolvedAgentBookPath, extname(options.resolvedAgentBookPath));
-    const agentNameFromBook = parseAgentSource(options.agentSource).agentName;
 
     return Array.from(
         new Set(
@@ -121,7 +132,7 @@ function createCoderAgentReferences(options: {
                 relativeAgentBookPath,
                 agentBookFileName,
                 agentBookName,
-                agentNameFromBook,
+                options.normalizedAgentNameFromBook,
             ].filter((agentReference) => agentReference.trim() !== ''),
         ),
     );

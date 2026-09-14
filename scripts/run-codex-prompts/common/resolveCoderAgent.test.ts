@@ -27,10 +27,7 @@ describe('resolveCoderAgentBook', () => {
             'utf-8',
         );
 
-        const resolvedAgentBook = await resolveCoderAgentBook(
-            'agents/coding/developer.book',
-            temporaryDirectoryPath,
-        );
+        const resolvedAgentBook = await resolveCoderAgentBook('agents/coding/developer.book', temporaryDirectoryPath);
 
         expect(resolvedAgentBook?.agentReferences).toEqual(
             expect.arrayContaining([
@@ -40,5 +37,29 @@ describe('resolveCoderAgentBook', () => {
                 'developer-foo-bar',
             ]),
         );
+    });
+
+    it('exposes the human-readable agent name reported in prompt status lines', async () => {
+        await writeFile(
+            join(temporaryDirectoryPath, 'developer.book'),
+            'Developer Foo bar\n\nRULE Keep the implementation maintainable.\n',
+            'utf-8',
+        );
+
+        const resolvedAgentBook = await resolveCoderAgentBook('developer.book', temporaryDirectoryPath);
+
+        expect(resolvedAgentBook?.agentName).toBe('Developer Foo bar');
+    });
+
+    it('prefers the META FULLNAME of the Book over its title line', async () => {
+        await writeFile(
+            join(temporaryDirectoryPath, 'developer.book'),
+            'Developer Foo bar\n\nMETA FULLNAME Developer\n\nRULE Keep the implementation maintainable.\n',
+            'utf-8',
+        );
+
+        const resolvedAgentBook = await resolveCoderAgentBook('developer.book', temporaryDirectoryPath);
+
+        expect(resolvedAgentBook?.agentName).toBe('Developer');
     });
 });

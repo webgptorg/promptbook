@@ -45,6 +45,10 @@ export function AgentsSection() {
                         filename without <code className="text-promptbook-blue">.book</code>, or title from the first
                         line of the Book all work.
                     </p>
+                    <p className="mt-4 text-gray-400">
+                        A finished task is signed by the agent, not only by the harness that carried it:{' '}
+                        <code className="text-promptbook-blue">[x] by Developer on OpenAI Codex `gpt-5.6-luna`</code>.
+                    </p>
                 </div>
 
                 <div>

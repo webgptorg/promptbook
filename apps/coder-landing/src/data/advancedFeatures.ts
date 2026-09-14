@@ -135,8 +135,8 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Live status in the prompt file',
         description:
-            'A [ ] prompt — or plain markdown with no status checkbox — turns into [^] the moment the agent picks it up, and the line names the step that is running. A prompt without a checkbox starts at priority 0. Use [-] or [.] to keep a task out of the queue, or add <!--ptbk-coder-ignore--> anywhere in a Markdown file to ignore it entirely. It only becomes [x] after the work is implemented, verified and committed. ptbk coder never reverts a [^], so if the queue is killed or crashes you can see which task was left half-done.',
-        sampleCommand: '[^] by OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
+            'A [ ] prompt — or plain markdown with no status checkbox — turns into [^] the moment the agent picks it up, and the line names the step that is running. A run started with --agent names that agent in front of its harness, so a finished prompt says which agent implemented it. A prompt without a checkbox starts at priority 0. Use [-] or [.] to keep a task out of the queue, or add <!--ptbk-coder-ignore--> anywhere in a Markdown file to ignore it entirely. It only becomes [x] after the work is implemented, verified and committed. ptbk coder never reverts a [^], so if the queue is killed or crashes you can see which task was left half-done.',
+        sampleCommand: '[^] by Developer on OpenAI Codex `gpt-5.6-luna` - Implementation in progress',
     },
     {
         title: 'Pick up where the run stopped',
@@ -147,13 +147,13 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Run traces you can read later',
         description:
-            'Every round leaves a trace in prompts/traces/, named after the prompt file it belongs to. It holds the harness, model, thinking level and login method that ran the prompt, what each step cost and how long it took, and the whole raw output of the harness. The trace is committed together with the prompt, so the run can still be analyzed long after its temporary logs are gone.',
+            'Every round leaves a trace in prompts/traces/, named after the prompt file it belongs to. It holds the agent, harness, model, thinking level and login method that ran the prompt, what each step cost and how long it took, and the whole raw output of the harness. The trace is committed together with the prompt, so the run can still be analyzed long after its temporary logs are gone.',
         sampleCommand: 'prompts/traces/2026-09-0180-add-dark-mode.md',
     },
     {
         title: 'Verify and archive',
         description:
-            'Every successful round writes the harness, model and thinking level into the prompt status line. Walk through completed prompts one by one, archive the finished ones to prompts/done/, and get a repair prompt appended for anything left incomplete. Pick the order with --order from-earliest, from-latest or random.',
+            'Every successful round writes the agent, harness, model and thinking level into the prompt status line. Walk through completed prompts one by one, archive the finished ones to prompts/done/, and get a repair prompt appended for anything left incomplete. Pick the order with --order from-earliest, from-latest or random.',
         sampleCommand: VERIFY_COMMAND,
     },
     {

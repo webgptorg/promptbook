@@ -143,6 +143,12 @@ The `[^]` in-progress status is rewritten before every single step of the round,
 [x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes
 ```
 
+A run personalized with `--agent` names that agent in front of the harness which runs it, because the same harness and model behave differently depending on the agent they run as:
+
+```text
+[x] by Developer on OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes
+```
+
 Only the final `[x]` state is committed, because the round commit is created after the prompt has been implemented and verified. The `[^]` status is deliberately never reverted: when the coder is killed or crashes, the prompt file keeps `[^]` as the signal that this task was left in the middle of its implementation. Such a prompt is not picked up again automatically — decide yourself whether to reset it to `[ ]`, to keep the partial work, or to resume it with `--git-changes continue`.
 
 ## Run traces
@@ -153,7 +159,7 @@ Each trace pairs the metadata of the round with the untouched runtime log of the
 
 -   the prompt it implemented, and which section of it when its file holds more than one,
 -   whether the round succeeded or failed,
--   the harness, model, thinking level and login method which ran it,
+-   the Book agent, harness, model, thinking level and login method which ran it,
 -   how many coding attempts it took, what each step cost and how long each one ran,
 -   the verification command, when one is configured,
 -   when it started, when it finished and how long it took,

@@ -11,7 +11,12 @@ import type { CoderPingResult } from './CoderPingResult';
  * Prints the compact summary of one finished `ptbk coder ping`.
  */
 export function printCoderPingResult(result: CoderPingResult): void {
-    const runnerSignature = formatRunnerSignature(result.runnerName, result.modelName, result.thinkingLevel);
+    // Note: `ptbk coder ping` measures one harness alone, it never runs the prompts of a Book agent
+    const runnerSignature = formatRunnerSignature({
+        runnerName: result.runnerName,
+        modelName: result.modelName,
+        thinkingLevel: result.thinkingLevel,
+    });
     const loginMethodLabel = formatCodexLoginMethod(result.loginMethod);
     const loginMethodSuffix = loginMethodLabel === undefined ? '' : ` (${loginMethodLabel})`;
 

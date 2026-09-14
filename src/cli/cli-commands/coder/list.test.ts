@@ -119,12 +119,8 @@ describe('$initializeCoderListCommand', () => {
     it('passes selected agent references to the prompt listing', async () => {
         getResolveCoderAgentBookMock().mockResolvedValue({
             agentSource: 'Developer Foo bar' as string_book,
-            agentReferences: [
-                'agents/coding/developer.book',
-                'developer.book',
-                'developer',
-                'developer-foo-bar',
-            ],
+            agentName: 'Developer Foo bar',
+            agentReferences: ['agents/coding/developer.book', 'developer.book', 'developer', 'developer-foo-bar'],
         });
         const program = createProgramWithListCommand();
 

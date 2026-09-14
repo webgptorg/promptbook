@@ -1,3 +1,16 @@
+-   `ptbk coder` now tracks the agent of a run next to its harness and model. Two runs of the same harness, model and
+    thinking level are not the same run when one of them carries an `--agent`, so the run report of every prompt now
+    names the agent which implemented it:
+
+    -   A prompt status line signs its work with the agent in front of the harness, as
+        `` [x] by Developer on OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.13 23 minutes ``.
+        The `[^]`, `[x]` and `[!]` status lines and the run trace of the round all report it, and a prompt continued
+        through `--git-changes continue` keeps the agent in each of its chronological `interrupted, continued by …`
+        reports.
+    -   The reported name is the display name of the Book — its `META FULLNAME`, or the plain title on its first line
+        — so `agents/coding/developer.book` signs as its Book title and not as its normalized identifier.
+    -   A run started without `--agent` reports exactly what it reported before.
+
 -   Fixed `MockedChat` typing animations blinking for messages without ids by assigning stable playback-only ids before rendering each simulated transcript.
 
 -   Fixed the rich `ptbk coder run` dashboard so an animated agent avatar can no longer overwrite its own UI in an

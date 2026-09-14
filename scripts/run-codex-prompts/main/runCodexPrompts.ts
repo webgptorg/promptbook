@@ -13,6 +13,7 @@ import type { CoderRunPauseCheckpointOptions, WaitForCoderRunPauseCheckpoint } f
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { loadCachedAveragePromptDurationMs } from '../common/coderRunEstimateCache';
 import { createFreeDiskSpaceGuard, type FreeDiskSpaceGuard } from '../common/createFreeDiskSpaceGuard';
+import type { PromptRunnerMetadata } from '../common/PromptRunnerMetadata';
 import { resolveCoderAgent } from '../common/resolveCoderAgent';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { resolveCoderContext } from '../common/resolveCoderContext';
@@ -114,7 +115,13 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             return;
         }
 
-        const { runner, actualRunnerModel, runnerMetadata } = resolvePromptRunner(options);
+        const { runner, actualRunnerModel, runnerMetadata: harnessRunnerMetadata } = resolvePromptRunner(options);
+        // Note: The harness only knows itself, so the Book agent it runs as is joined here - this is the single
+        //       place where the whole run report of prompt status lines and run traces is put together
+        const runnerMetadata: PromptRunnerMetadata = {
+            ...harnessRunnerMetadata,
+            agentName: resolvedCoderAgent?.agentName,
+        };
         const promptRunnerIdentity: PromptRunnerIdentity = {
             harnessName: options.agentName,
             modelName: actualRunnerModel,
@@ -498,10 +505,7 @@ function normalizeRunOptions(options: RunOptions): RunOptions {
 async function runTestBeforeIfNeeded(options: {
     options: RunOptions;
     runner: PromptRunner;
-    runnerMetadata: {
-        runnerName: string;
-        modelName?: string;
-    };
+    runnerMetadata: PromptRunnerMetadata;
     resolvedCoderContext?: string;
     resolvedAgentSystemMessage?: string;
     isRichUiEnabled: boolean;

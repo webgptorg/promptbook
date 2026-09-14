@@ -13,6 +13,7 @@ import type { CoderRunStepProgress } from '../common/createCoderRunStepTracker';
 import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForDisplay';
 import { normalizeLineEndingsInFilesChangedSinceSnapshot } from '../common/normalizeLineEndingsInChangedFiles';
 import { printCommitMessage } from '../common/printCommitMessage';
+import type { PromptRunnerMetadata } from '../common/PromptRunnerMetadata';
 import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { waitForEnter } from '../common/waitForEnter';
@@ -52,10 +53,7 @@ const MAX_RETRY_ATTEMPTS_AFTER_ERROR = 3;
 export type RunPromptRoundOptions = {
     options: RunOptions;
     runner: PromptRunner;
-    runnerMetadata: {
-        runnerName: string;
-        modelName?: string;
-    };
+    runnerMetadata: PromptRunnerMetadata;
     nextPrompt: PromptSelection;
     promptLabel: string;
     resolvedCoderContext?: string;
@@ -253,10 +251,7 @@ function resolvePreviousRunnerSignatures(nextPrompt: PromptSelection): PromptRun
  */
 async function recordPromptRoundInProgress(options: {
     nextPrompt: PromptSelection;
-    runnerMetadata: {
-        runnerName: string;
-        modelName?: string;
-    };
+    runnerMetadata: PromptRunnerMetadata;
     previousRunnerSignatures?: PromptRunnerAttribution;
     thinkingLevel?: ThinkingLevel;
     attemptCount: number;
@@ -269,8 +264,7 @@ async function recordPromptRoundInProgress(options: {
         section: nextPrompt.section,
         steps: progress.finishedSteps,
         inProgressStepKind: progress.startedStepKind,
-        runnerName: runnerMetadata.runnerName,
-        modelName: runnerMetadata.modelName,
+        ...runnerMetadata,
         previousRunnerSignatures,
         attemptCount,
         loginMethod: progress.loginMethod,
@@ -370,10 +364,7 @@ function setPromptRoundRunningState(options: {
 async function finalizeSuccessfulPromptRound(options: {
     options: RunOptions;
     nextPrompt: PromptSelection;
-    runnerMetadata: {
-        runnerName: string;
-        modelName?: string;
-    };
+    runnerMetadata: PromptRunnerMetadata;
     previousRunnerSignatures?: PromptRunnerAttribution;
     promptExecutionStartedDate: moment.Moment;
     result: Awaited<ReturnType<typeof runPromptWithTestFeedback>>;
@@ -414,8 +405,7 @@ async function finalizeSuccessfulPromptRound(options: {
         file: nextPrompt.file,
         section: nextPrompt.section,
         steps: result.steps,
-        runnerName: runnerMetadata.runnerName,
-        modelName: runnerMetadata.modelName,
+        ...runnerMetadata,
         previousRunnerSignatures,
         attemptCount: result.attemptCount,
         loginMethod: result.loginMethod,
@@ -485,10 +475,7 @@ async function finalizeSuccessfulPromptRound(options: {
  */
 async function finalizeFailedPromptRound(options: {
     nextPrompt: PromptSelection;
-    runnerMetadata: {
-        runnerName: string;
-        modelName?: string;
-    };
+    runnerMetadata: PromptRunnerMetadata;
     previousRunnerSignatures?: PromptRunnerAttribution;
     promptExecutionStartedDate: moment.Moment;
     attemptCount: number;
@@ -527,8 +514,7 @@ async function finalizeFailedPromptRound(options: {
     markPromptFailed({
         file: nextPrompt.file,
         section: nextPrompt.section,
-        runnerName: runnerMetadata.runnerName,
-        modelName: runnerMetadata.modelName,
+        ...runnerMetadata,
         previousRunnerSignatures,
         promptExecutionStartedDate,
         attemptCount,
@@ -559,16 +545,13 @@ async function finalizeFailedPromptRound(options: {
  * Persists the run trace of one prompt round, so the round can still be analyzed after its temporary
  * artifacts are gone.
  *
- * This is the single place where both the successful and the failed round record what they did, which harness,
- * model and thinking level did it and everything that harness has written while doing it.
+ * This is the single place where both the successful and the failed round record what they did, which agent,
+ * harness, model and thinking level did it and everything that harness has written while doing it.
  */
 async function recordPromptRoundTrace(options: {
     options: RunOptions;
     nextPrompt: PromptSelection;
-    runnerMetadata: {
-        runnerName: string;
-        modelName?: string;
-    };
+    runnerMetadata: PromptRunnerMetadata;
     promptExecutionStartedDate: moment.Moment;
     attemptCount: number;
     logPath: string;
@@ -587,8 +570,7 @@ async function recordPromptRoundTrace(options: {
     await writePromptRunTrace({
         file: nextPrompt.file,
         section: nextPrompt.section,
-        runnerName: runnerMetadata.runnerName,
-        modelName: runnerMetadata.modelName,
+        ...runnerMetadata,
         thinkingLevel: runOptions.thinkingLevel,
         testCommand: runOptions.testCommand,
         attemptCount,
@@ -665,10 +647,7 @@ async function runPostPromptAutoMigrationIfEnabled(options: RunOptions): Promise
  */
 async function recordPromptDurationInEstimateCache(options: {
     options: RunOptions;
-    runnerMetadata: {
-        runnerName: string;
-        modelName?: string;
-    };
+    runnerMetadata: PromptRunnerMetadata;
     promptExecutionStartedDate: moment.Moment;
 }): Promise<void> {
     const { options: runOptions, runnerMetadata, promptExecutionStartedDate } = options;

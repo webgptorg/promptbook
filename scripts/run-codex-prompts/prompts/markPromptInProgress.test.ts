@@ -261,6 +261,58 @@ describe('markPromptInProgress', () => {
         expect(file.lines[0]).toBe('    [^] by GitHub Copilot `gpt-5.5` - Implementation in progress');
     });
 
+    it('names the selected Book agent through the whole life of the prompt', () => {
+        const { file, section } = createPromptFile('[ ]');
+
+        markPromptInProgress({
+            file,
+            section,
+            steps: [],
+            inProgressStepKind: 'implementation',
+            agentName: 'Developer',
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.6-luna',
+            attemptCount: 1,
+            thinkingLevel: 'max',
+        });
+
+        expect(file.lines[0]).toBe(
+            '[^] by Developer on OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress',
+        );
+
+        markPromptDone({
+            file,
+            section,
+            steps: [createImplementationStep()],
+            agentName: 'Developer',
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.6-luna',
+            attemptCount: 1,
+            loginMethod: 'chatgpt',
+            thinkingLevel: 'max',
+        });
+
+        expect(file.lines[0]).toBe(
+            '[x] by Developer on OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation $0.2036 10 minutes',
+        );
+    });
+
+    it('names the selected Book agent on a failed prompt', () => {
+        const { file, section } = createPromptFile('[ ]');
+
+        markPromptFailed({
+            file,
+            section,
+            agentName: 'Developer',
+            runnerName: 'OpenAI Codex',
+            modelName: 'gpt-5.6-luna',
+            promptExecutionStartedDate: moment().subtract(2, 'minutes'),
+            attemptCount: 1,
+        });
+
+        expect(file.lines[0]).toContain('by Developer on OpenAI Codex `gpt-5.6-luna`');
+    });
+
     it('records the attempt count of a repeated coding attempt', () => {
         const { file, section } = createPromptFile('[ ]');
 

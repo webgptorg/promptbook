@@ -2,13 +2,12 @@ import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
 import { getSafeCodeBlock } from '../../../src/book-2.0/book-language-documentation/getSafeCodeBlock';
 import { formatCodexLoginMethod, type CodexLoginMethod } from '../../../src/book-3.0/codexLoginMethod';
-import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { CoderRunStep } from '../common/CoderRunStep';
 import { formatUnknownErrorDetails } from '../common/formatUnknownErrorDetails';
 import { buildPromptLabelForDisplay } from './buildPromptLabelForDisplay';
 import { buildPromptSummary } from './buildPromptSummary';
 import { formatCoderRunSteps } from './formatCoderRunSteps';
-import { formatRunnerSignature } from './formatRunnerSignature';
+import { formatRunnerSignature, type FormatRunnerSignatureOptions } from './formatRunnerSignature';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 
@@ -43,24 +42,9 @@ export type PromptRunTraceOutcome =
 /**
  * Everything one run trace says about the prompt round it describes.
  */
-export type BuildPromptRunTraceContentOptions = {
+export type BuildPromptRunTraceContentOptions = FormatRunnerSignatureOptions & {
     readonly file: PromptFile;
     readonly section: PromptSection;
-
-    /**
-     * Harness which ran the prompt.
-     */
-    readonly runnerName?: string;
-
-    /**
-     * Model the harness ran the prompt with.
-     */
-    readonly modelName?: string;
-
-    /**
-     * Reasoning effort the harness ran the prompt with.
-     */
-    readonly thinkingLevel?: ThinkingLevel;
 
     /**
      * Verification command the round ran after each coding attempt, when one is configured.
@@ -94,9 +78,9 @@ export type BuildPromptRunTraceContentOptions = {
 /**
  * Renders the markdown run trace of one finished or failed prompt round.
  *
- * The trace pairs the metadata of the round - which harness, model and thinking level ran it, how long each of
- * its steps took and what it cost - with the untouched runtime log, so a finished round can still be analyzed
- * after its temporary artifacts are cleaned up.
+ * The trace pairs the metadata of the round - which agent, harness, model and thinking level ran it, how long
+ * each of its steps took and what it cost - with the untouched runtime log, so a finished round can still be
+ * analyzed after its temporary artifacts are cleaned up.
  */
 export function buildPromptRunTraceContent(options: BuildPromptRunTraceContentOptions): string {
     const sections = [
@@ -113,7 +97,7 @@ export function buildPromptRunTraceContent(options: BuildPromptRunTraceContentOp
  */
 function buildPromptRunTraceSummarySection(options: BuildPromptRunTraceContentOptions): string {
     const { file, section, outcome } = options;
-    const runnerSignature = formatRunnerSignature(options.runnerName, options.modelName, options.thinkingLevel);
+    const runnerSignature = formatRunnerSignature(options);
     const loginMethodLabel = outcome.kind === 'succeeded' ? formatCodexLoginMethod(outcome.loginMethod) : undefined;
     const loginMethodSuffix = loginMethodLabel ? ` (${loginMethodLabel})` : '';
     const detailLines = [

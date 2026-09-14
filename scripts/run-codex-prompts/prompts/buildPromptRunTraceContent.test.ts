@@ -73,6 +73,23 @@ describe('buildPromptRunTraceContent', () => {
         expect(content).toContain('Codex says hello');
     });
 
+    it('reports the Book agent the harness ran as', () => {
+        const content = buildPromptRunTraceContent({
+            ...createTraceOptions(),
+            agentName: 'Developer',
+            outcome: {
+                kind: 'succeeded',
+                steps: [{ kind: 'implementation', usage: null, durationMs: 42 * 60 * 1000 }],
+                loginMethod: 'chatgpt',
+            },
+            runtimeLog: 'Codex says hello',
+        });
+
+        expect(content).toContain(
+            '-   **Runner:** Developer on OpenAI Codex `gpt-5.6-astra` thinking `max` (ChatGPT account)',
+        );
+    });
+
     it('reports the error of a failed round in its own section', () => {
         const content = buildPromptRunTraceContent({
             ...createTraceOptions(),

@@ -3,6 +3,7 @@ import { getHarnessDefinition } from '../../../src/cli/cli-commands/common/harne
 import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import type { RunOptions } from '../cli/RunOptions';
+import type { PromptRunnerMetadata } from '../common/PromptRunnerMetadata';
 import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
 import { createAuthenticationAwarePromptRunner } from '../runners/common/createAuthenticationAwarePromptRunner';
 import { ClineRunner } from '../runners/cline/ClineRunner';
@@ -35,14 +36,6 @@ const MODEL_REQUIRING_HARNESS_NAMES = ['openai-codex', 'gemini', 'qwen-code'] as
 type ModelRequiringHarnessName = (typeof MODEL_REQUIRING_HARNESS_NAMES)[number];
 
 /**
- * Runner metadata used in prompt status lines.
- */
-type RunnerMetadata = {
-    runnerName: string;
-    modelName?: string;
-};
-
-/**
  * Subset of `RunOptions` which decides which prompt runner is created and how it is labeled.
  *
  * Commands that only need one configured harness — such as `ptbk coder ping` — pass just these
@@ -59,7 +52,11 @@ export type PromptRunnerSelectionOptions = Pick<
 type PromptRunnerResolution = {
     runner: PromptRunner;
     actualRunnerModel?: string;
-    runnerMetadata: RunnerMetadata;
+
+    /**
+     * Harness half of the run metadata; the optional Book agent is added by the caller which resolves it.
+     */
+    runnerMetadata: PromptRunnerMetadata;
 };
 
 /**
@@ -237,7 +234,7 @@ function createRunnerResolution(
 /**
  * Resolves runner metadata for prompt status lines.
  */
-function getRunnerMetadata(options: PromptRunnerSelectionOptions, actualRunnerModel?: string): RunnerMetadata {
+function getRunnerMetadata(options: PromptRunnerSelectionOptions, actualRunnerModel?: string): PromptRunnerMetadata {
     const runnerName = options.agentName ? getHarnessDefinition(options.agentName).label : 'unknown';
 
     if (options.agentName === 'github-copilot' || isModelRequiringHarnessName(options.agentName)) {

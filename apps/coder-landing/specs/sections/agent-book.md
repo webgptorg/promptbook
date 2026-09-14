@@ -17,6 +17,7 @@ Two columns on desktop (stacked on mobile):
 2. A [terminal block](../components/terminal-block.md) with the canonical `AGENT_RUN_COMMAND` (see [`../content/commands.md`](../content/commands.md)).
 3. Follow-up paragraph: `ptbk coder init` creates this default developer agent at `agents/developer.book`. Edit it like any other file in your repository to change how your agent codes.
 4. Prompt-routing paragraph: a ready task can target that agent with the status line ``[ ] use agent `developer` ``. The selected Book's path, filename, filename without `.book`, and title from its first line all work.
+5. Attribution paragraph: a finished task is signed by the agent, not only by the harness, as ``[x] by Developer on OpenAI Codex `gpt-5.6-luna` ``.
 
 ### Right — the agent itself
 
