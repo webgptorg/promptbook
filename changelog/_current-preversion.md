@@ -1,3 +1,21 @@
+-   A generated system message no longer repeats the same instructions. Commitments are applied one by one, so a
+    commitment used several times in one book emitted its whole section every time, including the shared guidance
+    paragraph which introduces it. Two `WRITING RULES` blocks produced two `## Writing rules` headings each preceded by
+    the same four-line explanation of what a writing rule is, two `USE PRIVACY` blocks produced the `## Privacy`
+    instructions twice, and the same held for `WRITING SAMPLE`, `SAMPLE`, `LANGUAGE`, `USE POPUP`,
+    `USE IMAGE GENERATOR`, `USE USER LOCATION` and `TEAM`. The final system message is now deduplicated once for all
+    commitments instead of being fixed in each of them separately:
+
+    -   All sections sharing one `## Title` are merged into the position of their first occurrence, so each heading
+        appears exactly once while the content of every commitment keeps its original order inside that section.
+    -   Every identical block is kept only once, so the shared guidance paragraph of a repeated commitment is stated
+        once and a repeated instruction without its own heading, such as `STYLE Formal.` written twice, is no longer
+        duplicated.
+    -   Two lists joined by a merge become one compact list, while everything which was not merged keeps its original
+        spacing, and fenced code blocks - imported files and inline `KNOWLEDGE` content among them - are never split
+        or deduplicated.
+    -   A book which uses each of its commitments once produces the same system message as before.
+
 -   `ptbk coder` now tracks the agent of a run next to its harness and model. Two runs of the same harness, model and
     thinking level are not the same run when one of them carries an `--agent`, so the run report of every prompt now
     names the agent which implemented it:

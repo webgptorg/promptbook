@@ -6,6 +6,7 @@ import { applyCommitmentsToAgentModelRequirements } from './createAgentModelRequ
 import { augmentAgentModelRequirementsFromSource } from './createAgentModelRequirementsWithCommitments/augmentAgentModelRequirementsFromSource';
 import { filterCommitmentsForAgentModelRequirements } from './createAgentModelRequirementsWithCommitments/filterCommitmentsForAgentModelRequirements';
 import { materializeInlineKnowledgeSources } from './createAgentModelRequirementsWithCommitments/materializeInlineKnowledgeSources';
+import { deduplicateSystemMessage } from './deduplicateSystemMessage';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
 import type { string_book } from './string_book';
@@ -73,13 +74,13 @@ function createInitialAgentModelRequirements(
  * Performs the final system-message cleanup pass after all other augmentation steps are complete.
  *
  * @param requirements - Fully built requirements before final cleanup.
- * @returns Requirements with comment lines removed from the final system message.
+ * @returns Requirements with comment lines removed and repeated instructions deduplicated in the final system message.
  *
  * @private internal utility of `createAgentModelRequirementsWithCommitments`
  */
 function finalizeRequirements(requirements: AgentModelRequirements): AgentModelRequirements {
     return {
         ...requirements,
-        systemMessage: removeCommentsFromSystemMessage(requirements.systemMessage),
+        systemMessage: deduplicateSystemMessage(removeCommentsFromSystemMessage(requirements.systemMessage)),
     };
 }
