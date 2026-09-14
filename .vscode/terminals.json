@@ -15,8 +15,8 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder ping --no-questions --harness claude-code --model claude-sonnet-5 --thinking-level low",
-                "npx ts-node ./src/cli/test/ptbk.ts coder ping --no-questions --harness openai-codex --model gpt-5.6-luna --thinking-level low"
+                "npx ts-node ./src/cli/test/ptbk.ts coder ping --no-harness-update --harness claude-code --model claude-sonnet-5 --thinking-level low",
+                "npx ts-node ./src/cli/test/ptbk.ts coder ping --no-harness-update --harness openai-codex --model gpt-5.6-luna --thinking-level low"
             ],
             "execute": true,
             "onlySingle": true,
@@ -27,7 +27,7 @@
             "command": "npm run test-unit -- --runTestsByPath scripts/run-codex-prompts/ui/buildCoderRunUiFrame.test.ts scripts/run-codex-prompts/ui/buildCoderRunUiTerminalFrameUpdate.test.ts",
             "execute": false,
             "onlySingle": false,
-            "focus": false--no-questions
+            "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `gpt-5.5` Coding Agent (💤)(💸)(⏳)",
@@ -38,7 +38,7 @@
             ],
             "execute": false,
             "onlySingle": false,
-            "focus": false--no-questions
+            "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `gpt-5.6-sol` Coding Agent (💤)(💸)(⏳)",
@@ -49,7 +49,7 @@
             ],
             "execute": false,
             "onlySingle": false,
-            "focus": false--no-questions
+            "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `gpt-5.6-terra` Coding Agent (💤)(💸)(⏳)",
@@ -60,7 +60,7 @@
             ],
             "execute": false,
             "onlySingle": false,
-            "focus": false--no-questions
+            "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `gpt-5.6-luna` Coding Agent (💤)(💸)(⏳)",
@@ -71,7 +71,7 @@
             ],
             "execute": false,
             "onlySingle": false,
-            "focus": false--no-questions
+            "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `gpt-6-astra` Coding Agent (💤)(💸)(⏳)",
@@ -79,14 +79,14 @@
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness openai-codex --model gpt-6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push --min-priority 2"
-            ],--no-questions
+            ],
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `gpt-6-astra` Unslopper Agent (💤)(💸)(⏳)",
-            "commands": [--no-questions
+            "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness openai-codex --model gpt-6-astra --thinking-level max --agent agents/coding/unslopper.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push --min-priority 2"
@@ -96,7 +96,7 @@
             "focus": false
         },
         {
-            "name": "🐙🚀 Run ptbk coder `claude-opus-5` Codin--no-questions",
+            "name": "🐙🚀 Run ptbk coder `claude-opus-5` Coding Agent (💤)(💸)(⏳)",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness claude-code --model claude-opus-5 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix  --auto-pull --auto-push",
             "execute": false,
             "onlySingle": false,
@@ -107,7 +107,7 @@
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --no-harness-update --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --min-priority 3 --test-before yes-and-fix  --auto-pull --auto-push",
             "execute": false,
             "onlySingle": false,
-            "focus": false--no-questions
+            "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `qwen3.8-max` Coding Agent (💤)(💸)(⏳)",
@@ -118,7 +118,7 @@
             ],
             "execute": false,
             "onlySingle": false,
-            "focus": false--no-questions
+            "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `qwen3.8-flash` Coding Agent (💤)(💸)(⏳)",
@@ -129,7 +129,7 @@
             ],
             "execute": false,
             "onlySingle": false,
-            "focus": false--no-questions
+            "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `deepseek-v4-pro` Coding Agent (💤)(💸)(⏳)",
@@ -140,7 +140,7 @@
             ],
             "execute": false,
             "onlySingle": false,
-            "focus": false--no-questions
+            "focus": false
         },
         {
             "name": "🐙🚀 Run ptbk coder `deepseek-v4-flash` Coding Agent (💤)(💸)(⏳)",
