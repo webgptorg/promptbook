@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.114.0-34",
+    "version": "0.114.0-35",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -175,7 +175,7 @@
         "node-gzip": "1.1.2",
         "nodemailer": "^7.0.13",
         "qrcode": "1.5.4",
-        "swagger-ui-react": "5.32.15",
+        "swagger-ui-react": "5.31.2",
         "turndown": "7.2.4",
         "type-fest": "4.5.0",
         "web-push": "^3.6.7",
