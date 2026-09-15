@@ -1,3 +1,10 @@
+-   Fixed the React 19 peer dependency warnings during `npm install` by replacing `swagger-ui-react` with the
+    standalone `swagger-ui-dist` bundle, shared with the Express API docs. The Swagger page still loads on demand
+    and keeps its API-key panel, saved authorization and display settings.
+    Test builds now skip Sentry source-map uploads to avoid temporary upload bundles and Windows cleanup failures.
+    CLI help tests use the same command registration as the executable without starting a new process for every
+    subcommand. CLI startup and version checks still run in child processes, with a timeout that stops stuck children.
+
 -   A generated system message no longer repeats the same instructions. Commitments are applied one by one, so a
     commitment used several times in one book emitted its whole section every time, including the shared guidance
     paragraph which introduces it. Two `WRITING RULES` blocks produced two `## Writing rules` headings each preceded by
@@ -145,9 +152,6 @@
     -   Generated packages no longer carry the `overrides` field of the repository. npm honors overrides only in the
         root project of an installation, so publishing them only left a dangling reference to a dependency which the
         published package does not declare.
-
-    What remains after this are three warnings about React 19 coming from packages inside `swagger-ui-react`, which
-    are declared by projects outside of Promptbook.
 
 -   The hero headline of the **ptbk coder** landing page now rotates through seven claims instead of saying one
     thing forever. Every claim is written once in a single configuration the rotating headline, the page tagline

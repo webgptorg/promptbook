@@ -1,17 +1,17 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { Command as Program } from 'commander';
+import { execFile } from 'child_process';
+import { Command as Program, CommanderError } from 'commander';
 import { mkdtemp, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import { $initializePromptbookCliProgram } from '../$initializePromptbookCliProgram';
 import { $initializeAgentInitCommand } from '../cli-commands/agent-folder/init';
 import { $initializeCoderInitCommand } from '../cli-commands/coder/init';
-import { $execCommand } from '../../utils/execCommand/$execCommand';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 
 /**
- * Command used by CLI integration tests without repeating project-wide type checking in every child process.
+ * Repository root used by the CLI subprocess tests even when an initialization test changes directories.
  */
-const PTBK_TEST_COMMAND = 'ts-node --transpile-only src/cli/test/ptbk.ts';
 const PTBK_TEST_WORKING_DIRECTORY = process.cwd();
 
 /**
@@ -20,12 +20,55 @@ const PTBK_TEST_WORKING_DIRECTORY = process.cwd();
  * @param commandArguments - Arguments passed to the CLI after the executable.
  * @returns The combined CLI output.
  */
-function $executePtbkTestCommand(commandArguments = ''): Promise<string> {
-    return $execCommand({
-        command: commandArguments ? `${PTBK_TEST_COMMAND} ${commandArguments}` : PTBK_TEST_COMMAND,
-        crashOnError: false,
-        cwd: PTBK_TEST_WORKING_DIRECTORY,
+function $executePtbkTestCommand(commandArguments: ReadonlyArray<string> = []): Promise<string> {
+    return new Promise((resolve, reject) => {
+        // Run the installed ts-node with this Node executable, without a shell or a global executable lookup.
+        execFile(
+            process.execPath,
+            [require.resolve('ts-node/dist/bin.js'), '--transpile-only', 'src/cli/test/ptbk.ts', ...commandArguments],
+            {
+                cwd: PTBK_TEST_WORKING_DIRECTORY,
+                windowsHide: true,
+                // Stop a stuck child before Jest's five-minute timeout so it cannot leak into the next test.
+                timeout: 120_000,
+            },
+            (error, stdout, stderr) => {
+                if (error && (error.killed || error.signal || typeof error.code !== 'number')) {
+                    reject(error);
+                    return;
+                }
+
+                // Invalid-command tests intentionally inspect output from a nonzero exit.
+                resolve(`${stdout}${stderr}`.trim());
+            },
+        );
     });
+}
+
+/**
+ * Parses help arguments with the real CLI registration while keeping output and exits inside this test.
+ * A fresh Commander program prevents parsed options from leaking between checks.
+ */
+function getPtbkHelp(commandArguments: ReadonlyArray<string> = ['--help']): string {
+    const output: string[] = [];
+    const program = new Program();
+    program.configureOutput({ writeOut: (text) => output.push(text) });
+    program.exitOverride();
+    $initializePromptbookCliProgram(program);
+
+    try {
+        program.parse([...commandArguments], { from: 'user' });
+    } catch (error) {
+        if (
+            !(error instanceof CommanderError) ||
+            error.exitCode !== 0 ||
+            !['commander.helpDisplayed', 'commander.help'].includes(error.code)
+        ) {
+            throw error;
+        }
+    }
+
+    return output.join('').trim();
 }
 
 /**
@@ -37,11 +80,12 @@ async function createTemporaryDirectory(): Promise<string> {
 
 describe('how promptbookCli works', () => {
     it('should initiate without errors', () =>
-        expect($executePtbkTestCommand('--help')).resolves.toContain('Usage: promptbook|ptbk [options] [command]'));
+        expect($executePtbkTestCommand(['--help'])).resolves.toBe(getPtbkHelp()));
 
-    it('should not list legacy top-level commands which are deprecated in help', async () => {
-        const helpOutput = await $executePtbkTestCommand('--help');
+    it('should not list legacy top-level commands which are deprecated in help', () => {
+        const helpOutput = getPtbkHelp();
 
+        expect(helpOutput).toContain('Usage: promptbook|ptbk [options] [command]');
         expect(helpOutput).toContain('coder [options]');
         expect(helpOutput).toContain('agents-server [options]');
         expect(helpOutput).not.toContain('Deprecated:');
@@ -53,11 +97,9 @@ describe('how promptbookCli works', () => {
         expect(helpOutput).not.toContain('start-pipelines-server');
     });
 
-    it('should keep legacy top-level commands which are deprecated usable and documented in their own help', async () => {
-        const [runHelpOutput, startAgentsServerHelpOutput] = await Promise.all([
-            $executePtbkTestCommand('run --help'),
-            $executePtbkTestCommand('help start-agents-server'),
-        ]);
+    it('should keep legacy top-level commands which are deprecated usable and documented in their own help', () => {
+        const runHelpOutput = getPtbkHelp(['run', '--help']);
+        const startAgentsServerHelpOutput = getPtbkHelp(['help', 'start-agents-server']);
 
         expect(runHelpOutput).toContain('Usage: promptbook run|execute');
         expect(runHelpOutput).toContain('Deprecated: This command is part of the old pipeline system.');
@@ -65,17 +107,15 @@ describe('how promptbookCli works', () => {
     });
 
     it('should ask for a subcommand and print the top-level help when started without arguments', async () => {
-        const [helpOutput, defaultOutput] = await Promise.all([
-            $executePtbkTestCommand('--help'),
-            $executePtbkTestCommand(),
-        ]);
+        const helpOutput = getPtbkHelp();
+        const defaultOutput = await $executePtbkTestCommand();
 
         expect(defaultOutput).toContain('Please specify a subcommand.');
         expect(defaultOutput).toContain(helpOutput);
     });
 
-    it('should list `coder` as the first top-level command', async () => {
-        const helpOutput = await $executePtbkTestCommand('--help');
+    it('should list `coder` as the first top-level command', () => {
+        const helpOutput = getPtbkHelp();
         const [, listedCommands] = helpOutput.split('Commands:');
 
         expect(listedCommands).toBeDefined();
@@ -83,68 +123,68 @@ describe('how promptbookCli works', () => {
     });
 
     it('should not fall back to the deprecated `run` command for a stray argument', async () => {
-        const strayArgumentOutput = await $executePtbkTestCommand('./nonexistent-file.book');
+        const strayArgumentOutput = await $executePtbkTestCommand(['./nonexistent-file.book']);
 
         expect(strayArgumentOutput).toContain(`unknown command './nonexistent-file.book'`);
         expect(strayArgumentOutput).not.toContain('`ptbk run` is deprecated');
     });
 
     it('should report version', () =>
-        expect($executePtbkTestCommand('about')).resolves.toContain(PROMPTBOOK_ENGINE_VERSION));
+        expect($executePtbkTestCommand(['about'])).resolves.toContain(PROMPTBOOK_ENGINE_VERSION));
 
     it('should print version for `--version`', () =>
-        expect($executePtbkTestCommand('--version')).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
+        expect($executePtbkTestCommand(['--version'])).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
 
     it('should print version for `-v`', () =>
-        expect($executePtbkTestCommand('-v')).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
+        expect($executePtbkTestCommand(['-v'])).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
 
     it('should expose `coder init` command', () =>
-        expect($executePtbkTestCommand('coder init --help')).resolves.toContain(
+        expect(getPtbkHelp(['coder', 'init', '--help'])).toContain(
             'Initialize Promptbook coder configuration for current project',
         ));
 
     it('should expose `coder list` command', () =>
-        expect($executePtbkTestCommand('coder list --help')).resolves.toContain(
+        expect(getPtbkHelp(['coder', 'list', '--help'])).toContain(
             'List ready coding prompts by priority without executing them',
         ));
 
     it('should expose `agent-folder run-agent` command', () =>
-        expect($executePtbkTestCommand('agent-folder run-agent --help')).resolves.toContain(
+        expect(getPtbkHelp(['agent-folder', 'run-agent', '--help'])).toContain(
             'Watch one agent repository continuously and answer queued user questions',
         ));
 
     it('should expose `agent chat` command', () =>
-        expect($executePtbkTestCommand('agent chat --help')).resolves.toContain(
+        expect(getPtbkHelp(['agent', 'chat', '--help'])).toContain(
             'Run an interactive CLI chat with one Promptbook agent book',
         ));
 
     it('should expose `agent exec` command', () =>
-        expect($executePtbkTestCommand('agent exec --help')).resolves.toContain(
+        expect(getPtbkHelp(['agent', 'exec', '--help'])).toContain(
             'Run one non-interactive message with a Promptbook agent book and print the answer',
         ));
 
     it('should expose `agents-server start` command', () =>
-        expect($executePtbkTestCommand('agents-server start --help')).resolves.toContain(
+        expect(getPtbkHelp(['agents-server', 'start', '--help'])).toContain(
             'Start the Agents Server web app and the local coding-agent message runners',
         ));
 
     it('should expose `agents-server dev` command', () =>
-        expect($executePtbkTestCommand('agents-server dev --help')).resolves.toContain(
+        expect(getPtbkHelp(['agents-server', 'dev', '--help'])).toContain(
             'Start the Agents Server web app in development mode with hot reloading and the local coding-agent message runners',
         ));
 
     it('should expose `agents-server build` command', () =>
-        expect($executePtbkTestCommand('agents-server build --help')).resolves.toContain(
+        expect(getPtbkHelp(['agents-server', 'build', '--help'])).toContain(
             'Build the Agents Server Next app for later local startup',
         ));
 
     it('should expose `agents-server init` command', () =>
-        expect($executePtbkTestCommand('agents-server init --help')).resolves.toContain(
+        expect(getPtbkHelp(['agents-server', 'init', '--help'])).toContain(
             'Initialize Promptbook Agents Server configuration for current project',
         ));
 
     it('should expose `coder initialize` alias', () =>
-        expect($executePtbkTestCommand('coder initialize --help')).resolves.toContain(
+        expect(getPtbkHelp(['coder', 'initialize', '--help'])).toContain(
             'Initialize Promptbook coder configuration for current project',
         ));
 
@@ -158,7 +198,7 @@ describe('how promptbookCli works', () => {
             const program = new Program();
             process.chdir(temporaryDirectory);
             $initializeCoderInitCommand(program);
-            await program.parseAsync(['node', 'test', 'init']);
+            await program.parseAsync(['node', 'test', 'init', '--no-questions']);
 
             const output = consoleInfoMock.mock.calls.flat().join('\n');
 

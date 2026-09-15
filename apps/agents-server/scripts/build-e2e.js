@@ -17,7 +17,7 @@ const APP_ROOT = path.resolve(__dirname, '..');
  * is compiled, and the tests open the homepage against that very same server, so the snapshot would
  * only repeat work the tests already do.
  */
-const E2E_BUILD_ARGUMENTS = ['--no-homepage-prerender'];
+const E2E_BUILD_ARGUMENTS = ['--no-homepage-prerender', '--no-sentry-upload'];
 
 /**
  * Builds the production bundle used by the Agents Server E2E tests.

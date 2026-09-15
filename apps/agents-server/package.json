@@ -8,7 +8,7 @@
         "test": "npm run test-e2e",
         "test-e2e": "node ./scripts/run-e2e-tests.js",
         "pretest-build": "node ./scripts/kill-port.js 4021 4440",
-        "test-build": "npm run build",
+        "test-build": "npm run build -- --no-sentry-upload",
         "pretest-e2e": "node ./scripts/kill-port.js 4021 4440",
         "build": "node ./scripts/build-agents-server.js",
         "build-e2e": "node ./scripts/build-e2e.js",

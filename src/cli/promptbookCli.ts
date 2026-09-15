@@ -1,53 +1,11 @@
 import colors from 'colors';
 import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
-import { CLAIM } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
-import { $initializeAboutCommand } from './cli-commands/about';
-import { $initializeAgentCommand } from './cli-commands/agent';
-import { $initializeAgentFolderCommand } from './cli-commands/agent-folder';
-import { $initializeAgentsServerCommand } from './cli-commands/agents-server';
-import { $initializeCoderCommand } from './cli-commands/coder';
-import { $initializeHelloCommand } from './cli-commands/hello';
-import { $initializeListModelsCommand } from './cli-commands/list-models';
-import { $initializeListScrapersCommand } from './cli-commands/list-scrapers';
-import { $initializeLoginCommand } from './cli-commands/login';
-import { $initializeMakeCommand } from './cli-commands/make';
-import { $initializePrettifyCommand } from './cli-commands/prettify';
-import { $initializeRunCommand } from './cli-commands/run';
-import { $initializeStartAgentsServerCommand } from './cli-commands/start-agents-server';
-import { $initializeStartPipelinesServerCommand } from './cli-commands/start-pipelines-server';
-import { $initializeTestCommand } from './cli-commands/test-command';
-import { $addGlobalOptionsToCommand } from './common/$addGlobalOptionsToCommand';
-import { $deprecateCliCommand } from './common/$deprecateCliCommand';
+import { $initializePromptbookCliProgram } from './$initializePromptbookCliProgram';
 import { $reportMissingCliSubcommand } from './common/$requireCliSubcommand';
-
-/**
- * Shared deprecation text for top-level CLI commands backed by the old pipeline system.
- */
-const OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE = 'This command is part of the old pipeline system.';
-
-/**
- * Shared deprecation text for top-level CLI commands backed by the old pre-agent system.
- */
-const OLD_SYSTEM_DEPRECATION_MESSAGE = 'This command is part of the old system.';
-
-/**
- * Deprecation guidance for top-level `ptbk` commands that remain for compatibility.
- */
-const DEPRECATED_TOP_LEVEL_COMMAND_MESSAGES: Readonly<Record<string, string>> = {
-    run: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
-    login: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
-    make: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
-    prettify: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
-    test: OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
-    'list-models': OLD_SYSTEM_DEPRECATION_MESSAGE,
-    'list-scrapers': OLD_SYSTEM_DEPRECATION_MESSAGE,
-    'start-agents-server': 'Use `ptbk agents-server start` instead.',
-    'start-pipelines-server': OLD_PIPELINE_SYSTEM_DEPRECATION_MESSAGE,
-};
 
 /**
  * Raw top-level CLI arguments that print the Promptbook version.
@@ -90,37 +48,7 @@ export async function promptbookCli(): Promise<void> {
     }
 
     const program = new commander.Command();
-    program.name('promptbook');
-    program.alias('ptbk');
-
-    program.version(PROMPTBOOK_ENGINE_VERSION);
-    program.description(CLAIM);
-
-    // Note: These options are valid for all commands
-
-    // Note: Commands are listed in the help in the order they are registered,
-    //       `coder` is the most used one so it goes first and the deprecated ones,
-    //       which `$deprecateTopLevelCommands` hides from the help entirely, go last
-    $initializeCoderCommand(program);
-    $initializeAgentCommand(program);
-    $initializeAgentFolderCommand(program);
-    $initializeAgentsServerCommand(program);
-    $initializeAboutCommand(program);
-    $initializeHelloCommand(program);
-    $initializeRunCommand(program);
-    $initializeLoginCommand(program);
-    $initializeMakeCommand(program);
-    $initializePrettifyCommand(program);
-    $initializeTestCommand(program);
-    $initializeListModelsCommand(program);
-    $initializeListScrapersCommand(program);
-    $initializeStartAgentsServerCommand(program);
-    $initializeStartPipelinesServerCommand(program);
-
-    $deprecateTopLevelCommands(program);
-
-    // TODO: [🧠] Should it be here or not> $addGlobalOptionsToCommand(program);
-    program.commands.forEach($addGlobalOptionsToCommand);
+    $initializePromptbookCliProgram(program);
 
     // Note: There is no default command, so `ptbk` without a subcommand asks for one
     //       instead of running the deprecated `ptbk run`
@@ -140,19 +68,6 @@ function isTopLevelVersionRequested(commandLineArguments: ReadonlyArray<string>)
     const firstCommandLineArgument = commandLineArguments[0];
 
     return firstCommandLineArgument !== undefined && VERSION_OPTION_ARGUMENTS.has(firstCommandLineArgument);
-}
-
-/**
- * Marks each configured top-level legacy command as deprecated, which keeps it usable but takes it out of the help.
- */
-function $deprecateTopLevelCommands(program: commander.Command): void {
-    for (const command of program.commands) {
-        const deprecationMessage = DEPRECATED_TOP_LEVEL_COMMAND_MESSAGES[command.name()];
-
-        if (deprecationMessage !== undefined) {
-            $deprecateCliCommand(command, deprecationMessage);
-        }
-    }
 }
 
 // Note: [🟡] Code for CLI program [promptbookCli](src/cli/promptbookCli.ts) should never be published outside of `@promptbook/cli`

@@ -25,6 +25,8 @@ const AGENTS_SERVER_BUILD_MAX_OLD_SPACE_MIB = 8192;
  * lint command has already completed successfully. The optional `--no-homepage-prerender`
  * argument is used by builds whose caller starts the very same production server right
  * afterwards, which makes the extra prerender server a repetition of that work.
+ * Test builds pass `--no-sentry-upload` to avoid publishing source maps and creating
+ * temporary upload bundles with credentials from the local `.env` file.
  */
 function buildAgentsServer() {
     const nextBuildArguments = [
@@ -44,6 +46,8 @@ function buildAgentsServer() {
         //       the build process which spawned it. The same merge is done for the CLI-owned
         //       production build in `src/cli/cli-commands/agents-server/buildAgentsServer/runNextBuild.ts`.
         NODE_OPTIONS: mergeNodeOptionsWithHeapSize(process.env.NODE_OPTIONS, AGENTS_SERVER_BUILD_MAX_OLD_SPACE_MIB),
+        // An empty value also prevents Next.js from loading an upload token from `.env`.
+        ...(process.argv.includes('--no-sentry-upload') ? { SENTRY_AUTH_TOKEN: '' } : {}),
     });
 
     if (!process.argv.includes('--no-homepage-prerender')) {
