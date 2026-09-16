@@ -48,7 +48,9 @@ describe('createAgentModelRequirements system message deduplication', () => {
         const requirements = await createAgentModelRequirements(agentSource);
 
         expect(countOccurrences(requirements.systemMessage, '## Writing sample')).toBe(1);
-        expect(countOccurrences(requirements.systemMessage, 'newer samples have higher weight than older ones')).toBe(1);
+        expect(countOccurrences(requirements.systemMessage, 'newer samples have higher weight than older ones')).toBe(
+            1,
+        );
         expect(requirements.systemMessage.indexOf('First voice sample.')).toBeLessThan(
             requirements.systemMessage.indexOf('Second voice sample.'),
         );

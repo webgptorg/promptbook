@@ -52,7 +52,8 @@ export function $initializeCoderListCommand(program: Program): $side_effect {
                 readonly priority?: number;
                 readonly minPriority?: number;
                 readonly maxPriority?: number;
-            } & PromptRunnerSelectionCliOptions & CoderAgentCliOptions;
+            } & PromptRunnerSelectionCliOptions &
+                CoderAgentCliOptions;
             const runnerOptions = normalizePromptRunnerSelectionCliOptions(
                 cliOptions as PromptRunnerSelectionCliOptions,
                 { isAgentRequired: false },
@@ -60,8 +61,9 @@ export function $initializeCoderListCommand(program: Program): $side_effect {
             const resolvedCoderAgentBook =
                 agent === undefined
                     ? undefined
-                    : await (await import('../../../../scripts/run-codex-prompts/common/resolveCoderAgent'))
-                          .resolveCoderAgentBook(agent, process.cwd());
+                    : await (
+                          await import('../../../../scripts/run-codex-prompts/common/resolveCoderAgent')
+                      ).resolveCoderAgentBook(agent, process.cwd());
             const promptRunnerIdentity =
                 runnerOptions.agentName === undefined &&
                 runnerOptions.model === undefined &&

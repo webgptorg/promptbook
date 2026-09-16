@@ -166,7 +166,8 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 readonly auto: boolean;
                 readonly autoMigrate: boolean;
                 readonly allowDestructiveAutoMigrate: boolean;
-            } & PromptRunnerCliOptions & CoderAgentCliOptions;
+            } & PromptRunnerCliOptions &
+                CoderAgentCliOptions;
 
             const port = parseCoderServerPort(rawPort);
             const testCommand = normalizeCommandOptionValue(test);

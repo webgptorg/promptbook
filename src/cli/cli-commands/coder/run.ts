@@ -194,7 +194,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly auto: boolean;
                 readonly autoMigrate: boolean;
                 readonly allowDestructiveAutoMigrate: boolean;
-            } & PromptRunnerCliOptions & CoderAgentCliOptions;
+            } & PromptRunnerCliOptions &
+                CoderAgentCliOptions;
 
             const configuredTestCommand = normalizeCommandOptionValue(test);
             const testCommand = configuredTestCommand ?? (testBefore === 'no' ? undefined : DEFAULT_CODER_TEST_COMMAND);
