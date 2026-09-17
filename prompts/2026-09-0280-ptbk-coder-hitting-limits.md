@@ -36,4 +36,6 @@ hejny@Mac vibehack-26-09-10 %
 -   Update the [`ptbk coder` landing website](apps/coder-landing) if there are any changes that affect the landing page.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+
 ![alt text](screenshots/2026-09-0280-ptbk-coder-hitting-limits.png)
+![alt text](screenshots/2026-09-0280-ptbk-coder-hitting-limits-1.png)
