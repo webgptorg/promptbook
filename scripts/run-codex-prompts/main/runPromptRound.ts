@@ -37,7 +37,6 @@ import { writePromptRunTrace } from '../prompts/writePromptRunTrace';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
-import { refreshCoderRunUiSubscriptionUsage } from '../ui/refreshCoderRunUiSubscriptionUsage';
 
 /**
  * Maximum number of retry attempts performed after a prompt round throws an error.
@@ -160,11 +159,6 @@ export async function runPromptRound({
                                 progress,
                             }),
                         waitForPauseCheckpoint: waitForRequestedPause,
-                    });
-
-                    await refreshCoderRunUiSubscriptionUsage({
-                        runner,
-                        uiState: uiHandle?.state,
                     });
 
                     await finalizeSuccessfulPromptRound({

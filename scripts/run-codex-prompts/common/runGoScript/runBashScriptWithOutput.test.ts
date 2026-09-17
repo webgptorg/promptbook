@@ -44,6 +44,44 @@ describe('runGoScript runtime logging', () => {
         await expect(stat(scriptPath)).rejects.toMatchObject({ code: 'ENOENT' });
     });
 
+    it('reports every completed output line while the script is still running', async () => {
+        const scriptPath = join(temporaryDirectoryPath, 'prompt-lines.sh');
+        const observedLines: string[] = [];
+
+        await $runGoScriptWithOutput({
+            scriptPath,
+            shouldPrintLiveOutput: false,
+            scriptContent: spaceTrim(`
+                printf 'first line\\n'
+                printf 'second line\\n'
+            `),
+            onOutputLine: (line) => observedLines.push(line),
+        });
+
+        expect(observedLines).toContain('first line');
+        expect(observedLines).toContain('second line');
+    });
+
+    it('reports every completed output line of a marker-terminated script', async () => {
+        const scriptPath = join(temporaryDirectoryPath, 'prompt-marker-lines.sh');
+        const observedLines: string[] = [];
+
+        await $runGoScriptUntilMarkerIdle({
+            scriptPath,
+            shouldPrintLiveOutput: false,
+            completionLineMatcher: /^tokens used$/u,
+            idleTimeoutMs: 50,
+            scriptContent: spaceTrim(`
+                printf 'first line\\n'
+                printf 'tokens used\\n'
+            `),
+            onOutputLine: (line) => observedLines.push(line),
+        });
+
+        expect(observedLines).toContain('first line');
+        expect(observedLines).toContain('tokens used');
+    });
+
     it('keeps the temp shell file after success when preservation is enabled', async () => {
         const scriptPath = join(temporaryDirectoryPath, 'prompt-keep.sh');
         const logPath = buildScriptLogPath(scriptPath);

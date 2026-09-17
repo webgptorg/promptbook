@@ -1,3 +1,17 @@
+-   Made the subscription usage shown by `ptbk coder run` live. The **Usage** rows of the terminal dashboard used to be
+    read once before the queue started and then once more after each finished prompt, so for the whole round — which can
+    easily be hours — they described a moment that had already passed. They are now re-read every 5 seconds by one shared
+    refresher which the run starts once and stops when it ends, so the remaining percentages and the reset countdowns
+    always describe the present moment instead of the state the harness was in when the current prompt started. Two
+    reads never overlap: a tick which arrives while the previous read is still in flight is skipped, so a slow or
+    hanging harness cannot pile requests up, and a harness without subscription limits or a run without the dashboard
+    starts no timer at all. OpenAI Codex already answers every single read with a fresh account snapshot, while Claude
+    Code reports its limits as events of the stream it is writing — so the Claude Code runner now reads its limits from
+    the live output as well, instead of only from the finished one, which is what gives the 5-second refresh something
+    new to show in the middle of a prompt. To make that possible, every script runner can now observe completed output
+    lines while the script is still running, and the buffering which turns arbitrarily chopped chunks into whole lines
+    is shared by both of them. The `ptbk coder` landing page documents the new refresh.
+
 -   Fixed the warnings printed while installing `ptbk`. Five of the ten `npm warn deprecated` lines were caused by
     Promptbook itself and are gone, and an installation resolves 96 packages fewer than before:
 

@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { createScriptOutputLineReader, type ScriptOutputLineReader } from './createScriptOutputLineReader';
 import type { RunGoScriptOptions } from './RunGoScriptOptions';
 import { appendScriptExecutionLogFinish, appendScriptExecutionLogStart } from './scriptExecutionLog';
 import { $spawnLoggedBashScript } from './$spawnLoggedBashScript';
@@ -18,6 +19,10 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
             scriptPath: options.scriptPath,
             logPath: options.logPath,
         });
+        const outputLineReaders: Readonly<Record<'stdout' | 'stderr', ScriptOutputLineReader>> = {
+            stdout: createScriptOutputLineReader(),
+            stderr: createScriptOutputLineReader(),
+        };
         let output = '';
         let settled = false;
         let isSettling = false;
@@ -60,17 +65,20 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
             });
         };
 
-        commandProcess.stdout.on('data', (stdout) => {
-            const chunk = stdout.toString();
+        /**
+         * Accumulates one output chunk and reports the lines it completed.
+         */
+        const handleChunk = (chunk: string, source: 'stdout' | 'stderr'): void => {
             output += chunk;
-            printLiveScriptChunk(chunk, 'stdout', shouldPrintLiveOutput);
-        });
+            printLiveScriptChunk(chunk, source, shouldPrintLiveOutput);
 
-        commandProcess.stderr.on('data', (stderr) => {
-            const chunk = stderr.toString();
-            output += chunk;
-            printLiveScriptChunk(chunk, 'stderr', shouldPrintLiveOutput);
-        });
+            for (const line of outputLineReaders[source].readCompletedLines(chunk)) {
+                options.onOutputLine?.(line);
+            }
+        };
+
+        commandProcess.stdout.on('data', (stdout) => handleChunk(stdout.toString(), 'stdout'));
+        commandProcess.stderr.on('data', (stderr) => handleChunk(stderr.toString(), 'stderr'));
 
         /**
          * Handles process exit and resolves or rejects accordingly.

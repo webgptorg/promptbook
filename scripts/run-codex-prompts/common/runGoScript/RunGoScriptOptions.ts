@@ -26,4 +26,12 @@ export type RunGoScriptOptions = {
      * Keeps temporary prompt artifacts after successful execution instead of deleting them immediately.
      */
     preserveArtifactsOnSuccess?: boolean;
+
+    /**
+     * Observes every completed output line while the script is still running.
+     *
+     * The captured output is returned only after the script has finished, so this is the single way of reacting to
+     * something the harness reports in the middle of a long prompt.
+     */
+    onOutputLine?(line: string): void;
 };

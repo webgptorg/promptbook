@@ -104,6 +104,39 @@ describe('ClaudeCodeRunner', () => {
         });
     });
 
+    it('updates the subscription limits while the Claude Code prompt is still running', async () => {
+        let finishClaudeCodeRun: (() => void) | undefined;
+        ($runGoScriptWithOutput as jest.MockedFunction<typeof $runGoScriptWithOutput>).mockImplementation(
+            async (options) =>
+                await new Promise<string>((resolve) => {
+                    for (const line of CLAUDE_CODE_SUBSCRIPTION_USAGE_OUTPUT.split('\n')) {
+                        options.onOutputLine?.(line);
+                    }
+
+                    finishClaudeCodeRun = () => resolve(CLAUDE_CODE_RESULT_JSON);
+                }),
+        );
+        const runner = new ClaudeCodeRunner();
+
+        const runPromise = runner.runPrompt({
+            prompt: 'Prompt body',
+            projectPath: 'C:\\repo',
+            scriptPath: 'C:\\repo\\temp\\runner.sh',
+            preserveArtifactsOnSuccess: false,
+        });
+
+        // Note: The prompt has not finished yet, so only the live stream can have provided these values
+        await expect(runner.getSubscriptionUsage()).resolves.toEqual({
+            limits: [
+                { label: '5h', usedPercentage: 46, resetsAt: 1_780_000_000 },
+                { label: '7d', usedPercentage: 21, resetsAt: 1_780_500_000 },
+            ],
+        });
+
+        finishClaudeCodeRun?.();
+        await runPromise;
+    });
+
     it('keeps unchanged subscription windows when Claude reports an update for only one window', async () => {
         ($runGoScriptWithOutput as jest.MockedFunction<typeof $runGoScriptWithOutput>)
             .mockResolvedValueOnce(CLAUDE_CODE_SUBSCRIPTION_USAGE_OUTPUT)

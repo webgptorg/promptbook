@@ -15,6 +15,7 @@ export async function $runGoScriptUntilMarkerIdle(options: RunGoScriptUntilMarke
             idleTimeoutMs: options.idleTimeoutMs,
             logPath: options.logPath,
             shouldPrintLiveOutput: options.shouldPrintLiveOutput,
+            onOutputLine: options.onOutputLine,
         });
     });
 }

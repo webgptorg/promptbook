@@ -25,6 +25,11 @@ import { parseClaudeCodeSubscriptionUsage } from './parseClaudeCodeSubscriptionU
 const CLAUDE_CODE_SESSION_RESURRECTION_POLL_MS = 30 * 1000;
 
 /**
+ * Stream event type which carries a Claude Code subscription-limit update.
+ */
+const CLAUDE_CODE_RATE_LIMIT_EVENT_TYPE = 'rate_limit_event';
+
+/**
  * Runs prompts via the Claude Code CLI.
  */
 export class ClaudeCodeRunner implements PromptRunner {
@@ -39,7 +44,9 @@ export class ClaudeCodeRunner implements PromptRunner {
     /**
      * Returns the latest subscription-limit snapshot emitted by this Claude Code session.
      *
-     * Claude exposes these values in the normal stream after a response, so no separate quota-only model call is made.
+     * Claude exposes these values in the normal stream, so no separate quota-only model call is made. The snapshot is
+     * kept current while the prompt is still running, which is what lets the dashboard poll it instead of showing the
+     * values of the previous prompt for the whole round.
      */
     public async getSubscriptionUsage(): Promise<HarnessSubscriptionUsage | undefined> {
         return this.subscriptionUsage;
@@ -116,7 +123,23 @@ export class ClaudeCodeRunner implements PromptRunner {
             logPath: options.logPath,
             shouldPrintLiveOutput: options.shouldPrintLiveOutput,
             preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
+            onOutputLine: (line) => this.updateSubscriptionUsageFromOutputLine(line),
         });
+    }
+
+    /**
+     * Keeps the snapshot current from one line of the stream which is still being written.
+     *
+     * A coding prompt can run for hours, and a subscription window keeps moving during all of it. Only a rate-limit
+     * event can change the snapshot, so the far more frequent tool and message lines are recognized by their type and
+     * skipped before anything is parsed.
+     */
+    private updateSubscriptionUsageFromOutputLine(line: string): void {
+        if (!line.includes(CLAUDE_CODE_RATE_LIMIT_EVENT_TYPE)) {
+            return;
+        }
+
+        this.updateSubscriptionUsage(line);
     }
 
     /**

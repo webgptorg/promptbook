@@ -36,4 +36,9 @@ export type RunScriptUntilMarkerIdleOptions = {
      * Keeps temporary prompt artifacts after successful execution instead of deleting them immediately.
      */
     preserveArtifactsOnSuccess?: boolean;
+
+    /**
+     * Observes every completed output line while the script is still running.
+     */
+    onOutputLine?(line: string): void;
 };

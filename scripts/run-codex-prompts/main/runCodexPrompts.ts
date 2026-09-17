@@ -52,7 +52,10 @@ import { waitForPromptStart } from '../prompts/waitForPromptStart';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { buildCoderRunAgentVisual } from '../ui/buildCoderRunAgentVisual';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../ui/renderCoderRunUi';
-import { refreshCoderRunUiSubscriptionUsage } from '../ui/refreshCoderRunUiSubscriptionUsage';
+import {
+    startCoderRunUiSubscriptionUsageRefresh,
+    type CoderRunUiSubscriptionUsageRefreshHandle,
+} from '../ui/startCoderRunUiSubscriptionUsageRefresh';
 import { createTestBeforeRepairPrompt } from '../testing/createTestBeforeRepairPrompt';
 import { DEFAULT_CODER_TEST_COMMAND, isTestBeforeMode, type TestBeforeMode } from '../testing/TestBeforeMode';
 import { limitTestOutput } from '../testing/limitTestOutput';
@@ -107,6 +110,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
     startPauseListenerIfNeeded(isRichUiEnabled);
 
+    let subscriptionUsageRefresh: CoderRunUiSubscriptionUsageRefreshHandle | undefined;
+
     try {
         const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
         const resolvedCoderAgent = await resolveCoderAgent(options.agent, process.cwd());
@@ -136,7 +141,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
         initializeRunUi(uiHandle, runner.name, actualRunnerModel, options);
         await initializeRunUiAgentVisual(uiHandle, resolvedCoderAgent?.agentSource);
-        await refreshCoderRunUiSubscriptionUsage({
+        // Note: The usage keeps refreshing on its own clock from here on, so a long prompt no longer freezes it
+        subscriptionUsageRefresh = startCoderRunUiSubscriptionUsageRefresh({
             runner,
             uiState: uiHandle?.state,
         });
@@ -332,6 +338,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             }
         }
     } finally {
+        subscriptionUsageRefresh?.stop();
         cleanupRunDisplays(progressDisplay, uiHandle, options);
         resetCoderRunControls();
     }

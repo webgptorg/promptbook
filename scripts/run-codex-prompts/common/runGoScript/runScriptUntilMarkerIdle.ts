@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { createScriptOutputLineReader, type ScriptOutputLineReader } from './createScriptOutputLineReader';
 import type { RunScriptUntilMarkerIdleOptions } from './RunScriptUntilMarkerIdleOptions';
 import { appendScriptExecutionLogFinish, appendScriptExecutionLogStart } from './scriptExecutionLog';
 import { $spawnLoggedBashScript } from './$spawnLoggedBashScript';
@@ -63,8 +64,10 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
             scriptPath,
             logPath: options.logPath,
         });
-        let stdoutBuffer = '';
-        let stderrBuffer = '';
+        const outputLineReaders: Readonly<Record<'stdout' | 'stderr', ScriptOutputLineReader>> = {
+            stdout: createScriptOutputLineReader(),
+            stderr: createScriptOutputLineReader(),
+        };
         let fullOutput = '';
         let markerSeen = false;
         let isCompletedAfterIdleTimeout = false;
@@ -140,8 +143,10 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
         /**
          * Processes completed output lines to detect completion markers.
          */
-        const handleLines = (lines: string[]): void => {
+        const handleLines = (lines: readonly string[]): void => {
             for (const line of lines) {
+                options.onOutputLine?.(line);
+
                 if (completionLineMatcher.test(line)) {
                     markerSeen = true;
                     scheduleIdleExit();
@@ -159,18 +164,7 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
         const handleChunk = (chunk: string, source: 'stdout' | 'stderr'): void => {
             fullOutput += chunk;
             printLiveScriptChunk(chunk, source, shouldPrintLiveOutput);
-
-            if (source === 'stdout') {
-                stdoutBuffer += chunk;
-                const lines = stdoutBuffer.split(/\r?\n/);
-                stdoutBuffer = lines.pop() ?? '';
-                handleLines(lines);
-            } else {
-                stderrBuffer += chunk;
-                const lines = stderrBuffer.split(/\r?\n/);
-                stderrBuffer = lines.pop() ?? '';
-                handleLines(lines);
-            }
+            handleLines(outputLineReaders[source].readCompletedLines(chunk));
 
             if (markerSeen && chunk.length > 0) {
                 scheduleIdleExit();
