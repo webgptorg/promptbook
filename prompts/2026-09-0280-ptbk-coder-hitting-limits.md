@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [✨🤖] qux
 
@@ -37,3 +37,4 @@ hejny@Mac vibehack-26-09-10 %
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](screenshots/2026-09-0280-ptbk-coder-hitting-limits.png)
+![alt text](screenshots/2026-09-0280-ptbk-coder-hitting-limits-1.png)
