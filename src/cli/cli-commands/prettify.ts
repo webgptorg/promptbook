@@ -3,12 +3,12 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { readFile, writeFile } from 'fs/promises';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
 import { assertsError } from '../../errors/assertsError';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
+import { findFilesByGlob } from '../../utils/files/findFilesByGlob';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { handleActionErrors } from './common/handleActionErrors';
 
@@ -40,7 +40,7 @@ export function $initializePrettifyCommand(program: Program): $side_effect {
     prettifyCommand.action(
         handleActionErrors(async (filesGlob, cliOptions) => {
             const { ignore, verbose: isVerbose } = cliOptions;
-            const filenames = await glob(filesGlob!, { ignore });
+            const filenames = await findFilesByGlob(filesGlob!, { ignore });
             //                       <- TODO: [😶]
 
             for (const filename of filenames) {

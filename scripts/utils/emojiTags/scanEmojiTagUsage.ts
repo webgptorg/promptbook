@@ -1,10 +1,10 @@
 import { createHash } from 'crypto';
 import { readFileSync, statSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import glob from 'glob-promise';
 import { join, relative } from 'path';
 import type { string_char_emoji } from '../../../src/types/typeAliasEmoji';
 import { escapeRegExp } from '../../../src/utils/chat/escapeRegExp';
+import { findFilesByGlob } from '../../../src/utils/files/findFilesByGlob';
 
 /**
  * Default file globs scanned for emoji tags.
@@ -186,7 +186,7 @@ async function findFilesToScan(
     const files = new Set<string>();
 
     for (const pattern of includeGlobs) {
-        const matches = await glob(pattern, {
+        const matches = await findFilesByGlob(pattern, {
             cwd: rootDir,
             ignore: Array.from(new Set([...ignoreGlobs, ...DEFAULT_IGNORE_GLOBS])),
             nodir: true,

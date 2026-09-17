@@ -3,7 +3,6 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { readFile } from 'fs/promises';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { getAllCommitmentsToolFunctionsForNode } from '../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
@@ -18,6 +17,7 @@ import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
+import { findFilesByGlob } from '../../utils/files/findFilesByGlob';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
@@ -89,7 +89,7 @@ export function $initializeTestCommand(program: Program): $side_effect {
 
             const ignore = (ignoreRaw as string).split(',').map((pattern) => pattern.trim());
 
-            const filenames = await glob(filesGlob!, { ignore });
+            const filenames = await findFilesByGlob(filesGlob!, { ignore });
             //                       <- TODO: [😶]
 
             // console.log({ filesGlob, ignore, filenames });

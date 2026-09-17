@@ -17,10 +17,12 @@ const PROCESS_TREE_TERMINATION_TIMEOUT_MS = 20_000;
  *
  * Booting the fixture pays for a full Bash *login* shell, which is a cost of the machine and not of the ownership
  * behavior verified here - shell profiles that load version managers such as `nvm` need roughly ten seconds on
- * Windows, and parallel Jest workers multiply that further. This startup budget is therefore deliberately much
- * larger than `PROCESS_TREE_TERMINATION_TIMEOUT_MS`, which keeps bounding the behavior actually under test.
+ * Windows, and parallel Jest workers multiply that further. Measured on one Windows machine, the very same startup
+ * costs about twelve seconds when this file runs alone and more than ninety seconds during a full test suite run,
+ * where the other Jest worker competes for the same disk. This startup budget is therefore deliberately much larger
+ * than `PROCESS_TREE_TERMINATION_TIMEOUT_MS`, which keeps bounding the behavior actually under test.
  */
-const HARNESS_FIXTURE_STARTUP_TIMEOUT_MS = 90_000;
+const HARNESS_FIXTURE_STARTUP_TIMEOUT_MS = 240_000;
 
 /**
  * Delay used to prove that a stopped harness no longer writes its heartbeat file.
@@ -31,6 +33,15 @@ const HARNESS_HEARTBEAT_SETTLE_DELAY_MS = 200;
  * Poll interval used while waiting for a test harness fixture to start.
  */
 const FIXTURE_POLL_INTERVAL_MS = 25;
+
+/**
+ * Maximum time allowed for the whole ownership test.
+ *
+ * Derived from the waits it contains, so that a slow machine ends in the fixture startup error which explains what
+ * did not happen, instead of in the unspecific Jest timeout which would otherwise cut the test off earlier.
+ */
+const HARNESS_OWNERSHIP_TEST_TIMEOUT_MS =
+    HARNESS_FIXTURE_STARTUP_TIMEOUT_MS + 2 * PROCESS_TREE_TERMINATION_TIMEOUT_MS + 30_000;
 
 describe('$spawnLoggedBashScript', () => {
     let temporaryDirectoryPath: string;
@@ -47,48 +58,54 @@ describe('$spawnLoggedBashScript', () => {
         await rm(temporaryDirectoryPath, { recursive: true, force: true, maxRetries: 3, retryDelay: 50 });
     });
 
-    it('terminates nested harness processes when the owning coder process exits', async () => {
-        const scriptPath = join(temporaryDirectoryPath, 'harness.sh');
-        const harnessHeartbeatPath = join(temporaryDirectoryPath, 'harness-heartbeat.txt');
+    it(
+        'terminates nested harness processes when the owning coder process exits',
+        async () => {
+            const scriptPath = join(temporaryDirectoryPath, 'harness.sh');
+            const harnessHeartbeatPath = join(temporaryDirectoryPath, 'harness-heartbeat.txt');
 
-        await writeFile(
-            scriptPath,
-            spaceTrim(`
-                (
-                    while true; do
-                        printf 'heartbeat\\n' >> "${toPosixPath(harnessHeartbeatPath)}"
-                        sleep 0.05
-                    done
-                ) &
-                HARNESS_PROCESS_ID=$!
-                wait "$HARNESS_PROCESS_ID"
-            `),
-            'utf-8',
-        );
+            await writeFile(
+                scriptPath,
+                spaceTrim(`
+                    (
+                        while true; do
+                            printf 'heartbeat\\n' >> "${toPosixPath(harnessHeartbeatPath)}"
+                            sleep 0.05
+                        done
+                    ) &
+                    HARNESS_PROCESS_ID=$!
+                    wait "$HARNESS_PROCESS_ID"
+                `),
+                'utf-8',
+            );
 
-        parentProcess = spawn(process.execPath, ['-e', 'setInterval(() => undefined, 1_000);'], { stdio: 'ignore' });
-        if (!parentProcess.pid) {
-            throw new Error('Expected the test coder parent process to have a PID.');
-        }
+            parentProcess = spawn(process.execPath, ['-e', 'setInterval(() => undefined, 1_000);'], {
+                stdio: 'ignore',
+            });
+            if (!parentProcess.pid) {
+                throw new Error('Expected the test coder parent process to have a PID.');
+            }
 
-        bashProcess = $spawnLoggedBashScript({
-            scriptPath,
-            parentProcessId: parentProcess.pid,
-        });
-        const bashOutput = collectProcessOutput(bashProcess);
+            bashProcess = $spawnLoggedBashScript({
+                scriptPath,
+                parentProcessId: parentProcess.pid,
+            });
+            const bashOutput = collectProcessOutput(bashProcess);
 
-        await waitForHarnessHeartbeat({ harnessHeartbeatPath, bashProcess, bashOutput });
+            await waitForHarnessHeartbeat({ harnessHeartbeatPath, bashProcess, bashOutput });
 
-        parentProcess.kill();
-        await waitForProcessToExit(parentProcess);
-        await waitForProcessToExit(bashProcess);
+            parentProcess.kill();
+            await waitForProcessToExit(parentProcess);
+            await waitForProcessToExit(bashProcess);
 
-        const heartbeatBeforeSettling = await readFile(harnessHeartbeatPath, 'utf-8');
-        await wait(HARNESS_HEARTBEAT_SETTLE_DELAY_MS);
-        const heartbeatAfterSettling = await readFile(harnessHeartbeatPath, 'utf-8');
+            const heartbeatBeforeSettling = await readFile(harnessHeartbeatPath, 'utf-8');
+            await wait(HARNESS_HEARTBEAT_SETTLE_DELAY_MS);
+            const heartbeatAfterSettling = await readFile(harnessHeartbeatPath, 'utf-8');
 
-        expect(heartbeatAfterSettling).toBe(heartbeatBeforeSettling);
-    });
+            expect(heartbeatAfterSettling).toBe(heartbeatBeforeSettling);
+        },
+        HARNESS_OWNERSHIP_TEST_TIMEOUT_MS,
+    );
 });
 
 /**

@@ -1,3 +1,43 @@
+-   Fixed the warnings printed while installing `ptbk`. Five of the ten `npm warn deprecated` lines were caused by
+    Promptbook itself and are gone, and an installation resolves 96 packages fewer than before:
+
+    -   `crypto` was declared as a dependency, although the package of that name is only a deprecated placeholder for
+        the Node.js built-in module. Node.js resolves `crypto` to its built-in module in every case, so the package was
+        downloaded and warned about without ever being used by anything.
+    -   `y-websocket-server` was declared as a dependency without being imported anywhere. The only thing which runs
+        it, `other/y-websocket-server/y-websocket.js`, starts it through `npx`, which resolves it on its own.
+    -   `glob-promise` is replaced by `glob` itself, which returns promises since its version 9 and no longer needs a
+        wrapper. `glob-promise` holds `glob` at version 8, which still depends on the deprecated `inflight`, so those
+        two warned together. All eleven call sites now go through one `findFilesByGlob` utility, which keeps the two
+        things `glob` version 8 guaranteed and the current one does not - `/` separators on Windows and a stable
+        alphabetical order - so nothing which reads the matched filenames had to change.
+    -   `express-openapi-validator` is updated to a release which uses `multer` 2 instead of the deprecated `multer` 1.
+
+    The five remaining deprecation warnings cannot be resolved from this repository. `lodash.get` and
+    `whatwg-encoding` are used by the newest `express-openapi-validator` and `jsdom` as well, `prebuild-install` is a
+    dependency of `better-sqlite3` which only its version 13 drops - and that version requires Node.js 22, while the
+    `engines` of Promptbook still allow Node.js 18 - and `crypto-js` and `@azure/openai` are deprecated by their
+    authors but really used by Promptbook.
+
+-   Reduced what `npm audit` reports after installing `ptbk` from 48 vulnerable packages to 15, and from 3 critical
+    advisories to none. Every version pinned by Promptbook which an advisory named is raised to a release without that
+    advisory: `next` (which also carried the only critical advisories and brings its bundled `sharp` with it),
+    `express` (with `body-parser`, `qs` and `path-to-regexp`), `socket.io-client` (with `engine.io-client` and `ws`),
+    `mailparser` (with `linkify-it` and its own `nodemailer`), `@aws-sdk/client-s3` (with `fast-xml-parser`),
+    `@modelcontextprotocol/sdk`, `nodemailer`, `dompurify`, `jspdf` and `postcss`. `nodemailer` is the only one which
+    crosses a major version, from 7 to 9, and Promptbook calls only its `createTransport` and `sendMail`, which those
+    versions do not change - it is now also the same installation which `mailparser` uses. `@aws-sdk/client-s3` is the
+    only one which raises its own Node.js requirement, from 18 to 20, which does not move the Node.js version an
+    installation really needs, because `better-sqlite3`, `@supabase/supabase-js` and `playwright` have all been asking
+    for Node.js 20 for longer.
+
+    What is still reported either has no fixed release at all - `showdown`, and `xlsx` inside `markitdown-ts` - or can
+    only be fixed by an upgrade which would break something else: the fixed majors of `@ai-sdk/openai`,
+    `@ai-sdk/google`, `@ai-sdk/deepseek` (together with `undici`) and `@vercel/blob` require Node.js 22, `localtunnel`
+    has no release which stops using a vulnerable `axios`, and a moderate advisory on `next` with a high one on the
+    `postcss` bundled inside it, plus `monaco-editor` with the `dompurify` bundled inside it, are only fixed by
+    upgrades of Next.js and the Monaco editor which deserve their own change.
+
 -   `ptbk coder` now resolves `FROM`, `IMPORT`, and `TEAM` references across local agent books before compiling coding
     instructions. Names in `@Name` and `{Name}` match first-line book titles discovered recursively beneath the selected
     agent's folder. `./` and `../` paths resolve from the declaring book, other paths from the working directory, and
