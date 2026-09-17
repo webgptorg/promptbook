@@ -171,6 +171,10 @@ async function generatePackages({ isCommitted, isBundlerSkipped }: GeneratePacka
         './agents/default/developer.book',
         './packages/cli/agents/default/developer.book',
     );
+    await copyCliRuntimePathToCliPackage(
+        './agents/default/.core/adam.book',
+        './packages/cli/agents/default/.core/adam.book',
+    );
     await assertGeneratedBundlesArePublishSafe(packageGenerationContext.packagesMetadata, isBundlerSkipped);
     await writePublishWorkflow(packageGenerationContext.packagesMetadata);
     await maybeCommitGeneratedPackages(isCommitted, packageGenerationContext.mainPackageVersion);

@@ -1,3 +1,13 @@
+-   `ptbk coder` now resolves `FROM`, `IMPORT`, and `TEAM` references across local agent books before compiling coding
+    instructions. Names in `@Name` and `{Name}` match first-line book titles discovered recursively beneath the selected
+    agent's folder. `./` and `../` paths resolve from the declaring book, other paths from the working directory, and
+    HTTP(S) book URLs work too, including nested inheritance and imports. The coder and Agent Server share the same
+    inheritance implementation. Agents inherit from local Adam by default; a missing Adam is copied from the bundled
+    server book into `.core/adam.book`. `FROM @null`, `FROM {null}`, `FROM @void`, and `FROM {void}` disable inheritance.
+    `ptbk coder init` also creates `agents/.core/adam.book` without overwriting an existing book. Added a reference-resolution
+    test preset in VS Code and documented the reference rules on the coder landing page. Normal committing runs
+    commit a newly created Adam book before checking for a clean working tree; `--no-commit` leaves it uncommitted.
+
 -   Fixed the React 19 peer dependency warnings during `npm install` by replacing `swagger-ui-react` with the
     standalone `swagger-ui-dist` bundle, shared with the Express API docs. The Swagger page still loads on demand
     and keeps its API-key panel, saved authorization and display settings.

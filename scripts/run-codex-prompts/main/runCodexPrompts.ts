@@ -29,6 +29,7 @@ import { waitForSkippableWorldTimeDeadline } from '../common/waitForSkippableWor
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
 import { captureCoderCommitScope, resolveCoderCommitScopePaths, type CoderCommitScope } from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
+import { commitInitializedAgentBooks } from '../git/commitInitializedAgentBooks';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { pullLatestChanges } from '../git/pullLatestChanges';
 import { runIsolatedPromptRound } from '../isolation/runIsolatedPromptRound';
@@ -113,6 +114,10 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
         if (await runDryRunIfRequested(options)) {
             return;
+        }
+
+        if (!options.noCommit && resolvedCoderAgent) {
+            await commitInitializedAgentBooks(process.cwd(), resolvedCoderAgent.createdAgentBookPaths);
         }
 
         const { runner, actualRunnerModel, runnerMetadata: harnessRunnerMetadata } = resolvePromptRunner(options);

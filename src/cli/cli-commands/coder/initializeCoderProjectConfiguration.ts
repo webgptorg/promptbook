@@ -1,3 +1,5 @@
+import { join } from 'path';
+import { ensureAdamAgentBook } from '../common/ensureAdamAgentBook';
 import type { InitializationStatus } from './boilerplateTemplates';
 import {
     PROMPTS_DIRECTORY_PATH,
@@ -24,6 +26,7 @@ export type CoderInitializationSummary = {
     readonly promptsDoneDirectoryStatus: InitializationStatus;
     readonly promptsTemplatesDirectoryStatus: InitializationStatus;
     readonly agentsDirectoryStatus: InitializationStatus;
+    readonly adamAgentFileStatus: InitializationStatus;
     readonly envFileStatus: InitializationStatus;
     readonly gitignoreFileStatus: InitializationStatus;
     readonly packageJsonFileStatus: InitializationStatus;
@@ -46,6 +49,7 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
     const promptsDoneDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH);
     const promptsTemplatesDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH);
     const agentsDirectoryStatus = await ensureDirectory(projectPath, CODER_AGENTS_DIRECTORY_PATH);
+    const adamAgentFileStatus = await ensureAdamAgentBook(join(projectPath, CODER_AGENTS_DIRECTORY_PATH));
     const { envFileStatus, initializedEnvVariableNames } = await ensureCoderEnvFile(projectPath);
     const gitignoreFileStatus = await ensureCoderGitignoreFile(projectPath);
     const { status: packageJsonFileStatus, addedEntryKeys: addedPackageJsonScriptNames } =
@@ -61,6 +65,7 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
         promptsDoneDirectoryStatus,
         promptsTemplatesDirectoryStatus,
         agentsDirectoryStatus,
+        adamAgentFileStatus,
         envFileStatus,
         gitignoreFileStatus,
         packageJsonFileStatus,

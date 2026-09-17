@@ -1,4 +1,6 @@
 import colors from 'colors';
+import { ADAM_AGENT_BOOK_RELATIVE_PATH } from '../common/ensureAdamAgentBook';
+import { CODER_AGENTS_DIRECTORY_PATH } from './ensureCoderDeveloperAgentFile';
 import type { InitializationStatus } from './boilerplateTemplates';
 import type { CoderReferencedArtifactStatus } from './coderReferencedArtifacts';
 import { formatDisplayPath } from './formatDisplayPath';
@@ -15,6 +17,10 @@ export function printInitializationSummary(summary: CoderInitializationSummary):
     printInitializationStatusLine('prompts/done/', summary.promptsDoneDirectoryStatus);
     printInitializationStatusLine('prompts/templates/', summary.promptsTemplatesDirectoryStatus);
     printInitializationStatusLine('agents/', summary.agentsDirectoryStatus);
+    printInitializationStatusLine(
+        `${CODER_AGENTS_DIRECTORY_PATH}/${ADAM_AGENT_BOOK_RELATIVE_PATH}`,
+        summary.adamAgentFileStatus,
+    );
     printInitializationStatusLine('.env', summary.envFileStatus);
     printInitializationStatusLine('.gitignore', summary.gitignoreFileStatus);
     printInitializationStatusLine('package.json', summary.packageJsonFileStatus);

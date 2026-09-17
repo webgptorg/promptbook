@@ -54,6 +54,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             ${block(QUESTIONS_DESCRIPTION)}
 
             Features:
+            - Resolves FROM, IMPORT and TEAM by agent name, book-relative path, project path or URL
+            - Creates a missing .core/adam.book beside the selected agent for default inheritance
             - Automatically stages and commits changes with agent identity unless --no-commit is used
             - Commits only the prompt file and the files the coding agent has changed, leaving unrelated changes alone
             - Refuses to start on a dirty working tree unless --git-changes says what should happen with the changes

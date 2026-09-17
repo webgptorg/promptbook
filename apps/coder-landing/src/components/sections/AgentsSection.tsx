@@ -23,8 +23,8 @@ export function AgentsSection() {
                     Book language
                 </a>
                 , Promptbook&apos;s human-readable language for defining AI agents. Its rules, its persona and what it
-                knows live in one <code className="text-promptbook-blue">.book</code> file, and ptbk coder compiles that
-                file into the system message of every coding prompt.
+                knows live in <code className="text-promptbook-blue">.book</code> files. ptbk coder resolves the selected
+                book&apos;s inheritance and imports into the system message of every coding prompt.
             </p>
 
             <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:items-start">
@@ -36,8 +36,25 @@ export function AgentsSection() {
                     <TerminalBlock command={AGENT_RUN_COMMAND} />
                     <p className="mt-6 text-gray-400">
                         <code className="text-promptbook-blue">ptbk coder init</code> creates this default developer
-                        agent at <code className="text-promptbook-blue">agents/developer.book</code>. Edit it like any
-                        other file in your repository to change how your agent codes.
+                        agent at <code className="text-promptbook-blue">agents/developer.book</code> and its shared
+                        ancestor at <code className="text-promptbook-blue">agents/.core/adam.book</code>. Edit these
+                        files to change how your agent codes.
+                    </p>
+                    <p className="mt-4 text-gray-400">
+                        Use <code className="text-promptbook-blue">FROM @Pavol</code> or{' '}
+                        <code className="text-promptbook-blue">{'FROM {Pavol}'}</code> to inherit from another book by
+                        its first-line name. Books are discovered recursively beneath the selected agent&apos;s folder.
+                        <code className="text-promptbook-blue"> IMPORT</code> and{' '}
+                        <code className="text-promptbook-blue">TEAM</code> use the same reference rules.
+                    </p>
+                    <p className="mt-4 text-gray-400">
+                        Paths starting with <code className="text-promptbook-blue">./</code> or{' '}
+                        <code className="text-promptbook-blue">../</code> are relative to the book declaring them;
+                        other paths are relative to your current directory. HTTP and HTTPS book URLs work too.
+                        Adam is inherited by default and created in the selected book&apos;s{' '}
+                        <code className="text-promptbook-blue">.core</code> folder when missing. Use{' '}
+                        <code className="text-promptbook-blue">FROM @null</code> or{' '}
+                        <code className="text-promptbook-blue">FROM @void</code> to inherit from nothing; braces work too.
                     </p>
                     <p className="mt-4 text-gray-400">
                         Route a ready task to that agent with a status line such as{' '}

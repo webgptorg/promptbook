@@ -3,6 +3,7 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { ADAM_AGENT_BOOK_RELATIVE_PATH } from '../common/ensureAdamAgentBook';
 import type { CoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
 import {
     addCoderGitSyncOptions,
@@ -22,7 +23,7 @@ import type { PromptRunnerHarnessName } from '../common/promptRunnerCliOptions';
 import { AGENTS_FILE_PATH } from './agentsFile';
 import { DEFAULT_BOILERPLATE_COUNT } from './boilerplateCount';
 import { getDefaultCoderProjectPromptTemplateDefinitions, PROMPTS_DIRECTORY_PATH } from './boilerplateTemplates';
-import { CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
+import { CODER_AGENTS_DIRECTORY_PATH, CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
 import { isDirectoryEmpty } from './ensureDirectory';
 import { formatDisplayPath } from './formatDisplayPath';
 import { generatePromptBoilerplate } from './generate-boilerplates';
@@ -61,6 +62,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 - prompts/done/
                 ${block(listDefaultCoderProjectPromptTemplateDisplayPaths())}
                 - ${CODER_DEVELOPER_AGENT_FILE_PATH}
+                - ${CODER_AGENTS_DIRECTORY_PATH}/${ADAM_AGENT_BOOK_RELATIVE_PATH}
                 - ${AGENTS_FILE_PATH}
                 - .gitignore with local artifacts from every supported harness
                 - package.json

@@ -1,7 +1,6 @@
 import { copyFile, stat } from 'fs/promises';
 import { join } from 'path';
-import { spaceTrim } from 'spacetrim';
-import { NotAllowed } from '../../../errors/NotAllowed';
+import { resolveBundledAgentBookPath } from '../common/resolveBundledAgentBookPath';
 import type { InitializationStatus } from './boilerplateTemplates';
 
 /**
@@ -36,33 +35,8 @@ export async function ensureCoderDeveloperAgentFile(projectPath: string): Promis
         return 'unchanged';
     }
 
-    await copyFile(await resolveDefaultCoderDeveloperAgentFilePath(), absoluteFilePath);
+    await copyFile(await resolveBundledAgentBookPath(DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH), absoluteFilePath);
     return 'created';
-}
-
-/**
- * Resolves the bundled developer agent from a source checkout or generated CLI package.
- */
-async function resolveDefaultCoderDeveloperAgentFilePath(): Promise<string> {
-    const candidates = [
-        join(__dirname, '..', DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH),
-        join(__dirname, '..', '..', '..', '..', DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH),
-    ];
-
-    for (const candidate of candidates) {
-        if (await isExistingFile(candidate)) {
-            return candidate;
-        }
-    }
-
-    throw new NotAllowed(
-        spaceTrim(`
-            Cannot find the bundled Promptbook developer agent.
-
-            Checked:
-            ${candidates.map((candidate) => `- \`${candidate}\``).join('\n')}
-        `),
-    );
 }
 
 /**

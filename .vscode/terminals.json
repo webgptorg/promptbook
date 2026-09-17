@@ -30,6 +30,13 @@
             "focus": false
         },
         {
+            "name": "🐙🧬 Test ptbk coder FROM, IMPORT and TEAM (💤)",
+            "command": "npm run test-unit -- --runInBand --runTestsByPath scripts/run-codex-prompts/common/resolveCoderAgent.references.test.ts apps/agents-server/src/utils/resolveInheritedAgentSource.test.ts src/cli/cli-commands/coder/boilerplateTemplates.test.ts",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🐙🚀 Run ptbk coder `gpt-5.5` Coding Agent (💤)(💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",

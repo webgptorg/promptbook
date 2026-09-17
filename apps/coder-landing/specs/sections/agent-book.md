@@ -5,7 +5,7 @@ Anchor `#agents`. Shows how a run is personalized with `--agent agents/developer
 ## Copy
 
 -   **Heading**: `Give your agent a soul, in plain text` ("soul" in Promptbook Green).
--   **Lead paragraph**: every run can carry an agent written in the **Book language** (link the words "Book language" to https://github.com/webgptorg/book), Promptbook's human-readable language for defining AI agents. Its rules, its persona and what it knows live in one `.book` file, and ptbk coder compiles that file into the system message of every coding prompt.
+-   **Lead paragraph**: every run can carry an agent written in the **Book language** (link the words "Book language" to https://github.com/webgptorg/book), Promptbook's human-readable language for defining AI agents. Its rules, its persona and what it knows live in `.book` files. ptbk coder resolves the selected book's inheritance and imports into the system message of every coding prompt.
 
 ## Layout
 
@@ -15,7 +15,7 @@ Two columns on desktop (stacked on mobile):
 
 1. Intro line: "Point **ptbk coder** at any agent file with `--agent`:"
 2. A [terminal block](../components/terminal-block.md) with the canonical `AGENT_RUN_COMMAND` (see [`../content/commands.md`](../content/commands.md)).
-3. Follow-up paragraph: `ptbk coder init` creates this default developer agent at `agents/developer.book`. Edit it like any other file in your repository to change how your agent codes.
+3. Follow-up paragraphs: `ptbk coder init` creates the developer agent at `agents/developer.book` and Adam at `agents/.core/adam.book`. `FROM`, `IMPORT` and `TEAM` resolve `@Name` and `{Name}` by first-line book titles discovered recursively under the selected agent's directory. Paths beginning with `./` or `../` are relative to the declaring book, other paths to cwd, and HTTP(S) book URLs are supported. Missing Adam is created in `.core` beside the selected agent and inherited by default; `FROM @null`, `FROM @void` and their brace forms disable inheritance.
 4. Prompt-routing paragraph: a ready task can target that agent with the status line ``[ ] use agent `developer` ``. The selected Book's path, filename, filename without `.book`, and title from its first line all work.
 5. Attribution paragraph: a finished task is signed by the agent, not only by the harness, as ``[x] by Developer on OpenAI Codex `gpt-5.6-luna` ``.
 

@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises';
 import { basename, extname, relative, resolve } from 'path';
 import { parseAgentSource } from '../../../src/book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
+import { resolveLocalAgentSource } from '../../../src/cli/cli-commands/common/resolveLocalAgentSource';
 import { NotFoundError } from '../../../src/errors/NotFoundError';
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { createAgentRunnerSystemMessage } from '../../run-agent-messages/messages/createAgentRunnerSystemMessage';
@@ -36,10 +37,15 @@ export type ResolvedCoderAgentBook = {
  * Agent data resolved from the optional `--agent` book file.
  */
 export type ResolvedCoderAgent = ResolvedCoderAgentBook & {
+    /** Source with inheritance and imports applied, also used for the coder's agent visual. */
+    readonly agentSource: string_book;
+
     /**
      * Compiled system message injected into each coding prompt.
      */
     readonly systemMessage: string;
+    /** Books created during resolution, committed according to the coder's normal commit setting. */
+    readonly createdAgentBookPaths: ReadonlyArray<string>;
 };
 
 /**
@@ -101,9 +107,18 @@ export async function resolveCoderAgent(
         return undefined;
     }
 
+    const resolvedSource = await resolveLocalAgentSource(
+        resolve(currentWorkingDirectory, agentBookReference!.trim()),
+        currentWorkingDirectory,
+    );
+
     return {
         ...resolvedAgentBook,
-        systemMessage: await createAgentRunnerSystemMessage(resolvedAgentBook.agentSource),
+        agentSource: resolvedSource.agentSource,
+        systemMessage: await createAgentRunnerSystemMessage(resolvedSource.agentSource, {
+            agentReferenceResolver: resolvedSource.agentReferenceResolver,
+        }),
+        createdAgentBookPaths: resolvedSource.createdAgentBookPaths,
     };
 }
 

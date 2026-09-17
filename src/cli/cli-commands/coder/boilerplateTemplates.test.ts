@@ -77,6 +77,10 @@ describe('coder boilerplate templates', () => {
 
         expect(summary.promptsTemplatesDirectoryStatus).toBe('created');
         expect(summary.agentsDirectoryStatus).toBe('created');
+        expect(summary.adamAgentFileStatus).toBe('created');
+        expect(await readFile(join(projectPath, 'agents/.core/adam.book'), 'utf-8')).toBe(
+            await readFile(join(process.cwd(), 'agents/default/.core/adam.book'), 'utf-8'),
+        );
         expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('created');
         expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('created');
         expect(summary.gitignoreFileStatus).toBe('created');
@@ -271,7 +275,11 @@ describe('coder boilerplate templates', () => {
         const projectPath = await createTemporaryDirectory(temporaryDirectories);
 
         await initializeCoderProjectConfiguration(projectPath);
+        await writeFile(join(projectPath, 'agents/.core/adam.book'), 'Adam\nFROM @Null\nRULE Custom foundation.\n');
         const repeatedSummary = await initializeCoderProjectConfiguration(projectPath);
+
+        expect(repeatedSummary.adamAgentFileStatus).toBe('unchanged');
+        expect(await readFile(join(projectPath, 'agents/.core/adam.book'), 'utf-8')).toContain('Custom foundation.');
 
         const envContent = await readFile(join(projectPath, '.env'), 'utf-8');
         expect(repeatedSummary.envFileStatus).toBe('unchanged');
