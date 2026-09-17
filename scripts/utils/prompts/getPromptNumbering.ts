@@ -1,5 +1,5 @@
-import glob from 'glob-promise';
 import { basename } from 'path';
+import { findFilesByGlob } from '../../../src/utils/files/findFilesByGlob';
 
 /**
  * Configuration for calculating the next prompt numbering sequence.
@@ -52,7 +52,7 @@ export async function getPromptNumbering(options: PromptNumberingOptions): Promi
 
     const step = options.step ?? 10;
 
-    const promptFiles = await glob('**/*.md', {
+    const promptFiles = await findFilesByGlob('**/*.md', {
         cwd: options.promptsDir,
         ignore: options.ignoreGlobs,
         nodir: true,

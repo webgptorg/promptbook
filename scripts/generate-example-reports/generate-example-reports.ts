@@ -7,10 +7,10 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename, join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { executionReportJsonToString } from '../../src/types/execution-report/executionReportJsonToString';
+import { findFilesByGlob } from '../../src/utils/files/findFilesByGlob';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
@@ -65,7 +65,9 @@ async function generateExampleJsons({ isCommited }: { isCommited: boolean }) {
         throw new Error(`Working tree is not clean`);
     }
 
-    for (const reportFilePath of await glob(join(PROMPTBOOK_EXAMPLES_DIR, '*.report.json').split('\\').join('/'))) {
+    for (const reportFilePath of await findFilesByGlob(
+        join(PROMPTBOOK_EXAMPLES_DIR, '*.report.json').split('\\').join('/'),
+    )) {
         console.info(`📖  Generating Markdown report from ${reportFilePath}`);
         const executionReport = JSON.parse(await readFile(reportFilePath, 'utf-8'));
         const executionReportString = executionReportJsonToString(executionReport);

@@ -1,7 +1,7 @@
 import colors from 'colors';
 import { readFile } from 'fs/promises';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { spaceTrim } from 'spacetrim';
+import { findFilesByGlob } from '../../src/utils/files/findFilesByGlob';
 import type { PackageMetadata } from './PackageMetadata';
 import { isNodeOnlyPackage } from './isNodeOnlyPackage';
 import { logPackageGenerationStep } from './logPackageGenerationStep';
@@ -56,7 +56,7 @@ export async function assertGeneratedBundlesArePublishSafe(
  */
 async function assertPackageBundleIsPublishSafe(packageMetadata: PackageMetadata): Promise<void> {
     const { packageBasename, packageFullname } = packageMetadata;
-    const bundleFileNames = await glob(`./packages/${packageBasename}/**/*`, { nodir: true });
+    const bundleFileNames = await findFilesByGlob(`./packages/${packageBasename}/**/*`, { nodir: true });
 
     for (const bundleFileName of bundleFileNames) {
         if (shouldSkipBundleContentCheck(bundleFileName)) {

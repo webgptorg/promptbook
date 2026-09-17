@@ -107,7 +107,7 @@ export default function () {
                 'leaflet/dist/leaflet.css',
                 'prompts',
                 'commander',
-                'glob-promise',
+                'glob',
                 'lorem-ipsum',
                 'markitdown-ts',
 

@@ -1,11 +1,11 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { readFile, writeFile } from 'fs';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import JSON5 from 'json5';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
 import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
+import { findFilesByGlob } from '../../../utils/files/findFilesByGlob';
 import type { AutomaticTranslator } from './automatic-translators/AutomaticTranslator';
 import type { TranslatorOptions } from './automatic-translators/TranslatorOptions';
 
@@ -19,7 +19,9 @@ export async function translateMessages({
     from,
     to,
 }: { automaticTranslator: AutomaticTranslator } & TranslatorOptions) {
-    for (const filename of await glob(join(__dirname, '../../translations/', from || 'en', '/**/*.json5'))) {
+    for (const filename of await findFilesByGlob(
+        join(__dirname, '../../translations/', from || 'en', '/**/*.json5'),
+    )) {
         //                       <- TODO: [😶]
         const fileData = JSON5.parse(await promisify(readFile)(filename, 'utf-8'));
 

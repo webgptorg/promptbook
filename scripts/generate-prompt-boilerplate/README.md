@@ -111,7 +111,7 @@ When using `--template agents-server` or another template whose filename is not 
     -   `EMOJIS_OF_SINGLE_PICTOGRAM` from `src/utils/emojis.ts`
     -   `difference` from `src/utils/sets/difference.ts`
     -   `$shuffleItems` from `src/utils/shuffleItems.ts`
--   External dependencies: `glob-promise`, `chalk`, `dotenv`
+-   External dependencies: `glob`, `chalk`, `dotenv`
 
 ## Integration
 

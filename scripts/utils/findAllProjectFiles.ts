@@ -1,5 +1,5 @@
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { join } from 'path';
+import { findFilesByGlob } from '../../src/utils/files/findFilesByGlob';
 
 /**
  * App source roots that can be imported by the main repository sources.
@@ -29,8 +29,8 @@ export async function findAllProjectFiles({
     includeScripts = false,
     isApplicationSourceIncluded = false,
 }: FindAllProjectFilesOptions = {}): Promise<ReadonlyArray<string>> {
-    const srcFiles = await glob(createProjectSourceGlob('src'));
-    const scriptFiles = includeScripts ? await glob(createProjectSourceGlob('scripts')) : [];
+    const srcFiles = await findFilesByGlob(createProjectSourceGlob('src'));
+    const scriptFiles = includeScripts ? await findFilesByGlob(createProjectSourceGlob('scripts')) : [];
     const appFiles = isApplicationSourceIncluded
         ? (await Promise.all(APP_SOURCE_ROOTS.map(findProjectSourceFiles))).flat()
         : [];
@@ -43,7 +43,7 @@ export async function findAllProjectFiles({
  * Finds TypeScript files under one repository-root relative source directory.
  */
 async function findProjectSourceFiles(relativeSourceRoot: string): Promise<ReadonlyArray<string>> {
-    return await glob(createProjectSourceGlob(relativeSourceRoot));
+    return await findFilesByGlob(createProjectSourceGlob(relativeSourceRoot));
 }
 
 /**

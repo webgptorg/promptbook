@@ -1,5 +1,5 @@
-import glob from 'glob-promise';
 import { relative, resolve } from 'path';
+import { findFilesByGlob } from '../../src/utils/files/findFilesByGlob';
 import { analyzeSourceFileForRefactorCandidate } from './analyzeSourceFileForRefactorCandidate';
 import {
     LINE_COUNT_EXEMPT_GLOBS,
@@ -78,7 +78,7 @@ async function listSourceFiles(
     const files = new Set<string>();
 
     for (const pattern of patterns) {
-        const matches = await glob(pattern, {
+        const matches = await findFilesByGlob(pattern, {
             cwd: rootDir,
             ignore: SOURCE_FILE_IGNORE_GLOBS,
             nodir: true,
@@ -109,7 +109,7 @@ async function buildExemptPathSet(
     const exemptPaths = new Set<string>();
 
     for (const pattern of patterns) {
-        const matches = await glob(pattern, {
+        const matches = await findFilesByGlob(pattern, {
             cwd: rootDir,
             ignore: SOURCE_FILE_IGNORE_GLOBS,
             nodir: true,

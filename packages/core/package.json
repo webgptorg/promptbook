@@ -95,7 +95,6 @@
         "@openai/agents": "0.4.15",
         "bottleneck": "2.19.5",
         "colors": "1.4.0",
-        "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "jsdom": "25.0.1",
         "moment": "2.30.1",

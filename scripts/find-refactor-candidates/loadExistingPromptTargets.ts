@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
-import glob from 'glob-promise';
 import { join } from 'path';
+import { findFilesByGlob } from '../../src/utils/files/findFilesByGlob';
 import { PROMPT_TARGET_LABEL } from './find-refactor-candidates.constants';
 import { normalizeRefactorCandidatePath } from './normalizeRefactorCandidatePath';
 
@@ -15,7 +15,7 @@ export async function loadExistingPromptTargets(promptsDir: string): Promise<Set
         return new Set();
     }
 
-    const promptFiles = await glob('**/*.md', {
+    const promptFiles = await findFilesByGlob('**/*.md', {
         cwd: promptsDir,
         nodir: true,
     });

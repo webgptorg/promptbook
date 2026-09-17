@@ -7,7 +7,6 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename, dirname, join } from 'path';
 import { compilePipeline } from '../../src/conversion/compilePipeline';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
@@ -22,6 +21,7 @@ import { validatePipelineString } from '../../src/pipeline/validatePipelineStrin
 import { PrepareAndScrapeOptions } from '../../src/prepare/PrepareAndScrapeOptions';
 import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../src/scrapers/_common/register/$provideScrapersForNode';
+import { findFilesByGlob } from '../../src/utils/files/findFilesByGlob';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
@@ -92,7 +92,9 @@ async function generateExampleBookc({
     //                 <- Note: for example here we don`t want the [🌯]
     const executables = await $provideExecutablesForNode();
 
-    const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_EXAMPLES_DIR, '*.book').split('\\').join('/'));
+    const pipelineMarkdownFilePaths = await findFilesByGlob(
+        join(PROMPTBOOK_EXAMPLES_DIR, '*.book').split('\\').join('/'),
+    );
 
     /*/
     // Note: Keep for testing:
