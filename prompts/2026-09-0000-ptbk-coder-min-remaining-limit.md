@@ -15,7 +15,7 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 ```
 
 -   @@@@@@@@
-- The `--min-remaining-5h-limit` and `--min-remaining-1w-limit` flags have priority over the `--min-remaining-limit` flag.
+-   The `--min-remaining-5h-limit` and `--min-remaining-1w-limit` flags have priority over the `--min-remaining-limit` flag.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
