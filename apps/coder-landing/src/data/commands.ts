@@ -1,3 +1,5 @@
+import { HARNESS_DEFAULT_MODELS } from '@promptbook-source/cli/cli-commands/common/harness/HARNESS_DEFAULT_MODELS';
+
 /**
  * Canonical shell commands shown on the landing page.
  *
@@ -48,13 +50,12 @@ export const GENERATE_BOILERPLATES_COMMAND = 'ptbk coder generate-boilerplates -
 /**
  * Command which runs prompts through a selected harness and model.
  */
-export const MODEL_FILTER_COMMAND = 'ptbk coder run --harness github-copilot --model gpt-5.5';
+export const MODEL_FILTER_COMMAND = `ptbk coder run --harness github-copilot --model ${HARNESS_DEFAULT_MODELS['github-copilot']}`;
 
 /**
  * Command which runs prompts through a selected Book agent.
  */
-export const AGENT_FILTER_COMMAND =
-    'ptbk coder run --harness github-copilot --model gpt-5.5 --agent agents/developer.book';
+export const AGENT_FILTER_COMMAND = `${MODEL_FILTER_COMMAND} --agent agents/developer.book`;
 
 /**
  * Command which runs the existing tests before coding and lets one repair prompt fix pre-existing failures.
@@ -74,7 +75,7 @@ export const DRY_RUN_COMMAND = 'ptbk coder run --dry-run';
 /**
  * Command which checks the connection, response time and quota of one harness and model.
  */
-export const PING_COMMAND = 'ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh';
+export const PING_COMMAND = `ptbk coder ping --harness openai-codex --model ${HARNESS_DEFAULT_MODELS['openai-codex']} --thinking-level xhigh`;
 
 /**
  * Command which keeps pinging one harness and model every 5 hours to keep its quota window refreshing.
@@ -86,20 +87,17 @@ export const PING_PERIOD_COMMAND =
  * Full-featured command which starts the coder server with kanban UI, agent persona,
  * project context and post-prompt test verification.
  */
-export const SERVER_COMMAND =
-    'ptbk coder server --harness claude-code --model fable --thinking-level max --agent agents/developer.book --context AGENTS.md --test npm run test';
+export const SERVER_COMMAND = `ptbk coder server --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level max --agent agents/developer.book --context AGENTS.md --test npm run test`;
 
 /**
  * Full-featured command shown in the hero live terminal sample.
  */
-export const LIVE_DEMO_RUN_COMMAND =
-    'ptbk coder run --harness claude-code --model fable --thinking-level xhigh --agent agents/developer.book --context AGENTS.md --test "npm run test-for-ptbk-coder" --wait-between-prompts 4h --limit 1';
+export const LIVE_DEMO_RUN_COMMAND = `ptbk coder run --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level xhigh --agent agents/developer.book --context AGENTS.md --test "npm run test-for-ptbk-coder" --wait-between-prompts 4h --limit 1`;
 
 /**
  * Command which runs the queue with the developer agent persona from a `.book` file.
  */
-export const AGENT_RUN_COMMAND =
-    'ptbk coder run --harness claude-code --model fable --agent agents/developer.book --context AGENTS.md';
+export const AGENT_RUN_COMMAND = `ptbk coder run --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --agent agents/developer.book --context AGENTS.md`;
 
 /**
  * Command which interactively verifies completed prompts, newest first, and archives them to `prompts/done/`.

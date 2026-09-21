@@ -8,16 +8,16 @@
 
 ```bash
 # External usage (when promptbook is installed globally)
-ptbk coder run --harness openai-codex --model gpt-5.2-codex
+ptbk coder run --harness openai-codex --model gpt-6-astra
 
 # Internal usage (within Promptbook repository)
-npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-5.2-codex
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-6-astra
 ```
 
 ### Direct execution (legacy):
 
 ```bash
-npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-codex --model gpt-5.2-codex
+npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-codex --model gpt-6-astra
 ```
 
 ### Available options:
@@ -25,7 +25,7 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 ```bash
 --dry-run                     # Print unwritten prompts without executing
 --harness <harness-name>        # Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)
---model <model>               # Model to use (required for openai-codex and gemini, optional for github-copilot and opencode)
+--model <model>               # Model override (optional; each harness defaults to its current flagship)
 --context <context-or-file>   # Append extra instructions inline or load them from a file in the current project
 --test <test-command...>       # Run a verification command after each prompt and feed failures back for retries
 --test-before <mode>           # no (default), yes-and-fail, or yes-and-fix; enabled modes default to npm test
@@ -46,6 +46,11 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --git-changes <mode>          # Dirty working tree: fail (default), ignore the changes, or continue the interrupted [^] prompt
 --no-normalize-line-endings   # Disable per-round CRLF -> LF normalization for changed files
 ```
+
+Omit `--model` to use the current flagship from the shared harness defaults. `PTBK_MODEL` or an explicit
+`--model` overrides that selection. `--model default` keeps the native configuration for Codex, Copilot,
+Claude Code and OpenCode; Gemini, Qwen Code and Cline resolve it to their current flagship. Newly initialized
+`coder:run` scripts omit `--model` so future Promptbook updates also update their default model.
 
 For `--harness openai-codex`, credits are opt-in. If Codex reports that credits are required and `--allow-credits` is not set, the runner fails fast with a rerun hint.
 
@@ -77,43 +82,43 @@ Whenever `S  Skip current waiting` is offered, the wait really ends on that key 
 ptbk coder run --dry-run
 
 # Run with OpenAI Codex
-ptbk coder run --harness openai-codex --model gpt-5.2-codex
+ptbk coder run --harness openai-codex --model gpt-6-astra
 
 # Run with project instructions loaded from AGENTS.md
-ptbk coder run --harness openai-codex --model gpt-5.2-codex --agent agents/coding/developer.book --context AGENTS.md
+ptbk coder run --harness openai-codex --model gpt-6-astra --agent agents/coding/developer.book --context AGENTS.md
 
 # Run with one-off inline instructions
-ptbk coder run --harness openai-codex --model gpt-5.2-codex --context "Focus only on src/cli"
+ptbk coder run --harness openai-codex --model gpt-6-astra --context "Focus only on src/cli"
 
 # Run with OpenAI Codex and explicitly allow credit spending
-ptbk coder run --harness openai-codex --model gpt-5.2-codex --allow-credits
+ptbk coder run --harness openai-codex --model gpt-6-astra --allow-credits
 
 # Run with explicit post-commit git pushing
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
 
 # Run with GitHub Copilot
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh
 
 # Run tests before coding and let one repair prompt fix pre-existing failures
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --test-before yes-and-fix
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --test-before yes-and-fix
 
 # Run with plain streaming output for logging/debugging
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --no-ui
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --no-ui
 
 # Run with Gemini
-ptbk coder run --harness gemini --model gemini-3-flash-preview
+ptbk coder run --harness gemini --model gemini-3.8-flash
 
 # Run with Claude Code
 ptbk coder run --harness claude-code
 
 # Run with priority range filter
-ptbk coder run --harness openai-codex --model gpt-5.2-codex --min-priority 1 --max-priority 5
+ptbk coder run --harness openai-codex --model gpt-6-astra --min-priority 1 --max-priority 5
 
 # Run with automatic testing-server migrations after each prompt
-ptbk coder run --harness openai-codex --model gpt-5.2-codex --auto-migrate
+ptbk coder run --harness openai-codex --model gpt-6-astra --auto-migrate
 
 # Run each prompt in its own isolated git worktree
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --isolate
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --isolate
 
 # Start the next prompt even though the working tree still has uncommitted changes
 ptbk coder run --harness claude-code --git-changes ignore

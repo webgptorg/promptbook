@@ -1,3 +1,4 @@
+import { HARNESS_DEFAULT_MODELS } from '@promptbook-source/cli/cli-commands/common/harness/HARNESS_DEFAULT_MODELS';
 import { TERMINAL_AGENT_AVATAR_VISUAL_ROWS } from '@promptbook-source/utils/agents/terminalAgentAvatarVisual';
 import { LIVE_DEMO_RUN_COMMAND } from './commands';
 
@@ -237,7 +238,7 @@ export function createLiveDemoScript(terminalColumnCount: number): ReadonlyArray
             buildLabeledLine('Runner', [
                 createTextPart('claude-code', 'plain'),
                 createTextPart('  ·  ', 'muted'),
-                createTextPart('fable', 'plain'),
+                createTextPart(HARNESS_DEFAULT_MODELS['claude-code'], 'plain'),
                 createTextPart('  ·  ', 'muted'),
                 createTextPart('thinking xhigh', 'plain'),
             ]),

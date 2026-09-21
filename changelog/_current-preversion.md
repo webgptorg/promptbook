@@ -1,3 +1,12 @@
+-   `ptbk coder` now selects the current flagship automatically when `--model` and `PTBK_MODEL` are omitted:
+    `gpt-6-astra` for Codex and Copilot, `fable` for Claude Code, `gemini-3.8-flash` for Gemini and the Google-backed
+    Cline adapter, `qwen3.8-max` for Qwen Code, and `openai/gpt-6-astra` for OpenCode. The shared defaults cover
+    `run`, `server`, `ping` and other harness-backed commands, and are also used by the coder landing page and CLI
+    help. Explicit model choices remain supported, including Cline overrides which were previously ignored.
+    `--model default` preserves native configuration for Codex, Copilot, Claude Code and OpenCode; Gemini, Qwen
+    and Cline resolve it to their flagship. New `coder init` scripts omit the model pin so future Promptbook
+    updates also update their default. Refreshed landing-page examples, development terminals and runner docs.
+
 -   Made the subscription usage shown by `ptbk coder run` live. The **Usage** rows of the terminal dashboard used to be
     read once before the queue started and then once more after each finished prompt, so for the whole round — which can
     easily be hours — they described a moment that had already passed. They are now re-read every 5 seconds by one shared

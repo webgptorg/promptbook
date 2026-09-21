@@ -56,7 +56,9 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
                 supported harness to <code className="text-promptbook-blue">.gitignore</code>. Nothing you already own
                 is ever overwritten: existing <code className="text-promptbook-blue">package.json</code> scripts and{' '}
                 <code className="text-promptbook-blue">.vscode/settings.json</code> settings are kept as they are, and
-                the files a script points at are created only together with that script. Run it again any time.
+                the files a script points at are created only together with that script. The new{' '}
+                <code className="text-promptbook-blue">coder:run</code> script uses the current Codex flagship without
+                pinning a model version. Run it again any time.
             </>
         ),
         command: INIT_COMMAND,
@@ -79,9 +81,10 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         title: 'Run the queue',
         description: (
             <>
-                Pick a harness and let it work. It implements one prompt, verifies it, commits it, then starts the next
-                one. Run <code className="text-promptbook-blue">{LIST_COMMAND}</code> first if you only want to see the
-                ready queue grouped by priority.
+                Pick a harness and it selects the current flagship model automatically. It implements one prompt,
+                verifies it, commits it, then starts the next one. Run{' '}
+                <code className="text-promptbook-blue">{LIST_COMMAND}</code> first if you only want to see the ready
+                queue grouped by priority.
             </>
         ),
         command: RUN_COMMAND,

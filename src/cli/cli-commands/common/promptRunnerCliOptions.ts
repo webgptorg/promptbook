@@ -14,6 +14,7 @@ import type { GitChangesMode } from '../coder/GitChangesMode';
 import { DEFAULT_GIT_CHANGES_MODE, GIT_CHANGES_MODE_VALUES } from '../coder/GitChangesMode';
 import type { ThinkingLevel } from '../coder/ThinkingLevel';
 import { THINKING_LEVEL_VALUES } from '../coder/ThinkingLevel';
+import { HARNESS_DEFAULT_MODELS } from './harness/HARNESS_DEFAULT_MODELS';
 
 export { PTBK_HARNESS_ENV, PTBK_MODEL_ENV, PTBK_THINKING_LEVEL_ENV };
 
@@ -94,13 +95,15 @@ export type NormalizedPromptRunnerSelectionCliOptions = Pick<
  */
 export const PROMPT_RUNNER_DESCRIPTION = spaceTrim(`
     Runners:
-    - openai-codex: OpenAI Codex integration (requires --model when executing)
+    - openai-codex: OpenAI Codex integration
     - github-copilot: GitHub Copilot CLI integration
     - cline: Cline CLI integration
     - claude-code: Claude Code integration
     - opencode: Opencode integration
-    - gemini: Google Gemini CLI integration (requires --model when executing)
-    - qwen-code: Qwen Code CLI integration (requires --model when executing)
+    - gemini: Google Gemini CLI integration
+    - qwen-code: Qwen Code CLI integration
+
+    Each harness automatically uses its current flagship model unless --model or PTBK_MODEL overrides it.
 `);
 
 /**
@@ -124,15 +127,20 @@ export const PROMPT_RUNNER_HARNESS_OPTION_HINT = `--harness <${PROMPT_RUNNER_HAR
  *
  * @private internal utility of `promptbookCli`
  */
-export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(`
-    Model to use or filter by (required when executing with openai-codex, gemini and qwen-code)
+export const PROMPT_RUNNER_MODEL_OPTION_DESCRIPTION = spaceTrim(
+    (block) => `
+    Model to use or filter by (optional; execution defaults to the current flagship of the selected harness)
 
-    OpenAI examples: gpt-5.2-codex, default
-    Gemini examples: gemini-3-flash-preview, default
-    Qwen examples: qwen3.8-max, default
+    ${block(
+        Object.entries(HARNESS_DEFAULT_MODELS)
+            .map(([harnessName, modelName]) => `${harnessName}: ${modelName}`)
+            .join('\n'),
+    )}
 
-    For openai-codex, "default" overrides no model at all and keeps the one configured in Codex itself, which is what a ChatGPT-account login accepts
-`);
+    "default" keeps the model configured in Codex, Copilot, Claude Code or OpenCode itself.
+    For Gemini, Qwen Code and Cline, "default" selects the flagship above.
+`,
+);
 
 /**
  * Commander description for the `--git-changes` option.

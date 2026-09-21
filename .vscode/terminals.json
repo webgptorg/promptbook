@@ -37,11 +37,11 @@
             "focus": false
         },
         {
-            "name": "🐙🚀 Run ptbk coder `gpt-5.5` Coding Agent (💤)(💸)(⏳)",
+            "name": "🐙🚀 Run ptbk coder `gpt-6-astra` Coding Agent (repair tests) (💤)(💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness openai-codex --model gpt-5.5 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix --auto-pull --auto-push"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness openai-codex --model gpt-6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fix --auto-pull --auto-push"
             ],
             "execute": false,
             "onlySingle": false,
@@ -110,7 +110,7 @@
             "focus": false
         },
         {
-            "name": "🐙🚀 Run ptbk coder `claude-fable` Coding Agent (💤)(💸)(⏳)",
+            "name": "🐙🚀 Run ptbk coder `fable` Coding Agent (💤)(💸)(⏳)",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --min-priority 3 --test-before yes-and-fix  --auto-pull --auto-push",
             "execute": false,
             "onlySingle": false,
@@ -143,29 +143,29 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model deepseek-v4-pro-0813 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model deepseek-v4-pro --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
             ],
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🐙🚀 Run ptbk coder `deepseek-v4-flash` Coding Agent (💤)(💸)(⏳)",
+            "name": "🐙🚀 Run ptbk coder `deepseek-v4.1-flash` Coding Agent (💤)(💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model deepseek-v4-flash-0731 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model deepseek-v4.1-flash --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
             ],
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🐙🚀 Run ptbk coder `glm-5.2` Coding Agent (💤)(💸)(⏳)",
+            "name": "🐙🚀 Run ptbk coder `glm-5.3` Coding Agent (💤)(💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model glm-5.2 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model glm-5.3 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --test npm run test-for-ptbk-coder --test-before yes-and-fail  --auto-pull --auto-push"
             ],
             "execute": false,
             "onlySingle": false,
@@ -266,7 +266,7 @@
             "name": "✨👨‍💻 Run ptbk agents-server dev",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts agents-server dev --harness github-copilot --model gpt-5.4 --thinking-level max --port 4440"
+                "npx ts-node ./src/cli/test/ptbk.ts agents-server dev --harness github-copilot --model gpt-6-astra --thinking-level max --port 4440"
             ],
             "execute": true,
             "onlySingle": false,
@@ -276,7 +276,7 @@
             "name": "✨👨‍💻 Run ptbk agents-server start",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts agents-server dev --harness github-copilot --model gpt-5.4 --thinking-level max --port 4440"
+                "npx ts-node ./src/cli/test/ptbk.ts agents-server dev --harness github-copilot --model gpt-6-astra --thinking-level max --port 4440"
             ],
             "execute": true,
             "onlySingle": true,

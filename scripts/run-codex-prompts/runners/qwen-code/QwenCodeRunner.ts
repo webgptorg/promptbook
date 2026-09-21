@@ -1,3 +1,4 @@
+import { HARNESS_DEFAULT_MODELS } from '../../../../src/cli/cli-commands/common/harness/HARNESS_DEFAULT_MODELS';
 import { $runGoScriptWithOutput } from '../../common/runGoScript/$runGoScriptWithOutput';
 import type { PromptRunner } from '../types/PromptRunner';
 import type { PromptRunOptions } from '../types/PromptRunOptions';
@@ -9,7 +10,7 @@ import type { QwenCodeRunnerOptions } from './QwenCodeRunnerOptions';
 /**
  * Default Qwen Code model used by the coding runner.
  */
-export const DEFAULT_QWEN_CODE_MODEL = 'qwen3.8-max';
+export const DEFAULT_QWEN_CODE_MODEL = HARNESS_DEFAULT_MODELS['qwen-code'];
 
 /**
  * Runs prompts via the Qwen Code CLI.

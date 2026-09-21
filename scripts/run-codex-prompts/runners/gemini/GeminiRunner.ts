@@ -1,3 +1,4 @@
+import { HARNESS_DEFAULT_MODELS } from '../../../../src/cli/cli-commands/common/harness/HARNESS_DEFAULT_MODELS';
 import { $runGoScriptWithOutput } from '../../common/runGoScript/$runGoScriptWithOutput';
 import type { PromptRunner } from '../types/PromptRunner';
 import type { PromptRunOptions } from '../types/PromptRunOptions';
@@ -9,7 +10,7 @@ import { parseGeminiUsageFromOutput } from './parseGeminiUsageFromOutput';
 /**
  * Default Gemini model used by the coding runner.
  */
-export const DEFAULT_GEMINI_MODEL = 'gemini-3.1-pro-preview';
+export const DEFAULT_GEMINI_MODEL = HARNESS_DEFAULT_MODELS.gemini;
 
 /**
  * Runs prompts via the Gemini CLI.

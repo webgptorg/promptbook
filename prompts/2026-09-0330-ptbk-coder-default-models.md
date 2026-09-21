@@ -1,4 +1,4 @@
-[ ]
+[x] by Promptbook Developer on OpenAI Codex `gpt-6-astra` thinking `max` (ChatGPT account) - Implementation ~$0.5253 18 minutes; Testing 2 minutes
 
 [✨🦖] Automatically use the newest model of each harness.
 
@@ -13,3 +13,4 @@
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   You are working with the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -52,7 +52,7 @@ const DEFAULT_CODER_PACKAGE_JSON_SCRIPT_DEFINITIONS: ReadonlyArray<CoderPackageJ
     {
         scriptName: 'coder:run',
         scriptCommand: [
-            'npx ptbk coder run --harness openai-codex --model gpt-5.6-terra --thinking-level max',
+            'npx ptbk coder run --harness openai-codex --thinking-level max',
             `--agent ${formatDisplayPath(CODER_DEVELOPER_AGENT_FILE_PATH)}`,
             `--context ${formatDisplayPath(AGENTS_FILE_PATH)}`,
             `--test "npm run ${CODER_TEST_SCRIPT_NAME}" --test-before yes-and-fix`,

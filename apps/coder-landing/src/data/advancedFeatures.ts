@@ -1,3 +1,5 @@
+import { HARNESS_DEFAULT_MODELS } from '@promptbook-source/cli/cli-commands/common/harness/HARNESS_DEFAULT_MODELS';
+
 import {
     AGENT_FILTER_COMMAND,
     GENERATE_BOILERPLATES_COMMAND,
@@ -86,8 +88,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     },
     {
         title: 'Model-specific prompts',
-        description:
-            'Route a prompt to a model family or harness with a backtick token on its [ ] status line, such as [ ] use model `gpt-5.5`. Other runners skip it.',
+        description: `Route a prompt to a model family or harness with a backtick token on its [ ] status line, such as [ ] use model \`${HARNESS_DEFAULT_MODELS['github-copilot']}\`. Other runners skip it.`,
         sampleCommand: MODEL_FILTER_COMMAND,
     },
     {

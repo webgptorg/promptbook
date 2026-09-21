@@ -17,10 +17,10 @@ export function HarnessesSection() {
                 </h2>
                 <p className="mt-4 max-w-3xl text-lg text-gray-300">
                     ptbk coder does not replace your coding agent. It drives it. Pick a harness with{' '}
-                    <code className="text-promptbook-blue">--harness</code>, add a{' '}
-                    <code className="text-promptbook-blue">--model</code> if you want one, and for the harnesses that
-                    support it a <code className="text-promptbook-blue">--thinking-level</code> (
-                    {THINKING_LEVELS.join(', ')}).
+                    <code className="text-promptbook-blue">--harness</code> and it automatically selects the current
+                    flagship model. Override it with <code className="text-promptbook-blue">--model</code> or{' '}
+                    <code className="text-promptbook-blue">PTBK_MODEL</code>, and for the harnesses that support it set{' '}
+                    <code className="text-promptbook-blue">--thinking-level</code> ({THINKING_LEVELS.join(', ')}).
                 </p>
 
                 <div className="mt-12 grid gap-6 md:grid-cols-2">
@@ -45,9 +45,13 @@ export function HarnessesSection() {
                             <p className="mt-4 flex-1 text-gray-400">{harness.description}</p>
 
                             <p className="mt-4 text-sm text-gray-500">
+                                Default: <code className="break-all text-promptbook-blue">{harness.defaultModel}</code>
+                            </p>
+
+                            <p className="mt-2 text-sm text-gray-500">
                                 {harness.modelExamples.length > 0 ? (
                                     <>
-                                        Models{harness.isModelRequired ? ' (required)' : ''}:{' '}
+                                        Models:{' '}
                                         {harness.modelExamples.map((modelExample, modelExampleIndex) => (
                                             <span key={modelExample}>
                                                 {modelExampleIndex > 0 && ', '}

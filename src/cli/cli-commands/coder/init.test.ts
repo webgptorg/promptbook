@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { mkdtemp, mkdir, readdir, rm, writeFile } from 'fs/promises';
+import { mkdtemp, mkdir, readdir, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { DEFAULT_BOILERPLATE_COUNT } from './boilerplateCount';
@@ -72,6 +72,16 @@ describe('$initializeCoderInitCommand', () => {
         await runCoderInitCommand(temporaryProjectDirectory);
 
         expect(await listPromptFileNames(temporaryProjectDirectory)).toHaveLength(DEFAULT_BOILERPLATE_COUNT.filesCount);
+    });
+
+    it('creates a run script which follows the current Codex default instead of pinning a model', async () => {
+        await runCoderInitCommand(temporaryProjectDirectory);
+
+        const packageJson = JSON.parse(await readFile(join(temporaryProjectDirectory, 'package.json'), 'utf-8'));
+        const runCommand = packageJson.scripts['coder:run'];
+
+        expect(runCommand).toContain('npx ptbk coder run --harness openai-codex');
+        expect(runCommand).not.toContain('--model');
     });
 
     it('generates boilerplate prompts for an existing empty prompt queue', async () => {

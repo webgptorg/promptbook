@@ -1,39 +1,23 @@
 import colors from 'colors';
 import { getHarnessDefinition } from '../../../src/cli/cli-commands/common/harness/HarnessDefinition';
+import { HARNESS_DEFAULT_MODELS } from '../../../src/cli/cli-commands/common/harness/HARNESS_DEFAULT_MODELS';
 import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
-import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import type { RunOptions } from '../cli/RunOptions';
 import type { PromptRunnerMetadata } from '../common/PromptRunnerMetadata';
 import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
 import { createAuthenticationAwarePromptRunner } from '../runners/common/createAuthenticationAwarePromptRunner';
 import { ClineRunner } from '../runners/cline/ClineRunner';
-import { DEFAULT_GEMINI_MODEL, GeminiRunner } from '../runners/gemini/GeminiRunner';
+import { GeminiRunner } from '../runners/gemini/GeminiRunner';
 import { GitHubCopilotRunner } from '../runners/github-copilot/GitHubCopilotRunner';
 import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
-import { DEFAULT_QWEN_CODE_MODEL, QwenCodeRunner } from '../runners/qwen-code/QwenCodeRunner';
+import { QwenCodeRunner } from '../runners/qwen-code/QwenCodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 
 /**
  * Value of `--model` which asks for the default model of the selected harness instead of naming one.
  */
 const DEFAULT_MODEL_NAME = 'default';
-
-/**
- * Constant for cline model.
- */
-const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
-
-/**
- * Harnesses which refuse to run without an explicit `--model`, because they expose many models
- * of very different capability and price and never pick a sensible one on their own.
- */
-const MODEL_REQUIRING_HARNESS_NAMES = ['openai-codex', 'gemini', 'qwen-code'] as const;
-
-/**
- * Harness which refuses to run without an explicit `--model`.
- */
-type ModelRequiringHarnessName = (typeof MODEL_REQUIRING_HARNESS_NAMES)[number];
 
 /**
  * Subset of `RunOptions` which decides which prompt runner is created and how it is labeled.
@@ -88,17 +72,21 @@ function resolveHarnessPromptRunner(
     agentName: PromptRunnerHarnessName,
     options: PromptRunnerSelectionOptions,
 ): PromptRunnerResolution {
+    const actualRunnerModel = resolveRunnerModel(agentName, options.model);
+
     if (agentName === 'openai-codex') {
-        return createOpenAiCodexRunnerResolution(options);
+        return createOpenAiCodexRunnerResolution(options, actualRunnerModel);
     }
 
     if (agentName === 'cline') {
-        return createRunnerResolution(options, new ClineRunner({ model: CLINE_MODEL }));
+        return createRunnerResolution(
+            options,
+            new ClineRunner({ model: actualRunnerModel ?? HARNESS_DEFAULT_MODELS.cline }),
+            actualRunnerModel,
+        );
     }
 
     if (agentName === 'github-copilot') {
-        const actualRunnerModel = options.model === DEFAULT_MODEL_NAME ? undefined : options.model;
-
         return createRunnerResolution(
             options,
             new GitHubCopilotRunner({
@@ -113,10 +101,10 @@ function resolveHarnessPromptRunner(
         return createRunnerResolution(
             options,
             new ClaudeCodeRunner({
-                model: options.model,
+                model: actualRunnerModel,
                 thinkingLevel: options.thinkingLevel,
             }),
-            options.model,
+            actualRunnerModel,
         );
     }
 
@@ -124,36 +112,38 @@ function resolveHarnessPromptRunner(
         return createRunnerResolution(
             options,
             new OpencodeRunner({
-                model: options.model,
+                model: actualRunnerModel,
             }),
-            options.model,
+            actualRunnerModel,
         );
     }
 
     if (agentName === 'gemini') {
-        return createGeminiRunnerResolution(options);
+        return createRunnerResolution(
+            options,
+            new GeminiRunner({ model: actualRunnerModel ?? HARNESS_DEFAULT_MODELS.gemini }),
+            actualRunnerModel,
+        );
     }
 
     if (agentName === 'qwen-code') {
-        return createQwenCodeRunnerResolution(options);
+        return createRunnerResolution(
+            options,
+            new QwenCodeRunner({ model: actualRunnerModel ?? HARNESS_DEFAULT_MODELS['qwen-code'] }),
+            actualRunnerModel,
+        );
     }
 
     throw new Error(`Unknown harness: ${agentName}`);
 }
 
 /**
- * Builds the OpenAI Codex runner resolution, including required-model validation.
+ * Builds the OpenAI Codex runner resolution with its credit-spending policy.
  */
-function createOpenAiCodexRunnerResolution(options: PromptRunnerSelectionOptions): PromptRunnerResolution {
-    const actualRunnerModel = resolveRequiredModel({
-        agentName: 'openai-codex',
-        providedModel: options.model,
-        // Note: Codex must not be pinned to any model of ours, because a ChatGPT-account login only accepts the
-        //       models which Codex itself offers — `default` therefore keeps the model from `~/.codex/config.toml`
-        defaultModel: undefined,
-        availableModels: OPENAI_MODELS.filter((model) => model.modelVariant === 'CHAT').map((model) => model.modelName),
-        exampleUsages: ['--harness openai-codex --model gpt-5.2-codex', '--harness openai-codex --model default'],
-    });
+function createOpenAiCodexRunnerResolution(
+    options: PromptRunnerSelectionOptions,
+    actualRunnerModel: string | undefined,
+): PromptRunnerResolution {
     const runner = new OpenAiCodexRunner({
         codexCommand: 'codex',
         model: actualRunnerModel,
@@ -174,49 +164,6 @@ function createOpenAiCodexRunnerResolution(options: PromptRunnerSelectionOptions
 }
 
 /**
- * Builds the Gemini CLI runner resolution, including required-model validation.
- */
-function createGeminiRunnerResolution(options: PromptRunnerSelectionOptions): PromptRunnerResolution {
-    const actualRunnerModel = resolveRequiredModel({
-        agentName: 'gemini',
-        providedModel: options.model,
-        defaultModel: DEFAULT_GEMINI_MODEL,
-        exampleUsages: [`--harness gemini --model ${DEFAULT_GEMINI_MODEL}`, '--harness gemini --model default'],
-    });
-
-    return createRunnerResolution(
-        options,
-        new GeminiRunner({
-            model: actualRunnerModel,
-        }),
-        actualRunnerModel,
-    );
-}
-
-/**
- * Builds the Qwen Code CLI runner resolution, including required-model validation.
- */
-function createQwenCodeRunnerResolution(options: PromptRunnerSelectionOptions): PromptRunnerResolution {
-    const actualRunnerModel = resolveRequiredModel({
-        agentName: 'qwen-code',
-        providedModel: options.model,
-        defaultModel: DEFAULT_QWEN_CODE_MODEL,
-        exampleUsages: [
-            `--harness qwen-code --model ${DEFAULT_QWEN_CODE_MODEL}`,
-            '--harness qwen-code --model default',
-        ],
-    });
-
-    return createRunnerResolution(
-        options,
-        new QwenCodeRunner({
-            model: actualRunnerModel,
-        }),
-        actualRunnerModel,
-    );
-}
-
-/**
  * Combines the instantiated runner with prompt status metadata.
  */
 function createRunnerResolution(
@@ -227,85 +174,27 @@ function createRunnerResolution(
     return {
         runner,
         actualRunnerModel,
-        runnerMetadata: getRunnerMetadata(options, actualRunnerModel),
+        runnerMetadata: {
+            runnerName: options.agentName ? getHarnessDefinition(options.agentName).label : 'unknown',
+            modelName: actualRunnerModel,
+        },
     };
 }
 
 /**
- * Resolves runner metadata for prompt status lines.
- */
-function getRunnerMetadata(options: PromptRunnerSelectionOptions, actualRunnerModel?: string): PromptRunnerMetadata {
-    const runnerName = options.agentName ? getHarnessDefinition(options.agentName).label : 'unknown';
-
-    if (options.agentName === 'github-copilot' || isModelRequiringHarnessName(options.agentName)) {
-        return { runnerName, modelName: actualRunnerModel };
-    }
-
-    if (options.agentName === 'cline') {
-        return { runnerName, modelName: CLINE_MODEL };
-    }
-
-    if (options.agentName === 'opencode' || options.agentName === 'claude-code') {
-        return { runnerName, modelName: options.model };
-    }
-
-    return { runnerName };
-}
-
-/**
- * Checks whether one harness refuses to run without an explicit `--model`.
- */
-function isModelRequiringHarnessName(agentName?: string): agentName is ModelRequiringHarnessName {
-    return MODEL_REQUIRING_HARNESS_NAMES.includes(agentName as ModelRequiringHarnessName);
-}
-
-/**
- * Resolves a runner model, allowing `default` but otherwise requiring an explicit value.
+ * Uses the current flagship when no model is selected, while preserving explicit overrides.
  *
- * The `defaultModel` of a harness is either the model name which `--model default` stands for, or `undefined`
- * when the harness must be started **without any model override** and keep the model of its own configuration.
+ * `--model default` keeps the harness's own configured model where supported. Gemini, Qwen and Cline
+ * require a concrete model in their adapters, so the sentinel selects their shared default instead.
  */
-function resolveRequiredModel<TDefaultModel extends string | undefined>(options: {
-    agentName: ModelRequiringHarnessName;
-    providedModel?: string;
-    defaultModel: TDefaultModel;
-    availableModels?: ReadonlyArray<string>;
-    exampleUsages: ReadonlyArray<string>;
-}): string | TDefaultModel {
-    if (!options.providedModel) {
-        exitForMissingModel(options.agentName, options.availableModels, options.exampleUsages);
-    }
-
-    if (options.providedModel === DEFAULT_MODEL_NAME) {
-        return options.defaultModel;
-    }
-
-    return options.providedModel;
-}
-
-/**
- * Prints the missing-model guidance and exits with the historical non-zero status code.
- */
-function exitForMissingModel(
-    agentName: ModelRequiringHarnessName,
-    availableModels: ReadonlyArray<string> | undefined,
-    exampleUsages: ReadonlyArray<string>,
-): never {
-    console.error(colors.red(`Error: --model is required when using --harness ${agentName}`));
-    console.error('');
-
-    if (availableModels && availableModels.length > 0) {
-        console.error(colors.cyan('Available models:'));
-        for (const model of availableModels) {
-            console.error(colors.gray(`  - ${model}`));
+function resolveRunnerModel(agentName: PromptRunnerHarnessName, providedModel?: string): string | undefined {
+    if (providedModel === DEFAULT_MODEL_NAME) {
+        if (agentName === 'gemini' || agentName === 'qwen-code' || agentName === 'cline') {
+            return HARNESS_DEFAULT_MODELS[agentName];
         }
-        console.error('');
+
+        return undefined;
     }
 
-    console.error(colors.cyan('Example usage:'));
-    for (const exampleUsage of exampleUsages) {
-        console.error(colors.gray(`  ${exampleUsage}`));
-    }
-
-    process.exit(1);
+    return providedModel || HARNESS_DEFAULT_MODELS[agentName];
 }

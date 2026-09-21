@@ -5,7 +5,7 @@ Anchor `#harnesses`. Sits on the lighter panel background. Lists every coding ag
 ## Copy
 
 -   **Heading**: `Bring the agent you already use` ("you already use" in Promptbook Blue).
--   **Lead paragraph**: ptbk coder does not replace your coding agent. It drives it. Pick a harness with `--harness`, add a `--model` if you want one, and for the harnesses that support it a `--thinking-level` (low, medium, high, xhigh, max).
+-   **Lead paragraph**: ptbk coder does not replace your coding agent. It drives it. Pick a harness with `--harness` and it automatically selects the current flagship model. Override it with `--model` or `PTBK_MODEL`, and for the harnesses that support it set `--thinking-level` (low, medium, high, xhigh, max).
 
 ## Cards
 
@@ -17,7 +17,7 @@ Each card contains:
 2. **Display name** (Outfit semibold) and `by <vendor>` underneath.
 3. **Harness chip** (top right, ≥ `sm` only): `--harness <id>` in a small monospace chip.
 4. **Description** — verbatim from the catalog spec.
-5. **Models line** — either `Models[ (required)]: <examples>` with example ids in monospace, or `Uses the models configured in the harness itself.` when the catalog lists no examples.
+5. **Models lines** — `Default: <automatic flagship>` followed by `Models: <examples>`, with model ids in monospace. The default comes from the same registry as CLI execution.
 6. **Shell sample** — a [terminal block](../components/terminal-block.md) with the card's sample command from the catalog spec.
 
 Cards have a dark card background, hairline border that lightens on hover.

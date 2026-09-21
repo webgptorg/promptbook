@@ -1,14 +1,9 @@
+import { HARNESS_DEFAULT_MODELS } from '@promptbook-source/cli/cli-commands/common/harness/HARNESS_DEFAULT_MODELS';
+
 /**
  * Identifier of one supported harness, matching the `--harness` CLI option of `ptbk coder`.
  */
-export type HarnessName =
-    | 'claude-code'
-    | 'openai-codex'
-    | 'github-copilot'
-    | 'gemini'
-    | 'qwen-code'
-    | 'opencode'
-    | 'cline';
+export type HarnessName = keyof typeof HARNESS_DEFAULT_MODELS;
 
 /**
  * One coding-agent harness which `ptbk coder` can drive.
@@ -35,9 +30,9 @@ export type HarnessDefinition = {
     readonly description: string;
 
     /**
-     * Whether the `--model` option is required for this harness
+     * Current flagship selected when `--model` and `PTBK_MODEL` are omitted
      */
-    readonly isModelRequired: boolean;
+    readonly defaultModel: string;
 
     /**
      * Example values for the `--model` option
@@ -73,9 +68,9 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         vendorName: 'Anthropic',
         description:
             'The agentic CLI by Anthropic. ptbk coder drives it through your whole prompt queue, with thinking levels up to max.',
-        isModelRequired: false,
-        modelExamples: ['fable', 'opus', 'sonnet', 'haiku'],
-        sampleCommand: 'ptbk coder run --harness claude-code --model fable --thinking-level max',
+        defaultModel: HARNESS_DEFAULT_MODELS['claude-code'],
+        modelExamples: [HARNESS_DEFAULT_MODELS['claude-code'], 'opus', 'sonnet', 'haiku'],
+        sampleCommand: 'ptbk coder run --harness claude-code --thinking-level max',
         accentColor: '#D97757',
     },
     {
@@ -83,10 +78,10 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         displayName: 'OpenAI Codex',
         vendorName: 'OpenAI',
         description:
-            'The OpenAI Codex CLI. It needs an explicit model — or --model default, which keeps the model configured in Codex itself — and it only spends credits beyond your rate limits when you pass --allow-credits.',
-        isModelRequired: true,
-        modelExamples: ['gpt-5.2-codex', 'default'],
-        sampleCommand: 'ptbk coder run --harness openai-codex --model gpt-5.6-terra',
+            'The OpenAI Codex CLI. Automatically uses the current flagship. Use --model default to keep your Codex configuration, and --allow-credits to opt into spending beyond your rate limits.',
+        defaultModel: HARNESS_DEFAULT_MODELS['openai-codex'],
+        modelExamples: [HARNESS_DEFAULT_MODELS['openai-codex'], 'default'],
+        sampleCommand: 'ptbk coder run --harness openai-codex',
         accentColor: '#FFFFFF',
     },
     {
@@ -95,19 +90,19 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         vendorName: 'GitHub',
         description:
             'GitHub Copilot in your terminal. Works out of the box with your Copilot subscription and supports thinking levels.',
-        isModelRequired: false,
-        modelExamples: ['gpt-5.4'],
-        sampleCommand: 'ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh',
+        defaultModel: HARNESS_DEFAULT_MODELS['github-copilot'],
+        modelExamples: [HARNESS_DEFAULT_MODELS['github-copilot'], 'default'],
+        sampleCommand: 'ptbk coder run --harness github-copilot --thinking-level xhigh',
         accentColor: '#8957E5',
     },
     {
         harnessName: 'gemini',
         displayName: 'Gemini CLI',
         vendorName: 'Google',
-        description: 'The Google Gemini CLI. It needs an explicit model, such as one of the fast flash previews.',
-        isModelRequired: true,
-        modelExamples: ['gemini-3-flash-preview', 'default'],
-        sampleCommand: 'ptbk coder run --harness gemini --model gemini-3-flash-preview',
+        description: 'The Google Gemini CLI. Automatically selects the latest Gemini model for coding and agent tasks.',
+        defaultModel: HARNESS_DEFAULT_MODELS.gemini,
+        modelExamples: [HARNESS_DEFAULT_MODELS.gemini, 'default'],
+        sampleCommand: 'ptbk coder run --harness gemini',
         accentColor: '#4E82EE',
     },
     {
@@ -115,10 +110,10 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         displayName: 'Qwen Code',
         vendorName: 'Alibaba',
         description:
-            'The Qwen Code CLI. It needs an explicit model, such as one of the Qwen coder or max models, and signs in with a Qwen account or an OpenAI-compatible API key.',
-        isModelRequired: true,
-        modelExamples: ['qwen3.8-max', 'qwen3-coder-plus', 'default'],
-        sampleCommand: 'ptbk coder run --harness qwen-code --model qwen3.8-max',
+            'The Qwen Code CLI. Defaults to the current Qwen Max model and signs in with a Qwen account or an OpenAI-compatible API key.',
+        defaultModel: HARNESS_DEFAULT_MODELS['qwen-code'],
+        modelExamples: [HARNESS_DEFAULT_MODELS['qwen-code'], 'default'],
+        sampleCommand: 'ptbk coder run --harness qwen-code',
         accentColor: '#615CED',
     },
     {
@@ -126,9 +121,9 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         displayName: 'opencode',
         vendorName: 'opencode',
         description:
-            'The open-source terminal coding agent. Bring any provider configured in your opencode installation.',
-        isModelRequired: false,
-        modelExamples: [],
+            'The open-source terminal coding agent. Defaults to the OpenAI flagship through your configured OpenAI provider. Use --model default to keep your own provider and model.',
+        defaultModel: HARNESS_DEFAULT_MODELS.opencode,
+        modelExamples: [HARNESS_DEFAULT_MODELS.opencode, 'default'],
         sampleCommand: 'ptbk coder run --harness opencode',
         accentColor: '#F0F0F0',
     },
@@ -136,9 +131,9 @@ export const HARNESS_CATALOG: ReadonlyArray<HarnessDefinition> = [
         harnessName: 'cline',
         displayName: 'Cline',
         vendorName: 'Cline Bot Inc.',
-        description: 'The Cline CLI agent. Uses the models configured in your Cline setup.',
-        isModelRequired: false,
-        modelExamples: [],
+        description: 'The Cline CLI agent. The Google provider integration defaults to the latest Gemini coding model.',
+        defaultModel: HARNESS_DEFAULT_MODELS.cline,
+        modelExamples: [HARNESS_DEFAULT_MODELS.cline, 'default'],
         sampleCommand: 'ptbk coder run --harness cline',
         accentColor: '#9038FF',
     },
