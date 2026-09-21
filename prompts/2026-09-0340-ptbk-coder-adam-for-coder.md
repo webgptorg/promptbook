@@ -1,6 +1,6 @@
-[ ]
+[?]
 
-[✨🍜] brr
+[✨🍜] The Adam agent should be specific for Agents server and 
 
 ```bash
 ptbk coder init

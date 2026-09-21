@@ -1,18 +1,15 @@
 [ ]
 
-[✨🦖] qux
+[✨🦖] Automatically use the newest model of each harness.
 
-```bash
-ptbk coder init
-
-ptbk coder run --harness openai-codex --thinking-level max --agent agents/coding/developer.book --context AGENTS.md
-```
-
--   @@@@@@@@
-- `gpt-5.6-terra`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
--   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json)
+-   For example, for OpenAI Codex harness the default model is `gpt-6-astra`
+-   Look at all harnesses and feature the flagship models.
+-   This is relevant for:
+    -   `ptbk coder init`
+    -   `ptbk coder run`
+    -   Other commands that rely on harness models.
+    -   The [`ptbk coder` landing website](apps/coder-landing)
+-   Also look and update [the dev scripts in `terminals.json`](.vscode/terminals.json), they should contain the latest model references for each harness which is already in use.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
--   Update the [`ptbk coder` landing website](apps/coder-landing) if there are any changes that affect the landing page.
+-   You are working with the [`ptbk coder` landing website](apps/coder-landing)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
