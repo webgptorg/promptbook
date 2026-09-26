@@ -1,6 +1,6 @@
-[ ]
+[ ] use `gpt-6-astra`
 
-[✨🪇] Make Book `TEAM` commitments actually work in `ptbk coder run` and `ptbk coder plan`.
+[✨🔗] Make Book `TEAM` commitments actually work in `ptbk coder run` and `ptbk coder plan`.
 
 ```bash
 ptbk coder run --harness openai-codex --agent agents/developer.book

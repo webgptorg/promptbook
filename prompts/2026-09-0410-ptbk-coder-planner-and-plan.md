@@ -1,6 +1,6 @@
-[ ]
+[ ] use `gpt-6-astra`
 
-[✨🪷] Add a project-owned Planner agent and an interactive `ptbk coder plan` command.
+[✨📝] Add a project-owned Planner agent and an interactive `ptbk coder plan` command.
 
 ```bash
 ptbk coder init

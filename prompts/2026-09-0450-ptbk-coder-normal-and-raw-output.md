@@ -1,11 +1,9 @@
-[ ]
+[ ] use `gpt-6-astra`
 
-[✨🪭] Show readable normal output by default and allow switching to raw harness output without changing execution.
+[✨💬] Show readable normal output by default and allow switching to raw harness output without changing execution.
 
 ```bash
 ptbk coder run --harness openai-codex
-ptbk coder run --harness openai-codex --output normal
-ptbk coder run --harness openai-codex --output raw
 ```
 
 -   Improve the live output panel of `ptbk coder run` so the running task is understandable and visually pleasant without reading raw harness protocol output.
@@ -24,12 +22,12 @@ ptbk coder run --harness openai-codex --output raw
 
 ## Switching views
 
--   Add a visible control labelled `Show raw output` in normal mode and `Show normal output` in raw mode, plus a documented keyboard shortcut that does not collide with existing controls.
+-   Add a keyboard control to the existing interactive controls row, alongside controls such as `[p]` and `[x]`, using the same bracketed-key presentation and input handling. Label it `Show raw output` in normal mode and `Show normal output` in raw mode. Choose a documented key that does not collide with existing controls; the same key toggles both ways.
 -   Allow switching while the same task continues to run, without restarting the harness, resubmitting the prompt, losing buffered context, or duplicating events.
 -   Show which mode is active. Keep the selection for the current invocation, including subsequent tasks, without requiring a new persistent settings subsystem.
--   Add `--output normal|raw` for explicit startup selection, validate unknown values, and describe its display-only meaning in CLI help.
+-   Select the output view exclusively through the live dashboard controls. Do not introduce a CLI flag or startup option for selecting the output mode; each interactive invocation starts in normal mode.
 -   Raw mode must retain access to the original output currently available from the harness, subject to existing security/redaction behavior. A normal-mode projection must not replace or degrade the original trace/log data.
--   Keep `--no-ui` and redirected/non-TTY output usable for existing logging and scripting workflows. Preserve their current plain-output contract unless the user explicitly requests a different output projection; never emit interactive controls or dashboard redraw sequences into a pipe.
+-   Keep `--no-ui` and redirected/non-TTY output usable for existing logging and scripting workflows. Preserve their current plain-output contract; the interactive view toggle does not apply outside the dashboard. Never emit interactive controls or dashboard redraw sequences into a pipe.
 
 ## No execution changes
 
@@ -41,7 +39,7 @@ ptbk coder run --harness openai-codex --output raw
 
 ## Acceptance criteria
 
--   The interactive dashboard starts in normal mode, both explicit startup modes work, and the live toggle works repeatedly during a streamed response and across tasks.
+-   Each interactive invocation starts in normal mode. A visible keyboard control in the existing controls row toggles between normal and raw output repeatedly during a streamed response and across tasks, without restarting execution or adding a CLI flag.
 -   Recorded/mock streams test fragmented messages, mixed stdout/stderr, commands, errors, unknown records, long lines, Unicode, and large output volumes.
 -   Terminal tests cover resizing, narrow windows, scrolling, and existing pause/stop controls without corrupting the frame or input handling.
 -   Replaying the same fixture in both modes and while switching produces identical runner actions, tool invocations, model-call counts, task outcomes, and resulting repository changes. Only the rendered display differs.
@@ -53,5 +51,5 @@ ptbk coder run --harness openai-codex --output raw
 -   Inspect [run options](../src/cli/cli-commands/coder/run.ts), [the frame builder](../scripts/run-codex-prompts/ui/buildCoderRunUiFrame.ts), [shared UI code](../scripts/run-codex-prompts/ui), [runner adapters](../scripts/run-codex-prompts/runners), and [terminal controls](../scripts/run-codex-prompts/common/listenForCoderRunControls.ts).
 -   Attribute teammate events when [TEAM runtime support](2026-09-0440-ptbk-coder-team-runtime.md) provides them, but do not implement delegation as part of this display change.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Do a proper analysis of the existing stream handling before adding another parser.
--   Update CLI help and the [Coder landing website](../apps/coder-landing), including its terminal demonstration where it represents the changed UI.
+-   Update the dashboard's controls legend, keyboard-control documentation, and the [Coder landing website](../apps/coder-landing), including its terminal demonstration where it represents the changed UI.
 -   Add the changes into the [changelog](../changelog/_current-preversion.md).

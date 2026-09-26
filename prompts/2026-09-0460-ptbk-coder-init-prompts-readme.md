@@ -1,6 +1,6 @@
-[ ]
+[ ] use `gpt-6-astra`
 
-[✨🫙] Initialize a self-contained `prompts/README.md` that explains PRDs and the Promptbook Coder workflow.
+[✨📖] Initialize a self-contained `prompts/README.md` that explains PRDs and the Promptbook Coder workflow.
 
 ```bash
 ptbk coder init

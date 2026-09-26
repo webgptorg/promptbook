@@ -1,6 +1,6 @@
-[ ]
+[ ] use `gpt-6-astra`
 
-[✨🪻] Remove the legacy pipeline system and obsolete repository/dependency baggage while preserving the active Promptbook products.
+[✨🚿] Remove the legacy pipeline system and obsolete repository/dependency baggage while preserving the active Promptbook products.
 
 -   Perform one comprehensive cleanup, including deletion of obsolete code and assets, removal of unused dependencies, simplification of drivers/adapters, and repair of build, package-generation, CLI, and documentation references.
 -   The old pipeline-oriented system is intentionally being retired without backward compatibility. Do not retain its commands, public exports, compatibility wrappers, or dependencies merely so historical consumers keep working.

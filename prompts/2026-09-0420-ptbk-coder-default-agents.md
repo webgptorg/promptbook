@@ -1,6 +1,6 @@
-[ ]
+[ ] use `gpt-6-astra`
 
-[✨🪺] Resolve a default Book agent for each Coder action while keeping `--agent` optional and overridable.
+[✨🎯] Resolve a default Book agent for each Coder action while keeping `--agent` optional and overridable.
 
 ```bash
 ptbk coder run --harness openai-codex

@@ -1,6 +1,6 @@
-[ ]
+[ ] use `gpt-6-astra`
 
-[✨🪈] Initialize Lawyer and Copywriter as reusable teammates of both Developer and Planner.
+[✨👥] Initialize Lawyer and Copywriter as reusable teammates of both Developer and Planner.
 
 ```bash
 ptbk coder init
