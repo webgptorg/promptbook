@@ -4,6 +4,7 @@ import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { addUsage } from '../../../src/execution/utils/addUsage';
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { resolveCoderAgent } from '../common/resolveCoderAgent';
+import { captureLiveScriptOutput } from '../common/runGoScript/captureLiveScriptOutput';
 import type { PromptRunOptions } from '../runners/types/PromptRunOptions';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { CoderTeamRuntime, type CoderTeamEvent, type CoderTeamInference } from './CoderTeamRuntime';
@@ -118,6 +119,7 @@ async function runCodingConsultation(
 /** Appends attributed machine-readable events to the existing runtime log consumed by run traces. */
 export async function appendCoderTeamEvent(logPath: string | undefined, event: CoderTeamEvent): Promise<void> {
     if (logPath) await appendFile(logPath, `${JSON.stringify(event)}\n`, 'utf-8');
+    captureLiveScriptOutput(() => `${JSON.stringify(event)}\n`, 'team');
 }
 
 // Note: [💞] Trace helper is shared by coding and planning.

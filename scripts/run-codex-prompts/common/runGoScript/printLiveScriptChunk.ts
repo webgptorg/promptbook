@@ -1,14 +1,14 @@
+import { captureLiveScriptOutput } from './captureLiveScriptOutput';
+
 /**
  * Prints one live shell output chunk to the terminal when console mirroring is enabled.
  */
-export function printLiveScriptChunk(
-    chunk: string,
-    source: 'stdout' | 'stderr',
-    shouldPrintLiveOutput: boolean,
-): void {
+export function printLiveScriptChunk(chunk: string, source: 'stdout' | 'stderr', shouldPrintLiveOutput: boolean): void {
     if (!shouldPrintLiveOutput) {
         return;
     }
+
+    if (captureLiveScriptOutput(chunk, source)) return;
 
     if (source === 'stderr') {
         if (chunk.trim()) {

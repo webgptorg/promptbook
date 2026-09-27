@@ -122,10 +122,32 @@ For `--harness openai-codex`, credits are opt-in. If Codex reports that credits 
 The `S` control is shown only while the coder is waiting; it is hidden while a prompt is running or after the run has finished.
 
 ```text
-P  Pause  S  Skip current waiting  X  End with this prompt  CTRL+C  Exit
+[p] Pause  [s] Skip current waiting  [x] End with this prompt
+[o] Show raw output  CTRL+C Exit
 ```
 
 Press `X` again after requesting the dynamic end to continue the full current run.
+
+Every interactive invocation starts in **Normal output**. It shows the agent's own messages separately from
+runner status, commands/tools, reported file changes, verification, results, warnings and failures. Claude Code
+message deltas and Codex item snapshots are assembled without repeating their protocol envelopes. Codex's
+existing plain stream is also supported; other unstructured or unfamiliar output has an explicit fallback label.
+Only activity already reported by the harness or runner is shown. TEAM events carry the teammate's name when available.
+
+Press `O` at any time to switch to **Raw output**. The same control becomes `[o] Show normal output` and switches
+back without restarting the harness, acknowledging a prompt or submitting another model call. The selection lasts
+through subsequent tasks in this invocation. There is no output-mode flag or saved preference.
+
+Use `↑` / `↓` to scroll the output buffer and `End` to follow live output again. Long lines wrap to the panel width.
+On short terminals, `PageUp` / `PageDown` scroll the dashboard while its controls stay visible. Session, current task,
+progress, errors and the agent visual remain part of the same dashboard.
+
+Display history is bounded: the raw view keeps up to 256,000 characters / 2,048 original chunks, and Normal output
+keeps up to 160 entries with at most 8,000 characters each, retaining command summaries and trailing output.
+Oversized or unfinished protocol records are
+labeled explicitly; earlier output remains in the existing run trace under `prompts/traces/` (and temporary logs
+when `--preserve-logs` is used). Changing views never rewrites logs or traces. `--no-ui` and redirected output retain
+plain streaming output; the view toggle and dashboard redraws apply only to the interactive dashboard.
 
 Every press is answered right under the pills, so you never have to guess whether the key arrived:
 

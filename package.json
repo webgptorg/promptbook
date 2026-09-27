@@ -381,6 +381,7 @@
         "socket.io": "4.8.3",
         "socket.io-client": "4.8.3",
         "spacetrim": "0.11.60",
+        "string-width": "4.2.3",
         "swagger-ui-dist": "5.32.15",
         "swagger-ui-express": "5.0.1",
         "ts-node": "10.9.2",

@@ -10,6 +10,7 @@ const CODER_RUN_CONTROL_KEY_BADGE_COLORIZERS: Record<CoderRunControlKey, (badgeT
     P: (badgeText) => colors.bgYellow.black(badgeText),
     S: (badgeText) => colors.bgCyan.black(badgeText),
     X: (badgeText) => colors.bgBlue.white(badgeText),
+    O: (badgeText) => colors.bgCyan.black(badgeText),
 };
 
 /**
@@ -17,6 +18,8 @@ const CODER_RUN_CONTROL_KEY_BADGE_COLORIZERS: Record<CoderRunControlKey, (badgeT
  *
  * @private internal utility of `ptbk coder` terminal controls
  */
-export function buildCoderRunControlKeyBadge(controlKey: CoderRunControlKey): string {
-    return CODER_RUN_CONTROL_KEY_BADGE_COLORIZERS[controlKey](` ${controlKey} `);
+export function buildCoderRunControlKeyBadge(controlKey: CoderRunControlKey, isBracketed = false): string {
+    return CODER_RUN_CONTROL_KEY_BADGE_COLORIZERS[controlKey](
+        isBracketed ? `[${controlKey.toLowerCase()}]` : ` ${controlKey} `,
+    );
 }

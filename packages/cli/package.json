@@ -173,6 +173,7 @@
         "node-gzip": "1.1.2",
         "nodemailer": "^9.1.1",
         "qrcode": "1.5.4",
+        "string-width": "4.2.3",
         "swagger-ui-dist": "5.32.15",
         "turndown": "7.2.4",
         "type-fest": "4.5.0",

@@ -3,7 +3,7 @@
  *
  * @private internal type of `ptbk coder` terminal controls
  */
-export type CoderRunControlKey = 'P' | 'S' | 'X';
+export type CoderRunControlKey = 'P' | 'S' | 'X' | 'O';
 
 /**
  * Meaning of one control answer, which decides how it is colored in the terminal.

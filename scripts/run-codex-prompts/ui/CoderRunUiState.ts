@@ -8,6 +8,9 @@ import type { PromptStats } from '../prompts/types/PromptStats';
 import type { HarnessSubscriptionUsage } from '../runners/types/HarnessSubscriptionUsage';
 import type { CoderRunAgentVisual } from './buildCoderRunAgentVisual';
 import type { AgentRunMessagePreviewSection, AgentRunStatusTableRow } from './buildCoderRunUiFrame';
+import type { LiveScriptOutputSource } from '../common/runGoScript/captureLiveScriptOutput';
+import type { CoderOutputMode } from './output/CoderOutputEvent';
+import { CoderRunOutput } from './output/CoderRunOutput';
 
 /**
  * Maximum number of agent output lines kept in the scrolling output area.
@@ -78,6 +81,10 @@ export class CoderRunUiState extends EventEmitter {
     public subscriptionUsage: HarnessSubscriptionUsage | undefined;
     public pendingEnterLabel: string | undefined;
     public agentOutputLines: string[] = [];
+    /** Both projections share one invocation-local buffer; the selected view survives task changes. */
+    public output = new CoderRunOutput();
+    public outputMode: CoderOutputMode = 'normal';
+    public outputScrollOffset = 0;
     public phase: CoderRunPhase = 'initializing';
     public statusMessage = 'Initializing...';
     public errors: string[] = [];
@@ -172,6 +179,8 @@ export class CoderRunUiState extends EventEmitter {
         this.messagePreviewSections = [];
         this.pendingEnterLabel = undefined;
         this.agentOutputLines = [];
+        this.output = new CoderRunOutput();
+        this.outputScrollOffset = 0;
         this.currentAttempt = 1;
         this.emitChange();
     }
@@ -203,7 +212,8 @@ export class CoderRunUiState extends EventEmitter {
     /**
      * Appends raw agent output text, keeping only the last `MAX_AGENT_OUTPUT_LINES`.
      */
-    public addAgentOutput(text: string): void {
+    public addAgentOutput(text: string, kind: 'status' | 'warning' = 'status'): void {
+        this.output.appendRunner(text, this.phase === 'verifying' && kind === 'status' ? 'verification' : kind);
         const lines = text.split(/\r?\n/).filter((line) => line.trim() !== '');
         if (lines.length === 0) {
             return;
@@ -215,10 +225,36 @@ export class CoderRunUiState extends EventEmitter {
         this.emitChange();
     }
 
+    /** Receives an original harness chunk, separately from runner console messages. */
+    public addScriptOutput(text: string, source: LiveScriptOutputSource): void {
+        this.output.append(text, source, this.config.agentName, this.phase === 'verifying');
+        this.emitChange();
+    }
+
+    /** Flushes final fragments without changing the selected output mode. */
+    public flushOutput(): void {
+        this.output.flush();
+        this.emitChange();
+    }
+
+    /** Changes presentation only. Neither the queue nor any runner observes this selection. */
+    public toggleOutputMode(): void {
+        this.outputMode = this.outputMode === 'normal' ? 'raw' : 'normal';
+        this.outputScrollOffset = 0;
+        this.emitChange();
+    }
+
+    /** Scrolls the bounded output history; End returns to live following. */
+    public scrollOutput(lineCount: number, maximumOffset = Number.MAX_SAFE_INTEGER): void {
+        this.outputScrollOffset = Math.max(0, Math.min(maximumOffset, this.outputScrollOffset + lineCount));
+        this.emitChange();
+    }
+
     /**
      * Transitions the execution phase shown in the UI.
      */
     public setPhase(phase: CoderRunPhase): void {
+        if (phase !== this.phase && (phase === 'verifying' || this.phase === 'verifying')) this.output.flush();
         this.phase = phase;
         this.emitChange();
     }
@@ -306,6 +342,7 @@ export class CoderRunUiState extends EventEmitter {
      * Appends an error message to the error list shown in the UI.
      */
     public addError(errorMessage: string): void {
+        this.output.appendRunner(errorMessage, 'error');
         this.errors.push(errorMessage);
         this.emitChange();
     }

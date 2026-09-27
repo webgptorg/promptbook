@@ -21,7 +21,7 @@ The script is an ordered list of terminal events:
 
 1.  The session starts with a shell prompt line, then the canonical `LIVE_DEMO_RUN_COMMAND` (see [`../content/commands.md`](../content/commands.md)) rendered as a command line: gray non-selectable `$ ` prompt, then the command **typed character by character** (~10ms per character).
 2.  The shared agent visual appears as the same animated terminal ASCII text centered in the terminal stream as in `ptbk coder run`. The demo `.book` source is passed to the shared terminal-avatar renderer and its `META VISUAL ascii-octopus` selects the same `AsciiOctopus` visual the real Promptbook Developer coder agent uses — the visual always comes from the agent book, never from a landing-specific fallback. The browser maps the renderer's ANSI foreground colors to text spans; it must not use a canvas or recreate the octopus in landing-specific text.
-3.  The terminal prints the rich `ptbk coder run` dashboard boxes: `Session`, `Current task`, `Live output`, `Errors`, and `Controls`. The Session box includes every subscription limit the selected harness reports.
+3.  The terminal prints the rich `ptbk coder run` dashboard boxes: `Session`, `Current task`, `Normal output`, `Errors`, and `Controls`. The Session box includes every subscription limit the selected harness reports.
 4.  When the script finishes, the terminal stays on the final output. It must not clear, loop, reset, or render a blinking cursor.
 
 ## Final Dashboard Content
@@ -30,8 +30,8 @@ The final dashboard must tell the same story as an actual limited run:
 
 -   `Session` shows `DONE`, runner `claude-code · fable · thinking xhigh`, context `AGENTS.md`, test `npm run test-for-ptbk-coder`, 5-hour and 7-day subscription limits with their remaining allowance and reset times, run limit `1 prompt run`, backlog counts, elapsed time, and a 0% progress bar.
 -   `Current task` shows `prompts/2026-07-0200-ptbk-coder-web.md#1` and `Attempt 1/3 · Run limit reached after 1 prompt run.`
--   `Live output` shows the app server local/network URLs, startup readiness, the `punycode` deprecation warning, prerender output, and `🎉 All tests passed!`.
+-   `Normal output` labels verification output and the `punycode` warning separately, with startup readiness, prerender output, and `🎉 All tests passed!`. Its scroll hint matches the live CLI.
 -   `Errors` shows one earlier failed `bash` command and a wrapped full `File` path to `.promptbook/coder-prompts/2026-07-0480-agents-server-browser-preview.sh`.
--   `Controls` shows `P Pause`, `X End with this prompt`, and `CTRL+C Exit` because this scripted final frame is already `DONE`; the live CLI shows `S Skip current waiting` only during a waiting phase, and adds one answer row under the pills for a few seconds after a control key is pressed. The scripted session presses no key, so it never shows that row.
+-   `Controls` shows `[p] Pause`, `[x] End with this prompt`, `[o] Show raw output`, and `CTRL+C Exit` because this scripted final frame is already `DONE`; the live CLI also shows `[s] Skip current waiting` during a waiting phase. The actual CLI uses O to switch to `Raw output` and back without changing execution; every invocation starts in `Normal output` and retains its selection across tasks. This scripted demo does not accept control keys. Plain `--no-ui` and redirected logs are unchanged.
 
 The story the script must always tell: _the user enters `ptbk coder run` → the agent visual starts → the real rich terminal dashboard reaches the final output_. This mirrors the actual CLI workflow in [`../product.md`](../product.md).

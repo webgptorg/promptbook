@@ -70,9 +70,9 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('25% complete (2/5 done)');
         expect(output).toContain('Current task');
         expect(output).toContain('ENTER  Start');
-        expect(output).toContain('P  Pause');
-        expect(output).toContain('S  Skip current waiting');
-        expect(output).toContain('X  End with this prompt');
+        expect(output).toContain('[p] Pause');
+        expect(output).toContain('[s] Skip current waiting');
+        expect(output).toContain('[x] End with this prompt');
         expect(output).toContain('CTRL+C  Exit');
     });
 
@@ -90,7 +90,7 @@ describe('buildCoderRunUiFrame', () => {
         );
         const output = frameWithFeedback.map(stripAnsi).join('\n');
 
-        expect(output).toContain('S  Skip current waiting');
+        expect(output).toContain('[s] Skip current waiting');
         expect(output).toContain('S  Skipping the current waiting, continuing right now');
         expect(output).not.toContain('(×');
         expect(frameWithFeedback).toHaveLength(frameWithoutFeedback.length + 1);
@@ -133,7 +133,7 @@ describe('buildCoderRunUiFrame', () => {
             .map(stripAnsi)
             .join('\n');
 
-        expect(output).toContain('X  Do all 5 prompts');
+        expect(output).toContain('[x] Do all 5 prompts');
     });
 
     it.each(['initializing', 'loading', 'running', 'verifying', 'paused', 'done', 'error'] as const)(
@@ -141,7 +141,7 @@ describe('buildCoderRunUiFrame', () => {
         (phase) => {
             const output = buildCoderRunUiFrame(createFrameOptions({ phase })).map(stripAnsi).join('\n');
 
-            expect(output).not.toContain('S  Skip current waiting');
+            expect(output).not.toContain('[s] Skip current waiting');
         },
     );
 
@@ -290,11 +290,11 @@ describe('buildCoderRunUiFrame', () => {
 
         expect(pausingOutput).toContain('PAUSING');
         expect(pausingOutput).toContain('Pausing before the next task');
-        expect(pausingOutput).toContain('P  Cancel pause');
+        expect(pausingOutput).toContain('[p] Cancel pause');
 
         expect(pausedOutput).toContain('PAUSED');
         expect(pausedOutput).toContain('Paused before the next task');
-        expect(pausedOutput).toContain('P  Resume');
+        expect(pausedOutput).toContain('[p] Resume');
     });
 
     it('renders the upcoming pause target when pausing inside one prompt stage', () => {

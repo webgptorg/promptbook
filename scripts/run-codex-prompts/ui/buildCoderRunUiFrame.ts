@@ -16,17 +16,21 @@ import {
     buildScriptPathSessionRows,
     buildTerminalUrlLink,
     buildVisibleOutputLines,
+    MAX_VISIBLE_OUTPUT_LINES,
     renderBox,
     SESSION_LABEL_WIDTH,
     type PausePresentation,
     type SessionRow,
 } from './buildRunUiFrameShared';
-import { centerAnsiText, fitPlainText } from './coderRunUiText';
+import { centerAnsiText, fitAnsiText, fitPlainText } from './coderRunUiText';
+import type { CoderRunOutput } from './output/CoderRunOutput';
+import type { CoderOutputMode } from './output/CoderOutputEvent';
+import { buildCoderOutputLines } from './output/buildCoderOutputLines';
 
 /**
  * Minimum width used for the rich coder-run frame.
  */
-const MIN_FRAME_WIDTH = 56;
+const MIN_FRAME_WIDTH = 6;
 
 /**
  * Maximum width used for the rich coder-run frame.
@@ -86,6 +90,10 @@ export type BuildCoderRunUiFrameOptions = {
     readonly agentStatusTableRows?: readonly AgentRunStatusTableRow[];
     readonly pendingEnterLabel?: string;
     readonly agentOutputLines: readonly string[];
+    /** Presentation-only state; omitted by dashboards which use the older plain output panel. */
+    readonly output?: CoderRunOutput;
+    readonly outputMode?: CoderOutputMode;
+    readonly outputScrollOffset?: number;
     readonly errors: readonly string[];
     readonly progress: CoderRunProgressSnapshot;
 
@@ -124,6 +132,7 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
         options.pauseState,
         options.pauseTargetLabel,
         options.statusMessage,
+        true,
     );
     const sessionLines = buildSessionLines(options, totalWidth, pausePresentation);
 
@@ -135,7 +144,19 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
           ]
         : [options.statusMessage, ...options.detailLines.map((detailLine) => `• ${detailLine}`)];
 
-    const visibleOutputLines = buildVisibleOutputLines(options.agentOutputLines);
+    const outputMode = options.outputMode ?? 'normal';
+    const visibleOutputLines = options.output
+        ? buildCoderOutputLines({
+              mode: outputMode,
+              events: [...options.output.events, ...options.output.getPendingEvents()],
+              rawChunks: options.output.rawChunks,
+              width: Math.max(1, totalWidth - 4),
+              height: MAX_VISIBLE_OUTPUT_LINES,
+              scrollOffset: options.outputScrollOffset ?? 0,
+              isHistoryTruncated: options.output.isHistoryTruncated,
+              revision: options.output.revision,
+          }).lines
+        : buildVisibleOutputLines(options.agentOutputLines);
 
     const controlsBoxLines = buildControlsBoxLines({
         controlPills: buildCoderRunControlPills({
@@ -144,8 +165,10 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
             pendingEnterLabel: options.pendingEnterLabel,
             isEndAfterCurrentPromptRequested: options.isEndAfterCurrentPromptRequested,
             sessionTotal: options.progress.sessionTotal,
+            outputMode,
         }),
         controlFeedback: options.controlFeedback,
+        bodyWidth: Math.max(1, totalWidth - 4),
     });
 
     const frame = [
@@ -158,7 +181,19 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
             totalWidth,
             colors.magenta.bold,
         ),
-        ...renderBox('Live output', visibleOutputLines, totalWidth, colors.green.bold),
+        ...renderBox(
+            outputMode === 'normal' ? 'Normal output' : 'Raw output',
+            [
+                colors.gray(
+                    options.outputScrollOffset
+                        ? 'History · [↑/↓] Scroll · [end] Live'
+                        : 'Live · [↑/↓] Scroll · [end] Live',
+                ),
+                ...visibleOutputLines,
+            ],
+            totalWidth,
+            colors.green.bold,
+        ),
     ];
 
     if (options.errors.length > 0) {
@@ -170,7 +205,10 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     }
 
     frame.push(...renderBox('Controls', controlsBoxLines, totalWidth, colors.white.bold));
-    return frame;
+    // A terminal narrower than the box borders must still keep logical rows from physically auto-wrapping.
+    return options.terminalWidth <= MIN_FRAME_WIDTH
+        ? frame.map((line) => fitAnsiText(line, Math.max(0, options.terminalWidth - 1)))
+        : frame;
 }
 
 /**
@@ -194,7 +232,9 @@ function resolveCoderRunUiFrameWidth(terminalWidth: number): number {
  */
 function buildFrameHeaderVisual(options: BuildCoderRunUiFrameOptions, totalWidth: number): readonly string[] {
     if (options.agentVisualLines !== undefined && options.agentVisualLines.length > 0) {
-        return options.agentVisualLines.map((agentVisualLine) => centerAnsiText(agentVisualLine, totalWidth));
+        return options.agentVisualLines.map((agentVisualLine) =>
+            centerAnsiText(fitAnsiText(agentVisualLine, totalWidth), totalWidth),
+        );
     }
 
     if (options.agentVisual !== undefined) {
@@ -203,7 +243,9 @@ function buildFrameHeaderVisual(options: BuildCoderRunUiFrameOptions, totalWidth
         });
 
         if (agentVisualLines.length > 0) {
-            return agentVisualLines.map((agentVisualLine) => centerAnsiText(agentVisualLine, totalWidth));
+            return agentVisualLines.map((agentVisualLine) =>
+                centerAnsiText(fitAnsiText(agentVisualLine, totalWidth), totalWidth),
+            );
         }
     }
 

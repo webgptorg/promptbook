@@ -5,8 +5,9 @@ import { formatCoderRunControlFeedback } from './formatCoderRunControlFeedback';
 /**
  * Listens for the terminal control keys while the plain console output is used.
  *
- * Every recognized key press is answered with one printed line, because the plain mode has no frame
- * which could show the new state on its own. The rich terminal UI installs its own listener in
+ * Every recognized key press is answered with one printed line when stdout is a terminal. Redirecting
+ * stdout keeps existing stdin controls working without mixing control feedback into logs.
+ * The rich terminal UI installs its own listener in
  * [`renderCoderRunUi`](../ui/renderCoderRunUi.ts) and shares the very same key handling through
  * [`applyCoderRunControlKey`](./applyCoderRunControlKey.ts).
  *
@@ -32,7 +33,9 @@ export function listenForCoderRunControls(): void {
 
         // Note: Using console.log here which adds a new line.
         // This is intentional to prevent the message from being overwritten.
-        console.log(formatCoderRunControlFeedback(controlFeedback));
+        if (process.stdout.isTTY) {
+            console.log(formatCoderRunControlFeedback(controlFeedback));
+        }
     });
 }
 

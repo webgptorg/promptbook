@@ -6,7 +6,16 @@ import type { CoderRunControlFeedbackNotice } from '../common/CoderRunControlFee
 import { formatCoderRunControlFeedback } from '../common/formatCoderRunControlFeedback';
 import type { CoderRunPauseState } from '../common/waitForPause';
 import type { CoderRunPhase } from './CoderRunUiState';
-import { fitAnsiText, fitPlainText, padAnsiText, stripAnsi } from './coderRunUiText';
+import {
+    fitAnsiText,
+    fitPlainText,
+    padAnsiText,
+    stripAnsi,
+    visibleLength,
+    sanitizeTerminalText,
+    wrapTerminalText,
+} from './coderRunUiText';
+import type { CoderOutputMode } from './output/CoderOutputEvent';
 
 /**
  * Maximum number of output lines reserved for agent output in the UI.
@@ -70,12 +79,12 @@ export function renderBox(
     totalWidth: number,
     colorizeTitle: (text: string) => string,
 ): string[] {
-    const bodyWidth = Math.max(10, totalWidth - 4);
-    const titleText = ` ${title} `;
+    const bodyWidth = Math.max(1, totalWidth - 4);
+    const titleText = fitPlainText(` ${title} `, Math.max(1, totalWidth - 2));
     const topBorder =
         colors.gray('┌') +
         colorizeTitle(titleText) +
-        colors.gray('─'.repeat(Math.max(0, totalWidth - 2 - titleText.length)) + '┐');
+        colors.gray('─'.repeat(Math.max(0, totalWidth - 2 - visibleLength(titleText))) + '┐');
     const body = lines.map((line) => {
         const paddedLine = padAnsiText(line, bodyWidth);
         return colors.gray('│ ') + paddedLine + colors.gray(' │');
@@ -128,7 +137,9 @@ export function buildScriptPathSessionRows(scriptPaths: readonly string[], bodyW
  */
 export function buildErrorDisplayLines(errorMessages: readonly string[], bodyWidth: number): readonly string[] {
     return errorMessages.flatMap((errorMessage) => [
-        `${colors.red('✗')} ${stripAnsi(errorMessage)}`,
+        ...sanitizeTerminalText(errorMessage)
+            .split('\n')
+            .map((line) => `${colors.red('✗')} ${line}`),
         ...buildErrorFilePathLines(errorMessage, bodyWidth),
     ]);
 }
@@ -149,12 +160,13 @@ export function buildPausePresentation(
     pauseState: CoderRunPauseState,
     pauseTargetLabel: string,
     statusMessage: string,
+    isBracketed = false,
 ): PausePresentation {
     if (pauseState === 'PAUSING') {
         return {
             badge: colors.bgYellow.black(' PAUSING '),
             stateMessage: `Pausing before ${pauseTargetLabel}`,
-            pauseControl: colors.bgMagenta.white(' P ') + colors.white(' Cancel pause'),
+            pauseControl: colors.bgMagenta.white(isBracketed ? '[p]' : ' P ') + colors.white(' Cancel pause'),
         };
     }
 
@@ -162,7 +174,7 @@ export function buildPausePresentation(
         return {
             badge: colors.bgWhite.black(' PAUSED '),
             stateMessage: `Paused before ${pauseTargetLabel}`,
-            pauseControl: colors.bgGreen.black(' P ') + colors.white(' Resume'),
+            pauseControl: colors.bgGreen.black(isBracketed ? '[p]' : ' P ') + colors.white(' Resume'),
         };
     }
 
@@ -170,7 +182,7 @@ export function buildPausePresentation(
         badge: buildRunningPhaseBadge(phase),
         stateMessage: statusMessage,
         // Note: The two paused variants above deliberately recolor the `P` badge, everything else uses the shared one
-        pauseControl: buildCoderRunControlKeyBadge('P') + colors.white(' Pause'),
+        pauseControl: buildCoderRunControlKeyBadge('P', isBracketed) + colors.white(' Pause'),
     };
 }
 
@@ -217,6 +229,7 @@ export function buildCoderRunControlPills(options: {
     readonly pendingEnterLabel: string | undefined;
     readonly isEndAfterCurrentPromptRequested: boolean;
     readonly sessionTotal: number;
+    readonly outputMode?: CoderOutputMode;
 }): readonly string[] {
     const { phase, pauseControl, pendingEnterLabel, isEndAfterCurrentPromptRequested, sessionTotal } = options;
 
@@ -224,8 +237,18 @@ export function buildCoderRunControlPills(options: {
         pauseControl,
         pendingEnterLabel,
         additionalControls: [
-            ...(phase === 'waiting' ? [buildSkipCurrentWaitControl()] : []),
-            buildEndAfterCurrentPromptControl(isEndAfterCurrentPromptRequested, sessionTotal),
+            ...(phase === 'waiting' ? [buildSkipCurrentWaitControl(options.outputMode !== undefined)] : []),
+            buildEndAfterCurrentPromptControl(
+                isEndAfterCurrentPromptRequested,
+                sessionTotal,
+                options.outputMode !== undefined,
+            ),
+            ...(options.outputMode
+                ? [
+                      buildCoderRunControlKeyBadge('O', true) +
+                          colors.white(options.outputMode === 'normal' ? ' Show raw output' : ' Show normal output'),
+                  ]
+                : []),
         ],
     });
 }
@@ -239,33 +262,51 @@ export function buildCoderRunControlPills(options: {
 export function buildControlsBoxLines(options: {
     readonly controlPills: readonly string[];
     readonly controlFeedback: CoderRunControlFeedbackNotice | undefined;
+    readonly bodyWidth?: number;
 }): readonly string[] {
     const { controlPills, controlFeedback } = options;
-    const controlPillsLine = controlPills.join('  ');
+    const controlLines: string[] = [''];
+    for (const pill of controlPills) {
+        const index = controlLines.length - 1;
+        const joined = [controlLines[index], pill].filter(Boolean).join('  ');
+        if (options.bodyWidth && visibleLength(joined) > options.bodyWidth) {
+            if (visibleLength(pill) > options.bodyWidth)
+                controlLines.push(...wrapTerminalText(sanitizeTerminalText(pill), options.bodyWidth));
+            else controlLines.push(pill);
+        } else controlLines[index] = joined;
+    }
+    if (!controlLines[0]) controlLines.shift();
 
     if (controlFeedback === undefined) {
-        return [controlPillsLine];
+        return controlLines;
     }
 
-    return [controlPillsLine, formatCoderRunControlFeedback(controlFeedback, controlFeedback.repeatCount)];
+    return [...controlLines, formatCoderRunControlFeedback(controlFeedback, controlFeedback.repeatCount)];
 }
 
 /**
  * Builds the `S` wait-skip control label.
  */
-function buildSkipCurrentWaitControl(): string {
-    return buildCoderRunControlKeyBadge('S') + colors.white(' Skip current waiting');
+function buildSkipCurrentWaitControl(isBracketed = false): string {
+    return buildCoderRunControlKeyBadge('S', isBracketed) + colors.white(' Skip current waiting');
 }
 
 /**
  * Builds the dynamic `X` control label.
  */
-function buildEndAfterCurrentPromptControl(isEndAfterCurrentPromptRequested: boolean, sessionTotal: number): string {
+function buildEndAfterCurrentPromptControl(
+    isEndAfterCurrentPromptRequested: boolean,
+    sessionTotal: number,
+    isBracketed = false,
+): string {
     if (isEndAfterCurrentPromptRequested) {
-        return buildCoderRunControlKeyBadge('X') + colors.white(` Do all ${formatControlPromptCount(sessionTotal)}`);
+        return (
+            buildCoderRunControlKeyBadge('X', isBracketed) +
+            colors.white(` Do all ${formatControlPromptCount(sessionTotal)}`)
+        );
     }
 
-    return buildCoderRunControlKeyBadge('X') + colors.white(' End with this prompt');
+    return buildCoderRunControlKeyBadge('X', isBracketed) + colors.white(' End with this prompt');
 }
 
 /**

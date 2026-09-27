@@ -10,6 +10,10 @@ import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildC
 import { buildCoderRunUiTerminalFrameUpdate } from './buildCoderRunUiTerminalFrameUpdate';
 import { CoderRunUiState } from './CoderRunUiState';
 import { getCoderRunUiAutoRefreshInterval } from './coderRunUiRefresh';
+import { subscribeToLiveScriptOutput } from '../common/runGoScript/captureLiveScriptOutput';
+import { buildCoderRunUiViewport } from './buildCoderRunUiViewport';
+import { getCoderOutputScrollMaximum } from './output/buildCoderOutputLines';
+import { MAX_VISIBLE_OUTPUT_LINES } from './buildRunUiFrameShared';
 
 /**
  * Spinner animation frames.
@@ -89,6 +93,7 @@ export function renderCoderRunUi(
 ): CoderRunUiHandle {
     const state = options.state ?? new CoderRunUiState(startTime);
     const buildFrameLinesFromState = options.buildFrameLines || buildCoderRunUiFrame;
+    const isCoderDashboard = buildFrameLinesFromState === buildCoderRunUiFrame;
 
     if (!process.stdout.isTTY) {
         return {
@@ -101,12 +106,25 @@ export function renderCoderRunUi(
     }
 
     const originalConsoleInfo = console.info;
+    if (isCoderDashboard) {
+        state.outputMode = 'normal';
+        state.outputScrollOffset = 0;
+    }
     const originalConsoleWarn = console.warn;
     const originalConsoleError = console.error;
     const originalConsoleLog = console.log;
 
     let activeCaptureCount = 0;
     let pendingEnterResolver: (() => void) | undefined;
+    let dashboardScrollOffset = 0;
+    let dashboardScrollMaximum = 0;
+    const stopOutputCapture = isCoderDashboard
+        ? subscribeToLiveScriptOutput((chunk, source) => {
+              if (activeCaptureCount === 0) return false;
+              state.addScriptOutput(chunk, source);
+              return true;
+          })
+        : () => {};
 
     console.info = (...args: Array<unknown>): void => {
         if (activeCaptureCount > 0) {
@@ -116,7 +134,7 @@ export function renderCoderRunUi(
 
     console.warn = (...args: Array<unknown>): void => {
         if (activeCaptureCount > 0) {
-            state.addAgentOutput(args.map(String).join(' '));
+            state.addAgentOutput(args.map(String).join(' '), 'warning');
         }
     };
 
@@ -145,6 +163,13 @@ export function renderCoderRunUi(
     let autoRefreshTimeout: NodeJS.Timeout | undefined;
     let controlFeedbackTimeout: NodeJS.Timeout | undefined;
     let isDisposed = false;
+    let isFrameResetRequested = false;
+
+    /** Terminal resize can reflow old rows, so relative cursor coordinates are no longer reliable. */
+    function handleResize(): void {
+        isFrameResetRequested = isCoderDashboard;
+        scheduleRender();
+    }
 
     /**
      * Schedules a render on the next tick if one isn't already pending.
@@ -219,6 +244,9 @@ export function renderCoderRunUi(
             agentStatusTableRows: state.agentStatusTableRows,
             pendingEnterLabel: state.pendingEnterLabel,
             agentOutputLines: state.agentOutputLines,
+            output: state.output,
+            outputMode: state.outputMode,
+            outputScrollOffset: state.outputScrollOffset,
             errors: state.errors,
             controlFeedback: state.controlFeedback,
             progress: state.getProgress(),
@@ -263,16 +291,29 @@ export function renderCoderRunUi(
         isRendering = true;
 
         try {
-            const lines = buildFrameLines();
+            const fullFrame = buildFrameLines();
+            const viewport =
+                isCoderDashboard && process.stdout.rows
+                    ? buildCoderRunUiViewport(
+                          fullFrame,
+                          getTerminalColumnCount(),
+                          process.stdout.rows,
+                          dashboardScrollOffset,
+                      )
+                    : { lines: fullFrame, maxScrollOffset: 0 };
+            const lines = viewport.lines;
+            dashboardScrollMaximum = viewport.maxScrollOffset;
+            dashboardScrollOffset = Math.min(dashboardScrollOffset, dashboardScrollMaximum);
 
             const terminalFrameUpdate = buildCoderRunUiTerminalFrameUpdate({
-                previousFrameLines,
+                previousFrameLines: isFrameResetRequested ? [] : previousFrameLines,
                 nextFrameLines: lines,
             });
 
             if (terminalFrameUpdate !== undefined) {
-                process.stdout.write(terminalFrameUpdate);
+                process.stdout.write((isFrameResetRequested ? '\x1b[H\x1b[2J' : '') + terminalFrameUpdate);
             }
+            isFrameResetRequested = false;
 
             previousFrameLines = [...lines];
             spinnerFrame = (spinnerFrame + 1) % SPINNER_FRAMES.length;
@@ -284,10 +325,38 @@ export function renderCoderRunUi(
         }
     }
 
-    const keypressHandler = (_str: string, key: { ctrl?: boolean; name?: string }): void => {
+    const keypressHandler = (_str: string, key: { ctrl?: boolean; meta?: boolean; name?: string }): void => {
         if (key.ctrl && key.name === 'c') {
             cleanup();
             process.exit(0);
+        }
+
+        // Presentation keys return before runner controls and Enter acknowledgement are considered.
+        if (isCoderDashboard && !key.ctrl && !key.meta) {
+            if (key.name === 'o') {
+                state.toggleOutputMode();
+                showControlFeedback({
+                    controlKey: 'O',
+                    message: state.outputMode === 'raw' ? 'Raw output' : 'Normal output',
+                    tone: 'info',
+                });
+                return;
+            }
+            if (key.name === 'up' || key.name === 'down' || key.name === 'end') {
+                state.scrollOutput(
+                    key.name === 'end' ? -state.outputScrollOffset : key.name === 'up' ? 3 : -3,
+                    getCoderOutputScrollMaximum(state.output.rawChunks, state.outputMode, MAX_VISIBLE_OUTPUT_LINES),
+                );
+                return;
+            }
+            if (key.name === 'pageup' || key.name === 'pagedown') {
+                dashboardScrollOffset = Math.max(
+                    0,
+                    Math.min(dashboardScrollMaximum, dashboardScrollOffset + (key.name === 'pageup' ? 5 : -5)),
+                );
+                scheduleRender();
+                return;
+            }
         }
 
         // Note: [🏹] The very same key handling is shared with the plain console mode, see `applyCoderRunControlKey`
@@ -307,7 +376,7 @@ export function renderCoderRunUi(
     };
 
     process.stdin.on('keypress', keypressHandler);
-    process.stdout.on('resize', scheduleRender);
+    process.stdout.on('resize', handleResize);
 
     process.stdout.write('\n');
     render();
@@ -329,7 +398,7 @@ export function renderCoderRunUi(
         clearControlFeedbackTimeout();
         state.off('change', scheduleRender);
         process.stdin.off('keypress', keypressHandler);
-        process.stdout.off('resize', scheduleRender);
+        process.stdout.off('resize', handleResize);
         if (process.stdin.isTTY) {
             process.stdin.setRawMode(false);
         }
@@ -339,6 +408,8 @@ export function renderCoderRunUi(
         resolvePendingEnter?.();
 
         activeCaptureCount = 0;
+        stopOutputCapture();
+        state.flushOutput();
         console.info = originalConsoleInfo;
         console.warn = originalConsoleWarn;
         console.error = originalConsoleError;
@@ -356,6 +427,7 @@ export function renderCoderRunUi(
         },
         stopCapturingAgentOutput(): void {
             activeCaptureCount = Math.max(0, activeCaptureCount - 1);
+            if (activeCaptureCount === 0) state.flushOutput();
         },
         waitForEnter(actionLabel: string): Promise<void> {
             if (pendingEnterResolver) {

@@ -267,21 +267,16 @@ export function createLiveDemoScript(terminalColumnCount: number): ReadonlyArray
                 createTextPart('Run limit reached after 1 prompt run.', 'plain'),
             ],
         ]),
-        ...createBoxLines(terminalColumnCount, 'Live output', 'outputTitle', [
-            buildLiveOutputLine('- Local:        http://localhost:4440', 'plain'),
-            buildLiveOutputLine('- Network:      http://172.23.224.1:4440', 'plain'),
-            buildLiveOutputLine('✓ Starting...', 'success'),
-            buildLiveOutputLine('✓ Ready in 4.6s', 'success'),
-            buildLiveOutputLine(
-                '(node:33208) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please ...',
-                'muted',
-            ),
-            buildLiveOutputLine('(Use `node --trace-deprecation ...` to show where the warning was created)', 'muted'),
-            buildLiveOutputLine(
-                'Prerendered home page and saved to C:\\Users\\me\\work\\ai\\promptbook\\apps\\agents-server\\.n...',
-                'muted',
-            ),
-            buildLiveOutputLine('🎉 All tests passed!', 'success'),
+        ...createBoxLines(terminalColumnCount, 'Normal output', 'outputTitle', [
+            buildLiveOutputLine('Live · [↑/↓] Scroll · [end] Live', 'muted'),
+            buildLiveOutputLine('[Verification · stdout]', 'info'),
+            buildLiveOutputLine('  Local: http://localhost:4440 · Ready in 4.6s', 'plain'),
+            buildLiveOutputLine('[Reported warning · stderr]', 'warning'),
+            buildLiveOutputLine('  [DEP0040] The `punycode` module is deprecated.', 'warning'),
+            buildLiveOutputLine('[Verification · stdout]', 'info'),
+            buildLiveOutputLine('  Prerendered home page', 'plain'),
+            buildLiveOutputLine('  🎉 All tests passed!', 'success'),
+            buildLiveOutputLine('', 'plain'),
         ]),
         ...createBoxLines(terminalColumnCount, 'Errors', 'errorTitle', [
             [
@@ -292,10 +287,14 @@ export function createLiveDemoScript(terminalColumnCount: number): ReadonlyArray
         ]),
         ...createBoxLines(terminalColumnCount, 'Controls', 'controlsTitle', [
             [
-                createTextPart(' P ', 'key'),
+                createTextPart('[p]', 'key'),
                 createTextPart(' Pause  ', 'plain'),
-                createTextPart(' X ', 'key'),
-                createTextPart(' End with this prompt   ', 'plain'),
+                createTextPart('[x]', 'key'),
+                createTextPart(' End with this prompt', 'plain'),
+            ],
+            [
+                createTextPart('[o]', 'key'),
+                createTextPart(' Show raw output  ', 'plain'),
                 createTextPart(' CTRL+C ', 'key'),
                 createTextPart(' Exit', 'plain'),
             ],
@@ -463,7 +462,7 @@ function buildLabeledLine(label: string, valueParts: ReadonlyArray<LiveDemoTextP
  * Builds one line in the live output box.
  */
 function buildLiveOutputLine(text: string, tone: LiveDemoTextTone): ReadonlyArray<LiveDemoTextPart> {
-    return [createTextPart('› ', 'success'), createTextPart(text, tone)];
+    return [createTextPart(text, tone)];
 }
 
 /**

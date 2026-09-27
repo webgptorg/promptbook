@@ -124,7 +124,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Human in the loop',
         description:
-            'Confirm each prompt yourself with --no-auto. Press P to pause a running queue, or X to end it after the current prompt. Every press is answered in the Controls panel on the next frame, so you can tell that the key landed even when it changed nothing.',
+            'The dashboard starts in Normal output, with agent messages, commands, file changes and verification shown separately. Press O to switch to Raw output and back while the same task keeps running. Use the arrow keys to scroll output and End to follow it live. Press P to pause the queue, X to end after the current prompt, or use --no-auto to confirm each prompt. Use --no-ui for plain logs.',
         sampleCommand: 'ptbk coder run --harness claude-code --no-auto',
     },
     {

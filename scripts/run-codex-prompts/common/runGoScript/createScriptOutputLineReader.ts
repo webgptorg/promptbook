@@ -8,6 +8,10 @@ export type ScriptOutputLineReader = {
      * Returns every line which the given chunk has completed, keeping the unterminated rest for the next chunk.
      */
     readCompletedLines(chunk: string): readonly string[];
+    /** Reads the pending fragment without treating it as a complete protocol record. */
+    getPendingLine(): string;
+    /** Drains a final unterminated line when a presentation capture ends. */
+    flush(): string;
 };
 
 /**
@@ -29,6 +33,12 @@ export function createScriptOutputLineReader(): ScriptOutputLineReader {
             unterminatedLine = lines.pop() ?? '';
 
             return lines;
+        },
+        getPendingLine: () => unterminatedLine,
+        flush(): string {
+            const line = unterminatedLine;
+            unterminatedLine = '';
+            return line;
         },
     };
 }

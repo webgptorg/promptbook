@@ -66,6 +66,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Saves the run trace of every round into prompts/traces/, named after its prompt file
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Optional --no-ui keeps plain streaming console output for logging and debugging
+            - The dashboard starts in Normal output; press O to toggle Raw output without restarting the task
             - Refuses to start on a nearly full disk and pauses the run when the free disk space becomes critical, unless --no-questions is used
             - Checks that the selected harness is installed and up to date before the first prompt unless --no-questions is used
             - Offers to add missing project-local ignore rules for the selected harness
@@ -73,7 +74,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Supports GPG signing of commits
             - Optional pre-coding test run that can stop or repair pre-existing failures
             - Optional post-prompt verification with test-feedback retries
-            - Progress tracking and interactive P/S/X terminal controls
+            - Progress tracking and interactive P/S/X terminal controls; O changes only the dashboard output view
             - Dry-run mode to preview prompts
         `,
         ),

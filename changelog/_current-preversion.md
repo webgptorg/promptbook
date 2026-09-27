@@ -1,3 +1,10 @@
+-   `ptbk coder run` now starts its interactive dashboard in **Normal output**, with agent messages, commands,
+    reported file changes, verification, results and diagnostics shown separately. `[o]` switches to **Raw output**
+    and back during the same task and across tasks. Added bounded stream assembly, attributed TEAM events, explicit
+    fallbacks for unfamiliar output, wrapping, output scrolling and a dashboard viewport for short terminals.
+    Harness invocations, runner decisions, raw traces and plain `--no-ui` / redirected output remain unchanged.
+    Added offline stream, terminal and adapter replay coverage, and updated CLI help, keyboard docs and the Coder demo.
+
 -   Made Book `TEAM` callable in `ptbk coder run` and `ptbk coder plan`. Effective custom/default Books now expose
     advisers from inherited and imported TEAM declarations through a shared, session-scoped runtime. All seven coding
     harness adapters use a verified command-tool bridge; Planner and its advisers use the same restricted host

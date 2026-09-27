@@ -1,4 +1,4 @@
-[ ] use `gpt-6-astra`
+[x] by Promptbook Developer on OpenAI Codex `gpt-6-astra` thinking `max` (ChatGPT account) - Implementation <$0.01 43 minutes; Testing 25 minutes
 
 [✨💬] Show readable normal output by default and allow switching to raw harness output without changing execution.
 
@@ -53,3 +53,4 @@ ptbk coder run --harness openai-codex
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Do a proper analysis of the existing stream handling before adding another parser.
 -   Update the dashboard's controls legend, keyboard-control documentation, and the [Coder landing website](../apps/coder-landing), including its terminal demonstration where it represents the changed UI.
 -   Add the changes into the [changelog](../changelog/_current-preversion.md).
+
