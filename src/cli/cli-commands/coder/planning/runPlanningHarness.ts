@@ -3,6 +3,9 @@ import { stat } from 'fs/promises';
 import { dirname, join } from 'path';
 import { createInterface } from 'readline';
 import { $terminateLoggedBashProcessTree } from '../../../../../scripts/run-codex-prompts/common/runGoScript/$terminateLoggedBashProcessTree';
+import { buildCodexUsageFromOutput } from '../../../../../scripts/run-codex-prompts/runners/openai-codex/buildCodexUsageFromOutput';
+import type { Usage } from '../../../../execution/Usage';
+import { UNCERTAIN_USAGE } from '../../../../execution/utils/usage-constants';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import { NotAllowed } from '../../../../errors/NotAllowed';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
@@ -52,6 +55,8 @@ export type PlanningHarnessOptions = NormalizedPromptRunnerSelectionCliOptions &
     readonly workspacePath: string;
     readonly prompt: string;
     readonly signal: AbortSignal;
+    /** Reports available usage from this inference once, including turns whose final answer is malformed. */
+    readonly onUsage?: (usage: Usage) => void;
 };
 
 /**
@@ -139,6 +144,7 @@ export async function runPlanningHarness(options: PlanningHarnessOptions): Promi
         let outputSize = 0;
         let isSettled = false;
         let isHarnessFailed = false;
+        let usageEvent: string | undefined;
         /** Finishes exactly once and terminates only this harness process tree. */
         const finish = (error?: Error): void => {
             if (isSettled) return;
@@ -146,6 +152,7 @@ export async function runPlanningHarness(options: PlanningHarnessOptions): Promi
             clearTimeout(timeout);
             options.signal.removeEventListener('abort', cancel);
             reader.close();
+            options.onUsage?.(usageEvent ? buildCodexUsageFromOutput(usageEvent, options.model) : UNCERTAIN_USAGE);
             if (error) {
                 if (process.platform !== 'win32' && child.pid) {
                     try {
@@ -203,6 +210,7 @@ export async function runPlanningHarness(options: PlanningHarnessOptions): Promi
             if (isSettled) return;
             try {
                 const event = JSON.parse(line);
+                if (event.type === 'turn.completed' && event.usage) usageEvent = line;
                 if (event.type === 'item.completed' && event.item?.type === 'agent_message') answer = event.item.text;
                 if (event.type === 'turn.failed' || event.type === 'error') {
                     isHarnessFailed = true;

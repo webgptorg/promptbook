@@ -1,3 +1,11 @@
+-   Made Book `TEAM` callable in `ptbk coder run` and `ptbk coder plan`. Effective custom/default Books now expose
+    advisers from inherited and imported TEAM declarations through a shared, session-scoped runtime. All seven coding
+    harness adapters use a verified command-tool bridge; Planner and its advisers use the same restricted host
+    protocol. Each adviser runs its own Book and returns an attributed answer to the primary task, with no separate
+    queue, automatic Git workflow or model call for unused advisers. Added local/remote reference handling, bounded
+    delegation, cancellation, attributed errors, existing-trace events and usage aggregation. Added deterministic
+    adapter, planning-permission, isolation and lifecycle coverage, and updated Book/CLI docs and the Coder website.
+
 -   `ptbk coder init` now bundles and initializes Lawyer and Copywriter as local TEAM advisers for both Developer
     and Planner, alongside their shared Adam core. Missing default Books and helper references are added even when
     package scripts already exist. Initialization preserves custom Books, rules, existing teammates and project

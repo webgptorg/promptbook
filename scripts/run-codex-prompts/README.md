@@ -36,6 +36,46 @@ Dry-run reports use the selected Book's routing aliases together with the select
 New `coder:run` and `coder:plan` scripts rely on these role defaults; repeated init preserves existing scripts,
 including custom `--agent` selections.
 
+### TEAM consultations
+
+`run` and `plan` expose the effective selected Book's TEAM entries as callable adviser tools, including entries
+from `FROM` and `IMPORT`. The primary agent chooses a relevant adviser, sends a question and necessary context,
+and receives an attributed answer in the same task. Each adviser runs its own Book, inheritance and imports.
+Its rules are not merged into the primary agent, and declaring advisers does not run them automatically.
+
+```book
+Developer
+TEAM Consult {./lawyer.book} about licensing.
+TEAM Ask {Copywriter} to review application wording.
+```
+
+The existing Book resolver also supports `@Name`, project paths such as `{agents/lawyer.book}`, and HTTP(S)
+Book or agent URLs. Names use first-line Book titles; `./` and `../` paths are relative to the declaring Book,
+including inherited declarations. Repeated references to the same Book share one tool; ambiguous names and
+missing references produce errors. Prepared fixture or custom Books work without running `coder init`.
+Local advisers need no Agents Server. Remote source is read through the existing Book endpoint and compiled
+under the caller's execution policy; inaccessible/private sources produce attributed errors. Coder does not
+forward local credentials or Agents Server internal-access tokens to remote URLs, and remote Books cannot
+reference host-local Books. Agents Server's own remote TEAM execution and access checks are unchanged.
+
+All seven coding harnesses (OpenAI Codex, Claude Code, GitHub Copilot, Cline, OpenCode, Gemini and Qwen Code)
+use the same temporary command-tool bridge. The harness verifies discovery before working, calls each
+advertised tool through its shell capability, and reads the returned JSON. Disabled command capabilities or
+missing bridge connections fail explicitly. This uses the selected harness's existing model, authentication,
+permissions and project directory. No extra model call is made for an unused adviser.
+
+Planning currently supports OpenAI Codex only. Planner and every nested adviser use the same host-mediated
+read protocol and restricted inference process. Even a Developer Book cannot write application files, run
+commands or submit its own PRD proposals as a planning adviser. Only the primary Planner proposes PRDs,
+which retain the normal review and save flow. Other planning harnesses are rejected before execution.
+
+Each consultation belongs to one task/session/invocation, with no shared message or result cache. Calls have
+a five-minute timeout, a maximum depth of four, and a total limit of 24 consultations per runtime. Cycles,
+unavailable agents, cancellations and malformed answers return attributed errors for the primary agent to
+handle; cancellation revokes the delegation tree. Advisers never start a separate queue or automatic Git or
+migration workflow. Requests, results, errors and available nested activity join the existing runtime trace;
+available usage is aggregated once per inference, retaining uncertainty when a harness cannot report it.
+
 ### Direct execution (legacy):
 
 ```bash

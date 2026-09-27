@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentReferenceResolver } from '../../../book-2.0/agent-source/AgentReferenceResolver';
 import { extractAgentReferenceTokens } from '../../../book-2.0/agent-source/extractAgentReferenceTokens';
+import { parseTeamCommitmentContent } from '../../../book-2.0/agent-source/parseTeamCommitment';
 import {
     createPseudoAgentUrl,
     isPseudoAgentAllowedInCommitment,
@@ -40,6 +41,12 @@ export function createLocalAgentReferenceResolver(
 
     return {
         resolveCommitmentContent: async (commitmentType, content) => {
+            // Bare TEAM URLs bypass compact token replacement, but must obey the same remote/local boundary.
+            if (commitmentType === 'TEAM') {
+                for (const teammate of parseTeamCommitmentContent(content)) {
+                    await collection.resolveReference(teammate.url, declaringBook);
+                }
+            }
             const tokens = extractAgentReferenceTokens(content);
             if (tokens.length === 0) {
                 if (commitmentType !== 'TEAM' && content.trim()) {

@@ -109,7 +109,7 @@ describe('coder agent reference resolution', () => {
         expect(await compileAgent(`${commitment} {http://example.com/agent.book}`)).toContain(
             'Remote workshop guidance.',
         );
-        expect(global.fetch).toHaveBeenCalledWith('http://example.com/agent.book');
+        expect(global.fetch).toHaveBeenCalledWith('http://example.com/agent.book', { signal: expect.any(AbortSignal) });
     });
 
     it.each(['@null', '{null}', '@void', '{void}'])('disables inheritance with FROM %s', async (reference) => {
@@ -180,7 +180,9 @@ describe('coder agent reference resolution', () => {
         const systemMessage = await compileAgent('FROM {https://example.com/books/parent.book}');
         expect(systemMessage).toContain('Remote parent guidance.');
         expect(systemMessage).toContain('Remote base guidance.');
-        expect(global.fetch).toHaveBeenCalledWith('https://example.com/books/base.book');
+        expect(global.fetch).toHaveBeenCalledWith('https://example.com/books/base.book', {
+            signal: expect.any(AbortSignal),
+        });
     });
 
     it('resolves a teammate profile through the teammate own inheritance chain', async () => {

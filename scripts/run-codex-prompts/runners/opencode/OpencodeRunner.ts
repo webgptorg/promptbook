@@ -10,6 +10,8 @@ import { parseOpencodeJsonOutput } from './parseOpencodeJsonOutput';
  * Runs prompts via the Opencode CLI.
  */
 export class OpencodeRunner implements PromptRunner {
+    /** TEAM uses this harness's existing command tool, with the same permissions as its caller. */
+    public readonly teamCapability = 'command-tools' as const;
     public readonly name = 'opencode';
 
     /**
@@ -29,13 +31,16 @@ export class OpencodeRunner implements PromptRunner {
         let output: string;
         try {
             output = await $runGoScriptWithOutput({
+                projectPath: options.projectPath,
                 scriptPath: options.scriptPath,
+                signal: options.signal,
                 scriptContent,
                 logPath: options.logPath,
                 shouldPrintLiveOutput: options.shouldPrintLiveOutput,
                 preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
             });
         } catch (error) {
+            options.signal?.throwIfAborted();
             if (error instanceof Error) {
                 output = error.message;
             } else {

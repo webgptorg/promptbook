@@ -16,8 +16,12 @@ persona without changing the command's planning-only write boundary.
 Both primary roles declare Lawyer (`agents/lawyer.book`) and Copywriter (`agents/copywriter.book`) as local TEAM
 advisers. Lawyer identifies relevant legal and compliance questions, assumptions and qualified-review needs;
 Copywriter improves application text in the product's language and tone. Both inherit Adam. Describe consultation
-as relevant to the task, never mandatory on every run. Init prepares Books and declarations; actual consultation
-requires the separate Coder TEAM runtime support. Re-running init restores missing defaults and adds missing helper
+as relevant to the task, never mandatory on every run. Each adviser executes its own effective Book and returns
+an attributed answer to the primary task through the shared TEAM bridge. Local consultation needs no Agents Server;
+unused advisers make no model calls. All seven coding harnesses support consultation, including custom and inherited
+teams. Planning currently supports OpenAI Codex and enforces the same restrictions throughout delegation: advisers
+cannot implement or propose PRD writes. Requests, results, failures and available usage use the existing task trace.
+Re-running init restores missing defaults and adds missing helper
 references without replacing custom Books, rules or teammates. Report unsafe or unresolved updates instead of replacing content.
 
 ## Copy

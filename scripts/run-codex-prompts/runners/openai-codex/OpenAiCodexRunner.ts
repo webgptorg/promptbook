@@ -90,6 +90,8 @@ function extractFailureSummary(details: string): string {
  * Runs prompts via the OpenAI Codex CLI.
  */
 export class OpenAiCodexRunner implements PromptRunner {
+    /** TEAM uses this harness's existing command tool, with the same permissions as its caller. */
+    public readonly teamCapability = 'command-tools' as const;
     public readonly name = 'codex';
     private readonly rateLimitBackoff = new ProgressiveBackoff({
         maxDelayMs: RATE_LIMIT_BACKOFF_MAX_MS,
@@ -127,6 +129,7 @@ export class OpenAiCodexRunner implements PromptRunner {
             codexCommand: this.options.codexCommand,
         });
         for (let retryIndex = 0; ; retryIndex++) {
+            options.signal?.throwIfAborted();
             if (retryIndex > 0) {
                 await options.waitForPauseCheckpoint?.({
                     checkpointLabel: 'retrying the OpenAI Codex model call after rate limit',
@@ -137,7 +140,9 @@ export class OpenAiCodexRunner implements PromptRunner {
 
             try {
                 const output = await $runGoScriptUntilMarkerIdle({
+                    projectPath: options.projectPath,
                     scriptPath: options.scriptPath,
+                    signal: options.signal,
                     scriptContent,
                     completionLineMatcher: this.options.isMachineReadableProgressEnabled
                         ? CODEX_JSON_COMPLETION_LINE
@@ -154,6 +159,7 @@ export class OpenAiCodexRunner implements PromptRunner {
                     loginMethod: parseCodexLoginMethodFromOutput(output),
                 };
             } catch (error) {
+                options.signal?.throwIfAborted();
                 const details = extractCodexFailureDetails(error);
                 const failureKind = classifyCodexFailure(details);
 
@@ -205,6 +211,7 @@ async function waitForRetryDelay(options: {
         deadlineTimeMs: retryDeadlineTimeMs,
         pollIntervalMs: RATE_LIMIT_BACKOFF_POLL_MS,
         onTick: async (remainingDelayMs) => {
+            promptRunOptions.signal?.throwIfAborted();
             const remainingDelayLabel = formatDelay(Math.min(remainingDelayMs, delayMs));
 
             await promptRunOptions.waitForPauseCheckpoint?.({

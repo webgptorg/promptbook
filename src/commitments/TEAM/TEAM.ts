@@ -171,6 +171,18 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
 
             Registers teammate agents that the current agent can consult via tools.
 
+            The primary agent sends a question and relevant context to a teammate and receives an attributed answer.
+            Each teammate uses its own Book. Declaring a team makes advisers available when relevant; it does not
+            merge their rules into the primary agent or start every teammate automatically.
+
+            In \`ptbk coder run\` and \`ptbk coder plan\`, TEAM entries in the selected Book, its ancestors and imports
+            use the existing reference rules: \`@Name\`, \`{Agent Name}\`, \`{./lawyer.book}\`, project paths such as
+            \`{agents/lawyer.book}\`, and HTTP(S) Book URLs. Local advisers require no Agents Server. A remote Book
+            must be readable through its normal endpoint; private or inaccessible sources return errors.
+            Coding harnesses expose scoped command tools; planning uses restricted host tools and currently requires
+            OpenAI Codex. Planning restrictions apply to every adviser, including custom Developer Books.
+            The primary agent retains responsibility for the task, PRD proposals and final output.
+
             ## Examples
 
             \`\`\`book
@@ -216,22 +228,32 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
         >;
 
         const resolvedTeammates: TeamTeammate[] = resolveTeamTeammateLabels(trimmedContent, teammates);
+        const toolUrls = new Map(existingTeammates.map((teammate) => [teammate.toolName, teammate.url]));
 
         const teamEntries: TeamToolEntry[] = resolvedTeammates.map((teammate) => {
             const profile = preResolvedProfiles[teammate.url];
             const resolvedLabel = profile?.agentName || teammate.label;
             const existingTeammate = existingTeammates.find((entry) => entry.url === teammate.url);
+            const baseToolName = existingTeammate?.toolName || createTeamToolName(teammate.url, resolvedLabel);
+            let toolName = baseToolName;
+            let suffix = 1;
+            // Explicit paths can identify distinct Books with the same display name or normalized label.
+            while (toolUrls.has(toolName) && toolUrls.get(toolName) !== teammate.url) {
+                toolName = `${baseToolName}_${++suffix}`;
+            }
+            toolUrls.set(toolName, teammate.url);
             return {
-                toolName: (existingTeammate?.toolName ||
-                    createTeamToolName(teammate.url, resolvedLabel)) as string_javascript_name,
+                toolName: toolName as string_javascript_name,
                 teammate: { ...teammate, label: resolvedLabel },
                 agentName,
                 description: profile?.personaDescription || null,
             };
         });
 
-        for (const entry of teamEntries) {
-            registerTeamTool(entry);
+        if (!requirements._metadata?.isTeamToolRegistrationDisabled) {
+            for (const entry of teamEntries) {
+                registerTeamTool(entry);
+            }
         }
 
         const existingTools: readonly LlmToolDefinition[] = requirements.tools || [];

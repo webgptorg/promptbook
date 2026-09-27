@@ -7,6 +7,8 @@ import type { HarnessSubscriptionUsage } from './HarnessSubscriptionUsage';
  */
 export type PromptRunner = {
     name: string;
+    /** Explicit adapter contract: the harness can execute a scoped Node command and consume its stdout as a tool result. */
+    readonly teamCapability?: 'command-tools';
     runPrompt(options: PromptRunOptions): Promise<PromptRunResult>;
 
     /**

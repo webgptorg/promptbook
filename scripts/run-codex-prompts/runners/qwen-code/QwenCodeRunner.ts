@@ -16,6 +16,8 @@ export const DEFAULT_QWEN_CODE_MODEL = HARNESS_DEFAULT_MODELS['qwen-code'];
  * Runs prompts via the Qwen Code CLI.
  */
 export class QwenCodeRunner implements PromptRunner {
+    /** TEAM uses this harness's existing command tool, with the same permissions as its caller. */
+    public readonly teamCapability = 'command-tools' as const;
     public readonly name = 'qwen-code';
 
     /**
@@ -33,7 +35,9 @@ export class QwenCodeRunner implements PromptRunner {
         });
 
         const output = await $runGoScriptWithOutput({
+            projectPath: options.projectPath,
             scriptPath: options.scriptPath,
+            signal: options.signal,
             scriptContent,
             logPath: options.logPath,
             shouldPrintLiveOutput: options.shouldPrintLiveOutput,

@@ -1,4 +1,5 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
+import { resolveShellHereDocumentDelimiter } from '../../common/runGoScript/resolveShellHereDocumentDelimiter';
 import type { QwenCodeScriptOptions } from './QwenCodeScriptOptions';
 
 /**
@@ -13,13 +14,14 @@ const QWEN_CODE_PROMPT_DELIMITER = 'QWEN_CODE_PROMPT';
  *       up front and there is nobody at the keyboard to confirm the single tool calls.
  */
 export function buildQwenCodeScript(options: QwenCodeScriptOptions): string {
+    const delimiter = resolveShellHereDocumentDelimiter(QWEN_CODE_PROMPT_DELIMITER, options.prompt);
     return spaceTrim(
         (block) => `
-            qwen -y -m ${options.model} -p "$(cat <<'${QWEN_CODE_PROMPT_DELIMITER}'
+            qwen -y -m ${options.model} -p "$(cat <<'${delimiter}'
 
             ${block(options.prompt)}
 
-            ${QWEN_CODE_PROMPT_DELIMITER}
+            ${delimiter}
             )"
         `,
     );

@@ -1,4 +1,5 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
+import { resolveShellHereDocumentDelimiter } from '../../common/runGoScript/resolveShellHereDocumentDelimiter';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
 import type { GitHubCopilotScriptOptions } from './GitHubCopilotScriptOptions';
 
@@ -6,7 +7,7 @@ import type { GitHubCopilotScriptOptions } from './GitHubCopilotScriptOptions';
  * Builds the shell script that runs GitHub Copilot CLI with the prompt and coding context.
  */
 export function buildGitHubCopilotScript(options: GitHubCopilotScriptOptions): string {
-    const delimiter = 'GITHUB_COPILOT_PROMPT';
+    const delimiter = resolveShellHereDocumentDelimiter('GITHUB_COPILOT_PROMPT', options.prompt);
     const projectPath = toPosixPath(options.projectPath);
     const modelArgument = options.model ? ` --model ${options.model}` : '';
     const thinkingLevelArgument = options.thinkingLevel ? ` --reasoning-effort ${options.thinkingLevel}` : '';

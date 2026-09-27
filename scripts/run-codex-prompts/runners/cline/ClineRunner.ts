@@ -12,6 +12,8 @@ import type { ClineRunnerOptions } from './ClineRunnerOptions';
  * Runs prompts via the Cline CLI.
  */
 export class ClineRunner implements PromptRunner {
+    /** TEAM uses this harness's existing command tool, with the same permissions as its caller. */
+    public readonly teamCapability = 'command-tools' as const;
     public readonly name = 'cline';
 
     /**
@@ -39,7 +41,9 @@ export class ClineRunner implements PromptRunner {
             });
 
             await $runGoScript({
+                projectPath: options.projectPath,
                 scriptPath: options.scriptPath,
+                signal: options.signal,
                 scriptContent,
                 logPath: options.logPath,
                 shouldPrintLiveOutput: options.shouldPrintLiveOutput,

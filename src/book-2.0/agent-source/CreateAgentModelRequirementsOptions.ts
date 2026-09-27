@@ -8,6 +8,8 @@ import type { TeammateProfileResolver } from './TeammateProfileResolver';
  * @public exported from `@promptbook/core`
  */
 export type CreateAgentModelRequirementsOptions = {
+    /** A host supplying its own scoped TEAM runtime only needs the tool definitions, not global executors. */
+    readonly isTeamToolRegistrationDisabled?: boolean;
     /**
      * Resolver that transforms compact agent references (FROM, IMPORT, TEAM) into concrete URLs.
      */

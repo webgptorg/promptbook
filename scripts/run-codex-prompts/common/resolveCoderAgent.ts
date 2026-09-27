@@ -11,7 +11,8 @@ import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { NotFoundError } from '../../../src/errors/NotFoundError';
 import { ParseError } from '../../../src/errors/ParseError';
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
-import { createAgentRunnerSystemMessage } from '../../run-agent-messages/messages/createAgentRunnerSystemMessage';
+import { compileCoderTeamAgent } from '../team/compileCoderTeamAgent';
+import type { CoderTeamAgent } from '../team/CoderTeamAgent';
 
 /**
  * Source and prompt-routing references resolved from an optional `--agent` book file.
@@ -43,6 +44,8 @@ export type ResolvedCoderAgentBook = {
  * Agent data resolved from the optional `--agent` book file.
  */
 export type ResolvedCoderAgent = ResolvedCoderAgentBook & {
+    /** Compiled TEAM schemas and a session-scoped loader for each adviser's own effective Book. */
+    readonly teamAgent: CoderTeamAgent;
     /** Source with inheritance and imports applied, also used for the coder's agent visual. */
     readonly agentSource: string_book;
 
@@ -141,13 +144,13 @@ export async function resolveCoderAgent(
             currentWorkingDirectory,
             { isInitializationAllowed: options.isInitializationAllowed, signal: options.signal },
         );
+        const teamAgent = await compileCoderTeamAgent(resolvedSource);
 
         return {
             ...resolvedAgentBook,
             agentSource: resolvedSource.agentSource,
-            systemMessage: await createAgentRunnerSystemMessage(resolvedSource.agentSource, {
-                agentReferenceResolver: resolvedSource.agentReferenceResolver,
-            }),
+            systemMessage: teamAgent.systemMessage,
+            teamAgent,
             createdAgentBookPaths: resolvedSource.createdAgentBookPaths,
         };
     } catch (error) {

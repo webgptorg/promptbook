@@ -1,6 +1,10 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
-import { CODEX_CHATGPT_LOGIN_STATUS_NEEDLE, CODEX_LOGIN_METHOD_MARKER } from '../../../../src/book-3.0/codexLoginMethod';
+import { resolveShellHereDocumentDelimiter } from '../../common/runGoScript/resolveShellHereDocumentDelimiter';
+import {
+    CODEX_CHATGPT_LOGIN_STATUS_NEEDLE,
+    CODEX_LOGIN_METHOD_MARKER,
+} from '../../../../src/book-3.0/codexLoginMethod';
 import type { CodexScriptOptions } from './CodexScriptOptions';
 
 /**
@@ -35,7 +39,11 @@ export function buildCodexScript(options: CodexScriptOptions): string {
         esac
 
         CODEX_LOGIN_METHOD=chatgpt
-        ${options.allowCredits ? 'CODEX_LOGIN_METHOD_ARGUMENTS=()' : 'CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)'}
+        ${
+            options.allowCredits
+                ? 'CODEX_LOGIN_METHOD_ARGUMENTS=()'
+                : 'CODEX_LOGIN_METHOD_ARGUMENTS=(-c forced_login_method=chatgpt)'
+        }
         unset CODEX_API_KEY
         if [ "$IS_CODEX_CHATGPT_LOGIN_ACTIVE" != "1" ] &&
             [ "\${PTBK_OPENAI_CODEX_USE_API_KEY:-0}" = "1" ] &&
@@ -90,26 +98,4 @@ export function buildCodexScript(options: CodexScriptOptions): string {
     ];
 
     return lines.join('\n');
-}
-
-/**
- * Resolves a here-document delimiter that cannot be confused with a line inside the prompt.
- */
-function resolveShellHereDocumentDelimiter(baseDelimiter: string, content: string): string {
-    let delimiter = baseDelimiter;
-    let delimiterSuffix = 0;
-
-    while (isShellHereDocumentDelimiterPresent(content, delimiter)) {
-        delimiterSuffix += 1;
-        delimiter = `${baseDelimiter}_${delimiterSuffix}`;
-    }
-
-    return delimiter;
-}
-
-/**
- * Checks whether a prompt already contains one exact here-document closing delimiter line.
- */
-function isShellHereDocumentDelimiterPresent(content: string, delimiter: string): boolean {
-    return content.replace(/\r\n/gu, '\n').split('\n').some((line) => line === delimiter);
 }

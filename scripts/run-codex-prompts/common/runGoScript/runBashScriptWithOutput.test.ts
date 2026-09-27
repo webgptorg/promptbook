@@ -62,6 +62,53 @@ describe('runGoScript runtime logging', () => {
         expect(observedLines).toContain('second line');
     });
 
+    it('runs command tools in the invocation project without changing the host cwd', async () => {
+        const originalDirectory = process.cwd();
+        const output = await $runGoScriptWithOutput({
+            projectPath: temporaryDirectoryPath,
+            scriptPath: join(temporaryDirectoryPath, 'cwd.sh'),
+            scriptContent: 'node -p "process.cwd()"',
+            shouldPrintLiveOutput: false,
+        });
+        expect(output.replaceAll('\\', '/').toLowerCase()).toContain(
+            temporaryDirectoryPath.replaceAll('\\', '/').toLowerCase(),
+        );
+        expect(process.cwd()).toBe(originalDirectory);
+    });
+
+    it.each(['ordinary', 'marker'])(
+        'cancels an active %s consultation shell and records cancellation',
+        async (kind) => {
+            const controller = new AbortController();
+            const scriptPath = join(temporaryDirectoryPath, 'cancel.sh');
+            const logPath = buildScriptLogPath(scriptPath);
+            const options = {
+                projectPath: temporaryDirectoryPath,
+                scriptPath,
+                logPath,
+                signal: controller.signal,
+                shouldPrintLiveOutput: false,
+                scriptContent: spaceTrim(`
+                printf 'READY_TO_CANCEL\\n'
+                while true; do sleep 1; done
+            `),
+                onOutputLine: (line: string) => {
+                    if (line === 'READY_TO_CANCEL') controller.abort(new Error('Fixture cancelled'));
+                },
+            };
+            const execution =
+                kind === 'ordinary'
+                    ? $runGoScriptWithOutput(options)
+                    : $runGoScriptUntilMarkerIdle({
+                          ...options,
+                          completionLineMatcher: /^READY_TO_CANCEL$/u,
+                          idleTimeoutMs: 50,
+                      });
+            await expect(execution).rejects.toThrow('Fixture cancelled');
+            expect(await readFile(logPath, 'utf-8')).toContain('Status: cancelled');
+        },
+    );
+
     it('reports every completed output line of a marker-terminated script', async () => {
         const scriptPath = join(temporaryDirectoryPath, 'prompt-marker-lines.sh');
         const observedLines: string[] = [];

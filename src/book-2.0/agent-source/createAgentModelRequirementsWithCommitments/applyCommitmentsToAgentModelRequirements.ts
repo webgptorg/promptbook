@@ -157,9 +157,14 @@ async function preResolveTeammateProfilesForTeamCommitment(
                 continue;
             }
 
-            const profile = await profileResolver.resolveTeammateProfile(teammate.url);
-            if (profile) {
-                preResolvedTeammateProfiles[teammate.url] = profile;
+            try {
+                const profile = await profileResolver.resolveTeammateProfile(teammate.url);
+                if (profile) {
+                    preResolvedTeammateProfiles[teammate.url] = profile;
+                }
+            } catch (error) {
+                // One inaccessible adviser must not erase the names and roles of other callable teammates.
+                console.warn(`Failed to resolve TEAM profile for ${teammate.url}:`, error);
             }
         }
 

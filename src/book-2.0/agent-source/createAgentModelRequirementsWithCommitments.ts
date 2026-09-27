@@ -31,6 +31,12 @@ export async function createAgentModelRequirementsWithCommitments(
     const filteredCommitments = filterCommitmentsForAgentModelRequirements(parseResult.commitments);
 
     let requirements = createInitialAgentModelRequirements(parseResult.agentName, modelName);
+    if (options?.isTeamToolRegistrationDisabled) {
+        requirements = {
+            ...requirements,
+            _metadata: { ...requirements._metadata, isTeamToolRegistrationDisabled: true },
+        };
+    }
     requirements = await applyCommitmentsToAgentModelRequirements(requirements, filteredCommitments, options);
     requirements = await augmentAgentModelRequirementsFromSource(requirements, parseResult, agentSource);
     requirements = await materializeInlineKnowledgeSources(requirements, options?.inlineKnowledgeSourceUploader);

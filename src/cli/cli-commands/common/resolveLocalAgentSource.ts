@@ -18,8 +18,12 @@ import { LocalAgentBookCollection, type LocalAgentBook } from './LocalAgentBookC
  * @private internal type of CLI agent resolution
  */
 export type ResolvedLocalAgentSource = {
+    /** Canonical identity used to bound recursive TEAM consultations. */
+    readonly agentUrl: string;
     readonly agentSource: string_book;
     readonly agentReferenceResolver: AgentReferenceResolver;
+    /** Resolves another Book in this collection, retaining its own inheritance and reference locations. */
+    readonly resolveAgentSource: (url: string, signal?: AbortSignal) => Promise<ResolvedLocalAgentSource>;
     /** Newly created books which the coder may include in its initialization commit. */
     readonly createdAgentBookPaths: ReadonlyArray<string>;
 };
@@ -48,7 +52,9 @@ export async function resolveLocalAgentSource(
     async function resolveBook(
         book: LocalAgentBook,
         inheritancePath: ReadonlyArray<string> = [],
+        signal = options.signal,
     ): Promise<string_book> {
+        signal?.throwIfAborted();
         if (inheritancePath.length > DEFAULT_MAX_RECURSION) {
             throw new ParseError(
                 spaceTrim(
@@ -65,28 +71,36 @@ export async function resolveLocalAgentSource(
             currentAgentUrl: book.url,
             inheritancePath,
             agentSourceImporter: async (url, context) =>
-                resolveBook(await collection.getBook(url), context.importAgentOptions.inheritancePath),
+                resolveBook(await collection.getBook(url, signal), context.importAgentOptions.inheritancePath, signal),
         });
     }
 
-    return {
-        agentSource: await resolveBook(primaryBook),
-        agentReferenceResolver: {
-            ...createLocalAgentReferenceResolver(collection, primaryBook),
-            resolveTeammateProfile: async (url) => {
-                if (isPseudoAgentUrl(url)) {
-                    return null;
-                }
-                const book = await collection.getBook(url);
-                const parsedSource = parseAgentSource(await resolveBook(book));
-                return {
-                    agentName: book.profile.agentName,
-                    personaDescription: parsedSource.personaDescription,
-                };
+    /** Keeps the source loader and profiles scoped to this resolution, never to a global TEAM registry. */
+    async function resolveAgent(book: LocalAgentBook, signal = options.signal): Promise<ResolvedLocalAgentSource> {
+        return {
+            agentUrl: book.url,
+            agentSource: await resolveBook(book, [], signal),
+            agentReferenceResolver: {
+                ...createLocalAgentReferenceResolver(collection, book),
+                resolveTeammateProfile: async (url) => {
+                    if (isPseudoAgentUrl(url)) {
+                        return null;
+                    }
+                    const book = await collection.getBook(url, signal);
+                    const parsedSource = parseAgentSource(await resolveBook(book, [], signal));
+                    return {
+                        agentName: book.profile.agentName,
+                        personaDescription: parsedSource.personaDescription,
+                    };
+                },
             },
-        },
-        createdAgentBookPaths: collection.createdAgentBookPaths,
-    };
+            resolveAgentSource: async (url, consultationSignal) =>
+                resolveAgent(await collection.getBook(url, consultationSignal || signal), consultationSignal || signal),
+            createdAgentBookPaths: collection.createdAgentBookPaths,
+        };
+    }
+
+    return resolveAgent(primaryBook);
 }
 
 /**

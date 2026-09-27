@@ -1,4 +1,4 @@
-[ ] use `gpt-6-astra`
+[x] by Promptbook Developer on OpenAI Codex `gpt-6-astra` thinking `max` (ChatGPT account) - Implementation ~.09 an hour; Testing 36 minutes
 
 [✨🔗] Make Book `TEAM` commitments actually work in `ptbk coder run` and `ptbk coder plan`.
 
@@ -51,3 +51,4 @@ ptbk coder plan --harness openai-codex --agent agents/planner.book
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Reuse modern Book/TEAM infrastructure without bringing back the deprecated pipeline execution system.
 -   Update relevant Book/CLI documentation and the [Coder landing website](../apps/coder-landing).
 -   Add the changes into the [changelog](../changelog/_current-preversion.md).
+

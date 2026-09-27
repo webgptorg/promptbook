@@ -54,13 +54,16 @@ function buildCommandFailureMessage(scriptPathPosix: string, code: number | null
  * Returns the captured output.
  */
 export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdleOptions): Promise<string> {
+    options.signal?.throwIfAborted();
     const { scriptPath, completionLineMatcher, idleTimeoutMs } = options;
     const scriptPathPosix = toPosixPath(scriptPath);
     const shouldPrintLiveOutput = options.shouldPrintLiveOutput ?? true;
     await appendScriptExecutionLogStart(options);
+    options.signal?.throwIfAborted();
 
     return await new Promise<string>((resolve, reject) => {
         const commandProcess = $spawnLoggedBashScript({
+            projectPath: options.projectPath,
             scriptPath,
             logPath: options.logPath,
         });
@@ -95,6 +98,7 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
                 return;
             }
             settled = true;
+            options.signal?.removeEventListener('abort', cancel);
             if (idleTimer) {
                 clearTimeout(idleTimer);
                 idleTimer = undefined;
@@ -178,6 +182,10 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
          * Handles process exit and resolves or rejects accordingly.
          */
         const handleExit = (code: number | null): void => {
+            if (options.signal?.aborted) {
+                settleWithLog('cancelled', () => reject(options.signal!.reason), options.signal.reason);
+                return;
+            }
             const failure =
                 code === 0 || markerSeen
                     ? undefined
@@ -219,5 +227,9 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
             const failure = new Error(failureMessage);
             settleWithLog('failed before completion', () => reject(failure), failure);
         });
+        /** Cancels this shell tree without treating a previously seen completion marker as success. */
+        const cancel = (): void => $terminateLoggedBashProcessTree(commandProcess);
+        options.signal?.addEventListener('abort', cancel, { once: true });
+        if (options.signal?.aborted) cancel();
     });
 }

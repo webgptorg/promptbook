@@ -48,9 +48,15 @@ export function AgentsSection() {
                         text. Their editable Books live at{' '}
                         <code className="text-promptbook-blue">agents/lawyer.book</code> and{' '}
                         <code className="text-promptbook-blue">agents/copywriter.book</code>, sharing Adam&apos;s core
-                        instructions. These advisers are relevant to specific tasks; declaring them does not require
-                        both to run for every task. Init prepares their Books and references for Coder TEAM runtime
-                        support.
+                        instructions. During coding or planning, the primary agent can ask a relevant adviser a question
+                        and use its answer in the same task. Each adviser runs its own Book; unused advisers make no
+                        model calls. Local consultations work without an Agents Server.
+                    </p>
+                    <p className="mt-4 text-gray-400">
+                        TEAM works with custom Books and inherited declarations across all seven coding harnesses.
+                        Planning currently uses OpenAI Codex, and every adviser follows the same planning restrictions:
+                        only the primary Planner proposes PRDs for your review. Consultation results, failures and
+                        available usage appear in the task&apos;s existing trace.
                     </p>
                     <p className="mt-4 text-gray-400">
                         <code className="text-promptbook-blue">run</code> and{' '}

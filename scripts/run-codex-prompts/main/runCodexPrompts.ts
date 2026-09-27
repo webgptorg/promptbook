@@ -62,6 +62,7 @@ import { limitTestOutput } from '../testing/limitTestOutput';
 import { runTestBefore } from '../testing/runTestBefore';
 import { resolvePromptRunner, resolveRunnerModel } from './resolvePromptRunner';
 import { runPromptRound } from './runPromptRound';
+import { createCoderTeamPromptRunner } from '../team/createCoderTeamPromptRunner';
 
 /**
  * Constant for prompts dir.
@@ -128,7 +129,12 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             await commitInitializedAgentBooks(process.cwd(), resolvedCoderAgent.createdAgentBookPaths);
         }
 
-        const { runner, actualRunnerModel, runnerMetadata: harnessRunnerMetadata } = resolvePromptRunner(options);
+        const {
+            runner: harnessRunner,
+            actualRunnerModel,
+            runnerMetadata: harnessRunnerMetadata,
+        } = resolvePromptRunner(options);
+        const runner = createCoderTeamPromptRunner(harnessRunner, options.agent);
         // Note: The harness only knows itself, so the Book agent it runs as is joined here - this is the single
         //       place where the whole run report of prompt status lines and run traces is put together
         const runnerMetadata: PromptRunnerMetadata = {

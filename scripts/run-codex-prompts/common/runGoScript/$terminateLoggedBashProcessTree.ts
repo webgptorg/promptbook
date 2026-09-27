@@ -1,9 +1,14 @@
 import { spawnSync, type ChildProcess } from 'child_process';
+import { PTBK_CODER_CANCEL_COMMAND } from './scriptExecutionLog';
 
 /**
  * Whether the current coder process runs on Windows.
  */
 const IS_WINDOWS = process.platform === 'win32';
+/** Give the wrapper time to terminate its own MSYS job and flush logging before the native fallback. */
+const WINDOWS_CANCELLATION_GRACE_MS = 2000;
+/** Cancellation and marker-idle completion may race; never interrupt an orderly shutdown twice. */
+const TERMINATING_PROCESSES = new WeakSet<ChildProcess>();
 
 /**
  * Stops one active temporary Bash shell together with the harness process tree it owns.
@@ -14,9 +19,14 @@ const IS_WINDOWS = process.platform === 'win32';
  * @private internal utility of the coding prompt runner
  */
 export function $terminateLoggedBashProcessTree(commandProcess: ChildProcess): void {
-    if (commandProcess.exitCode !== null || commandProcess.signalCode !== null) {
+    if (
+        commandProcess.exitCode !== null ||
+        commandProcess.signalCode !== null ||
+        TERMINATING_PROCESSES.has(commandProcess)
+    ) {
         return;
     }
+    TERMINATING_PROCESSES.add(commandProcess);
 
     if (!IS_WINDOWS) {
         commandProcess.kill('SIGTERM');
@@ -27,8 +37,21 @@ export function $terminateLoggedBashProcessTree(commandProcess: ChildProcess): v
         return;
     }
 
-    spawnSync('taskkill.exe', ['/PID', commandProcess.pid.toString(), '/T', '/F'], {
-        stdio: 'ignore',
-        windowsHide: true,
-    });
+    /** Native fallback also handles processes, such as planning inference, whose stdin is already closed. */
+    const terminateNativeTree = (): void => {
+        if (commandProcess.exitCode !== null || commandProcess.signalCode !== null || !commandProcess.pid) return;
+        spawnSync('taskkill.exe', ['/PID', commandProcess.pid.toString(), '/T', '/F'], {
+            stdio: 'ignore',
+            windowsHide: true,
+        });
+    };
+    if (commandProcess.stdin?.writable && !commandProcess.stdin.writableEnded) {
+        commandProcess.stdin.once('error', terminateNativeTree);
+        commandProcess.stdin.end(`${PTBK_CODER_CANCEL_COMMAND}\n`);
+        const fallback = setTimeout(terminateNativeTree, WINDOWS_CANCELLATION_GRACE_MS);
+        fallback.unref();
+        commandProcess.once('close', () => clearTimeout(fallback));
+    } else {
+        terminateNativeTree();
+    }
 }

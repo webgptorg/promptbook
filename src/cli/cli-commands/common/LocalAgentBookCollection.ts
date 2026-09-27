@@ -7,6 +7,7 @@ import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSourc
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { TeammateProfile } from '../../../book-2.0/agent-source/TeammateProfileResolver';
 import { NotFoundError } from '../../../errors/NotFoundError';
+import { NotAllowed } from '../../../errors/NotAllowed';
 import { ParseError } from '../../../errors/ParseError';
 import { isValidAgentUrl } from '../../../utils/validators/url/isValidAgentUrl';
 import { ADAM_AGENT_BOOK_RELATIVE_PATH, ensureAdamAgentBook } from './ensureAdamAgentBook';
@@ -33,6 +34,8 @@ const LOCAL_AGENT_URL_PREFIX = 'https://local-agent.promptbook/';
  * Directories which cannot contain project-owned agent definitions.
  */
 const IGNORED_DIRECTORY_NAMES = new Set(['.git', 'node_modules']);
+/** Bound remote profile discovery even before a consultation's own timeout has started. */
+const REMOTE_BOOK_TIMEOUT_MS = 30_000;
 
 /**
  * Reads repository books and indexes their first-line names for CLI reference resolution.
@@ -100,6 +103,15 @@ export class LocalAgentBookCollection {
     /** Resolves a name, a path relative to its declaring book, or a path relative to the CLI cwd. */
     public async resolveReference(reference: string, declaringBook: LocalAgentBook): Promise<string> {
         const isRemoteReference = Boolean(isValidAgentUrl(reference));
+        // Remote instructions cannot name host-local Books or manufacture internal collection identities.
+        if (
+            !declaringBook.filePath &&
+            (reference.startsWith(LOCAL_AGENT_URL_PREFIX) || (!isRemoteReference && !/^\.{1,2}[\\/]/.test(reference)))
+        ) {
+            throw new NotAllowed(
+                spaceTrim(`Remote Book \`${declaringBook.url}\` cannot access local reference \`${reference}\`.`),
+            );
+        }
         if (isRemoteReference) {
             return reference;
         }
@@ -142,7 +154,8 @@ export class LocalAgentBookCollection {
     }
 
     /** Loads a referenced remote book, while keeping local identifiers entirely inside the collection. */
-    public async getBook(url: string): Promise<LocalAgentBook> {
+    public async getBook(url: string, signal = this.signal): Promise<LocalAgentBook> {
+        signal?.throwIfAborted();
         const existingBook = this.booksByUrl.get(url);
         if (existingBook) {
             return existingBook;
@@ -171,23 +184,36 @@ export class LocalAgentBookCollection {
         if (!/\.(book|md)$/i.test(bookUrl.pathname) && !bookUrl.pathname.endsWith('/api/book')) {
             bookUrl.pathname = bookUrl.pathname.replace(/\/$/, '') + '/api/book';
         }
-        const response = this.signal ? await fetch(bookUrl.href, { signal: this.signal }) : await fetch(bookUrl.href);
-        if (!response.ok) {
-            throw new NotFoundError(
-                spaceTrim(`Cannot load agent book \`${url}\`: **${response.status} ${response.statusText}**.`),
-            );
+        const controller = new AbortController();
+        const cancel = (): void => controller.abort(signal?.reason);
+        signal?.addEventListener('abort', cancel, { once: true });
+        if (signal?.aborted) cancel();
+        const timeout = setTimeout(
+            () => controller.abort(new NotAllowed(spaceTrim(`Remote TEAM Book \`${url}\` timed out.`))),
+            REMOTE_BOOK_TIMEOUT_MS,
+        );
+        try {
+            const response = await fetch(bookUrl.href, { signal: controller.signal });
+            if (!response.ok) {
+                throw new NotFoundError(
+                    spaceTrim(`Cannot load agent book \`${url}\`: **${response.status} ${response.statusText}**.`),
+                );
+            }
+            let source: unknown;
+            if (response.headers.get('content-type')?.includes('application/json')) {
+                const payload: unknown = await response.json();
+                source = typeof payload === 'string' ? payload : (payload as { source?: unknown } | null)?.source;
+            } else {
+                source = await response.text();
+            }
+            if (typeof source !== 'string' || !source.trim() || source.includes('\0')) {
+                throw new ParseError(spaceTrim(`Agent book \`${url}\` did not return a text source.`));
+            }
+            return this.registerBook(url, source);
+        } finally {
+            clearTimeout(timeout);
+            signal?.removeEventListener('abort', cancel);
         }
-        let source: unknown;
-        if (response.headers.get('content-type')?.includes('application/json')) {
-            const payload: unknown = await response.json();
-            source = typeof payload === 'string' ? payload : (payload as { source?: unknown } | null)?.source;
-        } else {
-            source = await response.text();
-        }
-        if (typeof source !== 'string') {
-            throw new ParseError(spaceTrim(`Agent book \`${url}\` did not return a text source.`));
-        }
-        return this.registerBook(url, source);
     }
 
     /** Adds a book under its normalized first-line name and preserves the display name for TEAM. */

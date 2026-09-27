@@ -1,11 +1,12 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
+import { resolveShellHereDocumentDelimiter } from '../../common/runGoScript/resolveShellHereDocumentDelimiter';
 import type { OpencodeScriptOptions } from './OpencodeScriptOptions';
 
 /**
  * Builds the shell script that runs Opencode with the prompt and coding context.
  */
 export function buildOpencodeScript(options: OpencodeScriptOptions): string {
-    const delimiter = 'OPENCODE_PROMPT';
+    const delimiter = resolveShellHereDocumentDelimiter('OPENCODE_PROMPT', options.prompt);
 
     return spaceTrim(
         (block) => `

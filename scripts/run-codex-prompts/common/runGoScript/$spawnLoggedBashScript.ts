@@ -17,6 +17,8 @@ const IS_WINDOWS = process.platform === 'win32';
  * @private internal type of `$spawnLoggedBashScript`
  */
 type SpawnLoggedBashScriptOptions = {
+    /** Per-invocation cwd, shared by the primary harness and its advisers. */
+    readonly projectPath?: string;
     readonly scriptPath: string;
     readonly logPath?: string;
 
@@ -39,6 +41,7 @@ export function $spawnLoggedBashScript(options: SpawnLoggedBashScriptOptions): C
     const parentProcessId = options.parentProcessId ?? process.pid;
 
     return spawn('bash', bashExecution.args, {
+        cwd: options.projectPath,
         detached: !IS_WINDOWS,
         env: {
             ...process.env,

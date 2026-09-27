@@ -16,6 +16,8 @@ export const DEFAULT_GEMINI_MODEL = HARNESS_DEFAULT_MODELS.gemini;
  * Runs prompts via the Gemini CLI.
  */
 export class GeminiRunner implements PromptRunner {
+    /** TEAM uses this harness's existing command tool, with the same permissions as its caller. */
+    public readonly teamCapability = 'command-tools' as const;
     public readonly name = 'gemini';
 
     /**
@@ -33,7 +35,9 @@ export class GeminiRunner implements PromptRunner {
         });
 
         const output = await $runGoScriptWithOutput({
+            projectPath: options.projectPath,
             scriptPath: options.scriptPath,
+            signal: options.signal,
             scriptContent,
             logPath: options.logPath,
             shouldPrintLiveOutput: options.shouldPrintLiveOutput,

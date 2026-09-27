@@ -9,7 +9,9 @@ import { withTempScript } from './withTempScript';
 export async function $runGoScriptUntilMarkerIdle(options: RunGoScriptUntilMarkerIdleOptions): Promise<string> {
     return await withTempScript(options, async (scriptPath) => {
         return await runScriptUntilMarkerIdle({
+            projectPath: options.projectPath,
             scriptPath,
+            signal: options.signal,
             scriptContent: options.scriptContent,
             completionLineMatcher: options.completionLineMatcher,
             idleTimeoutMs: options.idleTimeoutMs,

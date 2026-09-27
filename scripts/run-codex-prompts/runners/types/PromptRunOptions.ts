@@ -11,4 +11,6 @@ export type PromptRunOptions = {
     shouldPrintLiveOutput?: boolean;
     preserveArtifactsOnSuccess?: boolean;
     waitForPauseCheckpoint?: WaitForCoderRunPauseCheckpoint;
+    /** Cancels this invocation and its process tree, including delegated consultations. */
+    readonly signal?: AbortSignal;
 };

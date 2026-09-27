@@ -3,6 +3,7 @@ import { EventEmitter } from 'events';
 import { PassThrough } from 'stream';
 import { $resolveHarnessCommandPath } from '../../common/harness/$resolveHarnessCommandPath';
 import { buildPlanningHarnessArguments, runPlanningHarness, type PlanningHarnessOptions } from './runPlanningHarness';
+import { PROMPT_RUNNER_HARNESS_NAMES } from '../../common/promptRunnerCliOptions';
 
 jest.mock('child_process', () => ({ ...jest.requireActual('child_process'), spawn: jest.fn() }));
 jest.mock('../../common/harness/$resolveHarnessCommandPath', () => ({ $resolveHarnessCommandPath: jest.fn() }));
@@ -126,6 +127,16 @@ describe('planning harness execution boundary', () => {
         child.stdout.write('x'.repeat(2 * 1024 * 1024 + 1));
         await assertion;
     });
+
+    it.each(PROMPT_RUNNER_HARNESS_NAMES.filter((name) => name !== 'openai-codex'))(
+        'rejects %s before exposing TEAM or launching an unrestricted planning process',
+        async (agentName) => {
+            await expect(runPlanningHarness({ ...OPTIONS, agentName })).rejects.toThrow(
+                'no enforced planning tool boundary',
+            );
+            expect(spawn).not.toHaveBeenCalled();
+        },
+    );
 });
 
 // Note: [💞] Ignore a discrepancy between file name and entity name.

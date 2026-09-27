@@ -2,6 +2,10 @@
  * Options for running a temporary script.
  */
 export type RunGoScriptOptions = {
+    /** Explicit project directory; concurrent consultations must never depend on process-wide cwd changes. */
+    readonly projectPath?: string;
+    /** Abort only this invocation's process tree. */
+    readonly signal?: AbortSignal;
     /**
      * Path to the temporary script file.
      */

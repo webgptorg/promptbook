@@ -2,6 +2,10 @@
  * Options for running an already written script until a completion marker and idle timeout.
  */
 export type RunScriptUntilMarkerIdleOptions = {
+    /** Project directory inherited from the originating task. */
+    readonly projectPath?: string;
+    /** Abort only this invocation's process tree. */
+    readonly signal?: AbortSignal;
     /**
      * Path to the temporary script file.
      */

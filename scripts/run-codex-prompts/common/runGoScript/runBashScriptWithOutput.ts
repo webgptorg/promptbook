@@ -3,6 +3,7 @@ import { createScriptOutputLineReader, type ScriptOutputLineReader } from './cre
 import type { RunGoScriptOptions } from './RunGoScriptOptions';
 import { appendScriptExecutionLogFinish, appendScriptExecutionLogStart } from './scriptExecutionLog';
 import { $spawnLoggedBashScript } from './$spawnLoggedBashScript';
+import { $terminateLoggedBashProcessTree } from './$terminateLoggedBashProcessTree';
 import { printLiveScriptChunk } from './printLiveScriptChunk';
 import { toPosixPath } from './toPosixPath';
 
@@ -10,12 +11,15 @@ import { toPosixPath } from './toPosixPath';
  * Runs one temporary bash script, optionally mirroring its raw input/output into a live runtime log file.
  */
 export async function runBashScriptWithOutput(options: RunGoScriptOptions): Promise<string> {
+    options.signal?.throwIfAborted();
     await appendScriptExecutionLogStart(options);
+    options.signal?.throwIfAborted();
     const scriptPathPosix = toPosixPath(options.scriptPath);
     const shouldPrintLiveOutput = options.shouldPrintLiveOutput ?? true;
 
     return await new Promise<string>((resolve, reject) => {
         const commandProcess = $spawnLoggedBashScript({
+            projectPath: options.projectPath,
             scriptPath: options.scriptPath,
             logPath: options.logPath,
         });
@@ -48,6 +52,7 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
             }
 
             settled = true;
+            options.signal?.removeEventListener('abort', cancel);
             handler();
         };
 
@@ -84,6 +89,10 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
          * Handles process exit and resolves or rejects accordingly.
          */
         const handleExit = (code: number | null): void => {
+            if (options.signal?.aborted) {
+                settleWithLog('cancelled', () => reject(options.signal!.reason), options.signal.reason);
+                return;
+            }
             if (code === 0) {
                 settleWithLog('succeeded', () => resolve(spaceTrim(output)));
                 return;
@@ -106,5 +115,9 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
             const failure = new Error(`Command "bash ${scriptPathPosix}" failed: ${error.message}`);
             settleWithLog('failed before completion', () => reject(failure), failure);
         });
+        /** Reuses the process-tree terminator; settlement waits for stream closure and the trace footer. */
+        const cancel = (): void => $terminateLoggedBashProcessTree(commandProcess);
+        options.signal?.addEventListener('abort', cancel, { once: true });
+        if (options.signal?.aborted) cancel();
     });
 }

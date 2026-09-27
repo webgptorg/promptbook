@@ -1,12 +1,61 @@
 import { spaceTrim } from 'spacetrim';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import type { AgentReferenceResolver } from './AgentReferenceResolver';
 import { createAgentModelRequirements } from './createAgentModelRequirements';
 import { createTeamToolName } from './createTeamToolName';
 import { createPseudoUserTeammateLabel, PSEUDO_AGENT_USER_URL } from './pseudoAgentReferences';
 import { validateBook } from './string_book';
+import { TeamCommitmentDefinition } from '../../commitments/TEAM/TEAM';
+import { NotAllowed } from '../../errors/NotAllowed';
 
 describe('commitment tools', () => {
+    it('retains useful profiles when another teammate is inaccessible', async () => {
+        const warning = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        try {
+            const requirements = await createAgentModelRequirements(
+                validateBook('Caller\nTEAM https://example.com/private and https://example.com/copywriter'),
+                undefined,
+                undefined,
+                undefined,
+                {
+                    teammateProfileResolver: {
+                        resolveTeammateProfile: async (url) => {
+                            if (url.endsWith('/private')) throw new NotAllowed(spaceTrim('403 private agent'));
+                            return { agentName: 'Copywriter', personaDescription: 'Review product wording.' };
+                        },
+                    },
+                },
+            );
+            expect(requirements.tools?.find(({ name }) => name === 'team_chat_copywriter')?.description).toContain(
+                'Review product wording.',
+            );
+            expect(requirements.tools).toHaveLength(2);
+            expect(warning).toHaveBeenCalledWith(expect.stringContaining('/private'), expect.any(NotAllowed));
+        } finally {
+            warning.mockRestore();
+        }
+    });
+    it('lets a scoped runtime compile schemas without registering or replacing server TEAM functions', async () => {
+        const source = validateBook('Scoped Agent\nTEAM https://example.com/scoped-adviser-registration-test');
+        const definition = new TeamCommitmentDefinition();
+        const requirements = await createAgentModelRequirements(source);
+        const toolName = requirements.tools!.find(({ name }) => name.startsWith('team_chat_'))!.name;
+        const serverFunction = definition.getToolFunctions()[toolName];
+        expect(serverFunction).toBeDefined();
+        const scoped = await createAgentModelRequirements(source, undefined, undefined, undefined, {
+            isTeamToolRegistrationDisabled: true,
+        });
+        expect(scoped.tools).toEqual(requirements.tools);
+        expect(definition.getToolFunctions()[toolName]).toBe(serverFunction);
+        const other = await createAgentModelRequirements(
+            validateBook('Scoped Agent\nTEAM https://example.com/never-register-coder-adviser'),
+            undefined,
+            undefined,
+            undefined,
+            { isTeamToolRegistrationDisabled: true },
+        );
+        expect(definition.getToolFunctions()[other.tools![0]!.name]).toBeUndefined();
+    });
     it('should add teammate tools when TEAM is used', async () => {
         const agentSource = validateBook(
             spaceTrim(`

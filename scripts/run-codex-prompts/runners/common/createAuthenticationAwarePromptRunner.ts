@@ -18,6 +18,7 @@ export function createAuthenticationAwarePromptRunner(
 ): PromptRunner {
     return {
         name: runner.name,
+        teamCapability: runner.teamCapability,
         runPrompt: async (options) => {
             try {
                 return await runner.runPrompt(options);

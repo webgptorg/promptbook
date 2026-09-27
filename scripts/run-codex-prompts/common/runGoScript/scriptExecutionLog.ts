@@ -49,6 +49,8 @@ const IS_PARENT_PROCESS_RUNNING_CONDITION =
  * Environment variable that identifies the Node process responsible for a temporary harness shell.
  */
 export const PTBK_CODER_PARENT_PROCESS_ID_ENV_NAME = 'PTBK_CODER_PARENT_PROCESS_ID';
+/** Private stdin command asks the owning wrapper to stop its actual harness job before exiting. */
+export const PTBK_CODER_CANCEL_COMMAND = 'PTBK_CANCEL_OWNED_HARNESS';
 
 /**
  * Small bash wrapper that preserves stdout/stderr streams while teeing both into the runtime log file.
@@ -92,8 +94,31 @@ const LOGGED_BASH_WRAPPER_COMMAND = spaceTrim(`
     bash "$1" &
     HARNESS_PROCESS_ID=$!
 
+    # Windows can lose forked MSYS children when taskkill targets the launcher. Let their owner stop them first.
+    # Preserve the control pipe explicitly because background Bash jobs otherwise read from /dev/null.
+    exec 3<&0
+    watch_control_input() {
+        # Timed reads also let this helper finish when a short-lived harness has already exited.
+        while kill -0 "$HARNESS_PROCESS_ID" 2>/dev/null; do
+            IFS= read -r -t 1 CONTROL_COMMAND <&3
+            CONTROL_READ_STATUS=$?
+            if [ "$CONTROL_READ_STATUS" = "0" ]; then
+                if [ "$CONTROL_COMMAND" = "${PTBK_CODER_CANCEL_COMMAND}" ]; then
+                    terminate_harness_process_tree
+                fi
+                return
+            fi
+            if [ "$CONTROL_READ_STATUS" = "1" ]; then return; fi
+        done
+    }
+    watch_control_input &
+    CONTROL_INPUT_WATCHER_PID=$!
+
     cleanup_parent_process_watcher() {
+        # MSYS can defer TERM while a builtin read waits on a Windows pipe.
+        kill -KILL "$CONTROL_INPUT_WATCHER_PID" 2>/dev/null || true
         kill "$PARENT_PROCESS_WATCHER_PID" 2>/dev/null || true
+        wait "$CONTROL_INPUT_WATCHER_PID" 2>/dev/null || true
         wait "$PARENT_PROCESS_WATCHER_PID" 2>/dev/null || true
     }
 

@@ -33,6 +33,8 @@ const CLAUDE_CODE_RATE_LIMIT_EVENT_TYPE = 'rate_limit_event';
  * Runs prompts via the Claude Code CLI.
  */
 export class ClaudeCodeRunner implements PromptRunner {
+    /** TEAM uses this harness's existing command tool, with the same permissions as its caller. */
+    public readonly teamCapability = 'command-tools' as const;
     public readonly name = 'claude-code';
     private subscriptionUsage: HarnessSubscriptionUsage | undefined;
 
@@ -61,11 +63,13 @@ export class ClaudeCodeRunner implements PromptRunner {
         let resurrectionCount = 0;
 
         while (true) {
+            options.signal?.throwIfAborted();
             const output = await this.runClaudeCodeOnce({
                 ...options,
                 prompt,
                 resumeSessionId,
             }).catch(async (error) => {
+                options.signal?.throwIfAborted();
                 this.updateSubscriptionUsage(error instanceof Error ? error.message : String(error));
                 const sessionLimit = extractClaudeCodeSessionLimitFromError(error);
 
@@ -118,7 +122,9 @@ export class ClaudeCodeRunner implements PromptRunner {
         });
 
         return await $runGoScriptWithOutput({
+            projectPath: options.projectPath,
             scriptPath: options.scriptPath,
+            signal: options.signal,
             scriptContent,
             logPath: options.logPath,
             shouldPrintLiveOutput: options.shouldPrintLiveOutput,
@@ -190,6 +196,7 @@ async function waitForClaudeCodeSessionLimitReset(
         deadlineTimeMs: resetDeadlineTimeMs,
         pollIntervalMs: CLAUDE_CODE_SESSION_RESURRECTION_POLL_MS,
         onTick: async (remainingDelayMs) => {
+            options.signal?.throwIfAborted();
             await options.waitForPauseCheckpoint?.({
                 checkpointLabel: 'the Claude Code session limit reset',
                 phase: 'waiting',
