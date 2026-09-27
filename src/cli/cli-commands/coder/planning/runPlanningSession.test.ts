@@ -508,7 +508,8 @@ describe('Planner conversation and write boundary', () => {
     });
 
     it('uses customized local Planner and Adam without inheriting Developer implementation goals', async () => {
-        const defaultPlanner = await resolveCoderAgent('agents/planner.book', projectPath, {
+        const defaultPlanner = await resolveCoderAgent(undefined, projectPath, {
+            defaultRole: 'planner',
             isInitializationAllowed: false,
         });
         expect(defaultPlanner?.systemMessage).toContain('helpful, honest, and intelligent');
@@ -538,6 +539,42 @@ describe('Planner conversation and write boundary', () => {
         ).rejects.toThrow('coder init');
         await expect(readFile(join(projectPath, 'agents/.core/adam.book'))).rejects.toThrow();
     });
+
+    it.each([undefined, 'agents/developer.book', 'agents/custom planner.book'])(
+        'uses effective local Book identity and instructions in the planning conversation for %s',
+        async (agent) => {
+            const selectedPath = agent || 'agents/planner.book';
+            await writeFile(
+                join(projectPath, selectedPath),
+                'Project role\nMETA FULLNAME My planning specialist\nPERSONA Discuss local requirements.',
+            );
+            await writeFile(join(projectPath, 'agents/.core/adam.book'), 'Adam\nFROM @Null\nRULE Project foundation.');
+            const before = await snapshot(projectPath);
+            const output: string[] = [];
+            const messages = ['Discuss a feature', '/exit'];
+            const harness: typeof runPlanningHarness = jest.fn(async (options) => {
+                expect(options.agentName).toBe('openai-codex');
+                expect(options.prompt).toContain('Selected Book (My planning specialist)');
+                expect(options.prompt).toContain('Discuss local requirements.');
+                expect(options.prompt).toContain('Project foundation.');
+                return JSON.stringify({ message: 'Let us clarify the goal.', reads: [], proposals: [] });
+            });
+            await runPlanningSession(
+                { ...OPTIONS, projectPath, agent },
+                {
+                    signal: new AbortController().signal,
+                    write: (message) => output.push(message),
+                    readMessage: async () => messages.shift(),
+                },
+                harness,
+            );
+            expect(harness).toHaveBeenCalledTimes(1);
+            expect(output.join('\n')).toContain('My planning specialist:');
+            expect(output).toContain('My planning specialist is reading and thinking…');
+            expect(output).toContain('My planning specialist: Let us clarify the goal.');
+            expect(await snapshot(projectPath)).toEqual(before);
+        },
+    );
 
     it('rejects a non-interactive terminal immediately', () => {
         const descriptor = Object.getOwnPropertyDescriptor(process.stdin, 'isTTY');

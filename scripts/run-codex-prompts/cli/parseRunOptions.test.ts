@@ -43,6 +43,11 @@ describe('parseRunOptions', () => {
         });
     });
 
+    it.each([[], [''], ['  '], ['--dry-run']])('rejects an explicit --agent without a Book path: %s', (...value) => {
+        expect(() => parseRunOptions(['--harness', 'openai-codex', '--agent', ...value])).toThrow('process.exit');
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Book path'));
+    });
+
     it('parses the pre-coding verification mode', () => {
         const options = parseRunOptions(['--harness', 'github-copilot', '--test-before', 'yes-and-fix']);
 
@@ -179,14 +184,7 @@ describe('parseRunOptions', () => {
     });
 
     it('parses min and max priority filters', () => {
-        const options = parseRunOptions([
-            '--harness',
-            'github-copilot',
-            '--min-priority',
-            '1',
-            '--max-priority',
-            '5',
-        ]);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--min-priority', '1', '--max-priority', '5']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -251,15 +249,7 @@ describe('parseRunOptions', () => {
     });
 
     it('parses an unquoted verification command and stops at the next top-level flag', () => {
-        const options = parseRunOptions([
-            '--harness',
-            'github-copilot',
-            '--test',
-            'npm',
-            'run',
-            'test',
-            '--no-auto',
-        ]);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--test', 'npm', 'run', 'test', '--no-auto']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -540,9 +530,9 @@ describe('parseRunOptions', () => {
     });
 
     it('rejects invalid priority ranges', () => {
-        expect(() =>
-            parseRunOptions(['--harness', 'gemini', '--min-priority', '5', '--max-priority', '1']),
-        ).toThrow('process.exit');
+        expect(() => parseRunOptions(['--harness', 'gemini', '--min-priority', '5', '--max-priority', '1'])).toThrow(
+            'process.exit',
+        );
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 

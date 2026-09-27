@@ -12,7 +12,14 @@
 
         {
             "name": "🐙 Plan PRDs with Planner (💤)",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder plan --harness openai-codex --agent agents/default/planner.book",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder plan --harness openai-codex",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙 Preview Developer tasks after coder init (💤)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --dry-run --harness openai-codex",
             "execute": false,
             "onlySingle": false,
             "focus": false

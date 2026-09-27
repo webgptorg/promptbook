@@ -7,7 +7,6 @@ import { NotFoundError } from '../../../../errors/NotFoundError';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import type { NormalizedPromptRunnerSelectionCliOptions } from '../../common/promptRunnerCliOptions';
 import { COMMON_PROMPT_TEMPLATE_FILE_PATH, resolveCoderPromptTemplate } from '../boilerplateTemplates';
-import { CODER_PLANNER_AGENT_FILE_PATH } from '../ensureCoderRoleAgentFile';
 import { assertPlanningPrdCommitScope } from './assertPlanningPrdCommitScope';
 import { createPlanningWorkspace } from './createPlanningWorkspace';
 import { resolvePlanningPath } from './resolvePlanningPath';
@@ -46,17 +45,14 @@ export async function runPlanningSession(
 ): Promise<ReadonlyMap<string, string>> {
     const projectPath = await realpath(options.projectPath);
     assertPlanningHarnessSupported(options.agentName);
-    const agentPath = options.agent ?? CODER_PLANNER_AGENT_FILE_PATH;
-    if (!existsSync(join(projectPath, 'prompts')) || (!existsSync(join(projectPath, agentPath)) && !options.agent)) {
-        throw new NotFoundError(
-            spaceTrim(`Planning requires \`prompts/\` and \`${agentPath}\`. Run \`ptbk coder init\` first.`),
-        );
-    }
     const agent = await resolveCoderAgent(options.agent, projectPath, {
-        defaultAgentBookReference: CODER_PLANNER_AGENT_FILE_PATH,
+        defaultRole: 'planner',
         isInitializationAllowed: false,
         signal: io.signal,
     });
+    if (!existsSync(join(projectPath, 'prompts'))) {
+        throw new NotFoundError(spaceTrim('Planning requires `prompts/`. Run `ptbk coder init` first.'));
+    }
     if (!agent) throw new NotFoundError(spaceTrim('Planner Book is missing. Run `ptbk coder init`.'));
     resolvePlanningPath(projectPath, 'prompts');
     const templateOption =
@@ -134,7 +130,7 @@ export async function runPlanningSession(
         // Continuing the discussion invalidates any earlier preview so a later save cannot apply stale decisions.
         pending = [];
         history.push({ role: 'user', content: message });
-        io.write('Planner is reading and thinking…');
+        io.write(`${agent.agentName} is reading and thinking…`);
         const reply = await discussPlanningTurn(projectPath, history, io, async () =>
             harness({
                 ...options,

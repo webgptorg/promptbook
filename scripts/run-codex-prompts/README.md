@@ -8,11 +8,33 @@
 
 ```bash
 # External usage (when promptbook is installed globally)
-ptbk coder run --harness openai-codex --model gpt-6-astra
+ptbk coder init
+ptbk coder run --harness openai-codex
+ptbk coder plan --harness openai-codex
 
 # Internal usage (within Promptbook repository)
 npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-6-astra
 ```
+
+`run` and `server` use the project's Developer (`agents/developer.book`); `plan` uses its Planner
+(`agents/planner.book`). These editable local Books supply the persona, instructions, inherited Adam rules,
+imports, TEAM declarations, display identity and prompt-routing aliases. Local edits apply on the next invocation.
+`--harness` selects the coding tool, `--model` selects its model, and `--thinking-level` controls reasoning effort.
+An optional `--agent` overrides only the Book for that action:
+
+```bash
+ptbk coder run --harness openai-codex --agent agents/my-developer.book
+ptbk coder plan --harness openai-codex --agent "agents/my planner.book"
+```
+
+Book paths may be relative to the current project directory or absolute; quote paths containing spaces.
+Missing default Books require `ptbk coder init`. An invalid explicit selection fails without falling back.
+`plan` permits only PRD changes even when Developer or another implementation Book is selected.
+`coder list` has no default agent filter and lists all ready tasks; `--agent` explicitly filters it.
+Listing and dry runs never initialize Books, install a harness or change project files.
+Dry-run reports use the selected Book's routing aliases together with the selected harness and model.
+New `coder:run` and `coder:plan` scripts rely on these role defaults; repeated init preserves existing scripts,
+including custom `--agent` selections.
 
 ### Direct execution (legacy):
 
@@ -26,6 +48,7 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --dry-run                     # Print unwritten prompts without executing
 --harness <harness-name>        # Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)
 --model <model>               # Model override (optional; each harness defaults to its current flagship)
+--agent <agent-book-path>     # Book override (optional; run/server default to agents/developer.book)
 --context <context-or-file>   # Append extra instructions inline or load them from a file in the current project
 --test <test-command...>       # Run a verification command after each prompt and feed failures back for retries
 --test-before <mode>           # no (default), yes-and-fail, or yes-and-fix; enabled modes default to npm test
@@ -148,7 +171,7 @@ The `[^]` in-progress status is rewritten before every single step of the round,
 [x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes
 ```
 
-A run personalized with `--agent` names that agent in front of the harness which runs it, because the same harness and model behave differently depending on the agent they run as:
+A run names its selected Book agent (Developer by default) in front of the harness which runs it, because the same harness and model behave differently depending on the agent they run as:
 
 ```text
 [x] by Developer on OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes

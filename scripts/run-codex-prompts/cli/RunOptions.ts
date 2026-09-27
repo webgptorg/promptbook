@@ -102,11 +102,12 @@ export type RunOptions = {
      * back into the branch the coder runs on.
      */
     isIsolated?: boolean;
+    /** Harness identifier retained under its historical field name; never a Book reference. */
     agentName?: PromptRunnerHarnessName;
     model?: string;
     /**
-     * Optional path to an agent `.book` file whose compiled system message is prepended to each codex prompt.
-     * Supports the same path resolution as `--context`: relative to the current working directory.
+     * Optional Book override; omission selects the project-owned `agents/developer.book` for run and server.
+     * Accepts absolute paths and paths relative to the current working directory.
      */
     agent?: string;
     /**

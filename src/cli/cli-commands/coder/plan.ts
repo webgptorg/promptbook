@@ -32,7 +32,7 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
     );
     addPromptRunnerSelectionOptions(command);
     addPromptRunnerRuntimeOptions(command);
-    addCoderAgentOption(command);
+    addCoderAgentOption(command, 'planner');
     addCoderGitSyncOptions(command);
     command.option(
         '--template <path>',

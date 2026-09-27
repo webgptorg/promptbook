@@ -22,7 +22,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 | 7   | Kanban web UI                  | `ptbk coder server --port 4441 --harness claude-code`                                            |
 | 8   | Prompt priorities              | `ptbk coder run --harness claude-code --min-priority 1 --max-priority 5`                         |
 | 9   | Model-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-6-astra`                                        |
-| 10  | Agent-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-6-astra --agent agents/developer.book`         |
+| 10  | Agent-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-6-astra --agent agents/my-developer.book`      |
 | 11  | Pacing and retries             | `ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m`         |
 | 12  | List before you run            | `ptbk coder list`                                                                                |
 | 13  | Ping before you queue          | `ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh`              |

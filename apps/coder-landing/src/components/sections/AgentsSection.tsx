@@ -3,7 +3,7 @@ import { DeveloperAgentBookPreview } from '@/components/DeveloperAgentBookPrevie
 import { TerminalBlock } from '@/components/TerminalBlock/TerminalBlock';
 
 /**
- * Renders the agents section - the `--agent agents/developer.book` option together with
+ * Renders the default Book roles and optional `--agent` override together with
  * a readonly `<BookEditor/>` showing the default developer agent.
  *
  * Note: Specified in [`specs/sections/agent-book.md`](../../../specs/sections/agent-book.md)
@@ -15,22 +15,22 @@ export function AgentsSection() {
                 Give your agent a <span className="text-promptbook-green">soul</span>, in plain text
             </h2>
             <p className="mt-4 max-w-3xl text-lg text-gray-300">
-                Every run can carry an agent written in the{' '}
+                Coding and planning use agents written in the{' '}
                 <a
                     href="https://github.com/webgptorg/book"
                     className="text-promptbook-blue underline decoration-promptbook-blue-dark underline-offset-4 hover:text-promptbook-green"
                 >
                     Book language
                 </a>
-                , Promptbook&apos;s human-readable language for defining AI agents. Its rules, its persona and what it
-                knows live in <code className="text-promptbook-blue">.book</code> files. ptbk coder resolves the selected
-                book&apos;s inheritance and imports into the system message of every coding prompt.
+                , Promptbook&apos;s human-readable language for defining AI agents. Each agent&apos;s persona, rules and
+                knowledge live in <code className="text-promptbook-blue">.book</code> files. ptbk coder resolves the
+                selected book&apos;s inheritance and imports into the system message of every coding prompt.
             </p>
 
             <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:items-start">
                 <div>
                     <p className="mb-4 text-gray-400">
-                        Point <strong className="text-white">ptbk coder</strong> at any agent file with{' '}
+                        Override the default role with your own Book using{' '}
                         <code className="text-promptbook-blue">--agent</code>:
                     </p>
                     <TerminalBlock command={AGENT_RUN_COMMAND} />
@@ -43,6 +43,15 @@ export function AgentsSection() {
                         default inheritance. Edit the local role Books to customize their behavior.
                     </p>
                     <p className="mt-4 text-gray-400">
+                        <code className="text-promptbook-blue">run</code> and{' '}
+                        <code className="text-promptbook-blue">server</code> select Developer automatically;{' '}
+                        <code className="text-promptbook-blue">plan</code> selects Planner. Local Book edits apply on
+                        the next invocation. <code className="text-promptbook-blue">--agent</code> changes the persona,
+                        instructions and identity; <code className="text-promptbook-blue">--harness</code> selects the
+                        coding tool and <code className="text-promptbook-blue">--model</code> selects its model.
+                        Planning permits only PRD changes with any selected Book.
+                    </p>
+                    <p className="mt-4 text-gray-400">
                         Use <code className="text-promptbook-blue">FROM @Pavol</code> or{' '}
                         <code className="text-promptbook-blue">{'FROM {Pavol}'}</code> to inherit from another book by
                         its first-line name. Books are discovered recursively beneath the selected agent&apos;s folder.
@@ -51,19 +60,25 @@ export function AgentsSection() {
                     </p>
                     <p className="mt-4 text-gray-400">
                         Paths starting with <code className="text-promptbook-blue">./</code> or{' '}
-                        <code className="text-promptbook-blue">../</code> are relative to the book declaring them;
-                        other paths are relative to your current directory. HTTP and HTTPS book URLs work too.
-                        Adam is inherited by default. Planning requires the Books to be prepared with{' '}
+                        <code className="text-promptbook-blue">../</code> are relative to the book declaring them; other
+                        paths are relative to your current directory. HTTP and HTTPS book URLs work too. Adam is
+                        inherited by default. Planning requires the Books to be prepared with{' '}
                         <code className="text-promptbook-blue">ptbk coder init</code> and never creates them during a
-                        conversation. Use{' '}
-                        <code className="text-promptbook-blue">FROM @null</code> or{' '}
-                        <code className="text-promptbook-blue">FROM @void</code> to inherit from nothing; braces work too.
+                        conversation. Use <code className="text-promptbook-blue">FROM @null</code> or{' '}
+                        <code className="text-promptbook-blue">FROM @void</code> to inherit from nothing; braces work
+                        too.
                     </p>
                     <p className="mt-4 text-gray-400">
                         Route a ready task to that agent with a status line such as{' '}
                         <code className="text-promptbook-blue">[ ] use agent `developer`</code>. Its path, filename,
                         filename without <code className="text-promptbook-blue">.book</code>, or title from the first
                         line of the Book all work.
+                    </p>
+                    <p className="mt-4 text-gray-400">
+                        <code className="text-promptbook-blue">coder list</code> shows tasks for all agents unless you
+                        supply <code className="text-promptbook-blue">--agent</code>. If a default Book is missing, run{' '}
+                        <code className="text-promptbook-blue">ptbk coder init</code>. An invalid explicit Book
+                        selection reports an error. Existing Books and scripts survive repeated initialization.
                     </p>
                     <p className="mt-4 text-gray-400">
                         A finished task is signed by the agent, not only by the harness that carried it:{' '}

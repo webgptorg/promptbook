@@ -119,7 +119,8 @@ describe('coder boilerplate templates', () => {
 
         const defaultCoderPackageJsonScripts = getDefaultCoderPackageJsonScripts();
 
-        expect(defaultCoderPackageJsonScripts['coder:run']).toContain('--agent agents/developer.book');
+        expect(defaultCoderPackageJsonScripts['coder:run']).not.toContain('--agent');
+        expect(defaultCoderPackageJsonScripts['coder:plan']).not.toContain('--agent');
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             scripts: defaultCoderPackageJsonScripts,
         });
@@ -202,6 +203,7 @@ describe('coder boilerplate templates', () => {
     it('keeps existing scripts and settings and skips the artifacts they no longer reference', async () => {
         const projectPath = await createTemporaryDirectory(temporaryDirectories);
         const existingCoderRunScript = 'npx ptbk coder run --harness github-copilot --agent agents/my-own.book';
+        const existingCoderPlanScript = 'npx ptbk coder plan --harness openai-codex --agent "agents/my planner.book"';
         const existingScreenshotDestination = 'screenshots/${documentBaseName}.png';
 
         await writeFile(
@@ -211,6 +213,7 @@ describe('coder boilerplate templates', () => {
                     name: 'demo',
                     scripts: {
                         'coder:run': existingCoderRunScript,
+                        'coder:plan': existingCoderPlanScript,
                         'coder:add': 'npx ptbk coder add --template ./prompts/templates/my-own.md',
                         'test-for-ptbk-coder': 'npm run build && npm run test-unit',
                     },
@@ -242,6 +245,7 @@ describe('coder boilerplate templates', () => {
             join(projectPath, 'package.json'),
         );
         expect(packageJson.scripts['coder:run']).toBe(existingCoderRunScript);
+        expect(packageJson.scripts['coder:plan']).toBe(existingCoderPlanScript);
         expect(packageJson.scripts['test-for-ptbk-coder']).toBe('npm run build && npm run test-unit');
         expect(
             (
@@ -255,13 +259,14 @@ describe('coder boilerplate templates', () => {
         // Note: [2] Only the genuinely missing scripts were added
         expect([...summary.addedPackageJsonScriptNames].sort()).toEqual([
             'coder:generate-boilerplates',
-            'coder:plan',
             'coder:verify',
         ]);
 
         // Note: [3] Roles are initialized independently of scripts; project context still follows script ownership.
         expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('created');
-        await expect(readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).resolves.toContain('Developer');
+        await expect(readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).resolves.toContain(
+            'Developer',
+        );
         expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('not-referenced');
         await expect(readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).rejects.toThrow();
 
@@ -295,7 +300,8 @@ describe('coder boilerplate templates', () => {
         await initializeCoderProjectConfiguration(projectPath);
         const packagePath = join(projectPath, 'package.json');
         const packageJson = await readJsonFile<{ scripts: Record<string, string> }>(packagePath);
-        packageJson.scripts['coder:plan'] = 'my-custom-planning-command';
+        packageJson.scripts['coder:run'] = 'ptbk coder run --harness openai-codex --agent agents/my-developer.book';
+        packageJson.scripts['coder:plan'] = 'ptbk coder plan --harness openai-codex --agent "agents/my planner.book"';
         await writeFile(packagePath, JSON.stringify(packageJson));
         await writeFile(join(projectPath, 'agents/planner.book'), 'Planner\nRULE Keep my customization.\n');
         await rm(join(projectPath, 'agents/developer.book'));

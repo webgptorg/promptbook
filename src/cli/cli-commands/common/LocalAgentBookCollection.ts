@@ -152,7 +152,7 @@ export class LocalAgentBookCollection {
             if (!this.isInitializationAllowed) {
                 throw new NotFoundError(
                     spaceTrim(
-                        `Missing inherited Adam Book at \`${adamBookPath}\`. Run \`ptbk coder init\` before planning, or prepare the custom Book's ancestor explicitly.`,
+                        `Missing inherited Adam Book at \`${adamBookPath}\`. Run \`ptbk coder init\`, or prepare the custom Book's ancestor explicitly.`,
                     ),
                 );
             }

@@ -31,7 +31,7 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 1. `ptbk coder init` scaffolds the project (see [`content/commands.md`](./content/commands.md)).
 2. The developer writes each task as one markdown file in `prompts/`. A status checkbox is optional: a prompt without one starts ready at priority `0` and gains its status line when processing starts.
 3. `ptbk coder run` (or `ptbk coder server`) feeds prompts one by one to the selected harness, with:
-    - an optional agent persona from a `.book` file (`--agent`, see [`content/developer-agent.md`](./content/developer-agent.md)),
+    - a local Book persona: Developer for `run` and `server`, Planner for `plan`, with an optional `--agent` override (see [`content/developer-agent.md`](./content/developer-agent.md)),
     - optional project context (`--context`, e.g. `AGENTS.md`).
 4. When enabled, tests run before the first coding prompt (`--test-before`); existing failures either stop the run or create one repair prompt. After each prompt, the test command (`--test`) runs and failures are fed back to the agent, which retries until green.
 5. The changes are committed under the agent git identity; optionally pushed (`--auto-push`). With `--isolate` the whole round happens in a temporary git worktree that is merged back into the current branch once the task is verified.

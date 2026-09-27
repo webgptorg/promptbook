@@ -1,3 +1,6 @@
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { NotFoundError } from '../../../src/errors/NotFoundError';
 import { createFreeDiskSpaceGuard } from '../common/createFreeDiskSpaceGuard';
@@ -10,6 +13,7 @@ import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { pullLatestChanges } from '../git/pullLatestChanges';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
+import { parsePromptFile } from '../prompts/parsePromptFile';
 import { resolveInterruptedPrompt } from '../prompts/resolveInterruptedPrompt';
 import { summarizePrompts } from '../prompts/summarizePrompts';
 import type { PromptFile } from '../prompts/types/PromptFile';
@@ -65,6 +69,7 @@ jest.mock('../prompts/summarizePrompts', () => ({
 }));
 
 jest.mock('./resolvePromptRunner', () => ({
+    ...jest.requireActual('./resolvePromptRunner'),
     resolvePromptRunner: jest.fn(),
 }));
 
@@ -83,10 +88,12 @@ jest.mock('../testing/createTestBeforeRepairPrompt', () => ({
 /**
  * Commit scope captured before the pre-coding test in focused run-loop tests.
  */
-const TEST_BEFORE_COMMIT_SCOPE: CoderCommitScope = {
-    projectPath: process.cwd(),
-    snapshotBeforeOperation: { changedFileHashes: new Map() },
-};
+function createTestBeforeCommitScope(): CoderCommitScope {
+    return {
+        projectPath: process.cwd(),
+        snapshotBeforeOperation: { changedFileHashes: new Map() },
+    };
+}
 
 /**
  * Builds a complete set of run options for focused validation tests.
@@ -143,15 +150,29 @@ function createPromptSelection(): PromptSelection {
 }
 
 describe('runCodexPrompts', () => {
-    beforeEach(() => {
+    let projectPath: string;
+    let workingDirectorySpy: jest.SpyInstance;
+
+    beforeEach(async () => {
         jest.resetAllMocks();
+        projectPath = await mkdtemp(join(tmpdir(), 'coder run defaults '));
+        await mkdir(join(projectPath, 'agents/.core'), { recursive: true });
+        await writeFile(
+            join(projectPath, 'agents/.core/adam.book'),
+            'Adam\nFROM @Null\nRULE Shared local instruction.',
+        );
+        await writeFile(
+            join(projectPath, 'agents/developer.book'),
+            'Developer\nMETA FULLNAME My Developer\nPERSONA Local developer persona.',
+        );
+        workingDirectorySpy = jest.spyOn(process, 'cwd').mockReturnValue(projectPath);
         (createFreeDiskSpaceGuard as jest.MockedFunction<typeof createFreeDiskSpaceGuard>).mockReturnValue(
             async () => undefined,
         );
         (resolveCoderContext as jest.MockedFunction<typeof resolveCoderContext>).mockResolvedValue(undefined);
         (ensureWorkingTreeClean as jest.MockedFunction<typeof ensureWorkingTreeClean>).mockResolvedValue(undefined);
         (captureCoderCommitScope as jest.MockedFunction<typeof captureCoderCommitScope>).mockResolvedValue(
-            TEST_BEFORE_COMMIT_SCOPE,
+            createTestBeforeCommitScope(),
         );
         (resolveCoderCommitScopePaths as jest.MockedFunction<typeof resolveCoderCommitScopePaths>).mockResolvedValue(
             [],
@@ -188,6 +209,115 @@ describe('runCodexPrompts', () => {
             createPromptSelection(),
         );
     });
+
+    afterEach(async () => {
+        workingDirectorySpy.mockRestore();
+        await rm(projectPath, { recursive: true, force: true });
+    });
+
+    it.each([undefined, 'agents/custom role.book'])(
+        'passes effective Book instructions, identity and routing to execution for %s',
+        async (agent) => {
+            if (agent)
+                await writeFile(
+                    join(projectPath, agent),
+                    'Specialist\nMETA FULLNAME My Specialist\nRULE Custom instruction.',
+                );
+            (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>).mockReturnValueOnce(
+                createPromptSelection(),
+            );
+            await runCodexPrompts(createRunOptions({ agent, waitForUser: false }));
+            expect(runPromptRound).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resolvedAgentSystemMessage: expect.stringContaining('Shared local instruction.'),
+                    runnerMetadata: expect.objectContaining({
+                        runnerName: 'github-copilot',
+                        agentName: agent ? 'My Specialist' : 'My Developer',
+                    }),
+                }),
+            );
+            expect(runPromptRound).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resolvedAgentSystemMessage: expect.stringContaining(
+                        agent ? 'Custom instruction.' : 'Local developer persona.',
+                    ),
+                }),
+            );
+            expect(findNextTodoPrompt).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expect.objectContaining({
+                    harnessName: 'github-copilot',
+                    agentReferences: expect.arrayContaining([agent || 'agents/developer.book']),
+                }),
+            );
+        },
+    );
+
+    it('refuses a dry-run with missing Adam without starting a harness or initializing Books', async () => {
+        const adamPath = join(projectPath, 'agents/.core/adam.book');
+        await rm(adamPath);
+        await expect(runCodexPrompts(createRunOptions({ dryRun: true }))).rejects.toThrow('ptbk coder init');
+        expect(resolvePromptRunner).not.toHaveBeenCalled();
+        expect(runPromptRound).not.toHaveBeenCalled();
+        await expect(readFile(adamPath)).rejects.toMatchObject({ code: 'ENOENT' });
+    });
+
+    it('resolves the default Book in a dry-run without starting the harness', async () => {
+        await runCodexPrompts(createRunOptions({ dryRun: true }));
+        expect(resolvePromptRunner).not.toHaveBeenCalled();
+        expect(runPromptRound).not.toHaveBeenCalled();
+        expect(commitChanges).not.toHaveBeenCalled();
+    });
+
+    it.each([undefined, 'agents/custom role.book'])(
+        'applies the selected Book and existing harness/model routing to dry-run output for %s',
+        async (agent) => {
+            if (agent) {
+                await writeFile(join(projectPath, agent), 'Specialist\nRULE Custom instruction.');
+            }
+            const promptFile = parsePromptFile(
+                'prompts/routing.md',
+                [
+                    '[ ] use agent `developer`',
+                    'Developer task @@@',
+                    '---',
+                    '[ ] use agent `specialist`',
+                    'Specialist task @@@',
+                    '---',
+                    '[ ] use agent `planner`',
+                    'Planner task @@@',
+                    '---',
+                    '[ ] use harness `github-copilot`',
+                    'Harness task @@@',
+                    '---',
+                    '[ ] use model `gpt-6-astra`',
+                    'Model task @@@',
+                    '---',
+                    '[ ]',
+                    'Unrestricted task @@@',
+                ].join('\n'),
+            );
+            (loadPromptFiles as jest.MockedFunction<typeof loadPromptFiles>).mockResolvedValue([promptFile]);
+            const output = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+            try {
+                await runCodexPrompts(createRunOptions({ agent, dryRun: true, model: undefined }));
+                const preview = output.mock.calls.flat().join('\n');
+                expect(preview).toContain(agent ? 'Specialist task' : 'Developer task');
+                expect(preview).not.toContain(agent ? 'Developer task' : 'Specialist task');
+                expect(preview).not.toContain('Planner task');
+                expect(preview).toContain('Harness task');
+                expect(preview).toContain('Model task');
+                expect(preview).toContain('Unrestricted task');
+                expect(resolvePromptRunner).not.toHaveBeenCalled();
+                expect(runPromptRound).not.toHaveBeenCalled();
+                expect(commitChanges).not.toHaveBeenCalled();
+                expect(promptFile.sections).toHaveLength(6);
+            } finally {
+                output.mockRestore();
+            }
+        },
+    );
 
     it('rejects --no-commit in auto mode unless --git-changes ignore is also enabled', async () => {
         await expect(
@@ -328,9 +458,9 @@ describe('runCodexPrompts', () => {
             throw new NotFoundError('Flag `--git-changes continue` found no interrupted prompt to continue.');
         });
 
-        await expect(
-            runCodexPrompts(createRunOptions({ waitForUser: false, gitChanges: 'continue' })),
-        ).rejects.toThrow(NotFoundError);
+        await expect(runCodexPrompts(createRunOptions({ waitForUser: false, gitChanges: 'continue' }))).rejects.toThrow(
+            NotFoundError,
+        );
 
         expect(runPromptRound).not.toHaveBeenCalled();
     });
@@ -415,7 +545,7 @@ describe('runCodexPrompts', () => {
         (captureCoderCommitScope as jest.MockedFunction<typeof captureCoderCommitScope>).mockImplementation(
             async () => {
                 events.push('capture-test-scope');
-                return TEST_BEFORE_COMMIT_SCOPE;
+                return createTestBeforeCommitScope();
             },
         );
         (runTestBefore as jest.MockedFunction<typeof runTestBefore>).mockImplementation(async () => {

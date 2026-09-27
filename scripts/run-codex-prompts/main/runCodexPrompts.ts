@@ -36,7 +36,7 @@ import { runIsolatedPromptRound } from '../isolation/runIsolatedPromptRound';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
 import { buildPromptSummary } from '../prompts/buildPromptSummary';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
-import type { PromptRunnerIdentity } from '../prompts/isPromptCompatibleWithRunner';
+import { isPromptCompatibleWithRunner, type PromptRunnerIdentity } from '../prompts/isPromptCompatibleWithRunner';
 import { listUpcomingTasks } from '../prompts/listUpcomingTasks';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
 import { printPromptsToBeWritten } from '../prompts/printPromptsToBeWritten';
@@ -60,7 +60,7 @@ import { createTestBeforeRepairPrompt } from '../testing/createTestBeforeRepairP
 import { DEFAULT_CODER_TEST_COMMAND, isTestBeforeMode, type TestBeforeMode } from '../testing/TestBeforeMode';
 import { limitTestOutput } from '../testing/limitTestOutput';
 import { runTestBefore } from '../testing/runTestBefore';
-import { resolvePromptRunner } from './resolvePromptRunner';
+import { resolvePromptRunner, resolveRunnerModel } from './resolvePromptRunner';
 import { runPromptRound } from './runPromptRound';
 
 /**
@@ -114,10 +114,13 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
     try {
         const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
-        const resolvedCoderAgent = await resolveCoderAgent(options.agent, process.cwd());
+        const resolvedCoderAgent = await resolveCoderAgent(options.agent, process.cwd(), {
+            defaultRole: 'developer',
+            isInitializationAllowed: !options.dryRun,
+        });
         const resolvedAgentSystemMessage = resolvedCoderAgent?.systemMessage;
 
-        if (await runDryRunIfRequested(options)) {
+        if (await runDryRunIfRequested(options, resolvedCoderAgent?.agentReferences)) {
             return;
         }
 
@@ -733,12 +736,23 @@ function startPauseListenerIfNeeded(isRichUiEnabled: boolean): void {
 /**
  * Runs the dry-run reporting mode and returns whether the main execution should stop.
  */
-async function runDryRunIfRequested(options: RunOptions): Promise<boolean> {
+async function runDryRunIfRequested(
+    options: RunOptions,
+    agentReferences: ReadonlyArray<string> | undefined,
+): Promise<boolean> {
     if (!options.dryRun) {
         return false;
     }
 
-    const promptFiles = await loadPromptFiles(PROMPTS_DIR);
+    const promptRunnerIdentity: PromptRunnerIdentity = {
+        harnessName: options.agentName,
+        modelName: options.agentName ? resolveRunnerModel(options.agentName, options.model) : options.model,
+        agentReferences,
+    };
+    const promptFiles = (await loadPromptFiles(PROMPTS_DIR)).map((file) => ({
+        ...file,
+        sections: file.sections.filter((section) => isPromptCompatibleWithRunner(file, section, promptRunnerIdentity)),
+    }));
     const stats = summarizePrompts(promptFiles, options.priorityFilter);
     printStats(stats, options.priorityFilter);
     console.info(colors.yellow('Following prompts need to be written:'));

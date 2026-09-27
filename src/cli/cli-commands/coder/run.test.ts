@@ -1,6 +1,8 @@
 import { Command } from 'commander';
+import { resolveCoderAgentBook } from '../../../../scripts/run-codex-prompts/common/resolveCoderAgent';
 import { runCodexPrompts } from '../../../../scripts/run-codex-prompts/main/runCodexPrompts';
 import { LimitReachedError } from '../../../errors/LimitReachedError';
+import { NotFoundError } from '../../../errors/NotFoundError';
 import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { $ensurePromptbookCliInstallations } from '../common/promptbook-cli/$ensurePromptbookCliInstallations';
@@ -9,6 +11,10 @@ import { $initializeCoderRunCommand } from './run';
 
 jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPrompts', () => ({
     runCodexPrompts: jest.fn(),
+}));
+
+jest.mock('../../../../scripts/run-codex-prompts/common/resolveCoderAgent', () => ({
+    resolveCoderAgentBook: jest.fn(),
 }));
 
 jest.mock('../common/disk-space/$assertSufficientFreeDiskSpace', () => ({
@@ -112,7 +118,7 @@ describe('$initializeCoderRunCommand', () => {
     it('checks Promptbook CLI installations before a default coder run', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'run', '--harness', 'openai-codex'], { from: 'node' });
 
         expect($ensurePromptbookCliInstallations).toHaveBeenCalledTimes(1);
     });
@@ -120,7 +126,7 @@ describe('$initializeCoderRunCommand', () => {
     it('also checks Promptbook CLI installations when per-prompt confirmation is enabled', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-auto'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'run', '--harness', 'openai-codex', '--no-auto'], { from: 'node' });
 
         expect($ensurePromptbookCliInstallations).toHaveBeenCalledTimes(1);
     });
@@ -128,7 +134,7 @@ describe('$initializeCoderRunCommand', () => {
     it('checks local ignore rules for the selected harness before a run', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--harness', 'qwen-code'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'run', '--harness', 'qwen-code'], { from: 'node' });
 
         expect($ensureHarnessInstallations).toHaveBeenCalledWith(['qwen-code'], { isAskingQuestionsEnabled: true });
         expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code', {
@@ -139,7 +145,7 @@ describe('$initializeCoderRunCommand', () => {
     it('asks nothing before a run started with --no-questions', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--harness', 'qwen-code', '--no-questions'], {
+        await program.parseAsync(['node', 'test', 'run', '--harness', 'qwen-code', '--no-questions'], {
             from: 'node',
         });
 
@@ -154,7 +160,7 @@ describe('$initializeCoderRunCommand', () => {
     it('checks the free disk space before anything is installed or written', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'run', '--harness', 'openai-codex'], { from: 'node' });
 
         expect($assertSufficientFreeDiskSpace).toHaveBeenCalledWith(process.cwd());
     });
@@ -165,7 +171,7 @@ describe('$initializeCoderRunCommand', () => {
         );
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'run', '--harness', 'openai-codex'], { from: 'node' });
 
         expect($ensurePromptbookCliInstallations).not.toHaveBeenCalled();
         expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
@@ -197,10 +203,43 @@ describe('$initializeCoderRunCommand', () => {
         getEnsurePromptbookCliInstallationsMock().mockResolvedValue(true);
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'run', '--harness', 'openai-codex'], { from: 'node' });
 
         expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
         expect(processExitSpy).toHaveBeenCalledWith(0);
+    });
+
+    it('previews without installations, disk-space prompts or repository setup', async () => {
+        const program = createProgramWithRunCommand();
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--harness', 'openai-codex'], { from: 'node' });
+        expect($assertSufficientFreeDiskSpace).not.toHaveBeenCalled();
+        expect($ensurePromptbookCliInstallations).not.toHaveBeenCalled();
+        expect($ensureHarnessInstallations).not.toHaveBeenCalled();
+        expect($ensureCoderHarnessGitignoreRules).not.toHaveBeenCalled();
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                agent: undefined,
+                agentName: 'openai-codex',
+                dryRun: true,
+            }),
+        );
+    });
+
+    it.each([undefined, 'agents/missing custom.book'])('rejects a missing Book before any setup: %s', async (agent) => {
+        (resolveCoderAgentBook as jest.MockedFunction<typeof resolveCoderAgentBook>).mockRejectedValueOnce(
+            new NotFoundError('Missing Book.'),
+        );
+        const program = createProgramWithRunCommand();
+        await program.parseAsync(
+            ['node', 'test', 'run', '--harness', 'openai-codex', ...(agent ? ['--agent', agent] : [])],
+            { from: 'node' },
+        );
+        expect(resolveCoderAgentBook).toHaveBeenCalledWith(agent, process.cwd(), { defaultRole: 'developer' });
+        expect($ensurePromptbookCliInstallations).not.toHaveBeenCalled();
+        expect($ensureHarnessInstallations).not.toHaveBeenCalled();
+        expect($ensureCoderHarnessGitignoreRules).not.toHaveBeenCalled();
+        expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
+        expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('defaults noCommit to false when --no-commit is omitted', async () => {

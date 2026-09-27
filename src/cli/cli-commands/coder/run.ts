@@ -47,7 +47,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.description(
         spaceTrim(
             (block) => `
-            Execute coding prompts through selected AI agent
+            Execute coding prompts with the project's Developer Book through the selected harness
 
             ${block(PROMPT_RUNNER_DESCRIPTION)}
 
@@ -82,7 +82,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     addPromptRunnerSelectionOptions(command);
     addQuestionsOption(command);
-    addCoderAgentOption(command);
+    addCoderAgentOption(command, 'developer');
     command.option(
         '--context <context-or-file>',
         'Append extra instructions either inline or from a file path relative to the current project',
@@ -216,16 +216,22 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
             assertUserConfirmationIsAllowed({ ...questionsOptions, isWaitingForUser: waitForUser });
 
-            // Note: Checked before anything is installed or written, because installing a harness, updating the
-            //       Promptbook CLI and coding itself all need the disk space which is missing
-            await $assertSufficientFreeDiskSpace(process.cwd());
+            if (!dryRun) {
+                // Reject missing or unreadable Books before offering installations or project configuration writes.
+                const { resolveCoderAgentBook } = await import(
+                    '../../../../scripts/run-codex-prompts/common/resolveCoderAgent'
+                );
+                await resolveCoderAgentBook(agent, process.cwd(), { defaultRole: 'developer' });
+                // Check disk space before installations and repository writes; previews require no setup.
+                await $assertSufficientFreeDiskSpace(process.cwd());
 
-            if (await $ensurePromptbookCliInstallations(questionsOptions)) {
-                return process.exit(0);
+                if (await $ensurePromptbookCliInstallations(questionsOptions)) {
+                    return process.exit(0);
+                }
+
+                await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
+                await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
             }
-
-            await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
-            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
 
             const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
             const waitBetweenPrompts = parseOptionalWaitDuration(waitBetweenPromptsValue, 0);

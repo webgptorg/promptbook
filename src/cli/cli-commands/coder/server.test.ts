@@ -1,5 +1,7 @@
 import { Command } from 'commander';
+import { resolveCoderAgentBook } from '../../../../scripts/run-codex-prompts/common/resolveCoderAgent';
 import { runCodexPromptsServer } from '../../../../scripts/run-codex-prompts/main/runCodexPromptsServer';
+import { NotFoundError } from '../../../errors/NotFoundError';
 import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
@@ -7,6 +9,10 @@ import { $initializeCoderServerCommand } from './server';
 
 jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPromptsServer', () => ({
     runCodexPromptsServer: jest.fn(),
+}));
+
+jest.mock('../../../../scripts/run-codex-prompts/common/resolveCoderAgent', () => ({
+    resolveCoderAgentBook: jest.fn(),
 }));
 
 jest.mock('../common/disk-space/$assertSufficientFreeDiskSpace', () => ({
@@ -72,7 +78,7 @@ describe('$initializeCoderServerCommand', () => {
     it('checks local ignore rules for the selected harness before starting the server', async () => {
         const program = createProgramWithServerCommand();
 
-        await program.parseAsync(['node', 'test', 'server', '--dry-run', '--harness', 'qwen-code'], {
+        await program.parseAsync(['node', 'test', 'server', '--harness', 'qwen-code'], {
             from: 'node',
         });
 
@@ -83,7 +89,7 @@ describe('$initializeCoderServerCommand', () => {
         expect(getRunCodexPromptsServerMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 agentName: 'qwen-code',
-                dryRun: true,
+                dryRun: false,
             }),
         );
     });
@@ -91,7 +97,7 @@ describe('$initializeCoderServerCommand', () => {
     it('asks nothing before starting a server with --no-questions', async () => {
         const program = createProgramWithServerCommand();
 
-        await program.parseAsync(['node', 'test', 'server', '--dry-run', '--harness', 'qwen-code', '--no-questions'], {
+        await program.parseAsync(['node', 'test', 'server', '--harness', 'qwen-code', '--no-questions'], {
             from: 'node',
         });
 
@@ -100,6 +106,38 @@ describe('$initializeCoderServerCommand', () => {
             isAskingQuestionsEnabled: false,
         });
         expect(getRunCodexPromptsServerMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('previews with an explicit Book without installations or repository setup', async () => {
+        const program = createProgramWithServerCommand();
+        await program.parseAsync(
+            ['node', 'test', 'server', '--dry-run', '--harness', 'openai-codex', '--agent', 'agents/custom role.book'],
+            { from: 'node' },
+        );
+        expect($assertSufficientFreeDiskSpace).not.toHaveBeenCalled();
+        expect($ensureHarnessInstallations).not.toHaveBeenCalled();
+        expect($ensureCoderHarnessGitignoreRules).not.toHaveBeenCalled();
+        expect(getRunCodexPromptsServerMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                agent: 'agents/custom role.book',
+                agentName: 'openai-codex',
+                dryRun: true,
+            }),
+        );
+    });
+
+    it('rejects a missing Developer before setup or starting the server', async () => {
+        (resolveCoderAgentBook as jest.MockedFunction<typeof resolveCoderAgentBook>).mockRejectedValueOnce(
+            new NotFoundError('Missing Developer.'),
+        );
+        await createProgramWithServerCommand().parseAsync(['node', 'test', 'server', '--harness', 'openai-codex'], {
+            from: 'node',
+        });
+        expect(resolveCoderAgentBook).toHaveBeenCalledWith(undefined, process.cwd(), { defaultRole: 'developer' });
+        expect($ensureHarnessInstallations).not.toHaveBeenCalled();
+        expect($ensureCoderHarnessGitignoreRules).not.toHaveBeenCalled();
+        expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
+        expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('refuses to combine --no-questions with the per-prompt confirmation of --no-auto', async () => {

@@ -5037,3 +5037,13 @@
     metadata. Restricted harness tools and validated, atomic host writes prevent implementation, shell, delegation,
     and linked-path escapes, including with custom Books. Git synchronization stays opt-in and commits only session
     PRDs. Added conversation, boundary, initialization, and packaged CLI regression coverage and workflow documentation.
+
+-   Coder actions now resolve editable project-owned Book defaults: `run` and `server` use Developer at
+    `agents/developer.book`, while `plan` uses Planner at `agents/planner.book`. An explicit `--agent` overrides
+    the role while retaining shared Adam inheritance, imports, TEAM, identity and prompt routing independently
+    of harness/model selection. Missing default Books point to `ptbk coder init`; invalid explicit Books fail
+    without fallback. Listing keeps its all-agent default, and dry runs apply the selected Book's routing
+    without installations or Book creation.
+    New role scripts omit redundant `--agent` arguments; repeated init preserves existing scripts and Books.
+    Updated CLI help, examples, developer terminals and the Coder landing page. Planning remains restricted to PRDs
+    with any selected Book.

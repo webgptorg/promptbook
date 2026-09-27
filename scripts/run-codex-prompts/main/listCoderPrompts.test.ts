@@ -107,4 +107,27 @@ describe('listCoderPrompts', () => {
             },
         ]);
     });
+
+    it.each([undefined, ['developer']])(
+        'lists all agents unless an explicit Book filter is supplied: %s',
+        async (agentReferences) => {
+            const promptFile = parsePromptFile(
+                join(process.cwd(), 'prompts/list-test.md'),
+                spaceTrim(`
+            [ ] use agent \`developer\`
+            Developer task
+            ---
+            [ ] use agent \`planner\`
+            Planner task
+            ---
+            [ ] use agent \`reviewer\`
+            Reviewer task
+        `),
+            );
+            getLoadPromptFilesMock().mockResolvedValue([promptFile]);
+            expect(
+                await listCoderPrompts({ promptRunnerIdentity: agentReferences ? { agentReferences } : undefined }),
+            ).toBe(agentReferences ? 1 : 3);
+        },
+    );
 });

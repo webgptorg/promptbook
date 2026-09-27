@@ -77,6 +77,7 @@ describe('$initializeCoderListCommand', () => {
 
         await program.parseAsync(['node', 'test', 'list'], { from: 'node' });
 
+        expect(getResolveCoderAgentBookMock()).not.toHaveBeenCalled();
         expect(getListCoderPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 promptRunnerIdentity: undefined,

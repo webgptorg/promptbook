@@ -2,8 +2,14 @@ import { readFile } from 'fs/promises';
 import { basename, extname, relative, resolve } from 'path';
 import { parseAgentSource } from '../../../src/book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
+import {
+    CODER_DEFAULT_AGENT_BOOK_PATHS,
+    type CoderAgentRole,
+} from '../../../src/cli/cli-commands/coder/coderAgentRole';
 import { resolveLocalAgentSource } from '../../../src/cli/cli-commands/common/resolveLocalAgentSource';
+import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { NotFoundError } from '../../../src/errors/NotFoundError';
+import { ParseError } from '../../../src/errors/ParseError';
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { createAgentRunnerSystemMessage } from '../../run-agent-messages/messages/createAgentRunnerSystemMessage';
 
@@ -51,13 +57,14 @@ export type ResolvedCoderAgent = ResolvedCoderAgentBook & {
 /**
  * Reads an optional agent `.book` file and prepares the references that route prompts to it.
  *
- * Returns `undefined` when no agent path is provided.
+ * Returns `undefined` when neither an explicit path nor an execution role is provided (list has no default).
  */
 export async function resolveCoderAgentBook(
     agentBookReference: string | undefined,
     currentWorkingDirectory: string,
+    options: { readonly defaultRole?: CoderAgentRole } = {},
 ): Promise<ResolvedCoderAgentBook | undefined> {
-    const normalizedAgentBookReference = agentBookReference?.trim();
+    const normalizedAgentBookReference = resolveCoderAgentBookReference(agentBookReference, options.defaultRole);
 
     if (!normalizedAgentBookReference) {
         return undefined;
@@ -65,17 +72,32 @@ export async function resolveCoderAgentBook(
 
     const resolvedAgentBookPath = resolve(currentWorkingDirectory, normalizedAgentBookReference);
     const agentSource = (await readFile(resolvedAgentBookPath, 'utf-8').catch((error: NodeJS.ErrnoException) => {
-        if (error.code === 'ENOENT' || error.code === 'EISDIR') {
+        if (['ENOENT', 'EISDIR', 'ENOTDIR'].includes(error.code || '')) {
             throw new NotFoundError(
                 spaceTrim(`
                     Agent book \`${normalizedAgentBookReference}\` was not found or is not a file.
 
-                    Pass a path to a \`.book\` file in \`--agent\`.
+                    Required path: \`${resolvedAgentBookPath}\`.
+                    ${
+                        agentBookReference === undefined
+                            ? 'Run `ptbk coder init` to initialize the project-owned Books, or select a Book with `--agent`.'
+                            : 'Check the explicit `--agent` path and pass a readable `.book` file. The default Book is not used after an explicit selection fails.'
+                    }
                 `),
             );
         }
-        throw error;
+        throw new NotAllowed(
+            spaceTrim(`
+                Cannot read agent Book \`${resolvedAgentBookPath}\`: ${error.message}
+
+                Check the file permissions and the selected \`--agent\` path.
+            `),
+        );
     })) as string_book;
+
+    if (!agentSource.trim() || agentSource.includes('\0')) {
+        throw new ParseError(spaceTrim(`Agent Book \`${resolvedAgentBookPath}\` must contain non-empty Book text.`));
+    }
 
     // Note: Parsed once here, because both the display name of the agent and its routing references need it
     const parsedAgentSource = parseAgentSource(agentSource);
@@ -101,32 +123,62 @@ export async function resolveCoderAgent(
     agentBookReference: string | undefined,
     currentWorkingDirectory: string,
     options: {
-        readonly defaultAgentBookReference?: string;
+        readonly defaultRole?: CoderAgentRole;
         readonly isInitializationAllowed?: boolean;
         readonly signal?: AbortSignal;
     } = {},
 ): Promise<ResolvedCoderAgent | undefined> {
-    agentBookReference = agentBookReference ?? options.defaultAgentBookReference;
-    const resolvedAgentBook = await resolveCoderAgentBook(agentBookReference, currentWorkingDirectory);
+    const selectedAgentBookReference = resolveCoderAgentBookReference(agentBookReference, options.defaultRole);
+    const resolvedAgentBook = await resolveCoderAgentBook(agentBookReference, currentWorkingDirectory, options);
 
     if (resolvedAgentBook === undefined) {
         return undefined;
     }
 
-    const resolvedSource = await resolveLocalAgentSource(
-        resolve(currentWorkingDirectory, agentBookReference!.trim()),
-        currentWorkingDirectory,
-        { isInitializationAllowed: options.isInitializationAllowed, signal: options.signal },
-    );
+    try {
+        const resolvedSource = await resolveLocalAgentSource(
+            resolve(currentWorkingDirectory, selectedAgentBookReference!),
+            currentWorkingDirectory,
+            { isInitializationAllowed: options.isInitializationAllowed, signal: options.signal },
+        );
 
-    return {
-        ...resolvedAgentBook,
-        agentSource: resolvedSource.agentSource,
-        systemMessage: await createAgentRunnerSystemMessage(resolvedSource.agentSource, {
-            agentReferenceResolver: resolvedSource.agentReferenceResolver,
-        }),
-        createdAgentBookPaths: resolvedSource.createdAgentBookPaths,
-    };
+        return {
+            ...resolvedAgentBook,
+            agentSource: resolvedSource.agentSource,
+            systemMessage: await createAgentRunnerSystemMessage(resolvedSource.agentSource, {
+                agentReferenceResolver: resolvedSource.agentReferenceResolver,
+            }),
+            createdAgentBookPaths: resolvedSource.createdAgentBookPaths,
+        };
+    } catch (error) {
+        if (error instanceof NotFoundError || error instanceof NotAllowed || options.signal?.aborted) {
+            throw error;
+        }
+        throw new ParseError(
+            spaceTrim(`
+                Cannot compile agent Book \`${selectedAgentBookReference}\`.
+
+                Fix the selected Book and its referenced Books: ${
+                    error instanceof Error ? error.message : String(error)
+                }
+            `),
+        );
+    }
+}
+
+/** Selects a role default only when the option is omitted; an explicit empty path is an error. */
+function resolveCoderAgentBookReference(
+    agentBookReference: string | undefined,
+    defaultRole?: CoderAgentRole,
+): string | undefined {
+    if (agentBookReference === undefined) {
+        return defaultRole ? CODER_DEFAULT_AGENT_BOOK_PATHS[defaultRole] : undefined;
+    }
+    const normalizedReference = agentBookReference.trim();
+    if (!normalizedReference) {
+        throw new NotAllowed(spaceTrim('Pass a non-empty path to a Book file in `--agent`.'));
+    }
+    return normalizedReference;
 }
 
 /**

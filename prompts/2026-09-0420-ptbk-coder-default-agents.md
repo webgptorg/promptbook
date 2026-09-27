@@ -1,4 +1,4 @@
-[ ] use `gpt-6-astra`
+[x] by Promptbook Developer on OpenAI Codex `gpt-6-astra` thinking `max` (ChatGPT account) - Implementation ~$0.5586 42 minutes; Testing 25 minutes
 
 [✨🎯] Resolve a default Book agent for each Coder action while keeping `--agent` optional and overridable.
 
@@ -50,3 +50,4 @@ ptbk coder plan --harness openai-codex --agent agents/my-planner.book
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Do a proper analysis of current option normalization and prompt selection before implementing.
 -   Update relevant examples, [developer terminal scripts](../.vscode/terminals.json), and the [Coder landing website](../apps/coder-landing) without replacing user-owned configuration during init.
 -   Add the changes into the [changelog](../changelog/_current-preversion.md).
+

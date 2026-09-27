@@ -34,6 +34,10 @@ export type CoderServerRunOptions = RunOptions & {
  */
 export async function runCodexPromptsServer(options: CoderServerRunOptions): Promise<void> {
     const { port, ...runOptions } = options;
+    if (runOptions.dryRun) {
+        await runCodexPrompts(runOptions);
+        return;
+    }
     const serverUrl = `http://localhost:${port}`;
     const uiState = new CoderRunUiState(moment());
     const priorityFilter = normalizePriorityFilter({

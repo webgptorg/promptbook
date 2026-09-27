@@ -78,6 +78,9 @@ export function parseRunOptions(args: string[]): RunOptions {
 
     const model = readOptionValue(args, '--model');
     const agent = readOptionValue(args, '--agent');
+    if (args.includes('--agent') && (!agent?.trim() || KNOWN_OPTION_FLAGS.has(agent))) {
+        exitWithUsageError('Pass a non-empty Book path after `--agent`, or omit it to use `agents/developer.book`.');
+    }
     const context = readOptionValue(args, '--context');
     const hasTestCommandFlag = args.includes('--test');
     const testCommand = readVariadicOptionValue(args, '--test');

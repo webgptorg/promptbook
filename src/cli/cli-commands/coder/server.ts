@@ -60,7 +60,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 ${block(QUESTIONS_DESCRIPTION)}
 
                 Features:
-                - Runs the same prompt processing as \`ptbk coder run\`
+                - Runs the same prompt processing and Developer Book default as \`ptbk coder run\`
                 - Refuses to start on a nearly full disk and pauses the run when the free disk space becomes critical, unless --no-questions is used
                 - Checks that the selected harness is installed and up to date on startup unless --no-questions is used
                 - Offers to add missing project-local ignore rules for the selected harness
@@ -81,7 +81,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     addPromptRunnerSelectionOptions(command);
     addQuestionsOption(command);
-    addCoderAgentOption(command);
+    addCoderAgentOption(command, 'developer');
     command.option(
         '--context <context-or-file>',
         'Append extra instructions either inline or from a file path relative to the current project',
@@ -181,12 +181,18 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
 
             assertUserConfirmationIsAllowed({ ...questionsOptions, isWaitingForUser: waitForUser });
 
-            // Note: Checked before anything is installed or written, because installing a harness and coding
-            //       itself both need the disk space which is missing
-            await $assertSufficientFreeDiskSpace(process.cwd());
+            if (!dryRun) {
+                // Reject missing or unreadable Books before offering installations or project configuration writes.
+                const { resolveCoderAgentBook } = await import(
+                    '../../../../scripts/run-codex-prompts/common/resolveCoderAgent'
+                );
+                await resolveCoderAgentBook(agent, process.cwd(), { defaultRole: 'developer' });
+                // Check disk space before installations and repository writes; previews require no setup.
+                await $assertSufficientFreeDiskSpace(process.cwd());
 
-            await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
-            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
+                await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
+                await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
+            }
 
             const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
             const waitBetweenPrompts = parseOptionalWaitDuration(waitBetweenPromptsValue, 0);

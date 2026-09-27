@@ -186,8 +186,11 @@ function createRunnerResolution(
  *
  * `--model default` keeps the harness's own configured model where supported. Gemini, Qwen and Cline
  * require a concrete model in their adapters, so the sentinel selects their shared default instead.
+ * Read-only previews use the same policy without constructing a harness runner.
+ *
+ * @private internal utility of Coder execution and previews
  */
-function resolveRunnerModel(agentName: PromptRunnerHarnessName, providedModel?: string): string | undefined {
+export function resolveRunnerModel(agentName: PromptRunnerHarnessName, providedModel?: string): string | undefined {
     if (providedModel === DEFAULT_MODEL_NAME) {
         if (agentName === 'gemini' || agentName === 'qwen-code' || agentName === 'cline') {
             return HARNESS_DEFAULT_MODELS[agentName];
@@ -198,3 +201,5 @@ function resolveRunnerModel(agentName: PromptRunnerHarnessName, providedModel?: 
 
     return providedModel || HARNESS_DEFAULT_MODELS[agentName];
 }
+
+// Note: [💞] Ignore a discrepancy between file name and exported helper names

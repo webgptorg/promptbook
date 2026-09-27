@@ -67,7 +67,8 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
                 <code className="text-promptbook-blue">.vscode/settings.json</code> settings are kept as they are, and
                 missing role Books are restored even when scripts already exist. The new{' '}
                 <code className="text-promptbook-blue">coder:run</code> script uses the current Codex flagship without
-                pinning a model version. Run it again any time.
+                pinning a model version. Both role scripts use their default Books without redundant{' '}
+                <code className="text-promptbook-blue">--agent</code> arguments. Run init again any time.
             </>
         ),
         command: INIT_COMMAND,
@@ -107,10 +108,12 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         title: 'Run the queue',
         description: (
             <>
-                Pick a harness and it selects the current flagship model automatically. It implements one prompt,
+                Pick a harness and it selects the current flagship model automatically. The local Developer Book at{' '}
+                <code className="text-promptbook-blue">agents/developer.book</code> supplies the instructions;{' '}
+                <code className="text-promptbook-blue">--agent</code> selects another Book. It implements one prompt,
                 verifies it, commits it, then starts the next one. Run{' '}
                 <code className="text-promptbook-blue">{LIST_COMMAND}</code> first if you only want to see the ready
-                queue grouped by priority.
+                queue for all agents grouped by priority.
             </>
         ),
         command: RUN_COMMAND,
