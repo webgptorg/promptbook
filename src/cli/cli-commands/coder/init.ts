@@ -60,6 +60,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
                 Creates or updates:
                 - prompts/
+                - prompts/README.md (offline PRD and workflow guide; existing README is preserved)
                 - prompts/done/
                 ${block(listDefaultCoderProjectPromptTemplateDisplayPaths())}
                 - ${CODER_DEVELOPER_AGENT_FILE_PATH}
@@ -110,6 +111,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             );
 
             const commitScope = await $startCoderGitSync({ gitSync, projectPath });
+            // Check before initialization adds the README, templates and archive directory.
             const isPromptsDirectoryEmpty = await isDirectoryEmpty(projectPath, PROMPTS_DIRECTORY_PATH);
 
             const summary = await initializeCoderProjectConfiguration(projectPath);

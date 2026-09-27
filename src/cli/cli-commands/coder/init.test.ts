@@ -1,10 +1,13 @@
 import { Command } from 'commander';
-import { mkdtemp, mkdir, readdir, readFile, rm, writeFile } from 'fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { loadPromptFiles } from '../../../../scripts/run-codex-prompts/prompts/loadPromptFiles';
+import { listRunnablePrompts } from '../../../../scripts/run-codex-prompts/prompts/listRunnablePrompts';
 import { DEFAULT_BOILERPLATE_COUNT } from './boilerplateCount';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { $initializeCoderInitCommand } from './init';
+import { PROMPTS_README_FILE_PATH, PROMPTS_README_TEMPLATE } from './promptsReadmeTemplate';
 
 jest.mock('../common/harness/$ensureHarnessInstallations', () => ({
     $ensureHarnessInstallations: jest.fn(),
@@ -46,7 +49,7 @@ async function runCoderInitCommand(projectPath: string, args: ReadonlyArray<stri
 async function listPromptFileNames(projectPath: string): Promise<ReadonlyArray<string>> {
     const promptsDirectoryPath = join(projectPath, 'prompts');
 
-    return (await readdir(promptsDirectoryPath)).filter((fileName) => fileName.endsWith('.md')).sort();
+    return (await loadPromptFiles(promptsDirectoryPath)).map(({ name }) => name).sort();
 }
 
 describe('$initializeCoderInitCommand', () => {
@@ -72,6 +75,52 @@ describe('$initializeCoderInitCommand', () => {
         await runCoderInitCommand(temporaryProjectDirectory);
 
         expect(await listPromptFileNames(temporaryProjectDirectory)).toHaveLength(DEFAULT_BOILERPLATE_COUNT.filesCount);
+        expect(await readFile(join(temporaryProjectDirectory, PROMPTS_README_FILE_PATH), 'utf-8')).toBe(
+            `${PROMPTS_README_TEMPLATE}\n`,
+        );
+        expect(consoleInfoSpy.mock.calls.flat().join('\n')).toContain('prompts/README.md: created');
+        const prompts = await loadPromptFiles(join(temporaryProjectDirectory, 'prompts'));
+        expect(prompts.every(({ sections }) => sections.every(({ status }) => status === 'not-ready'))).toBe(true);
+        expect(listRunnablePrompts(prompts)).toEqual([]);
+    });
+
+    it('preserves a customized README and all prompt contents on repeated init', async () => {
+        await runCoderInitCommand(temporaryProjectDirectory);
+        const filenames = await listPromptFileNames(temporaryProjectDirectory);
+        const contents = await Promise.all(
+            filenames.map((filename) => readFile(join(temporaryProjectDirectory, 'prompts', filename), 'utf-8')),
+        );
+        const customReadme = '[ ] !!!\r\nOur own instructions, not a task.\r\n';
+        await writeFile(join(temporaryProjectDirectory, PROMPTS_README_FILE_PATH), customReadme);
+        consoleInfoSpy.mockClear();
+
+        await runCoderInitCommand(temporaryProjectDirectory);
+
+        expect(await readFile(join(temporaryProjectDirectory, PROMPTS_README_FILE_PATH), 'utf-8')).toBe(customReadme);
+        expect(await listPromptFileNames(temporaryProjectDirectory)).toEqual(filenames);
+        expect(
+            await Promise.all(
+                filenames.map((filename) => readFile(join(temporaryProjectDirectory, 'prompts', filename), 'utf-8')),
+            ),
+        ).toEqual(contents);
+        expect(consoleInfoSpy.mock.calls.flat().join('\n')).toContain('prompts/README.md: unchanged');
+    });
+
+    it('restores a missing README when all project scripts and templates already exist', async () => {
+        await runCoderInitCommand(temporaryProjectDirectory);
+        const filenames = await listPromptFileNames(temporaryProjectDirectory);
+        const packageJson = await readFile(join(temporaryProjectDirectory, 'package.json'), 'utf-8');
+        await rm(join(temporaryProjectDirectory, PROMPTS_README_FILE_PATH));
+        consoleInfoSpy.mockClear();
+
+        await runCoderInitCommand(temporaryProjectDirectory);
+
+        expect(await readFile(join(temporaryProjectDirectory, PROMPTS_README_FILE_PATH), 'utf-8')).toBe(
+            `${PROMPTS_README_TEMPLATE}\n`,
+        );
+        expect(consoleInfoSpy.mock.calls.flat().join('\n')).toContain('prompts/README.md: created');
+        expect(await listPromptFileNames(temporaryProjectDirectory)).toEqual(filenames);
+        expect(await readFile(join(temporaryProjectDirectory, 'package.json'), 'utf-8')).toBe(packageJson);
     });
 
     it('creates a run script which follows the current Codex default instead of pinning a model', async () => {
@@ -102,6 +151,9 @@ describe('$initializeCoderInitCommand', () => {
         await runCoderInitCommand(temporaryProjectDirectory);
 
         expect(await listPromptFileNames(temporaryProjectDirectory)).toEqual([existingPromptFileName]);
+        expect(await readFile(join(temporaryProjectDirectory, PROMPTS_README_FILE_PATH), 'utf-8')).toBe(
+            `${PROMPTS_README_TEMPLATE}\n`,
+        );
     });
 
     it('offers to install the checked coding harnesses by default', async () => {

@@ -11,10 +11,12 @@ import { ensureCoderDefaultAgentFiles } from './ensureCoderDefaultAgentFiles';
 import { CODER_AGENTS_DIRECTORY_PATH } from './ensureCoderDeveloperAgentFile';
 import { ensureCoderEnvFile } from './ensureCoderEnvFile';
 import { ensureCoderGitignoreFile } from './ensureCoderGitignoreFile';
+import { ensureCoderMarkdownFile } from './ensureCoderMarkdownFile';
 import { ensureCoderPackageJsonFile } from './ensureCoderPackageJsonFile';
 import { ensureCoderVscodeSettingsFile } from './ensureCoderVscodeSettingsFile';
 import { ensureDirectory } from './ensureDirectory';
 import { resolveCoderPackageJsonScriptReferencedArtifactPaths } from './getDefaultCoderPackageJsonScripts';
+import { PROMPTS_README_FILE_PATH, PROMPTS_README_TEMPLATE } from './promptsReadmeTemplate';
 
 /**
  * Result summary returned after coder configuration initialization.
@@ -23,6 +25,7 @@ import { resolveCoderPackageJsonScriptReferencedArtifactPaths } from './getDefau
  */
 export type CoderInitializationSummary = {
     readonly promptsDirectoryStatus: InitializationStatus;
+    readonly promptsReadmeFileStatus: InitializationStatus;
     readonly promptsDoneDirectoryStatus: InitializationStatus;
     readonly promptsTemplatesDirectoryStatus: InitializationStatus;
     readonly agentsDirectoryStatus: InitializationStatus;
@@ -47,6 +50,11 @@ export type CoderInitializationSummary = {
  */
 export async function initializeCoderProjectConfiguration(projectPath: string): Promise<CoderInitializationSummary> {
     const promptsDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DIRECTORY_PATH);
+    const promptsReadmeFileStatus = await ensureCoderMarkdownFile(
+        projectPath,
+        PROMPTS_README_FILE_PATH,
+        PROMPTS_README_TEMPLATE,
+    );
     const promptsDoneDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH);
     const promptsTemplatesDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH);
     const agentsDirectoryStatus = await ensureDirectory(projectPath, CODER_AGENTS_DIRECTORY_PATH);
@@ -70,6 +78,7 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
 
     return {
         promptsDirectoryStatus,
+        promptsReadmeFileStatus,
         promptsDoneDirectoryStatus,
         promptsTemplatesDirectoryStatus,
         agentsDirectoryStatus,

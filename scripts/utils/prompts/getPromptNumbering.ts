@@ -1,5 +1,6 @@
 import { basename } from 'path';
 import { findFilesByGlob } from '../../../src/utils/files/findFilesByGlob';
+import { isPromptDocumentationFile } from './isPromptDocumentationFile';
 
 /**
  * Configuration for calculating the next prompt numbering sequence.
@@ -62,6 +63,9 @@ export async function getPromptNumbering(options: PromptNumberingOptions): Promi
     let highestNumber = -step;
 
     for (const file of promptFiles) {
+        if (isPromptDocumentationFile(file)) {
+            continue;
+        }
         const match = basename(file).match(numberPattern);
         if (!match?.[1]) {
             continue;

@@ -1,3 +1,10 @@
+-   `ptbk coder init` now creates `prompts/README.md` from a template bundled with the CLI, including in partially
+    initialized projects. The offline guide explains PRDs, parser annotations, planning and local Books, acceptance
+    checks, archival, and a complete manual or alternative-assistant workflow. Existing guides are preserved and
+    initialization reports their status. README files are excluded from queue discovery and numbering without
+    restricting other PRD filenames. Added parser/command documentation checks, fresh/repeated init and queue/archive
+    coverage, and packed-CLI checks; updated the Coder landing page.
+
 -   `ptbk coder run` now starts its interactive dashboard in **Normal output**, with agent messages, commands,
     reported file changes, verification, results and diagnostics shown separately. `[o]` switches to **Raw output**
     and back during the same task and across tasks. Added bounded stream assembly, attributed TEAM events, explicit

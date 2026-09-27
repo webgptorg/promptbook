@@ -1,4 +1,4 @@
-[ ] use `gpt-6-astra`
+[x] by Promptbook Developer on OpenAI Codex `gpt-6-astra` thinking `max` - Commited ,manually
 
 [✨📖] Initialize a self-contained `prompts/README.md` that explains PRDs and the Promptbook Coder workflow.
 
@@ -62,3 +62,4 @@ ptbk coder init
 -   Coordinate the workflow text with [planning](2026-09-0410-ptbk-coder-planner-and-plan.md), [default agents](2026-09-0420-ptbk-coder-default-agents.md), and [helper initialization](2026-09-0430-ptbk-coder-helper-agents-init.md) as they become available.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Update the [Coder landing website](../apps/coder-landing) where the generated documentation is relevant.
 -   Add the changes into the [changelog](../changelog/_current-preversion.md).
+

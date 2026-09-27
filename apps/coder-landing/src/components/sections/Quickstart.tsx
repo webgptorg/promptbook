@@ -70,7 +70,12 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
                 references to Developer and Planner while preserving your rules and existing teammates. The new{' '}
                 <code className="text-promptbook-blue">coder:run</code> script uses the current Codex flagship without
                 pinning a model version. Both role scripts use their default Books without redundant{' '}
-                <code className="text-promptbook-blue">--agent</code> arguments. Run init again any time.
+                <code className="text-promptbook-blue">--agent</code> arguments. Run init again any time. The generated{' '}
+                <code className="text-promptbook-blue">prompts/README.md</code> explains PRDs, task statuses, templates,
+                traces, and the review workflow, with a sample task and a complete manual path. Share the Markdown with
+                another assistant or implement it yourself using ordinary repository tools; the guide works offline
+                without a Promptbook account or installation. Your customized README is preserved and stays outside the
+                runnable queue.
             </>
         ),
         command: INIT_COMMAND,

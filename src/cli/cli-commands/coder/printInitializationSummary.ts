@@ -21,6 +21,7 @@ export function printInitializationSummary(summary: CoderInitializationSummary):
             : colors.green('Promptbook coder configuration initialized.'),
     );
     printInitializationStatusLine('prompts/', summary.promptsDirectoryStatus);
+    printInitializationStatusLine('prompts/README.md', summary.promptsReadmeFileStatus);
     printInitializationStatusLine('prompts/done/', summary.promptsDoneDirectoryStatus);
     printInitializationStatusLine('prompts/templates/', summary.promptsTemplatesDirectoryStatus);
     printInitializationStatusLine('agents/', summary.agentsDirectoryStatus);

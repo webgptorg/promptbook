@@ -2,6 +2,12 @@
 
 Anchor `#quickstart`. Sits on the lighter panel background (see [`../page-structure.md`](../page-structure.md)). Walks the visitor **from installation to the coder server** — every step pairs an explanation with a copyable [terminal block](../components/terminal-block.md).
 
+The initialization step also explains the generated `prompts/README.md`: an offline guide to PRDs, annotations,
+templates, traces, and the authoring/review lifecycle, including a sample and a manual or alternative-assistant
+workflow. No Promptbook account or installation is needed to follow that manual workflow. Repeated init preserves
+customized guides, and the README never becomes a runnable task. Keep the detailed reference in the packaged CLI
+template rather than duplicating it on the landing page.
+
 **Heading**: `From install to autopilot in six steps` — "install" in Promptbook Green, "autopilot" in Promptbook Blue.
 
 Steps are an ordered list; each step is a 2-column row on desktop (text left, terminal right), stacked on mobile. Each step has a numbered circle badge (Promptbook Blue fill).

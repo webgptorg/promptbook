@@ -2,6 +2,7 @@ import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { findFilesByGlob } from '../../src/utils/files/findFilesByGlob';
+import { isPromptDocumentationFile } from '../utils/prompts/isPromptDocumentationFile';
 import { PROMPT_TARGET_LABEL } from './find-refactor-candidates.constants';
 import { normalizeRefactorCandidatePath } from './normalizeRefactorCandidatePath';
 
@@ -26,6 +27,9 @@ export async function loadExistingPromptTargets(promptsDir: string): Promise<Set
     );
 
     for (const promptFile of promptFiles) {
+        if (isPromptDocumentationFile(promptFile)) {
+            continue;
+        }
         const content = await readFile(join(promptsDir, promptFile), 'utf-8');
 
         for (const match of content.matchAll(targetRegex)) {

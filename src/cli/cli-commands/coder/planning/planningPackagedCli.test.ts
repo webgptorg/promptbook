@@ -10,6 +10,7 @@ import typescript from 'typescript';
 import createRollupConfiguration from '../../../../../rollup.config';
 import { copyCoderAgentBooks } from '../../../../../scripts/generate-packages/copyCoderAgentBooks';
 import { parsePromptFile } from '../../../../../scripts/run-codex-prompts/prompts/parsePromptFile';
+import { PROMPTS_README_TEMPLATE } from '../promptsReadmeTemplate';
 import { snapshotPlanningProject } from './fixtures/snapshotPlanningProject';
 
 /** Monorepo path used only to build the package and provide already installed external dependencies. */
@@ -169,6 +170,20 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
                     },
                 );
             const initialized = await run(['coder', 'init', '--no-questions']);
+            const readmePath = join(projectPath, 'prompts/README.md');
+            expect(initialized.stdout).toContain('prompts/README.md: created');
+            expect(await readFile(readmePath, 'utf-8')).toBe(`${PROMPTS_README_TEMPLATE}\n`);
+            if (mode === 'packaged') {
+                const queue = await run(['coder', 'list']);
+                expect(queue.stdout).toContain('No upcoming tasks.');
+                expect(queue.stdout).not.toContain('README.md');
+                // Validate the shipped example without launching an implementation or repeating source-level checks.
+                const documentedRun = PROMPTS_README_TEMPLATE.match(/`(ptbk coder run [^`]+)`/u)![1]!;
+                const documentedArguments = Array.from(documentedRun.matchAll(/"[^"]*"|\S+/gu), ([argument]) =>
+                    argument.replace(/^"|"$/gu, ''),
+                );
+                await run([...documentedArguments.slice(1), '--dry-run', '--no-ui']);
+            }
             expect(initialized.stdout).toContain('agents/planner.book: created');
             for (const asset of [
                 'developer.book',
@@ -190,6 +205,8 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
                 planner.replace('CLOSED', 'RULE Preserve this project preference.\n\nCLOSED'),
             );
             const repeated = await run(['coder', 'init', '--no-questions']);
+            expect(repeated.stdout).toContain('prompts/README.md: unchanged');
+            expect(await readFile(readmePath, 'utf-8')).toBe(`${PROMPTS_README_TEMPLATE}\n`);
             expect(repeated.stdout).toContain('agents/planner.book: unchanged');
             expect(await readFile(join(projectPath, 'agents/planner.book'), 'utf-8')).toContain(
                 'Preserve this project preference',
@@ -198,16 +215,22 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             const developerPath = join(projectPath, 'agents/developer.book');
             await writeFile(developerPath, (await readFile(developerPath, 'utf-8')).replace(/^TEAM .*\r?\n/gm, ''));
             await rm(join(projectPath, 'agents/lawyer.book'));
+            await rm(readmePath);
             const customCopywriter =
                 'Copywriter\r\nPERSONA Write concise interface text in the project language.\r\nCLOSED\r\n';
             await writeFile(join(projectPath, 'agents/copywriter.book'), customCopywriter);
             const upgraded = await run(['coder', 'init', '--no-questions']);
+            expect(upgraded.stdout).toContain('prompts/README.md: created');
+            expect(await readFile(readmePath, 'utf-8')).toBe(`${PROMPTS_README_TEMPLATE}\n`);
             expect(upgraded.stdout).toContain('agents/lawyer.book: created');
             expect(upgraded.stdout).toContain('agents/developer.book: augmented');
             expect(upgraded.stdout).toContain('agents/copywriter.book: unchanged');
             expect(await readFile(join(projectPath, 'agents/copywriter.book'), 'utf-8')).toBe(customCopywriter);
+            const customReadme = '# Our project workflow\n\nKeep these instructions.\n';
+            await writeFile(readmePath, customReadme);
             const initializedSnapshot = await snapshotPlanningProject(projectPath);
             await run(['coder', 'init', '--no-questions']);
+            expect(await readFile(readmePath, 'utf-8')).toBe(customReadme);
             expect(await snapshotPlanningProject(projectPath)).toEqual(initializedSnapshot);
             await writeFile(join(projectPath, 'application.ts'), 'Unrelated implementation artifact.');
             const before = await snapshotPlanningProject(projectPath);
