@@ -76,6 +76,19 @@ describe('scanEmojiTagUsage', () => {
         expect(cacheContent).toContain('😀');
     });
 
+    it('can scan for authoring previews without writing a cache', async () => {
+        const rootDir = await createTemporaryDirectory(temporaryDirectories);
+        await writeFile(join(rootDir, 'notes.md'), 'Tag [✨😀]\n');
+        const result = await scanEmojiTagUsage({
+            rootDir,
+            tagPrefix: '✨',
+            candidateEmojis: createCandidateEmojiSet('😀'),
+            isCacheWriteEnabled: false,
+        });
+        expect(sortEmojis(result.usedEmojis)).toEqual(['😀']);
+        await expect(stat(join(rootDir, EMOJI_TAG_SCAN_CACHE_FILE_PATH))).rejects.toThrow();
+    });
+
     it('rescans files after content changes and refreshes the cached emojis', async () => {
         const rootDir = await createTemporaryDirectory(temporaryDirectories);
         const filePath = join(rootDir, 'notes.md');

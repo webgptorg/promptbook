@@ -2,6 +2,7 @@ import { AGENTS_FILE_PATH } from './agentsFile';
 import { DEFAULT_BOILERPLATE_COUNT_OPTION_VALUE } from './boilerplateCount';
 import { COMMON_PROMPT_TEMPLATE_FILE_PATH } from './boilerplateTemplates';
 import { CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
+import { CODER_PLANNER_AGENT_FILE_PATH } from './ensureCoderRoleAgentFile';
 import { formatDisplayPath } from './formatDisplayPath';
 
 /**
@@ -26,7 +27,7 @@ type CoderPackageJsonScriptDefinition = {
     /**
      * Project-relative paths of the artifacts the command points at.
      *
-     * They are created only together with the script itself, never for a script the project already defines.
+     * Non-role artifacts are created with newly added scripts; role Books are always initialized when missing.
      */
     readonly referencedArtifactPaths: ReadonlyArray<string>;
 };
@@ -48,6 +49,11 @@ const DEFAULT_CODER_PACKAGE_JSON_SCRIPT_DEFINITIONS: ReadonlyArray<CoderPackageJ
         scriptName: 'coder:add',
         scriptCommand: `npx ptbk coder add --template ${formatCoderScriptFilePath(COMMON_PROMPT_TEMPLATE_FILE_PATH)}`,
         referencedArtifactPaths: [COMMON_PROMPT_TEMPLATE_FILE_PATH],
+    },
+    {
+        scriptName: 'coder:plan',
+        scriptCommand: 'npx ptbk coder plan --harness openai-codex',
+        referencedArtifactPaths: [CODER_PLANNER_AGENT_FILE_PATH, COMMON_PROMPT_TEMPLATE_FILE_PATH],
     },
     {
         scriptName: 'coder:run',

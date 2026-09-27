@@ -12,6 +12,8 @@ export const PROMPT_EMOJI_TAG_PREFIX = '\u2728';
  * Options for selecting fresh prompt emoji tags.
  */
 export type PromptEmojiTagOptions = {
+    /** Read-only authoring previews can disable the scan cache's filesystem writes. */
+    readonly isCacheWriteEnabled?: boolean;
     /**
      * Number of unique emojis to reserve.
      */
@@ -79,6 +81,7 @@ export async function getFreshPromptEmojiTags(options: PromptEmojiTagOptions): P
         ignoreGlobs,
         tagPrefix,
         candidateEmojis: VALID_SINGLE_PICTOGRAM_EMOJIS,
+        isCacheWriteEnabled: options.isCacheWriteEnabled,
     });
     const freshEmojis = new Set(Array.from(VALID_SINGLE_PICTOGRAM_EMOJIS).filter((emoji) => !usedEmojis.has(emoji)));
     const shuffledEmojis = $shuffleItems(...Array.from(freshEmojis));

@@ -37,8 +37,10 @@ export function AgentsSection() {
                     <p className="mt-6 text-gray-400">
                         <code className="text-promptbook-blue">ptbk coder init</code> creates this default developer
                         agent at <code className="text-promptbook-blue">agents/developer.book</code> and its shared
-                        ancestor at <code className="text-promptbook-blue">agents/.core/adam.book</code>. Edit these
-                        files to change how your agent codes.
+                        ancestor at <code className="text-promptbook-blue">agents/.core/adam.book</code>, alongside{' '}
+                        <code className="text-promptbook-blue">agents/planner.book</code>. Developer implements changes;
+                        Planner discusses requirements and authors PRDs. Both inherit Adam directly through the same
+                        default inheritance. Edit the local role Books to customize their behavior.
                     </p>
                     <p className="mt-4 text-gray-400">
                         Use <code className="text-promptbook-blue">FROM @Pavol</code> or{' '}
@@ -51,8 +53,9 @@ export function AgentsSection() {
                         Paths starting with <code className="text-promptbook-blue">./</code> or{' '}
                         <code className="text-promptbook-blue">../</code> are relative to the book declaring them;
                         other paths are relative to your current directory. HTTP and HTTPS book URLs work too.
-                        Adam is inherited by default and created in the selected book&apos;s{' '}
-                        <code className="text-promptbook-blue">.core</code> folder when missing. Use{' '}
+                        Adam is inherited by default. Planning requires the Books to be prepared with{' '}
+                        <code className="text-promptbook-blue">ptbk coder init</code> and never creates them during a
+                        conversation. Use{' '}
                         <code className="text-promptbook-blue">FROM @null</code> or{' '}
                         <code className="text-promptbook-blue">FROM @void</code> to inherit from nothing; braces work too.
                     </p>

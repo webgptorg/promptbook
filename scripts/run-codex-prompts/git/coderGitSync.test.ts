@@ -140,6 +140,17 @@ describe('$commitCoderChanges', () => {
         jest.restoreAllMocks();
     });
 
+    it('restricts long-running authoring commits to the explicit session PRD write set', async () => {
+        mockChangedPathsOfCurrentCommand(['prompts/task.md', 'src/app.ts', 'prompts/user-task.md']);
+        await $commitCoderChanges({
+            gitSync: { isCommitEnabled: true, isAutoPushEnabled: false, isAutoPullEnabled: false },
+            commitMessage: 'Plan tasks', commitScope: COMMIT_SCOPE, relevantPaths: ['prompts/task.md'],
+        });
+        expect(getCommitChangesMock()).toHaveBeenCalledWith('Plan tasks', {
+            projectPath: '/project', relevantPaths: ['prompts/task.md'], autoPush: false,
+        });
+    });
+
     it('leaves the repository untouched when committing is disabled', async () => {
         mockChangedPathsOfCurrentCommand(['prompts/2026-08-04-0000-foo.md']);
 

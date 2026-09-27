@@ -167,6 +167,34 @@ export async function addCoderPrompt({
     readonly priority: number;
     readonly templateOption?: string;
 }): Promise<AddCoderPromptResult> {
+    mkdirSync(join(projectPath, PROMPTS_DIRECTORY_PATH), { recursive: true });
+    const prepared = await prepareCoderPrompt({ projectPath, description, priority, templateOption });
+    writeFileSync(join(projectPath, prepared.filePath), prepared.content, { encoding: 'utf-8', flag: 'wx' });
+    console.info(colors.green(`✓ Added prompt ${prepared.emojiTag} in ${prepared.filePath}`));
+    return { filePath: prepared.filePath, emojiTag: prepared.emojiTag };
+}
+
+/**
+ * Prepares a numbered, emoji-tagged prompt for preview without writing the prompt file.
+ * The offset reserves consecutive identities when a planning turn proposes several files.
+ *
+ * @private internal utility shared by `coder add` and `coder plan`
+ */
+export async function prepareCoderPrompt({
+    projectPath,
+    description,
+    priority,
+    templateOption,
+    numberOffset = 0,
+    reservedEmojiTag,
+}: {
+    readonly projectPath: string;
+    readonly description: string;
+    readonly priority: number;
+    readonly templateOption?: string;
+    readonly numberOffset?: number;
+    readonly reservedEmojiTag?: string;
+}): Promise<AddCoderPromptResult & { readonly content: string }> {
     const normalizedDescription = description.trim();
     if (normalizedDescription === '') {
         throw new ParseError(
@@ -188,7 +216,6 @@ export async function addCoderPrompt({
     );
 
     const promptsDirectory = join(projectPath, PROMPTS_DIRECTORY_PATH);
-    mkdirSync(promptsDirectory, { recursive: true });
 
     const promptTemplate = await resolveCoderPromptTemplate({ projectPath, templateOption });
 
@@ -198,9 +225,9 @@ export async function addCoderPrompt({
         ignoreGlobs: ['**/node_modules/**'],
     });
 
-    const { selectedEmojis } = await getFreshPromptEmojiTags({ count: 1, rootDir: projectPath });
-    const emoji = selectedEmojis[0]!;
-    const emojiTag = formatPromptEmojiTag(emoji);
+    const emojiTag =
+        reservedEmojiTag ||
+        formatPromptEmojiTag((await getFreshPromptEmojiTags({ count: 1, rootDir: projectPath })).selectedEmojis[0]!);
 
     const [firstDescriptionLine, ...remainingDescriptionLines] = normalizedDescription.split('\n');
     const title = (firstDescriptionLine ?? '').trim();
@@ -216,15 +243,13 @@ export async function addCoderPrompt({
     });
 
     const slug = buildAddPromptSlug(promptTemplate.slugPrefix, title);
-    const filename = buildPromptFilename(promptNumbering.datePrefix, promptNumbering.startNumber, slug);
+    const filename = buildPromptFilename(
+        promptNumbering.datePrefix,
+        promptNumbering.startNumber + numberOffset * promptNumbering.step,
+        slug,
+    );
     const filePath = join(PROMPTS_DIRECTORY_PATH, filename);
-    const absoluteFilePath = join(projectPath, filePath);
-
-    writeFileSync(absoluteFilePath, `${section}\n`, 'utf-8');
-
-    console.info(colors.green(`✓ Added prompt ${emojiTag} in ${filePath}`));
-
-    return { filePath, emojiTag };
+    return { filePath, emojiTag, content: `${section}\n` };
 }
 
 /**

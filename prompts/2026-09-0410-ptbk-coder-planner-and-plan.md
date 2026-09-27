@@ -1,4 +1,4 @@
-[ ] use `gpt-6-astra`
+[x] by Promptbook Developer on OpenAI Codex `gpt-6-astra` thinking `max` (ChatGPT account) - Implementation ~$0.8237 30 minutes; Testing 27 minutes
 
 [✨📝] Add a project-owned Planner agent and an interactive `ptbk coder plan` command.
 
@@ -59,3 +59,4 @@ ptbk coder plan --harness openai-codex --agent agents/planner.book
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Analyze the existing agent resolver, harness abstractions, prompt authoring, and Git-sync behavior before implementing.
 -   Update CLI help, relevant developer scripts in [terminals.json](../.vscode/terminals.json), and the [Coder landing website](../apps/coder-landing) where the new planning workflow is documented.
 -   Add the changes into the [changelog](../changelog/_current-preversion.md).
+

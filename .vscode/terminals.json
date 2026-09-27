@@ -11,6 +11,13 @@
         },
 
         {
+            "name": "🐙 Plan PRDs with Planner (💤)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder plan --harness openai-codex --agent agents/default/planner.book",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🐙🏓 Ping Codex & Claude",
             "commands": [
                 "set -a && source .env && set +a",

@@ -12,6 +12,7 @@ import { $initializeCoderGenerateBoilerplatesCommand } from './coder/generate-bo
 import { $initializeCoderInitCommand } from './coder/init';
 import { $initializeCoderListCommand } from './coder/list';
 import { $initializeCoderPingCommand } from './coder/ping';
+import { $initializeCoderPlanCommand } from './coder/plan';
 import { $initializeCoderRunCommand } from './coder/run';
 import { $initializeCoderServerCommand } from './coder/server';
 import { $initializeCoderVerifyCommand } from './coder/verify';
@@ -22,6 +23,7 @@ import { $initializeCoderVerifyCommand } from './coder/verify';
  * The coder command provides utilities for automated coding:
  * - init: Initialize coder configuration in current project
  * - add: Add one ready-to-run prompt file to the queue
+ * - plan: Discuss features with Planner and author reviewed PRDs
  * - generate-boilerplates: Generate prompt boilerplate files
  * - find-refactor-candidates: Find files that need refactoring
  * - list: List ready prompts in priority order without running them
@@ -43,6 +45,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             Subcommands:
             - init: Initialize coder configuration in current project
             - add: Add one ready-to-run prompt file to the queue
+            - plan: Discuss features with Planner and author reviewed PRDs
             - generate-boilerplates: Generate prompt boilerplate files
             - find-refactor-candidates: Find files that need refactoring
             - find-unwritten: List prompt sections that still need to be authored
@@ -58,6 +61,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
     // Register all subcommands
     $initializeCoderInitCommand(coderCommand);
     $initializeCoderAddCommand(coderCommand);
+    $initializeCoderPlanCommand(coderCommand);
     $initializeCoderGenerateBoilerplatesCommand(coderCommand);
     $initializeCoderFindRefactorCandidatesCommand(coderCommand);
     $initializeCoderFindUnwrittenCommand(coderCommand);

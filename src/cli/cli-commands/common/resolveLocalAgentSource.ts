@@ -32,8 +32,14 @@ export type ResolvedLocalAgentSource = {
 export async function resolveLocalAgentSource(
     agentBookPath: string,
     currentWorkingDirectory: string,
+    options: { readonly isInitializationAllowed?: boolean; readonly signal?: AbortSignal } = {},
 ): Promise<ResolvedLocalAgentSource> {
-    const collection = new LocalAgentBookCollection(dirname(agentBookPath), currentWorkingDirectory);
+    const collection = new LocalAgentBookCollection(
+        dirname(agentBookPath),
+        currentWorkingDirectory,
+        options.isInitializationAllowed,
+        options.signal,
+    );
     await collection.initialize();
     const primaryBook = await collection.readBook(agentBookPath);
     const adamAgentUrl = collection.getAdamAgentUrl();

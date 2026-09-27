@@ -90,6 +90,8 @@ export async function $commitCoderChanges(options: {
     readonly gitSync: CoderGitSyncOptions;
     readonly commitMessage: string;
     readonly commitScope: CoderCommitScope;
+    /** Optional explicit write set, used by long-running authoring sessions to exclude concurrent user edits. */
+    readonly relevantPaths?: ReadonlyArray<string>;
 }): Promise<void> {
     const { gitSync, commitMessage, commitScope } = options;
 
@@ -97,7 +99,11 @@ export async function $commitCoderChanges(options: {
         return;
     }
 
-    const relevantPaths = await resolveCoderCommitScopePaths(commitScope);
+    const changedPaths = await resolveCoderCommitScopePaths(commitScope);
+    const relevantPaths =
+        options.relevantPaths === undefined
+            ? changedPaths
+            : changedPaths.filter((path) => options.relevantPaths!.includes(path));
     if (relevantPaths.length === 0) {
         console.info(colors.gray('Nothing to commit, this command has not changed any file'));
         return;

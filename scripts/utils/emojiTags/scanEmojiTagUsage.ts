@@ -35,6 +35,8 @@ const EMOJI_TAG_SCAN_CACHE_VERSION = 2;
  * Options controlling one repository emoji-tag scan.
  */
 export type EmojiTagScanOptions = {
+    /** False keeps a scan read-only while still reusing any existing cache. */
+    readonly isCacheWriteEnabled?: boolean;
     /**
      * Candidate emojis that may appear inside bracketed tags.
      */
@@ -160,7 +162,7 @@ export async function scanEmojiTagUsage(options: EmojiTagScanOptions): Promise<E
         }
     }
 
-    if (isCacheDirty) {
+    if (isCacheDirty && options.isCacheWriteEnabled !== false) {
         await writeEmojiTagScanCache(rootDir, {
             version: EMOJI_TAG_SCAN_CACHE_VERSION,
             candidateEmojisFingerprint,

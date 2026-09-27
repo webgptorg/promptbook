@@ -93,14 +93,20 @@ export async function resolveCoderAgentBook(
 }
 
 /**
- * Reads an optional agent `.book` file and compiles its system message for injection into coder prompts.
+ * Reads the explicitly selected or command-default agent Book and compiles its system message for coder prompts.
  *
- * Returns `undefined` when no agent path is provided.
+ * Returns `undefined` when neither an explicit path nor a command default is provided.
  */
 export async function resolveCoderAgent(
     agentBookReference: string | undefined,
     currentWorkingDirectory: string,
+    options: {
+        readonly defaultAgentBookReference?: string;
+        readonly isInitializationAllowed?: boolean;
+        readonly signal?: AbortSignal;
+    } = {},
 ): Promise<ResolvedCoderAgent | undefined> {
+    agentBookReference = agentBookReference ?? options.defaultAgentBookReference;
     const resolvedAgentBook = await resolveCoderAgentBook(agentBookReference, currentWorkingDirectory);
 
     if (resolvedAgentBook === undefined) {
@@ -110,6 +116,7 @@ export async function resolveCoderAgent(
     const resolvedSource = await resolveLocalAgentSource(
         resolve(currentWorkingDirectory, agentBookReference!.trim()),
         currentWorkingDirectory,
+        { isInitializationAllowed: options.isInitializationAllowed, signal: options.signal },
     );
 
     return {

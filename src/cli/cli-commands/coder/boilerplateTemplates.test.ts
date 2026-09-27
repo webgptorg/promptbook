@@ -162,7 +162,7 @@ describe('coder boilerplate templates', () => {
         expect(summary.gitignoreFileStatus).toBe('updated');
         expect(summary.packageJsonFileStatus).toBe('updated');
         expect(summary.vscodeSettingsFileStatus).toBe('updated');
-        expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('not-referenced');
+        expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('unchanged');
         expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('not-referenced');
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
@@ -255,12 +255,13 @@ describe('coder boilerplate templates', () => {
         // Note: [2] Only the genuinely missing scripts were added
         expect([...summary.addedPackageJsonScriptNames].sort()).toEqual([
             'coder:generate-boilerplates',
+            'coder:plan',
             'coder:verify',
         ]);
 
-        // Note: [3] The artifacts of the kept `coder:run` and `coder:add` scripts must not be created
-        expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('not-referenced');
-        await expect(readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).rejects.toThrow();
+        // Note: [3] Roles are initialized independently of scripts; project context still follows script ownership.
+        expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('created');
+        await expect(readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).resolves.toContain('Developer');
         expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('not-referenced');
         await expect(readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).rejects.toThrow();
 
@@ -287,6 +288,27 @@ describe('coder boilerplate templates', () => {
         expect(envContent.match(/CODING_AGENT_GIT_NAME/gu)).toHaveLength(1);
         expect(envContent.match(/CODING_AGENT_GIT_EMAIL/gu)).toHaveLength(1);
         expect(envContent.match(/CODING_AGENT_GIT_SIGNING_KEY/gu)).toHaveLength(1);
+    });
+
+    it('restores missing roles with all scripts already present and preserves customized Books and scripts', async () => {
+        const projectPath = await createTemporaryDirectory(temporaryDirectories);
+        await initializeCoderProjectConfiguration(projectPath);
+        const packagePath = join(projectPath, 'package.json');
+        const packageJson = await readJsonFile<{ scripts: Record<string, string> }>(packagePath);
+        packageJson.scripts['coder:plan'] = 'my-custom-planning-command';
+        await writeFile(packagePath, JSON.stringify(packageJson));
+        await writeFile(join(projectPath, 'agents/planner.book'), 'Planner\nRULE Keep my customization.\n');
+        await rm(join(projectPath, 'agents/developer.book'));
+        const repeated = await initializeCoderProjectConfiguration(projectPath);
+        expect(getReferencedArtifactStatus(repeated, 'agents/developer.book')).toBe('created');
+        expect(getReferencedArtifactStatus(repeated, 'agents/planner.book')).toBe('unchanged');
+        expect(repeated.addedPackageJsonScriptNames).toEqual([]);
+        expect(await readFile(packagePath, 'utf-8')).toBe(JSON.stringify(packageJson));
+        expect(await readFile(join(projectPath, 'agents/planner.book'), 'utf-8')).toContain('Keep my customization');
+        await rm(join(projectPath, 'agents/planner.book'));
+        const partial = await initializeCoderProjectConfiguration(projectPath);
+        expect(getReferencedArtifactStatus(partial, 'agents/planner.book')).toBe('created');
+        expect(await readFile(join(projectPath, 'agents/planner.book'), 'utf-8')).toContain('Planner');
     });
 
     it('resolves template files relative to the project root', async () => {

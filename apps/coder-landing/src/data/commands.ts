@@ -22,6 +22,9 @@ export const INSTALL_GLOBAL_COMMAND = 'npm install --global ptbk';
  */
 export const INIT_COMMAND = 'ptbk coder init';
 
+/** Repository-aware conversation which authors PRDs with the project-owned Planner. */
+export const PLAN_COMMAND = 'ptbk coder plan --harness openai-codex';
+
 /**
  * Command which initializes the `ptbk coder` configuration and synchronizes the result with the remote repository.
  */

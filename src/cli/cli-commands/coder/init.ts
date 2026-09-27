@@ -62,6 +62,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 - prompts/done/
                 ${block(listDefaultCoderProjectPromptTemplateDisplayPaths())}
                 - ${CODER_DEVELOPER_AGENT_FILE_PATH}
+                - agents/planner.book
                 - ${CODER_AGENTS_DIRECTORY_PATH}/${ADAM_AGENT_BOOK_RELATIVE_PATH}
                 - ${AGENTS_FILE_PATH}
                 - .gitignore with local artifacts from every supported harness
@@ -70,8 +71,8 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
                 Never overwrites what the project already owns:
                 - Existing package.json scripts and .vscode/settings.json settings are kept, only missing ones are added
-                - Files referenced by a script, like the agent and context of coder:run, are created only together
-                  with the script which references them
+                - Missing Developer and Planner Books are always initialized, even when scripts already exist
+                - Other referenced files, like coder:run context, are created with their newly added scripts
 
                 Ensures required coding-agent environment variables in .env:
                 - CODING_AGENT_GIT_NAME

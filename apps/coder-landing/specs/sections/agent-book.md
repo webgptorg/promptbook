@@ -2,6 +2,11 @@
 
 Anchor `#agents`. Shows how a run is personalized with `--agent agents/developer.book`, how tasks can target that agent, and lets the visitor *see* an agent definition in the real Book editor.
 
+Also explain the project-owned Planner at `agents/planner.book`: Planner discusses requirements and authors PRDs;
+Developer implements them. Both use the same implicit Adam inheritance. Planning requires missing Books to be
+prepared with `ptbk coder init` and never creates Books during the conversation. A custom `--agent` changes the
+persona without changing the command's planning-only write boundary.
+
 ## Copy
 
 -   **Heading**: `Give your agent a soul, in plain text` ("soul" in Promptbook Green).

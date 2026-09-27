@@ -48,7 +48,12 @@ export class LocalAgentBookCollection {
     public readonly createdAgentBookPaths: string[] = [];
 
     /** Creates a collection rooted at the primary book's directory. */
-    public constructor(private readonly agentDirectoryPath: string, private readonly currentWorkingDirectory: string) {}
+    public constructor(
+        private readonly agentDirectoryPath: string,
+        private readonly currentWorkingDirectory: string,
+        private readonly isInitializationAllowed = true,
+        private readonly signal?: AbortSignal,
+    ) {}
 
     /** Discovers nested books, including the hidden `.core` directory. */
     public async initialize(): Promise<void> {
@@ -144,6 +149,13 @@ export class LocalAgentBookCollection {
         }
         if (url === this.getAdamAgentUrl()) {
             const adamBookPath = join(this.agentDirectoryPath, ADAM_AGENT_BOOK_RELATIVE_PATH);
+            if (!this.isInitializationAllowed) {
+                throw new NotFoundError(
+                    spaceTrim(
+                        `Missing inherited Adam Book at \`${adamBookPath}\`. Run \`ptbk coder init\` before planning, or prepare the custom Book's ancestor explicitly.`,
+                    ),
+                );
+            }
             if ((await ensureAdamAgentBook(this.agentDirectoryPath)) === 'created') {
                 this.createdAgentBookPaths.push(adamBookPath);
             }
@@ -159,7 +171,7 @@ export class LocalAgentBookCollection {
         if (!/\.(book|md)$/i.test(bookUrl.pathname) && !bookUrl.pathname.endsWith('/api/book')) {
             bookUrl.pathname = bookUrl.pathname.replace(/\/$/, '') + '/api/book';
         }
-        const response = await fetch(bookUrl.href);
+        const response = this.signal ? await fetch(bookUrl.href, { signal: this.signal }) : await fetch(bookUrl.href);
         if (!response.ok) {
             throw new NotFoundError(
                 spaceTrim(`Cannot load agent book \`${url}\`: **${response.status} ${response.statusText}**.`),

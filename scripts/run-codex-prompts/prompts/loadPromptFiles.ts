@@ -8,7 +8,7 @@ import { parsePromptFile } from './parsePromptFile';
  *
  * @private internal constant of `loadPromptFiles`
  */
-const PTBK_CODER_IGNORE_MARKER = '<!--ptbk-coder-ignore-->';
+export const PTBK_CODER_IGNORE_MARKER = '<!--ptbk-coder-ignore-->';
 
 /**
  * Loads and parses prompt files from the prompts directory, excluding files marked for `ptbk coder` to ignore.

@@ -40,7 +40,7 @@ export type CoderInitializationSummary = {
  * Creates or updates all coder configuration artifacts required in the current project.
  *
  * Nothing the project already owns is ever overwritten - existing scripts, settings and files are kept as they are,
- * and the artifacts they would reference are created only together with the scripts which actually reference them.
+ * and missing role Books are initialized independently of package scripts.
  *
  * @private internal utility of `coder init` command
  */

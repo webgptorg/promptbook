@@ -1,7 +1,5 @@
-import { copyFile, stat } from 'fs/promises';
-import { join } from 'path';
-import { resolveBundledAgentBookPath } from '../common/resolveBundledAgentBookPath';
 import type { InitializationStatus } from './boilerplateTemplates';
+import { ensureCoderRoleAgentFile } from './ensureCoderRoleAgentFile';
 
 /**
  * Relative directory path for agents initialized by `ptbk coder init`.
@@ -30,24 +28,7 @@ export const DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH = 'agents/default/de
  * @private function of `initializeCoderProjectConfiguration`
  */
 export async function ensureCoderDeveloperAgentFile(projectPath: string): Promise<InitializationStatus> {
-    const absoluteFilePath = join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH);
-    if (await isExistingFile(absoluteFilePath)) {
-        return 'unchanged';
-    }
-
-    await copyFile(await resolveBundledAgentBookPath(DEFAULT_CODER_DEVELOPER_AGENT_SOURCE_FILE_PATH), absoluteFilePath);
-    return 'created';
-}
-
-/**
- * Checks whether a path exists and is a file.
- */
-async function isExistingFile(path: string): Promise<boolean> {
-    try {
-        return (await stat(path)).isFile();
-    } catch {
-        return false;
-    }
+    return ensureCoderRoleAgentFile(projectPath, 'developer');
 }
 
 // Note: [🟡] Code for coder init developer agent bootstrapping [ensureCoderDeveloperAgentFile](src/cli/cli-commands/coder/ensureCoderDeveloperAgentFile.ts) should never be published outside of `@promptbook/cli`

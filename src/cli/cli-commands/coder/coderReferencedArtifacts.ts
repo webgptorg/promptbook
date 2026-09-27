@@ -6,6 +6,7 @@ import {
 } from './boilerplateTemplates';
 import { CODER_DEVELOPER_AGENT_FILE_PATH, ensureCoderDeveloperAgentFile } from './ensureCoderDeveloperAgentFile';
 import { ensureCoderMarkdownFile } from './ensureCoderMarkdownFile';
+import { CODER_PLANNER_AGENT_FILE_PATH, ensureCoderRoleAgentFile } from './ensureCoderRoleAgentFile';
 
 /**
  * Status of one artifact referenced by the default coder scripts.
@@ -69,6 +70,10 @@ const CODER_REFERENCED_ARTIFACT_DEFINITIONS: ReadonlyArray<CoderReferencedArtifa
         ensureArtifactFile: ensureCoderDeveloperAgentFile,
     },
     {
+        relativeFilePath: CODER_PLANNER_AGENT_FILE_PATH,
+        ensureArtifactFile: (projectPath) => ensureCoderRoleAgentFile(projectPath, 'planner'),
+    },
+    {
         relativeFilePath: AGENTS_FILE_PATH,
         ensureArtifactFile: (projectPath) =>
             ensureCoderMarkdownFile(projectPath, AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent()),
@@ -77,10 +82,9 @@ const CODER_REFERENCED_ARTIFACT_DEFINITIONS: ReadonlyArray<CoderReferencedArtifa
 ];
 
 /**
- * Creates only those referenced artifacts which the freshly added coder scripts point at.
+ * Always initializes the project-owned roles, plus artifacts referenced by freshly added scripts.
  *
- * An artifact of a script which the project already defines is intentionally **not** created - the project-owned
- * script is kept as is, so it does not reference the default artifact in the first place.
+ * For artifacts other than role Books, an existing project script does not cause default files to be created.
  *
  * @private function of `initializeCoderProjectConfiguration`
  */
@@ -91,7 +95,9 @@ export async function ensureCoderReferencedArtifacts(
     const ensuredArtifacts: Array<EnsuredCoderReferencedArtifact> = [];
 
     for (const { relativeFilePath, ensureArtifactFile } of CODER_REFERENCED_ARTIFACT_DEFINITIONS) {
-        if (!referencedArtifactPaths.has(relativeFilePath)) {
+        const isRoleBook =
+            relativeFilePath === CODER_DEVELOPER_AGENT_FILE_PATH || relativeFilePath === CODER_PLANNER_AGENT_FILE_PATH;
+        if (!isRoleBook && !referencedArtifactPaths.has(relativeFilePath)) {
             ensuredArtifacts.push({ relativeFilePath, status: 'not-referenced' });
             continue;
         }

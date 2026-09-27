@@ -5028,3 +5028,12 @@
     -   The generated manifest of every package that is not Node-only now declares `"browser": { "jsdom": false }`, which is the standard way to tell a browser bundler to replace a Node-only dependency with an empty module. Browser builds therefore no longer follow `jsdom` (and no longer ship it), while Node.js ignores the `browser` field and keeps resolving the real library for server-side rendering. The stubs are derived from the dependencies which the generated package really has, so a Node-only dependency which appears in a browser-facing package in the future is covered without another manual change.
     -   Creating the server-side DOM moved from `renderMarkdown` into `$provideServerDomWindow`, which is now the single place where browser-facing code touches `jsdom`. A runtime that can provide neither the DOM of a browser nor `jsdom` is now reported as a branded `EnvironmentMismatchError` explaining why markdown can not be sanitized, instead of failing with `JSDOM is not a constructor`.
     -   The list of Node-only packages is now shared through `isNodeOnlyPackage` between the publish-safety check and the dependency step of the package generation, instead of being written down twice.
+
+-   Added `ptbk coder plan --harness openai-codex`, a repository-aware, multi-turn PRD conversation with a
+    project-owned Planner. `coder init` now restores missing Planner and Developer Books independently of scripts,
+    preserves customized files, and adds `coder:plan` when absent. Both roles inherit the shared Adam Book.
+    Planning previews numbered PRDs using existing templates and emoji tags; `/save` applies reviewed tasks and
+    `/draft` keeps unresolved work out of the queue with `[-]`. Exact edits preserve task identity and lifecycle
+    metadata. Restricted harness tools and validated, atomic host writes prevent implementation, shell, delegation,
+    and linked-path escapes, including with custom Books. Git synchronization stays opt-in and commits only session
+    PRDs. Added conversation, boundary, initialization, and packaged CLI regression coverage and workflow documentation.

@@ -1,5 +1,13 @@
 import { TerminalBlock } from '@/components/TerminalBlock/TerminalBlock';
-import { ADD_COMMAND, INIT_COMMAND, INSTALL_COMMAND, LIST_COMMAND, RUN_COMMAND, SERVER_COMMAND } from '@/data/commands';
+import {
+    ADD_COMMAND,
+    INIT_COMMAND,
+    INSTALL_COMMAND,
+    LIST_COMMAND,
+    PLAN_COMMAND,
+    RUN_COMMAND,
+    SERVER_COMMAND,
+} from '@/data/commands';
 import type { ReactNode } from 'react';
 
 /**
@@ -50,13 +58,14 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
             <>
                 Creates the <code className="text-promptbook-blue">prompts/</code> queue,{' '}
                 <code className="text-promptbook-blue">prompts/done/</code> archive, the default{' '}
-                <code className="text-promptbook-blue">agents/developer.book</code> persona,{' '}
+                <code className="text-promptbook-blue">agents/developer.book</code> and{' '}
+                <code className="text-promptbook-blue">agents/planner.book</code> roles with shared Adam instructions,{' '}
                 <code className="text-promptbook-blue">AGENTS.md</code> project context, and the agent git identity
                 entries in <code className="text-promptbook-blue">.env</code>. It also adds local files created by every
                 supported harness to <code className="text-promptbook-blue">.gitignore</code>. Nothing you already own
                 is ever overwritten: existing <code className="text-promptbook-blue">package.json</code> scripts and{' '}
                 <code className="text-promptbook-blue">.vscode/settings.json</code> settings are kept as they are, and
-                the files a script points at are created only together with that script. The new{' '}
+                missing role Books are restored even when scripts already exist. The new{' '}
                 <code className="text-promptbook-blue">coder:run</code> script uses the current Codex flagship without
                 pinning a model version. Run it again any time.
             </>
@@ -64,11 +73,28 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         command: INIT_COMMAND,
     },
     {
-        title: 'Write your backlog as prompts',
+        title: 'Discuss features with Planner',
         description: (
             <>
-                Put a plain markdown task directly in <code className="text-promptbook-blue">prompts/</code>, or let{' '}
-                <code className="text-promptbook-blue">ptbk coder add</code> create one for you. A status checkbox is
+                Planner reads your repository, asks about unresolved requirements, and helps split features into PRDs.
+                Discuss several topics and revise earlier decisions in one terminal conversation. Review proposed paths
+                and changes, then use <code className="text-promptbook-blue">/save</code> for pending tasks or{' '}
+                <code className="text-promptbook-blue">/draft</code> for unresolved{' '}
+                <code className="text-promptbook-blue">[-]</code> drafts. Only PRD Markdown files can change.
+                <code className="text-promptbook-blue"> /exit</code> ends without starting implementation. Customize{' '}
+                <code className="text-promptbook-blue">agents/planner.book</code> or select another Book with{' '}
+                <code className="text-promptbook-blue">--agent agents/my-planner.book</code>.
+            </>
+        ),
+        command: PLAN_COMMAND,
+    },
+    {
+        title: 'Or add a task from a description',
+        description: (
+            <>
+                Use the lightweight description-to-prompt command, or put a task directly in{' '}
+                <code className="text-promptbook-blue">prompts/</code>.{' '}
+                <code className="text-promptbook-blue">ptbk coder add</code> creates one for you. A status checkbox is
                 optional: a prompt without one is ready at priority 0 and receives its live status when processing
                 begins. Describe the task the same way you would prompt Claude Code or Codex, in plain language and as
                 specific as you like. Pipe in a heredoc for longer descriptions, or run it with no arguments and type
@@ -112,7 +138,7 @@ export function Quickstart() {
             <div className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20">
                 <h2 className="font-display text-3xl font-bold text-white md:text-4xl">
                     From <span className="text-promptbook-green">install</span> to{' '}
-                    <span className="text-promptbook-blue">autopilot</span> in five steps
+                    <span className="text-promptbook-blue">autopilot</span> in six steps
                 </h2>
 
                 <ol className="mt-12 space-y-10">
