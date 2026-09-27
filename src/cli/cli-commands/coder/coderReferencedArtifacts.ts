@@ -4,21 +4,19 @@ import {
     ensureDefaultCoderPromptTemplateFile,
     getDefaultCoderProjectPromptTemplateDefinitions,
 } from './boilerplateTemplates';
-import { CODER_DEVELOPER_AGENT_FILE_PATH, ensureCoderDeveloperAgentFile } from './ensureCoderDeveloperAgentFile';
 import { ensureCoderMarkdownFile } from './ensureCoderMarkdownFile';
-import { CODER_PLANNER_AGENT_FILE_PATH, ensureCoderRoleAgentFile } from './ensureCoderRoleAgentFile';
 
 /**
- * Status of one artifact referenced by the default coder scripts.
+ * Status of one default Book or artifact referenced by the default coder scripts.
  *
  * `not-referenced` means that no newly added script points at the artifact, so `ptbk coder init` left it alone.
  *
  * @private internal utility of `coder init` command
  */
-export type CoderReferencedArtifactStatus = InitializationStatus | 'not-referenced';
+export type CoderReferencedArtifactStatus = InitializationStatus | 'augmented' | 'unresolved' | 'not-referenced';
 
 /**
- * Result of ensuring one artifact referenced by the default coder scripts.
+ * Result of ensuring one default Book or artifact referenced by the default coder scripts.
  *
  * @private internal utility of `coder init` command
  */
@@ -29,9 +27,12 @@ export type EnsuredCoderReferencedArtifact = {
     readonly relativeFilePath: string;
 
     /**
-     * Status describing whether the artifact had to be created.
+     * Status describing whether the artifact was created, augmented, preserved, or could not be resolved.
      */
     readonly status: CoderReferencedArtifactStatus;
+
+    /** Explanation of an unresolved file or TEAM declaration, with the original content preserved. */
+    readonly diagnostic?: string;
 };
 
 /**
@@ -66,14 +67,6 @@ function createCoderPromptTemplateArtifactDefinition(
  */
 const CODER_REFERENCED_ARTIFACT_DEFINITIONS: ReadonlyArray<CoderReferencedArtifactDefinition> = [
     {
-        relativeFilePath: CODER_DEVELOPER_AGENT_FILE_PATH,
-        ensureArtifactFile: ensureCoderDeveloperAgentFile,
-    },
-    {
-        relativeFilePath: CODER_PLANNER_AGENT_FILE_PATH,
-        ensureArtifactFile: (projectPath) => ensureCoderRoleAgentFile(projectPath, 'planner'),
-    },
-    {
         relativeFilePath: AGENTS_FILE_PATH,
         ensureArtifactFile: (projectPath) =>
             ensureCoderMarkdownFile(projectPath, AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent()),
@@ -82,7 +75,7 @@ const CODER_REFERENCED_ARTIFACT_DEFINITIONS: ReadonlyArray<CoderReferencedArtifa
 ];
 
 /**
- * Always initializes the project-owned roles, plus artifacts referenced by freshly added scripts.
+ * Initializes artifacts referenced by freshly added scripts. Default Books are ensured separately.
  *
  * For artifacts other than role Books, an existing project script does not cause default files to be created.
  *
@@ -95,9 +88,7 @@ export async function ensureCoderReferencedArtifacts(
     const ensuredArtifacts: Array<EnsuredCoderReferencedArtifact> = [];
 
     for (const { relativeFilePath, ensureArtifactFile } of CODER_REFERENCED_ARTIFACT_DEFINITIONS) {
-        const isRoleBook =
-            relativeFilePath === CODER_DEVELOPER_AGENT_FILE_PATH || relativeFilePath === CODER_PLANNER_AGENT_FILE_PATH;
-        if (!isRoleBook && !referencedArtifactPaths.has(relativeFilePath)) {
+        if (!referencedArtifactPaths.has(relativeFilePath)) {
             ensuredArtifacts.push({ relativeFilePath, status: 'not-referenced' });
             continue;
         }

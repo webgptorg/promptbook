@@ -13,6 +13,13 @@ Developer implements them. Both use the same implicit Adam inheritance. Planning
 prepared with `ptbk coder init` and never creates Books during the conversation. A custom `--agent` changes the
 persona without changing the command's planning-only write boundary.
 
+Both primary roles declare Lawyer (`agents/lawyer.book`) and Copywriter (`agents/copywriter.book`) as local TEAM
+advisers. Lawyer identifies relevant legal and compliance questions, assumptions and qualified-review needs;
+Copywriter improves application text in the product's language and tone. Both inherit Adam. Describe consultation
+as relevant to the task, never mandatory on every run. Init prepares Books and declarations; actual consultation
+requires the separate Coder TEAM runtime support. Re-running init restores missing defaults and adds missing helper
+references without replacing custom Books, rules or teammates. Report unsafe or unresolved updates instead of replacing content.
+
 ## Copy
 
 -   **Heading**: `Give your agent a soul, in plain text` ("soul" in Promptbook Green).

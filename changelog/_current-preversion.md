@@ -1,3 +1,10 @@
+-   `ptbk coder init` now bundles and initializes Lawyer and Copywriter as local TEAM advisers for both Developer
+    and Planner, alongside their shared Adam core. Missing default Books and helper references are added even when
+    package scripts already exist. Initialization preserves custom Books, rules, existing teammates and project
+    artifacts, recognizes equivalent local references, and reports created, augmented, unchanged or unresolved
+    Books without replacing conflicting content. Added partial-project, structural, idempotence and packed-CLI
+    coverage, and updated init help and the Coder landing page. Teammate execution remains separate from initialization.
+
 -   `ptbk coder` now selects the current flagship automatically when `--model` and `PTBK_MODEL` are omitted:
     `gpt-6-astra` for Codex and Copilot, `fable` for Claude Code, `gemini-3.8-flash` for Gemini and the Google-backed
     Cline adapter, `qwen3.8-max` for Qwen Code, and `openai/gpt-6-astra` for OpenCode. The shared defaults cover

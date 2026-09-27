@@ -17,7 +17,7 @@ export const CODER_PLANNER_AGENT_FILE_PATH = 'agents/planner.book';
  */
 export async function ensureCoderRoleAgentFile(
     projectPath: string,
-    role: 'developer' | 'planner',
+    role: 'developer' | 'planner' | 'lawyer' | 'copywriter',
 ): Promise<InitializationStatus> {
     await mkdir(join(projectPath, 'agents'), { recursive: true });
     try {

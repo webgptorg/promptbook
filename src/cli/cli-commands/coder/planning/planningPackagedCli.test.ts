@@ -111,7 +111,11 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             [npmPath, 'pack', '--ignore-scripts', '--json', '--pack-destination', temporaryPath],
             { cwd: packagePath, windowsHide: true },
         );
-        const filename = JSON.parse(packed.stdout)[0].filename;
+        const packedMetadata = JSON.parse(packed.stdout)[0];
+        for (const asset of ['developer.book', 'planner.book', 'lawyer.book', 'copywriter.book', '.core/adam.book']) {
+            expect(packedMetadata.files.map(({ path }: { path: string }) => path)).toContain(`agents/default/${asset}`);
+        }
+        const filename = packedMetadata.filename;
         await EXECUTE_FILE('tar', ['-xzf', filename], { cwd: temporaryPath, windowsHide: true });
         packagePath = join(temporaryPath, 'package');
         // Model an installed dependency tree without downloading packages; ESM imports do not honor NODE_PATH.
@@ -166,6 +170,19 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
                 );
             const initialized = await run(['coder', 'init', '--no-questions']);
             expect(initialized.stdout).toContain('agents/planner.book: created');
+            for (const asset of [
+                'developer.book',
+                'planner.book',
+                'lawyer.book',
+                'copywriter.book',
+                '.core/adam.book',
+            ]) {
+                expect(await readFile(join(projectPath, 'agents', asset))).toEqual(
+                    await readFile(join(packagePath, 'agents/default', asset)),
+                );
+            }
+            expect(initialized.stdout).toContain('agents/lawyer.book: created');
+            expect(initialized.stdout).toContain('agents/copywriter.book: created');
             expect(await readFile(join(projectPath, 'agents/.core/adam.book'), 'utf-8')).toContain('Adam');
             const planner = await readFile(join(projectPath, 'agents/planner.book'), 'utf-8');
             await writeFile(
@@ -177,6 +194,21 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             expect(await readFile(join(projectPath, 'agents/planner.book'), 'utf-8')).toContain(
                 'Preserve this project preference',
             );
+            // Model an older project with every script already present and only one of the helpers customized.
+            const developerPath = join(projectPath, 'agents/developer.book');
+            await writeFile(developerPath, (await readFile(developerPath, 'utf-8')).replace(/^TEAM .*\r?\n/gm, ''));
+            await rm(join(projectPath, 'agents/lawyer.book'));
+            const customCopywriter =
+                'Copywriter\r\nPERSONA Write concise interface text in the project language.\r\nCLOSED\r\n';
+            await writeFile(join(projectPath, 'agents/copywriter.book'), customCopywriter);
+            const upgraded = await run(['coder', 'init', '--no-questions']);
+            expect(upgraded.stdout).toContain('agents/lawyer.book: created');
+            expect(upgraded.stdout).toContain('agents/developer.book: augmented');
+            expect(upgraded.stdout).toContain('agents/copywriter.book: unchanged');
+            expect(await readFile(join(projectPath, 'agents/copywriter.book'), 'utf-8')).toBe(customCopywriter);
+            const initializedSnapshot = await snapshotPlanningProject(projectPath);
+            await run(['coder', 'init', '--no-questions']);
+            expect(await snapshotPlanningProject(projectPath)).toEqual(initializedSnapshot);
             await writeFile(join(projectPath, 'application.ts'), 'Unrelated implementation artifact.');
             const before = await snapshotPlanningProject(projectPath);
             const result = await run(['coder', 'plan', '--harness', 'openai-codex'], true);

@@ -119,4 +119,31 @@ describe('$initializeCoderInitCommand', () => {
             isAskingQuestionsEnabled: false,
         });
     });
+
+    it('explains the complete default team and additive upgrades in init help', () => {
+        const program = new Command();
+        $initializeCoderInitCommand(program);
+        const description = program.commands[0]!.description();
+        expect(description).toContain('agents/lawyer.book');
+        expect(description).toContain('agents/copywriter.book');
+        expect(description).toContain('even when scripts already exist');
+        expect(description).toContain('TEAM references');
+        expect(program.commands.map((command) => command.name())).toEqual(['init']);
+    });
+
+    it('prints unresolved artifacts and exits unsuccessfully without replacing a conflicting Book', async () => {
+        await mkdir(join(temporaryProjectDirectory, 'agents'), { recursive: true });
+        await writeFile(join(temporaryProjectDirectory, 'agents/lawyer.book'), '');
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        try {
+            await runCoderInitCommand(temporaryProjectDirectory, ['--no-questions']);
+            expect(processExitSpy).toHaveBeenCalledWith(1);
+            expect(consoleInfoSpy.mock.calls.flat().join('\n')).toContain('agents/lawyer.book: unresolved');
+            expect(consoleErrorSpy.mock.calls.flat().join('\n')).toContain('TEAM');
+            expect(await readFile(join(temporaryProjectDirectory, 'agents/lawyer.book'), 'utf-8')).toBe('');
+            expect(getEnsureHarnessInstallationsMock()).not.toHaveBeenCalled();
+        } finally {
+            consoleErrorSpy.mockRestore();
+        }
+    });
 });

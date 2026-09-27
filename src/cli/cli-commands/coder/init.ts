@@ -2,6 +2,7 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
+import { ParseError } from '../../../errors/ParseError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { ADAM_AGENT_BOOK_RELATIVE_PATH } from '../common/ensureAdamAgentBook';
 import type { CoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
@@ -63,6 +64,8 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 ${block(listDefaultCoderProjectPromptTemplateDisplayPaths())}
                 - ${CODER_DEVELOPER_AGENT_FILE_PATH}
                 - agents/planner.book
+                - agents/lawyer.book
+                - agents/copywriter.book
                 - ${CODER_AGENTS_DIRECTORY_PATH}/${ADAM_AGENT_BOOK_RELATIVE_PATH}
                 - ${AGENTS_FILE_PATH}
                 - .gitignore with local artifacts from every supported harness
@@ -71,7 +74,10 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
                 Never overwrites what the project already owns:
                 - Existing package.json scripts and .vscode/settings.json settings are kept, only missing ones are added
-                - Missing Developer and Planner Books are always initialized, even when scripts already exist
+                - Missing Developer, Planner, Lawyer, Copywriter and Adam Books are initialized even when scripts already exist
+                - Adds missing local Lawyer and Copywriter TEAM references to Developer and Planner, preserving existing content
+                - Helpers advise on relevant tasks; declaring TEAM does not run them for every task
+                - Reports created, augmented, unchanged and unresolved Books; invalid or conflicting files are left untouched
                 - Other referenced files, like coder:run context, are created with their newly added scripts
 
                 Ensures required coding-agent environment variables in .env:
@@ -108,6 +114,17 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
             const summary = await initializeCoderProjectConfiguration(projectPath);
             printInitializationSummary(summary);
+
+            if (
+                summary.adamAgentFileStatus === 'unresolved' ||
+                summary.referencedArtifactStatuses.some(({ status }) => status === 'unresolved')
+            ) {
+                throw new ParseError(
+                    spaceTrim(
+                        'Some default Books or TEAM references remain **unresolved**. Review the diagnostics above, fix the affected files, and run `ptbk coder init` again.',
+                    ),
+                );
+            }
 
             if (isPromptsDirectoryEmpty) {
                 await generatePromptBoilerplate({ projectPath, boilerplateCount: DEFAULT_BOILERPLATE_COUNT });

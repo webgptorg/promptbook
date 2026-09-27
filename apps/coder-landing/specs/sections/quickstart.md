@@ -8,6 +8,10 @@ Steps are an ordered list; each step is a 2-column row on desktop (text left, te
 
 Commands are the canonical ones from [`../content/commands.md`](../content/commands.md).
 
+Initialization also creates editable `agents/lawyer.book` and `agents/copywriter.book`. Both are default TEAM advisers
+of Developer and Planner and inherit the shared Adam core. Repeat init adds missing files and helper references
+even when package scripts already exist, preserving existing content and reporting unresolved artifacts.
+
 | #   | Title                            | Command           | Description must mention                                                                                                                                                                                                                                                                                                       |
 | --- | -------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1   | Install Promptbook               | `INSTALL_COMMAND` | `ptbk coder` ships with the `ptbk` package; global install (`-g`) is an option                                                                                                                                                                                                                                                 |

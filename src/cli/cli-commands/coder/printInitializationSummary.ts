@@ -12,7 +12,14 @@ import type { CoderInitializationSummary } from './initializeCoderProjectConfigu
  * @private function of `coder init` command
  */
 export function printInitializationSummary(summary: CoderInitializationSummary): void {
-    console.info(colors.green('Promptbook coder configuration initialized.'));
+    const isUnresolved =
+        summary.adamAgentFileStatus === 'unresolved' ||
+        summary.referencedArtifactStatuses.some(({ status }) => status === 'unresolved');
+    console.info(
+        isUnresolved
+            ? colors.yellow('Promptbook coder initialization has unresolved artifacts.')
+            : colors.green('Promptbook coder configuration initialized.'),
+    );
     printInitializationStatusLine('prompts/', summary.promptsDirectoryStatus);
     printInitializationStatusLine('prompts/done/', summary.promptsDoneDirectoryStatus);
     printInitializationStatusLine('prompts/templates/', summary.promptsTemplatesDirectoryStatus);
@@ -20,6 +27,7 @@ export function printInitializationSummary(summary: CoderInitializationSummary):
     printInitializationStatusLine(
         `${CODER_AGENTS_DIRECTORY_PATH}/${ADAM_AGENT_BOOK_RELATIVE_PATH}`,
         summary.adamAgentFileStatus,
+        summary.adamAgentFileDiagnostic,
     );
     printInitializationStatusLine('.env', summary.envFileStatus);
     printInitializationStatusLine('.gitignore', summary.gitignoreFileStatus);
@@ -30,6 +38,7 @@ export function printInitializationSummary(summary: CoderInitializationSummary):
         printInitializationStatusLine(
             formatDisplayPath(referencedArtifactStatus.relativeFilePath),
             referencedArtifactStatus.status,
+            referencedArtifactStatus.diagnostic,
         );
     }
 
@@ -58,6 +67,8 @@ function formatInitializationStatus(status: InitializationStatus | CoderReferenc
         return 'updated';
     }
 
+    if (status === 'augmented' || status === 'unresolved') return status;
+
     if (status === 'not-referenced') {
         return 'not referenced by the added scripts, kept as is';
     }
@@ -71,8 +82,13 @@ function formatInitializationStatus(status: InitializationStatus | CoderReferenc
 function printInitializationStatusLine(
     relativePath: string,
     status: InitializationStatus | CoderReferencedArtifactStatus,
+    diagnostic?: string,
 ): void {
-    console.info(colors.gray(`✔ ${relativePath}: ${formatInitializationStatus(status)}`));
+    const colorize = status === 'unresolved' ? colors.yellow : colors.gray;
+    console.info(
+        colorize(`${status === 'unresolved' ? '!' : '✔'} ${relativePath}: ${formatInitializationStatus(status)}`),
+    );
+    if (diagnostic) console.info(colorize(`  ${diagnostic}`));
 }
 
 /**

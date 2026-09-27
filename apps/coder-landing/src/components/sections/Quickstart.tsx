@@ -59,13 +59,15 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
                 Creates the <code className="text-promptbook-blue">prompts/</code> queue,{' '}
                 <code className="text-promptbook-blue">prompts/done/</code> archive, the default{' '}
                 <code className="text-promptbook-blue">agents/developer.book</code> and{' '}
-                <code className="text-promptbook-blue">agents/planner.book</code> roles with shared Adam instructions,{' '}
-                <code className="text-promptbook-blue">AGENTS.md</code> project context, and the agent git identity
-                entries in <code className="text-promptbook-blue">.env</code>. It also adds local files created by every
-                supported harness to <code className="text-promptbook-blue">.gitignore</code>. Nothing you already own
-                is ever overwritten: existing <code className="text-promptbook-blue">package.json</code> scripts and{' '}
+                <code className="text-promptbook-blue">agents/planner.book</code> roles, their Lawyer and Copywriter
+                teammates, and shared Adam instructions, <code className="text-promptbook-blue">AGENTS.md</code> project
+                context, and the agent git identity entries in <code className="text-promptbook-blue">.env</code>. It
+                also adds local files created by every supported harness to{' '}
+                <code className="text-promptbook-blue">.gitignore</code>. Nothing you already own is ever overwritten:
+                existing <code className="text-promptbook-blue">package.json</code> scripts and{' '}
                 <code className="text-promptbook-blue">.vscode/settings.json</code> settings are kept as they are, and
-                missing role Books are restored even when scripts already exist. The new{' '}
+                missing role Books are restored even when scripts already exist. Init adds missing helper TEAM
+                references to Developer and Planner while preserving your rules and existing teammates. The new{' '}
                 <code className="text-promptbook-blue">coder:run</code> script uses the current Codex flagship without
                 pinning a model version. Both role scripts use their default Books without redundant{' '}
                 <code className="text-promptbook-blue">--agent</code> arguments. Run init again any time.

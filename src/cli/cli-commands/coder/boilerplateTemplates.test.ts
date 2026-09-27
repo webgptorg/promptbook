@@ -163,7 +163,7 @@ describe('coder boilerplate templates', () => {
         expect(summary.gitignoreFileStatus).toBe('updated');
         expect(summary.packageJsonFileStatus).toBe('updated');
         expect(summary.vscodeSettingsFileStatus).toBe('updated');
-        expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('unchanged');
+        expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('augmented');
         expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('not-referenced');
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
@@ -195,7 +195,7 @@ describe('coder boilerplate templates', () => {
         });
 
         expect(await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).toBe('Custom instructions\n');
-        expect(await readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).toBe(
+        expect(await readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).toContain(
             'Custom developer agent\n',
         );
     });
@@ -307,7 +307,7 @@ describe('coder boilerplate templates', () => {
         await rm(join(projectPath, 'agents/developer.book'));
         const repeated = await initializeCoderProjectConfiguration(projectPath);
         expect(getReferencedArtifactStatus(repeated, 'agents/developer.book')).toBe('created');
-        expect(getReferencedArtifactStatus(repeated, 'agents/planner.book')).toBe('unchanged');
+        expect(getReferencedArtifactStatus(repeated, 'agents/planner.book')).toBe('augmented');
         expect(repeated.addedPackageJsonScriptNames).toEqual([]);
         expect(await readFile(packagePath, 'utf-8')).toBe(JSON.stringify(packageJson));
         expect(await readFile(join(projectPath, 'agents/planner.book'), 'utf-8')).toContain('Keep my customization');

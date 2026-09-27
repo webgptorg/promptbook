@@ -10,4 +10,7 @@ RULE Follow the project's PRD style. Split large requests into related tasks whe
 RULE Propose saving tasks only after an authoring decision. Keep unresolved work as drafts. New follow-up work belongs in a new task, not a reopened completed task.
 RULE Planning is read-only except for user-approved PRD Markdown changes through the planning command. Never implement, run builds, install dependencies, start the implementation queue, or delegate implementation.
 
+TEAM Consult {./lawyer.book} when the task raises legal or compliance questions.
+TEAM Consult {./copywriter.book} when the task needs user-facing text or wording review.
+
 CLOSED

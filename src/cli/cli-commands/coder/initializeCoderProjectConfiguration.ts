@@ -1,13 +1,13 @@
-import { join } from 'path';
-import { ensureAdamAgentBook } from '../common/ensureAdamAgentBook';
+import { ADAM_AGENT_BOOK_RELATIVE_PATH } from '../common/ensureAdamAgentBook';
 import type { InitializationStatus } from './boilerplateTemplates';
 import {
     PROMPTS_DIRECTORY_PATH,
     PROMPTS_DONE_DIRECTORY_PATH,
     PROMPTS_TEMPLATES_DIRECTORY_PATH,
 } from './boilerplateTemplates';
-import type { EnsuredCoderReferencedArtifact } from './coderReferencedArtifacts';
+import type { CoderReferencedArtifactStatus, EnsuredCoderReferencedArtifact } from './coderReferencedArtifacts';
 import { ensureCoderReferencedArtifacts } from './coderReferencedArtifacts';
+import { ensureCoderDefaultAgentFiles } from './ensureCoderDefaultAgentFiles';
 import { CODER_AGENTS_DIRECTORY_PATH } from './ensureCoderDeveloperAgentFile';
 import { ensureCoderEnvFile } from './ensureCoderEnvFile';
 import { ensureCoderGitignoreFile } from './ensureCoderGitignoreFile';
@@ -26,7 +26,8 @@ export type CoderInitializationSummary = {
     readonly promptsDoneDirectoryStatus: InitializationStatus;
     readonly promptsTemplatesDirectoryStatus: InitializationStatus;
     readonly agentsDirectoryStatus: InitializationStatus;
-    readonly adamAgentFileStatus: InitializationStatus;
+    readonly adamAgentFileStatus: CoderReferencedArtifactStatus;
+    readonly adamAgentFileDiagnostic?: string;
     readonly envFileStatus: InitializationStatus;
     readonly gitignoreFileStatus: InitializationStatus;
     readonly packageJsonFileStatus: InitializationStatus;
@@ -39,8 +40,8 @@ export type CoderInitializationSummary = {
 /**
  * Creates or updates all coder configuration artifacts required in the current project.
  *
- * Nothing the project already owns is ever overwritten - existing scripts, settings and files are kept as they are,
- * and missing role Books are initialized independently of package scripts.
+ * Existing scripts, settings and Books are preserved. Missing Books and helper TEAM declarations are added
+ * independently of package scripts, with unresolved artifacts reported without replacing project content.
  *
  * @private internal utility of `coder init` command
  */
@@ -49,23 +50,31 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
     const promptsDoneDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH);
     const promptsTemplatesDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH);
     const agentsDirectoryStatus = await ensureDirectory(projectPath, CODER_AGENTS_DIRECTORY_PATH);
-    const adamAgentFileStatus = await ensureAdamAgentBook(join(projectPath, CODER_AGENTS_DIRECTORY_PATH));
+    const defaultAgentArtifacts = await ensureCoderDefaultAgentFiles(projectPath);
+    const adamRelativeFilePath = `${CODER_AGENTS_DIRECTORY_PATH}/${ADAM_AGENT_BOOK_RELATIVE_PATH}`;
+    const adamArtifact = defaultAgentArtifacts.find(
+        ({ relativeFilePath }) => relativeFilePath === adamRelativeFilePath,
+    )!;
     const { envFileStatus, initializedEnvVariableNames } = await ensureCoderEnvFile(projectPath);
     const gitignoreFileStatus = await ensureCoderGitignoreFile(projectPath);
     const { status: packageJsonFileStatus, addedEntryKeys: addedPackageJsonScriptNames } =
         await ensureCoderPackageJsonFile(projectPath);
     const vscodeSettingsFileStatus = await ensureCoderVscodeSettingsFile(projectPath);
-    const referencedArtifactStatuses = await ensureCoderReferencedArtifacts(
-        projectPath,
-        resolveCoderPackageJsonScriptReferencedArtifactPaths(addedPackageJsonScriptNames),
-    );
+    const referencedArtifactStatuses = [
+        ...defaultAgentArtifacts.filter(({ relativeFilePath }) => relativeFilePath !== adamRelativeFilePath),
+        ...(await ensureCoderReferencedArtifacts(
+            projectPath,
+            resolveCoderPackageJsonScriptReferencedArtifactPaths(addedPackageJsonScriptNames),
+        )),
+    ];
 
     return {
         promptsDirectoryStatus,
         promptsDoneDirectoryStatus,
         promptsTemplatesDirectoryStatus,
         agentsDirectoryStatus,
-        adamAgentFileStatus,
+        adamAgentFileStatus: adamArtifact.status,
+        adamAgentFileDiagnostic: adamArtifact.diagnostic,
         envFileStatus,
         gitignoreFileStatus,
         packageJsonFileStatus,

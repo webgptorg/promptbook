@@ -43,6 +43,16 @@ export function AgentsSection() {
                         default inheritance. Edit the local role Books to customize their behavior.
                     </p>
                     <p className="mt-4 text-gray-400">
+                        Both roles include Lawyer and Copywriter in their TEAM. Lawyer helps identify legal and
+                        compliance questions; Copywriter helps with labels, errors, onboarding, and other application
+                        text. Their editable Books live at{' '}
+                        <code className="text-promptbook-blue">agents/lawyer.book</code> and{' '}
+                        <code className="text-promptbook-blue">agents/copywriter.book</code>, sharing Adam&apos;s core
+                        instructions. These advisers are relevant to specific tasks; declaring them does not require
+                        both to run for every task. Init prepares their Books and references for Coder TEAM runtime
+                        support.
+                    </p>
+                    <p className="mt-4 text-gray-400">
                         <code className="text-promptbook-blue">run</code> and{' '}
                         <code className="text-promptbook-blue">server</code> select Developer automatically;{' '}
                         <code className="text-promptbook-blue">plan</code> selects Planner. Local Book edits apply on
@@ -78,7 +88,9 @@ export function AgentsSection() {
                         <code className="text-promptbook-blue">coder list</code> shows tasks for all agents unless you
                         supply <code className="text-promptbook-blue">--agent</code>. If a default Book is missing, run{' '}
                         <code className="text-promptbook-blue">ptbk coder init</code>. An invalid explicit Book
-                        selection reports an error. Existing Books and scripts survive repeated initialization.
+                        selection reports an error. Repeated initialization creates missing Books and adds missing
+                        helper TEAM references, preserving your personas, rules, teammates, and scripts. Conflicting or
+                        unreadable Books are reported for you to resolve.
                     </p>
                     <p className="mt-4 text-gray-400">
                         A finished task is signed by the agent, not only by the harness that carried it:{' '}

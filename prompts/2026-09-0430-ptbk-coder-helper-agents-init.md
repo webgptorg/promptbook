@@ -1,4 +1,4 @@
-[ ] use `gpt-6-astra`
+[x] by Promptbook Developer on OpenAI Codex `gpt-6-astra` thinking `max` (ChatGPT account) - Implementation ~$0.5397 42 minutes; Testing 17 minutes
 
 [✨👥] Initialize Lawyer and Copywriter as reusable teammates of both Developer and Planner.
 
@@ -57,3 +57,4 @@ ptbk coder init
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Share initialization logic instead of copying one ensure-function implementation for every agent.
 -   Update init help and the [Coder landing website](../apps/coder-landing) where the default team is described.
 -   Add the changes into the [changelog](../changelog/_current-preversion.md).
+

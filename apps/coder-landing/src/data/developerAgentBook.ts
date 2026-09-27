@@ -34,4 +34,9 @@ export const DEVELOPER_AGENT_BOOK = spaceTrim(`
     RULE
     Do not use abbreviations, for example use \`isExpired\` instead of \`isExp\`, \`translateMessage\` instead of \`t\`, etc.
     It is fine to use well-known abbreviations, for example \`id\`, \`url\`, \`html\`, etc.
+
+    TEAM Consult {./lawyer.book} when the task raises legal or compliance questions.
+    TEAM Consult {./copywriter.book} when the task needs user-facing text or wording review.
+
+    CLOSED
 `) as string_book;
