@@ -1,4 +1,4 @@
-[ ] use `gpt-6-astra`
+[-] use `gpt-6-astra` - wait for better model
 
 [✨🚿] Remove the legacy pipeline system and obsolete repository/dependency baggage while preserving the active Promptbook products.
 
