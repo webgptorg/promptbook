@@ -20,6 +20,7 @@ import {
     QUESTIONS_DESCRIPTION,
     type QuestionsCliOptions,
 } from '../common/questionsCliOptions';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 import type { PromptRunnerHarnessName } from '../common/promptRunnerCliOptions';
 import { AGENTS_FILE_PATH } from './agentsFile';
 import { DEFAULT_BOILERPLATE_COUNT } from './boilerplateCount';
@@ -50,13 +51,18 @@ const CODER_INIT_CHECKED_HARNESS_NAMES: ReadonlyArray<PromptRunnerHarnessName> =
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeCoderInitCommand(program: Program): $side_effect {
+export function $initializeCoderInitCommand(program: Program, isInitializeAliasEnabled = true): $side_effect {
     const command = program.command('init');
-    command.alias('initialize');
+    if (isInitializeAliasEnabled) {
+        command.alias('initialize');
+    }
     command.description(
         spaceTrim(
             (block) => `
                 Initialize Promptbook coder configuration for current project
+
+                Reuses an enclosing Git working tree or initializes Git in this project without asking.
+                Git is ready before optional --auto-pull, --commit or --auto-push synchronization.
 
                 Creates or updates:
                 - prompts/
@@ -103,42 +109,67 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
         handleActionErrors(async (cliOptions) => {
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
-            const projectPath = process.cwd();
+            const repositoryContext = await $preflightWorkspaceRepository({ policy: 'initialize' });
+            const { projectPath, gitRootPath, repositoryStatus } = repositoryContext;
+            if (repositoryStatus === 'existing') {
+                console.info(`Git repository reused in ${gitRootPath}`);
+            }
 
-            // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
-            const { $commitCoderChanges, $startCoderGitSync } = await import(
-                '../../../../scripts/run-codex-prompts/git/coderGitSync'
-            );
+            let completedStep = 'Git repository setup';
 
-            const commitScope = await $startCoderGitSync({ gitSync, projectPath });
-            // Check before initialization adds the README, templates and archive directory.
-            const isPromptsDirectoryEmpty = await isDirectoryEmpty(projectPath, PROMPTS_DIRECTORY_PATH);
+            try {
+                // Import Git synchronization dynamically to keep help and version startup lightweight.
+                const { $commitCoderChanges, $startCoderGitSync } = await import(
+                    '../../../../scripts/run-codex-prompts/git/coderGitSync'
+                );
 
-            const summary = await initializeCoderProjectConfiguration(projectPath);
-            printInitializationSummary(summary);
+                const commitScope = await $startCoderGitSync({ gitSync, projectPath, repositoryRootPath: gitRootPath });
+                completedStep = 'optional Git pull and change-scope capture';
+                // Check before initialization adds the README, templates and archive directory.
+                const isPromptsDirectoryEmpty = await isDirectoryEmpty(projectPath, PROMPTS_DIRECTORY_PATH);
 
-            if (
-                summary.adamAgentFileStatus === 'unresolved' ||
-                summary.referencedArtifactStatuses.some(({ status }) => status === 'unresolved')
-            ) {
+                const summary = await initializeCoderProjectConfiguration(projectPath);
+                completedStep = 'project configuration files';
+                printInitializationSummary(summary);
+
+                if (
+                    summary.adamAgentFileStatus === 'unresolved' ||
+                    summary.referencedArtifactStatuses.some(({ status }) => status === 'unresolved')
+                ) {
+                    throw new ParseError(
+                        spaceTrim(
+                            'Some default Books or TEAM references remain **unresolved**. Review the diagnostics above, fix the affected files, and run `ptbk coder init` again.',
+                        ),
+                    );
+                }
+
+                if (isPromptsDirectoryEmpty) {
+                    await generatePromptBoilerplate({ projectPath, boilerplateCount: DEFAULT_BOILERPLATE_COUNT });
+                }
+                completedStep = 'prompt boilerplates';
+
+                await $commitCoderChanges({
+                    gitSync,
+                    commitScope,
+                    commitMessage: 'Initialize Promptbook Coder',
+                });
+                completedStep = 'optional Git commit and push';
+
+                await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES, questionsOptions);
+                console.info('Promptbook coder initialization completed.');
+            } catch (error) {
+                const details = error instanceof Error ? error.message : String(error);
                 throw new ParseError(
-                    spaceTrim(
-                        'Some default Books or TEAM references remain **unresolved**. Review the diagnostics above, fix the affected files, and run `ptbk coder init` again.',
-                    ),
+                    spaceTrim(`
+                        Initialization stopped after ${completedStep}.
+
+                        Git repository: ${repositoryStatus === 'initialized' ? 'created' : 'reused'} at \`${gitRootPath}\`.
+                        Project files may be partially updated; existing files were preserved where possible.
+
+                        ${details}
+                    `),
                 );
             }
-
-            if (isPromptsDirectoryEmpty) {
-                await generatePromptBoilerplate({ projectPath, boilerplateCount: DEFAULT_BOILERPLATE_COUNT });
-            }
-
-            await $commitCoderChanges({
-                gitSync,
-                commitScope,
-                commitMessage: 'Initialize Promptbook Coder',
-            });
-
-            await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES, questionsOptions);
         }),
     );
 }

@@ -24,6 +24,7 @@ import {
     type NormalizedQuestionsCliOptions,
     type QuestionsCliOptions,
 } from '../common/questionsCliOptions';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 import {
     buildCoderPromptSection,
     getDefaultCoderPromptTemplateDefinitions,
@@ -108,8 +109,10 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
 
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
-            const projectPath = process.cwd();
-
+            const { projectPath, gitRootPath } = await $preflightWorkspaceRepository({
+                policy: 'mutate',
+                questionsOptions,
+            });
             const description = await resolveCoderPromptDescription(descriptionArgument, questionsOptions);
 
             // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
@@ -117,7 +120,7 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
                 '../../../../scripts/run-codex-prompts/git/coderGitSync'
             );
 
-            const commitScope = await $startCoderGitSync({ gitSync, projectPath });
+            const commitScope = await $startCoderGitSync({ gitSync, projectPath, repositoryRootPath: gitRootPath });
 
             const { /* filePath,*/ emojiTag } = await addCoderPrompt({
                 projectPath,

@@ -5,6 +5,7 @@ import type {
 import spaceTrim from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 
 /**
  * Initializes `coder find-fresh-emoji-tags` command for Promptbook CLI utilities
@@ -27,6 +28,7 @@ export function $initializeCoderFindFreshEmojiTagCommand(program: Program): $sid
 
     command.action(
         handleActionErrors(async () => {
+            await $preflightWorkspaceRepository({ policy: 'preview' });
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
             const { findFreshEmojiTag } = await import(
                 '../../../../scripts/find-fresh-emoji-tags/find-fresh-emoji-tags'

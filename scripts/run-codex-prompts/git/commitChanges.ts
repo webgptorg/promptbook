@@ -95,7 +95,9 @@ async function stageCommitChanges(
         });
     }
 
-    if (excludedGitPaths.length === 0) {
+    if (excludedGitPaths.length === 0 || (relevantPaths !== undefined && relevantPaths.length > 0)) {
+        // A path-scoped commit ignores excluded paths already staged by the user. The temporary message was
+        // never added by this operation, and avoiding `git reset HEAD` also supports an unborn branch.
         return;
     }
 

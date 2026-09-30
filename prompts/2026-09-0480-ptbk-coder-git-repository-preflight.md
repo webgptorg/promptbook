@@ -1,4 +1,4 @@
-[ ]
+[^] by Promptbook Developer on OpenAI Codex `gpt-6-sol` thinking `max` - Implementation in progress
 
 [✨🌱] Ensure workspace-dependent Coder commands check for a Git repository, and initialize Git automatically through `ptbk init` and `ptbk coder init`.
 
@@ -69,3 +69,4 @@ ptbk coder run --harness openai-codex
 -   Coordinate with [generated prompts documentation](2026-09-0460-ptbk-coder-init-prompts-readme.md) and [legacy cleanup](2026-09-0470-remove-legacy-pipelines-and-clean-repository.md). Do not restore retired pipeline commands to implement top-level `init`.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Update CLI help, initialization summaries, the generated workflow README, and the [Coder landing website](../apps/coder-landing) to explain the behavior and noninteractive recovery.
 -   Add the implemented changes into the [changelog](../changelog/_current-preversion.md).
+

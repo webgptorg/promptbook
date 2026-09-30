@@ -9,6 +9,10 @@ import type { CoderRunUiState } from '../ui/CoderRunUiState';
  * CLI options for running the prompt runner.
  */
 export type RunOptions = {
+    /** Resolved directory containing this project's prompts and agents. */
+    projectPath?: string;
+    /** Enclosing Git working-tree root, which can differ from the project directory. */
+    repositoryRootPath?: string;
     /**
      * When true, do not execute prompts and only print prompts that still need to be written.
      */

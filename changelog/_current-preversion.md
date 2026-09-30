@@ -1,3 +1,10 @@
+-   `ptbk init` and `ptbk coder init` now create Git in a fresh project and reuse an enclosing working tree without
+    touching existing history or user files. Every workspace-dependent Coder action checks Git before writing files,
+    installing a harness, or starting execution: interactive writing commands can initialize it after confirmation,
+    unattended commands fail with a setup hint, and listings and dry-run previews only warn. Detection supports nested
+    projects, linked worktrees, submodules and unborn branches, with separate diagnostics for invalid or inaccessible
+    Git metadata. Added scoped commit and packaged CLI coverage, and updated the generated guide and Coder website.
+
 -   `ptbk coder init` now creates `prompts/README.md` from a template bundled with the CLI, including in partially
     initialized projects. The offline guide explains PRDs, parser annotations, planning and local Books, acceptance
     checks, archival, and a complete manual or alternative-assistant workflow. Existing guides are preserved and

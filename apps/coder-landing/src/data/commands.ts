@@ -22,6 +22,9 @@ export const INSTALL_GLOBAL_COMMAND = 'npm install --global ptbk';
  */
 export const INIT_COMMAND = 'ptbk coder init';
 
+/** Top-level alias for the same project initializer. */
+export const TOP_LEVEL_INIT_COMMAND = 'ptbk init';
+
 /** Repository-aware conversation which authors PRDs with the project-owned Planner. */
 export const PLAN_COMMAND = 'ptbk coder plan --harness openai-codex';
 

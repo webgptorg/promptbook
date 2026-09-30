@@ -76,7 +76,7 @@ describe('$startCoderGitSync', () => {
         expect(commitScope).toBe(COMMIT_SCOPE);
     });
 
-    it('touches git at all only when the command really commits, so it also works outside a repository', async () => {
+    it('skips synchronization when disabled after the caller has completed repository preflight', async () => {
         await $startCoderGitSync({ gitSync: DISABLED_CODER_GIT_SYNC_OPTIONS, projectPath: '/project' });
 
         expect(captureCoderCommitScope).not.toHaveBeenCalled();

@@ -3,6 +3,7 @@ import { Command as Program /* <- Note: [🔸] Using Program because Command is 
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 
 /**
  * Initializes `coder find-unwritten` command for Promptbook CLI utilities
@@ -21,6 +22,7 @@ export function $initializeCoderFindUnwrittenCommand(program: Program): $side_ef
             const { priority = 0 } = cliOptions as {
                 readonly priority?: number;
             };
+            await $preflightWorkspaceRepository({ policy: 'preview' });
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
             const { findUnwrittenPrompts } = await import(

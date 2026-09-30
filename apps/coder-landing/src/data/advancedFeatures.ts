@@ -130,7 +130,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Nothing to answer',
         description:
-            'The opposite end: --no-questions never asks anything at all. Installing a missing harness, updating an outdated one or adding ignore rules is skipped and printed as the command which does it manually, so a queue started from a script or a CI job never stops at a prompt nobody is there to answer. ptbk coder init, add, run, ping and server all take it.',
+            '--no-questions never asks anything. Run ptbk init or ptbk coder init first to create Git automatically in a new project. Interactive writing commands offer Git setup; unattended ones stop with a setup hint if Git is missing. Listings and dry-run previews only warn. Optional harness installation, updates and ignore-rule changes are skipped with manual instructions, so CI never waits for an answer.',
         sampleCommand: 'ptbk coder run --harness claude-code --no-questions',
     },
     {

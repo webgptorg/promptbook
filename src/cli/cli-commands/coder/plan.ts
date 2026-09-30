@@ -1,10 +1,13 @@
 import type { Command as Program } from 'commander';
 import { readFile } from 'fs/promises';
+import { relative, resolve } from 'path';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { spaceTrim } from '../../../utils/organization/spaceTrim';
 import { addCoderGitSyncOptions, normalizeCoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
+import { addQuestionsOption, assertRequiredQuestionsAreAllowed, normalizeQuestionsCliOptions } from '../common/questionsCliOptions';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 import {
     addPromptRunnerRuntimeOptions,
     addPromptRunnerSelectionOptions,
@@ -34,6 +37,7 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
     addPromptRunnerRuntimeOptions(command);
     addCoderAgentOption(command, 'planner');
     addCoderGitSyncOptions(command);
+    addQuestionsOption(command);
     command.option(
         '--template <path>',
         'PRD template (defaults to the project-owned prompts/templates/common.md when present)',
@@ -51,11 +55,16 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
             const options = normalizePromptRunnerSelectionCliOptions(cliOptions, { isAgentRequired: true });
             assertPlanningHarnessSupported(options.agentName);
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions);
+            const questionsOptions = normalizeQuestionsCliOptions(cliOptions);
+            const { projectPath, gitRootPath } = await $preflightWorkspaceRepository({
+                policy: 'mutate',
+                questionsOptions,
+            });
+            assertRequiredQuestionsAreAllowed({ action: 'ptbk coder plan', ...questionsOptions });
             const terminal = createPlanningTerminal();
             try {
-                const projectPath = process.cwd();
                 if (gitSync.isCommitEnabled) assertPlanningCommitSafe(projectPath);
-                const commitScope = await $startCoderGitSync({ projectPath, gitSync });
+                const commitScope = await $startCoderGitSync({ projectPath, repositoryRootPath: gitRootPath, gitSync });
                 const saved = await runPlanningSession(
                     {
                         ...options,
@@ -86,7 +95,9 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
                     gitSync,
                     commitScope,
                     commitMessage: 'Plan project tasks',
-                    relevantPaths: [...saved.keys()],
+                    relevantPaths: [...saved.keys()].map((path) =>
+                        relative(gitRootPath!, resolve(projectPath, path)).replace(/\\/gu, '/'),
+                    ),
                 });
             } catch (error) {
                 if (!terminal.signal.aborted) throw error;

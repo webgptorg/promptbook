@@ -44,6 +44,7 @@ export async function findFreshEmojiTag(): Promise<void> {
     const { usedEmojis } = await scanEmojiTagUsage({
         candidateEmojis: allEmojis,
         tagPrefix: '',
+        isCacheWriteEnabled: false,
         onFileError: (error, filePath) => {
             console.error(colors.red('Error in checking file /' + filePath));
             console.error(error);
