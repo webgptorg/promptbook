@@ -19,8 +19,6 @@ const REPOSITORY_PATH = resolve(__dirname, '../../../../..');
 const FIXTURE_DIRECTORY = join(__dirname, 'fixtures');
 /** Process helper with fixed executable/argument boundaries. */
 const EXECUTE_FILE = promisify(execFile);
-/** Allows the many external CLI invocations to finish on slower Windows test hosts. */
-const PACKAGED_CLI_WORKFLOW_TIMEOUT_MS = 10 * 60_000;
 
 /**
  * Uses the production Rollup entrypoint, external dependencies, asset plugins and UMD format.
@@ -131,35 +129,6 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
     });
     afterAll(async () => {
         if (temporaryPath) await rm(temporaryPath, { recursive: true, force: true });
-    });
-
-    it('smoke-tests Git preflight and top-level init from the npm-packed CLI outside the monorepo', async () => {
-        const projectPath = join(temporaryPath, 'repository-smoke');
-        await mkdir(projectPath);
-        const environment = {
-            ...process.env,
-            PATH: `${harnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
-            NODE_PATH: join(REPOSITORY_PATH, 'node_modules'),
-        };
-        /** Invokes the packaged binary without installing dependencies from the network. */
-        const run = (argumentsList: string[]) =>
-            EXECUTE_FILE(process.execPath, [join(packagePath, 'bin/promptbook-cli.js'), ...argumentsList], {
-                cwd: projectPath,
-                env: environment,
-                timeout: 60_000,
-                windowsHide: true,
-            });
-
-        await expect(run(['coder', 'run', '--harness', 'openai-codex', '--no-questions'])).rejects.toMatchObject({
-            code: 1,
-            stderr: expect.stringContaining('Git repository required'),
-        });
-        expect(await readdir(projectPath)).toEqual([]);
-
-        const initialized = await run(['init', '--no-questions']);
-        expect(initialized.stdout).toContain('Git repository initialized');
-        expect((await EXECUTE_FILE('git', ['rev-parse', '--is-inside-work-tree'], { cwd: projectPath })).stdout.trim()).toBe('true');
-        expect((await run(['coder', 'init', '--no-questions'])).stdout).toContain('Git repository reused');
     });
 
     it.each(['local', 'packaged'])(
@@ -327,7 +296,6 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             await expect(run(['coder', 'plan', '--harness', 'openai-codex'])).rejects.toThrow('interactive terminal');
             expect((await run(['coder', 'plan', '--help'])).stdout).toContain('agents/planner.book');
         },
-        PACKAGED_CLI_WORKFLOW_TIMEOUT_MS,
     );
 });
 

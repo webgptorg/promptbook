@@ -85,27 +85,5 @@ export function assertUserConfirmationIsAllowed(options: {
     );
 }
 
-/**
- * Rejects an interactive workflow when its required decisions cannot be asked.
- *
- * @private internal utility of `promptbookCli`
- */
-export function assertRequiredQuestionsAreAllowed(options: {
-    readonly action: string;
-    readonly isAskingQuestionsEnabled: boolean;
-}): void {
-    if (options.isAskingQuestionsEnabled) {
-        return;
-    }
-
-    throw new NotAllowed(
-        spaceTrim(`
-            \`${options.action}\` requires interactive decisions and cannot run with \`--no-questions\`.
-
-            Run it in an interactive terminal without \`--no-questions\`.
-        `),
-    );
-}
-
 // Note: [🟡] Code for CLI interactive questions options [questionsCliOptions](src/cli/cli-commands/common/questionsCliOptions.ts) should never be published outside of `@promptbook/cli`
 // Note: [💞] Ignore a discrepancy between file name and exported helper names

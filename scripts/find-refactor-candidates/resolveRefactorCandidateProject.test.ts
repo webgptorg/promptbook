@@ -56,19 +56,4 @@ describe('resolveRefactorCandidateProject', () => {
         expect(rootDir).toBe(projectPath);
         expect(isIgnoredRelativePath('src/index.ts')).toBe(false);
     });
-
-    it('keeps a CLI-requested nested project as the scan root while applying parent ignore rules', async () => {
-        const projectPath = join(temporaryDirectory, 'monorepo');
-        const nestedPath = join(projectPath, 'packages', 'feature');
-        await mkdir(nestedPath, { recursive: true });
-        await writeFile(join(projectPath, '.gitignore'), 'packages/feature/dist/\n');
-
-        const { isIgnoredRelativePath, rootDir } = await resolveRefactorCandidateProject(nestedPath, {
-            isProjectRootFixed: true,
-        });
-
-        expect(rootDir).toBe(nestedPath);
-        expect(isIgnoredRelativePath('dist/output.ts')).toBe(true);
-        expect(isIgnoredRelativePath('src/index.ts')).toBe(false);
-    });
 });

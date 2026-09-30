@@ -28,19 +28,14 @@ export async function readCurrentBranchName(
     projectPath: string,
     env?: Record<string, string>,
 ): Promise<string> {
-    try {
-        // `rev-parse --abbrev-ref HEAD` fails before the first commit; symbolic-ref still knows the branch.
-        const branch = await $execCommand({
-            command: 'git symbolic-ref --quiet --short HEAD',
-            cwd: projectPath,
-            env,
-            isVerbose: false,
-        });
-        return branch.trim();
-    } catch {
-        // Preserve the existing detached-HEAD signal consumed by pull and push diagnostics.
-        return 'HEAD';
-    }
+    const branch = await $execCommand({
+        command: 'git rev-parse --abbrev-ref HEAD',
+        cwd: projectPath,
+        env,
+        isVerbose: false,
+    });
+
+    return branch.trim();
 }
 
 /**

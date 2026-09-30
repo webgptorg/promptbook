@@ -44,7 +44,7 @@ function initializeFindRefactorCandidatesRun(): void {
  * @public exported from `@promptbook/cli`
  */
 export async function findRefactorCandidates(options: FindRefactorCandidatesOptions = {}): Promise<void> {
-    const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL, limit, projectPath } = options;
+    const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL, limit } = options;
     const heuristics = getRefactorCandidateLevelConfiguration(level);
 
     initializeFindRefactorCandidatesRun();
@@ -52,9 +52,7 @@ export async function findRefactorCandidates(options: FindRefactorCandidatesOpti
     console.info(colors.cyan('⚡🏭 Find refactor candidates'));
     console.info(colors.gray(`Using \`${level}\` scan level.`));
 
-    const { isIgnoredRelativePath, rootDir } = await resolveRefactorCandidateProject(projectPath ?? process.cwd(), {
-        isProjectRootFixed: projectPath !== undefined,
-    });
+    const { isIgnoredRelativePath, rootDir } = await resolveRefactorCandidateProject(process.cwd());
     const promptsDir = join(rootDir, PROMPTS_DIR_NAME);
     const existingTargets = await loadExistingPromptTargets(promptsDir);
     const candidates = await findRefactorCandidatesInProject({
@@ -104,8 +102,6 @@ export async function findRefactorCandidates(options: FindRefactorCandidatesOpti
  * @public exported from `@promptbook/cli`
  */
 export type FindRefactorCandidatesOptions = {
-    /** Resolved project directory supplied by the CLI preflight. */
-    readonly projectPath?: string;
     /**
      * Aggressiveness level used to score candidate files.
      */

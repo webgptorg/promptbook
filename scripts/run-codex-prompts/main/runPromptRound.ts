@@ -90,7 +90,7 @@ export async function runPromptRound({
     waitForRequestedPause,
     projectPath,
 }: RunPromptRoundOptions): Promise<void> {
-    const roundProjectPath = projectPath ?? options.projectPath ?? process.cwd();
+    const roundProjectPath = projectPath ?? process.cwd();
     const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
     const taskPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
     // Prepend agent system message before the task so the harness sees agent instructions first
@@ -125,9 +125,7 @@ export async function runPromptRound({
     let attemptCount = 1;
     // Note: The very same snapshot tells which files this round has changed, both for normalizing their line
     //       endings and for committing only them instead of everything which is changed in the project
-    // An isolated round supplies its own worktree path; a regular round uses the preflight's enclosing Git root.
-    const repositoryRootPath = projectPath ?? options.repositoryRootPath ?? roundProjectPath;
-    const roundCommitScope = await captureRoundCommitScopeIfNeeded(options, repositoryRootPath);
+    const roundCommitScope = await captureRoundCommitScopeIfNeeded(options, roundProjectPath);
 
     await withPromptRuntimeLog(
         scriptPath,
@@ -448,7 +446,7 @@ async function finalizeSuccessfulPromptRound(options: {
             relevantPaths: roundCommitScope && (await resolveCoderCommitScopePaths(roundCommitScope)),
             // Keep the live runtime log out of default commits because it is deleted after a successful round.
             excludePaths: runOptions.preserveLogs ? undefined : [logPath],
-            projectPath: roundCommitScope?.projectPath ?? roundProjectPath,
+            projectPath: roundProjectPath,
             // Note: An isolated round commits only the agent changes, so a task that needed none must not fail here
             isEmptyCommitAllowed: runOptions.isIsolated,
         });
@@ -693,7 +691,7 @@ async function normalizeLineEndingsForCurrentRound(
 
     try {
         const result = await normalizeLineEndingsInFilesChangedSinceSnapshot({
-            projectPath: roundCommitScope.projectPath,
+            projectPath: roundProjectPath,
             snapshot: roundCommitScope.snapshotBeforeOperation,
         });
 

@@ -6,7 +6,6 @@ import { $initializeAgentCommand } from './cli-commands/agent';
 import { $initializeAgentFolderCommand } from './cli-commands/agent-folder';
 import { $initializeAgentsServerCommand } from './cli-commands/agents-server';
 import { $initializeCoderCommand } from './cli-commands/coder';
-import { $initializeCoderInitCommand } from './cli-commands/coder/init';
 import { $initializeHelloCommand } from './cli-commands/hello';
 import { $initializeListModelsCommand } from './cli-commands/list-models';
 import { $initializeListScrapersCommand } from './cli-commands/list-scrapers';
@@ -59,7 +58,6 @@ export function $initializePromptbookCliProgram(program: Command): void {
 
     // Commands are listed in registration order. Keep `coder` first and hide deprecated commands below.
     $initializeCoderCommand(program);
-    $initializeCoderInitCommand(program, false);
     $initializeAgentCommand(program);
     $initializeAgentFolderCommand(program);
     $initializeAgentsServerCommand(program);

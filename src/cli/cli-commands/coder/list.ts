@@ -12,7 +12,6 @@ import {
     PROMPT_RUNNER_DESCRIPTION,
 } from '../common/promptRunnerCliOptions';
 import { addCoderAgentOption, type CoderAgentCliOptions } from './agentCliOptions';
-import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 
 /**
  * Initializes `coder list` command for Promptbook CLI utilities.
@@ -59,13 +58,12 @@ export function $initializeCoderListCommand(program: Program): $side_effect {
                 cliOptions as PromptRunnerSelectionCliOptions,
                 { isAgentRequired: false },
             );
-            const { projectPath } = await $preflightWorkspaceRepository({ policy: 'preview' });
             const resolvedCoderAgentBook =
                 agent === undefined
                     ? undefined
                     : await (
                           await import('../../../../scripts/run-codex-prompts/common/resolveCoderAgent')
-                      ).resolveCoderAgentBook(agent, projectPath);
+                      ).resolveCoderAgentBook(agent, process.cwd());
             const promptRunnerIdentity =
                 runnerOptions.agentName === undefined &&
                 runnerOptions.model === undefined &&

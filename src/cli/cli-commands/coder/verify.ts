@@ -18,8 +18,6 @@ import {
     normalizeCoderGitSyncCliOptions,
 } from '../common/coderGitSyncCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
-import { addQuestionsOption, assertRequiredQuestionsAreAllowed, normalizeQuestionsCliOptions } from '../common/questionsCliOptions';
-import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 
 /**
  * Initializes `coder verify` command for Promptbook CLI utilities
@@ -75,7 +73,6 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
         [],
     );
     addCoderGitSyncOptions(command);
-    addQuestionsOption(command);
 
     command.action(
         handleActionErrors(async (cliOptions) => {
@@ -85,18 +82,12 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
             } & CoderGitSyncCliOptions;
 
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
-            const questionsOptions = normalizeQuestionsCliOptions(cliOptions);
-            const { projectPath, gitRootPath } = await $preflightWorkspaceRepository({
-                policy: 'mutate',
-                questionsOptions,
-            });
-            assertRequiredQuestionsAreAllowed({ action: 'ptbk coder verify', ...questionsOptions });
 
             // Note: Import the main function dynamically to avoid loading heavy dependencies until needed
             const { verifyPrompts } = await import('../../../../scripts/verify-prompts/verify-prompts');
 
             try {
-                await verifyPrompts({ order, ignore, gitSync, projectPath, repositoryRootPath: gitRootPath });
+                await verifyPrompts({ order, ignore, gitSync });
             } catch (error) {
                 console.error(colors.bgRed('Prompt verification failed:'), error);
                 return process.exit(1);

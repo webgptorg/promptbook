@@ -42,11 +42,6 @@ export function $initializeCoderCommand(program: Program): $side_effect {
         spaceTrim(`
             Coding utilities for automated development workflows
 
-            Workspace commands check for a Git working tree. Run \`ptbk init\` or \`ptbk coder init\` to initialize
-            Git and project configuration. Interactive writing commands can offer \`git init\` when Git is missing;
-            \`--no-questions\` and non-interactive writing commands fail with a setup hint. Listings and \`--dry-run\`
-            previews warn and continue without creating a repository.
-
             Subcommands:
             - init: Initialize coder configuration in current project
             - add: Add one ready-to-run prompt file to the queue

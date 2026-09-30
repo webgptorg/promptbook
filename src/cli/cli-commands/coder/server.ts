@@ -30,7 +30,6 @@ import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOp
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 import { addCoderAgentOption, type CoderAgentCliOptions } from './agentCliOptions';
 import { printCoderRunFailure } from './printCoderRunFailure';
-import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 
 /**
  * Default port used by `ptbk coder server`.
@@ -181,22 +180,18 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
             const waitForUser = !auto;
 
             assertUserConfirmationIsAllowed({ ...questionsOptions, isWaitingForUser: waitForUser });
-            const { projectPath, gitRootPath } = await $preflightWorkspaceRepository({
-                policy: dryRun ? 'preview' : 'mutate',
-                questionsOptions,
-            });
 
             if (!dryRun) {
                 // Reject missing or unreadable Books before offering installations or project configuration writes.
                 const { resolveCoderAgentBook } = await import(
                     '../../../../scripts/run-codex-prompts/common/resolveCoderAgent'
                 );
-                await resolveCoderAgentBook(agent, projectPath, { defaultRole: 'developer' });
+                await resolveCoderAgentBook(agent, process.cwd(), { defaultRole: 'developer' });
                 // Check disk space before installations and repository writes; previews require no setup.
-                await $assertSufficientFreeDiskSpace(projectPath);
+                await $assertSufficientFreeDiskSpace(process.cwd());
 
                 await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
-                await $ensureCoderHarnessGitignoreRules(projectPath, runnerOptions.agentName, questionsOptions);
+                await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
             }
 
             const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
@@ -204,8 +199,6 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
             const waitAfterError = parseOptionalWaitDuration(waitAfterErrorValue, DEFAULT_WAIT_AFTER_ERROR_MS);
 
             const runOptions = {
-                projectPath,
-                repositoryRootPath: gitRootPath,
                 port,
                 dryRun,
                 waitForUser,

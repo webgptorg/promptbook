@@ -20,7 +20,6 @@ import {
 } from '../common/promptRunnerCliOptions';
 import { parseOptionalPeriodDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
-import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 
 /**
  * Initializes `coder ping` command for Promptbook CLI utilities
@@ -77,10 +76,9 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
 
             // Note: The period is validated before the harness installation check, so a mistyped duration fails fast
             const periodMs = parseOptionalPeriodDuration('--period', periodValue);
-            const { projectPath } = await $preflightWorkspaceRepository({ policy: 'mutate', questionsOptions });
 
             await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
-            await $ensureCoderHarnessGitignoreRules(projectPath, runnerOptions.agentName, questionsOptions);
+            await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
 
             const pingOptions = {
                 agentName: runnerOptions.agentName,

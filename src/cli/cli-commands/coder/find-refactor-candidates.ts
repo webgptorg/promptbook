@@ -14,8 +14,6 @@ import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { handleActionErrors } from '../common/handleActionErrors';
-import { addQuestionsOption, normalizeQuestionsCliOptions } from '../common/questionsCliOptions';
-import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 
 /**
  * Initializes `coder find-refactor-candidates` command for Promptbook CLI utilities
@@ -52,7 +50,6 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
         'Create at most this many refactor prompts, keeping the most important candidates',
         createPositiveIntegerOptionParser('--limit'),
     );
-    addQuestionsOption(command);
 
     command.action(
         handleActionErrors(async (cliOptions) => {
@@ -60,10 +57,6 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
                 readonly level?: RefactorCandidateLevel;
                 readonly limit?: number;
             };
-            const { projectPath } = await $preflightWorkspaceRepository({
-                policy: 'mutate',
-                questionsOptions: normalizeQuestionsCliOptions(cliOptions),
-            });
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
             const { findRefactorCandidates } = await import(
@@ -71,7 +64,7 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
             );
 
             try {
-                await findRefactorCandidates({ level, limit, projectPath });
+                await findRefactorCandidates({ level, limit });
             } catch (error) {
                 assertsError(error);
                 console.error(colors.bgRed(`${error.name}`));

@@ -7,7 +7,6 @@ import {
     PLAN_COMMAND,
     RUN_COMMAND,
     SERVER_COMMAND,
-    TOP_LEVEL_INIT_COMMAND,
 } from '@/data/commands';
 import type { ReactNode } from 'react';
 
@@ -57,9 +56,7 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         title: 'Initialize your project',
         description: (
             <>
-                Initializes Git in this project when needed, or reuses the enclosing repository.{' '}
-                <code className="text-promptbook-blue">{TOP_LEVEL_INIT_COMMAND}</code> provides the same setup. It creates the{' '}
-                <code className="text-promptbook-blue">prompts/</code> queue,{' '}
+                Creates the <code className="text-promptbook-blue">prompts/</code> queue,{' '}
                 <code className="text-promptbook-blue">prompts/done/</code> archive, the default{' '}
                 <code className="text-promptbook-blue">agents/developer.book</code> and{' '}
                 <code className="text-promptbook-blue">agents/planner.book</code> roles, their Lawyer and Copywriter

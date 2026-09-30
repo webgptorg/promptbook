@@ -29,7 +29,6 @@ export async function $askForConfirmation(
 
     try {
         const answer = await new Promise<string>((resolve) => {
-            readlineInterface.once('close', () => resolve(''));
             readlineInterface.question(colors.cyan(`${question} [y/N] `), resolve);
         });
 

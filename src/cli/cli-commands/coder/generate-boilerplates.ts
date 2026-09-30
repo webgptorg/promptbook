@@ -13,8 +13,6 @@ import {
     normalizeCoderGitSyncCliOptions,
 } from '../common/coderGitSyncCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
-import { addQuestionsOption, normalizeQuestionsCliOptions, type QuestionsCliOptions } from '../common/questionsCliOptions';
-import { $preflightWorkspaceRepository } from '../common/workspaceRepositoryContext';
 import type { BoilerplateCount } from './boilerplateCount';
 import {
     BOILERPLATE_COUNT_OPTION_DESCRIPTION,
@@ -60,7 +58,6 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
         `),
     );
     addCoderGitSyncOptions(command);
-    addQuestionsOption(command);
 
     command.action(
         handleActionErrors(async (cliOptions) => {
@@ -71,17 +68,14 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
 
             const boilerplateCount = parseBoilerplateCount(countOption);
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
-            const { projectPath, gitRootPath } = await $preflightWorkspaceRepository({
-                policy: 'mutate',
-                questionsOptions: normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions),
-            });
+            const projectPath = process.cwd();
 
             // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
             const { $commitCoderChanges, $startCoderGitSync } = await import(
                 '../../../../scripts/run-codex-prompts/git/coderGitSync'
             );
 
-            const commitScope = await $startCoderGitSync({ gitSync, projectPath, repositoryRootPath: gitRootPath });
+            const commitScope = await $startCoderGitSync({ gitSync, projectPath });
 
             await generatePromptBoilerplate({
                 projectPath,

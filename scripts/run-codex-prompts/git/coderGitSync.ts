@@ -48,19 +48,19 @@ export const DISABLED_CODER_GIT_SYNC_OPTIONS: CoderGitSyncOptions = Object.freez
 export async function $startCoderGitSync(options: {
     readonly gitSync: CoderGitSyncOptions;
     readonly projectPath?: string;
-    readonly repositoryRootPath?: string;
 }): Promise<CoderCommitScope> {
-    const { gitSync, projectPath = process.cwd(), repositoryRootPath = projectPath } = options;
+    const { gitSync, projectPath = process.cwd() } = options;
 
-    await $pullCoderChanges({ gitSync, projectPath: repositoryRootPath });
+    await $pullCoderChanges({ gitSync, projectPath });
 
     if (!gitSync.isCommitEnabled) {
-        // Repository detection is the caller's preflight responsibility, even when commits are disabled.
-        return { projectPath: repositoryRootPath, snapshotBeforeOperation: { changedFileHashes: new Map() } };
+        // Note: A command which does not commit must not touch git at all, so that it also works in a project
+        //       which is not a git repository
+        return { projectPath, snapshotBeforeOperation: { changedFileHashes: new Map() } };
     }
 
     // Note: The scope is captured after pulling, so files brought in by the pull are not committed again
-    return captureCoderCommitScope(repositoryRootPath);
+    return captureCoderCommitScope(projectPath);
 }
 
 /**

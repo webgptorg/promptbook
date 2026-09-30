@@ -67,7 +67,7 @@ import { createCoderTeamPromptRunner } from '../team/createCoderTeamPromptRunner
 /**
  * Constant for prompts dir.
  */
-const PROMPTS_DIRECTORY_NAME = 'prompts';
+const PROMPTS_DIR = join(process.cwd(), 'prompts');
 
 /**
  * Commit message for files changed by a successful or failed pre-coding test in repair mode.
@@ -92,8 +92,6 @@ type PromptQueueSnapshot = {
  */
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
     const options = normalizeRunOptions(providedOptions ?? parseRunOptions(process.argv.slice(2)));
-    const projectPath = options.projectPath ?? process.cwd();
-    const repositoryRootPath = options.repositoryRootPath ?? projectPath;
     validateRunCodexPromptOptions(options);
     resetCoderRunControls();
 
@@ -106,7 +104,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         // Note: Every pause checkpoint of the whole run goes through this one waiter, so watching the free disk
         //       space here covers each round, each verification and each runner without repeating the check
         guardFreeDiskSpace: createFreeDiskSpaceGuard({
-            inspectedPath: projectPath,
+            inspectedPath: process.cwd(),
             isAskingQuestionsEnabled: options.isAskingQuestionsEnabled ?? true,
         }),
     });
@@ -116,8 +114,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     let subscriptionUsageRefresh: CoderRunUiSubscriptionUsageRefreshHandle | undefined;
 
     try {
-        const resolvedCoderContext = await resolveCoderContext(options.context, projectPath);
-        const resolvedCoderAgent = await resolveCoderAgent(options.agent, projectPath, {
+        const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
+        const resolvedCoderAgent = await resolveCoderAgent(options.agent, process.cwd(), {
             defaultRole: 'developer',
             isInitializationAllowed: !options.dryRun,
         });
@@ -128,7 +126,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         }
 
         if (!options.noCommit && resolvedCoderAgent) {
-            await commitInitializedAgentBooks(repositoryRootPath, resolvedCoderAgent.createdAgentBookPaths);
+            await commitInitializedAgentBooks(process.cwd(), resolvedCoderAgent.createdAgentBookPaths);
         }
 
         const {
@@ -306,7 +304,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     phase: 'loading',
                     statusMessage: 'Checking the working tree...',
                 });
-                await ensureWorkingTreeClean(repositoryRootPath);
+                await ensureWorkingTreeClean();
             }
 
             const currentRoundStartTime = Date.now();
@@ -466,7 +464,7 @@ async function pullLatestChangesIfEnabled(options: { options: RunOptions; isRich
         console.info(colors.gray('Pulling latest changes before the next prompt...'));
     }
 
-    await pullLatestChanges(runOptions.repositoryRootPath ?? runOptions.projectPath);
+    await pullLatestChanges();
 }
 
 /**
@@ -572,7 +570,7 @@ async function runTestBeforeIfNeeded(options: {
             phase: 'loading',
             statusMessage: 'Checking the working tree before testing...',
         });
-        await ensureWorkingTreeClean(runOptions.repositoryRootPath ?? runOptions.projectPath);
+        await ensureWorkingTreeClean();
     }
 
     const testBeforeCommitScope = await captureTestBeforeCommitScopeIfNeeded(runOptions);
@@ -580,7 +578,7 @@ async function runTestBeforeIfNeeded(options: {
     uiHandle?.startCapturingAgentOutput();
     const testBeforeResult = await runTestBefore({
         testCommand: runOptions.testCommand,
-        projectPath: runOptions.projectPath ?? process.cwd(),
+        projectPath: process.cwd(),
         waitForPauseCheckpoint: waitForRequestedPause,
     }).finally(() => {
         uiHandle?.stopCapturingAgentOutput();
@@ -616,7 +614,7 @@ async function runTestBeforeIfNeeded(options: {
     }
 
     const repairPrompt = await createTestBeforeRepairPrompt({
-        projectPath: runOptions.projectPath ?? process.cwd(),
+        projectPath: process.cwd(),
         testCommand: runOptions.testCommand,
         testOutput,
     });
@@ -658,7 +656,7 @@ async function captureTestBeforeCommitScopeIfNeeded(runOptions: RunOptions): Pro
         return undefined;
     }
 
-    return captureCoderCommitScope(runOptions.repositoryRootPath ?? runOptions.projectPath ?? process.cwd());
+    return captureCoderCommitScope(process.cwd());
 }
 
 /**
@@ -757,9 +755,7 @@ async function runDryRunIfRequested(
         modelName: options.agentName ? resolveRunnerModel(options.agentName, options.model) : options.model,
         agentReferences,
     };
-    const promptFiles = (
-        await loadPromptFiles(join(options.projectPath ?? process.cwd(), PROMPTS_DIRECTORY_NAME))
-    ).map((file) => ({
+    const promptFiles = (await loadPromptFiles(PROMPTS_DIR)).map((file) => ({
         ...file,
         sections: file.sections.filter((section) => isPromptCompatibleWithRunner(file, section, promptRunnerIdentity)),
     }));
@@ -834,7 +830,7 @@ async function loadPromptQueueSnapshot(options: {
     } = options;
     uiHandle?.state.setCurrentScriptPath(undefined);
 
-    const promptFiles = await loadPromptFiles(join(runOptions.projectPath ?? process.cwd(), PROMPTS_DIRECTORY_NAME));
+    const promptFiles = await loadPromptFiles(PROMPTS_DIR);
     const stats = summarizePrompts(promptFiles, runOptions.priorityFilter);
 
     progressDisplay?.update(stats);
