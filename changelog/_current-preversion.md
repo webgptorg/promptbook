@@ -1,3 +1,6 @@
+-   Fixed Planner saves for projects under filesystem paths which resolve through aliases, such as macOS `/var` and
+    `/private/var`. The save recheck now reuses each validated project-relative PRD path.
+
 -   `ptbk coder init` now creates `prompts/README.md` from a template bundled with the CLI, including in partially
     initialized projects. The offline guide explains PRDs, parser annotations, planning and local Books, acceptance
     checks, archival, and a complete manual or alternative-assistant workflow. Existing guides are preserved and

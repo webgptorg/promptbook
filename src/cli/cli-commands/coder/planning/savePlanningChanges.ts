@@ -9,7 +9,7 @@ import {
     unlinkSync,
     writeFileSync,
 } from 'fs';
-import { join, relative } from 'path';
+import { join } from 'path';
 import { NotAllowed } from '../../../../errors/NotAllowed';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { assertPlanningRuntimePath } from './assertPlanningRuntimePath';
@@ -47,6 +47,7 @@ export function savePlanningChanges(
         }
         return {
             ...change,
+            planningPath: change.path,
             path,
             content: isDraft ? change.draft : change.after,
             temporaryPath: join(workspacePath, `save-${index}.tmp`),
@@ -58,12 +59,12 @@ export function savePlanningChanges(
             writeDurableFile(change.temporaryPath, change.content);
         }
         for (const change of prepared) {
-            resolvePlanningPath(projectPath, relative(projectPath, change.path), true);
+            resolvePlanningPath(projectPath, change.planningPath, true);
             const current = existsSync(change.path) ? readFileSync(change.path, 'utf-8') : null;
             if (current !== change.before) {
                 throw new NotAllowed(
                     spaceTrim(
-                        `\`${relative(projectPath, change.path)}\` changed while saving. Review a fresh preview.`,
+                        `\`${change.planningPath}\` changed while saving. Review a fresh preview.`,
                     ),
                 );
             }
