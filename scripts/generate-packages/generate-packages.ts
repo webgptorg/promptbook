@@ -2,6 +2,8 @@
 // generate-packages.ts
 
 import colors from 'colors';
+import { getAgentsServerBuildInputRelativePaths } from '../../src/cli/cli-commands/agents-server/buildAgentsServer/getAgentsServerBuildInputRelativePaths';
+import { isPromptbookRuntimeArtifact } from '../../src/utils/filesystem/promptbookRuntimeArtifacts';
 import commander from 'commander';
 import { cp, mkdir, readFile, rm } from 'fs/promises';
 import { basename, dirname, join, relative } from 'path';
@@ -50,7 +52,6 @@ const AGENTS_SERVER_RUNTIME_PACKAGE_EXCLUDED_DIRECTORY_NAMES = new Set([
     '.git',
     '.next',
     '.next-e2e',
-    '.promptbook',
     'coverage',
     'node_modules',
     'playwright-report',
@@ -288,12 +289,11 @@ async function postprocessGeneratedBundles(
 async function maybeCopyAgentsServerAppToCliPackage(): Promise<void> {
     logPackageGenerationStep(`7️⃣  Copy agents-server app to CLI package`);
 
-    await copyAgentsServerRuntimePathToCliPackage('./apps/agents-server', './packages/cli/apps/agents-server');
-    await copyAgentsServerRuntimePathToCliPackage('./apps/_common', './packages/cli/apps/_common');
-    await copyAgentsServerRuntimePathToCliPackage('./src', './packages/cli/src');
-    await copyAgentsServerRuntimePathToCliPackage('./books', './packages/cli/books');
-    await copyAgentsServerRuntimePathToCliPackage('./servers.ts', './packages/cli/servers.ts');
-    await copyAgentsServerRuntimePathToCliPackage('./security.config.ts', './packages/cli/security.config.ts');
+    for (const path of getAgentsServerBuildInputRelativePaths()) {
+        // Package metadata and its TypeScript configuration are generated separately.
+        if (['package.json', 'package-lock.json', 'tsconfig.json'].includes(path)) continue;
+        await copyAgentsServerRuntimePathToCliPackage(`./${path}`, `./packages/cli/${path}`);
+    }
 
     console.info(colors.green('Agents-server app copied successfully'));
 }
@@ -329,6 +329,8 @@ function shouldCopyAgentsServerRuntimePath(sourcePath: string, sourceRootPath: s
     const sourceRuntimeRelativePath = normalizeRuntimeSourceRelativePath(sourcePath, sourceRootPath);
     const sourcePathSegments = sourceRelativePath.split('/').filter(Boolean);
     const sourceBasename = basename(sourcePath);
+    if (sourceRelativePath.split('/').includes('testing') || isPromptbookRuntimeArtifact(sourceRelativePath))
+        return false;
 
     if (
         sourcePathSegments.some((sourcePathSegment) =>

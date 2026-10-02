@@ -10,7 +10,7 @@ import type { AgentsServerRuntimePaths } from './AgentsServerRuntimePaths';
 import type { AgentsServerSupervisorState } from './AgentsServerSupervisorState';
 import { forwardChildOutput } from './forwardChildOutput';
 import type { PreparedAgentsServerLaunch } from './PreparedAgentsServerLaunch';
-import type { StartAgentsServerOptions } from './StartAgentsServerOptions';
+import type { AgentsServerWebStartOptions } from './StartAgentsServerOptions';
 
 /**
  * Prepares the shared Next runtime for either production start or hot-reloading development mode.
@@ -20,16 +20,19 @@ import type { StartAgentsServerOptions } from './StartAgentsServerOptions';
 export async function prepareAgentsServerLaunch(options: {
     readonly childEnvironment: AgentsServerChildEnvironment;
     readonly logStreams: AgentsServerLogStreams;
-    readonly startOptions: StartAgentsServerOptions;
+    readonly startOptions: AgentsServerWebStartOptions;
     readonly runtimePaths: AgentsServerRuntimePaths;
     readonly state: AgentsServerSupervisorState;
+    readonly signal?: AbortSignal;
 }): Promise<PreparedAgentsServerLaunch> {
     const runtimeArtifacts =
         options.startOptions.nextRuntimeMode === 'start'
             ? await ensureAgentsServerBuild({
                   appPath: options.runtimePaths.appPath,
+                  projectPath: options.runtimePaths.launchWorkingDirectory,
                   environment: options.childEnvironment,
                   isBuildForced: options.startOptions.isBuildForced,
+                  ...(options.signal ? { signal: options.signal } : {}),
                   onBuildEvent: (event) => {
                       logRunnerEvent(options.logStreams.runner, event);
                       forwardChildOutput(`${event}\n`, {
@@ -46,7 +49,11 @@ export async function prepareAgentsServerLaunch(options: {
                       });
                   },
               })
-            : await prepareAgentsServerDevelopmentRuntime(options.runtimePaths.appPath, options.logStreams.runner);
+            : await prepareAgentsServerDevelopmentRuntime(
+                  options.runtimePaths.appPath,
+                  options.logStreams.runner,
+                  options.runtimePaths.launchWorkingDirectory,
+              );
 
     return {
         runtimeArtifacts,
@@ -70,10 +77,12 @@ export async function prepareAgentsServerLaunch(options: {
 async function prepareAgentsServerDevelopmentRuntime(
     appPath: string,
     runnerLogStream: WriteStream,
+    projectPath: string,
 ): Promise<PreparedAgentsServerRuntime> {
     logRunnerEvent(runnerLogStream, 'Preparing the Agents Server Next development runtime.');
 
     return prepareAgentsServerRuntime({
         appPath,
+        projectPath,
     });
 }

@@ -7,7 +7,7 @@ import type { AgentsServerSupervisorState } from './AgentsServerSupervisorState'
 import { addUiError } from './AgentsServerSupervisorState';
 import { forwardChildOutput } from './forwardChildOutput';
 import { resolveAgentsServerChildHostname } from './resolveAgentsServerChildHostname';
-import type { AgentsServerNextRuntimeMode, StartAgentsServerOptions } from './StartAgentsServerOptions';
+import type { AgentsServerNextRuntimeMode, AgentsServerWebStartOptions } from './StartAgentsServerOptions';
 
 /**
  * Starts the configured Next server mode and wires its logs into the foreground dashboard.
@@ -16,7 +16,7 @@ import type { AgentsServerNextRuntimeMode, StartAgentsServerOptions } from './St
  */
 export function startNextServer(options: {
     readonly nextCliPath: string;
-    readonly startOptions: StartAgentsServerOptions;
+    readonly startOptions: AgentsServerWebStartOptions;
     readonly runtimePaths: AgentsServerRuntimePaths;
     readonly childEnvironment: AgentsServerChildEnvironment;
     readonly logStreams: AgentsServerLogStreams;

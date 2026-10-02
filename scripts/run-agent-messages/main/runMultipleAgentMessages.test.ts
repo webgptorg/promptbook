@@ -249,10 +249,13 @@ describe('runMultipleAgentMessages', () => {
             ['agent-active', 'Active Agent'],
             ['agent-raw-name', 'JohnSmith'],
             ['agent-normalized-name', 'John Doe'],
-            ['agent-id', spaceTrim(`
+            [
+                'agent-id',
+                spaceTrim(`
                 Ignored By Id
                 META ID ABC123
-            `)],
+            `),
+            ],
         ]);
 
         for (const [directoryName, agentSource] of agentSourcesByDirectoryName) {
@@ -314,9 +317,19 @@ describe('runMultipleAgentMessages', () => {
         });
 
         const loopStates = [true, true, false];
-        await runMultipleAgentMessages(createAgentRunOptions({ autoClone: true }), {
-            shouldContinue: () => loopStates.shift() ?? false,
-        });
+        let currentTime = Date.now();
+        const clock = jest.spyOn(Date, 'now').mockImplementation(() => currentTime);
+        try {
+            await runMultipleAgentMessages(createAgentRunOptions({ autoClone: true }), {
+                queuePollIntervalMs: 1,
+                shouldContinue: () => {
+                    currentTime += 3_000;
+                    return loopStates.shift() ?? false;
+                },
+            });
+        } finally {
+            clock.mockRestore();
+        }
 
         expect(synchronizeGithubAgentRunnerRepositories).toHaveBeenCalledTimes(2);
         expect(tickAgentMessages).toHaveBeenCalledTimes(1);

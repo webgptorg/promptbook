@@ -85,14 +85,9 @@ type RunUserChatJobPersistenceController = ReturnType<typeof createRunUserChatJo
 /**
  * Runs one claimed durable chat job to completion.
  *
- * @deprecated Agents Server chat execution is now externalized through git-backed runner repositories.
+ * Workspace chat reuses this worker with the shared Coder harness. Standalone deployments retain their folder workers.
  */
 export async function runUserChatJob(job: UserChatJobRecord): Promise<RunUserChatJobResult> {
-    const startContext = await resolveRunUserChatJobStartContext(job);
-    if (!startContext) {
-        return 'cancelled';
-    }
-
     const runState: RunUserChatJobExecutionState = {
         isCancellationRequested: job.cancelRequestedAt !== null,
         hasQueuedCompletedPersistence: false,
@@ -106,6 +101,8 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<RunUserCha
     });
 
     try {
+        const startContext = await resolveRunUserChatJobStartContext(job);
+        if (!startContext) return 'cancelled';
         const executionContext = await createRunUserChatJobExecutionContext({
             job,
             ...startContext,
@@ -119,6 +116,13 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<RunUserCha
             abortController,
             heartbeatController,
         });
+    } catch (error) {
+        await persistUserChatJobTerminalState({
+            job,
+            status: runState.isCancellationRequested ? 'CANCELLED' : 'FAILED',
+            failureReason: error instanceof Error ? error.message : String(error),
+        });
+        return 'failed';
     } finally {
         heartbeatController.stop();
         await heartbeatController.whenIdle().catch(() => undefined);
@@ -158,10 +162,7 @@ function createRunUserChatJobProgressReporter(
  * @private function of `runUserChatJob`
  */
 async function resolveRunUserChatJobStartContext(job: UserChatJobRecord): Promise<RunUserChatJobStartContext | null> {
-    const [chat, userRow] = await Promise.all([
-        getUserChatForJobRunner(job),
-        getUserById(job.userId),
-    ]);
+    const [chat, userRow] = await Promise.all([getUserChatForJobRunner(job), getUserById(job.userId)]);
 
     if (!chat) {
         await finalizeUserChatJob({
@@ -428,10 +429,7 @@ async function handleRunUserChatJobExecutionFailure(options: {
         error: options.error,
     });
     const latestState = options.persistenceController.getLatestState();
-    const prompt = createRunUserChatJobTerminalPromptSnapshot(
-        options.executionContext,
-        latestState.toolCalls,
-    );
+    const prompt = createRunUserChatJobTerminalPromptSnapshot(options.executionContext, latestState.toolCalls);
 
     if (options.runState.isCancellationRequested || isUserChatJobCancelledError(options.error)) {
         await persistUserChatJobTerminalState({
@@ -516,7 +514,9 @@ async function persistRunUserChatJobLearnedAgentSource(
     });
 
     if (learnedAgentSource !== null) {
-        await executionContext.collection.updateAgentSource(executionContext.agentPermanentId, learnedAgentSource);
+        await executionContext.collection.updateAgentSource(executionContext.agentPermanentId, learnedAgentSource, {
+            expectedSource: executionContext.unresolvedAgentSource,
+        });
     }
 }
 

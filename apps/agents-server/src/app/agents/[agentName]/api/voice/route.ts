@@ -68,13 +68,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     }
 
     if (!isVoiceTtsSttEnabled) {
-        return new Response(
-            JSON.stringify({ error: 'Text-to-speech / speech-to-text is disabled on this server' }),
-            {
-                status: 403,
-                headers: { 'Content-Type': 'application/json' },
-            },
-        );
+        return new Response(JSON.stringify({ error: 'Text-to-speech / speech-to-text is disabled on this server' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 
     let { agentName } = await params;
@@ -188,6 +185,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
             inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
         });
+        if (process.env.PTBK_AGENTS_SERVER_WORKSPACE && !process.env.OPENAI_API_KEY)
+            return Response.json(
+                {
+                    error: 'Voice transcription requires an explicitly configured OpenAI voice provider. Use the workspace text chat with its configured harness.',
+                },
+                { status: 409 },
+            );
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agent = new Agent({
             isVerbose: true,
@@ -270,7 +274,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             });
 
             if (learnedAgentSource !== null) {
-                await collection.updateAgentSource(agentPermanentId, learnedAgentSource);
+                await collection.updateAgentSource(agentPermanentId, learnedAgentSource, {
+                    expectedSource: unresolvedAgentSource,
+                });
             }
         }
 

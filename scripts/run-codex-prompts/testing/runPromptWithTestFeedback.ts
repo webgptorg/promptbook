@@ -78,6 +78,7 @@ export async function runPromptWithTestFeedback(
         options.onAttemptStarted?.(1);
         await waitForPromptAttemptPauseCheckpoint(options.waitForPauseCheckpoint, options.runner.name, 1);
 
+        options.signal?.throwIfAborted();
         const result = await runRunnerPromptStep({
             runOptions: options,
             prompt: options.prompt,
@@ -95,6 +96,7 @@ export async function runPromptWithTestFeedback(
         options.onAttemptStarted?.(attemptCount);
         await waitForPromptAttemptPauseCheckpoint(options.waitForPauseCheckpoint, options.runner.name, attemptCount);
 
+        options.signal?.throwIfAborted();
         const result = await runRunnerPromptStep({
             runOptions: options,
             prompt: promptForCurrentAttempt,
@@ -103,8 +105,11 @@ export async function runPromptWithTestFeedback(
         });
 
         await waitForVerificationPauseCheckpoint(options.waitForPauseCheckpoint, normalizedTestCommand, attemptCount);
-        console.info(colors.gray(`Running verification command after attempt #${attemptCount}: ${normalizedTestCommand}`));
+        console.info(
+            colors.gray(`Running verification command after attempt #${attemptCount}: ${normalizedTestCommand}`),
+        );
 
+        options.signal?.throwIfAborted();
         const failedVerification = await runVerificationStep({
             runPromptTestCommandExecutor,
             testCommand: normalizedTestCommand,
@@ -116,13 +121,12 @@ export async function runPromptWithTestFeedback(
             return { ...result, attemptCount, steps: stepTracker.steps };
         }
 
+        options.signal?.throwIfAborted();
         const fullVerificationOutput = formatUnknownErrorDetails(failedVerification.error);
         const feedbackVerificationOutput = limitTestOutput(fullVerificationOutput);
 
         if (attemptCount >= MAX_PROMPT_TEST_ATTEMPTS) {
-            console.error(
-                colors.red(`Verification failed for ${options.promptLabel} after ${attemptCount} attempts.`),
-            );
+            console.error(colors.red(`Verification failed for ${options.promptLabel} after ${attemptCount} attempts.`));
 
             throw new Error(
                 buildFinalVerificationFailureMessage({
@@ -174,6 +178,10 @@ async function runRunnerPromptStep(options: {
         logPath: runOptions.logPath,
         preserveArtifactsOnSuccess: runOptions.preserveArtifactsOnSuccess,
         waitForPauseCheckpoint: runOptions.waitForPauseCheckpoint,
+        signal: runOptions.signal,
+        takeSkipWaitingRequest: runOptions.takeSkipWaitingRequest,
+        environment: runOptions.environment,
+        shouldPrintLiveOutput: runOptions.shouldPrintLiveOutput,
     });
 
     stepTracker.finishStep(
@@ -202,6 +210,8 @@ async function runVerificationStep(options: {
     try {
         await runPromptTestCommandExecutor({
             command: testCommand,
+            signal: runOptions.signal,
+            environment: runOptions.environment,
             projectPath: runOptions.projectPath,
             scriptPath: buildPromptTestScriptPath(runOptions.scriptPath),
             logPath: runOptions.logPath,

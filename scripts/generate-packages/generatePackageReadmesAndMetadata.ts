@@ -1,3 +1,4 @@
+import { PROMPTBOOK_RUNTIME_IGNORE_RULES } from '../../src/utils/filesystem/promptbookRuntimeArtifacts';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import { spaceTrim } from 'spacetrim';
 import type { PackageJson } from 'type-fest';
@@ -372,16 +373,18 @@ async function writeGeneratedPackageIgnoreFiles(packageBasename: string): Promis
         gitIgnoredPaths.push('agents', 'books', 'security.config.ts', 'servers.ts', 'src');
     }
 
-    await writeFile(
-        `./packages/${packageBasename}/.gitignore`,
-        gitIgnoredPaths.join('\n'),
-    );
+    await writeFile(`./packages/${packageBasename}/.gitignore`, gitIgnoredPaths.join('\n'));
     await writeFile(
         `./packages/${packageBasename}/.npmignore`,
         spaceTrim(`
             # ${GENERATOR_WARNING}
 
             stats.html
+            ${PROMPTBOOK_RUNTIME_IGNORE_RULES.join('\n')}
+            **/*.sqlite
+            **/*.sqlite-*
+            **/*.sqlite3
+            **/*.sqlite3-*
         `),
     );
 }

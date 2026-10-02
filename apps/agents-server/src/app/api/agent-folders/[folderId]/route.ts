@@ -1,3 +1,4 @@
+import { mutateAgentOrganizationRoute } from '@/src/utils/workspace/workspaceAgentStorage';
 import { ConflictError } from '@promptbook-local/core';
 import { NextResponse } from 'next/server';
 import { translateSupabaseUniqueConstraintError } from '../../../../../../../src/utils/database/uniqueConstraint';
@@ -14,7 +15,7 @@ import { getCurrentUser } from '../../../../utils/getCurrentUser';
  * @param params - Route params containing the folder id.
  * @returns JSON response with the updated folder.
  */
-export async function PATCH(request: Request, { params }: { params: Promise<{ folderId: string }> }) {
+async function handlePATCH(request: Request, { params }: { params: Promise<{ folderId: string }> }) {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
         return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
@@ -89,9 +90,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ fo
             {
                 suffix: 'AgentFolder_parent_name_key',
                 buildError: () =>
-                    new ConflictError(
-                        `${conflictName} already exists at this level. Pick another name and try again.`,
-                    ),
+                    new ConflictError(`${conflictName} already exists at this level. Pick another name and try again.`),
             },
         ]);
 
@@ -115,7 +114,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ fo
  * @param params - Route params containing the folder id.
  * @returns JSON response confirming deletion.
  */
-export async function DELETE(request: Request, { params }: { params: Promise<{ folderId: string }> }) {
+async function handleDELETE(request: Request, { params }: { params: Promise<{ folderId: string }> }) {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
         return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
@@ -161,4 +160,14 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ f
     }
 
     return NextResponse.json({ success: true });
+}
+
+/** Applies this authorized logical mutation through the selected agent storage. */
+export async function PATCH(request: Request, context: { params: Promise<{ folderId: string }> }) {
+    return mutateAgentOrganizationRoute(() => handlePATCH(request, context));
+}
+
+/** Applies this authorized logical mutation through the selected agent storage. */
+export async function DELETE(request: Request, context: { params: Promise<{ folderId: string }> }) {
+    return mutateAgentOrganizationRoute(() => handleDELETE(request, context));
 }

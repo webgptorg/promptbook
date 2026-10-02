@@ -24,3 +24,9 @@ export type StartAgentsServerOptions = {
     readonly nextRuntimeMode: AgentsServerNextRuntimeMode;
     readonly isBuildForced: boolean;
 };
+
+/**
+ * Web preparation does not select a permanent coding agent or harness.
+ * @private shared Agent Server web startup contract
+ */
+export type AgentsServerWebStartOptions = Pick<StartAgentsServerOptions, 'port' | 'nextRuntimeMode' | 'isBuildForced'>;

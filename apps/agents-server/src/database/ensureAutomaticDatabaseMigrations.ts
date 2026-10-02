@@ -25,6 +25,7 @@ const automaticDatabaseMigrationPromiseByPrefix = new Map<string, Promise<void>>
  * @private internal startup helper for Agents Server runtime
  */
 export async function ensureAutomaticDatabaseMigrations(): Promise<void> {
+    if (process.env.PTBK_AGENTS_SERVER_DATABASE === 'sqlite') return;
     const environmentServerPrefixes = listEnvironmentRegisteredServers().map((server) => server.tablePrefix);
 
     if (environmentServerPrefixes.length === 0) {
@@ -44,7 +45,10 @@ export async function ensureAutomaticDatabaseMigrations(): Promise<void> {
 export async function ensureAutomaticDatabaseMigrationsForPrefix(prefix: string): Promise<void> {
     const normalizedPrefix = prefix || '';
     if (!automaticDatabaseMigrationPromiseByPrefix.has(normalizedPrefix)) {
-        automaticDatabaseMigrationPromiseByPrefix.set(normalizedPrefix, createAutomaticDatabaseMigrationPromise(normalizedPrefix));
+        automaticDatabaseMigrationPromiseByPrefix.set(
+            normalizedPrefix,
+            createAutomaticDatabaseMigrationPromise(normalizedPrefix),
+        );
     }
 
     return automaticDatabaseMigrationPromiseByPrefix.get(normalizedPrefix)!;

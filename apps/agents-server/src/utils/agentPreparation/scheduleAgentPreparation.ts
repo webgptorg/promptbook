@@ -9,6 +9,9 @@ import type { AgentPreparationRow, ScheduleAgentPreparationOptions } from './age
  * Schedules (or coalesces) one background preparation request for an agent fingerprint.
  */
 export async function scheduleAgentPreparation(options: ScheduleAgentPreparationOptions): Promise<void> {
+    // Workspace Books are compiled through their configured Coder harness at execution time.
+    // Database preparation would otherwise resolve an unrelated OpenAI provider.
+    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE) return;
     const tablePrefix = normalizeAgentPreparationTablePrefix(options.tablePrefix);
     const repository = createAgentPreparationRepository(tablePrefix);
 

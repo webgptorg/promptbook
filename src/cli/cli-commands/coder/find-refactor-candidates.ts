@@ -1,3 +1,4 @@
+import { withWorkspaceMutation } from '../../../../scripts/run-codex-prompts/git/workspaceMutation';
 import colors from 'colors';
 import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
@@ -66,22 +67,23 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
                 policy: 'mutate',
                 isAskingQuestionsEnabled: cliOptions.questions,
             });
+            return withWorkspaceMutation(workspace, async () => {
+                // Note: Import the function dynamically to avoid loading heavy dependencies until needed
+                const { findRefactorCandidates } = await import(
+                    '../../../../scripts/find-refactor-candidates/find-refactor-candidates'
+                );
 
-            // Note: Import the function dynamically to avoid loading heavy dependencies until needed
-            const { findRefactorCandidates } = await import(
-                '../../../../scripts/find-refactor-candidates/find-refactor-candidates'
-            );
+                try {
+                    await findRefactorCandidates({ level, limit, projectPath: workspace.projectPath });
+                } catch (error) {
+                    assertsError(error);
+                    console.error(colors.bgRed(`${error.name}`));
+                    console.error(colors.red(error.stack || error.message));
+                    throw error;
+                }
 
-            try {
-                await findRefactorCandidates({ level, limit, projectPath: workspace.projectPath });
-            } catch (error) {
-                assertsError(error);
-                console.error(colors.bgRed(`${error.name}`));
-                console.error(colors.red(error.stack || error.message));
-                return process.exit(1);
-            }
-
-            return process.exit(0);
+                return;
+            });
         }),
     );
 }

@@ -2,6 +2,7 @@ import type { string_book } from '@promptbook-local/types';
 import { debounce } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { resolveBookEditorApiErrorMessage } from './resolveBookEditorApiErrorMessage';
+import SHA256 from 'crypto-js/sha256';
 
 /**
  * Delay used before autosave sends a new request after typing.
@@ -103,6 +104,8 @@ export function useBookEditorSaving({ agentName, initialAgentSource }: UseBookEd
      * @private function of useBookEditorWrapper
      */
     const sourceVersionRef = useRef(0);
+    /** Optimistic server revision survives queued local edits; a stale save never overwrites an external edit. */
+    const confirmedSourceRef = useRef(initialAgentSource);
 
     /**
      * Flushes queued autosave requests in-order and confirms server-saved versions.
@@ -128,13 +131,18 @@ export function useBookEditorSaving({ agentName, initialAgentSource }: UseBookEd
                 try {
                     const response = await fetch(createAgentBookSaveUrl(agentName, pendingSave.versionName), {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'text/plain' },
+                        headers: {
+                            'Content-Type': 'text/plain',
+                            'x-promptbook-source-revision': SHA256(confirmedSourceRef.current).toString(),
+                        },
                         body: pendingSave.source,
                     });
 
                     if (!response.ok) {
                         throw new Error(await resolveBookEditorApiErrorMessage(response, 'Failed to save'));
                     }
+                    const result = await response.json();
+                    confirmedSourceRef.current = result.agentSource ?? pendingSave.source;
 
                     setLastConfirmedSourceVersion((previousVersion) =>
                         pendingSave.version > previousVersion ? pendingSave.version : previousVersion,
@@ -174,10 +182,7 @@ export function useBookEditorSaving({ agentName, initialAgentSource }: UseBookEd
      *
      * @private function of useBookEditorWrapper
      */
-    const debouncedEnqueueSave = useMemo(
-        () => debounce(enqueueSave, SAVE_DEBOUNCE_DELAY_MS),
-        [enqueueSave],
-    );
+    const debouncedEnqueueSave = useMemo(() => debounce(enqueueSave, SAVE_DEBOUNCE_DELAY_MS), [enqueueSave]);
 
     /**
      * Schedules one autosave after the debounce delay.
@@ -250,6 +255,7 @@ export function useBookEditorSaving({ agentName, initialAgentSource }: UseBookEd
      * @private function of useBookEditorWrapper
      */
     const replaceWithRestoredSource = useCallback((restoredSource: string_book) => {
+        confirmedSourceRef.current = restoredSource;
         sourceVersionRef.current += 1;
         const restoredVersion = sourceVersionRef.current;
 

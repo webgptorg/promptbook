@@ -196,20 +196,27 @@ export function addPromptRunnerRuntimeOptions(command: Program): void {
  *
  * @private internal utility of `promptbookCli`
  */
-export function addPromptRunnerExecutionOptions(command: Program): void {
+export function addPromptRunnerExecutionOptions(
+    command: Program,
+    defaults: { readonly gitChanges?: GitChangesMode; readonly autoPush?: boolean; readonly autoPull?: boolean } = {},
+): void {
     addPromptRunnerRuntimeOptions(command);
     command.option('--no-commit', 'Leave successful changes in the working directory instead of creating git commits');
     command.addOption(
         new Option('--git-changes <mode>', GIT_CHANGES_OPTION_DESCRIPTION)
             .choices([...GIT_CHANGES_MODE_VALUES])
-            .default(DEFAULT_GIT_CHANGES_MODE),
+            .default(defaults.gitChanges ?? DEFAULT_GIT_CHANGES_MODE),
     );
     command.option(
         '--no-normalize-line-endings',
         'Disable automatic LF normalization for files changed in each coding round',
     );
-    command.option('--auto-push', 'Automatically git push after each commit', false);
-    command.option('--auto-pull', 'Automatically git pull before the first and each subsequent prompt', false);
+    command.option('--auto-push', 'Automatically git push after each commit', defaults.autoPush ?? false);
+    command.option(
+        '--auto-pull',
+        'Automatically git pull before the first and each subsequent prompt',
+        defaults.autoPull ?? false,
+    );
 }
 
 /**

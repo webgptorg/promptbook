@@ -38,9 +38,12 @@ export async function runNextBuild(options: {
     readonly environment: NodeJS.ProcessEnv;
     readonly nextCliPath: string;
     readonly onBuildOutput?: (chunk: string) => void;
+    readonly signal?: AbortSignal;
 }): Promise<void> {
     for (let attempt = 1; attempt <= AGENTS_SERVER_BUILD_MAX_ATTEMPTS; attempt++) {
+        options.signal?.throwIfAborted();
         const exitStatus = await runNextBuildAttempt(options);
+        options.signal?.throwIfAborted();
 
         if (exitStatus.code === 0) {
             return;
@@ -63,12 +66,14 @@ async function runNextBuildAttempt(options: {
     readonly environment: NodeJS.ProcessEnv;
     readonly nextCliPath: string;
     readonly onBuildOutput?: (chunk: string) => void;
+    readonly signal?: AbortSignal;
 }): Promise<NextBuildExitStatus> {
     return await new Promise<NextBuildExitStatus>((resolveBuild, rejectBuild) => {
         const buildProcess = spawn(process.execPath, [options.nextCliPath, 'build'], {
             cwd: options.appPath,
             env: createNextBuildProcessEnvironment(options.environment),
             stdio: ['ignore', 'pipe', 'pipe'],
+            ...(options.signal ? { signal: options.signal } : {}),
         });
 
         buildProcess.stdout?.on('data', (chunk) => {
@@ -79,6 +84,7 @@ async function runNextBuildAttempt(options: {
         });
 
         buildProcess.once('error', (error) => {
+            if (options.signal?.aborted) return; // Wait for close before releasing startup resources.
             rejectBuild(createNextBuildSpawnError(error));
         });
         buildProcess.once('close', (code, signal) => {

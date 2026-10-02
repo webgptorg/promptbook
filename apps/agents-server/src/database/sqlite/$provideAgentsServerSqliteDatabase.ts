@@ -113,3 +113,17 @@ export function $resetAgentsServerSqliteDatabaseForTests(): void {
     }
     sqliteDatabaseByPath.clear();
 }
+
+/**
+ * Closes only the SQLite connections owned by one stopping workspace supervisor.
+ *
+ * @private exported from Agents Server SQLite utilities
+ */
+export function $closeAgentsServerSqliteDatabases(databasePaths: ReadonlyArray<string>): void {
+    for (const path of databasePaths) {
+        const database = sqliteDatabaseByPath.get(path);
+        database?.pragma('wal_checkpoint(TRUNCATE)');
+        database?.close?.();
+        sqliteDatabaseByPath.delete(path);
+    }
+}

@@ -5,7 +5,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { promisify } from 'util';
 import { runCodexPrompts } from '../../../../scripts/run-codex-prompts/main/runCodexPrompts';
-import { runCodexPromptsServer } from '../../../../scripts/run-codex-prompts/main/runCodexPromptsServer';
+import { startWorkspaceServer } from '../../../../scripts/run-codex-prompts/workspace/startWorkspaceServer';
 import { pingCoderHarness } from '../../../../scripts/run-codex-prompts/ping/pingCoderHarness';
 import { verifyPrompts } from '../../../../scripts/verify-prompts/verify-prompts';
 import { findRefactorCandidates } from '../../../../scripts/find-refactor-candidates/find-refactor-candidates';
@@ -24,8 +24,8 @@ jest.mock('../common/promptbook-cli/$ensurePromptbookCliInstallations', () => ({
 }));
 jest.mock('./$ensureCoderHarnessGitignoreRules', () => ({ $ensureCoderHarnessGitignoreRules: jest.fn() }));
 jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPrompts', () => ({ runCodexPrompts: jest.fn() }));
-jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPromptsServer', () => ({
-    runCodexPromptsServer: jest.fn(),
+jest.mock('../../../../scripts/run-codex-prompts/workspace/startWorkspaceServer', () => ({
+    startWorkspaceServer: jest.fn(),
 }));
 jest.mock('../../../../scripts/run-codex-prompts/ping/pingCoderHarness', () => ({ pingCoderHarness: jest.fn() }));
 jest.mock('../../../../scripts/verify-prompts/verify-prompts', () => ({ verifyPrompts: jest.fn() }));
@@ -44,7 +44,16 @@ const MUTATING_ARGUMENTS = [
     ['run', '--harness', 'openai-codex', '--no-commit', '--git-changes', 'ignore'],
     ['ping', '--harness', 'openai-codex'],
     ['server', '--harness', 'openai-codex'],
-    ['server', '--harness', 'openai-codex', '--no-commit', '--git-changes', 'ignore'],
+    [
+        'server',
+        '--harness',
+        'openai-codex',
+        '--no-commit',
+        '--no-auto-pull',
+        '--no-auto-push',
+        '--git-changes',
+        'ignore',
+    ],
     ['verify'],
 ];
 
@@ -57,7 +66,7 @@ const SIDE_EFFECT_BOUNDARIES = [
     $ensurePromptbookCliInstallations,
     $ensureCoderHarnessGitignoreRules,
     runCodexPrompts,
-    runCodexPromptsServer,
+    startWorkspaceServer,
     pingCoderHarness,
     verifyPrompts,
     findRefactorCandidates,
@@ -139,11 +148,20 @@ describe('registered workspace actions', () => {
         Object.defineProperty(process.stdin, 'isTTY', { configurable: true, value: true });
         prompt.mockResolvedValue({ isInitializingRepository: true });
 
-        await run(['coder', name, '--harness', 'openai-codex', '--no-commit', '--git-changes', 'ignore']);
+        await run([
+            'coder',
+            name,
+            '--harness',
+            'openai-codex',
+            '--no-commit',
+            '--git-changes',
+            'ignore',
+            ...(name === 'server' ? ['--no-auto-pull', '--no-auto-push'] : []),
+        ]);
 
         expect(prompt).toHaveBeenCalledTimes(1);
-        expect($ensureHarnessInstallations).toHaveBeenCalledTimes(1);
-        expect(name === 'run' ? runCodexPrompts : runCodexPromptsServer).toHaveBeenCalledWith(
+        expect($ensureHarnessInstallations).toHaveBeenCalledTimes(name === 'run' ? 1 : 0);
+        expect(name === 'run' ? runCodexPrompts : startWorkspaceServer).toHaveBeenCalledWith(
             expect.objectContaining({
                 noCommit: true,
                 workspace: expect.objectContaining({
@@ -181,7 +199,7 @@ describe('registered workspace actions', () => {
     it.each(['run', 'server'])('warns for %s --dry-run without any setup', async (name) => {
         await run(['coder', name, '--dry-run']);
         expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('No Git working tree'));
-        expect(name === 'run' ? runCodexPrompts : runCodexPromptsServer).toHaveBeenCalledWith(
+        expect(name === 'run' ? runCodexPrompts : startWorkspaceServer).toHaveBeenCalledWith(
             expect.objectContaining({
                 dryRun: true,
                 workspace: expect.objectContaining({ repositoryStatus: 'missing', projectPath }),

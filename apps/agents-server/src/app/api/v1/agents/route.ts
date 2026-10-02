@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         return createManagementApiErrorResponse(
             request,
-            500,
+            error instanceof Error && error.name === 'ConflictError' ? 409 : 500,
             'server_error',
             error instanceof Error ? error.message : 'Failed to list agents.',
         );
@@ -120,22 +120,14 @@ export async function POST(request: NextRequest) {
         if (typeof parsedBody.data.folderId === 'number') {
             const folder = await findOwnedFolderById(identityResult.identity.userId, parsedBody.data.folderId);
             if (!folder || folder.deletedAt) {
-                return createManagementApiErrorResponse(
-                    request,
-                    404,
-                    'not_found',
-                    'Target folder was not found.',
-                );
+                return createManagementApiErrorResponse(request, 404, 'not_found', 'Target folder was not found.');
             }
         }
 
         const collection = await $provideAgentCollectionForServer();
         const sortOrder =
             parsedBody.data.sortOrder ??
-            (await getNextOwnedAgentSortOrder(
-                identityResult.identity.userId,
-                parsedBody.data.folderId ?? null,
-            ));
+            (await getNextOwnedAgentSortOrder(identityResult.identity.userId, parsedBody.data.folderId ?? null));
         const createdAgent = await createAgentWithDefaultVisibility(collection, parsedBody.data.source as string_book, {
             folderId: parsedBody.data.folderId ?? null,
             visibility: parsedBody.data.visibility,
@@ -170,7 +162,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         return createManagementApiErrorResponse(
             request,
-            500,
+            error instanceof Error && error.name === 'ConflictError' ? 409 : 500,
             'server_error',
             error instanceof Error ? error.message : 'Failed to create agent.',
         );

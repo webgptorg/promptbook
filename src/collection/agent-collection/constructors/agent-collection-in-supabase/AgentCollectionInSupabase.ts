@@ -11,6 +11,7 @@ import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { $randomBase58 } from '../../../../utils/random/$randomBase58';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import type { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
+import type { AgentCollection } from '../../AgentCollection';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
 import { buildAgentNameOrPermanentIdFilter } from './buildAgentNameOrPermanentIdFilter';
 import type { CreateAgentPersistenceRecordsOptions } from './createAgentPersistenceRecords';
@@ -92,7 +93,7 @@ type AgentBasicInformationRow = Pick<
  *
  * @public exported from `@promptbook/core`
  */
-export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements AgentCollection */ {
+export class AgentCollectionInSupabase implements AgentCollection {
     /**
      * @param supabaseClient - The initialized Supabase client
      * @param options - Configuration options for the collection (e.g., table prefix, verbosity)

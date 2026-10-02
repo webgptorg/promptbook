@@ -41,6 +41,8 @@ import type { FileUploadAvailability } from '../../utils/upload/fileUploadAvaila
 type LayoutWrapperProps = {
     children: React.ReactNode;
     isAdmin: boolean;
+    /** Enables the project execution navigation in workspace mode. */
+    isWorkspaceServer?: boolean;
     isGlobalAdmin: boolean;
     currentUser: UserInfo | null;
     serverName: string;
@@ -122,6 +124,7 @@ type LayoutWrapperProps = {
 export function LayoutWrapper({
     children,
     isAdmin,
+    isWorkspaceServer = false,
     isGlobalAdmin,
     currentUser,
     serverName,
@@ -220,6 +223,9 @@ export function LayoutWrapper({
                                                                                 <div className="agents-server-app-shell flex flex-col">
                                                                                     <Header
                                                                                         isAdmin={isAdmin}
+                                                                                        isWorkspaceServer={
+                                                                                            isWorkspaceServer
+                                                                                        }
                                                                                         isGlobalAdmin={isGlobalAdmin}
                                                                                         currentUser={currentUser}
                                                                                         serverName={serverName}

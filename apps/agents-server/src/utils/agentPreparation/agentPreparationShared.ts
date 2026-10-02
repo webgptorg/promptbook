@@ -27,6 +27,9 @@ export async function sleepForAgentPreparation(delayMs: number): Promise<void> {
  * @private function of agentPreparation
  */
 export function shouldDisableAgentPreparationBackgroundWorkerLoop(): boolean {
+    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE) {
+        return true;
+    }
     if (process.env.NODE_ENV === 'test') {
         return true;
     }

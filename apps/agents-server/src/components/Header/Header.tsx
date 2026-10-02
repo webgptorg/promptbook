@@ -49,6 +49,7 @@ const EMPTY_HOISTED_MOBILE_MENU_ITEMS: ReadonlyArray<SubMenuItem> = [];
 export function Header(props: HeaderProps) {
     const {
         isAdmin = false,
+        isWorkspaceServer = false,
         isGlobalAdmin = false,
         currentUser = null,
         serverName,
@@ -285,6 +286,7 @@ export function Header(props: HeaderProps) {
     const systemMenuEntries = useMemo(
         () =>
             buildHeaderSystemMenuItems({
+                isWorkspaceServer,
                 translate: t,
                 currentUser,
                 isAdmin,
@@ -297,6 +299,7 @@ export function Header(props: HeaderProps) {
             }),
         [
             currentUser,
+            isWorkspaceServer,
             feedbackMode,
             isAdmin,
             isExperimental,

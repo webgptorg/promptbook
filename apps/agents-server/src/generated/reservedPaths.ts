@@ -39,5 +39,6 @@
         "sw.js",
         "swagger",
         "system",
-        "test"
+        "test",
+        "workspace"
     ] as const;

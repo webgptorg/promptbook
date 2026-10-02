@@ -1,3 +1,4 @@
+import { mutateAgentOrganization } from '../workspace/workspaceAgentStorage';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { DatabaseError, ParseError, UnexpectedError } from '@promptbook-local/core';
 import type { string_book } from '@promptbook-local/types';
@@ -143,7 +144,10 @@ type ExistingAgentRow = Pick<AgentsServerDatabase['public']['Tables']['Agent']['
 /**
  * Active folder row used while recreating folder paths from ZIP entries.
  */
-type ExistingFolderRow = Pick<AgentsServerDatabase['public']['Tables']['AgentFolder']['Row'], 'id' | 'name' | 'parentId' | 'sortOrder'>;
+type ExistingFolderRow = Pick<
+    AgentsServerDatabase['public']['Tables']['AgentFolder']['Row'],
+    'id' | 'name' | 'parentId' | 'sortOrder'
+>;
 
 /**
  * Supabase client type used by the import service.
@@ -201,13 +205,15 @@ export async function importAgentsFromFiles(options: ImportAgentsFromFilesOption
         };
     }
 
-    const importedCount = await persistAgentsImportEntries({
-        entries,
-        existingAgents,
-        conflictResolution: options.conflictResolution,
-        targetFolderId: options.targetFolderId,
-        supabase,
-    });
+    const importedCount = await mutateAgentOrganization(() =>
+        persistAgentsImportEntries({
+            entries,
+            existingAgents,
+            conflictResolution: options.conflictResolution,
+            targetFolderId: options.targetFolderId,
+            supabase,
+        }),
+    );
 
     invalidateCachedActiveOrganizationSnapshots();
 
@@ -308,13 +314,7 @@ async function extractAgentsImportBookEntriesFromZip(file: AgentsImportFile): Pr
 
         const pathSegments = resolveImportedBookPathSegments(normalizedPath);
         const source = await zipEntry.async('string');
-        entries.push(
-            createAgentsImportBookEntry(
-                `${file.name}/${normalizedPath}`,
-                pathSegments.slice(0, -1),
-                source,
-            ),
-        );
+        entries.push(createAgentsImportBookEntry(`${file.name}/${normalizedPath}`, pathSegments.slice(0, -1), source));
     }
 
     return { entries, warnings, ignoredFileCount };
@@ -356,7 +356,11 @@ async function persistAgentsImportEntries(options: {
             continue;
         }
 
-        const folderId = await resolveImportEntryTargetFolderId(folderContext, options.targetFolderId, entry.folderSegments);
+        const folderId = await resolveImportEntryTargetFolderId(
+            folderContext,
+            options.targetFolderId,
+            entry.folderSegments,
+        );
         const sortOrder = await resolveNextImportAgentSortOrder({
             userId: currentUserIdentity.userId,
             folderId,
@@ -536,10 +540,7 @@ async function resolveNextImportAgentSortOrder(options: {
  */
 async function loadExistingAgents(supabase: AgentsImportSupabase): Promise<Array<ExistingAgentRow>> {
     const agentTable = await $getTableName('Agent');
-    const result = await supabase
-        .from(agentTable)
-        .select('agentName, agentSource')
-        .is('deletedAt', null);
+    const result = await supabase.from(agentTable).select('agentName, agentSource').is('deletedAt', null);
 
     if (result.error) {
         throw new DatabaseError(
@@ -564,10 +565,7 @@ async function loadExistingAgents(supabase: AgentsImportSupabase): Promise<Array
  */
 async function loadExistingFolders(supabase: AgentsImportSupabase): Promise<Array<ExistingFolderRow>> {
     const folderTable = await $getTableName('AgentFolder');
-    const result = await supabase
-        .from(folderTable)
-        .select('id, name, parentId, sortOrder')
-        .is('deletedAt', null);
+    const result = await supabase.from(folderTable).select('id, name, parentId, sortOrder').is('deletedAt', null);
 
     if (result.error) {
         throw new DatabaseError(
@@ -590,7 +588,10 @@ async function loadExistingFolders(supabase: AgentsImportSupabase): Promise<Arra
  * @param supabase - Supabase client.
  * @param targetFolderId - Target folder id from the UI.
  */
-async function ensureImportTargetFolderExists(supabase: AgentsImportSupabase, targetFolderId: number | null): Promise<void> {
+async function ensureImportTargetFolderExists(
+    supabase: AgentsImportSupabase,
+    targetFolderId: number | null,
+): Promise<void> {
     if (targetFolderId === null) {
         return;
     }

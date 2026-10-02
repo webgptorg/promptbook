@@ -14,6 +14,7 @@ import { $initializeLoginCommand } from './cli-commands/login';
 import { $initializeMakeCommand } from './cli-commands/make';
 import { $initializePrettifyCommand } from './cli-commands/prettify';
 import { $initializeRunCommand } from './cli-commands/run';
+import { $initializeServerCommand } from './cli-commands/server';
 import { $initializeStartAgentsServerCommand } from './cli-commands/start-agents-server';
 import { $initializeStartPipelinesServerCommand } from './cli-commands/start-pipelines-server';
 import { $initializeTestCommand } from './cli-commands/test-command';
@@ -60,6 +61,7 @@ export function $initializePromptbookCliProgram(program: Command): void {
     // Commands are listed in registration order. Keep `coder` first and hide deprecated commands below.
     $initializeCoderCommand(program);
     $initializeCoderInitCommand(program);
+    $initializeServerCommand(program);
     $initializeAgentCommand(program);
     $initializeAgentFolderCommand(program);
     $initializeAgentsServerCommand(program);

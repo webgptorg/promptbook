@@ -140,10 +140,16 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         title: 'Or keep it running as a server',
         description: (
             <>
-                <code className="text-promptbook-blue">ptbk coder server</code> never stops. It watches{' '}
-                <code className="text-promptbook-blue">prompts/</code> for new files and serves a Trello-style kanban
-                board at <code className="text-promptbook-blue">localhost:4441</code>, where you can follow progress and
-                edit prompts in the browser.
+                <code className="text-promptbook-blue">ptbk server</code> (also{' '}
+                <code className="text-promptbook-blue">ptbk coder server</code>) fills missing setup and serves the
+                complete Agent Server at <code className="text-promptbook-blue">localhost:4441</code>. Chat with every
+                project Book, edit Books/folders with scoped local Git commits, and watch actual jobs, priorities and
+                synchronization. Configured or installed harnesses are selected automatically; unavailable targets
+                remain visibly blocked. Ready work runs across the appropriate agents and all priorities; helpers remain
+                advisers. It watches new PRDs and Books while idle. Accounts, chats, settings and jobs persist in your
+                project’s <code className="text-promptbook-blue">.promptbook</code>
+                SQLite state. Pull/push is automatic when an upstream exists; local-only projects remain usable. Pause
+                or stop through the web app or terminal. No second command or mandatory harness flag is needed.
             </>
         ),
         command: SERVER_COMMAND,

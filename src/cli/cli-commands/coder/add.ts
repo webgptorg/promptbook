@@ -1,3 +1,4 @@
+import { withWorkspaceMutation } from '../../../../scripts/run-codex-prompts/git/workspaceMutation';
 import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
@@ -113,28 +114,30 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
             const workspace = await $preflightWorkspaceRepository({ policy: 'mutate', ...questionsOptions });
-            const { projectPath } = workspace;
+            return withWorkspaceMutation(workspace, async () => {
+                const { projectPath } = workspace;
 
-            const description = await resolveCoderPromptDescription(descriptionArgument, questionsOptions);
+                const description = await resolveCoderPromptDescription(descriptionArgument, questionsOptions);
 
-            // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
-            const { $commitCoderChanges, $startCoderGitSync } = await import(
-                '../../../../scripts/run-codex-prompts/git/coderGitSync'
-            );
+                // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
+                const { $commitCoderChanges, $startCoderGitSync } = await import(
+                    '../../../../scripts/run-codex-prompts/git/coderGitSync'
+                );
 
-            const commitScope = await $startCoderGitSync({ gitSync, workspace });
+                const commitScope = await $startCoderGitSync({ gitSync, workspace });
 
-            const { /* filePath,*/ emojiTag } = await addCoderPrompt({
-                projectPath,
-                description,
-                priority,
-                templateOption,
-            });
+                const { /* filePath,*/ emojiTag } = await addCoderPrompt({
+                    projectPath,
+                    description,
+                    priority,
+                    templateOption,
+                });
 
-            await $commitCoderChanges({
-                gitSync,
-                commitScope,
-                commitMessage: `${emojiTag} Add prompt`,
+                await $commitCoderChanges({
+                    gitSync,
+                    commitScope,
+                    commitMessage: `${emojiTag} Add prompt`,
+                });
             });
         }),
     );

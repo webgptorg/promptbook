@@ -1,3 +1,4 @@
+import { mutateAgentOrganizationRoute } from '@/src/utils/workspace/workspaceAgentStorage';
 import { NextRequest } from 'next/server';
 import { string_book } from '@promptbook-local/types';
 import { z } from 'zod';
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
  * @param params - Route params containing the agent id.
  * @returns Updated owned agent detail.
  */
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ agentId: string }> }) {
+async function handlePATCH(request: NextRequest, { params }: { params: Promise<{ agentId: string }> }) {
     const identityResult = await resolveManagementApiIdentity(request);
     if (!identityResult.success) {
         return createManagementApiErrorResponse(
@@ -139,7 +140,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             return folderValidationResponse;
         }
 
-        await updateOwnedAgentSourceIfNeeded(existingAgent, parsedBody.data);
+        await updateOwnedAgentSourceIfNeeded(
+            existingAgent,
+            parsedBody.data,
+            request.headers.get('x-promptbook-source-revision') ?? undefined,
+        );
 
         const metadataUpdate = await createOwnedAgentMetadataUpdate(
             identityResult.identity.userId,
@@ -188,7 +193,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 
     try {
-        const existingAgent = await findOwnedAgentByIdentifier(identityResult.identity.userId, parsedParams.data.agentId);
+        const existingAgent = await findOwnedAgentByIdentifier(
+            identityResult.identity.userId,
+            parsedParams.data.agentId,
+        );
         if (!existingAgent || existingAgent.deletedAt) {
             return createManagementApiErrorResponse(request, 404, 'not_found', 'Agent was not found.');
         }
@@ -258,6 +266,7 @@ async function validateOwnedAgentTargetFolder(
 async function updateOwnedAgentSourceIfNeeded(
     existingAgent: OwnedAgentRow,
     updateRequest: ManagementAgentUpdateRequest,
+    expectedSourceHash?: string,
 ): Promise<void> {
     if (
         updateRequest.name === undefined &&
@@ -269,7 +278,11 @@ async function updateOwnedAgentSourceIfNeeded(
 
     const collection = await $provideAgentCollectionForServer();
     const nextSource = createUpdatedOwnedAgentSource(existingAgent, updateRequest);
-    await collection.updateAgentSource(getOwnedAgentIdentifier(existingAgent), nextSource);
+    await collection.updateAgentSource(
+        getOwnedAgentIdentifier(existingAgent),
+        nextSource,
+        updateRequest.source === undefined ? { expectedSource: existingAgent.agentSource } : { expectedSourceHash },
+    );
 }
 
 /**
@@ -425,4 +438,9 @@ function mapOwnedAgentLookupErrorToResponse(request: Request, error: unknown) {
         'server_error',
         error instanceof Error ? error.message : 'Failed to resolve agent.',
     );
+}
+
+/** Applies this authorized logical mutation through the selected agent storage. */
+export async function PATCH(request: NextRequest, context: { params: Promise<{ agentId: string }> }) {
+    return mutateAgentOrganizationRoute(() => handlePATCH(request, context));
 }

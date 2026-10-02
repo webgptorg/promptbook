@@ -1,3 +1,35 @@
+-   Added canonical `ptbk server` and made `ptbk coder server` its exact registration/action alias, retaining port
+    `4441`. They launch the actual Agent Server with workspace SQLite state and a shared Coder supervisor rather
+    than the retired standalone kanban/keep-alive implementation. Shared Git preflight runs before setup; dry runs
+    create no artifacts, database, services or jobs. Installed CLI startup passes the selected project/storage
+    context explicitly through the existing app build/runtime packaging and owned child lifecycle.
+-   Introduced an agent collection storage contract and authoritative recursive workspace Books under `agents/`.
+    The app's existing source and folder operations use optimistic atomic saves, versioned stable identities and
+    organization, recoverable mutation journals and one scoped local commit per logical operation. External file
+    changes reconcile derived profiles/caches without auto-committing manual work. Standalone database storage
+    remains available; existing PostgreSQL deployments are neither converted nor deleted.
+-   Added persistent discovery/claims for all ready priorities and explicitly targeted agents, deterministic
+    priority/fair-agent scheduling, unavailable-target diagnostics, source snapshots and interrupted-work review.
+    Developer remains the default implementation role; Planner and TEAM advisers are not broadcast workers.
+    Finite execution, verification, retry, output, TEAM and scoped Git services are reused. Independent workspace
+    chat transports use those same Books and configured harnesses with the existing durable chat machinery.
+-   Workspace synchronization defaults to scoped commits and safe pull/push; finite `coder run` defaults remain
+    unchanged. Local-only projects stay usable. Divergence and dirty pull boundaries pause unsafe integration;
+    failed push preserves completed local work without rerunning it. Cross-process mutation leases coordinate
+    UI/Coder writers; a separate supervisor lease rejects duplicate servers without stealing live locks.
+    Shared Git retries retain unverifiable `index.lock` files for explicit recovery rather than deleting them by
+    age. Server remote commands use bounded, noninteractive execution without changing finite-run opt-ins.
+-   Added an authenticated Project execution view and shared web/terminal pause/resume/stop controls. Workspace
+    exposure defaults to loopback, with project-specific secure account bootstrap. Port conflicts, child failures
+    and signals clean up owned resources. Narrow runtime Git/package exclusions preserve versioned `.promptbook`
+    configuration while excluding SQLite sidecars, credentials, locks and logs. Updated CLI help, generated PRD
+    guide, workspace/Git documentation and the Coder landing page.
+-   Shared harness discovery uses bounded version probes with per-invocation environment/cancellation and terminates
+    only owned process trees on timeout. Workspace retry/provider waits react to the shared terminal waiting control
+    and cancellation without sharing finite-run global controls. The packaged app includes its required Next and
+    Playwright runtime dependencies. Shared project bootstrap and workspace source writes now use the same portable
+    path/symlink confinement; setup rejects escaping or case-colliding managed artifact paths before writing.
+
 -   Added the top-level `ptbk init` entrypoint through the existing `ptbk coder init` initializer. Both initialize
     missing local Git automatically and reuse enclosing repositories, linked worktrees and submodules while keeping
     project scaffolding in the requested directory. Every Coder workspace action now shares a Git preflight before
@@ -164,14 +196,16 @@
 
 -   Added agent-specific prompt routing to `ptbk coder`:
 
-    -   A ready `[ ]` prompt can now target the Book passed in `--agent` with a backtick-delimited path, filename,
-        filename without `.book`, or the Book title from its first line. For example, a run using
-        `--agent agents/coding/developer.book` accepts `agents/coding/developer.book`, `developer.book`,
-        `developer`, and `Promptbook Developer` routing tokens.
-    -   Agent references work alongside the existing model and harness routing tokens, and `ptbk coder list --agent
-        <path.book>` previews the same agent-specific queue without starting a harness.
+        -   A ready `[ ]` prompt can now target the Book passed in `--agent` with a backtick-delimited path, filename,
+            filename without `.book`, or the Book title from its first line. For example, a run using
+            `--agent agents/coding/developer.book` accepts `agents/coding/developer.book`, `developer.book`,
+            `developer`, and `Promptbook Developer` routing tokens.
+        -   Agent references work alongside the existing model and harness routing tokens, and `ptbk coder list --agent
+
+    <path.book>`previews the same agent-specific queue without starting a harness.
+
     -   Added an Unslopper agent preset next to the developer preset in the local VS Code terminal scripts and
-        documented agent-specific routing on the `ptbk coder` landing page.
+        documented agent-specific routing on the`ptbk coder` landing page.
 
 -   The help of `ptbk` does not advertise the deprecated commands anymore. `run`, `login`, `make`, `prettify`, `test`,
     `list-models`, `list-scrapers`, `start-agents-server` and `start-pipelines-server` are all leftovers of the old
@@ -202,15 +236,16 @@
     runtime log holding everything the harness and the verification command had written was a temporary artifact,
     deleted as soon as a successful round was over unless `--preserve-logs` was passed, and lost together with the
     reasoning, the tool calls and the diffs of the run. Each round now writes `prompts/traces/<prompt-file-name>.md`
-    - a trace named exactly like the prompt file it belongs to, with the same `-2` section suffix the temporary
-    scripts of a multi-section prompt file already use. The trace pairs the metadata of the round - which prompt and
-    section it implemented, whether it succeeded or failed, the harness, model, thinking level and login method which
-    ran it, how many coding attempts it took, what each step cost and how long each one ran, the verification
-    command, the start, end and duration, and the error which ended a failed round - with the untouched runtime log
-    of the harness. Because the trace is written before the round is committed, it lands in the very same commit as
-    the prompt it describes, and a task whose isolated worktree cannot be merged back carries its trace into the
-    failure commit instead. A failed round is traced too, next to the `.error.log` it already wrote. Re-running the
-    same prompt overwrites its trace and leaves the earlier ones in the git history.
+
+    -   a trace named exactly like the prompt file it belongs to, with the same `-2` section suffix the temporary
+        scripts of a multi-section prompt file already use. The trace pairs the metadata of the round - which prompt and
+        section it implemented, whether it succeeded or failed, the harness, model, thinking level and login method which
+        ran it, how many coding attempts it took, what each step cost and how long each one ran, the verification
+        command, the start, end and duration, and the error which ended a failed round - with the untouched runtime log
+        of the harness. Because the trace is written before the round is committed, it lands in the very same commit as
+        the prompt it describes, and a task whose isolated worktree cannot be merged back carries its trace into the
+        failure commit instead. A failed round is traced too, next to the `.error.log` it already wrote. Re-running the
+        same prompt overwrites its trace and leaves the earlier ones in the git history.
 
 -   `ptbk coder run` and `ptbk coder server` no longer walk into a full disk. A coding round writes prompt and log
     artifacts, lets the harness rewrite the project, may install npm packages, may create a git worktree for
@@ -241,7 +276,7 @@
 -   `ptbk coder` no longer answers a harness which is not logged in with a wall of raw CLI output. A harness whose
     login is missing or whose session has expired now fails with a short branded `AuthenticationError` which names
     the harness, quotes the one sentence the harness itself reported - such as `Failed to authenticate: OAuth session
-    expired and could not be refreshed` - and says exactly how to sign in again, for example by running `claude` and
+expired and could not be refreshed` - and says exactly how to sign in again, for example by running `claude` and
     then the `/login` command inside it. How each harness is signed in is described once, next to how it is installed
     and detected, and the failure is recognized once for every harness and for every command
     which runs prompts, so `coder run`, `coder server` and `coder ping` all report it the same way. The terminal and

@@ -242,31 +242,39 @@ function createAgentChatReadableStream(options: {
             });
 
             try {
-                const agentKitResult = await context.agentKitCacheManager.getOrCreateAgentKitAgent(
-                    context.agentSource,
-                    context.resolvedAgentName,
-                    await context.baseOpenAiToolsPromise,
-                    {
-                        includeDynamicContext: true,
-                        agentId: context.agentId,
-                        modelRequirements: context.modelRequirements,
-                        onCacheMiss: async () => {
-                            const toolCall = createAssistantPreparationToolCall('Preparing AgentKit agent');
-                            emitToolCalls([toolCall]);
+                const agent = await (async () => {
+                    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE) {
+                        const { prepareWorkspaceChatAgent } = await import(
+                            '../../../../../utils/workspace/prepareWorkspaceChatAgent'
+                        );
+                        return (await prepareWorkspaceChatAgent(context.agentId, context.agentSource)).agent;
+                    }
+                    const agentKitResult = await context.agentKitCacheManager.getOrCreateAgentKitAgent(
+                        context.agentSource,
+                        context.resolvedAgentName,
+                        await context.baseOpenAiToolsPromise!,
+                        {
+                            includeDynamicContext: true,
+                            agentId: context.agentId,
+                            modelRequirements: context.modelRequirements,
+                            onCacheMiss: async () => {
+                                const toolCall = createAssistantPreparationToolCall('Preparing AgentKit agent');
+                                emitToolCalls([toolCall]);
+                            },
                         },
-                    },
-                );
+                    );
 
-                const agent = new Agent({
-                    isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
-                    assistantPreparationMode: 'external',
-                    executionTools: {
-                        llm: agentKitResult.tools,
-                    },
-                    agentSource: context.agentSource,
-                    precomputedModelRequirements: context.modelRequirements,
-                    teacherAgent: await getTeacherRemoteAgent(), // <- [🦋]
-                });
+                    return new Agent({
+                        isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
+                        assistantPreparationMode: 'external',
+                        executionTools: {
+                            llm: agentKitResult.tools,
+                        },
+                        agentSource: context.agentSource,
+                        precomputedModelRequirements: context.modelRequirements,
+                        teacherAgent: await getTeacherRemoteAgent(), // <- [🦋]
+                    });
+                })();
 
                 const response = await agent.callChatModelStream!(
                     {
@@ -337,7 +345,9 @@ function createAgentChatReadableStream(options: {
                     });
 
                     if (learnedAgentSource !== null) {
-                        await context.collection.updateAgentSource(context.agentId, learnedAgentSource);
+                        await context.collection.updateAgentSource(context.agentId, learnedAgentSource, {
+                            expectedSource: context.unresolvedAgentSource,
+                        });
                     }
                 }
 

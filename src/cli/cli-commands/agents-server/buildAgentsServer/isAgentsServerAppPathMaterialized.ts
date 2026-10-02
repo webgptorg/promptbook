@@ -5,10 +5,10 @@ import { resolvePromptbookTemporaryPath } from '../../../../utils/filesystem/pro
  *
  * @private internal utility of `buildAgentsServer`
  */
-export function isAgentsServerAppPathMaterialized(appPath: string): boolean {
+export function isAgentsServerAppPathMaterialized(appPath: string, projectPath = process.cwd()): boolean {
     const normalizedAppPath = appPath.replace(/\\/gu, '/');
     const normalizedMaterializedRuntimePath = resolvePromptbookTemporaryPath(
-        process.cwd(),
+        projectPath,
         'agents-server',
         'runtime',
     ).replace(/\\/gu, '/');

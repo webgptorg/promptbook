@@ -6,6 +6,10 @@ import { toPosixPath } from '../common/runGoScript/toPosixPath';
  * Options for running one verification command after a coding attempt.
  */
 export type RunPromptTestCommandOptions = {
+    /** Cancels this verification process only. */
+    readonly signal?: AbortSignal;
+    /** Project-scoped subprocess environment. */
+    readonly environment?: NodeJS.ProcessEnv;
     command: string;
     projectPath: string;
     scriptPath: string;
@@ -20,6 +24,9 @@ export async function runPromptTestCommand(options: RunPromptTestCommandOptions)
     const projectPath = toPosixPath(options.projectPath);
 
     return await $runGoScriptWithOutput({
+        projectPath: options.projectPath,
+        signal: options.signal,
+        environment: options.environment,
         scriptPath: options.scriptPath,
         scriptContent: spaceTrim(`
             cd "${projectPath}"

@@ -18,6 +18,9 @@ import { computeHash, parseNumber, serializeError } from '@promptbook-local/util
 import { spaceTrim } from 'spacetrim';
 import { DEFAULT_MAX_RECURSION } from '../../../../../../../../src/config';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { hashWorkspaceSource } from '../../../../../../../../scripts/run-codex-prompts/workspace/workspaceAgentFiles';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import { findAgentForCallerWriteAccess } from '@/src/utils/findAgentForCallerWriteAccess';
 
 /**
  * Normalizes optional history version name received from request.
@@ -109,16 +112,27 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             fallbackResolver: baseAgentReferenceResolver,
             federatedAgentImportConfiguration,
         });
-        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
-            adamAgentUrl,
-            recursionLevel,
-            currentAgentUrl: resolvedAgentContext.canonicalAgentUrl,
-            currentAgentAliases: resolvedAgentContext.currentAgentAliases,
-            inheritancePath: inheritancePath as Array<string_agent_url>,
-            agentReferenceResolver,
-            federatedAgentImportConfiguration,
-            agentSourceImporter,
-        });
+        const effectiveAgentSource = process.env.PTBK_AGENTS_SERVER_WORKSPACE
+            ? url.searchParams.get('raw') === 'true'
+                ? agentSource
+                : (
+                      await resolveServerAgentContext({
+                          collection,
+                          agentIdentifier: agentName,
+                          localServerUrl,
+                          fallbackResolver: baseAgentReferenceResolver,
+                      })
+                  ).resolvedAgentSource
+            : await resolveInheritedAgentSource(agentSource, {
+                  adamAgentUrl,
+                  recursionLevel,
+                  currentAgentUrl: resolvedAgentContext.canonicalAgentUrl,
+                  currentAgentAliases: resolvedAgentContext.currentAgentAliases,
+                  inheritancePath: inheritancePath as Array<string_agent_url>,
+                  agentReferenceResolver,
+                  federatedAgentImportConfiguration,
+                  agentSourceImporter,
+              });
         const etag = `W/"${computeHash(effectiveAgentSource)}"`;
 
         if (hasMatchingEtag(request, etag)) {
@@ -127,6 +141,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                 headers: {
                     ETag: etag,
                     'Cache-Control': 'no-cache, max-age=0',
+                    'X-Promptbook-Source-Revision': hashWorkspaceSource(agentSource),
                 },
             });
         }
@@ -137,6 +152,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                 'Content-Type': 'text/plain' /* <- TODO: [🎳] Mime type of book */,
                 ETag: etag,
                 'Cache-Control': 'no-cache, max-age=0',
+                'X-Promptbook-Source-Revision': hashWorkspaceSource(agentSource),
             },
         });
     } catch (error) {
@@ -187,7 +203,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
         agentSource = padBook(agentSource);
 
         const agentId = await collection.getAgentPermanentId(agentName);
-        await collection.updateAgentSource(agentId, agentSource, { versionName });
+        if (!(await findAgentForCallerWriteAccess(agentId)))
+            return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
+        await collection.updateAgentSource(agentId, agentSource, {
+            versionName,
+            expectedSourceHash: request.headers.get('x-promptbook-source-revision') ?? undefined,
+        });
+        agentSource = await collection.getAgentSource(agentId);
         scheduleAgentGoalChatModifiedNote({
             agentPermanentId: agentId,
             agentName,
@@ -222,7 +244,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
                 // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
             ),
             {
-                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
+                status: error.name === 'ConflictError' ? 409 : 400,
                 headers: { 'Content-Type': 'application/json' },
             },
         );

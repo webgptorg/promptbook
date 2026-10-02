@@ -28,15 +28,18 @@ export type AgentsServerRuntimePaths = {
  *
  * @private internal utility of `startAgentsServer`
  */
-export async function resolveAgentsServerRuntimePaths(): Promise<AgentsServerRuntimePaths> {
-    const launchWorkingDirectory = process.cwd();
+export async function resolveAgentsServerRuntimePaths(
+    launchWorkingDirectory = process.cwd(),
+    options: { readonly agentRootPath?: string; readonly logDirectoryPath?: string } = {},
+): Promise<AgentsServerRuntimePaths> {
     const appPath = await resolveAgentsServerAppPath();
-    const logDirectoryPath = join(launchWorkingDirectory, AGENTS_SERVER_LOG_DIRECTORY_NAME);
+    const logDirectoryPath = options.logDirectoryPath ?? join(launchWorkingDirectory, AGENTS_SERVER_LOG_DIRECTORY_NAME);
 
     return {
         launchWorkingDirectory,
         appPath,
-        agentRootPath: resolvePromptbookTemporaryPath(launchWorkingDirectory, 'agents-server', 'agents'),
+        agentRootPath:
+            options.agentRootPath ?? resolvePromptbookTemporaryPath(launchWorkingDirectory, 'agents-server', 'agents'),
         logDirectoryPath,
         nextLogPath: join(logDirectoryPath, 'agents-server-next.log'),
         runnerLogPath: join(logDirectoryPath, 'agents-server-runner.log'),

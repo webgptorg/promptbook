@@ -12,26 +12,26 @@ export async function register(): Promise<void> {
         return;
     }
 
-    if (process.env.NEXT_RUNTIME !== 'nodejs') {
-        return;
-    }
+    if (process.env.NEXT_RUNTIME === 'nodejs') {
+        try {
+            await import('./sentry.server.config');
 
-    try {
-        await import('./sentry.server.config');
+            const { registerServerErrorSentryLogging } = await import(
+                './utils/errorReporting/registerServerErrorSentryLogging'
+            );
+            registerServerErrorSentryLogging();
 
-        const { registerServerErrorSentryLogging } = await import('./utils/errorReporting/registerServerErrorSentryLogging');
-        registerServerErrorSentryLogging();
-
-        const { registerNodeRuntimeInstrumentation } = await import('./instrumentation-node');
-        await registerNodeRuntimeInstrumentation();
-    } catch (error) {
-        console.error('❌ Agents Server instrumentation hook failed before startup hooks finished.', {
-            nextRuntime: process.env.NEXT_RUNTIME,
-            nodeEnv: process.env.NODE_ENV,
-            errorName: error instanceof Error ? error.name : undefined,
-            errorMessage: error instanceof Error ? error.message : String(error),
-            errorStack: error instanceof Error ? error.stack : undefined,
-        });
+            const { registerNodeRuntimeInstrumentation } = await import('./instrumentation-node');
+            await registerNodeRuntimeInstrumentation();
+        } catch (error) {
+            console.error('❌ Agents Server instrumentation hook failed before startup hooks finished.', {
+                nextRuntime: process.env.NEXT_RUNTIME,
+                nodeEnv: process.env.NODE_ENV,
+                errorName: error instanceof Error ? error.name : undefined,
+                errorMessage: error instanceof Error ? error.message : String(error),
+                errorStack: error instanceof Error ? error.stack : undefined,
+            });
+        }
     }
 }
 

@@ -171,7 +171,18 @@ export default function () {
                 input: entryIndexFilePath,
                 output,
                 plugins,
-                external,
+                // The workspace CLI embeds the app's Node storage and shared harness services.
+                // Keep their SDK/native dependencies external, including package subpaths; resolving
+                // those imports as TypeScript source can accidentally bundle declaration-only modules.
+                external:
+                    packageBasename === 'cli'
+                        ? (id) =>
+                              external.includes(id) ||
+                              id.startsWith('node:') ||
+                              Object.keys(dependencies).some(
+                                  (dependency) => id === dependency || id.startsWith(dependency + '/'),
+                              )
+                        : external,
             };
         });
 }
@@ -219,6 +230,7 @@ export function getPackagesMetadataForRollup() {
                           'typescript',
                           'ts-node',
                           'next',
+                          'playwright',
                           'lucide-react',
                           'raw-loader',
                           'tailwindcss',

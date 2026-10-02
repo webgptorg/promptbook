@@ -11,6 +11,7 @@ import { isAgentsServerAppPath } from './isAgentsServerAppPath';
 export async function resolveAgentsServerAppPath(): Promise<string> {
     const candidates = [
         join(process.cwd(), 'apps', 'agents-server'),
+        join(__dirname, '..', 'apps', 'agents-server'),
         join(__dirname, '..', '..', '..', '..', '..', 'apps', 'agents-server'),
         join(__dirname, '..', '..', '..', 'apps', 'agents-server'),
         join(__dirname, '..', '..', 'apps', 'agents-server'),

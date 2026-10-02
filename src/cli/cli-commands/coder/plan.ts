@@ -1,3 +1,4 @@
+import { withWorkspaceMutation } from '../../../../scripts/run-codex-prompts/git/workspaceMutation';
 import { join, relative } from 'path';
 import type { Command as Program } from 'commander';
 import { readFile } from 'fs/promises';
@@ -60,65 +61,70 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
                 policy: 'mutate',
                 isAskingQuestionsEnabled: cliOptions.questions,
             });
-            if (cliOptions.questions === false) {
-                throw new NotAllowed(
-                    spaceTrim(
-                        '`ptbk coder plan` requires an interactive conversation and review. Run it without `--no-questions` in a terminal.',
-                    ),
-                );
-            }
-            const terminal = createPlanningTerminal();
-            try {
-                const { projectPath } = workspace;
-                if (gitSync.isCommitEnabled) {
-                    assertPlanningCommitSafe(projectPath);
-                    assertPlanningCommitSafe(workspace.repositoryRoot!);
+            return withWorkspaceMutation(workspace, async () => {
+                if (cliOptions.questions === false) {
+                    throw new NotAllowed(
+                        spaceTrim(
+                            '`ptbk coder plan` requires an interactive conversation and review. Run it without `--no-questions` in a terminal.',
+                        ),
+                    );
                 }
-                const commitScope = await $startCoderGitSync({ workspace, gitSync });
-                const saved = await runPlanningSession(
-                    {
-                        ...options,
-                        projectPath,
-                        agent: cliOptions.agent,
-                        template: cliOptions.template,
-                        preexistingChangedPaths: gitSync.isCommitEnabled
-                            ? new Set(
-                                  Array.from(commitScope.snapshotBeforeOperation.changedFileHashes.keys(), (path) =>
-                                      relative(projectPath, join(workspace.repositoryRoot!, path)).replace(/\\/gu, '/'),
-                                  ),
-                              )
-                            : undefined,
-                    },
-                    terminal,
-                );
-                if (terminal.signal.aborted) return;
-                // A file edited by the user after saving must not be swept into a session commit either.
-                if (gitSync.isCommitEnabled) {
-                    assertPlanningCommitSafe(projectPath);
-                    for (const [path, content] of saved) {
-                        if ((await readFile(resolvePlanningPath(projectPath, path, true), 'utf-8')) !== content) {
-                            throw new NotAllowed(
-                                spaceTrim(
-                                    `\`${path}\` changed after planning saved it. The planning commit was skipped; review the working tree.`,
-                                ),
-                            );
+                const terminal = createPlanningTerminal();
+                try {
+                    const { projectPath } = workspace;
+                    if (gitSync.isCommitEnabled) {
+                        assertPlanningCommitSafe(projectPath);
+                        assertPlanningCommitSafe(workspace.repositoryRoot!);
+                    }
+                    const commitScope = await $startCoderGitSync({ workspace, gitSync });
+                    const saved = await runPlanningSession(
+                        {
+                            ...options,
+                            projectPath,
+                            agent: cliOptions.agent,
+                            template: cliOptions.template,
+                            preexistingChangedPaths: gitSync.isCommitEnabled
+                                ? new Set(
+                                      Array.from(commitScope.snapshotBeforeOperation.changedFileHashes.keys(), (path) =>
+                                          relative(projectPath, join(workspace.repositoryRoot!, path)).replace(
+                                              /\\/gu,
+                                              '/',
+                                          ),
+                                      ),
+                                  )
+                                : undefined,
+                        },
+                        terminal,
+                    );
+                    if (terminal.signal.aborted) return;
+                    // A file edited by the user after saving must not be swept into a session commit either.
+                    if (gitSync.isCommitEnabled) {
+                        assertPlanningCommitSafe(projectPath);
+                        for (const [path, content] of saved) {
+                            if ((await readFile(resolvePlanningPath(projectPath, path, true), 'utf-8')) !== content) {
+                                throw new NotAllowed(
+                                    spaceTrim(
+                                        `\`${path}\` changed after planning saved it. The planning commit was skipped; review the working tree.`,
+                                    ),
+                                );
+                            }
                         }
                     }
+                    await $commitCoderChanges({
+                        gitSync,
+                        commitScope,
+                        commitMessage: 'Plan project tasks',
+                        relevantPaths: [...saved.keys()].map((path) =>
+                            relative(workspace.repositoryRoot!, join(projectPath, path)).replace(/\\/gu, '/'),
+                        ),
+                    });
+                } catch (error) {
+                    if (!terminal.signal.aborted) throw error;
+                    console.info('Planning cancelled. Saved PRDs remain intact.');
+                } finally {
+                    terminal.close();
                 }
-                await $commitCoderChanges({
-                    gitSync,
-                    commitScope,
-                    commitMessage: 'Plan project tasks',
-                    relevantPaths: [...saved.keys()].map((path) =>
-                        relative(workspace.repositoryRoot!, join(projectPath, path)).replace(/\\/gu, '/'),
-                    ),
-                });
-            } catch (error) {
-                if (!terminal.signal.aborted) throw error;
-                console.info('Planning cancelled. Saved PRDs remain intact.');
-            } finally {
-                terminal.close();
-            }
+            });
         }),
     );
 }

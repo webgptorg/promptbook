@@ -1,3 +1,4 @@
+import { withWorkspaceMutation } from '../../../../scripts/run-codex-prompts/git/workspaceMutation';
 import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
     Option,
@@ -278,10 +279,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 }
 
                 await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
-                await $ensureCoderHarnessGitignoreRules(
-                    workspace.projectPath,
-                    runnerOptions.agentName,
-                    questionsOptions,
+                await withWorkspaceMutation(workspace, () =>
+                    $ensureCoderHarnessGitignoreRules(workspace.projectPath, runnerOptions.agentName, questionsOptions),
                 );
             }
 

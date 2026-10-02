@@ -76,10 +76,10 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         sampleCommand: 'ptbk coder run --harness claude-code --isolate',
     },
     {
-        title: 'Kanban web UI',
+        title: 'Workspace Agent Server',
         description:
-            'ptbk coder server keeps running after the queue is empty, watches for new prompt files and serves a Trello-style board where you can edit prompts in the browser.',
-        sampleCommand: 'ptbk coder server --port 4441 --harness claude-code',
+            'ptbk server serves the complete Agent Server: chat with every project Book, edit agents and folders with scoped Git commits, and watch ready PRDs run across agents and priorities. It fills missing setup and keeps watching when idle. SQLite state stays in your project. ptbk coder server is the same command.',
+        sampleCommand: 'ptbk server --test npm test',
     },
     {
         title: 'Prompt priorities',

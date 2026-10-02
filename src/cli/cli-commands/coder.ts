@@ -53,7 +53,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             - list: List ready prompts in priority order without running them
             - run: Run coding prompts with AI agents
             - ping: Test the connection, response time and quota of one harness and model
-            - server: Start a long-running coder server with a kanban web UI
+            - server: Alias of ptbk server: the complete workspace Agent Server and autonomous Coder
             - verify: Verify completed prompts
             - find-fresh-emoji-tags: Find unused emoji tags
         `),

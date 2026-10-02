@@ -159,6 +159,8 @@ type BuildHeaderSystemMenuItemsOptions = {
     readonly translate: HeaderTranslate;
     readonly currentUser: UserInfo | null;
     readonly isAdmin: boolean;
+    /** Project execution is exposed only by workspace deployments. */
+    readonly isWorkspaceServer?: boolean;
     readonly isGlobalAdmin: boolean;
     readonly isExperimental: boolean;
     readonly feedbackMode: ChatFeedbackMode;
@@ -445,6 +447,7 @@ function createSystemCategory(
  * @private function of Header
  */
 export function buildHeaderSystemMenuItems({
+    isWorkspaceServer = false,
     translate,
     currentUser,
     isAdmin,
@@ -565,6 +568,7 @@ export function buildHeaderSystemMenuItems({
     ];
 
     const administrationSystemItems: SubMenuItem[] = [
+        ...(isWorkspaceServer ? [{ label: 'Project execution', href: '/workspace' }] : []),
         {
             label: translate('header.models'),
             href: '/admin/models',

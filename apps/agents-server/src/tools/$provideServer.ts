@@ -35,6 +35,9 @@ export type ProvidedServer = {
  * @returns Server routing context for the current request.
  */
 const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
+    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE) {
+        return { id: null, publicUrl: new URL(process.env.PTBK_AGENTS_SERVER_URL!), tablePrefix: '' };
+    }
     const headersList = await headers();
     const requestHost = headersList.get('host');
     const xPromptbookServer = headersList.get('x-promptbook-server');

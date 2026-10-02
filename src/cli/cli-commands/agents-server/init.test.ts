@@ -1,3 +1,4 @@
+import { PROMPTBOOK_RUNTIME_IGNORE_RULES } from '../../../utils/filesystem/promptbookRuntimeArtifacts';
 import { spaceTrim } from 'spacetrim';
 import { Command } from 'commander';
 import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
@@ -83,7 +84,9 @@ describe('ptbk agents-server init', () => {
         expect(envContent).toContain('ADMIN_PASSWORD=');
 
         const gitignoreContent = normalizeLineEndings(await readFile(join(projectPath, '.gitignore'), 'utf-8'));
-        expect(gitignoreContent).toBe('# Promptbook Agents Server\nnode_modules\n.promptbook\n.logs\n');
+        expect(gitignoreContent).toBe(
+            `# Promptbook Agents Server\nnode_modules\n${PROMPTBOOK_RUNTIME_IGNORE_RULES.join('\n')}\n.logs\n`,
+        );
     });
 
     it('appends only missing configuration and stays unchanged on repeated init', async () => {
@@ -107,7 +110,11 @@ describe('ptbk agents-server init', () => {
         expect(countOccurrences(envContent, 'OPENAI_API_KEY=')).toBe(1);
 
         const gitignoreContent = normalizeLineEndings(await readFile(join(projectPath, '.gitignore'), 'utf-8'));
-        expect(gitignoreContent).toBe('node_modules\n/custom-rule\n\n# Promptbook Agents Server\n.promptbook\n.logs\n');
+        expect(gitignoreContent).toBe(
+            `node_modules\n/custom-rule\n\n# Promptbook Agents Server\n${PROMPTBOOK_RUNTIME_IGNORE_RULES.join(
+                '\n',
+            )}\n.logs\n`,
+        );
     });
 
     it('prints a summary from the CLI command', async () => {

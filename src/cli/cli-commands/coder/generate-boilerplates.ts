@@ -1,3 +1,4 @@
+import { withWorkspaceMutation } from '../../../../scripts/run-codex-prompts/git/workspaceMutation';
 import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
@@ -76,28 +77,30 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
                 policy: 'mutate',
                 isAskingQuestionsEnabled: cliOptions.questions,
             });
-            const { projectPath } = workspace;
+            return withWorkspaceMutation(workspace, async () => {
+                const { projectPath } = workspace;
 
-            // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
-            const { $commitCoderChanges, $startCoderGitSync } = await import(
-                '../../../../scripts/run-codex-prompts/git/coderGitSync'
-            );
+                // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
+                const { $commitCoderChanges, $startCoderGitSync } = await import(
+                    '../../../../scripts/run-codex-prompts/git/coderGitSync'
+                );
 
-            const commitScope = await $startCoderGitSync({ gitSync, workspace });
+                const commitScope = await $startCoderGitSync({ gitSync, workspace });
 
-            await generatePromptBoilerplate({
-                projectPath,
-                boilerplateCount,
-                templateOption,
+                await generatePromptBoilerplate({
+                    projectPath,
+                    boilerplateCount,
+                    templateOption,
+                });
+
+                await $commitCoderChanges({
+                    gitSync,
+                    commitScope,
+                    commitMessage: `Prompts ${formatBoilerplateCount(boilerplateCount)}`,
+                });
+
+                return;
             });
-
-            await $commitCoderChanges({
-                gitSync,
-                commitScope,
-                commitMessage: `Prompts ${formatBoilerplateCount(boilerplateCount)}`,
-            });
-
-            return process.exit(0);
         }),
     );
 }
