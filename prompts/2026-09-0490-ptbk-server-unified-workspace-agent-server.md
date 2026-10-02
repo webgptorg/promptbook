@@ -1,4 +1,4 @@
-[ ]
+[-] - Wait until better model / manGo
 
 [✨🖥️] Reimplement `ptbk coder server` as the alias of `ptbk server`: the full Agent Server operating autonomously on a Git workspace with file-backed agents and the shared Coder execution engine.
 
