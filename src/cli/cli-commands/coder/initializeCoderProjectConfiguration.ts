@@ -48,31 +48,59 @@ export type CoderInitializationSummary = {
  *
  * @private internal utility of `coder init` command
  */
-export async function initializeCoderProjectConfiguration(projectPath: string): Promise<CoderInitializationSummary> {
-    const promptsDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DIRECTORY_PATH);
-    const promptsReadmeFileStatus = await ensureCoderMarkdownFile(
-        projectPath,
-        PROMPTS_README_FILE_PATH,
-        PROMPTS_README_TEMPLATE,
+export async function initializeCoderProjectConfiguration(
+    projectPath: string,
+    onStepCompleted?: (step: string) => void,
+): Promise<CoderInitializationSummary> {
+    /** Records only completed setup steps so callers can explain partial failures. */
+    async function completeStep<Result>(step: string, operation: Promise<Result>): Promise<Result> {
+        const result = await operation;
+        onStepCompleted?.(step);
+        return result;
+    }
+    const promptsDirectoryStatus = await completeStep('prompts/', ensureDirectory(projectPath, PROMPTS_DIRECTORY_PATH));
+    const promptsReadmeFileStatus = await completeStep(
+        'prompts/README.md',
+        ensureCoderMarkdownFile(projectPath, PROMPTS_README_FILE_PATH, PROMPTS_README_TEMPLATE),
     );
-    const promptsDoneDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH);
-    const promptsTemplatesDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH);
-    const agentsDirectoryStatus = await ensureDirectory(projectPath, CODER_AGENTS_DIRECTORY_PATH);
-    const defaultAgentArtifacts = await ensureCoderDefaultAgentFiles(projectPath);
+    const promptsDoneDirectoryStatus = await completeStep(
+        'prompts/done/',
+        ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH),
+    );
+    const promptsTemplatesDirectoryStatus = await completeStep(
+        'prompts/templates/',
+        ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH),
+    );
+    const agentsDirectoryStatus = await completeStep(
+        'agents/',
+        ensureDirectory(projectPath, CODER_AGENTS_DIRECTORY_PATH),
+    );
+    const defaultAgentArtifacts = await completeStep(
+        'Default Books and TEAM references checked',
+        ensureCoderDefaultAgentFiles(projectPath),
+    );
     const adamRelativeFilePath = `${CODER_AGENTS_DIRECTORY_PATH}/${ADAM_AGENT_BOOK_RELATIVE_PATH}`;
     const adamArtifact = defaultAgentArtifacts.find(
         ({ relativeFilePath }) => relativeFilePath === adamRelativeFilePath,
     )!;
-    const { envFileStatus, initializedEnvVariableNames } = await ensureCoderEnvFile(projectPath);
-    const gitignoreFileStatus = await ensureCoderGitignoreFile(projectPath);
-    const { status: packageJsonFileStatus, addedEntryKeys: addedPackageJsonScriptNames } =
-        await ensureCoderPackageJsonFile(projectPath);
-    const vscodeSettingsFileStatus = await ensureCoderVscodeSettingsFile(projectPath);
+    const { envFileStatus, initializedEnvVariableNames } = await completeStep('.env', ensureCoderEnvFile(projectPath));
+    const gitignoreFileStatus = await completeStep('.gitignore', ensureCoderGitignoreFile(projectPath));
+    const { status: packageJsonFileStatus, addedEntryKeys: addedPackageJsonScriptNames } = await completeStep(
+        'package.json',
+        ensureCoderPackageJsonFile(projectPath),
+    );
+    const vscodeSettingsFileStatus = await completeStep(
+        '.vscode/settings.json',
+        ensureCoderVscodeSettingsFile(projectPath),
+    );
     const referencedArtifactStatuses = [
         ...defaultAgentArtifacts.filter(({ relativeFilePath }) => relativeFilePath !== adamRelativeFilePath),
-        ...(await ensureCoderReferencedArtifacts(
-            projectPath,
-            resolveCoderPackageJsonScriptReferencedArtifactPaths(addedPackageJsonScriptNames),
+        ...(await completeStep(
+            'Script-referenced artifacts checked',
+            ensureCoderReferencedArtifacts(
+                projectPath,
+                resolveCoderPackageJsonScriptReferencedArtifactPaths(addedPackageJsonScriptNames),
+            ),
         )),
     ];
 

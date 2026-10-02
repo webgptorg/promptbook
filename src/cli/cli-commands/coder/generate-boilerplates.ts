@@ -12,6 +12,8 @@ import {
     CODER_GIT_SYNC_DESCRIPTION,
     normalizeCoderGitSyncCliOptions,
 } from '../common/coderGitSyncCliOptions';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import type { BoilerplateCount } from './boilerplateCount';
 import {
@@ -59,6 +61,8 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
     );
     addCoderGitSyncOptions(command);
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
         handleActionErrors(async (cliOptions) => {
             const { count: countOption, template: templateOption } = cliOptions as {
@@ -68,14 +72,18 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
 
             const boilerplateCount = parseBoilerplateCount(countOption);
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
-            const projectPath = process.cwd();
+            const workspace = await $preflightWorkspaceRepository({
+                policy: 'mutate',
+                isAskingQuestionsEnabled: cliOptions.questions,
+            });
+            const { projectPath } = workspace;
 
             // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
             const { $commitCoderChanges, $startCoderGitSync } = await import(
                 '../../../../scripts/run-codex-prompts/git/coderGitSync'
             );
 
-            const commitScope = await $startCoderGitSync({ gitSync, projectPath });
+            const commitScope = await $startCoderGitSync({ gitSync, workspace });
 
             await generatePromptBoilerplate({
                 projectPath,
@@ -107,7 +115,7 @@ export async function generatePromptBoilerplate({
     readonly projectPath: string;
     readonly boilerplateCount: BoilerplateCount;
     readonly templateOption?: string;
-}): Promise<void> {
+}): Promise<ReadonlyArray<string>> {
     const { filesCount, promptsPerFileCount } = boilerplateCount;
 
     // Note: Import these dynamically to avoid circular dependencies and keep CLI fast
@@ -192,6 +200,7 @@ export async function generatePromptBoilerplate({
             ` Successfully created ${promptsCount} prompts in ${filesToCreate.length} prompt boilerplate files! `,
         ),
     );
+    return filesToCreate.map(({ filepath }) => filepath);
 }
 
 /**

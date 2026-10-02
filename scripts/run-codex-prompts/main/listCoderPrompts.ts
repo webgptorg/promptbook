@@ -11,18 +11,13 @@ import type { PromptRunnerIdentity } from '../prompts/isPromptCompatibleWithRunn
  * @public exported from `@promptbook/cli`
  */
 export type ListCoderPromptsOptions = PriorityFilterInput & {
+    /** Resolved project directory supplied by the CLI. */
+    readonly projectPath?: string;
     /**
      * Optional harness, model and Book-agent selection used to omit prompts routed to other runners.
      */
     readonly promptRunnerIdentity?: PromptRunnerIdentity;
 };
-
-/**
- * Directory containing the prompt queue of the current project.
- *
- * @private internal constant of `listCoderPrompts`
- */
-const PROMPTS_DIRECTORY_PATH = join(process.cwd(), 'prompts');
 
 /**
  * Lists ready, fully authored coding prompts in descending priority groups without starting a coding harness.
@@ -32,7 +27,9 @@ const PROMPTS_DIRECTORY_PATH = join(process.cwd(), 'prompts');
  */
 export async function listCoderPrompts(options: ListCoderPromptsOptions = {}): Promise<number> {
     const priorityFilter = normalizePriorityFilter(options);
-    const promptFiles = await loadPromptFiles(PROMPTS_DIRECTORY_PATH);
+    const promptFiles = await loadPromptFiles(join(options.projectPath ?? process.cwd(), 'prompts'), {
+        isMissingDirectoryAllowed: true,
+    });
     const upcomingTasks = listUpcomingTasks(promptFiles, priorityFilter, options.promptRunnerIdentity);
 
     printUpcomingTasks(upcomingTasks);

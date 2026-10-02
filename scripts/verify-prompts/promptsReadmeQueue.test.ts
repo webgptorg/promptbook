@@ -1,3 +1,5 @@
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -16,6 +18,7 @@ describe('prompts README queue safety', () => {
         const originalDirectory = process.cwd();
         const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
         try {
+            await promisify(execFile)('git', ['init'], { cwd: projectPath });
             const promptsDir = join(projectPath, 'prompts');
             for (const directory of ['done', 'templates', 'traces']) {
                 await mkdir(join(promptsDir, directory), { recursive: true });

@@ -1,4 +1,5 @@
 import colors from 'colors';
+import { NotAllowed } from '../../../errors/NotAllowed';
 import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
     Option,
@@ -17,6 +18,8 @@ import {
     CODER_GIT_SYNC_DESCRIPTION,
     normalizeCoderGitSyncCliOptions,
 } from '../common/coderGitSyncCliOptions';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -74,6 +77,8 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
     );
     addCoderGitSyncOptions(command);
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
         handleActionErrors(async (cliOptions) => {
             const { order, ignore } = cliOptions as {
@@ -83,11 +88,23 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
 
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
 
+            const workspace = await $preflightWorkspaceRepository({
+                policy: 'mutate',
+                isAskingQuestionsEnabled: cliOptions.questions,
+            });
+            if (cliOptions.questions === false) {
+                throw new NotAllowed(
+                    spaceTrim(
+                        '`ptbk coder verify` requires answers before changing PRD statuses or archiving files. Run it without `--no-questions` in an interactive terminal.',
+                    ),
+                );
+            }
+
             // Note: Import the main function dynamically to avoid loading heavy dependencies until needed
             const { verifyPrompts } = await import('../../../../scripts/verify-prompts/verify-prompts');
 
             try {
-                await verifyPrompts({ order, ignore, gitSync });
+                await verifyPrompts({ order, ignore, gitSync, workspace });
             } catch (error) {
                 console.error(colors.bgRed('Prompt verification failed:'), error);
                 return process.exit(1);

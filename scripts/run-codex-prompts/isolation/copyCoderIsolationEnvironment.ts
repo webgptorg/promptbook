@@ -17,7 +17,10 @@ const CODER_ENVIRONMENT_FILE_NAME = '.env';
  * The copy is intentionally a snapshot: changing the environment inside the worktree never leaks
  * back into the project the coder was started from.
  */
-export async function copyCoderIsolationEnvironment(worktree: CoderIsolationWorktree): Promise<void> {
+export async function copyCoderIsolationEnvironment(
+    worktree: CoderIsolationWorktree,
+    isolatedProjectPath = worktree.worktreePath,
+): Promise<void> {
     const projectEnvironmentPath = join(worktree.projectPath, CODER_ENVIRONMENT_FILE_NAME);
 
     if (!(await isExistingFile(projectEnvironmentPath))) {
@@ -25,7 +28,7 @@ export async function copyCoderIsolationEnvironment(worktree: CoderIsolationWork
     }
 
     try {
-        await copyFile(projectEnvironmentPath, join(worktree.worktreePath, CODER_ENVIRONMENT_FILE_NAME));
+        await copyFile(projectEnvironmentPath, join(isolatedProjectPath, CODER_ENVIRONMENT_FILE_NAME));
     } catch (error) {
         const details = error instanceof Error ? error.message : String(error);
         console.warn(

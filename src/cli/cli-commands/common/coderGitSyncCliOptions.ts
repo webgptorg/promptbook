@@ -34,7 +34,7 @@ export const CODER_GIT_SYNC_DESCRIPTION = spaceTrim(`
  * Registers the shared `--commit`, `--auto-push` and `--auto-pull` flags on a `ptbk coder` command.
  *
  * Note: Unlike `ptbk coder run`, which commits by default and opts out through `--no-commit`,
- *       these commands never touch git unless the flags are used explicitly.
+ *       these commands only mutate Git when the flags are used explicitly. Workspace detection always runs.
  *
  * @private internal utility of `promptbookCli`
  */

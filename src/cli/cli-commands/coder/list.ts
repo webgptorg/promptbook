@@ -3,6 +3,8 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { addPromptPriorityOptions } from '../common/promptPriorityCliOptions';
 import type { PromptRunnerSelectionCliOptions } from '../common/promptRunnerCliOptions';
@@ -40,6 +42,8 @@ export function $initializeCoderListCommand(program: Program): $side_effect {
     addCoderAgentOption(command);
     addPromptPriorityOptions(command);
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
         handleActionErrors(async (cliOptions) => {
             const {
@@ -58,12 +62,13 @@ export function $initializeCoderListCommand(program: Program): $side_effect {
                 cliOptions as PromptRunnerSelectionCliOptions,
                 { isAgentRequired: false },
             );
+            const workspace = await $preflightWorkspaceRepository({ policy: 'read-only' });
             const resolvedCoderAgentBook =
                 agent === undefined
                     ? undefined
                     : await (
                           await import('../../../../scripts/run-codex-prompts/common/resolveCoderAgent')
-                      ).resolveCoderAgentBook(agent, process.cwd());
+                      ).resolveCoderAgentBook(agent, workspace.projectPath);
             const promptRunnerIdentity =
                 runnerOptions.agentName === undefined &&
                 runnerOptions.model === undefined &&
@@ -78,6 +83,7 @@ export function $initializeCoderListCommand(program: Program): $side_effect {
             // Note: Import dynamically to avoid loading prompt parsing dependencies until this command is used.
             const { listCoderPrompts } = await import('../../../../scripts/run-codex-prompts/main/listCoderPrompts');
             await listCoderPrompts({
+                projectPath: workspace.projectPath,
                 priority,
                 minimumPriority,
                 maximumPriority,

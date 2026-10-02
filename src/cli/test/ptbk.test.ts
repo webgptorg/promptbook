@@ -138,9 +138,17 @@ describe('how promptbookCli works', () => {
     it('should print version for `-v`', () =>
         expect($executePtbkTestCommand(['-v'])).resolves.toBe(PROMPTBOOK_ENGINE_VERSION));
 
+    it('should expose the shared top-level `init` command', () => {
+        const help = getPtbkHelp(['init', '--help']);
+        expect(help).toContain('Initialize Git and Promptbook coder configuration for current project');
+        expect(help).toContain('--no-questions');
+        expect(help).toContain('automatically');
+        expect(help).not.toContain('Deprecated:');
+    });
+
     it('should expose `coder init` command', () =>
         expect(getPtbkHelp(['coder', 'init', '--help'])).toContain(
-            'Initialize Promptbook coder configuration for current project',
+            'Initialize Git and Promptbook coder configuration for current project',
         ));
 
     it('should expose `coder list` command', () =>
@@ -185,7 +193,7 @@ describe('how promptbookCli works', () => {
 
     it('should expose `coder initialize` alias', () =>
         expect(getPtbkHelp(['coder', 'initialize', '--help'])).toContain(
-            'Initialize Promptbook coder configuration for current project',
+            'Initialize Git and Promptbook coder configuration for current project',
         ));
 
     it('should print checked standalone bootstrap summary for `coder init`', async () => {
@@ -202,7 +210,9 @@ describe('how promptbookCli works', () => {
 
             const output = consoleInfoMock.mock.calls.flat().join('\n');
 
-            expect(output).toContain('Promptbook coder configuration initialized.');
+            expect(output).toContain('Promptbook coder configuration setup:');
+            expect(output).toContain('Git repository: initialized');
+            expect(output).toContain('Promptbook project initialized.');
             expect(output).toContain('✔ prompts/: created');
             expect(output).toContain('✔ prompts/templates/common.md: created');
             expect(output).toContain('✔ agents/: created');

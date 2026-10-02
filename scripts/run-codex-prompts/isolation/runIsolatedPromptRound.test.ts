@@ -13,6 +13,14 @@ import { mergeCoderIsolationWorktree } from './mergeCoderIsolationWorktree';
 import { removeCoderIsolationWorktree } from './removeCoderIsolationWorktree';
 import { runIsolatedPromptRound } from './runIsolatedPromptRound';
 
+jest.mock('../../../src/cli/cli-commands/common/workspaceRepository', () => ({
+    $resolveWorkspaceRepository: jest.fn(async (projectPath: string) => ({
+        projectPath,
+        repositoryRoot: projectPath,
+        repositoryStatus: 'reused',
+    })),
+}));
+
 jest.mock('../git/coderCommitScope', () => ({
     captureCoderCommitScope: jest.fn(async (projectPath: string) => ({
         projectPath,

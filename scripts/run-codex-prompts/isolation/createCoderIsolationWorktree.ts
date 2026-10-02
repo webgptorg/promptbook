@@ -1,6 +1,7 @@
 import colors from 'colors';
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
+import { join, relative } from 'path';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { getPromptbookTemporaryGitignoreRule } from '../../../src/utils/filesystem/promptbookTemporaryPath';
 import { formatUnknownErrorMessage } from '../common/formatUnknownErrorMessage';
@@ -30,6 +31,9 @@ type CreateCoderIsolationWorktreeOptions = {
      * Absolute path of the project the coder was started from.
      */
     readonly projectPath: string;
+
+    /** Enclosing Git root, which can differ from the requested project directory. */
+    readonly repositoryRoot?: string;
 
     /**
      * Name of the isolated task, for example `2026-07-0700-ptbk-coder-timing`.
@@ -88,7 +92,10 @@ export async function createCoderIsolationWorktree(
     }
 
     await checkOutWorktree(worktree);
-    await copyCoderIsolationEnvironment(worktree);
+    await copyCoderIsolationEnvironment(
+        worktree,
+        join(worktree.worktreePath, relative(options.repositoryRoot ?? projectPath, projectPath)),
+    );
 
     return worktree;
 }

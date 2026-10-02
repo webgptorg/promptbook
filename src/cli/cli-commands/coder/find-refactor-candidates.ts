@@ -13,6 +13,8 @@ import {
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -51,6 +53,8 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
         createPositiveIntegerOptionParser('--limit'),
     );
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
         handleActionErrors(async (cliOptions) => {
             const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL, limit } = cliOptions as {
@@ -58,13 +62,18 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
                 readonly limit?: number;
             };
 
+            const workspace = await $preflightWorkspaceRepository({
+                policy: 'mutate',
+                isAskingQuestionsEnabled: cliOptions.questions,
+            });
+
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
             const { findRefactorCandidates } = await import(
                 '../../../../scripts/find-refactor-candidates/find-refactor-candidates'
             );
 
             try {
-                await findRefactorCandidates({ level, limit });
+                await findRefactorCandidates({ level, limit, projectPath: workspace.projectPath });
             } catch (error) {
                 assertsError(error);
                 console.error(colors.bgRed(`${error.name}`));

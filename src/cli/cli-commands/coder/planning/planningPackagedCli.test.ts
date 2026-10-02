@@ -1,5 +1,5 @@
 import { execFile } from 'child_process';
-// cspell:ignore onwarn
+// cspell:ignore onwarn NOSYSTEM
 import { existsSync, readFileSync, statSync } from 'fs';
 import { chmod, copyFile, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -129,6 +129,102 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
     });
     afterAll(async () => {
         if (temporaryPath) await rm(temporaryPath, { recursive: true, force: true });
+    });
+
+    it('smoke-tests workspace preflight and both initializers through an installed packed CLI outside the monorepo', async () => {
+        const projectPath = join(temporaryPath, 'workspace-smoke');
+        const installationPath = join(temporaryPath, 'installed-bin');
+        await mkdir(projectPath);
+        await mkdir(installationPath);
+        const entrypoint = join(installationPath, 'ptbk');
+        await symlink(join(packagePath, 'bin/promptbook-cli.js'), entrypoint);
+        const environment = {
+            ...process.env,
+            PATH: `${harnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
+            GIT_CONFIG_GLOBAL: join(temporaryPath, 'empty-git-config'),
+            GIT_CONFIG_NOSYSTEM: '1',
+        };
+        /** Uses the installed executable layout and already installed dependencies, without npm downloads. */
+        const run = (argumentsList: string[], executionEnvironment: NodeJS.ProcessEnv = environment) =>
+            EXECUTE_FILE(process.execPath, [entrypoint, ...argumentsList], {
+                cwd: projectPath,
+                env: executionEnvironment,
+                timeout: 60000,
+                maxBuffer: 2 * 1024 * 1024,
+            });
+        for (const argumentsList of [
+            ['--help'],
+            ['--version'],
+            ['init', '--help'],
+            ['coder', 'init', '--help'],
+            ['coder', 'run', '--help'],
+            ['coder', 'server', '--help'],
+        ]) {
+            await run(argumentsList, { ...environment, PATH: projectPath });
+            expect(await readdir(projectPath)).toEqual([]);
+        }
+        await expect(
+            run([
+                'coder',
+                'run',
+                '--harness',
+                'openai-codex',
+                '--no-commit',
+                '--git-changes',
+                'ignore',
+                '--no-questions',
+            ]),
+        ).rejects.toThrow('No Git working tree');
+        expect(await readdir(projectPath)).toEqual([]);
+        const listing = await run(['coder', 'list']);
+        expect(listing.stderr).toContain('No Git working tree');
+        expect(listing.stdout).toContain('No upcoming tasks');
+        const previewBookPath = join(temporaryPath, 'preview-agents/developer.book');
+        await mkdir(join(temporaryPath, 'preview-agents/.core'), { recursive: true });
+        await writeFile(join(temporaryPath, 'preview-agents/.core/adam.book'), 'Adam\nFROM @Null\n');
+        await writeFile(previewBookPath, 'Preview Developer\nFROM @Null\nPERSONA Inspect pending PRDs.\nCLOSED\n');
+        const preview = await run(['coder', 'run', '--dry-run', '--no-ui', '--agent', previewBookPath]);
+        expect(preview.stderr).toContain('No Git working tree');
+        expect(preview.stdout).toContain('Following prompts need to be written');
+        expect(await readdir(projectPath)).toEqual([]);
+
+        await writeFile(join(projectPath, 'README.md'), '# Existing project\n');
+        const initialized = await run(['init', '--no-questions']);
+        expect(initialized.stdout).toContain('Git repository: initialized');
+        expect(
+            (
+                await EXECUTE_FILE('git', ['rev-parse', '--is-inside-work-tree'], {
+                    cwd: projectPath,
+                    env: environment,
+                })
+            ).stdout.trim(),
+        ).toBe('true');
+        expect((await EXECUTE_FILE('git', ['ls-files'], { cwd: projectPath, env: environment })).stdout.trim()).toBe(
+            '',
+        );
+        expect(await readFile(join(projectPath, 'README.md'), 'utf-8')).toBe('# Existing project\n');
+        const configurationBefore = await readFile(join(projectPath, '.git/config'));
+        const repeated = await run(['coder', 'init', '--no-questions']);
+        expect(repeated.stdout).toContain('Git repository: reused');
+        expect(await readFile(join(projectPath, '.git/config'))).toEqual(configurationBefore);
+        expect((await run(['coder', 'initialize', '--no-questions'])).stdout).toContain('Git repository: reused');
+
+        const secondProjectPath = join(temporaryPath, 'workspace-coder-init');
+        await mkdir(secondProjectPath);
+        const coderInitialized = await EXECUTE_FILE(process.execPath, [entrypoint, 'coder', 'init', '--no-questions'], {
+            cwd: secondProjectPath,
+            env: environment,
+            timeout: 60000,
+        });
+        expect(coderInitialized.stdout).toContain('Git repository: initialized');
+        expect(
+            (
+                await EXECUTE_FILE('git', ['rev-parse', '--is-inside-work-tree'], {
+                    cwd: secondProjectPath,
+                    env: environment,
+                })
+            ).stdout.trim(),
+        ).toBe('true');
     });
 
     it.each(['local', 'packaged'])(

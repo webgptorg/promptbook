@@ -257,9 +257,26 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
     below for installation. Harness execution needs that harness's installation and authentication. Reading,
     editing, and manually implementing PRDs does not.
 
+    Every workspace command checks the enclosing Git working tree, including a parent monorepo, linked
+    worktree, or submodule. The selected project directory still owns its Books, prompts and configuration.
+    An unborn branch (a repository with no commits) and a local repository with no remote are valid.
+    \`ptbk init\` and \`ptbk coder init\` create missing Git metadata automatically, even with
+    \`--no-questions\`, and reuse existing Git without changing history, remotes, hooks, configuration or index.
+    They never stage pre-existing files or create an initial commit by default.
+
+    Other potentially mutating commands show the resolved target and ask once before \`git init\`; accepting
+    resumes the original command. Declining or cancelling stops it before setup, file writes or harness execution.
+    With \`--no-questions\` or noninteractive input, a missing repository fails immediately: run
+    \`ptbk init --no-questions\`, \`ptbk coder init --no-questions\`, or \`git init\` in the target directory,
+    then retry. Disabling commits does not disable this prerequisite. Listing and true \`--dry-run\` previews
+    only warn about missing Git and create no setup files. Missing Git itself, bare repositories, corrupt
+    metadata, ownership errors and permission failures require repair; they never trigger automatic initialization.
+    Remote pull/push options still require your configured remote and identity. Git creation finishes before
+    initialization-time synchronization; partial setup failures report completed steps and require review.
+
     | Command                                                                                   | What it does                                                                                                                                                                                                                                                                                                                                    |
     | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-    | \`ptbk coder init\`                                                                         | Creates missing configuration, local Books, this guide, and fresh-directory boilerplates; preserves project-owned content. \`--no-questions\` skips installation questions/checks.                                                                                                                                                                |
+    | \`ptbk init\` / \`ptbk coder init\`                                                                         | Initializes missing Git, then creates missing configuration, local Books, this guide, and fresh-directory boilerplates; preserves project-owned content. \`--no-questions\` skips installation questions/checks.                                                                                                                                                                |
     | \`ptbk coder add "Describe the reviewed change"\`                                           | Creates one numbered, tagged pending PRD. Accepts a description argument, stdin, or interactive input; \`--priority\` and \`--template\` are available. It does not discuss or implement the task. Review the generated requirements before running.                                                                                                |
     | \`ptbk coder plan --harness openai-codex\`                                                  | Interactive planning with the local Planner. Review proposals; \`/save\` writes pending PRDs, \`/draft\` writes not-ready drafts, \`/discard\` drops proposals, \`/exit\` ends. It changes PRD Markdown only and never implements or starts the queue. Currently this planning command supports the Codex harness in a compatible interactive terminal. |
     | \`ptbk coder list\`                                                                         | Displays fully authored pending tasks grouped by descending priority without execution or file changes. Optional harness/model/agent and priority filters narrow the list.                                                                                                                                                                      |

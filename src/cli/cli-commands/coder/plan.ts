@@ -1,9 +1,12 @@
+import { join, relative } from 'path';
 import type { Command as Program } from 'commander';
 import { readFile } from 'fs/promises';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { spaceTrim } from '../../../utils/organization/spaceTrim';
 import { addCoderGitSyncOptions, normalizeCoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import {
     addPromptRunnerRuntimeOptions,
@@ -38,6 +41,8 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
         '--template <path>',
         'PRD template (defaults to the project-owned prompts/templates/common.md when present)',
     );
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
         handleActionErrors(async (cliOptions) => {
             const { createPlanningTerminal } = await import('./planning/createPlanningTerminal');
@@ -51,11 +56,25 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
             const options = normalizePromptRunnerSelectionCliOptions(cliOptions, { isAgentRequired: true });
             assertPlanningHarnessSupported(options.agentName);
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions);
+            const workspace = await $preflightWorkspaceRepository({
+                policy: 'mutate',
+                isAskingQuestionsEnabled: cliOptions.questions,
+            });
+            if (cliOptions.questions === false) {
+                throw new NotAllowed(
+                    spaceTrim(
+                        '`ptbk coder plan` requires an interactive conversation and review. Run it without `--no-questions` in a terminal.',
+                    ),
+                );
+            }
             const terminal = createPlanningTerminal();
             try {
-                const projectPath = process.cwd();
-                if (gitSync.isCommitEnabled) assertPlanningCommitSafe(projectPath);
-                const commitScope = await $startCoderGitSync({ projectPath, gitSync });
+                const { projectPath } = workspace;
+                if (gitSync.isCommitEnabled) {
+                    assertPlanningCommitSafe(projectPath);
+                    assertPlanningCommitSafe(workspace.repositoryRoot!);
+                }
+                const commitScope = await $startCoderGitSync({ workspace, gitSync });
                 const saved = await runPlanningSession(
                     {
                         ...options,
@@ -63,7 +82,11 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
                         agent: cliOptions.agent,
                         template: cliOptions.template,
                         preexistingChangedPaths: gitSync.isCommitEnabled
-                            ? new Set(commitScope.snapshotBeforeOperation.changedFileHashes.keys())
+                            ? new Set(
+                                  Array.from(commitScope.snapshotBeforeOperation.changedFileHashes.keys(), (path) =>
+                                      relative(projectPath, join(workspace.repositoryRoot!, path)).replace(/\\/gu, '/'),
+                                  ),
+                              )
                             : undefined,
                     },
                     terminal,
@@ -86,7 +109,9 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
                     gitSync,
                     commitScope,
                     commitMessage: 'Plan project tasks',
-                    relevantPaths: [...saved.keys()],
+                    relevantPaths: [...saved.keys()].map((path) =>
+                        relative(workspace.repositoryRoot!, join(projectPath, path)).replace(/\\/gu, '/'),
+                    ),
                 });
             } catch (error) {
                 if (!terminal.signal.aborted) throw error;

@@ -3,10 +3,7 @@ import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 /**
  * Checks whether the current branch has an upstream reference.
  */
-export async function hasUpstreamBranch(
-    projectPath: string,
-    env?: Record<string, string>,
-): Promise<boolean> {
+export async function hasUpstreamBranch(projectPath: string, env?: Record<string, string>): Promise<boolean> {
     try {
         await $execCommand({
             command: 'git rev-parse --abbrev-ref --symbolic-full-name @{upstream}',
@@ -24,10 +21,19 @@ export async function hasUpstreamBranch(
 /**
  * Reads the current local branch name.
  */
-export async function readCurrentBranchName(
-    projectPath: string,
-    env?: Record<string, string>,
-): Promise<string> {
+export async function readCurrentBranchName(projectPath: string, env?: Record<string, string>): Promise<string> {
+    try {
+        // Symbolic HEAD exists even on an unborn branch, before any commit is available to rev-parse.
+        const symbolicBranch = await $execCommand({
+            command: 'git symbolic-ref --quiet --short HEAD',
+            cwd: projectPath,
+            env,
+            isVerbose: false,
+        });
+        if (symbolicBranch.trim()) return symbolicBranch.trim();
+    } catch {
+        // Detached HEAD is not symbolic; preserve the existing HEAD diagnostic and detached-mode behavior.
+    }
     const branch = await $execCommand({
         command: 'git rev-parse --abbrev-ref HEAD',
         cwd: projectPath,

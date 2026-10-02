@@ -107,6 +107,7 @@ describe('pullLatestChanges', () => {
         await expect(pullLatestChanges()).rejects.toThrow(/detached HEAD mode/);
         expect(getCalledCommands(execMock)).toEqual([
             'git rev-parse --abbrev-ref --symbolic-full-name @{upstream}',
+            'git symbolic-ref --quiet --short HEAD',
             'git rev-parse --abbrev-ref HEAD',
         ]);
     });

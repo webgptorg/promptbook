@@ -1,6 +1,33 @@
-[x] by Promptbook Developer on OpenAI Codex `gpt-6.1-sol` thinking `max` (ChatGPT account) - Implementation ~$0.7105 an hour; Testing 3 minutes
+Timestamp: 2026-10-01T16:41:27.560Z
+Prompt: prompts/2026-09-0480-ptbk-coder-git-repository-preflight.md#1
+Prompt file: /Users/hejny/work/promptbook/prompts/2026-09-0480-ptbk-coder-git-repository-preflight.md
+Prompt section: 1
+Prompt summary: Ensure workspace-dependent Coder commands check for a Git repository, and initialize Git automatically through `ptbk init` and `ptbk coder init`.
+Runner: OpenAI Codex (gpt-6.1-sol)
 
-[✨🌱] Ensure workspace-dependent Coder commands check for a Git repository, and initialize Git automatically through `ptbk init` and `ptbk coder init`.
+CLI output and error:
+Error: Command "bash /Users/hejny/work/promptbook/.promptbook/coder-prompts/2026-09-0480-ptbk-coder-git-repository-preflight.sh" exited with code 1
+
+ptbk-codex-login-method: chatgpt
+Reading prompt from stdin...
+2026-10-01T16:24:05.928960Z ERROR codex_models_manager::manager: failed to refresh available models: Connection failed: error sending request
+2026-10-01T16:24:06.028508Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when Client(HttpRequest(HttpRequest("http/request failed: error sending request for url (https://chatgpt.com/backend-api/ps/mcp)")))
+OpenAI Codex v0.159.3
+--------
+workdir: /Users/hejny/work/promptbook
+model: gpt-6.1-sol
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a0f847-b09f-71a1-8a88-d79c40bb6e2f
+--------
+user
+
+## Your Task
+
+Ensure workspace-dependent Coder commands check for a Git repository, and initialize Git automatically through `ptbk init` and `ptbk coder init`.
 
 ```bash
 ptbk init
@@ -53,20 +80,14 @@ ptbk coder run --harness openai-codex
 
 ## Acceptance criteria
 
--   In a temporary non-Git project, an interactive mutating Coder command asks once; accepting initializes the correct directory and resumes the command, while declining or cancelling leaves project files untouched and does not launch a harness.
--   Outside Git, both `--no-questions` and a non-TTY invocation fail promptly for mutating commands without prompting, initializing Git, installing a harness, or writing project state. Read-only and dry-run cases only warn and retain their existing useful output.
--   Both `ptbk init` and `ptbk coder init --no-questions` create a valid repository in a fresh project, reuse it on a second invocation, and preserve existing user-owned files. Test Git initialization separately from optional harness installation.
--   Tests cover a normal repository, an unborn branch, a nested project inside a repository, linked worktrees, a submodule, a bare repository, missing Git, invalid Git metadata, and initialization permission failures. No case accidentally initializes the parent directory or a nested repository.
--   Command-level tests demonstrate that the shared guard runs before side effects for every applicable action, including paths without commit options. Global and subcommand help/version tests show no setup or repository writes.
--   Existing staged and unstaged user changes remain untouched; explicit init with commit options commits only eligible initialization artifacts rather than absorbing unrelated files.
--   Use temporary repositories and mocked prompts/harnesses. Tests must not need network access, paid model calls, or changes to the developer's global Git configuration.
--   Smoke-test the installed CLI outside this monorepo so the new top-level entrypoint and shared helper are included in the published package.
+-   In a temporary non-Git project, 
 
-## Context and related work
-
--   Inspect [top-level CLI registration](../src/cli/$initializePromptbookCliProgram.ts), [Coder registration](../src/cli/cli-commands/coder.ts), [Coder init](../src/cli/cli-commands/coder/init.ts), and [project initialization](../src/cli/cli-commands/coder/initializeCoderProjectConfiguration.ts).
--   Reuse [questions options](../src/cli/cli-commands/common/questionsCliOptions.ts), [Git synchronization](../scripts/run-codex-prompts/git/coderGitSync.ts), and [commit-scope handling](../scripts/run-codex-prompts/git/coderCommitScope.ts). Check [run](../src/cli/cli-commands/coder/run.ts) and [the existing server command](../src/cli/cli-commands/coder/server.ts) for startup ordering.
--   Coordinate with [generated prompts documentation](2026-09-0460-ptbk-coder-init-prompts-readme.md) and [legacy cleanup](2026-09-0470-remove-legacy-pipelines-and-clean-repository.md). Do not restore retired pipeline commands to implement top-level `init`.
--   Keep in mind the DRY _(don't repeat yourself)_ principle. Update CLI help, initialization summaries, the generated workflow README, and the [Coder landing website](../apps/coder-landing) to explain the behavior and noninteractive recovery.
--   Add the implemented changes into the [changelog](../changelog/_current-preversion.md).
-
+...[truncated]
+    at ChildProcess.handleExit (/Users/hejny/work/promptbook/scripts/run-codex-prompts/common/runGoScript/runScriptUntilMarkerIdle.ts:192:23)
+    at ChildProcess.emit (node:events:509:28)
+    at ChildProcess.emit (node:domain:489:12)
+    at maybeClose (node:internal/child_process:1124:16)
+    at Socket.<anonymous> (node:internal/child_process:481:11)
+    at Socket.emit (node:events:509:28)
+    at Socket.emit (node:domain:489:12)
+    at Pipe.<anonymous> (node:net:351:12)

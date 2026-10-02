@@ -56,7 +56,11 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         title: 'Initialize your project',
         description: (
             <>
-                Creates the <code className="text-promptbook-blue">prompts/</code> queue,{' '}
+                <code className="text-promptbook-blue">ptbk init</code> (also{' '}
+                <code className="text-promptbook-blue">ptbk coder init</code>) initializes Git automatically when needed
+                and reuses an existing repository, worktree, submodule, or enclosing monorepo. Your project keeps its
+                own Books and prompts. It creates no commit or remote by default. Then it creates the{' '}
+                <code className="text-promptbook-blue">prompts/</code> queue,{' '}
                 <code className="text-promptbook-blue">prompts/done/</code> archive, the default{' '}
                 <code className="text-promptbook-blue">agents/developer.book</code> and{' '}
                 <code className="text-promptbook-blue">agents/planner.book</code> roles, their Lawyer and Copywriter
@@ -75,7 +79,14 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
                 traces, and the review workflow, with a sample task and a complete manual path. Share the Markdown with
                 another assistant or implement it yourself using ordinary repository tools; the guide works offline
                 without a Promptbook account or installation. Your customized README is preserved and stays outside the
-                runnable queue.
+                runnable queue. Other workspace actions require Git even with{' '}
+                <code className="text-promptbook-blue">--no-commit</code>. In a terminal, accept the Git initialization
+                question once to continue. With <code className="text-promptbook-blue">--no-questions</code> or in CI,
+                run <code className="text-promptbook-blue">ptbk init --no-questions</code>,{' '}
+                <code className="text-promptbook-blue">ptbk coder init --no-questions</code>, or{' '}
+                <code className="text-promptbook-blue">git init</code> first. Listing and{' '}
+                <code className="text-promptbook-blue">--dry-run</code> previews only warn when a repository is missing
+                and create no setup files.
             </>
         ),
         command: INIT_COMMAND,

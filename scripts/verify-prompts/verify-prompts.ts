@@ -1,6 +1,7 @@
 import colors from 'colors';
 import { mkdir, rename, stat } from 'fs/promises';
-import { extname, join, relative } from 'path';
+import { dirname, extname, join, relative } from 'path';
+import type { WorkspaceRepositoryContext } from '../../src/cli/cli-commands/common/workspaceRepository';
 import { loadPromptsModule } from '../../src/cli/common/loadPromptsModule';
 import type { CoderCommitScope } from '../run-codex-prompts/git/coderCommitScope';
 import type { CoderGitSyncOptions } from '../run-codex-prompts/git/coderGitSync';
@@ -24,16 +25,6 @@ import {
     parseVerifyPromptsOrder,
     VERIFY_PROMPTS_ORDER_DESCRIPTIONS,
 } from './VerifyPromptsOrder';
-
-/**
- * Path to the directory that holds the prompt markdown files.
- */
-const PROMPTS_DIR = join(process.cwd(), 'prompts');
-
-/**
- * Destination directory for resolved prompts.
- */
-const DONE_PROMPTS_DIR = join(PROMPTS_DIR, 'done');
 
 /**
  * Maximum number of characters to display when previewing a prompt block.
@@ -69,6 +60,8 @@ type PromptVerificationOutcome = {
  * Options supported by the prompt verification helper.
  */
 export type VerifyPromptsOptions = {
+    /** Resolved project and repository supplied by the workspace preflight. */
+    readonly workspace?: WorkspaceRepositoryContext;
     /**
      * Order in which the prompt files are processed.
      */
@@ -89,6 +82,8 @@ export type VerifyPromptsOptions = {
  * Fully normalized prompt verification options used during one run.
  */
 type NormalizedVerifyPromptsOptions = {
+    /** Resolved project and repository supplied by the workspace preflight. */
+    readonly workspace?: WorkspaceRepositoryContext;
     /**
      * Order in which the prompt files are processed.
      */
@@ -132,7 +127,7 @@ export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERI
         console.info(colors.gray(`Ignored ${ignoredPromptFiles.length} prompt file(s) for this run.`));
     }
     displayTopLevelFileList(initialFiles);
-    await prepareArchiveDirectory();
+    await prepareArchiveDirectory(normalizedOptions);
 
     let promptFiles = initialFiles;
     const skippedFiles = new Set<string>();
@@ -140,7 +135,10 @@ export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERI
     while (true) {
         // Note: The git synchronization is applied around each single verification, not once per whole run,
         //       so each verification commits only the prompt file it has archived or repaired
-        const commitScope = await $startCoderGitSync({ gitSync: normalizedOptions.gitSync });
+        const commitScope = await $startCoderGitSync({
+            gitSync: normalizedOptions.gitSync,
+            workspace: normalizedOptions.workspace,
+        });
         if (normalizedOptions.gitSync.isAutoPullEnabled) {
             // Note: The pull can bring in prompt file changes, so the queue is reloaded before it is used
             promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
@@ -209,7 +207,7 @@ function parseVerifyPromptsCliOptions(args: ReadonlyArray<string>): VerifyPrompt
 async function loadPromptFilesForVerification(
     options: NormalizedVerifyPromptsOptions,
 ): Promise<{ promptFiles: PromptFile[]; ignoredPromptFiles: PromptFile[] }> {
-    const loadedPromptFiles = await loadPromptFiles(PROMPTS_DIR);
+    const loadedPromptFiles = await loadPromptFiles(join(options.workspace?.projectPath ?? process.cwd(), 'prompts'));
     const { promptFiles, ignoredPromptFiles } = partitionPromptFilesByIgnore(loadedPromptFiles, options.ignore);
 
     return { promptFiles: $orderPromptFiles(promptFiles, options.order), ignoredPromptFiles };
@@ -253,8 +251,8 @@ export function partitionPromptFilesByIgnore(
 /**
  * Ensures the destination directory for completed prompts exists.
  */
-async function prepareArchiveDirectory(): Promise<void> {
-    await mkdir(DONE_PROMPTS_DIR, { recursive: true });
+async function prepareArchiveDirectory(options: NormalizedVerifyPromptsOptions): Promise<void> {
+    await mkdir(join(options.workspace?.projectPath ?? process.cwd(), 'prompts/done'), { recursive: true });
 }
 
 /**
@@ -262,6 +260,7 @@ async function prepareArchiveDirectory(): Promise<void> {
  */
 function normalizeVerifyPromptsOptions(options: VerifyPromptsOptions): NormalizedVerifyPromptsOptions {
     return {
+        workspace: options.workspace,
         order: options.order ?? DEFAULT_VERIFY_PROMPTS_ORDER,
         ignore: normalizeIgnoreValues(options.ignore ?? []),
         gitSync: options.gitSync ?? DISABLED_CODER_GIT_SYNC_OPTIONS,
@@ -672,7 +671,7 @@ function displayPromptSnippet(selection: PromptSelection): void {
  * Moves a prompt file to the done folder, avoiding name collisions.
  */
 async function archivePromptFile(file: PromptFile): Promise<void> {
-    const destination = join(DONE_PROMPTS_DIR, file.name);
+    const destination = join(dirname(file.path), 'done', file.name);
     const uniqueDestination = await ensureUniqueDestination(destination);
     await rename(file.path, uniqueDestination);
     const relativePath = relative(process.cwd(), uniqueDestination);

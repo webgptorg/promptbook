@@ -1,3 +1,15 @@
+-   Added the top-level `ptbk init` entrypoint through the existing `ptbk coder init` initializer. Both initialize
+    missing local Git automatically and reuse enclosing repositories, linked worktrees and submodules while keeping
+    project scaffolding in the requested directory. Every Coder workspace action now shares a Git preflight before
+    setup, synchronization, harnesses or server startup, even with commits disabled. Mutating actions ask once in a
+    terminal; refusal, cancellation, `--no-questions` and noninteractive input stop safely with recovery guidance.
+    Read-only inspection and true dry runs only warn when Git is missing. Added distinct metadata, ownership, bare
+    repository and missing-executable diagnostics, including damaged inner metadata masked by a parent repository,
+    unborn-branch scope support, scoped initialization commits and partial-setup reports. Isolated runs retain the
+    selected project's location and environment within the temporary working tree. Added offline repository,
+    command and packed-CLI coverage and updated CLI help, workflow docs and the Coder landing page. The workspace
+    Agent Server redesign is unchanged.
+
 -   Fixed Planner saves for projects under filesystem paths which resolve through aliases, such as macOS `/var` and
     `/private/var`. The save recheck now reuses each validated project-relative PRD path.
 

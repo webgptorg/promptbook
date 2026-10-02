@@ -95,7 +95,9 @@ async function stageCommitChanges(
         });
     }
 
-    if (excludedGitPaths.length === 0) {
+    if (excludedGitPaths.length === 0 || relevantPaths !== undefined) {
+        // Scoped commits never stage excluded files. Preserve the user's index, including on an unborn branch
+        // where resetting a path against HEAD would fail because no first commit exists yet.
         return;
     }
 

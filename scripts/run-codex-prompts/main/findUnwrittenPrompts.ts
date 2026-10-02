@@ -16,12 +16,9 @@ export type FindUnwrittenPromptsOptions = {
      * @default 0
      */
     readonly priority?: number;
+    /** Resolved project directory supplied by the CLI. */
+    readonly projectPath?: string;
 };
-
-/**
- * Constant for prompts dir — mirrors the constant in `runCodexPrompts.ts`.
- */
-const PROMPTS_DIR = join(process.cwd(), 'prompts');
 
 /**
  * Lists and prints all prompt sections that still need to be authored (contain `@@@` placeholder).
@@ -35,7 +32,9 @@ export async function findUnwrittenPrompts(options: FindUnwrittenPromptsOptions 
     const { priority = 0 } = options;
     const priorityFilter = normalizePriorityFilter({ priority });
 
-    const promptFiles = await loadPromptFiles(PROMPTS_DIR);
+    const promptFiles = await loadPromptFiles(join(options.projectPath ?? process.cwd(), 'prompts'), {
+        isMissingDirectoryAllowed: true,
+    });
     const stats = summarizePrompts(promptFiles, priorityFilter);
     printStats(stats, priorityFilter);
 

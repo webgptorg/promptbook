@@ -1,3 +1,4 @@
+import type { WorkspaceRepositoryContext } from '../common/workspaceRepository';
 import colors from 'colors';
 import { ADAM_AGENT_BOOK_RELATIVE_PATH } from '../common/ensureAdamAgentBook';
 import { CODER_AGENTS_DIRECTORY_PATH } from './ensureCoderDeveloperAgentFile';
@@ -11,15 +12,20 @@ import type { CoderInitializationSummary } from './initializeCoderProjectConfigu
  *
  * @private function of `coder init` command
  */
-export function printInitializationSummary(summary: CoderInitializationSummary): void {
+export function printInitializationSummary(
+    summary: CoderInitializationSummary,
+    workspace?: WorkspaceRepositoryContext,
+): void {
     const isUnresolved =
         summary.adamAgentFileStatus === 'unresolved' ||
         summary.referencedArtifactStatuses.some(({ status }) => status === 'unresolved');
     console.info(
         isUnresolved
             ? colors.yellow('Promptbook coder initialization has unresolved artifacts.')
-            : colors.green('Promptbook coder configuration initialized.'),
+            : colors.green('Promptbook coder configuration setup:'),
     );
+    if (workspace)
+        console.info(colors.gray(`✔ Git repository: ${workspace.repositoryStatus} (${workspace.repositoryRoot})`));
     printInitializationStatusLine('prompts/', summary.promptsDirectoryStatus);
     printInitializationStatusLine('prompts/README.md', summary.promptsReadmeFileStatus);
     printInitializationStatusLine('prompts/done/', summary.promptsDoneDirectoryStatus);

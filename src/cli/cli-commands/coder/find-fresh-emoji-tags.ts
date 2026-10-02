@@ -4,6 +4,8 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -25,15 +27,22 @@ export function $initializeCoderFindFreshEmojiTagCommand(program: Program): $sid
         `),
     );
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
-        handleActionErrors(async () => {
+        handleActionErrors(async (cliOptions) => {
+            const workspace = await $preflightWorkspaceRepository({
+                policy: 'read-only',
+                isAskingQuestionsEnabled: cliOptions.questions,
+            });
+
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
             const { findFreshEmojiTag } = await import(
                 '../../../../scripts/find-fresh-emoji-tags/find-fresh-emoji-tags'
             );
 
             try {
-                await findFreshEmojiTag();
+                await findFreshEmojiTag(workspace.projectPath);
             } catch (error) {
                 console.error(colors.bgRed('Failed to find fresh emoji tags:'), error);
                 return process.exit(1);

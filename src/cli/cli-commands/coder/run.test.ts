@@ -258,7 +258,9 @@ describe('$initializeCoderRunCommand', () => {
     it('passes noCommit as true when --no-commit is provided', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-commit'], { from: 'node' });
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-commit', '--git-changes', 'ignore'], {
+            from: 'node',
+        });
 
         expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({

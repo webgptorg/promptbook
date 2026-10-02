@@ -1,4 +1,9 @@
 import colors from 'colors';
+import {
+    $preflightWorkspaceRepository,
+    type WorkspaceRepositoryContext,
+} from '../../../src/cli/cli-commands/common/workspaceRepository';
+import { NotAllowed } from '../../../src/errors/NotAllowed';
 import type { CoderCommitScope } from './coderCommitScope';
 import { captureCoderCommitScope, resolveCoderCommitScopePaths } from './coderCommitScope';
 import { commitChanges } from './commitChanges';
@@ -48,19 +53,29 @@ export const DISABLED_CODER_GIT_SYNC_OPTIONS: CoderGitSyncOptions = Object.freez
 export async function $startCoderGitSync(options: {
     readonly gitSync: CoderGitSyncOptions;
     readonly projectPath?: string;
+    readonly workspace?: WorkspaceRepositoryContext;
 }): Promise<CoderCommitScope> {
-    const { gitSync, projectPath = process.cwd() } = options;
+    const { gitSync } = options;
+    const workspace =
+        options.workspace ??
+        (await $preflightWorkspaceRepository({
+            projectDirectory: options.projectPath,
+            policy: 'mutate',
+            isAskingQuestionsEnabled: false,
+        }));
+    const { projectPath, repositoryRoot } = workspace;
+    if (!repositoryRoot)
+        throw new NotAllowed('Git synchronization requires a valid workspace repository. Run `ptbk init` first.');
 
-    await $pullCoderChanges({ gitSync, projectPath });
+    await $pullCoderChanges({ gitSync, workspace });
 
     if (!gitSync.isCommitEnabled) {
-        // Note: A command which does not commit must not touch git at all, so that it also works in a project
-        //       which is not a git repository
-        return { projectPath, snapshotBeforeOperation: { changedFileHashes: new Map() } };
+        // Repository detection is required even without commits; only mutation and snapshot hashing are disabled.
+        return { projectPath, repositoryRoot, snapshotBeforeOperation: { changedFileHashes: new Map() } };
     }
 
     // Note: The scope is captured after pulling, so files brought in by the pull are not committed again
-    return captureCoderCommitScope(projectPath);
+    return captureCoderCommitScope(workspace);
 }
 
 /**
@@ -69,15 +84,17 @@ export async function $startCoderGitSync(options: {
 export async function $pullCoderChanges(options: {
     readonly gitSync: CoderGitSyncOptions;
     readonly projectPath?: string;
+    readonly workspace?: WorkspaceRepositoryContext;
 }): Promise<void> {
-    const { gitSync, projectPath = process.cwd() } = options;
+    const { gitSync } = options;
+    const repositoryRoot = options.workspace?.repositoryRoot ?? options.projectPath ?? process.cwd();
 
     if (!gitSync.isAutoPullEnabled) {
         return;
     }
 
     console.info(colors.gray('Pulling the latest changes from the remote repository...'));
-    await pullLatestChanges(projectPath);
+    await pullLatestChanges(repositoryRoot);
 }
 
 /**
@@ -110,7 +127,7 @@ export async function $commitCoderChanges(options: {
     }
 
     await commitChanges(commitMessage, {
-        projectPath: commitScope.projectPath,
+        projectPath: commitScope.repositoryRoot ?? commitScope.projectPath,
         relevantPaths,
         autoPush: gitSync.isAutoPushEnabled,
     });

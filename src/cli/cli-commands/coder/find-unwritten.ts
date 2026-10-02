@@ -2,6 +2,8 @@ import colors from 'colors';
 import { Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */ } from 'commander';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -16,11 +18,18 @@ export function $initializeCoderFindUnwrittenCommand(program: Program): $side_ef
     command.description('List all prompt sections that still need to be authored (contain @@@ placeholder)');
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
         handleActionErrors(async (cliOptions) => {
             const { priority = 0 } = cliOptions as {
                 readonly priority?: number;
             };
+
+            const workspace = await $preflightWorkspaceRepository({
+                policy: 'read-only',
+                isAskingQuestionsEnabled: cliOptions.questions,
+            });
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
             const { findUnwrittenPrompts } = await import(
@@ -28,7 +37,7 @@ export function $initializeCoderFindUnwrittenCommand(program: Program): $side_ef
             );
 
             try {
-                await findUnwrittenPrompts({ priority });
+                await findUnwrittenPrompts({ priority, projectPath: workspace.projectPath });
             } catch (error) {
                 assertsError(error);
                 console.error(colors.bgRed(`${error.name}`));

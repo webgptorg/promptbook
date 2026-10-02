@@ -1,3 +1,4 @@
+import { $preflightWorkspaceRepository } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import type { CoderCommitScope } from './coderCommitScope';
 import { captureCoderCommitScope, resolveCoderCommitScopePaths } from './coderCommitScope';
 import {
@@ -8,6 +9,10 @@ import {
 } from './coderGitSync';
 import { commitChanges } from './commitChanges';
 import { pullLatestChanges } from './pullLatestChanges';
+
+jest.mock('../../../src/cli/cli-commands/common/workspaceRepository', () => ({
+    $preflightWorkspaceRepository: jest.fn(),
+}));
 
 jest.mock('./coderCommitScope', () => ({
     captureCoderCommitScope: jest.fn(),
@@ -56,6 +61,11 @@ function mockChangedPathsOfCurrentCommand(changedPaths: ReadonlyArray<string>): 
 describe('$startCoderGitSync', () => {
     beforeEach(() => {
         jest.resetAllMocks();
+        ($preflightWorkspaceRepository as jest.Mock).mockResolvedValue({
+            projectPath: '/project',
+            repositoryRoot: '/project',
+            repositoryStatus: 'reused',
+        });
         jest.spyOn(console, 'info').mockImplementation(() => undefined);
         (captureCoderCommitScope as jest.MockedFunction<typeof captureCoderCommitScope>).mockResolvedValue(
             COMMIT_SCOPE,
@@ -72,13 +82,20 @@ describe('$startCoderGitSync', () => {
             projectPath: '/project',
         });
 
-        expect(captureCoderCommitScope).toHaveBeenCalledWith('/project');
+        expect(captureCoderCommitScope).toHaveBeenCalledWith(
+            expect.objectContaining({ projectPath: '/project', repositoryRoot: '/project' }),
+        );
         expect(commitScope).toBe(COMMIT_SCOPE);
     });
 
-    it('touches git at all only when the command really commits, so it also works outside a repository', async () => {
+    it('detects Git even with commits disabled while skipping Git mutation and snapshot hashing', async () => {
         await $startCoderGitSync({ gitSync: DISABLED_CODER_GIT_SYNC_OPTIONS, projectPath: '/project' });
 
+        expect($preflightWorkspaceRepository).toHaveBeenCalledWith({
+            projectDirectory: '/project',
+            policy: 'mutate',
+            isAskingQuestionsEnabled: false,
+        });
         expect(captureCoderCommitScope).not.toHaveBeenCalled();
         expect(getPullLatestChangesMock()).not.toHaveBeenCalled();
     });
@@ -144,10 +161,14 @@ describe('$commitCoderChanges', () => {
         mockChangedPathsOfCurrentCommand(['prompts/task.md', 'src/app.ts', 'prompts/user-task.md']);
         await $commitCoderChanges({
             gitSync: { isCommitEnabled: true, isAutoPushEnabled: false, isAutoPullEnabled: false },
-            commitMessage: 'Plan tasks', commitScope: COMMIT_SCOPE, relevantPaths: ['prompts/task.md'],
+            commitMessage: 'Plan tasks',
+            commitScope: COMMIT_SCOPE,
+            relevantPaths: ['prompts/task.md'],
         });
         expect(getCommitChangesMock()).toHaveBeenCalledWith('Plan tasks', {
-            projectPath: '/project', relevantPaths: ['prompts/task.md'], autoPush: false,
+            projectPath: '/project',
+            relevantPaths: ['prompts/task.md'],
+            autoPush: false,
         });
     });
 

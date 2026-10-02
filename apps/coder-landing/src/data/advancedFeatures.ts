@@ -66,7 +66,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Git-synced housekeeping',
         description:
-            'ptbk coder init, add, generate-boilerplates and verify all take the same --commit, --auto-push and --auto-pull switches. Setting up a project, queueing prompts and archiving finished ones leave no uncommitted work behind. Verify pulls and pushes around every single verification.',
+            'ptbk init (also ptbk coder init), add, plan, generate-boilerplates and verify all take the same --commit, --auto-push and --auto-pull switches. Init creates missing local Git before synchronization. Commit scope includes only the operation’s eligible artifacts; unrelated user changes stay untouched. Pull and push require your configured remote. Verify pulls and pushes around every single verification.',
         sampleCommand: INIT_GIT_SYNC_COMMAND,
     },
     {
@@ -130,7 +130,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Nothing to answer',
         description:
-            'The opposite end: --no-questions never asks anything at all. Installing a missing harness, updating an outdated one or adding ignore rules is skipped and printed as the command which does it manually, so a queue started from a script or a CI job never stops at a prompt nobody is there to answer. ptbk coder init, add, run, ping and server all take it.',
+            'The opposite end: --no-questions never asks anything at all. Installing a missing harness, updating an outdated one or adding ignore rules is skipped and printed as the command which does it manually, so a queue started from a script or a CI job never stops at a prompt nobody is there to answer. All workspace actions take it. Mutating commands require an existing Git working tree even with --no-commit; initialize first with ptbk init --no-questions, ptbk coder init --no-questions, or git init. Explicit init creates missing Git automatically. Read-only and --dry-run commands only warn.',
         sampleCommand: 'ptbk coder run --harness claude-code --no-questions',
     },
     {

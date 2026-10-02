@@ -4,7 +4,7 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
 import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChangesMode';
-import { DatabaseError } from '../../../src/errors/DatabaseError';
+import { validateCoderRunOptions } from '../../../src/cli/cli-commands/common/validateCoderRunOptions';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
@@ -57,17 +57,12 @@ import {
     type CoderRunUiSubscriptionUsageRefreshHandle,
 } from '../ui/startCoderRunUiSubscriptionUsageRefresh';
 import { createTestBeforeRepairPrompt } from '../testing/createTestBeforeRepairPrompt';
-import { DEFAULT_CODER_TEST_COMMAND, isTestBeforeMode, type TestBeforeMode } from '../testing/TestBeforeMode';
+import { DEFAULT_CODER_TEST_COMMAND, type TestBeforeMode } from '../testing/TestBeforeMode';
 import { limitTestOutput } from '../testing/limitTestOutput';
 import { runTestBefore } from '../testing/runTestBefore';
 import { resolvePromptRunner, resolveRunnerModel } from './resolvePromptRunner';
 import { runPromptRound } from './runPromptRound';
 import { createCoderTeamPromptRunner } from '../team/createCoderTeamPromptRunner';
-
-/**
- * Constant for prompts dir.
- */
-const PROMPTS_DIR = join(process.cwd(), 'prompts');
 
 /**
  * Commit message for files changed by a successful or failed pre-coding test in repair mode.
@@ -92,7 +87,8 @@ type PromptQueueSnapshot = {
  */
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
     const options = normalizeRunOptions(providedOptions ?? parseRunOptions(process.argv.slice(2)));
-    validateRunCodexPromptOptions(options);
+    validateCoderRunOptions(options);
+    const projectPath = options.workspace?.projectPath ?? process.cwd();
     resetCoderRunControls();
 
     const runStartDate = moment();
@@ -104,7 +100,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         // Note: Every pause checkpoint of the whole run goes through this one waiter, so watching the free disk
         //       space here covers each round, each verification and each runner without repeating the check
         guardFreeDiskSpace: createFreeDiskSpaceGuard({
-            inspectedPath: process.cwd(),
+            inspectedPath: projectPath,
             isAskingQuestionsEnabled: options.isAskingQuestionsEnabled ?? true,
         }),
     });
@@ -114,8 +110,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     let subscriptionUsageRefresh: CoderRunUiSubscriptionUsageRefreshHandle | undefined;
 
     try {
-        const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
-        const resolvedCoderAgent = await resolveCoderAgent(options.agent, process.cwd(), {
+        const resolvedCoderContext = await resolveCoderContext(options.context, projectPath);
+        const resolvedCoderAgent = await resolveCoderAgent(options.agent, projectPath, {
             defaultRole: 'developer',
             isInitializationAllowed: !options.dryRun,
         });
@@ -126,7 +122,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         }
 
         if (!options.noCommit && resolvedCoderAgent) {
-            await commitInitializedAgentBooks(process.cwd(), resolvedCoderAgent.createdAgentBookPaths);
+            await commitInitializedAgentBooks(projectPath, resolvedCoderAgent.createdAgentBookPaths, options.workspace);
         }
 
         const {
@@ -304,7 +300,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     phase: 'loading',
                     statusMessage: 'Checking the working tree...',
                 });
-                await ensureWorkingTreeClean();
+                await ensureWorkingTreeClean(options.workspace?.repositoryRoot);
             }
 
             const currentRoundStartTime = Date.now();
@@ -354,89 +350,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 }
 
 /**
- * Validates cross-flag constraints before the run starts.
- */
-function validateRunCodexPromptOptions(options: RunOptions): void {
-    if (!isTestBeforeMode(options.testBefore ?? 'no')) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Invalid ${'`--test-before`'} mode: \`${String(options.testBefore)}\`.
-
-                Use one of: \`no\`, \`yes-and-fail\`, \`yes-and-fix\`.
-            `),
-        );
-    }
-
-    if (options.allowDestructiveAutoMigrate && !options.autoMigrate) {
-        throw new DatabaseError(
-            spaceTrim(`
-                Flag \`--allow-destructive-auto-migrate\` requires \`--auto-migrate\`.
-            `),
-        );
-    }
-
-    if (options.noCommit && !options.waitForUser && options.gitChanges !== 'ignore') {
-        throw new NotAllowed(
-            spaceTrim(`
-                Flag \`--no-commit\` requires \`--git-changes ignore\` when running in auto mode (the default; pass \`--no-auto\` for interactive confirmation).
-
-                Without commits, the next prompt round would fail the clean working tree check.
-            `),
-        );
-    }
-
-    if (options.autoPull && options.noCommit && !options.dryRun) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Flag \`--auto-pull\` requires commits, so it cannot be combined with \`--no-commit\`.
-
-                Auto-pull keeps the repository up to date between prompt rounds, which requires each successful round to end with a clean committed working tree.
-            `),
-        );
-    }
-
-    if (options.isIsolated && options.noCommit) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Flag \`--isolate\` cannot be combined with \`--no-commit\`.
-
-                An isolated task is implemented in a temporary worktree and reaches the original branch only through a merge, which requires the round to end with a commit.
-            `),
-        );
-    }
-
-    if (options.isIsolated && options.gitChanges === 'continue') {
-        throw new NotAllowed(
-            spaceTrim(`
-                Flag \`--isolate\` cannot be combined with \`--git-changes continue\`.
-
-                An isolated task is implemented in a fresh temporary worktree checked out from the last commit, so the uncommitted changes of the interrupted prompt would be left behind instead of being continued.
-            `),
-        );
-    }
-
-    if (options.gitChanges === 'continue' && options.testBefore === 'yes-and-fix') {
-        throw new NotAllowed(
-            spaceTrim(`
-                Flag \`--git-changes continue\` cannot be combined with \`--test-before yes-and-fix\`.
-
-                An interrupted prompt already has changes in progress, so there is no unmodified project state for pre-coding verification to repair.
-            `),
-        );
-    }
-
-    if (options.limit !== undefined && (!Number.isInteger(options.limit) || options.limit <= 0)) {
-        throw new NotAllowed(
-            spaceTrim(`
-                Flag \`--limit\` expects a positive integer.
-
-                Received: \`${options.limit}\`
-            `),
-        );
-    }
-}
-
-/**
  * Decides whether the working tree has to be verified clean before the next prompt starts.
  *
  * `--git-changes continue` waives the check for the single round which resumes the interrupted prompt,
@@ -464,7 +377,7 @@ async function pullLatestChangesIfEnabled(options: { options: RunOptions; isRich
         console.info(colors.gray('Pulling latest changes before the next prompt...'));
     }
 
-    await pullLatestChanges();
+    await pullLatestChanges(runOptions.workspace?.repositoryRoot);
 }
 
 /**
@@ -570,7 +483,7 @@ async function runTestBeforeIfNeeded(options: {
             phase: 'loading',
             statusMessage: 'Checking the working tree before testing...',
         });
-        await ensureWorkingTreeClean();
+        await ensureWorkingTreeClean(runOptions.workspace?.repositoryRoot);
     }
 
     const testBeforeCommitScope = await captureTestBeforeCommitScopeIfNeeded(runOptions);
@@ -578,7 +491,7 @@ async function runTestBeforeIfNeeded(options: {
     uiHandle?.startCapturingAgentOutput();
     const testBeforeResult = await runTestBefore({
         testCommand: runOptions.testCommand,
-        projectPath: process.cwd(),
+        projectPath: runOptions.workspace?.projectPath ?? process.cwd(),
         waitForPauseCheckpoint: waitForRequestedPause,
     }).finally(() => {
         uiHandle?.stopCapturingAgentOutput();
@@ -614,7 +527,7 @@ async function runTestBeforeIfNeeded(options: {
     }
 
     const repairPrompt = await createTestBeforeRepairPrompt({
-        projectPath: process.cwd(),
+        projectPath: runOptions.workspace?.projectPath ?? process.cwd(),
         testCommand: runOptions.testCommand,
         testOutput,
     });
@@ -656,7 +569,7 @@ async function captureTestBeforeCommitScopeIfNeeded(runOptions: RunOptions): Pro
         return undefined;
     }
 
-    return captureCoderCommitScope(process.cwd());
+    return captureCoderCommitScope(runOptions.workspace ?? process.cwd());
 }
 
 /**
@@ -685,7 +598,7 @@ async function commitTestBeforeChangesIfNeeded(options: {
     });
     await commitChanges(PRE_CODING_TEST_CHANGES_COMMIT_MESSAGE, {
         autoPush: runOptions.autoPush,
-        projectPath: testBeforeCommitScope.projectPath,
+        projectPath: testBeforeCommitScope.repositoryRoot ?? testBeforeCommitScope.projectPath,
         relevantPaths,
     });
 }
@@ -755,7 +668,11 @@ async function runDryRunIfRequested(
         modelName: options.agentName ? resolveRunnerModel(options.agentName, options.model) : options.model,
         agentReferences,
     };
-    const promptFiles = (await loadPromptFiles(PROMPTS_DIR)).map((file) => ({
+    const promptFiles = (
+        await loadPromptFiles(join(options.workspace?.projectPath ?? process.cwd(), 'prompts'), {
+            isMissingDirectoryAllowed: true,
+        })
+    ).map((file) => ({
         ...file,
         sections: file.sections.filter((section) => isPromptCompatibleWithRunner(file, section, promptRunnerIdentity)),
     }));
@@ -830,7 +747,7 @@ async function loadPromptQueueSnapshot(options: {
     } = options;
     uiHandle?.state.setCurrentScriptPath(undefined);
 
-    const promptFiles = await loadPromptFiles(PROMPTS_DIR);
+    const promptFiles = await loadPromptFiles(join(runOptions.workspace?.projectPath ?? process.cwd(), 'prompts'));
     const stats = summarizePrompts(promptFiles, runOptions.priorityFilter);
 
     progressDisplay?.update(stats);

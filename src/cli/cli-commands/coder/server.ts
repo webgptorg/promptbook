@@ -9,6 +9,9 @@ import { NotAllowed } from '../../../errors/NotAllowed';
 import type { number_port } from '../../../types/number_positive';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
+import { validateCoderRunOptions } from '../common/validateCoderRunOptions';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import {
@@ -132,6 +135,8 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
         'Allow auto-migrate even when heuristic SQL safety check flags destructive pending migrations',
     );
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
         handleActionErrors(async (cliOptions) => {
             const {
@@ -181,19 +186,6 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
 
             assertUserConfirmationIsAllowed({ ...questionsOptions, isWaitingForUser: waitForUser });
 
-            if (!dryRun) {
-                // Reject missing or unreadable Books before offering installations or project configuration writes.
-                const { resolveCoderAgentBook } = await import(
-                    '../../../../scripts/run-codex-prompts/common/resolveCoderAgent'
-                );
-                await resolveCoderAgentBook(agent, process.cwd(), { defaultRole: 'developer' });
-                // Check disk space before installations and repository writes; previews require no setup.
-                await $assertSufficientFreeDiskSpace(process.cwd());
-
-                await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
-                await $ensureCoderHarnessGitignoreRules(process.cwd(), runnerOptions.agentName, questionsOptions);
-            }
-
             const waitAfterPrompt = parseOptionalWaitDuration(waitAfterPromptValue, 0);
             const waitBetweenPrompts = parseOptionalWaitDuration(waitBetweenPromptsValue, 0);
             const waitAfterError = parseOptionalWaitDuration(waitAfterErrorValue, DEFAULT_WAIT_AFTER_ERROR_MS);
@@ -227,13 +219,36 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 isAskingQuestionsEnabled: questionsOptions.isAskingQuestionsEnabled,
             };
 
+            validateCoderRunOptions(runOptions);
+            const workspace = await $preflightWorkspaceRepository({
+                policy: dryRun ? 'read-only' : 'mutate',
+                ...questionsOptions,
+            });
+
+            if (!dryRun) {
+                // Reject missing or unreadable Books before offering installations or project configuration writes.
+                const { resolveCoderAgentBook } = await import(
+                    '../../../../scripts/run-codex-prompts/common/resolveCoderAgent'
+                );
+                await resolveCoderAgentBook(agent, workspace.projectPath, { defaultRole: 'developer' });
+                // Check disk space before installations and repository writes; previews require no setup.
+                await $assertSufficientFreeDiskSpace(workspace.projectPath);
+
+                await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
+                await $ensureCoderHarnessGitignoreRules(
+                    workspace.projectPath,
+                    runnerOptions.agentName,
+                    questionsOptions,
+                );
+            }
+
             // Note: Import dynamically to avoid loading heavy dependencies until needed
             const { runCodexPromptsServer } = await import(
                 '../../../../scripts/run-codex-prompts/main/runCodexPromptsServer'
             );
 
             try {
-                await runCodexPromptsServer(runOptions);
+                await runCodexPromptsServer({ ...runOptions, workspace });
             } catch (error) {
                 assertsError(error);
                 printCoderRunFailure(error);

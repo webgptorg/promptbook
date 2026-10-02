@@ -3,6 +3,7 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
+import { WORKSPACE_REPOSITORY_DESCRIPTION } from './common/workspaceRepositoryCliOptions';
 import { $requireCliSubcommand } from '../common/$requireCliSubcommand';
 import { $initializeCoderAddCommand } from './coder/add';
 import { $initializeCoderFindFreshEmojiTagCommand } from './coder/find-fresh-emoji-tags';
@@ -57,6 +58,8 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             - find-fresh-emoji-tags: Find unused emoji tags
         `),
     );
+
+    coderCommand.addHelpText('after', `\n${WORKSPACE_REPOSITORY_DESCRIPTION}\n`);
 
     // Register all subcommands
     $initializeCoderInitCommand(coderCommand);

@@ -1,6 +1,6 @@
 import { readFile, stat } from 'fs/promises';
 import ignore from 'ignore';
-import { dirname, join, resolve } from 'path';
+import { dirname, join, relative, resolve } from 'path';
 import { normalizeRefactorCandidatePath } from './normalizeRefactorCandidatePath';
 
 /**
@@ -33,7 +33,10 @@ const GITIGNORE_FILE_NAME = '.gitignore';
  *
  * @private function of findRefactorCandidates
  */
-export async function resolveRefactorCandidateProject(startDir: string): Promise<ResolvedRefactorCandidateProject> {
+export async function resolveRefactorCandidateProject(
+    startDir: string,
+    options: { readonly isPreservingProjectDirectory?: boolean } = {},
+): Promise<ResolvedRefactorCandidateProject> {
     const absoluteStartDir = resolve(startDir);
     const gitignorePath = await findNearestGitignorePath(absoluteStartDir);
 
@@ -44,13 +47,16 @@ export async function resolveRefactorCandidateProject(startDir: string): Promise
         };
     }
 
-    const rootDir = dirname(gitignorePath);
+    const ignoreDirectory = dirname(gitignorePath);
+    const rootDir = options.isPreservingProjectDirectory ? absoluteStartDir : ignoreDirectory;
     const gitignoreMatcher = ignore().add(await readFile(gitignorePath, 'utf-8'));
 
     return {
         rootDir,
         isIgnoredRelativePath(relativePath: string): boolean {
-            return gitignoreMatcher.ignores(normalizeRefactorCandidatePath(relativePath));
+            return gitignoreMatcher.ignores(
+                normalizeRefactorCandidatePath(relative(ignoreDirectory, resolve(rootDir, relativePath))),
+            );
         },
     };
 }

@@ -16,6 +16,8 @@ import {
     CODER_GIT_SYNC_DESCRIPTION,
     normalizeCoderGitSyncCliOptions,
 } from '../common/coderGitSyncCliOptions';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import {
     addQuestionsOption,
@@ -99,6 +101,8 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
     addCoderGitSyncOptions(command);
     addQuestionsOption(command);
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
         handleActionErrors(async (descriptionArgument: string | undefined, cliOptions) => {
             const { priority, template: templateOption } = cliOptions as {
@@ -108,7 +112,8 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
 
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
-            const projectPath = process.cwd();
+            const workspace = await $preflightWorkspaceRepository({ policy: 'mutate', ...questionsOptions });
+            const { projectPath } = workspace;
 
             const description = await resolveCoderPromptDescription(descriptionArgument, questionsOptions);
 
@@ -117,7 +122,7 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
                 '../../../../scripts/run-codex-prompts/git/coderGitSync'
             );
 
-            const commitScope = await $startCoderGitSync({ gitSync, projectPath });
+            const commitScope = await $startCoderGitSync({ gitSync, workspace });
 
             const { /* filePath,*/ emojiTag } = await addCoderPrompt({
                 projectPath,

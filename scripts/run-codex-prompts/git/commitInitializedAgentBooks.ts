@@ -1,4 +1,5 @@
 import { resolve } from 'path';
+import type { WorkspaceRepositoryContext } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import { commitChanges } from './commitChanges';
 import { listWorkingTreeChangedFiles } from './workingTreeChanges';
 
@@ -9,17 +10,19 @@ import { listWorkingTreeChangedFiles } from './workingTreeChanges';
 export async function commitInitializedAgentBooks(
     projectPath: string,
     createdAgentBookPaths: ReadonlyArray<string>,
+    workspace?: WorkspaceRepositoryContext,
 ): Promise<void> {
     if (createdAgentBookPaths.length === 0) {
         return;
     }
 
-    const createdPaths = new Set(createdAgentBookPaths.map((filePath) => resolve(filePath)));
-    const changedPaths = await listWorkingTreeChangedFiles(projectPath);
-    const relevantPaths = changedPaths.filter((filePath) => createdPaths.has(resolve(projectPath, filePath)));
+    const repositoryRoot = workspace?.repositoryRoot ?? projectPath;
+    const createdPaths = new Set(createdAgentBookPaths.map((filePath) => resolve(projectPath, filePath)));
+    const changedPaths = await listWorkingTreeChangedFiles(repositoryRoot);
+    const relevantPaths = changedPaths.filter((filePath) => createdPaths.has(resolve(repositoryRoot, filePath)));
     if (relevantPaths.length === 0) {
         return;
     }
 
-    await commitChanges('Initialize Adam agent', { projectPath, relevantPaths });
+    await commitChanges('Initialize Adam agent', { projectPath: repositoryRoot, relevantPaths });
 }

@@ -48,6 +48,7 @@ export async function runCodexPromptsServer(options: CoderServerRunOptions): Pro
 
     const serverHandle = startCoderHttpServer({
         port,
+        workspace: runOptions.workspace,
         priorityFilter,
         serverUrl,
         uiState,

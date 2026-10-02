@@ -1,5 +1,6 @@
 import colors from 'colors';
-import { relative } from 'path';
+import { join, relative } from 'path';
+import { $resolveWorkspaceRepository } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import { captureCoderCommitScope, resolveCoderCommitScopePaths } from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
 import type { RunPromptRoundOptions } from '../main/runPromptRound';
@@ -33,23 +34,31 @@ import { removeCoderIsolationWorktree } from './removeCoderIsolationWorktree';
  */
 export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Promise<void> {
     const { nextPrompt, promptLabel, isRichUiEnabled, uiHandle, waitForRequestedPause } = options;
-    const projectPath = options.projectPath ?? process.cwd();
+    const projectPath = options.projectPath ?? options.options.workspace?.projectPath ?? process.cwd();
     // Note: The original project is left untouched by the isolated round itself, so its scope covers exactly
     //       the prompt status update and the changes the merge brings back from the worktree
-    const originalProjectCommitScope = await captureCoderCommitScope(projectPath);
+    const originalProjectCommitScope = await captureCoderCommitScope(options.options.workspace ?? projectPath);
     const worktree = await createCoderIsolationWorktree({
         projectPath,
+        repositoryRoot: originalProjectCommitScope.repositoryRoot,
         taskName: buildCoderIsolationTaskName(nextPrompt.file, nextPrompt.section),
     });
 
     announceIsolatedRoundStart(worktree, promptLabel, isRichUiEnabled);
 
     try {
+        const isolatedProjectPath = join(
+            worktree.worktreePath,
+            relative(originalProjectCommitScope.repositoryRoot ?? projectPath, projectPath),
+        );
+        // This newly created working tree has its own metadata. Keep the project's repository-relative
+        // location so its harness and verification use the same project as the original invocation.
+        const isolatedWorkspace = await $resolveWorkspaceRepository(isolatedProjectPath);
         await runPromptRound({
             ...options,
-            projectPath: worktree.worktreePath,
+            projectPath: isolatedWorkspace.projectPath,
             // Note: The isolated commit must never reach the remote, the merged commit on the original branch is pushed instead
-            options: { ...options.options, autoPush: false },
+            options: { ...options.options, workspace: isolatedWorkspace, autoPush: false },
         });
     } catch (error) {
         // Note: The worktree keeps whatever the failed round produced, which would be lost by deleting it here
@@ -78,7 +87,7 @@ export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Pr
     await commitChanges(buildCommitMessage(nextPrompt.file, nextPrompt.section), {
         autoPush: options.options.autoPush,
         relevantPaths: await resolveCoderCommitScopePaths(originalProjectCommitScope),
-        projectPath,
+        projectPath: originalProjectCommitScope.repositoryRoot ?? projectPath,
     });
     await removeCoderIsolationWorktree(worktree);
 
@@ -108,14 +117,16 @@ async function recordIsolationMergeFailure(
 
     await commitChanges(buildCoderIsolationMergeFailureCommitMessage(worktree), {
         autoPush: options.options.autoPush,
-        projectPath: worktree.projectPath,
+        projectPath: options.options.workspace?.repositoryRoot ?? worktree.projectPath,
         // Note: The round itself has already succeeded, so it has left its run trace in the original project.
         //       It belongs to this commit, which is the only one this task still gets.
         relevantPaths: [
             nextPrompt.file.path,
             errorLogPath,
             buildPromptRunTracePath(nextPrompt.file, nextPrompt.section),
-        ].map((path) => toProjectRelativeGitPath(worktree.projectPath, path)),
+        ].map((path) =>
+            toProjectRelativeGitPath(options.options.workspace?.repositoryRoot ?? worktree.projectPath, path),
+        ),
     });
 
     uiHandle?.state.addError(mergeFailureError.message);

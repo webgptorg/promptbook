@@ -2,6 +2,7 @@ import colors from 'colors';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http';
 import { isAbsolute, join, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
+import type { WorkspaceRepositoryContext } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import type { number_port } from '../../../src/types/number_positive';
 import { commitChanges } from '../git/commitChanges';
@@ -10,7 +11,10 @@ import type { PriorityFilter } from '../prompts/priorityFilter';
 import type { PromptFile } from '../prompts/types/PromptFile';
 import type { CoderRunUiState } from '../ui/CoderRunUiState';
 import { getPauseState, getPauseTargetLabel, requestPause, requestResume } from '../common/waitForPause';
-import { buildCoderServerPromptFileResponses, type CoderServerPromptFileResponse } from './buildCoderServerPromptResponse';
+import {
+    buildCoderServerPromptFileResponses,
+    type CoderServerPromptFileResponse,
+} from './buildCoderServerPromptResponse';
 import { buildCoderServerRunState } from './buildCoderServerRunState';
 import { updatePromptSection } from './updatePromptSection';
 import { CODER_SERVER_HTML } from './coderServerHtml';
@@ -44,6 +48,8 @@ export type CoderHttpServerHandle = {
  * @private internal type of `ptbk coder server`
  */
 export type StartCoderHttpServerOptions = {
+    /** Project and enclosing repository resolved before server startup. */
+    readonly workspace?: WorkspaceRepositoryContext;
     readonly port: number_port;
     readonly priorityFilter: PriorityFilter;
     readonly serverUrl: string;
@@ -65,11 +71,12 @@ export type StartCoderHttpServerOptions = {
  */
 export function startCoderHttpServer(options: StartCoderHttpServerOptions): CoderHttpServerHandle {
     const { port, priorityFilter, serverUrl, uiState } = options;
-    const promptsDir = join(process.cwd(), PROMPTS_DIRECTORY_NAME);
+    const promptsDir = join(options.workspace?.projectPath ?? process.cwd(), PROMPTS_DIRECTORY_NAME);
 
     const server: Server = createServer(async (request: IncomingMessage, response: ServerResponse) => {
         try {
             await handleRequest(request, response, {
+                workspace: options.workspace,
                 promptsDir,
                 priorityFilter,
                 uiState,
@@ -89,7 +96,9 @@ export function startCoderHttpServer(options: StartCoderHttpServerOptions): Code
             spaceTrim(`
                 Coder server running at ${colors.cyan(serverUrl)}
                 Open the URL above in your browser to see the kanban board.
-                Terminal controls: ${colors.bold('P')} pause, ${colors.bold('S')} skip waiting, ${colors.bold('X')} end after current prompt.
+                Terminal controls: ${colors.bold('P')} pause, ${colors.bold('S')} skip waiting, ${colors.bold(
+                'X',
+            )} end after current prompt.
             `),
         );
     });
@@ -109,6 +118,7 @@ async function handleRequest(
     response: ServerResponse,
     options: {
         readonly promptsDir: string;
+        readonly workspace?: WorkspaceRepositoryContext;
         readonly priorityFilter: PriorityFilter;
         readonly uiState?: CoderRunUiState;
     },
@@ -195,7 +205,7 @@ async function handleRequest(
         const isUpdated = await updatePromptSection(promptFilePath, parsed.sectionIndex, parsed.content);
 
         if (isUpdated) {
-            await commitPromptEdit(promptFilePath, parsed.sectionIndex);
+            await commitPromptEdit(promptFilePath, parsed.sectionIndex, options.workspace);
         }
 
         response.writeHead(200, jsonHeaders());
@@ -250,9 +260,7 @@ function resolveEditablePromptFilePath(filePath: string, promptsDir: string): st
     const promptsDirectoryPath = resolve(promptsDir);
     const relativePromptFilePath = relative(promptsDirectoryPath, promptFilePath);
     const isOutsidePromptsDirectory =
-        relativePromptFilePath === '' ||
-        relativePromptFilePath.startsWith('..') ||
-        isAbsolute(relativePromptFilePath);
+        relativePromptFilePath === '' || relativePromptFilePath.startsWith('..') || isAbsolute(relativePromptFilePath);
 
     if (isOutsidePromptsDirectory || !promptFilePath.toLowerCase().endsWith('.md')) {
         throw new NotAllowed(
@@ -271,11 +279,17 @@ function resolveEditablePromptFilePath(filePath: string, promptsDir: string): st
 /**
  * Commits a browser prompt edit to Git without sweeping unrelated staged files into the commit.
  */
-async function commitPromptEdit(promptFilePath: string, sectionIndex: number): Promise<void> {
-    const relativePromptFilePath = relative(process.cwd(), promptFilePath).replace(/\\/gu, '/');
+async function commitPromptEdit(
+    promptFilePath: string,
+    sectionIndex: number,
+    workspace?: WorkspaceRepositoryContext,
+): Promise<void> {
+    const repositoryRoot = workspace?.repositoryRoot ?? process.cwd();
+    const relativePromptFilePath = relative(repositoryRoot, promptFilePath).replace(/\\/gu, '/');
 
     await commitChanges(`Edit coder prompt ${relativePromptFilePath}#${sectionIndex + 1}`, {
         relevantPaths: [relativePromptFilePath],
+        projectPath: repositoryRoot,
     });
 }
 

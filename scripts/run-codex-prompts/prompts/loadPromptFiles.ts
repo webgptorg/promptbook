@@ -14,8 +14,15 @@ export const PTBK_CODER_IGNORE_MARKER = '<!--ptbk-coder-ignore-->';
 /**
  * Loads top-level PRDs, excluding the README and files marked for `ptbk coder` to ignore.
  */
-export async function loadPromptFiles(promptsDir: string): Promise<PromptFile[]> {
-    const entries = await readdir(promptsDir, { withFileTypes: true });
+export async function loadPromptFiles(
+    promptsDir: string,
+    options: { readonly isMissingDirectoryAllowed?: boolean } = {},
+): Promise<PromptFile[]> {
+    const entries = await readdir(promptsDir, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+        // Read-only inspection of a fresh project must not create a queue just to show that it is empty.
+        if (options.isMissingDirectoryAllowed && error.code === 'ENOENT') return [];
+        throw error;
+    });
     const files = entries
         .filter(
             (entry) =>

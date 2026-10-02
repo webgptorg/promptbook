@@ -3,6 +3,7 @@ import type {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../../errors/ParseError';
+import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { ADAM_AGENT_BOOK_RELATIVE_PATH } from '../common/ensureAdamAgentBook';
 import type { CoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
@@ -11,6 +12,8 @@ import {
     CODER_GIT_SYNC_DESCRIPTION,
     normalizeCoderGitSyncCliOptions,
 } from '../common/coderGitSyncCliOptions';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { getHarnessDefinition } from '../common/harness/HarnessDefinition';
@@ -28,6 +31,7 @@ import { CODER_AGENTS_DIRECTORY_PATH, CODER_DEVELOPER_AGENT_FILE_PATH } from './
 import { isDirectoryEmpty } from './ensureDirectory';
 import { formatDisplayPath } from './formatDisplayPath';
 import { generatePromptBoilerplate } from './generate-boilerplates';
+import { getCoderInitializationCommitPaths } from './getCoderInitializationCommitPaths';
 import { initializeCoderProjectConfiguration } from './initializeCoderProjectConfiguration';
 import { printInitializationSummary } from './printInitializationSummary';
 
@@ -56,7 +60,12 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
     command.description(
         spaceTrim(
             (block) => `
-                Initialize Promptbook coder configuration for current project
+                Initialize Git and Promptbook coder configuration for current project
+
+                Equivalent entrypoints: \`ptbk init\`, \`ptbk coder init\`, and \`ptbk coder initialize\`.
+                Creates a local Git working tree automatically when missing, including with \`--no-questions\`.
+                Reuses an enclosing repository without changing its history, configuration or index.
+                Does not stage existing files or create a first commit unless \`--commit\` is explicitly requested.
 
                 Creates or updates:
                 - prompts/
@@ -99,46 +108,79 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
     addCoderGitSyncOptions(command);
     addQuestionsOption(command);
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
         handleActionErrors(async (cliOptions) => {
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
-            const projectPath = process.cwd();
+            const workspace = await $preflightWorkspaceRepository({ policy: 'initialize', ...questionsOptions });
+            const { projectPath } = workspace;
 
-            // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
-            const { $commitCoderChanges, $startCoderGitSync } = await import(
-                '../../../../scripts/run-codex-prompts/git/coderGitSync'
-            );
+            const completedSteps = [`Git repository ${workspace.repositoryStatus}: ${workspace.repositoryRoot}`];
+            try {
+                // Note: Import the git synchronization dynamically to keep the CLI fast for runs without `--commit`
+                const { $commitCoderChanges, $startCoderGitSync } = await import(
+                    '../../../../scripts/run-codex-prompts/git/coderGitSync'
+                );
 
-            const commitScope = await $startCoderGitSync({ gitSync, projectPath });
-            // Check before initialization adds the README, templates and archive directory.
-            const isPromptsDirectoryEmpty = await isDirectoryEmpty(projectPath, PROMPTS_DIRECTORY_PATH);
+                const commitScope = await $startCoderGitSync({ gitSync, workspace });
+                completedSteps.push('Requested Git synchronization and initial change scope');
+                // Check before initialization adds the README, templates and archive directory.
+                const isPromptsDirectoryEmpty = await isDirectoryEmpty(projectPath, PROMPTS_DIRECTORY_PATH);
 
-            const summary = await initializeCoderProjectConfiguration(projectPath);
-            printInitializationSummary(summary);
+                const summary = await initializeCoderProjectConfiguration(projectPath, (step) =>
+                    completedSteps.push(step),
+                );
+                printInitializationSummary(summary, workspace);
 
-            if (
-                summary.adamAgentFileStatus === 'unresolved' ||
-                summary.referencedArtifactStatuses.some(({ status }) => status === 'unresolved')
-            ) {
-                throw new ParseError(
+                if (
+                    summary.adamAgentFileStatus === 'unresolved' ||
+                    summary.referencedArtifactStatuses.some(({ status }) => status === 'unresolved')
+                ) {
+                    throw new ParseError(
+                        spaceTrim(
+                            'Some default Books or TEAM references remain **unresolved**. Review the diagnostics above, fix the affected files, and run `ptbk coder init` again.',
+                        ),
+                    );
+                }
+
+                let boilerplatePaths: ReadonlyArray<string> = [];
+                if (isPromptsDirectoryEmpty) {
+                    boilerplatePaths = await generatePromptBoilerplate({
+                        projectPath,
+                        boilerplateCount: DEFAULT_BOILERPLATE_COUNT,
+                    });
+                    completedSteps.push('Prompt boilerplates');
+                }
+
+                await $commitCoderChanges({
+                    gitSync,
+                    commitScope,
+                    commitMessage: 'Initialize Promptbook Coder',
+                    relevantPaths: getCoderInitializationCommitPaths(workspace, summary, boilerplatePaths),
+                });
+
+                if (gitSync.isCommitEnabled) completedSteps.push('Scoped initialization commit');
+                await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES, {
+                    isAskingQuestionsEnabled: questionsOptions.isAskingQuestionsEnabled && Boolean(process.stdin.isTTY),
+                });
+                console.info('Promptbook project initialized.');
+            } catch (error) {
+                throw new EnvironmentMismatchError(
                     spaceTrim(
-                        'Some default Books or TEAM references remain **unresolved**. Review the diagnostics above, fix the affected files, and run `ptbk coder init` again.',
+                        (block) => `
+                    Promptbook project initialization is incomplete in \`${projectPath}\`.
+
+                    Completed setup steps:
+                    ${block(completedSteps.map((step) => `- ${step}`).join('\n'))}
+
+                    The failing step may have left partial files. Review them and rerun \`ptbk init\`.
+                    ${block(error instanceof Error ? error.message : String(error))}
+                `,
                     ),
                 );
             }
-
-            if (isPromptsDirectoryEmpty) {
-                await generatePromptBoilerplate({ projectPath, boilerplateCount: DEFAULT_BOILERPLATE_COUNT });
-            }
-
-            await $commitCoderChanges({
-                gitSync,
-                commitScope,
-                commitMessage: 'Initialize Promptbook Coder',
-            });
-
-            await $ensureHarnessInstallations(CODER_INIT_CHECKED_HARNESS_NAMES, questionsOptions);
         }),
     );
 }

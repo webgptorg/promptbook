@@ -90,7 +90,7 @@ export async function runPromptRound({
     waitForRequestedPause,
     projectPath,
 }: RunPromptRoundOptions): Promise<void> {
-    const roundProjectPath = projectPath ?? process.cwd();
+    const roundProjectPath = projectPath ?? options.workspace?.projectPath ?? process.cwd();
     const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
     const taskPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
     // Prepend agent system message before the task so the harness sees agent instructions first
@@ -446,7 +446,7 @@ async function finalizeSuccessfulPromptRound(options: {
             relevantPaths: roundCommitScope && (await resolveCoderCommitScopePaths(roundCommitScope)),
             // Keep the live runtime log out of default commits because it is deleted after a successful round.
             excludePaths: runOptions.preserveLogs ? undefined : [logPath],
-            projectPath: roundProjectPath,
+            projectPath: roundCommitScope?.repositoryRoot ?? roundProjectPath,
             // Note: An isolated round commits only the agent changes, so a task that needed none must not fail here
             isEmptyCommitAllowed: runOptions.isIsolated,
         });
@@ -674,7 +674,9 @@ async function captureRoundCommitScopeIfNeeded(
         return undefined;
     }
 
-    return captureCoderCommitScope(roundProjectPath);
+    return captureCoderCommitScope(
+        options.workspace?.projectPath === roundProjectPath ? options.workspace : roundProjectPath,
+    );
 }
 
 /**
@@ -691,7 +693,7 @@ async function normalizeLineEndingsForCurrentRound(
 
     try {
         const result = await normalizeLineEndingsInFilesChangedSinceSnapshot({
-            projectPath: roundProjectPath,
+            projectPath: roundCommitScope.repositoryRoot ?? roundProjectPath,
             snapshot: roundCommitScope.snapshotBeforeOperation,
         });
 

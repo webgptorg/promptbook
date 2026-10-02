@@ -35,7 +35,7 @@ function initializeFindFreshEmojiTagRun(): void {
  *
  * @public exported from `@promptbook/cli`
  */
-export async function findFreshEmojiTag(): Promise<void> {
+export async function findFreshEmojiTag(projectPath = process.cwd()): Promise<void> {
     initializeFindFreshEmojiTagRun();
 
     console.info(`🤪  Find fresh emoji tag`);
@@ -43,6 +43,8 @@ export async function findFreshEmojiTag(): Promise<void> {
     const allEmojis = VALID_SINGLE_PICTOGRAM_EMOJIS;
     const { usedEmojis } = await scanEmojiTagUsage({
         candidateEmojis: allEmojis,
+        rootDir: projectPath,
+        isCacheWriteEnabled: false,
         tagPrefix: '',
         onFileError: (error, filePath) => {
             console.error(colors.red('Error in checking file /' + filePath));
