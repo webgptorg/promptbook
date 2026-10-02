@@ -2,6 +2,8 @@
     including package subpaths and Node.js built-ins. This prevents Zod declaration files from being parsed as
     JavaScript when bundling the CLI. Added `npm run prerelease` through the existing npm version lifecycle,
     fixed JSZip declaration emission, and added a regression that builds and executes a Zod consumer.
+    The shared CLI runtime copy now also excludes local databases and their journals, with an integration test
+    verifying that application sources are copied without runtime state or credentials.
 
 -   Added the top-level `ptbk init` entrypoint through the existing `ptbk coder init` initializer. Both initialize
     missing local Git automatically and reuse enclosing repositories, linked worktrees and submodules while keeping
