@@ -198,6 +198,7 @@
         "test-book-components-build": "echo \"Note: Skipping book components build tests because of constants problems with this test\"",
         "_TODO-test-book-components-build": "(cd ./apps/book-components/ && npm run test-build)",
         "test-app-agents-server": "(cd ./apps/agents-server/ && npm run test)",
+        "prerelease": "npm version prerelease",
         "preversion": "git pull && git pull --tags && npm run test-without-package-generation && echo \"<- Note: In next command the packages are generated\" && npm run generate-packages-commit",
         "postversion": "git push && git push --tags && npm run update-version-in-config-commit && npm run generate-packages-commit && npm run use-packages",
         "make": "npm run make-promptbook-collection && npm run update-version-in-config && npm run generate-packages && npm run generate-examples-bookc && npm run generate-documentation && npm run import-markdowns && npm run generate-openapi-types",

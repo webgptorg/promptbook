@@ -1,3 +1,8 @@
+-   Fixed prerelease package generation by deriving Rollup externals from the existing runtime dependency metadata,
+    including package subpaths and Node.js built-ins. This prevents Zod declaration files from being parsed as
+    JavaScript when bundling the CLI. Added `npm run prerelease` through the existing npm version lifecycle,
+    fixed JSZip declaration emission, and added a regression that builds and executes a Zod consumer.
+
 -   Added the top-level `ptbk init` entrypoint through the existing `ptbk coder init` initializer. Both initialize
     missing local Git automatically and reuse enclosing repositories, linked worktrees and submodules while keeping
     project scaffolding in the requested directory. Every Coder workspace action now shares a Git preflight before

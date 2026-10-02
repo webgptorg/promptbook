@@ -7,4 +7,6 @@ import { createLazyModuleLoader } from '../../utils/misc/createLazyModuleLoader'
  *
  * @private internal utility of `loadArchive` and `saveArchive`
  */
-export const loadJsZipModule = createLazyModuleLoader(() => import('jszip'));
+export const loadJsZipModule: () => Promise<{ default: typeof import('jszip') }> = createLazyModuleLoader(
+    () => import('jszip'),
+);
