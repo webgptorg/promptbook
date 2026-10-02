@@ -540,10 +540,10 @@ describe('Planner conversation and write boundary', () => {
         await expect(readFile(join(projectPath, 'agents/.core/adam.book'))).rejects.toThrow();
     });
 
-    it.each([undefined, 'agents/developer.book', 'agents/custom planner.book'])(
+    it.each([undefined, 'agents/developer.book', 'agents/planner.book', 'agents/custom planner.book'])(
         'uses effective local Book identity and instructions in the planning conversation for %s',
         async (agent) => {
-            const selectedPath = agent || 'agents/planner.book';
+            const selectedPath = agent || 'agents/developer.book';
             await writeFile(
                 join(projectPath, selectedPath),
                 'Project role\nMETA FULLNAME My planning specialist\nPERSONA Discuss local requirements.',

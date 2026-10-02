@@ -1,5 +1,20 @@
 CLI utilities for Promptbook that provide command-line tools for building, prettifying, and managing promptbook collections. After installation, you can use the `ptbk` command in your terminal.
 
+## Project commands
+
+`ptbk coder run --harness openai-codex` uses the invocation's current directory, its `agents/developer.book`, and
+the UTF-8 contents of its `AGENTS.md`. The explicit equivalent is
+`ptbk coder run --harness openai-codex --path . --agent ./agents/developer.book --context ./AGENTS.md`.
+`--path` selects an existing project directory; relative Book/context files resolve inside it, even in a nested
+Git project. Explicit context replaces the default; `--context ""` disables additional context. Missing implicit
+AGENTS.md warns and continues, while unreadable files or invalid explicit Book/context references fail clearly.
+
+`ptbk init` and `ptbk coder init` share initialization and preserve custom Books, context, scripts and settings.
+`coder plan` also defaults to Developer, retaining PRD-only permissions; `--agent ./agents/planner.book` selects
+Planner explicitly. `coder list` has no default Book filter. See the
+[command inventory and precedence reference](https://github.com/webgptorg/promptbook/blob/main/scripts/run-codex-prompts/README.md#shared-project-selection-and-command-inventory)
+for execution, authoring, listing, folder-runner, and legacy-command distinctions.
+
 ## 🎯 Purpose and Motivation
 
 The CLI package provides essential command-line tools for Promptbook development workflows. It enables developers to build optimized promptbook libraries, prettify promptbook files, and manage collections efficiently from the command line, making it easier to integrate Promptbook into development and deployment pipelines.

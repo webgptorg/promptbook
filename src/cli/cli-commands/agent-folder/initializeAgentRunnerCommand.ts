@@ -1,3 +1,4 @@
+import { addProjectPathOption, normalizeProjectCliOptions, resolveProjectDirectory } from '../common/projectCliOptions';
 import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
@@ -61,12 +62,15 @@ export function $initializeAgentRunnerCommand(
 
     addPromptRunnerSelectionOptions(command);
     addPromptRunnerExecutionOptions(command);
+    addProjectPathOption(command);
     options.configureCommand?.(command);
 
     command.action(
         handleActionErrors(
             async (cliOptions) => {
-                const runOptions = createAgentRunOptionsFromCliOptions(cliOptions as AgentRunCliOptions);
+                const projectOptions = normalizeProjectCliOptions(cliOptions);
+                const projectPath = await resolveProjectDirectory(projectOptions.projectDirectory);
+                const runOptions = { ...createAgentRunOptionsFromCliOptions(cliOptions as AgentRunCliOptions), projectPath };
                 const execute = await options.loadExecutor();
 
                 if (options.executionMode === 'watch') {
@@ -76,7 +80,7 @@ export function $initializeAgentRunnerCommand(
 
                     await runPersistentAgentWatch({
                         commandDisplayName: `ptbk agent-folder ${options.commandName}`,
-                        logDirectoryPath: process.cwd(),
+                        logDirectoryPath: projectPath,
                         runWatch: async () => {
                             await execute(runOptions);
                         },

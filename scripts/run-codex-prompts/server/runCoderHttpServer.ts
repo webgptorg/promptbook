@@ -1,6 +1,6 @@
 import colors from 'colors';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http';
-import { isAbsolute, join, relative, resolve } from 'path';
+import { dirname, isAbsolute, join, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { WorkspaceRepositoryContext } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
@@ -230,6 +230,7 @@ async function loadPromptsForApi(options: {
     const finishedPromptFiles = await loadPromptFilesSafely(join(promptsDir, FINISHED_PROMPTS_DIRECTORY_NAME));
 
     return buildCoderServerPromptFileResponses({
+        projectPath: dirname(promptsDir),
         promptFiles,
         finishedPromptFiles,
         priorityFilter,

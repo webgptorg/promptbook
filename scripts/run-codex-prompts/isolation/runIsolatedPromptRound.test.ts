@@ -1,4 +1,5 @@
 import type { RunOptions } from '../cli/RunOptions';
+import { join } from 'path';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import { commitChanges } from '../git/commitChanges';
 import { runPromptRound, type RunPromptRoundOptions } from '../main/runPromptRound';
@@ -12,6 +13,13 @@ import { createCoderIsolationWorktree } from './createCoderIsolationWorktree';
 import { mergeCoderIsolationWorktree } from './mergeCoderIsolationWorktree';
 import { removeCoderIsolationWorktree } from './removeCoderIsolationWorktree';
 import { runIsolatedPromptRound } from './runIsolatedPromptRound';
+
+jest.mock('../common/resolveCoderProjectContext', () => ({
+    resolveCoderProjectContext: jest.fn(async ({ projectPath }: { projectPath: string }) => ({ projectPath, context: 'Worktree context' })),
+}));
+jest.mock('../common/resolveCoderAgent', () => ({
+    resolveCoderAgent: jest.fn(async () => ({ systemMessage: 'Worktree Book' })),
+}));
 
 jest.mock('../../../src/cli/cli-commands/common/workspaceRepository', () => ({
     $resolveWorkspaceRepository: jest.fn(async (projectPath: string) => ({
@@ -182,7 +190,10 @@ describe('runIsolatedPromptRound', () => {
 
         expect(runPromptRound).toHaveBeenCalledWith(
             expect.objectContaining({
-                projectPath: WORKTREE.worktreePath,
+                projectPath: join(WORKTREE.worktreePath),
+                artifactsProjectPath: WORKTREE.projectPath,
+                resolvedCoderContext: 'Worktree context',
+                resolvedAgentSystemMessage: 'Worktree Book',
                 options: expect.objectContaining({ autoPush: false, isIsolated: true }),
             }),
         );

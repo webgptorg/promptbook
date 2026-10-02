@@ -179,6 +179,8 @@ describe('registered workspace actions', () => {
     });
 
     it.each(['run', 'server'])('warns for %s --dry-run without any setup', async (name) => {
+        await mkdir(join(projectPath, 'agents'));
+        await writeFile(join(projectPath, 'agents/developer.book'), 'Developer\nFROM @Null\n');
         await run(['coder', name, '--dry-run']);
         expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('No Git working tree'));
         expect(name === 'run' ? runCodexPrompts : runCodexPromptsServer).toHaveBeenCalledWith(
@@ -189,7 +191,7 @@ describe('registered workspace actions', () => {
         );
         expect($ensureHarnessInstallations).not.toHaveBeenCalled();
         expect($ensureCoderHarnessGitignoreRules).not.toHaveBeenCalled();
-        expect(await readdir(projectPath)).toEqual([]);
+        expect(await readdir(projectPath)).toEqual(['agents']);
     });
 
     it('keeps the action inventory exhaustive and supplies preflight help to every registration', () => {

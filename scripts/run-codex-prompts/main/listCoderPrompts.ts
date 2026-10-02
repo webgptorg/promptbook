@@ -30,7 +30,7 @@ export async function listCoderPrompts(options: ListCoderPromptsOptions = {}): P
     const promptFiles = await loadPromptFiles(join(options.projectPath ?? process.cwd(), 'prompts'), {
         isMissingDirectoryAllowed: true,
     });
-    const upcomingTasks = listUpcomingTasks(promptFiles, priorityFilter, options.promptRunnerIdentity);
+    const upcomingTasks = listUpcomingTasks(promptFiles, priorityFilter, options.promptRunnerIdentity, options.projectPath);
 
     printUpcomingTasks(upcomingTasks);
     return upcomingTasks.length;

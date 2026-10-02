@@ -121,6 +121,8 @@ describe('coder boilerplate templates', () => {
 
         expect(defaultCoderPackageJsonScripts['coder:run']).not.toContain('--agent');
         expect(defaultCoderPackageJsonScripts['coder:plan']).not.toContain('--agent');
+        expect(defaultCoderPackageJsonScripts['coder:run']).not.toContain('--context');
+        expect(defaultCoderPackageJsonScripts['coder:run']).not.toContain('--path');
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             scripts: defaultCoderPackageJsonScripts,
         });
@@ -164,7 +166,7 @@ describe('coder boilerplate templates', () => {
         expect(summary.packageJsonFileStatus).toBe('updated');
         expect(summary.vscodeSettingsFileStatus).toBe('updated');
         expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('augmented');
-        expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('not-referenced');
+        expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('unchanged');
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe(
@@ -267,8 +269,8 @@ describe('coder boilerplate templates', () => {
         await expect(readFile(join(projectPath, CODER_DEVELOPER_AGENT_FILE_PATH), 'utf-8')).resolves.toContain(
             'Developer',
         );
-        expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('not-referenced');
-        await expect(readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).rejects.toThrow();
+        expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('created');
+        expect(await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).toBe(`${getDefaultCoderAgentsFileContent()}\n`);
 
         // Note: [4] The added `coder:generate-boilerplates` script still references the common template
         for (const { relativeFilePath } of getDefaultCoderProjectPromptTemplateDefinitions()) {

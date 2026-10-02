@@ -1,5 +1,6 @@
 import colors from 'colors';
-import { join, relative } from 'path';
+import { dirname, join, relative } from 'path';
+import { copyFile, mkdir } from 'fs/promises';
 import { $resolveWorkspaceRepository } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import { captureCoderCommitScope, resolveCoderCommitScopePaths } from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
@@ -19,6 +20,10 @@ import { createCoderIsolationWorktree } from './createCoderIsolationWorktree';
 import { markPromptIsolationMergeFailed } from './markPromptIsolationMergeFailed';
 import { mergeCoderIsolationWorktree } from './mergeCoderIsolationWorktree';
 import { removeCoderIsolationWorktree } from './removeCoderIsolationWorktree';
+import { mapProjectReferenceToWorktree } from './mapProjectReferenceToWorktree';
+import { resolveCoderProjectContext } from '../common/resolveCoderProjectContext';
+import { resolveCoderAgent } from '../common/resolveCoderAgent';
+import { DEFAULT_CODER_AGENT_ROLE } from '../../../src/cli/cli-commands/coder/coderAgentRole';
 
 /**
  * Runs one prompt round inside a temporary git worktree and merges the result back afterwards.
@@ -34,7 +39,7 @@ import { removeCoderIsolationWorktree } from './removeCoderIsolationWorktree';
  */
 export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Promise<void> {
     const { nextPrompt, promptLabel, isRichUiEnabled, uiHandle, waitForRequestedPause } = options;
-    const projectPath = options.projectPath ?? options.options.workspace?.projectPath ?? process.cwd();
+    const projectPath = options.projectPath ?? options.options.workspace?.projectPath ?? options.options.projectPath ?? process.cwd();
     // Note: The original project is left untouched by the isolated round itself, so its scope covers exactly
     //       the prompt status update and the changes the merge brings back from the worktree
     const originalProjectCommitScope = await captureCoderCommitScope(options.options.workspace ?? projectPath);
@@ -54,12 +59,40 @@ export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Pr
         // This newly created working tree has its own metadata. Keep the project's repository-relative
         // location so its harness and verification use the same project as the original invocation.
         const isolatedWorkspace = await $resolveWorkspaceRepository(isolatedProjectPath);
+        const isolatedOptions = {
+            ...options.options,
+            workspace: isolatedWorkspace,
+            projectPath: isolatedWorkspace.projectPath,
+            agent: mapProjectReferenceToWorktree(options.options.agent, originalProjectCommitScope.repositoryRoot ?? projectPath, worktree.worktreePath),
+            context: mapProjectReferenceToWorktree(options.options.context, originalProjectCommitScope.repositoryRoot ?? projectPath, worktree.worktreePath),
+            autoPush: false,
+        };
+        const projectContext = await resolveCoderProjectContext(isolatedOptions);
+        const agent = await resolveCoderAgent(isolatedOptions.agent, isolatedWorkspace.projectPath, {
+            defaultRole: DEFAULT_CODER_AGENT_ROLE,
+            isInitializationAllowed: false,
+        });
+        // Status updates, traces and commits belong to the same checkout as the harness and checks.
+        // Copy the parsed data too, so a failed isolated round does not mutate the original queue in memory.
+        const isolatedFile = {
+            ...nextPrompt.file,
+            path: join(isolatedWorkspace.projectPath, relative(projectPath, nextPrompt.file.path)),
+            lines: [...nextPrompt.file.lines],
+            sections: nextPrompt.file.sections.map((section) => ({ ...section })),
+        };
         await runPromptRound({
             ...options,
+            nextPrompt: { file: isolatedFile, section: isolatedFile.sections[nextPrompt.section.index]! },
             projectPath: isolatedWorkspace.projectPath,
+            // Temporary scripts and raw logs deliberately outlive the worktree; PRDs and traces are merged.
+            artifactsProjectPath: projectPath,
+            resolvedCoderContext: projectContext.context,
+            resolvedAgentSystemMessage: agent?.systemMessage,
             // Note: The isolated commit must never reach the remote, the merged commit on the original branch is pushed instead
-            options: { ...options.options, workspace: isolatedWorkspace, autoPush: false },
+            options: { ...isolatedOptions, projectContext },
         });
+        // Keep the display/commit identity in sync without writing to the original checkout before merging.
+        Object.assign(nextPrompt.section, isolatedFile.sections[nextPrompt.section.index]);
     } catch (error) {
         // Note: The worktree keeps whatever the failed round produced, which would be lost by deleting it here
         console.warn(
@@ -104,6 +137,18 @@ async function recordIsolationMergeFailure(
 ): Promise<void> {
     const { nextPrompt, runnerMetadata, isRichUiEnabled, uiHandle } = options;
     const mergeFailureError = buildCoderIsolationMergeFailureError(worktree, failureDetails);
+    const repositoryRoot = options.options.workspace?.repositoryRoot ?? worktree.projectPath;
+    const tracePath = buildPromptRunTracePath(nextPrompt.file, nextPrompt.section);
+    const isolatedTracePath = join(worktree.worktreePath, relative(repositoryRoot, tracePath));
+    // The failed merge did not bring back the worktree's trace. Preserve it beside the failure report.
+    await mkdir(dirname(tracePath), { recursive: true });
+    let isTraceCopied = false;
+    try {
+        await copyFile(isolatedTracePath, tracePath);
+        isTraceCopied = true;
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
 
     markPromptIsolationMergeFailed(nextPrompt.file, nextPrompt.section, worktree);
     await writePromptFile(nextPrompt.file);
@@ -118,12 +163,10 @@ async function recordIsolationMergeFailure(
     await commitChanges(buildCoderIsolationMergeFailureCommitMessage(worktree), {
         autoPush: options.options.autoPush,
         projectPath: options.options.workspace?.repositoryRoot ?? worktree.projectPath,
-        // Note: The round itself has already succeeded, so it has left its run trace in the original project.
-        //       It belongs to this commit, which is the only one this task still gets.
         relevantPaths: [
             nextPrompt.file.path,
             errorLogPath,
-            buildPromptRunTracePath(nextPrompt.file, nextPrompt.section),
+            ...(isTraceCopied ? [tracePath] : []),
         ].map((path) =>
             toProjectRelativeGitPath(options.options.workspace?.repositoryRoot ?? worktree.projectPath, path),
         ),

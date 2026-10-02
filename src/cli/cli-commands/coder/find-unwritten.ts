@@ -4,6 +4,7 @@ import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -22,11 +23,13 @@ export function $initializeCoderFindUnwrittenCommand(program: Program): $side_ef
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const { priority = 0 } = cliOptions as {
                 readonly priority?: number;
             };
 
             const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
                 policy: 'read-only',
                 isAskingQuestionsEnabled: cliOptions.questions,
             });

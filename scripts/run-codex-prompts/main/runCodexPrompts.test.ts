@@ -254,10 +254,10 @@ describe('runCodexPrompts', () => {
         },
     );
 
-    it('refuses a dry-run with missing Adam without starting a harness or initializing Books', async () => {
+    it('previews Book routing without compiling or initializing missing dependencies', async () => {
         const adamPath = join(projectPath, 'agents/.core/adam.book');
         await rm(adamPath);
-        await expect(runCodexPrompts(createRunOptions({ dryRun: true }))).rejects.toThrow('ptbk coder init');
+        await runCodexPrompts(createRunOptions({ dryRun: true }));
         expect(resolvePromptRunner).not.toHaveBeenCalled();
         expect(runPromptRound).not.toHaveBeenCalled();
         await expect(readFile(adamPath)).rejects.toMatchObject({ code: 'ENOENT' });

@@ -149,7 +149,7 @@ describe('$initializeCoderRunCommand', () => {
             from: 'node',
         });
 
-        expect($ensurePromptbookCliInstallations).toHaveBeenCalledWith({ isAskingQuestionsEnabled: false });
+        expect($ensurePromptbookCliInstallations).toHaveBeenCalledWith({ isAskingQuestionsEnabled: false }, process.cwd());
         expect($ensureHarnessInstallations).toHaveBeenCalledWith(['qwen-code'], { isAskingQuestionsEnabled: false });
         expect($ensureCoderHarnessGitignoreRules).toHaveBeenCalledWith(process.cwd(), 'qwen-code', {
             isAskingQuestionsEnabled: false,

@@ -1,0 +1,1072 @@
+
+> promptbook@0.114.0-48 test-unit
+> node -r ./scripts/ignore-kill-eperm.js ./node_modules/jest/bin/jest.js --forceExit --runInBand src/cli/cli-commands/coder scripts/run-codex-prompts/common/resolveCoder scripts/run-codex-prompts/main scripts/run-codex-prompts/isolation src/cli/cli-commands/common/projectCliOptions.test.ts src/cli/cli-commands/common/workspaceRepository.test.ts --testPathIgnorePatterns planningPackagedCli
+
+FAIL src/cli/cli-commands/coder/boilerplateTemplates.test.ts
+  ● coder boilerplate templates › keeps existing scripts and settings and skips the artifacts they no longer reference
+
+    expect(received).toBe(expected) // Object.is equality
+
+    - Expected  - 0
+    + Received  + 1
+
+      <!-- TODO: Write instructions for the Promptbook AI Coder here -->
+    +
+
+      271 |         );
+      272 |         expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('created');
+    > 273 |         expect(await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).toBe(getDefaultCoderAgentsFileContent());
+          |                                                                              ^
+      274 |
+      275 |         // Note: [4] The added `coder:generate-boilerplates` script still references the common template
+      276 |         for (const { relativeFilePath } of getDefaultCoderProjectPromptTemplateDefinitions()) {
+
+      at Object.<anonymous> (src/cli/cli-commands/coder/boilerplateTemplates.test.ts:273:78)
+
+PASS src/cli/cli-commands/coder/run.test.ts (5.626 s)
+PASS src/cli/cli-commands/coder/planning/runPlanningSession.test.ts (5.445 s)
+PASS src/cli/cli-commands/common/workspaceRepository.test.ts
+PASS scripts/run-codex-prompts/common/resolveCoderAgent.references.test.ts
+PASS scripts/run-codex-prompts/main/runCodexPrompts.test.ts
+  ● Console
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Following prompts need to be written:
+
+      at runDryRunIfRequested (scripts/run-codex-prompts/main/runCodexPrompts.ts:687:13)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Following prompts need to be written:
+
+      at runDryRunIfRequested (scripts/run-codex-prompts/main/runCodexPrompts.ts:687:13)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Pulling latest changes before the next prompt...
+
+      at pullLatestChangesIfEnabled (scripts/run-codex-prompts/main/runCodexPrompts.ts:382:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Pulling latest changes before the next prompt...
+
+      at pullLatestChangesIfEnabled (scripts/run-codex-prompts/main/runCodexPrompts.ts:382:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No prompts match the selected harness, model or agent.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      Run limit reached after 2 prompt runs.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+    console.info
+      Running prompts with GitHub Copilot
+
+      at runCodexPrompts (scripts/run-codex-prompts/main/runCodexPrompts.ts:150:17)
+
+    console.info
+      Done: 0 | For agent: 1 | To be written: 0
+
+      at printStats (scripts/run-codex-prompts/prompts/printStats.ts:15:13)
+
+    console.info
+      No upcoming tasks.
+
+      at printUpcomingTasks (scripts/run-codex-prompts/prompts/printUpcomingTasks.ts:10:17)
+
+    console.info
+      End requested after 1 prompt run.
+
+      at announceRunCompletion (scripts/run-codex-prompts/main/runCodexPrompts.ts:917:17)
+
+PASS scripts/run-codex-prompts/isolation/isolatedWorkspace.test.ts
+PASS scripts/run-codex-prompts/isolation/runIsolatedPromptRound.test.ts
+PASS scripts/run-codex-prompts/main/projectDefaults.test.ts (8.96 s)
+PASS scripts/run-codex-prompts/common/resolveCoderProjectContext.test.ts
+FAIL src/cli/cli-commands/common/projectCliOptions.test.ts
+  ● shared project selection › rejects empty, missing, non-directory and inaccessible paths without creating anything
+
+    TypeError: Cannot redefine property: access
+        at Function.defineProperty (<anonymous>)
+
+      45 |         await filesystem.writeFile(filePath, 'Keep this file.');
+      46 |         await expect(resolveProjectDirectory(filePath)).rejects.toThrow('not a directory');
+    > 47 |         jest.spyOn(filesystem, 'access').mockRejectedValueOnce(Object.assign(new Error('Access denied'), { code: 'EACCES' }));
+         |              ^
+      48 |         await expect(resolveProjectDirectory(directory)).rejects.toThrow('readable and searchable');
+      49 |         expect(await filesystem.readdir(directory)).toEqual(['file.txt']);
+      50 |     });
+
+      at ModuleMocker.spyOn (node_modules/jest-mock/build/index.js:776:16)
+      at Object.<anonymous> (src/cli/cli-commands/common/projectCliOptions.test.ts:47:14)
+
+PASS src/cli/cli-commands/coder/init.test.ts (7.45 s)
+PASS src/cli/cli-commands/coder/ensureCoderDefaultAgentFiles.test.ts (9.041 s)
+PASS src/cli/cli-commands/coder/planning/planningTeam.test.ts
+PASS scripts/run-codex-prompts/common/resolveCoderAgent.test.ts
+FAIL src/cli/cli-commands/coder/workspacePreflight.test.ts
+  ● registered workspace actions › warns for run --dry-run without any setup
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: ObjectContaining {"dryRun": true, "workspace": ObjectContaining {"projectPath": "C:\\Users\\me\\AppData\\Local\\Temp\\ptbk-preflight-action-iRbGDP", "repositoryStatus": "missing"}}
+
+    Number of calls: 0
+
+      182 |         await run(['coder', name, '--dry-run']);
+      183 |         expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('No Git working tree'));
+    > 184 |         expect(name === 'run' ? runCodexPrompts : runCodexPromptsServer).toHaveBeenCalledWith(
+          |                                                                          ^
+      185 |             expect.objectContaining({
+      186 |                 dryRun: true,
+      187 |                 workspace: expect.objectContaining({ repositoryStatus: 'missing', projectPath }),
+
+      at src/cli/cli-commands/coder/workspacePreflight.test.ts:184:74
+
+  ● registered workspace actions › warns for server --dry-run without any setup
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: ObjectContaining {"dryRun": true, "workspace": ObjectContaining {"projectPath": "C:\\Users\\me\\AppData\\Local\\Temp\\ptbk-preflight-action-emTsTd", "repositoryStatus": "missing"}}
+
+    Number of calls: 0
+
+      182 |         await run(['coder', name, '--dry-run']);
+      183 |         expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('No Git working tree'));
+    > 184 |         expect(name === 'run' ? runCodexPrompts : runCodexPromptsServer).toHaveBeenCalledWith(
+          |                                                                          ^
+      185 |             expect.objectContaining({
+      186 |                 dryRun: true,
+      187 |                 workspace: expect.objectContaining({ repositoryStatus: 'missing', projectPath }),
+
+      at src/cli/cli-commands/coder/workspacePreflight.test.ts:184:74
+
+PASS src/cli/cli-commands/coder/planning/planningGitSync.test.ts
+  ● Console
+
+    console.info
+      ✓ Committed: Plan fixture feature
+
+      at $commitCoderChanges (scripts/run-codex-prompts/git/coderGitSync.ts:135:13)
+
+PASS src/cli/cli-commands/coder/ping.test.ts
+PASS src/cli/cli-commands/coder/find-refactor-candidates.test.ts
+PASS src/cli/cli-commands/coder/verify.test.ts
+PASS src/cli/cli-commands/coder/list.test.ts
+PASS src/cli/cli-commands/coder/server.test.ts
+PASS src/cli/cli-commands/coder/promptsReadmeTemplate.test.ts
+PASS src/cli/cli-commands/coder/add.test.ts
+  ● Console
+
+    console.info
+      ✓ Added prompt [✨🧦] in prompts\2026-10-0000-add-a-dark-mode-toggle.md
+
+      at addCoderPrompt (src/cli/cli-commands/coder/add.ts:181:13)
+
+    console.info
+      ✓ Added prompt [✨🍢] in prompts\2026-10-0000-task-with-priority.md
+
+      at addCoderPrompt (src/cli/cli-commands/coder/add.ts:181:13)
+
+    console.info
+      ✓ Added prompt [✨🌸] in prompts\2026-10-0000-first-line-summary.md
+
+      at addCoderPrompt (src/cli/cli-commands/coder/add.ts:181:13)
+
+    console.info
+      ✓ Added prompt [✨🎪] in prompts\2026-10-0000-first-feature.md
+
+      at addCoderPrompt (src/cli/cli-commands/coder/add.ts:181:13)
+
+    console.info
+      ✓ Added prompt [✨✅] in prompts\2026-10-0010-second-feature.md
+
+      at addCoderPrompt (src/cli/cli-commands/coder/add.ts:181:13)
+
+PASS scripts/run-codex-prompts/main/runPromptRound.test.ts
+  ● Console
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.warn
+      Prompt round failed (retry 1/3): The harness died
+
+      300 |
+      301 |     if (!isRichUiEnabled) {
+    > 302 |         console.warn(
+          |                 ^
+      303 |             colors.yellow(
+      304 |                 `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+      305 |             ),
+
+      at waitAfterErrorBeforeRetry (scripts/run-codex-prompts/main/runPromptRound.ts:302:17)
+      at preserveArtifactsOnSuccess (scripts/run-codex-prompts/main/runPromptRound.ts:193:27)
+
+    console.warn
+      Prompt round failed (retry 2/3): The harness died
+
+      300 |
+      301 |     if (!isRichUiEnabled) {
+    > 302 |         console.warn(
+          |                 ^
+      303 |             colors.yellow(
+      304 |                 `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+      305 |             ),
+
+      at waitAfterErrorBeforeRetry (scripts/run-codex-prompts/main/runPromptRound.ts:302:17)
+      at preserveArtifactsOnSuccess (scripts/run-codex-prompts/main/runPromptRound.ts:193:27)
+      at runPromptRound (scripts/run-codex-prompts/main/runPromptRound.ts:132:5)
+      at Object.<anonymous> (scripts/run-codex-prompts/main/runPromptRound.test.ts:550:9)
+
+    console.warn
+      Prompt round failed (retry 3/3): The harness died
+
+      300 |
+      301 |     if (!isRichUiEnabled) {
+    > 302 |         console.warn(
+          |                 ^
+      303 |             colors.yellow(
+      304 |                 `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+      305 |             ),
+
+      at waitAfterErrorBeforeRetry (scripts/run-codex-prompts/main/runPromptRound.ts:302:17)
+      at preserveArtifactsOnSuccess (scripts/run-codex-prompts/main/runPromptRound.ts:193:27)
+      at runPromptRound (scripts/run-codex-prompts/main/runPromptRound.ts:132:5)
+      at Object.<anonymous> (scripts/run-codex-prompts/main/runPromptRound.test.ts:550:9)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.warn
+      Prompt round failed (retry 1/3): The harness died
+
+      300 |
+      301 |     if (!isRichUiEnabled) {
+    > 302 |         console.warn(
+          |                 ^
+      303 |             colors.yellow(
+      304 |                 `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+      305 |             ),
+
+      at waitAfterErrorBeforeRetry (scripts/run-codex-prompts/main/runPromptRound.ts:302:17)
+      at preserveArtifactsOnSuccess (scripts/run-codex-prompts/main/runPromptRound.ts:193:27)
+      at runPromptRound (scripts/run-codex-prompts/main/runPromptRound.ts:132:5)
+      at Object.<anonymous> (scripts/run-codex-prompts/main/runPromptRound.test.ts:602:9)
+
+    console.warn
+      Prompt round failed (retry 2/3): The harness died
+
+      300 |
+      301 |     if (!isRichUiEnabled) {
+    > 302 |         console.warn(
+          |                 ^
+      303 |             colors.yellow(
+      304 |                 `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+      305 |             ),
+
+      at waitAfterErrorBeforeRetry (scripts/run-codex-prompts/main/runPromptRound.ts:302:17)
+      at preserveArtifactsOnSuccess (scripts/run-codex-prompts/main/runPromptRound.ts:193:27)
+      at runPromptRound (scripts/run-codex-prompts/main/runPromptRound.ts:132:5)
+      at Object.<anonymous> (scripts/run-codex-prompts/main/runPromptRound.test.ts:602:9)
+
+    console.warn
+      Prompt round failed (retry 3/3): The harness died
+
+      300 |
+      301 |     if (!isRichUiEnabled) {
+    > 302 |         console.warn(
+          |                 ^
+      303 |             colors.yellow(
+      304 |                 `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+      305 |             ),
+
+      at waitAfterErrorBeforeRetry (scripts/run-codex-prompts/main/runPromptRound.ts:302:17)
+      at preserveArtifactsOnSuccess (scripts/run-codex-prompts/main/runPromptRound.ts:193:27)
+      at runPromptRound (scripts/run-codex-prompts/main/runPromptRound.ts:132:5)
+      at Object.<anonymous> (scripts/run-codex-prompts/main/runPromptRound.test.ts:602:9)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+    console.warn
+      Prompt round failed (retry 1/3): The harness died
+
+      300 |
+      301 |     if (!isRichUiEnabled) {
+    > 302 |         console.warn(
+          |                 ^
+      303 |             colors.yellow(
+      304 |                 `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+      305 |             ),
+
+      at waitAfterErrorBeforeRetry (scripts/run-codex-prompts/main/runPromptRound.ts:302:17)
+      at preserveArtifactsOnSuccess (scripts/run-codex-prompts/main/runPromptRound.ts:193:27)
+
+    console.warn
+      Prompt round failed (retry 2/3): The harness died
+
+      300 |
+      301 |     if (!isRichUiEnabled) {
+    > 302 |         console.warn(
+          |                 ^
+      303 |             colors.yellow(
+      304 |                 `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+      305 |             ),
+
+      at waitAfterErrorBeforeRetry (scripts/run-codex-prompts/main/runPromptRound.ts:302:17)
+      at preserveArtifactsOnSuccess (scripts/run-codex-prompts/main/runPromptRound.ts:193:27)
+      at runPromptRound (scripts/run-codex-prompts/main/runPromptRound.ts:132:5)
+      at Object.<anonymous> (scripts/run-codex-prompts/main/runPromptRound.test.ts:686:9)
+
+    console.warn
+      Prompt round failed (retry 3/3): The harness died
+
+      300 |
+      301 |     if (!isRichUiEnabled) {
+    > 302 |         console.warn(
+          |                 ^
+      303 |             colors.yellow(
+      304 |                 `Prompt round failed (retry ${attemptedRetries}/${MAX_RETRY_ATTEMPTS_AFTER_ERROR}): ${errorMessage}`,
+      305 |             ),
+
+      at waitAfterErrorBeforeRetry (scripts/run-codex-prompts/main/runPromptRound.ts:302:17)
+      at preserveArtifactsOnSuccess (scripts/run-codex-prompts/main/runPromptRound.ts:193:27)
+      at runPromptRound (scripts/run-codex-prompts/main/runPromptRound.ts:132:5)
+      at Object.<anonymous> (scripts/run-codex-prompts/main/runPromptRound.test.ts:686:9)
+
+    console.info
+      Processing example.md#1
+
+      at setPromptRoundRunningState (scripts/run-codex-prompts/main/runPromptRound.ts:354:13)
+
+PASS src/cli/cli-commands/coder/mergeStringRecordJsonFile.test.ts
+PASS src/cli/cli-commands/coder/planning/runPlanningHarness.test.ts
+PASS src/cli/cli-commands/coder/generate-boilerplates.test.ts
+  ● Console
+
+    console.info
+      🚀  Generate prompt boilerplate files
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:132:13)
+
+    console.info
+      Highest existing number for 2026-10 found: 0000
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:144:13)
+
+    console.info
+      Found 1071 available fresh emojis
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:155:13)
+
+    console.info
+      Selected emojis: [✨🐷] [✨🍣] [✨🔯] [✨🚤] [✨🌄]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:156:13)
+
+    console.info
+      Creating 5 files:
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:194:13)
+
+    console.info
+      ✓ Created: 2026-10-0000-foo.md with [✨🐷]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:198:17)
+
+    console.info
+      ✓ Created: 2026-10-0010-bar.md with [✨🍣]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:198:17)
+
+    console.info
+      ✓ Created: 2026-10-0020-baz.md with [✨🔯]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:198:17)
+
+    console.info
+      ✓ Created: 2026-10-0030-qux.md with [✨🚤]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:198:17)
+
+    console.info
+      ✓ Created: 2026-10-0040-brr.md with [✨🌄]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:198:17)
+
+    console.info
+       Successfully created 5 prompts in 5 prompt boilerplate files! 
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:201:13)
+
+    console.info
+      🚀  Generate prompt boilerplate files
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:132:13)
+
+    console.info
+      Highest existing number for 2026-10 found: 0000
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:144:13)
+
+    console.info
+      Found 1071 available fresh emojis
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:155:13)
+
+    console.info
+      Selected emojis: [✨🏓] [✨🈹] [✨🥠]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:156:13)
+
+    console.info
+      Creating 3 files:
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:194:13)
+
+    console.info
+      ✓ Created: 2026-10-0000-foo.md with [✨🏓]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:198:17)
+
+    console.info
+      ✓ Created: 2026-10-0010-bar.md with [✨🈹]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:198:17)
+
+    console.info
+      ✓ Created: 2026-10-0020-baz.md with [✨🥠]
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:198:17)
+
+    console.info
+       Successfully created 12 prompts in 3 prompt boilerplate files! 
+
+      at generatePromptBoilerplate (src/cli/cli-commands/coder/generate-boilerplates.ts:201:13)
+
+PASS scripts/run-codex-prompts/main/resolvePromptRunner.test.ts
+PASS scripts/run-codex-prompts/isolation/coderIsolationCheckoutFailureReport.test.ts
+PASS scripts/run-codex-prompts/isolation/markPromptIsolationMergeFailed.test.ts
+PASS src/cli/cli-commands/coder/$ensureCoderHarnessGitignoreRules.test.ts
+FAIL scripts/run-codex-prompts/main/runCodexPromptsServer.test.ts
+  ● coder server previews › uses the shared runner without exposing the mutable HTTP server during a dry-run
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+    @@ -18,13 +18,20 @@
+        "noUi": false,
+        "normalizeLineEndings": true,
+        "preserveLogs": false,
+        "priority": 0,
+        "priorityFilter": Object {},
+    +   "projectPath": "C:\\Users\\me\\work\\ai\\promptbook",
+        "testBefore": "no",
+        "testCommand": undefined,
+        "thinkingLevel": undefined,
+        "waitAfterError": 600000,
+        "waitAfterPrompt": 0,
+        "waitBetweenPrompts": 0,
+        "waitForUser": false,
+    +   "workspace": Object {
+    +     "gitDirectory": "C:\\Users\\me\\work\\ai\\promptbook\\.git",
+    +     "projectPath": "C:\\Users\\me\\work\\ai\\promptbook",
+    +     "repositoryRoot": "C:\\Users\\me\\work\\ai\\promptbook",
+    +     "repositoryStatus": "reused",
+    +   },
+      },
+
+    Number of calls: 1
+
+      12 |         const options = parseRunOptions(['--dry-run', '--harness', 'openai-codex']);
+      13 |         await runCodexPromptsServer({ ...options, port: 4441 as number_port });
+    > 14 |         expect(runCodexPrompts).toHaveBeenCalledWith(options);
+         |                                 ^
+      15 |         expect(startCoderHttpServer).not.toHaveBeenCalled();
+      16 |     });
+      17 | });
+
+      at Object.<anonymous> (scripts/run-codex-prompts/main/runCodexPromptsServer.test.ts:14:33)
+
+PASS scripts/run-codex-prompts/main/listCoderPrompts.test.ts
+FAIL scripts/run-codex-prompts/common/resolveCoderContext.test.ts
+  ● resolveCoderContext › reports unreadable existing context for undefined
+
+    TypeError: Cannot redefine property: readFile
+        at Function.defineProperty (<anonymous>)
+
+      59 |     it.each([undefined, './AGENTS.md'])('reports unreadable existing context for %s', async (reference) => {
+      60 |         await writeFile(join(temporaryDirectoryPath, 'AGENTS.md'), 'Unreadable rules');
+    > 61 |         jest.spyOn(filesystem, 'readFile').mockRejectedValueOnce(Object.assign(new Error('Access denied'), { code: 'EACCES' }));
+         |              ^
+      62 |         await expect(resolveCoderContext(reference, temporaryDirectoryPath)).rejects.toThrow('permissions');
+      63 |         expect(console.warn).not.toHaveBeenCalled();
+      64 |     });
+
+      at ModuleMocker.spyOn (node_modules/jest-mock/build/index.js:776:16)
+      at scripts/run-codex-prompts/common/resolveCoderContext.test.ts:61:14
+
+  ● resolveCoderContext › reports unreadable existing context for ./AGENTS.md
+
+    TypeError: Cannot redefine property: readFile
+        at Function.defineProperty (<anonymous>)
+
+      59 |     it.each([undefined, './AGENTS.md'])('reports unreadable existing context for %s', async (reference) => {
+      60 |         await writeFile(join(temporaryDirectoryPath, 'AGENTS.md'), 'Unreadable rules');
+    > 61 |         jest.spyOn(filesystem, 'readFile').mockRejectedValueOnce(Object.assign(new Error('Access denied'), { code: 'EACCES' }));
+         |              ^
+      62 |         await expect(resolveCoderContext(reference, temporaryDirectoryPath)).rejects.toThrow('permissions');
+      63 |         expect(console.warn).not.toHaveBeenCalled();
+      64 |     });
+
+      at ModuleMocker.spyOn (node_modules/jest-mock/build/index.js:776:16)
+      at scripts/run-codex-prompts/common/resolveCoderContext.test.ts:61:14
+
+PASS src/cli/cli-commands/coder/boilerplateCount.test.ts
+PASS src/cli/cli-commands/coder/planning/createPlanningTerminal.test.ts
+PASS scripts/run-codex-prompts/isolation/coderIsolationNaming.test.ts
+PASS src/cli/cli-commands/coder/getTypescriptModule.test.ts
+
+Summary of all failing tests
+FAIL src/cli/cli-commands/coder/boilerplateTemplates.test.ts
+  ● coder boilerplate templates › keeps existing scripts and settings and skips the artifacts they no longer reference
+
+    expect(received).toBe(expected) // Object.is equality
+
+    - Expected  - 0
+    + Received  + 1
+
+      <!-- TODO: Write instructions for the Promptbook AI Coder here -->
+    +
+
+      271 |         );
+      272 |         expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('created');
+    > 273 |         expect(await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).toBe(getDefaultCoderAgentsFileContent());
+          |                                                                              ^
+      274 |
+      275 |         // Note: [4] The added `coder:generate-boilerplates` script still references the common template
+      276 |         for (const { relativeFilePath } of getDefaultCoderProjectPromptTemplateDefinitions()) {
+
+      at Object.<anonymous> (src/cli/cli-commands/coder/boilerplateTemplates.test.ts:273:78)
+
+FAIL src/cli/cli-commands/common/projectCliOptions.test.ts
+  ● shared project selection › rejects empty, missing, non-directory and inaccessible paths without creating anything
+
+    TypeError: Cannot redefine property: access
+        at Function.defineProperty (<anonymous>)
+
+      45 |         await filesystem.writeFile(filePath, 'Keep this file.');
+      46 |         await expect(resolveProjectDirectory(filePath)).rejects.toThrow('not a directory');
+    > 47 |         jest.spyOn(filesystem, 'access').mockRejectedValueOnce(Object.assign(new Error('Access denied'), { code: 'EACCES' }));
+         |              ^
+      48 |         await expect(resolveProjectDirectory(directory)).rejects.toThrow('readable and searchable');
+      49 |         expect(await filesystem.readdir(directory)).toEqual(['file.txt']);
+      50 |     });
+
+      at ModuleMocker.spyOn (node_modules/jest-mock/build/index.js:776:16)
+      at Object.<anonymous> (src/cli/cli-commands/common/projectCliOptions.test.ts:47:14)
+
+FAIL src/cli/cli-commands/coder/workspacePreflight.test.ts
+  ● registered workspace actions › warns for run --dry-run without any setup
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: ObjectContaining {"dryRun": true, "workspace": ObjectContaining {"projectPath": "C:\\Users\\me\\AppData\\Local\\Temp\\ptbk-preflight-action-iRbGDP", "repositoryStatus": "missing"}}
+
+    Number of calls: 0
+
+      182 |         await run(['coder', name, '--dry-run']);
+      183 |         expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('No Git working tree'));
+    > 184 |         expect(name === 'run' ? runCodexPrompts : runCodexPromptsServer).toHaveBeenCalledWith(
+          |                                                                          ^
+      185 |             expect.objectContaining({
+      186 |                 dryRun: true,
+      187 |                 workspace: expect.objectContaining({ repositoryStatus: 'missing', projectPath }),
+
+      at src/cli/cli-commands/coder/workspacePreflight.test.ts:184:74
+
+  ● registered workspace actions › warns for server --dry-run without any setup
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: ObjectContaining {"dryRun": true, "workspace": ObjectContaining {"projectPath": "C:\\Users\\me\\AppData\\Local\\Temp\\ptbk-preflight-action-emTsTd", "repositoryStatus": "missing"}}
+
+    Number of calls: 0
+
+      182 |         await run(['coder', name, '--dry-run']);
+      183 |         expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('No Git working tree'));
+    > 184 |         expect(name === 'run' ? runCodexPrompts : runCodexPromptsServer).toHaveBeenCalledWith(
+          |                                                                          ^
+      185 |             expect.objectContaining({
+      186 |                 dryRun: true,
+      187 |                 workspace: expect.objectContaining({ repositoryStatus: 'missing', projectPath }),
+
+      at src/cli/cli-commands/coder/workspacePreflight.test.ts:184:74
+
+FAIL scripts/run-codex-prompts/main/runCodexPromptsServer.test.ts
+  ● coder server previews › uses the shared runner without exposing the mutable HTTP server during a dry-run
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+    @@ -18,13 +18,20 @@
+        "noUi": false,
+        "normalizeLineEndings": true,
+        "preserveLogs": false,
+        "priority": 0,
+        "priorityFilter": Object {},
+    +   "projectPath": "C:\\Users\\me\\work\\ai\\promptbook",
+        "testBefore": "no",
+        "testCommand": undefined,
+        "thinkingLevel": undefined,
+        "waitAfterError": 600000,
+        "waitAfterPrompt": 0,
+        "waitBetweenPrompts": 0,
+        "waitForUser": false,
+    +   "workspace": Object {
+    +     "gitDirectory": "C:\\Users\\me\\work\\ai\\promptbook\\.git",
+    +     "projectPath": "C:\\Users\\me\\work\\ai\\promptbook",
+    +     "repositoryRoot": "C:\\Users\\me\\work\\ai\\promptbook",
+    +     "repositoryStatus": "reused",
+    +   },
+      },
+
+    Number of calls: 1
+
+      12 |         const options = parseRunOptions(['--dry-run', '--harness', 'openai-codex']);
+      13 |         await runCodexPromptsServer({ ...options, port: 4441 as number_port });
+    > 14 |         expect(runCodexPrompts).toHaveBeenCalledWith(options);
+         |                                 ^
+      15 |         expect(startCoderHttpServer).not.toHaveBeenCalled();
+      16 |     });
+      17 | });
+
+      at Object.<anonymous> (scripts/run-codex-prompts/main/runCodexPromptsServer.test.ts:14:33)
+
+FAIL scripts/run-codex-prompts/common/resolveCoderContext.test.ts
+  ● resolveCoderContext › reports unreadable existing context for undefined
+
+    TypeError: Cannot redefine property: readFile
+        at Function.defineProperty (<anonymous>)
+
+      59 |     it.each([undefined, './AGENTS.md'])('reports unreadable existing context for %s', async (reference) => {
+      60 |         await writeFile(join(temporaryDirectoryPath, 'AGENTS.md'), 'Unreadable rules');
+    > 61 |         jest.spyOn(filesystem, 'readFile').mockRejectedValueOnce(Object.assign(new Error('Access denied'), { code: 'EACCES' }));
+         |              ^
+      62 |         await expect(resolveCoderContext(reference, temporaryDirectoryPath)).rejects.toThrow('permissions');
+      63 |         expect(console.warn).not.toHaveBeenCalled();
+      64 |     });
+
+      at ModuleMocker.spyOn (node_modules/jest-mock/build/index.js:776:16)
+      at scripts/run-codex-prompts/common/resolveCoderContext.test.ts:61:14
+
+  ● resolveCoderContext › reports unreadable existing context for ./AGENTS.md
+
+    TypeError: Cannot redefine property: readFile
+        at Function.defineProperty (<anonymous>)
+
+      59 |     it.each([undefined, './AGENTS.md'])('reports unreadable existing context for %s', async (reference) => {
+      60 |         await writeFile(join(temporaryDirectoryPath, 'AGENTS.md'), 'Unreadable rules');
+    > 61 |         jest.spyOn(filesystem, 'readFile').mockRejectedValueOnce(Object.assign(new Error('Access denied'), { code: 'EACCES' }));
+         |              ^
+      62 |         await expect(resolveCoderContext(reference, temporaryDirectoryPath)).rejects.toThrow('permissions');
+      63 |         expect(console.warn).not.toHaveBeenCalled();
+      64 |     });
+
+      at ModuleMocker.spyOn (node_modules/jest-mock/build/index.js:776:16)
+      at scripts/run-codex-prompts/common/resolveCoderContext.test.ts:61:14
+
+
+Test Suites: 5 failed, 34 passed, 39 total
+Tests:       7 failed, 1 skipped, 433 passed, 441 total
+Snapshots:   0 total
+Time:        62.146 s, estimated 76 s
+Ran all test suites matching /src\\cli\\cli-commands\\coder|scripts\\run-codex-prompts\\common\\resolveCoder|scripts\\run-codex-prompts\\main|scripts\\run-codex-prompts\\isolation|src\\cli\\cli-commands\\common\\projectCliOptions.test.ts|src\\cli\\cli-commands\\common\\workspaceRepository.test.ts/i.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

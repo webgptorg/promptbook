@@ -2,7 +2,6 @@ import { AGENTS_FILE_PATH } from './agentsFile';
 import { DEFAULT_BOILERPLATE_COUNT_OPTION_VALUE } from './boilerplateCount';
 import { COMMON_PROMPT_TEMPLATE_FILE_PATH } from './boilerplateTemplates';
 import { CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
-import { CODER_PLANNER_AGENT_FILE_PATH } from './ensureCoderRoleAgentFile';
 import { formatDisplayPath } from './formatDisplayPath';
 
 /**
@@ -53,13 +52,12 @@ const DEFAULT_CODER_PACKAGE_JSON_SCRIPT_DEFINITIONS: ReadonlyArray<CoderPackageJ
     {
         scriptName: 'coder:plan',
         scriptCommand: 'npx ptbk coder plan --harness openai-codex',
-        referencedArtifactPaths: [CODER_PLANNER_AGENT_FILE_PATH, COMMON_PROMPT_TEMPLATE_FILE_PATH],
+        referencedArtifactPaths: [CODER_DEVELOPER_AGENT_FILE_PATH, AGENTS_FILE_PATH, COMMON_PROMPT_TEMPLATE_FILE_PATH],
     },
     {
         scriptName: 'coder:run',
         scriptCommand: [
             'npx ptbk coder run --harness openai-codex --thinking-level max',
-            `--context ${formatDisplayPath(AGENTS_FILE_PATH)}`,
             `--test "npm run ${CODER_TEST_SCRIPT_NAME}" --test-before yes-and-fix`,
         ].join(' '),
         referencedArtifactPaths: [CODER_DEVELOPER_AGENT_FILE_PATH, AGENTS_FILE_PATH],

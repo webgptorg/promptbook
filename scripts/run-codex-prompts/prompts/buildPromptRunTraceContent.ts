@@ -43,6 +43,8 @@ export type PromptRunTraceOutcome =
  * Everything one run trace says about the prompt round it describes.
  */
 export type BuildPromptRunTraceContentOptions = FormatRunnerSignatureOptions & {
+    /** Selected execution project used for trace links, including in temporary worktrees. */
+    readonly projectPath?: string;
     readonly file: PromptFile;
     readonly section: PromptSection;
 
@@ -115,7 +117,7 @@ function buildPromptRunTraceSummarySection(options: BuildPromptRunTraceContentOp
 
     return spaceTrim(
         (block) => `
-            # Run trace of \`${buildPromptLabelForDisplay(file, section)}\`
+            # Run trace of \`${buildPromptLabelForDisplay(file, section, options.projectPath)}\`
 
             ${block(detailLines.join('\n'))}
         `,

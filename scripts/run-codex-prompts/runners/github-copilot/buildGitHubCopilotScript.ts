@@ -1,6 +1,7 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { resolveShellHereDocumentDelimiter } from '../../common/runGoScript/resolveShellHereDocumentDelimiter';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
+import { quoteBashArgument } from '../../common/runGoScript/quoteBashArgument';
 import type { GitHubCopilotScriptOptions } from './GitHubCopilotScriptOptions';
 
 /**
@@ -14,7 +15,7 @@ export function buildGitHubCopilotScript(options: GitHubCopilotScriptOptions): s
 
     return spaceTrim(
         (block) => `
-            cd "${projectPath}"
+            cd ${quoteBashArgument(projectPath)}
 
             if [ -f .env ]; then
             set -a

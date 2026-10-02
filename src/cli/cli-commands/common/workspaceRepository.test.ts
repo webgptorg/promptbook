@@ -245,7 +245,8 @@ describe('workspace repository discovery and policy', () => {
         expect(prompt).not.toHaveBeenCalled();
     });
 
-    it('reports initialization permission failures before project setup', async () => {
+    // This executable fixture needs POSIX shebang dispatch; Windows access failures are mocked in projectCliOptions.test.ts.
+    (process.platform === 'win32' ? it.skip : it)('reports initialization permission failures before project setup', async () => {
         // A failing executable fixture makes the permission failure deterministic without changing host ownership.
         const gitPath = (await EXECUTE_FILE('which', ['git'])).stdout.trim();
         const executableDirectory = join(temporaryDirectory, 'executables');

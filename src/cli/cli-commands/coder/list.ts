@@ -5,6 +5,7 @@ import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { addPromptPriorityOptions } from '../common/promptPriorityCliOptions';
 import type { PromptRunnerSelectionCliOptions } from '../common/promptRunnerCliOptions';
@@ -46,6 +47,7 @@ export function $initializeCoderListCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const {
                 agent,
                 priority,
@@ -62,7 +64,8 @@ export function $initializeCoderListCommand(program: Program): $side_effect {
                 cliOptions as PromptRunnerSelectionCliOptions,
                 { isAgentRequired: false },
             );
-            const workspace = await $preflightWorkspaceRepository({ policy: 'read-only' });
+            const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions, policy: 'read-only' });
             const resolvedCoderAgentBook =
                 agent === undefined
                     ? undefined

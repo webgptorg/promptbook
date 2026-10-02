@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from 'fs';
 import { realpath } from 'fs/promises';
 import { join } from 'path';
 import { resolveCoderAgent } from '../../../../../scripts/run-codex-prompts/common/resolveCoderAgent';
+import { resolveCoderProjectContext, type ResolvedCoderProjectContext } from '../../../../../scripts/run-codex-prompts/common/resolveCoderProjectContext';
+import { DEFAULT_CODER_AGENT_ROLE } from '../coderAgentRole';
 import { CoderTeamRuntime } from '../../../../../scripts/run-codex-prompts/team/CoderTeamRuntime';
 import { appendCoderTeamEvent } from '../../../../../scripts/run-codex-prompts/team/createCoderTeamPromptRunner';
 import type { Usage } from '../../../../execution/Usage';
@@ -38,6 +40,8 @@ export async function runPlanningSession(
     options: NormalizedPromptRunnerSelectionCliOptions & {
         readonly projectPath: string;
         readonly agent?: string;
+        readonly context?: string;
+        readonly projectContext?: ResolvedCoderProjectContext;
         readonly template?: string;
         readonly preexistingChangedPaths?: ReadonlySet<string>;
     },
@@ -46,15 +50,16 @@ export async function runPlanningSession(
 ): Promise<ReadonlyMap<string, string>> {
     const projectPath = await realpath(options.projectPath);
     assertPlanningHarnessSupported(options.agentName);
+    const projectContext = options.projectContext ?? await resolveCoderProjectContext({ ...options, projectPath });
     const agent = await resolveCoderAgent(options.agent, projectPath, {
-        defaultRole: 'planner',
+        defaultRole: DEFAULT_CODER_AGENT_ROLE,
         isInitializationAllowed: false,
         signal: io.signal,
     });
     if (!existsSync(join(projectPath, 'prompts'))) {
         throw new NotFoundError(spaceTrim('Planning requires `prompts/`. Run `ptbk coder init` first.'));
     }
-    if (!agent) throw new NotFoundError(spaceTrim('Planner Book is missing. Run `ptbk coder init`.'));
+    if (!agent) throw new NotFoundError(spaceTrim('Primary Book is missing. Run `ptbk coder init`.'));
     resolvePlanningPath(projectPath, 'prompts');
     const templateOption =
         options.template ??
@@ -111,7 +116,10 @@ export async function runPlanningSession(
             },
             { role: 'context', content: await readPlanningContext(projectPath, { kind: 'list', path: '.' }) },
         ];
-        for (const path of ['README.md', 'AGENTS.md']) {
+        if (projectContext.context !== undefined) {
+            history.push({ role: 'context', content: projectContext.context });
+        }
+        for (const path of ['README.md']) {
             if (existsSync(join(projectPath, path))) {
                 history.push({
                     role: 'context',

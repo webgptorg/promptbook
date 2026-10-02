@@ -6,6 +6,7 @@ import spaceTrim from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -31,7 +32,9 @@ export function $initializeCoderFindFreshEmojiTagCommand(program: Program): $sid
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
                 policy: 'read-only',
                 isAskingQuestionsEnabled: cliOptions.questions,
             });

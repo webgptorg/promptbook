@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { addQuestionsOption } from './questionsCliOptions';
+import { addProjectPathOption } from './projectCliOptions';
 
 /**
  * Shared explanation of the workspace prerequisite, independent of commit and synchronization settings.
@@ -21,6 +22,7 @@ export const WORKSPACE_REPOSITORY_DESCRIPTION = spaceTrim(`
  * @private internal registration helper for workspace CLI commands
  */
 export function addWorkspaceRepositoryOptions(command: Command): void {
+    addProjectPathOption(command);
     if (!command.options.some((option) => option.long === '--no-questions')) addQuestionsOption(command);
     command.addHelpText('after', `\n${WORKSPACE_REPOSITORY_DESCRIPTION}\n`);
 }

@@ -1,5 +1,6 @@
 import colors from 'colors';
 import moment from 'moment';
+import { $resolveWorkspaceRepository } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import type { number_port } from '../../../src/types/number_positive';
 import type { RunOptions } from '../cli/RunOptions';
 import { normalizePriorityFilter } from '../prompts/priorityFilter';
@@ -33,11 +34,13 @@ export type CoderServerRunOptions = RunOptions & {
  * @private internal function of `ptbk coder server`
  */
 export async function runCodexPromptsServer(options: CoderServerRunOptions): Promise<void> {
-    const { port, ...runOptions } = options;
-    if (runOptions.dryRun) {
-        await runCodexPrompts(runOptions);
+    const { port, ...providedOptions } = options;
+    if (providedOptions.dryRun) {
+        await runCodexPrompts(providedOptions);
         return;
     }
+    const workspace = providedOptions.workspace ?? await $resolveWorkspaceRepository(providedOptions.projectPath);
+    const runOptions = { ...providedOptions, workspace, projectPath: workspace.projectPath };
     const serverUrl = `http://localhost:${port}`;
     const uiState = new CoderRunUiState(moment());
     const priorityFilter = normalizePriorityFilter({

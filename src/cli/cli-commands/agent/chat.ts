@@ -1,3 +1,4 @@
+import { addProjectPathOption, addProjectContextOption, normalizeProjectCliOptions, resolveProjectDirectory } from '../common/projectCliOptions';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
@@ -32,10 +33,13 @@ export function $initializeAgentChatCommand(program: Program): $side_effect {
     command.requiredOption('--agent <agent-book-path>', 'Path to the agent .book file');
     addPromptRunnerSelectionOptions(command);
     addPromptRunnerRuntimeOptions(command);
-    command.option('--context <context-or-file>', 'Append extra context either inline or from a file path');
+    addProjectPathOption(command);
+    addProjectContextOption(command);
 
     command.action(
         handleActionErrors(async (cliOptions, commandProgram) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
+            const projectPath = await resolveProjectDirectory(projectOptions.projectDirectory);
             const options = cliOptions as AgentCommandCliOptions;
             const runnerOptions = normalizeAgentCommandRunnerOptions(options, commandProgram as Program);
             const { runAgentChat } = await import('../../../../scripts/run-agent-chat/runAgentChat');
@@ -43,7 +47,7 @@ export function $initializeAgentChatCommand(program: Program): $side_effect {
             await runAgentChat({
                 agentPath: resolveRequiredAgentPath(options),
                 context: options.context,
-                currentWorkingDirectory: process.cwd(),
+                currentWorkingDirectory: projectPath,
                 ...runnerOptions,
             });
         }),

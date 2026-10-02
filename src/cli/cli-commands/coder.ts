@@ -24,7 +24,7 @@ import { $initializeCoderVerifyCommand } from './coder/verify';
  * The coder command provides utilities for automated coding:
  * - init: Initialize coder configuration in current project
  * - add: Add one ready-to-run prompt file to the queue
- * - plan: Discuss features with Planner and author reviewed PRDs
+ * - plan: Discuss features with Developer and author reviewed PRDs
  * - generate-boilerplates: Generate prompt boilerplate files
  * - find-refactor-candidates: Find files that need refactoring
  * - list: List ready prompts in priority order without running them
@@ -46,7 +46,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             Subcommands:
             - init: Initialize coder configuration in current project
             - add: Add one ready-to-run prompt file to the queue
-            - plan: Discuss features with Planner and author reviewed PRDs
+            - plan: Discuss features with Developer and author reviewed PRDs
             - generate-boilerplates: Generate prompt boilerplate files
             - find-refactor-candidates: Find files that need refactoring
             - find-unwritten: List prompt sections that still need to be authored

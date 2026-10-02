@@ -5098,3 +5098,11 @@
     New role scripts omit redundant `--agent` arguments; repeated init preserves existing scripts and Books.
     Updated CLI help, examples, developer terminals and the Coder landing page. Planning remains restricted to PRDs
     with any selected Book.
+-   Shared project defaults across CLI execution and authoring: Developer, the invocation's current directory,
+    and the selected project's UTF-8 `AGENTS.md`. Added working `--path` selection and early directory validation;
+    explicit Book and inline/file context overrides remain authoritative, including intentionally empty context.
+    Planning now defaults to Developer while retaining its PRD-only boundary and explicit Planner support.
+    Kept listings and multi-agent discovery unfiltered, propagated selected paths through prompts, checks, Git,
+    subprocesses, traces and isolated worktrees, and quoted harness paths containing spaces. New scripts omit
+    redundant flags; initialization still creates missing Books and AGENTS.md and preserves customizations.
+    Added command/precedence documentation and offline fixture coverage, including the packed installed CLI.

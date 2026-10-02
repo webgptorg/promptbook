@@ -278,7 +278,7 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
     | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
     | \`ptbk init\` / \`ptbk coder init\`                                                                         | Initializes missing Git, then creates missing configuration, local Books, this guide, and fresh-directory boilerplates; preserves project-owned content. \`--no-questions\` skips installation questions/checks.                                                                                                                                                                |
     | \`ptbk coder add "Describe the reviewed change"\`                                           | Creates one numbered, tagged pending PRD. Accepts a description argument, stdin, or interactive input; \`--priority\` and \`--template\` are available. It does not discuss or implement the task. Review the generated requirements before running.                                                                                                |
-    | \`ptbk coder plan --harness openai-codex\`                                                  | Interactive planning with the local Planner. Review proposals; \`/save\` writes pending PRDs, \`/draft\` writes not-ready drafts, \`/discard\` drops proposals, \`/exit\` ends. It changes PRD Markdown only and never implements or starts the queue. Currently this planning command supports the Codex harness in a compatible interactive terminal. |
+    | \`ptbk coder plan --harness openai-codex\`                                                  | Interactive planning with the local Developer. Review proposals; \`/save\` writes pending PRDs, \`/draft\` writes not-ready drafts, \`/discard\` drops proposals, \`/exit\` ends. It changes PRD Markdown only and never implements or starts the queue. Currently this planning command supports the Codex harness in a compatible interactive terminal. |
     | \`ptbk coder list\`                                                                         | Displays fully authored pending tasks grouped by descending priority without execution or file changes. Optional harness/model/agent and priority filters narrow the list.                                                                                                                                                                      |
     | \`ptbk coder run --harness openai-codex --limit 1 --no-commit --no-auto --test "npm test"\` | Confirms and implements one selected task, then runs the specified project check. Replace the test command as needed. Without \`--limit\`, execution proceeds through the eligible queue; without \`--no-commit\`, run stages and commits its changes.                                                                                              |
     | \`ptbk coder verify\`                                                                       | Human review helper: shows completion claims, offers archival or a repair section, and can also ask about pending tasks. It does not run acceptance tests itself. Archival moves the whole file to \`done/\`, so inspect every section before agreeing. There is no separate archive command.                                                     |
@@ -308,9 +308,20 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
     Init creates local Developer and Planner Books in \`agents/developer.book\` and \`agents/planner.book\`, their
     Lawyer and Copywriter TEAM advisers, and shared \`agents/.core/adam.book\` instructions. Books can
     inherit/import instructions; TEAM entries expose advisers for relevant consultations, not an obligation to
-    invoke everyone. \`run\` and \`server\` default to Developer; \`plan\` defaults to Planner.
-    \`--agent agents/my-developer.book\` overrides the Book only. \`list\` has no default Book filter. Selecting
-    Developer for \`plan\` still permits planning only.
+    invoke everyone. \`run\`, \`server\` and \`plan\` default to Developer.
+    \`--agent ./agents/planner.book\` selects Planner explicitly; another Book path also works. \`list\` has no
+    default Book filter. Every Book used in \`plan\`, including Developer, still permits planning only.
+
+    Project commands default to the current directory captured when invoked. \`--path\` selects another existing
+    directory, relative to that invocation or absolute; an enclosing Git repository never relocates the project's
+    Books, PRDs or context. Additional context defaults to the actual UTF-8 contents of that project's \`AGENTS.md\`.
+    A missing implicit file warns and continues; an unreadable file fails. \`--context\` replaces the default with
+    inline instructions or a file resolved relative to the selected project; \`--context ""\` disables it.
+    Invalid explicit Books and missing/unreadable explicit context files fail without falling back.
+    Thus \`ptbk coder run --harness openai-codex\` and
+    \`ptbk coder run --harness openai-codex --agent ./agents/developer.book --path . --context ./AGENTS.md\` select
+    the same inputs. New npm scripts rely on these defaults; init still creates missing Books and AGENTS.md even
+    when every script already exists, preserving existing custom scripts, settings and context.
 
     Edit local Books to reflect this project's rules; repeat init preserves customizations and adds missing
     defaults/helper references. An invalid explicit Book selection fails rather than silently changing roles.

@@ -54,6 +54,10 @@ describe('isolated workspace project and repository context', () => {
         async (mode) => {
             const projectPath = mode === 'nested' ? join(repositoryPath, 'packages/project') : repositoryPath;
             await mkdir(join(projectPath, 'prompts'), { recursive: true });
+            await mkdir(join(projectPath, 'agents/.core'), { recursive: true });
+            await writeFile(join(projectPath, 'agents/.core/adam.book'), 'Adam\nFROM @Null\nRULE Local foundation.');
+            await writeFile(join(projectPath, 'agents/developer.book'), 'Developer\nRULE Selected project developer.');
+            await writeFile(join(projectPath, 'AGENTS.md'), 'Selected project context.');
             const promptPath = join(projectPath, 'prompts/task.md');
             await writeFile(promptPath, '[ ]\n\nImplement the project feature.\n');
             await writeFile(join(projectPath, 'README.md'), '# Requested project\n');
@@ -65,6 +69,8 @@ describe('isolated workspace project and repository context', () => {
             const file = parsePromptFile(promptPath, await readFile(promptPath, 'utf-8'));
             const options: RunOptions = {
                 workspace,
+                agent: mode === 'nested' ? join(projectPath, 'agents/developer.book') : undefined,
+                context: mode === 'nested' ? join(projectPath, 'AGENTS.md') : undefined,
                 dryRun: false,
                 preserveLogs: false,
                 noUi: true,
@@ -98,14 +104,19 @@ describe('isolated workspace project and repository context', () => {
                     });
                 }
                 expect(round.options.autoPush).toBe(false);
+                expect(round.resolvedCoderContext).toBe('Selected project context.');
+                expect(round.resolvedAgentSystemMessage).toContain('Selected project developer.');
+                expect(round.resolvedAgentSystemMessage).toContain('Local foundation.');
+                expect(round.nextPrompt.file.path).toBe(join(isolatedWorkspace.projectPath, 'prompts/task.md'));
+                expect(round.artifactsProjectPath).toBe(projectPath);
                 await writeFile(
                     join(isolatedWorkspace.projectPath, 'generated.txt'),
                     'Generated in the requested project.\n',
                 );
-                await git(isolatedWorkspace.projectPath, 'add', 'generated.txt');
+                await writeFile(round.nextPrompt.file.path, '[x]\n\nImplement the project feature.\n');
+                expect(await readFile(promptPath, 'utf-8')).toMatch(/^\[ \]/u);
+                await git(isolatedWorkspace.projectPath, 'add', 'generated.txt', 'prompts/task.md');
                 await git(isolatedWorkspace.projectPath, 'commit', '-m', 'Isolated implementation');
-                // The existing runner records queue status in the original project, outside its temporary checkout.
-                await writeFile(promptPath, '[x]\n\nImplement the project feature.\n');
             });
 
             await runIsolatedPromptRound({

@@ -13,10 +13,10 @@ import type { PromptbookCliInstallationStatus } from './PromptbookCliInstallatio
  * @returns `true` when the package update succeeds, `false` when it fails
  * @private internal utility of `promptbookCli`
  */
-export async function $updatePromptbookCliInstallation(status: PromptbookCliInstallationStatus): Promise<boolean> {
+export async function $updatePromptbookCliInstallation(status: PromptbookCliInstallationStatus, projectPath = process.cwd()): Promise<boolean> {
     const { npmPackageName, installationLocation } = status.installation;
     const installCommand = buildPromptbookCliInstallCommand(status.installation);
-    const updateWorkingDirectory = installationLocation === 'global' ? process.cwd() : status.installation.projectPath;
+    const updateWorkingDirectory = installationLocation === 'global' ? projectPath : status.installation.projectPath;
 
     console.info(colors.cyan(`Updating Promptbook CLI package \`${npmPackageName}\` with \`${installCommand}\`...`));
 

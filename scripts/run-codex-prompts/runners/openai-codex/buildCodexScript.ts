@@ -1,5 +1,6 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
+import { quoteBashArgument } from '../../common/runGoScript/quoteBashArgument';
 import { resolveShellHereDocumentDelimiter } from '../../common/runGoScript/resolveShellHereDocumentDelimiter';
 import {
     CODEX_CHATGPT_LOGIN_STATUS_NEEDLE,
@@ -88,7 +89,7 @@ export function buildCodexScript(options: CodexScriptOptions): string {
         ...(options.isMachineReadableProgressEnabled ? ['    --json \\'] : []),
         '    --local-provider none \\',
         `    --sandbox ${options.sandbox} \\`,
-        `    -C ${projectPath} \\`,
+        `    -C ${quoteBashArgument(projectPath)} \\`,
         '    --skip-git-repo-check \\',
         `    <<'${delimiter}'`,
         '',

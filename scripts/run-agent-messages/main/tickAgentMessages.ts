@@ -102,7 +102,7 @@ export async function tickAgentMessages(
 ): Promise<AgentTickResult> {
     validateAgentRunOptions(options);
 
-    const projectPath = tickOptions.projectPath || process.cwd();
+    const projectPath = tickOptions.projectPath ?? options.projectPath ?? process.cwd();
     let queueSnapshot = await loadAgentMessageQueueSnapshot(projectPath);
     let queuedMessage = resolveSelectedQueuedMessage(queueSnapshot, tickOptions.queuedMessage);
 

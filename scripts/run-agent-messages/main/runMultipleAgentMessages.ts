@@ -41,7 +41,7 @@ export async function runMultipleAgentMessages(
     validateAgentRunOptions(options);
     validateAgentWatchOptions('ptbk agent-folder run-multiple', options);
 
-    const rootPath = process.cwd();
+    const rootPath = options.projectPath ?? process.cwd();
     const shouldContinue = controls.shouldContinue || (() => just(true));
     const queuePollIntervalMs = controls.queuePollIntervalMs ?? MULTI_AGENT_QUEUE_POLL_INTERVAL_MS;
     const watchErrorLogDirectoryPath = controls.watchErrorLogDirectoryPath || rootPath;

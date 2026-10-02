@@ -55,17 +55,27 @@ export function AgentsSection() {
                     <p className="mt-4 text-gray-400">
                         TEAM works with custom Books and inherited declarations across all seven coding harnesses.
                         Planning currently uses OpenAI Codex, and every adviser follows the same planning restrictions:
-                        only the primary Planner proposes PRDs for your review. Consultation results, failures and
+                        only the primary agent proposes PRDs for your review. Consultation results, failures and
                         available usage appear in the task&apos;s existing trace.
                     </p>
                     <p className="mt-4 text-gray-400">
-                        <code className="text-promptbook-blue">run</code> and{' '}
-                        <code className="text-promptbook-blue">server</code> select Developer automatically;{' '}
-                        <code className="text-promptbook-blue">plan</code> selects Planner. Local Book edits apply on
+                        <code className="text-promptbook-blue">run</code>,{' '}
+                        <code className="text-promptbook-blue">server</code> and{' '}
+                        <code className="text-promptbook-blue">plan</code> select Developer automatically. Select Planner
+                        with <code className="text-promptbook-blue">--agent ./agents/planner.book</code>. Local Book edits apply on
                         the next invocation. <code className="text-promptbook-blue">--agent</code> changes the persona,
                         instructions and identity; <code className="text-promptbook-blue">--harness</code> selects the
                         coding tool and <code className="text-promptbook-blue">--model</code> selects its model.
                         Planning permits only PRD changes with any selected Book.
+                    </p>
+                    <p className="mt-4 text-gray-400">
+                        The project defaults to your current directory. Use{' '}
+                        <code className="text-promptbook-blue">--path</code> to select another project. Its{' '}
+                        <code className="text-promptbook-blue">AGENTS.md</code> is loaded as additional context;
+                        a missing file produces a diagnostic and continues.{' '}
+                        <code className="text-promptbook-blue">--context</code> replaces it with inline instructions or
+                        a file relative to the selected project. An empty value disables this context. Books and PRDs
+                        stay in the selected project even when Git belongs to a parent directory.
                     </p>
                     <p className="mt-4 text-gray-400">
                         Use <code className="text-promptbook-blue">FROM @Pavol</code> or{' '}
@@ -77,7 +87,7 @@ export function AgentsSection() {
                     <p className="mt-4 text-gray-400">
                         Paths starting with <code className="text-promptbook-blue">./</code> or{' '}
                         <code className="text-promptbook-blue">../</code> are relative to the book declaring them; other
-                        paths are relative to your current directory. HTTP and HTTPS book URLs work too. Adam is
+                        paths are relative to the selected project. HTTP and HTTPS book URLs work too. Adam is
                         inherited by default. Planning requires the Books to be prepared with{' '}
                         <code className="text-promptbook-blue">ptbk coder init</code> and never creates them during a
                         conversation. Use <code className="text-promptbook-blue">FROM @null</code> or{' '}

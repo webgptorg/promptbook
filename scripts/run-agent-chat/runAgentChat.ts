@@ -1,6 +1,6 @@
 import colors from 'colors';
 import { loadPromptsModule } from '../../src/cli/common/loadPromptsModule';
-import { resolveInlineOrFileText } from '../run-codex-prompts/common/resolveInlineOrFileText';
+import { resolveCoderContext } from '../run-codex-prompts/common/resolveCoderContext';
 import type { AgentCliHistoryMessage, AgentCliRunOptions } from './AgentCliRunOptions';
 import { createAgentChatWorkspacePath, executeAgentChatTurn } from './executeAgentChatTurn';
 
@@ -9,12 +9,7 @@ import { createAgentChatWorkspacePath, executeAgentChatTurn } from './executeAge
  */
 export async function runAgentChat(options: AgentCliRunOptions): Promise<void> {
     const currentWorkingDirectory = options.currentWorkingDirectory || process.cwd();
-    const context = await resolveInlineOrFileText({
-        textReference: options.context,
-        currentWorkingDirectory,
-        contextLabel: 'Agent context',
-        optionName: '--context',
-    });
+    const context = await resolveCoderContext(options.context, currentWorkingDirectory);
     const workspacePath = createAgentChatWorkspacePath({
         currentWorkingDirectory,
         agentPath: options.agentPath,
