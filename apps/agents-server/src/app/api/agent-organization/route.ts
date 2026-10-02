@@ -1,4 +1,3 @@
-import { mutateAgentOrganizationRoute } from '@/src/utils/workspace/workspaceAgentStorage';
 import { NextResponse } from 'next/server';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
@@ -42,7 +41,7 @@ export async function GET() {
  * @param request - Incoming request with organization updates.
  * @returns JSON response confirming updates.
  */
-async function handlePOST(request: Request) {
+export async function POST(request: Request) {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
         return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
@@ -76,10 +75,7 @@ async function handlePOST(request: Request) {
 
         const errors = (await Promise.all(folderUpdates)).filter(Boolean);
         if (errors.length > 0) {
-            return NextResponse.json(
-                { success: false, error: errors[0]?.message || 'Failed to update folders.' },
-                { status: 500 },
-            );
+            return NextResponse.json({ success: false, error: errors[0]?.message || 'Failed to update folders.' }, { status: 500 });
         }
     }
 
@@ -96,18 +92,10 @@ async function handlePOST(request: Request) {
 
         const errors = (await Promise.all(agentUpdates)).filter(Boolean);
         if (errors.length > 0) {
-            return NextResponse.json(
-                { success: false, error: errors[0]?.message || 'Failed to update agents.' },
-                { status: 500 },
-            );
+            return NextResponse.json({ success: false, error: errors[0]?.message || 'Failed to update agents.' }, { status: 500 });
         }
     }
 
     invalidateCachedActiveOrganizationSnapshots();
     return NextResponse.json({ success: true });
-}
-
-/** Applies this authorized logical mutation through the selected agent storage. */
-export async function POST(request: Request) {
-    return mutateAgentOrganizationRoute(() => handlePOST(request));
 }

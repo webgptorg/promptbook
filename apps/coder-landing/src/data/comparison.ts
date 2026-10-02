@@ -265,8 +265,8 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
     {
         capability: 'A backlog you can watch and refill',
         description:
-            'The full Agent Server with project Book chat/editing and a persistent multi-agent PRD execution view.',
-        ptbkCoderCell: { level: 'built-in', note: 'ptbk server (alias: ptbk coder server)' },
+            'A kanban board over the prompt files while the queue runs, with commands that write new ones and archive the finished.',
+        ptbkCoderCell: { level: 'built-in', note: 'ptbk coder server' },
         harnessCell: { level: 'not-available', note: 'No backlog to show' },
     },
 ];

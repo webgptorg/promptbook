@@ -52,26 +52,24 @@ export type AgentsServerChildEnvironment = NodeJS.ProcessEnv & {
 export function createAgentsServerChildEnvironment(
     port: number_port,
     agentRootPath: string,
-    options: { readonly launchWorkingDirectory?: string; readonly environment?: NodeJS.ProcessEnv } = {},
 ): AgentsServerChildEnvironment {
-    const launchWorkingDirectory = options.launchWorkingDirectory ?? process.cwd();
-    const environment = options.environment ?? process.env;
+    const launchWorkingDirectory = process.cwd();
     const localAgentsServerUrl = `http://localhost:${port}`;
-    const publicSiteUrl = environment.NEXT_PUBLIC_SITE_URL || localAgentsServerUrl;
+    const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || localAgentsServerUrl;
 
     return {
-        ...environment,
+        ...process.env,
         PORT: String(port),
         NEXT_PUBLIC_SITE_URL: publicSiteUrl,
         [PTBK_AGENTS_SERVER_URL_ENV]: localAgentsServerUrl,
         [PTBK_AGENTS_SERVER_AGENT_ROOT_ENV]: agentRootPath,
         [PTBK_AGENTS_SERVER_SQLITE_PATH_ENV]:
-            environment[PTBK_AGENTS_SERVER_SQLITE_PATH_ENV] ||
+            process.env[PTBK_AGENTS_SERVER_SQLITE_PATH_ENV] ||
             join(launchWorkingDirectory, '.promptbook', 'agents-server.sqlite'),
-        [PTBK_AGENTS_SERVER_DATABASE_ENV]: environment[PTBK_AGENTS_SERVER_DATABASE_ENV] || 'supabase',
+        [PTBK_AGENTS_SERVER_DATABASE_ENV]: process.env[PTBK_AGENTS_SERVER_DATABASE_ENV] || 'supabase',
         // Next loads app-local `.env` values after the CLI has prepared this bridge environment.
         [PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV]:
-            environment[PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV] ||
+            process.env[PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV] ||
             randomBytes(LOCAL_USER_CHAT_WORKER_TOKEN_BYTE_LENGTH).toString('hex'),
     };
 }

@@ -22,10 +22,7 @@ import {
     resolveAgentCollectionTablePrefix,
     waitForRunningAgentPreparation,
 } from '../agentPreparation';
-import {
-    resolveCachedServerAgentContext,
-    resolveCachedServerAgentModelRequirements,
-} from '../cachedServerAgentRuntime';
+import { resolveCachedServerAgentContext, resolveCachedServerAgentModelRequirements } from '../cachedServerAgentRuntime';
 import { AgentKitCacheManager } from '../cache/AgentKitCacheManager';
 import { createHandleChatCompletionErrorResponse } from './createHandleChatCompletionErrorResponse';
 
@@ -37,7 +34,7 @@ import { createHandleChatCompletionErrorResponse } from './createHandleChatCompl
 export type HandleChatCompletionRuntime = {
     collection: Awaited<ReturnType<typeof $provideAgentCollectionForServer>>;
     resolvedAgentContext: Awaited<ReturnType<typeof resolveCachedServerAgentContext>>;
-    agent: Pick<Agent, 'callChatModel' | 'callChatModelStream' | 'agentSource'>;
+    agent: Agent;
     agentSource: string_book;
     unresolvedAgentSource: Awaited<ReturnType<typeof resolveCachedServerAgentContext>>['unresolvedAgentSource'];
     messageSuffix: string | null;
@@ -253,11 +250,7 @@ async function createHandleChatCompletionAgent(options: {
     baseAgentReferenceResolver: Awaited<ReturnType<typeof $provideAgentReferenceResolver>>;
     hasDynamicContext: boolean;
     preparedAgentModelRequirements: Awaited<ReturnType<typeof resolveCachedServerAgentModelRequirements>> | null;
-}): Promise<Pick<Agent, 'callChatModel' | 'callChatModelStream' | 'agentSource'>> {
-    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE) {
-        const { prepareWorkspaceChatAgent } = await import('../workspace/prepareWorkspaceChatAgent');
-        return (await prepareWorkspaceChatAgent(options.agentId, options.agentSource)).agent;
-    }
+}): Promise<Agent> {
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
     const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
     const runtimeAgentReferenceResolver = options.hasDynamicContext

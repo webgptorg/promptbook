@@ -44,7 +44,6 @@ export class ClineRunner implements PromptRunner {
                 projectPath: options.projectPath,
                 scriptPath: options.scriptPath,
                 signal: options.signal,
-                environment: options.environment,
                 scriptContent,
                 logPath: options.logPath,
                 shouldPrintLiveOutput: options.shouldPrintLiveOutput,

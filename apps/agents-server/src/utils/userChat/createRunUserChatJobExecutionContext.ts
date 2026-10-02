@@ -44,12 +44,14 @@ type RunUserChatJobCurrentUserIdentity = {
 /**
  * Builds one prompt snapshot factory from the prepared execution prompt.
  */
-type RunUserChatJobPromptSnapshotFactory = (options?: {
-    toolCalls?: ReadonlyArray<ToolCall>;
-    completedToolCalls?: ReadonlyArray<ToolCall>;
-    rawPromptContent?: ChatPromptResult['rawPromptContent'];
-    rawRequest?: ChatPromptResult['rawRequest'];
-}) => NonNullable<ChatMessage['prompt']>;
+type RunUserChatJobPromptSnapshotFactory = (
+    options?: {
+        toolCalls?: ReadonlyArray<ToolCall>;
+        completedToolCalls?: ReadonlyArray<ToolCall>;
+        rawPromptContent?: ChatPromptResult['rawPromptContent'];
+        rawRequest?: ChatPromptResult['rawRequest'];
+    },
+) => NonNullable<ChatMessage['prompt']>;
 
 /**
  * Reports one user-facing durable chat progress phase together with the real runtime
@@ -65,7 +67,7 @@ type RunUserChatJobProgressReporter = (
  *
  * @private function of `runUserChatJob`
  */
-export type RunUserChatJobExecutionContextOptions = {
+export async function createRunUserChatJobExecutionContext(options: {
     job: Pick<
         UserChatJobRecord,
         'userId' | 'agentPermanentId' | 'chatId' | 'userMessageId' | 'assistantMessageId' | 'parameters'
@@ -75,16 +77,7 @@ export type RunUserChatJobExecutionContextOptions = {
     thread: NonNullable<ChatPrompt['thread']>;
     promptContent: ChatPrompt['content'];
     reportProgress?: RunUserChatJobProgressReporter;
-};
-
-/** Prepares database-backed or workspace-backed execution at the same durable-chat boundary. */
-export async function createRunUserChatJobExecutionContext(options: RunUserChatJobExecutionContextOptions) {
-    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE) {
-        const { createWorkspaceUserChatExecutionContext } = await import(
-            '../workspace/createWorkspaceUserChatExecutionContext'
-        );
-        return createWorkspaceUserChatExecutionContext(options);
-    }
+}) {
     const initialProgressContext: UserChatProgressContext = {
         agentPermanentId: options.job.agentPermanentId,
         attachmentCount: options.userMessageAttachments?.length ?? 0,
@@ -285,14 +278,17 @@ async function resolveRunUserChatJobCredentials(options: {
  *
  * @private function of `createRunUserChatJobExecutionContext`
  */
-export function createRunUserChatJobPrompt(options: {
+function createRunUserChatJobPrompt(options: {
     resolvedAgentName: string;
     promptParameters: ReturnType<typeof composePromptParametersWithMemoryContext>;
     promptContent: ChatPrompt['content'];
     thread: NonNullable<ChatPrompt['thread']>;
     attachments: ChatMessage['attachments'];
     runtimeTools: NonNullable<ChatPrompt['tools']>;
-}): Pick<ChatPrompt, 'title' | 'parameters' | 'modelRequirements' | 'content' | 'thread' | 'attachments' | 'tools'> {
+}): Pick<
+    ChatPrompt,
+    'title' | 'parameters' | 'modelRequirements' | 'content' | 'thread' | 'attachments' | 'tools'
+> {
     return {
         title: `Chat with agent ${options.resolvedAgentName}`,
         parameters: options.promptParameters,
@@ -311,7 +307,7 @@ export function createRunUserChatJobPrompt(options: {
  *
  * @private function of `createRunUserChatJobExecutionContext`
  */
-export function createRunUserChatJobPromptSnapshotFactory(options: {
+function createRunUserChatJobPromptSnapshotFactory(options: {
     chatPrompt: Pick<
         ChatPrompt,
         'title' | 'parameters' | 'modelRequirements' | 'content' | 'thread' | 'attachments' | 'tools'

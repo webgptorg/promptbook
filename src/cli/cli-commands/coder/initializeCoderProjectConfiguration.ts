@@ -1,16 +1,13 @@
 import { ADAM_AGENT_BOOK_RELATIVE_PATH } from '../common/ensureAdamAgentBook';
-import { $resolveConfinedProjectPath } from '../../../utils/filesystem/$resolveConfinedProjectPath';
-import { AGENTS_FILE_PATH } from './agentsFile';
 import type { InitializationStatus } from './boilerplateTemplates';
 import {
     PROMPTS_DIRECTORY_PATH,
     PROMPTS_DONE_DIRECTORY_PATH,
     PROMPTS_TEMPLATES_DIRECTORY_PATH,
-    getDefaultCoderProjectPromptTemplateDefinitions,
 } from './boilerplateTemplates';
 import type { CoderReferencedArtifactStatus, EnsuredCoderReferencedArtifact } from './coderReferencedArtifacts';
 import { ensureCoderReferencedArtifacts } from './coderReferencedArtifacts';
-import { CODER_DEFAULT_ROLES, ensureCoderDefaultAgentFiles } from './ensureCoderDefaultAgentFiles';
+import { ensureCoderDefaultAgentFiles } from './ensureCoderDefaultAgentFiles';
 import { CODER_AGENTS_DIRECTORY_PATH } from './ensureCoderDeveloperAgentFile';
 import { ensureCoderEnvFile } from './ensureCoderEnvFile';
 import { ensureCoderGitignoreFile } from './ensureCoderGitignoreFile';
@@ -55,22 +52,6 @@ export async function initializeCoderProjectConfiguration(
     projectPath: string,
     onStepCompleted?: (step: string) => void,
 ): Promise<CoderInitializationSummary> {
-    // Validate every bootstrap target before the first write; customized symlink targets must not escape setup.
-    for (const path of [
-        PROMPTS_DIRECTORY_PATH,
-        PROMPTS_README_FILE_PATH,
-        PROMPTS_DONE_DIRECTORY_PATH,
-        PROMPTS_TEMPLATES_DIRECTORY_PATH,
-        `${CODER_AGENTS_DIRECTORY_PATH}/${ADAM_AGENT_BOOK_RELATIVE_PATH}`,
-        ...CODER_DEFAULT_ROLES.map((role) => `${CODER_AGENTS_DIRECTORY_PATH}/${role}.book`),
-        ...getDefaultCoderProjectPromptTemplateDefinitions().map((definition) => definition.relativeFilePath),
-        AGENTS_FILE_PATH,
-        '.env',
-        '.gitignore',
-        'package.json',
-        '.vscode/settings.json',
-    ])
-        await $resolveConfinedProjectPath(projectPath, path.replace(/\\/gu, '/'));
     /** Records only completed setup steps so callers can explain partial failures. */
     async function completeStep<Result>(step: string, operation: Promise<Result>): Promise<Result> {
         const result = await operation;

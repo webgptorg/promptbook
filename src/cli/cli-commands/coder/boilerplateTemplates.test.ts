@@ -13,7 +13,6 @@ import { getDefaultCoderPackageJsonScripts } from './getDefaultCoderPackageJsonS
 import { getDefaultCoderVscodeSettings } from './getDefaultCoderVscodeSettings';
 import type { CoderInitializationSummary } from './initializeCoderProjectConfiguration';
 import { initializeCoderProjectConfiguration } from './initializeCoderProjectConfiguration';
-import { PROMPTBOOK_RUNTIME_IGNORE_RULES } from '../../../utils/filesystem/promptbookRuntimeArtifacts';
 
 /**
  * Creates and tracks one temporary directory for filesystem-based CLI tests.
@@ -115,9 +114,7 @@ describe('coder boilerplate templates', () => {
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe(
-            `# Promptbook Coder\n${PROMPTBOOK_RUNTIME_IGNORE_RULES.join(
-                '\n',
-            )}\n.env\n.codex\n.github/copilot/settings.local.json\n.cline\n.claude\n.opencode\n.gemini\n.qwen\n`,
+            '# Promptbook Coder\n/.promptbook\n.env\n.codex\n.github/copilot/settings.local.json\n.cline\n.claude\n.opencode\n.gemini\n.qwen\n',
         );
 
         const defaultCoderPackageJsonScripts = getDefaultCoderPackageJsonScripts();
@@ -171,9 +168,7 @@ describe('coder boilerplate templates', () => {
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe(
-            `node_modules\n.tmp\n\n# Promptbook Coder\n${PROMPTBOOK_RUNTIME_IGNORE_RULES.join(
-                '\n',
-            )}\n.env\n.codex\n.github/copilot/settings.local.json\n.cline\n.claude\n.opencode\n.gemini\n.qwen\n`,
+            'node_modules\n.tmp\n\n# Promptbook Coder\n/.promptbook\n.env\n.codex\n.github/copilot/settings.local.json\n.cline\n.claude\n.opencode\n.gemini\n.qwen\n',
         );
 
         // Note: The project-owned `coder:run` and `test` scripts must survive the initialization untouched

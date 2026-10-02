@@ -6,8 +6,6 @@ export type RunScriptUntilMarkerIdleOptions = {
     readonly projectPath?: string;
     /** Abort only this invocation's process tree. */
     readonly signal?: AbortSignal;
-    /** Per-session subprocess environment. */
-    readonly environment?: NodeJS.ProcessEnv;
     /**
      * Path to the temporary script file.
      */

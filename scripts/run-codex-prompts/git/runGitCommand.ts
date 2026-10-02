@@ -1,17 +1,21 @@
 import colors from 'colors';
-import { stat } from 'fs/promises';
+import { stat, unlink } from 'fs/promises';
 import { resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { ConflictError } from '../../../src/errors/ConflictError';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { ProgressiveBackoff } from '../common/ProgressiveBackoff';
-import { executeWorkspaceGit } from './workspaceMutation';
 
 /**
  * Delays used before retrying a Git command blocked by `index.lock`.
  */
 const GIT_INDEX_LOCK_RETRY_DELAYS_MS = Object.freeze([250, 500, 1000, 2000, 4000]);
+
+/**
+ * Age threshold after which `.git/index.lock` is considered stale.
+ */
+const GIT_INDEX_LOCK_STALE_AFTER_MS = 2 * 60 * 1000;
 
 /**
  * Git command used to resolve the repository-specific `index.lock` path.
@@ -33,8 +37,6 @@ const GIT_INDEX_LOCK_REASON_PATTERNS = Object.freeze(['file exists', 'another gi
  */
 type RunGitCommandOptions = {
     readonly command: string;
-    /** Noninteractive services supply shell-free arguments and use the shared owned-process timeout. */
-    readonly argumentsList?: ReadonlyArray<string>;
     readonly cwd?: string;
     readonly env?: Record<string, string>;
     readonly isVerbose?: boolean;
@@ -46,6 +48,7 @@ type RunGitCommandOptions = {
 type GitIndexLockState = {
     readonly path: string;
     readonly ageMs: number;
+    readonly isStale: boolean;
 };
 
 /**
@@ -58,10 +61,10 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
         jitterRatio: 0,
     });
     let lastIndexLockState: GitIndexLockState | undefined;
+    let isStaleIndexLockRemoved = false;
 
     while (true) {
         try {
-            if (options.argumentsList) return await executeWorkspaceGit(cwd, options.argumentsList, options.env);
             return await $execCommand({
                 command: options.command,
                 cwd,
@@ -77,8 +80,18 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
 
             lastIndexLockState = await readGitIndexLockState(cwd, options.env);
 
-            // Git does not record a verifiable owner in index.lock. Age cannot prove its owner is dead.
-            // Bound the existing retries and leave manual recovery to a user who can inspect that process.
+            if (lastIndexLockState?.isStale && !isStaleIndexLockRemoved) {
+                await unlink(lastIndexLockState.path).catch((unlinkError) => {
+                    if (isFileNotFoundError(unlinkError)) {
+                        return;
+                    }
+
+                    throw unlinkError;
+                });
+                isStaleIndexLockRemoved = true;
+                console.warn(colors.yellow(`Removed stale Git index lock: ${lastIndexLockState.path}`));
+                continue;
+            }
 
             if (retryBackoff.retryCount >= GIT_INDEX_LOCK_RETRY_DELAYS_MS.length) {
                 throw buildGitIndexLockConflictError({
@@ -91,9 +104,7 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
             const delayMs = retryBackoff.nextDelayMs();
             console.warn(
                 colors.yellow(
-                    `Git index is busy, retrying \`${options.command}\` in ${formatDelay(delayMs)} (attempt #${
-                        retryBackoff.retryCount
-                    }).`,
+                    `Git index is busy, retrying \`${options.command}\` in ${formatDelay(delayMs)} (attempt #${retryBackoff.retryCount}).`,
                 ),
             );
             await forTime(delayMs);
@@ -127,10 +138,7 @@ async function resolveGitIndexLockPath(cwd: string, env?: Record<string, string>
 /**
  * Reads the current `index.lock` file state when the lock file still exists.
  */
-async function readGitIndexLockState(
-    cwd: string,
-    env?: Record<string, string>,
-): Promise<GitIndexLockState | undefined> {
+async function readGitIndexLockState(cwd: string, env?: Record<string, string>): Promise<GitIndexLockState | undefined> {
     const indexLockPath = await resolveGitIndexLockPath(cwd, env);
     if (!indexLockPath) {
         return undefined;
@@ -143,6 +151,7 @@ async function readGitIndexLockState(
         return {
             path: indexLockPath,
             ageMs,
+            isStale: ageMs >= GIT_INDEX_LOCK_STALE_AFTER_MS,
         };
     } catch (error) {
         if (isFileNotFoundError(error)) {
@@ -222,7 +231,7 @@ function isFileNotFoundError(error: unknown): boolean {
         error &&
             typeof error === 'object' &&
             'code' in error &&
-            ((error as { code?: string }).code === 'ENOENT' || (error as { code?: string }).code === 'ENOTDIR'),
+            (((error as { code?: string }).code === 'ENOENT') || (error as { code?: string }).code === 'ENOTDIR'),
     );
 }
 

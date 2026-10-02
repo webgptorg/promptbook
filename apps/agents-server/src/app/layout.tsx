@@ -622,7 +622,6 @@ export default async function RootLayout({
                 />
                 {customStylesheetCss && <style id="agents-server-custom-css">{customStylesheetCss}</style>}
                 <LayoutWrapper
-                    isWorkspaceServer={Boolean(process.env.PTBK_AGENTS_SERVER_WORKSPACE)}
                     isAdmin={isAdmin}
                     isGlobalAdmin={isGlobalAdmin}
                     currentUser={currentUser}

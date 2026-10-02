@@ -60,10 +60,9 @@ import { createTestBeforeRepairPrompt } from '../testing/createTestBeforeRepairP
 import { DEFAULT_CODER_TEST_COMMAND, type TestBeforeMode } from '../testing/TestBeforeMode';
 import { limitTestOutput } from '../testing/limitTestOutput';
 import { runTestBefore } from '../testing/runTestBefore';
-import { resolveRunnerModel } from './resolvePromptRunner';
+import { resolvePromptRunner, resolveRunnerModel } from './resolvePromptRunner';
 import { runPromptRound } from './runPromptRound';
-import { prepareCoderExecution } from './prepareCoderExecution';
-import { withWorkspaceMutation } from '../git/workspaceMutation';
+import { createCoderTeamPromptRunner } from '../team/createCoderTeamPromptRunner';
 
 /**
  * Commit message for files changed by a successful or failed pre-coding test in repair mode.
@@ -89,14 +88,6 @@ type PromptQueueSnapshot = {
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
     const options = normalizeRunOptions(providedOptions ?? parseRunOptions(process.argv.slice(2)));
     validateCoderRunOptions(options);
-    if (!options.dryRun && options.workspace?.repositoryRoot) {
-        return withWorkspaceMutation(options.workspace, () => runFiniteCoderSession(options));
-    }
-    return runFiniteCoderSession(options);
-}
-
-/** Runs the finite command's terminal, confirmation and selected-queue policy under one repository lease. */
-async function runFiniteCoderSession(options: RunOptions): Promise<void> {
     const projectPath = options.workspace?.projectPath ?? process.cwd();
     resetCoderRunControls();
 
@@ -134,13 +125,23 @@ async function runFiniteCoderSession(options: RunOptions): Promise<void> {
             await commitInitializedAgentBooks(projectPath, resolvedCoderAgent.createdAgentBookPaths, options.workspace);
         }
 
-        const { runner, actualRunnerModel, runnerMetadata, promptRunnerIdentity } = await prepareCoderExecution(
-            options,
-            resolvedCoderAgent,
-            { context: resolvedCoderContext },
-        );
+        const {
+            runner: harnessRunner,
+            actualRunnerModel,
+            runnerMetadata: harnessRunnerMetadata,
+        } = resolvePromptRunner(options);
+        const runner = createCoderTeamPromptRunner(harnessRunner, options.agent);
         // Note: The harness only knows itself, so the Book agent it runs as is joined here - this is the single
         //       place where the whole run report of prompt status lines and run traces is put together
+        const runnerMetadata: PromptRunnerMetadata = {
+            ...harnessRunnerMetadata,
+            agentName: resolvedCoderAgent?.agentName,
+        };
+        const promptRunnerIdentity: PromptRunnerIdentity = {
+            harnessName: options.agentName,
+            modelName: actualRunnerModel,
+            agentReferences: resolvedCoderAgent?.agentReferences,
+        };
         console.info(colors.green(`Running prompts with ${runner.name}`));
 
         initializeRunUi(uiHandle, runner.name, actualRunnerModel, options);
@@ -245,6 +246,16 @@ async function runFiniteCoderSession(options: RunOptions): Promise<void> {
                     return;
                 }
 
+                if (options.keepAlive) {
+                    announceKeepAliveStatus(promptQueueSnapshot, isRichUiEnabled, uiHandle);
+                    // Note: The keep-alive poll runs in the `waiting` phase, where `S  Skip current waiting`
+                    //       is offered, so pressing `S` looks for new prompts right away
+                    await waitForSkippableWorldTimeDeadline({
+                        deadlineTimeMs: Date.now() + KEEP_ALIVE_POLL_INTERVAL_MS,
+                        pollIntervalMs: KEEP_ALIVE_POLL_INTERVAL_MS,
+                    });
+                    continue;
+                }
                 finishWhenNoPromptIsAvailable(promptQueueSnapshot, isRichUiEnabled, uiHandle);
                 return;
             }
@@ -858,6 +869,32 @@ function finishWhenEndAfterCurrentPromptIsRequested(options: {
 }
 
 /**
+ * Updates the UI status message while waiting for new prompts in keepAlive server mode.
+ */
+function announceKeepAliveStatus(
+    promptQueueSnapshot: PromptQueueSnapshot,
+    isRichUiEnabled: boolean,
+    uiHandle?: CoderRunUiHandle,
+): void {
+    let message: string;
+
+    if (promptQueueSnapshot.stats.forAgent > 0) {
+        message = 'No prompts match the selected harness, model or agent. Watching for changes...';
+    } else if (promptQueueSnapshot.stats.toBeWritten > 0) {
+        message = 'No prompts ready for agent. Watching for changes...';
+    } else {
+        message = 'All prompts are done. Watching for changes...';
+    }
+
+    uiHandle?.state.setStatusMessage(message);
+    uiHandle?.state.setPhase('waiting');
+
+    if (!isRichUiEnabled) {
+        console.info(colors.gray(message));
+    }
+}
+
+/**
  * Updates UI state and plain-console output for the terminal completion message.
  */
 function announceRunCompletion(
@@ -921,6 +958,11 @@ async function waitForPromptConfirmationIfNeeded(options: {
     uiHandle?.state.resumeTimer();
     return true;
 }
+
+/**
+ * Polling interval when in keepAlive server mode and no runnable prompts are available.
+ */
+const KEEP_ALIVE_POLL_INTERVAL_MS = 5_000;
 
 /**
  * Waits between prompt rounds according to `--wait-between-prompts` (paced from the previous round's start)

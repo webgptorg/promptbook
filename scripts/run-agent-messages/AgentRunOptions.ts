@@ -6,10 +6,6 @@ import type { PromptRunnerHarnessName } from '../../src/cli/cli-commands/common/
  * Options for `ptbk agent-folder run-once`, `ptbk agent-folder run-agent`, and `ptbk agent-folder run-multiple`.
  */
 export type AgentRunOptions = {
-    /** Environment scoped to this server's local workers. */
-    readonly environment?: NodeJS.ProcessEnv;
-    /** Cancellation of owned local workers. */
-    readonly signal?: AbortSignal;
     readonly agentName?: PromptRunnerHarnessName;
     readonly model?: string;
     readonly noUi: boolean;

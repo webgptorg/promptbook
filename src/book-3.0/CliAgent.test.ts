@@ -6,7 +6,6 @@ import type { Mock } from 'jest-mock';
 import type { AgentChatTurnResult } from '../../scripts/run-agent-chat/executeAgentChatTurn';
 import { book } from '../pipeline/book-notation';
 import { Book } from './Book';
-import { ZERO_USAGE } from '../execution/utils/usage-constants';
 
 jest.mock('../../scripts/run-agent-chat/executeAgentChatTurn', () => ({
     executeAgentChatTurn: jest.fn(),
@@ -27,8 +26,6 @@ describe('CliAgent', () => {
     beforeEach(async () => {
         temporaryDirectoryPath = await mkdtemp(join(tmpdir(), 'promptbook-cli-agent-'));
         executeAgentChatTurn.mockResolvedValue({
-            usage: ZERO_USAGE,
-            prompt: 'A deterministic chat prompt',
             answer: 'Agent answer',
             workspacePath: temporaryDirectoryPath,
             messageFilePath: join(temporaryDirectoryPath, 'thread.book'),

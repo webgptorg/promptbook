@@ -36,14 +36,10 @@ export type ResolvedLocalAgentSource = {
 export async function resolveLocalAgentSource(
     agentBookPath: string,
     currentWorkingDirectory: string,
-    options: {
-        readonly isInitializationAllowed?: boolean;
-        readonly agentDirectoryPath?: string;
-        readonly signal?: AbortSignal;
-    } = {},
+    options: { readonly isInitializationAllowed?: boolean; readonly signal?: AbortSignal } = {},
 ): Promise<ResolvedLocalAgentSource> {
     const collection = new LocalAgentBookCollection(
-        options.agentDirectoryPath ?? dirname(agentBookPath),
+        dirname(agentBookPath),
         currentWorkingDirectory,
         options.isInitializationAllowed,
         options.signal,

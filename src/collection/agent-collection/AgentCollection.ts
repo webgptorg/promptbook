@@ -1,80 +1,48 @@
-import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
-import type { string_book } from '../../book-2.0/agent-source/string_book';
-import type { string_agent_name, string_agent_permanent_id } from '../../types/string_agent_name';
-import type { CreateAgentInput } from './CreateAgentInput';
-
-/**
- * Controls for a source save. Workspace storage requires the revision observed by the caller.
- * @private internal collection save/history types
- */
-export type UpdateAgentSourceOptions = {
-    readonly versionName?: string | null;
-    readonly expectedSource?: string;
-    readonly expectedSourceHash?: string;
-};
-
-/**
- * History metadata shared by database and file-backed collections.
- * @private internal collection save/history types
- */
-export type AgentHistoryMetadata = {
-    readonly id: number;
-    readonly createdAt: string;
-    readonly agentName: string;
-    readonly agentHash: string;
-    readonly previousAgentHash: string | null;
-    readonly promptbookEngineVersion: string;
-    readonly versionName: string | null;
-};
-
-/**
- * An immutable source snapshot, independent of authoritative source storage.
- * @private internal collection save/history types
- */
-export type AgentHistorySnapshot = AgentHistoryMetadata & { readonly agentSource: string };
+// import type { Promisable } from 'type-fest';
+// import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
+// import type { string_book } from '../../book-2.0/agent-source/string_book';
+// import { Agent } from '../../llm-providers/agent/Agent';
+// import type { string_agent_name } from '../../types/typeAliases';
+import type { AgentCollectionInSupabase } from './constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
 
 /**
  * Collection that groups together multiple AI Agents
  *
- * Storage contract for agent definitions and stable identities. Chats and permissions are separate application data.
- * @public exported from `@promptbook/core`
+ * Note: [🧸] There are two types of collections:
+ * - `AgentCollection` - which groups together AI Agents
+ * - `PipelineCollection` - which groups together *(deprecated)* pipelines
  */
-export type AgentCollection = {
-    /** Namespace used by application preparation caches. */
-    readonly options?: { readonly tablePrefix?: string; readonly isVerbose?: boolean };
-    /** Lists valid active definitions. */
-    listAgents(): Promise<ReadonlyArray<AgentBasicInformation>>;
-    /** Resolves one valid active definition. */
-    findAgentBasicInformation(
-        identifier: string_agent_name | string_agent_permanent_id,
-    ): Promise<AgentBasicInformation | null>;
-    /** Resolves a permanent identity, including deleted agents for restoration. */
-    getAgentPermanentId(identifier: string_agent_name | string_agent_permanent_id): Promise<string_agent_permanent_id>;
-    /** Reads authoritative source. */
-    getAgentSource(identifier: string_agent_name | string_agent_permanent_id): Promise<string_book>;
-    /** Creates source and identity. */
-    createAgent(
-        source: string_book,
-        options?: Omit<CreateAgentInput, 'source'>,
-    ): Promise<AgentBasicInformation & Required<Pick<AgentBasicInformation, 'permanentId'>>>;
-    /** Saves source-backed information, including title and visibility. */
-    updateAgentSource(
-        identifier: string_agent_permanent_id,
-        source: string_book,
-        options?: UpdateAgentSourceOptions,
-    ): Promise<void>;
-    /** Lists deleted identities. */
-    listDeletedAgents(): Promise<ReadonlyArray<AgentBasicInformation>>;
-    /** Lists source history. */
-    listAgentHistory(identifier: string_agent_permanent_id): Promise<ReadonlyArray<AgentHistoryMetadata>>;
-    /** Lists complete history snapshots. */
-    listAgentHistorySnapshots(identifier: string_agent_permanent_id): Promise<ReadonlyArray<AgentHistorySnapshot>>;
-    /** Restores a deleted definition. */
-    restoreAgent(identifier: string_agent_permanent_id): Promise<void>;
-    /** Restores a historical source. */
-    restoreAgentFromHistory(historyId: number, expectedPermanentId?: string_agent_permanent_id): Promise<void>;
-    /** Deletes active source while retaining operational history. */
-    deleteAgent(identifier: string_agent_permanent_id): Promise<void>;
-    /** Groups an authorized organization operation for stores with an external source/organization representation. */
-    mutateOrganization?<Result>(operation: () => Promise<Result>): Promise<Result>;
+export type AgentCollection = AgentCollectionInSupabase;
+// <- TODO: [🌈][🐱‍🚀] Do `AgentCollectionInSupabase implements AgentCollection` not reverse, there can be more collection types like `AgentCollectionInFilesystem`, `RemoteAgentCollection`
+
+/*
+{
+    /**
+     * Gets all agents in the collection
+     * /
+    listAgents(): Promisable<ReadonlyArray<AgentBasicInformation>>;
+
+    /**
+     * Get one agent by its name
+     *
+     * Note: [🐱‍🚀] Agents are existing independently of you getting them or not, you can get the same agent multiple times.
+     * Note: Agents are changed by interacting with `Agent` objects directly. Only creation and deletion is done via the collection.
+     * /
+    spawnAgent(agentName: string_agent_name): Promisable<Agent>;
+    // <- TODO: [🧠] What is the best name `runAgent`, `loadAgent`, `startAgent`,...?
+
+    /**
+     * Creates a new agent in the collection
+     *
+     * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.
+     * /
+    createAgent(agentSource: string_book): Promisable<AgentBasicInformation>;
+
+    /**
+     * Deletes an agent from the collection
+     * /
+    deleteAgent(agentName: string_agent_name): Promisable<void>;
 };
+*/
+
+// TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention

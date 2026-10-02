@@ -1,4 +1,3 @@
-import { mutateAgentOrganizationRoute } from '@/src/utils/workspace/workspaceAgentStorage';
 import { NextResponse } from 'next/server';
 import { $getTableName } from '../../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../../database/$provideSupabaseForServer';
@@ -16,7 +15,7 @@ import { getCurrentUser } from '../../../../../utils/getCurrentUser';
  * @param params - Route params containing the folder id.
  * @returns JSON response confirming restoration.
  */
-async function handlePOST(request: Request, { params }: { params: Promise<{ folderId: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ folderId: string }> }) {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
         return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
@@ -63,9 +62,4 @@ async function handlePOST(request: Request, { params }: { params: Promise<{ fold
     }
 
     return NextResponse.json({ success: true });
-}
-
-/** Applies this authorized logical mutation through the selected agent storage. */
-export async function POST(request: Request, context: { params: Promise<{ folderId: string }> }) {
-    return mutateAgentOrganizationRoute(() => handlePOST(request, context));
 }

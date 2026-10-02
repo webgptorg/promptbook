@@ -1,4 +1,3 @@
-import { mutateAgentOrganizationRoute } from '@/src/utils/workspace/workspaceAgentStorage';
 import { ConflictError } from '@promptbook-local/core';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
@@ -55,7 +54,7 @@ export async function OPTIONS(request: Request) {
  * @param params - Route params containing the folder id.
  * @returns Updated folder payload.
  */
-async function handlePATCH(request: NextRequest, { params }: { params: Promise<{ folderId: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ folderId: string }> }) {
     const identityResult = await resolveManagementApiIdentity(request);
     if (!identityResult.success) {
         return createManagementApiErrorResponse(
@@ -409,7 +408,12 @@ async function mapOwnedFolderPatchWriteErrorToResponse(
         return createManagementApiErrorResponse(request, 409, 'conflict', conflictError.message);
     }
 
-    return createManagementApiErrorResponse(request, 500, 'server_error', error?.message || 'Failed to update folder.');
+    return createManagementApiErrorResponse(
+        request,
+        500,
+        'server_error',
+        error?.message || 'Failed to update folder.',
+    );
 }
 
 /**
@@ -419,7 +423,7 @@ async function mapOwnedFolderPatchWriteErrorToResponse(
  * @param params - Route params containing the folder id.
  * @returns Deletion confirmation.
  */
-async function handleDELETE(request: NextRequest, { params }: { params: Promise<{ folderId: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ folderId: string }> }) {
     const identityResult = await resolveManagementApiIdentity(request);
     if (!identityResult.success) {
         return createManagementApiErrorResponse(
@@ -490,14 +494,4 @@ async function handleDELETE(request: NextRequest, { params }: { params: Promise<
             error instanceof Error ? error.message : 'Failed to delete folder.',
         );
     }
-}
-
-/** Applies this authorized logical mutation through the selected agent storage. */
-export async function PATCH(request: NextRequest, context: { params: Promise<{ folderId: string }> }) {
-    return mutateAgentOrganizationRoute(() => handlePATCH(request, context));
-}
-
-/** Applies this authorized logical mutation through the selected agent storage. */
-export async function DELETE(request: NextRequest, context: { params: Promise<{ folderId: string }> }) {
-    return mutateAgentOrganizationRoute(() => handleDELETE(request, context));
 }

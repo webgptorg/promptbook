@@ -1,5 +1,4 @@
-import { parse } from 'dotenv';
-import { readFileSync } from 'fs';
+import * as dotenv from 'dotenv';
 import { join } from 'path';
 
 /**
@@ -14,12 +13,6 @@ const AGENTS_SERVER_PROJECT_ENV_FILE_NAME = '.env';
  *
  * @private internal utility of `startAgentsServer`
  */
-export function loadAgentsServerProjectEnvironment(launchWorkingDirectory: string): NodeJS.ProcessEnv {
-    let variables: NodeJS.ProcessEnv = {};
-    try {
-        variables = parse(readFileSync(join(launchWorkingDirectory, AGENTS_SERVER_PROJECT_ENV_FILE_NAME)));
-    } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-    }
-    return { ...variables, ...process.env };
+export function loadAgentsServerProjectEnvironment(launchWorkingDirectory: string): void {
+    dotenv.config({ path: join(launchWorkingDirectory, AGENTS_SERVER_PROJECT_ENV_FILE_NAME) });
 }

@@ -12,13 +12,10 @@ import type { AgentProjectRuntimePromptApi } from './buildAgentProjectsPromptSec
  * @param projectPath - Absolute path of the current agent runner folder.
  * @returns Runtime prompt API details or `undefined` outside Agents Server-managed runs.
  */
-export function resolveAgentProjectRuntimePromptApi(
-    projectPath: string,
-    environment = process.env,
-): AgentProjectRuntimePromptApi | undefined {
+export function resolveAgentProjectRuntimePromptApi(projectPath: string): AgentProjectRuntimePromptApi | undefined {
     const agentPermanentId = resolveAgentIdFromRepositoryName(basename(projectPath));
-    const isServerUrlAvailable = Boolean(environment[PTBK_AGENTS_SERVER_URL_ENV]?.trim());
-    const isWorkerTokenAvailable = Boolean(environment[PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV]?.trim());
+    const isServerUrlAvailable = Boolean(process.env[PTBK_AGENTS_SERVER_URL_ENV]?.trim());
+    const isWorkerTokenAvailable = Boolean(process.env[PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV]?.trim());
 
     if (!agentPermanentId || !isServerUrlAvailable || !isWorkerTokenAvailable) {
         return undefined;
@@ -30,3 +27,4 @@ export function resolveAgentProjectRuntimePromptApi(
         tokenEnvironmentVariableName: PTBK_AGENTS_SERVER_USER_CHAT_WORKER_TOKEN_ENV,
     };
 }
+

@@ -1,4 +1,3 @@
-import { mutateAgentOrganizationRoute } from '@/src/utils/workspace/workspaceAgentStorage';
 import { NextResponse } from 'next/server';
 import { ConflictError } from '@promptbook-local/core';
 import { $getTableName } from '../../../database/$getTableName';
@@ -14,7 +13,7 @@ import { translateSupabaseUniqueConstraintError } from '../../../../../../src/ut
  * @param request - Incoming request with folder details.
  * @returns JSON response with the created folder.
  */
-async function handlePOST(request: Request) {
+export async function POST(request: Request) {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
         return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
@@ -108,9 +107,4 @@ async function handlePOST(request: Request) {
     }
 
     return NextResponse.json({ success: true, folder: insertResult.data });
-}
-
-/** Applies this authorized logical mutation through the selected agent storage. */
-export async function POST(request: Request) {
-    return mutateAgentOrganizationRoute(() => handlePOST(request));
 }

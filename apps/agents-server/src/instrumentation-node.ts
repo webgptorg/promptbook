@@ -22,7 +22,9 @@ export async function registerNodeRuntimeInstrumentation(): Promise<void> {
             // Note: Creates the VPS registry database on first boot and registers all
             //       `SERVERS` domains, so every server gets its own isolated SQLite database
             //       before the first request arrives.
-            const { listStandaloneRegisteredServers } = await import('./database/sqlite/standaloneServerRegistryStore');
+            const { listStandaloneRegisteredServers } = await import(
+                './database/sqlite/standaloneServerRegistryStore'
+            );
             const registeredServers = listStandaloneRegisteredServers();
             console.info(
                 `🗂️ VPS server registry ready with ${registeredServers.length} registered server(s) in standalone SQLite mode.`,
@@ -37,9 +39,6 @@ export async function registerNodeRuntimeInstrumentation(): Promise<void> {
             errorStack: error instanceof Error ? error.stack : undefined,
         });
     }
-
-    // Workspace startup supervises its own project; VPS installation/domain maintenance belongs to droplet mode.
-    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE) return;
 
     try {
         const { synchronizeAllStalwartEmailDomains } = await import(
@@ -94,7 +93,9 @@ export async function registerNodeRuntimeInstrumentation(): Promise<void> {
         //       domain obtained and renewed automatically. A domain whose DNS was not
         //       ready when it was created gets its certificate on a later maintenance
         //       pass, without ever restarting or taking down the running server.
-        const { ensureAutomaticVpsCertificateSchedulerBootstrapped } = await import('./utils/vpsCertificateScheduler');
+        const { ensureAutomaticVpsCertificateSchedulerBootstrapped } = await import(
+            './utils/vpsCertificateScheduler'
+        );
         ensureAutomaticVpsCertificateSchedulerBootstrapped();
     } catch (error) {
         console.error('❌ Automatic VPS certificate scheduler failed during Agents Server instrumentation.', {

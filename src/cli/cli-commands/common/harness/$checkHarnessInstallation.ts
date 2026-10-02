@@ -1,4 +1,4 @@
-import { $resolveInstalledHarnessVersion, type HarnessProbeOptions } from './$resolveInstalledHarnessVersion';
+import { $resolveInstalledHarnessVersion } from './$resolveInstalledHarnessVersion';
 import { $resolveLatestNpmPackageVersion } from '../npm/$resolveLatestNpmPackageVersion';
 import { isNpmPackageVersionOutdated } from '../npm/isNpmPackageVersionOutdated';
 import { $resolveHarnessInstallationOrigin } from './$resolveHarnessInstallationOrigin';
@@ -16,11 +16,10 @@ import type { HarnessInstallationState, HarnessInstallationStatus } from './Harn
 export async function $checkHarnessInstallation(
     definition: HarnessDefinition,
     isHarnessUpdateCheckEnabled = true,
-    probeOptions?: HarnessProbeOptions,
 ): Promise<HarnessInstallationStatus> {
     // Note: The origin is only needed to update an outdated harness, so it is not looked up without the update check
     const [installedVersion, latestVersion, installationOrigin] = await Promise.all([
-        $resolveInstalledHarnessVersion(definition, probeOptions),
+        $resolveInstalledHarnessVersion(definition),
         isHarnessUpdateCheckEnabled
             ? $resolveLatestNpmPackageVersion(definition.npmPackageName)
             : Promise.resolve(null),

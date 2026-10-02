@@ -5,6 +5,7 @@ const AGENTS_SERVER_BUILD_INPUT_EXCLUDED_DIRECTORY_NAMES = new Set([
     '.git',
     '.next',
     '.next-e2e',
+    '.promptbook',
     'coverage',
     'node_modules',
     'playwright-report',

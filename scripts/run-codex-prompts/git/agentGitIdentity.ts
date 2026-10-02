@@ -46,10 +46,10 @@ export type AgentGitIdentity = {
  * Falls back to the user's default Git configuration whenever the dedicated coding-agent
  * identity is only partially configured.
  */
-export function getAgentGitIdentity(environment = process.env): AgentGitIdentity | undefined {
-    const name = readOptionalEnvValue(AGENT_GIT_NAME_ENV, environment);
-    const email = readOptionalEnvValue(AGENT_GIT_EMAIL_ENV, environment);
-    const signingKey = readOptionalSigningKeyValue(environment);
+export function getAgentGitIdentity(): AgentGitIdentity | undefined {
+    const name = readOptionalEnvValue(AGENT_GIT_NAME_ENV);
+    const email = readOptionalEnvValue(AGENT_GIT_EMAIL_ENV);
+    const signingKey = readOptionalSigningKeyValue();
 
     if (!name || !email || !signingKey) {
         return undefined;
@@ -94,12 +94,10 @@ export function printAgentGitIdentityTipIfNeeded(): void {
     }
 
     console.info(
-        colors.cyan(
-            spaceTrim(`
+        colors.cyan(spaceTrim(`
             Tip: \`ptbk coder run\` used your default Git config because the coding-agent identity environment variables are incomplete.
             For cleaner commit history, set \`CODING_AGENT_GIT_NAME\`, \`CODING_AGENT_GIT_EMAIL\`, and either \`CODING_AGENT_GIT_SIGNING_KEY\` or \`CODING_AGENT_GPG_KEY_ID\`.
-        `),
-        ),
+        `)),
     );
 }
 
@@ -121,17 +119,17 @@ export function printAgentGitIdentityTipAtProcessExitIfNeeded(): void {
 /**
  * Reads one optional environment variable and trims it when present.
  */
-function readOptionalEnvValue(name: string, environment = process.env): string | undefined {
-    const value = environment[name]?.trim();
+function readOptionalEnvValue(name: string): string | undefined {
+    const value = process.env[name]?.trim();
     return value || undefined;
 }
 
 /**
  * Reads the first configured signing-key environment variable.
  */
-function readOptionalSigningKeyValue(environment = process.env): string | undefined {
+function readOptionalSigningKeyValue(): string | undefined {
     for (const envName of AGENT_GIT_SIGNING_KEY_ENV_ALIASES) {
-        const value = readOptionalEnvValue(envName, environment);
+        const value = readOptionalEnvValue(envName);
         if (value) {
             return value;
         }

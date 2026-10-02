@@ -1,4 +1,3 @@
-import { mutateAgentOrganizationRoute } from '@/src/utils/workspace/workspaceAgentStorage';
 import { NextRequest } from 'next/server';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
@@ -34,7 +33,7 @@ export async function OPTIONS(request: Request) {
  * @param params - Route params containing folder and agent identifiers.
  * @returns Updated agent summary.
  */
-async function handlePOST(
+export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ folderId: string; agentId: string }> },
 ) {
@@ -121,9 +120,4 @@ async function handlePOST(
             error instanceof Error ? error.message : 'Failed to move agent.',
         );
     }
-}
-
-/** Applies this authorized logical mutation through the selected agent storage. */
-export async function POST(request: NextRequest, context: { params: Promise<{ folderId: string; agentId: string }> }) {
-    return mutateAgentOrganizationRoute(() => handlePOST(request, context));
 }

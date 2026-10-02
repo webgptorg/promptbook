@@ -1,4 +1,4 @@
-import { PROMPTBOOK_RUNTIME_IGNORE_RULES } from '../../../utils/filesystem/promptbookRuntimeArtifacts';
+import { PROMPTBOOK_TEMPORARY_DIRECTORY } from '../../../utils/filesystem/promptbookTemporaryPath';
 import type { ProjectInitializationStatus } from '../common/projectInitialization';
 import { ensureProjectGitignoreFile } from '../common/projectInitialization';
 
@@ -22,7 +22,7 @@ const AGENTS_SERVER_LOGS_GITIGNORE_RULE = '.logs';
  */
 const AGENTS_SERVER_GITIGNORE_RULES = [
     AGENTS_SERVER_NODE_MODULES_GITIGNORE_RULE,
-    ...PROMPTBOOK_RUNTIME_IGNORE_RULES,
+    PROMPTBOOK_TEMPORARY_DIRECTORY,
     AGENTS_SERVER_LOGS_GITIGNORE_RULE,
 ] as const;
 

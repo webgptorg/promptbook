@@ -1,4 +1,3 @@
-import { isPromptbookRuntimeArtifact } from '../../../../utils/filesystem/promptbookRuntimeArtifacts';
 import { basename, relative } from 'path';
 import { isAgentsServerBuildInputTestFile } from './isAgentsServerBuildInputTestFile';
 import { isExcludedAgentsServerBuildInputDirectoryName } from './isExcludedAgentsServerBuildInputDirectoryName';
@@ -14,8 +13,6 @@ export function shouldCopyAgentsServerRuntimePath(sourcePath: string, sourceRoot
     const sourceRuntimeRelativePath = normalizeRuntimeSourceRelativePath(sourcePath, sourceRootPath);
     const sourcePathSegments = sourceRelativePath.split('/').filter(Boolean);
     const sourceBasename = basename(sourcePath);
-
-    if (isPromptbookRuntimeArtifact(sourceRelativePath) || sourcePathSegments.includes('testing')) return false;
 
     if (sourcePathSegments.some(isExcludedAgentsServerBuildInputDirectoryName)) {
         return false;

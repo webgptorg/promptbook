@@ -93,8 +93,8 @@ export function $initializeAgentsServerBuildCommand(program: Program): $side_eff
     command.action(
         handleActionErrors(async () => {
             console.info(colors.gray('Building Promptbook Agents Server.'));
-            const environment = loadAgentsServerProjectEnvironment(process.cwd());
-            await ensureAgentsServerBuild({ isBuildForced: true, environment });
+            loadAgentsServerProjectEnvironment(process.cwd());
+            await ensureAgentsServerBuild({ isBuildForced: true });
         }),
     );
 }

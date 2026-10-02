@@ -26,10 +26,6 @@ async function runDurableUserChatJobWorkerTickForCurrentServer(options: {
     preferredJobId?: string;
 }): Promise<DurableUserChatJobWorkerTickResult> {
     await recoverExpiredRunningUserChatJobs();
-    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE) {
-        const { processWorkspaceUserChatJob } = await import('../workspace/processWorkspaceUserChatJob');
-        return processWorkspaceUserChatJob(options);
-    }
     const processedJob = await processNextLocalUserChatJob({ preferredJobId: options.preferredJobId });
     return { didMutate: Boolean(processedJob?.didMutate) };
 }

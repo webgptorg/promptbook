@@ -1,8 +1,13 @@
-import { PROMPTBOOK_RUNTIME_IGNORE_RULES } from '../../../utils/filesystem/promptbookRuntimeArtifacts';
+import { getPromptbookTemporaryGitignoreRule } from '../../../utils/filesystem/promptbookTemporaryPath';
 import { PROMPT_RUNNER_HARNESS_NAMES, type PromptRunnerHarnessName } from '../common/promptRunnerCliOptions';
 import { getHarnessProjectGitignoreRules } from '../common/harness/HarnessDefinition';
 import type { InitializationStatus } from './boilerplateTemplates';
 import { ensureProjectGitignoreFile, getMissingProjectGitignoreRules } from '../common/projectInitialization';
+
+/**
+ * Promptbook temporary root directory that should stay out of version control.
+ */
+const PROMPTBOOK_TEMP_GITIGNORE_RULE = getPromptbookTemporaryGitignoreRule();
 
 /**
  * Promptbook coder environment file that should stay out of version control.
@@ -17,7 +22,7 @@ const CODER_GITIGNORE_HEADER = '# Promptbook Coder';
 /**
  * Coder-owned local artifacts which every initialized project should ignore.
  */
-const CODER_GITIGNORE_RULES = [...PROMPTBOOK_RUNTIME_IGNORE_RULES, CODER_ENV_GITIGNORE_RULE] as const;
+const CODER_GITIGNORE_RULES = [PROMPTBOOK_TEMP_GITIGNORE_RULE, CODER_ENV_GITIGNORE_RULE] as const;
 
 /**
  * Ensures `.gitignore` contains Promptbook Coder's local artifacts and every supported harness's local artifacts.

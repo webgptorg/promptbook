@@ -1,5 +1,4 @@
-import type { ChildProcess } from 'child_process';
-import { $terminateOwnedProcessTree } from '../../../../src/utils/execCommand/$terminateOwnedProcessTree';
+import { spawnSync, type ChildProcess } from 'child_process';
 import { PTBK_CODER_CANCEL_COMMAND } from './scriptExecutionLog';
 
 /**
@@ -41,7 +40,10 @@ export function $terminateLoggedBashProcessTree(commandProcess: ChildProcess): v
     /** Native fallback also handles processes, such as planning inference, whose stdin is already closed. */
     const terminateNativeTree = (): void => {
         if (commandProcess.exitCode !== null || commandProcess.signalCode !== null || !commandProcess.pid) return;
-        $terminateOwnedProcessTree(commandProcess);
+        spawnSync('taskkill.exe', ['/PID', commandProcess.pid.toString(), '/T', '/F'], {
+            stdio: 'ignore',
+            windowsHide: true,
+        });
     };
     if (commandProcess.stdin?.writable && !commandProcess.stdin.writableEnded) {
         commandProcess.stdin.once('error', terminateNativeTree);

@@ -16,7 +16,7 @@ ptbk coder plan --harness openai-codex
 npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-6-astra
 ```
 
-`run` uses the project's Developer (`agents/developer.book`); `plan` uses its Planner
+`run` and `server` use the project's Developer (`agents/developer.book`); `plan` uses its Planner
 (`agents/planner.book`). These editable local Books supply the persona, instructions, inherited Adam rules,
 imports, TEAM declarations, display identity and prompt-routing aliases. Local edits apply on the next invocation.
 `--harness` selects the coding tool, `--model` selects its model, and `--thinking-level` controls reasoning effort.
@@ -88,7 +88,7 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --dry-run                     # Print unwritten prompts without executing
 --harness <harness-name>        # Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)
 --model <model>               # Model override (optional; each harness defaults to its current flagship)
---agent <agent-book-path>     # Book override (optional; run defaults to agents/developer.book)
+--agent <agent-book-path>     # Book override (optional; run/server default to agents/developer.book)
 --context <context-or-file>   # Append extra instructions inline or load them from a file in the current project
 --test <test-command...>       # Run a verification command after each prompt and feed failures back for retries
 --test-before <mode>           # no (default), yes-and-fail, or yes-and-fix; enabled modes default to npm test
@@ -158,7 +158,7 @@ Every press is answered right under the pills, so you never have to guess whethe
 
 The answer stays on screen for a few seconds and repeated identical answers are counted, so pressing the same control twice redraws the frame too. In `--no-ui` mode the very same line is printed to the console instead.
 
-Whenever `S  Skip current waiting` is offered, the wait really ends on that key press: the `--wait-between-prompts` and `--wait-after-prompt` pacing, the `--wait-after-error` cool-down, the Claude Code session-limit wait before a `--resume` resurrection. The workspace server keeps watching without a paid polling call.
+Whenever `S  Skip current waiting` is offered, the wait really ends on that key press: the `--wait-between-prompts` and `--wait-after-prompt` pacing, the `--wait-after-error` cool-down, the Claude Code session-limit wait before a `--resume` resurrection, and the `ptbk coder server` keep-alive poll.
 
 ### Examples:
 
@@ -262,11 +262,11 @@ The trace is written before the round is committed, so it lands in the very same
 
 `--git-changes` decides what happens when the working tree still has uncommitted changes before a prompt starts:
 
-| Mode       | Behavior                                                                                    |
-| ---------- | ------------------------------------------------------------------------------------------- |
-| `fail`     | Refuses to start and asks for a commit, a stash or one of the other two modes (the default) |
-| `ignore`   | Starts the next `[ ]` prompt anyway and leaves the uncommitted changes where they are       |
-| `continue` | Resumes the interrupted `[^]` prompt with its half-finished changes still in place          |
+| Mode       | Behavior                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------ |
+| `fail`     | Refuses to start and asks for a commit, a stash or one of the other two modes (the default)                  |
+| `ignore`   | Starts the next `[ ]` prompt anyway and leaves the uncommitted changes where they are                        |
+| `continue` | Resumes the interrupted `[^]` prompt with its half-finished changes still in place                           |
 
 `continue` expects **exactly one** prompt in the `[^]` status and fails when it finds none or more than one, because the uncommitted changes could not be attributed to a single interrupted task. Only the resuming round runs on the dirty tree; once it is finished and committed, every later round expects a clean working tree again. It cannot be combined with `--isolate`, whose fresh worktree is checked out from the last commit and would leave the uncommitted changes behind.
 
@@ -291,7 +291,7 @@ With `--isolate`, no prompt is ever implemented in the working tree you started 
 -   Once the task is implemented and verified, it is merged back into the branch the coder runs on as one commit and the worktree plus its branch are deleted.
 -   If the merge fails, the task is marked as `[!]` instead of `[x]`, the failure is committed into the original worktree, the temporary worktree is kept for a manual merge, and the coder continues with the next task.
 
-Because the worktrees live inside `.promptbook`, `--isolate` requires its runtime subdirectory to be git-ignored (`ptbk coder init` sets this up).
+Because the worktrees live inside `.promptbook`, `--isolate` requires that folder to be git-ignored (`ptbk coder init` sets this up).
 
 ## Agent identity configuration
 
@@ -307,10 +307,3 @@ Set the values via `.env`, shell variables, or whichever secrets manager you pre
 If you need a fresh agent key, generate it with GPG (for example from a temporary config file: specify `Name-Real`, `Name-Email`, `Key-Type`, `Key-Length`, `%no-protection`, and `%commit`) and set `CODING_AGENT_GPG_KEY_ID` to the new key's long ID.
 
 You can bootstrap your environment with the "Promptbook Coding Agent" details (name `Promptbook Coding Agent`, email `coding-agent@promptbook.studio`, key ID `13406525ED912F938FEA85AB4046C687298B2382`), then swap them out whenever a different persona makes more sense.
-
-## Workspace server
-
-`ptbk server` (exact alias `ptbk coder server`) combines the complete Agent Server with these shared execution
-services. It discovers all project Books and ready priorities, persists operational state in project SQLite,
-commits source/organization edits, and safely synchronizes Git by default. No agent/harness flag is mandatory.
-See the [workspace layout, selection, controls and Git recovery guide](workspace/README.md).

@@ -1,29 +1,3 @@
-            # ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
+# ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 
-            stats.html
-            /.promptbook/agent/
-/.promptbook/agent-messages/
-/.promptbook/agents-server/
-/.promptbook/chat-sessions/
-/.promptbook/coder-plan/
-/.promptbook/coder-prompts/
-/.promptbook/coder-ping/
-/.promptbook/coder-isolation-worktrees/
-/.promptbook/ptbk-coder/
-/.promptbook/logs/
-/.promptbook/secrets/
-/.promptbook/scripts/
-/.promptbook/**/*.sqlite
-/.promptbook/**/*.sqlite3
-/.promptbook/**/*.db
-/.promptbook/**/*.sqlite-*
-/.promptbook/**/*.sqlite3-*
-/.promptbook/**/*.db-*
-/.promptbook/*.lock
-/.promptbook/*.lock/
-/.promptbook/*.lock.recovered-*/
-/.env
-            **/*.sqlite
-            **/*.sqlite-*
-            **/*.sqlite3
-            **/*.sqlite3-*
+stats.html

@@ -2,7 +2,10 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, join, resolve } from 'path';
 import { Book } from '../../src/book-3.0/Book';
 import type { string_book } from '../../src/book-2.0/agent-source/string_book';
-import { AGENT_BOOK_FILE_PATH, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../src/book-3.0/agentFolderPaths';
+import {
+    AGENT_BOOK_FILE_PATH,
+    AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
+} from '../../src/book-3.0/agentFolderPaths';
 import { NotAllowed } from '../../src/errors/NotAllowed';
 import { NotFoundError } from '../../src/errors/NotFoundError';
 import { resolvePromptbookTemporaryPath } from '../../src/utils/filesystem/promptbookTemporaryPath';
@@ -12,8 +15,6 @@ import { appendCoderContext } from '../run-codex-prompts/common/appendCoderConte
 import { withPromptRuntimeLog } from '../run-codex-prompts/common/runGoScript/withPromptRuntimeLog';
 import type { RunOptions } from '../run-codex-prompts/cli/RunOptions';
 import { resolvePromptRunner } from '../run-codex-prompts/main/resolvePromptRunner';
-import type { PromptRunner } from '../run-codex-prompts/runners/types/PromptRunner';
-import type { Usage } from '../../src/execution/Usage';
 import { buildAgentMessagePrompt } from '../run-agent-messages/messages/buildAgentMessagePrompt';
 import { buildAgentMessageScriptPath } from '../run-agent-messages/messages/buildAgentMessageScriptPath';
 import { createAgentRunnerSystemMessage } from '../run-agent-messages/messages/createAgentRunnerSystemMessage';
@@ -39,10 +40,6 @@ const AGENT_CHAT_SESSIONS_DIRECTORY_NAME = 'sessions';
  * Result of one local agent CLI turn.
  */
 export type AgentChatTurnResult = {
-    /** Actual usage reported by the shared harness, including TEAM consultations. */
-    readonly usage: Usage;
-    /** Exact prepared prompt, retained by the normal chat inspector. */
-    readonly prompt: string;
     readonly answer: string;
     readonly workspacePath: string;
     readonly messageFilePath: string;
@@ -55,16 +52,6 @@ export type AgentChatTurnResult = {
 export type ExecuteAgentChatTurnOptions = AgentCliRunOptions & {
     readonly messages: ReadonlyArray<AgentCliHistoryMessage>;
     readonly workspacePath?: string;
-    /** Prepared per-session execution supplied by workspace chat; standalone CLI keeps its existing selection. */
-    readonly execution?: {
-        readonly runner: PromptRunner;
-        readonly agentSource: string_book;
-        readonly systemMessage: string;
-    };
-    /** Cancels only this conversation turn. */
-    readonly signal?: AbortSignal;
-    /** Per-workspace environment without changing the parent process. */
-    readonly environment?: NodeJS.ProcessEnv;
 };
 
 /**
@@ -72,9 +59,7 @@ export type ExecuteAgentChatTurnOptions = AgentCliRunOptions & {
  */
 export async function executeAgentChatTurn(options: ExecuteAgentChatTurnOptions): Promise<AgentChatTurnResult> {
     const currentWorkingDirectory = options.currentWorkingDirectory || process.cwd();
-    const agentSourceFile = options.execution
-        ? { agentPath: resolve(currentWorkingDirectory, options.agentPath), agentSource: options.execution.agentSource }
-        : await readAgentSourceFile(options.agentPath, currentWorkingDirectory);
+    const agentSourceFile = await readAgentSourceFile(options.agentPath, currentWorkingDirectory);
     const workspacePath =
         options.workspacePath ||
         createAgentChatWorkspacePath({
@@ -91,21 +76,18 @@ export async function executeAgentChatTurn(options: ExecuteAgentChatTurnOptions)
         workspacePath,
         messages: options.messages,
     });
-    const agentSystemMessage =
-        options.execution?.systemMessage ?? (await createAgentRunnerSystemMessage(agentSourceFile.agentSource));
+    const agentSystemMessage = await createAgentRunnerSystemMessage(agentSourceFile.agentSource);
     const prompt = appendAgentCliContext(
         buildAgentMessagePrompt(messageFile.relativePath, agentSystemMessage),
         options.context,
     );
     const scriptPath = buildAgentMessageScriptPath(workspacePath, messageFile);
-    const runner = options.execution?.runner ?? resolvePromptRunner(createPromptRunnerOptions(options)).runner;
+    const { runner } = resolvePromptRunner(createPromptRunnerOptions(options));
 
-    const result = await withPromptRuntimeLog(
+    await withPromptRuntimeLog(
         scriptPath,
         async (logPath) => {
-            return runner.runPrompt({
-                signal: options.signal,
-                environment: options.environment,
+            await runner.runPrompt({
                 prompt,
                 scriptPath,
                 projectPath: workspacePath,
@@ -137,8 +119,6 @@ export async function executeAgentChatTurn(options: ExecuteAgentChatTurnOptions)
     }
 
     return {
-        usage: result.usage,
-        prompt,
         answer,
         workspacePath,
         messageFilePath: messageFile.absolutePath,
@@ -158,7 +138,11 @@ export function createAgentChatWorkspacePath(options: {
         .toLowerCase()
         .replace(/[^a-z0-9._-]+/gu, '-')
         .replace(/^[._-]+|[._-]+$/gu, '');
-    const sessionName = [safeAgentName || 'agent', Date.now().toString(36), $randomToken(4)].join('-');
+    const sessionName = [
+        safeAgentName || 'agent',
+        Date.now().toString(36),
+        $randomToken(4),
+    ].join('-');
 
     return resolvePromptbookTemporaryPath(
         options.currentWorkingDirectory,
@@ -209,11 +193,7 @@ async function prepareAgentChatWorkspace(options: {
     readonly agentSource: string_book;
 }): Promise<void> {
     await mkdir(join(options.workspacePath, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH), { recursive: true });
-    await writeFile(
-        join(options.workspacePath, AGENT_BOOK_FILE_PATH),
-        normalizeAgentSource(options.agentSource),
-        'utf-8',
-    );
+    await writeFile(join(options.workspacePath, AGENT_BOOK_FILE_PATH), normalizeAgentSource(options.agentSource), 'utf-8');
 }
 
 /**
@@ -226,11 +206,7 @@ async function writeQueuedMessageBook(options: {
     const messageRelativePath = normalizeRelativePath(
         join(AGENT_QUEUED_MESSAGES_DIRECTORY_PATH, AGENT_CHAT_MESSAGE_FILE_NAME),
     );
-    const messageAbsolutePath = join(
-        options.workspacePath,
-        AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
-        AGENT_CHAT_MESSAGE_FILE_NAME,
-    );
+    const messageAbsolutePath = join(options.workspacePath, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH, AGENT_CHAT_MESSAGE_FILE_NAME);
 
     await writeFile(messageAbsolutePath, Book.fromMessages(options.messages).stringify(), 'utf-8');
 

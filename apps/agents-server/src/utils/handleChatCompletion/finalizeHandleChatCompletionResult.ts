@@ -73,8 +73,6 @@ async function persistHandleChatCompletionLearnedAgentSource(options: {
     });
 
     if (learnedAgentSource !== null) {
-        await runtime.collection.updateAgentSource(runtime.agentId, learnedAgentSource, {
-            expectedSource: runtime.unresolvedAgentSource,
-        });
+        await runtime.collection.updateAgentSource(runtime.agentId, learnedAgentSource);
     }
 }

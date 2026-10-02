@@ -1,4 +1,3 @@
-import { withWorkspaceMutation } from '../../../../scripts/run-codex-prompts/git/workspaceMutation';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
@@ -85,9 +84,7 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
             const workspace = await $preflightWorkspaceRepository({ policy: 'mutate', ...questionsOptions });
 
             await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
-            await withWorkspaceMutation(workspace, () =>
-                $ensureCoderHarnessGitignoreRules(workspace.projectPath, runnerOptions.agentName, questionsOptions),
-            );
+            await $ensureCoderHarnessGitignoreRules(workspace.projectPath, runnerOptions.agentName, questionsOptions);
 
             const pingOptions = {
                 projectPath: workspace.projectPath,

@@ -10,18 +10,6 @@ import type { CoderRunUiState } from '../ui/CoderRunUiState';
  * CLI options for running the prompt runner.
  */
 export type RunOptions = {
-    /** Project-local environment explicitly passed to job services and subprocesses. */
-    readonly environment?: NodeJS.ProcessEnv;
-    /** Supervisors record finalization failures for recovery instead of rerunning verified external side effects. */
-    readonly isFinalizationRecoveryEnabled?: boolean;
-    /** Protect dirty files which existed before a supervised round from being absorbed into its commit. */
-    readonly isExistingChangeProtectionEnabled?: boolean;
-    /** Cancellation belongs to one invocation, including its TEAM consultations. */
-    readonly signal?: AbortSignal;
-    /** Consumes one invocation-local request to skip the active retry or pacing wait. */
-    readonly takeSkipWaitingRequest?: () => boolean;
-    /** Real round events shared by the terminal and persistent project execution view. */
-    readonly onRoundEvent?: (event: { readonly stage: string; readonly detail?: string }) => void;
     /** Project and Git roots resolved by the CLI before setup. */
     workspace?: WorkspaceRepositoryContext;
     /**
@@ -153,6 +141,11 @@ export type RunOptions = {
      * Optional shared run-state object used by `ptbk coder server` to expose terminal progress over HTTP.
      */
     uiState?: CoderRunUiState;
+    /**
+     * When true, the run loop continues watching for new prompts instead of exiting when none are available.
+     * Used by `ptbk coder server` to keep the process alive as a server.
+     */
+    keepAlive?: boolean;
     /**
      * Whether the run may stop and wait for an answer it does not strictly need, disabled by `--no-questions`.
      *

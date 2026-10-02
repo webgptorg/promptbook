@@ -1,9 +1,6 @@
 import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
-import {
-    resolveBookScopedAgentContext,
-    type ResolvedBookScopedAgentContext,
-} from './agentReferenceResolver/bookScopedAgentReferences';
+import { resolveBookScopedAgentContext, type ResolvedBookScopedAgentContext } from './agentReferenceResolver/bookScopedAgentReferences';
 import { createLocalAgentSourceImporter } from './createLocalAgentSourceImporter';
 import { loadFederatedAgentImportConfiguration } from './federatedAgentImportConfiguration';
 import { getWellKnownAgentUrl } from './getWellKnownAgentUrl';
@@ -49,28 +46,6 @@ export async function resolveServerAgentContext(
     options: ResolveServerAgentContextOptions,
 ): Promise<ResolvedServerAgentContext> {
     const bookScopedAgentContext = await resolveBookScopedAgentContext(options);
-    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE && !bookScopedAgentContext.isBookScopedAgent) {
-        const { provideWorkspaceAgentCollection } = await import('./workspace/workspaceAgentStorage');
-        const { resolveLocalAgentSource } = await import(
-            '../../../../src/cli/cli-commands/common/resolveLocalAgentSource'
-        );
-        const { parseAgentSource } = await import('../../../../src/book-2.0/agent-source/parseAgentSource');
-        const { join } = await import('path');
-        const projectPath = process.env.PTBK_AGENTS_SERVER_WORKSPACE;
-        const definition = (await (await provideWorkspaceAgentCollection()).listWorkspaceAgents()).find(
-            (agent) => agent.id === bookScopedAgentContext.parentAgentPermanentId,
-        );
-        const resolved = await resolveLocalAgentSource(join(projectPath, definition!.path), projectPath, {
-            isInitializationAllowed: false,
-            agentDirectoryPath: join(projectPath, 'agents'),
-        });
-        return {
-            ...bookScopedAgentContext,
-            resolvedAgentSource: resolved.agentSource,
-            resolvedAgentProfile: parseAgentSource(resolved.agentSource),
-            scopedAgentReferenceResolver: resolved.agentReferenceResolver,
-        };
-    }
     const federatedAgentImportConfiguration = await loadFederatedAgentImportConfiguration();
     const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
     const agentSourceImporter = createLocalAgentSourceImporter({

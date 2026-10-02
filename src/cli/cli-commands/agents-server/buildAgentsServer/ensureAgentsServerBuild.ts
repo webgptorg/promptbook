@@ -10,12 +10,10 @@ import { writeAgentsServerBuildCache } from './writeAgentsServerBuildCache';
  */
 type EnsureAgentsServerBuildOptions = {
     readonly appPath?: string;
-    readonly projectPath?: string;
     readonly environment?: NodeJS.ProcessEnv;
     readonly isBuildForced?: boolean;
     readonly onBuildEvent?: (event: string) => void;
     readonly onBuildOutput?: (chunk: string) => void;
-    readonly signal?: AbortSignal;
 };
 
 /**
@@ -29,7 +27,6 @@ export async function ensureAgentsServerBuild(
     const environment = options.environment ?? process.env;
     const preparedRuntime = await prepareAgentsServerRuntime({
         appPath: options.appPath,
-        projectPath: options.projectPath,
     });
     const buildEnvironment = createAgentsServerRuntimeEnvironment(environment, preparedRuntime.nodeModulesPath, {
         isNextValidationIgnored: preparedRuntime.isAppPathMaterialized,
@@ -53,7 +50,6 @@ export async function ensureAgentsServerBuild(
         environment: buildEnvironment,
         nextCliPath: preparedRuntime.nextCliPath,
         onBuildOutput: options.onBuildOutput,
-        ...(options.signal ? { signal: options.signal } : {}),
     });
     await writeAgentsServerBuildCache({
         appPath: preparedRuntime.appPath,

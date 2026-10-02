@@ -1,6 +1,5 @@
 // POST /api/agents/[agentName]/restore - restore deleted agent
 import { restoreAgentAndFolders } from '@/src/utils/agentOrganization/restoreAgentAndFolders';
-import { findAgentForCallerWriteAccess } from '@/src/utils/findAgentForCallerWriteAccess';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
@@ -20,14 +19,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const { agentName } = await params;
 
     try {
-        if (!(await findAgentForCallerWriteAccess(agentName)))
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         await restoreAgentAndFolders(agentName);
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json(
             { success: false, error: (error as TODO_any)?.message || 'Failed to restore agent' },
-            { status: error instanceof Error && error.name === 'ConflictError' ? 409 : 500 },
+            { status: 500 },
         );
     }
 }

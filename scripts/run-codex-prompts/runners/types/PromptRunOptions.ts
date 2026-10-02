@@ -13,8 +13,4 @@ export type PromptRunOptions = {
     waitForPauseCheckpoint?: WaitForCoderRunPauseCheckpoint;
     /** Cancels this invocation and its process tree, including delegated consultations. */
     readonly signal?: AbortSignal;
-    /** Consumes an invocation-local waiting control without sharing finite-run global state. */
-    readonly takeSkipWaitingRequest?: () => boolean;
-    /** Environment for this job's subprocesses; never applied to the parent process. */
-    readonly environment?: NodeJS.ProcessEnv;
 };

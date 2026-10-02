@@ -128,7 +128,6 @@ export async function resolveCoderAgent(
     options: {
         readonly defaultRole?: CoderAgentRole;
         readonly isInitializationAllowed?: boolean;
-        readonly agentDirectoryPath?: string;
         readonly signal?: AbortSignal;
     } = {},
 ): Promise<ResolvedCoderAgent | undefined> {
@@ -143,11 +142,7 @@ export async function resolveCoderAgent(
         const resolvedSource = await resolveLocalAgentSource(
             resolve(currentWorkingDirectory, selectedAgentBookReference!),
             currentWorkingDirectory,
-            {
-                isInitializationAllowed: options.isInitializationAllowed,
-                agentDirectoryPath: options.agentDirectoryPath,
-                signal: options.signal,
-            },
+            { isInitializationAllowed: options.isInitializationAllowed, signal: options.signal },
         );
         const teamAgent = await compileCoderTeamAgent(resolvedSource);
 

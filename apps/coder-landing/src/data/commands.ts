@@ -88,9 +88,10 @@ export const PING_PERIOD_COMMAND =
     'ptbk coder ping --harness claude-code --model claude-sonnet-5 --thinking-level low --period 5h';
 
 /**
- * Canonical command which starts the complete workspace Agent Server and autonomous Coder supervisor.
+ * Full-featured command which starts the coder server with kanban UI, agent persona,
+ * project context and post-prompt test verification.
  */
-export const SERVER_COMMAND = 'ptbk server';
+export const SERVER_COMMAND = `ptbk coder server --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level max --context AGENTS.md --test npm run test`;
 
 /**
  * Full-featured command shown in the hero live terminal sample.

@@ -88,34 +88,4 @@ describe('waitUntilWorldTimeDeadline', () => {
         await expect(waitPromise).resolves.toBeUndefined();
         expect(jest.getTimerCount()).toBe(0);
     });
-
-    it('cancels one supervised retry countdown without waiting for its deadline', async () => {
-        const controller = new AbortController();
-        const wait = sleepWithCountdown({
-            durationMs: 600_000,
-            waitKind: 'after-error',
-            isRichUiEnabled: true,
-            signal: controller.signal,
-        });
-        controller.abort();
-        await expect(wait).rejects.toMatchObject({ name: 'AbortError' });
-    });
-
-    it('keeps concurrent supervised waiting controls independent from finite-run controls', async () => {
-        jest.useFakeTimers({ now: 0 });
-        let isFirstSkipRequested = false;
-        let isSecondSkipRequested = false;
-        const waitOptions = { durationMs: 60_000, waitKind: 'after-error' as const, isRichUiEnabled: true };
-        const firstWait = sleepWithCountdown({ ...waitOptions, takeSkipWaitingRequest: () => isFirstSkipRequested });
-        const secondWait = sleepWithCountdown({ ...waitOptions, takeSkipWaitingRequest: () => isSecondSkipRequested });
-        expect(requestSkipCurrentWait()).not.toBe('REQUESTED_SKIP');
-        isFirstSkipRequested = true;
-        await jest.advanceTimersByTimeAsync(250);
-        await expect(firstWait).resolves.toBeUndefined();
-        expect(jest.getTimerCount()).toBe(1);
-        isSecondSkipRequested = true;
-        await jest.advanceTimersByTimeAsync(250);
-        await expect(secondWait).resolves.toBeUndefined();
-        expect(jest.getTimerCount()).toBe(0);
-    });
 });

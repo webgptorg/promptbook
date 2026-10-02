@@ -6,8 +6,6 @@ export type RunGoScriptOptions = {
     readonly projectPath?: string;
     /** Abort only this invocation's process tree. */
     readonly signal?: AbortSignal;
-    /** Explicit environment shared by a job and its consultations. */
-    readonly environment?: NodeJS.ProcessEnv;
     /**
      * Path to the temporary script file.
      */

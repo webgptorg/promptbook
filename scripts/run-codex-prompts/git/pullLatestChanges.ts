@@ -17,21 +17,10 @@ class GitPullFailedError extends Error {
 /**
  * Pulls the latest repository changes before the next prompt starts.
  */
-export async function pullLatestChanges(
-    projectPath = process.cwd(),
-    options: { readonly isFastForwardOnly?: boolean; readonly environment?: NodeJS.ProcessEnv } = {},
-): Promise<void> {
-    if (await hasUpstreamBranch(projectPath, options.environment as Record<string, string> | undefined)) {
-        await executeGitPullCommand(
-            options.isFastForwardOnly
-                ? 'git -c rebase.autoStash=false pull --ff-only --no-rebase'
-                : 'git pull --rebase',
-            projectPath,
-            options.environment,
-            options.isFastForwardOnly
-                ? ['-c', 'rebase.autoStash=false', 'pull', '--ff-only', '--no-rebase']
-                : undefined,
-        );
+export async function pullLatestChanges(projectPath = process.cwd()): Promise<void> {
+
+    if (await hasUpstreamBranch(projectPath)) {
+        await executeGitPullCommand('git pull --rebase', projectPath);
         return;
     }
 
@@ -101,17 +90,10 @@ async function resolveDefaultRemoteName(currentBranch: string, projectPath: stri
 /**
  * Executes one pull command and wraps failures into a detailed branded error.
  */
-async function executeGitPullCommand(
-    command: string,
-    projectPath: string,
-    environment?: NodeJS.ProcessEnv,
-    argumentsList?: ReadonlyArray<string>,
-): Promise<void> {
+async function executeGitPullCommand(command: string, projectPath: string): Promise<void> {
     try {
         await runGitCommand({
             command,
-            env: environment as Record<string, string>,
-            ...(argumentsList ? { argumentsList } : {}),
             cwd: projectPath,
         });
     } catch (error) {

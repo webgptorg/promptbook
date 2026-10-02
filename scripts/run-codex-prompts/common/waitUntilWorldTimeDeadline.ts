@@ -32,15 +32,12 @@ export async function waitUntilWorldTimeDeadline(options: {
     readonly onTick?: WorldTimeDeadlineTick;
     readonly shouldStopWaiting?: WorldTimeDeadlineStopCheck;
     readonly waitForMilliseconds?: WorldTimeDeadlineWait;
-    readonly signal?: AbortSignal;
 }): Promise<void> {
     const { deadlineTimeMs, pollIntervalMs, onTick, shouldStopWaiting } = options;
     const normalizedPollIntervalMs = Math.max(MINIMUM_WORLD_TIME_WAIT_POLL_INTERVAL_MS, pollIntervalMs);
-    const waitForMilliseconds =
-        options.waitForMilliseconds ?? ((durationMs) => waitForRegularMilliseconds(durationMs, options.signal));
+    const waitForMilliseconds = options.waitForMilliseconds ?? waitForRegularMilliseconds;
 
     while (true) {
-        options.signal?.throwIfAborted();
         if (shouldStopWaiting?.()) {
             return;
         }
@@ -74,20 +71,9 @@ function getRemainingDurationMs(deadlineTimeMs: number): number {
     return Math.max(0, deadlineTimeMs - Date.now());
 }
 
-/** Sleeps one segment and promptly releases its timer on invocation-local cancellation. */
-async function waitForRegularMilliseconds(durationMs: number, signal?: AbortSignal): Promise<void> {
-    signal?.throwIfAborted();
-    await new Promise<void>((done, reject) => {
-        const timeout = setTimeout(() => {
-            signal?.removeEventListener('abort', onAbort);
-            done();
-        }, durationMs);
-        /** Cancels only this segment, leaving concurrent session waits untouched. */
-        const onAbort = (): void => {
-            clearTimeout(timeout);
-            signal?.removeEventListener('abort', onAbort);
-            reject(signal?.reason);
-        };
-        signal?.addEventListener('abort', onAbort, { once: true });
-    });
+/**
+ * Waits for one short polling interval.
+ */
+async function waitForRegularMilliseconds(durationMs: number): Promise<void> {
+    await new Promise<void>((resolve) => setTimeout(resolve, durationMs));
 }

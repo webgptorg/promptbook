@@ -143,7 +143,6 @@ export class OpenAiCodexRunner implements PromptRunner {
                     projectPath: options.projectPath,
                     scriptPath: options.scriptPath,
                     signal: options.signal,
-                    environment: options.environment,
                     scriptContent,
                     completionLineMatcher: this.options.isMachineReadableProgressEnabled
                         ? CODEX_JSON_COMPLETION_LINE
@@ -211,8 +210,6 @@ async function waitForRetryDelay(options: {
     await waitUntilWorldTimeDeadline({
         deadlineTimeMs: retryDeadlineTimeMs,
         pollIntervalMs: RATE_LIMIT_BACKOFF_POLL_MS,
-        signal: promptRunOptions.signal,
-        shouldStopWaiting: promptRunOptions.takeSkipWaitingRequest,
         onTick: async (remainingDelayMs) => {
             promptRunOptions.signal?.throwIfAborted();
             const remainingDelayLabel = formatDelay(Math.min(remainingDelayMs, delayMs));

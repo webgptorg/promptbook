@@ -51,8 +51,6 @@ export async function sleepWithCountdown(options: {
     waitKind: CoderRunWaitKind;
     isRichUiEnabled: boolean;
     uiHandle?: CoderRunUiHandle;
-    signal?: AbortSignal;
-    takeSkipWaitingRequest?: () => boolean;
 }): Promise<void> {
     const { durationMs, waitKind, isRichUiEnabled, uiHandle } = options;
 
@@ -65,8 +63,6 @@ export async function sleepWithCountdown(options: {
     await waitForSkippableWorldTimeDeadline({
         deadlineTimeMs,
         pollIntervalMs: WAIT_COUNTDOWN_UPDATE_INTERVAL_MS,
-        signal: options.signal,
-        takeSkipWaitingRequest: options.takeSkipWaitingRequest,
         onTick: (remainingDurationMs) => {
             const visibleRemainingDurationMs = Math.min(remainingDurationMs, durationMs);
             const statusMessage = describeCoderRunWait(waitKind, visibleRemainingDurationMs, durationMs);

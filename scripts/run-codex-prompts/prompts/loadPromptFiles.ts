@@ -39,7 +39,7 @@ export async function loadPromptFiles(
             continue;
         }
 
-        promptFiles.push({ ...parsePromptFile(filePath, content), originalContent: content });
+        promptFiles.push(parsePromptFile(filePath, content));
     }
 
     return promptFiles;

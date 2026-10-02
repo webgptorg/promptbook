@@ -1,2 +1,0 @@
-TODO: Reorganize into folders by runners
-TODO: Remake using `commander`

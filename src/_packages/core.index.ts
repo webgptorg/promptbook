@@ -30,7 +30,6 @@ import type { CreateStandaloneBookLanguageMarkdownOptions } from '../book-2.0/bo
 import { createStandaloneBookLanguageMarkdown } from '../book-2.0/book-language-documentation/createStandaloneBookLanguageMarkdown';
 import { generatePlaceholderAgentProfileImageUrl } from '../book-2.0/utils/generatePlaceholderAgentProfileImageUrl';
 import { Book } from '../book-3.0/Book';
-import type { AgentCollection } from '../collection/agent-collection/AgentCollection';
 import { AgentCollectionInSupabase } from '../collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
 import { createPipelineCollectionFromJson } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromJson';
 import { createPipelineCollectionFromPromise } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromPromise';
@@ -275,7 +274,6 @@ export type { CreateStandaloneBookLanguageMarkdownOptions };
 export { createStandaloneBookLanguageMarkdown };
 export { generatePlaceholderAgentProfileImageUrl };
 export { Book };
-export type { AgentCollection };
 export { AgentCollectionInSupabase };
 export { createPipelineCollectionFromJson };
 export { createPipelineCollectionFromPromise };

@@ -1,6 +1,5 @@
 'use server';
 
-import { mutateAgentOrganization } from '../workspace/workspaceAgentStorage';
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
@@ -13,33 +12,31 @@ import { buildFolderTree, collectAncestorFolderIds } from './folderTree';
  * @param agentIdentifier - Agent name or permanent id to restore.
  */
 export async function restoreAgentAndFolders(agentIdentifier: string): Promise<void> {
-    return mutateAgentOrganization(async () => {
-        const collection = await $provideAgentCollectionForServer();
-        const agentId = await collection.getAgentPermanentId(agentIdentifier);
-        await collection.restoreAgent(agentId);
+    const collection = await $provideAgentCollectionForServer();
+    const agentId = await collection.getAgentPermanentId(agentIdentifier);
+    await collection.restoreAgent(agentId);
 
-        const supabase = $provideSupabaseForServer();
-        const agentTable = await $getTableName('Agent');
-        const folderTable = await $getTableName('AgentFolder');
+    const supabase = $provideSupabaseForServer();
+    const agentTable = await $getTableName('Agent');
+    const folderTable = await $getTableName('AgentFolder');
 
-        const agentResult = await supabase
-            .from(agentTable)
-            .select('folderId')
-            .or(buildAgentNameOrIdFilter(agentIdentifier))
-            .single();
+    const agentResult = await supabase
+        .from(agentTable)
+        .select('folderId')
+        .or(buildAgentNameOrIdFilter(agentIdentifier))
+        .single();
 
-        if (agentResult.error || !agentResult.data?.folderId) {
-            return;
-        }
+    if (agentResult.error || !agentResult.data?.folderId) {
+        return;
+    }
 
-        const folderResult = await supabase.from(folderTable).select('id, parentId, deletedAt');
-        if (folderResult.error) {
-            return;
-        }
+    const folderResult = await supabase.from(folderTable).select('id, parentId, deletedAt');
+    if (folderResult.error) {
+        return;
+    }
 
-        const { folderById } = buildFolderTree(folderResult.data || []);
-        const ancestorIds = collectAncestorFolderIds(agentResult.data.folderId, folderById);
+    const { folderById } = buildFolderTree(folderResult.data || []);
+    const ancestorIds = collectAncestorFolderIds(agentResult.data.folderId, folderById);
 
-        await supabase.from(folderTable).update({ deletedAt: null }).in('id', ancestorIds).not('deletedAt', 'is', null);
-    });
+    await supabase.from(folderTable).update({ deletedAt: null }).in('id', ancestorIds).not('deletedAt', 'is', null);
 }

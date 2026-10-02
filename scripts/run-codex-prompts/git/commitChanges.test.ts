@@ -17,7 +17,6 @@ jest.mock('waitasecond', () => ({
 }));
 
 jest.mock('./agentGitIdentity', () => ({
-    ...jest.requireActual('./agentGitIdentity'),
     buildAgentGitEnv: jest.fn(),
     buildAgentGitSigningFlag: jest.fn(),
 }));
@@ -126,7 +125,7 @@ describe('commitChanges', () => {
         expect(gitAddIndex).toBeGreaterThanOrEqual(0);
         expect(gitResetIndex).toBeGreaterThan(gitAddIndex);
         expect(gitCommitIndex).toBeGreaterThan(gitResetIndex);
-        expect(calledCommands[gitResetIndex]).toContain("'prompts/2026-04-6490.log.txt'");
+        expect(calledCommands[gitResetIndex]).toContain('"prompts/2026-04-6490.log.txt"');
     });
 
     it('always unstages its own temporary commit message file', async () => {
@@ -157,13 +156,13 @@ describe('commitChanges', () => {
 
         const calledCommands = getCalledCommands(execMock);
         expect(calledCommands).toContain(
-            "git add --all -- 'messages/queued/question.md' 'messages/finished/question.md'",
+            'git add --all -- "messages/queued/question.md" "messages/finished/question.md"',
         );
         expect(calledCommands).not.toContain('git add .');
         expect(calledCommands).toEqual(
             expect.arrayContaining([
                 expect.stringMatching(
-                    /^git commit --gpg-sign="test" --file '.*COMMIT_MESSAGE_\d+\.txt' -- 'messages\/queued\/question\.md' 'messages\/finished\/question\.md'$/,
+                    /^git commit --gpg-sign="test" --file ".*COMMIT_MESSAGE_\d+\.txt" -- "messages\/queued\/question\.md" "messages\/finished\/question\.md"$/,
                 ),
             ]),
         );
@@ -196,9 +195,9 @@ describe('commitChanges', () => {
         });
 
         const calledCommands = getCalledCommands(execMock);
-        expect(calledCommands).toContain("git add --all -- 'prompts/example.md'");
+        expect(calledCommands).toContain('git add --all -- "prompts/example.md"');
         expect(calledCommands).toEqual(
-            expect.arrayContaining([expect.stringMatching(/^git commit .* -- 'prompts\/example\.md'$/)]),
+            expect.arrayContaining([expect.stringMatching(/^git commit .* -- "prompts\/example\.md"$/)]),
         );
     });
 
@@ -354,7 +353,7 @@ describe('commitChanges', () => {
 
         expect(commitCommand).toBeDefined();
         expect(commitCommand).toMatch(
-            /^git commit --file '.*\.promptbook\/ptbk-coder\/commit-messages\/COMMIT_MESSAGE_\d+\.txt'$/,
+            /^git commit --file ".*\.promptbook\/ptbk-coder\/commit-messages\/COMMIT_MESSAGE_\d+\.txt"$/,
         );
         expect(commitCommand).not.toContain('--gpg-sign');
         expect(typeof gitAddCallOptions === 'string' ? undefined : gitAddCallOptions?.env).toBeUndefined();
@@ -403,7 +402,7 @@ describe('commitChanges', () => {
         expect(getForTimeMock()).toHaveBeenCalledWith(250);
     });
 
-    it('retries an old index lock without deleting another process ownership', async () => {
+    it('removes stale index.lock before retrying git commit', async () => {
         temporaryProjectPath = await createTemporaryGitProject();
         process.chdir(temporaryProjectPath);
 
@@ -452,25 +451,6 @@ describe('commitChanges', () => {
 
         const calledCommands = getCalledCommands(execMock);
         expect(calledCommands.filter((command) => command.startsWith('git commit '))).toHaveLength(2);
-        expect(existsSync(staleIndexLockPath)).toBe(true);
-        expect(getForTimeMock()).toHaveBeenCalledWith(250);
-    });
-
-    it('leaves an unverifiable old index lock for explicit recovery after bounded retries', async () => {
-        temporaryProjectPath = await createTemporaryGitProject();
-        const lock = join(temporaryProjectPath, '.git', 'index.lock');
-        await writeFile(lock, 'live or interrupted Git owner');
-        const oldDate = new Date(Date.now() - 5 * 60 * 1000);
-        await utimes(lock, oldDate, oldDate);
-        getExecCommandMock().mockImplementation(async (options) => {
-            const command = typeof options === 'string' ? options : options.command;
-            if (command === 'git rev-parse --git-path index.lock') return '.git/index.lock';
-            throw new Error(`Unable to create '${lock}': File exists. Another git process is running.`);
-        });
-        await expect(commitChanges('Locked', { projectPath: temporaryProjectPath })).rejects.toMatchObject({
-            name: 'ConflictError',
-        });
-        expect(existsSync(lock)).toBe(true);
-        expect(getForTimeMock()).toHaveBeenCalledTimes(5);
+        expect(existsSync(staleIndexLockPath)).toBe(false);
     });
 });

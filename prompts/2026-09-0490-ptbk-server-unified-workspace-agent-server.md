@@ -1,4 +1,4 @@
-[^] by Promptbook Developer on OpenAI Codex `gpt-6.1-sol` thinking `max` - Implementation in progress
+[ ]
 
 [✨🖥️] Reimplement `ptbk coder server` as the alias of `ptbk server`: the full Agent Server operating autonomously on a Git workspace with file-backed agents and the shared Coder execution engine.
 
@@ -115,4 +115,3 @@ ptbk coder server
 -   Coordinate with [default-agent selection](2026-09-0420-ptbk-coder-default-agents.md), [helper initialization](2026-09-0430-ptbk-coder-helper-agents-init.md), [TEAM runtime](2026-09-0440-ptbk-coder-team-runtime.md), [normal/raw output](2026-09-0450-ptbk-coder-normal-and-raw-output.md), [generated README](2026-09-0460-ptbk-coder-init-prompts-readme.md), and [legacy cleanup](2026-09-0470-remove-legacy-pipelines-and-clean-repository.md). Preserve their implemented behavior and resolve moved paths rather than rebuilding retired layers.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle: shared logic must actually be shared, including between both aliases, the finite runner, file/database storage modes, and standalone/workspace app startup.
 -   Update CLI/help, workspace layout and Git-safety documentation, generated workflow documentation, and the [Coder landing website](../apps/coder-landing), including changed examples/demo behavior. Add the implemented changes and intentional compatibility changes into the [changelog](../changelog/_current-preversion.md).
-

@@ -3,7 +3,7 @@ import { basename, dirname, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { resolvePromptbookTemporaryPath } from '../../../src/utils/filesystem/promptbookTemporaryPath';
-import { buildAgentGitEnv, buildAgentGitSigningFlag, getAgentGitIdentity } from './agentGitIdentity';
+import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
 import { hasUpstreamBranch, listGitRemotes, readCurrentBranchName, readOptionalGitConfig } from './gitBranchContext';
 import { runGitCommand } from './runGitCommand';
 
@@ -21,8 +21,6 @@ export async function commitChanges(
     message: string,
     options?: {
         autoPush?: boolean;
-        /** Environment scoped to the owning project, including configured Git identity/signing. */
-        environment?: NodeJS.ProcessEnv;
 
         /**
          * Repository-relative paths which are relevant for the current operation.
@@ -48,13 +46,8 @@ export async function commitChanges(
     await writeFile(commitMessagePath, message, 'utf-8');
 
     try {
-        const identity = getAgentGitIdentity(options?.environment);
-        const identityEnvironment = buildAgentGitEnv(identity);
-        const agentEnv =
-            options?.environment || identityEnvironment
-                ? ({ ...options?.environment, ...identityEnvironment } as Record<string, string>)
-                : undefined;
-        const signingFlag = buildAgentGitSigningFlag(identity);
+        const agentEnv = buildAgentGitEnv();
+        const signingFlag = buildAgentGitSigningFlag();
         const excludedGitPaths = await normalizeExcludedGitPaths(projectPath, [
             commitMessagePath,
             ...(options?.excludePaths ?? []),
@@ -212,7 +205,7 @@ async function resolvePathThroughExistingAncestor(path: string): Promise<string>
  * Quotes one Git path for safe shell execution.
  */
 function quoteShellPath(path: string): string {
-    return `'${path.replace(/'/gu, `'"'"'`)}'`;
+    return JSON.stringify(path);
 }
 
 /**
@@ -235,18 +228,14 @@ class GitPushFailedError extends Error {
  * - Uses `git push --set-upstream` on first push when upstream is missing.
  * - Skips pushing when upstream exists and there is nothing to push.
  */
-export async function pushCommittedChanges(
-    projectPath: string,
-    agentEnv?: Record<string, string>,
-    options: { readonly isNoninteractive?: boolean } = {},
-): Promise<void> {
+async function pushCommittedChanges(projectPath: string, agentEnv?: Record<string, string>): Promise<void> {
     if (await hasUpstreamBranch(projectPath, agentEnv)) {
         const commitsAhead = await countCommitsAheadOfUpstream(projectPath, agentEnv);
         if (commitsAhead === 0) {
             return;
         }
 
-        await executeGitPushCommand('git push', projectPath, agentEnv, options.isNoninteractive ? ['push'] : undefined);
+        await executeGitPushCommand('git push', projectPath, agentEnv);
         return;
     }
 
@@ -263,12 +252,7 @@ export async function pushCommittedChanges(
     }
 
     const remoteName = await resolveDefaultRemoteName(currentBranch, projectPath, agentEnv);
-    await executeGitPushCommand(
-        `git push --set-upstream "${remoteName}" "${currentBranch}"`,
-        projectPath,
-        agentEnv,
-        options.isNoninteractive ? ['push', '--set-upstream', remoteName, currentBranch] : undefined,
-    );
+    await executeGitPushCommand(`git push --set-upstream "${remoteName}" "${currentBranch}"`, projectPath, agentEnv);
 }
 
 /**
@@ -348,12 +332,10 @@ async function executeGitPushCommand(
     command: string,
     projectPath: string,
     agentEnv?: Record<string, string>,
-    argumentsList?: ReadonlyArray<string>,
 ): Promise<void> {
     try {
-        await runGitCommand({
+        await $execCommand({
             command,
-            ...(argumentsList ? { argumentsList } : {}),
             cwd: projectPath,
             env: agentEnv,
         });
@@ -381,7 +363,7 @@ function buildGitCommitCommand(options: {
         commandParts.push('--allow-empty');
     }
 
-    commandParts.push(`--file ${quoteShellPath(options.commitMessagePath)}`);
+    commandParts.push(`--file "${options.commitMessagePath}"`);
 
     if (options.relevantPaths && options.relevantPaths.length > 0) {
         commandParts.push('--', ...options.relevantPaths.map(quoteShellPath));

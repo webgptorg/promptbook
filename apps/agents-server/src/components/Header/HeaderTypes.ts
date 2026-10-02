@@ -16,8 +16,6 @@ export type HeaderProps = {
      * Is the user an admin
      */
     isAdmin?: boolean;
-    /** Whether the authenticated project execution view is available. */
-    isWorkspaceServer?: boolean;
     /**
      * Whether the current admin is the environment-backed super-admin.
      */

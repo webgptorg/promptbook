@@ -6,11 +6,8 @@ import type { EnsuredCoderReferencedArtifact } from './coderReferencedArtifacts'
 import { ensureCoderRoleAgentFile } from './ensureCoderRoleAgentFile';
 import { readCoderAgentBook } from './readCoderAgentBook';
 
-/**
- * Project-owned roles created independently of package-script changes.
- * @private shared default Book initialization and confinement
- */
-export const CODER_DEFAULT_ROLES = ['developer', 'planner', 'lawyer', 'copywriter'] as const;
+/** Project-owned roles created independently of package-script changes. */
+const CODER_DEFAULT_ROLES = ['developer', 'planner', 'lawyer', 'copywriter'] as const;
 
 /**
  * Ensures every default Book independently, then adds missing helper declarations to the two primary roles.

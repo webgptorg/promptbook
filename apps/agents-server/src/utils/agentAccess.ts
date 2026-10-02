@@ -2,10 +2,7 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 import { parseBookScopedAgentIdentifier } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
-import {
-    isTeamInternalAgentAccessToken,
-    TEAM_INTERNAL_AGENT_ACCESS_HEADER,
-} from '../../../../src/commitments/_common/teamInternalAgentAccess';
+import { isTeamInternalAgentAccessToken, TEAM_INTERNAL_AGENT_ACCESS_HEADER } from '../../../../src/commitments/_common/teamInternalAgentAccess';
 import { getCurrentUser, type UserInfo } from './getCurrentUser';
 import { isAgentVisibility, type AgentVisibility } from './agentVisibility';
 
@@ -74,16 +71,6 @@ export function canAccessAgentVisibility(options: {
     readonly request?: Request;
     readonly allowTeamInternalAccess?: boolean;
 }): boolean {
-    if (
-        process.env.PTBK_AGENTS_SERVER_WORKSPACE &&
-        !options.currentUser &&
-        !(
-            options.allowTeamInternalAccess &&
-            options.request &&
-            isTeamInternalAgentAccessToken(options.request.headers.get(TEAM_INTERNAL_AGENT_ACCESS_HEADER))
-        )
-    )
-        return false;
     if (options.visibility === 'PUBLIC' || options.visibility === 'UNLISTED') {
         return true;
     }

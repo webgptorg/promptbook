@@ -16,10 +16,6 @@ const agentCollectionsByTablePrefix = new Map<string, AgentCollection>();
  * [🐱‍🚀]
  */
 export async function $provideAgentCollectionForServer(): Promise<AgentCollection> {
-    if (process.env.PTBK_AGENTS_SERVER_WORKSPACE) {
-        const { provideWorkspaceAgentCollection } = await import('../utils/workspace/workspaceAgentStorage');
-        return provideWorkspaceAgentCollection();
-    }
     // <- Note: This function is potentially async
 
     // TODO: [🐱‍🚀] [🌕] DRY

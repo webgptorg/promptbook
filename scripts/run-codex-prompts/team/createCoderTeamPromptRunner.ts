@@ -3,7 +3,7 @@ import { dirname, join } from 'path';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { addUsage } from '../../../src/execution/utils/addUsage';
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
-import { resolveCoderAgent, type ResolvedCoderAgent } from '../common/resolveCoderAgent';
+import { resolveCoderAgent } from '../common/resolveCoderAgent';
 import { captureLiveScriptOutput } from '../common/runGoScript/captureLiveScriptOutput';
 import type { PromptRunOptions } from '../runners/types/PromptRunOptions';
 import type { PromptRunner } from '../runners/types/PromptRunner';
@@ -14,11 +14,7 @@ import { startCoderTeamBridge } from './startCoderTeamBridge';
  * Adds a scoped consultation transport around an existing adapter. Both primary and advisers keep exactly
  * that adapter's permissions and authentication. Only the enclosing Coder round owns tests, queues and Git operations.
  */
-export function createCoderTeamPromptRunner(
-    runner: PromptRunner,
-    agentBookReference?: string,
-    sourceSnapshot?: ResolvedCoderAgent,
-): PromptRunner {
+export function createCoderTeamPromptRunner(runner: PromptRunner, agentBookReference?: string): PromptRunner {
     return {
         name: runner.name,
         teamCapability: runner.teamCapability,
@@ -31,13 +27,11 @@ export function createCoderTeamPromptRunner(
             let runtime: CoderTeamRuntime | undefined;
             try {
                 // Resolve against this invocation's actual checkout, including an isolated worktree.
-                const agent =
-                    sourceSnapshot ??
-                    (await resolveCoderAgent(agentBookReference, options.projectPath, {
-                        defaultRole: 'developer',
-                        isInitializationAllowed: false,
-                        signal: controller.signal,
-                    }));
+                const agent = await resolveCoderAgent(agentBookReference, options.projectPath, {
+                    defaultRole: 'developer',
+                    isInitializationAllowed: false,
+                    signal: controller.signal,
+                });
                 if (!agent?.teamAgent.teammates.length) return await runner.runPrompt(options);
                 if (runner.teamCapability !== 'command-tools') {
                     throw new NotAllowed(

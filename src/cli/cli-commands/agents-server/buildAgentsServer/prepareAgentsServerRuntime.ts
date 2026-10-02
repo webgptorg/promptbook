@@ -13,7 +13,6 @@ import { resolveNodeModulesPath } from './resolveNodeModulesPath';
 export async function prepareAgentsServerRuntime(
     options: {
         readonly appPath?: string;
-        readonly projectPath?: string;
     } = {},
 ): Promise<PreparedAgentsServerRuntime> {
     const nextCliPath = resolveNextCliPath();
@@ -21,13 +20,12 @@ export async function prepareAgentsServerRuntime(
     const appPath = await resolveAgentsServerBuildAppPath({
         sourceAppPath: options.appPath ?? (await resolveAgentsServerAppPath()),
         nodeModulesPath,
-        projectPath: options.projectPath,
     });
 
     return {
         appPath,
         nextCliPath,
         nodeModulesPath,
-        isAppPathMaterialized: isAgentsServerAppPathMaterialized(appPath, options.projectPath),
+        isAppPathMaterialized: isAgentsServerAppPathMaterialized(appPath),
     };
 }

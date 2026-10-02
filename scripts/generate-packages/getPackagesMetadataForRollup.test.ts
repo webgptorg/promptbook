@@ -10,7 +10,6 @@ describe('getPackagesMetadataForRollup', () => {
         expect(cliPackageMetadata?.additionalDependencies).toContain('typescript');
         expect(cliPackageMetadata?.additionalDependencies).toContain('ts-node');
         expect(cliPackageMetadata?.additionalDependencies).toContain('next');
-        expect(cliPackageMetadata?.additionalDependencies).toContain('playwright');
         expect(cliPackageMetadata?.additionalDependencies).toContain('lucide-react');
         expect(cliPackageMetadata?.additionalDependencies).toContain('@tailwindcss/typography');
     });

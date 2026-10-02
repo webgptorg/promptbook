@@ -64,7 +64,6 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
     return await new Promise<string>((resolve, reject) => {
         const commandProcess = $spawnLoggedBashScript({
             projectPath: options.projectPath,
-            environment: options.environment,
             scriptPath,
             logPath: options.logPath,
         });

@@ -24,19 +24,19 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 -   The mental shift to communicate: _from interactive chat sessions_ (one task at a time) _to a versioned queue of prompt files_ (`prompts/` folder) processed autonomously.
 -   The agent's behavior lives in a versioned `.book` file, not in one vendor's prompt box. The same queue and behavior can move between supported harnesses with `--harness`; opencode can use the provider, including a local model, configured in that harness.
 -   A successful task records its `[x]` status in the PRD and commits that status with the implementation. Reverting the commit therefore returns both the code and the PRD state together.
--   Around the agent, `ptbk coder` adds the unattended-operation machinery: test verification with retry feedback, git commits under a dedicated agent identity (optionally GPG-signed), auto pull/push, isolated worktrees, pacing, priorities, the complete Agent Server web UI, and personas defined in the Book language.
+-   Around the agent, `ptbk coder` adds the unattended-operation machinery: test verification with retry feedback, git commits under a dedicated agent identity (optionally GPG-signed), auto pull/push, isolated worktrees, pacing, priorities, a kanban web UI, and personas defined in the Book language.
 
 ## Core workflow (the loop the page must explain)
 
 1. `ptbk coder init` scaffolds the project (see [`content/commands.md`](./content/commands.md)).
 2. The developer writes each task as one markdown file in `prompts/`. A status checkbox is optional: a prompt without one starts ready at priority `0` and gains its status line when processing starts.
-3. `ptbk coder run` feeds prompts one by one to the selected harness, with:
-    - a local Book persona: Developer for `run`, Planner for `plan`, with an optional `--agent` override (see [`content/developer-agent.md`](./content/developer-agent.md)),
+3. `ptbk coder run` (or `ptbk coder server`) feeds prompts one by one to the selected harness, with:
+    - a local Book persona: Developer for `run` and `server`, Planner for `plan`, with an optional `--agent` override (see [`content/developer-agent.md`](./content/developer-agent.md)),
     - optional project context (`--context`, e.g. `AGENTS.md`).
 4. When enabled, tests run before the first coding prompt (`--test-before`); existing failures either stop the run or create one repair prompt. After each prompt, the test command (`--test`) runs and failures are fed back to the agent, which retries until green.
 5. The changes are committed under the agent git identity; optionally pushed (`--auto-push`). With `--isolate` the whole round happens in a temporary git worktree that is merged back into the current branch once the task is verified.
 6. Finished prompts are verified and archived to `prompts/done/` (`ptbk coder verify`).
-7. `ptbk server` (exact alias `ptbk coder server`) starts the complete Agent Server in the current Git project. It fills missing setup, discovers all Books, supports real chats and Book/folder edits, and continuously executes ready PRDs across agents and all priorities. SQLite state stays in the selected project; local commits and safe pull/push are on by default. It binds to loopback on port 4441.
+7. `ptbk coder server` additionally keeps running forever, watches `prompts/` for new files, and serves a Trello-style kanban board (default port 4441).
 
 ## Key subcommands
 
@@ -44,7 +44,7 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `ptbk coder init`   | Scaffold `prompts/`, `prompts/done/`, `agents/developer.book`, `AGENTS.md`, `.env` agent-identity entries, `.gitignore`, `package.json` scripts, `.vscode/settings.json` |
 | `ptbk coder run`    | Process the prompt queue once, then exit                                                                                                                                 |
-| `ptbk server`       | Full workspace Agent Server with file-backed Books, persistent SQLite, chat and autonomous shared Coder execution; alias `ptbk coder server`                             |
+| `ptbk coder server` | Same processing, but never exits; watches for new prompts; serves kanban UI                                                                                              |
 | `ptbk coder verify` | Interactive verification of completed prompts; archives to `prompts/done/`                                                                                               |
 
 ## Tone

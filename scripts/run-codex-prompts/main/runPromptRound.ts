@@ -4,8 +4,6 @@ import { spaceTrim } from 'spacetrim';
 import { increaseHeadings } from '../../../book/scripts/import-markdown/increaseHeadings';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import { AuthenticationError } from '../../../src/errors/AuthenticationError';
-import { ConflictError } from '../../../src/errors/ConflictError';
-import { relative } from 'path';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { CliProgressDisplay } from '../common/cliProgressDisplay';
@@ -125,7 +123,6 @@ export async function runPromptRound({
 
     const promptExecutionStartedDate = moment();
     let attemptCount = 1;
-    let isImplementationVerified = false;
     // Note: The very same snapshot tells which files this round has changed, both for normalizing their line
     //       endings and for committing only them instead of everything which is changed in the project
     const roundCommitScope = await captureRoundCommitScopeIfNeeded(options, roundProjectPath);
@@ -162,16 +159,8 @@ export async function runPromptRound({
                                 progress,
                             }),
                         waitForPauseCheckpoint: waitForRequestedPause,
-                        signal: options.signal,
-                        takeSkipWaitingRequest: options.takeSkipWaitingRequest,
-                        environment: options.environment,
                     });
 
-                    isImplementationVerified = true;
-                    options.onRoundEvent?.({
-                        stage: 'verified',
-                        detail: options.testCommand ?? 'No verification command configured',
-                    });
                     await finalizeSuccessfulPromptRound({
                         options,
                         nextPrompt,
@@ -188,13 +177,10 @@ export async function runPromptRound({
                         waitForRequestedPause,
                         roundProjectPath,
                     });
-                    options.onRoundEvent?.({ stage: options.noCommit ? 'saved' : 'committed' });
                     return;
                 } catch (error) {
                     uiHandle?.stopCapturingAgentOutput();
                     lastError = error;
-                    if (options.isFinalizationRecoveryEnabled && (isImplementationVerified || options.signal?.aborted))
-                        throw error;
 
                     // Note: A harness which is not logged in answers every retry the same way, so the user gets
                     //       the sign-in instructions right away instead of after every retry has waited its delay
@@ -333,8 +319,6 @@ async function waitAfterErrorBeforeRetry(options: {
         durationMs: runOptions.waitAfterError,
         deadlineTimeMs: retryDeadlineTimeMs,
         waitKind: 'after-error',
-        signal: runOptions.signal,
-        takeSkipWaitingRequest: runOptions.takeSkipWaitingRequest,
         isRichUiEnabled,
         uiHandle,
     });
@@ -443,34 +427,6 @@ async function finalizeSuccessfulPromptRound(options: {
     });
 
     if (!runOptions.noCommit) {
-        if (runOptions.isExistingChangeProtectionEnabled && roundCommitScope) {
-            const changed = await resolveCoderCommitScopePaths(roundCommitScope);
-            const selectedPromptPath = relative(
-                roundCommitScope.repositoryRoot ?? roundProjectPath,
-                nextPrompt.file.path,
-            ).replace(/\\/gu, '/');
-            const projectPrefix = relative(
-                roundCommitScope.repositoryRoot ?? roundProjectPath,
-                roundProjectPath,
-            ).replace(/\\/gu, '/');
-            const outsideProject = projectPrefix ? changed.filter((path) => !path.startsWith(projectPrefix + '/')) : [];
-            if (outsideProject.length)
-                throw new ConflictError(
-                    `The job changed files outside the selected project: ${outsideProject.join(
-                        ', ',
-                    )}. Review the retained work before integration.`,
-                );
-            const overlapping = changed.filter(
-                (path) =>
-                    roundCommitScope.snapshotBeforeOperation.changedFileHashes.has(path) && path !== selectedPromptPath,
-            );
-            if (overlapping.length)
-                throw new ConflictError(
-                    `The job changed pre-existing uncommitted work in: ${overlapping.join(
-                        ', ',
-                    )}. Local work is retained for recovery.`,
-                );
-        }
         await waitForCommitConfirmationIfNeeded({
             options: runOptions,
             commitMessage,
@@ -484,7 +440,6 @@ async function finalizeSuccessfulPromptRound(options: {
             statusMessage: 'Committing changes',
         });
         await commitChanges(commitMessage, {
-            environment: runOptions.environment,
             autoPush: runOptions.autoPush,
             // Note: Only the prompt file and the files the coding agent has changed belong to this round,
             //       everything which was already changed before the round started stays in the working tree

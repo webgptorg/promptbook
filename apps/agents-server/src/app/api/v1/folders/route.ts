@@ -1,4 +1,3 @@
-import { mutateAgentOrganizationRoute } from '@/src/utils/workspace/workspaceAgentStorage';
 import { ConflictError } from '@promptbook-local/core';
 import { NextRequest } from 'next/server';
 import { translateSupabaseUniqueConstraintError } from '../../../../../../../src/utils/database/uniqueConstraint';
@@ -6,12 +5,11 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { findOwnedFolderById } from '@/src/utils/agentOwnership';
 import { parseFolderColor, parseFolderIcon } from '@/src/utils/agentOrganization/folderAppearance';
-import {
-    mapOwnedFolderRowToManagementFolder,
-    getNextOwnedFolderSortOrder,
-} from '@/src/utils/managementApi/managementApiFolders';
+import { mapOwnedFolderRowToManagementFolder, getNextOwnedFolderSortOrder } from '@/src/utils/managementApi/managementApiFolders';
 import { resolveManagementApiIdentity } from '@/src/utils/managementApi/managementApiAuth';
-import { ManagementFolderCreateRequestSchema } from '@/src/utils/managementApi/managementApiSchemas';
+import {
+    ManagementFolderCreateRequestSchema,
+} from '@/src/utils/managementApi/managementApiSchemas';
 import {
     createManagementApiErrorResponse,
     createManagementApiJsonResponse,
@@ -61,9 +59,9 @@ export async function GET(request: NextRequest) {
         }
 
         return createManagementApiJsonResponse(request, {
-            items: (
-                (result.data || []) as unknown as Array<Parameters<typeof mapOwnedFolderRowToManagementFolder>[0]>
-            ).map(mapOwnedFolderRowToManagementFolder),
+            items: ((result.data || []) as unknown as Array<Parameters<typeof mapOwnedFolderRowToManagementFolder>[0]>).map(
+                mapOwnedFolderRowToManagementFolder,
+            ),
         });
     } catch (error) {
         return createManagementApiErrorResponse(
@@ -81,7 +79,7 @@ export async function GET(request: NextRequest) {
  * @param request - Incoming create request.
  * @returns Created folder payload.
  */
-async function handlePOST(request: NextRequest) {
+export async function POST(request: NextRequest) {
     const identityResult = await resolveManagementApiIdentity(request);
     if (!identityResult.success) {
         return createManagementApiErrorResponse(
@@ -127,7 +125,10 @@ async function handlePOST(request: NextRequest) {
 
         const sortOrder =
             parsedBody.data.sortOrder ??
-            (await getNextOwnedFolderSortOrder(identityResult.identity.userId, parsedBody.data.parentId ?? null));
+            (await getNextOwnedFolderSortOrder(
+                identityResult.identity.userId,
+                parsedBody.data.parentId ?? null,
+            ));
 
         const supabase = $provideSupabaseForServer();
         const tableName = await $getTableName('AgentFolder');
@@ -184,9 +185,4 @@ async function handlePOST(request: NextRequest) {
             error instanceof Error ? error.message : 'Failed to create folder.',
         );
     }
-}
-
-/** Applies this authorized logical mutation through the selected agent storage. */
-export async function POST(request: NextRequest) {
-    return mutateAgentOrganizationRoute(() => handlePOST(request));
 }

@@ -25,7 +25,6 @@ const MULTI_AGENT_QUEUE_POLL_INTERVAL_MS = 2_000;
  * Optional integrations for callers that supervise the multi-agent watcher as one service.
  */
 export type RunMultipleAgentMessagesControls = {
-    readonly rootPath?: string;
     readonly shouldContinue?: () => boolean;
     readonly queuePollIntervalMs?: number;
     readonly watchErrorLogDirectoryPath?: string;
@@ -42,7 +41,7 @@ export async function runMultipleAgentMessages(
     validateAgentRunOptions(options);
     validateAgentWatchOptions('ptbk agent-folder run-multiple', options);
 
-    const rootPath = controls.rootPath ?? process.cwd();
+    const rootPath = process.cwd();
     const shouldContinue = controls.shouldContinue || (() => just(true));
     const queuePollIntervalMs = controls.queuePollIntervalMs ?? MULTI_AGENT_QUEUE_POLL_INTERVAL_MS;
     const watchErrorLogDirectoryPath = controls.watchErrorLogDirectoryPath || rootPath;

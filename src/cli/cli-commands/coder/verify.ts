@@ -1,4 +1,3 @@
-import { withWorkspaceMutation } from '../../../../scripts/run-codex-prompts/git/workspaceMutation';
 import colors from 'colors';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import {
@@ -93,27 +92,25 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
                 policy: 'mutate',
                 isAskingQuestionsEnabled: cliOptions.questions,
             });
-            return withWorkspaceMutation(workspace, async () => {
-                if (cliOptions.questions === false) {
-                    throw new NotAllowed(
-                        spaceTrim(
-                            '`ptbk coder verify` requires answers before changing PRD statuses or archiving files. Run it without `--no-questions` in an interactive terminal.',
-                        ),
-                    );
-                }
+            if (cliOptions.questions === false) {
+                throw new NotAllowed(
+                    spaceTrim(
+                        '`ptbk coder verify` requires answers before changing PRD statuses or archiving files. Run it without `--no-questions` in an interactive terminal.',
+                    ),
+                );
+            }
 
-                // Note: Import the main function dynamically to avoid loading heavy dependencies until needed
-                const { verifyPrompts } = await import('../../../../scripts/verify-prompts/verify-prompts');
+            // Note: Import the main function dynamically to avoid loading heavy dependencies until needed
+            const { verifyPrompts } = await import('../../../../scripts/verify-prompts/verify-prompts');
 
-                try {
-                    await verifyPrompts({ order, ignore, gitSync, workspace });
-                } catch (error) {
-                    console.error(colors.bgRed('Prompt verification failed:'), error);
-                    throw error;
-                }
+            try {
+                await verifyPrompts({ order, ignore, gitSync, workspace });
+            } catch (error) {
+                console.error(colors.bgRed('Prompt verification failed:'), error);
+                return process.exit(1);
+            }
 
-                return;
-            });
+            return process.exit(0);
         }),
     );
 }

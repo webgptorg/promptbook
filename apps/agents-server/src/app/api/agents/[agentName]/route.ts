@@ -51,7 +51,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             const agentId = getAgentCollectionIdentifier(targetAgent);
             const nextAgentSource = renameAgentSource(targetAgent.agentSource as string_book, trimmedName);
 
-            await collection.updateAgentSource(agentId, nextAgentSource, { expectedSource: targetAgent.agentSource });
+            await collection.updateAgentSource(agentId, nextAgentSource);
             const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
             const resolvedAgentContext = await resolveServerAgentContext({
                 collection,
@@ -79,7 +79,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
         const collection = await $provideAgentCollectionForServer();
         const agentId = getAgentCollectionIdentifier(targetAgent);
         const nextAgentSource = setAgentSourceVisibility(targetAgent.agentSource as string_book, visibility);
-        await collection.updateAgentSource(agentId, nextAgentSource, { expectedSource: targetAgent.agentSource });
+        await collection.updateAgentSource(agentId, nextAgentSource);
 
         invalidateCachedActiveOrganizationSnapshots();
 
@@ -87,7 +87,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
     } catch (error) {
         return NextResponse.json(
             { success: false, error: (error as TODO_any)?.message || 'Failed to update agent visibility' },
-            { status: error instanceof Error && error.name === 'ConflictError' ? 409 : 500 },
+            { status: 500 },
         );
     }
 }
@@ -115,7 +115,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
     } catch (error) {
         return NextResponse.json(
             { success: false, error: (error as TODO_any)?.message || 'Failed to delete agent' },
-            { status: error instanceof Error && error.name === 'ConflictError' ? 409 : 500 },
+            { status: 500 },
         );
     }
 }

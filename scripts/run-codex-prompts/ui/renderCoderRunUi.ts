@@ -89,15 +89,6 @@ export function renderCoderRunUi(
     options: {
         readonly buildFrameLines?: (options: BuildCoderRunUiFrameOptions) => string[];
         readonly state?: CoderRunUiState;
-        /** Long-lived hosts may supply their own durable policy while reusing the output renderer. */
-        readonly controls?: {
-            readonly snapshot: () => Pick<
-                BuildCoderRunUiFrameOptions,
-                'pauseState' | 'pauseTargetLabel' | 'isEndAfterCurrentPromptRequested'
-            >;
-            readonly applyKey: (keyName: string | undefined) => CoderRunControlFeedback | undefined;
-            readonly interrupt: () => void;
-        };
     } = {},
 ): CoderRunUiHandle {
     const state = options.state ?? new CoderRunUiState(startTime);
@@ -212,7 +203,7 @@ export function renderCoderRunUi(
         const isAgentVisualAnimated = state.agentVisual?.isAnimated === true;
         const autoRefreshInterval = getCoderRunUiAutoRefreshInterval(
             state.phase,
-            options.controls?.snapshot().pauseState ?? getPauseState(),
+            getPauseState(),
             isAgentVisualAnimated,
         );
         if (autoRefreshInterval === undefined) {
@@ -234,11 +225,9 @@ export function renderCoderRunUi(
             animationFrame: spinnerFrame,
             animationTimeMs: Date.now() - animationStartTimeMs,
             spinner: SPINNER_FRAMES[spinnerFrame]!,
-            ...(options.controls?.snapshot() ?? {
-                pauseState: getPauseState(),
-                pauseTargetLabel: getPauseTargetLabel(),
-                isEndAfterCurrentPromptRequested: getEndAfterCurrentPromptState(),
-            }),
+            pauseState: getPauseState(),
+            pauseTargetLabel: getPauseTargetLabel(),
+            isEndAfterCurrentPromptRequested: getEndAfterCurrentPromptState(),
             config: state.config,
             subscriptionUsage: state.subscriptionUsage,
             agentVisual: state.agentVisual,
@@ -338,10 +327,6 @@ export function renderCoderRunUi(
 
     const keypressHandler = (_str: string, key: { ctrl?: boolean; meta?: boolean; name?: string }): void => {
         if (key.ctrl && key.name === 'c') {
-            if (options.controls) {
-                options.controls.interrupt();
-                return;
-            }
             cleanup();
             process.exit(0);
         }
@@ -375,9 +360,7 @@ export function renderCoderRunUi(
         }
 
         // Note: [🏹] The very same key handling is shared with the plain console mode, see `applyCoderRunControlKey`
-        const controlFeedback = options.controls
-            ? options.controls.applyKey(key.name)
-            : applyCoderRunControlKey(key.name);
+        const controlFeedback = applyCoderRunControlKey(key.name);
 
         if (controlFeedback !== undefined) {
             showControlFeedback(controlFeedback);

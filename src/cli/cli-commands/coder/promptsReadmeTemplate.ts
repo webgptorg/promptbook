@@ -27,38 +27,6 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
     files. The manual workflow below needs only an editor, Git, and this project's normal development tools. No
     Promptbook installation, account, or monorepo checkout is required.
 
-    ## Continuous workspace server
-
-    Run \`ptbk server\` in this Git project, or use its exact alias \`ptbk coder server\`. Startup fills missing
-    workspace artifacts, serves the complete Agent Server at \`http://localhost:4441\`, and keeps watching the queue.
-    Chat, profiles, Book editing, accounts, settings and the Project execution view use the same local Books.
-    No permanent agent, harness or priority flag is required. Installed/configured harnesses are selected without
-    automatic installation; missing/unknown targets are shown as blocked. Work without an explicit target uses
-    Developer; targeted Books can implement their own PRDs, with higher priorities first and fair agent rotation.
-    Helpers and Planner remain explicit targets or TEAM advisers, never a broadcast implementation queue.
-
-    Authoritative Books live in lowercase \`agents/\`, including subfolders. \`agents/.promptbook.json\` versions
-    stable identities and organization. Application accounts, chats, Metadata and execution journals persist in
-    \`.promptbook/agents-server.sqlite\` and \`.promptbook/servers/\`. Runtime databases, secrets, logs and locks
-    are ignored; optional \`.promptbook/config.json\` may be versioned. Restarting with another port or alias
-    reopens the same project state. Workspace sign-in uses configured credentials or a private random bootstrap
-    credential file whose path is printed at startup.
-
-    The server automatically creates scoped local commits and safely pulls/pushes when an upstream exists.
-    Without one it remains local-only. A failed push keeps completed work pending, rather than rerunning it.
-    Divergence or overlapping dirty edits require recovery; unrelated user changes are preserved. Browser source
-    edits use optimistic revisions and automatically commit one logical operation. External editor changes are
-    reconciled without being automatically committed. In-flight work uses its recorded source snapshot.
-
-    \`--no-auto\` starts paused; web controls and terminal P/S/X share the same supervisor state. Pause lets
-    current work finish and stops new claims. \`--no-auto-pull\` / \`--no-auto-push\` disable remote actions;
-    \`--no-ui\` keeps plain output while the app and jobs continue. \`--dry-run\` starts no service, creates no
-    database or artifacts, and executes nothing. First SIGINT/SIGTERM requests graceful stop; a second cancels
-    owned active work and leaves a recovery record. Interrupted PRDs need review before an explicit retry.
-
-    \`ptbk coder run --harness openai-codex\` remains a finite selected-Book queue and exits after finishing.
-    Its existing defaults and confirmation controls are unchanged; it does not start the web app.
-
     ## What belongs here
 
     The default layout, relative to the project root, is:

@@ -19,7 +19,6 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
 
     return await new Promise<string>((resolve, reject) => {
         const commandProcess = $spawnLoggedBashScript({
-            environment: options.environment,
             projectPath: options.projectPath,
             scriptPath: options.scriptPath,
             logPath: options.logPath,

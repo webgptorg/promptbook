@@ -19,8 +19,6 @@ const IS_WINDOWS = process.platform === 'win32';
 type SpawnLoggedBashScriptOptions = {
     /** Per-invocation cwd, shared by the primary harness and its advisers. */
     readonly projectPath?: string;
-    /** Per-session environment without changing process.env. */
-    readonly environment?: NodeJS.ProcessEnv;
     readonly scriptPath: string;
     readonly logPath?: string;
 
@@ -46,7 +44,7 @@ export function $spawnLoggedBashScript(options: SpawnLoggedBashScriptOptions): C
         cwd: options.projectPath,
         detached: !IS_WINDOWS,
         env: {
-            ...(options.environment ?? process.env),
+            ...process.env,
             ...bashExecution.env,
             [PTBK_CODER_PARENT_PROCESS_ID_ENV_NAME]: parentProcessId.toString(),
         },

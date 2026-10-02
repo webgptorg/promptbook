@@ -62,7 +62,7 @@ export type ResolvedAgentChatRouteContext = {
     userMessageHash: string;
     teamMemberFrozenChatPersistence: ReturnType<typeof createTeamMemberFrozenChatPersistence>;
     agentKitCacheManager: AgentKitCacheManager;
-    baseOpenAiToolsPromise: ReturnType<typeof $provideOpenAiAgentKitExecutionToolsForServer> | null;
+    baseOpenAiToolsPromise: ReturnType<typeof $provideOpenAiAgentKitExecutionToolsForServer>;
 };
 
 /**
@@ -183,9 +183,7 @@ export async function resolveAgentChatRouteContext(
 
     // Use AgentKitCacheManager for vector store caching
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
-    const baseOpenAiToolsPromise = process.env.PTBK_AGENTS_SERVER_WORKSPACE
-        ? null
-        : $provideOpenAiAgentKitExecutionToolsForServer();
+    const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
     const agentHash = computeAgentHash(agentSource);
     await waitForAgentChatPreparation({
         collection,
@@ -254,7 +252,11 @@ async function resolveAgentChatDisclaimerResponse(options: {
     }
 
     if (!options.currentUserIdentity) {
-        return createAgentChatApiErrorResponse(META_DISCLAIMER_REQUIRED_MESSAGE, 403, 'meta_disclaimer_required');
+        return createAgentChatApiErrorResponse(
+            META_DISCLAIMER_REQUIRED_MESSAGE,
+            403,
+            'meta_disclaimer_required',
+        );
     }
 
     const disclaimerStatus = await resolveMetaDisclaimerStatusForUser({
@@ -264,7 +266,11 @@ async function resolveAgentChatDisclaimerResponse(options: {
     });
 
     if (!disclaimerStatus.accepted) {
-        return createAgentChatApiErrorResponse(META_DISCLAIMER_REQUIRED_MESSAGE, 403, 'meta_disclaimer_required');
+        return createAgentChatApiErrorResponse(
+            META_DISCLAIMER_REQUIRED_MESSAGE,
+            403,
+            'meta_disclaimer_required',
+        );
     }
 
     return undefined;

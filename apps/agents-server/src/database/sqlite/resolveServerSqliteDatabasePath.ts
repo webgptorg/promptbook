@@ -36,11 +36,8 @@ const SERVER_SQLITE_DATABASE_KEY_PATTERN = /^[A-Za-z0-9_]+$/u;
  *
  * @private internal SQLite utility of Agents Server
  */
-export function resolveServerSqliteDatabasePath(
-    tablePrefix: string,
-    options: { readonly projectPath?: string; readonly environment?: NodeJS.ProcessEnv } = {},
-): string {
-    const registryDatabasePath = resolveAgentsServerSqliteDatabasePath(options);
+export function resolveServerSqliteDatabasePath(tablePrefix: string): string {
+    const registryDatabasePath = resolveAgentsServerSqliteDatabasePath();
     const databaseKey = resolveServerSqliteDatabaseKey(tablePrefix);
 
     return join(dirname(registryDatabasePath), SERVER_SQLITE_DATABASES_DIRECTORY_NAME, `${databaseKey}.sqlite`);

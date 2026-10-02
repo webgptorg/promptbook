@@ -263,7 +263,7 @@ async function runQueuedAgentMessage(options: {
     const agentSystemMessage = await loadLocalAgentSystemMessage(projectPath);
     const teamWorkspace = await loadAgentTeamConversationWorkspace(projectPath, queuedMessage);
     const plannedMessagesSidecar = await loadAgentPlannedMessagesSidecar(projectPath, queuedMessage);
-    const agentServerRuntimeApi = resolveAgentProjectRuntimePromptApi(projectPath, runOptions.environment);
+    const agentServerRuntimeApi = resolveAgentProjectRuntimePromptApi(projectPath);
     const prompt = buildAgentMessagePrompt(queuedMessage.relativePath, agentSystemMessage, {
         projectRuntimeApi: agentServerRuntimeApi,
         plannedMessagesSidecar: plannedMessagesSidecar || undefined,
@@ -299,8 +299,6 @@ async function runQueuedAgentMessage(options: {
                 scriptPath,
                 async (logPath) => {
                     const runResult = await runPromptWithTestFeedback({
-                        environment: runOptions.environment,
-                        signal: runOptions.signal,
                         runner,
                         prompt,
                         scriptPath,

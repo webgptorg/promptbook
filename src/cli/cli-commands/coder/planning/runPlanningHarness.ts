@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import { stat } from 'fs/promises';
 import { dirname, join } from 'path';
 import { createInterface } from 'readline';
-import { $terminateOwnedProcessTree } from '../../../../utils/execCommand/$terminateOwnedProcessTree';
+import { $terminateLoggedBashProcessTree } from '../../../../../scripts/run-codex-prompts/common/runGoScript/$terminateLoggedBashProcessTree';
 import { buildCodexUsageFromOutput } from '../../../../../scripts/run-codex-prompts/runners/openai-codex/buildCodexUsageFromOutput';
 import type { Usage } from '../../../../execution/Usage';
 import { UNCERTAIN_USAGE } from '../../../../execution/utils/usage-constants';
@@ -154,7 +154,15 @@ export async function runPlanningHarness(options: PlanningHarnessOptions): Promi
             reader.close();
             options.onUsage?.(usageEvent ? buildCodexUsageFromOutput(usageEvent, options.model) : UNCERTAIN_USAGE);
             if (error) {
-                $terminateOwnedProcessTree(child, process.platform !== 'win32');
+                if (process.platform !== 'win32' && child.pid) {
+                    try {
+                        process.kill(-child.pid, 'SIGKILL');
+                    } catch {
+                        child.kill('SIGKILL');
+                    }
+                } else {
+                    $terminateLoggedBashProcessTree(child);
+                }
                 reject(error);
             } else resolve(answer);
         };

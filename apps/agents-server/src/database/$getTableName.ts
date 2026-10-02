@@ -14,14 +14,6 @@ type string_table_name = keyof AgentsServerDatabase['public']['Tables'];
  */
 export async function $getTableName<TTable extends string_table_name>(tableName: TTable): Promise<TTable> {
     const { tablePrefix } = await $provideServer();
-    if (
-        process.env.NEXT_RUNTIME !== 'edge' &&
-        process.env.PTBK_AGENTS_SERVER_WORKSPACE &&
-        (tableName === 'Agent' || tableName === 'AgentFolder')
-    ) {
-        const { provideWorkspaceAgentCollection } = await import('../utils/workspace/workspaceAgentStorage');
-        await provideWorkspaceAgentCollection();
-    }
     return `${tablePrefix}${tableName}` as TTable;
     // <- TODO: [🏧] DRY
 }

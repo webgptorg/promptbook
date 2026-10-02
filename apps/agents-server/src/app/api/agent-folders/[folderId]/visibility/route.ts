@@ -1,10 +1,12 @@
-import { mutateAgentOrganizationRoute } from '@/src/utils/workspace/workspaceAgentStorage';
 import { NextResponse } from 'next/server';
 import type { string_book } from '@promptbook-local/types';
 import { $getTableName } from '../../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../../database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '../../../../../tools/$provideAgentCollectionForServer';
-import { buildFolderTree, collectDescendantFolderIds } from '../../../../../utils/agentOrganization/folderTree';
+import {
+    buildFolderTree,
+    collectDescendantFolderIds,
+} from '../../../../../utils/agentOrganization/folderTree';
 import { invalidateCachedActiveOrganizationSnapshots } from '../../../../../utils/agentOrganization/loadAgentOrganizationState';
 import { normalizeAgentVisibility, setAgentSourceVisibility } from '../../../../../utils/agentVisibility';
 import { getCurrentUser } from '../../../../../utils/getCurrentUser';
@@ -16,7 +18,7 @@ import { getCurrentUser } from '../../../../../utils/getCurrentUser';
  * @param params - Route params containing folder id.
  * @returns JSON response confirming updated visibility.
  */
-async function handlePATCH(request: Request, { params }: { params: Promise<{ folderId: string }> }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ folderId: string }> }) {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
         return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
@@ -75,15 +77,10 @@ async function handlePATCH(request: Request, { params }: { params: Promise<{ fol
     for (const agent of agentResult.data || []) {
         const agentIdentifier = agent.permanentId || agent.agentName;
         const nextAgentSource = setAgentSourceVisibility(agent.agentSource as string_book, visibility);
-        await collection.updateAgentSource(agentIdentifier, nextAgentSource, { expectedSource: agent.agentSource });
+        await collection.updateAgentSource(agentIdentifier, nextAgentSource);
     }
 
     invalidateCachedActiveOrganizationSnapshots();
 
     return NextResponse.json({ success: true });
-}
-
-/** Applies this authorized logical mutation through the selected agent storage. */
-export async function PATCH(request: Request, context: { params: Promise<{ folderId: string }> }) {
-    return mutateAgentOrganizationRoute(() => handlePATCH(request, context));
 }

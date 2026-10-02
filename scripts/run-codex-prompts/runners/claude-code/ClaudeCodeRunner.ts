@@ -125,7 +125,6 @@ export class ClaudeCodeRunner implements PromptRunner {
             projectPath: options.projectPath,
             scriptPath: options.scriptPath,
             signal: options.signal,
-            environment: options.environment,
             scriptContent,
             logPath: options.logPath,
             shouldPrintLiveOutput: options.shouldPrintLiveOutput,
@@ -196,8 +195,6 @@ async function waitForClaudeCodeSessionLimitReset(
     await waitForSkippableWorldTimeDeadline({
         deadlineTimeMs: resetDeadlineTimeMs,
         pollIntervalMs: CLAUDE_CODE_SESSION_RESURRECTION_POLL_MS,
-        signal: options.signal,
-        takeSkipWaitingRequest: options.takeSkipWaitingRequest,
         onTick: async (remainingDelayMs) => {
             options.signal?.throwIfAborted();
             await options.waitForPauseCheckpoint?.({
