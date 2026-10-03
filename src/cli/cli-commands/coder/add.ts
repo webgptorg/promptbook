@@ -115,7 +115,10 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
             const workspace = await $preflightWorkspaceRepository({
-                ...projectOptions, policy: 'mutate', ...questionsOptions });
+                ...projectOptions,
+                policy: 'mutate',
+                ...questionsOptions,
+            });
             const { projectPath } = workspace;
 
             const description = await resolveCoderPromptDescription(descriptionArgument, questionsOptions);

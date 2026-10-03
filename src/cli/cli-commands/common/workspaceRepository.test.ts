@@ -246,27 +246,30 @@ describe('workspace repository discovery and policy', () => {
     });
 
     // This executable fixture needs POSIX shebang dispatch; Windows access failures are mocked in projectCliOptions.test.ts.
-    (process.platform === 'win32' ? it.skip : it)('reports initialization permission failures before project setup', async () => {
-        // A failing executable fixture makes the permission failure deterministic without changing host ownership.
-        const gitPath = (await EXECUTE_FILE('which', ['git'])).stdout.trim();
-        const executableDirectory = join(temporaryDirectory, 'executables');
-        await mkdir(executableDirectory);
-        await writeFile(
-            join(executableDirectory, 'git'),
-            `#!${
-                process.execPath
-            }\nif (process.argv[2] === 'init') { process.stderr.write('fatal: cannot mkdir .git: Permission denied\\n'); process.exit(128); }\nconst result = require('child_process').spawnSync(${JSON.stringify(
-                gitPath,
-            )}, process.argv.slice(2), { encoding: 'utf-8' });\nprocess.stdout.write(result.stdout || ''); process.stderr.write(result.stderr || ''); process.exit(result.status || 0);\n`,
-        );
-        await chmod(join(executableDirectory, 'git'), 0o755);
-        process.env.PATH = `${executableDirectory}:${originalEnvironment.PATH}`;
-        await expect(
-            $preflightWorkspaceRepository({ projectDirectory: projectPath, policy: 'initialize' }),
-        ).rejects.toThrow('Permission denied');
-        expect(await readdir(projectPath)).toEqual([]);
-        expect(prompt).not.toHaveBeenCalled();
-    });
+    (process.platform === 'win32' ? it.skip : it)(
+        'reports initialization permission failures before project setup',
+        async () => {
+            // A failing executable fixture makes the permission failure deterministic without changing host ownership.
+            const gitPath = (await EXECUTE_FILE('which', ['git'])).stdout.trim();
+            const executableDirectory = join(temporaryDirectory, 'executables');
+            await mkdir(executableDirectory);
+            await writeFile(
+                join(executableDirectory, 'git'),
+                `#!${
+                    process.execPath
+                }\nif (process.argv[2] === 'init') { process.stderr.write('fatal: cannot mkdir .git: Permission denied\\n'); process.exit(128); }\nconst result = require('child_process').spawnSync(${JSON.stringify(
+                    gitPath,
+                )}, process.argv.slice(2), { encoding: 'utf-8' });\nprocess.stdout.write(result.stdout || ''); process.stderr.write(result.stderr || ''); process.exit(result.status || 0);\n`,
+            );
+            await chmod(join(executableDirectory, 'git'), 0o755);
+            process.env.PATH = `${executableDirectory}:${originalEnvironment.PATH}`;
+            await expect(
+                $preflightWorkspaceRepository({ projectDirectory: projectPath, policy: 'initialize' }),
+            ).rejects.toThrow('Permission denied');
+            expect(await readdir(projectPath)).toEqual([]);
+            expect(prompt).not.toHaveBeenCalled();
+        },
+    );
 
     it('captures an unborn repository scope without absorbing pre-existing files', async () => {
         await git(projectPath, 'init');

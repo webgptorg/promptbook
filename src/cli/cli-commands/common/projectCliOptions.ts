@@ -16,7 +16,10 @@ export type ProjectCliOptions = { readonly path?: string };
  * @private internal CLI registration helper
  */
 export function addProjectPathOption(command: Command): void {
-    command.option('--path <directory>', 'Project directory (default: invocation current directory); relative paths start there');
+    command.option(
+        '--path <directory>',
+        'Project directory (default: invocation current directory); relative paths start there',
+    );
 }
 
 /**
@@ -40,7 +43,9 @@ export function normalizeProjectCliOptions(
 ): { readonly projectDirectory: string } {
     const selectedPath = options.path;
     if (selectedPath !== undefined && !selectedPath.trim()) {
-        throw new EnvironmentMismatchError(spaceTrim('Pass a non-empty project directory in `--path`, or omit it to use the current directory.'));
+        throw new EnvironmentMismatchError(
+            spaceTrim('Pass a non-empty project directory in `--path`, or omit it to use the current directory.'),
+        );
     }
     return { projectDirectory: resolve(invocationDirectory, selectedPath ?? '.') };
 }
@@ -59,12 +64,14 @@ export async function resolveProjectDirectory(projectDirectory: string): Promise
         await access(projectPath, constants.R_OK | constants.X_OK);
         return projectPath;
     } catch (error) {
-        throw new EnvironmentMismatchError(spaceTrim(`
+        throw new EnvironmentMismatchError(
+            spaceTrim(`
             Cannot access project directory \`${requestedPath}\`.
             Check that it exists, is a directory, and is readable and searchable; correct \`--path\` before retrying.
 
             ${error instanceof Error ? error.message : String(error)}
-        `));
+        `),
+        );
     }
 }
 

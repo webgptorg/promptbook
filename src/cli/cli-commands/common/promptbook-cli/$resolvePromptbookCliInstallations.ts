@@ -41,7 +41,9 @@ type JsonObject = Readonly<Record<string, unknown>>;
  *
  * @private internal utility of `promptbookCli`
  */
-export async function $resolvePromptbookCliInstallations(projectPath = process.cwd()): Promise<ReadonlyArray<PromptbookCliInstallation>> {
+export async function $resolvePromptbookCliInstallations(
+    projectPath = process.cwd(),
+): Promise<ReadonlyArray<PromptbookCliInstallation>> {
     const [localInstallations, globalInstallations] = await Promise.all([
         $resolveLocalPromptbookCliInstallations(projectPath),
         $resolveGlobalPromptbookCliInstallations(),
@@ -53,7 +55,9 @@ export async function $resolvePromptbookCliInstallations(projectPath = process.c
 /**
  * Finds the closest ancestor `package.json` which directly declares a Promptbook CLI package.
  */
-async function $resolveLocalPromptbookCliInstallations(projectPath: string): Promise<ReadonlyArray<LocalPromptbookCliInstallation>> {
+async function $resolveLocalPromptbookCliInstallations(
+    projectPath: string,
+): Promise<ReadonlyArray<LocalPromptbookCliInstallation>> {
     let candidateProjectPath = resolve(projectPath);
     let isFileSystemRootReached = false;
 

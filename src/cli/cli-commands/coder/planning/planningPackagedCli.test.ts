@@ -92,7 +92,9 @@ async function installMockHarness(directory: string, fixture = 'codex.cjs'): Pro
     const launcher = join(directory, 'codex');
     await writeFile(
         launcher,
-        `#!/bin/sh\nexec '${process.execPath.replace(/\\/gu, '/').replace(/'/gu, "'\\''")}' '${entrypoint.replace(/\\/gu, '/').replace(/'/gu, "'\\''")}' "$@"\n`,
+        `#!/bin/sh\nexec '${process.execPath.replace(/\\/gu, '/').replace(/'/gu, "'\\''")}' '${entrypoint
+            .replace(/\\/gu, '/')
+            .replace(/'/gu, "'\\''")}' "$@"\n`,
     );
     await chmod(launcher, 0o755);
     await writeFile(join(directory, 'codex.cmd'), '@echo off\r\nexit /b 99\r\n');
@@ -160,15 +162,21 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         });
         expect(resolvedHarness.stdout.trim()).toBe(toPosixPath(join(codingHarnessPath, 'codex')));
         /** Runs the packed executable from a directory unrelated to the package or selected project. */
-        const run = (argumentsList: string[], cwd = callerPath) => EXECUTE_FILE(
-            process.execPath, [join(packagePath, 'bin/promptbook-cli.js'), ...argumentsList],
-            { cwd, env: environment, windowsHide: true, timeout: 60000, maxBuffer: 2 * 1024 * 1024 },
-        );
+        const run = (argumentsList: string[], cwd = callerPath) =>
+            EXECUTE_FILE(process.execPath, [join(packagePath, 'bin/promptbook-cli.js'), ...argumentsList], {
+                cwd,
+                env: environment,
+                windowsHide: true,
+                timeout: 60000,
+                maxBuffer: 2 * 1024 * 1024,
+            });
         const beforeHelp = await readdir(projectPath);
         expect((await run(['coder', 'run', '--help', '--path', projectPath])).stdout).toContain('--path');
         await run(['--version']);
         expect(await readdir(projectPath)).toEqual(beforeHelp);
-        await expect(run(['init', '--path', join(temporaryPath, 'does-not-exist'), '--no-questions'])).rejects.toThrow('project directory');
+        await expect(run(['init', '--path', join(temporaryPath, 'does-not-exist'), '--no-questions'])).rejects.toThrow(
+            'project directory',
+        );
         await run(['init', '--path', projectPath, '--no-questions']);
         const packageJson = JSON.parse(await readFile(join(projectPath, 'package.json'), 'utf-8'));
         expect(packageJson.scripts['coder:run']).not.toMatch(/--(?:agent|context|path)\b/u);
@@ -176,7 +184,21 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         await writeFile(join(projectPath, 'agents/planner.book'), 'Planner\nFROM @Null\nRULE PACKED Planner.\n');
         await writeFile(join(projectPath, 'AGENTS.md'), 'PACKED additional context.\n');
         await writeFile(join(projectPath, 'override context.md'), 'PACKED replacement context.\n');
-        const argumentsList = ['coder', 'run', '--harness', 'openai-codex', '--no-ui', '--no-questions', '--no-commit', '--git-changes', 'ignore', '--limit', '1', '--wait-after-error', '0s'];
+        const argumentsList = [
+            'coder',
+            'run',
+            '--harness',
+            'openai-codex',
+            '--no-ui',
+            '--no-questions',
+            '--no-commit',
+            '--git-changes',
+            'ignore',
+            '--limit',
+            '1',
+            '--wait-after-error',
+            '0s',
+        ];
         /** Resets only the fixture task and returns the inputs observed by the fake installed harness. */
         const execute = async (extra: string[], cwd?: string) => {
             await writeFile(join(projectPath, 'prompts/defaults.md'), '[ ]\n\nImplement the fixture task.\n');
@@ -184,12 +206,26 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             return JSON.parse(await readFile(join(projectPath, '.promptbook/mock-call.json'), 'utf-8'));
         };
         const implicit = await execute([], projectPath);
-        const explicit = await execute(['--path', projectPath, '--agent', './agents/developer.book', '--context', './AGENTS.md']);
+        const explicit = await execute([
+            '--path',
+            projectPath,
+            '--agent',
+            './agents/developer.book',
+            '--context',
+            './AGENTS.md',
+        ]);
         expect(explicit).toEqual(implicit);
         expect(explicit.prompt).toContain('PACKED Developer.');
         expect(explicit.prompt.match(/PACKED additional context/g)).toHaveLength(1);
         expect(explicit.prompt).not.toContain('CALLER');
-        const overridden = await execute(['--path', '../selected project with spaces', '--agent', 'agents/planner.book', '--context', './override context.md']);
+        const overridden = await execute([
+            '--path',
+            '../selected project with spaces',
+            '--agent',
+            'agents/planner.book',
+            '--context',
+            './override context.md',
+        ]);
         expect(overridden.prompt).toContain('PACKED Planner.');
         expect(overridden.prompt).toContain('PACKED replacement context.');
         expect(overridden.prompt).not.toContain('PACKED additional context.');
@@ -199,7 +235,9 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         expect(inline.prompt).not.toContain('PACKED additional context.');
         const beforePreview = await snapshotPlanningProject(projectPath);
         await run(['coder', 'run', '--path', projectPath, '--dry-run', '--no-ui']);
-        await expect(run([...argumentsList, '--path', projectPath, '--agent', './missing.book'])).rejects.toThrow('default Book is not used');
+        await expect(run([...argumentsList, '--path', projectPath, '--agent', './missing.book'])).rejects.toThrow(
+            'default Book is not used',
+        );
         expect(await snapshotPlanningProject(projectPath)).toEqual(beforePreview);
         expect(await readdir(callerPath)).toEqual(['AGENTS.md']);
     });

@@ -65,7 +65,9 @@ export function $initializeCoderListCommand(program: Program): $side_effect {
                 { isAgentRequired: false },
             );
             const workspace = await $preflightWorkspaceRepository({
-                ...projectOptions, policy: 'read-only' });
+                ...projectOptions,
+                policy: 'read-only',
+            });
             const resolvedCoderAgentBook =
                 agent === undefined
                     ? undefined

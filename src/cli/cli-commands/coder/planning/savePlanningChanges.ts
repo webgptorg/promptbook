@@ -63,9 +63,7 @@ export function savePlanningChanges(
             const current = existsSync(change.path) ? readFileSync(change.path, 'utf-8') : null;
             if (current !== change.before) {
                 throw new NotAllowed(
-                    spaceTrim(
-                        `\`${change.planningPath}\` changed while saving. Review a fresh preview.`,
-                    ),
+                    spaceTrim(`\`${change.planningPath}\` changed while saving. Review a fresh preview.`),
                 );
             }
             if (change.before === null) {

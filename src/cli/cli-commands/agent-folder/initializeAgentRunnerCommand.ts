@@ -70,7 +70,10 @@ export function $initializeAgentRunnerCommand(
             async (cliOptions) => {
                 const projectOptions = normalizeProjectCliOptions(cliOptions);
                 const projectPath = await resolveProjectDirectory(projectOptions.projectDirectory);
-                const runOptions = { ...createAgentRunOptionsFromCliOptions(cliOptions as AgentRunCliOptions), projectPath };
+                const runOptions = {
+                    ...createAgentRunOptionsFromCliOptions(cliOptions as AgentRunCliOptions),
+                    projectPath,
+                };
                 const execute = await options.loadExecutor();
 
                 if (options.executionMode === 'watch') {

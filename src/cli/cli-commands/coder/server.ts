@@ -228,7 +228,9 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 '../../../../scripts/run-codex-prompts/common/resolveCoderProjectContext'
             );
             const projectContext = await resolveCoderProjectContext({
-                projectPath: workspace.projectPath, agent, context,
+                projectPath: workspace.projectPath,
+                agent,
+                context,
             });
 
             if (!dryRun) {

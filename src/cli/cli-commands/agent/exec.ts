@@ -1,4 +1,9 @@
-import { addProjectPathOption, addProjectContextOption, normalizeProjectCliOptions, resolveProjectDirectory } from '../common/projectCliOptions';
+import {
+    addProjectPathOption,
+    addProjectContextOption,
+    normalizeProjectCliOptions,
+    resolveProjectDirectory,
+} from '../common/projectCliOptions';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';

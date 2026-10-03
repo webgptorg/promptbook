@@ -270,7 +270,9 @@ describe('coder boilerplate templates', () => {
             'Developer',
         );
         expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('created');
-        expect(await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).toBe(`${getDefaultCoderAgentsFileContent()}\n`);
+        expect(await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).toBe(
+            `${getDefaultCoderAgentsFileContent()}\n`,
+        );
 
         // Note: [4] The added `coder:generate-boilerplates` script still references the common template
         for (const { relativeFilePath } of getDefaultCoderProjectPromptTemplateDefinitions()) {

@@ -83,7 +83,11 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
             // Note: The period is validated before the harness installation check, so a mistyped duration fails fast
             const periodMs = parseOptionalPeriodDuration('--period', periodValue);
 
-            const workspace = await $preflightWorkspaceRepository({ ...projectOptions, policy: 'mutate', ...questionsOptions });
+            const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
+                policy: 'mutate',
+                ...questionsOptions,
+            });
 
             await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
             await $ensureCoderHarnessGitignoreRules(workspace.projectPath, runnerOptions.agentName, questionsOptions);

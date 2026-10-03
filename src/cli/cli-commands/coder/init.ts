@@ -117,7 +117,10 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
             const workspace = await $preflightWorkspaceRepository({
-                ...projectOptions, policy: 'initialize', ...questionsOptions });
+                ...projectOptions,
+                policy: 'initialize',
+                ...questionsOptions,
+            });
             const { projectPath } = workspace;
 
             const completedSteps = [`Git repository ${workspace.repositoryStatus}: ${workspace.repositoryRoot}`];

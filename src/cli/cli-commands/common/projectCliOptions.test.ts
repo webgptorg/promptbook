@@ -20,7 +20,9 @@ describe('shared project selection', () => {
         const program = new Command();
         addProjectPathOption(program);
         const selected: string[] = [];
-        program.action((options) => { selected.push(normalizeProjectCliOptions(options).projectDirectory); });
+        program.action((options) => {
+            selected.push(normalizeProjectCliOptions(options).projectDirectory);
+        });
         const workingDirectory = jest.spyOn(process, 'cwd').mockReturnValue(join(directory, 'first project'));
         await program.parseAsync([], { from: 'user' });
         workingDirectory.mockReturnValue(join(directory, 'second project'));
@@ -44,7 +46,9 @@ describe('shared project selection', () => {
         const filePath = join(directory, 'file.txt');
         await filesystem.writeFile(filePath, 'Keep this file.');
         await expect(resolveProjectDirectory(filePath)).rejects.toThrow('not a directory');
-        jest.spyOn(filesystem, 'access').mockRejectedValueOnce(Object.assign(new Error('Access denied'), { code: 'EACCES' }));
+        jest.spyOn(filesystem, 'access').mockRejectedValueOnce(
+            Object.assign(new Error('Access denied'), { code: 'EACCES' }),
+        );
         await expect(resolveProjectDirectory(directory)).rejects.toThrow('readable and searchable');
         expect(await filesystem.readdir(directory)).toEqual(['file.txt']);
     });

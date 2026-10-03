@@ -73,7 +73,10 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
             const { resolveCoderProjectContext } = await import(
                 '../../../../scripts/run-codex-prompts/common/resolveCoderProjectContext'
             );
-            const projectContext = await resolveCoderProjectContext({ ...cliOptions, projectPath: workspace.projectPath });
+            const projectContext = await resolveCoderProjectContext({
+                ...cliOptions,
+                projectPath: workspace.projectPath,
+            });
             const terminal = createPlanningTerminal();
             try {
                 const { projectPath } = workspace;

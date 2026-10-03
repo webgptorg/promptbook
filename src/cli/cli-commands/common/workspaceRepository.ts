@@ -178,7 +178,9 @@ async function $inspectWorkspaceRepository(projectPath: string): Promise<Workspa
         // Git may skip damaged inner metadata and find a valid parent. Do not silently use that parent
         // for a project whose own checkout needs repair.
         await $assertNoBrokenRepositoryMetadata(projectPath, repositoryRoot);
-        const gitDirectory = await realpath((await $runWorkspaceGit(projectPath, ['rev-parse', '--absolute-git-dir'])).trim());
+        const gitDirectory = await realpath(
+            (await $runWorkspaceGit(projectPath, ['rev-parse', '--absolute-git-dir'])).trim(),
+        );
         // Also validate the index and metadata, without refreshing the index or depending on an existing commit.
         await $runWorkspaceGit(projectPath, ['status', '--porcelain', '--untracked-files=no']);
         return { projectPath, repositoryRoot, gitDirectory, repositoryStatus: 'reused' };

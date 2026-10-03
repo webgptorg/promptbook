@@ -2,7 +2,10 @@ import { existsSync, readFileSync } from 'fs';
 import { realpath } from 'fs/promises';
 import { join } from 'path';
 import { resolveCoderAgent } from '../../../../../scripts/run-codex-prompts/common/resolveCoderAgent';
-import { resolveCoderProjectContext, type ResolvedCoderProjectContext } from '../../../../../scripts/run-codex-prompts/common/resolveCoderProjectContext';
+import {
+    resolveCoderProjectContext,
+    type ResolvedCoderProjectContext,
+} from '../../../../../scripts/run-codex-prompts/common/resolveCoderProjectContext';
 import { DEFAULT_CODER_AGENT_ROLE } from '../coderAgentRole';
 import { CoderTeamRuntime } from '../../../../../scripts/run-codex-prompts/team/CoderTeamRuntime';
 import { appendCoderTeamEvent } from '../../../../../scripts/run-codex-prompts/team/createCoderTeamPromptRunner';
@@ -50,7 +53,7 @@ export async function runPlanningSession(
 ): Promise<ReadonlyMap<string, string>> {
     const projectPath = await realpath(options.projectPath);
     assertPlanningHarnessSupported(options.agentName);
-    const projectContext = options.projectContext ?? await resolveCoderProjectContext({ ...options, projectPath });
+    const projectContext = options.projectContext ?? (await resolveCoderProjectContext({ ...options, projectPath }));
     const agent = await resolveCoderAgent(options.agent, projectPath, {
         defaultRole: DEFAULT_CODER_AGENT_ROLE,
         isInitializationAllowed: false,
