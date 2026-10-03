@@ -62,6 +62,12 @@ export async function loginAsAdmin(page: Page): Promise<void> {
     await page.getByLabel('Password').press('Enter');
     await expect(page.getByLabel('Username')).toBeHidden();
 
+    // Authentication is setup for these tests. Wait for the session and load it without racing the client refresh.
+    await expect
+        .poll(async () => (await page.context().cookies()).some((cookie) => cookie.name === 'sessionToken'))
+        .toBe(true);
+    await page.reload();
+
     const desktopAdminButton = page.getByRole('button', { name: /admin/i });
     if (await desktopAdminButton.isVisible().catch(() => false)) {
         return;

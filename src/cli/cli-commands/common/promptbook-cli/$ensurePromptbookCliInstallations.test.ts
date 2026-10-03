@@ -93,20 +93,38 @@ describe('$ensurePromptbookCliInstallations', () => {
         jest.clearAllMocks();
     });
 
-    it('updates all outdated local and global installations after one approval', async () => {
-        const localInstallationStatus = createPromptbookCliInstallationStatus('local-development-dependency');
-        const globalInstallationStatus = createPromptbookCliInstallationStatus('global');
-        getCheckPromptbookCliInstallationsMock().mockResolvedValue([localInstallationStatus, globalInstallationStatus]);
-        getAskForNpmPackageInstallationApprovalMock().mockResolvedValue(true);
+    it.each([undefined, '/selected-project'])(
+        'updates all outdated local and global installations after one approval for project %s',
+        async (projectPath) => {
+            const localInstallationStatus = createPromptbookCliInstallationStatus('local-development-dependency');
+            const globalInstallationStatus = createPromptbookCliInstallationStatus('global');
+            getCheckPromptbookCliInstallationsMock().mockResolvedValue([
+                localInstallationStatus,
+                globalInstallationStatus,
+            ]);
+            getAskForNpmPackageInstallationApprovalMock().mockResolvedValue(true);
 
-        await expect($ensurePromptbookCliInstallations({ isAskingQuestionsEnabled: true })).resolves.toBe(true);
+            await expect(
+                $ensurePromptbookCliInstallations({ isAskingQuestionsEnabled: true }, projectPath),
+            ).resolves.toBe(true);
 
-        expect($askForNpmPackageInstallationApproval).toHaveBeenCalledWith('Update Promptbook CLI now?', {
-            isAskingQuestionsEnabled: true,
-        });
-        expect($updatePromptbookCliInstallation).toHaveBeenNthCalledWith(1, localInstallationStatus);
-        expect($updatePromptbookCliInstallation).toHaveBeenNthCalledWith(2, globalInstallationStatus);
-    });
+            const expectedProjectPath = projectPath ?? process.cwd();
+            expect($checkPromptbookCliInstallations).toHaveBeenCalledWith(expectedProjectPath);
+            expect($askForNpmPackageInstallationApproval).toHaveBeenCalledWith('Update Promptbook CLI now?', {
+                isAskingQuestionsEnabled: true,
+            });
+            expect($updatePromptbookCliInstallation).toHaveBeenNthCalledWith(
+                1,
+                localInstallationStatus,
+                expectedProjectPath,
+            );
+            expect($updatePromptbookCliInstallation).toHaveBeenNthCalledWith(
+                2,
+                globalInstallationStatus,
+                expectedProjectPath,
+            );
+        },
+    );
 
     it('does not check npm when standard input is not interactive', async () => {
         Object.defineProperty(process.stdin, 'isTTY', { configurable: true, value: false });

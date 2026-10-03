@@ -1,3 +1,17 @@
+-   Fixed unit test expectations for Copilot shell path quoting and project-aware Promptbook CLI updates.
+    CLI update tests now verify that both default and explicit project paths reach installation checks and updates.
+    The packed CLI coding fixture now restores its mock harness path after login-shell startup and checks that
+    the mock is selected before executing tasks, keeping the test independent of globally installed harnesses.
+    Fixed the browser tests' Supabase mock to evaluate `like`/`ilike` filters, including escaped wildcards, so
+    agent lookups select the requested agent. Added HTTP regression tests using the production lookup filter.
+    Quick-button browser coverage now explicitly opens a new user chat.
+    Delayed chat-snapshot fixtures now buffer responses before navigation, avoiding a hang when the browser
+    cancels a stale request while preserving coverage of late responses.
+    Browser authentication setup now waits for the signed session cookie and reloads before checking the header,
+    avoiding intermittent failures caused by a stale client layout after successful login.
+    The Supabase mock now enforces unique usernames and returns PostgreSQL's conflict error for concurrent
+    identity creation; HTTP regression tests also verify that rejected batches leave no partial rows.
+
 -   Fixed prerelease package generation by deriving Rollup externals from the existing runtime dependency metadata,
     including package subpaths and Node.js built-ins. This prevents Zod declaration files from being parsed as
     JavaScript when bundling the CLI. Added `npm run prerelease` through the existing npm version lifecycle,

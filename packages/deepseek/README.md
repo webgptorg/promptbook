@@ -406,7 +406,7 @@ Promptbook Coder is **not another standalone coding model**. It is an orchestrat
 
 -   prompt files with explicit statuses like `[ ]`, `[^]`, `[x]`, and `[-]`
 -   automatic selection of the next runnable task, including priority support
--   optional shared repo context loaded from a file such as `AGENTS.md`
+-   shared project context loaded from `AGENTS.md` by default
 -   automatic `git add`, commit, and push after each successful prompt
 -   dedicated coding-agent Git identity and optional GPG signing
 -   verification and repair flow for work that is done, partial, or broken
@@ -428,7 +428,7 @@ Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treate
 #### Features
 
 -   **Multi-runner execution:** `openai-codex`, `github-copilot`, `cline`, `claude-code`, `opencode`, `gemini`, `qwen-code`
--   **Context injection:** `--agent agents/coding/developer.book --context AGENTS.md` or inline extra instructions
+-   **Project defaults:** Developer, invocation cwd, and project `AGENTS.md`; `--agent`, `--path`, and `--context` independently override them
 -   **Reasoning control:** `--thinking-level low|medium|high|xhigh` for supported runners
 -   **Unattended or interactive runs:** default auto mode, or `--no-auto` to wait for user confirmation before each prompt
 -   **Git safety:** clean working tree check by default, or `--git-changes ignore` to keep the changes and `--git-changes continue` to resume an interrupted prompt
@@ -448,11 +448,11 @@ npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompt
 
 npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/agents-server.md
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --auto-push
 
-npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --git-changes ignore
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --git-changes ignore
 
 npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates
 
@@ -474,11 +474,11 @@ ptbk coder generate-boilerplates
 
 ptbk coder generate-boilerplates --template prompts/templates/common.md
 
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --test npm run test
 
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --auto-push
 
-ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --test npm run test --git-changes ignore
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --test npm run test --git-changes ignore
 
 ptbk coder find-refactor-candidates
 
@@ -504,8 +504,10 @@ ptbk coder verify
 | Flag                       | Purpose                                                                                                                                                                                |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--harness <name>`         | Selects the coding harness.                                                                                                                                                            |
+| `--agent <book>`           | Selects the primary Book; defaults to the selected project's `agents/developer.book`. |
+| `--path <directory>`       | Selects the project; defaults to invocation cwd. Relative paths start there, not at the CLI installation or enclosing Git root. |
 | `--model <model>`          | Chooses the runner model; required for `openai-codex`, `gemini` and `qwen-code`, optional for `github-copilot`.                                                                        |
-| `--context <text-or-file>` | Appends extra instructions inline or from a file like `AGENTS.md`.                                                                                                                     |
+| `--context <text-or-file>` | Replaces the default project `AGENTS.md` with inline instructions or a project-relative file; an empty value disables context.                                                                                                                     |
 | `--test <command>`         | Runs a verification command after each prompt attempt and feeds failing output back for retries.                                                                                       |
 | `--test-before <mode>`     | Runs tests before coding: `no` (default), `yes-and-fail` (stop with results), or `yes-and-fix` (create one repair prompt first); defaults to `npm test` when enabled without `--test`. |
 | `--thinking-level <level>` | Sets reasoning effort for supported runners.                                                                                                                                           |
@@ -521,7 +523,7 @@ ptbk coder verify
 
 1. Initialize once with `ptbk coder init`.
 2. Customize `prompts/templates/*.md` if needed, then create or write prompt files in `prompts/`.
-3. Customize the starter `AGENTS.md` with repository-specific instructions, then pass `--agent agents/coding/developer.book --context AGENTS.md`.
+3. Customize `agents/developer.book` and `AGENTS.md`; the runner selects both automatically. Use `--path` for another project or `--agent` and `--context` for explicit overrides.
 4. Run unattended batches by default, or pass `--no-auto` to confirm each prompt interactively.
 5. Finish with `ptbk coder verify` so resolved prompts are archived and broken ones get explicit repair follow-ups.
 

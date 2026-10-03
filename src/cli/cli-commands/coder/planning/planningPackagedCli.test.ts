@@ -9,6 +9,8 @@ import { rollup, type RollupOptions } from 'rollup';
 import typescript from 'typescript';
 import createRollupConfiguration from '../../../../../rollup.config';
 import { copyCoderAgentBooks } from '../../../../../scripts/generate-packages/copyCoderAgentBooks';
+import { quoteBashArgument } from '../../../../../scripts/run-codex-prompts/common/runGoScript/quoteBashArgument';
+import { toPosixPath } from '../../../../../scripts/run-codex-prompts/common/runGoScript/toPosixPath';
 import { parsePromptFile } from '../../../../../scripts/run-codex-prompts/prompts/parsePromptFile';
 import { PROMPTS_README_TEMPLATE } from '../promptsReadmeTemplate';
 import { snapshotPlanningProject } from './fixtures/snapshotPlanningProject';
@@ -94,6 +96,11 @@ async function installMockHarness(directory: string, fixture = 'codex.cjs'): Pro
     );
     await chmod(launcher, 0o755);
     await writeFile(join(directory, 'codex.cmd'), '@echo off\r\nexit /b 99\r\n');
+    // Login-shell profiles can reset PATH. BASH_ENV restores the fixture directory before any harness command runs.
+    await writeFile(
+        join(directory, 'bash-env.sh'),
+        `export PATH=${quoteBashArgument(toPosixPath(directory))}:"$PATH"\n`,
+    );
     return directory;
 }
 
@@ -141,9 +148,17 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         const environment = {
             ...process.env,
             PATH: `${codingHarnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
+            BASH_ENV: toPosixPath(join(codingHarnessPath, 'bash-env.sh')),
             GIT_CONFIG_GLOBAL: join(temporaryPath, 'empty-git-config'),
             GIT_CONFIG_NOSYSTEM: '1',
         };
+        const resolvedHarness = await EXECUTE_FILE('bash', ['-lc', 'command -v codex'], {
+            cwd: projectPath,
+            env: environment,
+            windowsHide: true,
+            timeout: 60000,
+        });
+        expect(resolvedHarness.stdout.trim()).toBe(toPosixPath(join(codingHarnessPath, 'codex')));
         /** Runs the packed executable from a directory unrelated to the package or selected project. */
         const run = (argumentsList: string[], cwd = callerPath) => EXECUTE_FILE(
             process.execPath, [join(packagePath, 'bin/promptbook-cli.js'), ...argumentsList],
