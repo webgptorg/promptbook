@@ -1,4 +1,4 @@
-[ ]
+[ ] use `gpt-6-astra`
 
 [✨🦊] Replace existing avatars with origami animals in Coder and Agents Server
 
