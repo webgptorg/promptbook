@@ -1,5 +1,5 @@
 import { NotAllowed } from '../../src/errors/NotAllowed';
-import { resolveInlineOrFileText } from '../run-codex-prompts/common/resolveInlineOrFileText';
+import { resolveCoderContext } from '../run-codex-prompts/common/resolveCoderContext';
 import type { AgentCliRunOptions } from './AgentCliRunOptions';
 import { executeAgentChatTurn } from './executeAgentChatTurn';
 
@@ -21,12 +21,7 @@ export async function runAgentExec(options: RunAgentExecOptions): Promise<string
     }
 
     const currentWorkingDirectory = options.currentWorkingDirectory || process.cwd();
-    const context = await resolveInlineOrFileText({
-        textReference: options.context,
-        currentWorkingDirectory,
-        contextLabel: 'Agent context',
-        optionName: '--context',
-    });
+    const context = await resolveCoderContext(options.context, currentWorkingDirectory);
     const result = await executeAgentChatTurn({
         ...options,
         currentWorkingDirectory,

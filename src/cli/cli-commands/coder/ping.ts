@@ -5,6 +5,7 @@ import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import {
@@ -68,6 +69,7 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const { period: periodValue } = cliOptions as {
                 readonly period?: string;
             } & PromptRunnerSelectionCliOptions;
@@ -81,7 +83,11 @@ export function $initializeCoderPingCommand(program: Program): $side_effect {
             // Note: The period is validated before the harness installation check, so a mistyped duration fails fast
             const periodMs = parseOptionalPeriodDuration('--period', periodValue);
 
-            const workspace = await $preflightWorkspaceRepository({ policy: 'mutate', ...questionsOptions });
+            const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
+                policy: 'mutate',
+                ...questionsOptions,
+            });
 
             await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
             await $ensureCoderHarnessGitignoreRules(workspace.projectPath, runnerOptions.agentName, questionsOptions);

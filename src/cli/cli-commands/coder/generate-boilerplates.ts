@@ -14,6 +14,7 @@ import {
 } from '../common/coderGitSyncCliOptions';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import type { BoilerplateCount } from './boilerplateCount';
 import {
@@ -65,6 +66,7 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const { count: countOption, template: templateOption } = cliOptions as {
                 readonly count: string;
                 readonly template?: string;
@@ -73,6 +75,7 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
             const boilerplateCount = parseBoilerplateCount(countOption);
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
                 policy: 'mutate',
                 isAskingQuestionsEnabled: cliOptions.questions,
             });

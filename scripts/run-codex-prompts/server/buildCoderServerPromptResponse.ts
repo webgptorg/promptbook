@@ -59,6 +59,8 @@ export type CoderServerPromptFileResponse = {
  * Input for converting parsed prompt files into the browser API shape.
  */
 export type BuildCoderServerPromptFileResponsesOptions = {
+    /** Resolved project directory shared by the queue, runner and HTTP server. */
+    readonly projectPath?: string;
     readonly promptFiles: readonly PromptFile[];
     readonly finishedPromptFiles: readonly PromptFile[];
     readonly priorityFilter: PriorityFilter;
@@ -77,6 +79,7 @@ export function buildCoderServerPromptFileResponses(
         ...options.promptFiles.map((promptFile) =>
             buildCoderServerPromptFileResponse({
                 promptFile,
+                projectPath: options.projectPath,
                 isFinished: false,
                 priorityFilter: options.priorityFilter,
                 activePrompt,
@@ -85,6 +88,7 @@ export function buildCoderServerPromptFileResponses(
         ...options.finishedPromptFiles.map((promptFile) =>
             buildCoderServerPromptFileResponse({
                 promptFile,
+                projectPath: options.projectPath,
                 isFinished: true,
                 priorityFilter: options.priorityFilter,
                 activePrompt,
@@ -97,6 +101,7 @@ export function buildCoderServerPromptFileResponses(
  * Builds one prompt-file response.
  */
 function buildCoderServerPromptFileResponse(options: {
+    readonly projectPath?: string;
     readonly promptFile: PromptFile;
     readonly isFinished: boolean;
     readonly priorityFilter: PriorityFilter;
@@ -107,10 +112,11 @@ function buildCoderServerPromptFileResponse(options: {
     return {
         filePath: promptFile.path,
         fileName: promptFile.name,
-        relativeFilePath: relative(process.cwd(), promptFile.path).replace(/\\/gu, '/'),
+        relativeFilePath: relative(options.projectPath ?? process.cwd(), promptFile.path).replace(/\\/gu, '/'),
         isFinished,
         sections: promptFile.sections.map((section) =>
             buildCoderServerPromptSectionResponse({
+                projectPath: options.projectPath,
                 promptFile,
                 section,
                 isFinished,
@@ -125,6 +131,7 @@ function buildCoderServerPromptFileResponse(options: {
  * Builds one prompt-section response with derived board metadata.
  */
 function buildCoderServerPromptSectionResponse(options: {
+    readonly projectPath?: string;
     readonly promptFile: PromptFile;
     readonly section: PromptSection;
     readonly isFinished: boolean;
@@ -133,7 +140,7 @@ function buildCoderServerPromptSectionResponse(options: {
 }): CoderServerPromptSectionResponse {
     const { promptFile, section, isFinished, priorityFilter, activePrompt } = options;
     const isUnwritten = isPromptToBeWritten(promptFile, section);
-    const isActive = isPromptActive(promptFile, section, activePrompt);
+    const isActive = isPromptActive(promptFile, section, activePrompt, options.projectPath);
     const column = getPromptColumn({
         section,
         isFinished,
@@ -149,7 +156,7 @@ function buildCoderServerPromptSectionResponse(options: {
         priority: section.priority,
         summary: buildPromptSummary(promptFile, section),
         content: buildCodexPrompt(promptFile, section),
-        label: buildPromptLabelForDisplay(promptFile, section),
+        label: buildPromptLabelForDisplay(promptFile, section, options.projectPath),
         tags: buildPromptTags({
             section,
             isUnwritten,
@@ -264,12 +271,12 @@ function getActivePrompt(uiState: CoderRunUiState | undefined): ActivePrompt | u
 /**
  * Checks whether a parsed section is the prompt currently handled by the active agent.
  */
-function isPromptActive(promptFile: PromptFile, section: PromptSection, activePrompt: ActivePrompt | undefined): boolean {
+function isPromptActive(promptFile: PromptFile, section: PromptSection, activePrompt: ActivePrompt | undefined, projectPath?: string): boolean {
     if (!activePrompt || (section.status !== 'todo' && section.status !== 'in-progress')) {
         return false;
     }
 
-    return buildPromptLabelForDisplay(promptFile, section) === activePrompt.label;
+    return buildPromptLabelForDisplay(promptFile, section, projectPath) === activePrompt.label;
 }
 
 // Note: [🟡] Code for CLI command [coder server](scripts/run-codex-prompts/server/buildCoderServerPromptResponse.ts) should never be published outside of `@promptbook/cli`

@@ -14,8 +14,10 @@ import type {
  *
  * @private internal utility of `promptbookCli`
  */
-export async function $checkPromptbookCliInstallations(): Promise<ReadonlyArray<PromptbookCliInstallationStatus>> {
-    const installations = await $resolvePromptbookCliInstallations();
+export async function $checkPromptbookCliInstallations(
+    projectPath = process.cwd(),
+): Promise<ReadonlyArray<PromptbookCliInstallationStatus>> {
+    const installations = await $resolvePromptbookCliInstallations(projectPath);
 
     if (installations.length === 0) {
         return [];

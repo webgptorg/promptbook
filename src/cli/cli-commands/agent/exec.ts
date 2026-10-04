@@ -1,3 +1,9 @@
+import {
+    addProjectPathOption,
+    addProjectContextOption,
+    normalizeProjectCliOptions,
+    resolveProjectDirectory,
+} from '../common/projectCliOptions';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
@@ -37,10 +43,13 @@ export function $initializeAgentExecCommand(program: Program): $side_effect {
     command.requiredOption('--message <message>', 'User message to send to the agent');
     addPromptRunnerSelectionOptions(command);
     addPromptRunnerRuntimeOptions(command);
-    command.option('--context <context-or-file>', 'Append extra context either inline or from a file path');
+    addProjectPathOption(command);
+    addProjectContextOption(command);
 
     command.action(
         handleActionErrors(async (cliOptions, commandProgram) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
+            const projectPath = await resolveProjectDirectory(projectOptions.projectDirectory);
             const options = cliOptions as AgentCommandCliOptions;
             const runnerOptions = normalizeAgentCommandRunnerOptions(options, commandProgram as Program);
             const { runAgentExec } = await import('../../../../scripts/run-agent-chat/runAgentExec');
@@ -49,7 +58,7 @@ export function $initializeAgentExecCommand(program: Program): $side_effect {
                 agentPath: resolveRequiredAgentPath(options),
                 context: options.context,
                 message: resolveRequiredAgentMessage(options),
-                currentWorkingDirectory: process.cwd(),
+                currentWorkingDirectory: projectPath,
                 ...runnerOptions,
             });
         }),

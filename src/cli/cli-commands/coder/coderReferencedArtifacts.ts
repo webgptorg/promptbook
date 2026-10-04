@@ -75,9 +75,9 @@ const CODER_REFERENCED_ARTIFACT_DEFINITIONS: ReadonlyArray<CoderReferencedArtifa
 ];
 
 /**
- * Initializes artifacts referenced by freshly added scripts. Default Books are ensured separately.
+ * Initializes essential context and artifacts referenced by freshly added scripts. Books are ensured separately.
  *
- * For artifacts other than role Books, an existing project script does not cause default files to be created.
+ * AGENTS.md is essential even when every script already exists or uses implicit defaults.
  *
  * @private function of `initializeCoderProjectConfiguration`
  */
@@ -88,7 +88,7 @@ export async function ensureCoderReferencedArtifacts(
     const ensuredArtifacts: Array<EnsuredCoderReferencedArtifact> = [];
 
     for (const { relativeFilePath, ensureArtifactFile } of CODER_REFERENCED_ARTIFACT_DEFINITIONS) {
-        if (!referencedArtifactPaths.has(relativeFilePath)) {
+        if (relativeFilePath !== AGENTS_FILE_PATH && !referencedArtifactPaths.has(relativeFilePath)) {
             ensuredArtifacts.push({ relativeFilePath, status: 'not-referenced' });
             continue;
         }

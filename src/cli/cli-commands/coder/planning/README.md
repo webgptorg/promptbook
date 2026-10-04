@@ -1,10 +1,12 @@
 # Coder planning
 
 Run `ptbk coder init`, then `ptbk coder plan --harness openai-codex` in an interactive terminal.
-The editable `agents/planner.book` uses the same implicit Adam inheritance as Developer. An explicit `--agent`
-overrides the Book through the shared resolver; planning resolves Books without initializing missing ancestors.
+The default primary Book is `agents/developer.book`; use `--agent ./agents/planner.book` to select Planner.
+Both use the same implicit Adam inheritance. `--path` defaults to invocation cwd, and additional context defaults
+to that project's AGENTS.md. An explicit `--context` replaces it with inline text or a project-relative file;
+`--context ""` disables it. Planning resolves Books without initializing missing ancestors.
 
-The discussion retains messages, read results and saved paths across topics. Planner proposes changes as data.
+The discussion retains messages, read results and saved paths across topics. The selected Book proposes changes as data.
 The CLI shows exact paths and changed text, then accepts `/save`, `/draft`, `/discard`, or another discussion turn.
 EOF and `/exit` discard unsaved proposals. Ctrl+C aborts inference. Saved files remain intact after failures.
 

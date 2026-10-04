@@ -1,3 +1,4 @@
+import { addProjectPathOption, normalizeProjectCliOptions, resolveProjectDirectory } from '../common/projectCliOptions';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
@@ -36,9 +37,12 @@ export function $initializeAgentInitCommand(program: Program): $side_effect {
         `),
     );
 
+    addProjectPathOption(command);
     command.action(
-        handleActionErrors(async () => {
-            const summary = await initializeAgentProjectConfiguration(process.cwd());
+        handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
+            const projectPath = await resolveProjectDirectory(projectOptions.projectDirectory);
+            const summary = await initializeAgentProjectConfiguration(projectPath);
             printAgentInitializationSummary(summary);
         }),
     );

@@ -18,6 +18,7 @@ import {
 } from '../common/coderGitSyncCliOptions';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import {
     addQuestionsOption,
@@ -105,6 +106,7 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (descriptionArgument: string | undefined, cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const { priority, template: templateOption } = cliOptions as {
                 readonly priority: number;
                 readonly template?: string;
@@ -112,7 +114,11 @@ export function $initializeCoderAddCommand(program: Program): $side_effect {
 
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
-            const workspace = await $preflightWorkspaceRepository({ policy: 'mutate', ...questionsOptions });
+            const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
+                policy: 'mutate',
+                ...questionsOptions,
+            });
             const { projectPath } = workspace;
 
             const description = await resolveCoderPromptDescription(descriptionArgument, questionsOptions);

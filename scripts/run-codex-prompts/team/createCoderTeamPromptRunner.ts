@@ -1,9 +1,11 @@
 import { appendFile, readFile } from 'fs/promises';
-import { dirname, join } from 'path';
+import { dirname, join, relative, resolve } from 'path';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { addUsage } from '../../../src/execution/utils/addUsage';
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { resolveCoderAgent } from '../common/resolveCoderAgent';
+import { DEFAULT_CODER_AGENT_ROLE } from '../../../src/cli/cli-commands/coder/coderAgentRole';
+import { mapProjectReferenceToWorktree } from '../isolation/mapProjectReferenceToWorktree';
 import { captureLiveScriptOutput } from '../common/runGoScript/captureLiveScriptOutput';
 import type { PromptRunOptions } from '../runners/types/PromptRunOptions';
 import type { PromptRunner } from '../runners/types/PromptRunner';
@@ -14,7 +16,7 @@ import { startCoderTeamBridge } from './startCoderTeamBridge';
  * Adds a scoped consultation transport around an existing adapter. Both primary and advisers keep exactly
  * that adapter's permissions and authentication. Only the enclosing Coder round owns tests, queues and Git operations.
  */
-export function createCoderTeamPromptRunner(runner: PromptRunner, agentBookReference?: string): PromptRunner {
+export function createCoderTeamPromptRunner(runner: PromptRunner, agentBookReference?: string, originalProjectPath?: string, originalRepositoryRoot = originalProjectPath): PromptRunner {
     return {
         name: runner.name,
         teamCapability: runner.teamCapability,
@@ -27,8 +29,15 @@ export function createCoderTeamPromptRunner(runner: PromptRunner, agentBookRefer
             let runtime: CoderTeamRuntime | undefined;
             try {
                 // Resolve against this invocation's actual checkout, including an isolated worktree.
-                const agent = await resolveCoderAgent(agentBookReference, options.projectPath, {
-                    defaultRole: 'developer',
+                const reference = originalProjectPath
+                    ? mapProjectReferenceToWorktree(
+                        agentBookReference,
+                        originalRepositoryRoot!,
+                        resolve(options.projectPath, relative(originalProjectPath, originalRepositoryRoot!)),
+                    )
+                    : agentBookReference;
+                const agent = await resolveCoderAgent(reference, options.projectPath, {
+                    defaultRole: DEFAULT_CODER_AGENT_ROLE,
                     isInitializationAllowed: false,
                     signal: controller.signal,
                 });

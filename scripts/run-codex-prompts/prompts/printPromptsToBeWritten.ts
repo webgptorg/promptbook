@@ -7,12 +7,12 @@ import type { PromptFile } from './types/PromptFile';
 /**
  * Prints the list of prompts that still need to be written.
  */
-export function printPromptsToBeWritten(files: PromptFile[], priorityFilter: PriorityFilter = {}): void {
+export function printPromptsToBeWritten(files: PromptFile[], priorityFilter: PriorityFilter = {}, projectPath?: string): void {
     const promptsToWrite = listPromptsToBeWritten(files, priorityFilter);
 
     let i = 0;
     for (const { file, section } of promptsToWrite) {
-        const label = buildPromptLabelForDisplay(file, section);
+        const label = buildPromptLabelForDisplay(file, section, projectPath);
         const summary = buildPromptSummary(file, section);
         console.info(`  ${++i}) ${label}: ${summary}`);
     }

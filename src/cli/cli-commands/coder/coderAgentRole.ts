@@ -19,4 +19,10 @@ export const CODER_DEFAULT_AGENT_BOOK_PATHS = {
  */
 export type CoderAgentRole = keyof typeof CODER_DEFAULT_AGENT_BOOK_PATHS;
 
+/**
+ * Shared persona for optional single-agent execution and authoring; capabilities belong to the command.
+ * @private internal constant of project CLI commands
+ */
+export const DEFAULT_CODER_AGENT_ROLE: CoderAgentRole = 'developer';
+
 // Note: [💞] Ignore a discrepancy between file name and exported helper names

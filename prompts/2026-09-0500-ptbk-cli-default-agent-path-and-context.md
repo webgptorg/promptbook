@@ -1,4 +1,4 @@
-[ ]
+[!] failed after an hour by Promptbook Developer on OpenAI Codex `gpt-6-astra`
 
 [✨🎛️] Give project-oriented CLI commands shared defaults: the Developer Book, the current directory, and AGENTS.md, while preserving explicit overrides.
 
@@ -71,3 +71,4 @@ ptbk coder run --harness openai-codex --agent ./agents/developer.book --path . -
 -   Inspect [generated scripts](../src/cli/cli-commands/coder/getDefaultCoderPackageJsonScripts.ts) and [project initialization](../src/cli/cli-commands/coder/initializeCoderProjectConfiguration.ts). Reconcile the intentionally changed persona defaults with [the earlier default-agent PRD](2026-09-0420-ptbk-coder-default-agents.md), without deleting its other requirements.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Update the CLI reference, generated workflow README, and relevant [Coder documentation](../apps/coder-landing), not the Agent Server application UI.
 -   Add the implemented changes into the [changelog](../changelog/_current-preversion.md).
+

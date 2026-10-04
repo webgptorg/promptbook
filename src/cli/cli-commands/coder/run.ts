@@ -10,6 +10,7 @@ import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSuff
 import { validateCoderRunOptions } from '../common/validateCoderRunOptions';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import {
@@ -35,7 +36,7 @@ import {
 } from '../../../../scripts/run-codex-prompts/testing/TestBeforeMode';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
-import { addCoderAgentOption, type CoderAgentCliOptions } from './agentCliOptions';
+import { addCoderExecutionOptions, type CoderAgentCliOptions } from './agentCliOptions';
 import { printCoderRunFailure } from './printCoderRunFailure';
 
 /**
@@ -86,11 +87,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     addPromptRunnerSelectionOptions(command);
     addQuestionsOption(command);
-    addCoderAgentOption(command, 'developer');
-    command.option(
-        '--context <context-or-file>',
-        'Append extra instructions either inline or from a file path relative to the current project',
-    );
+    addCoderExecutionOptions(command);
     command.option(
         '--test <test-command...>',
         'Run a verification command after each prompt; quote it when the command itself contains top-level flags',
@@ -166,6 +163,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const {
                 dryRun,
                 agent,
@@ -260,20 +258,25 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
             validateCoderRunOptions(runOptions);
             const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
                 policy: dryRun ? 'read-only' : 'mutate',
                 ...questionsOptions,
             });
 
+            const { resolveCoderProjectContext } = await import(
+                '../../../../scripts/run-codex-prompts/common/resolveCoderProjectContext'
+            );
+            const projectContext = await resolveCoderProjectContext({
+                projectPath: workspace.projectPath,
+                agent,
+                context,
+            });
+
             if (!dryRun) {
-                // Reject missing or unreadable Books before offering installations or project configuration writes.
-                const { resolveCoderAgentBook } = await import(
-                    '../../../../scripts/run-codex-prompts/common/resolveCoderAgent'
-                );
-                await resolveCoderAgentBook(agent, workspace.projectPath, { defaultRole: 'developer' });
                 // Check disk space before installations and repository writes; previews require no setup.
                 await $assertSufficientFreeDiskSpace(workspace.projectPath);
 
-                if (await $ensurePromptbookCliInstallations(questionsOptions)) {
+                if (await $ensurePromptbookCliInstallations(questionsOptions, workspace.projectPath)) {
                     return process.exit(0);
                 }
 
@@ -289,8 +292,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             const { runCodexPrompts } = await import('../../../../scripts/run-codex-prompts/main/runCodexPrompts');
 
             try {
-                // Override process.argv to pass options to the legacy parseRunOptions if needed
-                await runCodexPrompts({ ...runOptions, workspace });
+                await runCodexPrompts({ ...runOptions, workspace, projectContext });
             } catch (error) {
                 assertsError(error);
                 printCoderRunFailure(error);

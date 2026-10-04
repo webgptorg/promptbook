@@ -73,8 +73,9 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
                 missing role Books are restored even when scripts already exist. Init adds missing helper TEAM
                 references to Developer and Planner while preserving your rules and existing teammates. The new{' '}
                 <code className="text-promptbook-blue">coder:run</code> script uses the current Codex flagship without
-                pinning a model version. Both role scripts use their default Books without redundant{' '}
-                <code className="text-promptbook-blue">--agent</code> arguments. Run init again any time. The generated{' '}
+                pinning a model version. The scripts use Developer, the current directory and AGENTS.md without
+                repeating their flags. Missing Books and AGENTS.md are initialized independently of those script
+                arguments. Run init again any time. The generated{' '}
                 <code className="text-promptbook-blue">prompts/README.md</code> explains PRDs, task statuses, templates,
                 traces, and the review workflow, with a sample task and a complete manual path. Share the Markdown with
                 another assistant or implement it yourself using ordinary repository tools; the guide works offline
@@ -92,17 +93,18 @@ const QUICKSTART_STEPS: ReadonlyArray<QuickstartStep> = [
         command: INIT_COMMAND,
     },
     {
-        title: 'Discuss features with Planner',
+        title: 'Plan features with Developer',
         description: (
             <>
-                Planner reads your repository, asks about unresolved requirements, and helps split features into PRDs.
+                Developer reads your repository, asks about unresolved requirements, and helps split features into PRDs.
                 Discuss several topics and revise earlier decisions in one terminal conversation. Review proposed paths
                 and changes, then use <code className="text-promptbook-blue">/save</code> for pending tasks or{' '}
                 <code className="text-promptbook-blue">/draft</code> for unresolved{' '}
                 <code className="text-promptbook-blue">[-]</code> drafts. Only PRD Markdown files can change.
                 <code className="text-promptbook-blue"> /exit</code> ends without starting implementation. Customize{' '}
-                <code className="text-promptbook-blue">agents/planner.book</code> or select another Book with{' '}
-                <code className="text-promptbook-blue">--agent agents/my-planner.book</code>.
+                <code className="text-promptbook-blue">agents/developer.book</code> or explicitly select Planner with{' '}
+                <code className="text-promptbook-blue">--agent ./agents/planner.book</code>. The planning command keeps
+                its restricted tools and PRD-only writes with either Book.
             </>
         ),
         command: PLAN_COMMAND,

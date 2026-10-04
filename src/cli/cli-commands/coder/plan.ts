@@ -7,13 +7,14 @@ import { spaceTrim } from '../../../utils/organization/spaceTrim';
 import { addCoderGitSyncOptions, normalizeCoderGitSyncCliOptions } from '../common/coderGitSyncCliOptions';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import {
     addPromptRunnerRuntimeOptions,
     addPromptRunnerSelectionOptions,
     normalizePromptRunnerSelectionCliOptions,
 } from '../common/promptRunnerCliOptions';
-import { addCoderAgentOption } from './agentCliOptions';
+import { addCoderExecutionOptions } from './agentCliOptions';
 
 /**
  * Registers the repository-aware, planning-only conversation under the existing coder command group.
@@ -22,10 +23,10 @@ import { addCoderAgentOption } from './agentCliOptions';
 export function $initializeCoderPlanCommand(program: Program): $side_effect {
     const command = program.command('plan').description(
         spaceTrim(`
-        Discuss features with the project's Planner and review PRDs before saving them.
+        Discuss features with the project's Developer Book and review PRDs before saving them.
 
-        Run ptbk coder init first. Default Book: agents/planner.book; --agent overrides the Book,
-        independently of --harness and --model. Currently supports openai-codex with restricted tools.
+        Run ptbk coder init first. Default Book: agents/developer.book; --agent overrides the Book,
+        independently of --harness and --model. Use --agent ./agents/planner.book for Planner. Currently supports openai-codex with restricted tools.
         Requires an interactive terminal and a Codex version supporting --ignore-user-config and --ignore-rules.
         Codex configuration, plugins, hooks and native tools are isolated; --model default uses Codex's built-in default.
         /save applies reviewed proposals, /draft saves [-] drafts, /discard drops proposals, /exit ends.
@@ -35,7 +36,7 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
     );
     addPromptRunnerSelectionOptions(command);
     addPromptRunnerRuntimeOptions(command);
-    addCoderAgentOption(command, 'planner');
+    addCoderExecutionOptions(command);
     addCoderGitSyncOptions(command);
     command.option(
         '--template <path>',
@@ -45,6 +46,7 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const { createPlanningTerminal } = await import('./planning/createPlanningTerminal');
             const { runPlanningSession } = await import('./planning/runPlanningSession');
             const { resolvePlanningPath } = await import('./planning/resolvePlanningPath');
@@ -57,6 +59,7 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
             assertPlanningHarnessSupported(options.agentName);
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions);
             const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
                 policy: 'mutate',
                 isAskingQuestionsEnabled: cliOptions.questions,
             });
@@ -67,6 +70,13 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
                     ),
                 );
             }
+            const { resolveCoderProjectContext } = await import(
+                '../../../../scripts/run-codex-prompts/common/resolveCoderProjectContext'
+            );
+            const projectContext = await resolveCoderProjectContext({
+                ...cliOptions,
+                projectPath: workspace.projectPath,
+            });
             const terminal = createPlanningTerminal();
             try {
                 const { projectPath } = workspace;
@@ -80,6 +90,8 @@ export function $initializeCoderPlanCommand(program: Program): $side_effect {
                         ...options,
                         projectPath,
                         agent: cliOptions.agent,
+                        context: cliOptions.context,
+                        projectContext,
                         template: cliOptions.template,
                         preexistingChangedPaths: gitSync.isCommitEnabled
                             ? new Set(

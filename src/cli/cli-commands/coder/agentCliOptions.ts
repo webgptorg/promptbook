@@ -1,7 +1,8 @@
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import { CODER_DEFAULT_AGENT_BOOK_PATHS, type CoderAgentRole } from './coderAgentRole';
+import { addProjectContextOption } from '../common/projectCliOptions';
+import { CODER_DEFAULT_AGENT_BOOK_PATHS, DEFAULT_CODER_AGENT_ROLE, type CoderAgentRole } from './coderAgentRole';
 
 /**
  * Commander option bag for an optional Book agent used by coder commands.
@@ -32,6 +33,15 @@ export function addCoderAgentOption(command: Program, defaultRole?: CoderAgentRo
           }); --agent overrides this Book`
         : 'No default Book filter; omitting --agent includes tasks for all agents';
     command.option('--agent <agent-book-path>', `${CODER_AGENT_OPTION_DESCRIPTION}. ${defaultDescription}`);
+}
+
+/**
+ * Registers the shared optional persona and context for single-agent execution or authoring.
+ * @private internal CLI registration helper
+ */
+export function addCoderExecutionOptions(command: Program): void {
+    addCoderAgentOption(command, DEFAULT_CODER_AGENT_ROLE);
+    addProjectContextOption(command);
 }
 
 // Note: [🟡] Code for CLI coder agent options should never be published outside of `@promptbook/cli`

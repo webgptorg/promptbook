@@ -22,6 +22,36 @@ const REST_PREFIX = '/rest/v1/';
 const OBJECT_ACCEPT_HEADER = 'application/vnd.pgrst.object+json';
 
 /**
+ * Matches PostgREST LIKE patterns, including escaped literals and the `*` alias for `%`.
+ *
+ * @param {unknown} value
+ * @param {string} pattern
+ * @param {boolean} ignoreCase
+ * @returns {boolean}
+ */
+function matchesLikePattern(value, pattern, ignoreCase) {
+    if (value === null || value === undefined) {
+        return false;
+    }
+
+    let expression = '';
+    for (let index = 0; index < pattern.length; index++) {
+        const character = pattern[index];
+        if (character === '\\' && index + 1 < pattern.length) {
+            expression += pattern[++index].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        } else if (character === '%' || character === '*') {
+            expression += '.*';
+        } else if (character === '_') {
+            expression += '.';
+        } else {
+            expression += character.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+    }
+
+    return new RegExp(`^${expression}$`, ignoreCase ? 'is' : 's').test(String(value));
+}
+
+/**
  * In-memory table store used by the mocked Supabase API.
  */
 const tables = new Map([
@@ -93,13 +123,27 @@ function getTableRows(tableName) {
 }
 
 /**
+ * Decodes explicitly escaped filter values while preserving literal percent wildcards from URLSearchParams.
+ *
+ * @param {string} rawValue
+ * @returns {string}
+ */
+function decodeFilterValue(rawValue) {
+    try {
+        return decodeURIComponent(rawValue);
+    } catch {
+        return rawValue;
+    }
+}
+
+/**
  * Parses a PostgREST token into a primitive JavaScript value.
  *
  * @param {string} rawValue
  * @returns {string | number | boolean | null}
  */
 function parseTokenValue(rawValue) {
-    const decoded = decodeURIComponent(rawValue);
+    const decoded = decodeFilterValue(rawValue);
 
     if (decoded === 'null') {
         return null;
@@ -231,6 +275,15 @@ function matchesRowFilters(row, searchParams) {
         if (rawClause.startsWith('eq.')) {
             const expectedValue = parseTokenValue(rawClause.slice('eq.'.length));
             if (row[columnName] !== expectedValue) {
+                return false;
+            }
+            continue;
+        }
+
+        if (rawClause.startsWith('like.') || rawClause.startsWith('ilike.')) {
+            const ignoreCase = rawClause.startsWith('ilike.');
+            const pattern = decodeFilterValue(rawClause.slice(ignoreCase ? 'ilike.'.length : 'like.'.length));
+            if (!matchesLikePattern(row[columnName], pattern, ignoreCase)) {
                 return false;
             }
             continue;
@@ -378,6 +431,26 @@ async function handleRestRequest(request, response, requestUrl) {
     if (method === 'POST') {
         const body = await parseJsonBody(request);
         const payloadRows = Array.isArray(body) ? body : body ? [body] : [];
+        if (tableName === 'User' || tableName.endsWith('_User')) {
+            // Match the database constraint so concurrent identity creation can retry the existing user.
+            // Validate the whole batch before inserting any rows, as PostgreSQL does for one statement.
+            const usernames = new Set(tableRows.map((row) => row.username));
+            for (const payloadRow of payloadRows) {
+                if (payloadRow.username === undefined || payloadRow.username === null) {
+                    continue;
+                }
+                if (usernames.has(payloadRow.username)) {
+                    sendJson(response, 409, {
+                        code: '23505',
+                        details: `Key (username)=(${payloadRow.username}) already exists.`,
+                        hint: null,
+                        message: `duplicate key value violates unique constraint "${tableName}_username_idx"`,
+                    });
+                    return;
+                }
+                usernames.add(payloadRow.username);
+            }
+        }
         const insertedRows = payloadRows.map((payloadRow) => {
             const nextRow = { ...payloadRow };
 
@@ -506,4 +579,8 @@ function main() {
     process.on('SIGTERM', shutdown);
 }
 
-main();
+module.exports = { createMockSupabaseServer };
+
+if (require.main === module) {
+    main();
+}

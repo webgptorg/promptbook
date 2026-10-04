@@ -44,7 +44,7 @@ export async function findUnwrittenPrompts(options: FindUnwrittenPromptsOptions 
         console.info(colors.green('All prompts are written — nothing to do.'));
     } else {
         console.info(colors.yellow(`Found ${unwrittenPrompts.length} prompt(s) that need to be written:`));
-        printPromptsToBeWritten(promptFiles, priorityFilter);
+        printPromptsToBeWritten(promptFiles, priorityFilter, options.projectPath);
     }
 
     return unwrittenPrompts.length;

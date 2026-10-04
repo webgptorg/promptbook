@@ -14,6 +14,7 @@ import {
 } from '../common/coderGitSyncCliOptions';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 import { $ensureHarnessInstallations } from '../common/harness/$ensureHarnessInstallations';
 import { getHarnessDefinition } from '../common/harness/HarnessDefinition';
@@ -88,7 +89,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 - Adds missing local Lawyer and Copywriter TEAM references to Developer and Planner, preserving existing content
                 - Helpers advise on relevant tasks; declaring TEAM does not run them for every task
                 - Reports created, augmented, unchanged and unresolved Books; invalid or conflicting files are left untouched
-                - Other referenced files, like coder:run context, are created with their newly added scripts
+                - Missing AGENTS.md is initialized independently of scripts; existing content is preserved
 
                 Ensures required coding-agent environment variables in .env:
                 - CODING_AGENT_GIT_NAME
@@ -112,9 +113,14 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const gitSync = normalizeCoderGitSyncCliOptions(cliOptions as CoderGitSyncCliOptions);
             const questionsOptions = normalizeQuestionsCliOptions(cliOptions as QuestionsCliOptions);
-            const workspace = await $preflightWorkspaceRepository({ policy: 'initialize', ...questionsOptions });
+            const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
+                policy: 'initialize',
+                ...questionsOptions,
+            });
             const { projectPath } = workspace;
 
             const completedSteps = [`Git repository ${workspace.repositoryStatus}: ${workspace.repositoryRoot}`];

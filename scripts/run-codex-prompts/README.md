@@ -16,15 +16,15 @@ ptbk coder plan --harness openai-codex
 npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-6-astra
 ```
 
-`run` and `server` use the project's Developer (`agents/developer.book`); `plan` uses its Planner
-(`agents/planner.book`). These editable local Books supply the persona, instructions, inherited Adam rules,
+`run`, `server` and `plan` use the project's Developer (`agents/developer.book`). Planner remains available
+with `--agent ./agents/planner.book`. These editable local Books supply the persona, instructions, inherited Adam rules,
 imports, TEAM declarations, display identity and prompt-routing aliases. Local edits apply on the next invocation.
 `--harness` selects the coding tool, `--model` selects its model, and `--thinking-level` controls reasoning effort.
 An optional `--agent` overrides only the Book for that action:
 
 ```bash
 ptbk coder run --harness openai-codex --agent agents/my-developer.book
-ptbk coder plan --harness openai-codex --agent "agents/my planner.book"
+ptbk coder plan --harness openai-codex --agent ./agents/planner.book
 ```
 
 Book paths may be relative to the current project directory or absolute; quote paths containing spaces.
@@ -35,6 +35,57 @@ Listing and dry runs never initialize Books, install a harness or change project
 Dry-run reports use the selected Book's routing aliases together with the selected harness and model.
 New `coder:run` and `coder:plan` scripts rely on these role defaults; repeated init preserves existing scripts,
 including custom `--agent` selections.
+
+### Shared project selection and command inventory
+
+These commands select the same project, Book, and additional context:
+
+```bash
+ptbk coder run --harness openai-codex
+ptbk coder run --harness openai-codex --agent ./agents/developer.book --path . --context ./AGENTS.md
+```
+
+`--path` defaults to the working directory captured when the action starts. Relative paths start at that
+invocation directory; absolute paths select the directory directly. The directory must already exist and be
+readable/searchable. Selecting a nested project does not move Books, AGENTS.md, templates, PRDs, checks or
+artifacts to an enclosing Git root. Git preflight and repository operations still use that enclosing working tree.
+Harnesses and verification subprocesses receive the selected project as cwd; isolated execution maps project
+inputs and PRDs into the worktree while keeping durable temporary logs under the selected original project.
+
+Omitting `--context` reads the selected project's `AGENTS.md` as UTF-8. A missing implicit file produces one
+diagnostic and no additional context; an unreadable existing file fails. An explicit inline value or file
+**replaces** this selection. Relative files resolve against the selected project. An empty value (`--context ""`)
+disables additional context, and an empty file remains empty. Explicit missing/unreadable files fail; spell file
+paths with `./`, `../`, an absolute path, or a filename extension such as `.md` to distinguish them from prose.
+Book instructions, task content and the selected additional context retain their existing roles; the default
+file is not appended after an override. Explicit flags and existing command configuration take precedence over
+these fallbacks. There is no new environment-variable precedence layer.
+
+| Registered command | Primary Book or filter | Project selection | Additional context |
+| --- | --- | --- | --- |
+| `coder run`, `coder server` | Optional `--agent`, default Developer; task/harness targeting still applies | `--path`, default invocation cwd | `--context`, default project AGENTS.md |
+| `coder plan` | Optional `--agent`, default Developer; explicit Planner supported; PRD-only permissions | Same | Same |
+| `coder list` | Optional `--agent` is a **listing filter**; omission lists all agents | Same | None |
+| `init`, `initialize`, `coder init`, `coder initialize` | Creates/preserves all default Books; selects no primary agent | Same, through one initializer | Creates/preserves AGENTS.md; does not load agent context |
+| `coder add`, `coder generate-boilerplates` | Template authoring, no model or primary agent in this version | Same; templates are project-relative | None |
+| `coder verify`, `coder find-refactor-candidates` | Queue/archive and scan utilities, no primary agent | Same | None |
+| `coder find-unwritten`, `coder find-fresh-emoji-tags`, `coder ping` | Inspection or harness diagnostics; no Book persona | Same | None |
+| `agent chat`, `agent exec` | Existing required `--agent` names the specific Book; remains required | Same | Same shared context default and override |
+| `agent-folder init` / `initialize`, `run-once` / `tick`, `run-agent` / `run`, `run-multiple` | Existing folder configuration selects agent Books; multi-agent discovery remains unfiltered | Same; multi-agent discovery scans children of the selected directory | No additional-context option |
+
+Help, version, initialization and pure utilities never resolve a default primary Book. `coder run/server --dry-run`
+read only the selected Book identity and context for preview; they do not compile inheritance, initialize Books,
+install a harness, start the mutable HTTP server or call a model. Missing selected Books still report init guidance.
+Legacy pipeline/file commands (`run`, `make`, `prettify`, `test`, `start-pipelines-server`, `start-agents-server`)
+retain their operands; those operands are not optional permission to modify Developer. `agents-server` manages the
+packaged web application and its existing runtime configuration; it is distinct from the forthcoming workspace server.
+
+The top-level `init` alias already shares this path. The unified top-level `server`, agent-assisted `coder add`,
+and repair-only command are not registered in this version. When introduced, their execution/authoring paths should
+reuse these services, with Developer for untargeted work and existing explicit configuration preserved. Workspace
+server discovery/scheduling must still include all agents. This supersedes only the earlier implicit Planner policy,
+not Planner initialization, availability, TEAM, or planning restrictions. Check terminology and repair-only execution
+are separate changes; existing `--test` flags and verification scripts retain their current spelling here.
 
 ### TEAM consultations
 
@@ -64,9 +115,9 @@ advertised tool through its shell capability, and reads the returned JSON. Disab
 missing bridge connections fail explicitly. This uses the selected harness's existing model, authentication,
 permissions and project directory. No extra model call is made for an unused adviser.
 
-Planning currently supports OpenAI Codex only. Planner and every nested adviser use the same host-mediated
+Planning currently supports OpenAI Codex only. The primary Book and every nested adviser use the same host-mediated
 read protocol and restricted inference process. Even a Developer Book cannot write application files, run
-commands or submit its own PRD proposals as a planning adviser. Only the primary Planner proposes PRDs,
+commands or submit its own PRD proposals as a planning adviser. Only the primary agent proposes PRDs,
 which retain the normal review and save flow. Other planning harnesses are rejected before execution.
 
 Each consultation belongs to one task/session/invocation, with no shared message or result cache. Calls have
@@ -88,8 +139,9 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --dry-run                     # Print unwritten prompts without executing
 --harness <harness-name>        # Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)
 --model <model>               # Model override (optional; each harness defaults to its current flagship)
---agent <agent-book-path>     # Book override (optional; run/server default to agents/developer.book)
---context <context-or-file>   # Append extra instructions inline or load them from a file in the current project
+--agent <agent-book-path>     # Book override (optional; run/server/plan default to agents/developer.book)
+--path <directory>            # Project directory (default: invocation cwd, not an enclosing Git root)
+--context <context-or-file>   # Replace the default project AGENTS.md with inline text or a project-relative file
 --test <test-command...>       # Run a verification command after each prompt and feed failures back for retries
 --test-before <mode>           # no (default), yes-and-fail, or yes-and-fix; enabled modes default to npm test
 --no-ui                       # Disable the rich terminal UI and stream plain console output instead
@@ -170,7 +222,7 @@ ptbk coder run --dry-run
 ptbk coder run --harness openai-codex --model gpt-6-astra
 
 # Run with project instructions loaded from AGENTS.md
-ptbk coder run --harness openai-codex --model gpt-6-astra --agent agents/coding/developer.book --context AGENTS.md
+ptbk coder run --harness openai-codex --model gpt-6-astra --agent agents/coding/developer.book
 
 # Run with one-off inline instructions
 ptbk coder run --harness openai-codex --model gpt-6-astra --context "Focus only on src/cli"
@@ -179,7 +231,7 @@ ptbk coder run --harness openai-codex --model gpt-6-astra --context "Focus only 
 ptbk coder run --harness openai-codex --model gpt-6-astra --allow-credits
 
 # Run with explicit post-commit git pushing
-ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --auto-push
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --auto-push
 
 # Run with GitHub Copilot
 ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh
@@ -188,7 +240,7 @@ ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhi
 ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --test-before yes-and-fix
 
 # Run with plain streaming output for logging/debugging
-ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --no-ui
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --no-ui
 
 # Run with Gemini
 ptbk coder run --harness gemini --model gemini-3.8-flash
@@ -203,7 +255,7 @@ ptbk coder run --harness openai-codex --model gpt-6-astra --min-priority 1 --max
 ptbk coder run --harness openai-codex --model gpt-6-astra --auto-migrate
 
 # Run each prompt in its own isolated git worktree
-ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --context AGENTS.md --isolate
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --isolate
 
 # Start the next prompt even though the working tree still has uncommitted changes
 ptbk coder run --harness claude-code --git-changes ignore

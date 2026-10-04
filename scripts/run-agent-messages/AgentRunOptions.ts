@@ -6,6 +6,8 @@ import type { PromptRunnerHarnessName } from '../../src/cli/cli-commands/common/
  * Options for `ptbk agent-folder run-once`, `ptbk agent-folder run-agent`, and `ptbk agent-folder run-multiple`.
  */
 export type AgentRunOptions = {
+    /** Selected agent repository or parent directory for multi-agent discovery. */
+    readonly projectPath?: string;
     readonly agentName?: PromptRunnerHarnessName;
     readonly model?: string;
     readonly noUi: boolean;

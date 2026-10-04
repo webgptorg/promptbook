@@ -8,7 +8,7 @@ describe('buildGitHubCopilotScript', () => {
             model: 'gpt-5.4',
         });
 
-        expect(script).toContain('cd "/project/path"');
+        expect(script).toContain("cd '/project/path'");
         expect(script).toContain("<<'GITHUB_COPILOT_PROMPT'");
         expect(script).toContain('copilot \\');
         expect(script).not.toContain('copilot -p');

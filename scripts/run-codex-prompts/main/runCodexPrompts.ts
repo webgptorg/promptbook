@@ -4,6 +4,8 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
 import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChangesMode';
+import { DEFAULT_CODER_AGENT_ROLE } from '../../../src/cli/cli-commands/coder/coderAgentRole';
+import { resolveProjectDirectory } from '../../../src/cli/cli-commands/common/projectCliOptions';
 import { validateCoderRunOptions } from '../../../src/cli/cli-commands/common/validateCoderRunOptions';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
@@ -16,7 +18,7 @@ import { createFreeDiskSpaceGuard, type FreeDiskSpaceGuard } from '../common/cre
 import type { PromptRunnerMetadata } from '../common/PromptRunnerMetadata';
 import { resolveCoderAgent } from '../common/resolveCoderAgent';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
-import { resolveCoderContext } from '../common/resolveCoderContext';
+import { resolveCoderProjectContext } from '../common/resolveCoderProjectContext';
 import { listenForCoderRunControls } from '../common/listenForCoderRunControls';
 import {
     announcePauseTargetLabel,
@@ -86,9 +88,10 @@ type PromptQueueSnapshot = {
  * @public exported from `@promptbook/cli`
  */
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
-    const options = normalizeRunOptions(providedOptions ?? parseRunOptions(process.argv.slice(2)));
-    validateCoderRunOptions(options);
-    const projectPath = options.workspace?.projectPath ?? process.cwd();
+    const normalizedOptions = normalizeRunOptions(providedOptions ?? parseRunOptions(process.argv.slice(2)));
+    validateCoderRunOptions(normalizedOptions);
+    const projectPath = normalizedOptions.workspace?.projectPath ?? await resolveProjectDirectory(normalizedOptions.projectPath!);
+    const options = { ...normalizedOptions, projectPath };
     resetCoderRunControls();
 
     const runStartDate = moment();
@@ -110,16 +113,18 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     let subscriptionUsageRefresh: CoderRunUiSubscriptionUsageRefreshHandle | undefined;
 
     try {
-        const resolvedCoderContext = await resolveCoderContext(options.context, projectPath);
+        const projectContext = options.projectContext ?? await resolveCoderProjectContext({
+            ...options, projectPath,
+        });
+        if (await runDryRunIfRequested(options, projectContext.agentBook?.agentReferences)) {
+            return;
+        }
+        const resolvedCoderContext = projectContext.context;
         const resolvedCoderAgent = await resolveCoderAgent(options.agent, projectPath, {
-            defaultRole: 'developer',
+            defaultRole: DEFAULT_CODER_AGENT_ROLE,
             isInitializationAllowed: !options.dryRun,
         });
         const resolvedAgentSystemMessage = resolvedCoderAgent?.systemMessage;
-
-        if (await runDryRunIfRequested(options, resolvedCoderAgent?.agentReferences)) {
-            return;
-        }
 
         if (!options.noCommit && resolvedCoderAgent) {
             await commitInitializedAgentBooks(projectPath, resolvedCoderAgent.createdAgentBookPaths, options.workspace);
@@ -130,7 +135,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             actualRunnerModel,
             runnerMetadata: harnessRunnerMetadata,
         } = resolvePromptRunner(options);
-        const runner = createCoderTeamPromptRunner(harnessRunner, options.agent);
+        const runner = createCoderTeamPromptRunner(harnessRunner, options.agent, projectPath, options.workspace?.repositoryRoot);
         // Note: The harness only knows itself, so the Book agent it runs as is joined here - this is the single
         //       place where the whole run report of prompt status lines and run traces is put together
         const runnerMetadata: PromptRunnerMetadata = {
@@ -228,6 +233,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             });
 
             hasShownUpcomingTasks ||= showUpcomingTasksOnce({
+                projectPath,
                 hasShownUpcomingTasks,
                 promptFiles: promptQueueSnapshot.promptFiles,
                 stats: promptQueueSnapshot.stats,
@@ -261,7 +267,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             }
 
             const nextPrompt = promptQueueSnapshot.nextPrompt!;
-            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
+            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section, projectPath);
 
             // Wait between prompt rounds (skipped for the first round)
             if (previousRoundStartTime !== undefined && previousRoundEndTime !== undefined) {
@@ -300,7 +306,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     phase: 'loading',
                     statusMessage: 'Checking the working tree...',
                 });
-                await ensureWorkingTreeClean(options.workspace?.repositoryRoot);
+                await ensureWorkingTreeClean(options.workspace?.repositoryRoot ?? projectPath);
             }
 
             const currentRoundStartTime = Date.now();
@@ -377,7 +383,7 @@ async function pullLatestChangesIfEnabled(options: { options: RunOptions; isRich
         console.info(colors.gray('Pulling latest changes before the next prompt...'));
     }
 
-    await pullLatestChanges(runOptions.workspace?.repositoryRoot);
+    await pullLatestChanges(runOptions.workspace?.repositoryRoot ?? runOptions.projectPath);
 }
 
 /**
@@ -424,6 +430,7 @@ function normalizeRunOptions(options: RunOptions): RunOptions {
 
     return {
         ...options,
+        projectPath: options.workspace?.projectPath ?? options.projectPath ?? process.cwd(),
         testBefore,
         testCommand: normalizedTestCommand || (testBefore === 'no' ? undefined : DEFAULT_CODER_TEST_COMMAND),
         priority: priorityFilter.minimumPriority ?? 0,
@@ -483,7 +490,7 @@ async function runTestBeforeIfNeeded(options: {
             phase: 'loading',
             statusMessage: 'Checking the working tree before testing...',
         });
-        await ensureWorkingTreeClean(runOptions.workspace?.repositoryRoot);
+        await ensureWorkingTreeClean(runOptions.workspace?.repositoryRoot ?? runOptions.projectPath);
     }
 
     const testBeforeCommitScope = await captureTestBeforeCommitScopeIfNeeded(runOptions);
@@ -491,7 +498,7 @@ async function runTestBeforeIfNeeded(options: {
     uiHandle?.startCapturingAgentOutput();
     const testBeforeResult = await runTestBefore({
         testCommand: runOptions.testCommand,
-        projectPath: runOptions.workspace?.projectPath ?? process.cwd(),
+        projectPath: runOptions.projectPath!,
         waitForPauseCheckpoint: waitForRequestedPause,
     }).finally(() => {
         uiHandle?.stopCapturingAgentOutput();
@@ -527,11 +534,11 @@ async function runTestBeforeIfNeeded(options: {
     }
 
     const repairPrompt = await createTestBeforeRepairPrompt({
-        projectPath: runOptions.workspace?.projectPath ?? process.cwd(),
+        projectPath: runOptions.projectPath!,
         testCommand: runOptions.testCommand,
         testOutput,
     });
-    const repairPromptLabel = buildPromptLabelForDisplay(repairPrompt.file, repairPrompt.section);
+    const repairPromptLabel = buildPromptLabelForDisplay(repairPrompt.file, repairPrompt.section, runOptions.projectPath);
     const updatedHasWaitedForStart = await waitForPromptConfirmationIfNeeded({
         options: runOptions,
         nextPrompt: repairPrompt,
@@ -569,7 +576,7 @@ async function captureTestBeforeCommitScopeIfNeeded(runOptions: RunOptions): Pro
         return undefined;
     }
 
-    return captureCoderCommitScope(runOptions.workspace ?? process.cwd());
+    return captureCoderCommitScope(runOptions.workspace ?? runOptions.projectPath!);
 }
 
 /**
@@ -669,7 +676,7 @@ async function runDryRunIfRequested(
         agentReferences,
     };
     const promptFiles = (
-        await loadPromptFiles(join(options.workspace?.projectPath ?? process.cwd(), 'prompts'), {
+        await loadPromptFiles(join(options.projectPath!, 'prompts'), {
             isMissingDirectoryAllowed: true,
         })
     ).map((file) => ({
@@ -679,7 +686,7 @@ async function runDryRunIfRequested(
     const stats = summarizePrompts(promptFiles, options.priorityFilter);
     printStats(stats, options.priorityFilter);
     console.info(colors.yellow('Following prompts need to be written:'));
-    printPromptsToBeWritten(promptFiles, options.priorityFilter);
+    printPromptsToBeWritten(promptFiles, options.priorityFilter, options.projectPath);
     return true;
 }
 
@@ -747,7 +754,7 @@ async function loadPromptQueueSnapshot(options: {
     } = options;
     uiHandle?.state.setCurrentScriptPath(undefined);
 
-    const promptFiles = await loadPromptFiles(join(runOptions.workspace?.projectPath ?? process.cwd(), 'prompts'));
+    const promptFiles = await loadPromptFiles(join(runOptions.projectPath!, 'prompts'));
     const stats = summarizePrompts(promptFiles, runOptions.priorityFilter);
 
     progressDisplay?.update(stats);
@@ -772,6 +779,7 @@ async function loadPromptQueueSnapshot(options: {
  * Prints upcoming tasks only on the first loop iteration in plain-console mode.
  */
 function showUpcomingTasksOnce(options: {
+    projectPath: string;
     hasShownUpcomingTasks: boolean;
     promptFiles: PromptFile[];
     stats: PromptStats;
@@ -788,11 +796,11 @@ function showUpcomingTasksOnce(options: {
 
     if (stats.toBeWritten > 0) {
         console.info(colors.yellow('Following prompts need to be written:'));
-        printPromptsToBeWritten(promptFiles, priorityFilter);
+        printPromptsToBeWritten(promptFiles, priorityFilter, options.projectPath);
         console.info('');
     }
 
-    printUpcomingTasks(listUpcomingTasks(promptFiles, priorityFilter, promptRunnerIdentity));
+    printUpcomingTasks(listUpcomingTasks(promptFiles, priorityFilter, promptRunnerIdentity, options.projectPath));
     return true;
 }
 

@@ -23,6 +23,7 @@ import { formatPromptbookCliInstallationWarning } from './formatPromptbookCliIns
  */
 export async function $ensurePromptbookCliInstallations(
     questionsOptions: NormalizedQuestionsCliOptions,
+    projectPath = process.cwd(),
 ): Promise<boolean> {
     if (!questionsOptions.isAskingQuestionsEnabled) {
         // Note: `--no-questions` forbids asking for the approval, so the registry checks would be useless
@@ -34,7 +35,7 @@ export async function $ensurePromptbookCliInstallations(
         return false;
     }
 
-    const statuses = await $checkPromptbookCliInstallations();
+    const statuses = await $checkPromptbookCliInstallations(projectPath);
     const outdatedStatuses = statuses.filter(({ installationState }) => installationState === 'outdated');
 
     if (outdatedStatuses.length === 0) {
@@ -57,7 +58,7 @@ export async function $ensurePromptbookCliInstallations(
     const updateResults: Array<boolean> = [];
 
     for (const status of outdatedStatuses) {
-        updateResults.push(await $updatePromptbookCliInstallation(status));
+        updateResults.push(await $updatePromptbookCliInstallation(status, projectPath));
     }
 
     const isAnyInstallationUpdated = updateResults.some(Boolean);

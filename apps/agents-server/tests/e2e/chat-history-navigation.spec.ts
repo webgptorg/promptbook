@@ -293,7 +293,9 @@ test.describe('Agents Server chat history navigation', () => {
             agent.agentId,
         );
 
-        await page.goto(ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentId));
+        await page.goto(
+            ChatHistoryNavigationSupport.buildAgentBrowserChatUrl(agent.agentId, { forceNewChat: true }),
+        );
         await expect(page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL })).toBeVisible();
         await ChatHistoryNavigationExpectation.expectSelectedDurableChatUrl(
             page,

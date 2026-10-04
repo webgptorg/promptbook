@@ -37,7 +37,7 @@ export async function runAgentMessages(
 ): Promise<void> {
     validateAgentRunOptions(options);
     validateAgentWatchOptions('ptbk agent-folder run-agent', options);
-    const projectPath = process.cwd();
+    const projectPath = options.projectPath ?? process.cwd();
     let autoPullTimestamp = options.autoPull ? Date.now() : undefined;
     const shouldContinue = controls.shouldContinue || (() => just(true));
     const queuePollIntervalMs = controls.queuePollIntervalMs ?? AGENT_QUEUE_POLL_INTERVAL_MS;

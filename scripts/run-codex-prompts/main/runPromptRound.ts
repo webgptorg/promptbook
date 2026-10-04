@@ -69,6 +69,8 @@ export type RunPromptRoundOptions = {
      * when the round is isolated through `--isolate`.
      */
     projectPath?: string;
+    /** Explicit durable artifact location when a temporary execution worktree will be deleted. */
+    artifactsProjectPath?: string;
 };
 
 /**
@@ -89,8 +91,9 @@ export async function runPromptRound({
     uiHandle,
     waitForRequestedPause,
     projectPath,
+    artifactsProjectPath,
 }: RunPromptRoundOptions): Promise<void> {
-    const roundProjectPath = projectPath ?? options.workspace?.projectPath ?? process.cwd();
+    const roundProjectPath = projectPath ?? options.workspace?.projectPath ?? options.projectPath ?? process.cwd();
     const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
     const taskPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
     // Prepend agent system message before the task so the harness sees agent instructions first
@@ -109,8 +112,7 @@ export async function runPromptRound({
           )
         : taskPrompt;
     const codexPrompt = appendCoderContext(promptWithAgent, resolvedCoderContext);
-    // Note: Temporary scripts and runtime logs stay in the original project so they outlive an isolated worktree
-    const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
+    const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section, artifactsProjectPath ?? roundProjectPath);
     // Note: Read before the first `[^]` rewrite of this round, which would overwrite the report recorded so far
     const previousRunnerSignatures = resolvePreviousRunnerSignatures(nextPrompt);
 
@@ -562,6 +564,7 @@ async function recordPromptRoundTrace(options: {
     } = options;
 
     await writePromptRunTrace({
+        projectPath: runOptions.workspace?.projectPath ?? runOptions.projectPath,
         file: nextPrompt.file,
         section: nextPrompt.section,
         ...runnerMetadata,

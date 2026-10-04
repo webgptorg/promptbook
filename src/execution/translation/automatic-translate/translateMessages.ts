@@ -19,9 +19,7 @@ export async function translateMessages({
     from,
     to,
 }: { automaticTranslator: AutomaticTranslator } & TranslatorOptions) {
-    for (const filename of await findFilesByGlob(
-        join(__dirname, '../../translations/', from || 'en', '/**/*.json5'),
-    )) {
+    for (const filename of await findFilesByGlob(join(__dirname, '../../translations/', from || 'en', '/**/*.json5'))) {
         //                       <- TODO: [😶]
         const fileData = JSON5.parse(await promisify(readFile)(filename, 'utf-8'));
 

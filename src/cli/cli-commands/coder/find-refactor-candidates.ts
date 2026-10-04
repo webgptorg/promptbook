@@ -15,6 +15,7 @@ import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -57,12 +58,14 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
 
     command.action(
         handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
             const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL, limit } = cliOptions as {
                 readonly level?: RefactorCandidateLevel;
                 readonly limit?: number;
             };
 
             const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
                 policy: 'mutate',
                 isAskingQuestionsEnabled: cliOptions.questions,
             });

@@ -1,12 +1,13 @@
 import { execFile } from 'child_process';
-import { lstat, realpath, stat } from 'fs/promises';
-import { dirname, join, resolve } from 'path';
+import { lstat, realpath } from 'fs/promises';
+import { dirname, join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import { loadPromptsModule } from '../../common/loadPromptsModule';
 import type { NormalizedQuestionsCliOptions } from './questionsCliOptions';
+import { resolveProjectDirectory } from './projectCliOptions';
 
 /** Shell-free Git execution, also usable from the packaged CLI. */
 const EXECUTE_FILE = promisify(execFile);
@@ -40,22 +41,7 @@ export type WorkspaceRepositoryPolicy = 'initialize' | 'mutate' | 'read-only';
 export async function $resolveWorkspaceRepository(
     projectDirectory = process.cwd(),
 ): Promise<WorkspaceRepositoryContext> {
-    const requestedPath = resolve(projectDirectory);
-    let projectPath: string;
-    try {
-        projectPath = await realpath(requestedPath);
-        if (!(await stat(projectPath)).isDirectory()) {
-            throw new EnvironmentMismatchError(`The project path \`${requestedPath}\` is not a directory.`);
-        }
-    } catch (error) {
-        throw new EnvironmentMismatchError(
-            spaceTrim(
-                `Cannot access project directory \`${requestedPath}\`. Check that it exists and is accessible.\n\n${describeWorkspaceError(
-                    error,
-                )}`,
-            ),
-        );
-    }
+    const projectPath = await resolveProjectDirectory(projectDirectory);
     return $inspectWorkspaceRepository(projectPath);
 }
 
@@ -192,7 +178,9 @@ async function $inspectWorkspaceRepository(projectPath: string): Promise<Workspa
         // Git may skip damaged inner metadata and find a valid parent. Do not silently use that parent
         // for a project whose own checkout needs repair.
         await $assertNoBrokenRepositoryMetadata(projectPath, repositoryRoot);
-        const gitDirectory = (await $runWorkspaceGit(projectPath, ['rev-parse', '--absolute-git-dir'])).trim();
+        const gitDirectory = await realpath(
+            (await $runWorkspaceGit(projectPath, ['rev-parse', '--absolute-git-dir'])).trim(),
+        );
         // Also validate the index and metadata, without refreshing the index or depending on an existing commit.
         await $runWorkspaceGit(projectPath, ['status', '--porcelain', '--untracked-files=no']);
         return { projectPath, repositoryRoot, gitDirectory, repositoryStatus: 'reused' };

@@ -46,6 +46,10 @@ type DelayNextMatchingRequestOptions = {
      * @private internal utility of ChatHistoryNavigationSupport
      */
     readonly isMatchingUrl: (url: string) => boolean;
+    /**
+     * Buffers the response before pausing, so navigation can cancel the browser request without blocking release.
+     */
+    readonly delayResponse?: boolean;
 };
 
 /**
@@ -236,6 +240,7 @@ async function delayNextMatchingRequest(
         }
 
         hasInterceptedTargetRequest = true;
+        const bufferedResponse = options.delayResponse ? await route.fetch() : undefined;
         markStarted?.();
 
         await new Promise<void>((resolve) => {
@@ -246,8 +251,12 @@ async function delayNextMatchingRequest(
         });
 
         try {
-            await route.continue();
-            await request.response().catch(() => null);
+            if (bufferedResponse) {
+                await route.fulfill({ response: bufferedResponse });
+            } else {
+                await route.continue();
+                await request.response().catch(() => null);
+            }
         } finally {
             markFinished?.();
         }
@@ -294,6 +303,7 @@ async function delayNextUserChatSnapshotRequest(page: Page, agentName: string, c
     return delayNextMatchingRequest(page, {
         method: 'GET',
         isMatchingUrl: (url) => isMatchingUserChatSnapshotRequest(url, agentName, chatId),
+        delayResponse: true,
     });
 }
 

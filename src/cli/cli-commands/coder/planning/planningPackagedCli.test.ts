@@ -9,6 +9,8 @@ import { rollup, type RollupOptions } from 'rollup';
 import typescript from 'typescript';
 import createRollupConfiguration from '../../../../../rollup.config';
 import { copyCoderAgentBooks } from '../../../../../scripts/generate-packages/copyCoderAgentBooks';
+import { quoteBashArgument } from '../../../../../scripts/run-codex-prompts/common/runGoScript/quoteBashArgument';
+import { toPosixPath } from '../../../../../scripts/run-codex-prompts/common/runGoScript/toPosixPath';
 import { parsePromptFile } from '../../../../../scripts/run-codex-prompts/prompts/parsePromptFile';
 import { PROMPTS_README_TEMPLATE } from '../promptsReadmeTemplate';
 import { snapshotPlanningProject } from './fixtures/snapshotPlanningProject';
@@ -83,17 +85,24 @@ async function buildPackagedCli(packagePath: string): Promise<void> {
 }
 
 /** Installs a mock at the normal npm Codex location on PATH; no production mocking switches are needed. */
-async function installMockHarness(directory: string): Promise<string> {
+async function installMockHarness(directory: string, fixture = 'codex.cjs'): Promise<string> {
     const entrypoint = join(directory, 'node_modules/@openai/codex/bin/codex.js');
     await mkdir(dirname(entrypoint), { recursive: true });
-    await copyFile(join(FIXTURE_DIRECTORY, 'codex.cjs'), entrypoint);
+    await copyFile(join(FIXTURE_DIRECTORY, fixture), entrypoint);
     const launcher = join(directory, 'codex');
     await writeFile(
         launcher,
-        `#!/bin/sh\nexec '${process.execPath.replace(/'/gu, "'\\''")}' '${entrypoint.replace(/'/gu, "'\\''")}' "$@"\n`,
+        `#!/bin/sh\nexec '${process.execPath.replace(/\\/gu, '/').replace(/'/gu, "'\\''")}' '${entrypoint
+            .replace(/\\/gu, '/')
+            .replace(/'/gu, "'\\''")}' "$@"\n`,
     );
     await chmod(launcher, 0o755);
     await writeFile(join(directory, 'codex.cmd'), '@echo off\r\nexit /b 99\r\n');
+    // Login-shell profiles can reset PATH. BASH_ENV restores the fixture directory before any harness command runs.
+    await writeFile(
+        join(directory, 'bash-env.sh'),
+        `export PATH=${quoteBashArgument(toPosixPath(directory))}:"$PATH"\n`,
+    );
     return directory;
 }
 
@@ -131,13 +140,120 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         if (temporaryPath) await rm(temporaryPath, { recursive: true, force: true });
     });
 
+    it('runs the installed CLI in an external project with shared defaults and independent overrides', async () => {
+        const callerPath = join(temporaryPath, 'unrelated caller');
+        const projectPath = join(temporaryPath, 'selected project with spaces');
+        await mkdir(callerPath);
+        await mkdir(projectPath);
+        await writeFile(join(callerPath, 'AGENTS.md'), 'CALLER instructions must never leak.');
+        const codingHarnessPath = await installMockHarness(join(temporaryPath, 'coding-harness'), 'coding.cjs');
+        const environment = {
+            ...process.env,
+            PATH: `${codingHarnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
+            BASH_ENV: toPosixPath(join(codingHarnessPath, 'bash-env.sh')),
+            GIT_CONFIG_GLOBAL: join(temporaryPath, 'empty-git-config'),
+            GIT_CONFIG_NOSYSTEM: '1',
+        };
+        const resolvedHarness = await EXECUTE_FILE('bash', ['-lc', 'command -v codex'], {
+            cwd: projectPath,
+            env: environment,
+            windowsHide: true,
+            timeout: 60000,
+        });
+        expect(resolvedHarness.stdout.trim()).toBe(toPosixPath(join(codingHarnessPath, 'codex')));
+        /** Runs the packed executable from a directory unrelated to the package or selected project. */
+        const run = (argumentsList: string[], cwd = callerPath) =>
+            EXECUTE_FILE(process.execPath, [join(packagePath, 'bin/promptbook-cli.js'), ...argumentsList], {
+                cwd,
+                env: environment,
+                windowsHide: true,
+                timeout: 60000,
+                maxBuffer: 2 * 1024 * 1024,
+            });
+        const beforeHelp = await readdir(projectPath);
+        expect((await run(['coder', 'run', '--help', '--path', projectPath])).stdout).toContain('--path');
+        await run(['--version']);
+        expect(await readdir(projectPath)).toEqual(beforeHelp);
+        await expect(run(['init', '--path', join(temporaryPath, 'does-not-exist'), '--no-questions'])).rejects.toThrow(
+            'project directory',
+        );
+        await run(['init', '--path', projectPath, '--no-questions']);
+        const packageJson = JSON.parse(await readFile(join(projectPath, 'package.json'), 'utf-8'));
+        expect(packageJson.scripts['coder:run']).not.toMatch(/--(?:agent|context|path)\b/u);
+        await writeFile(join(projectPath, 'agents/developer.book'), 'Developer\nFROM @Null\nRULE PACKED Developer.\n');
+        await writeFile(join(projectPath, 'agents/planner.book'), 'Planner\nFROM @Null\nRULE PACKED Planner.\n');
+        await writeFile(join(projectPath, 'AGENTS.md'), 'PACKED additional context.\n');
+        await writeFile(join(projectPath, 'override context.md'), 'PACKED replacement context.\n');
+        const argumentsList = [
+            'coder',
+            'run',
+            '--harness',
+            'openai-codex',
+            '--no-ui',
+            '--no-questions',
+            '--no-commit',
+            '--git-changes',
+            'ignore',
+            '--limit',
+            '1',
+            '--wait-after-error',
+            '0s',
+        ];
+        /** Resets only the fixture task and returns the inputs observed by the fake installed harness. */
+        const execute = async (extra: string[], cwd?: string) => {
+            await writeFile(join(projectPath, 'prompts/defaults.md'), '[ ]\n\nImplement the fixture task.\n');
+            await run([...argumentsList, ...extra], cwd);
+            return JSON.parse(await readFile(join(projectPath, '.promptbook/mock-call.json'), 'utf-8'));
+        };
+        const implicit = await execute([], projectPath);
+        const explicit = await execute([
+            '--path',
+            projectPath,
+            '--agent',
+            './agents/developer.book',
+            '--context',
+            './AGENTS.md',
+        ]);
+        expect(explicit).toEqual(implicit);
+        expect(explicit.prompt).toContain('PACKED Developer.');
+        expect(explicit.prompt.match(/PACKED additional context/g)).toHaveLength(1);
+        expect(explicit.prompt).not.toContain('CALLER');
+        const overridden = await execute([
+            '--path',
+            '../selected project with spaces',
+            '--agent',
+            'agents/planner.book',
+            '--context',
+            './override context.md',
+        ]);
+        expect(overridden.prompt).toContain('PACKED Planner.');
+        expect(overridden.prompt).toContain('PACKED replacement context.');
+        expect(overridden.prompt).not.toContain('PACKED additional context.');
+        const inline = await execute(['--path', projectPath, '--context', 'PACKED inline override.']);
+        expect(inline.prompt).toContain('PACKED Developer.');
+        expect(inline.prompt).toContain('PACKED inline override.');
+        expect(inline.prompt).not.toContain('PACKED additional context.');
+        const beforePreview = await snapshotPlanningProject(projectPath);
+        await run(['coder', 'run', '--path', projectPath, '--dry-run', '--no-ui']);
+        await expect(run([...argumentsList, '--path', projectPath, '--agent', './missing.book'])).rejects.toThrow(
+            'default Book is not used',
+        );
+        expect(await snapshotPlanningProject(projectPath)).toEqual(beforePreview);
+        expect(await readdir(callerPath)).toEqual(['AGENTS.md']);
+    });
+
     it('smoke-tests workspace preflight and both initializers through an installed packed CLI outside the monorepo', async () => {
         const projectPath = join(temporaryPath, 'workspace-smoke');
         const installationPath = join(temporaryPath, 'installed-bin');
         await mkdir(projectPath);
         await mkdir(installationPath);
         const entrypoint = join(installationPath, 'ptbk');
-        await symlink(join(packagePath, 'bin/promptbook-cli.js'), entrypoint);
+        if (process.platform === 'win32') {
+            // Windows npm launchers are shims; creating a file symlink requires an administrator privilege.
+            await writeFile(entrypoint, `require(${JSON.stringify(join(packagePath, 'bin/promptbook-cli.js'))});\n`);
+        } else {
+            await symlink(join(packagePath, 'bin/promptbook-cli.js'), entrypoint);
+        }
         const environment = {
             ...process.env,
             PATH: `${harnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,

@@ -1,4 +1,5 @@
 import type { WorkspaceRepositoryContext } from '../../../src/cli/cli-commands/common/workspaceRepository';
+import type { ResolvedCoderProjectContext } from '../common/resolveCoderProjectContext';
 import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChangesMode';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
@@ -12,6 +13,10 @@ import type { CoderRunUiState } from '../ui/CoderRunUiState';
 export type RunOptions = {
     /** Project and Git roots resolved by the CLI before setup. */
     workspace?: WorkspaceRepositoryContext;
+    /** Explicit project input for script callers; the CLI passes its preflight workspace. */
+    projectPath?: string;
+    /** Validated read-only Book and context inputs from CLI preflight. */
+    projectContext?: ResolvedCoderProjectContext;
     /**
      * When true, do not execute prompts and only print prompts that still need to be written.
      */

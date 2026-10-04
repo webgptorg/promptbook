@@ -23,7 +23,7 @@ export const INSTALL_GLOBAL_COMMAND = 'npm install --global ptbk';
  */
 export const INIT_COMMAND = 'ptbk init';
 
-/** Repository-aware conversation which authors PRDs with the project-owned Planner. */
+/** Repository-aware conversation which authors PRDs with the project-owned Developer under planning restrictions. */
 export const PLAN_COMMAND = 'ptbk coder plan --harness openai-codex';
 
 /**
@@ -91,17 +91,17 @@ export const PING_PERIOD_COMMAND =
  * Full-featured command which starts the coder server with kanban UI, agent persona,
  * project context and post-prompt test verification.
  */
-export const SERVER_COMMAND = `ptbk coder server --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level max --context AGENTS.md --test npm run test`;
+export const SERVER_COMMAND = `ptbk coder server --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level max --test npm run test`;
 
 /**
  * Full-featured command shown in the hero live terminal sample.
  */
-export const LIVE_DEMO_RUN_COMMAND = `ptbk coder run --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level xhigh --context AGENTS.md --test "npm run test-for-ptbk-coder" --wait-between-prompts 4h --limit 1`;
+export const LIVE_DEMO_RUN_COMMAND = `ptbk coder run --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level xhigh --test "npm run test-for-ptbk-coder" --wait-between-prompts 4h --limit 1`;
 
 /**
  * Command which overrides the default Developer with a custom project-owned Book.
  */
-export const AGENT_RUN_COMMAND = `ptbk coder run --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --agent agents/my-developer.book --context AGENTS.md`;
+export const AGENT_RUN_COMMAND = `ptbk coder run --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --agent agents/my-developer.book`;
 
 /**
  * Command which interactively verifies completed prompts, newest first, and archives them to `prompts/done/`.
