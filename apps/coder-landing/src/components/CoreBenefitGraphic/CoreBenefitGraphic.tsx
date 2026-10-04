@@ -162,7 +162,7 @@ function GraphicCheck({ x, y }: { readonly x: number; readonly y: number }) {
 }
 
 /**
- * Draws a running prompt queue with a floating tested-and-committed receipt.
+ * Draws a running prompt queue with a floating checked-and-committed receipt.
  */
 function AutopilotGraphic({ paints }: { readonly paints: GraphicPaints }) {
     return (
@@ -239,7 +239,7 @@ function AutopilotGraphic({ paints }: { readonly paints: GraphicPaints }) {
                 />
                 <GraphicCheck x={10} y={9} />
                 <text x="33" y="22" fill="#C8FFF4" fontSize="12" fontWeight="500" className="font-sans">
-                    Tested &amp; committed
+                    Checked &amp; committed
                 </text>
             </g>
         </g>

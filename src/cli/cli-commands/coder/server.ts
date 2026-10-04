@@ -3,6 +3,7 @@ import {
     Option,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
+import { addCoderCheckOptions, normalizeCheckCommandOption } from '../common/coderCheckCliOptions';
 import { NETWORK_LIMITS } from '../../../constants';
 import { assertsError } from '../../../errors/assertsError';
 import { NotAllowed } from '../../../errors/NotAllowed';
@@ -86,10 +87,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
     addPromptRunnerSelectionOptions(command);
     addQuestionsOption(command);
     addCoderExecutionOptions(command);
-    command.option(
-        '--test <test-command...>',
-        'Run a verification command after each prompt; quote it when the command itself contains top-level flags',
-    );
+    addCoderCheckOptions(command, false);
     command.option(
         '--preserve-logs',
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
@@ -142,7 +140,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 dryRun,
                 agent,
                 context,
-                test,
+                check,
                 preserveLogs,
                 priority,
                 minPriority: minimumPriority,
@@ -158,7 +156,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 readonly dryRun: boolean;
                 readonly agent?: string;
                 readonly context?: string;
-                readonly test?: string | string[];
+                readonly check?: string | string[];
                 readonly preserveLogs: boolean;
                 readonly priority?: number;
                 readonly minPriority?: number;
@@ -173,7 +171,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 CoderAgentCliOptions;
 
             const port = parseCoderServerPort(rawPort);
-            const testCommand = normalizeCommandOptionValue(test);
+            const checkCommand = normalizeCheckCommandOption(check);
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
@@ -201,7 +199,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 model: runnerOptions.model,
                 agent,
                 context,
-                testCommand,
+                checkCommand,
                 preserveLogs,
                 noUi: runnerOptions.noUi,
                 thinkingLevel: runnerOptions.thinkingLevel,
@@ -282,25 +280,6 @@ function parseCoderServerPort(rawPort: string): number_port {
     }
 
     return port as number_port;
-}
-
-/**
- * Joins one Commander option that may be parsed either as a single string or a variadic token array.
- *
- * @private internal utility of `coder server` command
- */
-function normalizeCommandOptionValue(value: string | string[] | undefined): string | undefined {
-    if (value === undefined) {
-        return undefined;
-    }
-
-    const parts = Array.isArray(value) ? value : [value];
-    const normalizedValue = parts
-        .map((part) => part.trim())
-        .filter(Boolean)
-        .join(' ')
-        .trim();
-    return normalizedValue === '' ? undefined : normalizedValue;
 }
 
 // Note: [🟡] Code for CLI command [server](src/cli/cli-commands/coder/server.ts) should never be published outside of `@promptbook/cli`

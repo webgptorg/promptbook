@@ -145,7 +145,7 @@ describe('runGoScript runtime logging', () => {
     });
 
     it('keeps both the runtime log and temp shell file after failures', async () => {
-        const scriptPath = join(temporaryDirectoryPath, 'prompt-1.test.sh');
+        const scriptPath = join(temporaryDirectoryPath, 'prompt-1.check.sh');
         const logPath = buildScriptLogPath(scriptPath);
 
         await expect(
@@ -161,7 +161,7 @@ describe('runGoScript runtime logging', () => {
 
         const log = await readFile(logPath, 'utf-8');
 
-        expect(log).toContain('=== test shell started at ');
+        expect(log).toContain('=== check shell started at ');
         expect(log).toContain('test failure');
         expect(log).toContain('Status: failed');
         await expect(readFile(scriptPath, 'utf-8')).resolves.toContain("printf 'test failure\\n' >&2");

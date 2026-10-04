@@ -7,7 +7,7 @@ import type { CoderRunStep, CoderRunStepKind } from '../common/CoderRunStep';
  */
 const CODER_RUN_STEP_LABELS: Record<CoderRunStepKind, string> = {
     implementation: 'Implementation',
-    testing: 'Testing',
+    checking: 'Checking',
     fixing: 'Fixing',
 };
 
@@ -20,17 +20,19 @@ const IN_PROGRESS_STEP_SUFFIX = 'in progress';
  * Formats the per-step usage breakdown recorded for one prompt.
  *
  * Produces a `; `-separated summary such as
- * `Implementation $8.01 6 hours; Testing 1 hour; Fixing $3.14 2 hours` where each coding step carries its
+ * `Implementation $8.01 6 hours; Checking 1 hour; Fixing $3.14 2 hours` where each coding step carries its
  * price and duration and each verification step carries only its duration.
  *
  * @param steps - Steps which have already finished
- * @param inProgressStepKind - Step which has started but has not finished yet, appended as `Testing in progress`
+ * @param inProgressStepKind - Step which has started but has not finished yet, appended as `Checking in progress`
  */
 export function formatCoderRunSteps(steps: ReadonlyArray<CoderRunStep>, inProgressStepKind?: CoderRunStepKind): string {
     const formattedSteps = steps.map(formatCoderRunStep);
 
     if (inProgressStepKind !== undefined) {
-        formattedSteps.push(`${CODER_RUN_STEP_LABELS[inProgressStepKind]} ${IN_PROGRESS_STEP_SUFFIX}`);
+        formattedSteps.push(
+            `${CODER_RUN_STEP_LABELS[decodeCoderRunStepKind(inProgressStepKind)]} ${IN_PROGRESS_STEP_SUFFIX}`,
+        );
     }
 
     return formattedSteps.join('; ');
@@ -40,7 +42,7 @@ export function formatCoderRunSteps(steps: ReadonlyArray<CoderRunStep>, inProgre
  * Formats one coder run step as `Label $price duration`, omitting the price for steps without model usage.
  */
 function formatCoderRunStep(step: CoderRunStep): string {
-    const label = CODER_RUN_STEP_LABELS[step.kind];
+    const label = CODER_RUN_STEP_LABELS[decodeCoderRunStepKind(step.kind)];
     const durationString = moment.duration(step.durationMs).humanize();
     const priceString = step.usage === null ? undefined : formatUsagePrice(step.usage);
 
@@ -49,4 +51,9 @@ function formatCoderRunStep(step: CoderRunStep): string {
     }
 
     return `${label} ${priceString} ${durationString}`;
+}
+
+/** Decodes the old aggregate step name at the display boundary; new execution only records checking. */
+function decodeCoderRunStepKind(kind: CoderRunStepKind | 'testing'): CoderRunStepKind {
+    return kind === 'testing' ? 'checking' : kind;
 }

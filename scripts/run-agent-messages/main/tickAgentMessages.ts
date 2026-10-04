@@ -17,9 +17,9 @@ import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptR
 import type { PromptRunner } from '../../run-codex-prompts/runners/types/PromptRunner';
 import type { PromptStats } from '../../run-codex-prompts/prompts/types/PromptStats';
 import {
-    runPromptWithTestFeedback,
-    type RunPromptWithTestFeedbackResult,
-} from '../../run-codex-prompts/testing/runPromptWithTestFeedback';
+    runPromptWithCheckFeedback,
+    type RunPromptWithCheckFeedbackResult,
+} from '../../run-codex-prompts/checks/runPromptWithCheckFeedback';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
 import type {
     AgentRunMessagePreviewSection,
@@ -291,14 +291,14 @@ async function runQueuedAgentMessage(options: {
     uiHandle?.startCapturingAgentOutput();
 
     const executionStartedAt = new Date().toISOString();
-    let promptRunResult: RunPromptWithTestFeedbackResult;
+    let promptRunResult: RunPromptWithCheckFeedbackResult;
     let answeredMessageTouches: AnsweredMessageTouches = { touchedProjectNames: [], touchedExternalSources: [] };
     try {
         try {
             promptRunResult = await withPromptRuntimeLog(
                 scriptPath,
                 async (logPath) => {
-                    const runResult = await runPromptWithTestFeedback({
+                    const runResult = await runPromptWithCheckFeedback({
                         runner,
                         prompt,
                         scriptPath,

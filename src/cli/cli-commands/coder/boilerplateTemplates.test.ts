@@ -134,8 +134,8 @@ describe('coder boilerplate templates', () => {
                 .every(([, scriptCommand]) => scriptCommand.startsWith('npx ptbk')),
         ).toBe(true);
         // Note: The verification command of `coder:run` is a project-owned script initialized next to it
-        expect(defaultCoderPackageJsonScripts['coder:run']).toContain('--test "npm run test-for-ptbk-coder"');
-        expect(defaultCoderPackageJsonScripts['test-for-ptbk-coder']).toBe('npm test');
+        expect(defaultCoderPackageJsonScripts['coder:run']).toContain('--check "npm run check"');
+        expect(defaultCoderPackageJsonScripts.check).toContain('process.exit(1)');
         expect(await readJsonFile(join(projectPath, '.vscode', 'settings.json'))).toEqual(
             getDefaultCoderVscodeSettings(),
         );
@@ -183,7 +183,7 @@ describe('coder boilerplate templates', () => {
             },
         });
         expect(summary.addedPackageJsonScriptNames).not.toContain('coder:run');
-        expect(summary.addedPackageJsonScriptNames).toContain('test-for-ptbk-coder');
+        expect(summary.addedPackageJsonScriptNames).toContain('check');
 
         const packageJsonContent = await readFile(join(projectPath, 'package.json'), 'utf-8');
         expect(packageJsonContent).toContain('\n  "scripts": {\n');
@@ -248,7 +248,8 @@ describe('coder boilerplate templates', () => {
         );
         expect(packageJson.scripts['coder:run']).toBe(existingCoderRunScript);
         expect(packageJson.scripts['coder:plan']).toBe(existingCoderPlanScript);
-        expect(packageJson.scripts['test-for-ptbk-coder']).toBe('npm run build && npm run test-unit');
+        expect(packageJson.scripts.check).toBe('npm run build && npm run test-unit');
+        expect(packageJson.scripts['test-for-ptbk-coder']).toBeUndefined();
         expect(
             (
                 await readJsonFile<{ readonly 'markdown.copyFiles.destination': Record<string, string> }>(
@@ -260,6 +261,7 @@ describe('coder boilerplate templates', () => {
 
         // Note: [2] Only the genuinely missing scripts were added
         expect([...summary.addedPackageJsonScriptNames].sort()).toEqual([
+            'check',
             'coder:generate-boilerplates',
             'coder:verify',
         ]);

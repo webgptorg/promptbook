@@ -243,7 +243,7 @@ export function createLiveDemoScript(terminalColumnCount: number): ReadonlyArray
                 createTextPart('thinking xhigh', 'plain'),
             ]),
             buildLabeledLine('Context', [createTextPart('AGENTS.md', 'plain')]),
-            buildLabeledLine('Test', [createTextPart('npm run test-for-ptbk-coder', 'plain')]),
+            buildLabeledLine('Check', [createTextPart('npm run check', 'plain')]),
             buildLabeledLine('Usage', [createTextPart('5h  ·  54% remaining  ·  resets in 2h 12m', 'plain')]),
             buildLabeledLine('', [createTextPart('7d  ·  71% remaining  ·  resets in 5d 8h', 'plain')]),
             buildLabeledLine('This run', [createTextPart('Task 1/7  ·  0 done  ·  7 left', 'plain')]),
@@ -275,7 +275,7 @@ export function createLiveDemoScript(terminalColumnCount: number): ReadonlyArray
             buildLiveOutputLine('  [DEP0040] The `punycode` module is deprecated.', 'warning'),
             buildLiveOutputLine('[Verification · stdout]', 'info'),
             buildLiveOutputLine('  Prerendered home page', 'plain'),
-            buildLiveOutputLine('  🎉 All tests passed!', 'success'),
+            buildLiveOutputLine('  🎉 All checks passed!', 'success'),
             buildLiveOutputLine('', 'plain'),
         ]),
         ...createBoxLines(terminalColumnCount, 'Errors', 'errorTitle', [

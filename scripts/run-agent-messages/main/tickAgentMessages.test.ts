@@ -14,7 +14,7 @@ import type { CoderRunStep } from '../../run-codex-prompts/common/CoderRunStep';
 import { printAgentGitIdentityTipAtProcessExitIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
 import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
-import { runPromptWithTestFeedback } from '../../run-codex-prompts/testing/runPromptWithTestFeedback';
+import { runPromptWithCheckFeedback } from '../../run-codex-prompts/checks/runPromptWithCheckFeedback';
 import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { tickAgentMessages } from './tickAgentMessages';
 
@@ -41,8 +41,8 @@ jest.mock('../../run-codex-prompts/main/resolvePromptRunner', () => ({
     resolvePromptRunner: jest.fn(),
 }));
 
-jest.mock('../../run-codex-prompts/testing/runPromptWithTestFeedback', () => ({
-    runPromptWithTestFeedback: jest.fn(),
+jest.mock('../../run-codex-prompts/checks/runPromptWithCheckFeedback', () => ({
+    runPromptWithCheckFeedback: jest.fn(),
 }));
 
 jest.mock('../git/ensureWorkingTreeCleanForAgentQueue', () => ({
@@ -130,7 +130,7 @@ describe('tickAgentMessages', () => {
                 modelName: 'gpt-5.4',
             },
         });
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockResolvedValue({
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockResolvedValue({
             usage: UNCERTAIN_USAGE,
             attemptCount: 1,
             steps: [],
@@ -209,7 +209,7 @@ describe('tickAgentMessages', () => {
             'utf-8',
         );
 
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockImplementation(
             async ({ prompt }) => {
                 expect(prompt).toContain(
                     'Read `messages/queued/question.book` and answer the most recent `MESSAGE` block',
@@ -300,7 +300,7 @@ describe('tickAgentMessages', () => {
             'utf-8',
         );
 
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockImplementation(
             async ({ prompt }) => {
                 expect(prompt).toContain(
                     'The underlying coding harness is already executing this turn **exactly once**',
@@ -322,7 +322,7 @@ describe('tickAgentMessages', () => {
 
         await tickAgentMessages(createAgentRunOptions());
 
-        expect(runPromptWithTestFeedback).toHaveBeenCalledTimes(1);
+        expect(runPromptWithCheckFeedback).toHaveBeenCalledTimes(1);
         await expect(
             readFile(
                 join(temporaryProjectPath, 'messages', 'finished', 'team', 'question', 'copywriter-123--01.book'),
@@ -360,7 +360,7 @@ describe('tickAgentMessages', () => {
             'utf-8',
         );
 
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockImplementation(
             async ({ prompt }) => {
                 expect(prompt).toContain('Read `messages/queued/second.book`');
                 await appendFile(
@@ -436,7 +436,7 @@ describe('tickAgentMessages', () => {
                 modelName: 'gpt-5.2-codex',
             },
         });
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockResolvedValue({
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockResolvedValue({
             usage: UNCERTAIN_USAGE,
             loginMethod: 'chatgpt',
             attemptCount: 1,
@@ -482,7 +482,7 @@ describe('tickAgentMessages', () => {
             'utf-8',
         );
 
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockImplementation(
             async () => {
                 await appendFile(
                     join(temporaryProjectPath!, 'messages', 'queued', 'thread.book'),

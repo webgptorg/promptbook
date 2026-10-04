@@ -75,6 +75,33 @@ describe('$initializeCoderServerCommand', () => {
         jest.clearAllMocks();
     });
 
+    it('forwards a quoted aggregate check without interpreting embedded flags as server options', async () => {
+        const check = 'node --test "test files/unit.js" && npm run build -- --model local';
+        await createProgramWithServerCommand().parseAsync(
+            ['node', 'test', 'server', '--dry-run', '--harness', 'openai-codex', '--model', 'fixture-model', '--check', check],
+            { from: 'node' },
+        );
+        expect(getRunCodexPromptsServerMock()).toHaveBeenCalledWith(
+            expect.objectContaining({ checkCommand: check, model: 'fixture-model' }),
+        );
+    });
+
+    it('keeps post-prompt checks opt-in when no check command is selected', async () => {
+        await createProgramWithServerCommand().parseAsync(['node', 'test', 'server', '--dry-run'], { from: 'node' });
+        expect(getRunCodexPromptsServerMock()).toHaveBeenCalledWith(
+            expect.objectContaining({ checkCommand: undefined }),
+        );
+    });
+
+    it('rejects an empty check before workspace setup or server execution', async () => {
+        await createProgramWithServerCommand().parseAsync(['node', 'test', 'server', '--dry-run', '--check', ''], {
+            from: 'node',
+        });
+        expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
+        expect($ensureHarnessInstallations).not.toHaveBeenCalled();
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
     it('checks local ignore rules for the selected harness before starting the server', async () => {
         const program = createProgramWithServerCommand();
 

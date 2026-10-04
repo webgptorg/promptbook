@@ -38,6 +38,12 @@ export type CoderInitializationSummary = {
     readonly addedPackageJsonScriptNames: ReadonlyArray<string>;
     readonly referencedArtifactStatuses: ReadonlyArray<EnsuredCoderReferencedArtifact>;
     readonly initializedEnvVariableNames: ReadonlyArray<string>;
+    /** Actual preserved or generated scope of the project check. */
+    readonly checkScriptSummary: string;
+    /** Manual steps needed for custom or conflicting legacy entries. */
+    readonly migrationInstructions: ReadonlyArray<string>;
+    /** Whether validation is configured rather than still requiring setup. */
+    readonly isCheckConfigured: boolean;
 };
 
 /**
@@ -85,10 +91,13 @@ export async function initializeCoderProjectConfiguration(
     )!;
     const { envFileStatus, initializedEnvVariableNames } = await completeStep('.env', ensureCoderEnvFile(projectPath));
     const gitignoreFileStatus = await completeStep('.gitignore', ensureCoderGitignoreFile(projectPath));
-    const { status: packageJsonFileStatus, addedEntryKeys: addedPackageJsonScriptNames } = await completeStep(
-        'package.json',
-        ensureCoderPackageJsonFile(projectPath),
-    );
+    const {
+        status: packageJsonFileStatus,
+        addedEntryKeys: addedPackageJsonScriptNames,
+        checkScriptSummary,
+        migrationInstructions,
+        isCheckConfigured,
+    } = await completeStep('package.json', ensureCoderPackageJsonFile(projectPath));
     const vscodeSettingsFileStatus = await completeStep(
         '.vscode/settings.json',
         ensureCoderVscodeSettingsFile(projectPath),
@@ -119,6 +128,9 @@ export async function initializeCoderProjectConfiguration(
         addedPackageJsonScriptNames,
         referencedArtifactStatuses,
         initializedEnvVariableNames,
+        checkScriptSummary,
+        migrationInstructions,
+        isCheckConfigured,
     };
 }
 

@@ -20,11 +20,25 @@ const EXECUTE_FILE = promisify(execFile);
 
 /** Finite offline execution; the mock owns no installation, credentials, network or model calls. */
 const RUN_OPTIONS: RunOptions = {
-    dryRun: false, noUi: true, noCommit: true, gitChanges: 'ignore',
-    waitForUser: false, waitAfterPrompt: 0, waitBetweenPrompts: 0, waitAfterError: 0,
-    preserveLogs: true, normalizeLineEndings: false, allowCredits: false,
-    autoMigrate: false, allowDestructiveAutoMigrate: false, autoPush: false, autoPull: false,
-    agentName: 'openai-codex', priority: 0, limit: 1, isAskingQuestionsEnabled: false,
+    dryRun: false,
+    noUi: true,
+    noCommit: true,
+    gitChanges: 'ignore',
+    waitForUser: false,
+    waitAfterPrompt: 0,
+    waitBetweenPrompts: 0,
+    waitAfterError: 0,
+    preserveLogs: true,
+    normalizeLineEndings: false,
+    allowCredits: false,
+    autoMigrate: false,
+    allowDestructiveAutoMigrate: false,
+    autoPush: false,
+    autoPull: false,
+    agentName: 'openai-codex',
+    priority: 0,
+    limit: 1,
+    isAskingQuestionsEnabled: false,
 };
 
 describe('project defaults through the real prompt queue and round', () => {
@@ -77,7 +91,12 @@ describe('project defaults through the real prompt queue and round', () => {
         jest.spyOn(process, 'cwd').mockReturnValue(projectPath);
         await runCodexPrompts({ ...RUN_OPTIONS });
         await writeFile(join(projectPath, 'prompts/task.md'), '[ ]\n\nImplement the selected project task.\n');
-        await runCodexPrompts({ ...RUN_OPTIONS, projectPath, agent: './agents/developer.book', context: './AGENTS.md' });
+        await runCodexPrompts({
+            ...RUN_OPTIONS,
+            projectPath,
+            agent: './agents/developer.book',
+            context: './AGENTS.md',
+        });
         expect(observed).toHaveLength(2);
         expect(observed[0]!.prompt).toBe(observed[1]!.prompt);
         expect(observed[0]!.prompt).toContain('SELECTED Developer rule.');
@@ -87,14 +106,22 @@ describe('project defaults through the real prompt queue and round', () => {
 
     it('keeps two sequential project invocations independent and executes checks in the selected project', async () => {
         jest.spyOn(process, 'cwd').mockReturnValue(callerPath);
-        await writeFile(join(projectPath, 'check.cjs'), "require('fs').writeFileSync('check-cwd.txt', process.cwd());\n");
-        await runCodexPrompts({ ...RUN_OPTIONS, projectPath, testCommand: 'node check.cjs' });
+        await writeFile(
+            join(projectPath, 'check.cjs'),
+            "require('fs').writeFileSync('check-cwd.txt', process.cwd());\n",
+        );
+        await runCodexPrompts({ ...RUN_OPTIONS, projectPath, checkCommand: 'node check.cjs' });
         expect(observed[0]!.prompt).not.toContain('CALLER');
         expect(await readFile(join(projectPath, 'check-cwd.txt'), 'utf-8')).toBe(projectPath);
         expect(await readFile(join(callerPath, 'prompts/task.md'), 'utf-8')).toMatch(/^\[ \]/u);
         expect(await readdir(callerPath)).not.toContain('implemented.txt');
         expect(await readdir(join(projectPath, 'prompts/traces'))).toContain('task.md');
-        await runCodexPrompts({ ...RUN_OPTIONS, projectPath: callerPath, context: 'Explicit inline only', agent: 'agents/planner.book' });
+        await runCodexPrompts({
+            ...RUN_OPTIONS,
+            projectPath: callerPath,
+            context: 'Explicit inline only',
+            agent: 'agents/planner.book',
+        });
         expect(observed).toHaveLength(2);
         expect(observed[1]!.projectPath).toBe(callerPath);
         expect(observed[1]!.prompt).toContain('CALLER Planner rule.');

@@ -16,20 +16,24 @@ function createUsageWithPrice(price: number): Usage {
 }
 
 describe('formatCoderRunSteps', () => {
+    it('decodes historical aggregate testing records at the display boundary', () => {
+        const historicalStep = { kind: 'testing', usage: null, durationMs: ONE_HOUR_MS } as unknown as CoderRunStep;
+        expect(formatCoderRunSteps([historicalStep])).toContain('Checking');
+    });
     it('renders each step with its label, price and duration joined by "; "', () => {
         const steps: ReadonlyArray<CoderRunStep> = [
             { kind: 'implementation', usage: createUsageWithPrice(8.01), durationMs: 6 * ONE_HOUR_MS },
-            { kind: 'testing', usage: null, durationMs: 2 * ONE_HOUR_MS },
+            { kind: 'checking', usage: null, durationMs: 2 * ONE_HOUR_MS },
             { kind: 'fixing', usage: createUsageWithPrice(3.14), durationMs: 3 * ONE_HOUR_MS },
         ];
 
-        expect(formatCoderRunSteps(steps)).toBe('Implementation $8.01 6 hours; Testing 2 hours; Fixing $3.14 3 hours');
+        expect(formatCoderRunSteps(steps)).toBe('Implementation $8.01 6 hours; Checking 2 hours; Fixing $3.14 3 hours');
     });
 
     it('omits the price for steps without model usage such as testing', () => {
-        const steps: ReadonlyArray<CoderRunStep> = [{ kind: 'testing', usage: null, durationMs: 2 * ONE_HOUR_MS }];
+        const steps: ReadonlyArray<CoderRunStep> = [{ kind: 'checking', usage: null, durationMs: 2 * ONE_HOUR_MS }];
 
-        expect(formatCoderRunSteps(steps)).toBe('Testing 2 hours');
+        expect(formatCoderRunSteps(steps)).toBe('Checking 2 hours');
     });
 
     it('renders a single implementation step without any separator', () => {
@@ -49,7 +53,7 @@ describe('formatCoderRunSteps', () => {
             { kind: 'implementation', usage: createUsageWithPrice(8.01), durationMs: 6 * ONE_HOUR_MS },
         ];
 
-        expect(formatCoderRunSteps(steps, 'testing')).toBe('Implementation $8.01 6 hours; Testing in progress');
+        expect(formatCoderRunSteps(steps, 'checking')).toBe('Implementation $8.01 6 hours; Checking in progress');
     });
 
     it('renders the started step alone when nothing has finished yet', () => {

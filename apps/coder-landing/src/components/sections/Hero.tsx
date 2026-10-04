@@ -31,7 +31,7 @@ export function Hero() {
                         <HeroClaimRotator />
                         <p className="mt-6 max-w-xl text-lg leading-relaxed text-gray-300 lg:mt-8 lg:text-xl lg:leading-relaxed xl:text-[1.375rem]">
                             <strong className="text-white">ptbk coder</strong> drives Claude Code, OpenAI Codex, Gemini
-                            CLI and other coding agents through a queue of plain-markdown prompts. It runs your tests
+                            CLI and other coding agents through a queue of plain-markdown prompts. It runs your checks
                             after every task, commits what passes and pushes it. You do not have to be at the keyboard
                             for any of it.
                         </p>

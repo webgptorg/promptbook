@@ -108,6 +108,7 @@
         "katex": "0.16.45",
         "moment": "2.30.1",
         "openai": "6.18.0",
+        "papaparse": "5.4.1",
         "qrcode": "1.5.4",
         "rxjs": "7.8.2",
         "showdown": "2.1.0",

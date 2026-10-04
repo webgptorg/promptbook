@@ -2,10 +2,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, join, resolve } from 'path';
 import { Book } from '../../src/book-3.0/Book';
 import type { string_book } from '../../src/book-2.0/agent-source/string_book';
-import {
-    AGENT_BOOK_FILE_PATH,
-    AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
-} from '../../src/book-3.0/agentFolderPaths';
+import { AGENT_BOOK_FILE_PATH, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH } from '../../src/book-3.0/agentFolderPaths';
 import { NotAllowed } from '../../src/errors/NotAllowed';
 import { NotFoundError } from '../../src/errors/NotFoundError';
 import { resolvePromptbookTemporaryPath } from '../../src/utils/filesystem/promptbookTemporaryPath';
@@ -138,11 +135,7 @@ export function createAgentChatWorkspacePath(options: {
         .toLowerCase()
         .replace(/[^a-z0-9._-]+/gu, '-')
         .replace(/^[._-]+|[._-]+$/gu, '');
-    const sessionName = [
-        safeAgentName || 'agent',
-        Date.now().toString(36),
-        $randomToken(4),
-    ].join('-');
+    const sessionName = [safeAgentName || 'agent', Date.now().toString(36), $randomToken(4)].join('-');
 
     return resolvePromptbookTemporaryPath(
         options.currentWorkingDirectory,
@@ -193,7 +186,11 @@ async function prepareAgentChatWorkspace(options: {
     readonly agentSource: string_book;
 }): Promise<void> {
     await mkdir(join(options.workspacePath, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH), { recursive: true });
-    await writeFile(join(options.workspacePath, AGENT_BOOK_FILE_PATH), normalizeAgentSource(options.agentSource), 'utf-8');
+    await writeFile(
+        join(options.workspacePath, AGENT_BOOK_FILE_PATH),
+        normalizeAgentSource(options.agentSource),
+        'utf-8',
+    );
 }
 
 /**
@@ -206,7 +203,11 @@ async function writeQueuedMessageBook(options: {
     const messageRelativePath = normalizeRelativePath(
         join(AGENT_QUEUED_MESSAGES_DIRECTORY_PATH, AGENT_CHAT_MESSAGE_FILE_NAME),
     );
-    const messageAbsolutePath = join(options.workspacePath, AGENT_QUEUED_MESSAGES_DIRECTORY_PATH, AGENT_CHAT_MESSAGE_FILE_NAME);
+    const messageAbsolutePath = join(
+        options.workspacePath,
+        AGENT_QUEUED_MESSAGES_DIRECTORY_PATH,
+        AGENT_CHAT_MESSAGE_FILE_NAME,
+    );
 
     await writeFile(messageAbsolutePath, Book.fromMessages(options.messages).stringify(), 'utf-8');
 
@@ -224,7 +225,7 @@ function createPromptRunnerOptions(options: AgentCliRunOptions): RunOptions {
     return {
         dryRun: false,
         context: undefined,
-        testCommand: undefined,
+        checkCommand: undefined,
         preserveLogs: false,
         noUi: options.noUi,
         thinkingLevel: options.thinkingLevel,

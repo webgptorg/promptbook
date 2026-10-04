@@ -23,6 +23,50 @@ describe('parseRunOptions', () => {
         consoleErrorSpy.mockRestore();
     });
 
+    it.each(['--test', '--test-before', '--test=npm test', '--test-before=yes-and-fix'])(
+        'rejects retired aggregate option %s',
+        (flag) => {
+            expect(() => parseRunOptions(['--dry-run', flag])).toThrow('process.exit');
+            expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('renamed to `--check'));
+        },
+    );
+
+    it.each([['--check'], ['--check', ''], ['--check', '  '], ['--check='], ['--check', '--check-before', 'no']])(
+        'rejects an empty check command: %s',
+        (...args) => {
+            expect(() => parseRunOptions(['--dry-run', ...args])).toThrow('process.exit');
+        },
+    );
+
+    it.each(['no', 'yes-and-fail', 'yes-and-fix'])(
+        'resolves the command for %s without adding a preflight phase',
+        (mode) => {
+            const options = parseRunOptions(['--dry-run', '--check-before', mode]);
+            expect(options.checkBefore).toBe(mode);
+            expect(options.checkCommand).toBe(mode === 'no' ? undefined : 'npm run check');
+        },
+    );
+
+    it('preserves quoted spaces, command flags, and shell composition without treating them as Coder options', () => {
+        const check = 'node --test "some tests/test.js" --no-ui && npm run build -- --model local';
+        const options = parseRunOptions([
+            '--harness',
+            'openai-codex',
+            '--check',
+            check,
+            '--check-before',
+            'yes-and-fail',
+        ]);
+        expect(options.checkCommand).toBe(check);
+        expect(options.noUi).toBe(false);
+        expect(options.model).toBeUndefined();
+        expect(options.checkBefore).toBe('yes-and-fail');
+        expect(parseRunOptions(['--dry-run', `--check=${check}`]).checkCommand).toBe(check);
+        expect(
+            parseRunOptions(['--dry-run', '--check', 'node', 'check project.cjs', '&&', 'npm', 'test']).checkCommand,
+        ).toBe("node 'check project.cjs' && npm test");
+    });
+
     it('defaults priority to zero when the flag is not provided', () => {
         const options = parseRunOptions(['--harness', 'gemini']);
 
@@ -39,7 +83,7 @@ describe('parseRunOptions', () => {
             allowCredits: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
-            testBefore: 'no',
+            checkBefore: 'no',
         });
     });
 
@@ -49,22 +93,22 @@ describe('parseRunOptions', () => {
     });
 
     it('parses the pre-coding verification mode', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--test-before', 'yes-and-fix']);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--check-before', 'yes-and-fix']);
 
         expect(options).toMatchObject({
-            testBefore: 'yes-and-fix',
+            checkBefore: 'yes-and-fix',
         });
     });
 
     it('rejects an invalid pre-coding verification mode', () => {
-        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test-before', 'sometimes'])).toThrow(
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--check-before', 'sometimes'])).toThrow(
             'process.exit',
         );
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('rejects a missing pre-coding verification mode', () => {
-        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test-before'])).toThrow('process.exit');
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--check-before'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
@@ -249,7 +293,7 @@ describe('parseRunOptions', () => {
     });
 
     it('parses an unquoted verification command and stops at the next top-level flag', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--test', 'npm', 'run', 'test', '--no-auto']);
+        const options = parseRunOptions(['--harness', 'github-copilot', '--check', 'npm', 'run', 'test', '--no-auto']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -258,7 +302,7 @@ describe('parseRunOptions', () => {
             autoPull: false,
             preserveLogs: false,
             noUi: false,
-            testCommand: 'npm run test',
+            checkCommand: 'npm run test',
             waitForUser: true,
         });
     });
@@ -547,7 +591,7 @@ describe('parseRunOptions', () => {
     });
 
     it('rejects missing verification commands', () => {
-        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test'])).toThrow('process.exit');
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--check'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 

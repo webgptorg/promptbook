@@ -3,11 +3,12 @@ import { DEFAULT_BOILERPLATE_COUNT_OPTION_VALUE } from './boilerplateCount';
 import { COMMON_PROMPT_TEMPLATE_FILE_PATH } from './boilerplateTemplates';
 import { CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
 import { formatDisplayPath } from './formatDisplayPath';
+import { CHECK_SETUP_PLACEHOLDER_COMMAND } from '../../../../scripts/run-codex-prompts/checks/projectCheck';
 
 /**
  * Name of the npm script which `ptbk coder run` uses to verify the project.
  */
-const CODER_TEST_SCRIPT_NAME = 'test-for-ptbk-coder';
+const CHECK_SCRIPT_NAME = 'check';
 
 /**
  * One npm script initialized by `ptbk coder init`.
@@ -58,7 +59,7 @@ const DEFAULT_CODER_PACKAGE_JSON_SCRIPT_DEFINITIONS: ReadonlyArray<CoderPackageJ
         scriptName: 'coder:run',
         scriptCommand: [
             'npx ptbk coder run --harness openai-codex --thinking-level max',
-            `--test "npm run ${CODER_TEST_SCRIPT_NAME}" --test-before yes-and-fix`,
+            `--check "npm run ${CHECK_SCRIPT_NAME}" --check-before yes-and-fix`,
         ].join(' '),
         referencedArtifactPaths: [CODER_DEVELOPER_AGENT_FILE_PATH, AGENTS_FILE_PATH],
     },
@@ -71,8 +72,8 @@ const DEFAULT_CODER_PACKAGE_JSON_SCRIPT_DEFINITIONS: ReadonlyArray<CoderPackageJ
     {
         // Note: The verification command of `coder:run` is a project-owned script, so every project can decide
         //       what "verified" means without touching the `coder:run` script itself
-        scriptName: CODER_TEST_SCRIPT_NAME,
-        scriptCommand: 'npm test',
+        scriptName: CHECK_SCRIPT_NAME,
+        scriptCommand: CHECK_SETUP_PLACEHOLDER_COMMAND,
         referencedArtifactPaths: [],
     },
 ];

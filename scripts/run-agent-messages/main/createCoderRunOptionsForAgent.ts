@@ -8,7 +8,7 @@ export function createCoderRunOptionsForAgent(options: AgentRunOptions): RunOpti
     return {
         dryRun: false,
         context: undefined,
-        testCommand: undefined,
+        checkCommand: undefined,
         preserveLogs: false,
         noUi: options.noUi,
         thinkingLevel: options.thinkingLevel,

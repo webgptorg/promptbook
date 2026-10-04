@@ -48,7 +48,7 @@ export type CoderRunConfig = {
     readonly serverUrl?: string;
     readonly priorityFilter?: PriorityFilter;
     readonly limit?: number;
-    readonly testCommand?: string;
+    readonly checkCommand?: string;
 };
 
 /**

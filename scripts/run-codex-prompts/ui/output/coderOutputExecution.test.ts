@@ -11,7 +11,7 @@ import { subscribeToLiveScriptOutput } from '../../common/runGoScript/captureLiv
 import { printLiveScriptChunk } from '../../common/runGoScript/printLiveScriptChunk';
 import type { RunGoScriptOptions } from '../../common/runGoScript/RunGoScriptOptions';
 import { resolvePromptRunner } from '../../main/resolvePromptRunner';
-import { runPromptWithTestFeedback } from '../../testing/runPromptWithTestFeedback';
+import { runPromptWithCheckFeedback } from '../../checks/runPromptWithCheckFeedback';
 import { CoderRunUiState } from '../CoderRunUiState';
 import { buildCoderOutputLines } from './buildCoderOutputLines';
 
@@ -117,17 +117,17 @@ describe('display-independent runner execution', () => {
                 jest.mocked($runGoScriptUntilMarkerIdle).mockImplementation(fixtureHarness);
                 try {
                     const { runner } = resolvePromptRunner({ agentName: harnessName, allowCredits: false });
-                    const result = await runPromptWithTestFeedback({
+                    const result = await runPromptWithCheckFeedback({
                         runner,
                         projectPath,
                         scriptPath: join(projectPath, 'task.sh'),
                         prompt: 'Update the fixture',
                         promptLabel: 'Fixture task',
-                        testCommand: 'fixture-verifier',
+                        checkCommand: 'fixture-verifier',
                         waitForPauseCheckpoint: async (checkpoint) => {
                             actions.push(checkpoint.checkpointLabel);
                         },
-                        runPromptTestCommandExecutor: async () => {
+                        runPromptCheckCommandExecutor: async () => {
                             verificationCalls++;
                             actions.push('verification');
                             if (verificationCalls === 1) throw new Error('Fixture verification requests one repair');

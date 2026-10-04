@@ -1,4 +1,4 @@
-[ ]
+[!] failed after 4 hours by Promptbook Developer on OpenAI Codex `gpt-6.1-sol`
 
 [✨✅] Rename Coder's aggregate verification concept from test to check, including CLI flags, repair feedback, and the initialized package.json script.
 
@@ -70,3 +70,4 @@ ptbk coder run --harness openai-codex --check "npm run lint && npm run build && 
 -   Trace [the current mode/default definitions](../scripts/run-codex-prompts/testing/TestBeforeMode.ts), [initial verification](../scripts/run-codex-prompts/testing/runTestBefore.ts), [repair PRD creation](../scripts/run-codex-prompts/testing/createTestBeforeRepairPrompt.ts), [the main runner](../scripts/run-codex-prompts/main/runCodexPrompts.ts), and [single-round execution](../scripts/run-codex-prompts/main/runPromptRound.ts). These links describe the pre-rename locations; follow their renamed shared equivalents during implementation.
 -   Coordinate with [Git preflight/init](2026-09-0480-ptbk-coder-git-repository-preflight.md), [CLI defaults](2026-09-0500-ptbk-cli-default-agent-path-and-context.md), and [repair-only fix](2026-09-0520-ptbk-coder-fix-checks-only.md). The fix command must reuse this check contract rather than introducing a separate test/check option family.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Update relevant [Coder CLI documentation](../apps/coder-landing) and add the implemented changes and migration guidance to the [changelog](../changelog/_current-preversion.md).
+

@@ -220,6 +220,7 @@ describe('how promptbookCli works', () => {
             expect(output).toContain('✔ AGENTS.md: created');
             expect(output).not.toContain('AGENT_CODING.md');
             expect(output).toContain('✔ package.json: created');
+            expect(output).toContain('scripts.check contains a failing setup placeholder');
             expect(output).toContain('✔ .vscode/settings.json: created');
             expect(output).not.toContain('agents-server.md');
         } finally {

@@ -51,7 +51,7 @@ export type BuildPromptRunTraceContentOptions = FormatRunnerSignatureOptions & {
     /**
      * Verification command the round ran after each coding attempt, when one is configured.
      */
-    readonly testCommand?: string;
+    readonly checkCommand?: string;
 
     /**
      * How many coding attempts the round has taken.
@@ -109,7 +109,7 @@ function buildPromptRunTraceSummarySection(options: BuildPromptRunTraceContentOp
         `-   **Runner:** ${runnerSignature}${loginMethodSuffix}`,
         `-   **Attempts:** ${options.attemptCount}`,
         ...buildPromptRunTraceStepsLines(outcome),
-        ...buildPromptRunTraceTestCommandLines(options.testCommand),
+        ...buildPromptRunTraceCheckCommandLines(options.checkCommand),
         `-   **Started:** ${options.startedDate.toISOString()}`,
         `-   **Finished:** ${options.finishedDate.toISOString()}`,
         `-   **Duration:** ${moment.duration(options.finishedDate.diff(options.startedDate)).humanize()}`,
@@ -158,12 +158,12 @@ function buildPromptRunTraceStepsLines(outcome: PromptRunTraceOutcome): Readonly
 /**
  * Renders the verification command of the round, omitted when the round ran without one.
  */
-function buildPromptRunTraceTestCommandLines(testCommand: string | undefined): ReadonlyArray<string> {
-    if (!testCommand) {
+function buildPromptRunTraceCheckCommandLines(checkCommand: string | undefined): ReadonlyArray<string> {
+    if (!checkCommand) {
         return [];
     }
 
-    return [`-   **Verification command:** \`${testCommand}\``];
+    return [`-   **Check command:** \`${checkCommand}\``];
 }
 
 /**

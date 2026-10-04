@@ -115,7 +115,7 @@ export const SITE_TITLE = validateMetadataTextLength(
  */
 export const SITE_DESCRIPTION = validateMetadataTextLength(
     'SITE_DESCRIPTION',
-    'ptbk coder drives Claude Code, OpenAI Codex and other coding agents through a queue of markdown prompts. It tests, commits and pushes every change.',
+    'ptbk coder drives Claude Code, OpenAI Codex and other coding agents through a queue of markdown prompts. It checks, commits and pushes every change.',
     MAX_SITE_DESCRIPTION_LENGTH,
 );
 
@@ -124,7 +124,7 @@ export const SITE_DESCRIPTION = validateMetadataTextLength(
  */
 export const SITE_SOCIAL_DESCRIPTION = validateMetadataTextLength(
     'SITE_SOCIAL_DESCRIPTION',
-    'Queue your backlog as plain markdown prompts. The coding agent you already use implements, tests and commits them one by one, unattended.',
+    'Queue your backlog as plain markdown prompts. The coding agent you already use implements, checks and commits them one by one, unattended.',
     MAX_SITE_SOCIAL_DESCRIPTION_LENGTH,
 );
 

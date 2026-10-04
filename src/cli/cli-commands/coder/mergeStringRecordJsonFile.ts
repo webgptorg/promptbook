@@ -28,6 +28,10 @@ type MergeStringRecordJsonFileOptions = {
     readonly fieldPath: string;
     readonly nextEntries: Readonly<Record<string, string>>;
     readonly ensureParentDirectoryPath?: string;
+    /** Optional narrowly scoped migration of existing entries before missing defaults are added. */
+    readonly transformExistingEntries?: (
+        entries: Readonly<Record<string, string>>,
+    ) => Readonly<Record<string, string>> | Promise<Readonly<Record<string, string>>>;
 };
 
 /**
@@ -60,8 +64,8 @@ const DEFAULT_JSON_FILE_NEWLINE = '\n';
 /**
  * Ensures one JSON object field contains the provided string-record entries.
  *
- * Entries which the project already defines are **never** overridden - only missing keys are added,
- * so hand-tuned scripts and settings survive every repeated `ptbk coder init`.
+ * Entries are additive unless a caller explicitly supplies a scoped migration callback.
+ * Hand-tuned scripts and settings survive repeated `ptbk coder init`; migrations recognize generated entries only.
  *
  * @private function of `initializeCoderProjectConfiguration`
  */
@@ -71,6 +75,7 @@ export async function mergeStringRecordJsonFile({
     fieldPath,
     nextEntries,
     ensureParentDirectoryPath,
+    transformExistingEntries,
 }: MergeStringRecordJsonFileOptions): Promise<MergedStringRecordJsonFile> {
     if (ensureParentDirectoryPath) {
         await mkdir(join(projectPath, ensureParentDirectoryPath), { recursive: true });
@@ -83,7 +88,7 @@ export async function mergeStringRecordJsonFile({
     const existingEntries = getStringRecordOrDefault(jsonObject[fieldPath], relativeFilePath, fieldPath);
 
     const addedEntryKeys: Array<string> = [];
-    const mergedEntries = { ...existingEntries };
+    const mergedEntries = { ...((await transformExistingEntries?.(existingEntries)) ?? existingEntries) };
     for (const [entryKey, entryValue] of Object.entries(nextEntries)) {
         if (Object.prototype.hasOwnProperty.call(mergedEntries, entryKey)) {
             // Note: The project already defines this entry, keep its own value untouched
@@ -93,8 +98,13 @@ export async function mergeStringRecordJsonFile({
         mergedEntries[entryKey] = entryValue;
         addedEntryKeys.push(entryKey);
     }
+    for (const entryKey of Object.keys(mergedEntries)) {
+        if (!Object.prototype.hasOwnProperty.call(existingEntries, entryKey) && !addedEntryKeys.includes(entryKey)) {
+            addedEntryKeys.push(entryKey);
+        }
+    }
 
-    const hasChanges = fileContent === undefined || addedEntryKeys.length > 0;
+    const hasChanges = fileContent === undefined || JSON.stringify(mergedEntries) !== JSON.stringify(existingEntries);
     if (!hasChanges) {
         return { status: 'unchanged', addedEntryKeys };
     }

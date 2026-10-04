@@ -52,7 +52,7 @@ describe('buildPromptRunTraceContent', () => {
     it('reports the runner, the outcome and the timing of a successful round', () => {
         const content = buildPromptRunTraceContent({
             ...createTraceOptions(),
-            testCommand: 'npm test',
+            checkCommand: 'npm test',
             outcome: {
                 kind: 'succeeded',
                 steps: [{ kind: 'implementation', usage: null, durationMs: 42 * 60 * 1000 }],
@@ -66,7 +66,7 @@ describe('buildPromptRunTraceContent', () => {
         expect(content).toContain('-   **Outcome:** Succeeded');
         expect(content).toContain('-   **Runner:** OpenAI Codex `gpt-5.6-astra` thinking `max` (ChatGPT account)');
         expect(content).toContain('-   **Attempts:** 1');
-        expect(content).toContain('-   **Verification command:** `npm test`');
+        expect(content).toContain('-   **Check command:** `npm test`');
         expect(content).toContain('-   **Started:** 2026-09-12T10:00:00.000Z');
         expect(content).toContain('-   **Finished:** 2026-09-12T10:42:00.000Z');
         expect(content).toContain('## Runtime log');
@@ -95,7 +95,7 @@ describe('buildPromptRunTraceContent', () => {
             ...createTraceOptions(),
             attemptCount: 3,
             outcome: { kind: 'failed', error: new Error('Verification never passed') },
-            runtimeLog: 'npm test output',
+            runtimeLog: 'npm check output',
         });
 
         expect(content).toContain('-   **Outcome:** Failed');
@@ -111,7 +111,7 @@ describe('buildPromptRunTraceContent', () => {
             runtimeLog: 'Codex says hello',
         });
 
-        expect(content).not.toContain('**Verification command:**');
+        expect(content).not.toContain('**Check command:**');
         expect(content).not.toContain('**Steps:**');
     });
 

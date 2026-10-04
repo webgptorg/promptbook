@@ -1,7 +1,4 @@
-import {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
-    Option,
-} from 'commander';
+import { Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */ } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
@@ -30,10 +27,10 @@ import {
 } from '../common/promptRunnerCliOptions';
 import { addPromptPriorityOptions } from '../common/promptPriorityCliOptions';
 import {
-    DEFAULT_CODER_TEST_COMMAND,
-    TEST_BEFORE_MODE_VALUES,
-    type TestBeforeMode,
-} from '../../../../scripts/run-codex-prompts/testing/TestBeforeMode';
+    resolveCoderCheckCommand,
+    type CheckBeforeMode,
+} from '../../../../scripts/run-codex-prompts/checks/CheckBeforeMode';
+import { addCoderCheckOptions, normalizeCheckCommandOption } from '../common/coderCheckCliOptions';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 import { addCoderExecutionOptions, type CoderAgentCliOptions } from './agentCliOptions';
@@ -76,8 +73,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Offers to add missing project-local ignore rules for the selected harness
             - In interactive mode, checks local and global Promptbook CLI installations and offers to update them
             - Supports GPG signing of commits
-            - Optional pre-coding test run that can stop or repair pre-existing failures
-            - Optional post-prompt verification with test-feedback retries
+            - Optional pre-coding check run that can stop or repair pre-existing failures
+            - Optional post-prompt checks with check-feedback retries
             - Progress tracking and interactive P/S/X terminal controls; O changes only the dashboard output view
             - Dry-run mode to preview prompts
         `,
@@ -88,20 +85,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     addPromptRunnerSelectionOptions(command);
     addQuestionsOption(command);
     addCoderExecutionOptions(command);
-    command.option(
-        '--test <test-command...>',
-        'Run a verification command after each prompt; quote it when the command itself contains top-level flags',
-    );
-    command.addOption(
-        new Option(
-            '--test-before <mode>',
-            `Run tests before coding: ${TEST_BEFORE_MODE_VALUES.join(
-                ', ',
-            )} (defaults to no; uses npm test when --test is omitted)`,
-        )
-            .choices([...TEST_BEFORE_MODE_VALUES])
-            .default('no'),
-    );
+    addCoderCheckOptions(command, true);
     command.option(
         '--preserve-logs',
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
@@ -168,8 +152,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 dryRun,
                 agent,
                 context,
-                test,
-                testBefore,
+                check,
+                checkBefore,
                 preserveLogs,
                 isolate: isIsolated,
                 priority,
@@ -186,8 +170,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly dryRun: boolean;
                 readonly agent?: string;
                 readonly context?: string;
-                readonly test?: string | string[];
-                readonly testBefore: TestBeforeMode;
+                readonly check?: string | string[];
+                readonly checkBefore: CheckBeforeMode;
                 readonly preserveLogs: boolean;
                 readonly isolate: boolean;
                 readonly priority?: number;
@@ -203,8 +187,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             } & PromptRunnerCliOptions &
                 CoderAgentCliOptions;
 
-            const configuredTestCommand = normalizeCommandOptionValue(test);
-            const testCommand = configuredTestCommand ?? (testBefore === 'no' ? undefined : DEFAULT_CODER_TEST_COMMAND);
+            const checkCommand = resolveCoderCheckCommand(normalizeCheckCommandOption(check), checkBefore);
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
@@ -237,8 +220,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 model: runnerOptions.model,
                 agent,
                 context,
-                testCommand,
-                testBefore,
+                checkCommand,
+                checkBefore,
                 preserveLogs,
                 isIsolated,
                 noUi: runnerOptions.noUi,
@@ -302,25 +285,6 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             return process.exit(0);
         }),
     );
-}
-
-/**
- * Joins one Commander option that may be parsed either as a single string or a variadic token array.
- *
- * @private internal utility of `coder run` command
- */
-function normalizeCommandOptionValue(value: string | string[] | undefined): string | undefined {
-    if (value === undefined) {
-        return undefined;
-    }
-
-    const parts = Array.isArray(value) ? value : [value];
-    const normalizedValue = parts
-        .map((part) => part.trim())
-        .filter(Boolean)
-        .join(' ')
-        .trim();
-    return normalizedValue === '' ? undefined : normalizedValue;
 }
 
 // Note: [🟡] Code for CLI command [run](src/cli/cli-commands/coder/run.ts) should never be published outside of `@promptbook/cli`

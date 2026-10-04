@@ -35,7 +35,8 @@ import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
 import { writePromptRunTrace } from '../prompts/writePromptRunTrace';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
+import { runPromptWithCheckFeedback } from '../checks/runPromptWithCheckFeedback';
+import { CoderCheckSetupError } from '../checks/projectCheck';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
 
 /**
@@ -138,13 +139,13 @@ export async function runPromptRound({
                 try {
                     uiHandle?.startCapturingAgentOutput();
 
-                    const result = await runPromptWithTestFeedback({
+                    const result = await runPromptWithCheckFeedback({
                         runner,
                         prompt: codexPrompt,
                         scriptPath,
                         projectPath: roundProjectPath,
                         promptLabel,
-                        testCommand: options.testCommand,
+                        checkCommand: options.checkCommand,
                         preserveArtifactsOnSuccess: options.preserveLogs,
                         logPath,
                         onAttemptStarted: (nextAttemptCount) => {
@@ -186,7 +187,11 @@ export async function runPromptRound({
 
                     // Note: A harness which is not logged in answers every retry the same way, so the user gets
                     //       the sign-in instructions right away instead of after every retry has waited its delay
-                    if (error instanceof AuthenticationError || errorRetryAttempt >= MAX_RETRY_ATTEMPTS_AFTER_ERROR) {
+                    if (
+                        error instanceof AuthenticationError ||
+                        error instanceof CoderCheckSetupError ||
+                        errorRetryAttempt >= MAX_RETRY_ATTEMPTS_AFTER_ERROR
+                    ) {
                         break;
                     }
 
@@ -363,7 +368,7 @@ async function finalizeSuccessfulPromptRound(options: {
     runnerMetadata: PromptRunnerMetadata;
     previousRunnerSignatures?: PromptRunnerAttribution;
     promptExecutionStartedDate: moment.Moment;
-    result: Awaited<ReturnType<typeof runPromptWithTestFeedback>>;
+    result: Awaited<ReturnType<typeof runPromptWithCheckFeedback>>;
     commitMessage: string;
     logPath: string;
     roundCommitScope?: CoderCommitScope;
@@ -569,7 +574,7 @@ async function recordPromptRoundTrace(options: {
         section: nextPrompt.section,
         ...runnerMetadata,
         thinkingLevel: runOptions.thinkingLevel,
-        testCommand: runOptions.testCommand,
+        checkCommand: runOptions.checkCommand,
         attemptCount,
         startedDate: promptExecutionStartedDate,
         finishedDate: moment(),

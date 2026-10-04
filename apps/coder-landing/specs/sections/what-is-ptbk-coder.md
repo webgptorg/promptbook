@@ -7,7 +7,7 @@ Anchor `#how-it-works`. Explains the product to a developer who knows Claude Cod
 -   **Heading**: `Ship a backlog, not a stream of interruptions.` (the "stream of interruptions." part in Promptbook Blue).
 -   **Lead paragraph**:
 
-    > **ptbk coder** reads the PRD markdown files in `prompts/` and works through them one at a time. You choose the harness and start the run. Come back to commits that already passed your tests, instead of a chat window full of questions.
+    > **ptbk coder** reads the PRD markdown files in `prompts/` and works through them one at a time. You choose the harness and start the run. Come back to commits that already passed your checks, instead of a chat window full of questions.
 
 ## Three benefit cards
 

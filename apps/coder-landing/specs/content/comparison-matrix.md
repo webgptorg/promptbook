@@ -24,10 +24,10 @@ Four columns, in this order. The three harness columns take their display name, 
 
 Every cell carries one support level and a few-word note naming the option, command or workaround behind it.
 
-| Level            | Mark              | Meaning                                                       | Legend                                             |
-| ---------------- | ----------------- | ------------------------------------------------------------- | -------------------------------------------------- |
-| `built-in`       | check, green      | The tool does the whole thing for you                         | Built in, one option or command away               |
-| `do-it-yourself` | dash, gray        | The tool gives you the pieces and you wire them together      | Reachable, but you script and maintain it yourself |
+| Level            | Mark              | Meaning                                                        | Legend                                             |
+| ---------------- | ----------------- | -------------------------------------------------------------- | -------------------------------------------------- |
+| `built-in`       | check, green      | The tool does the whole thing for you                          | Built in, one option or command away               |
+| `do-it-yourself` | dash, gray        | The tool gives you the pieces and you wire them together       | Reachable, but you script and maintain it yourself |
 | `not-available`  | cross, muted gray | The tool has no such concept, you would write the orchestrator | No such concept in the tool                        |
 
 Accessible labels of the marks (screen readers): `Built in`, `Do it yourself`, `Not available`.
@@ -38,23 +38,23 @@ Exactly these nine capabilities, in this order. Legend of the cells: ✅ `built-
 
 One row states **one claim for `ptbk coder`** and **one claim shared by all three harnesses**, plus an override for each harness that really differs. Today exactly one row (row 4) has such an override.
 
-| #   | Capability                           | ptbk coder                            | Claude Code, OpenAI Codex, opencode |
-| --- | ------------------------------------ | ------------------------------------- | ----------------------------------- |
-| 1   | One task, side by side               | ❌ It drives them instead             | ✅ What they are built for          |
-| 2   | The whole backlog, unattended        | ✅ `ptbk coder run`                   | 🛠 Script one session per task       |
-| 3   | Several agents on one backlog        | ✅ `--min-priority` `--max-priority`  | ❌ No shared queue                  |
-| 4   | The same agent on another vendor     | ✅ `--harness`                        | ❌ One of the harnesses *(override below)* |
-| 5   | Your tests gate every task           | ✅ `--test` `--test-before`           | 🛠 Ask for it, or wire a hook        |
-| 6   | Done state committed with the code   | ✅ In every commit                    | 🛠 Track it by hand                  |
-| 7   | Git kept in order around each task   | ✅ `--auto-pull` `--auto-push` `--isolate` | 🛠 It commits as you, when asked |
-| 8   | Long runs that outlast a quota window| ✅ `--wait-between-prompts`           | ❌ No queue to pace                 |
-| 9   | A backlog you can watch and refill   | ✅ `ptbk coder server`                | ❌ No backlog to show               |
+| #   | Capability                            | ptbk coder                                 | Claude Code, OpenAI Codex, opencode        |
+| --- | ------------------------------------- | ------------------------------------------ | ------------------------------------------ |
+| 1   | One task, side by side                | ❌ It drives them instead                  | ✅ What they are built for                 |
+| 2   | The whole backlog, unattended         | ✅ `ptbk coder run`                        | 🛠 Script one session per task              |
+| 3   | Several agents on one backlog         | ✅ `--min-priority` `--max-priority`       | ❌ No shared queue                         |
+| 4   | The same agent on another vendor      | ✅ `--harness`                             | ❌ One of the harnesses _(override below)_ |
+| 5   | Your checks gate every task           | ✅ `--check` `--check-before`              | 🛠 Ask for it, or wire a hook               |
+| 6   | Done state committed with the code    | ✅ In every commit                         | 🛠 Track it by hand                         |
+| 7   | Git kept in order around each task    | ✅ `--auto-pull` `--auto-push` `--isolate` | 🛠 It commits as you, when asked            |
+| 8   | Long runs that outlast a quota window | ✅ `--wait-between-prompts`                | ❌ No queue to pace                        |
+| 9   | A backlog you can watch and refill    | ✅ `ptbk coder server`                     | ❌ No backlog to show                      |
 
 ### Harness overrides
 
-| Row | Harness    | Cell                             | Why it differs                                                       |
-| --- | ---------- | -------------------------------- | -------------------------------------------------------------------- |
-| 4   | `opencode` | 🛠 Any provider, your config      | It is provider-agnostic, but the agent is configured the opencode way |
+| Row | Harness    | Cell                        | Why it differs                                                        |
+| --- | ---------- | --------------------------- | --------------------------------------------------------------------- |
+| 4   | `opencode` | 🛠 Any provider, your config | It is provider-agnostic, but the agent is configured the opencode way |
 
 ### Descriptions (verbatim row copy)
 
@@ -62,7 +62,7 @@ One row states **one claim for `ptbk coder`** and **one claim shared by all thre
 2. **The whole backlog, unattended** — "Task files go through the agent one after another: implement, verify, commit, next one."
 3. **Several agents on one backlog** — "Run more harnesses and models at once, each taking its own slice of the queue."
 4. **The same agent on another vendor** — "The queue and the .book behavior move to a different harness or model without a rewrite."
-5. **Your tests gate every task** — "Tests run before the queue starts and after every task, and failures go back to the agent until it is green."
+5. **Your checks gate every task** — "Checks run before the queue starts and after every task, and failures go back to the agent until it is green."
 6. **Done state committed with the code** — "The finished [x] lands in the same commit as the work it describes, so reverting takes both back."
 7. **Git kept in order around each task** — "Commits under the agent git identity, a pull before and a push after, and one throwaway worktree per task."
 8. **Long runs that outlast a quota window** — "Pacing between tasks, a cool-down retry after an error, and a ping that keeps the quota window refreshing."

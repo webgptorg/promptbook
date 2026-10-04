@@ -21,7 +21,7 @@ function createFrameOptions(overrides: Partial<BuildCoderRunUiFrameOptions> = {}
             context: 'AGENTS.md',
             serverUrl: 'http://localhost:4441',
             priorityFilter: { minimumPriority: 1 },
-            testCommand: 'npm test',
+            checkCommand: 'npm test',
         },
         phase: 'waiting',
         currentPromptLabel: 'prompts/001-task.md > Refresh the coder UI',
@@ -62,7 +62,7 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('GitHub Copilot  ·  gpt-5.4  ·  thinking xhigh');
         expect(output).toContain('Context  AGENTS.md');
         expect(output).toContain('Server   http://localhost:4441');
-        expect(output).toContain('Test     npm test');
+        expect(output).toContain('Check    npm test');
         expect(output).toContain('This run Task 3/5  ·  2 done  ·  3 left');
         expect(output).toContain('Backlog  Repo 18 total  ·  12 prompts outside priority scope');
         expect(output).toContain('Scope    Priority ≥1  ·  Write 1 prompt first');

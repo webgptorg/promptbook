@@ -185,7 +185,7 @@
         "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-package-generation && npm run test-unit && npm run test-app-agents-server && echo \"🎉 All tests passed!\"",
         "test-without-package-generation": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-unit",
         "test-without-package-generation-and-unit": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build",
-        "test-for-ptbk-coder": "node ./scripts/test-for-ptbk-coder.js",
+        "check": "node ./scripts/check.js",
         "test-unit": "node -r ./scripts/ignore-kill-eperm.js ./node_modules/jest/bin/jest.js --forceExit",
         "_TODO-0": "           <- TODO: Remove `--forceExit` flag, now its present to ensure return code 0 when all tests ",
         "test-types": "tsc",
@@ -232,7 +232,7 @@
         "_TODO-1": "<- TODO: Remove all unused scripts",
         "_TODO-2": "<- TODO: [⛎] Automatically sync commands to generate-packages.ts",
         "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --count 5*1 --template ./prompts/templates/common.md",
-        "coder:run": "npx ptbk coder run --harness openai-codex --thinking-level max --agent agents/developer.book --context AGENTS.md --test-before yes-and-fix",
+        "coder:run": "npx ptbk coder run --harness openai-codex --thinking-level max --check \"npm run check\" --check-before yes-and-fix",
         "coder:find-refactor-candidates": "npx ptbk coder find-refactor-candidates",
         "coder:verify": "npx ptbk coder verify",
         "coder:add": "npx ptbk coder add --template ./prompts/templates/common.md"

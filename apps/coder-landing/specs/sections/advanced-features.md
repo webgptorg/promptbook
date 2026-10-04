@@ -5,7 +5,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 ## Copy
 
 -   **Heading**: `Built for unattended coding` ("unattended" in Promptbook Blue).
--   **Lead paragraph**: The agent writes the code. ptbk coder does the rest: it runs your tests, commits, pulls and pushes, paces the queue against your quota window, and gives you back control the moment you press P or X. That is what keeps a run going for hours without you.
+-   **Lead paragraph**: The agent writes the code. ptbk coder does the rest: it runs your checks, commits, pulls and pushes, paces the queue against your quota window, and gives you back control the moment you press P or X. That is what keeps a run going for hours without you.
 
 ## Cards
 
@@ -13,16 +13,16 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 | #   | Title                          | Snippet                                                                                          |
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| 1   | Verified by your tests         | `ptbk coder run --harness claude-code --test npm test`                                           |
-| 2   | Test before coding             | `ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix`                 |
+| 1   | Verified by your checks        | `ptbk coder run --harness claude-code --check "npm run check"`                                   |
+| 2   | Check before coding            | `ptbk coder run --harness claude-code --check "npm run check" --check-before yes-and-fix`        |
 | 3   | Commits with its own identity  | `CODING_AGENT_GIT_NAME="Promptbook Coding Agent"`                                                |
 | 4   | Autopilot git                  | `ptbk coder run --harness claude-code --auto-pull --auto-push`                                   |
 | 5   | Git-synced housekeeping        | `ptbk coder init --auto-pull --commit --auto-push`                                               |
 | 6   | Isolated worktrees             | `ptbk coder run --harness claude-code --isolate`                                                 |
 | 7   | Kanban web UI                  | `ptbk coder server --port 4441 --harness claude-code`                                            |
 | 8   | Prompt priorities              | `ptbk coder run --harness claude-code --min-priority 1 --max-priority 5`                         |
-| 9   | Model-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-6-astra`                                        |
-| 10  | Agent-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-6-astra --agent agents/my-developer.book`      |
+| 9   | Model-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-6-astra`                                    |
+| 10  | Agent-specific prompts         | `ptbk coder run --harness github-copilot --model gpt-6-astra --agent agents/my-developer.book`   |
 | 11  | Pacing and retries             | `ptbk coder run --harness claude-code --wait-between-prompts 30m --wait-after-error 10m`         |
 | 12  | List before you run            | `ptbk coder list`                                                                                |
 | 13  | Ping before you queue          | `ptbk coder ping --harness openai-codex --model gpt-5.6-sol --thinking-level xhigh`              |
@@ -37,8 +37,8 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 ## Descriptions (verbatim card copy)
 
-1. **Verified by your tests** — "Run any test command after each prompt. When it fails, ptbk coder hands the output back to the agent, which retries until the tests pass."
-2. **Test before coding** — "Run the tests before the first coding prompt. Stop on failures that were already there, or let one repair prompt fix them before the backlog starts."
+1. **Verified by your checks** — "Run any project check command after each prompt. When it fails, ptbk coder hands the output back to the agent, which retries until the checks pass."
+2. **Check before coding** — "Run the checks before the first coding prompt. Stop on failures that were already there, or let one repair prompt fix them before the backlog starts."
 3. **Commits with its own identity** — "Every successful round lands under a git identity that belongs to the agent, GPG-signed if you set that up. You can always tell which commits it wrote."
 4. **Autopilot git** — "Pull before prompts and push after commits, so a long-running queue stays in sync with your remote."
 5. **Git-synced housekeeping** — "ptbk coder init, add, generate-boilerplates and verify all take the same --commit, --auto-push and --auto-pull switches. Setting up a project, queueing prompts and archiving finished ones leave no uncommitted work behind. Verify pulls and pushes around every single verification."

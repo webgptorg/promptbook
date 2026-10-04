@@ -218,6 +218,6 @@ export async function appendScriptExecutionLogFinish({
 /**
  * Distinguishes prompt-runner and verification temp shells in the shared runtime log.
  */
-function describeTempScriptKind(scriptPath: string): 'runner shell' | 'test shell' {
-    return scriptPath.toLowerCase().endsWith('.test.sh') ? 'test shell' : 'runner shell';
+function describeTempScriptKind(scriptPath: string): 'runner shell' | 'check shell' {
+    return scriptPath.toLowerCase().endsWith('.check.sh') ? 'check shell' : 'runner shell';
 }

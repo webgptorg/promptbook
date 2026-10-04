@@ -307,6 +307,11 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         await writeFile(join(projectPath, 'README.md'), '# Existing project\n');
         const initialized = await run(['init', '--no-questions']);
         expect(initialized.stdout).toContain('Git repository: initialized');
+        const initializedPackage = JSON.parse(await readFile(join(projectPath, 'package.json'), 'utf-8'));
+        expect(initializedPackage.scripts.check).toContain('process.exit(1)');
+        expect(initializedPackage.scripts['test-for-ptbk-coder']).toBeUndefined();
+        expect(initializedPackage.scripts['check-for-ptbk-coder']).toBeUndefined();
+        expect(initializedPackage.scripts['coder:run']).toContain('--check "npm run check" --check-before yes-and-fix');
         expect(
             (
                 await EXECUTE_FILE('git', ['rev-parse', '--is-inside-work-tree'], {
@@ -324,6 +329,57 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         expect(repeated.stdout).toContain('Git repository: reused');
         expect(await readFile(join(projectPath, '.git/config'))).toEqual(configurationBefore);
         expect((await run(['coder', 'initialize', '--no-questions'])).stdout).toContain('Git repository: reused');
+        expect(JSON.parse(await readFile(join(projectPath, 'package.json'), 'utf-8')).scripts).toEqual(
+            initializedPackage.scripts,
+        );
+
+        const checkArguments = [
+            'coder',
+            'run',
+            '--harness',
+            'openai-codex',
+            '--check-before',
+            'yes-and-fail',
+            '--no-questions',
+            '--no-ui',
+            '--no-commit',
+            '--git-changes',
+            'ignore',
+        ];
+        await expect(run(checkArguments)).rejects.toThrow('Project check is not configured');
+        await expect(run([...checkArguments, '--check', 'npm run missing-build'])).rejects.toThrow(
+            'scripts.missing-build is missing',
+        );
+        await expect(
+            run([...checkArguments, '--check', 'npm run missing-build && (cd child-check && npm run check)']),
+        ).rejects.toThrow('scripts.missing-build is missing');
+        for (const command of ['run', 'server']) {
+            await expect(run(['coder', command, '--test', 'npm test'])).rejects.toThrow('renamed to `--check`');
+            await expect(run(['coder', command, '--test-before', 'yes-and-fix'])).rejects.toThrow(
+                'renamed to `--check-before`',
+            );
+        }
+        await writeFile(
+            join(projectPath, 'check.cjs'),
+            "console.log('All tests passed!'); console.error('deterministic build failure'); process.exit(1);\n",
+        );
+        initializedPackage.scripts.check = 'node check.cjs';
+        await writeFile(join(projectPath, 'package.json'), JSON.stringify(initializedPackage));
+        await expect(run(checkArguments)).rejects.toThrow('deterministic build failure');
+        await writeFile(join(projectPath, 'check.cjs'), "console.log('deterministic project check passed');\n");
+        expect((await run(checkArguments)).stdout).toContain('Pre-coding checks passed');
+        expect(
+            (await run([...checkArguments, '--check', `node -e "console.log('(npm run missing-validation)')"`])).stdout,
+        ).toContain('(npm run missing-validation)');
+        await mkdir(join(projectPath, 'child-check'));
+        await writeFile(
+            join(projectPath, 'child-check/package.json'),
+            JSON.stringify({ scripts: { check: 'node ../check.cjs' } }),
+        );
+        expect((await run([...checkArguments, '--check', 'npm run check --prefix child-check'])).stdout).toContain(
+            'Pre-coding checks passed',
+        );
+        expect((await readdir(join(projectPath, 'prompts'))).filter((name) => name.includes('repair'))).toEqual([]);
 
         const secondProjectPath = join(temporaryPath, 'workspace-coder-init');
         await mkdir(secondProjectPath);
@@ -333,6 +389,9 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             timeout: 60000,
         });
         expect(coderInitialized.stdout).toContain('Git repository: initialized');
+        const secondPackage = JSON.parse(await readFile(join(secondProjectPath, 'package.json'), 'utf-8'));
+        expect(secondPackage.scripts.check).toContain('process.exit(1)');
+        expect(secondPackage.scripts['coder:run']).toContain('--check "npm run check"');
         expect(
             (
                 await EXECUTE_FILE('git', ['rev-parse', '--is-inside-work-tree'], {

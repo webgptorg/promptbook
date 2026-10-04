@@ -61,17 +61,17 @@ Book instructions, task content and the selected additional context retain their
 file is not appended after an override. Explicit flags and existing command configuration take precedence over
 these fallbacks. There is no new environment-variable precedence layer.
 
-| Registered command | Primary Book or filter | Project selection | Additional context |
-| --- | --- | --- | --- |
-| `coder run`, `coder server` | Optional `--agent`, default Developer; task/harness targeting still applies | `--path`, default invocation cwd | `--context`, default project AGENTS.md |
-| `coder plan` | Optional `--agent`, default Developer; explicit Planner supported; PRD-only permissions | Same | Same |
-| `coder list` | Optional `--agent` is a **listing filter**; omission lists all agents | Same | None |
-| `init`, `initialize`, `coder init`, `coder initialize` | Creates/preserves all default Books; selects no primary agent | Same, through one initializer | Creates/preserves AGENTS.md; does not load agent context |
-| `coder add`, `coder generate-boilerplates` | Template authoring, no model or primary agent in this version | Same; templates are project-relative | None |
-| `coder verify`, `coder find-refactor-candidates` | Queue/archive and scan utilities, no primary agent | Same | None |
-| `coder find-unwritten`, `coder find-fresh-emoji-tags`, `coder ping` | Inspection or harness diagnostics; no Book persona | Same | None |
-| `agent chat`, `agent exec` | Existing required `--agent` names the specific Book; remains required | Same | Same shared context default and override |
-| `agent-folder init` / `initialize`, `run-once` / `tick`, `run-agent` / `run`, `run-multiple` | Existing folder configuration selects agent Books; multi-agent discovery remains unfiltered | Same; multi-agent discovery scans children of the selected directory | No additional-context option |
+| Registered command                                                                           | Primary Book or filter                                                                      | Project selection                                                    | Additional context                                       |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------- |
+| `coder run`, `coder server`                                                                  | Optional `--agent`, default Developer; task/harness targeting still applies                 | `--path`, default invocation cwd                                     | `--context`, default project AGENTS.md                   |
+| `coder plan`                                                                                 | Optional `--agent`, default Developer; explicit Planner supported; PRD-only permissions     | Same                                                                 | Same                                                     |
+| `coder list`                                                                                 | Optional `--agent` is a **listing filter**; omission lists all agents                       | Same                                                                 | None                                                     |
+| `init`, `initialize`, `coder init`, `coder initialize`                                       | Creates/preserves all default Books; selects no primary agent                               | Same, through one initializer                                        | Creates/preserves AGENTS.md; does not load agent context |
+| `coder add`, `coder generate-boilerplates`                                                   | Template authoring, no model or primary agent in this version                               | Same; templates are project-relative                                 | None                                                     |
+| `coder verify`, `coder find-refactor-candidates`                                             | Queue/archive and scan utilities, no primary agent                                          | Same                                                                 | None                                                     |
+| `coder find-unwritten`, `coder find-fresh-emoji-tags`, `coder ping`                          | Inspection or harness diagnostics; no Book persona                                          | Same                                                                 | None                                                     |
+| `agent chat`, `agent exec`                                                                   | Existing required `--agent` names the specific Book; remains required                       | Same                                                                 | Same shared context default and override                 |
+| `agent-folder init` / `initialize`, `run-once` / `tick`, `run-agent` / `run`, `run-multiple` | Existing folder configuration selects agent Books; multi-agent discovery remains unfiltered | Same; multi-agent discovery scans children of the selected directory | No additional-context option                             |
 
 Help, version, initialization and pure utilities never resolve a default primary Book. `coder run/server --dry-run`
 read only the selected Book identity and context for preview; they do not compile inheritance, initialize Books,
@@ -85,7 +85,27 @@ and repair-only command are not registered in this version. When introduced, the
 reuse these services, with Developer for untargeted work and existing explicit configuration preserved. Workspace
 server discovery/scheduling must still include all agents. This supersedes only the earlier implicit Planner policy,
 not Planner initialization, availability, TEAM, or planning restrictions. Check terminology and repair-only execution
-are separate changes; existing `--test` flags and verification scripts retain their current spelling here.
+use the shared check contract: `--check`, `--check-before`, and the project-owned `npm run check` command.
+
+### Project checks
+
+`--check` selects one project-owned shell command for post-prompt feedback and, when enabled, initial checks.
+`--check-before` retains `no` (default), `yes-and-fail`, and `yes-and-fix`. Enabled preflight with no explicit command
+uses `npm run check`. With neither flag, the runner skips these optional phases. A check may include
+tests, linting, typechecking, builds, generated-code consistency, and other quality checks.
+
+Initialization preserves `scripts.check` exactly or composes usable existing validation scripts in deterministic
+order, reporting the chosen scope. No usable validation produces a failing setup placeholder. Missing, recursive,
+or unconfigured validation stops with setup guidance before repair retries. Check feedback fixes underlying
+failures and forbids deleting assertions, disabling lint rules, removing checks, lowering thresholds, skipping builds,
+or forcing success. Process exits, signals, spawn failures, and cancellation determine the outcome.
+
+Retired `--test` / `--test-before` flags produce errors naming `--check` / `--check-before`. Init migrates exact
+generated callers and preserves a legacy aggregate's body in `check`. Existing conflicting/custom entries and
+references in other scripts or workflow files remain intact, with manual instructions. Update callers to
+`npm run check` and the new flags after preserving the desired validation, then remove unused legacy entries.
+Update external verification commands from `npm run test-for-ptbk-coder` to `npm run check` as well. Restart a
+running Coder invocation with the new flags because its verification command was captured at startup.
 
 ### TEAM consultations
 
@@ -142,8 +162,8 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --agent <agent-book-path>     # Book override (optional; run/server/plan default to agents/developer.book)
 --path <directory>            # Project directory (default: invocation cwd, not an enclosing Git root)
 --context <context-or-file>   # Replace the default project AGENTS.md with inline text or a project-relative file
---test <test-command...>       # Run a verification command after each prompt and feed failures back for retries
---test-before <mode>           # no (default), yes-and-fail, or yes-and-fix; enabled modes default to npm test
+--check <check-command...>       # Run a verification command after each prompt and feed failures back for retries
+--check-before <mode>           # no (default), yes-and-fail, or yes-and-fix; enabled modes default to npm run check
 --no-ui                       # Disable the rich terminal UI and stream plain console output instead
 --thinking-level <level>      # Reasoning effort for OpenAI Codex and GitHub Copilot: low, medium, high, xhigh
 --priority <minimum-priority> # Alias for --min-priority
@@ -236,8 +256,8 @@ ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhi
 # Run with GitHub Copilot
 ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh
 
-# Run tests before coding and let one repair prompt fix pre-existing failures
-ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --test-before yes-and-fix
+# Run project checks before coding and let one repair prompt fix pre-existing failures
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --check-before yes-and-fix
 
 # Run with plain streaming output for logging/debugging
 ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --no-ui
@@ -281,14 +301,14 @@ The `[^]` in-progress status is rewritten before every single step of the round,
 ```text
 [ ]
 [^] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress
-[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing in progress
-[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes
+[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Checking in progress
+[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Checking 35 minutes
 ```
 
 A run names its selected Book agent (Developer by default) in front of the harness which runs it, because the same harness and model behave differently depending on the agent they run as:
 
 ```text
-[x] by Developer on OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes
+[x] by Developer on OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Checking 35 minutes
 ```
 
 Only the final `[x]` state is committed, because the round commit is created after the prompt has been implemented and verified. The `[^]` status is deliberately never reverted: when the coder is killed or crashes, the prompt file keeps `[^]` as the signal that this task was left in the middle of its implementation. Such a prompt is not picked up again automatically — decide yourself whether to reset it to `[ ]`, to keep the partial work, or to resume it with `--git-changes continue`.
@@ -314,11 +334,11 @@ The trace is written before the round is committed, so it lands in the very same
 
 `--git-changes` decides what happens when the working tree still has uncommitted changes before a prompt starts:
 
-| Mode       | Behavior                                                                                                     |
-| ---------- | ------------------------------------------------------------------------------------------------------------ |
-| `fail`     | Refuses to start and asks for a commit, a stash or one of the other two modes (the default)                  |
-| `ignore`   | Starts the next `[ ]` prompt anyway and leaves the uncommitted changes where they are                        |
-| `continue` | Resumes the interrupted `[^]` prompt with its half-finished changes still in place                           |
+| Mode       | Behavior                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------- |
+| `fail`     | Refuses to start and asks for a commit, a stash or one of the other two modes (the default) |
+| `ignore`   | Starts the next `[ ]` prompt anyway and leaves the uncommitted changes where they are       |
+| `continue` | Resumes the interrupted `[^]` prompt with its half-finished changes still in place          |
 
 `continue` expects **exactly one** prompt in the `[^]` status and fails when it finds none or more than one, because the uncommitted changes could not be attributed to a single interrupted task. Only the resuming round runs on the dirty tree; once it is finished and committed, every later round expects a clean working tree again. It cannot be combined with `--isolate`, whose fresh worktree is checked out from the last commit and would leave the uncommitted changes behind.
 
@@ -339,7 +359,7 @@ With `--isolate`, no prompt is ever implemented in the working tree you started 
 
 -   Each task gets a temporary git worktree in `.promptbook/coder-isolation-worktrees/<task-name>` on branch `ptbk-coder-isolation/<task-name>` (for example `.promptbook/coder-isolation-worktrees/2026-07-0700-ptbk-coder-timing`).
 -   The worktree gets its own copy of the project `.env`, so the isolated task runs with its own environment.
--   The coding agent, the `--test` verification command and the round commit all happen inside the worktree.
+-   The coding agent, the `--check` verification command and the round commit all happen inside the worktree.
 -   Once the task is implemented and verified, it is merged back into the branch the coder runs on as one commit and the worktree plus its branch are deleted.
 -   If the merge fails, the task is marked as `[!]` instead of `[x]`, the failure is committed into the original worktree, the temporary worktree is kept for a manual merge, and the coder continues with the next task.
 
