@@ -24,7 +24,7 @@ describe('getCoderRunUiAutoRefreshInterval', () => {
         expect(getCoderRunUiAutoRefreshInterval('running', 'RUNNING')).toBe(
             ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS,
         );
-        expect(getCoderRunUiAutoRefreshInterval('verifying', 'RUNNING')).toBe(
+        expect(getCoderRunUiAutoRefreshInterval('checking', 'RUNNING')).toBe(
             ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS,
         );
         expect(getCoderRunUiAutoRefreshInterval('running', 'PAUSING')).toBe(

@@ -3,9 +3,9 @@ import { $runGoScriptWithOutput } from '../common/runGoScript/$runGoScriptWithOu
 import { toPosixPath } from '../common/runGoScript/toPosixPath';
 
 /**
- * Options for running one verification command after a coding attempt.
+ * Options for running one aggregate check command after a coding attempt.
  */
-export type RunPromptTestCommandOptions = {
+export type RunPromptCheckCommandOptions = {
     command: string;
     projectPath: string;
     scriptPath: string;
@@ -14,9 +14,9 @@ export type RunPromptTestCommandOptions = {
 };
 
 /**
- * Runs the configured verification command inside the project root and returns its output.
+ * Runs the configured aggregate check inside the project root and returns its output.
  */
-export async function runPromptTestCommand(options: RunPromptTestCommandOptions): Promise<string> {
+export async function runPromptCheckCommand(options: RunPromptCheckCommandOptions): Promise<string> {
     const projectPath = toPosixPath(options.projectPath);
 
     return await $runGoScriptWithOutput({

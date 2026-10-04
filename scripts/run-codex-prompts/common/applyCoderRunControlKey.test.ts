@@ -19,11 +19,11 @@ describe('applyCoderRunControlKey', () => {
     });
 
     it('answers every pause toggle of the `P` control', () => {
-        announcePauseTargetLabel('running verification after attempt #2');
+        announcePauseTargetLabel('running check after attempt #2');
 
         expect(applyCoderRunControlKey('p')).toEqual({
             controlKey: 'P',
-            message: 'Pause requested, pausing before running verification after attempt #2',
+            message: 'Pause requested, pausing before running check after attempt #2',
             tone: 'warning',
         });
         expect(getPauseState()).toBe('PAUSING');

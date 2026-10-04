@@ -9,7 +9,7 @@ const OUTPUT_COLORS: Record<CoderOutputKind, (text: string) => string> = {
     reasoning: colors.gray,
     tool: colors.blue,
     files: colors.magenta,
-    verification: colors.blue,
+    check: colors.blue,
     result: colors.green,
     warning: colors.yellow,
     error: colors.red,

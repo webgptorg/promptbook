@@ -65,7 +65,7 @@ type BuildAgentRunUiFrameOptions = Omit<
  */
 export function buildAgentRunUiFrame(options: BuildAgentRunUiFrameOptions): string[] {
     const totalWidth = Math.max(MIN_FRAME_WIDTH, Math.min(options.terminalWidth, MAX_FRAME_WIDTH));
-    const isPromptActive = options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
+    const isPromptActive = options.phase === 'running' || options.phase === 'checking' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
     const pausePresentation = buildPausePresentation(
         options.phase,
@@ -243,7 +243,7 @@ function getAgentStatusTableRows(options: BuildAgentRunUiFrameOptions): readonly
 function buildSingleAgentStatusRow(options: BuildAgentRunUiFrameOptions): AgentRunStatusTableRow {
     const isAnswering =
         Boolean(options.currentPromptLabel) &&
-        (options.phase === 'loading' || options.phase === 'running' || options.phase === 'verifying');
+        (options.phase === 'loading' || options.phase === 'running' || options.phase === 'checking');
 
     return {
         status: isAnswering ? 'Answering' : 'Idle',

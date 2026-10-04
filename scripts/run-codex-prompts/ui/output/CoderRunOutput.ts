@@ -39,9 +39,9 @@ type PendingOutput =
           readonly chunk: string;
           readonly source: LiveScriptOutputSource;
           readonly harnessName: string;
-          readonly isVerification: boolean;
+          readonly isCheck: boolean;
       }
-    | { readonly chunk: string; readonly kind: 'status' | 'warning' | 'error' | 'verification' }
+    | { readonly chunk: string; readonly kind: 'status' | 'warning' | 'error' | 'check' }
     | { readonly chunk: ''; readonly isFlush: true };
 
 /** Original chunks in arrival order, including stream identity. */
@@ -59,7 +59,7 @@ function createOutputStream() {
         plainTitle: '',
         plainId: '',
         harnessName: '',
-        isVerification: false,
+        isCheck: false,
         isOversizedRecord: false,
         recentRecords: new Map<string, string>(),
     };
@@ -87,9 +87,9 @@ export class CoderRunOutput {
     }
 
     /** Records the original chunk first and queues its independent presentation projection. */
-    public append(chunk: string, source: LiveScriptOutputSource, harnessName: string, isVerification: boolean): void {
+    public append(chunk: string, source: LiveScriptOutputSource, harnessName: string, isCheck: boolean): void {
         this.retainRaw(chunk, source);
-        this.enqueue({ chunk, source, harnessName, isVerification });
+        this.enqueue({ chunk, source, harnessName, isCheck });
     }
 
     /** Projects a queued chunk, assembling stdout and stderr independently. */
@@ -97,11 +97,11 @@ export class CoderRunOutput {
         chunk: string,
         source: LiveScriptOutputSource,
         harnessName: string,
-        isVerification: boolean,
+        isCheck: boolean,
     ): void {
         const stream = this.streams[source];
         stream.harnessName = harnessName;
-        stream.isVerification = isVerification;
+        stream.isCheck = isCheck;
         // Bound temporary allocations even for one unusually large OS/console chunk.
         for (let offset = 0; offset < chunk.length; offset += MAX_FRAGMENT_CHARACTERS) {
             const lines = stream.reader.readCompletedLines(chunk.slice(offset, offset + MAX_FRAGMENT_CHARACTERS));
@@ -110,7 +110,7 @@ export class CoderRunOutput {
                     this.add({ kind: 'unknown', title: `Unparsed long record · ${source}`, text: line });
                     stream.isOversizedRecord = false;
                 } else {
-                    this.projectLine(line, source, harnessName, isVerification);
+                    this.projectLine(line, source, harnessName, isCheck);
                 }
             }
             if (stream.reader.getPendingLine().length >= MAX_FRAGMENT_CHARACTERS) {
@@ -125,7 +125,7 @@ export class CoderRunOutput {
     }
 
     /** Runner logs are already complete messages, unlike shell chunks. */
-    public appendRunner(text: string, kind: 'status' | 'warning' | 'error' | 'verification' = 'status'): void {
+    public appendRunner(text: string, kind: 'status' | 'warning' | 'error' | 'check' = 'status'): void {
         this.retainRaw(`${text}\n`, 'runner');
         this.enqueue({ chunk: text, kind });
     }
@@ -148,7 +148,7 @@ export class CoderRunOutput {
                         fragment,
                         source as LiveScriptOutputSource,
                         stream.harnessName,
-                        stream.isVerification,
+                        stream.isCheck,
                     );
                 }
             }
@@ -167,9 +167,9 @@ export class CoderRunOutput {
                 return [{ kind: 'status' as const, title: `Receiving structured output · ${source}`, text: '' }];
             return [
                 {
-                    kind: stream.isVerification ? 'verification' : stream.plainKind,
-                    title: stream.isVerification
-                        ? `Verification · ${source}`
+                    kind: stream.isCheck ? 'check' : stream.plainKind,
+                    title: stream.isCheck
+                        ? `Check · ${source}`
                         : stream.plainTitle || `Output · ${source} · partial line`,
                     text,
                 },
@@ -207,13 +207,13 @@ export class CoderRunOutput {
         for (const input of this.pendingOutput) {
             if ('isFlush' in input) this.flushStreams();
             else if ('source' in input)
-                this.projectChunk(input.chunk, input.source, input.harnessName, input.isVerification);
+                this.projectChunk(input.chunk, input.source, input.harnessName, input.isCheck);
             else
                 this.add({
                     kind: input.kind,
                     title:
-                        input.kind === 'verification'
-                            ? 'Verification'
+                        input.kind === 'check'
+                            ? 'Check'
                             : input.kind === 'status'
                             ? 'Runner'
                             : `Runner ${input.kind}`,
@@ -247,12 +247,12 @@ export class CoderRunOutput {
         line: string,
         source: LiveScriptOutputSource,
         harnessName: string,
-        isVerification: boolean,
+        isCheck: boolean,
     ): void {
         const text = stripAnsi(line);
         const stream = this.streams[source];
         const record = parseAgentMessageRuntimeLogEvents(text)[0] as CoderOutputRecord | undefined;
-        if (record && !isVerification) {
+        if (record && !isCheck) {
             try {
                 const isDelta =
                     record.type === 'item.delta' || outputRecord(record.event).type === 'content_block_delta';
@@ -294,7 +294,7 @@ export class CoderRunOutput {
             return;
         }
         // Codex's default human stream has explicit speaker/activity headings. Do not request --json.
-        if (!isVerification && /codex/i.test(harnessName)) {
+        if (!isCheck && /codex/i.test(harnessName)) {
             const HEADINGS: Record<string, [CoderOutputKind, string]> = {
                 codex: ['agent', 'Agent'],
                 assistant: ['agent', 'Agent'],
@@ -313,12 +313,12 @@ export class CoderRunOutput {
                 return;
             }
         }
-        if (REPORTED_FAILURE_PATTERN.test(text) && (isVerification || stream.plainKind !== 'agent')) {
+        if (REPORTED_FAILURE_PATTERN.test(text) && (isCheck || stream.plainKind !== 'agent')) {
             this.add({ kind: 'error', title: `Reported failure · ${source}`, text });
-        } else if (REPORTED_WARNING_PATTERN.test(text) && (isVerification || stream.plainKind !== 'agent')) {
+        } else if (REPORTED_WARNING_PATTERN.test(text) && (isCheck || stream.plainKind !== 'agent')) {
             this.add({ kind: 'warning', title: `Reported warning · ${source}`, text });
-        } else if (isVerification) {
-            this.addPlain(text, source, 'verification', `Verification · ${source}`);
+        } else if (isCheck) {
+            this.addPlain(text, source, 'check', `Check · ${source}`);
         } else {
             this.addPlain(text, source, stream.plainKind, stream.plainTitle || `Unstructured output · ${source}`);
         }

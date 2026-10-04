@@ -4,7 +4,7 @@ import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChan
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { PromptRunnerHarnessName } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import type { PriorityFilter } from '../prompts/priorityFilter';
-import type { TestBeforeMode } from '../testing/TestBeforeMode';
+import type { CheckBeforeMode } from '../checking/CheckBeforeMode';
 import type { CoderRunUiState } from '../ui/CoderRunUiState';
 
 /**
@@ -26,13 +26,13 @@ export type RunOptions = {
      */
     context?: string;
     /**
-     * Optional verification command executed after each prompt attempt.
+     * Optional aggregate check command executed after each prompt attempt.
      */
-    testCommand?: string;
+    checkCommand?: string;
     /**
-     * Controls whether the test command runs before the first coding prompt.
+     * Controls whether the check command runs before the first coding prompt.
      */
-    testBefore?: TestBeforeMode;
+    checkBefore?: CheckBeforeMode;
     /**
      * Keeps generated prompt/debug artifacts after a successful round instead of cleaning them up.
      */

@@ -49,7 +49,7 @@ ptbk coder run --harness openai-codex --agent ./agents/developer.book --path . -
 invocation directory; absolute paths select the directory directly. The directory must already exist and be
 readable/searchable. Selecting a nested project does not move Books, AGENTS.md, templates, PRDs, checks or
 artifacts to an enclosing Git root. Git preflight and repository operations still use that enclosing working tree.
-Harnesses and verification subprocesses receive the selected project as cwd; isolated execution maps project
+Harnesses and check subprocesses receive the selected project as cwd; isolated execution maps project
 inputs and PRDs into the worktree while keeping durable temporary logs under the selected original project.
 
 Omitting `--context` reads the selected project's `AGENTS.md` as UTF-8. A missing implicit file produces one
@@ -85,7 +85,8 @@ and repair-only command are not registered in this version. When introduced, the
 reuse these services, with Developer for untargeted work and existing explicit configuration preserved. Workspace
 server discovery/scheduling must still include all agents. This supersedes only the earlier implicit Planner policy,
 not Planner initialization, availability, TEAM, or planning restrictions. Check terminology and repair-only execution
-are separate changes; existing `--test` flags and verification scripts retain their current spelling here.
+are separate changes; the aggregate vocabulary is `--check` and `--check-before`, while actual test scripts retain
+their proper names. The removed `--test` and `--test-before` spellings produce migration diagnostics.
 
 ### TEAM consultations
 
@@ -142,8 +143,8 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --harness openai-co
 --agent <agent-book-path>     # Book override (optional; run/server/plan default to agents/developer.book)
 --path <directory>            # Project directory (default: invocation cwd, not an enclosing Git root)
 --context <context-or-file>   # Replace the default project AGENTS.md with inline text or a project-relative file
---test <test-command...>       # Run a verification command after each prompt and feed failures back for retries
---test-before <mode>           # no (default), yes-and-fail, or yes-and-fix; enabled modes default to npm test
+--check <check-command...>     # Run the aggregate project check after each prompt and feed failures back for retries
+--check-before <mode>          # no (default), yes-and-fail, or yes-and-fix; enabled modes default to npm run check
 --no-ui                       # Disable the rich terminal UI and stream plain console output instead
 --thinking-level <level>      # Reasoning effort for OpenAI Codex and GitHub Copilot: low, medium, high, xhigh
 --priority <minimum-priority> # Alias for --min-priority
@@ -181,7 +182,7 @@ The `S` control is shown only while the coder is waiting; it is hidden while a p
 Press `X` again after requesting the dynamic end to continue the full current run.
 
 Every interactive invocation starts in **Normal output**. It shows the agent's own messages separately from
-runner status, commands/tools, reported file changes, verification, results, warnings and failures. Claude Code
+runner status, commands/tools, reported file changes, checks, results, warnings and failures. Claude Code
 message deltas and Codex item snapshots are assembled without repeating their protocol envelopes. Codex's
 existing plain stream is also supported; other unstructured or unfamiliar output has an explicit fallback label.
 Only activity already reported by the harness or runner is shown. TEAM events carry the teammate's name when available.
@@ -236,8 +237,8 @@ ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhi
 # Run with GitHub Copilot
 ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh
 
-# Run tests before coding and let one repair prompt fix pre-existing failures
-ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --test-before yes-and-fix
+# Run the project check before coding and let one repair prompt fix pre-existing failures
+ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --check-before yes-and-fix
 
 # Run with plain streaming output for logging/debugging
 ptbk coder run --harness github-copilot --model gpt-6-astra --thinking-level xhigh --agent agents/coding/developer.book --no-ui
@@ -281,7 +282,7 @@ The `[^]` in-progress status is rewritten before every single step of the round,
 ```text
 [ ]
 [^] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation in progress
-[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing in progress
+[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Checking in progress
 [x] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Testing 35 minutes
 ```
 
@@ -303,10 +304,10 @@ Each trace pairs the metadata of the round with the untouched runtime log of the
 -   whether the round succeeded or failed,
 -   the Book agent, harness, model, thinking level and login method which ran it,
 -   how many coding attempts it took, what each step cost and how long each one ran,
--   the verification command, when one is configured,
+-   the check command, when one is configured,
 -   when it started, when it finished and how long it took,
 -   the error which ended a failed round,
--   everything the harness and the verification command have written, including the generated shell scripts and the prompt they embed.
+-   everything the harness and the check command have written, including the generated shell scripts and the prompt they embed.
 
 The trace is written before the round is committed, so it lands in the very same commit as the prompt it describes. This is the only place where the live runtime log survives — that log is a temporary artifact which is deleted as soon as a successful round is over (unless `--preserve-logs` keeps it). Re-running the same prompt overwrites its trace; the earlier ones stay in the git history.
 
@@ -339,7 +340,7 @@ With `--isolate`, no prompt is ever implemented in the working tree you started 
 
 -   Each task gets a temporary git worktree in `.promptbook/coder-isolation-worktrees/<task-name>` on branch `ptbk-coder-isolation/<task-name>` (for example `.promptbook/coder-isolation-worktrees/2026-07-0700-ptbk-coder-timing`).
 -   The worktree gets its own copy of the project `.env`, so the isolated task runs with its own environment.
--   The coding agent, the `--test` verification command and the round commit all happen inside the worktree.
+-   The coding agent, the `--check` command and the round commit all happen inside the worktree.
 -   Once the task is implemented and verified, it is merged back into the branch the coder runs on as one commit and the worktree plus its branch are deleted.
 -   If the merge fails, the task is marked as `[!]` instead of `[x]`, the failure is committed into the original worktree, the temporary worktree is kept for a manual merge, and the coder continues with the next task.
 

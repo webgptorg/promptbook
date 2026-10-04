@@ -86,14 +86,5 @@
     "engines": {
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
-    },
-    "peerDependencies": {
-        "@promptbook/core": "0.114.0-48"
-    },
-    "dependencies": {
-        "promptbook": "0.114.0-48"
-    },
-    "bin": {
-        "ptbk": "bin/promptbook-cli-proxy.js"
     }
 }

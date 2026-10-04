@@ -28,7 +28,7 @@ export type CoderRunPhase =
     | 'initializing'
     | 'loading'
     | 'running'
-    | 'verifying'
+    | 'checking'
     | 'waiting'
     | 'paused'
     | 'done'
@@ -48,7 +48,7 @@ export type CoderRunConfig = {
     readonly serverUrl?: string;
     readonly priorityFilter?: PriorityFilter;
     readonly limit?: number;
-    readonly testCommand?: string;
+    readonly checkCommand?: string;
 };
 
 /**
@@ -213,7 +213,7 @@ export class CoderRunUiState extends EventEmitter {
      * Appends raw agent output text, keeping only the last `MAX_AGENT_OUTPUT_LINES`.
      */
     public addAgentOutput(text: string, kind: 'status' | 'warning' = 'status'): void {
-        this.output.appendRunner(text, this.phase === 'verifying' && kind === 'status' ? 'verification' : kind);
+        this.output.appendRunner(text, this.phase === 'checking' && kind === 'status' ? 'check' : kind);
         const lines = text.split(/\r?\n/).filter((line) => line.trim() !== '');
         if (lines.length === 0) {
             return;
@@ -227,7 +227,7 @@ export class CoderRunUiState extends EventEmitter {
 
     /** Receives an original harness chunk, separately from runner console messages. */
     public addScriptOutput(text: string, source: LiveScriptOutputSource): void {
-        this.output.append(text, source, this.config.agentName, this.phase === 'verifying');
+        this.output.append(text, source, this.config.agentName, this.phase === 'checking');
         this.emitChange();
     }
 
@@ -254,7 +254,7 @@ export class CoderRunUiState extends EventEmitter {
      * Transitions the execution phase shown in the UI.
      */
     public setPhase(phase: CoderRunPhase): void {
-        if (phase !== this.phase && (phase === 'verifying' || this.phase === 'verifying')) this.output.flush();
+        if (phase !== this.phase && (phase === 'checking' || this.phase === 'checking')) this.output.flush();
         this.phase = phase;
         this.emitChange();
     }

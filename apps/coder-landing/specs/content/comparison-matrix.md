@@ -44,7 +44,7 @@ One row states **one claim for `ptbk coder`** and **one claim shared by all thre
 | 2   | The whole backlog, unattended        | ✅ `ptbk coder run`                   | 🛠 Script one session per task       |
 | 3   | Several agents on one backlog        | ✅ `--min-priority` `--max-priority`  | ❌ No shared queue                  |
 | 4   | The same agent on another vendor     | ✅ `--harness`                        | ❌ One of the harnesses *(override below)* |
-| 5   | Your tests gate every task           | ✅ `--test` `--test-before`           | 🛠 Ask for it, or wire a hook        |
+| 5   | Your project checks gate every task  | ✅ `--check` `--check-before`         | 🛠 Ask for it, or wire a hook        |
 | 6   | Done state committed with the code   | ✅ In every commit                    | 🛠 Track it by hand                  |
 | 7   | Git kept in order around each task   | ✅ `--auto-pull` `--auto-push` `--isolate` | 🛠 It commits as you, when asked |
 | 8   | Long runs that outlast a quota window| ✅ `--wait-between-prompts`           | ❌ No queue to pace                 |

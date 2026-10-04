@@ -28,7 +28,7 @@ The script is an ordered list of terminal events:
 
 The final dashboard must tell the same story as an actual limited run:
 
--   `Session` shows `DONE`, runner `claude-code · fable · thinking xhigh`, context `AGENTS.md`, test `npm run test-for-ptbk-coder`, 5-hour and 7-day subscription limits with their remaining allowance and reset times, run limit `1 prompt run`, backlog counts, elapsed time, and a 0% progress bar.
+-   `Session` shows `DONE`, runner `claude-code · fable · thinking xhigh`, context `AGENTS.md`, check `npm run check`, 5-hour and 7-day subscription limits with their remaining allowance and reset times, run limit `1 prompt run`, backlog counts, elapsed time, and a 0% progress bar.
 -   `Current task` shows `prompts/2026-07-0200-ptbk-coder-web.md#1` and `Attempt 1/3 · Run limit reached after 1 prompt run.`
 -   `Normal output` labels verification output and the `punycode` warning separately, with startup readiness, prerender output, and `🎉 All tests passed!`. Its scroll hint matches the live CLI.
 -   `Errors` shows one earlier failed `bash` command and a wrapped full `File` path to `.promptbook/coder-prompts/2026-07-0480-agents-server-browser-preview.sh`.

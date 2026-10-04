@@ -7,7 +7,7 @@ import type { CoderRunStep, CoderRunStepKind } from '../common/CoderRunStep';
  */
 const CODER_RUN_STEP_LABELS: Record<CoderRunStepKind, string> = {
     implementation: 'Implementation',
-    testing: 'Testing',
+    checking: 'Checking',
     fixing: 'Fixing',
 };
 
@@ -20,11 +20,11 @@ const IN_PROGRESS_STEP_SUFFIX = 'in progress';
  * Formats the per-step usage breakdown recorded for one prompt.
  *
  * Produces a `; `-separated summary such as
- * `Implementation $8.01 6 hours; Testing 1 hour; Fixing $3.14 2 hours` where each coding step carries its
- * price and duration and each verification step carries only its duration.
+ * `Implementation $8.01 6 hours; Checking 1 hour; Fixing $3.14 2 hours` where each coding step carries its
+ * price and duration and each aggregate check step carries only its duration.
  *
  * @param steps - Steps which have already finished
- * @param inProgressStepKind - Step which has started but has not finished yet, appended as `Testing in progress`
+ * @param inProgressStepKind - Step which has started but has not finished yet, appended as `Checking in progress`
  */
 export function formatCoderRunSteps(steps: ReadonlyArray<CoderRunStep>, inProgressStepKind?: CoderRunStepKind): string {
     const formattedSteps = steps.map(formatCoderRunStep);

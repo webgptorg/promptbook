@@ -10,6 +10,7 @@ import type { number_port } from '../../../types/number_positive';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { validateCoderRunOptions } from '../common/validateCoderRunOptions';
+import { rejectLegacyCoderCheckOptions } from '../common/rejectLegacyCoderCheckOptions';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { normalizeProjectCliOptions } from '../common/projectCliOptions';
@@ -87,9 +88,11 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
     addQuestionsOption(command);
     addCoderExecutionOptions(command);
     command.option(
-        '--test <test-command...>',
-        'Run a verification command after each prompt; quote it when the command itself contains top-level flags',
+        '--check <check-command...>',
+        'Run the aggregate project check after each prompt; quote it when the command itself contains top-level flags',
     );
+    // Keep the removed spelling parseable long enough to report an actionable migration error.
+    command.addOption(new Option('--test <test-command...>').hideHelp());
     command.option(
         '--preserve-logs',
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
@@ -142,7 +145,8 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 dryRun,
                 agent,
                 context,
-                test,
+                check,
+                test: legacyTest,
                 preserveLogs,
                 priority,
                 minPriority: minimumPriority,
@@ -158,6 +162,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 readonly dryRun: boolean;
                 readonly agent?: string;
                 readonly context?: string;
+                readonly check?: string | string[];
                 readonly test?: string | string[];
                 readonly preserveLogs: boolean;
                 readonly priority?: number;
@@ -173,7 +178,8 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 CoderAgentCliOptions;
 
             const port = parseCoderServerPort(rawPort);
-            const testCommand = normalizeCommandOptionValue(test);
+            rejectLegacyCoderCheckOptions({ legacyTest });
+            const checkCommand = normalizeCommandOptionValue(check);
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
@@ -201,7 +207,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 model: runnerOptions.model,
                 agent,
                 context,
-                testCommand,
+                checkCommand,
                 preserveLogs,
                 noUi: runnerOptions.noUi,
                 thinkingLevel: runnerOptions.thinkingLevel,

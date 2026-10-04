@@ -326,8 +326,8 @@ function buildRunningPhaseBadge(phase: CoderRunPhase): string {
             return colors.bgCyan.black(' LOADING ');
         case 'running':
             return colors.bgGreen.black(' RUNNING ');
-        case 'verifying':
-            return colors.bgMagenta.white(' VERIFYING ');
+        case 'checking':
+            return colors.bgMagenta.white(' CHECKING ');
         case 'waiting':
             return colors.bgBlue.white(' WAITING ');
         case 'done':

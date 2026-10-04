@@ -4,12 +4,12 @@ const { spawn } = require('node:child_process');
 const path = require('node:path');
 
 /**
- * Absolute repository root used as the default working directory for verification steps.
+ * Absolute repository root used as the default working directory for project checks.
  */
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 /**
- * Agents Server workspace used by the final lint/build verification steps.
+ * Agents Server workspace used by the final lint/build checks.
  */
 const AGENTS_SERVER_ROOT = path.join(PROJECT_ROOT, 'apps', 'agents-server');
 
@@ -19,9 +19,9 @@ const AGENTS_SERVER_ROOT = path.join(PROJECT_ROOT, 'apps', 'agents-server');
 const NPM_COMMAND = 'npm';
 
 /**
- * Ordered verification steps for `npm run test-for-ptbk-coder`.
+ * Ordered project checks for `npm run check`.
  */
-const TEST_FOR_PTBK_CODER_STEPS = [
+const CHECK_STEPS = [
     { script: 'test-name-discrepancies', cwd: PROJECT_ROOT },
     { script: 'test-spellcheck', cwd: PROJECT_ROOT },
     { script: 'test-lint', cwd: PROJECT_ROOT },
@@ -37,10 +37,10 @@ const TEST_FOR_PTBK_CODER_STEPS = [
 /**
  * Runs one npm script and resolves only after the child process and its stdio streams are fully closed.
  *
- * @param {{script: string, cwd: string}} step - Verification step definition.
+ * @param {{script: string, cwd: string}} step - Project check definition.
  * @returns {Promise<void>} Promise that resolves on success.
  */
-function runVerificationStep(step) {
+function runCheckStep(step) {
     return new Promise((resolve, reject) => {
         const childProcess = spawn(`${NPM_COMMAND} run ${step.script}`, {
             cwd: step.cwd,
@@ -61,7 +61,7 @@ function runVerificationStep(step) {
 
             reject(
                 new Error(
-                    `Verification step \`${step.script}\` failed with code ${String(code)} and signal ${String(signal)}.`,
+                    `Check step \`${step.script}\` failed with code ${String(code)} and signal ${String(signal)}.`,
                 ),
             );
         });
@@ -69,16 +69,16 @@ function runVerificationStep(step) {
 }
 
 /**
- * Executes the Promptbook Coder verification suite from the lightest checks to the heaviest build step.
+ * Executes the Promptbook Coder checks from the lightest steps to the heaviest build step.
  */
 async function main() {
-    console.info('Note: Running from most lightweight to heaviest tests');
+    console.info('Note: Running from most lightweight to heaviest checks');
 
-    for (const step of TEST_FOR_PTBK_CODER_STEPS) {
-        await runVerificationStep(step);
+    for (const step of CHECK_STEPS) {
+        await runCheckStep(step);
     }
 
-    console.info('🎉 All tests passed!');
+    console.info('🎉 All checks passed!');
 }
 
 void main().catch((error) => {

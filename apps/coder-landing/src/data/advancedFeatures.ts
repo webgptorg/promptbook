@@ -9,7 +9,7 @@ import {
     MODEL_FILTER_COMMAND,
     PING_COMMAND,
     PING_PERIOD_COMMAND,
-    TEST_BEFORE_FIX_COMMAND,
+    CHECK_BEFORE_FIX_COMMAND,
     VERIFY_COMMAND,
 } from './commands';
 
@@ -40,16 +40,16 @@ export type AdvancedFeatureDefinition = {
  */
 export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
-        title: 'Verified by your tests',
+        title: 'Checked by your project',
         description:
-            'Run any test command after each prompt. When it fails, ptbk coder hands the output back to the agent, which retries until the tests pass.',
-        sampleCommand: 'ptbk coder run --harness claude-code --test npm test',
+            'Run the aggregate project check after each prompt. When it fails, ptbk coder hands the output back to the agent, which retries until the check passes.',
+        sampleCommand: 'ptbk coder run --harness claude-code --check "npm run check"',
     },
     {
-        title: 'Test before coding',
+        title: 'Check before coding',
         description:
             'Run the tests before the first coding prompt. Stop on failures that were already there, or let one repair prompt fix them before the backlog starts.',
-        sampleCommand: TEST_BEFORE_FIX_COMMAND,
+        sampleCommand: CHECK_BEFORE_FIX_COMMAND,
     },
     {
         title: 'Commits with its own identity',

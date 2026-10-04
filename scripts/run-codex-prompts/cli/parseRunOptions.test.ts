@@ -39,7 +39,7 @@ describe('parseRunOptions', () => {
             allowCredits: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
-            testBefore: 'no',
+            checkBefore: 'no',
         });
     });
 
@@ -48,24 +48,39 @@ describe('parseRunOptions', () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Book path'));
     });
 
-    it('parses the pre-coding verification mode', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--test-before', 'yes-and-fix']);
+    it('parses the pre-coding check mode', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--check-before', 'yes-and-fix']);
 
         expect(options).toMatchObject({
-            testBefore: 'yes-and-fix',
+            checkBefore: 'yes-and-fix',
         });
     });
 
-    it('rejects an invalid pre-coding verification mode', () => {
-        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test-before', 'sometimes'])).toThrow(
+    it('rejects an invalid pre-coding check mode', () => {
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--check-before', 'sometimes'])).toThrow(
             'process.exit',
         );
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
-    it('rejects a missing pre-coding verification mode', () => {
-        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test-before'])).toThrow('process.exit');
+    it('rejects a missing pre-coding check mode', () => {
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--check-before'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('rejects removed aggregate-check spellings with migration guidance', () => {
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test', 'npm', 'test'])).toThrow(
+            'process.exit',
+        );
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test` flag was renamed to `--check`'));
+
+        consoleErrorSpy.mockClear();
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test-before', 'yes-and-fix'])).toThrow(
+            'process.exit',
+        );
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect.stringContaining('`--test-before` flag was renamed to `--check-before`'),
+        );
     });
 
     it('fails on a dirty working tree unless --git-changes says otherwise', () => {
@@ -248,8 +263,8 @@ describe('parseRunOptions', () => {
         });
     });
 
-    it('parses an unquoted verification command and stops at the next top-level flag', () => {
-        const options = parseRunOptions(['--harness', 'github-copilot', '--test', 'npm', 'run', 'test', '--no-auto']);
+    it('parses an unquoted check command and stops at the next top-level flag', () => {
+        const options = parseRunOptions(['--harness', 'github-copilot', '--check', 'npm', 'run', 'check', '--no-auto']);
 
         expect(options).toMatchObject({
             dryRun: false,
@@ -258,9 +273,25 @@ describe('parseRunOptions', () => {
             autoPull: false,
             preserveLogs: false,
             noUi: false,
-            testCommand: 'npm run test',
+            checkCommand: 'npm run check',
             waitForUser: true,
         });
+    });
+
+    it('preserves quoted shell composition and embedded flags in a check command', () => {
+        const options = parseRunOptions([
+            '--harness',
+            'github-copilot',
+            '--check',
+            'npm run lint && npm run build -- --mode production',
+        ]);
+
+        expect(options.checkCommand).toBe('npm run lint && npm run build -- --mode production');
+    });
+
+    it('rejects an empty check command', () => {
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--check'])).toThrow('process.exit');
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Missing value for --check'));
     });
 
     it('parses thinking level for supported runners', () => {
@@ -546,8 +577,8 @@ describe('parseRunOptions', () => {
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
-    it('rejects missing verification commands', () => {
-        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test'])).toThrow('process.exit');
+    it('rejects missing check commands', () => {
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--check'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 

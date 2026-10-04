@@ -26,7 +26,7 @@ export type CoderServerBoardColumn =
  * UI tag attached to one prompt card.
  */
 export type CoderServerPromptTag = {
-    readonly id: 'not-ready' | 'unwritten' | 'left-in-progress' | 'implementing' | 'verifying';
+    readonly id: 'not-ready' | 'unwritten' | 'left-in-progress' | 'implementing' | 'checking';
     readonly label: string;
 };
 
@@ -233,8 +233,8 @@ function buildPromptTags(options: {
 
     if (options.isActive) {
         tags.push(
-            options.activePrompt?.phase === 'verifying'
-                ? { id: 'verifying', label: 'Verifying' }
+            options.activePrompt?.phase === 'checking'
+                ? { id: 'checking', label: 'Checking' }
                 : { id: 'implementing', label: 'Implementing' },
         );
     }
@@ -251,14 +251,14 @@ type ActivePrompt = {
 };
 
 /**
- * Extracts an active prompt only while an agent is implementing or verifying it.
+ * Extracts an active prompt only while an agent is implementing or checking it.
  */
 function getActivePrompt(uiState: CoderRunUiState | undefined): ActivePrompt | undefined {
     if (!uiState?.currentPromptLabel) {
         return undefined;
     }
 
-    if (uiState.phase !== 'running' && uiState.phase !== 'verifying') {
+    if (uiState.phase !== 'running' && uiState.phase !== 'checking') {
         return undefined;
     }
 

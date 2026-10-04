@@ -1,4 +1,7 @@
-import { getDefaultCoderPackageJsonScripts } from './getDefaultCoderPackageJsonScripts';
+import {
+    getDefaultCoderPackageJsonScripts,
+    resolveCoderPackageJsonScriptsForInitialization,
+} from './getDefaultCoderPackageJsonScripts';
 import type { MergedStringRecordJsonFile } from './mergeStringRecordJsonFile';
 import { mergeStringRecordJsonFile } from './mergeStringRecordJsonFile';
 
@@ -20,6 +23,7 @@ export async function ensureCoderPackageJsonFile(projectPath: string): Promise<M
         relativeFilePath: PACKAGE_JSON_FILE_PATH,
         fieldPath: 'scripts',
         nextEntries: getDefaultCoderPackageJsonScripts(),
+        transformExistingEntries: resolveCoderPackageJsonScriptsForInitialization,
     });
 }
 

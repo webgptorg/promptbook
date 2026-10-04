@@ -27,6 +27,15 @@ type MergeStringRecordJsonFileOptions = {
     readonly relativeFilePath: string;
     readonly fieldPath: string;
     readonly nextEntries: Readonly<Record<string, string>>;
+    /**
+     * Optional project-specific migration of already existing entries before missing defaults are added.
+     */
+    readonly transformExistingEntries?: (
+        existingEntries: Readonly<Record<string, string>>,
+    ) => {
+        readonly entries: Readonly<Record<string, string>>;
+        readonly diagnostics?: ReadonlyArray<string>;
+    };
     readonly ensureParentDirectoryPath?: string;
 };
 
@@ -45,6 +54,21 @@ export type MergedStringRecordJsonFile = {
      * Keys which were missing in the JSON file and therefore added by the merge.
      */
     readonly addedEntryKeys: ReadonlyArray<string>;
+
+    /**
+     * Keys whose existing values were intentionally migrated by the merge.
+     */
+    readonly updatedEntryKeys: ReadonlyArray<string>;
+
+    /**
+     * Keys intentionally removed by a migration after their callers were checked.
+     */
+    readonly removedEntryKeys: ReadonlyArray<string>;
+
+    /**
+     * Human-readable migration or composition notes for the initialization summary.
+     */
+    readonly diagnostics: ReadonlyArray<string>;
 };
 
 /**
@@ -70,6 +94,7 @@ export async function mergeStringRecordJsonFile({
     relativeFilePath,
     fieldPath,
     nextEntries,
+    transformExistingEntries,
     ensureParentDirectoryPath,
 }: MergeStringRecordJsonFileOptions): Promise<MergedStringRecordJsonFile> {
     if (ensureParentDirectoryPath) {
@@ -81,9 +106,27 @@ export async function mergeStringRecordJsonFile({
     const formatting = detectJsonFileFormatting(fileContent);
     const jsonObject = fileContent === undefined ? {} : await parseJsonObjectFile(relativeFilePath, fileContent);
     const existingEntries = getStringRecordOrDefault(jsonObject[fieldPath], relativeFilePath, fieldPath);
+    const transformedEntries = transformExistingEntries?.(existingEntries) ?? {
+        entries: existingEntries,
+        diagnostics: [],
+    };
 
-    const addedEntryKeys: Array<string> = [];
-    const mergedEntries = { ...existingEntries };
+    const addedEntryKeys: Array<string> = Object.keys(transformedEntries.entries).filter(
+        (entryKey) => !Object.prototype.hasOwnProperty.call(existingEntries, entryKey),
+    );
+    const updatedEntryKeys: Array<string> = [];
+    const removedEntryKeys = Object.keys(existingEntries).filter(
+        (entryKey) => !Object.prototype.hasOwnProperty.call(transformedEntries.entries, entryKey),
+    );
+    const mergedEntries = { ...transformedEntries.entries };
+    for (const [entryKey, entryValue] of Object.entries(transformedEntries.entries)) {
+        if (
+            Object.prototype.hasOwnProperty.call(existingEntries, entryKey) &&
+            existingEntries[entryKey] !== entryValue
+        ) {
+            updatedEntryKeys.push(entryKey);
+        }
+    }
     for (const [entryKey, entryValue] of Object.entries(nextEntries)) {
         if (Object.prototype.hasOwnProperty.call(mergedEntries, entryKey)) {
             // Note: The project already defines this entry, keep its own value untouched
@@ -94,15 +137,31 @@ export async function mergeStringRecordJsonFile({
         addedEntryKeys.push(entryKey);
     }
 
-    const hasChanges = fileContent === undefined || addedEntryKeys.length > 0;
+    const hasChanges =
+        fileContent === undefined ||
+        addedEntryKeys.length > 0 ||
+        updatedEntryKeys.length > 0 ||
+        removedEntryKeys.length > 0;
     if (!hasChanges) {
-        return { status: 'unchanged', addedEntryKeys };
+        return {
+            status: 'unchanged',
+            addedEntryKeys,
+            updatedEntryKeys,
+            removedEntryKeys,
+            diagnostics: transformedEntries.diagnostics ?? [],
+        };
     }
 
     const nextJsonObject: JsonObject = { ...jsonObject };
     nextJsonObject[fieldPath] = mergedEntries;
     await writeFile(absoluteFilePath, serializeJsonObject(nextJsonObject, formatting), 'utf-8');
-    return { status: fileContent === undefined ? 'created' : 'updated', addedEntryKeys };
+    return {
+        status: fileContent === undefined ? 'created' : 'updated',
+        addedEntryKeys,
+        updatedEntryKeys,
+        removedEntryKeys,
+        diagnostics: transformedEntries.diagnostics ?? [],
+    };
 }
 
 /**

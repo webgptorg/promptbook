@@ -121,7 +121,7 @@ describe('CoderRunOutput', () => {
         expect(output.rawChunks).toHaveLength(4);
     });
 
-    it('flushes unterminated agent, verification and diagnostic text with its original attribution', () => {
+    it('flushes unterminated agent, check and diagnostic text with its original attribution', () => {
         const output = new CoderRunOutput();
         output.append('codex\nI will inspect the file.', 'stderr', 'OpenAI Codex', false);
         expect(output.getPendingEvents()).toEqual([
@@ -133,12 +133,12 @@ describe('CoderRunOutput', () => {
         output.flush();
         expect(output.events).toEqual([
             expect.objectContaining({ kind: 'agent', text: 'I will inspect the file.' }),
-            expect.objectContaining({ kind: 'verification', text: 'PASS example.test.ts' }),
+            expect.objectContaining({ kind: 'check', text: 'PASS example.test.ts' }),
             expect.objectContaining({ kind: 'error', text: 'Error: could not write the report' }),
         ]);
     });
 
-    it('defers projection across capture and verification boundaries until the display reads it', () => {
+    it('defers projection across capture and check boundaries until the display reads it', () => {
         const normalize = jest.spyOn(outputNormalizer, 'normalizeCoderOutputRecord');
         try {
             const output = new CoderRunOutput();
@@ -271,16 +271,16 @@ describe('CoderRunOutput', () => {
         expect(output.events[2]!.title).toContain('Lawyer');
     });
 
-    it('labels verification only from the runner verification phase', () => {
+    it('labels check output only from the runner check phase', () => {
         const output = new CoderRunOutput();
         output.append('PASS example.test.ts\n', 'stdout', 'codex', true);
-        expect(output.events[0]).toMatchObject({ kind: 'verification', text: 'PASS example.test.ts' });
+        expect(output.events[0]).toMatchObject({ kind: 'check', text: 'PASS example.test.ts' });
 
         const state = new CoderRunUiState(moment());
-        state.setPhase('verifying');
-        state.addAgentOutput('Verification started');
+        state.setPhase('checking');
+        state.addAgentOutput('Check started');
         state.addAgentOutput('Warning: report upload unavailable', 'warning');
-        expect(state.output.events.map((event) => event.kind)).toEqual(['verification', 'warning']);
+        expect(state.output.events.map((event) => event.kind)).toEqual(['check', 'warning']);
     });
 
     it('bounds long lines, pending records, messages and large volumes, with visible truncation', () => {

@@ -280,7 +280,7 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
     | \`ptbk coder add "Describe the reviewed change"\`                                           | Creates one numbered, tagged pending PRD. Accepts a description argument, stdin, or interactive input; \`--priority\` and \`--template\` are available. It does not discuss or implement the task. Review the generated requirements before running.                                                                                                |
     | \`ptbk coder plan --harness openai-codex\`                                                  | Interactive planning with the local Developer. Review proposals; \`/save\` writes pending PRDs, \`/draft\` writes not-ready drafts, \`/discard\` drops proposals, \`/exit\` ends. It changes PRD Markdown only and never implements or starts the queue. Currently this planning command supports the Codex harness in a compatible interactive terminal. |
     | \`ptbk coder list\`                                                                         | Displays fully authored pending tasks grouped by descending priority without execution or file changes. Optional harness/model/agent and priority filters narrow the list.                                                                                                                                                                      |
-    | \`ptbk coder run --harness openai-codex --limit 1 --no-commit --no-auto --test "npm test"\` | Confirms and implements one selected task, then runs the specified project check. Replace the test command as needed. Without \`--limit\`, execution proceeds through the eligible queue; without \`--no-commit\`, run stages and commits its changes.                                                                                              |
+    | \`ptbk coder run --harness openai-codex --limit 1 --no-commit --no-auto --check "npm run check"\` | Confirms and implements one selected task, then runs the specified project check. The check can combine tests, linting, typechecking and builds. Without \`--limit\`, execution proceeds through the eligible queue; without \`--no-commit\`, run stages and commits its changes.                                                                                              |
     | \`ptbk coder verify\`                                                                       | Human review helper: shows completion claims, offers archival or a repair section, and can also ask about pending tasks. It does not run acceptance tests itself. Archival moves the whole file to \`done/\`, so inspect every section before agreeing. There is no separate archive command.                                                     |
     | \`ptbk coder find-unwritten\`                                                               | Lists pending sections still containing authoring placeholders; not-ready drafts are not included.                                                                                                                                                                                                                                              |
     | \`ptbk coder generate-boilerplates\`                                                        | Adds not-ready starter sections using reusable templates; author and review them before making them pending.                                                                                                                                                                                                                                    |
@@ -292,11 +292,11 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
     pulling require the corresponding explicit options. Consult \`ptbk coder --help\` and the relevant subcommand's
     \`--help\` for the installed version's full options.
 
-    The initialized \`npm run coder:run\` script supplies \`AGENTS.md\` as context, selects the Codex harness, and
-    uses \`npm run test-for-ptbk-coder\` for checks (including pre-run repair mode). The new check script delegates
-    to \`npm test\`; configure real tests for your project before running it. Existing npm scripts are preserved, so
-    read your \`package.json\` to see your actual commands. Direct \`ptbk coder run\` does not inherit npm-script
-    flags.
+    The initialized \`npm run coder:run\` script selects the Codex harness and runs \`npm run check\` for the
+    project-owned aggregate check, including pre-run repair mode. Init preserves an existing \`scripts.check\`; when
+    it is missing, it composes safe conventional validation scripts such as tests, linting, typechecking and builds,
+    or creates a clearly failing setup placeholder when none are available. Read the initialization summary and your
+    \`package.json\` to see the exact command. Direct \`ptbk coder run\` does not inherit npm-script flags.
 
     ### Book agent, harness, and model
 

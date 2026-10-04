@@ -233,7 +233,7 @@ export const CODER_SERVER_HTML = spaceTrim(`<!DOCTYPE html>
     .tag-left-in-progress { background: #ffe4e6; color: #9f1239; }
     .tag-unwritten { background: #fff4cc; color: #8a5a00; }
     .tag-implementing { background: #ede9fe; color: #5b21b6; }
-    .tag-verifying { background: #fae8ff; color: #86198f; }
+    .tag-checking { background: #fae8ff; color: #86198f; }
     .tag-priority { background: #ffedd5; color: #9a3412; }
 
     .empty-column {

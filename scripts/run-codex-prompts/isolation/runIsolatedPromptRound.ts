@@ -29,7 +29,7 @@ import { DEFAULT_CODER_AGENT_ROLE } from '../../../src/cli/cli-commands/coder/co
  * Runs one prompt round inside a temporary git worktree and merges the result back afterwards.
  *
  * This is the `--isolate` counterpart of `runPromptRound`, so it accepts exactly the same input:
- * - The coding agent, its verification command and the round commit all happen inside the worktree.
+ * - The coding agent, its check command and the round commit all happen inside the worktree.
  * - A verified task is squash-merged back into the branch the coder runs on and the worktree is deleted.
  * - A task which cannot be merged is recorded as failed in the original project and its worktree is kept,
  *   without stopping the coder from processing the next task.
@@ -57,7 +57,7 @@ export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Pr
             relative(originalProjectCommitScope.repositoryRoot ?? projectPath, projectPath),
         );
         // This newly created working tree has its own metadata. Keep the project's repository-relative
-        // location so its harness and verification use the same project as the original invocation.
+        // location so its harness and check use the same project as the original invocation.
         const isolatedWorkspace = await $resolveWorkspaceRepository(isolatedProjectPath);
         const isolatedOptions = {
             ...options.options,

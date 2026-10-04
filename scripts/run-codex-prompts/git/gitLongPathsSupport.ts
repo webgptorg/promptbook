@@ -32,7 +32,7 @@ const GIT_CONFIGURATION_VALUE_VARIABLE_PREFIX = 'GIT_CONFIG_VALUE_';
  * Builds the environment variables which add `core.longpaths=true` to every Git process started with them.
  *
  * Git configuration passed through `GIT_CONFIG_COUNT` is inherited by child processes, so one single
- * environment covers the Git commands of the coder, of the coding agent and of the verification command alike.
+ * environment covers the Git commands of the coder, of the coding agent and of the check command alike.
  *
  * Returns an empty record when the given environment already configures `core.longpaths`, which keeps an
  * explicit user setting untouched and keeps repeated calls from stacking duplicate entries.

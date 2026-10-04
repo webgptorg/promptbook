@@ -126,6 +126,31 @@ describe('$initializeCoderServerCommand', () => {
         );
     });
 
+    it('forwards the aggregate check command to the shared server runner', async () => {
+        const program = createProgramWithServerCommand();
+
+        await program.parseAsync(
+            ['node', 'test', 'server', '--dry-run', '--harness', 'openai-codex', '--check', 'npm', 'run', 'check'],
+            { from: 'node' },
+        );
+
+        expect(getRunCodexPromptsServerMock()).toHaveBeenCalledWith(
+            expect.objectContaining({ checkCommand: 'npm run check' }),
+        );
+    });
+
+    it('rejects the removed server aggregate flag with migration guidance', async () => {
+        const program = createProgramWithServerCommand();
+
+        await program.parseAsync(['node', 'test', 'server', '--dry-run', '--test', 'npm', 'test'], {
+            from: 'node',
+        });
+
+        expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test`'));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--check`'));
+    });
+
     it('rejects a missing Developer before setup or starting the server', async () => {
         (resolveCoderAgentBook as jest.MockedFunction<typeof resolveCoderAgentBook>).mockRejectedValueOnce(
             new NotFoundError('Missing Developer.'),

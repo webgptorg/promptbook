@@ -58,18 +58,18 @@ import {
     startCoderRunUiSubscriptionUsageRefresh,
     type CoderRunUiSubscriptionUsageRefreshHandle,
 } from '../ui/startCoderRunUiSubscriptionUsageRefresh';
-import { createTestBeforeRepairPrompt } from '../testing/createTestBeforeRepairPrompt';
-import { DEFAULT_CODER_TEST_COMMAND, type TestBeforeMode } from '../testing/TestBeforeMode';
-import { limitTestOutput } from '../testing/limitTestOutput';
-import { runTestBefore } from '../testing/runTestBefore';
+import { createCheckBeforeRepairPrompt } from '../checking/createCheckBeforeRepairPrompt';
+import { DEFAULT_CODER_CHECK_COMMAND, type CheckBeforeMode } from '../checking/CheckBeforeMode';
+import { limitCheckOutput } from '../checking/limitCheckOutput';
+import { runCheckBefore } from '../checking/runCheckBefore';
 import { resolvePromptRunner, resolveRunnerModel } from './resolvePromptRunner';
 import { runPromptRound } from './runPromptRound';
 import { createCoderTeamPromptRunner } from '../team/createCoderTeamPromptRunner';
 
 /**
- * Commit message for files changed by a successful or failed pre-coding test in repair mode.
+ * Commit message for files changed by a successful or failed pre-coding check in repair mode.
  */
-const PRE_CODING_TEST_CHANGES_COMMIT_MESSAGE = 'test: Apply changes made by pre-coding tests';
+const PRE_CODING_CHECK_CHANGES_COMMIT_MESSAGE = 'check: Apply changes made by pre-coding check';
 
 /**
  * Prompt queue snapshot for one top-level loop iteration.
@@ -107,7 +107,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         progressDisplay,
         uiHandle,
         // Note: Every pause checkpoint of the whole run goes through this one waiter, so watching the free disk
-        //       space here covers each round, each verification and each runner without repeating the check
+        //       space here covers each round, each check and each runner without repeating the guard
         guardFreeDiskSpace: createFreeDiskSpaceGuard({
             inspectedPath: projectPath,
             isAskingQuestionsEnabled: options.isAskingQuestionsEnabled ?? true,
@@ -174,7 +174,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         let previousRoundStartTime: number | undefined;
         let previousRoundEndTime: number | undefined;
         let completedRunCount = 0;
-        let hasRunTestBefore = false;
+        let hasRunCheckBefore = false;
         // Note: Only the very first round resumes the interrupted prompt, every later round starts from a clean tree
         let isContinuingInterruptedPrompt = options.gitChanges === 'continue';
 
@@ -191,11 +191,11 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 isRichUiEnabled,
             });
 
-            if (!hasRunTestBefore && options.testBefore !== 'no') {
+            if (!hasRunCheckBefore && options.checkBefore !== 'no') {
                 await waitForRequestedPause({
-                    checkpointLabel: 'loading prompts before running initial tests',
+                    checkpointLabel: 'loading prompts before running initial check',
                     phase: 'loading',
-                    statusMessage: 'Loading prompts before running initial tests...',
+                    statusMessage: 'Loading prompts before running initial check...',
                 });
                 await loadPromptQueueSnapshot({
                     options,
@@ -207,8 +207,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 });
             }
 
-            if (!hasRunTestBefore) {
-                hasWaitedForStart = await runTestBeforeIfNeeded({
+            if (!hasRunCheckBefore) {
+                hasWaitedForStart = await runCheckBeforeIfNeeded({
                     options,
                     runner,
                     runnerMetadata,
@@ -221,7 +221,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     hasWaitedForStart,
                     isContinuingInterruptedPrompt,
                 });
-                hasRunTestBefore = true;
+                hasRunCheckBefore = true;
             }
 
             await waitForRequestedPause({
@@ -426,8 +426,8 @@ function createRunDisplays(
  * Normalizes legacy and current priority options into one validated run option shape.
  */
 function normalizeRunOptions(options: RunOptions): RunOptions {
-    const testBefore: TestBeforeMode = options.testBefore ?? 'no';
-    const normalizedTestCommand = options.testCommand?.trim();
+    const checkBefore: CheckBeforeMode = options.checkBefore ?? 'no';
+    const normalizedCheckCommand = options.checkCommand?.trim();
     const priorityFilter = normalizePriorityFilter({
         priority: options.priority,
         minimumPriority: options.minimumPriority ?? options.priorityFilter?.minimumPriority,
@@ -437,8 +437,8 @@ function normalizeRunOptions(options: RunOptions): RunOptions {
     return {
         ...options,
         projectPath: options.workspace?.projectPath ?? options.projectPath ?? process.cwd(),
-        testBefore,
-        testCommand: normalizedTestCommand || (testBefore === 'no' ? undefined : DEFAULT_CODER_TEST_COMMAND),
+        checkBefore,
+        checkCommand: normalizedCheckCommand || (checkBefore === 'no' ? undefined : DEFAULT_CODER_CHECK_COMMAND),
         priority: priorityFilter.minimumPriority ?? 0,
         minimumPriority: priorityFilter.minimumPriority,
         maximumPriority: priorityFilter.maximumPriority,
@@ -447,9 +447,9 @@ function normalizeRunOptions(options: RunOptions): RunOptions {
 }
 
 /**
- * Runs the optional pre-coding verification and, when requested, its one repair prompt.
+ * Runs the optional pre-coding check and, when requested, its one repair prompt.
  */
-async function runTestBeforeIfNeeded(options: {
+async function runCheckBeforeIfNeeded(options: {
     options: RunOptions;
     runner: PromptRunner;
     runnerMetadata: PromptRunnerMetadata;
@@ -476,73 +476,73 @@ async function runTestBeforeIfNeeded(options: {
         isContinuingInterruptedPrompt,
     } = options;
 
-    if (runOptions.testBefore === 'no') {
+    if (runOptions.checkBefore === 'no') {
         return hasWaitedForStart;
     }
 
-    if (!runOptions.testCommand) {
+    if (!runOptions.checkCommand) {
         throw new NotAllowed(
             spaceTrim(`
-                ${'`--test-before ' + runOptions.testBefore + '`'} requires a verification command.
+                ${'`--check-before ' + runOptions.checkBefore + '`'} requires a check command.
 
-                Pass one with ${'`--test <test-command>`'} or use the default ${'`npm test`'} command by providing the mode through the CLI.
+                Pass one with ${'`--check <check-command>`'} or use the default ${'`npm run check`'} command by providing the mode through the CLI.
             `),
         );
     }
 
     if (isCleanWorkingTreeRequired(runOptions.gitChanges, isContinuingInterruptedPrompt)) {
         await waitForRequestedPause({
-            checkpointLabel: 'checking the git working tree before testing',
+            checkpointLabel: 'checking the git working tree before the initial check',
             phase: 'loading',
-            statusMessage: 'Checking the working tree before testing...',
+            statusMessage: 'Checking the working tree before the initial check...',
         });
         await ensureWorkingTreeClean(runOptions.workspace?.repositoryRoot ?? runOptions.projectPath);
     }
 
-    const testBeforeCommitScope = await captureTestBeforeCommitScopeIfNeeded(runOptions);
+    const checkBeforeCommitScope = await captureCheckBeforeCommitScopeIfNeeded(runOptions);
 
     uiHandle?.startCapturingAgentOutput();
-    const testBeforeResult = await runTestBefore({
-        testCommand: runOptions.testCommand,
+    const checkBeforeResult = await runCheckBefore({
+        checkCommand: runOptions.checkCommand,
         projectPath: runOptions.projectPath!,
         waitForPauseCheckpoint: waitForRequestedPause,
     }).finally(() => {
         uiHandle?.stopCapturingAgentOutput();
     });
 
-    await commitTestBeforeChangesIfNeeded({
+    await commitCheckBeforeChangesIfNeeded({
         runOptions,
-        testBeforeCommitScope,
+        checkBeforeCommitScope,
         waitForRequestedPause,
     });
 
-    if (testBeforeResult.isPassed) {
+    if (checkBeforeResult.isPassed) {
         return hasWaitedForStart;
     }
 
-    const testOutput = limitTestOutput(testBeforeResult.testOutput);
+    const checkOutput = limitCheckOutput(checkBeforeResult.checkOutput);
 
-    if (runOptions.testBefore === 'yes-and-fail') {
+    if (runOptions.checkBefore === 'yes-and-fail') {
         throw new NotAllowed(
             spaceTrim(
                 (block) => `
-                    Pre-coding verification command \`${runOptions.testCommand}\` failed.
+                    Pre-coding check command \`${runOptions.checkCommand}\` failed.
 
                     The coding agent was not started because the project was already failing before the first queued prompt.
 
-                    ### Test results
+                    ### Check results
                     ${'```'}
-                    ${block(testOutput)}
+                    ${block(checkOutput)}
                     ${'```'}
                 `,
             ),
         );
     }
 
-    const repairPrompt = await createTestBeforeRepairPrompt({
+    const repairPrompt = await createCheckBeforeRepairPrompt({
         projectPath: runOptions.projectPath!,
-        testCommand: runOptions.testCommand,
-        testOutput,
+        checkCommand: runOptions.checkCommand,
+        checkOutput,
     });
     const repairPromptLabel = buildPromptLabelForDisplay(repairPrompt.file, repairPrompt.section, runOptions.projectPath);
     const updatedHasWaitedForStart = await waitForPromptConfirmationIfNeeded({
@@ -575,10 +575,10 @@ async function runTestBeforeIfNeeded(options: {
 }
 
 /**
- * Captures the files present before a `yes-and-fix` pre-coding test, so only changes made by that test can be committed.
+ * Captures the files present before a `yes-and-fix` pre-coding check, so only changes made by that check can be committed.
  */
-async function captureTestBeforeCommitScopeIfNeeded(runOptions: RunOptions): Promise<CoderCommitScope | undefined> {
-    if (runOptions.testBefore !== 'yes-and-fix' || runOptions.noCommit) {
+async function captureCheckBeforeCommitScopeIfNeeded(runOptions: RunOptions): Promise<CoderCommitScope | undefined> {
+    if (runOptions.checkBefore !== 'yes-and-fix' || runOptions.noCommit) {
         return undefined;
     }
 
@@ -586,32 +586,32 @@ async function captureTestBeforeCommitScopeIfNeeded(runOptions: RunOptions): Pro
 }
 
 /**
- * Commits files changed by a `yes-and-fix` pre-coding test before the coder continues to a queued or repair prompt.
+ * Commits files changed by a `yes-and-fix` pre-coding check before the coder continues to a queued or repair prompt.
  */
-async function commitTestBeforeChangesIfNeeded(options: {
+async function commitCheckBeforeChangesIfNeeded(options: {
     runOptions: RunOptions;
-    testBeforeCommitScope?: CoderCommitScope;
+    checkBeforeCommitScope?: CoderCommitScope;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
 }): Promise<void> {
-    const { runOptions, testBeforeCommitScope, waitForRequestedPause } = options;
+    const { runOptions, checkBeforeCommitScope, waitForRequestedPause } = options;
 
-    if (!testBeforeCommitScope) {
+    if (!checkBeforeCommitScope) {
         return;
     }
 
-    const relevantPaths = await resolveCoderCommitScopePaths(testBeforeCommitScope);
+    const relevantPaths = await resolveCoderCommitScopePaths(checkBeforeCommitScope);
     if (relevantPaths.length === 0) {
         return;
     }
 
     await waitForRequestedPause({
-        checkpointLabel: 'committing changes made by pre-coding tests',
-        phase: 'verifying',
-        statusMessage: 'Committing changes made by pre-coding tests...',
+        checkpointLabel: 'committing changes made by the pre-coding check',
+        phase: 'checking',
+        statusMessage: 'Committing changes made by the pre-coding check...',
     });
-    await commitChanges(PRE_CODING_TEST_CHANGES_COMMIT_MESSAGE, {
+    await commitChanges(PRE_CODING_CHECK_CHANGES_COMMIT_MESSAGE, {
         autoPush: runOptions.autoPush,
-        projectPath: testBeforeCommitScope.repositoryRoot ?? testBeforeCommitScope.projectPath,
+        projectPath: checkBeforeCommitScope.repositoryRoot ?? checkBeforeCommitScope.projectPath,
         relevantPaths,
     });
 }
@@ -713,7 +713,7 @@ function initializeRunUi(
         serverUrl: options.serverUrl,
         priorityFilter: options.priorityFilter,
         limit: options.limit,
-        testCommand: options.testCommand,
+        checkCommand: options.checkCommand,
     });
     uiHandle?.state.setPhase('loading');
     uiHandle?.state.setStatusMessage(`Running prompts with ${runnerName}`);

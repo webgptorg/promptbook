@@ -238,7 +238,7 @@ export const COMPARISON_ROWS: ReadonlyArray<ComparisonRowDefinition> = [
         capability: 'Your tests gate every task',
         description:
             'Tests run before the queue starts and after every task, and failures go back to the agent until it is green.',
-        ptbkCoderCell: { level: 'built-in', note: '--test --test-before' },
+        ptbkCoderCell: { level: 'built-in', note: '--check --check-before' },
         harnessCell: { level: 'do-it-yourself', note: 'Ask for it, or wire a hook' },
     },
     {

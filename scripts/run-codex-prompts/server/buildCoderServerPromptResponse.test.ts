@@ -75,7 +75,7 @@ describe('buildCoderServerPromptFileResponses', () => {
         );
         const uiState = new CoderRunUiState(moment());
         uiState.setCurrentPrompt(buildPromptLabelForDisplay(promptFile, promptFile.sections[0]!));
-        uiState.setPhase('verifying');
+        uiState.setPhase('checking');
 
         const responses = buildCoderServerPromptFileResponses({
             promptFiles: [promptFile],
@@ -87,7 +87,7 @@ describe('buildCoderServerPromptFileResponses', () => {
 
         expect(findSection(sections, 'Active ready prompt')).toMatchObject({
             column: 'in-progress',
-            tags: [{ id: 'verifying', label: 'Verifying' }],
+            tags: [{ id: 'checking', label: 'Checking' }],
         });
         expect(findSection(sections, 'Ready prompt').column).toBe('todo');
         expect(findSection(sections, 'Lower priority prompt').column).toBe('low-priority');

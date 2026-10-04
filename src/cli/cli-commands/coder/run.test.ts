@@ -367,22 +367,22 @@ describe('$initializeCoderRunCommand', () => {
         );
     });
 
-    it('passes the verification command through when provided as unquoted tokens', async () => {
+    it('passes the aggregate check command through when provided as unquoted tokens', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--test', 'npm', 'run', 'test'], {
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--check', 'npm', 'run', 'check'], {
             from: 'node',
         });
 
         expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 dryRun: true,
-                testCommand: 'npm run test',
+                checkCommand: 'npm run check',
             }),
         );
     });
 
-    it('defaults pre-coding verification to no', async () => {
+    it('defaults pre-coding check to no', async () => {
         const program = createProgramWithRunCommand();
 
         await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
@@ -390,29 +390,29 @@ describe('$initializeCoderRunCommand', () => {
         expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 dryRun: true,
-                testBefore: 'no',
-                testCommand: undefined,
+                checkBefore: 'no',
+                checkCommand: undefined,
             }),
         );
     });
 
-    it('passes pre-coding verification mode and uses npm test when no command is provided', async () => {
+    it('passes pre-coding check mode and uses npm run check when no command is provided', async () => {
         const program = createProgramWithRunCommand();
 
-        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--test-before', 'yes-and-fix'], {
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--check-before', 'yes-and-fix'], {
             from: 'node',
         });
 
         expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 dryRun: true,
-                testBefore: 'yes-and-fix',
-                testCommand: 'npm test',
+                checkBefore: 'yes-and-fix',
+                checkCommand: 'npm run check',
             }),
         );
     });
 
-    it('keeps an explicit verification command when pre-coding verification is enabled', async () => {
+    it('keeps an explicit check command when pre-coding check is enabled', async () => {
         const program = createProgramWithRunCommand();
 
         await program.parseAsync(
@@ -421,11 +421,15 @@ describe('$initializeCoderRunCommand', () => {
                 'test',
                 'run',
                 '--dry-run',
-                '--test',
+                '--check',
                 'npm',
                 'run',
-                'test-for-ptbk-coder',
-                '--test-before',
+                'lint',
+                '&&',
+                'npm',
+                'run',
+                'build',
+                '--check-before',
                 'yes-and-fail',
             ],
             { from: 'node' },
@@ -434,10 +438,32 @@ describe('$initializeCoderRunCommand', () => {
         expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
             expect.objectContaining({
                 dryRun: true,
-                testBefore: 'yes-and-fail',
-                testCommand: 'npm run test-for-ptbk-coder',
+                checkBefore: 'yes-and-fail',
+                checkCommand: 'npm run lint && npm run build',
             }),
         );
+    });
+
+    it('rejects removed aggregate verification flags with migration guidance', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--test', 'npm', 'test'], {
+            from: 'node',
+        });
+
+        expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test`'));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--check`'));
+
+        consoleErrorSpy.mockClear();
+        const beforeProgram = createProgramWithRunCommand();
+        await beforeProgram.parseAsync(['node', 'test', 'run', '--dry-run', '--test-before', 'yes-and-fail'], {
+            from: 'node',
+        });
+
+        expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test-before`'));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--check-before`'));
     });
 
     it('defaults preserveLogs to false when --preserve-logs is omitted', async () => {

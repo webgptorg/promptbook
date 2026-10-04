@@ -4,15 +4,15 @@ import type { Usage } from '../../../src/execution/Usage';
  * Which kind of work one coder run step represents.
  *
  * - `implementation` — the first coding attempt for a prompt
- * - `testing` — one run of the configured verification command
- * - `fixing` — a follow-up coding attempt after a failed verification
+ * - `checking` — one run of the configured aggregate check command
+ * - `fixing` — a follow-up coding attempt after a failed check
  */
-export type CoderRunStepKind = 'implementation' | 'testing' | 'fixing';
+export type CoderRunStepKind = 'implementation' | 'checking' | 'fixing';
 
 /**
  * One measured step within a single prompt round.
  *
- * A finished prompt is made of several steps (for example `implementation` → `testing` → `fixing` → `testing`)
+ * A finished prompt is made of several steps (for example `implementation` → `checking` → `fixing` → `checking`)
  * and each one records its own price and duration so the completed prompt line can report usage step by step
  * instead of one lumped total.
  */
@@ -23,7 +23,7 @@ export type CoderRunStep = {
     readonly kind: CoderRunStepKind;
 
     /**
-     * Model usage recorded for this step, or `null` for steps that do not call the coding agent (for example `testing`).
+     * Model usage recorded for this step, or `null` for steps that do not call the coding agent (for example `checking`).
      */
     readonly usage: Usage | null;
 

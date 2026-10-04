@@ -12,13 +12,13 @@ import { formatUnknownErrorDetails } from '../common/formatUnknownErrorDetails';
 import type { PromptRunOptions } from '../runners/types/PromptRunOptions';
 import type { PromptRunResult } from '../runners/types/PromptRunResult';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-import { limitTestOutput } from './limitTestOutput';
-import { runPromptTestCommand } from './runPromptTestCommand';
+import { limitCheckOutput } from './limitCheckOutput';
+import { runPromptCheckCommand } from './runPromptCheckCommand';
 
 /**
- * Maximum number of coding attempts allowed for the same prompt when verification keeps failing.
+ * Maximum number of coding attempts allowed for the same prompt when the check keeps failing.
  */
-const MAX_PROMPT_TEST_ATTEMPTS = 3;
+const MAX_PROMPT_CHECK_ATTEMPTS = 3;
 
 /**
  * File extension used by generated shell scripts.
@@ -26,55 +26,55 @@ const MAX_PROMPT_TEST_ATTEMPTS = 3;
 const SHELL_SCRIPT_EXTENSION = '.sh';
 
 /**
- * Options for running one prompt with optional verification feedback retries.
+ * Options for running one prompt with optional aggregate check feedback retries.
  */
-type RunPromptWithTestFeedbackOptions = PromptRunOptions & {
+type RunPromptWithCheckFeedbackOptions = PromptRunOptions & {
     runner: PromptRunner;
     promptLabel: string;
-    testCommand?: string;
+    checkCommand?: string;
     onAttemptStarted?: (attemptCount: number) => void;
 
     /**
-     * Notified right before each implementation, testing and fixing step starts, so the caller can
+     * Notified right before each implementation, checking and fixing step starts, so the caller can
      * record the in-progress state of the prompt.
      */
     onStepStarted?: OnCoderRunStepStarted;
-    runPromptTestCommandExecutor?: typeof runPromptTestCommand;
+    runPromptCheckCommandExecutor?: typeof runPromptCheckCommand;
 };
 
 /**
  * Successful prompt execution result enriched with the number of attempts it took and its per-step usage breakdown.
  */
-export type RunPromptWithTestFeedbackResult = PromptRunResult & {
+export type RunPromptWithCheckFeedbackResult = PromptRunResult & {
     attemptCount: number;
 
     /**
-     * Ordered steps performed while producing this result (implementation, testing and fixing), each carrying
+     * Ordered steps performed while producing this result (implementation, checking and fixing), each carrying
      * its own price and duration so the finished prompt can report usage step by step.
      */
     steps: ReadonlyArray<CoderRunStep>;
 };
 
 /**
- * Failure of one verification step, returned instead of thrown so the testing step is always recorded.
+ * Failure of one check step, returned instead of thrown so the checking step is always recorded.
  */
-type FailedVerificationOutcome = {
+type FailedCheckOutcome = {
     /**
-     * The error thrown by the verification command.
+     * The error thrown by the check command.
      */
     readonly error: unknown;
 };
 
 /**
- * Runs one coding prompt and, when configured, verifies it with a shell command that can feed failures back.
+ * Runs one coding prompt and, when configured, checks it with a shell command that can feed failures back.
  */
-export async function runPromptWithTestFeedback(
-    options: RunPromptWithTestFeedbackOptions,
-): Promise<RunPromptWithTestFeedbackResult> {
-    const normalizedTestCommand = options.testCommand?.trim();
+export async function runPromptWithCheckFeedback(
+    options: RunPromptWithCheckFeedbackOptions,
+): Promise<RunPromptWithCheckFeedbackResult> {
+    const normalizedCheckCommand = options.checkCommand?.trim();
     const stepTracker = createCoderRunStepTracker(options.onStepStarted);
 
-    if (!normalizedTestCommand) {
+    if (!normalizedCheckCommand) {
         options.onAttemptStarted?.(1);
         await waitForPromptAttemptPauseCheckpoint(options.waitForPauseCheckpoint, options.runner.name, 1);
 
@@ -88,10 +88,10 @@ export async function runPromptWithTestFeedback(
         return { ...result, attemptCount: 1, steps: stepTracker.steps };
     }
 
-    const runPromptTestCommandExecutor = options.runPromptTestCommandExecutor ?? runPromptTestCommand;
+    const runPromptCheckCommandExecutor = options.runPromptCheckCommandExecutor ?? runPromptCheckCommand;
     let promptForCurrentAttempt = options.prompt;
 
-    for (let attemptCount = 1; attemptCount <= MAX_PROMPT_TEST_ATTEMPTS; attemptCount++) {
+    for (let attemptCount = 1; attemptCount <= MAX_PROMPT_CHECK_ATTEMPTS; attemptCount++) {
         options.onAttemptStarted?.(attemptCount);
         await waitForPromptAttemptPauseCheckpoint(options.waitForPauseCheckpoint, options.runner.name, attemptCount);
 
@@ -102,62 +102,62 @@ export async function runPromptWithTestFeedback(
             stepTracker,
         });
 
-        await waitForVerificationPauseCheckpoint(options.waitForPauseCheckpoint, normalizedTestCommand, attemptCount);
-        console.info(colors.gray(`Running verification command after attempt #${attemptCount}: ${normalizedTestCommand}`));
+        await waitForCheckPauseCheckpoint(options.waitForPauseCheckpoint, normalizedCheckCommand, attemptCount);
+        console.info(colors.gray(`Running check after attempt #${attemptCount}: ${normalizedCheckCommand}`));
 
-        const failedVerification = await runVerificationStep({
-            runPromptTestCommandExecutor,
-            testCommand: normalizedTestCommand,
+        const failedCheck = await runCheckStep({
+            runPromptCheckCommandExecutor,
+            checkCommand: normalizedCheckCommand,
             runOptions: options,
             stepTracker,
         });
 
-        if (failedVerification === undefined) {
+        if (failedCheck === undefined) {
             return { ...result, attemptCount, steps: stepTracker.steps };
         }
 
-        const fullVerificationOutput = formatUnknownErrorDetails(failedVerification.error);
-        const feedbackVerificationOutput = limitTestOutput(fullVerificationOutput);
+        const fullCheckOutput = formatUnknownErrorDetails(failedCheck.error);
+        const feedbackCheckOutput = limitCheckOutput(fullCheckOutput);
 
-        if (attemptCount >= MAX_PROMPT_TEST_ATTEMPTS) {
+        if (attemptCount >= MAX_PROMPT_CHECK_ATTEMPTS) {
             console.error(
-                colors.red(`Verification failed for ${options.promptLabel} after ${attemptCount} attempts.`),
+                colors.red(`Check failed for ${options.promptLabel} after ${attemptCount} attempts.`),
             );
 
             throw new Error(
-                buildFinalVerificationFailureMessage({
+                buildFinalCheckFailureMessage({
                     promptLabel: options.promptLabel,
-                    testCommand: normalizedTestCommand,
+                    checkCommand: normalizedCheckCommand,
                     attemptCount,
-                    verificationOutput: fullVerificationOutput,
+                    checkOutput: fullCheckOutput,
                 }),
             );
         }
 
         console.warn(
             colors.yellow(
-                `Verification failed for ${options.promptLabel} on attempt #${attemptCount}. Sending feedback to ${options.runner.name} and retrying...`,
+                `Check failed for ${options.promptLabel} on attempt #${attemptCount}. Sending feedback to ${options.runner.name} and retrying...`,
             ),
         );
 
         promptForCurrentAttempt = appendCoderContext(
             options.prompt,
-            buildVerificationFeedback({
-                testCommand: normalizedTestCommand,
+            buildCheckFeedback({
+                checkCommand: normalizedCheckCommand,
                 failedAttemptCount: attemptCount,
-                verificationOutput: feedbackVerificationOutput,
+                checkOutput: feedbackCheckOutput,
             }),
         );
     }
 
-    throw new Error('Unexpected prompt verification state.');
+    throw new Error('Unexpected prompt check state.');
 }
 
 /**
  * Runs one coding attempt through the runner, timing it and recording it as an implementation or fixing step.
  */
 async function runRunnerPromptStep(options: {
-    runOptions: RunPromptWithTestFeedbackOptions;
+    runOptions: RunPromptWithCheckFeedbackOptions;
     prompt: string;
     kind: 'implementation' | 'fixing';
     stepTracker: CoderRunStepTracker;
@@ -185,25 +185,25 @@ async function runRunnerPromptStep(options: {
 }
 
 /**
- * Runs the verification command, timing it and recording it as a testing step regardless of the outcome, and
- * returns the failure (or `undefined` when the verification passed).
+ * Runs the check command, timing it and recording it as a checking step regardless of the outcome, and returns the
+ * failure (or `undefined` when the check passed).
  */
-async function runVerificationStep(options: {
-    runPromptTestCommandExecutor: typeof runPromptTestCommand;
-    testCommand: string;
-    runOptions: RunPromptWithTestFeedbackOptions;
+async function runCheckStep(options: {
+    runPromptCheckCommandExecutor: typeof runPromptCheckCommand;
+    checkCommand: string;
+    runOptions: RunPromptWithCheckFeedbackOptions;
     stepTracker: CoderRunStepTracker;
-}): Promise<FailedVerificationOutcome | undefined> {
-    const { runPromptTestCommandExecutor, testCommand, runOptions, stepTracker } = options;
+}): Promise<FailedCheckOutcome | undefined> {
+    const { runPromptCheckCommandExecutor, checkCommand, runOptions, stepTracker } = options;
 
-    await stepTracker.startStep('testing');
+    await stepTracker.startStep('checking');
     const stepStartedTimeMs = Date.now();
 
     try {
-        await runPromptTestCommandExecutor({
-            command: testCommand,
+        await runPromptCheckCommandExecutor({
+            command: checkCommand,
             projectPath: runOptions.projectPath,
-            scriptPath: buildPromptTestScriptPath(runOptions.scriptPath),
+            scriptPath: buildPromptCheckScriptPath(runOptions.scriptPath),
             logPath: runOptions.logPath,
             preserveArtifactsOnSuccess: runOptions.preserveArtifactsOnSuccess,
         });
@@ -212,7 +212,7 @@ async function runVerificationStep(options: {
     } catch (error) {
         return { error };
     } finally {
-        stepTracker.finishStep({ kind: 'testing', usage: null, durationMs: Date.now() - stepStartedTimeMs });
+        stepTracker.finishStep({ kind: 'checking', usage: null, durationMs: Date.now() - stepStartedTimeMs });
     }
 }
 
@@ -232,17 +232,17 @@ async function waitForPromptAttemptPauseCheckpoint(
 }
 
 /**
- * Waits for a pause checkpoint immediately before one verification command begins.
+ * Waits for a pause checkpoint immediately before one check command begins.
  */
-async function waitForVerificationPauseCheckpoint(
+async function waitForCheckPauseCheckpoint(
     waitForPauseCheckpoint: WaitForCoderRunPauseCheckpoint | undefined,
-    testCommand: string,
+    checkCommand: string,
     attemptCount: number,
 ): Promise<void> {
     await waitForPauseCheckpoint?.({
-        checkpointLabel: buildVerificationPauseLabel(attemptCount),
-        phase: 'verifying',
-        statusMessage: `Running verification after attempt #${attemptCount}: ${testCommand}`,
+        checkpointLabel: buildCheckPauseLabel(attemptCount),
+        phase: 'checking',
+        statusMessage: `Running check after attempt #${attemptCount}: ${checkCommand}`,
     });
 }
 
@@ -261,76 +261,78 @@ function buildPromptAttemptStatusMessage(runnerName: string, attemptCount: numbe
 }
 
 /**
- * Builds the human-readable pause label used before one verification command begins.
+ * Builds the human-readable pause label used before one check command begins.
  */
-function buildVerificationPauseLabel(attemptCount: number): string {
-    return `running verification after attempt #${attemptCount}`;
+function buildCheckPauseLabel(attemptCount: number): string {
+    return `running check after attempt #${attemptCount}`;
 }
 
 /**
- * Builds one feedback block appended to the next coding attempt after tests fail.
+ * Builds one feedback block appended to the next coding attempt after a check fails.
  */
-function buildVerificationFeedback({
-    testCommand,
+function buildCheckFeedback({
+    checkCommand,
     failedAttemptCount,
-    verificationOutput,
+    checkOutput,
 }: {
-    testCommand: string;
+    checkCommand: string;
     failedAttemptCount: number;
-    verificationOutput: string;
+    checkOutput: string;
 }): string {
     const nextAttemptCount = failedAttemptCount + 1;
 
     return spaceTrim(
         (block) => `
-            The previous implementation did not pass the required verification command.
+            The previous implementation did not pass the required project check.
 
-            ## Automated verification feedback
-            - Retry attempt: ${nextAttemptCount} of ${MAX_PROMPT_TEST_ATTEMPTS}
-            - Verification command: \`${testCommand}\`
-            - Update the current implementation so the verification command passes without breaking the original task requirements.
+            ## Automated check feedback
+            - Retry attempt: ${nextAttemptCount} of ${MAX_PROMPT_CHECK_ATTEMPTS}
+            - Check command: \`${checkCommand}\`
+            - Update the current implementation so the check passes without breaking the original task requirements.
+            - Fix the underlying failure without deleting assertions, disabling lint rules, removing checks from the aggregate,
+              lowering quality thresholds, skipping a build, or forcing a successful exit code.
 
-            ### Verification output
+            ### Check output
             \`\`\`
-            ${block(verificationOutput)}
+            ${block(checkOutput)}
             \`\`\`
         `,
     );
 }
 
 /**
- * Builds the final error message written when verification still fails after all retries.
+ * Builds the final error message written when the check still fails after all retries.
  */
-function buildFinalVerificationFailureMessage({
+function buildFinalCheckFailureMessage({
     promptLabel,
-    testCommand,
+    checkCommand,
     attemptCount,
-    verificationOutput,
+    checkOutput,
 }: {
     promptLabel: string;
-    testCommand: string;
+    checkCommand: string;
     attemptCount: number;
-    verificationOutput: string;
+    checkOutput: string;
 }): string {
     return spaceTrim(
         (block) => `
-            Verification command \`${testCommand}\` failed for \`${promptLabel}\` after ${attemptCount} attempts.
+            Check command \`${checkCommand}\` failed for \`${promptLabel}\` after ${attemptCount} attempts.
 
-            ### Verification output
+            ### Check output
             \`\`\`
-            ${block(verificationOutput)}
+            ${block(checkOutput)}
             \`\`\`
         `,
     );
 }
 
 /**
- * Derives a dedicated temp-script path for verification commands.
+ * Derives a dedicated temp-script path for check commands.
  */
-function buildPromptTestScriptPath(scriptPath: string): string {
+function buildPromptCheckScriptPath(scriptPath: string): string {
     if (scriptPath.toLowerCase().endsWith(SHELL_SCRIPT_EXTENSION)) {
-        return `${scriptPath.slice(0, -SHELL_SCRIPT_EXTENSION.length)}.test.sh`;
+        return `${scriptPath.slice(0, -SHELL_SCRIPT_EXTENSION.length)}.check.sh`;
     }
 
-    return `${scriptPath}.test.sh`;
+    return `${scriptPath}.check.sh`;
 }

@@ -65,15 +65,15 @@ describe('waitForPause', () => {
     it('tracks and resets the active pause target label', async () => {
         expect(getPauseTargetLabel()).toBe('the next task');
 
-        announcePauseTargetLabel('running verification after attempt #2');
-        expect(getPauseTargetLabel()).toBe('running verification after attempt #2');
+        announcePauseTargetLabel('running check after attempt #2');
+        expect(getPauseTargetLabel()).toBe('running check after attempt #2');
 
         expect(togglePauseState()).toBe('REQUESTED_PAUSE');
         const pausePromise = checkPause({ silent: true });
 
         await waitForNextTick();
         expect(getPauseState()).toBe('PAUSED');
-        expect(getPauseTargetLabel()).toBe('running verification after attempt #2');
+        expect(getPauseTargetLabel()).toBe('running check after attempt #2');
 
         expect(togglePauseState()).toBe('RESUMED');
         await pausePromise;

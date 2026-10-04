@@ -7,7 +7,7 @@ export type CoderOutputKind =
     | 'reasoning'
     | 'tool'
     | 'files'
-    | 'verification'
+    | 'check'
     | 'result'
     | 'warning'
     | 'error'

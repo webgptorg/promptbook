@@ -21,7 +21,7 @@ import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSection } from '../prompts/types/PromptSection';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
+import { runPromptWithCheckFeedback } from '../checking/runPromptWithCheckFeedback';
 import { runPromptRound } from './runPromptRound';
 
 jest.mock('../common/appendCoderContext', () => ({
@@ -91,8 +91,8 @@ jest.mock('../prompts/writePromptRunTrace', () => ({
     writePromptRunTrace: jest.fn(),
 }));
 
-jest.mock('../testing/runPromptWithTestFeedback', () => ({
-    runPromptWithTestFeedback: jest.fn(),
+jest.mock('../checking/runPromptWithCheckFeedback', () => ({
+    runPromptWithCheckFeedback: jest.fn(),
 }));
 
 /**
@@ -102,7 +102,7 @@ function createRunOptions(overrides: Partial<RunOptions> = {}): RunOptions {
     return {
         dryRun: false,
         context: undefined,
-        testCommand: undefined,
+        checkCommand: undefined,
         preserveLogs: false,
         noUi: true,
         thinkingLevel: undefined,
@@ -179,7 +179,7 @@ describe('runPromptRound', () => {
         (withPromptRuntimeLog as jest.MockedFunction<typeof withPromptRuntimeLog>).mockImplementation(
             async (_scriptPath, callback) => callback('C:\\temp\\runtime.log'),
         );
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockResolvedValue({
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockResolvedValue({
             usage: UNCERTAIN_USAGE,
             attemptCount: 1,
             steps: [{ kind: 'implementation', usage: UNCERTAIN_USAGE, durationMs: 1000 }],
@@ -239,7 +239,7 @@ describe('runPromptRound', () => {
         expect(buildCodexPrompt).toHaveBeenCalled();
         expect(buildCommitMessage).toHaveBeenCalled();
         expect(buildScriptPath).toHaveBeenCalled();
-        expect(runPromptWithTestFeedback).toHaveBeenCalledWith(
+        expect(runPromptWithCheckFeedback).toHaveBeenCalledWith(
             expect.objectContaining({
                 waitForPauseCheckpoint: waitForRequestedPause,
             }),
@@ -333,11 +333,11 @@ describe('runPromptRound', () => {
         >(async () => undefined);
         const implementationStep = { kind: 'implementation', usage: UNCERTAIN_USAGE, durationMs: 1000 } as const;
 
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockImplementation(
             async (options) => {
                 await options.onStepStarted?.({ startedStepKind: 'implementation', finishedSteps: [] });
                 await options.onStepStarted?.({
-                    startedStepKind: 'testing',
+                    startedStepKind: 'checking',
                     finishedSteps: [implementationStep],
                     loginMethod: 'chatgpt',
                 });
@@ -383,7 +383,7 @@ describe('runPromptRound', () => {
             2,
             expect.objectContaining({
                 steps: [implementationStep],
-                inProgressStepKind: 'testing',
+                inProgressStepKind: 'checking',
                 loginMethod: 'chatgpt',
             }),
         );
@@ -404,7 +404,7 @@ describe('runPromptRound', () => {
             Parameters<WaitForCoderRunPauseCheckpoint>
         >(async () => undefined);
 
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockImplementation(
             async (options) => {
                 await options.onStepStarted?.({ startedStepKind: 'implementation', finishedSteps: [] });
 
@@ -543,7 +543,7 @@ describe('runPromptRound', () => {
             Parameters<WaitForCoderRunPauseCheckpoint>
         >(async () => undefined);
 
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockRejectedValue(
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockRejectedValue(
             new Error('The harness died'),
         );
 
@@ -591,7 +591,7 @@ describe('runPromptRound', () => {
             Parameters<WaitForCoderRunPauseCheckpoint>
         >(async () => undefined);
 
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockImplementation(
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockImplementation(
             async (options) => {
                 await options.onStepStarted?.({ startedStepKind: 'implementation', finishedSteps: [] });
 
@@ -636,7 +636,7 @@ describe('runPromptRound', () => {
             options: createRunOptions({
                 waitForUser: false,
                 thinkingLevel: 'max',
-                testCommand: 'npm test',
+                checkCommand: 'npm run check',
             }),
             runner,
             runnerMetadata: {
@@ -657,7 +657,7 @@ describe('runPromptRound', () => {
                 runnerName: 'OpenAI Codex',
                 modelName: 'gpt-5.6-astra',
                 thinkingLevel: 'max',
-                testCommand: 'npm test',
+                checkCommand: 'npm run check',
                 attemptCount: 1,
                 logPath: 'C:\\temp\\runtime.log',
                 outcome: expect.objectContaining({ kind: 'succeeded' }),
@@ -679,7 +679,7 @@ describe('runPromptRound', () => {
             Parameters<WaitForCoderRunPauseCheckpoint>
         >(async () => undefined);
 
-        (runPromptWithTestFeedback as jest.MockedFunction<typeof runPromptWithTestFeedback>).mockRejectedValue(
+        (runPromptWithCheckFeedback as jest.MockedFunction<typeof runPromptWithCheckFeedback>).mockRejectedValue(
             new Error('The harness died'),
         );
 
@@ -742,7 +742,7 @@ describe('runPromptRound', () => {
         });
 
         expect(captureCoderCommitScope).toHaveBeenCalledWith(worktreePath);
-        expect(runPromptWithTestFeedback).toHaveBeenCalledWith(
+        expect(runPromptWithCheckFeedback).toHaveBeenCalledWith(
             expect.objectContaining({
                 projectPath: worktreePath,
             }),

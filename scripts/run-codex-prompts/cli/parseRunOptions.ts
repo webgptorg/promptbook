@@ -14,7 +14,11 @@ import {
 } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import { parseDuration } from '../common/parseDuration';
 import { normalizePriorityFilter } from '../prompts/priorityFilter';
-import { isTestBeforeMode, TEST_BEFORE_MODE_VALUES, type TestBeforeMode } from '../testing/TestBeforeMode';
+import {
+    CHECK_BEFORE_MODE_VALUES,
+    isCheckBeforeMode,
+    type CheckBeforeMode,
+} from '../checking/CheckBeforeMode';
 import type { RunOptions } from './RunOptions';
 
 /**
@@ -26,7 +30,7 @@ const DEFAULT_WAIT_AFTER_ERROR_MS = 10 * 60 * 1000;
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--agent <agent-book-path>] [--context <context-or-file>] [--test <test-command...>] [--test-before <no|yes-and-fail|yes-and-fix>] [--preserve-logs] [--isolate] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--min-priority <minimum-priority>] [--max-priority <maximum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--git-changes <fail|ignore|continue>] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
+    'Usage: run-codex-prompts [--dry-run] [--harness <harness-name>] [--model <model>] [--agent <agent-book-path>] [--context <context-or-file>] [--check <check-command...>] [--check-before <no|yes-and-fail|yes-and-fix>] [--preserve-logs] [--isolate] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--min-priority <minimum-priority>] [--max-priority <maximum-priority>] [--limit <run-count>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--wait-after-prompt <duration>] [--wait-between-prompts <duration>] [--wait-after-error <duration>] [--no-auto] [--no-commit] [--git-changes <fail|ignore|continue>] [--no-normalize-line-endings] [--auto-push] [--auto-pull]';
 
 /**
  * Top-level flags supported by this command.
@@ -37,6 +41,8 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--model',
     '--agent',
     '--context',
+    '--check',
+    '--check-before',
     '--test',
     '--test-before',
     '--preserve-logs',
@@ -65,6 +71,7 @@ const KNOWN_OPTION_FLAGS = new Set([
  * Parses CLI arguments into runner options.
  */
 export function parseRunOptions(args: string[]): RunOptions {
+    rejectLegacyCheckFlags(args);
     let agentName: PromptRunnerHarnessName | undefined = undefined;
     const dryRun = args.includes('--dry-run');
 
@@ -82,10 +89,10 @@ export function parseRunOptions(args: string[]): RunOptions {
         exitWithUsageError('Pass a non-empty Book path after `--agent`, or omit it to use `agents/developer.book`.');
     }
     const context = readOptionValue(args, '--context');
-    const hasTestCommandFlag = args.includes('--test');
-    const testCommand = readVariadicOptionValue(args, '--test');
-    const hasTestBeforeFlag = args.includes('--test-before');
-    const testBefore = parseTestBeforeOption(readOptionValue(args, '--test-before'), hasTestBeforeFlag);
+    const hasCheckCommandFlag = args.includes('--check');
+    const checkCommand = readVariadicOptionValue(args, '--check');
+    const hasCheckBeforeFlag = args.includes('--check-before');
+    const checkBefore = parseCheckBeforeOption(readOptionValue(args, '--check-before'), hasCheckBeforeFlag);
     const preserveLogs = args.includes('--preserve-logs');
     const isIsolated = args.includes('--isolate');
     const noUi = args.includes('--no-ui');
@@ -136,9 +143,9 @@ export function parseRunOptions(args: string[]): RunOptions {
     const waitAfterError = parseWaitOption(args, '--wait-after-error', DEFAULT_WAIT_AFTER_ERROR_MS);
     let thinkingLevel: ThinkingLevel | undefined;
 
-    if (hasTestCommandFlag && testCommand === undefined) {
+    if (hasCheckCommandFlag && checkCommand === undefined) {
         exitWithUsageError(
-            'Missing value for --test. Use a shell command such as `npm run test` and quote it when it contains top-level CLI flags.',
+            'Missing value for --check. Use a shell command such as `npm run check` and quote it when it contains top-level CLI flags.',
         );
     }
 
@@ -177,8 +184,8 @@ export function parseRunOptions(args: string[]): RunOptions {
         model,
         agent,
         context,
-        testCommand,
-        testBefore,
+        checkCommand,
+        checkBefore,
         thinkingLevel,
         priority: minimumPriority ?? 0,
         minimumPriority,
@@ -189,24 +196,39 @@ export function parseRunOptions(args: string[]): RunOptions {
 }
 
 /**
- * Parses and validates the optional pre-coding verification mode.
+ * Parses and validates the optional pre-coding check mode.
  */
-function parseTestBeforeOption(value: string | undefined, hasTestBeforeFlag: boolean): TestBeforeMode {
+function parseCheckBeforeOption(value: string | undefined, hasCheckBeforeFlag: boolean): CheckBeforeMode {
     if (value === undefined) {
-        if (hasTestBeforeFlag) {
-            exitWithUsageError(`Missing value for --test-before. Use one of: ${TEST_BEFORE_MODE_VALUES.join(', ')}.`);
+        if (hasCheckBeforeFlag) {
+            exitWithUsageError(`Missing value for --check-before. Use one of: ${CHECK_BEFORE_MODE_VALUES.join(', ')}.`);
         }
 
         return 'no';
     }
 
-    if (!isTestBeforeMode(value)) {
+    if (!isCheckBeforeMode(value)) {
         exitWithUsageError(
-            `Invalid value for --test-before: "${value}". Use one of: ${TEST_BEFORE_MODE_VALUES.join(', ')}.`,
+            `Invalid value for --check-before: "${value}". Use one of: ${CHECK_BEFORE_MODE_VALUES.join(', ')}.`,
         );
     }
 
     return value;
+}
+
+/**
+ * Rejects the removed aggregate-check spellings before they can be interpreted as command arguments.
+ */
+function rejectLegacyCheckFlags(args: ReadonlyArray<string>): void {
+    if (args.includes('--test')) {
+        exitWithUsageError('The `--test` flag was renamed to `--check`. Use `--check <check-command...>` instead.');
+    }
+
+    if (args.includes('--test-before')) {
+        exitWithUsageError(
+            'The `--test-before` flag was renamed to `--check-before`. Use `--check-before <mode>` instead.',
+        );
+    }
 }
 
 /**

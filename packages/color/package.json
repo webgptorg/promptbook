@@ -86,15 +86,5 @@
     "engines": {
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
-    },
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "types": "./esm/src/_packages/color.index.d.ts",
-    "typings": "./esm/src/_packages/color.index.d.ts",
-    "peerDependencies": {
-        "@promptbook/core": "0.114.0-48"
-    },
-    "dependencies": {
-        "spacetrim": "0.11.60"
     }
 }

@@ -2,10 +2,10 @@ import { spaceTrim } from 'spacetrim';
 import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-import { runPromptWithTestFeedback } from './runPromptWithTestFeedback';
+import { runPromptWithCheckFeedback } from './runPromptWithCheckFeedback';
 
 /**
- * Creates a typed prompt-runner mock for verification-loop tests.
+ * Creates a typed prompt-runner mock for check-feedback-loop tests.
  */
 function createMockRunner(): {
     runner: PromptRunner;
@@ -21,16 +21,19 @@ function createMockRunner(): {
 }
 
 /**
- * Convenience alias for the optional verification-command executor dependency.
+ * Convenience alias for the optional check-command executor dependency.
  */
-type RunPromptTestCommandExecutor = NonNullable<
-    Parameters<typeof runPromptWithTestFeedback>[0]['runPromptTestCommandExecutor']
+type RunPromptCheckCommandExecutor = NonNullable<
+    Parameters<typeof runPromptWithCheckFeedback>[0]['runPromptCheckCommandExecutor']
 >;
 
-describe('runPromptWithTestFeedback', () => {
-    it('runs the runner only once when no verification command is configured', async () => {
+describe('runPromptWithCheckFeedback', () => {
+    it('runs the runner only once when no check command is configured', async () => {
         const { runner, runPromptMock } = createMockRunner();
-        const runPromptTestCommandExecutor = jest.fn<ReturnType<RunPromptTestCommandExecutor>, Parameters<RunPromptTestCommandExecutor>>();
+        const runPromptCheckCommandExecutor = jest.fn<
+            ReturnType<RunPromptCheckCommandExecutor>,
+            Parameters<RunPromptCheckCommandExecutor>
+        >();
         const waitForPauseCheckpoint = jest.fn<
             ReturnType<WaitForCoderRunPauseCheckpoint>,
             Parameters<WaitForCoderRunPauseCheckpoint>
@@ -38,13 +41,13 @@ describe('runPromptWithTestFeedback', () => {
 
         runPromptMock.mockResolvedValue({ usage: UNCERTAIN_USAGE });
 
-        const result = await runPromptWithTestFeedback({
+        const result = await runPromptWithCheckFeedback({
             runner,
             prompt: 'Implement the feature',
             scriptPath: 'prompts/feature.sh',
             projectPath: 'C:\\repo',
             promptLabel: 'prompts/feature.md#1',
-            runPromptTestCommandExecutor,
+            runPromptCheckCommandExecutor,
             waitForPauseCheckpoint,
         });
 
@@ -53,7 +56,7 @@ describe('runPromptWithTestFeedback', () => {
             { kind: 'implementation', usage: UNCERTAIN_USAGE, durationMs: expect.any(Number) },
         ]);
         expect(runPromptMock).toHaveBeenCalledTimes(1);
-        expect(runPromptTestCommandExecutor).not.toHaveBeenCalled();
+        expect(runPromptCheckCommandExecutor).not.toHaveBeenCalled();
         expect(waitForPauseCheckpoint).toHaveBeenCalledWith({
             checkpointLabel: 'calling github-copilot (attempt 1)',
             phase: 'running',
@@ -62,12 +65,12 @@ describe('runPromptWithTestFeedback', () => {
         expect(runPromptMock.mock.calls[0]?.[0].waitForPauseCheckpoint).toBe(waitForPauseCheckpoint);
     });
 
-    it('retries the prompt with verification feedback until the verification command passes', async () => {
+    it('retries the prompt with check feedback until the check command passes', async () => {
         const { runner, runPromptMock } = createMockRunner();
         const attemptCounts: number[] = [];
         const pauseCheckpointLabels: string[] = [];
-        const runPromptTestCommandExecutor = jest
-            .fn<ReturnType<RunPromptTestCommandExecutor>, Parameters<RunPromptTestCommandExecutor>>()
+        const runPromptCheckCommandExecutor = jest
+            .fn<ReturnType<RunPromptCheckCommandExecutor>, Parameters<RunPromptCheckCommandExecutor>>()
             .mockRejectedValueOnce(new Error(spaceTrim(`
                 Test suite failed
                 Expected \`true\` to equal \`false\`
@@ -82,51 +85,51 @@ describe('runPromptWithTestFeedback', () => {
 
         runPromptMock.mockResolvedValue({ usage: UNCERTAIN_USAGE });
 
-        const result = await runPromptWithTestFeedback({
+        const result = await runPromptWithCheckFeedback({
             runner,
             prompt: 'Implement the feature',
             scriptPath: 'prompts/feature.sh',
             projectPath: 'C:\\repo',
             promptLabel: 'prompts/feature.md#1',
-            testCommand: 'npm run test',
+            checkCommand: 'npm run check',
             onAttemptStarted: (attemptCount) => attemptCounts.push(attemptCount),
-            runPromptTestCommandExecutor,
+            runPromptCheckCommandExecutor,
             waitForPauseCheckpoint,
         });
 
         expect(result.attemptCount).toBe(2);
-        expect(result.steps.map((step) => step.kind)).toEqual(['implementation', 'testing', 'fixing', 'testing']);
+        expect(result.steps.map((step) => step.kind)).toEqual(['implementation', 'checking', 'fixing', 'checking']);
         expect(attemptCounts).toEqual([1, 2]);
         expect(runPromptMock).toHaveBeenCalledTimes(2);
-        expect(runPromptTestCommandExecutor).toHaveBeenCalledTimes(2);
+        expect(runPromptCheckCommandExecutor).toHaveBeenCalledTimes(2);
         expect(pauseCheckpointLabels).toEqual([
             'calling github-copilot (attempt 1)',
-            'running verification after attempt #1',
+            'running check after attempt #1',
             'calling github-copilot (attempt 2)',
-            'running verification after attempt #2',
+            'running check after attempt #2',
         ]);
         expect(runPromptMock.mock.calls[1]?.[0].prompt).toContain('Retry attempt: 2 of 3');
-        expect(runPromptMock.mock.calls[1]?.[0].prompt).toContain('Verification command: `npm run test`');
+        expect(runPromptMock.mock.calls[1]?.[0].prompt).toContain('Check command: `npm run check`');
         expect(runPromptMock.mock.calls[1]?.[0].prompt).toContain('Expected `true` to equal `false`');
     });
 
     it('announces every started step with the steps which already finished', async () => {
         const { runner, runPromptMock } = createMockRunner();
         const startedSteps: Array<{ startedStepKind: string; finishedStepKinds: string[]; loginMethod?: string }> = [];
-        const runPromptTestCommandExecutor = jest
-            .fn<ReturnType<RunPromptTestCommandExecutor>, Parameters<RunPromptTestCommandExecutor>>()
+        const runPromptCheckCommandExecutor = jest
+            .fn<ReturnType<RunPromptCheckCommandExecutor>, Parameters<RunPromptCheckCommandExecutor>>()
             .mockRejectedValueOnce(new Error('Test suite failed'))
             .mockResolvedValueOnce('All tests passed');
 
         runPromptMock.mockResolvedValue({ usage: UNCERTAIN_USAGE, loginMethod: 'chatgpt' });
 
-        await runPromptWithTestFeedback({
+        await runPromptWithCheckFeedback({
             runner,
             prompt: 'Implement the feature',
             scriptPath: 'prompts/feature.sh',
             projectPath: 'C:\\repo',
             promptLabel: 'prompts/feature.md#1',
-            testCommand: 'npm run test',
+            checkCommand: 'npm run check',
             onStepStarted: async (progress) => {
                 startedSteps.push({
                     startedStepKind: progress.startedStepKind,
@@ -134,49 +137,49 @@ describe('runPromptWithTestFeedback', () => {
                     loginMethod: progress.loginMethod,
                 });
             },
-            runPromptTestCommandExecutor,
+            runPromptCheckCommandExecutor,
         });
 
         expect(startedSteps).toEqual([
             { startedStepKind: 'implementation', finishedStepKinds: [], loginMethod: undefined },
-            { startedStepKind: 'testing', finishedStepKinds: ['implementation'], loginMethod: 'chatgpt' },
+            { startedStepKind: 'checking', finishedStepKinds: ['implementation'], loginMethod: 'chatgpt' },
             {
                 startedStepKind: 'fixing',
-                finishedStepKinds: ['implementation', 'testing'],
+                finishedStepKinds: ['implementation', 'checking'],
                 loginMethod: 'chatgpt',
             },
             {
-                startedStepKind: 'testing',
-                finishedStepKinds: ['implementation', 'testing', 'fixing'],
+                startedStepKind: 'checking',
+                finishedStepKinds: ['implementation', 'checking', 'fixing'],
                 loginMethod: 'chatgpt',
             },
         ]);
     });
 
-    it('fails after the maximum number of verification attempts', async () => {
+    it('fails after the maximum number of check attempts', async () => {
         const { runner, runPromptMock } = createMockRunner();
         const attemptCounts: number[] = [];
-        const runPromptTestCommandExecutor = jest
-            .fn<ReturnType<RunPromptTestCommandExecutor>, Parameters<RunPromptTestCommandExecutor>>()
+        const runPromptCheckCommandExecutor = jest
+            .fn<ReturnType<RunPromptCheckCommandExecutor>, Parameters<RunPromptCheckCommandExecutor>>()
             .mockRejectedValue(new Error('Test suite failed hard'));
 
         runPromptMock.mockResolvedValue({ usage: UNCERTAIN_USAGE });
 
         await expect(
-            runPromptWithTestFeedback({
+            runPromptWithCheckFeedback({
                 runner,
                 prompt: 'Implement the feature',
                 scriptPath: 'prompts/feature.sh',
                 projectPath: 'C:\\repo',
                 promptLabel: 'prompts/feature.md#1',
-                testCommand: 'npm run test',
+                checkCommand: 'npm run check',
                 onAttemptStarted: (attemptCount) => attemptCounts.push(attemptCount),
-                runPromptTestCommandExecutor,
+                runPromptCheckCommandExecutor,
             }),
-        ).rejects.toThrow('Verification command `npm run test` failed for `prompts/feature.md#1` after 3 attempts.');
+        ).rejects.toThrow('Check command `npm run check` failed for `prompts/feature.md#1` after 3 attempts.');
 
         expect(attemptCounts).toEqual([1, 2, 3]);
         expect(runPromptMock).toHaveBeenCalledTimes(3);
-        expect(runPromptTestCommandExecutor).toHaveBeenCalledTimes(3);
+        expect(runPromptCheckCommandExecutor).toHaveBeenCalledTimes(3);
     });
 });

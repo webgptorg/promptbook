@@ -1,3 +1,11 @@
+-   Renamed Coder's aggregate project verification contract to `check`. `ptbk coder run` and the shared runner now use
+    `--check` and `--check-before`, default enabled checks to `npm run check`, preserve command boundaries and process
+    failures, and reject the removed `--test` spellings with migration guidance. `coder init` and top-level `ptbk init`
+    now preserve or safely migrate `scripts.check`, compose it from usable existing validation scripts, or create a
+    clearly failing setup placeholder with an initialization explanation; generated callers no longer create the legacy
+    `test-for-ptbk-coder` script. Repair feedback explicitly covers tests, lint, type checks, builds and generated-code
+    checks without weakening the project's validation.
+
 -   Fixed `ptbk coder run` on macOS when the implicit current project path is exposed through `/var` while filesystem
     operations resolve it through `/private/var`. Direct runs now preserve the invocation path, while explicit project
     paths continue to be validated and canonicalized.

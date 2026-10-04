@@ -62,9 +62,10 @@ export const MODEL_FILTER_COMMAND = `ptbk coder run --harness github-copilot --m
 export const AGENT_FILTER_COMMAND = `${MODEL_FILTER_COMMAND} --agent agents/my-developer.book`;
 
 /**
- * Command which runs the existing tests before coding and lets one repair prompt fix pre-existing failures.
+ * Command which runs the aggregate project check before coding and lets one repair prompt fix pre-existing failures.
  */
-export const TEST_BEFORE_FIX_COMMAND = 'ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix';
+export const CHECK_BEFORE_FIX_COMMAND =
+    'ptbk coder run --harness claude-code --check "npm run check" --check-before yes-and-fix';
 
 /**
  * Command which resumes the prompt a killed or crashed coder left in the middle of its implementation.
@@ -89,14 +90,14 @@ export const PING_PERIOD_COMMAND =
 
 /**
  * Full-featured command which starts the coder server with kanban UI, agent persona,
- * project context and post-prompt test verification.
+ * project context and post-prompt aggregate check.
  */
-export const SERVER_COMMAND = `ptbk coder server --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level max --test npm run test`;
+export const SERVER_COMMAND = `ptbk coder server --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level max --check "npm run check"`;
 
 /**
  * Full-featured command shown in the hero live terminal sample.
  */
-export const LIVE_DEMO_RUN_COMMAND = `ptbk coder run --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level xhigh --test "npm run test-for-ptbk-coder" --wait-between-prompts 4h --limit 1`;
+export const LIVE_DEMO_RUN_COMMAND = `ptbk coder run --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level xhigh --check "npm run check" --wait-between-prompts 4h --limit 1`;
 
 /**
  * Command which overrides the default Developer with a custom project-owned Book.

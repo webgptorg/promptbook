@@ -36,6 +36,7 @@ export type CoderInitializationSummary = {
     readonly packageJsonFileStatus: InitializationStatus;
     readonly vscodeSettingsFileStatus: InitializationStatus;
     readonly addedPackageJsonScriptNames: ReadonlyArray<string>;
+    readonly packageJsonDiagnostics: ReadonlyArray<string>;
     readonly referencedArtifactStatuses: ReadonlyArray<EnsuredCoderReferencedArtifact>;
     readonly initializedEnvVariableNames: ReadonlyArray<string>;
 };
@@ -85,7 +86,11 @@ export async function initializeCoderProjectConfiguration(
     )!;
     const { envFileStatus, initializedEnvVariableNames } = await completeStep('.env', ensureCoderEnvFile(projectPath));
     const gitignoreFileStatus = await completeStep('.gitignore', ensureCoderGitignoreFile(projectPath));
-    const { status: packageJsonFileStatus, addedEntryKeys: addedPackageJsonScriptNames } = await completeStep(
+    const {
+        status: packageJsonFileStatus,
+        addedEntryKeys: addedPackageJsonScriptNames,
+        diagnostics: packageJsonDiagnostics,
+    } = await completeStep(
         'package.json',
         ensureCoderPackageJsonFile(projectPath),
     );
@@ -117,6 +122,7 @@ export async function initializeCoderProjectConfiguration(
         packageJsonFileStatus,
         vscodeSettingsFileStatus,
         addedPackageJsonScriptNames,
+        packageJsonDiagnostics,
         referencedArtifactStatuses,
         initializedEnvVariableNames,
     };

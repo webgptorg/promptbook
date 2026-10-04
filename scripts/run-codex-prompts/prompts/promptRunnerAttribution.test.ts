@@ -157,7 +157,7 @@ describe('status lines of a continued prompt', () => {
             file,
             section,
             steps: [{ kind: 'implementation', usage: null, durationMs: 9 * 60 * 1000 }],
-            inProgressStepKind: 'testing',
+            inProgressStepKind: 'checking',
             runnerName: 'OpenAI Codex',
             modelName: 'gpt-5.6-terra',
             previousRunnerSignatures: ['Claude Code `claude-opus-5` thinking `max`'],
@@ -166,7 +166,7 @@ describe('status lines of a continued prompt', () => {
         });
 
         expect(file.lines[0]).toBe(
-            '[^] by Claude Code `claude-opus-5` thinking `max`, interrupted, continued by OpenAI Codex `gpt-5.6-terra` thinking `max` - Testing in progress',
+            '[^] by Claude Code `claude-opus-5` thinking `max`, interrupted, continued by OpenAI Codex `gpt-5.6-terra` thinking `max` - Checking in progress',
         );
     });
 

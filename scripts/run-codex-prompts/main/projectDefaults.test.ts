@@ -88,7 +88,7 @@ describe('project defaults through the real prompt queue and round', () => {
     it('keeps two sequential project invocations independent and executes checks in the selected project', async () => {
         jest.spyOn(process, 'cwd').mockReturnValue(callerPath);
         await writeFile(join(projectPath, 'check.cjs'), "require('fs').writeFileSync('check-cwd.txt', process.cwd());\n");
-        await runCodexPrompts({ ...RUN_OPTIONS, projectPath, testCommand: 'node check.cjs' });
+        await runCodexPrompts({ ...RUN_OPTIONS, projectPath, checkCommand: 'node check.cjs' });
         expect(observed[0]!.prompt).not.toContain('CALLER');
         expect(await readFile(join(projectPath, 'check-cwd.txt'), 'utf-8')).toBe(projectPath);
         expect(await readFile(join(callerPath, 'prompts/task.md'), 'utf-8')).toMatch(/^\[ \]/u);

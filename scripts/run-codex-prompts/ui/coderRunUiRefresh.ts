@@ -15,7 +15,7 @@ export const ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS = TERMINAL_AGENT_AVATAR_VIS
  *
  * @private internal constant of coder run UI
  */
-const AUTO_REFRESH_PHASES: readonly CoderRunPhase[] = ['initializing', 'loading', 'running', 'verifying'];
+const AUTO_REFRESH_PHASES: readonly CoderRunPhase[] = ['initializing', 'loading', 'running', 'checking'];
 
 /**
  * Phases where an animated `--agent` visual should keep rendering like it does on the web.

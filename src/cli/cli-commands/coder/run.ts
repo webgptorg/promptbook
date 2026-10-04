@@ -8,6 +8,7 @@ import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { validateCoderRunOptions } from '../common/validateCoderRunOptions';
+import { rejectLegacyCoderCheckOptions } from '../common/rejectLegacyCoderCheckOptions';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { normalizeProjectCliOptions } from '../common/projectCliOptions';
@@ -30,10 +31,10 @@ import {
 } from '../common/promptRunnerCliOptions';
 import { addPromptPriorityOptions } from '../common/promptPriorityCliOptions';
 import {
-    DEFAULT_CODER_TEST_COMMAND,
-    TEST_BEFORE_MODE_VALUES,
-    type TestBeforeMode,
-} from '../../../../scripts/run-codex-prompts/testing/TestBeforeMode';
+    CHECK_BEFORE_MODE_VALUES,
+    DEFAULT_CODER_CHECK_COMMAND,
+    type CheckBeforeMode,
+} from '../../../../scripts/run-codex-prompts/checking/CheckBeforeMode';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 import { addCoderExecutionOptions, type CoderAgentCliOptions } from './agentCliOptions';
@@ -76,8 +77,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Offers to add missing project-local ignore rules for the selected harness
             - In interactive mode, checks local and global Promptbook CLI installations and offers to update them
             - Supports GPG signing of commits
-            - Optional pre-coding test run that can stop or repair pre-existing failures
-            - Optional post-prompt verification with test-feedback retries
+            - Optional pre-coding project check that can stop or repair pre-existing failures
+            - Optional post-prompt check with check-feedback retries
             - Progress tracking and interactive P/S/X terminal controls; O changes only the dashboard output view
             - Dry-run mode to preview prompts
         `,
@@ -89,19 +90,22 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     addQuestionsOption(command);
     addCoderExecutionOptions(command);
     command.option(
-        '--test <test-command...>',
-        'Run a verification command after each prompt; quote it when the command itself contains top-level flags',
+        '--check <check-command...>',
+        'Run the aggregate project check after each prompt; quote it when the command itself contains top-level flags',
     );
     command.addOption(
         new Option(
-            '--test-before <mode>',
-            `Run tests before coding: ${TEST_BEFORE_MODE_VALUES.join(
+            '--check-before <mode>',
+            `Run the project check before coding: ${CHECK_BEFORE_MODE_VALUES.join(
                 ', ',
-            )} (defaults to no; uses npm test when --test is omitted)`,
+            )} (defaults to no; uses npm run check when --check is omitted)`,
         )
-            .choices([...TEST_BEFORE_MODE_VALUES])
+            .choices([...CHECK_BEFORE_MODE_VALUES])
             .default('no'),
     );
+    // Keep the removed spellings parseable long enough to report an actionable migration error.
+    command.addOption(new Option('--test <test-command...>').hideHelp());
+    command.addOption(new Option('--test-before <mode>').hideHelp());
     command.option(
         '--preserve-logs',
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
@@ -168,8 +172,10 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 dryRun,
                 agent,
                 context,
-                test,
-                testBefore,
+                check,
+                checkBefore,
+                test: legacyTest,
+                testBefore: legacyTestBefore,
                 preserveLogs,
                 isolate: isIsolated,
                 priority,
@@ -186,8 +192,10 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly dryRun: boolean;
                 readonly agent?: string;
                 readonly context?: string;
+                readonly check?: string | string[];
+                readonly checkBefore: CheckBeforeMode;
                 readonly test?: string | string[];
-                readonly testBefore: TestBeforeMode;
+                readonly testBefore?: string;
                 readonly preserveLogs: boolean;
                 readonly isolate: boolean;
                 readonly priority?: number;
@@ -203,8 +211,11 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             } & PromptRunnerCliOptions &
                 CoderAgentCliOptions;
 
-            const configuredTestCommand = normalizeCommandOptionValue(test);
-            const testCommand = configuredTestCommand ?? (testBefore === 'no' ? undefined : DEFAULT_CODER_TEST_COMMAND);
+            rejectLegacyCoderCheckOptions({ legacyTest, legacyTestBefore });
+
+            const configuredCheckCommand = normalizeCommandOptionValue(check);
+            const checkCommand =
+                configuredCheckCommand ?? (checkBefore === 'no' ? undefined : DEFAULT_CODER_CHECK_COMMAND);
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
@@ -237,8 +248,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 model: runnerOptions.model,
                 agent,
                 context,
-                testCommand,
-                testBefore,
+                checkCommand,
+                checkBefore,
                 preserveLogs,
                 isIsolated,
                 noUi: runnerOptions.noUi,

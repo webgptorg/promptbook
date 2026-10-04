@@ -35,7 +35,7 @@ import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
 import { writePromptRunTrace } from '../prompts/writePromptRunTrace';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
+import { runPromptWithCheckFeedback } from '../checking/runPromptWithCheckFeedback';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
 
 /**
@@ -63,7 +63,7 @@ export type RunPromptRoundOptions = {
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
 
     /**
-     * Working directory the coding agent, the verification command and the round commit run in.
+     * Working directory the coding agent, the aggregate check command and the round commit run in.
      *
      * Defaults to the project the coder was started from and is the temporary worktree
      * when the round is isolated through `--isolate`.
@@ -138,13 +138,13 @@ export async function runPromptRound({
                 try {
                     uiHandle?.startCapturingAgentOutput();
 
-                    const result = await runPromptWithTestFeedback({
+                    const result = await runPromptWithCheckFeedback({
                         runner,
                         prompt: codexPrompt,
                         scriptPath,
                         projectPath: roundProjectPath,
                         promptLabel,
-                        testCommand: options.testCommand,
+                        checkCommand: options.checkCommand,
                         preserveArtifactsOnSuccess: options.preserveLogs,
                         logPath,
                         onAttemptStarted: (nextAttemptCount) => {
@@ -363,7 +363,7 @@ async function finalizeSuccessfulPromptRound(options: {
     runnerMetadata: PromptRunnerMetadata;
     previousRunnerSignatures?: PromptRunnerAttribution;
     promptExecutionStartedDate: moment.Moment;
-    result: Awaited<ReturnType<typeof runPromptWithTestFeedback>>;
+    result: Awaited<ReturnType<typeof runPromptWithCheckFeedback>>;
     commitMessage: string;
     logPath: string;
     roundCommitScope?: CoderCommitScope;
@@ -569,7 +569,7 @@ async function recordPromptRoundTrace(options: {
         section: nextPrompt.section,
         ...runnerMetadata,
         thinkingLevel: runOptions.thinkingLevel,
-        testCommand: runOptions.testCommand,
+        checkCommand: runOptions.checkCommand,
         attemptCount,
         startedDate: promptExecutionStartedDate,
         finishedDate: moment(),

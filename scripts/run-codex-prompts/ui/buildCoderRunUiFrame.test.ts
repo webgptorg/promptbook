@@ -21,7 +21,7 @@ function createFrameOptions(overrides: Partial<BuildCoderRunUiFrameOptions> = {}
             context: 'AGENTS.md',
             serverUrl: 'http://localhost:4441',
             priorityFilter: { minimumPriority: 1 },
-            testCommand: 'npm test',
+            checkCommand: 'npm run check',
         },
         phase: 'waiting',
         currentPromptLabel: 'prompts/001-task.md > Refresh the coder UI',
@@ -62,7 +62,7 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('GitHub Copilot  ·  gpt-5.4  ·  thinking xhigh');
         expect(output).toContain('Context  AGENTS.md');
         expect(output).toContain('Server   http://localhost:4441');
-        expect(output).toContain('Test     npm test');
+        expect(output).toContain('Check    npm run check');
         expect(output).toContain('This run Task 3/5  ·  2 done  ·  3 left');
         expect(output).toContain('Backlog  Repo 18 total  ·  12 prompts outside priority scope');
         expect(output).toContain('Scope    Priority ≥1  ·  Write 1 prompt first');
@@ -136,7 +136,7 @@ describe('buildCoderRunUiFrame', () => {
         expect(output).toContain('[x] Do all 5 prompts');
     });
 
-    it.each(['initializing', 'loading', 'running', 'verifying', 'paused', 'done', 'error'] as const)(
+    it.each(['initializing', 'loading', 'running', 'checking', 'paused', 'done', 'error'] as const)(
         'hides the skip-wait control while the coder is in the %s phase',
         (phase) => {
             const output = buildCoderRunUiFrame(createFrameOptions({ phase })).map(stripAnsi).join('\n');
@@ -300,15 +300,15 @@ describe('buildCoderRunUiFrame', () => {
     it('renders the upcoming pause target when pausing inside one prompt stage', () => {
         const output = buildCoderRunUiFrame(
             createFrameOptions({
-                phase: 'verifying',
+                phase: 'checking',
                 pauseState: 'PAUSING',
-                pauseTargetLabel: 'running verification after attempt #2',
+                pauseTargetLabel: 'running check after attempt #2',
             }),
         )
             .map(stripAnsi)
             .join('\n');
 
-        expect(output).toContain('Pausing before running verification after attempt #2');
+        expect(output).toContain('Pausing before running check after attempt #2');
     });
 
     it('renders the active temporary shell script as a clickable Session link', () => {

@@ -158,7 +158,7 @@ describe('markPromptInProgress', () => {
             file,
             section,
             steps: [createImplementationStep()],
-            inProgressStepKind: 'testing',
+            inProgressStepKind: 'checking',
             runnerName: 'OpenAI Codex',
             modelName: 'gpt-5.6-luna',
             attemptCount: 1,
@@ -167,7 +167,7 @@ describe('markPromptInProgress', () => {
         });
 
         expect(file.lines[0]).toBe(
-            '[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation $0.2036 10 minutes; Testing in progress',
+            '[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation $0.2036 10 minutes; Checking in progress',
         );
     });
 
@@ -180,7 +180,7 @@ describe('markPromptInProgress', () => {
             file,
             section,
             steps: [createImplementationStep()],
-            inProgressStepKind: 'testing',
+            inProgressStepKind: 'checking',
             runnerName: 'OpenAI Codex',
             modelName: 'gpt-5.6-luna',
             attemptCount: 1,
@@ -188,7 +188,7 @@ describe('markPromptInProgress', () => {
         });
 
         expect(file.lines[0]).toBe(
-            '[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation $0.2036 10 minutes; Testing in progress',
+            '[^] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation $0.2036 10 minutes; Checking in progress',
         );
     });
 
@@ -199,7 +199,7 @@ describe('markPromptInProgress', () => {
             file,
             section,
             steps: [createImplementationStep()],
-            inProgressStepKind: 'testing',
+            inProgressStepKind: 'checking',
             runnerName: 'OpenAI Codex',
             modelName: 'gpt-5.6-luna',
             attemptCount: 1,
@@ -208,7 +208,7 @@ describe('markPromptInProgress', () => {
         markPromptDone({
             file,
             section,
-            steps: [createImplementationStep(), { kind: 'testing', usage: null, durationMs: 35 * ONE_MINUTE_MS }],
+            steps: [createImplementationStep(), { kind: 'checking', usage: null, durationMs: 35 * ONE_MINUTE_MS }],
             runnerName: 'OpenAI Codex',
             modelName: 'gpt-5.6-luna',
             attemptCount: 1,
@@ -216,7 +216,7 @@ describe('markPromptInProgress', () => {
         });
 
         expect(file.lines[0]).toBe(
-            '[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation $0.2036 10 minutes; Testing 35 minutes',
+            '[x] by OpenAI Codex `gpt-5.6-luna` thinking `max` - Implementation $0.2036 10 minutes; Checking 35 minutes',
         );
     });
 
@@ -319,7 +319,7 @@ describe('markPromptInProgress', () => {
         markPromptInProgress({
             file,
             section,
-            steps: [createImplementationStep(), { kind: 'testing', usage: null, durationMs: 2 * ONE_MINUTE_MS }],
+            steps: [createImplementationStep(), { kind: 'checking', usage: null, durationMs: 2 * ONE_MINUTE_MS }],
             inProgressStepKind: 'fixing',
             runnerName: 'GitHub Copilot',
             modelName: 'gpt-5.5',
@@ -327,7 +327,7 @@ describe('markPromptInProgress', () => {
         });
 
         expect(file.lines[0]).toBe(
-            '[^] (2 attempts) by GitHub Copilot `gpt-5.5` - Implementation $0.2036 10 minutes; Testing 2 minutes; Fixing in progress',
+            '[^] (2 attempts) by GitHub Copilot `gpt-5.5` - Implementation $0.2036 10 minutes; Checking 2 minutes; Fixing in progress',
         );
     });
 });

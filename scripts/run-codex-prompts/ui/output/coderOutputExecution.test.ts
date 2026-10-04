@@ -11,7 +11,7 @@ import { subscribeToLiveScriptOutput } from '../../common/runGoScript/captureLiv
 import { printLiveScriptChunk } from '../../common/runGoScript/printLiveScriptChunk';
 import type { RunGoScriptOptions } from '../../common/runGoScript/RunGoScriptOptions';
 import { resolvePromptRunner } from '../../main/resolvePromptRunner';
-import { runPromptWithTestFeedback } from '../../testing/runPromptWithTestFeedback';
+import { runPromptWithCheckFeedback } from '../../checking/runPromptWithCheckFeedback';
 import { CoderRunUiState } from '../CoderRunUiState';
 import { buildCoderOutputLines } from './buildCoderOutputLines';
 
@@ -67,7 +67,7 @@ describe('display-independent runner execution', () => {
     );
 
     it.each(PROMPT_RUNNER_HARNESS_NAMES)(
-        '%s makes identical calls, verification retries and file changes in every view',
+            '%s makes identical calls, check retries and file changes in every view',
         async (harnessName) => {
             const replays: unknown[] = [];
             const recorded = readFileSync(
@@ -80,7 +80,7 @@ describe('display-independent runner execution', () => {
                 const invocations: string[] = [];
                 const actions: string[] = [];
                 let modelCalls = 0;
-                let verificationCalls = 0;
+                let checkCalls = 0;
                 if (mode === 'raw') state.toggleOutputMode();
                 const stopCapture = subscribeToLiveScriptOutput((chunk, source) => {
                     state.addScriptOutput(chunk, source);
@@ -117,20 +117,20 @@ describe('display-independent runner execution', () => {
                 jest.mocked($runGoScriptUntilMarkerIdle).mockImplementation(fixtureHarness);
                 try {
                     const { runner } = resolvePromptRunner({ agentName: harnessName, allowCredits: false });
-                    const result = await runPromptWithTestFeedback({
+                    const result = await runPromptWithCheckFeedback({
                         runner,
                         projectPath,
                         scriptPath: join(projectPath, 'task.sh'),
                         prompt: 'Update the fixture',
                         promptLabel: 'Fixture task',
-                        testCommand: 'fixture-verifier',
+                        checkCommand: 'fixture-verifier',
                         waitForPauseCheckpoint: async (checkpoint) => {
                             actions.push(checkpoint.checkpointLabel);
                         },
-                        runPromptTestCommandExecutor: async () => {
-                            verificationCalls++;
-                            actions.push('verification');
-                            if (verificationCalls === 1) throw new Error('Fixture verification requests one repair');
+                        runPromptCheckCommandExecutor: async () => {
+                            checkCalls++;
+                            actions.push('check');
+                            if (checkCalls === 1) throw new Error('Fixture check requests one repair');
                             return 'PASS';
                         },
                     });
@@ -138,7 +138,7 @@ describe('display-independent runner execution', () => {
                         invocations,
                         actions,
                         modelCalls,
-                        verificationCalls,
+                        checkCalls,
                         attempts: result.attemptCount,
                         steps: result.steps.map((step) => step.kind),
                         file: await readFile(join(projectPath, 'result.txt'), 'utf8'),
@@ -151,7 +151,7 @@ describe('display-independent runner execution', () => {
             }
             expect(replays[1]).toEqual(replays[0]);
             expect(replays[2]).toEqual(replays[0]);
-            expect(replays[0]).toMatchObject({ modelCalls: 2, verificationCalls: 2, attempts: 2, file: 'attempt 2\n' });
+            expect(replays[0]).toMatchObject({ modelCalls: 2, checkCalls: 2, attempts: 2, file: 'attempt 2\n' });
         },
     );
 });

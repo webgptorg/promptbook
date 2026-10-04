@@ -177,7 +177,7 @@ describe('prompt attempt metadata', () => {
         expect(file.lines[0]).not.toMatch(/\((?:ChatGPT account|API key)\)/);
     });
 
-    it('stores attempt counts for failed prompts after repeated verification retries', () => {
+    it('stores attempt counts for failed prompts after repeated check retries', () => {
         const file = parsePromptFile(
             'prompts/mark-prompt-failed.md',
             spaceTrim(`

@@ -13,8 +13,8 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 | #   | Title                          | Snippet                                                                                          |
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| 1   | Verified by your tests         | `ptbk coder run --harness claude-code --test npm test`                                           |
-| 2   | Test before coding             | `ptbk coder run --harness claude-code --test npm test --test-before yes-and-fix`                 |
+| 1   | Checked by your project        | `ptbk coder run --harness claude-code --check "npm run check"`                                  |
+| 2   | Check before coding            | `ptbk coder run --harness claude-code --check "npm run check" --check-before yes-and-fix`       |
 | 3   | Commits with its own identity  | `CODING_AGENT_GIT_NAME="Promptbook Coding Agent"`                                                |
 | 4   | Autopilot git                  | `ptbk coder run --harness claude-code --auto-pull --auto-push`                                   |
 | 5   | Git-synced housekeeping        | `ptbk coder init --auto-pull --commit --auto-push`                                               |
@@ -37,7 +37,7 @@ Anchor `#features`. A grid of feature cards, each pairing a short explanation wi
 
 ## Descriptions (verbatim card copy)
 
-1. **Verified by your tests** — "Run any test command after each prompt. When it fails, ptbk coder hands the output back to the agent, which retries until the tests pass."
+1. **Checked by your project** — "Run the aggregate project check after each prompt. When it fails, ptbk coder hands the output back to the agent, which retries until the check passes."
 2. **Test before coding** — "Run the tests before the first coding prompt. Stop on failures that were already there, or let one repair prompt fix them before the backlog starts."
 3. **Commits with its own identity** — "Every successful round lands under a git identity that belongs to the agent, GPG-signed if you set that up. You can always tell which commits it wrote."
 4. **Autopilot git** — "Pull before prompts and push after commits, so a long-running queue stays in sync with your remote."

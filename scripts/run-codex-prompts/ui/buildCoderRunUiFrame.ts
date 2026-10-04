@@ -125,7 +125,7 @@ export type AgentRunMessagePreviewSection = {
  */
 export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): string[] {
     const totalWidth = resolveCoderRunUiFrameWidth(options.terminalWidth);
-    const isPromptActive = options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
+    const isPromptActive = options.phase === 'running' || options.phase === 'checking' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
     const pausePresentation = buildPausePresentation(
         options.phase,
@@ -291,7 +291,7 @@ function buildSessionRows(
                 ? buildTerminalUrlLink(options.config.serverUrl, bodyWidth - SESSION_LABEL_WIDTH - 1)
                 : undefined,
         ),
-        ...buildOptionalSessionRow('Test', options.config.testCommand),
+        ...buildOptionalSessionRow('Check', options.config.checkCommand),
     ];
 
     return [

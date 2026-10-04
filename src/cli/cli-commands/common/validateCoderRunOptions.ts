@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { RunOptions } from '../../../../scripts/run-codex-prompts/cli/RunOptions';
-import { isTestBeforeMode } from '../../../../scripts/run-codex-prompts/testing/TestBeforeMode';
+import { isCheckBeforeMode } from '../../../../scripts/run-codex-prompts/checking/CheckBeforeMode';
 import { DatabaseError } from '../../../errors/DatabaseError';
 import { NotAllowed } from '../../../errors/NotAllowed';
 
@@ -9,10 +9,10 @@ import { NotAllowed } from '../../../errors/NotAllowed';
  * @private shared validation for Coder execution commands
  */
 export function validateCoderRunOptions(options: RunOptions): void {
-    if (!isTestBeforeMode(options.testBefore ?? 'no')) {
+    if (!isCheckBeforeMode(options.checkBefore ?? 'no')) {
         throw new NotAllowed(
             spaceTrim(`
-                Invalid ${'`--test-before`'} mode: \`${String(options.testBefore)}\`.
+                Invalid ${'`--check-before`'} mode: \`${String(options.checkBefore)}\`.
 
                 Use one of: \`no\`, \`yes-and-fail\`, \`yes-and-fix\`.
             `),
@@ -67,10 +67,10 @@ export function validateCoderRunOptions(options: RunOptions): void {
         );
     }
 
-    if (options.gitChanges === 'continue' && options.testBefore === 'yes-and-fix') {
+    if (options.gitChanges === 'continue' && options.checkBefore === 'yes-and-fix') {
         throw new NotAllowed(
             spaceTrim(`
-                Flag \`--git-changes continue\` cannot be combined with \`--test-before yes-and-fix\`.
+                Flag \`--git-changes continue\` cannot be combined with \`--check-before yes-and-fix\`.
 
                 An interrupted prompt already has changes in progress, so there is no unmodified project state for pre-coding verification to repair.
             `),

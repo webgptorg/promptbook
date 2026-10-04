@@ -55,6 +55,10 @@ export function printInitializationSummary(
         printInitializationNote('All Promptbook coder npm scripts are already present.', colors.gray);
     }
 
+    for (const packageJsonDiagnostic of summary.packageJsonDiagnostics) {
+        printInitializationNote(packageJsonDiagnostic, colors.cyan);
+    }
+
     if (summary.initializedEnvVariableNames.length > 0) {
         printInitializationNote(`Added env variables: ${summary.initializedEnvVariableNames.join(', ')}`, colors.cyan);
     } else {
