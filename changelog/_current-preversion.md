@@ -1,3 +1,7 @@
+-   Fixed `ptbk coder run` on macOS when the implicit current project path is exposed through `/var` while filesystem
+    operations resolve it through `/private/var`. Direct runs now preserve the invocation path, while explicit project
+    paths continue to be validated and canonicalized.
+
 -   Fixed unit test expectations for Copilot shell path quoting and project-aware Promptbook CLI updates.
     CLI update tests now verify that both default and explicit project paths reach installation checks and updates.
     The packed CLI coding fixture now restores its mock harness path after login-shell startup and checks that

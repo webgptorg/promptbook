@@ -90,7 +90,13 @@ type PromptQueueSnapshot = {
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
     const normalizedOptions = normalizeRunOptions(providedOptions ?? parseRunOptions(process.argv.slice(2)));
     validateCoderRunOptions(normalizedOptions);
-    const projectPath = normalizedOptions.workspace?.projectPath ?? await resolveProjectDirectory(normalizedOptions.projectPath!);
+    // CLI-preflighted workspaces are already canonical. For direct runs without an explicit project path, preserve
+    // `process.cwd()` as written because macOS may expose the same temporary directory through `/var` and `/private/var`.
+    const projectPath =
+        normalizedOptions.workspace?.projectPath ??
+        (providedOptions?.projectPath === undefined
+            ? normalizedOptions.projectPath!
+            : await resolveProjectDirectory(normalizedOptions.projectPath!));
     const options = { ...normalizedOptions, projectPath };
     resetCoderRunControls();
 
