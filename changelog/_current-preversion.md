@@ -1,3 +1,5 @@
+-   Added an implementation PRD for replacing default avatars in Promptbook Coder and Agents Server with shared origami animals, including 3D web and terminal ASCII representations.
+
 -   Renamed Coder's aggregate project verification to **checks** throughout run/server registration, direct-script
     parsing, shared command execution, initial repair PRDs, retry feedback, traces, terminal status, and scoped
     check-produced commits. Use `--check "npm run check" --check-before yes-and-fix`; the default preflight mode
