@@ -444,6 +444,15 @@ describe('$initializeCoderRunCommand', () => {
         );
     });
 
+    it('rejects an explicitly empty check command', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--check', ''], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('non-empty project check command'));
+    });
+
     it('rejects removed aggregate verification flags with migration guidance', async () => {
         const program = createProgramWithRunCommand();
 
@@ -460,6 +469,24 @@ describe('$initializeCoderRunCommand', () => {
         await beforeProgram.parseAsync(['node', 'test', 'run', '--dry-run', '--test-before', 'yes-and-fail'], {
             from: 'node',
         });
+
+        expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test-before`'));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--check-before`'));
+    });
+
+    it('rejects removed aggregate flags with migration guidance even without a value', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--test'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test`'));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--check`'));
+
+        consoleErrorSpy.mockClear();
+        const beforeProgram = createProgramWithRunCommand();
+        await beforeProgram.parseAsync(['node', 'test', 'run', '--dry-run', '--test-before'], { from: 'node' });
 
         expect(getRunCodexPromptsMock()).not.toHaveBeenCalled();
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test-before`'));

@@ -92,7 +92,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
         'Run the aggregate project check after each prompt; quote it when the command itself contains top-level flags',
     );
     // Keep the removed spelling parseable long enough to report an actionable migration error.
-    command.addOption(new Option('--test <test-command...>').hideHelp());
+    command.addOption(new Option('--test [test-command...]').hideHelp());
     command.option(
         '--preserve-logs',
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
@@ -180,6 +180,9 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
             const port = parseCoderServerPort(rawPort);
             rejectLegacyCoderCheckOptions({ legacyTest });
             const checkCommand = normalizeCommandOptionValue(check);
+            if (check !== undefined && checkCommand === undefined) {
+                throw new NotAllowed('The `--check` option requires a non-empty project check command.');
+            }
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });

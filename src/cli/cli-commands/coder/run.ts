@@ -4,6 +4,7 @@ import {
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
+import { NotAllowed } from '../../../errors/NotAllowed';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
@@ -104,8 +105,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             .default('no'),
     );
     // Keep the removed spellings parseable long enough to report an actionable migration error.
-    command.addOption(new Option('--test <test-command...>').hideHelp());
-    command.addOption(new Option('--test-before <mode>').hideHelp());
+    command.addOption(new Option('--test [test-command...]').hideHelp());
+    command.addOption(new Option('--test-before [mode]').hideHelp());
     command.option(
         '--preserve-logs',
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
@@ -214,6 +215,9 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             rejectLegacyCoderCheckOptions({ legacyTest, legacyTestBefore });
 
             const configuredCheckCommand = normalizeCommandOptionValue(check);
+            if (check !== undefined && configuredCheckCommand === undefined) {
+                throw new NotAllowed('The `--check` option requires a non-empty project check command.');
+            }
             const checkCommand =
                 configuredCheckCommand ?? (checkBefore === 'no' ? undefined : DEFAULT_CODER_CHECK_COMMAND);
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {

@@ -14,11 +14,7 @@ import {
 } from '../../../src/cli/cli-commands/common/promptRunnerCliOptions';
 import { parseDuration } from '../common/parseDuration';
 import { normalizePriorityFilter } from '../prompts/priorityFilter';
-import {
-    CHECK_BEFORE_MODE_VALUES,
-    isCheckBeforeMode,
-    type CheckBeforeMode,
-} from '../checking/CheckBeforeMode';
+import { CHECK_BEFORE_MODE_VALUES, isCheckBeforeMode, type CheckBeforeMode } from '../checking/CheckBeforeMode';
 import type { RunOptions } from './RunOptions';
 
 /**
@@ -73,7 +69,7 @@ const KNOWN_OPTION_FLAGS = new Set([
 export function parseRunOptions(args: string[]): RunOptions {
     rejectLegacyCheckFlags(args);
     let agentName: PromptRunnerHarnessName | undefined = undefined;
-    const dryRun = args.includes('--dry-run');
+    const dryRun = hasOptionFlag(args, '--dry-run');
 
     const harnessValue = readOptionValue(args, '--harness');
     if (harnessValue) {
@@ -85,32 +81,32 @@ export function parseRunOptions(args: string[]): RunOptions {
 
     const model = readOptionValue(args, '--model');
     const agent = readOptionValue(args, '--agent');
-    if (args.includes('--agent') && (!agent?.trim() || KNOWN_OPTION_FLAGS.has(agent))) {
+    if (hasOptionFlag(args, '--agent') && (!agent?.trim() || isKnownOptionFlag(agent))) {
         exitWithUsageError('Pass a non-empty Book path after `--agent`, or omit it to use `agents/developer.book`.');
     }
     const context = readOptionValue(args, '--context');
-    const hasCheckCommandFlag = args.includes('--check');
+    const hasCheckCommandFlag = hasOptionFlag(args, '--check');
     const checkCommand = readVariadicOptionValue(args, '--check');
-    const hasCheckBeforeFlag = args.includes('--check-before');
+    const hasCheckBeforeFlag = hasOptionFlag(args, '--check-before');
     const checkBefore = parseCheckBeforeOption(readOptionValue(args, '--check-before'), hasCheckBeforeFlag);
-    const preserveLogs = args.includes('--preserve-logs');
-    const isIsolated = args.includes('--isolate');
-    const noUi = args.includes('--no-ui');
-    const hasThinkingLevelFlag = args.includes('--thinking-level');
+    const preserveLogs = hasOptionFlag(args, '--preserve-logs');
+    const isIsolated = hasOptionFlag(args, '--isolate');
+    const noUi = hasOptionFlag(args, '--no-ui');
+    const hasThinkingLevelFlag = hasOptionFlag(args, '--thinking-level');
     const thinkingLevelValue = readOptionValue(args, '--thinking-level');
-    const isPriorityFlagProvided = args.includes('--priority');
+    const isPriorityFlagProvided = hasOptionFlag(args, '--priority');
     const legacyMinimumPriority = parsePriorityBoundary(
         readOptionValue(args, '--priority'),
         isPriorityFlagProvided,
         '--priority',
     );
-    const isMinimumPriorityFlagProvided = args.includes('--min-priority');
+    const isMinimumPriorityFlagProvided = hasOptionFlag(args, '--min-priority');
     const explicitMinimumPriority = parsePriorityBoundary(
         readOptionValue(args, '--min-priority'),
         isMinimumPriorityFlagProvided,
         '--min-priority',
     );
-    const isMaximumPriorityFlagProvided = args.includes('--max-priority');
+    const isMaximumPriorityFlagProvided = hasOptionFlag(args, '--max-priority');
     const maximumPriority = parsePriorityBoundary(
         readOptionValue(args, '--max-priority'),
         isMaximumPriorityFlagProvided,
@@ -122,22 +118,22 @@ export function parseRunOptions(args: string[]): RunOptions {
         minimumPriority,
         maximumPriority,
     });
-    const hasLimitFlag = args.includes('--limit');
+    const hasLimitFlag = hasOptionFlag(args, '--limit');
     const limit = parseLimit(readOptionValue(args, '--limit'), hasLimitFlag);
-    const noCommit = args.includes('--no-commit');
-    const hasGitChangesFlag = args.includes('--git-changes');
+    const noCommit = hasOptionFlag(args, '--no-commit');
+    const hasGitChangesFlag = hasOptionFlag(args, '--git-changes');
     const gitChanges = parseGitChangesOption(readOptionValue(args, '--git-changes'), hasGitChangesFlag);
-    const normalizeLineEndings = !args.includes('--no-normalize-line-endings');
-    const allowCredits = args.includes('--allow-credits');
-    const autoMigrate = args.includes('--auto-migrate');
-    const allowDestructiveAutoMigrate = args.includes('--allow-destructive-auto-migrate');
-    const autoPush = args.includes('--auto-push');
-    const autoPull = args.includes('--auto-pull');
+    const normalizeLineEndings = !hasOptionFlag(args, '--no-normalize-line-endings');
+    const allowCredits = hasOptionFlag(args, '--allow-credits');
+    const autoMigrate = hasOptionFlag(args, '--auto-migrate');
+    const allowDestructiveAutoMigrate = hasOptionFlag(args, '--allow-destructive-auto-migrate');
+    const autoPush = hasOptionFlag(args, '--auto-push');
+    const autoPull = hasOptionFlag(args, '--auto-pull');
     // [1] Parse --wait <duration> and --no-auto:
     //   default: run automatically through the queue (no waiting)
     //   --no-auto: wait for user confirmation before each prompt (interactive mode)
     //   --wait 1h: wait 1h between prompt rounds to avoid rate limits
-    const waitForUser = args.includes('--no-auto');
+    const waitForUser = hasOptionFlag(args, '--no-auto');
     const waitAfterPrompt = parseWaitOption(args, '--wait-after-prompt', 0);
     const waitBetweenPrompts = parseWaitOption(args, '--wait-between-prompts', 0);
     const waitAfterError = parseWaitOption(args, '--wait-after-error', DEFAULT_WAIT_AFTER_ERROR_MS);
@@ -220,11 +216,11 @@ function parseCheckBeforeOption(value: string | undefined, hasCheckBeforeFlag: b
  * Rejects the removed aggregate-check spellings before they can be interpreted as command arguments.
  */
 function rejectLegacyCheckFlags(args: ReadonlyArray<string>): void {
-    if (args.includes('--test')) {
+    if (hasOptionFlag(args, '--test')) {
         exitWithUsageError('The `--test` flag was renamed to `--check`. Use `--check <check-command...>` instead.');
     }
 
-    if (args.includes('--test-before')) {
+    if (hasOptionFlag(args, '--test-before')) {
         exitWithUsageError(
             'The `--test-before` flag was renamed to `--check-before`. Use `--check-before <mode>` instead.',
         );
@@ -256,7 +252,7 @@ function parseGitChangesOption(value: string | undefined, hasGitChangesFlag: boo
  * Reads a duration-typed CLI flag, applying the provided default when the flag is absent.
  */
 function parseWaitOption(args: string[], flag: string, defaultMs: number): number {
-    if (!args.includes(flag)) {
+    if (!hasOptionFlag(args, flag)) {
         return defaultMs;
     }
 
@@ -272,10 +268,16 @@ function parseWaitOption(args: string[], flag: string, defaultMs: number): numbe
  * Reads a value of a CLI option that follows a given flag.
  */
 function readOptionValue(args: string[], flag: string): string | undefined {
-    if (!args.includes(flag)) {
+    const index = findOptionFlagIndex(args, flag);
+    if (index < 0) {
         return undefined;
     }
-    const index = args.indexOf(flag);
+
+    const optionToken = args[index]!;
+    if (optionToken.startsWith(`${flag}=`)) {
+        return optionToken.slice(flag.length + 1);
+    }
+
     return args[index + 1];
 }
 
@@ -283,12 +285,16 @@ function readOptionValue(args: string[], flag: string): string | undefined {
  * Reads a multi-token shell command value that follows a given flag.
  */
 function readVariadicOptionValue(args: string[], flag: string): string | undefined {
-    if (!args.includes(flag)) {
+    const index = findOptionFlagIndex(args, flag);
+    if (index < 0) {
         return undefined;
     }
 
-    const index = args.indexOf(flag);
     const valueParts: string[] = [];
+    const optionToken = args[index]!;
+    if (optionToken.startsWith(`${flag}=`)) {
+        valueParts.push(optionToken.slice(flag.length + 1));
+    }
 
     for (let i = index + 1; i < args.length; i++) {
         const valuePart = args[i];
@@ -297,7 +303,7 @@ function readVariadicOptionValue(args: string[], flag: string): string | undefin
             continue;
         }
 
-        if (KNOWN_OPTION_FLAGS.has(valuePart)) {
+        if (isKnownOptionFlag(valuePart)) {
             break;
         }
 
@@ -306,6 +312,27 @@ function readVariadicOptionValue(args: string[], flag: string): string | undefin
 
     const normalizedValue = valueParts.join(' ').trim();
     return normalizedValue === '' ? undefined : normalizedValue;
+}
+
+/**
+ * Checks whether a top-level CLI option is present, including the `--option=value` form.
+ */
+function hasOptionFlag(args: ReadonlyArray<string>, flag: string): boolean {
+    return findOptionFlagIndex(args, flag) >= 0;
+}
+
+/**
+ * Finds a top-level CLI option in either separated-value or inline-value form.
+ */
+function findOptionFlagIndex(args: ReadonlyArray<string>, flag: string): number {
+    return args.findIndex((argument) => argument === flag || argument.startsWith(`${flag}=`));
+}
+
+/**
+ * Checks whether a token is one of the known top-level options, including its inline-value form.
+ */
+function isKnownOptionFlag(argument: string): boolean {
+    return KNOWN_OPTION_FLAGS.has(argument) || [...KNOWN_OPTION_FLAGS].some((flag) => argument.startsWith(`${flag}=`));
 }
 
 /**

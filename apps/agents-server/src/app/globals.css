@@ -177,6 +177,21 @@ body {
     min-height: var(--agents-server-app-height);
 }
 
+/**
+ * Shared font variables used by both app-router and pages-router shells.
+ *
+ * The named families remain optional, with the existing system fallbacks
+ * keeping the application usable when they are not installed locally.
+ */
+.application-font-variables {
+    --font-barlow-condensed: 'Barlow Condensed';
+    --font-poppins: 'Poppins';
+}
+
+.font-barlow-condensed {
+    font-family: var(--font-barlow-condensed), 'OpenMojiColor', 'OpenMojiBlack', Arial, Helvetica, sans-serif;
+}
+
 html.dark body {
     background: radial-gradient(circle at 15% 12%, rgba(14, 165, 233, 0.16), transparent 24%),
         radial-gradient(circle at 82% 18%, rgba(59, 130, 246, 0.12), transparent 22%),

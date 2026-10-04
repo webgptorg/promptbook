@@ -433,6 +433,35 @@ describe('coder boilerplate templates', () => {
         );
     });
 
+    it('removes an unchanged generated legacy aggregate when a custom check already exists', async () => {
+        const projectPath = await createTemporaryDirectory(temporaryDirectories);
+        await writeFile(
+            join(projectPath, 'package.json'),
+            `${JSON.stringify(
+                {
+                    scripts: {
+                        check: 'npm run lint && npm run build',
+                        'test-for-ptbk-coder': 'npm test',
+                    },
+                },
+                null,
+                2,
+            )}\n`,
+            'utf-8',
+        );
+
+        const summary = await initializeCoderProjectConfiguration(projectPath);
+        const packageJson = await readJsonFile<{ readonly scripts: Record<string, string> }>(
+            join(projectPath, 'package.json'),
+        );
+
+        expect(packageJson.scripts.check).toBe('npm run lint && npm run build');
+        expect(packageJson.scripts['test-for-ptbk-coder']).toBeUndefined();
+        expect(summary.packageJsonDiagnostics.join('\n')).toEqual(
+            expect.stringContaining('Removed the obsolete `test-for-ptbk-coder` entry'),
+        );
+    });
+
     it('creates a failing check placeholder when every conventional candidate is recursive or unsafe', async () => {
         const projectPath = await createTemporaryDirectory(temporaryDirectories);
         await writeFile(

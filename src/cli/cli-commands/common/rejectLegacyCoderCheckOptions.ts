@@ -2,7 +2,7 @@ import { NotAllowed } from '../../../errors/NotAllowed';
 import { spaceTrim } from 'spacetrim';
 
 /**
- * Rejects the removed aggregate-verification option spellings used by older Coder commands.
+ * Rejects the removed aggregate-check option spellings used by older Coder commands.
  *
  * @private internal migration guard for Coder CLI commands
  */
@@ -13,7 +13,7 @@ export function rejectLegacyCoderCheckOptions(options: {
     if (options.legacyTest !== undefined) {
         throw new NotAllowed(
             spaceTrim(`
-                The aggregate verification flag \`--test\` was renamed to \`--check\`.
+                The aggregate check flag \`--test\` was renamed to \`--check\`.
 
                 Use \`--check <check-command...>\` instead.
             `),
@@ -23,7 +23,7 @@ export function rejectLegacyCoderCheckOptions(options: {
     if (options.legacyTestBefore !== undefined) {
         throw new NotAllowed(
             spaceTrim(`
-                The pre-coding verification flag \`--test-before\` was renamed to \`--check-before\`.
+                The pre-coding check flag \`--test-before\` was renamed to \`--check-before\`.
 
                 Use \`--check-before <no|yes-and-fail|yes-and-fix>\` instead.
             `),

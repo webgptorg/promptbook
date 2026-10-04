@@ -269,11 +269,11 @@ export function createLiveDemoScript(terminalColumnCount: number): ReadonlyArray
         ]),
         ...createBoxLines(terminalColumnCount, 'Normal output', 'outputTitle', [
             buildLiveOutputLine('Live · [↑/↓] Scroll · [end] Live', 'muted'),
-            buildLiveOutputLine('[Verification · stdout]', 'info'),
+            buildLiveOutputLine('[Check · stdout]', 'info'),
             buildLiveOutputLine('  Local: http://localhost:4440 · Ready in 4.6s', 'plain'),
             buildLiveOutputLine('[Reported warning · stderr]', 'warning'),
             buildLiveOutputLine('  [DEP0040] The `punycode` module is deprecated.', 'warning'),
-            buildLiveOutputLine('[Verification · stdout]', 'info'),
+            buildLiveOutputLine('[Check · stdout]', 'info'),
             buildLiveOutputLine('  Prerendered home page', 'plain'),
             buildLiveOutputLine('  🎉 All tests passed!', 'success'),
             buildLiveOutputLine('', 'plain'),

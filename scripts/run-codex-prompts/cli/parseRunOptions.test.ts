@@ -69,9 +69,7 @@ describe('parseRunOptions', () => {
     });
 
     it('rejects removed aggregate-check spellings with migration guidance', () => {
-        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test', 'npm', 'test'])).toThrow(
-            'process.exit',
-        );
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test', 'npm', 'test'])).toThrow('process.exit');
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test` flag was renamed to `--check`'));
 
         consoleErrorSpy.mockClear();
@@ -289,9 +287,41 @@ describe('parseRunOptions', () => {
         expect(options.checkCommand).toBe('npm run lint && npm run build -- --mode production');
     });
 
+    it('supports an inline check value without reparsing its shell tokens', () => {
+        const options = parseRunOptions([
+            '--harness',
+            'github-copilot',
+            '--check=npm run lint && npm run build -- --mode production',
+            '--check-before=yes-and-fail',
+        ]);
+
+        expect(options).toMatchObject({
+            checkCommand: 'npm run lint && npm run build -- --mode production',
+            checkBefore: 'yes-and-fail',
+        });
+    });
+
     it('rejects an empty check command', () => {
         expect(() => parseRunOptions(['--harness', 'github-copilot', '--check'])).toThrow('process.exit');
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Missing value for --check'));
+    });
+
+    it('rejects an explicitly empty inline check command', () => {
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--check='])).toThrow('process.exit');
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Missing value for --check'));
+    });
+
+    it('rejects inline legacy aggregate-check spellings with migration guidance', () => {
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test=npm run test'])).toThrow('process.exit');
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test` flag was renamed to `--check`'));
+
+        consoleErrorSpy.mockClear();
+        expect(() => parseRunOptions(['--harness', 'github-copilot', '--test-before=yes-and-fix'])).toThrow(
+            'process.exit',
+        );
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect.stringContaining('`--test-before` flag was renamed to `--check-before`'),
+        );
     });
 
     it('parses thinking level for supported runners', () => {

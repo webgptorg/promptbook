@@ -24,7 +24,7 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 -   The mental shift to communicate: _from interactive chat sessions_ (one task at a time) _to a versioned queue of prompt files_ (`prompts/` folder) processed autonomously.
 -   The agent's behavior lives in a versioned `.book` file, not in one vendor's prompt box. The same queue and behavior can move between supported harnesses with `--harness`; opencode can use the provider, including a local model, configured in that harness.
 -   A successful task records its `[x]` status in the PRD and commits that status with the implementation. Reverting the commit therefore returns both the code and the PRD state together.
--   Around the agent, `ptbk coder` adds the unattended-operation machinery: test verification with retry feedback, git commits under a dedicated agent identity (optionally GPG-signed), auto pull/push, isolated worktrees, pacing, priorities, a kanban web UI, and personas defined in the Book language.
+-   Around the agent, `ptbk coder` adds the unattended-operation machinery: aggregate project checks with retry feedback, git commits under a dedicated agent identity (optionally GPG-signed), auto pull/push, isolated worktrees, pacing, priorities, a kanban web UI, and personas defined in the Book language.
 
 ## Core workflow (the loop the page must explain)
 

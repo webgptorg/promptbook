@@ -139,12 +139,31 @@ describe('$initializeCoderServerCommand', () => {
         );
     });
 
+    it('rejects an explicitly empty server check command', async () => {
+        const program = createProgramWithServerCommand();
+
+        await program.parseAsync(['node', 'test', 'server', '--dry-run', '--check', ''], { from: 'node' });
+
+        expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('non-empty project check command'));
+    });
+
     it('rejects the removed server aggregate flag with migration guidance', async () => {
         const program = createProgramWithServerCommand();
 
         await program.parseAsync(['node', 'test', 'server', '--dry-run', '--test', 'npm', 'test'], {
             from: 'node',
         });
+
+        expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test`'));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--check`'));
+    });
+
+    it('rejects the removed server aggregate flag even without a value', async () => {
+        const program = createProgramWithServerCommand();
+
+        await program.parseAsync(['node', 'test', 'server', '--dry-run', '--test'], { from: 'node' });
 
         expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test`'));

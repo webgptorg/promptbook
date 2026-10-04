@@ -225,9 +225,9 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
 
     Runner-written completion lines may attribute implementation to a harness and model, include
     reasoning/authentication labels, attempts or interrupted/continued history, and report implementation,
-    testing, fixing, or total cost/time information. Those are observed run metadata, not instructions, budgets,
+    checking, fixing, or total cost/time information. Those are observed run metadata, not instructions, budgets,
     or a frozen list of supported models. A completed status alone does not prove tests ran: direct runs only
-    execute an automated verification command when configured. Preserve actual measurements and record unknown
+    execute an automated check command when configured. Preserve actual measurements and record unknown
     results or checks that were not run honestly. Manual users must not invent cost/time figures, copy another
     run's attribution, or mark unverified work as verified. The textual metadata rows above demonstrate syntax
     only; use them only when the described events actually happened.
