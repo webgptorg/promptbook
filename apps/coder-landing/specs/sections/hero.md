@@ -34,7 +34,7 @@ Both columns are as tall as the taller one of them. The copy column carries the 
 
 3. **Subheadline** (~1.125rem on a phone up to ~1.375rem on a wide desktop, gray-300):
 
-    > **ptbk coder** drives Claude Code, OpenAI Codex, Gemini CLI and other coding agents through a queue of plain-markdown prompts. It runs your tests after every task, commits what passes and pushes it. You do not have to be at the keyboard for any of it.
+    > **ptbk coder** drives Claude Code, OpenAI Codex, Gemini CLI and other coding agents through a queue of plain-markdown prompts. It runs your checks after every task, commits what passes and pushes it. You do not have to be at the keyboard for any of it.
 
 4. **Install terminal**: a [terminal block](../components/terminal-block.md) with the canonical `INSTALL_COMMAND` (`npm install ptbk`, see [`../content/commands.md`](../content/commands.md)).
 5. **CTA row**:

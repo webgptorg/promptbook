@@ -27,16 +27,11 @@ type MergeStringRecordJsonFileOptions = {
     readonly relativeFilePath: string;
     readonly fieldPath: string;
     readonly nextEntries: Readonly<Record<string, string>>;
-    /**
-     * Optional project-specific migration of already existing entries before missing defaults are added.
-     */
-    readonly transformExistingEntries?: (
-        existingEntries: Readonly<Record<string, string>>,
-    ) => {
-        readonly entries: Readonly<Record<string, string>>;
-        readonly diagnostics?: ReadonlyArray<string>;
-    };
     readonly ensureParentDirectoryPath?: string;
+    /** Optional narrowly scoped migration of existing entries before missing defaults are added. */
+    readonly transformExistingEntries?: (
+        entries: Readonly<Record<string, string>>,
+    ) => Readonly<Record<string, string>> | Promise<Readonly<Record<string, string>>>;
 };
 
 /**
@@ -54,21 +49,6 @@ export type MergedStringRecordJsonFile = {
      * Keys which were missing in the JSON file and therefore added by the merge.
      */
     readonly addedEntryKeys: ReadonlyArray<string>;
-
-    /**
-     * Keys whose existing values were intentionally migrated by the merge.
-     */
-    readonly updatedEntryKeys: ReadonlyArray<string>;
-
-    /**
-     * Keys intentionally removed by a migration after their callers were checked.
-     */
-    readonly removedEntryKeys: ReadonlyArray<string>;
-
-    /**
-     * Human-readable migration or composition notes for the initialization summary.
-     */
-    readonly diagnostics: ReadonlyArray<string>;
 };
 
 /**
@@ -84,8 +64,8 @@ const DEFAULT_JSON_FILE_NEWLINE = '\n';
 /**
  * Ensures one JSON object field contains the provided string-record entries.
  *
- * Entries which the project already defines are **never** overridden - only missing keys are added,
- * so hand-tuned scripts and settings survive every repeated `ptbk coder init`.
+ * Entries are additive unless a caller explicitly supplies a scoped migration callback.
+ * Hand-tuned scripts and settings survive repeated `ptbk coder init`; migrations recognize generated entries only.
  *
  * @private function of `initializeCoderProjectConfiguration`
  */
@@ -94,8 +74,8 @@ export async function mergeStringRecordJsonFile({
     relativeFilePath,
     fieldPath,
     nextEntries,
-    transformExistingEntries,
     ensureParentDirectoryPath,
+    transformExistingEntries,
 }: MergeStringRecordJsonFileOptions): Promise<MergedStringRecordJsonFile> {
     if (ensureParentDirectoryPath) {
         await mkdir(join(projectPath, ensureParentDirectoryPath), { recursive: true });
@@ -106,27 +86,9 @@ export async function mergeStringRecordJsonFile({
     const formatting = detectJsonFileFormatting(fileContent);
     const jsonObject = fileContent === undefined ? {} : await parseJsonObjectFile(relativeFilePath, fileContent);
     const existingEntries = getStringRecordOrDefault(jsonObject[fieldPath], relativeFilePath, fieldPath);
-    const transformedEntries = transformExistingEntries?.(existingEntries) ?? {
-        entries: existingEntries,
-        diagnostics: [],
-    };
 
-    const addedEntryKeys: Array<string> = Object.keys(transformedEntries.entries).filter(
-        (entryKey) => !Object.prototype.hasOwnProperty.call(existingEntries, entryKey),
-    );
-    const updatedEntryKeys: Array<string> = [];
-    const removedEntryKeys = Object.keys(existingEntries).filter(
-        (entryKey) => !Object.prototype.hasOwnProperty.call(transformedEntries.entries, entryKey),
-    );
-    const mergedEntries = { ...transformedEntries.entries };
-    for (const [entryKey, entryValue] of Object.entries(transformedEntries.entries)) {
-        if (
-            Object.prototype.hasOwnProperty.call(existingEntries, entryKey) &&
-            existingEntries[entryKey] !== entryValue
-        ) {
-            updatedEntryKeys.push(entryKey);
-        }
-    }
+    const addedEntryKeys: Array<string> = [];
+    const mergedEntries = { ...((await transformExistingEntries?.(existingEntries)) ?? existingEntries) };
     for (const [entryKey, entryValue] of Object.entries(nextEntries)) {
         if (Object.prototype.hasOwnProperty.call(mergedEntries, entryKey)) {
             // Note: The project already defines this entry, keep its own value untouched
@@ -136,32 +98,21 @@ export async function mergeStringRecordJsonFile({
         mergedEntries[entryKey] = entryValue;
         addedEntryKeys.push(entryKey);
     }
+    for (const entryKey of Object.keys(mergedEntries)) {
+        if (!Object.prototype.hasOwnProperty.call(existingEntries, entryKey) && !addedEntryKeys.includes(entryKey)) {
+            addedEntryKeys.push(entryKey);
+        }
+    }
 
-    const hasChanges =
-        fileContent === undefined ||
-        addedEntryKeys.length > 0 ||
-        updatedEntryKeys.length > 0 ||
-        removedEntryKeys.length > 0;
+    const hasChanges = fileContent === undefined || JSON.stringify(mergedEntries) !== JSON.stringify(existingEntries);
     if (!hasChanges) {
-        return {
-            status: 'unchanged',
-            addedEntryKeys,
-            updatedEntryKeys,
-            removedEntryKeys,
-            diagnostics: transformedEntries.diagnostics ?? [],
-        };
+        return { status: 'unchanged', addedEntryKeys };
     }
 
     const nextJsonObject: JsonObject = { ...jsonObject };
     nextJsonObject[fieldPath] = mergedEntries;
     await writeFile(absoluteFilePath, serializeJsonObject(nextJsonObject, formatting), 'utf-8');
-    return {
-        status: fileContent === undefined ? 'created' : 'updated',
-        addedEntryKeys,
-        updatedEntryKeys,
-        removedEntryKeys,
-        diagnostics: transformedEntries.diagnostics ?? [],
-    };
+    return { status: fileContent === undefined ? 'created' : 'updated', addedEntryKeys };
 }
 
 /**

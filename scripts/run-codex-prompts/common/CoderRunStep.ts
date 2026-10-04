@@ -4,8 +4,8 @@ import type { Usage } from '../../../src/execution/Usage';
  * Which kind of work one coder run step represents.
  *
  * - `implementation` — the first coding attempt for a prompt
- * - `checking` — one run of the configured aggregate check command
- * - `fixing` — a follow-up coding attempt after a failed check
+ * - `checking` — one run of the configured project check command
+ * - `fixing` — a follow-up coding attempt after a failed verification
  */
 export type CoderRunStepKind = 'implementation' | 'checking' | 'fixing';
 

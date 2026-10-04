@@ -21,7 +21,7 @@ import type { PromptFile } from '../prompts/types/PromptFile';
 import type { PromptSection } from '../prompts/types/PromptSection';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-import { runPromptWithCheckFeedback } from '../checking/runPromptWithCheckFeedback';
+import { runPromptWithCheckFeedback } from '../checks/runPromptWithCheckFeedback';
 import { runPromptRound } from './runPromptRound';
 
 jest.mock('../common/appendCoderContext', () => ({
@@ -91,7 +91,7 @@ jest.mock('../prompts/writePromptRunTrace', () => ({
     writePromptRunTrace: jest.fn(),
 }));
 
-jest.mock('../checking/runPromptWithCheckFeedback', () => ({
+jest.mock('../checks/runPromptWithCheckFeedback', () => ({
     runPromptWithCheckFeedback: jest.fn(),
 }));
 
@@ -636,7 +636,7 @@ describe('runPromptRound', () => {
             options: createRunOptions({
                 waitForUser: false,
                 thinkingLevel: 'max',
-                checkCommand: 'npm run check',
+                checkCommand: 'npm test',
             }),
             runner,
             runnerMetadata: {
@@ -657,7 +657,7 @@ describe('runPromptRound', () => {
                 runnerName: 'OpenAI Codex',
                 modelName: 'gpt-5.6-astra',
                 thinkingLevel: 'max',
-                checkCommand: 'npm run check',
+                checkCommand: 'npm test',
                 attemptCount: 1,
                 logPath: 'C:\\temp\\runtime.log',
                 outcome: expect.objectContaining({ kind: 'succeeded' }),

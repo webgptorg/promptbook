@@ -62,7 +62,7 @@ export const MODEL_FILTER_COMMAND = `ptbk coder run --harness github-copilot --m
 export const AGENT_FILTER_COMMAND = `${MODEL_FILTER_COMMAND} --agent agents/my-developer.book`;
 
 /**
- * Command which runs the aggregate project check before coding and lets one repair prompt fix pre-existing failures.
+ * Command which runs the existing checks before coding and lets one repair prompt fix pre-existing failures.
  */
 export const CHECK_BEFORE_FIX_COMMAND =
     'ptbk coder run --harness claude-code --check "npm run check" --check-before yes-and-fix';
@@ -90,7 +90,7 @@ export const PING_PERIOD_COMMAND =
 
 /**
  * Full-featured command which starts the coder server with kanban UI, agent persona,
- * project context and post-prompt aggregate check.
+ * project context and post-prompt project checks.
  */
 export const SERVER_COMMAND = `ptbk coder server --harness claude-code --model ${HARNESS_DEFAULT_MODELS['claude-code']} --thinking-level max --check "npm run check"`;
 

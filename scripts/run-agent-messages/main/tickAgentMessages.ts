@@ -19,7 +19,7 @@ import type { PromptStats } from '../../run-codex-prompts/prompts/types/PromptSt
 import {
     runPromptWithCheckFeedback,
     type RunPromptWithCheckFeedbackResult,
-} from '../../run-codex-prompts/checking/runPromptWithCheckFeedback';
+} from '../../run-codex-prompts/checks/runPromptWithCheckFeedback';
 import { renderCoderRunUi, type CoderRunUiHandle } from '../../run-codex-prompts/ui/renderCoderRunUi';
 import type {
     AgentRunMessagePreviewSection,

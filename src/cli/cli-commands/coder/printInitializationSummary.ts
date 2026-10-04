@@ -18,10 +18,12 @@ export function printInitializationSummary(
 ): void {
     const isUnresolved =
         summary.adamAgentFileStatus === 'unresolved' ||
+        !summary.isCheckConfigured ||
+        summary.migrationInstructions.length > 0 ||
         summary.referencedArtifactStatuses.some(({ status }) => status === 'unresolved');
     console.info(
         isUnresolved
-            ? colors.yellow('Promptbook coder initialization has unresolved artifacts.')
+            ? colors.yellow('Promptbook coder configuration setup: additional setup is required.')
             : colors.green('Promptbook coder configuration setup:'),
     );
     if (workspace)
@@ -55,15 +57,13 @@ export function printInitializationSummary(
         printInitializationNote('All Promptbook coder npm scripts are already present.', colors.gray);
     }
 
-    for (const packageJsonDiagnostic of summary.packageJsonDiagnostics) {
-        printInitializationNote(packageJsonDiagnostic, colors.cyan);
-    }
-
     if (summary.initializedEnvVariableNames.length > 0) {
         printInitializationNote(`Added env variables: ${summary.initializedEnvVariableNames.join(', ')}`, colors.cyan);
     } else {
         printInitializationNote('Required coder env variables are already present.', colors.gray);
     }
+    console.info((summary.isCheckConfigured ? colors.cyan : colors.yellow)(summary.checkScriptSummary));
+    for (const instruction of summary.migrationInstructions) console.info(colors.yellow(`! ${instruction}`));
 }
 
 /**

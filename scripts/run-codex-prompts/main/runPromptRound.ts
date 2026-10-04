@@ -35,7 +35,8 @@ import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
 import { writePromptRunTrace } from '../prompts/writePromptRunTrace';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-import { runPromptWithCheckFeedback } from '../checking/runPromptWithCheckFeedback';
+import { runPromptWithCheckFeedback } from '../checks/runPromptWithCheckFeedback';
+import { CoderCheckSetupError } from '../checks/projectCheck';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
 
 /**
@@ -63,7 +64,7 @@ export type RunPromptRoundOptions = {
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
 
     /**
-     * Working directory the coding agent, the aggregate check command and the round commit run in.
+     * Working directory the coding agent, the verification command and the round commit run in.
      *
      * Defaults to the project the coder was started from and is the temporary worktree
      * when the round is isolated through `--isolate`.
@@ -186,7 +187,11 @@ export async function runPromptRound({
 
                     // Note: A harness which is not logged in answers every retry the same way, so the user gets
                     //       the sign-in instructions right away instead of after every retry has waited its delay
-                    if (error instanceof AuthenticationError || errorRetryAttempt >= MAX_RETRY_ATTEMPTS_AFTER_ERROR) {
+                    if (
+                        error instanceof AuthenticationError ||
+                        error instanceof CoderCheckSetupError ||
+                        errorRetryAttempt >= MAX_RETRY_ATTEMPTS_AFTER_ERROR
+                    ) {
                         break;
                     }
 

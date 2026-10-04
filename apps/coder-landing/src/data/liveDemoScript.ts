@@ -275,7 +275,7 @@ export function createLiveDemoScript(terminalColumnCount: number): ReadonlyArray
             buildLiveOutputLine('  [DEP0040] The `punycode` module is deprecated.', 'warning'),
             buildLiveOutputLine('[Check · stdout]', 'info'),
             buildLiveOutputLine('  Prerendered home page', 'plain'),
-            buildLiveOutputLine('  🎉 All tests passed!', 'success'),
+            buildLiveOutputLine('  🎉 All checks passed!', 'success'),
             buildLiveOutputLine('', 'plain'),
         ]),
         ...createBoxLines(terminalColumnCount, 'Errors', 'errorTitle', [

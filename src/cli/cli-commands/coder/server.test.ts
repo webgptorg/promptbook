@@ -75,6 +75,44 @@ describe('$initializeCoderServerCommand', () => {
         jest.clearAllMocks();
     });
 
+    it('forwards a quoted aggregate check without interpreting embedded flags as server options', async () => {
+        const check = 'node --test "test files/unit.js" && npm run build -- --model local';
+        await createProgramWithServerCommand().parseAsync(
+            [
+                'node',
+                'test',
+                'server',
+                '--dry-run',
+                '--harness',
+                'openai-codex',
+                '--model',
+                'fixture-model',
+                '--check',
+                check,
+            ],
+            { from: 'node' },
+        );
+        expect(getRunCodexPromptsServerMock()).toHaveBeenCalledWith(
+            expect.objectContaining({ checkCommand: check, model: 'fixture-model' }),
+        );
+    });
+
+    it('keeps post-prompt checks opt-in when no check command is selected', async () => {
+        await createProgramWithServerCommand().parseAsync(['node', 'test', 'server', '--dry-run'], { from: 'node' });
+        expect(getRunCodexPromptsServerMock()).toHaveBeenCalledWith(
+            expect.objectContaining({ checkCommand: undefined }),
+        );
+    });
+
+    it('rejects an empty check before workspace setup or server execution', async () => {
+        await createProgramWithServerCommand().parseAsync(['node', 'test', 'server', '--dry-run', '--check', ''], {
+            from: 'node',
+        });
+        expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
+        expect($ensureHarnessInstallations).not.toHaveBeenCalled();
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
     it('checks local ignore rules for the selected harness before starting the server', async () => {
         const program = createProgramWithServerCommand();
 
@@ -145,29 +183,31 @@ describe('$initializeCoderServerCommand', () => {
         await program.parseAsync(['node', 'test', 'server', '--dry-run', '--check', ''], { from: 'node' });
 
         expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('non-empty project check command'));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('non-empty shell command'));
     });
 
     it('rejects the removed server aggregate flag with migration guidance', async () => {
         const program = createProgramWithServerCommand();
+        program.commands[0]!.exitOverride().configureOutput({ writeErr: () => undefined });
 
-        await program.parseAsync(['node', 'test', 'server', '--dry-run', '--test', 'npm', 'test'], {
-            from: 'node',
-        });
+        await expect(
+            program.parseAsync(['node', 'test', 'server', '--dry-run', '--test', 'npm', 'test'], { from: 'node' }),
+        ).rejects.toThrow('`--test` was renamed to `--check`');
 
         expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test`'));
-        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--check`'));
+        expect($ensureHarnessInstallations).not.toHaveBeenCalled();
     });
 
     it('rejects the removed server aggregate flag even without a value', async () => {
         const program = createProgramWithServerCommand();
+        program.commands[0]!.exitOverride().configureOutput({ writeErr: () => undefined });
 
-        await program.parseAsync(['node', 'test', 'server', '--dry-run', '--test'], { from: 'node' });
+        await expect(
+            program.parseAsync(['node', 'test', 'server', '--dry-run', '--test'], { from: 'node' }),
+        ).rejects.toThrow('`--test` was renamed to `--check`');
 
         expect(getRunCodexPromptsServerMock()).not.toHaveBeenCalled();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--test`'));
-        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('`--check`'));
+        expect($ensureHarnessInstallations).not.toHaveBeenCalled();
     });
 
     it('rejects a missing Developer before setup or starting the server', async () => {

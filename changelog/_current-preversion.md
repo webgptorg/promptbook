@@ -1,14 +1,48 @@
--   Renamed Coder's aggregate project verification contract to `check`. `ptbk coder run` and the shared runner now use
-    `--check` and `--check-before`, default enabled checks to `npm run check`, preserve command boundaries and process
-    failures, and reject the removed `--test` spellings with migration guidance. `coder init` and top-level `ptbk init`
-    now preserve or safely migrate `scripts.check`, compose it from usable existing validation scripts, or create a
-    clearly failing setup placeholder with an initialization explanation; generated callers no longer create the legacy
-    `test-for-ptbk-coder` script. Repair feedback explicitly covers tests, lint, type checks, builds and generated-code
-    checks without weakening the project's validation.
+-   Added an implementation PRD for replacing default avatars in Promptbook Coder and Agents Server with shared origami animals, including 3D web and terminal ASCII representations.
+
+-   Renamed Coder's aggregate project verification to **checks** throughout run/server registration, direct-script
+    parsing, shared command execution, initial repair PRDs, retry feedback, traces, terminal status, and scoped
+    check-produced commits. Use `--check "npm run check" --check-before yes-and-fix`; the default preflight mode
+    remains `no`, and post-prompt checks remain opt-in. Enabled preflight without a command uses `npm run check`
+    for both initial and repair verification. Retired `--test` / `--test-before` now fail with migration guidance.
+    Checks include project-owned linting, typechecking, builds, generated-code consistency, and tests; real process
+    exits/signals/cancellation determine success, and repair instructions explicitly forbid weakening validation.
+    `ptbk init` and `ptbk coder init` preserve existing `scripts.check` exactly or deterministically compose usable
+    existing validation scripts, reporting the actual scope. Projects without validation receive a failing setup
+    placeholder and stop before model repair; missing, recursive, or unconfigured referenced validation also reports
+    setup guidance. Recognized generated callers migrate idempotently, and legacy aggregates retain their command
+    bodies in `check`. Custom/conflicting callers and entries still used by project scripts or workflow files stay
+    intact with precise instructions: preserve the required validation in `scripts.check`, replace old flags and
+    script references, then remove unused `test-for-ptbk-coder` / `check-for-ptbk-coder` entries. No compatibility
+    aliases are generated. Updated maintained templates, workflow docs, active examples, and the Coder landing page;
+    added command/migration/process regressions and offline installed-package smoke coverage.
+    Existing automation invoking `npm run test-for-ptbk-coder` must also switch to `npm run check`; restart an
+    already-running Coder invocation with the new flags so it releases its captured legacy command. Missing retired
+    scripts and missing `check` references with extra arguments now stop with setup guidance before repair retries.
+    Initialization also excludes recursive lifecycle hooks and direct Coder calls from migrated validation.
+    Legacy npm pre/post validation hooks migrate with the check body; conflicting lifecycle scopes remain intact
+    with setup guidance. Tokenized check arguments retain literal quotes and backslashes.
+    Setup diagnostics also inspect conventional wrapped commands, environment assignments, quiet npm flags,
+    and quoted script names before repairs; initialization reports missing or recursive project validation
+    without changing its definition. Cancelled checks cannot pass while their execution log is completing.
+    Migration retains entries referenced by external workflow scripts or package metadata, and reports lifecycle
+    hook conflicts before adding validation scope to a migrated command.
+    Generated aggregates include conventional `check-types` scripts. Caller scans exclude only the known Coder
+    task-history paths, preserving active legacy callers in other `done` or `traces` directories.
+    Explicit project validation commands also report missing scripts as setup errors before model repair, including
+    checks selected directly with `--check "npm run lint"` or as a lint/build/test pipeline.
+    Configuration inspection preserves quoted command payloads and npm/pnpm/yarn directory overrides, so tool
+    arguments and validation owned by another package are not mistaken for missing root-project scripts.
+    Root validation before a directory change still receives setup diagnostics; quoted directory-change examples
+    do not bypass those diagnostics or start unnecessary model repairs.
 
 -   Fixed `ptbk coder run` on macOS when the implicit current project path is exposed through `/var` while filesystem
     operations resolve it through `/private/var`. Direct runs now preserve the invocation path, while explicit project
     paths continue to be validated and canonicalized.
+
+-   Reconciled independently implemented Coder check workflows during the main-branch merge, retaining validation
+    setup and migration handling, macOS invocation paths, dashboard check terminology, and both branches' run traces.
+0d047d3ad25cab4e5a5b3066db799178e7e987f4
 
 -   Fixed unit test expectations for Copilot shell path quoting and project-aware Promptbook CLI updates.
     CLI update tests now verify that both default and explicit project paths reach installation checks and updates.
@@ -197,14 +231,15 @@
 
 -   Added agent-specific prompt routing to `ptbk coder`:
 
-    -   A ready `[ ]` prompt can now target the Book passed in `--agent` with a backtick-delimited path, filename,
-        filename without `.book`, or the Book title from its first line. For example, a run using
-        `--agent agents/coding/developer.book` accepts `agents/coding/developer.book`, `developer.book`,
-        `developer`, and `Promptbook Developer` routing tokens.
-    -   Agent references work alongside the existing model and harness routing tokens, and `ptbk coder list --agent
-        <path.book>` previews the same agent-specific queue without starting a harness.
+        -   A ready `[ ]` prompt can now target the Book passed in `--agent` with a backtick-delimited path, filename,
+            filename without `.book`, or the Book title from its first line. For example, a run using
+            `--agent agents/coding/developer.book` accepts `agents/coding/developer.book`, `developer.book`,
+            `developer`, and `Promptbook Developer` routing tokens.
+        -   Agent references work alongside the existing model and harness routing tokens, and `ptbk coder list --agent
+
+    <path.book>`previews the same agent-specific queue without starting a harness.
     -   Added an Unslopper agent preset next to the developer preset in the local VS Code terminal scripts and
-        documented agent-specific routing on the `ptbk coder` landing page.
+        documented agent-specific routing on the`ptbk coder` landing page.
 
 -   The help of `ptbk` does not advertise the deprecated commands anymore. `run`, `login`, `make`, `prettify`, `test`,
     `list-models`, `list-scrapers`, `start-agents-server` and `start-pipelines-server` are all leftovers of the old
@@ -235,15 +270,16 @@
     runtime log holding everything the harness and the verification command had written was a temporary artifact,
     deleted as soon as a successful round was over unless `--preserve-logs` was passed, and lost together with the
     reasoning, the tool calls and the diffs of the run. Each round now writes `prompts/traces/<prompt-file-name>.md`
-    - a trace named exactly like the prompt file it belongs to, with the same `-2` section suffix the temporary
-    scripts of a multi-section prompt file already use. The trace pairs the metadata of the round - which prompt and
-    section it implemented, whether it succeeded or failed, the harness, model, thinking level and login method which
-    ran it, how many coding attempts it took, what each step cost and how long each one ran, the verification
-    command, the start, end and duration, and the error which ended a failed round - with the untouched runtime log
-    of the harness. Because the trace is written before the round is committed, it lands in the very same commit as
-    the prompt it describes, and a task whose isolated worktree cannot be merged back carries its trace into the
-    failure commit instead. A failed round is traced too, next to the `.error.log` it already wrote. Re-running the
-    same prompt overwrites its trace and leaves the earlier ones in the git history.
+
+    -   a trace named exactly like the prompt file it belongs to, with the same `-2` section suffix the temporary
+        scripts of a multi-section prompt file already use. The trace pairs the metadata of the round - which prompt and
+        section it implemented, whether it succeeded or failed, the harness, model, thinking level and login method which
+        ran it, how many coding attempts it took, what each step cost and how long each one ran, the verification
+        command, the start, end and duration, and the error which ended a failed round - with the untouched runtime log
+        of the harness. Because the trace is written before the round is committed, it lands in the very same commit as
+        the prompt it describes, and a task whose isolated worktree cannot be merged back carries its trace into the
+        failure commit instead. A failed round is traced too, next to the `.error.log` it already wrote. Re-running the
+        same prompt overwrites its trace and leaves the earlier ones in the git history.
 
 -   `ptbk coder run` and `ptbk coder server` no longer walk into a full disk. A coding round writes prompt and log
     artifacts, lets the harness rewrite the project, may install npm packages, may create a git worktree for
@@ -274,7 +310,7 @@
 -   `ptbk coder` no longer answers a harness which is not logged in with a wall of raw CLI output. A harness whose
     login is missing or whose session has expired now fails with a short branded `AuthenticationError` which names
     the harness, quotes the one sentence the harness itself reported - such as `Failed to authenticate: OAuth session
-    expired and could not be refreshed` - and says exactly how to sign in again, for example by running `claude` and
+expired and could not be refreshed` - and says exactly how to sign in again, for example by running `claude` and
     then the `/login` command inside it. How each harness is signed in is described once, next to how it is installed
     and detected, and the failure is recognized once for every harness and for every command
     which runs prompts, so `coder run`, `coder server` and `coder ping` all report it the same way. The terminal and

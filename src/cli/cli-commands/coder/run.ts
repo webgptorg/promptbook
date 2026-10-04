@@ -1,15 +1,10 @@
-import {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
-    Option,
-} from 'commander';
+import { Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */ } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
-import { NotAllowed } from '../../../errors/NotAllowed';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
 import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { validateCoderRunOptions } from '../common/validateCoderRunOptions';
-import { rejectLegacyCoderCheckOptions } from '../common/rejectLegacyCoderCheckOptions';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { normalizeProjectCliOptions } from '../common/projectCliOptions';
@@ -32,10 +27,10 @@ import {
 } from '../common/promptRunnerCliOptions';
 import { addPromptPriorityOptions } from '../common/promptPriorityCliOptions';
 import {
-    CHECK_BEFORE_MODE_VALUES,
-    DEFAULT_CODER_CHECK_COMMAND,
+    resolveCoderCheckCommand,
     type CheckBeforeMode,
-} from '../../../../scripts/run-codex-prompts/checking/CheckBeforeMode';
+} from '../../../../scripts/run-codex-prompts/checks/CheckBeforeMode';
+import { addCoderCheckOptions, normalizeCheckCommandOption } from '../common/coderCheckCliOptions';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
 import { addCoderExecutionOptions, type CoderAgentCliOptions } from './agentCliOptions';
@@ -78,8 +73,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Offers to add missing project-local ignore rules for the selected harness
             - In interactive mode, checks local and global Promptbook CLI installations and offers to update them
             - Supports GPG signing of commits
-            - Optional pre-coding project check that can stop or repair pre-existing failures
-            - Optional post-prompt check with check-feedback retries
+            - Optional pre-coding check run that can stop or repair pre-existing failures
+            - Optional post-prompt checks with check-feedback retries
             - Progress tracking and interactive P/S/X terminal controls; O changes only the dashboard output view
             - Dry-run mode to preview prompts
         `,
@@ -90,23 +85,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     addPromptRunnerSelectionOptions(command);
     addQuestionsOption(command);
     addCoderExecutionOptions(command);
-    command.option(
-        '--check <check-command...>',
-        'Run the aggregate project check after each prompt; quote it when the command itself contains top-level flags',
-    );
-    command.addOption(
-        new Option(
-            '--check-before <mode>',
-            `Run the project check before coding: ${CHECK_BEFORE_MODE_VALUES.join(
-                ', ',
-            )} (defaults to no; uses npm run check when --check is omitted)`,
-        )
-            .choices([...CHECK_BEFORE_MODE_VALUES])
-            .default('no'),
-    );
-    // Keep the removed spellings parseable long enough to report an actionable migration error.
-    command.addOption(new Option('--test [test-command...]').hideHelp());
-    command.addOption(new Option('--test-before [mode]').hideHelp());
+    addCoderCheckOptions(command, true);
     command.option(
         '--preserve-logs',
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
@@ -175,8 +154,6 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 context,
                 check,
                 checkBefore,
-                test: legacyTest,
-                testBefore: legacyTestBefore,
                 preserveLogs,
                 isolate: isIsolated,
                 priority,
@@ -195,8 +172,6 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly context?: string;
                 readonly check?: string | string[];
                 readonly checkBefore: CheckBeforeMode;
-                readonly test?: string | string[];
-                readonly testBefore?: string;
                 readonly preserveLogs: boolean;
                 readonly isolate: boolean;
                 readonly priority?: number;
@@ -212,14 +187,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             } & PromptRunnerCliOptions &
                 CoderAgentCliOptions;
 
-            rejectLegacyCoderCheckOptions({ legacyTest, legacyTestBefore });
-
-            const configuredCheckCommand = normalizeCommandOptionValue(check);
-            if (check !== undefined && configuredCheckCommand === undefined) {
-                throw new NotAllowed('The `--check` option requires a non-empty project check command.');
-            }
-            const checkCommand =
-                configuredCheckCommand ?? (checkBefore === 'no' ? undefined : DEFAULT_CODER_CHECK_COMMAND);
+            const checkCommand = resolveCoderCheckCommand(normalizeCheckCommandOption(check), checkBefore);
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
@@ -317,25 +285,6 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             return process.exit(0);
         }),
     );
-}
-
-/**
- * Joins one Commander option that may be parsed either as a single string or a variadic token array.
- *
- * @private internal utility of `coder run` command
- */
-function normalizeCommandOptionValue(value: string | string[] | undefined): string | undefined {
-    if (value === undefined) {
-        return undefined;
-    }
-
-    const parts = Array.isArray(value) ? value : [value];
-    const normalizedValue = parts
-        .map((part) => part.trim())
-        .filter(Boolean)
-        .join(' ')
-        .trim();
-    return normalizedValue === '' ? undefined : normalizedValue;
 }
 
 // Note: [🟡] Code for CLI command [run](src/cli/cli-commands/coder/run.ts) should never be published outside of `@promptbook/cli`

@@ -3,6 +3,7 @@ import {
     Option,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
+import { addCoderCheckOptions, normalizeCheckCommandOption } from '../common/coderCheckCliOptions';
 import { NETWORK_LIMITS } from '../../../constants';
 import { assertsError } from '../../../errors/assertsError';
 import { NotAllowed } from '../../../errors/NotAllowed';
@@ -10,7 +11,6 @@ import type { number_port } from '../../../types/number_positive';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { $assertSufficientFreeDiskSpace } from '../common/disk-space/$assertSufficientFreeDiskSpace';
 import { validateCoderRunOptions } from '../common/validateCoderRunOptions';
-import { rejectLegacyCoderCheckOptions } from '../common/rejectLegacyCoderCheckOptions';
 import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
 import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
 import { normalizeProjectCliOptions } from '../common/projectCliOptions';
@@ -87,12 +87,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
     addPromptRunnerSelectionOptions(command);
     addQuestionsOption(command);
     addCoderExecutionOptions(command);
-    command.option(
-        '--check <check-command...>',
-        'Run the aggregate project check after each prompt; quote it when the command itself contains top-level flags',
-    );
-    // Keep the removed spelling parseable long enough to report an actionable migration error.
-    command.addOption(new Option('--test [test-command...]').hideHelp());
+    addCoderCheckOptions(command, false);
     command.option(
         '--preserve-logs',
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
@@ -146,7 +141,6 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 agent,
                 context,
                 check,
-                test: legacyTest,
                 preserveLogs,
                 priority,
                 minPriority: minimumPriority,
@@ -163,7 +157,6 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 readonly agent?: string;
                 readonly context?: string;
                 readonly check?: string | string[];
-                readonly test?: string | string[];
                 readonly preserveLogs: boolean;
                 readonly priority?: number;
                 readonly minPriority?: number;
@@ -178,11 +171,7 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 CoderAgentCliOptions;
 
             const port = parseCoderServerPort(rawPort);
-            rejectLegacyCoderCheckOptions({ legacyTest });
-            const checkCommand = normalizeCommandOptionValue(check);
-            if (check !== undefined && checkCommand === undefined) {
-                throw new NotAllowed('The `--check` option requires a non-empty project check command.');
-            }
+            const checkCommand = normalizeCheckCommandOption(check);
             const runnerOptions = normalizePromptRunnerCliOptions(cliOptions as PromptRunnerCliOptions, {
                 isAgentRequired: !dryRun,
             });
@@ -291,25 +280,6 @@ function parseCoderServerPort(rawPort: string): number_port {
     }
 
     return port as number_port;
-}
-
-/**
- * Joins one Commander option that may be parsed either as a single string or a variadic token array.
- *
- * @private internal utility of `coder server` command
- */
-function normalizeCommandOptionValue(value: string | string[] | undefined): string | undefined {
-    if (value === undefined) {
-        return undefined;
-    }
-
-    const parts = Array.isArray(value) ? value : [value];
-    const normalizedValue = parts
-        .map((part) => part.trim())
-        .filter(Boolean)
-        .join(' ')
-        .trim();
-    return normalizedValue === '' ? undefined : normalizedValue;
 }
 
 // Note: [🟡] Code for CLI command [server](src/cli/cli-commands/coder/server.ts) should never be published outside of `@promptbook/cli`

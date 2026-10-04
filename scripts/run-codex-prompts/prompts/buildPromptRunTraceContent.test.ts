@@ -52,7 +52,7 @@ describe('buildPromptRunTraceContent', () => {
     it('reports the runner, the outcome and the timing of a successful round', () => {
         const content = buildPromptRunTraceContent({
             ...createTraceOptions(),
-            checkCommand: 'npm run check',
+            checkCommand: 'npm test',
             outcome: {
                 kind: 'succeeded',
                 steps: [{ kind: 'implementation', usage: null, durationMs: 42 * 60 * 1000 }],
@@ -66,7 +66,7 @@ describe('buildPromptRunTraceContent', () => {
         expect(content).toContain('-   **Outcome:** Succeeded');
         expect(content).toContain('-   **Runner:** OpenAI Codex `gpt-5.6-astra` thinking `max` (ChatGPT account)');
         expect(content).toContain('-   **Attempts:** 1');
-        expect(content).toContain('-   **Check command:** `npm run check`');
+        expect(content).toContain('-   **Check command:** `npm test`');
         expect(content).toContain('-   **Started:** 2026-09-12T10:00:00.000Z');
         expect(content).toContain('-   **Finished:** 2026-09-12T10:42:00.000Z');
         expect(content).toContain('## Runtime log');
@@ -94,17 +94,17 @@ describe('buildPromptRunTraceContent', () => {
         const content = buildPromptRunTraceContent({
             ...createTraceOptions(),
             attemptCount: 3,
-            outcome: { kind: 'failed', error: new Error('Check never passed') },
-            runtimeLog: 'npm test output',
+            outcome: { kind: 'failed', error: new Error('Verification never passed') },
+            runtimeLog: 'npm check output',
         });
 
         expect(content).toContain('-   **Outcome:** Failed');
         expect(content).toContain('-   **Attempts:** 3');
         expect(content).toContain('## Failure');
-        expect(content).toContain('Check never passed');
+        expect(content).toContain('Verification never passed');
     });
 
-    it('omits the check command of a round which ran without one', () => {
+    it('omits the verification command of a round which ran without one', () => {
         const content = buildPromptRunTraceContent({
             ...createTraceOptions(),
             outcome: { kind: 'succeeded', steps: [] },

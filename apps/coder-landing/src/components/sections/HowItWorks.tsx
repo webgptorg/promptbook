@@ -16,7 +16,7 @@ export function HowItWorks() {
             <p className="mt-4 max-w-3xl text-lg text-gray-300">
                 <strong className="text-white">ptbk coder</strong> reads the PRD markdown files in{' '}
                 <code className="text-promptbook-blue">prompts/</code> and works through them one at a time. You choose
-                the harness and start the run. Come back to commits that already passed your tests, instead of a chat
+                the harness and start the run. Come back to commits that already passed your checks, instead of a chat
                 window full of questions.
             </p>
 

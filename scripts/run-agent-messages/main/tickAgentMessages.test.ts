@@ -14,7 +14,7 @@ import type { CoderRunStep } from '../../run-codex-prompts/common/CoderRunStep';
 import { printAgentGitIdentityTipAtProcessExitIfNeeded } from '../../run-codex-prompts/git/agentGitIdentity';
 import { commitChanges } from '../../run-codex-prompts/git/commitChanges';
 import { resolvePromptRunner } from '../../run-codex-prompts/main/resolvePromptRunner';
-import { runPromptWithCheckFeedback } from '../../run-codex-prompts/checking/runPromptWithCheckFeedback';
+import { runPromptWithCheckFeedback } from '../../run-codex-prompts/checks/runPromptWithCheckFeedback';
 import { pullLatestChangesForAgentQueueIfEnabled } from './pullLatestChangesForAgentQueueIfEnabled';
 import { tickAgentMessages } from './tickAgentMessages';
 
@@ -41,7 +41,7 @@ jest.mock('../../run-codex-prompts/main/resolvePromptRunner', () => ({
     resolvePromptRunner: jest.fn(),
 }));
 
-jest.mock('../../run-codex-prompts/checking/runPromptWithCheckFeedback', () => ({
+jest.mock('../../run-codex-prompts/checks/runPromptWithCheckFeedback', () => ({
     runPromptWithCheckFeedback: jest.fn(),
 }));
 

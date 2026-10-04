@@ -40,15 +40,15 @@ export type AdvancedFeatureDefinition = {
  */
 export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
-        title: 'Checked by your project',
+        title: 'Verified by your checks',
         description:
-            'Run the aggregate project check after each prompt. When it fails, ptbk coder hands the output back to the agent, which retries until the check passes.',
+            'Run any project check command after each prompt. When it fails, ptbk coder hands the output back to the agent, which retries until the checks pass.',
         sampleCommand: 'ptbk coder run --harness claude-code --check "npm run check"',
     },
     {
         title: 'Check before coding',
         description:
-            'Run the project check before the first coding prompt. Stop on failures that were already there, or let one repair prompt fix them before the backlog starts.',
+            'Run the checks before the first coding prompt. Stop on failures that were already there, or let one repair prompt fix them before the backlog starts.',
         sampleCommand: CHECK_BEFORE_FIX_COMMAND,
     },
     {
@@ -124,7 +124,7 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
     {
         title: 'Human in the loop',
         description:
-            'The dashboard starts in Normal output, with agent messages, commands, file changes and checks shown separately. Press O to switch to Raw output and back while the same task keeps running. Use the arrow keys to scroll output and End to follow it live. Press P to pause the queue, X to end after the current prompt, or use --no-auto to confirm each prompt. Use --no-ui for plain logs.',
+            'The dashboard starts in Normal output, with agent messages, commands, file changes and verification shown separately. Press O to switch to Raw output and back while the same task keeps running. Use the arrow keys to scroll output and End to follow it live. Press P to pause the queue, X to end after the current prompt, or use --no-auto to confirm each prompt. Use --no-ui for plain logs.',
         sampleCommand: 'ptbk coder run --harness claude-code --no-auto',
     },
     {

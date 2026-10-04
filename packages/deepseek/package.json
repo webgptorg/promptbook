@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/deepseek",
-    "version": "0.114.0-48",
+    "version": "0.114.0-49",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -87,5 +87,18 @@
     "engines": {
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
+    },
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "types": "./esm/src/_packages/deepseek.index.d.ts",
+    "typings": "./esm/src/_packages/deepseek.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.114.0-49"
+    },
+    "dependencies": {
+        "@ai-sdk/deepseek": "1.0.56",
+        "colors": "1.4.0",
+        "crypto-js": "4.2.0",
+        "spacetrim": "0.11.60"
     }
 }

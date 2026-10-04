@@ -23,8 +23,8 @@ import type { PromptRunner } from '../runners/types/PromptRunner';
 import { resolvePromptRunner } from './resolvePromptRunner';
 import { runCodexPrompts } from './runCodexPrompts';
 import { runPromptRound } from './runPromptRound';
-import { createCheckBeforeRepairPrompt } from '../checking/createCheckBeforeRepairPrompt';
-import { runCheckBefore } from '../checking/runCheckBefore';
+import { createCheckBeforeRepairPrompt } from '../checks/createCheckBeforeRepairPrompt';
+import { runCheckBefore } from '../checks/runCheckBefore';
 
 jest.mock('../common/resolveCoderContext', () => ({
     resolveCoderContext: jest.fn(async () => undefined),
@@ -77,16 +77,16 @@ jest.mock('./runPromptRound', () => ({
     runPromptRound: jest.fn(async () => undefined),
 }));
 
-jest.mock('../checking/runCheckBefore', () => ({
+jest.mock('../checks/runCheckBefore', () => ({
     runCheckBefore: jest.fn(),
 }));
 
-jest.mock('../checking/createCheckBeforeRepairPrompt', () => ({
+jest.mock('../checks/createCheckBeforeRepairPrompt', () => ({
     createCheckBeforeRepairPrompt: jest.fn(),
 }));
 
 /**
- * Commit scope captured before the pre-coding test in focused run-loop tests.
+ * Commit scope captured before the pre-coding check in focused run-loop tests.
  */
 function createCheckBeforeCommitScope(): CoderCommitScope {
     return {
@@ -156,6 +156,7 @@ describe('runCodexPrompts', () => {
     beforeEach(async () => {
         jest.resetAllMocks();
         projectPath = await mkdtemp(join(tmpdir(), 'coder run defaults '));
+        await writeFile(join(projectPath, 'package.json'), JSON.stringify({ scripts: { test: 'jest' } }));
         await mkdir(join(projectPath, 'agents/.core'), { recursive: true });
         await writeFile(
             join(projectPath, 'agents/.core/adam.book'),
@@ -203,7 +204,7 @@ describe('runCodexPrompts', () => {
         );
         (runCheckBefore as jest.MockedFunction<typeof runCheckBefore>).mockResolvedValue({
             isPassed: true,
-            checkOutput: 'All checks passed',
+            checkOutput: 'All tests passed',
         });
         (createCheckBeforeRepairPrompt as jest.MockedFunction<typeof createCheckBeforeRepairPrompt>).mockResolvedValue(
             createPromptSelection(),
@@ -499,13 +500,13 @@ describe('runCodexPrompts', () => {
         expect(ensureWorkingTreeClean).toHaveBeenCalledTimes(1);
     });
 
-    it('loads the prompt queue before running the pre-coding check', async () => {
+    it('loads the prompt queue before running pre-coding checks', async () => {
         const events: string[] = [];
         const promptSelection = createPromptSelection();
 
         (runCheckBefore as jest.MockedFunction<typeof runCheckBefore>).mockImplementation(async () => {
             events.push('check-before');
-            return { isPassed: true, checkOutput: 'All checks passed' };
+            return { isPassed: true, checkOutput: 'All tests passed' };
         });
         (loadPromptFiles as jest.MockedFunction<typeof loadPromptFiles>).mockImplementation(async () => {
             events.push('load');
@@ -522,7 +523,7 @@ describe('runCodexPrompts', () => {
         await runCodexPrompts(
             createRunOptions({
                 checkBefore: 'yes-and-fail',
-                checkCommand: 'npm run check',
+                checkCommand: 'npm run test',
                 waitForUser: false,
             }),
         );
@@ -530,12 +531,12 @@ describe('runCodexPrompts', () => {
         expect(events).toEqual(['load', 'check-before', 'load', 'run', 'load']);
         expect(runCheckBefore).toHaveBeenCalledWith(
             expect.objectContaining({
-                checkCommand: 'npm run check',
+                checkCommand: 'npm run test',
             }),
         );
     });
 
-    it('commits files changed by a passing pre-coding check before the first prompt in yes-and-fix mode', async () => {
+    it('commits files changed by passing pre-coding checks before checking the first prompt in yes-and-fix mode', async () => {
         const events: string[] = [];
         const promptSelection = createPromptSelection();
 
@@ -544,22 +545,22 @@ describe('runCodexPrompts', () => {
         });
         (captureCoderCommitScope as jest.MockedFunction<typeof captureCoderCommitScope>).mockImplementation(
             async () => {
-                events.push('capture-check-scope');
+                events.push('capture-test-scope');
                 return createCheckBeforeCommitScope();
             },
         );
         (runCheckBefore as jest.MockedFunction<typeof runCheckBefore>).mockImplementation(async () => {
             events.push('check-before');
-            return { isPassed: true, checkOutput: 'All checks passed' };
+            return { isPassed: true, checkOutput: 'All tests passed' };
         });
         (resolveCoderCommitScopePaths as jest.MockedFunction<typeof resolveCoderCommitScopePaths>).mockImplementation(
             async () => {
-                events.push('resolve-check-changes');
-                return ['src/generated/pre-coding-check-output.ts'];
+                events.push('resolve-test-changes');
+                return ['src/generated/pre-coding-test-output.ts'];
             },
         );
         (commitChanges as jest.MockedFunction<typeof commitChanges>).mockImplementation(async () => {
-                events.push('commit-check-changes');
+            events.push('commit-test-changes');
         });
         (loadPromptFiles as jest.MockedFunction<typeof loadPromptFiles>).mockImplementation(async () => {
             events.push('load');
@@ -576,7 +577,7 @@ describe('runCodexPrompts', () => {
         await runCodexPrompts(
             createRunOptions({
                 checkBefore: 'yes-and-fix',
-                checkCommand: 'npm run check',
+                checkCommand: 'npm test',
                 waitForUser: false,
                 autoPush: true,
             }),
@@ -585,28 +586,28 @@ describe('runCodexPrompts', () => {
         expect(events).toEqual([
             'load',
             'check-clean-tree',
-            'capture-check-scope',
+            'capture-test-scope',
             'check-before',
-            'resolve-check-changes',
-            'commit-check-changes',
+            'resolve-test-changes',
+            'commit-test-changes',
             'load',
             'check-clean-tree',
             'run',
             'load',
         ]);
         expect(captureCoderCommitScope).toHaveBeenCalledWith(process.cwd());
-        expect(commitChanges).toHaveBeenCalledWith('check: Apply changes made by pre-coding check', {
+        expect(commitChanges).toHaveBeenCalledWith('chore: Apply changes made by pre-coding checks', {
             autoPush: true,
             projectPath: process.cwd(),
-            relevantPaths: ['src/generated/pre-coding-check-output.ts'],
+            relevantPaths: ['src/generated/pre-coding-test-output.ts'],
         });
     });
 
-    it('does not create an empty commit when the pre-coding check makes no changes', async () => {
+    it('does not create an empty commit when pre-coding checks make no changes', async () => {
         await runCodexPrompts(
             createRunOptions({
                 checkBefore: 'yes-and-fix',
-                checkCommand: 'npm run check',
+                checkCommand: 'npm test',
                 waitForUser: false,
             }),
         );
@@ -616,13 +617,13 @@ describe('runCodexPrompts', () => {
 
     it('leaves pre-coding check changes uncommitted when --no-commit is used', async () => {
         (resolveCoderCommitScopePaths as jest.MockedFunction<typeof resolveCoderCommitScopePaths>).mockResolvedValue([
-            'src/generated/pre-coding-check-output.ts',
+            'src/generated/pre-coding-test-output.ts',
         ]);
 
         await runCodexPrompts(
             createRunOptions({
                 checkBefore: 'yes-and-fix',
-                checkCommand: 'npm run check',
+                checkCommand: 'npm test',
                 waitForUser: false,
                 noCommit: true,
                 gitChanges: 'ignore',
@@ -634,7 +635,7 @@ describe('runCodexPrompts', () => {
         expect(commitChanges).not.toHaveBeenCalled();
     });
 
-    it('stops before the agent when the pre-coding check fails in yes-and-fail mode', async () => {
+    it('stops before the agent when pre-coding checks fail in yes-and-fail mode', async () => {
         (runCheckBefore as jest.MockedFunction<typeof runCheckBefore>).mockResolvedValue({
             isPassed: false,
             checkOutput: 'Expected true to be false',
@@ -644,7 +645,7 @@ describe('runCodexPrompts', () => {
             runCodexPrompts(
                 createRunOptions({
                     checkBefore: 'yes-and-fail',
-                    checkCommand: 'npm run check',
+                    checkCommand: 'npm test',
                     waitForUser: false,
                 }),
             ),
@@ -657,7 +658,50 @@ describe('runCodexPrompts', () => {
         expect(loadPromptFiles).toHaveBeenCalledTimes(1);
     });
 
-    it('commits check changes before running one repair prompt when the pre-coding check fails in yes-and-fix mode', async () => {
+    it('uses the canonical default for the initial check, repair and subsequent queued work', async () => {
+        await writeFile(
+            join(projectPath, 'package.json'),
+            JSON.stringify({
+                scripts: {
+                    check: 'npm run lint && npm run build && npm test',
+                    lint: 'eslint .',
+                    build: 'tsc',
+                    test: 'jest',
+                },
+            }),
+        );
+        const repairPrompt = createPromptSelection();
+        const queuedPrompt = createPromptSelection();
+        jest.mocked(runCheckBefore).mockResolvedValue({ isPassed: false, checkOutput: 'Build failed' });
+        jest.mocked(createCheckBeforeRepairPrompt).mockResolvedValue(repairPrompt);
+        jest.mocked(findNextTodoPrompt)
+            .mockReturnValueOnce(queuedPrompt)
+            .mockReturnValueOnce(queuedPrompt)
+            .mockReturnValueOnce(undefined);
+        await runCodexPrompts(createRunOptions({ checkBefore: 'yes-and-fix', waitForUser: false }));
+        expect(runCheckBefore).toHaveBeenCalledWith(expect.objectContaining({ checkCommand: 'npm run check' }));
+        expect(createCheckBeforeRepairPrompt).toHaveBeenCalledWith(
+            expect.objectContaining({ checkCommand: 'npm run check' }),
+        );
+        expect(runPromptRound).toHaveBeenCalledTimes(2);
+        for (const [round] of jest.mocked(runPromptRound).mock.calls)
+            expect(round.options.checkCommand).toBe('npm run check');
+    });
+
+    it('reports missing explicitly selected checks before loading work or starting repair', async () => {
+        await writeFile(join(projectPath, 'package.json'), JSON.stringify({ scripts: {} }));
+        await expect(
+            runCodexPrompts(
+                createRunOptions({ checkBefore: 'yes-and-fix', checkCommand: 'npm test', waitForUser: false }),
+            ),
+        ).rejects.toThrow('scripts.test is missing');
+        expect(loadPromptFiles).not.toHaveBeenCalled();
+        expect(resolvePromptRunner).not.toHaveBeenCalled();
+        expect(createCheckBeforeRepairPrompt).not.toHaveBeenCalled();
+        expect(runPromptRound).not.toHaveBeenCalled();
+    });
+
+    it('commits check changes before running one repair prompt when pre-coding checks fail in yes-and-fix mode', async () => {
         const events: string[] = [];
         const repairPrompt = createPromptSelection();
         const queuedPrompt = createPromptSelection();
@@ -668,12 +712,12 @@ describe('runCodexPrompts', () => {
         });
         (resolveCoderCommitScopePaths as jest.MockedFunction<typeof resolveCoderCommitScopePaths>).mockImplementation(
             async () => {
-                events.push('resolve-check-changes');
+                events.push('resolve-test-changes');
                 return ['generated-file.ts'];
             },
         );
         (commitChanges as jest.MockedFunction<typeof commitChanges>).mockImplementation(async () => {
-                events.push('commit-check-changes');
+            events.push('commit-test-changes');
         });
         (createCheckBeforeRepairPrompt as jest.MockedFunction<typeof createCheckBeforeRepairPrompt>).mockImplementation(
             async () => {
@@ -696,7 +740,7 @@ describe('runCodexPrompts', () => {
         await runCodexPrompts(
             createRunOptions({
                 checkBefore: 'yes-and-fix',
-                checkCommand: 'npm run check',
+                checkCommand: 'npm test',
                 waitForUser: false,
             }),
         );
@@ -704,8 +748,8 @@ describe('runCodexPrompts', () => {
         expect(events).toEqual([
             'load',
             'check-before',
-            'resolve-check-changes',
-            'commit-check-changes',
+            'resolve-test-changes',
+            'commit-test-changes',
             'create-repair',
             'repair',
             'load',

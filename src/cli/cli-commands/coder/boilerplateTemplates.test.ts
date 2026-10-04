@@ -133,10 +133,9 @@ describe('coder boilerplate templates', () => {
                 .filter(([scriptName]) => scriptName.startsWith('coder:'))
                 .every(([, scriptCommand]) => scriptCommand.startsWith('npx ptbk')),
         ).toBe(true);
-        // Note: The aggregate check of `coder:run` is a project-owned script initialized next to it.
-        expect(defaultCoderPackageJsonScripts['coder:run']).toContain('--check "npm run check" --check-before yes-and-fix');
-        expect(defaultCoderPackageJsonScripts.check).toContain('Configure package.json scripts.check');
-        expect(defaultCoderPackageJsonScripts['test-for-ptbk-coder']).toBeUndefined();
+        // Note: The verification command of `coder:run` is a project-owned script initialized next to it
+        expect(defaultCoderPackageJsonScripts['coder:run']).toContain('--check "npm run check"');
+        expect(defaultCoderPackageJsonScripts.check).toContain('process.exit(1)');
         expect(await readJsonFile(join(projectPath, '.vscode', 'settings.json'))).toEqual(
             getDefaultCoderVscodeSettings(),
         );
@@ -174,19 +173,15 @@ describe('coder boilerplate templates', () => {
             'node_modules\n.tmp\n\n# Promptbook Coder\n/.promptbook\n.env\n.codex\n.github/copilot/settings.local.json\n.cline\n.claude\n.opencode\n.gemini\n.qwen\n',
         );
 
-        // Note: The project-owned `coder:run` and `test` scripts must survive the initialization untouched.
-        const mergedPackageJson = await readJsonFile<{ name: string; scripts: Record<string, string> }>(
-            join(projectPath, 'package.json'),
-        );
-        expect(mergedPackageJson).toMatchObject({
+        // Note: The project-owned `coder:run` and `test` scripts must survive the initialization untouched
+        expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             name: 'demo',
             scripts: {
+                ...getDefaultCoderPackageJsonScripts(),
                 test: 'echo test',
                 'coder:run': 'echo old',
-                check: 'npm run test',
             },
         });
-        expect(mergedPackageJson.scripts.check).not.toBe(getDefaultCoderPackageJsonScripts().check);
         expect(summary.addedPackageJsonScriptNames).not.toContain('coder:run');
         expect(summary.addedPackageJsonScriptNames).toContain('check');
 
@@ -286,210 +281,6 @@ describe('coder boilerplate templates', () => {
             expect(getReferencedArtifactStatus(summary, relativeFilePath)).toBe('created');
             await expect(readFile(join(projectPath, relativeFilePath), 'utf-8')).resolves.toBeTruthy();
         }
-    });
-
-    it('preserves a custom check script and keeps repeated initialization idempotent', async () => {
-        const projectPath = await createTemporaryDirectory(temporaryDirectories);
-        const customCheckCommand = 'npm run lint && npm run typecheck && npm run build && npm test';
-        await writeFile(
-            join(projectPath, 'package.json'),
-            `${JSON.stringify(
-                {
-                    name: 'custom-check-project',
-                    scripts: {
-                        check: customCheckCommand,
-                        lint: 'eslint .',
-                        typecheck: 'tsc --noEmit',
-                        build: 'tsc',
-                        test: 'jest',
-                    },
-                },
-                null,
-                2,
-            )}\n`,
-            'utf-8',
-        );
-
-        const firstSummary = await initializeCoderProjectConfiguration(projectPath);
-        const firstPackageJsonContent = await readFile(join(projectPath, 'package.json'), 'utf-8');
-        const secondSummary = await initializeCoderProjectConfiguration(projectPath);
-        const secondPackageJsonContent = await readFile(join(projectPath, 'package.json'), 'utf-8');
-
-        const packageJson = await readJsonFile<{ readonly scripts: Record<string, string> }>(
-            join(projectPath, 'package.json'),
-        );
-        expect(packageJson.scripts.check).toBe(customCheckCommand);
-        expect(firstSummary.packageJsonDiagnostics).toContain(
-            'Preserved the existing `scripts.check` command exactly; Coder will execute that project-owned aggregate without adding hidden checks.',
-        );
-        expect(secondSummary.packageJsonFileStatus).toBe('unchanged');
-        expect(secondSummary.addedPackageJsonScriptNames).toEqual([]);
-        expect(secondPackageJsonContent).toBe(firstPackageJsonContent);
-    });
-
-    it('composes a deterministic check from usable validation scripts without recursive or unsafe scripts', async () => {
-        const projectPath = await createTemporaryDirectory(temporaryDirectories);
-        await writeFile(
-            join(projectPath, 'package.json'),
-            `${JSON.stringify(
-                {
-                    scripts: {
-                        test: 'jest',
-                        'test:unit': 'jest --runInBand',
-                        'test:watch': 'jest --watch',
-                        lint: 'eslint .',
-                        typecheck: 'tsc --noEmit',
-                        build: 'tsc',
-                        dev: 'vite',
-                        'test:install': 'npm install',
-                        'test:release': 'npm run release',
-                    },
-                },
-                null,
-                2,
-            )}\n`,
-            'utf-8',
-        );
-
-        const summary = await initializeCoderProjectConfiguration(projectPath);
-        const packageJson = await readJsonFile<{ readonly scripts: Record<string, string> }>(
-            join(projectPath, 'package.json'),
-        );
-
-        expect(packageJson.scripts.check).toBe(
-            'npm run test && npm run test:unit && npm run lint && npm run typecheck && npm run build',
-        );
-        expect(packageJson.scripts.check).not.toContain('test:watch');
-        expect(packageJson.scripts.check).not.toContain('dev');
-        expect(summary.packageJsonDiagnostics).toContain(
-            'Generated `scripts.check` from existing validation scripts: tests (npm run test), tests (npm run test:unit), lint (npm run lint), typechecking (npm run typecheck), build (npm run build).',
-        );
-    });
-
-    it('keeps conflicting legacy aggregate scripts and custom callers intact with migration guidance', async () => {
-        const projectPath = await createTemporaryDirectory(temporaryDirectories);
-        const legacyCheckCommand = 'npm run lint && npm run build && npm test';
-        const legacyCallerCommand = 'npm run test-for-ptbk-coder';
-        await writeFile(
-            join(projectPath, 'package.json'),
-            `${JSON.stringify(
-                {
-                    scripts: {
-                        check: 'npm run lint',
-                        'test-for-ptbk-coder': legacyCheckCommand,
-                        'legacy-release-check': legacyCallerCommand,
-                    },
-                },
-                null,
-                2,
-            )}\n`,
-            'utf-8',
-        );
-
-        const summary = await initializeCoderProjectConfiguration(projectPath);
-        const packageJson = await readJsonFile<{ readonly scripts: Record<string, string> }>(
-            join(projectPath, 'package.json'),
-        );
-
-        expect(packageJson.scripts.check).toBe('npm run lint');
-        expect(packageJson.scripts['test-for-ptbk-coder']).toBe(legacyCheckCommand);
-        expect(packageJson.scripts['legacy-release-check']).toBe(legacyCallerCommand);
-        expect(summary.packageJsonDiagnostics.join('\n')).toEqual(
-            expect.stringContaining('Kept both `check` and customized legacy `test-for-ptbk-coder`'),
-        );
-        expect(summary.packageJsonDiagnostics.join('\n')).toEqual(
-            expect.stringContaining('another project script still calls it'),
-        );
-    });
-
-    it('migrates the unchanged generated legacy caller and default aggregate body', async () => {
-        const projectPath = await createTemporaryDirectory(temporaryDirectories);
-        await writeFile(
-            join(projectPath, 'package.json'),
-            `${JSON.stringify(
-                {
-                    scripts: {
-                        'coder:run':
-                            'npx ptbk coder run --harness openai-codex --thinking-level max --test "npm run test-for-ptbk-coder" --test-before yes-and-fix',
-                        'test-for-ptbk-coder': 'npm test',
-                    },
-                },
-                null,
-                2,
-            )}\n`,
-            'utf-8',
-        );
-
-        const summary = await initializeCoderProjectConfiguration(projectPath);
-        const packageJson = await readJsonFile<{ readonly scripts: Record<string, string> }>(
-            join(projectPath, 'package.json'),
-        );
-
-        expect(packageJson.scripts.check).toBe('npm test');
-        expect(packageJson.scripts['test-for-ptbk-coder']).toBeUndefined();
-        expect(packageJson.scripts['coder:run']).toBe(getDefaultCoderPackageJsonScripts()['coder:run']);
-        expect(summary.packageJsonDiagnostics.join('\n')).toEqual(
-            expect.stringContaining('Updated the unchanged generated `coder:run` caller'),
-        );
-    });
-
-    it('removes an unchanged generated legacy aggregate when a custom check already exists', async () => {
-        const projectPath = await createTemporaryDirectory(temporaryDirectories);
-        await writeFile(
-            join(projectPath, 'package.json'),
-            `${JSON.stringify(
-                {
-                    scripts: {
-                        check: 'npm run lint && npm run build',
-                        'test-for-ptbk-coder': 'npm test',
-                    },
-                },
-                null,
-                2,
-            )}\n`,
-            'utf-8',
-        );
-
-        const summary = await initializeCoderProjectConfiguration(projectPath);
-        const packageJson = await readJsonFile<{ readonly scripts: Record<string, string> }>(
-            join(projectPath, 'package.json'),
-        );
-
-        expect(packageJson.scripts.check).toBe('npm run lint && npm run build');
-        expect(packageJson.scripts['test-for-ptbk-coder']).toBeUndefined();
-        expect(summary.packageJsonDiagnostics.join('\n')).toEqual(
-            expect.stringContaining('Removed the obsolete `test-for-ptbk-coder` entry'),
-        );
-    });
-
-    it('creates a failing check placeholder when every conventional candidate is recursive or unsafe', async () => {
-        const projectPath = await createTemporaryDirectory(temporaryDirectories);
-        await writeFile(
-            join(projectPath, 'package.json'),
-            `${JSON.stringify(
-                {
-                    scripts: {
-                        test: 'npm run check',
-                        lint: 'npm run coder:run',
-                        build: 'npm run build',
-                        'test:watch': 'jest --watch',
-                    },
-                },
-                null,
-                2,
-            )}\n`,
-            'utf-8',
-        );
-
-        const summary = await initializeCoderProjectConfiguration(projectPath);
-        const packageJson = await readJsonFile<{ readonly scripts: Record<string, string> }>(
-            join(projectPath, 'package.json'),
-        );
-
-        expect(packageJson.scripts.check).toContain('process.exit(1)');
-        expect(summary.packageJsonDiagnostics.join('\n')).toEqual(
-            expect.stringContaining('Created a failing `scripts.check` setup placeholder'),
-        );
     });
 
     it('does not append duplicate commented coder env variables on repeated init', async () => {

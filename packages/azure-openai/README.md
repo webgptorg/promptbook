@@ -697,29 +697,46 @@ ptbk coder verify
 | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | ---- | ----- | ------------------------------------------------------------------------ |
 | `ptbk coder init`                     | Creates `prompts/`, `prompts/done/`, the project-generic template files materialized in `prompts/templates/` (currently `common.md`), and a starter `AGENTS.md`; ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`; adds helper coder scripts to `package.json`; ensures `.gitignore` contains `/.promptbook`; and configures `.vscode/settings.json` to save pasted prompt images into `prompts/screenshots/`. |
 | `ptbk coder generate-boilerplates`    | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root.                                                                                                                                                                                                                                                                         |
-| `ptbk coder run`                      | Picks the next ready prompt, can run the aggregate project check before coding to stop or repair pre-existing failures, appends optional context, runs it through the selected coding agent, can run the same check after each attempt and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                             |
+| `ptbk coder run`                      | Picks the next ready prompt, can run project checks before coding to stop or repair pre-existing failures, appends optional context, runs it through the selected coding agent, can optionally check each attempt with the project command and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                      |
 | `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <xlow                                                                                                                                                                                                                                                                                                                                                         | low | medium | high | xhigh | extreme>` ranges from a very benevolent scan to a very aggressive sweep. |
 | `ptbk coder verify`                   | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results.                                                                                                                                                                                                                                                                                                                                                    |
 
 #### Most useful `ptbk coder run` flags
 
-| Flag                       | Purpose                                                                                                                                                                                |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--harness <name>`         | Selects the coding harness.                                                                                                                                                            |
-| `--agent <book>`           | Selects the primary Book; defaults to the selected project's `agents/developer.book`. |
-| `--path <directory>`       | Selects the project; defaults to invocation cwd. Relative paths start there, not at the CLI installation or enclosing Git root. |
-| `--model <model>`          | Chooses the runner model; required for `openai-codex`, `gemini` and `qwen-code`, optional for `github-copilot`.                                                                        |
-| `--context <text-or-file>` | Replaces the default project `AGENTS.md` with inline instructions or a project-relative file; an empty value disables context.                                                                                                                     |
-| `--check <command>`         | Runs the aggregate project check after each prompt attempt and feeds failing output back for retries.                                                                                       |
-| `--check-before <mode>`     | Runs the project check before coding: `no` (default), `yes-and-fail` (stop with results), or `yes-and-fix` (create one repair prompt first); defaults to `npm run check` when enabled without `--check`. |
-| `--thinking-level <level>` | Sets reasoning effort for supported runners.                                                                                                                                           |
-| `--no-auto`                | Waits for user confirmation before each prompt instead of running automatically through the queue.                                                                                     |
-| `--git-changes <mode>`     | Decides what happens with a dirty working tree: `fail` (default), `ignore` to keep the changes, or `continue` to resume the single interrupted `[^]` prompt with them.                 |
-| `--priority <n>`           | Runs only prompts at or above the given priority.                                                                                                                                      |
-| `--dry-run`                | Prints which prompts are ready instead of executing them.                                                                                                                              |
-| `--allow-credits`          | Lets OpenAI Codex spend credits when required.                                                                                                                                         |
-| `--auto-push`              | Pushes each successful coding-agent commit to the configured remote.                                                                                                                   |
-| `--auto-migrate`           | Runs testing-server database migrations after each successful prompt.                                                                                                                  |
+A **check** is the project's aggregate validation: tests, linting, typechecking, builds, generated-code consistency,
+and other quality checks. `ptbk init` and `ptbk coder init` preserve an existing `scripts.check`, or compose available
+validation scripts and report their scope. Configure the failing setup placeholder if the project has none.
+
+```bash
+ptbk coder run --harness openai-codex --check "npm run check" --check-before yes-and-fix
+ptbk coder run --harness openai-codex --check "npm run lint && npm run build && npm test"
+```
+
+The default preflight mode remains `no`. Enabled preflight uses `npm run check` when no command is supplied;
+post-prompt verification remains opt-in. Initial checks and repairs use the same command and actual process result.
+Replace retired `--test` and `--test-before` with `--check` and `--check-before`. Init migrates recognized generated
+scripts while preserving custom validation. For conflicts or custom callers, it reports the exact entries/files to
+review: preserve the required validation in `check`, update references, then remove the unused legacy entry.
+Automation that invokes `npm run test-for-ptbk-coder` must switch to `npm run check`. Restart an already-running
+Coder invocation with the new flags to release its captured legacy command; initialization creates no compatibility alias.
+
+| Flag                       | Purpose                                                                                                                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--harness <name>`         | Selects the coding harness.                                                                                                                                                                           |
+| `--agent <book>`           | Selects the primary Book; defaults to the selected project's `agents/developer.book`.                                                                                                                 |
+| `--path <directory>`       | Selects the project; defaults to invocation cwd. Relative paths start there, not at the CLI installation or enclosing Git root.                                                                       |
+| `--model <model>`          | Chooses the runner model; required for `openai-codex`, `gemini` and `qwen-code`, optional for `github-copilot`.                                                                                       |
+| `--context <text-or-file>` | Replaces the default project `AGENTS.md` with inline instructions or a project-relative file; an empty value disables context.                                                                        |
+| `--check <command>`        | Runs a verification command after each prompt attempt and feeds failing output back for retries.                                                                                                      |
+| `--check-before <mode>`    | Runs project checks before coding: `no` (default), `yes-and-fail` (stop with results), or `yes-and-fix` (create one repair prompt first); defaults to `npm run check` when enabled without `--check`. |
+| `--thinking-level <level>` | Sets reasoning effort for supported runners.                                                                                                                                                          |
+| `--no-auto`                | Waits for user confirmation before each prompt instead of running automatically through the queue.                                                                                                    |
+| `--git-changes <mode>`     | Decides what happens with a dirty working tree: `fail` (default), `ignore` to keep the changes, or `continue` to resume the single interrupted `[^]` prompt with them.                                |
+| `--priority <n>`           | Runs only prompts at or above the given priority.                                                                                                                                                     |
+| `--dry-run`                | Prints which prompts are ready instead of executing them.                                                                                                                                             |
+| `--allow-credits`          | Lets OpenAI Codex spend credits when required.                                                                                                                                                        |
+| `--auto-push`              | Pushes each successful coding-agent commit to the configured remote.                                                                                                                                  |
+| `--auto-migrate`           | Runs testing-server database migrations after each successful prompt.                                                                                                                                 |
 
 #### Typical usage pattern
 

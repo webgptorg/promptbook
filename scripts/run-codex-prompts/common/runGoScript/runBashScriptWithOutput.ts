@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { NotAllowed } from '../../../../src/errors/NotAllowed';
 import { createScriptOutputLineReader, type ScriptOutputLineReader } from './createScriptOutputLineReader';
 import type { RunGoScriptOptions } from './RunGoScriptOptions';
 import { appendScriptExecutionLogFinish, appendScriptExecutionLogStart } from './scriptExecutionLog';
@@ -88,31 +89,60 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
         /**
          * Handles process exit and resolves or rejects accordingly.
          */
-        const handleExit = (code: number | null): void => {
+        const handleExit = (code: number | null, signal: NodeJS.Signals | null): void => {
             if (options.signal?.aborted) {
                 settleWithLog('cancelled', () => reject(options.signal!.reason), options.signal.reason);
                 return;
             }
-            if (code === 0) {
-                settleWithLog('succeeded', () => resolve(spaceTrim(output)));
+            if (code === 0 && !signal) {
+                settleWithLog('succeeded', () => {
+                    // Cancellation can arrive while the runtime log footer is being flushed.
+                    if (options.signal?.aborted) reject(options.signal.reason);
+                    else resolve(spaceTrim(output));
+                });
                 return;
             }
 
-            const failure = new Error(
-                spaceTrim(output) || `Command "bash ${scriptPathPosix}" exited with code ${code}`,
+            const failure = new NotAllowed(
+                spaceTrim(
+                    (block) => `
+                Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}${
+                        signal ? ` and signal ${signal}` : ''
+                    }.
+                ${block(output)}
+            `,
+                ),
             );
-            settleWithLog(`failed with exit code ${code ?? 'unknown'}`, () => reject(failure), failure);
+            settleWithLog(
+                `failed with exit code ${code ?? 'unknown'}${signal ? ` and signal ${signal}` : ''}`,
+                () => reject(failure),
+                failure,
+            );
         };
 
         // Wait for `close`, not only `exit`, because the Bash wrapper can still be flushing its tee process
         // substitutions after the direct shell exits.
         commandProcess.on('close', handleExit);
         commandProcess.on('disconnect', () => {
-            const failure = new Error(`Command "bash ${scriptPathPosix}" disconnected`);
+            const failure = new NotAllowed(
+                spaceTrim(
+                    (block) => `
+                    Command "bash ${scriptPathPosix}" disconnected.
+                    ${block(output)}
+                `,
+                ),
+            );
             settleWithLog('failed after disconnect', () => reject(failure), failure);
         });
         commandProcess.on('error', (error) => {
-            const failure = new Error(`Command "bash ${scriptPathPosix}" failed: ${error.message}`);
+            const failure = new NotAllowed(
+                spaceTrim(
+                    (block) => `
+                    Command "bash ${scriptPathPosix}" failed: ${error.message}
+                    ${block(output)}
+                `,
+                ),
+            );
             settleWithLog('failed before completion', () => reject(failure), failure);
         });
         /** Reuses the process-tree terminator; settlement waits for stream closure and the trace footer. */

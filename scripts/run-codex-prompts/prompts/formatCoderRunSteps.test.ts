@@ -16,6 +16,10 @@ function createUsageWithPrice(price: number): Usage {
 }
 
 describe('formatCoderRunSteps', () => {
+    it('decodes historical aggregate testing records at the display boundary', () => {
+        const historicalStep = { kind: 'testing', usage: null, durationMs: ONE_HOUR_MS } as unknown as CoderRunStep;
+        expect(formatCoderRunSteps([historicalStep])).toContain('Checking');
+    });
     it('renders each step with its label, price and duration joined by "; "', () => {
         const steps: ReadonlyArray<CoderRunStep> = [
             { kind: 'implementation', usage: createUsageWithPrice(8.01), durationMs: 6 * ONE_HOUR_MS },
@@ -26,7 +30,7 @@ describe('formatCoderRunSteps', () => {
         expect(formatCoderRunSteps(steps)).toBe('Implementation $8.01 6 hours; Checking 2 hours; Fixing $3.14 3 hours');
     });
 
-    it('omits the price for steps without model usage such as checking', () => {
+    it('omits the price for steps without model usage such as testing', () => {
         const steps: ReadonlyArray<CoderRunStep> = [{ kind: 'checking', usage: null, durationMs: 2 * ONE_HOUR_MS }];
 
         expect(formatCoderRunSteps(steps)).toBe('Checking 2 hours');

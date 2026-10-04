@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/markdown-utils",
-    "version": "0.114.0-48",
+    "version": "0.114.0-49",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -93,5 +93,16 @@
     "engines": {
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
+    },
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "types": "./esm/src/_packages/markdown-utils.index.d.ts",
+    "typings": "./esm/src/_packages/markdown-utils.index.d.ts",
+    "dependencies": {
+        "crypto-js": "4.2.0",
+        "papaparse": "5.4.1",
+        "rxjs": "7.8.2",
+        "spacetrim": "0.11.60",
+        "waitasecond": "1.11.164"
     }
 }

@@ -30,7 +30,7 @@ The final dashboard must tell the same story as an actual limited run:
 
 -   `Session` shows `DONE`, runner `claude-code · fable · thinking xhigh`, context `AGENTS.md`, check `npm run check`, 5-hour and 7-day subscription limits with their remaining allowance and reset times, run limit `1 prompt run`, backlog counts, elapsed time, and a 0% progress bar.
 -   `Current task` shows `prompts/2026-07-0200-ptbk-coder-web.md#1` and `Attempt 1/3 · Run limit reached after 1 prompt run.`
--   `Normal output` labels check output and the `punycode` warning separately, with startup readiness, prerender output, and `🎉 All tests passed!`. Its scroll hint matches the live CLI.
+-   `Normal output` labels check output and the `punycode` warning separately, with startup readiness, prerender output, and `🎉 All checks passed!`. Its scroll hint matches the live CLI.
 -   `Errors` shows one earlier failed `bash` command and a wrapped full `File` path to `.promptbook/coder-prompts/2026-07-0480-agents-server-browser-preview.sh`.
 -   `Controls` shows `[p] Pause`, `[x] End with this prompt`, `[o] Show raw output`, and `CTRL+C Exit` because this scripted final frame is already `DONE`; the live CLI also shows `[s] Skip current waiting` during a waiting phase. The actual CLI uses O to switch to `Raw output` and back without changing execution; every invocation starts in `Normal output` and retains its selection across tasks. This scripted demo does not accept control keys. Plain `--no-ui` and redirected logs are unchanged.
 

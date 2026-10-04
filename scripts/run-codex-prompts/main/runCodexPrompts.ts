@@ -58,10 +58,11 @@ import {
     startCoderRunUiSubscriptionUsageRefresh,
     type CoderRunUiSubscriptionUsageRefreshHandle,
 } from '../ui/startCoderRunUiSubscriptionUsageRefresh';
-import { createCheckBeforeRepairPrompt } from '../checking/createCheckBeforeRepairPrompt';
-import { DEFAULT_CODER_CHECK_COMMAND, type CheckBeforeMode } from '../checking/CheckBeforeMode';
-import { limitCheckOutput } from '../checking/limitCheckOutput';
-import { runCheckBefore } from '../checking/runCheckBefore';
+import { createCheckBeforeRepairPrompt } from '../checks/createCheckBeforeRepairPrompt';
+import { resolveCoderCheckCommand, type CheckBeforeMode } from '../checks/CheckBeforeMode';
+import { limitCheckOutput } from '../checks/limitCheckOutput';
+import { runCheckBefore } from '../checks/runCheckBefore';
+import { assertProjectCheckIsConfigured } from '../checks/projectCheck';
 import { resolvePromptRunner, resolveRunnerModel } from './resolvePromptRunner';
 import { runPromptRound } from './runPromptRound';
 import { createCoderTeamPromptRunner } from '../team/createCoderTeamPromptRunner';
@@ -69,7 +70,7 @@ import { createCoderTeamPromptRunner } from '../team/createCoderTeamPromptRunner
 /**
  * Commit message for files changed by a successful or failed pre-coding check in repair mode.
  */
-const PRE_CODING_CHECK_CHANGES_COMMIT_MESSAGE = 'check: Apply changes made by pre-coding check';
+const PRE_CODING_CHECK_CHANGES_COMMIT_MESSAGE = 'chore: Apply changes made by pre-coding checks';
 
 /**
  * Prompt queue snapshot for one top-level loop iteration.
@@ -107,7 +108,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         progressDisplay,
         uiHandle,
         // Note: Every pause checkpoint of the whole run goes through this one waiter, so watching the free disk
-        //       space here covers each round, each check and each runner without repeating the guard
+        //       space here covers each round, each verification and each runner without repeating the check
         guardFreeDiskSpace: createFreeDiskSpaceGuard({
             inspectedPath: projectPath,
             isAskingQuestionsEnabled: options.isAskingQuestionsEnabled ?? true,
@@ -119,12 +120,16 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     let subscriptionUsageRefresh: CoderRunUiSubscriptionUsageRefreshHandle | undefined;
 
     try {
-        const projectContext = options.projectContext ?? await resolveCoderProjectContext({
-            ...options, projectPath,
-        });
+        const projectContext =
+            options.projectContext ??
+            (await resolveCoderProjectContext({
+                ...options,
+                projectPath,
+            }));
         if (await runDryRunIfRequested(options, projectContext.agentBook?.agentReferences)) {
             return;
         }
+        await assertProjectCheckIsConfigured(options.checkCommand, projectPath);
         const resolvedCoderContext = projectContext.context;
         const resolvedCoderAgent = await resolveCoderAgent(options.agent, projectPath, {
             defaultRole: DEFAULT_CODER_AGENT_ROLE,
@@ -141,7 +146,12 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             actualRunnerModel,
             runnerMetadata: harnessRunnerMetadata,
         } = resolvePromptRunner(options);
-        const runner = createCoderTeamPromptRunner(harnessRunner, options.agent, projectPath, options.workspace?.repositoryRoot);
+        const runner = createCoderTeamPromptRunner(
+            harnessRunner,
+            options.agent,
+            projectPath,
+            options.workspace?.repositoryRoot,
+        );
         // Note: The harness only knows itself, so the Book agent it runs as is joined here - this is the single
         //       place where the whole run report of prompt status lines and run traces is put together
         const runnerMetadata: PromptRunnerMetadata = {
@@ -193,9 +203,9 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
             if (!hasRunCheckBefore && options.checkBefore !== 'no') {
                 await waitForRequestedPause({
-                    checkpointLabel: 'loading prompts before running initial check',
+                    checkpointLabel: 'loading prompts before running initial checks',
                     phase: 'loading',
-                    statusMessage: 'Loading prompts before running initial check...',
+                    statusMessage: 'Loading prompts before running initial checks...',
                 });
                 await loadPromptQueueSnapshot({
                     options,
@@ -427,7 +437,6 @@ function createRunDisplays(
  */
 function normalizeRunOptions(options: RunOptions): RunOptions {
     const checkBefore: CheckBeforeMode = options.checkBefore ?? 'no';
-    const normalizedCheckCommand = options.checkCommand?.trim();
     const priorityFilter = normalizePriorityFilter({
         priority: options.priority,
         minimumPriority: options.minimumPriority ?? options.priorityFilter?.minimumPriority,
@@ -438,7 +447,7 @@ function normalizeRunOptions(options: RunOptions): RunOptions {
         ...options,
         projectPath: options.workspace?.projectPath ?? options.projectPath ?? process.cwd(),
         checkBefore,
-        checkCommand: normalizedCheckCommand || (checkBefore === 'no' ? undefined : DEFAULT_CODER_CHECK_COMMAND),
+        checkCommand: resolveCoderCheckCommand(options.checkCommand?.trim(), checkBefore),
         priority: priorityFilter.minimumPriority ?? 0,
         minimumPriority: priorityFilter.minimumPriority,
         maximumPriority: priorityFilter.maximumPriority,
@@ -447,7 +456,7 @@ function normalizeRunOptions(options: RunOptions): RunOptions {
 }
 
 /**
- * Runs the optional pre-coding check and, when requested, its one repair prompt.
+ * Runs the optional pre-coding verification and, when requested, its one repair prompt.
  */
 async function runCheckBeforeIfNeeded(options: {
     options: RunOptions;
@@ -483,18 +492,18 @@ async function runCheckBeforeIfNeeded(options: {
     if (!runOptions.checkCommand) {
         throw new NotAllowed(
             spaceTrim(`
-                ${'`--check-before ' + runOptions.checkBefore + '`'} requires a check command.
+                ${'`--check-before ' + runOptions.checkBefore + '`'} requires a verification command.
 
-                Pass one with ${'`--check <check-command>`'} or use the default ${'`npm run check`'} command by providing the mode through the CLI.
+                Pass one with ${'`--check <check-command>`'} or use the default ${'`npm run check`'} command.
             `),
         );
     }
 
     if (isCleanWorkingTreeRequired(runOptions.gitChanges, isContinuingInterruptedPrompt)) {
         await waitForRequestedPause({
-            checkpointLabel: 'checking the git working tree before the initial check',
+            checkpointLabel: 'checking the git working tree before checking',
             phase: 'loading',
-            statusMessage: 'Checking the working tree before the initial check...',
+            statusMessage: 'Checking the working tree before checking...',
         });
         await ensureWorkingTreeClean(runOptions.workspace?.repositoryRoot ?? runOptions.projectPath);
     }
@@ -544,7 +553,11 @@ async function runCheckBeforeIfNeeded(options: {
         checkCommand: runOptions.checkCommand,
         checkOutput,
     });
-    const repairPromptLabel = buildPromptLabelForDisplay(repairPrompt.file, repairPrompt.section, runOptions.projectPath);
+    const repairPromptLabel = buildPromptLabelForDisplay(
+        repairPrompt.file,
+        repairPrompt.section,
+        runOptions.projectPath,
+    );
     const updatedHasWaitedForStart = await waitForPromptConfirmationIfNeeded({
         options: runOptions,
         nextPrompt: repairPrompt,
@@ -605,9 +618,9 @@ async function commitCheckBeforeChangesIfNeeded(options: {
     }
 
     await waitForRequestedPause({
-        checkpointLabel: 'committing changes made by the pre-coding check',
+        checkpointLabel: 'committing changes made by pre-coding checks',
         phase: 'checking',
-        statusMessage: 'Committing changes made by the pre-coding check...',
+        statusMessage: 'Committing changes made by pre-coding checks...',
     });
     await commitChanges(PRE_CODING_CHECK_CHANGES_COMMIT_MESSAGE, {
         autoPush: runOptions.autoPush,

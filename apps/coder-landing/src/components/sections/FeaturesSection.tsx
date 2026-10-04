@@ -13,7 +13,7 @@ export function FeaturesSection() {
                 Built for <span className="text-promptbook-blue">unattended</span> coding
             </h2>
             <p className="mt-4 max-w-3xl text-lg text-gray-300">
-                The agent writes the code. ptbk coder does the rest: it runs your tests, commits, pulls and pushes,
+                The agent writes the code. ptbk coder does the rest: it runs your checks, commits, pulls and pushes,
                 paces the queue against your quota window, and gives you back control the moment you press P or X. That
                 is what keeps a run going for hours without you.
             </p>

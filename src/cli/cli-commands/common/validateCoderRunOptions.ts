@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { RunOptions } from '../../../../scripts/run-codex-prompts/cli/RunOptions';
-import { isCheckBeforeMode } from '../../../../scripts/run-codex-prompts/checking/CheckBeforeMode';
+import { isCheckBeforeMode } from '../../../../scripts/run-codex-prompts/checks/CheckBeforeMode';
 import { DatabaseError } from '../../../errors/DatabaseError';
 import { NotAllowed } from '../../../errors/NotAllowed';
 
@@ -9,6 +9,13 @@ import { NotAllowed } from '../../../errors/NotAllowed';
  * @private shared validation for Coder execution commands
  */
 export function validateCoderRunOptions(options: RunOptions): void {
+    if (options.checkCommand !== undefined && !options.checkCommand.trim()) {
+        throw new NotAllowed(
+            spaceTrim(`
+            Option \`--check\` requires a non-empty shell command, for example \`npm run check\`.
+        `),
+        );
+    }
     if (!isCheckBeforeMode(options.checkBefore ?? 'no')) {
         throw new NotAllowed(
             spaceTrim(`

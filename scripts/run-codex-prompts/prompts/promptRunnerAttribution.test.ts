@@ -77,7 +77,7 @@ describe('parsePromptRunnerAttribution', () => {
     it('reads every harness in chronological order from a progressive continuation report', () => {
         expect(
             parsePromptRunnerAttribution(
-                '[^] by Claude Code `claude-opus-5`, interrupted, continued by OpenAI Codex `gpt-5.6-luna` - Testing in progress',
+                '[^] by Claude Code `claude-opus-5`, interrupted, continued by OpenAI Codex `gpt-5.6-luna` - Checking in progress',
             ),
         ).toEqual(['Claude Code `claude-opus-5`', 'OpenAI Codex `gpt-5.6-luna`']);
     });
@@ -85,7 +85,7 @@ describe('parsePromptRunnerAttribution', () => {
     it('normalizes the reverse-ordered report written by earlier versions', () => {
         expect(
             parsePromptRunnerAttribution(
-                '[^] by OpenAI Codex `gpt-5.6-luna`, started by Claude Code `claude-opus-5` - Testing in progress',
+                '[^] by OpenAI Codex `gpt-5.6-luna`, started by Claude Code `claude-opus-5` - Checking in progress',
             ),
         ).toEqual(['Claude Code `claude-opus-5`', 'OpenAI Codex `gpt-5.6-luna`']);
     });
