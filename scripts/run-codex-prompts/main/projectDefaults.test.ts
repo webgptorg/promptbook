@@ -2,6 +2,7 @@ import { execFile } from 'child_process';
 import { mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join, relative } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
 import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
 import type { RunOptions } from '../cli/RunOptions';
@@ -57,13 +58,37 @@ describe('project defaults through the real prompt queue and round', () => {
         await writeFile(join(path, 'prompts/task.md'), '[ ]\n\nImplement the selected project task.\n');
     }
 
+    /** Tracks prepared inputs so task status writes do not overlap pre-existing user changes. */
+    async function initializeFixtureRepository(repositoryPath: string): Promise<void> {
+        const GIT_ARGUMENT_LISTS = [
+            ['init'],
+            ['config', 'user.name', 'Fixture'],
+            ['config', 'user.email', 'fixture@example.com'],
+            ['config', 'commit.gpgsign', 'false'],
+            ['add', '--all'],
+            ['commit', '-m', 'fixture project inputs'],
+        ];
+        for (const ARGUMENTS of GIT_ARGUMENT_LISTS) {
+            await EXECUTE_FILE('git', ARGUMENTS, {
+                cwd: repositoryPath,
+                env: {
+                    ...process.env,
+                    GIT_CONFIG_GLOBAL: join(directory, 'empty-git-config'),
+                    GIT_CONFIG_NOSYSTEM: '1',
+                },
+                windowsHide: true,
+            });
+        }
+    }
+
     beforeEach(async () => {
         directory = await realpath(await mkdtemp(join(tmpdir(), 'ptbk defaults integration ')));
         callerPath = join(directory, 'caller');
         projectPath = join(directory, 'repository', 'nested project');
         await createProject(callerPath, 'CALLER');
         await createProject(projectPath, 'SELECTED');
-        await EXECUTE_FILE('git', ['init'], { cwd: join(directory, 'repository'), windowsHide: true });
+        await initializeFixtureRepository(join(directory, 'repository'));
+        await initializeFixtureRepository(callerPath);
         observed = [];
         jest.spyOn(console, 'info').mockImplementation(() => undefined);
         jest.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -108,11 +133,24 @@ describe('project defaults through the real prompt queue and round', () => {
         jest.spyOn(process, 'cwd').mockReturnValue(callerPath);
         await writeFile(
             join(projectPath, 'check.cjs'),
-            "require('fs').writeFileSync('check-cwd.txt', process.cwd());\n",
+            spaceTrim(`
+                const FILE_SYSTEM = require('fs');
+                const PATH = require('path');
+                const REPOSITORY_ROOT = require('child_process')
+                    .execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
+                FILE_SYSTEM.writeFileSync('check-cwd.txt', JSON.stringify({
+                    projectRelativePath: PATH.relative(REPOSITORY_ROOT, process.cwd()),
+                    context: FILE_SYSTEM.readFileSync('AGENTS.md', 'utf8'),
+                }));
+            `),
         );
         await runCodexPrompts({ ...RUN_OPTIONS, projectPath, checkCommand: 'node check.cjs' });
         expect(observed[0]!.prompt).not.toContain('CALLER');
-        expect(await readFile(join(projectPath, 'check-cwd.txt'), 'utf-8')).toBe(projectPath);
+        // Checks use a private checkout while preserving the selected project's relative location and inputs.
+        expect(JSON.parse(await readFile(join(projectPath, 'check-cwd.txt'), 'utf-8'))).toEqual({
+            projectRelativePath: relative(join(directory, 'repository'), projectPath),
+            context: 'SELECTED additional context.\n',
+        });
         expect(await readFile(join(callerPath, 'prompts/task.md'), 'utf-8')).toMatch(/^\[ \]/u);
         expect(await readdir(callerPath)).not.toContain('implemented.txt');
         expect(await readdir(join(projectPath, 'prompts/traces'))).toContain('task.md');
