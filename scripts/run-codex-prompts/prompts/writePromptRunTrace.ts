@@ -14,6 +14,8 @@ export type WritePromptRunTraceOptions = Omit<BuildPromptRunTraceContentOptions,
      * Path of the temporary live runtime log of the round, when the round has one.
      */
     readonly logPath?: string;
+    /** Defers publication until the completion tree is persisted by the shared Git service. */
+    readonly writeContent?: (path: string, content: string) => Promise<void>;
 };
 
 /**
@@ -22,12 +24,16 @@ export type WritePromptRunTraceOptions = Omit<BuildPromptRunTraceContentOptions,
  * Returns the path of the written trace so callers can include it in a commit.
  */
 export async function writePromptRunTrace(options: WritePromptRunTraceOptions): Promise<string> {
-    const { logPath, ...contentOptions } = options;
+    const { logPath, writeContent, ...contentOptions } = options;
     const tracePath = buildPromptRunTracePath(options.file, options.section);
     const runtimeLog = await readPromptRuntimeLog(logPath);
 
-    await mkdir(dirname(tracePath), { recursive: true });
-    await writeFile(tracePath, buildPromptRunTraceContent({ ...contentOptions, runtimeLog }), 'utf-8');
+    const content = buildPromptRunTraceContent({ ...contentOptions, runtimeLog });
+    if (writeContent) await writeContent(tracePath, content);
+    else {
+        await mkdir(dirname(tracePath), { recursive: true });
+        await writeFile(tracePath, content, 'utf-8');
+    }
 
     return tracePath;
 }

@@ -49,6 +49,8 @@ type RunGitCommandOptions = {
     readonly isVerbose?: boolean;
     /** A finite job cancels the same owned shell tree as its checks and harness. */
     readonly signal?: AbortSignal;
+    /** Phase persistence must not retry a hook which may already have created a local commit. */
+    readonly isIndexLockRetryEnabled?: boolean;
 };
 
 /**
@@ -106,7 +108,7 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
             options.signal?.throwIfAborted();
             const errorMessage = stringifyUnknownError(error);
 
-            if (!isGitIndexLockError(errorMessage)) {
+            if (options.isIndexLockRetryEnabled === false || !isGitIndexLockError(errorMessage)) {
                 throw error;
             }
 

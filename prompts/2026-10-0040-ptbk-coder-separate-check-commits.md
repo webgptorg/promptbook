@@ -1,4 +1,4 @@
-[ ]
+[x] by Promptbook Developer on OpenAI Codex `gpt-6.1-sol` thinking `max` - Implementation in progress
 
 [✨🧹] Commit changes made by Coder checks separately from implementation changes
 
@@ -56,3 +56,5 @@ Project checks are not necessarily read-only: lint fixes, formatters, cleanup sc
 -   Inspect [pre-coding orchestration](../scripts/run-codex-prompts/main/runCodexPrompts.ts), [round finalization](../scripts/run-codex-prompts/main/runPromptRound.ts), [check feedback](../scripts/run-codex-prompts/checks/runPromptWithCheckFeedback.ts), [commit scopes](../scripts/run-codex-prompts/git/coderCommitScope.ts), [commit execution](../scripts/run-codex-prompts/git/commitChanges.ts), and [isolated rounds](../scripts/run-codex-prompts/isolation/runIsolatedPromptRound.ts).
 -   Extend, rather than duplicate, the earlier [pre-coding check changes requirement](2026-08-0290-ptbk-coder-commit-the-test.md). Coordinate with [check terminology](2026-09-0510-ptbk-coder-check-terminology.md) and [repair-only Coder](2026-09-0520-ptbk-coder-fix-checks-only.md).
 -   Keep the implementation DRY and responsibilities small. Update [Coder workflow documentation](../scripts/run-codex-prompts/README.md), relevant CLI help and tests, and add the implemented changes to the [changelog](../changelog/_current-preversion.md).
+
+

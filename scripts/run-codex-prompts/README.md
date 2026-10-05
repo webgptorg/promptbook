@@ -82,7 +82,8 @@ invocation directory; absolute paths select the directory directly. The director
 readable/searchable. Selecting a nested project does not move Books, AGENTS.md, templates, PRDs, checks or
 artifacts to an enclosing Git root. Git preflight and repository operations still use that enclosing working tree.
 Harnesses and verification subprocesses receive the selected project as cwd; isolated execution maps project
-inputs and PRDs into the worktree while keeping durable temporary logs under the selected original project.
+inputs and PRDs into the worktree; eligible artifacts are committed there and durable logs are retained under
+the selected original project before cleanup.
 
 Omitting `--context` reads the selected project's `AGENTS.md` as UTF-8. A missing implicit file produces one
 diagnostic and no additional context; an unreadable existing file fails. An explicit inline value or file
@@ -113,8 +114,8 @@ Legacy pipeline/file commands (`run`, `make`, `prettify`, `test`, `start-pipelin
 retain their operands; those operands are not optional permission to modify Developer. `agents-server` manages the
 packaged web application and its existing runtime configuration; it is distinct from the forthcoming workspace server.
 
-The top-level `init` alias already shares this path. The unified top-level `server`, agent-assisted `coder add`,
-and repair-only command are not registered in this version. When introduced, their execution/authoring paths should
+The top-level `init` alias already shares this path. The unified top-level `server` and agent-assisted `coder add`
+are not registered in this version. When introduced, their execution/authoring paths should
 reuse these services, with Developer for untargeted work and existing explicit configuration preserved. Workspace
 server discovery/scheduling must still include all agents. This supersedes only the earlier implicit Planner policy,
 not Planner initialization, availability, TEAM, or planning restrictions. Check terminology and repair-only execution
@@ -132,6 +133,48 @@ order, reporting the chosen scope. No usable validation produces a failing setup
 or unconfigured validation stops with setup guidance before repair retries. Check feedback fixes underlying
 failures and forbids deleting assertions, disabling lint rules, removing checks, lowering thresholds, skipping builds,
 or forcing success. Process exits, signals, spawn failures, and cancellation determine the outcome.
+
+Checks can write files. With automatic commits enabled, both enabled initial modes persist eligible check
+changes **before** the queue's next clean-tree guard. Every post-implementation attempt uses the same policy,
+including failed checks. The shared subject is `chore: Automatically commit changes made by checks`; its body
+records the phase, selected command, task when applicable, attempt, and actual outcome. An empty check delta
+creates no check commit. Committing a failed check never makes validation pass: `yes-and-fail` stops, while
+`yes-and-fix` enters the existing bounded repair workflow.
+
+Content snapshots freeze the agent's version before verification. If the agent and formatter change the same
+line, the implementation commit contains the agent's version and the following check commit contains the
+formatter's transformation. Creations, deletions, renames, executable modes, symlinks and binary blobs follow
+the same policy, including generated files changed or removed by a later phase. Failed-check/agent-repair/recheck
+history retains each phase's authorship. Intermediate commits explicitly say completion is pending. Coder's
+line-ending preparation, status writes and retained execution artifacts use narrowly scoped finalization commits;
+they are not attributed to the check command.
+
+The execution checkout owns one serialized workspace lease across agents, checks, status writers and Git.
+Each check runs in a private copy of the current content, with the selected project's relative location and
+dependencies preserved. Its result is imported only while the live checkout still matches the captured boundary;
+an unrelated editor's live write cannot become a check commit. Git's real index lock protects staging across
+normal commit hooks/signing and publication of the owned entries. Content/index/HEAD guards detect unexpected
+edits at phase and persistence boundaries. Pre-existing staged and unstaged content is protected, including
+overlap with phase changes: ambiguous mixtures stop with a
+diagnostic and retained recovery data instead of being absorbed into a commit. Git hooks and configured signing
+remain enabled. A hook changing captured content stops persistence with an unverified-tree diagnostic.
+Commit/signing, check execution, validation and remote synchronization errors remain distinct; persistence
+errors never start another paid implementation attempt or duplicate an existing local commit.
+Git's ignore policy still determines commit eligibility. Ignored generator output is retained in the execution
+checkout and remains available to repair/recheck attempts, including its additions, deletions and binary changes.
+An incompatible Git clean/line-ending representation stops completion with the checked bytes retained.
+
+Successful clean-start automatic-commit runs leave no eligible Coder-owned changes, including task status and
+supported durable artifacts and tracked temporary-file deletions. The completion status and trace are persisted
+as a candidate before publishing `[x]`; a failed completion commit leaves the live task pending. Explicitly
+permitted unrelated user changes remain untouched. `--no-commit` creates no automatic commits and reports
+retained paths; exact ownership is carried through initial checks, repair and subsequent queue rounds, while
+new user edits and staging flags remain protected. Interrupted/failed jobs preserve partial files,
+traces and per-worktree Git recovery records under `ptbk-coder/recovery` and `ptbk-coder/pending-persistence.json`.
+Ambiguous or interrupted private check copies remain in the execution Git directory's `ptbk-coder/check-views/`.
+Inspect these records and existing history before resuming persistence; Coder never automatically stashes,
+resets, cleans or discards user work to manufacture success.
+Recovery references retain each working tree and staged tree, including user staging introduced between phases.
 
 Retired `--test` / `--test-before` flags produce errors naming `--check` / `--check-before`. Init migrates exact
 generated callers and preserves a legacy aggregate's body in `check`. Existing conflicting/custom entries and
@@ -344,7 +387,12 @@ A run names its selected Book agent (Developer by default) in front of the harne
 [x] by Developer on OpenAI Codex `gpt-5.6-luna` thinking `max` (ChatGPT account) - Implementation ~$0.2036 10 minutes; Checking 35 minutes
 ```
 
-Only the final `[x]` state is committed, because the round commit is created after the prompt has been implemented and verified. The `[^]` status is deliberately never reverted: when the coder is killed or crashes, the prompt file keeps `[^]` as the signal that this task was left in the middle of its implementation. Such a prompt is not picked up again automatically — decide yourself whether to reset it to `[ ]`, to keep the partial work, or to resume it with `--git-changes continue`.
+Checked rounds may commit intermediate `[^]` states as incomplete implementation, repair or preparation phases.
+The final `[x]` state is published only after selected checks pass and required local persistence succeeds.
+With `--no-commit`, `[x]` denotes verified retained work and the console reports that it remains uncommitted.
+When Coder is killed or crashes, the prompt keeps its recoverable progress status and partial work. Such a prompt
+is not picked up automatically — inspect its phase history and recovery records before resetting it to `[ ]`,
+keeping the work, or resuming it with `--git-changes continue`.
 
 ## Run traces
 
@@ -357,6 +405,7 @@ Each trace pairs the metadata of the round with the untouched runtime log of the
 -   the Book agent, harness, model, thinking level and login method which ran it,
 -   how many coding attempts it took, what each step cost and how long each one ran,
 -   the verification command, when one is configured,
+-   local implementation, repair, check and finalization phase commits, with actual check outcomes,
 -   when it started, when it finished and how long it took,
 -   the error which ended a failed round,
 -   everything the harness and the verification command have written, including the generated shell scripts and the prompt they embed.
@@ -375,6 +424,10 @@ The trace is written before the round is committed, so it lands in the very same
 
 `continue` expects **exactly one** prompt in the `[^]` status and fails when it finds none or more than one, because the uncommitted changes could not be attributed to a single interrupted task. Only the resuming round runs on the dirty tree; once it is finished and committed, every later round expects a clean working tree again. It cannot be combined with `--isolate`, whose fresh worktree is checked out from the last commit and would leave the uncommitted changes behind.
 
+Selecting an interrupted task alone does not establish ownership of existing bytes or staging. Mixed or
+unproven changes remain protected; ambiguous persistence stops with recovery guidance instead of absorbing
+user edits. Inspect retained phase trees and reconcile that work before resuming local persistence.
+
 The harness which resumes the work does not have to be the one which started it. Its status report is built in
 chronological order and remains extendable if another run is interrupted later:
 
@@ -392,9 +445,12 @@ With `--isolate`, no prompt is ever implemented in the working tree you started 
 
 -   Each task gets a temporary git worktree in `.promptbook/coder-isolation-worktrees/<task-name>` on branch `ptbk-coder-isolation/<task-name>` (for example `.promptbook/coder-isolation-worktrees/2026-07-0700-ptbk-coder-timing`).
 -   The worktree gets its own copy of the project `.env`, so the isolated task runs with its own environment.
--   The coding agent, the `--check` verification command and the round commit all happen inside the worktree.
--   Once the task is implemented and verified, it is merged back into the branch the coder runs on as one commit and the worktree plus its branch are deleted.
+-   The coding agent, the `--check` command and implementation/check/finalization commits all run inside the worktree.
+-   Eligible execution scripts and logs are included in its finalization history. Ignored or failed-round artifacts are retained at their existing original-project locations before cleanup, with guards against overwriting user edits.
+-   Ignored generated output is retained before completion is integrated. Original-only ignored files and concurrent original edits are preserved; the copied `.env` retains its existing isolation policy.
+-   Once the task is verified and locally persisted, fast-forward integration preserves those separate commits on the original branch. The clean integrated worktree and merged branch are then removed; its Git recovery records are preserved under the original Git directory's `ptbk-coder/isolated/`.
 -   If the merge fails, the task is marked as `[!]` instead of `[x]`, the failure is committed into the original worktree, the temporary worktree is kept for a manual merge, and the coder continues with the next task.
+-   Unexpected original-checkout edits, overlapping user content or a hook changing integrated content stop integration and retain both checkouts. Existing interrupted worktrees/branches require explicit recovery and are never automatically erased on retry.
 
 Because the worktrees live inside `.promptbook`, `--isolate` requires that folder to be git-ignored (`ptbk coder init` sets this up).
 

@@ -76,6 +76,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Supports GPG signing of commits
             - Optional pre-coding check run that can stop or repair pre-existing failures
             - Optional post-prompt checks with check-feedback retries
+            - Persists implementation and check-produced changes in separate commits, including failed checks
+            - Records task completion only after passing checks and required local persistence
             - Progress tracking and interactive P/S/X terminal controls; O changes only the dashboard output view
             - Dry-run mode to preview prompts
         `,
@@ -98,6 +100,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         spaceTrim(`
             Implement each prompt in its own temporary git worktree with its own isolated environment.
             A verified task is merged back into the branch the coder runs on and the worktree is deleted.
+            Fast-forward integration preserves separate implementation, check and finalization commits.
             A task that cannot be merged is marked as failed and its worktree is kept for a manual merge.
         `),
         false,

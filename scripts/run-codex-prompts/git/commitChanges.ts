@@ -1,6 +1,7 @@
 // cspell:ignore pathspec pathspecs NOGLOB ICASE unstaging unstages
 import { mkdir, realpath, unlink, writeFile } from 'fs/promises';
-import { basename, dirname, relative, resolve } from 'path';
+import { basename, dirname, join, relative, resolve } from 'path';
+import { $runWorkspaceGit } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { resolvePromptbookTemporaryPath } from '../../../src/utils/filesystem/promptbookTemporaryPath';
@@ -9,6 +10,40 @@ import { hasUpstreamBranch, listGitRemotes, readCurrentBranchName, readOptionalG
 import { runGitCommand } from './runGitCommand';
 import { CoderGitOperationError } from './CoderGitOperationError';
 import { quoteGitArgument } from './quoteGitArgument';
+import { withCoderIndexLease } from './coderIndexLease';
+import {
+    areCoderFileHashesEqual,
+    assertCoderDeltaIsOwned,
+    captureCoderRepositorySnapshot,
+    listCoderTreeDelta,
+    readCoderHead,
+    readCoderTree,
+    updateCoderIndex,
+    withCoderSnapshotIndex,
+    type CoderRepositorySnapshot,
+    type CoderTreeEntry,
+} from './coderRepositorySnapshot';
+
+/** Captured content to commit without checking out an earlier version or disturbing the user's index. */
+export type CoderSnapshotCommit = {
+    readonly operation: CoderRepositorySnapshot;
+    readonly before: CoderRepositorySnapshot;
+    readonly after: CoderRepositorySnapshot;
+    /** The retained working tree can already contain the following check's transformation. */
+    readonly retained: CoderRepositorySnapshot;
+    readonly excludedPaths?: ReadonlyArray<string>;
+    /** Expected live Git boundary, refreshed only by this operation's preceding local commit. */
+    readonly expectedHead?: string;
+    readonly expectedIndex?: ReadonlyMap<string, CoderTreeEntry>;
+    readonly expectedIndexFlags?: ReadonlyMap<string, string>;
+};
+
+/** Exact local persistence identity; callers never infer a successful commit from an arbitrary later HEAD. */
+export type CoderCommitResult = {
+    readonly commit: string;
+    readonly tree: string;
+    readonly paths: ReadonlyArray<string>;
+};
 
 /**
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
@@ -38,10 +73,22 @@ export async function commitChanges(
         isEmptyCommitAllowed?: boolean;
         /** Cancels only this job's Git commands, hooks and remote subprocesses. */
         signal?: AbortSignal;
+        /** Phase content, rather than the current working files, is authoritative for this commit. */
+        snapshot?: CoderSnapshotCommit;
     },
-): Promise<void> {
+): Promise<CoderCommitResult | undefined> {
     options?.signal?.throwIfAborted();
     const projectPath = options?.projectPath || process.cwd();
+    if (options?.snapshot) {
+        try {
+            const result = await commitSnapshotChanges(message, projectPath, options.snapshot, options.signal);
+            if (options.autoPush) await pushCommittedChanges(projectPath, buildAgentGitEnv(), options.signal);
+            return result;
+        } catch (error) {
+            if (error instanceof CoderGitOperationError) throw error;
+            throw new CoderGitOperationError('commit', stringifyUnknownError(error));
+        }
+    }
     const commitMessagePath = resolvePromptbookTemporaryPath(
         projectPath,
         'ptbk-coder',
@@ -102,6 +149,184 @@ export async function commitChanges(
     } finally {
         await unlink(commitMessagePath).catch(() => undefined);
     }
+    return undefined;
+}
+
+/**
+ * Commits a phase's exact staged tree. Hooks/signing run normally against a private index; worktree/index drift
+ * and hook transformations are terminal persistence errors, never feedback for another model attempt.
+ */
+async function commitSnapshotChanges(
+    message: string,
+    repositoryRoot: string,
+    snapshot: CoderSnapshotCommit,
+    signal?: AbortSignal,
+): Promise<CoderCommitResult | undefined> {
+    const paths = listCoderTreeDelta(snapshot.before.entries, snapshot.after.entries);
+    if (!paths.length) return;
+    const operationHeadEntries = snapshot.operation.head
+        ? await readCoderTree(repositoryRoot, snapshot.operation.head)
+        : new Map();
+    assertCoderDeltaIsOwned(snapshot.operation, paths, operationHeadEntries);
+    return withCoderIndexLease(repositoryRoot, async (indexLease) => {
+        const current = await captureCoderRepositorySnapshot(repositoryRoot, snapshot.excludedPaths);
+        if (
+            ('expectedHead' in snapshot && current.head !== snapshot.expectedHead) ||
+            (snapshot.expectedIndex && listCoderTreeDelta(snapshot.expectedIndex, current.indexEntries).length) ||
+            (snapshot.expectedIndexFlags && !areCoderFileHashesEqual(snapshot.expectedIndexFlags, current.indexFlags))
+        )
+            throw new CoderGitOperationError(
+                'record',
+                'HEAD or user staging changed between local phase commits. The existing commits and current work were retained; persistence was not repeated.',
+            );
+        if (!areCoderFileHashesEqual(current.workingFileHashes, snapshot.retained.workingFileHashes)) {
+            throw new CoderGitOperationError(
+                'record',
+                'Unexpected concurrent edits appeared after the phase stopped writing. No phase commit was attempted; all work was retained.',
+            );
+        }
+        const parent = current.head;
+        return withCoderSnapshotIndex(repositoryRoot, async (indexPath) => {
+            const env = { ...buildAgentGitEnv(), GIT_INDEX_FILE: indexPath };
+            await $runWorkspaceGit(repositoryRoot, ['read-tree', parent ?? '--empty'], { env });
+            await updateCoderIndex(repositoryRoot, snapshot.after.entries, paths, env);
+            const expectedTree = (await $runWorkspaceGit(repositoryRoot, ['write-tree'], { env })).trim();
+            // Clean/smudge attributes can give a clean checkout different raw bytes from its stored blob. A check
+            // bringing those bytes back to the already committed representation needs no empty Git commit.
+            if (
+                parent &&
+                expectedTree === (await $runWorkspaceGit(repositoryRoot, ['rev-parse', `${parent}^{tree}`])).trim()
+            )
+                return undefined;
+            const commitMessagePath = join(dirname(indexPath), 'message.txt');
+            await writeFile(commitMessagePath, message, 'utf-8');
+            // Git objects are durable; keep a small recovery record even if commit/signing/push is interrupted.
+            const gitDirectory = (await $runWorkspaceGit(repositoryRoot, ['rev-parse', '--absolute-git-dir'])).trim();
+            const recoveryPath = join(gitDirectory, 'ptbk-coder', 'pending-persistence.json');
+            await writeFile(
+                recoveryPath,
+                JSON.stringify(
+                    {
+                        repositoryRoot,
+                        parent,
+                        expectedTree,
+                        beforeTree: snapshot.before.tree,
+                        afterTree: snapshot.after.tree,
+                        retainedTree: snapshot.retained.tree,
+                        paths,
+                        message,
+                        state: 'pending-commit',
+                    },
+                    null,
+                    2,
+                ),
+            );
+            const immediatelyBeforeCommit = await captureCoderRepositorySnapshot(
+                repositoryRoot,
+                snapshot.excludedPaths,
+            );
+            if (
+                immediatelyBeforeCommit.head !== parent ||
+                immediatelyBeforeCommit.indexFingerprint !== current.indexFingerprint ||
+                !areCoderFileHashesEqual(immediatelyBeforeCommit.workingFileHashes, current.workingFileHashes)
+            )
+                throw new CoderGitOperationError(
+                    'record',
+                    'Repository/index changed while preparing the phase commit. Inspect pending-persistence.json in the worktree Git directory.',
+                );
+            signal?.throwIfAborted();
+            await runGitCommand({
+                command: buildGitCommitCommand({
+                    commitMessagePath,
+                    signingFlag: buildAgentGitSigningFlag(),
+                    isBashShell: process.platform !== 'win32' || Boolean(signal),
+                }),
+                cwd: repositoryRoot,
+                env,
+                isIndexLockRetryEnabled: false,
+                ...(signal ? { signal } : {}),
+            });
+            const commit = await readCoderHead(repositoryRoot);
+            await writeFile(
+                recoveryPath,
+                JSON.stringify(
+                    {
+                        repositoryRoot,
+                        parent,
+                        commit,
+                        expectedTree,
+                        paths,
+                        message,
+                        state: 'committed-awaiting-index',
+                    },
+                    null,
+                    2,
+                ),
+            );
+            const committedTree = (await $runWorkspaceGit(repositoryRoot, ['rev-parse', 'HEAD^{tree}'])).trim();
+            const committedParents = (
+                await $runWorkspaceGit(repositoryRoot, ['show', '-s', '--format=%P', 'HEAD'])
+            ).trim();
+            const afterCommit = await captureCoderRepositorySnapshot(repositoryRoot, snapshot.excludedPaths);
+            if (
+                committedTree !== expectedTree ||
+                committedParents !== (parent ?? '') ||
+                afterCommit.indexFingerprint !== current.indexFingerprint ||
+                !areCoderFileHashesEqual(afterCommit.workingFileHashes, current.workingFileHashes)
+            ) {
+                throw new CoderGitOperationError(
+                    'commit',
+                    spaceTrim(`
+                Commit \`${commit}\` exists, but a Git hook or concurrent writer changed the captured content/index.
+                The resulting tree is **not verified**. Work and the private commit have been retained.
+                Inspect \`${recoveryPath}\` before manually recovering; do not rerun the implementation agent.
+            `),
+                );
+            }
+            // Replace only operation-owned staging entries. Pre-existing staged/unstaged files stay byte-for-byte intact.
+            await indexLease.publish(snapshot.after.entries, paths);
+            const expectedIndex = new Map(current.indexEntries);
+            const expectedFlags = new Map(current.indexFlags);
+            for (const path of paths) {
+                const entry = snapshot.after.entries.get(path);
+                if (entry) {
+                    expectedIndex.set(path, entry);
+                    expectedFlags.set(path, 'H');
+                } else {
+                    expectedIndex.delete(path);
+                    expectedFlags.delete(path);
+                }
+            }
+            const afterIndexUpdate = await captureCoderRepositorySnapshot(repositoryRoot, snapshot.excludedPaths);
+            if (
+                afterIndexUpdate.head !== commit ||
+                listCoderTreeDelta(expectedIndex, afterIndexUpdate.indexEntries).length ||
+                !areCoderFileHashesEqual(expectedFlags, afterIndexUpdate.indexFlags)
+            ) {
+                throw new CoderGitOperationError(
+                    'record',
+                    `The real index/HEAD changed concurrently after commit \`${commit}\`. Its history, index and working files were retained for manual recovery.`,
+                );
+            }
+            await writeFile(
+                recoveryPath,
+                JSON.stringify(
+                    {
+                        repositoryRoot,
+                        parent,
+                        commit,
+                        expectedTree,
+                        paths,
+                        message,
+                        state: 'locally-persisted',
+                    },
+                    null,
+                    2,
+                ),
+            );
+            return { commit: commit!, tree: expectedTree, paths };
+        });
+    });
 }
 
 /**
@@ -252,7 +477,7 @@ class GitPushFailedError extends CoderGitOperationError {
  * - Uses `git push --set-upstream` on first push when upstream is missing.
  * - Skips pushing when upstream exists and there is nothing to push.
  */
-async function pushCommittedChanges(
+export async function pushCommittedChanges(
     projectPath: string,
     agentEnv?: Record<string, string>,
     signal?: AbortSignal,
@@ -376,6 +601,7 @@ async function executeGitPushCommand(
             command,
             cwd: projectPath,
             env: agentEnv,
+            isIndexLockRetryEnabled: false,
             ...(signal ? { signal } : {}),
         });
     } catch (error) {

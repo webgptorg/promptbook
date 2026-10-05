@@ -5196,3 +5196,21 @@ expired and could not be refreshed` - and says exactly how to sign in again, for
     subprocesses, traces and isolated worktrees, and quoted harness paths containing spaces. New scripts omit
     redundant flags; initialization still creates missing Books and AGENTS.md and preserves customizations.
     Added command/precedence documentation and offline fixture coverage, including the packed installed CLI.
+-   Coder now persists check-produced changes separately from implementation and repair changes for both
+    enabled initial-check modes and every bounded check-feedback attempt. Shared raw content/index snapshots
+    retain exact same-file versions, generated additions/deletions/renames, binary content and executable modes;
+    empty check deltas create no commit. Commit metadata and traces retain real validation outcomes, including
+    failures, while Coder normalization, status and durable artifacts use explicit finalization commits.
+    Protected user staging/working content and unexpected boundary edits stop unsafe persistence without
+    discarding work. Hook/signing and push failures never rerun the implementation harness; recovery records
+    preserve phase trees and pending local persistence. Successful clean-start runs persist final status/artifacts,
+    including tracked runtime-file cleanup. Checks use private content views to distinguish their writes from
+    concurrent live edits and retain ignored generator output; an index lease preserves user staging during
+    hooks/signing. Completion candidates are committed before publishing done, and `--no-commit` carries
+    exact ownership through check/repair/queue phases while reporting retained changes. Isolated integration
+    fast-forwards separate history, verifies
+    integrated content, commits eligible execution artifacts in the worktree and preserves supported durable
+    logs, ignored generated output and interrupted worktrees/recovery data. Successive staged-tree references
+    also retain newly staged user content. Incompatible Git line-ending filters stop completion while retaining
+    checked content. Updated shared CLI/workflow help and added deterministic temporary Git/mock-harness
+    checks covering ownership, retries, failures and isolation.

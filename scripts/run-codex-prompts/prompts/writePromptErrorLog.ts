@@ -55,7 +55,7 @@ export async function writePromptErrorLog(options: WritePromptErrorLogOptions): 
 /**
  * Returns the failure log path for a prompt markdown file.
  */
-function buildPromptErrorLogPath(promptPath: string): string {
+export function buildPromptErrorLogPath(promptPath: string): string {
     const extension = extname(promptPath);
 
     if (extension.toLowerCase() === '.md') {

@@ -45,6 +45,7 @@ export function $initializeCoderFixCommand(program: Program): $side_effect {
         Repairs use the project's Developer Book and the selected harness/model; only the selected repair runs.
         Ordinary PRDs and their statuses are left alone. There is no queue, watcher, or planning session.
         Pull and push are explicit opt-ins. --no-commit follows the shared --git-changes ignore constraint.
+        Implementation/repair and check changes use separate commits; failed checks retain their genuine outcome.
         Interrupted work is preserved; --git-changes continue cannot resume arbitrary backlog tasks here.
     `),
     );
@@ -55,7 +56,7 @@ export function $initializeCoderFixCommand(program: Program): $side_effect {
     addCoderCheckOptions(
         command,
         false,
-        'Run checks first and verify each repair attempt (default npm run check); quote commands containing flags or shell composition',
+        'Run checks first and verify each repair attempt (default npm run check); persist check changes separately unless --no-commit; quote commands containing flags or shell composition',
     );
     addPromptRunnerExecutionOptions(command);
     command.option('--preserve-logs', 'Keep successful check and repair artifacts', false);
@@ -145,6 +146,8 @@ export function $initializeCoderFixCommand(program: Program): $side_effect {
                             ? 'Check repair interrupted'
                             : result.kind === 'persistence-error'
                             ? `Git/persistence error; checks ${result.isCheckPassed ? 'passed' : 'did not pass'}`
+                            : result.kind === 'execution-error'
+                            ? 'Check execution error'
                             : 'Check repair setup/harness error';
                     console.error(`${label}. Ordinary PRDs were not processed.`);
                     if (result.repairPrompt) console.error(`Repair artifact: \`${result.repairPrompt.file.path}\`.`);

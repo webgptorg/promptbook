@@ -1,12 +1,11 @@
 import colors from 'colors';
 import { dirname, join, relative } from 'path';
-import { copyFile, mkdir } from 'fs/promises';
+import { copyFile, mkdir, realpath } from 'fs/promises';
 import { $resolveWorkspaceRepository } from '../../../src/cli/cli-commands/common/workspaceRepository';
-import { captureCoderCommitScope, resolveCoderCommitScopePaths } from '../git/coderCommitScope';
-import { commitChanges } from '../git/commitChanges';
+import { captureCoderCommitScope } from '../git/coderCommitScope';
+import { pushCommittedChanges } from '../git/commitChanges';
 import type { RunPromptRoundOptions } from '../main/runPromptRound';
 import { runPromptRound } from '../main/runPromptRound';
-import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import { buildPromptRunTracePath } from '../prompts/buildPromptRunTracePath';
 import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
@@ -24,13 +23,27 @@ import { mapProjectReferenceToWorktree } from './mapProjectReferenceToWorktree';
 import { resolveCoderProjectContext } from '../common/resolveCoderProjectContext';
 import { resolveCoderAgent } from '../common/resolveCoderAgent';
 import { DEFAULT_CODER_AGENT_ROLE } from '../../../src/cli/cli-commands/coder/coderAgentRole';
+import { withCoderWorkspaceLock } from '../common/withCoderWorkspaceLock';
+import { preserveCoderIsolationRecovery } from './preserveCoderIsolationRecovery';
+import { buildAgentGitEnv } from '../git/agentGitIdentity';
+import { CoderPhasePersistence } from '../git/CoderPhasePersistence';
+import { CoderGitOperationError } from '../git/CoderGitOperationError';
+import type { CoderCommitScope } from '../git/coderCommitScope';
+import { refreshPromptSelection } from '../prompts/refreshPromptSelection';
+import { buildPromptErrorLogPath } from '../prompts/writePromptErrorLog';
+import { captureCoderIsolationArtifacts, preserveCoderIsolationArtifacts } from './coderIsolationArtifacts';
+import {
+    beginCoderIsolationIgnoredFiles,
+    captureCoderIsolationIgnoredFiles,
+    preserveCoderIsolationIgnoredFiles,
+} from './coderIsolationIgnoredFiles';
 
 /**
  * Runs one prompt round inside a temporary git worktree and merges the result back afterwards.
  *
  * This is the `--isolate` counterpart of `runPromptRound`, so it accepts exactly the same input:
  * - The coding agent, its check command and the round commit all happen inside the worktree.
- * - A verified task is squash-merged back into the branch the coder runs on and the worktree is deleted.
+ * - Verified phase commits are fast-forwarded back into the caller's branch and the worktree is deleted.
  * - A task which cannot be merged is recorded as failed in the original project and its worktree is kept,
  *   without stopping the coder from processing the next task.
  * - A task whose round fails keeps its worktree too, so the work of the failed round can still be inspected.
@@ -38,11 +51,28 @@ import { DEFAULT_CODER_AGENT_ROLE } from '../../../src/cli/cli-commands/coder/co
  * @private function of runCodexPrompts
  */
 export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Promise<void> {
+    const projectPath =
+        options.projectPath ?? options.options.workspace?.projectPath ?? options.options.projectPath ?? process.cwd();
+    return withCoderWorkspaceLock(projectPath, () => runOwnedIsolatedPromptRound(options, projectPath), {
+        isNestedOwnershipAllowed: true,
+    });
+}
+
+/** Holds the original checkout lease across execution, verified integration and recovery cleanup. */
+async function runOwnedIsolatedPromptRound(options: RunPromptRoundOptions, projectPath: string): Promise<void> {
     const { nextPrompt, promptLabel, isRichUiEnabled, uiHandle, waitForRequestedPause } = options;
-    const projectPath = options.projectPath ?? options.options.workspace?.projectPath ?? options.options.projectPath ?? process.cwd();
     // Note: The original project is left untouched by the isolated round itself, so its scope covers exactly
     //       the prompt status update and the changes the merge brings back from the worktree
-    const originalProjectCommitScope = await captureCoderCommitScope(options.options.workspace ?? projectPath);
+    const originalProjectCommitScope = await captureCoderCommitScope(projectPath, { isContentSnapshotRequired: true });
+    const artifactBoundary = await captureCoderIsolationArtifacts(originalProjectCommitScope, nextPrompt);
+    // The copied environment remains isolated under the existing policy; wrappers/logs have their own retention.
+    let ignoredBoundary = await captureCoderIsolationIgnoredFiles(originalProjectCommitScope, [
+        relative(originalProjectCommitScope.repositoryRoot ?? projectPath, join(projectPath, '.env')).replace(
+            /\\/gu,
+            '/',
+        ),
+        ...(artifactBoundary?.paths ?? []),
+    ]);
     const worktree = await createCoderIsolationWorktree({
         projectPath,
         repositoryRoot: originalProjectCommitScope.repositoryRoot,
@@ -52,6 +82,7 @@ export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Pr
     announceIsolatedRoundStart(worktree, promptLabel, isRichUiEnabled);
 
     try {
+        ignoredBoundary = await beginCoderIsolationIgnoredFiles(ignoredBoundary, worktree.worktreePath);
         const isolatedProjectPath = join(
             worktree.worktreePath,
             relative(originalProjectCommitScope.repositoryRoot ?? projectPath, projectPath),
@@ -63,8 +94,16 @@ export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Pr
             ...options.options,
             workspace: isolatedWorkspace,
             projectPath: isolatedWorkspace.projectPath,
-            agent: mapProjectReferenceToWorktree(options.options.agent, originalProjectCommitScope.repositoryRoot ?? projectPath, worktree.worktreePath),
-            context: mapProjectReferenceToWorktree(options.options.context, originalProjectCommitScope.repositoryRoot ?? projectPath, worktree.worktreePath),
+            agent: mapProjectReferenceToWorktree(
+                options.options.agent,
+                originalProjectCommitScope.repositoryRoot ?? projectPath,
+                worktree.worktreePath,
+            ),
+            context: mapProjectReferenceToWorktree(
+                options.options.context,
+                originalProjectCommitScope.repositoryRoot ?? projectPath,
+                worktree.worktreePath,
+            ),
             autoPush: false,
         };
         const projectContext = await resolveCoderProjectContext(isolatedOptions);
@@ -76,7 +115,10 @@ export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Pr
         // Copy the parsed data too, so a failed isolated round does not mutate the original queue in memory.
         const isolatedFile = {
             ...nextPrompt.file,
-            path: join(isolatedWorkspace.projectPath, relative(projectPath, nextPrompt.file.path)),
+            path: join(
+                isolatedWorkspace.projectPath,
+                relative(originalProjectCommitScope.projectPath, await realpath(nextPrompt.file.path)),
+            ),
             lines: [...nextPrompt.file.lines],
             sections: nextPrompt.file.sections.map((section) => ({ ...section })),
         };
@@ -84,16 +126,62 @@ export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Pr
             ...options,
             nextPrompt: { file: isolatedFile, section: isolatedFile.sections[nextPrompt.section.index]! },
             projectPath: isolatedWorkspace.projectPath,
-            // Temporary scripts and raw logs deliberately outlive the worktree; PRDs and traces are merged.
-            artifactsProjectPath: projectPath,
+            // Eligible artifacts belong to the same execution history as implementation/check/status changes.
+            // Ignored or failed-round logs are retained at their supported original locations before cleanup.
+            artifactsProjectPath: isolatedWorkspace.projectPath,
             resolvedCoderContext: projectContext.context,
             resolvedAgentSystemMessage: agent?.systemMessage,
             // Note: The isolated commit must never reach the remote, the merged commit on the original branch is pushed instead
             options: { ...isolatedOptions, projectContext },
         });
         // Keep the display/commit identity in sync without writing to the original checkout before merging.
-        Object.assign(nextPrompt.section, isolatedFile.sections[nextPrompt.section.index]);
+        const isolatedSection = isolatedFile.sections[nextPrompt.section.index]!;
+
+        await waitForRequestedPause({
+            checkpointLabel: 'merging the isolated worktree back',
+            phase: 'running',
+            statusMessage: `Merging \`${worktree.branchName}\` into \`${worktree.baseBranchName}\``,
+        });
+        // Retain ignored generated output before integrating the commit which publishes completion.
+        await preserveCoderIsolationIgnoredFiles(ignoredBoundary, worktree.worktreePath);
+        const mergeResult = await mergeCoderIsolationWorktree(
+            worktree,
+            originalProjectCommitScope.repositorySnapshot,
+            options.signal,
+        );
+        if (!mergeResult.isMerged) {
+            await recordIsolationMergeFailure(
+                options,
+                worktree,
+                mergeResult.failureDetails,
+                originalProjectCommitScope,
+            );
+            return;
+        }
+        await preserveCoderIsolationArtifacts(artifactBoundary, worktree.worktreePath);
+        // Completion belongs to the integrated tree. A rejected push retains verified local completion.
+        Object.assign(nextPrompt.section, isolatedSection);
+        nextPrompt.file.lines = isolatedFile.lines;
+        nextPrompt.file.eol = isolatedFile.eol;
+        if (options.options.autoPush)
+            await pushCommittedChanges(
+                originalProjectCommitScope.repositoryRoot ?? projectPath,
+                buildAgentGitEnv(),
+                options.signal,
+            );
+        await preserveCoderIsolationRecovery(worktree);
+        await removeCoderIsolationWorktree(worktree);
+        uiHandle?.state.setStatusMessage(`Merged \`${worktree.taskName}\` into \`${worktree.baseBranchName}\``);
     } catch (error) {
+        try {
+            await preserveCoderIsolationArtifacts(artifactBoundary, worktree.worktreePath);
+        } catch (artifactError) {
+            console.warn(
+                `Isolated artifacts remain in \`${worktree.worktreeDisplayPath}\`: ${
+                    artifactError instanceof Error ? artifactError.message : String(artifactError)
+                }`,
+            );
+        }
         // Note: The worktree keeps whatever the failed round produced, which would be lost by deleting it here
         console.warn(
             colors.yellow(
@@ -102,29 +190,6 @@ export async function runIsolatedPromptRound(options: RunPromptRoundOptions): Pr
         );
         throw error;
     }
-
-    await waitForRequestedPause({
-        checkpointLabel: 'merging the isolated worktree back',
-        phase: 'running',
-        statusMessage: `Merging \`${worktree.branchName}\` into \`${worktree.baseBranchName}\``,
-    });
-
-    const mergeResult = await mergeCoderIsolationWorktree(worktree);
-
-    if (!mergeResult.isMerged) {
-        await recordIsolationMergeFailure(options, worktree, mergeResult.failureDetails);
-        return;
-    }
-
-    // Note: The merge only stages the isolated changes, so this commit joins them with the prompt status update
-    await commitChanges(buildCommitMessage(nextPrompt.file, nextPrompt.section), {
-        autoPush: options.options.autoPush,
-        relevantPaths: await resolveCoderCommitScopePaths(originalProjectCommitScope),
-        projectPath: originalProjectCommitScope.repositoryRoot ?? projectPath,
-    });
-    await removeCoderIsolationWorktree(worktree);
-
-    uiHandle?.state.setStatusMessage(`Merged \`${worktree.taskName}\` into \`${worktree.baseBranchName}\``);
 }
 
 /**
@@ -134,43 +199,58 @@ async function recordIsolationMergeFailure(
     options: RunPromptRoundOptions,
     worktree: CoderIsolationWorktree,
     failureDetails: string,
+    scope: CoderCommitScope,
 ): Promise<void> {
     const { nextPrompt, runnerMetadata, isRichUiEnabled, uiHandle } = options;
     const mergeFailureError = buildCoderIsolationMergeFailureError(worktree, failureDetails);
-    const repositoryRoot = options.options.workspace?.repositoryRoot ?? worktree.projectPath;
+    const repositoryRoot = scope.repositoryRoot ?? worktree.projectPath;
     const tracePath = buildPromptRunTracePath(nextPrompt.file, nextPrompt.section);
     const isolatedTracePath = join(worktree.worktreePath, relative(repositoryRoot, tracePath));
-    // The failed merge did not bring back the worktree's trace. Preserve it beside the failure report.
-    await mkdir(dirname(tracePath), { recursive: true });
-    let isTraceCopied = false;
-    try {
-        await copyFile(isolatedTracePath, tracePath);
-        isTraceCopied = true;
-    } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    const protectedPaths = scope.repositorySnapshot?.dirtyPaths ?? [];
+    if (
+        [nextPrompt.file.path, tracePath].some((path) =>
+            protectedPaths.includes(toProjectRelativeGitPath(repositoryRoot, path)),
+        )
+    ) {
+        throw new CoderGitOperationError(
+            'record',
+            'Isolation failure bookkeeping overlaps existing user content. It was left untouched and the execution worktree was retained.',
+        );
     }
-
-    markPromptIsolationMergeFailed(nextPrompt.file, nextPrompt.section, worktree);
-    await writePromptFile(nextPrompt.file);
-    const errorLogPath = await writePromptErrorLog({
-        file: nextPrompt.file,
-        section: nextPrompt.section,
-        runnerName: runnerMetadata.runnerName,
-        modelName: runnerMetadata.modelName,
-        error: mergeFailureError,
+    const persistence = new CoderPhasePersistence({
+        scope,
+        isCommitEnabled: !options.options.noCommit,
+        isAutoPushEnabled: options.options.autoPush,
+        signal: options.signal,
     });
+    await persistence.assertRetained();
+    await persistence.assertWritablePaths([
+        nextPrompt.file.path,
+        tracePath,
+        buildPromptErrorLogPath(nextPrompt.file.path),
+    ]);
+    await refreshPromptSelection(nextPrompt);
+    // The failed merge did not bring back the worktree's trace. Preserve it beside the failure report.
+    await persistence.mutate(async () => {
+        await mkdir(dirname(tracePath), { recursive: true });
+        try {
+            await copyFile(isolatedTracePath, tracePath);
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+        }
 
-    await commitChanges(buildCoderIsolationMergeFailureCommitMessage(worktree), {
-        autoPush: options.options.autoPush,
-        projectPath: options.options.workspace?.repositoryRoot ?? worktree.projectPath,
-        relevantPaths: [
-            nextPrompt.file.path,
-            errorLogPath,
-            ...(isTraceCopied ? [tracePath] : []),
-        ].map((path) =>
-            toProjectRelativeGitPath(options.options.workspace?.repositoryRoot ?? worktree.projectPath, path),
-        ),
-    });
+        markPromptIsolationMergeFailed(nextPrompt.file, nextPrompt.section, worktree);
+        await writePromptFile(nextPrompt.file);
+        await writePromptErrorLog({
+            file: nextPrompt.file,
+            section: nextPrompt.section,
+            runnerName: runnerMetadata.runnerName,
+            modelName: runnerMetadata.modelName,
+            error: mergeFailureError,
+        });
+    }, 'finalization');
+    await persistence.finalize(buildCoderIsolationMergeFailureCommitMessage(worktree));
+    await persistence.push();
 
     uiHandle?.state.addError(mergeFailureError.message);
     uiHandle?.state.setStatusMessage(`Merging \`${worktree.taskName}\` failed, worktree kept for a manual merge`);

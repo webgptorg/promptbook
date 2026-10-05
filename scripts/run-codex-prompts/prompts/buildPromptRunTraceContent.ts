@@ -10,6 +10,7 @@ import { formatCoderRunSteps } from './formatCoderRunSteps';
 import { formatRunnerSignature, type FormatRunnerSignatureOptions } from './formatRunnerSignature';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
+import type { CoderPhaseCommitResult } from '../git/CoderPhasePersistence';
 
 /**
  * How one prompt round the trace describes has ended.
@@ -75,6 +76,8 @@ export type BuildPromptRunTraceContentOptions = FormatRunnerSignatureOptions & {
      * check command have written. Empty when the round produced no readable runtime log.
      */
     readonly runtimeLog: string;
+    /** Chronological local phase persistence; no-commit phases retain an absent commit identity. */
+    readonly phaseCommits?: ReadonlyArray<CoderPhaseCommitResult>;
 };
 
 /**
@@ -88,10 +91,32 @@ export function buildPromptRunTraceContent(options: BuildPromptRunTraceContentOp
     const sections = [
         buildPromptRunTraceSummarySection(options),
         buildPromptRunTraceFailureSection(options.outcome),
+        buildPromptRunTracePhaseSection(options.phaseCommits),
         buildPromptRunTraceRuntimeLogSection(options.runtimeLog),
     ].filter((section): section is string => section !== undefined);
 
     return `${sections.join('\n\n')}\n`;
+}
+
+/** Renders phase provenance without treating local/remote persistence as a validation result. */
+function buildPromptRunTracePhaseSection(phases?: ReadonlyArray<CoderPhaseCommitResult>): string | undefined {
+    if (!phases?.length) return undefined;
+    return spaceTrim(`
+        ## Local phase history
+
+        ${phases
+            .map(
+                (phase) =>
+                    `- **${phase.phase}**${phase.attempt ? ` (attempt ${phase.attempt})` : ''}: ${
+                        phase.commit ? `\`${phase.commit}\`` : 'retained without a commit'
+                    }; ${phase.paths.length} path(s)${
+                        phase.checkOutcome ? `; check outcome: **${phase.checkOutcome}**` : ''
+                    }`,
+            )
+            .join('\n')}
+
+        Completion status and this trace belong to Coder finalization; they are not changes made by the check command.
+    `);
 }
 
 /**

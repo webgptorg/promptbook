@@ -7,6 +7,26 @@ import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog
 import { waitForEnter } from '../common/waitForEnter';
 import { captureCoderCommitScope, resolveCoderCommitScopePaths } from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
+import { CoderPhasePersistence } from '../git/CoderPhasePersistence';
+
+jest.mock('../common/withCoderWorkspaceLock', () => ({
+    withCoderWorkspaceLock: async (_project: unknown, operation: () => Promise<unknown>) => operation(),
+}));
+jest.mock('../git/CoderPhasePersistence');
+jest.mock('../prompts/refreshPromptSelection', () => ({ refreshPromptSelection: async () => undefined }));
+
+/** Orchestration tests delegate Git tree attribution to the real temporary-repository workflow tests. */
+const PHASE_PERSISTENCE = {
+    recordFailure: jest.fn(async () => undefined),
+    mutate: jest.fn(async (operation: () => Promise<unknown>) => operation()),
+    finalize: jest.fn(async () => undefined),
+    push: jest.fn(async () => undefined),
+    includeDurableArtifacts: jest.fn(async () => undefined),
+    adoptPreparation: jest.fn(async () => undefined),
+    outstandingPaths: jest.fn(() => []),
+    assertRetained: jest.fn(async () => undefined),
+    assertWritablePaths: jest.fn(async () => undefined),
+};
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
@@ -33,6 +53,7 @@ jest.mock('../common/normalizeLineEndingsInChangedFiles', () => ({
 }));
 
 jest.mock('../git/coderCommitScope', () => ({
+    continueCoderCommitScopeOwnership: jest.requireActual('../git/coderCommitScope').continueCoderCommitScopeOwnership,
     captureCoderCommitScope: jest.fn(),
     resolveCoderCommitScopePaths: jest.fn(),
 }));
@@ -81,10 +102,12 @@ jest.mock('../prompts/markPromptInProgress', () => ({
 
 jest.mock('../prompts/writePromptErrorLog', () => ({
     writePromptErrorLog: jest.fn(),
+    buildPromptErrorLogPath: jest.fn(() => 'prompts/example.error.log'),
 }));
 
 jest.mock('../prompts/writePromptFile', () => ({
     writePromptFile: jest.fn(),
+    buildPromptFileContent: jest.fn(() => 'completion'),
 }));
 
 jest.mock('../prompts/writePromptRunTrace', () => ({
@@ -175,6 +198,9 @@ function createInterruptedPromptSelection(statusLine: string): PromptSelection {
 describe('runPromptRound', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.mocked(CoderPhasePersistence).mockImplementation(
+            () => PHASE_PERSISTENCE as unknown as CoderPhasePersistence,
+        );
         (appendCoderContext as jest.MockedFunction<typeof appendCoderContext>).mockImplementation((prompt) => prompt);
         (withPromptRuntimeLog as jest.MockedFunction<typeof withPromptRuntimeLog>).mockImplementation(
             async (_scriptPath, callback) => callback('C:\\temp\\runtime.log'),
@@ -301,14 +327,15 @@ describe('runPromptRound', () => {
             waitForRequestedPause,
         });
 
-        expect(commitChanges).toHaveBeenCalledWith('feat: example', {
-            autoPush: false,
-            excludePaths: ['C:\\temp\\runtime.log'],
-            projectPath: process.cwd(),
-            // Note: Only the prompt file and the files the coding agent has changed are committed
-            relevantPaths: ['prompts/example.md'],
-            isEmptyCommitAllowed: undefined,
-        });
+        expect(CoderPhasePersistence).toHaveBeenCalledWith(
+            expect.objectContaining({
+                implementationMessage: 'feat: example',
+                isCommitEnabled: true,
+                isAutoPushEnabled: false,
+            }),
+        );
+        expect(PHASE_PERSISTENCE.finalize).toHaveBeenCalledWith(undefined, expect.any(Array));
+        expect(commitChanges).not.toHaveBeenCalled();
         expect(runAutoMigrateTestingServers).toHaveBeenCalled();
         expect(waitForRequestedPause).toHaveBeenCalledWith({
             checkpointLabel: 'committing the successful changes',
@@ -663,9 +690,9 @@ describe('runPromptRound', () => {
                 outcome: expect.objectContaining({ kind: 'succeeded' }),
             }),
         );
-        // Note: The trace belongs to the very same commit as the prompt it describes
+        // The trace belongs to Coder finalization after phase commits, never the checks transformation.
         expect((writePromptRunTrace as jest.Mock).mock.invocationCallOrder[0]).toBeLessThan(
-            (commitChanges as jest.Mock).mock.invocationCallOrder[0]!,
+            PHASE_PERSISTENCE.finalize.mock.invocationCallOrder[0]!,
         );
     });
 
@@ -741,7 +768,7 @@ describe('runPromptRound', () => {
             projectPath: worktreePath,
         });
 
-        expect(captureCoderCommitScope).toHaveBeenCalledWith(worktreePath);
+        expect(captureCoderCommitScope).toHaveBeenCalledWith(worktreePath, { isContentSnapshotRequired: true });
         expect(runPromptWithCheckFeedback).toHaveBeenCalledWith(
             expect.objectContaining({
                 projectPath: worktreePath,
@@ -752,14 +779,13 @@ describe('runPromptRound', () => {
                 projectPath: worktreePath,
             }),
         );
-        expect(commitChanges).toHaveBeenCalledWith(
-            'feat: example',
+        expect(CoderPhasePersistence).toHaveBeenCalledWith(
             expect.objectContaining({
-                projectPath: worktreePath,
-                isEmptyCommitAllowed: true,
+                scope: expect.objectContaining({ projectPath: worktreePath }),
+                implementationMessage: 'feat: example',
             }),
         );
-        // Note: The prompt status update itself is written into the original project, not into the worktree
-        expect(writePromptFile).toHaveBeenCalledWith(expect.objectContaining({ path: 'prompts\\example.md' }));
+        expect(PHASE_PERSISTENCE.finalize).toHaveBeenCalledWith(undefined, expect.any(Array));
+        expect(commitChanges).not.toHaveBeenCalled();
     });
 });

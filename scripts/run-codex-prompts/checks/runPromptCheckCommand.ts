@@ -3,6 +3,7 @@ import { $runGoScriptWithOutput } from '../common/runGoScript/$runGoScriptWithOu
 import { toPosixPath } from '../common/runGoScript/toPosixPath';
 import { quoteBashArgument } from '../common/runGoScript/quoteBashArgument';
 import { assertProjectCheckIsConfigured, CoderCheckSetupError } from './projectCheck';
+import { CoderCheckExecutionError } from './CoderCheckExecutionError';
 
 /**
  * Options for running one check command after a coding attempt.
@@ -42,6 +43,9 @@ export async function runPromptCheckCommand(options: RunPromptCheckCommandOption
             throw new CoderCheckSetupError(
                 `the selected check command is unavailable. Install/configure its project tools before retrying.\n\n${details}`,
             );
+        }
+        if (!options.signal?.aborted && !/exited with code \d+(?:\.|\s)/iu.test(details)) {
+            throw new CoderCheckExecutionError(options.command, details);
         }
         throw error;
     }

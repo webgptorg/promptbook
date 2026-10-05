@@ -38,7 +38,7 @@ export const LEGACY_CODER_CHECK_OPTIONS = [
 export function addCoderCheckOptions(
     command: Command,
     isCheckBeforeSupported: boolean,
-    description = 'Run project checks after each prompt; quote the full command when it contains flags or shell composition',
+    description = 'Run project checks after each prompt; commit eligible check changes separately unless --no-commit; quote commands containing flags or shell composition',
 ): void {
     command.option('--check <check-command...>', description);
     if (isCheckBeforeSupported) {
@@ -47,7 +47,7 @@ export function addCoderCheckOptions(
                 '--check-before <mode>',
                 `Check before coding: ${CHECK_BEFORE_MODE_VALUES.join(
                     ', ',
-                )} (defaults to no; uses npm run check when --check is omitted)`,
+                )} (defaults to no; uses npm run check when --check is omitted; both enabled modes commit eligible check changes separately unless --no-commit)`,
             )
                 .choices([...CHECK_BEFORE_MODE_VALUES])
                 .default('no'),

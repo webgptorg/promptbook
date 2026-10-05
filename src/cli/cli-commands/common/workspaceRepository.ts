@@ -216,13 +216,27 @@ async function $assertNoBrokenRepositoryMetadata(projectPath: string, repository
  * Executes Git without a shell, optional index locks, or credential prompts, retaining raw output boundaries.
  * @private shared Git discovery and commit-scope inspection
  */
-export async function $runWorkspaceGit(projectPath: string, argumentsList: ReadonlyArray<string>): Promise<string> {
-    const result = await EXECUTE_FILE('git', [...argumentsList], {
+export async function $runWorkspaceGit(
+    projectPath: string,
+    argumentsList: ReadonlyArray<string>,
+    options?: {
+        readonly env?: Record<string, string>;
+        readonly signal?: AbortSignal;
+        readonly input?: string | Buffer;
+    },
+): Promise<string> {
+    const execution = EXECUTE_FILE('git', [...argumentsList], {
         cwd: projectPath,
-        env: { ...process.env, LC_ALL: 'C', GIT_OPTIONAL_LOCKS: '0', GIT_TERMINAL_PROMPT: '0' },
+        env: { ...process.env, LC_ALL: 'C', GIT_OPTIONAL_LOCKS: '0', GIT_TERMINAL_PROMPT: '0', ...options?.env },
         windowsHide: true,
         maxBuffer: 8 * 1024 * 1024,
+        signal: options?.signal,
     });
+    if (options?.input !== undefined) {
+        // Index-info uses NUL-delimited input, keeping arbitrary filenames out of shell/pathspec parsing.
+        execution.child.stdin!.end(options.input);
+    }
+    const result = await execution;
     return result.stdout;
 }
 

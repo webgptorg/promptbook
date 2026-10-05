@@ -3,6 +3,8 @@ import { NotAllowed } from '../../../src/errors/NotAllowed';
 
 /** Persistence failures are terminal and must never cause another paid implementation attempt. */
 export class CoderGitOperationError extends NotAllowed {
+    /** Genuine validation outcome when persistence failed after the command completed. */
+    public checkOutcome?: 'passed' | 'failed' | 'execution-error' | 'interrupted';
     /** Creates a diagnostic that distinguishes an uncommitted result from a commit awaiting push. */
     public constructor(public readonly operation: 'commit' | 'push' | 'pull' | 'record', details: string) {
         super(

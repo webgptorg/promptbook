@@ -1,12 +1,10 @@
 import colors from 'colors';
 import moment from 'moment';
-import { join } from 'path';
-import { spaceTrim } from 'spacetrim';
+import { join, relative, resolve } from 'path';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
 import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChangesMode';
 import { resolveProjectDirectory } from '../../../src/cli/cli-commands/common/projectCliOptions';
 import { validateCoderRunOptions } from '../../../src/cli/cli-commands/common/validateCoderRunOptions';
-import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
@@ -27,6 +25,11 @@ import {
 } from '../common/waitForPause';
 import { waitForSkippableWorldTimeDeadline } from '../common/waitForSkippableWorldTimeDeadline';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
+import {
+    captureCoderCommitScope,
+    continueCoderCommitScopeOwnership,
+    type CoderCommitScope,
+} from '../git/coderCommitScope';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { pullLatestChanges } from '../git/pullLatestChanges';
 import { runIsolatedPromptRound } from '../isolation/runIsolatedPromptRound';
@@ -126,11 +129,35 @@ async function runCodexPromptsWithOwnership(options: RunOptions & { readonly pro
             return;
         }
         await assertProjectCheckIsConfigured(options.checkCommand, projectPath);
+        let ownershipScope =
+            options.noCommit && (options.workspace || options.checkCommand || options.normalizeLineEndings)
+                ? await captureCoderCommitScope(options.workspace ?? projectPath, { isContentSnapshotRequired: true })
+                : undefined;
+        const retainScope = options.noCommit
+            ? (scope: CoderCommitScope): void => {
+                  ownershipScope = scope;
+              }
+            : undefined;
         const resolvedCoderContext = projectContext.context;
         const { runner, actualRunnerModel, runnerMetadata, resolvedCoderAgent } = await prepareCoderPromptExecution(
             options,
         );
         const resolvedAgentSystemMessage = resolvedCoderAgent?.systemMessage;
+        if (ownershipScope) {
+            // Preparation can initialize Books. Carry their content as owned work without losing the user boundary.
+            ownershipScope = continueCoderCommitScopeOwnership(
+                await captureCoderCommitScope(options.workspace ?? projectPath, {
+                    isContentSnapshotRequired: true,
+                }),
+                ownershipScope,
+                (resolvedCoderAgent?.createdAgentBookPaths ?? []).map((path) =>
+                    relative(ownershipScope!.repositoryRoot ?? projectPath, resolve(projectPath, path)).replace(
+                        /\\/gu,
+                        '/',
+                    ),
+                ),
+            );
+        }
         const promptRunnerIdentity: PromptRunnerIdentity = {
             harnessName: options.agentName,
             modelName: actualRunnerModel,
@@ -203,6 +230,8 @@ async function runCodexPromptsWithOwnership(options: RunOptions & { readonly pro
                     waitForRequestedPause,
                     hasWaitedForStart,
                     isContinuingInterruptedPrompt,
+                    ownershipScope,
+                    onScopeRetained: retainScope,
                 });
                 hasRunCheckBefore = true;
             }
@@ -313,6 +342,8 @@ async function runCodexPromptsWithOwnership(options: RunOptions & { readonly pro
                 progressDisplay,
                 uiHandle,
                 waitForRequestedPause,
+                ownershipScope,
+                onScopeRetained: retainScope,
             });
             isContinuingInterruptedPrompt = false;
             previousRoundStartTime = currentRoundStartTime;
@@ -443,6 +474,8 @@ async function runCheckBeforeIfNeeded(options: {
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
     hasWaitedForStart: boolean;
     isContinuingInterruptedPrompt: boolean;
+    ownershipScope?: CoderCommitScope;
+    onScopeRetained?: (scope: CoderCommitScope) => void;
 }): Promise<boolean> {
     const {
         options: runOptions,
@@ -456,6 +489,8 @@ async function runCheckBeforeIfNeeded(options: {
         waitForRequestedPause,
         hasWaitedForStart,
         isContinuingInterruptedPrompt,
+        ownershipScope,
+        onScopeRetained,
     } = options;
 
     let updatedHasWaitedForStart = hasWaitedForStart;
@@ -469,6 +504,8 @@ async function runCheckBeforeIfNeeded(options: {
         isAutoPushEnabled: runOptions.autoPush,
         isWorkingTreeCleanRequired: isCleanWorkingTreeRequired(runOptions.gitChanges, isContinuingInterruptedPrompt),
         preserveLogs: runOptions.preserveLogs,
+        ownershipScope,
+        onScopeRetained,
         waitForPauseCheckpoint: waitForRequestedPause,
         onInitialCheckStarted: () => uiHandle?.startCapturingAgentOutput(),
         onInitialCheckFinished: () => uiHandle?.stopCapturingAgentOutput(),
@@ -506,6 +543,7 @@ async function runCheckBeforeIfNeeded(options: {
                 uiHandle,
                 waitForRequestedPause,
                 commitScope,
+                onScopeRetained,
             });
         },
     });

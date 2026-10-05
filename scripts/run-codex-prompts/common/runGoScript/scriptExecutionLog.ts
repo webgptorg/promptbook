@@ -32,7 +32,15 @@ const TERMINATE_BASH_PROCESS_TREE_COMMAND =
                   MSYS_NO_PATHCONV=1 taskkill.exe /PID "$HARNESS_WINDOWS_PROCESS_ID" /T /F > /dev/null 2>&1 || true
               fi
           `)
-        : 'kill -TERM -- "-$HARNESS_PROCESS_ID" 2>/dev/null || true';
+        : spaceTrim(`
+              kill -TERM -- "-$HARNESS_PROCESS_ID" 2>/dev/null || true
+              # Wait for cooperative descendants, then stop only this owned group if any writer remains.
+              for TERMINATION_ATTEMPT in {1..20}; do
+                  if ! kill -0 -- "-$HARNESS_PROCESS_ID" 2>/dev/null; then break; fi
+                  sleep 0.01
+              done
+              kill -KILL -- "-$HARNESS_PROCESS_ID" 2>/dev/null || true
+          `);
 
 /**
  * Shell condition that detects whether the Node process which owns the harness is still running.
@@ -115,6 +123,9 @@ const LOGGED_BASH_WRAPPER_COMMAND = spaceTrim(`
     CONTROL_INPUT_WATCHER_PID=$!
 
     cleanup_parent_process_watcher() {
+        # A successful check may leave background writers with redirected output. Stop only its owned group
+        # before the wrapper closes, so a following Git snapshot observes the command's final content.
+        terminate_harness_process_tree
         # MSYS can defer TERM while a builtin read waits on a Windows pipe.
         kill -KILL "$CONTROL_INPUT_WATCHER_PID" 2>/dev/null || true
         kill "$PARENT_PROCESS_WATCHER_PID" 2>/dev/null || true
@@ -225,7 +236,5 @@ function describeTempScriptKind(scriptPath: string): 'runner shell' | 'check she
         return 'test shell';
     }
 
-    return normalizedScriptPath.endsWith('.check.sh')
-        ? 'check shell'
-        : 'runner shell';
+    return normalizedScriptPath.endsWith('.check.sh') ? 'check shell' : 'runner shell';
 }

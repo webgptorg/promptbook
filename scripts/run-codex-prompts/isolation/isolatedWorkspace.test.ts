@@ -108,7 +108,7 @@ describe('isolated workspace project and repository context', () => {
                 expect(round.resolvedAgentSystemMessage).toContain('Selected project developer.');
                 expect(round.resolvedAgentSystemMessage).toContain('Local foundation.');
                 expect(round.nextPrompt.file.path).toBe(join(isolatedWorkspace.projectPath, 'prompts/task.md'));
-                expect(round.artifactsProjectPath).toBe(projectPath);
+                expect(round.artifactsProjectPath).toBe(isolatedWorkspace.projectPath);
                 await writeFile(
                     join(isolatedWorkspace.projectPath, 'generated.txt'),
                     'Generated in the requested project.\n',

@@ -10,8 +10,24 @@ import { createCheckBeforeRepairPrompt } from './createCheckBeforeRepairPrompt';
 import { assertProjectCheckIsConfigured, CoderCheckSetupError } from './projectCheck';
 import { runCheckBefore } from './runCheckBefore';
 import { runCoderCheckRepair, type CoderCheckRepairOptions } from './runCoderCheckRepair';
+import { CoderPhasePersistence } from '../git/CoderPhasePersistence';
+
+jest.mock('../common/withCoderWorkspaceLock', () => ({
+    withCoderWorkspaceLock: async (_project: unknown, operation: () => Promise<unknown>) => operation(),
+}));
+jest.mock('../git/CoderPhasePersistence');
+
+/** The check executor receives this shared phase service; real commit trees are tested in workflow fixtures. */
+const PHASE_PERSISTENCE = {
+    recordFailure: jest.fn(async () => undefined),
+    includeDurableArtifacts: jest.fn(),
+    finalize: jest.fn(),
+    push: jest.fn(),
+    outstandingPaths: jest.fn(),
+};
 
 jest.mock('../git/coderCommitScope', () => ({
+    continueCoderCommitScopeOwnership: jest.requireActual('../git/coderCommitScope').continueCoderCommitScopeOwnership,
     captureCoderCommitScope: jest.fn(),
     resolveCoderCommitScopePaths: jest.fn(),
 }));
@@ -50,6 +66,10 @@ describe('shared check-repair service', () => {
 
     beforeEach(() => {
         jest.resetAllMocks();
+        jest.mocked(CoderPhasePersistence).mockImplementation(
+            () => PHASE_PERSISTENCE as unknown as CoderPhasePersistence,
+        );
+        PHASE_PERSISTENCE.outstandingPaths.mockReturnValue([]);
         executeRepair = jest.fn(async () => undefined);
         prepareRepair = jest.fn(async () => executeRepair);
         options = {
@@ -97,18 +117,20 @@ describe('shared check-repair service', () => {
         },
     );
 
-    it('commits only changes attributed to the initial check before returning a healthy result', async () => {
-        jest.mocked(resolveCoderCommitScopePaths).mockResolvedValue(['project/formatted.ts']);
-        const result = await runCoderCheckRepair(options);
+    it.each(['yes-and-fix', 'yes-and-fail'] as const)(
+        'passes the common phase policy to the initial check (%s)',
+        async (mode) => {
+            const result = await runCoderCheckRepair({ ...options, mode });
 
-        expect(result.kind).toBe('passed-without-repair');
-        expect(commitChanges).toHaveBeenCalledWith(expect.any(String), {
-            projectPath: '/fixture',
-            relevantPaths: ['project/formatted.ts'],
-            autoPush: false,
-        });
-        expect(prepareRepair).not.toHaveBeenCalled();
-    });
+            expect(result.kind).toBe('passed-without-repair');
+            expect(runCheckBefore).toHaveBeenCalledWith(expect.objectContaining({ persistence: PHASE_PERSISTENCE }));
+            expect(CoderPhasePersistence).toHaveBeenCalledWith(
+                expect.objectContaining({ scope: COMMIT_SCOPE, isCommitEnabled: true }),
+            );
+            expect(commitChanges).not.toHaveBeenCalled();
+            expect(prepareRepair).not.toHaveBeenCalled();
+        },
+    );
 
     it('stops run check-and-fail before authoring or executing any repair', async () => {
         jest.mocked(runCheckBefore).mockResolvedValue({ isPassed: false, checkOutput: 'lint defect' });
@@ -173,8 +195,7 @@ describe('shared check-repair service', () => {
     });
 
     it('keeps a verified initial check distinct from its requested commit failure', async () => {
-        jest.mocked(resolveCoderCommitScopePaths).mockResolvedValue(['project/formatted.ts']);
-        jest.mocked(commitChanges).mockRejectedValue(new CoderGitOperationError('commit', 'Fixture commit failure'));
+        PHASE_PERSISTENCE.finalize.mockRejectedValue(new CoderGitOperationError('commit', 'Fixture commit failure'));
         expect(await runCoderCheckRepair(options)).toMatchObject({ kind: 'persistence-error', isCheckPassed: true });
         expect(prepareRepair).not.toHaveBeenCalled();
         expect(createCheckBeforeRepairPrompt).not.toHaveBeenCalled();

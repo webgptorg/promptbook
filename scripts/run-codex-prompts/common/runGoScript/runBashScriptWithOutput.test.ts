@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, stat } from 'fs/promises';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
@@ -74,6 +74,27 @@ describe('runGoScript runtime logging', () => {
             temporaryDirectoryPath.replaceAll('\\', '/').toLowerCase(),
         );
         expect(process.cwd()).toBe(originalDirectory);
+    });
+
+    it("stops a successful command's background writers before returning a capture boundary", async () => {
+        const writerPath = join(temporaryDirectoryPath, 'writer.cjs');
+        const processIdPath = join(temporaryDirectoryPath, 'writer.pid');
+        await writeFile(
+            writerPath,
+            "require('fs').writeFileSync('writer.pid',String(process.pid)); process.on('SIGTERM',()=>{}); setInterval(()=>require('fs').writeFileSync('late.txt','unexpected writer'),1000);",
+        );
+        await $runGoScriptWithOutput({
+            projectPath: temporaryDirectoryPath,
+            scriptPath: join(temporaryDirectoryPath, 'background.sh'),
+            shouldPrintLiveOutput: false,
+            scriptContent: spaceTrim(`
+                node writer.cjs >/dev/null 2>&1 &
+                while [ ! -f writer.pid ]; do sleep 0.01; done
+            `),
+        });
+        const processId = Number(await readFile(processIdPath, 'utf-8'));
+        expect(() => process.kill(processId, 0)).toThrow();
+        await expect(stat(join(temporaryDirectoryPath, 'late.txt'))).rejects.toMatchObject({ code: 'ENOENT' });
     });
 
     it.each(['ordinary', 'marker'])(

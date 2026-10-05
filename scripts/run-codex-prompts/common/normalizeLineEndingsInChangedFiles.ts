@@ -1,7 +1,10 @@
-import { readFile, stat, writeFile } from 'fs/promises';
+import { lstat, readFile, writeFile } from 'fs/promises';
 import { resolve } from 'path';
 import type { WorkingTreeChangesSnapshot } from '../git/workingTreeChanges';
 import { captureWorkingTreeChangesSnapshot, listFilesChangedSinceSnapshot } from '../git/workingTreeChanges';
+
+/** ASCII carriage return in a CRLF byte pair. */
+const CARRIAGE_RETURN_BYTE = 13;
 
 /**
  * File extensions that should always be treated as binary.
@@ -136,7 +139,8 @@ function resolveProjectPath(projectPath: string, relativePath: string): string {
  */
 async function isRegularFile(path: string): Promise<boolean> {
     try {
-        return (await stat(path)).isFile();
+        // A symlink's target can be unrelated user content, including outside the selected checkout.
+        return (await lstat(path)).isFile();
     } catch {
         return false;
     }
@@ -178,7 +182,7 @@ function normalizeCrLfToLf(content: Buffer): Buffer | undefined {
         const currentByte = content[readIndex]!;
         const nextByte = content[readIndex + 1];
 
-        if (currentByte === 13 && nextByte === 10) {
+        if (currentByte === CARRIAGE_RETURN_BYTE && nextByte === 10) {
             normalized[writeIndex] = 10;
             writeIndex++;
             readIndex++;

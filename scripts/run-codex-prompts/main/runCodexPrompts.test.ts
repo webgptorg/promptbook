@@ -26,6 +26,18 @@ import { runCodexPrompts } from './runCodexPrompts';
 import { runPromptRound } from './runPromptRound';
 import { createCheckBeforeRepairPrompt } from '../checks/createCheckBeforeRepairPrompt';
 import { runCheckBefore } from '../checks/runCheckBefore';
+import { CoderPhasePersistence } from '../git/CoderPhasePersistence';
+
+jest.mock('../git/CoderPhasePersistence');
+
+/** Shared check phase persistence is exercised independently by real temporary Git repositories. */
+const PHASE_PERSISTENCE = {
+    recordFailure: jest.fn(async () => undefined),
+    includeDurableArtifacts: jest.fn(),
+    finalize: jest.fn(),
+    push: jest.fn(),
+    outstandingPaths: jest.fn(),
+};
 
 jest.mock('../common/resolveCoderContext', () => ({
     resolveCoderContext: jest.fn(async () => undefined),
@@ -41,6 +53,7 @@ jest.mock('../git/ensureWorkingTreeClean', () => ({
 }));
 
 jest.mock('../git/coderCommitScope', () => ({
+    continueCoderCommitScopeOwnership: jest.requireActual('../git/coderCommitScope').continueCoderCommitScopeOwnership,
     captureCoderCommitScope: jest.fn(),
     resolveCoderCommitScopePaths: jest.fn(),
 }));
@@ -156,6 +169,10 @@ describe('runCodexPrompts', () => {
 
     beforeEach(async () => {
         jest.resetAllMocks();
+        jest.mocked(CoderPhasePersistence).mockImplementation(
+            () => PHASE_PERSISTENCE as unknown as CoderPhasePersistence,
+        );
+        PHASE_PERSISTENCE.outstandingPaths.mockReturnValue([]);
         projectPath = await mkdtemp(join(tmpdir(), 'coder run defaults '));
         await writeFile(join(projectPath, 'package.json'), JSON.stringify({ scripts: { test: 'jest' } }));
         await mkdir(join(projectPath, 'agents/.core'), { recursive: true });
@@ -553,72 +570,76 @@ describe('runCodexPrompts', () => {
         );
     });
 
-    it('commits files changed by passing pre-coding checks before checking the first prompt in yes-and-fix mode', async () => {
-        const events: string[] = [];
-        const promptSelection = createPromptSelection();
+    it.each(['yes-and-fix', 'yes-and-fail'] as const)(
+        'finishes common phase persistence before the first queued clean guard (%s)',
+        async (mode) => {
+            const events: string[] = [];
+            const promptSelection = createPromptSelection();
 
-        (ensureWorkingTreeClean as jest.MockedFunction<typeof ensureWorkingTreeClean>).mockImplementation(async () => {
-            events.push('check-clean-tree');
-        });
-        (captureCoderCommitScope as jest.MockedFunction<typeof captureCoderCommitScope>).mockImplementation(
-            async () => {
-                events.push('capture-test-scope');
-                return createCheckBeforeCommitScope();
-            },
-        );
-        (runCheckBefore as jest.MockedFunction<typeof runCheckBefore>).mockImplementation(async () => {
-            events.push('check-before');
-            return { isPassed: true, checkOutput: 'All tests passed' };
-        });
-        (resolveCoderCommitScopePaths as jest.MockedFunction<typeof resolveCoderCommitScopePaths>).mockImplementation(
-            async () => {
+            (ensureWorkingTreeClean as jest.MockedFunction<typeof ensureWorkingTreeClean>).mockImplementation(
+                async () => {
+                    events.push('check-clean-tree');
+                },
+            );
+            (captureCoderCommitScope as jest.MockedFunction<typeof captureCoderCommitScope>).mockImplementation(
+                async () => {
+                    events.push('capture-test-scope');
+                    return createCheckBeforeCommitScope();
+                },
+            );
+            (runCheckBefore as jest.MockedFunction<typeof runCheckBefore>).mockImplementation(async () => {
+                events.push('check-before');
+                return { isPassed: true, checkOutput: 'All tests passed' };
+            });
+            (
+                resolveCoderCommitScopePaths as jest.MockedFunction<typeof resolveCoderCommitScopePaths>
+            ).mockImplementation(async () => {
                 events.push('resolve-test-changes');
                 return ['src/generated/pre-coding-test-output.ts'];
-            },
-        );
-        (commitChanges as jest.MockedFunction<typeof commitChanges>).mockImplementation(async () => {
-            events.push('commit-test-changes');
-        });
-        (loadPromptFiles as jest.MockedFunction<typeof loadPromptFiles>).mockImplementation(async () => {
-            events.push('load');
-            return [];
-        });
-        (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>)
-            .mockReturnValueOnce(promptSelection)
-            .mockReturnValueOnce(promptSelection)
-            .mockReturnValueOnce(undefined);
-        (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockImplementation(async () => {
-            events.push('run');
-        });
+            });
+            (commitChanges as jest.MockedFunction<typeof commitChanges>).mockImplementation(async () => {
+                events.push('commit-test-changes');
+                return undefined;
+            });
+            PHASE_PERSISTENCE.finalize.mockImplementation(async () => {
+                events.push('persist-check-phase');
+            });
+            (loadPromptFiles as jest.MockedFunction<typeof loadPromptFiles>).mockImplementation(async () => {
+                events.push('load');
+                return [];
+            });
+            (findNextTodoPrompt as jest.MockedFunction<typeof findNextTodoPrompt>)
+                .mockReturnValueOnce(promptSelection)
+                .mockReturnValueOnce(promptSelection)
+                .mockReturnValueOnce(undefined);
+            (runPromptRound as jest.MockedFunction<typeof runPromptRound>).mockImplementation(async () => {
+                events.push('run');
+            });
 
-        await runCodexPrompts(
-            createRunOptions({
-                checkBefore: 'yes-and-fix',
-                checkCommand: 'npm test',
-                waitForUser: false,
-                autoPush: true,
-            }),
-        );
+            await runCodexPrompts(
+                createRunOptions({
+                    checkBefore: mode,
+                    checkCommand: 'npm test',
+                    waitForUser: false,
+                    autoPush: true,
+                }),
+            );
 
-        expect(events).toEqual([
-            'load',
-            'check-clean-tree',
-            'capture-test-scope',
-            'check-before',
-            'resolve-test-changes',
-            'commit-test-changes',
-            'load',
-            'check-clean-tree',
-            'run',
-            'load',
-        ]);
-        expect(captureCoderCommitScope).toHaveBeenCalledWith(process.cwd());
-        expect(commitChanges).toHaveBeenCalledWith('chore: Apply changes made by pre-coding checks', {
-            autoPush: true,
-            projectPath: process.cwd(),
-            relevantPaths: ['src/generated/pre-coding-test-output.ts'],
-        });
-    });
+            expect(events).toEqual([
+                'load',
+                'check-clean-tree',
+                'capture-test-scope',
+                'check-before',
+                'persist-check-phase',
+                'load',
+                'check-clean-tree',
+                'run',
+                'load',
+            ]);
+            expect(captureCoderCommitScope).toHaveBeenCalledWith(process.cwd(), { isContentSnapshotRequired: true });
+            expect(runCheckBefore).toHaveBeenCalledWith(expect.objectContaining({ persistence: PHASE_PERSISTENCE }));
+        },
+    );
 
     it('does not create an empty commit when pre-coding checks make no changes', async () => {
         await runCodexPrompts(
@@ -647,7 +668,7 @@ describe('runCodexPrompts', () => {
             }),
         );
 
-        expect(captureCoderCommitScope).not.toHaveBeenCalled();
+        expect(captureCoderCommitScope).toHaveBeenCalled();
         expect(resolveCoderCommitScopePaths).not.toHaveBeenCalled();
         expect(commitChanges).not.toHaveBeenCalled();
     });
@@ -670,7 +691,7 @@ describe('runCodexPrompts', () => {
 
         expect(createCheckBeforeRepairPrompt).not.toHaveBeenCalled();
         expect(runPromptRound).not.toHaveBeenCalled();
-        expect(captureCoderCommitScope).not.toHaveBeenCalled();
+        expect(captureCoderCommitScope).toHaveBeenCalled();
         expect(commitChanges).not.toHaveBeenCalled();
         expect(loadPromptFiles).toHaveBeenCalledTimes(1);
     });
@@ -735,6 +756,10 @@ describe('runCodexPrompts', () => {
         );
         (commitChanges as jest.MockedFunction<typeof commitChanges>).mockImplementation(async () => {
             events.push('commit-test-changes');
+            return undefined;
+        });
+        PHASE_PERSISTENCE.finalize.mockImplementation(async () => {
+            events.push('persist-check-phase');
         });
         (createCheckBeforeRepairPrompt as jest.MockedFunction<typeof createCheckBeforeRepairPrompt>).mockImplementation(
             async () => {
@@ -765,8 +790,7 @@ describe('runCodexPrompts', () => {
         expect(events).toEqual([
             'load',
             'check-before',
-            'resolve-test-changes',
-            'commit-test-changes',
+            'persist-check-phase',
             'create-repair',
             'repair',
             'load',

@@ -1,9 +1,10 @@
 import colors from 'colors';
-import { rm, stat } from 'fs/promises';
+import { stat } from 'fs/promises';
 import { formatUnknownErrorMessage } from '../common/formatUnknownErrorMessage';
 import { hasLocalBranch } from '../git/gitBranchContext';
 import { runGitCommand } from '../git/runGitCommand';
 import type { CoderIsolationWorktree } from './CoderIsolationWorktree';
+import { CoderGitOperationError } from '../git/CoderGitOperationError';
 
 /**
  * Removes one isolation worktree together with its temporary branch.
@@ -19,26 +20,28 @@ export async function removeCoderIsolationWorktree(worktree: CoderIsolationWorkt
 }
 
 /**
- * Removes the worktree directory through git and falls back to a plain filesystem removal.
+ * Removes only a clean integrated worktree. Unexpected edits are retained and reported.
  */
 async function removeWorktreeDirectory(worktree: CoderIsolationWorktree): Promise<boolean> {
     if (!(await isExistingDirectory(worktree.worktreePath))) {
-        await pruneStaleWorktreeRegistrations(worktree);
         return false;
     }
 
     try {
         await runGitCommand({
-            command: `git worktree remove --force "${worktree.worktreePath}"`,
+            command: `git worktree remove "${worktree.worktreePath}"`,
             cwd: worktree.projectPath,
             isVerbose: false,
         });
-    } catch {
-        // Note: The directory can be left behind by an interrupted run without being a registered worktree anymore
-        await rm(worktree.worktreePath, { recursive: true, force: true });
+    } catch (error) {
+        throw new CoderGitOperationError(
+            'record',
+            `The integrated worktree \`${
+                worktree.worktreePath
+            }\` could not be safely removed and was kept: ${formatUnknownErrorMessage(error)}`,
+        );
     }
 
-    await pruneStaleWorktreeRegistrations(worktree);
     return true;
 }
 
@@ -51,9 +54,9 @@ async function removeWorktreeBranch(worktree: CoderIsolationWorktree): Promise<b
     }
 
     try {
-        // Note: `-D` is required because the isolated work is squash-merged, so git does not see the branch as merged
+        // Fast-forward integration makes this branch merged; refuse to delete any divergent recovery history.
         await runGitCommand({
-            command: `git branch -D "${worktree.branchName}"`,
+            command: `git branch -d "${worktree.branchName}"`,
             cwd: worktree.projectPath,
             isVerbose: false,
         });
@@ -68,17 +71,6 @@ async function removeWorktreeBranch(worktree: CoderIsolationWorktree): Promise<b
 
         return false;
     }
-}
-
-/**
- * Drops worktree registrations whose directory no longer exists so the same path can be reused.
- */
-async function pruneStaleWorktreeRegistrations(worktree: CoderIsolationWorktree): Promise<void> {
-    await runGitCommand({
-        command: 'git worktree prune',
-        cwd: worktree.projectPath,
-        isVerbose: false,
-    }).catch(() => undefined);
 }
 
 /**

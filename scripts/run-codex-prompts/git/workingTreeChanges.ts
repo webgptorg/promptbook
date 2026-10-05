@@ -77,13 +77,16 @@ export async function listFilesChangedSinceSnapshot(
 /**
  * Lists dirty tracked files and untracked files in the working tree.
  */
-export async function listWorkingTreeChangedFiles(projectPath: string): Promise<ReadonlyArray<string>> {
+export async function listWorkingTreeChangedFiles(
+    projectPath: string,
+    env?: Record<string, string>,
+): Promise<ReadonlyArray<string>> {
     const changedFiles = new Set<string>();
 
     for (const argumentsList of GIT_CHANGED_FILE_ARGUMENTS) {
         // NUL-delimited raw Git output preserves Unicode, quotes, backslashes and significant whitespace.
         // C-quoted/newline-delimited paths can hash or commit the wrong file, especially in external projects.
-        const output = await $runWorkspaceGit(projectPath, argumentsList);
+        const output = await $runWorkspaceGit(projectPath, argumentsList, env ? { env } : undefined);
         for (const filePath of output.split('\0').filter(Boolean)) {
             changedFiles.add(filePath);
         }

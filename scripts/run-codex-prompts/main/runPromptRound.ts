@@ -19,7 +19,11 @@ import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { waitForEnter } from '../common/waitForEnter';
 import type { CoderCommitScope } from '../git/coderCommitScope';
-import { captureCoderCommitScope, resolveCoderCommitScopePaths } from '../git/coderCommitScope';
+import {
+    captureCoderCommitScope,
+    continueCoderCommitScopeOwnership,
+    resolveCoderCommitScopePaths,
+} from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
@@ -32,8 +36,8 @@ import { markPromptInProgress } from '../prompts/markPromptInProgress';
 import { parsePromptRunnerAttribution, type PromptRunnerAttribution } from '../prompts/promptRunnerAttribution';
 import { resolvePromptStatusLine } from '../prompts/resolvePromptStatusLine';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
-import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
-import { writePromptFile } from '../prompts/writePromptFile';
+import { buildPromptErrorLogPath, writePromptErrorLog } from '../prompts/writePromptErrorLog';
+import { buildPromptFileContent, writePromptFile } from '../prompts/writePromptFile';
 import { writePromptRunTrace } from '../prompts/writePromptRunTrace';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { runPromptWithCheckFeedback } from '../checks/runPromptWithCheckFeedback';
@@ -41,6 +45,17 @@ import { CoderCheckSetupError } from '../checks/projectCheck';
 import { CoderCheckFailedError } from '../checks/CoderCheckFailedError';
 import { CoderGitOperationError } from '../git/CoderGitOperationError';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
+import { CoderPhasePersistence } from '../git/CoderPhasePersistence';
+import { CoderCheckExecutionError } from '../checks/CoderCheckExecutionError';
+import { withCoderWorkspaceLock } from '../common/withCoderWorkspaceLock';
+import { buildScriptLogPath } from '../common/runGoScript/buildScriptLogPath';
+import { buildCoderExecutionArtifactPaths } from '../common/runGoScript/buildCoderExecutionArtifactPaths';
+import { relative } from 'path';
+import { readFile, unlink, writeFile } from 'fs/promises';
+import { refreshPromptSelection } from '../prompts/refreshPromptSelection';
+import { buildPromptRunTracePath } from '../prompts/buildPromptRunTracePath';
+import type { CoderFinalizationFile } from '../git/coderFinalizationFiles';
+import { listWorkingTreeChangedFiles } from '../git/workingTreeChanges';
 
 /**
  * Maximum number of retry attempts performed after a prompt round throws an error.
@@ -100,6 +115,9 @@ export type RunPromptRoundOptions = {
     artifactsProjectPath?: string;
     /** Scope captured before check-repair authoring and lazy Book initialization. */
     commitScope?: CoderCommitScope;
+    /** Last retained no-commit phase of this same job, never an unrelated worker's dirty-file list. */
+    ownershipScope?: CoderCommitScope;
+    onScopeRetained?: (scope: CoderCommitScope) => void;
     /** Cancels only this round's owned subprocesses and retry waits. */
     signal?: AbortSignal;
 };
@@ -109,7 +127,15 @@ export type RunPromptRoundOptions = {
  *
  * @private function of runCodexPrompts
  */
-export async function runPromptRound({
+export async function runPromptRound(options: RunPromptRoundOptions): Promise<void> {
+    const projectPath =
+        options.projectPath ?? options.options.workspace?.projectPath ?? options.options.projectPath ?? process.cwd();
+    const project = options.options.workspace?.projectPath === projectPath ? options.options.workspace : projectPath;
+    return withCoderWorkspaceLock(project, () => runOwnedPromptRound(options), { isNestedOwnershipAllowed: true });
+}
+
+/** Runs one selected round while agent/check/bookkeeping/Git mutations share workspace ownership. */
+async function runOwnedPromptRound({
     options,
     runner,
     runnerMetadata,
@@ -124,6 +150,8 @@ export async function runPromptRound({
     projectPath,
     artifactsProjectPath,
     commitScope,
+    ownershipScope,
+    onScopeRetained,
     signal,
 }: RunPromptRoundOptions): Promise<void> {
     const roundProjectPath = projectPath ?? options.workspace?.projectPath ?? options.projectPath ?? process.cwd();
@@ -160,7 +188,50 @@ export async function runPromptRound({
     let attemptCount = 1;
     // Note: The very same snapshot tells which files this round has changed, both for normalizing their line
     //       endings and for committing only them instead of everything which is changed in the project
-    const roundCommitScope = commitScope ?? (await captureRoundCommitScopeIfNeeded(options, roundProjectPath));
+    const capturedScope = commitScope ?? (await captureRoundCommitScopeIfNeeded(options, roundProjectPath));
+    const roundCommitScope = capturedScope
+        ? continueCoderCommitScopeOwnership(capturedScope, ownershipScope)
+        : undefined;
+    const repositoryRoot = roundCommitScope?.repositoryRoot ?? roundProjectPath;
+    const excludedPaths = buildCoderExecutionArtifactPaths(scriptPath).map((path) =>
+        relative(repositoryRoot, path).replace(/\\/gu, '/'),
+    );
+    const persistence = roundCommitScope
+        ? new CoderPhasePersistence({
+              scope: roundCommitScope,
+              isCommitEnabled: !options.noCommit,
+              isAutoPushEnabled: options.autoPush,
+              implementationMessage: commitMessage,
+              task: promptLabel,
+              excludedPaths,
+              signal,
+              onRetained: onScopeRetained,
+              beforePersist: () =>
+                  waitForCommitConfirmationIfNeeded({
+                      options,
+                      commitMessage,
+                      isRichUiEnabled,
+                      progressDisplay,
+                      uiHandle,
+                  }),
+              onPersisted: (result) => {
+                  if (result.commit) {
+                      const message = `Committed ${result.phase} changes: ${result.commit}`;
+                      uiHandle?.state.setStatusMessage(message);
+                      if (!isRichUiEnabled) console.info(colors.gray(message));
+                  }
+              },
+          })
+        : undefined;
+    if (commitScope && persistence) await persistence.adoptPreparation();
+    await persistence?.assertRetained();
+    await persistence?.assertWritablePaths([
+        nextPrompt.file.path,
+        buildPromptRunTracePath(nextPrompt.file, nextPrompt.section),
+        buildPromptErrorLogPath(nextPrompt.file.path),
+        scriptPath,
+        buildScriptLogPath(scriptPath),
+    ]);
 
     await withPromptRuntimeLog(
         scriptPath,
@@ -169,6 +240,7 @@ export async function runPromptRound({
 
             for (let errorRetryAttempt = 0; errorRetryAttempt <= MAX_RETRY_ATTEMPTS_AFTER_ERROR; errorRetryAttempt++) {
                 let isVerified = false;
+                let retainedRuntimeLog: string | undefined;
                 try {
                     signal?.throwIfAborted();
                     uiHandle?.startCapturingAgentOutput();
@@ -182,6 +254,7 @@ export async function runPromptRound({
                         checkCommand: options.checkCommand,
                         preserveArtifactsOnSuccess: options.preserveLogs,
                         logPath,
+                        persistence,
                         onBeforeCheck: () =>
                             normalizeLineEndingsForCurrentRound(options, roundProjectPath, roundCommitScope),
                         onAttemptStarted: (nextAttemptCount) => {
@@ -201,6 +274,9 @@ export async function runPromptRound({
                         ...(signal ? { signal } : {}),
                     });
                     isVerified = true;
+                    // Successful temporary-log cleanup belongs to finalization. Keep its bytes available if a
+                    // later hook/signature/status commit fails, so failure recovery still has the transcript.
+                    if (persistence) retainedRuntimeLog = await readFile(logPath, 'utf-8').catch(() => undefined);
 
                     await finalizeSuccessfulPromptRound({
                         options,
@@ -218,6 +294,7 @@ export async function runPromptRound({
                         waitForRequestedPause,
                         roundProjectPath,
                         signal,
+                        persistence,
                     });
                     return;
                 } catch (error) {
@@ -232,13 +309,34 @@ export async function runPromptRound({
                                       'record',
                                       error instanceof Error ? error.message : String(error),
                                   );
-                        await writePromptErrorLog({
-                            file: nextPrompt.file,
-                            section: nextPrompt.section,
-                            runnerName: runnerMetadata.runnerName,
-                            modelName: runnerMetadata.modelName,
-                            error: persistenceError,
-                        });
+                        if (options.checkCommand?.trim()) persistenceError.checkOutcome ??= 'passed';
+                        if (retainedRuntimeLog !== undefined) {
+                            // Never replace a concurrent writer's log while recovering our own cleanup.
+                            await writeFile(logPath, retainedRuntimeLog, { flag: 'wx' }).catch(() => undefined);
+                        }
+                        if (persistence) {
+                            const failurePath = await persistence.recordFailure(persistenceError);
+                            if (failurePath) console.warn(`Persistence failure retained in \`${failurePath}\`.`);
+                            await reportRetainedChanges(repositoryRoot);
+                        } else {
+                            await writePromptErrorLog({
+                                file: nextPrompt.file,
+                                section: nextPrompt.section,
+                                runnerName: runnerMetadata.runnerName,
+                                modelName: runnerMetadata.modelName,
+                                error: persistenceError,
+                            });
+                            if (persistenceError.operation !== 'push')
+                                await recordPromptRoundTrace({
+                                    options,
+                                    nextPrompt,
+                                    runnerMetadata,
+                                    promptExecutionStartedDate,
+                                    attemptCount,
+                                    logPath,
+                                    outcome: { kind: 'failed', error: persistenceError },
+                                });
+                        }
                         throw persistenceError;
                     }
                     lastError = error;
@@ -249,6 +347,7 @@ export async function runPromptRound({
                         error instanceof AuthenticationError ||
                         error instanceof EnvironmentMismatchError ||
                         error instanceof CoderCheckSetupError ||
+                        error instanceof CoderCheckExecutionError ||
                         error instanceof CoderCheckFailedError ||
                         error instanceof CoderGitOperationError ||
                         signal?.aborted ||
@@ -289,6 +388,7 @@ export async function runPromptRound({
                 waitForRequestedPause,
                 roundProjectPath,
                 isInterrupted: signal?.aborted,
+                persistence,
             });
 
             throw lastError;
@@ -328,6 +428,7 @@ async function recordPromptRoundInProgress(options: {
     progress: CoderRunStepProgress;
 }): Promise<void> {
     const { nextPrompt, runnerMetadata, previousRunnerSignatures, thinkingLevel, attemptCount, progress } = options;
+    await refreshPromptSelection(nextPrompt);
 
     markPromptInProgress({
         file: nextPrompt.file,
@@ -342,7 +443,11 @@ async function recordPromptRoundInProgress(options: {
     });
     // Note: The prompt status is always written into the original project, an isolated round transports
     //       its own changes back through the merge instead
-    await writePromptFile(nextPrompt.file);
+    try {
+        await writePromptFile(nextPrompt.file);
+    } catch (error) {
+        throw new CoderGitOperationError('record', error instanceof Error ? error.message : String(error));
+    }
 }
 
 /**
@@ -449,6 +554,7 @@ async function finalizeSuccessfulPromptRound(options: {
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
     roundProjectPath: string;
     signal?: AbortSignal;
+    persistence?: CoderPhasePersistence;
 }): Promise<void> {
     const {
         options: runOptions,
@@ -473,36 +579,81 @@ async function finalizeSuccessfulPromptRound(options: {
         phase: 'running',
         statusMessage: 'Recording prompt result',
     });
-
-    markPromptDone({
-        file: nextPrompt.file,
-        section: nextPrompt.section,
-        steps: result.steps,
-        ...runnerMetadata,
-        previousRunnerSignatures,
-        attemptCount: result.attemptCount,
-        loginMethod: result.loginMethod,
-        thinkingLevel: runOptions.thinkingLevel,
-    });
-    // Note: The prompt status is always written into the original project, an isolated round transports
-    //       its own changes back through the merge instead
-    await writePromptFile(nextPrompt.file);
-    // Note: Written before the round is committed, so the trace of the round lands in the very same commit
-    //       as the prompt it describes, and before the live runtime log it is built from is deleted
-    await recordPromptRoundTrace({
-        options: runOptions,
-        nextPrompt,
-        runnerMetadata,
-        promptExecutionStartedDate,
-        attemptCount: result.attemptCount,
-        logPath,
-        outcome: { kind: 'succeeded', steps: result.steps, loginMethod: result.loginMethod },
-    });
-    // Checked rounds normalize before each verification, so successful content is never changed afterwards.
-    // Preserve normalization for ordinary rounds which have no selected check command.
-    if (!runOptions.checkCommand?.trim()) {
-        await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
+    if (options.persistence) {
+        await options.persistence.assertRetained();
+        await refreshPromptSelection(nextPrompt);
     }
+    // Prepare a completion candidate without publishing done in queue memory before local persistence succeeds.
+    const completionPrompt = options.persistence
+        ? {
+              file: { ...nextPrompt.file, lines: [...nextPrompt.file.lines] },
+              section: { ...nextPrompt.section },
+          }
+        : nextPrompt;
+
+    const finalizationFiles: CoderFinalizationFile[] = [];
+    /** The status/trace candidate is Coder finalization, never part of the check command delta. */
+    const recordCompletion = async (): Promise<void> => {
+        if (!runOptions.checkCommand?.trim() && runOptions.normalizeLineEndings) completionPrompt.file.eol = '\n';
+        markPromptDone({
+            file: completionPrompt.file,
+            section: completionPrompt.section,
+            steps: result.steps,
+            ...runnerMetadata,
+            previousRunnerSignatures,
+            attemptCount: result.attemptCount,
+            loginMethod: result.loginMethod,
+            thinkingLevel: runOptions.thinkingLevel,
+        });
+        // Note: The prompt status is always written into the original project, an isolated round transports
+        //       its own changes back through the merge instead
+        if (!options.persistence) await writePromptFile(completionPrompt.file);
+        // Note: Written before the round is committed, so the trace of the round lands in the very same commit
+        //       as the prompt it describes, and before the live runtime log it is built from is deleted
+        await recordPromptRoundTrace({
+            options: runOptions,
+            nextPrompt: completionPrompt,
+            runnerMetadata,
+            promptExecutionStartedDate,
+            attemptCount: result.attemptCount,
+            logPath,
+            outcome: { kind: 'succeeded', steps: result.steps, loginMethod: result.loginMethod },
+            persistence: options.persistence,
+            writeContent: options.persistence
+                ? async (path, content) => {
+                      finalizationFiles.push({
+                          path,
+                          content: Buffer.from(
+                              runOptions.normalizeLineEndings ? content.replace(/\r\n/gu, '\n') : content,
+                          ),
+                      });
+                  }
+                : undefined,
+        });
+        // Publish the selected status last, after trace/artifact persistence has succeeded.
+        if (options.persistence)
+            finalizationFiles.push({
+                path: completionPrompt.file.path,
+                content: Buffer.from(buildPromptFileContent(completionPrompt.file)),
+            });
+        // Checked rounds normalize before each verification, so successful content is never changed afterwards.
+        // Preserve normalization for ordinary rounds which have no selected check command.
+        if (!runOptions.checkCommand?.trim()) {
+            await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
+        }
+        if (options.persistence && !runOptions.preserveLogs) {
+            try {
+                await unlink(logPath);
+            } catch (error) {
+                if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+            }
+        }
+    };
+    if (options.persistence) await options.persistence.mutate(recordCompletion, 'finalization');
+    else await recordCompletion();
+    // Include retained artifacts and intentional removals of previously tracked temporary files. No Coder
+    // writer will subsequently change these paths; default live-log cleanup above precedes this boundary.
+    await options.persistence?.includeDurableArtifacts();
     await recordPromptDurationInEstimateCache({
         options: runOptions,
         runnerMetadata,
@@ -510,32 +661,49 @@ async function finalizeSuccessfulPromptRound(options: {
     });
 
     if (!runOptions.noCommit) {
-        await waitForCommitConfirmationIfNeeded({
-            options: runOptions,
-            commitMessage,
-            isRichUiEnabled,
-            progressDisplay,
-            uiHandle,
-        });
+        if (!options.persistence)
+            await waitForCommitConfirmationIfNeeded({
+                options: runOptions,
+                commitMessage,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+            });
         await waitForRequestedPause({
             checkpointLabel: 'committing the successful changes',
             phase: 'running',
             statusMessage: 'Committing changes',
         });
-        await commitChanges(commitMessage, {
-            autoPush: runOptions.autoPush,
-            // Note: Only the prompt file and the files the coding agent has changed belong to this round,
-            //       everything which was already changed before the round started stays in the working tree
-            relevantPaths: roundCommitScope && (await resolveCoderCommitScopePaths(roundCommitScope)),
-            // Keep the live runtime log out of default commits because it is deleted after a successful round.
-            excludePaths: runOptions.preserveLogs ? undefined : [logPath],
-            projectPath: roundCommitScope?.repositoryRoot ?? roundProjectPath,
-            // Note: An isolated round commits only the agent changes, so a task that needed none must not fail here
-            isEmptyCommitAllowed: runOptions.isIsolated,
-            ...(options.signal ? { signal: options.signal } : {}),
-        });
+        if (options.persistence) {
+            await options.persistence.finalize(undefined, finalizationFiles);
+            Object.assign(nextPrompt.section, completionPrompt.section, { status: 'done' });
+            nextPrompt.file.lines = completionPrompt.file.lines;
+            nextPrompt.file.eol = completionPrompt.file.eol;
+            await options.persistence.push();
+        } else
+            await commitChanges(commitMessage, {
+                autoPush: runOptions.autoPush,
+                // Note: Only the prompt file and the files the coding agent has changed belong to this round,
+                //       everything which was already changed before the round started stays in the working tree
+                relevantPaths: roundCommitScope && (await resolveCoderCommitScopePaths(roundCommitScope)),
+                // Keep the live runtime log out of default commits because it is deleted after a successful round.
+                excludePaths: runOptions.preserveLogs ? undefined : [logPath],
+                projectPath: roundCommitScope?.repositoryRoot ?? roundProjectPath,
+                // Note: An isolated round commits only the agent changes, so a task that needed none must not fail here
+                isEmptyCommitAllowed: runOptions.isIsolated,
+                ...(options.signal ? { signal: options.signal } : {}),
+            });
     } else {
-        uiHandle?.state.setStatusMessage('Leaving changes uncommitted');
+        if (options.persistence) {
+            await options.persistence.finalize(undefined, finalizationFiles);
+            Object.assign(nextPrompt.section, completionPrompt.section, { status: 'done' });
+            nextPrompt.file.lines = completionPrompt.file.lines;
+            nextPrompt.file.eol = completionPrompt.file.eol;
+        }
+        const retainedPaths = options.persistence?.outstandingPaths() ?? [];
+        const status = `Leaving changes uncommitted${retainedPaths.length ? `: ${retainedPaths.join(', ')}` : ''}`;
+        uiHandle?.state.setStatusMessage(status);
+        if (!isRichUiEnabled) console.info(colors.gray(status));
     }
 
     if (runOptions.autoMigrate) {
@@ -546,6 +714,7 @@ async function finalizeSuccessfulPromptRound(options: {
         });
     }
     await runPostPromptAutoMigrationIfEnabled(runOptions);
+    await options.persistence?.assertRetained();
 }
 
 /**
@@ -565,6 +734,7 @@ async function finalizeFailedPromptRound(options: {
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
     roundProjectPath: string;
     isInterrupted?: boolean;
+    persistence?: CoderPhasePersistence;
 }): Promise<void> {
     const {
         nextPrompt,
@@ -584,44 +754,83 @@ async function finalizeFailedPromptRound(options: {
     uiHandle?.stopCapturingAgentOutput();
     uiHandle?.state.setPhase('error');
     uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
-    if (!options.isInterrupted)
+    if (options.persistence && error instanceof CoderGitOperationError) {
+        // Hooks/concurrent writers may have changed canonical status/trace/error files. Keep those bytes and
+        // report from a unique recovery record, rather than overwriting evidence to tidy up the failure.
+        const failurePath = await options.persistence.recordFailure(error);
+        if (failurePath) console.warn(`Persistence failure retained in \`${failurePath}\`.`);
+        await reportRetainedChanges(roundCommitScope?.repositoryRoot ?? roundProjectPath);
+        return;
+    }
+    if (!options.isInterrupted && !(error instanceof CoderGitOperationError && error.operation === 'record'))
         await waitForRequestedPause({
             checkpointLabel: 'recording the prompt failure',
             phase: 'error',
             statusMessage: 'Recording prompt failure',
         });
 
-    // Cancellation keeps the last [^] step as the recoverable interrupted status.
-    if (!options.isInterrupted)
-        markPromptFailed({
+    /** Failed/interrupted bookkeeping remains serialized and never becomes a check transformation. */
+    const recordFailure = async (): Promise<void> => {
+        // Cancellation keeps the last [^] step; unsafe attribution keeps the on-disk task content unchanged.
+        if (!(error instanceof CoderGitOperationError && error.operation === 'record')) {
+            await refreshPromptSelection(nextPrompt);
+            if (!options.isInterrupted)
+                markPromptFailed({
+                    file: nextPrompt.file,
+                    section: nextPrompt.section,
+                    ...runnerMetadata,
+                    previousRunnerSignatures,
+                    promptExecutionStartedDate,
+                    attemptCount,
+                });
+            await writePromptFile(nextPrompt.file);
+        }
+        await writePromptErrorLog({
             file: nextPrompt.file,
             section: nextPrompt.section,
-            ...runnerMetadata,
-            previousRunnerSignatures,
+            runnerName: runnerMetadata.runnerName,
+            modelName: runnerMetadata.modelName,
+            error,
+        });
+        // Note: A failed round is exactly the round whose trace is worth reading, so it is written before the live
+        //       runtime log it is built from is deleted
+        await recordPromptRoundTrace({
+            options: runOptions,
+            nextPrompt,
+            runnerMetadata,
             promptExecutionStartedDate,
             attemptCount,
+            logPath,
+            outcome: { kind: 'failed', error },
+            persistence: options.persistence,
         });
-    await writePromptFile(nextPrompt.file);
-    await writePromptErrorLog({
-        file: nextPrompt.file,
-        section: nextPrompt.section,
-        runnerName: runnerMetadata.runnerName,
-        modelName: runnerMetadata.modelName,
-        error,
-    });
-    // Note: A failed round is exactly the round whose trace is worth reading, so it is written before the live
-    //       runtime log it is built from is deleted
-    await recordPromptRoundTrace({
-        options: runOptions,
-        nextPrompt,
-        runnerMetadata,
-        promptExecutionStartedDate,
-        attemptCount,
-        logPath,
-        outcome: { kind: 'failed', error },
-    });
-    if (!options.isInterrupted)
-        await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
+        if (!options.isInterrupted && !(error instanceof CoderGitOperationError))
+            await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
+    };
+    if (options.persistence) {
+        try {
+            await options.persistence.mutate(recordFailure, 'finalization');
+        } catch (recordError) {
+            const failurePath = await options.persistence.recordFailure(recordError);
+            console.warn(
+                `Failure bookkeeping could not be safely recorded; the original failure and partial work were retained${
+                    failurePath ? ` in \`${failurePath}\`` : ''
+                }.`,
+            );
+        }
+    } else await recordFailure();
+    await reportRetainedChanges(roundCommitScope?.repositoryRoot ?? roundProjectPath);
+}
+
+/** Reports actual retained Git state on failure/interruption, without claiming unrelated user changes as owned. */
+async function reportRetainedChanges(repositoryRoot: string): Promise<void> {
+    try {
+        const paths = await listWorkingTreeChangedFiles(repositoryRoot);
+        if (paths.length)
+            console.warn(`Retained uncommitted changes: ${paths.map((path) => `\`${path}\``).join(', ')}`);
+    } catch (error) {
+        console.warn(`Could not inspect retained Git state: ${error instanceof Error ? error.message : String(error)}`);
+    }
 }
 
 /**
@@ -639,6 +848,8 @@ async function recordPromptRoundTrace(options: {
     attemptCount: number;
     logPath: string;
     outcome: PromptRunTraceOutcome;
+    persistence?: CoderPhasePersistence;
+    writeContent?: (path: string, content: string) => Promise<void>;
 }): Promise<void> {
     const {
         options: runOptions,
@@ -662,6 +873,8 @@ async function recordPromptRoundTrace(options: {
         finishedDate: moment(),
         outcome,
         logPath,
+        phaseCommits: options.persistence?.commits,
+        ...(options.writeContent ? { writeContent: options.writeContent } : {}),
     });
 }
 
@@ -760,12 +973,13 @@ async function captureRoundCommitScopeIfNeeded(
     options: PromptRoundExecutionOptions,
     roundProjectPath: string,
 ): Promise<CoderCommitScope | undefined> {
-    if (options.noCommit && !options.normalizeLineEndings) {
+    if (!options.workspace && options.noCommit && !options.normalizeLineEndings && !options.checkCommand?.trim()) {
         return undefined;
     }
 
     return captureCoderCommitScope(
         options.workspace?.projectPath === roundProjectPath ? options.workspace : roundProjectPath,
+        { isContentSnapshotRequired: true },
     );
 }
 

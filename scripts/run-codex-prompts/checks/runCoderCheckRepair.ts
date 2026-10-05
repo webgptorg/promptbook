@@ -1,11 +1,13 @@
-import { relative } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { WorkspaceRepositoryContext } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
-import { formatUnknownErrorMessage } from '../common/formatUnknownErrorMessage';
-import { captureCoderCommitScope, resolveCoderCommitScopePaths, type CoderCommitScope } from '../git/coderCommitScope';
+import {
+    captureCoderCommitScope,
+    continueCoderCommitScopeOwnership,
+    type CoderCommitScope,
+} from '../git/coderCommitScope';
+import { CoderPhasePersistence } from '../git/CoderPhasePersistence';
 import { CoderGitOperationError } from '../git/CoderGitOperationError';
-import { commitChanges } from '../git/commitChanges';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
@@ -16,9 +18,10 @@ import { createCheckBeforeRepairPrompt } from './createCheckBeforeRepairPrompt';
 import { limitCheckOutput } from './limitCheckOutput';
 import { assertProjectCheckIsConfigured, CoderCheckSetupError } from './projectCheck';
 import { runCheckBefore } from './runCheckBefore';
-
-/** Commit policy shared by run's pre-coding repair and the finite fix command. */
-const PRE_CODING_CHECK_CHANGES_COMMIT_MESSAGE = 'chore: Apply changes made by pre-coding checks';
+import { CoderCheckExecutionError } from './CoderCheckExecutionError';
+import { withCoderWorkspaceLock } from '../common/withCoderWorkspaceLock';
+import { relative } from 'path';
+import { listWorkingTreeChangedFiles } from '../git/workingTreeChanges';
 
 /** Explicit outcome of a check/repair job, independent of any ordinary prompt queue or terminal. */
 export type CoderCheckRepairResult = {
@@ -28,6 +31,7 @@ export type CoderCheckRepairResult = {
         | 'repaired-and-verified'
         | 'checks-failed'
         | 'setup-error'
+        | 'execution-error'
         | 'interrupted'
         | 'persistence-error';
     readonly isCheckPassed: boolean;
@@ -50,6 +54,8 @@ export type CoderCheckRepairOptions = {
     readonly isWorkingTreeCleanRequired: boolean;
     readonly preserveLogs?: boolean;
     readonly signal?: AbortSignal;
+    readonly ownershipScope?: CoderCommitScope;
+    readonly onScopeRetained?: (scope: CoderCommitScope) => void;
     readonly waitForPauseCheckpoint?: WaitForCoderRunPauseCheckpoint;
     readonly onInitialCheckStarted?: () => void;
     readonly onInitialCheckFinished?: () => void;
@@ -65,9 +71,17 @@ export type CoderCheckRepairOptions = {
  */
 export async function runCoderCheckRepair(options: CoderCheckRepairOptions): Promise<CoderCheckRepairResult> {
     if (options.mode === 'no') return { kind: 'skipped', isCheckPassed: false };
+    return withCoderWorkspaceLock(options.workspace ?? options.projectPath, () => runOwnedCoderCheckRepair(options), {
+        isNestedOwnershipAllowed: true,
+    });
+}
+
+/** Performs the shared repair lifecycle under the same lease as its direct/run/server caller. */
+async function runOwnedCoderCheckRepair(options: CoderCheckRepairOptions): Promise<CoderCheckRepairResult> {
     let repairPrompt: PromptSelection | undefined;
     let isCheckPassed = false;
     let isRepairExecutionStarted = false;
+    let persistence: CoderPhasePersistence | undefined;
     try {
         options.signal?.throwIfAborted();
         if (!options.checkCommand?.trim()) {
@@ -82,21 +96,60 @@ export async function runCoderCheckRepair(options: CoderCheckRepairOptions): Pro
             });
             await ensureWorkingTreeClean(options.workspace?.repositoryRoot ?? options.projectPath);
         }
-        const checkCommitScope =
-            options.mode === 'yes-and-fix' && options.isCommitEnabled
-                ? await captureCoderCommitScope(options.workspace ?? options.projectPath)
-                : undefined;
+        const checkCommitScope = continueCoderCommitScopeOwnership(
+            await captureCoderCommitScope(options.workspace ?? options.projectPath, {
+                isContentSnapshotRequired: true,
+            }),
+            options.ownershipScope,
+        );
+        const excludedPaths = [
+            relative(
+                checkCommitScope.repositoryRoot ?? options.projectPath,
+                buildCheckBeforeScriptPath(options.projectPath),
+            ).replace(/\\/gu, '/'),
+        ];
+        persistence = new CoderPhasePersistence({
+            scope: checkCommitScope,
+            isCommitEnabled: options.isCommitEnabled,
+            isAutoPushEnabled: options.isAutoPushEnabled,
+            signal: options.signal,
+            excludedPaths,
+            onRetained: options.onScopeRetained,
+            onPersisted: (result) => {
+                if (result.commit)
+                    console.info(
+                        `Committed ${result.phase} changes: ${result.commit}${
+                            result.checkOutcome ? ` (${result.checkOutcome})` : ''
+                        }`,
+                    );
+            },
+        });
         options.onInitialCheckStarted?.();
         const checkResult = await runCheckBefore({
             checkCommand: options.checkCommand,
             projectPath: options.projectPath,
             waitForPauseCheckpoint: options.waitForPauseCheckpoint,
+            persistence,
             ...(options.preserveLogs ? { preserveLogs: true } : {}),
             ...(options.signal ? { signal: options.signal } : {}),
         }).finally(() => options.onInitialCheckFinished?.());
         options.signal?.throwIfAborted();
         isCheckPassed = checkResult.isPassed;
-        await commitCheckChanges(options, checkCommitScope);
+        await persistence.includeDurableArtifacts(excludedPaths);
+        await persistence.finalize(
+            spaceTrim(`
+            chore: Persist Coder check execution artifacts
+
+            Coder-Phase: finalization
+            Coder-Check-Command: ${options.checkCommand}
+            Coder-Check-Outcome: ${isCheckPassed ? 'passed' : 'failed'}
+            Retained check execution artifacts; task completion is pending genuine verification.
+        `),
+        );
+        await persistence.push();
+        if (!options.isCommitEnabled && persistence.outstandingPaths().length) {
+            console.info(`Changes retained after checking (uncommitted): ${persistence.outstandingPaths().join(', ')}`);
+        }
         if (isCheckPassed) return { kind: 'passed-without-repair', isCheckPassed: true };
         const checkOutput = limitCheckOutput(checkResult.checkOutput);
         if (options.mode === 'yes-and-fail') {
@@ -116,9 +169,12 @@ export async function runCoderCheckRepair(options: CoderCheckRepairOptions): Pro
             );
         }
         // Capture before authoring and lazy Book initialization, so the repair's complete write set is eligible.
-        const repairCommitScope = options.isCommitEnabled
-            ? await captureCoderCommitScope(options.workspace ?? options.projectPath)
-            : undefined;
+        const repairCommitScope = continueCoderCommitScopeOwnership(
+            await captureCoderCommitScope(options.workspace ?? options.projectPath, {
+                isContentSnapshotRequired: true,
+            }),
+            options.isCommitEnabled ? undefined : persistence.currentCommitScope,
+        );
         repairPrompt = await createCheckBeforeRepairPrompt({
             projectPath: options.projectPath,
             checkCommand: options.checkCommand,
@@ -135,6 +191,23 @@ export async function runCoderCheckRepair(options: CoderCheckRepairOptions): Pro
         options.signal?.throwIfAborted();
         return { kind: 'repaired-and-verified', isCheckPassed: true, repairPrompt };
     } catch (error) {
+        if (persistence) {
+            const failurePath = await persistence.recordFailure(error);
+            if (failurePath) console.warn(`Check failure retained in \`${failurePath}\`.`);
+            try {
+                const paths = await listWorkingTreeChangedFiles(
+                    options.workspace?.repositoryRoot ?? options.projectPath,
+                );
+                if (paths.length)
+                    console.warn(`Retained uncommitted changes: ${paths.map((path) => `\`${path}\``).join(', ')}`);
+            } catch (inspectionError) {
+                console.warn(
+                    `Could not inspect retained Git state: ${
+                        inspectionError instanceof Error ? inspectionError.message : String(inspectionError)
+                    }`,
+                );
+            }
+        }
         if (repairPrompt && !isRepairExecutionStarted) {
             // No model attempt began. Keep the reproducible repair PRD available and persist its setup diagnostic
             // using the same artifact naming as executed repairs, without inventing runner attribution.
@@ -152,40 +225,15 @@ export async function runCoderCheckRepair(options: CoderCheckRepairOptions): Pro
                 ? 'checks-failed'
                 : error instanceof CoderGitOperationError
                 ? 'persistence-error'
+                : error instanceof CoderCheckExecutionError
+                ? 'execution-error'
                 : 'setup-error',
-            isCheckPassed: error instanceof CoderGitOperationError && isRepairExecutionStarted ? true : isCheckPassed,
+            isCheckPassed:
+                error instanceof CoderGitOperationError && error.checkOutcome
+                    ? error.checkOutcome === 'passed'
+                    : isCheckPassed,
             repairPrompt,
             error,
         };
-    }
-}
-
-/** Commits only check-produced files under the existing pre-coding policy, with no empty commits. */
-async function commitCheckChanges(options: CoderCheckRepairOptions, scope?: CoderCommitScope): Promise<void> {
-    if (!scope) return;
-    const checkScriptPath = relative(
-        scope.repositoryRoot ?? scope.projectPath,
-        buildCheckBeforeScriptPath(options.projectPath),
-    ).replace(/\\/gu, '/');
-    const relevantPaths = (await resolveCoderCommitScopePaths(scope)).filter(
-        (path) => options.preserveLogs || path !== checkScriptPath,
-    );
-    if (relevantPaths.length === 0) return;
-    options.signal?.throwIfAborted();
-    await options.waitForPauseCheckpoint?.({
-        checkpointLabel: 'committing changes made by pre-coding checks',
-        phase: 'checking',
-        statusMessage: 'Committing changes made by pre-coding checks...',
-    });
-    try {
-        await commitChanges(PRE_CODING_CHECK_CHANGES_COMMIT_MESSAGE, {
-            autoPush: options.isAutoPushEnabled,
-            projectPath: scope.repositoryRoot ?? scope.projectPath,
-            relevantPaths,
-            ...(options.signal ? { signal: options.signal } : {}),
-        });
-    } catch (error) {
-        if (error instanceof CoderGitOperationError) throw error;
-        throw new CoderGitOperationError('commit', formatUnknownErrorMessage(error));
     }
 }

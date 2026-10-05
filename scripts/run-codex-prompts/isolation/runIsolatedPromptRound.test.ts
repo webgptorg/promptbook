@@ -1,7 +1,7 @@
 import type { RunOptions } from '../cli/RunOptions';
 import { join } from 'path';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
-import { commitChanges } from '../git/commitChanges';
+import { commitChanges, pushCommittedChanges } from '../git/commitChanges';
 import { runPromptRound, type RunPromptRoundOptions } from '../main/runPromptRound';
 import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
@@ -14,8 +14,16 @@ import { mergeCoderIsolationWorktree } from './mergeCoderIsolationWorktree';
 import { removeCoderIsolationWorktree } from './removeCoderIsolationWorktree';
 import { runIsolatedPromptRound } from './runIsolatedPromptRound';
 
+jest.mock('fs/promises', () => ({
+    ...jest.requireActual('fs/promises'),
+    realpath: jest.fn(async (path: string) => path),
+}));
+
 jest.mock('../common/resolveCoderProjectContext', () => ({
-    resolveCoderProjectContext: jest.fn(async ({ projectPath }: { projectPath: string }) => ({ projectPath, context: 'Worktree context' })),
+    resolveCoderProjectContext: jest.fn(async ({ projectPath }: { projectPath: string }) => ({
+        projectPath,
+        context: 'Worktree context',
+    })),
 }));
 jest.mock('../common/resolveCoderAgent', () => ({
     resolveCoderAgent: jest.fn(async () => ({ systemMessage: 'Worktree Book' })),
@@ -30,6 +38,7 @@ jest.mock('../../../src/cli/cli-commands/common/workspaceRepository', () => ({
 }));
 
 jest.mock('../git/coderCommitScope', () => ({
+    continueCoderCommitScopeOwnership: jest.requireActual('../git/coderCommitScope').continueCoderCommitScopeOwnership,
     captureCoderCommitScope: jest.fn(async (projectPath: string) => ({
         projectPath,
         snapshotBeforeOperation: { changedFileHashes: new Map() },
@@ -39,6 +48,7 @@ jest.mock('../git/coderCommitScope', () => ({
 
 jest.mock('../git/commitChanges', () => ({
     commitChanges: jest.fn(),
+    pushCommittedChanges: jest.fn(),
 }));
 
 jest.mock('../main/runPromptRound', () => ({
@@ -64,6 +74,8 @@ jest.mock('./mergeCoderIsolationWorktree', () => ({
 jest.mock('./removeCoderIsolationWorktree', () => ({
     removeCoderIsolationWorktree: jest.fn(),
 }));
+jest.mock('./preserveCoderIsolationRecovery', () => ({ preserveCoderIsolationRecovery: jest.fn() }));
+jest.mock('../git/agentGitIdentity', () => ({ buildAgentGitEnv: () => undefined }));
 
 /**
  * The worktree every mocked isolation run works with.
@@ -191,7 +203,7 @@ describe('runIsolatedPromptRound', () => {
         expect(runPromptRound).toHaveBeenCalledWith(
             expect.objectContaining({
                 projectPath: join(WORKTREE.worktreePath),
-                artifactsProjectPath: WORKTREE.projectPath,
+                artifactsProjectPath: WORKTREE.worktreePath,
                 resolvedCoderContext: 'Worktree context',
                 resolvedAgentSystemMessage: 'Worktree Book',
                 options: expect.objectContaining({ autoPush: false, isIsolated: true }),
@@ -199,16 +211,12 @@ describe('runIsolatedPromptRound', () => {
         );
     });
 
-    it('commits the merged task in the original project and removes the worktree', async () => {
+    it('preserves integrated phase history, pushes existing commits and removes the worktree', async () => {
         await runIsolatedPromptRound(createIsolatedPromptRoundOptions(createRunOptions({ autoPush: true })));
 
-        expect(mergeCoderIsolationWorktree).toHaveBeenCalledWith(WORKTREE);
-        expect(commitChanges).toHaveBeenCalledWith(expect.any(String), {
-            autoPush: true,
-            projectPath: WORKTREE.projectPath,
-            // Note: The prompt status update and the merged changes are the only relevant paths of the round
-            relevantPaths: ['prompts/example.md'],
-        });
+        expect(mergeCoderIsolationWorktree).toHaveBeenCalledWith(WORKTREE, undefined, undefined);
+        expect(commitChanges).not.toHaveBeenCalled();
+        expect(pushCommittedChanges).toHaveBeenCalledWith(WORKTREE.projectPath, undefined, undefined);
         expect(removeCoderIsolationWorktree).toHaveBeenCalledWith(WORKTREE);
         expect(writePromptFile).not.toHaveBeenCalled();
     });

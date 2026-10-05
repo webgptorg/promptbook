@@ -1,11 +1,11 @@
-import colors from 'colors';
+import { lstat } from 'fs/promises';
 import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
 import { join, relative } from 'path';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { getPromptbookTemporaryGitignoreRule } from '../../../src/utils/filesystem/promptbookTemporaryPath';
 import { formatUnknownErrorMessage } from '../common/formatUnknownErrorMessage';
-import { readCurrentBranchName } from '../git/gitBranchContext';
+import { hasLocalBranch, readCurrentBranchName } from '../git/gitBranchContext';
 import { $enableGitLongPathsSupport } from '../git/gitLongPathsSupport';
 import { runGitCommand } from '../git/runGitCommand';
 import { buildCoderIsolationCheckoutFailureError } from './coderIsolationCheckoutFailureReport';
@@ -16,7 +16,6 @@ import {
     buildCoderIsolationWorktreePath,
 } from './coderIsolationNaming';
 import { copyCoderIsolationEnvironment } from './copyCoderIsolationEnvironment';
-import { removeCoderIsolationWorktree } from './removeCoderIsolationWorktree';
 
 /**
  * Branch name reported by git when no branch is checked out.
@@ -44,8 +43,7 @@ type CreateCoderIsolationWorktreeOptions = {
 /**
  * Creates one temporary git worktree with its own branch and its own copy of the project environment.
  *
- * Leftovers of an earlier run of the same task are removed first so that a repeated task never fails
- * on an already existing worktree directory or branch.
+ * Existing recoverable branches/worktrees require explicit recovery and are never erased on a repeated task.
  */
 export async function createCoderIsolationWorktree(
     options: CreateCoderIsolationWorktreeOptions,
@@ -83,13 +81,21 @@ export async function createCoderIsolationWorktree(
 
     await assertWorktreePathIsGitIgnored(worktree);
 
-    if (await removeCoderIsolationWorktree(worktree)) {
-        console.warn(
-            colors.yellow(
-                `Removed leftovers of an earlier isolated run of \`${taskName}\` before creating a fresh worktree.`,
-            ),
+    const isExistingWorktree = await lstat(worktree.worktreePath).then(
+        () => true,
+        (error: NodeJS.ErrnoException) => {
+            if (error.code === 'ENOENT') return false;
+            throw error;
+        },
+    );
+    if (isExistingWorktree || (await hasLocalBranch(worktree.branchName, projectPath)))
+        throw new NotAllowed(
+            spaceTrim(`
+        Recoverable isolation work already exists for \`${taskName}\` in \`${worktree.worktreePath}\`
+        or branch \`${worktree.branchName}\`. Inspect and integrate that work before explicitly removing it.
+        Coder will not erase an earlier interrupted execution to start another one.
+    `),
         );
-    }
 
     await checkOutWorktree(worktree);
     await copyCoderIsolationEnvironment(
@@ -103,8 +109,7 @@ export async function createCoderIsolationWorktree(
 /**
  * Checks the isolation branch out into the temporary worktree directory.
  *
- * A half-written worktree is removed again so that the failed task neither blocks its own next attempt
- * nor leaves an unusable checkout behind.
+ * A partial checkout is retained on error, so cancellation or Git failure cannot erase recovery evidence.
  */
 async function checkOutWorktree(worktree: CoderIsolationWorktree): Promise<void> {
     try {
@@ -113,9 +118,6 @@ async function checkOutWorktree(worktree: CoderIsolationWorktree): Promise<void>
             cwd: worktree.projectPath,
         });
     } catch (error) {
-        // Note: The cleanup must never replace the reason why the checkout failed with its own failure
-        await removeCoderIsolationWorktree(worktree).catch(() => undefined);
-
         throw buildCoderIsolationCheckoutFailureError(worktree, formatUnknownErrorMessage(error));
     }
 }

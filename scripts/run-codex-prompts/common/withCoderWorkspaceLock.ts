@@ -7,9 +7,15 @@ import {
     type WorkspaceRepositoryContext,
 } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
+import { AsyncLocalStorage } from 'async_hooks';
 
 /** Shared repository mutation lease, outside the working tree and therefore outside every commit scope. */
 const CODER_WORKSPACE_LOCK_FILENAME = 'ptbk-coder-workspace.lock';
+/** Nested common lifecycle services reuse only the lease owned by this asynchronous job. */
+const WORKSPACE_OWNERSHIP = new AsyncLocalStorage<ReadonlyMap<string, CoderWorkspaceOwnership>>();
+
+/** One asynchronous lease level permits sequential nesting and rejects competing sibling activities. */
+type CoderWorkspaceOwnership = { isNestedActivityActive: boolean };
 
 /**
  * Owns checks, task creation, execution and persistence as one workspace job for run, server and fix.
@@ -19,6 +25,7 @@ const CODER_WORKSPACE_LOCK_FILENAME = 'ptbk-coder-workspace.lock';
 export async function withCoderWorkspaceLock<T>(
     project: WorkspaceRepositoryContext | string,
     operation: () => Promise<T>,
+    options?: { readonly isNestedOwnershipAllowed?: boolean },
 ): Promise<T> {
     const workspace = typeof project === 'string' ? await $resolveWorkspaceRepository(project) : project;
     if (!workspace.gitDirectory) {
@@ -26,6 +33,23 @@ export async function withCoderWorkspaceLock<T>(
         return operation();
     }
     const lockPath = join(workspace.gitDirectory, CODER_WORKSPACE_LOCK_FILENAME);
+    const ownedLocks = WORKSPACE_OWNERSHIP.getStore();
+    const ownedLock = ownedLocks?.get(lockPath);
+    if (options?.isNestedOwnershipAllowed && ownedLock) {
+        if (ownedLock.isNestedActivityActive)
+            throw new NotAllowed(
+                'Another owned Coder activity is already mutating this checkout. Concurrent nested repository jobs are not permitted.',
+            );
+        ownedLock.isNestedActivityActive = true;
+        try {
+            return await WORKSPACE_OWNERSHIP.run(
+                new Map([...ownedLocks!, [lockPath, { isNestedActivityActive: false }]]),
+                operation,
+            );
+        } finally {
+            ownedLock.isNestedActivityActive = false;
+        }
+    }
     const token = randomBytes(16).toString('hex');
     let handle;
     try {
@@ -46,7 +70,10 @@ export async function withCoderWorkspaceLock<T>(
     }
     try {
         await handle.writeFile(JSON.stringify({ token, processId: process.pid, projectPath: workspace.projectPath }));
-        return await operation();
+        return await WORKSPACE_OWNERSHIP.run(
+            new Map([...(ownedLocks ?? []), [lockPath, { isNestedActivityActive: false }]]),
+            operation,
+        );
     } finally {
         await handle.close();
         const ownership = await readFile(lockPath, 'utf-8').catch(() => '');

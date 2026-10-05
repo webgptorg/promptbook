@@ -15,9 +15,11 @@ import type { PromptRunner } from '../runners/types/PromptRunner';
 import { limitCheckOutput } from './limitCheckOutput';
 import { runPromptCheckCommand } from './runPromptCheckCommand';
 import { CHECK_REPAIR_INSTRUCTIONS } from './checkRepairInstructions';
-import { assertProjectCheckIsConfigured, CoderCheckSetupError } from './projectCheck';
+import { assertProjectCheckIsConfigured } from './projectCheck';
 import { CoderCheckFailedError } from './CoderCheckFailedError';
 import { UnexpectedError } from '../../../src/errors/UnexpectedError';
+import type { CoderPhasePersistence } from '../git/CoderPhasePersistence';
+import { runCoderCheck } from './runCoderCheck';
 
 /**
  * Maximum number of coding attempts allowed for the same prompt when check keeps failing.
@@ -46,6 +48,8 @@ type RunPromptWithCheckFeedbackOptions = PromptRunOptions & {
      */
     onStepStarted?: OnCoderRunStepStarted;
     runPromptCheckCommandExecutor?: typeof runPromptCheckCommand;
+    /** Shares exact phase attribution with pre-coding checks, server runs and repair-only jobs. */
+    persistence?: CoderPhasePersistence;
 };
 
 /**
@@ -114,7 +118,9 @@ export async function runPromptWithCheckFeedback(
             stepTracker,
         });
 
-        await options.onBeforeCheck?.();
+        if (options.persistence)
+            await options.persistence.mutate(async () => options.onBeforeCheck?.(), 'finalization');
+        else await options.onBeforeCheck?.();
         options.signal?.throwIfAborted();
         await waitForCheckPauseCheckpoint(options.waitForPauseCheckpoint, normalizedCheckCommand, attemptCount);
         console.info(colors.gray(`Running check command after attempt #${attemptCount}: ${normalizedCheckCommand}`));
@@ -124,6 +130,7 @@ export async function runPromptWithCheckFeedback(
             checkCommand: normalizedCheckCommand,
             runOptions: options,
             stepTracker,
+            attemptCount,
         });
 
         if (failedCheck === undefined) {
@@ -177,18 +184,24 @@ async function runRunnerPromptStep(options: {
     const { runOptions, prompt, kind, stepTracker } = options;
 
     runOptions.signal?.throwIfAborted();
-    await stepTracker.startStep(kind);
+    /** The runner and its in-progress status own one serialized implementation/repair write window. */
+    const execute = async (): Promise<PromptRunResult> => {
+        await stepTracker.startStep(kind);
+        return runOptions.runner.runPrompt({
+            prompt,
+            scriptPath: runOptions.scriptPath,
+            projectPath: runOptions.projectPath,
+            logPath: runOptions.logPath,
+            preserveArtifactsOnSuccess: runOptions.preserveArtifactsOnSuccess,
+            waitForPauseCheckpoint: runOptions.waitForPauseCheckpoint,
+            ...(runOptions.signal ? { signal: runOptions.signal } : {}),
+        });
+    };
     const stepStartedTimeMs = Date.now();
-
-    const result = await runOptions.runner.runPrompt({
-        prompt,
-        scriptPath: runOptions.scriptPath,
-        projectPath: runOptions.projectPath,
-        logPath: runOptions.logPath,
-        preserveArtifactsOnSuccess: runOptions.preserveArtifactsOnSuccess,
-        waitForPauseCheckpoint: runOptions.waitForPauseCheckpoint,
-        ...(runOptions.signal ? { signal: runOptions.signal } : {}),
-    });
+    const result = runOptions.persistence
+        ? await runOptions.persistence.mutate(execute, kind === 'fixing' ? 'repair' : 'implementation')
+        : await execute();
+    runOptions.persistence?.freezeImplementation();
     runOptions.signal?.throwIfAborted();
 
     stepTracker.finishStep(
@@ -208,28 +221,32 @@ async function runCheckStep(options: {
     checkCommand: string;
     runOptions: RunPromptWithCheckFeedbackOptions;
     stepTracker: CoderRunStepTracker;
+    attemptCount: number;
 }): Promise<FailedCheckOutcome | undefined> {
     const { runPromptCheckCommandExecutor, checkCommand, runOptions, stepTracker } = options;
 
     runOptions.signal?.throwIfAborted();
-    await stepTracker.startStep('checking');
+    if (runOptions.persistence)
+        await runOptions.persistence.mutate(() => stepTracker.startStep('checking'), 'finalization');
+    else await stepTracker.startStep('checking');
     const stepStartedTimeMs = Date.now();
 
     try {
-        await runPromptCheckCommandExecutor({
+        const result = await runCoderCheck({
             command: checkCommand,
             projectPath: runOptions.projectPath,
             scriptPath: buildPromptCheckScriptPath(runOptions.scriptPath),
             logPath: runOptions.logPath,
             preserveArtifactsOnSuccess: runOptions.preserveArtifactsOnSuccess,
             ...(runOptions.signal ? { signal: runOptions.signal } : {}),
+            phase: 'post-implementation',
+            persistence: runOptions.persistence,
+            attempt: options.attemptCount,
+            executor: runPromptCheckCommandExecutor,
         });
         runOptions.signal?.throwIfAborted();
 
-        return undefined;
-    } catch (error) {
-        if (error instanceof CoderCheckSetupError || runOptions.signal?.aborted) throw error;
-        return { error };
+        return result.outcome.kind === 'passed' ? undefined : { error: result.outcome.error };
     } finally {
         stepTracker.finishStep({ kind: 'checking', usage: null, durationMs: Date.now() - stepStartedTimeMs });
     }

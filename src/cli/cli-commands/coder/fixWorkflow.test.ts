@@ -181,7 +181,7 @@ describe('finite fix and shared run check-repair workflow', () => {
         expect(parsePromptFile(result.repairPrompt!.file.path, repair).sections[0]?.status).toBe('done');
         expect(repair).toContain('without weakening validation');
         expect(repair).not.toContain('Update the [AGENTS.md]');
-        expect((await git('show', '--format=', '--name-only', 'HEAD')).split('\n').sort()).toEqual(
+        expect((await git('diff', '--name-only', 'HEAD~3', 'HEAD')).split('\n').sort()).toEqual(
             [
                 `prompts/${result.repairPrompt!.file.name}`,
                 `prompts/traces/${result.repairPrompt!.file.name}`,
@@ -210,7 +210,10 @@ describe('finite fix and shared run check-repair workflow', () => {
             parsePromptFile(result.repairPrompt!.file.path, await readFile(result.repairPrompt!.file.path, 'utf-8'))
                 .sections[0]?.status,
         ).toBe('failed');
-        expect(await git('rev-list', '--count', 'HEAD')).toBe('1');
+        const history = await git('log', '--format=%B', 'HEAD');
+        expect(history.match(/Coder-Phase: implementation/g)).toHaveLength(1);
+        expect(history.match(/Coder-Phase: repair/g)).toHaveLength(2);
+        expect(history).not.toContain('Coder-Phase: post-implementation');
         await assertOrdinaryPromptsUnchanged();
     });
 
@@ -225,17 +228,18 @@ describe('finite fix and shared run check-repair workflow', () => {
         );
     });
 
-    it('supports an unborn repository without absorbing the pre-existing untracked project files', async () => {
+    it('retains an unborn repository when a repair overlaps pre-existing untracked project content', async () => {
         await rm(join(projectPath, '.git'), { recursive: true });
         await git('init');
         await git('config', 'user.name', 'Fixture');
         await git('config', 'user.email', 'fixture@example.com');
         await git('config', 'commit.gpgsign', 'false');
         const result = await runCoderFix({ ...options, gitChanges: 'ignore' });
-        expect(result.kind).toBe('repaired-and-verified');
-        expect(await git('rev-list', '--count', 'HEAD')).toBe('1');
-        expect(await git('ls-tree', '--name-only', 'HEAD')).not.toContain('package.json');
-        expect(await git('ls-tree', '--name-only', 'HEAD')).not.toContain('unrelated.txt');
+        expect(result.kind).toBe('persistence-error');
+        expect(result.isCheckPassed).toBe(false);
+        expect(String(result.error)).toContain('pre-existing user work');
+        await expect(git('rev-parse', '--verify', 'HEAD')).rejects.toThrow();
+        expect(await git('diff', '--cached', '--name-only')).toBe('');
         await assertOrdinaryPromptsUnchanged();
     });
 
@@ -313,7 +317,8 @@ describe('finite fix and shared run check-repair workflow', () => {
         const execution = runCoderFix({ ...options, signal: controller.signal });
         try {
             await waitUntilWorldTimeDeadline({
-                deadlineTimeMs: Date.now() + 10_000,
+                // Private check capture and local phase preparation must finish before cancelling the owned hook.
+                deadlineTimeMs: Date.now() + 30_000,
                 pollIntervalMs: 10,
                 shouldStopWaiting: () => controller.signal.aborted,
                 onTick: async () => {
@@ -351,7 +356,7 @@ describe('finite fix and shared run check-repair workflow', () => {
                 expect(result.kind).toBe(isRejected ? 'persistence-error' : 'repaired-and-verified');
                 expect(result.isCheckPassed).toBe(true);
                 expect(runHarness).toHaveBeenCalledTimes(1);
-                expect(await git('rev-list', '--count', 'HEAD')).toBe('2');
+                expect(await git('rev-list', '--count', 'HEAD')).toBe('4');
                 if (isRejected) expect(String(result.error)).toContain('local commit exists');
                 else
                     expect(
@@ -439,7 +444,9 @@ describe('finite fix and shared run check-repair workflow', () => {
             });
             expect(runHarness).toHaveBeenCalledTimes(isNormalizationEnabled ? 3 : 1);
             expect(await checkCount()).toBe(isNormalizationEnabled ? 4 : 2);
-            expect(await git('rev-list', '--count', 'HEAD')).toBe(isNormalizationEnabled ? '2' : '3');
+            const history = await git('log', '--format=%B', 'HEAD');
+            expect(history.match(/Coder-Phase: implementation/g)).toHaveLength(1);
+            expect(history.match(/Coder-Phase: repair/g) ?? []).toHaveLength(isNormalizationEnabled ? 2 : 0);
             expect(await readFile(join(projectPath, 'value.txt'), 'utf-8')).toBe(
                 isNormalizationEnabled ? 'fixed\n' : 'fixed\r\n',
             );
@@ -463,7 +470,7 @@ describe('finite fix and shared run check-repair workflow', () => {
         await writeFile(join(projectPath, '.git/info/exclude'), '.promptbook/check-count\n');
         const result = await runCoderFix(options);
         expect(result.kind).toBe('repaired-and-verified');
-        expect(await git('rev-list', '--count', 'HEAD')).toBe('3');
+        expect(await git('status', '--porcelain')).toBe('');
         expect(await git('show', '--format=', '--name-only', 'HEAD')).not.toContain('.promptbook');
         await assertOrdinaryPromptsUnchanged();
     });
