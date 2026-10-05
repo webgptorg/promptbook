@@ -1,4 +1,9 @@
+import { execFile } from 'child_process';
 import { Command } from 'commander';
+import { mkdtemp, realpath, rm, writeFile } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { promisify } from 'util';
 import { resolveCoderAgentBook } from '../../../../scripts/run-codex-prompts/common/resolveCoderAgent';
 import { runCodexPrompts } from '../../../../scripts/run-codex-prompts/main/runCodexPrompts';
 import { LimitReachedError } from '../../../errors/LimitReachedError';
@@ -32,6 +37,11 @@ jest.mock('../common/harness/$ensureHarnessInstallations', () => ({
 jest.mock('./$ensureCoderHarnessGitignoreRules', () => ({
     $ensureCoderHarnessGitignoreRules: jest.fn(),
 }));
+
+/**
+ * Shell-free Git execution for isolated command workspaces.
+ */
+const EXECUTE_FILE = promisify(execFile);
 
 /**
  * Typed Jest mock for the coding prompt runner entrypoint.
@@ -71,10 +81,17 @@ function createProgramWithRunCommand(): Command {
 }
 
 describe('$initializeCoderRunCommand', () => {
+    let projectPath: string;
+    let currentDirectorySpy: jest.SpyInstance<string, []>;
     let processExitSpy: jest.SpyInstance<never, [code?: string | number | null | undefined]>;
     let consoleErrorSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        // Exercise real repository preflight and locking without sharing the invoking Coder worker's lease.
+        projectPath = await realpath(await mkdtemp(join(tmpdir(), 'coder-run-command-')));
+        await EXECUTE_FILE('git', ['init'], { cwd: projectPath });
+        await writeFile(join(projectPath, 'AGENTS.md'), 'Coder command test context.');
+        currentDirectorySpy = jest.spyOn(process, 'cwd').mockReturnValue(projectPath);
         getRunCodexPromptsMock().mockResolvedValue(undefined);
         getEnsurePromptbookCliInstallationsMock().mockResolvedValue(false);
         getEnsureCoderHarnessGitignoreRulesMock().mockResolvedValue(undefined);
@@ -83,10 +100,12 @@ describe('$initializeCoderRunCommand', () => {
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         processExitSpy.mockRestore();
         consoleErrorSpy.mockRestore();
+        currentDirectorySpy.mockRestore();
         jest.clearAllMocks();
+        await rm(projectPath, { recursive: true, force: true });
     });
 
     it('passes waitForUser as false when --no-auto is omitted', async () => {

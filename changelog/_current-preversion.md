@@ -1,3 +1,7 @@
+-   Fixed Coder run/server command tests to use isolated temporary Git repositories instead of the invoking
+    workspace, so an active Coder worker's lease cannot block the installation and ignore-rule assertions.
+    The tests retain real repository preflight and workspace locking, and clean up their fixtures after each case.
+
 -   Added `ptbk coder fix`: a finite check-repair command with shared Developer/path/context defaults,
     `npm run check` by default, explicit check overrides, scoped commits and opt-in remote synchronization.
     Run and fix share the extracted initial check/repair service, repair PRD builder, single-round execution,
