@@ -1,10 +1,16 @@
 import colors from 'colors';
+import { readFile, unlink, writeFile } from 'fs/promises';
 import moment from 'moment';
+import { relative } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { increaseHeadings } from '../../../book/scripts/import-markdown/increaseHeadings';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import { AuthenticationError } from '../../../src/errors/AuthenticationError';
 import { EnvironmentMismatchError } from '../../../src/errors/EnvironmentMismatchError';
+import { CoderCheckExecutionError } from '../checks/CoderCheckExecutionError';
+import { CoderCheckFailedError } from '../checks/CoderCheckFailedError';
+import { CoderCheckSetupError } from '../checks/projectCheck';
+import { runPromptWithCheckFeedback } from '../checks/runPromptWithCheckFeedback';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { CliProgressDisplay } from '../common/cliProgressDisplay';
@@ -15,47 +21,41 @@ import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForD
 import { normalizeLineEndingsInFilesChangedSinceSnapshot } from '../common/normalizeLineEndingsInChangedFiles';
 import { printCommitMessage } from '../common/printCommitMessage';
 import type { PromptRunnerMetadata } from '../common/PromptRunnerMetadata';
+import { buildCoderExecutionArtifactPaths } from '../common/runGoScript/buildCoderExecutionArtifactPaths';
+import { buildScriptLogPath } from '../common/runGoScript/buildScriptLogPath';
 import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { waitForEnter } from '../common/waitForEnter';
+import { withCoderWorkspaceLock } from '../common/withCoderWorkspaceLock';
 import type { CoderCommitScope } from '../git/coderCommitScope';
 import {
     captureCoderCommitScope,
     continueCoderCommitScopeOwnership,
     resolveCoderCommitScopePaths,
 } from '../git/coderCommitScope';
+import type { CoderFinalizationFile } from '../git/coderFinalizationFiles';
+import { CoderGitOperationError } from '../git/CoderGitOperationError';
+import { CoderPhasePersistence } from '../git/CoderPhasePersistence';
 import { commitChanges } from '../git/commitChanges';
+import { listWorkingTreeChangedFiles } from '../git/workingTreeChanges';
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import type { PromptRunTraceOutcome } from '../prompts/buildPromptRunTraceContent';
+import { buildPromptRunTracePath } from '../prompts/buildPromptRunTracePath';
 import { buildScriptPath } from '../prompts/buildScriptPath';
 import { markPromptDone } from '../prompts/markPromptDone';
 import { markPromptFailed } from '../prompts/markPromptFailed';
 import { markPromptInProgress } from '../prompts/markPromptInProgress';
 import { parsePromptRunnerAttribution, type PromptRunnerAttribution } from '../prompts/promptRunnerAttribution';
+import { refreshPromptSelection } from '../prompts/refreshPromptSelection';
 import { resolvePromptStatusLine } from '../prompts/resolvePromptStatusLine';
 import type { PromptSelection } from '../prompts/types/PromptSelection';
 import { buildPromptErrorLogPath, writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { buildPromptFileContent, writePromptFile } from '../prompts/writePromptFile';
 import { writePromptRunTrace } from '../prompts/writePromptRunTrace';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-import { runPromptWithCheckFeedback } from '../checks/runPromptWithCheckFeedback';
-import { CoderCheckSetupError } from '../checks/projectCheck';
-import { CoderCheckFailedError } from '../checks/CoderCheckFailedError';
-import { CoderGitOperationError } from '../git/CoderGitOperationError';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
-import { CoderPhasePersistence } from '../git/CoderPhasePersistence';
-import { CoderCheckExecutionError } from '../checks/CoderCheckExecutionError';
-import { withCoderWorkspaceLock } from '../common/withCoderWorkspaceLock';
-import { buildScriptLogPath } from '../common/runGoScript/buildScriptLogPath';
-import { buildCoderExecutionArtifactPaths } from '../common/runGoScript/buildCoderExecutionArtifactPaths';
-import { relative } from 'path';
-import { readFile, unlink, writeFile } from 'fs/promises';
-import { refreshPromptSelection } from '../prompts/refreshPromptSelection';
-import { buildPromptRunTracePath } from '../prompts/buildPromptRunTracePath';
-import type { CoderFinalizationFile } from '../git/coderFinalizationFiles';
-import { listWorkingTreeChangedFiles } from '../git/workingTreeChanges';
 
 /**
  * Maximum number of retry attempts performed after a prompt round throws an error.
@@ -165,6 +165,10 @@ async function runOwnedPromptRound({
                   ## Your Task
 
                   ${block(taskPrompt)}
+
+                  ## Common rules
+
+                  -   Do not commit changes into git, you are running in a controlled environment where commits are managed automatically.
 
                   ## Your Behavior
 
