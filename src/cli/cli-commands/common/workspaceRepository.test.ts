@@ -9,7 +9,7 @@ import {
     resolveCoderCommitScopePaths,
 } from '../../../../scripts/run-codex-prompts/git/coderCommitScope';
 import { loadPromptsModule } from '../../common/loadPromptsModule';
-import { $preflightWorkspaceRepository, $resolveWorkspaceRepository } from './workspaceRepository';
+import { $preflightWorkspaceRepository, $resolveWorkspaceRepository, $runWorkspaceGit } from './workspaceRepository';
 
 jest.mock('../../common/loadPromptsModule', () => ({ loadPromptsModule: jest.fn() }));
 
@@ -83,6 +83,70 @@ describe('workspace repository discovery and policy', () => {
         await expect(git(projectPath, 'rev-parse', '--verify', 'HEAD')).rejects.toThrow();
         await git(projectPath, 'commit', '--allow-empty', '-m', 'Fixture');
         expect((await $resolveWorkspaceRepository(projectPath)).repositoryRoot).toBe(projectPath);
+    });
+
+    it('reads Git output larger than 8 MiB without losing Unicode or NUL delimiters', async () => {
+        await git(projectPath, 'init');
+        const content = 'Příliš žluťoučký kůň\0file\tname\n'.repeat(300_000);
+        expect(Buffer.byteLength(content)).toBeGreaterThan(8 * 1024 * 1024);
+        const objectId = (
+            await $runWorkspaceGit(projectPath, ['hash-object', '-w', '--stdin'], { input: Buffer.from(content) })
+        ).trim();
+
+        const output = await $runWorkspaceGit(projectPath, ['cat-file', 'blob', objectId]);
+
+        expect(output).toBe(content);
+    });
+
+    it('closes Git stdin when no input is supplied', async () => {
+        await git(projectPath, 'init');
+        await writeFile(join(projectPath, 'empty.txt'), '');
+        const emptyObjectId = await git(projectPath, 'hash-object', 'empty.txt');
+
+        await expect($runWorkspaceGit(projectPath, ['hash-object', '--stdin'])).resolves.toBe(`${emptyObjectId}\n`);
+    });
+
+    it('preserves silent exit codes and Git stderr on failure', async () => {
+        await git(projectPath, 'init');
+
+        await expect($runWorkspaceGit(projectPath, ['rev-parse', '--verify', '--quiet', 'HEAD'])).rejects.toMatchObject(
+            {
+                code: 1,
+                stdout: '',
+                stderr: '',
+            },
+        );
+        await expect(
+            $runWorkspaceGit(projectPath, ['not-a-git-command'], { input: Buffer.alloc(16 * 1024 * 1024) }),
+        ).rejects.toMatchObject({
+            code: 1,
+            stdout: '',
+            stderr: expect.stringContaining('not a git command'),
+        });
+    });
+
+    it('preserves cancellation errors for an already aborted Git invocation', async () => {
+        const controller = new AbortController();
+        controller.abort();
+
+        await expect($runWorkspaceGit(projectPath, ['version'], { signal: controller.signal })).rejects.toMatchObject({
+            name: 'AbortError',
+            code: 'ABORT_ERR',
+        });
+    });
+
+    it('cancels a running Git command while it is receiving input', async () => {
+        await git(projectPath, 'init');
+        const controller = new AbortController();
+        const execution = $runWorkspaceGit(projectPath, ['hash-object', '--stdin'], {
+            input: Buffer.alloc(16 * 1024 * 1024),
+            signal: controller.signal,
+        });
+        const result = expect(execution).rejects.toMatchObject({ name: 'AbortError', code: 'ABORT_ERR' });
+
+        controller.abort();
+
+        await result;
     });
 
     it('keeps a nested project distinct and never creates a nested repository', async () => {

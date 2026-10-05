@@ -1,3 +1,7 @@
+-   Fixed Coder private check checkout preparation failing with `stdout maxBuffer length exceeded` in repositories
+    with large ignored-file listings. Shared Git execution now drains stdout and stderr through streams without
+    a fixed output limit, preserving complete Unicode/NUL-delimited output, exit diagnostics, input and cancellation.
+
 -   `ptbk init` and `ptbk coder init` now add `node_modules` to `.gitignore` and create missing `.gitattributes`
     with `* text=auto eol=lf`, preserving existing ignore rules and project-owned attributes. Git attributes use
     the shared text-file initializer, appear in the setup summary, and are included in explicit initialization commits.

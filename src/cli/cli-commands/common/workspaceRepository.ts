@@ -1,16 +1,12 @@
-import { execFile } from 'child_process';
+import { spawn } from 'child_process';
 import { lstat, realpath } from 'fs/promises';
 import { dirname, join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import { promisify } from 'util';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotAllowed } from '../../../errors/NotAllowed';
 import { loadPromptsModule } from '../../common/loadPromptsModule';
 import type { NormalizedQuestionsCliOptions } from './questionsCliOptions';
 import { resolveProjectDirectory } from './projectCliOptions';
-
-/** Shell-free Git execution, also usable from the packaged CLI. */
-const EXECUTE_FILE = promisify(execFile);
 
 /**
  * Resolved project directory and its enclosing working tree. Project artifacts belong to `projectPath`;
@@ -214,6 +210,7 @@ async function $assertNoBrokenRepositoryMetadata(projectPath: string, repository
 
 /**
  * Executes Git without a shell, optional index locks, or credential prompts, retaining raw output boundaries.
+ * Drains both output streams without execFile's fixed buffer limit so large repository listings remain complete.
  * @private shared Git discovery and commit-scope inspection
  */
 export async function $runWorkspaceGit(
@@ -225,19 +222,53 @@ export async function $runWorkspaceGit(
         readonly input?: string | Buffer;
     },
 ): Promise<string> {
-    const execution = EXECUTE_FILE('git', [...argumentsList], {
-        cwd: projectPath,
-        env: { ...process.env, LC_ALL: 'C', GIT_OPTIONAL_LOCKS: '0', GIT_TERMINAL_PROMPT: '0', ...options?.env },
-        windowsHide: true,
-        maxBuffer: 8 * 1024 * 1024,
-        signal: options?.signal,
+    return new Promise((resolve, reject) => {
+        const child = spawn('git', [...argumentsList], {
+            cwd: projectPath,
+            env: { ...process.env, LC_ALL: 'C', GIT_OPTIONAL_LOCKS: '0', GIT_TERMINAL_PROMPT: '0', ...options?.env },
+            windowsHide: true,
+            signal: options?.signal,
+        });
+        const stdoutChunks: string[] = [];
+        const stderrChunks: string[] = [];
+        let processError: Error | undefined;
+        let inputError: Error | undefined;
+        // Stream decoding preserves multibyte filenames even when a character spans two output chunks.
+        child.stdout.setEncoding('utf8');
+        child.stderr.setEncoding('utf8');
+        child.stdout.on('data', (chunk: string) => stdoutChunks.push(chunk));
+        child.stderr.on('data', (chunk: string) => stderrChunks.push(chunk));
+        child.on('error', (error) => {
+            processError = error;
+        });
+        child.stdin.on('error', (error) => {
+            // A failed Git command may close stdin early. Keep its exit status and stderr as the primary error.
+            inputError = error;
+        });
+        child.on('close', (code, signal) => {
+            const stdout = stdoutChunks.join('');
+            const stderr = stderrChunks.join('');
+            if (processError) {
+                reject(Object.assign(processError, { stdout, stderr }));
+            } else if (code !== 0 || signal) {
+                reject(
+                    Object.assign(new Error(`Command failed: git ${argumentsList.join(' ')}\n${stderr}`), {
+                        code,
+                        signal,
+                        killed: child.killed,
+                        stdout,
+                        stderr,
+                    }),
+                );
+            } else if (inputError) {
+                reject(Object.assign(inputError, { stdout, stderr }));
+            } else {
+                resolve(stdout);
+            }
+        });
+        // Index-info uses NUL-delimited input. Closing stdin also lets commands finish when input is empty.
+        child.stdin.end(options?.input);
     });
-    if (options?.input !== undefined) {
-        // Index-info uses NUL-delimited input, keeping arbitrary filenames out of shell/pathspec parsing.
-        execution.child.stdin!.end(options.input);
-    }
-    const result = await execution;
-    return result.stdout;
 }
 
 /** Translates discovery failures without ever treating an ownership or executable error as permission to init. */
