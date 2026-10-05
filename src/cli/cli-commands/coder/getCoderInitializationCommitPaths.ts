@@ -3,6 +3,7 @@ import type { WorkspaceRepositoryContext } from '../common/workspaceRepository';
 import { ADAM_AGENT_BOOK_RELATIVE_PATH } from '../common/ensureAdamAgentBook';
 import type { CoderReferencedArtifactStatus } from './coderReferencedArtifacts';
 import { CODER_AGENTS_DIRECTORY_PATH } from './ensureCoderDeveloperAgentFile';
+import { CODER_GITATTRIBUTES_FILE_PATH } from './ensureCoderGitattributesFile';
 import type { CoderInitializationSummary } from './initializeCoderProjectConfiguration';
 
 /**
@@ -27,6 +28,7 @@ export function getCoderInitializationCommitPaths(
         },
         { relativeFilePath: '.env', status: summary.envFileStatus },
         { relativeFilePath: '.gitignore', status: summary.gitignoreFileStatus },
+        { relativeFilePath: CODER_GITATTRIBUTES_FILE_PATH, status: summary.gitattributesFileStatus },
         { relativeFilePath: 'package.json', status: summary.packageJsonFileStatus },
         { relativeFilePath: '.vscode/settings.json', status: summary.vscodeSettingsFileStatus },
         ...summary.referencedArtifactStatuses,

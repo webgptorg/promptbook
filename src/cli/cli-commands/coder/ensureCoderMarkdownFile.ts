@@ -1,5 +1,4 @@
-import { stat, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { ensureProjectTextFile } from '../common/ensureProjectTextFile';
 import type { InitializationStatus } from './boilerplateTemplates';
 
 /**
@@ -12,24 +11,7 @@ export async function ensureCoderMarkdownFile(
     relativeFilePath: string,
     fileContent: string,
 ): Promise<InitializationStatus> {
-    const absoluteFilePath = join(projectPath, relativeFilePath);
-    if (await isExistingFile(absoluteFilePath)) {
-        return 'unchanged';
-    }
-
-    await writeFile(absoluteFilePath, `${fileContent}\n`, 'utf-8');
-    return 'created';
-}
-
-/**
- * Checks whether a path exists and is a file.
- */
-async function isExistingFile(path: string): Promise<boolean> {
-    try {
-        return (await stat(path)).isFile();
-    } catch {
-        return false;
-    }
+    return ensureProjectTextFile(projectPath, relativeFilePath, fileContent);
 }
 
 // Note: [🟡] Code for coder init markdown bootstrapping [ensureCoderMarkdownFile](src/cli/cli-commands/coder/ensureCoderMarkdownFile.ts) should never be published outside of `@promptbook/cli`

@@ -2,6 +2,7 @@ import type { WorkspaceRepositoryContext } from '../common/workspaceRepository';
 import colors from 'colors';
 import { ADAM_AGENT_BOOK_RELATIVE_PATH } from '../common/ensureAdamAgentBook';
 import { CODER_AGENTS_DIRECTORY_PATH } from './ensureCoderDeveloperAgentFile';
+import { CODER_GITATTRIBUTES_FILE_PATH } from './ensureCoderGitattributesFile';
 import type { InitializationStatus } from './boilerplateTemplates';
 import type { CoderReferencedArtifactStatus } from './coderReferencedArtifacts';
 import { formatDisplayPath } from './formatDisplayPath';
@@ -40,6 +41,7 @@ export function printInitializationSummary(
     );
     printInitializationStatusLine('.env', summary.envFileStatus);
     printInitializationStatusLine('.gitignore', summary.gitignoreFileStatus);
+    printInitializationStatusLine(CODER_GITATTRIBUTES_FILE_PATH, summary.gitattributesFileStatus);
     printInitializationStatusLine('package.json', summary.packageJsonFileStatus);
     printInitializationStatusLine('.vscode/settings.json', summary.vscodeSettingsFileStatus);
 

@@ -1,3 +1,7 @@
+-   `ptbk init` and `ptbk coder init` now add `node_modules` to `.gitignore` and create missing `.gitattributes`
+    with `* text=auto eol=lf`, preserving existing ignore rules and project-owned attributes. Git attributes use
+    the shared text-file initializer, appear in the setup summary, and are included in explicit initialization commits.
+
 -   Fixed Coder run/server command tests to use isolated temporary Git repositories instead of the invoking
     workspace, so an active Coder worker's lease cannot block the installation and ignore-rule assertions.
     The tests retain real repository preflight and workspace locking, and clean up their fixtures after each case.

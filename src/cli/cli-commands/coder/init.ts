@@ -29,6 +29,7 @@ import { AGENTS_FILE_PATH } from './agentsFile';
 import { DEFAULT_BOILERPLATE_COUNT } from './boilerplateCount';
 import { getDefaultCoderProjectPromptTemplateDefinitions, PROMPTS_DIRECTORY_PATH } from './boilerplateTemplates';
 import { CODER_AGENTS_DIRECTORY_PATH, CODER_DEVELOPER_AGENT_FILE_PATH } from './ensureCoderDeveloperAgentFile';
+import { CODER_GITATTRIBUTES_FILE_PATH } from './ensureCoderGitattributesFile';
 import { isDirectoryEmpty } from './ensureDirectory';
 import { formatDisplayPath } from './formatDisplayPath';
 import { generatePromptBoilerplate } from './generate-boilerplates';
@@ -79,7 +80,8 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
                 - agents/copywriter.book
                 - ${CODER_AGENTS_DIRECTORY_PATH}/${ADAM_AGENT_BOOK_RELATIVE_PATH}
                 - ${AGENTS_FILE_PATH}
-                - .gitignore with local artifacts from every supported harness
+                - .gitignore with node_modules and local artifacts from every supported harness
+                - ${CODER_GITATTRIBUTES_FILE_PATH} with automatic text detection and LF line endings (existing file is preserved)
                 - package.json
                 - .vscode/settings.json
 

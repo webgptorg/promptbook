@@ -190,6 +190,8 @@ describe('$initializeCoderInitCommand', () => {
         expect(description).toContain('agents/copywriter.book');
         expect(description).toContain('even when scripts already exist');
         expect(description).toContain('TEAM references');
+        expect(description).toContain('node_modules');
+        expect(description).toContain('.gitattributes');
         expect(program.commands.map((command) => command.name())).toEqual(['init']);
     });
 
@@ -217,6 +219,14 @@ describe('$initializeCoderInitCommand', () => {
                 await executeFile('git', ['rev-parse', '--is-inside-work-tree'], { cwd: temporaryProjectDirectory })
             ).stdout.trim(),
         ).toBe('true');
+        expect(
+            (
+                await executeFile('git', ['check-attr', 'text', 'eol', '--', 'example.txt'], {
+                    cwd: temporaryProjectDirectory,
+                })
+            ).stdout.trim(),
+        ).toBe('example.txt: text: auto\nexample.txt: eol: lf');
+        expect(consoleInfoSpy.mock.calls.flat().join('\n')).toContain('.gitattributes: created');
         expect((await executeFile('git', ['ls-files'], { cwd: temporaryProjectDirectory })).stdout.trim()).toBe('');
         await expect(
             executeFile('git', ['rev-parse', '--verify', 'HEAD'], { cwd: temporaryProjectDirectory }),
@@ -235,6 +245,7 @@ describe('$initializeCoderInitCommand', () => {
             'Keep this hook.',
         );
         expect(consoleInfoSpy.mock.calls.flat().join('\n')).toContain('Git repository: reused');
+        expect(consoleInfoSpy.mock.calls.flat().join('\n')).toContain('.gitattributes: unchanged');
         expect(await readFile(join(temporaryProjectDirectory, 'user-owned.txt'), 'utf-8')).toBe('Keep this file.');
     });
 
@@ -288,6 +299,8 @@ describe('$initializeCoderInitCommand', () => {
             const stagedBefore = await git('show', ':user-staged.txt');
             const projectPath = mode === 'nested' ? join(repositoryPath, 'packages/child') : repositoryPath;
             await mkdir(projectPath, { recursive: true });
+            await mkdir(join(projectPath, 'node_modules/fixture'), { recursive: true });
+            await writeFile(join(projectPath, 'node_modules/fixture/index.js'), 'module.exports = {};');
             await runCoderInitCommand(projectPath, ['--no-questions', '--commit']);
             expect(processExitSpy).not.toHaveBeenCalledWith(1);
             const committedFiles = (
@@ -295,6 +308,18 @@ describe('$initializeCoderInitCommand', () => {
             ).split('\n');
             const prefix = mode === 'nested' ? 'packages/child/' : '';
             expect(committedFiles).toContain(`${prefix}prompts/README.md`);
+            expect(committedFiles).toContain(`${prefix}.gitattributes`);
+            expect(committedFiles).not.toContain(`${prefix}node_modules/fixture/index.js`);
+            expect(
+                await git(
+                    'check-ignore',
+                    '--',
+                    `${prefix}node_modules/fixture/index.js`,
+                    `${prefix}packages/dependency/node_modules/fixture/index.js`,
+                ),
+            ).toBe(
+                `${prefix}node_modules/fixture/index.js\n${prefix}packages/dependency/node_modules/fixture/index.js`,
+            );
             expect(committedFiles).not.toContain('user-staged.txt');
             expect(committedFiles).not.toContain('user-untracked.txt');
             expect(await git('show', ':user-staged.txt')).toBe(stagedBefore);

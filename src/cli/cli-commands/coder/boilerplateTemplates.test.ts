@@ -84,6 +84,7 @@ describe('coder boilerplate templates', () => {
         expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('created');
         expect(getReferencedArtifactStatus(summary, AGENTS_FILE_PATH)).toBe('created');
         expect(summary.gitignoreFileStatus).toBe('created');
+        expect(summary.gitattributesFileStatus).toBe('created');
         expect(summary.packageJsonFileStatus).toBe('created');
         expect(summary.vscodeSettingsFileStatus).toBe('created');
 
@@ -114,8 +115,9 @@ describe('coder boilerplate templates', () => {
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe(
-            '# Promptbook Coder\n/.promptbook\n.env\n.codex\n.github/copilot/settings.local.json\n.cline\n.claude\n.opencode\n.gemini\n.qwen\n',
+            '# Promptbook Coder\n/.promptbook\n.env\nnode_modules\n.codex\n.github/copilot/settings.local.json\n.cline\n.claude\n.opencode\n.gemini\n.qwen\n',
         );
+        expect(await readFile(join(projectPath, '.gitattributes'), 'utf-8')).toBe('* text=auto eol=lf\n');
 
         const defaultCoderPackageJsonScripts = getDefaultCoderPackageJsonScripts();
 
@@ -145,6 +147,8 @@ describe('coder boilerplate templates', () => {
         const projectPath = await createTemporaryDirectory(temporaryDirectories);
 
         await writeFile(join(projectPath, '.gitignore'), 'node_modules\n.tmp\n', 'utf-8');
+        const customGitattributesContent = '*.txt text eol=crlf\r\n';
+        await writeFile(join(projectPath, '.gitattributes'), customGitattributesContent, 'utf-8');
         await writeFile(
             join(projectPath, 'package.json'),
             '{\n  "name": "demo",\n  "scripts": {\n    "test": "echo test",\n    "coder:run": "echo old"\n  }\n}\n',
@@ -163,6 +167,7 @@ describe('coder boilerplate templates', () => {
         const summary = await initializeCoderProjectConfiguration(projectPath);
 
         expect(summary.gitignoreFileStatus).toBe('updated');
+        expect(summary.gitattributesFileStatus).toBe('unchanged');
         expect(summary.packageJsonFileStatus).toBe('updated');
         expect(summary.vscodeSettingsFileStatus).toBe('updated');
         expect(getReferencedArtifactStatus(summary, CODER_DEVELOPER_AGENT_FILE_PATH)).toBe('augmented');
@@ -172,6 +177,7 @@ describe('coder boilerplate templates', () => {
         expect(normalizeLineEndings(gitignoreContent)).toBe(
             'node_modules\n.tmp\n\n# Promptbook Coder\n/.promptbook\n.env\n.codex\n.github/copilot/settings.local.json\n.cline\n.claude\n.opencode\n.gemini\n.qwen\n',
         );
+        expect(await readFile(join(projectPath, '.gitattributes'), 'utf-8')).toBe(customGitattributesContent);
 
         // Note: The project-owned `coder:run` and `test` scripts must survive the initialization untouched
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
@@ -283,13 +289,19 @@ describe('coder boilerplate templates', () => {
         }
     });
 
-    it('does not append duplicate commented coder env variables on repeated init', async () => {
+    it('preserves initialized Git files and avoids duplicate coder env variables on repeated init', async () => {
         const projectPath = await createTemporaryDirectory(temporaryDirectories);
 
         await initializeCoderProjectConfiguration(projectPath);
+        const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
+        const gitattributesContent = await readFile(join(projectPath, '.gitattributes'), 'utf-8');
         await writeFile(join(projectPath, 'agents/.core/adam.book'), 'Adam\nFROM @Null\nRULE Custom foundation.\n');
         const repeatedSummary = await initializeCoderProjectConfiguration(projectPath);
 
+        expect(repeatedSummary.gitignoreFileStatus).toBe('unchanged');
+        expect(repeatedSummary.gitattributesFileStatus).toBe('unchanged');
+        expect(await readFile(join(projectPath, '.gitignore'), 'utf-8')).toBe(gitignoreContent);
+        expect(await readFile(join(projectPath, '.gitattributes'), 'utf-8')).toBe(gitattributesContent);
         expect(repeatedSummary.adamAgentFileStatus).toBe('unchanged');
         expect(await readFile(join(projectPath, 'agents/.core/adam.book'), 'utf-8')).toContain('Custom foundation.');
 

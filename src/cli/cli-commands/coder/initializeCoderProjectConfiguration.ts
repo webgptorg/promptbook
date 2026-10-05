@@ -10,6 +10,7 @@ import { ensureCoderReferencedArtifacts } from './coderReferencedArtifacts';
 import { ensureCoderDefaultAgentFiles } from './ensureCoderDefaultAgentFiles';
 import { CODER_AGENTS_DIRECTORY_PATH } from './ensureCoderDeveloperAgentFile';
 import { ensureCoderEnvFile } from './ensureCoderEnvFile';
+import { CODER_GITATTRIBUTES_FILE_PATH, ensureCoderGitattributesFile } from './ensureCoderGitattributesFile';
 import { ensureCoderGitignoreFile } from './ensureCoderGitignoreFile';
 import { ensureCoderMarkdownFile } from './ensureCoderMarkdownFile';
 import { ensureCoderPackageJsonFile } from './ensureCoderPackageJsonFile';
@@ -33,6 +34,7 @@ export type CoderInitializationSummary = {
     readonly adamAgentFileDiagnostic?: string;
     readonly envFileStatus: InitializationStatus;
     readonly gitignoreFileStatus: InitializationStatus;
+    readonly gitattributesFileStatus: InitializationStatus;
     readonly packageJsonFileStatus: InitializationStatus;
     readonly vscodeSettingsFileStatus: InitializationStatus;
     readonly addedPackageJsonScriptNames: ReadonlyArray<string>;
@@ -91,6 +93,10 @@ export async function initializeCoderProjectConfiguration(
     )!;
     const { envFileStatus, initializedEnvVariableNames } = await completeStep('.env', ensureCoderEnvFile(projectPath));
     const gitignoreFileStatus = await completeStep('.gitignore', ensureCoderGitignoreFile(projectPath));
+    const gitattributesFileStatus = await completeStep(
+        CODER_GITATTRIBUTES_FILE_PATH,
+        ensureCoderGitattributesFile(projectPath),
+    );
     const {
         status: packageJsonFileStatus,
         addedEntryKeys: addedPackageJsonScriptNames,
@@ -123,6 +129,7 @@ export async function initializeCoderProjectConfiguration(
         adamAgentFileDiagnostic: adamArtifact.diagnostic,
         envFileStatus,
         gitignoreFileStatus,
+        gitattributesFileStatus,
         packageJsonFileStatus,
         vscodeSettingsFileStatus,
         addedPackageJsonScriptNames,

@@ -20,12 +20,12 @@ const CODER_ENV_GITIGNORE_RULE = '.env';
 const CODER_GITIGNORE_HEADER = '# Promptbook Coder';
 
 /**
- * Coder-owned local artifacts which every initialized project should ignore.
+ * Local dependencies and artifacts which every initialized coder project should ignore.
  */
-const CODER_GITIGNORE_RULES = [PROMPTBOOK_TEMP_GITIGNORE_RULE, CODER_ENV_GITIGNORE_RULE] as const;
+const CODER_GITIGNORE_RULES = [PROMPTBOOK_TEMP_GITIGNORE_RULE, CODER_ENV_GITIGNORE_RULE, 'node_modules'] as const;
 
 /**
- * Ensures `.gitignore` contains Promptbook Coder's local artifacts and every supported harness's local artifacts.
+ * Ensures `.gitignore` covers local dependencies, coder artifacts and every supported harness's local artifacts.
  *
  * @private function of `initializeCoderProjectConfiguration`
  */
