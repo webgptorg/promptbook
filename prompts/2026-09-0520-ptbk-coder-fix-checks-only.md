@@ -1,4 +1,4 @@
-[ ]
+[x] by Promptbook Developer on OpenAI Codex `gpt-6.1-sol` thinking `max` (ChatGPT account) - Implementation ~$0.8871 an hour; Checking 8 minutes
 
 [✨🔧] Add ptbk coder fix: run the project's checks, repair their failures through the existing repair-PRD workflow, commit the result, and stop without processing the normal PRD queue.
 
@@ -86,3 +86,4 @@ ptbk coder fix --harness openai-codex --path ../my-project --agent ./agents/deve
 -   Coordinate with [the unified workspace server](2026-09-0490-ptbk-server-unified-workspace-agent-server.md) only for reuse of shared execution and mutation ownership. Implementing or starting that server is not a prerequisite for using fix.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle. Update CLI help, the generated prompts/workflow README, and relevant [Coder documentation](../apps/coder-landing), clearly distinguishing fix from run and verify.
 -   Add the implemented changes into the [changelog](../changelog/_current-preversion.md).
+

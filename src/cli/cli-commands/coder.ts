@@ -15,6 +15,7 @@ import { $initializeCoderListCommand } from './coder/list';
 import { $initializeCoderPingCommand } from './coder/ping';
 import { $initializeCoderPlanCommand } from './coder/plan';
 import { $initializeCoderRunCommand } from './coder/run';
+import { $initializeCoderFixCommand } from './coder/fix';
 import { $initializeCoderServerCommand } from './coder/server';
 import { $initializeCoderVerifyCommand } from './coder/verify';
 
@@ -29,6 +30,7 @@ import { $initializeCoderVerifyCommand } from './coder/verify';
  * - find-refactor-candidates: Find files that need refactoring
  * - list: List ready prompts in priority order without running them
  * - run: Run coding prompts with AI agents
+ * - fix: Check and repair the project, then exit without processing the queue
  * - ping: Test one harness and model with a tiny dummy prompt
  * - verify: Verify completed prompts
  * - find-fresh-emoji-tags: Find unused emoji tags
@@ -52,6 +54,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             - find-unwritten: List prompt sections that still need to be authored
             - list: List ready prompts in priority order without running them
             - run: Run coding prompts with AI agents
+            - fix: Check and repair the project, then exit without processing the queue
             - ping: Test the connection, response time and quota of one harness and model
             - server: Start a long-running coder server with a kanban web UI
             - verify: Verify completed prompts
@@ -70,6 +73,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
     $initializeCoderFindUnwrittenCommand(coderCommand);
     $initializeCoderListCommand(coderCommand);
     $initializeCoderRunCommand(coderCommand);
+    $initializeCoderFixCommand(coderCommand);
     $initializeCoderPingCommand(coderCommand);
     $initializeCoderServerCommand(coderCommand);
     $initializeCoderVerifyCommand(coderCommand);

@@ -5,6 +5,7 @@ import {
     waitForSkippableMilliseconds,
 } from './waitForPause';
 import { waitUntilWorldTimeDeadline, type WorldTimeDeadlineTick } from './waitUntilWorldTimeDeadline';
+import { setTimeout as waitForTimeout } from 'timers/promises';
 
 /**
  * Waits until one wall-clock deadline has passed, or until the user skips the wait with the `S` control.
@@ -19,8 +20,26 @@ export async function waitForSkippableWorldTimeDeadline(options: {
     readonly deadlineTimeMs: number;
     readonly pollIntervalMs: number;
     readonly onTick?: WorldTimeDeadlineTick;
+    readonly signal?: AbortSignal;
 }): Promise<void> {
     const { deadlineTimeMs, pollIntervalMs, onTick } = options;
+    if (options.signal) {
+        // Finite jobs own cancellation and do not register a wait in the queue's global control state.
+        const signal = options.signal;
+        await waitUntilWorldTimeDeadline({
+            deadlineTimeMs,
+            pollIntervalMs,
+            onTick,
+            shouldStopWaiting: () => {
+                signal.throwIfAborted();
+                return false;
+            },
+            waitForMilliseconds: async (waitDurationMs) => {
+                await waitForTimeout(waitDurationMs, undefined, { signal });
+            },
+        });
+        return;
+    }
     const waitToken = beginSkippableWait();
 
     try {

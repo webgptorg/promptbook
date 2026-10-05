@@ -2,7 +2,7 @@ import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { $runGoScriptWithOutput } from '../common/runGoScript/$runGoScriptWithOutput';
 import { toPosixPath } from '../common/runGoScript/toPosixPath';
 import { quoteBashArgument } from '../common/runGoScript/quoteBashArgument';
-import { assertProjectCheckIsConfigured } from './projectCheck';
+import { assertProjectCheckIsConfigured, CoderCheckSetupError } from './projectCheck';
 
 /**
  * Options for running one check command after a coding attempt.
@@ -24,15 +24,25 @@ export async function runPromptCheckCommand(options: RunPromptCheckCommandOption
     await assertProjectCheckIsConfigured(options.command, options.projectPath);
     const projectPath = toPosixPath(options.projectPath);
 
-    return await $runGoScriptWithOutput({
-        scriptPath: options.scriptPath,
-        projectPath: options.projectPath,
-        scriptContent: spaceTrim(`
+    try {
+        return await $runGoScriptWithOutput({
+            scriptPath: options.scriptPath,
+            projectPath: options.projectPath,
+            scriptContent: spaceTrim(`
             cd ${quoteBashArgument(projectPath)} || exit 1
             ${options.command}
         `),
-        logPath: options.logPath,
-        preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
-        signal: options.signal,
-    });
+            logPath: options.logPath,
+            preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
+            signal: options.signal,
+        });
+    } catch (error) {
+        const details = error instanceof Error ? error.message : String(error);
+        if (!options.signal?.aborted && /exited with code 127/iu.test(details) && /command not found/iu.test(details)) {
+            throw new CoderCheckSetupError(
+                `the selected check command is unavailable. Install/configure its project tools before retrying.\n\n${details}`,
+            );
+        }
+        throw error;
+    }
 }

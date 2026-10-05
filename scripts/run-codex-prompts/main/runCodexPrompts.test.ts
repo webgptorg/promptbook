@@ -6,6 +6,7 @@ import { NotFoundError } from '../../../src/errors/NotFoundError';
 import { createFreeDiskSpaceGuard } from '../common/createFreeDiskSpaceGuard';
 import { resolveCoderContext } from '../common/resolveCoderContext';
 import { toggleEndAfterCurrentPromptState } from '../common/waitForPause';
+import * as workspaceOwnership from '../common/withCoderWorkspaceLock';
 import type { RunOptions } from '../cli/RunOptions';
 import { captureCoderCommitScope, resolveCoderCommitScopePaths, type CoderCommitScope } from '../git/coderCommitScope';
 import { commitChanges } from '../git/commitChanges';
@@ -269,6 +270,22 @@ describe('runCodexPrompts', () => {
         expect(resolvePromptRunner).not.toHaveBeenCalled();
         expect(runPromptRound).not.toHaveBeenCalled();
         expect(commitChanges).not.toHaveBeenCalled();
+    });
+
+    it('parses a direct script dry-run before acquiring workspace ownership', async () => {
+        const previousArguments = process.argv;
+        const ownership = jest.spyOn(workspaceOwnership, 'withCoderWorkspaceLock');
+        process.argv = ['node', 'run-codex-prompts', '--dry-run', '--no-ui'];
+        try {
+            await runCodexPrompts();
+            expect(ownership).not.toHaveBeenCalled();
+            expect(resolvePromptRunner).not.toHaveBeenCalled();
+            expect(runCheckBefore).not.toHaveBeenCalled();
+            expect(runPromptRound).not.toHaveBeenCalled();
+        } finally {
+            process.argv = previousArguments;
+            ownership.mockRestore();
+        }
     });
 
     it.each([undefined, 'agents/custom role.book'])(

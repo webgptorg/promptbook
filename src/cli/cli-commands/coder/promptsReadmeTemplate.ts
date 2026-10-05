@@ -281,6 +281,7 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
     | \`ptbk coder plan --harness openai-codex\`                                                  | Interactive planning with the local Developer. Review proposals; \`/save\` writes pending PRDs, \`/draft\` writes not-ready drafts, \`/discard\` drops proposals, \`/exit\` ends. It changes PRD Markdown only and never implements or starts the queue. Currently this planning command supports the Codex harness in a compatible interactive terminal. |
     | \`ptbk coder list\`                                                                         | Displays fully authored pending tasks grouped by descending priority without execution or file changes. Optional harness/model/agent and priority filters narrow the list.                                                                                                                                                                      |
     | \`ptbk coder run --harness openai-codex --limit 1 --no-commit --no-auto --check "npm run check"\` | Confirms and implements one selected task, then runs the specified project check. Replace the check command as needed. Without \`--limit\`, execution proceeds through the eligible queue; without \`--no-commit\`, run stages and commits its changes.                                                                                              |
+    | \`ptbk coder fix --harness openai-codex\`                                                   | Always runs project checks first (default \`npm run check\`), repairs genuine failures with one PRD, verifies and commits eligible changes, then exits. Never selects ordinary queued PRDs. A passing project launches no harness or repair. |
     | \`ptbk coder verify\`                                                                       | Human review helper: shows completion claims, offers archival or a repair section, and can also ask about pending tasks. It does not run acceptance tests itself. Archival moves the whole file to \`done/\`, so inspect every section before agreeing. There is no separate archive command.                                                     |
     | \`ptbk coder find-unwritten\`                                                               | Lists pending sections still containing authoring placeholders; not-ready drafts are not included.                                                                                                                                                                                                                                              |
     | \`ptbk coder generate-boilerplates\`                                                        | Adds not-ready starter sections using reusable templates; author and review them before making them pending.                                                                                                                                                                                                                                    |
@@ -301,6 +302,29 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
     validation before running Coder. Missing checks or setup placeholders stop with setup guidance, without model repairs.
     Direct \`ptbk coder run\` defaults to \`--check-before no\`; checks after prompts remain opt-in. Enabled
     preflight without an explicit command uses \`npm run check\`, including during repair verification.
+
+    \`ptbk coder fix\` reuses run's check-and-repair phase and stops as soon as that phase finishes. Use
+    \`ptbk coder fix --harness openai-codex --check "npm run lint && npm run build && npm test"\` to select
+    the project's explicit validation scope. No extra validation command is added. Check failures produce one
+    repair PRD under \`prompts/\`; feedback retries update that same task, with at most three repair verification attempts.
+    The repair may correct a defective check while preserving its intended validation, but must never weaken
+    assertions, lint rules, builds, or thresholds to get a pass. Ordinary PRDs and their statuses are left alone,
+    including interrupted tasks. An absent prompts directory is created only when a repair needs its artifact.
+    Default Book compilation and harness preparation happen only after a failed check actually needs repair.
+    Configure a missing Developer with \`ptbk coder init\` or select a custom Book; an already healthy project
+    requires neither a Book nor an installed harness. Explicit Books/context overrides are validated up front.
+    Passing formatters/generators commit only their eligible files, with no empty commit and no fabricated PRD.
+    Repair checks run after scoped line-ending normalization, verifying the content that will be committed.
+    Use \`--no-normalize-line-endings\` for projects that intentionally require other line endings.
+    Existing unrelated staged/unstaged files remain outside scoped commits. \`--git-changes ignore\` explicitly
+    permits a dirty tree; \`--no-commit\` also requires that option. Pull/push remain explicit \`--auto-pull\` /
+    \`--auto-push\` opt-ins. A rejected push leaves the local verified commit available and starts no new repair.
+    \`--dry-run\` describes the job without checking, creating tasks, installing tools, calling models or committing.
+    \`--no-ui\`, \`--no-questions\` and \`--preserve-logs\` apply to this finite job. Cancellation preserves work
+    and diagnostics. \`fix\` rejects \`--git-changes continue\`: inspect/recover the specific saved repair before
+    retrying instead of resuming an arbitrary backlog task. Run/server/fix share an exclusive workspace mutation
+    lease; inspect a stopped worker's work before explicitly removing a stale lease reported in its diagnostic.
+
     Replace retired \`--test\` / \`--test-before\` with \`--check\` / \`--check-before\`. Init migrates recognized
     generated scripts and preserves custom legacy validation in \`check\`. Conflicting definitions or custom callers
     are preserved with manual migration instructions; review them before removing a legacy script.
@@ -315,7 +339,7 @@ export const PROMPTS_README_TEMPLATE = spaceTrim(`
     Init creates local Developer and Planner Books in \`agents/developer.book\` and \`agents/planner.book\`, their
     Lawyer and Copywriter TEAM advisers, and shared \`agents/.core/adam.book\` instructions. Books can
     inherit/import instructions; TEAM entries expose advisers for relevant consultations, not an obligation to
-    invoke everyone. \`run\`, \`server\` and \`plan\` default to Developer.
+    invoke everyone. \`run\`, \`fix\`, \`server\` and \`plan\` default to Developer.
     \`--agent ./agents/planner.book\` selects Planner explicitly; another Book path also works. \`list\` has no
     default Book filter. Every Book used in \`plan\`, including Developer, still permits planning only.
 

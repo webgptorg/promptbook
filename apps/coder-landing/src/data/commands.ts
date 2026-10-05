@@ -67,6 +67,9 @@ export const AGENT_FILTER_COMMAND = `${MODEL_FILTER_COMMAND} --agent agents/my-d
 export const CHECK_BEFORE_FIX_COMMAND =
     'ptbk coder run --harness claude-code --check "npm run check" --check-before yes-and-fix';
 
+/** Checks and repairs the project once without executing its ordinary PRD queue. */
+export const FIX_COMMAND = 'ptbk coder fix --harness openai-codex';
+
 /**
  * Command which resumes the prompt a killed or crashed coder left in the middle of its implementation.
  */

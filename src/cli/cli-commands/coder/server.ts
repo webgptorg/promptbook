@@ -33,6 +33,7 @@ import {
 import { addPromptPriorityOptions } from '../common/promptPriorityCliOptions';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
+import { withCoderWorkspaceLock } from '../../../../scripts/run-codex-prompts/common/withCoderWorkspaceLock';
 import { addCoderExecutionOptions, type CoderAgentCliOptions } from './agentCliOptions';
 import { printCoderRunFailure } from './printCoderRunFailure';
 
@@ -235,12 +236,14 @@ export function $initializeCoderServerCommand(program: Program): $side_effect {
                 // Check disk space before installations and repository writes; previews require no setup.
                 await $assertSufficientFreeDiskSpace(workspace.projectPath);
 
-                await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
-                await $ensureCoderHarnessGitignoreRules(
-                    workspace.projectPath,
-                    runnerOptions.agentName,
-                    questionsOptions,
-                );
+                await withCoderWorkspaceLock(workspace, async () => {
+                    await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
+                    await $ensureCoderHarnessGitignoreRules(
+                        workspace.projectPath,
+                        runnerOptions.agentName,
+                        questionsOptions,
+                    );
+                });
             }
 
             // Note: Import dynamically to avoid loading heavy dependencies until needed

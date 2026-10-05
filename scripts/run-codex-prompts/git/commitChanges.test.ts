@@ -1,3 +1,4 @@
+// cspell:ignore pathspecs unstages
 import { spaceTrim } from 'spacetrim';
 import { existsSync } from 'fs';
 import { mkdir, mkdtemp, rm, utimes, writeFile } from 'fs/promises';
@@ -166,6 +167,15 @@ describe('commitChanges', () => {
                 ),
             ]),
         );
+        for (const [commandOptions] of execMock.mock.calls) {
+            expect(commandOptions).toMatchObject({
+                env: {
+                    GIT_AUTHOR_NAME: 'Promptbook Coding Agent',
+                    GIT_LITERAL_PATHSPECS: '1',
+                    GIT_GLOB_PATHSPECS: '0',
+                },
+            });
+        }
     });
 
     it('commits everything when no relevant paths are provided', async () => {
@@ -216,6 +226,38 @@ describe('commitChanges', () => {
         expect(calledCommands).toEqual(
             expect.arrayContaining([expect.stringContaining('git commit --gpg-sign="test" --allow-empty --file ')]),
         );
+        expect(calledCommands.find((command) => command.startsWith('git commit '))).toContain(' --only');
+    });
+
+    it('does not commit or push unrelated staged files when its eligible scope is empty', async () => {
+        temporaryProjectPath = await createTemporaryGitProject();
+        const execMock = getExecCommandMock();
+
+        await commitChanges('no eligible changes', {
+            projectPath: temporaryProjectPath,
+            relevantPaths: ['temporary.log'],
+            excludePaths: ['temporary.log'],
+            autoPush: true,
+        });
+
+        expect(execMock).not.toHaveBeenCalled();
+    });
+
+    it('quotes literal shell expansion characters in scoped paths', async () => {
+        temporaryProjectPath = await createTemporaryGitProject();
+        const execMock = getExecCommandMock();
+        execMock.mockImplementation(async () => okResult());
+
+        await commitChanges('literal paths', {
+            projectPath: temporaryProjectPath,
+            relevantPaths: ['price$HOME.txt', 'literal`filename`.txt'],
+        });
+
+        if (process.platform !== 'win32') {
+            expect(getCalledCommands(execMock)).toContain(
+                'git add --all -- "price\\$HOME.txt" "literal\\`filename\\`.txt"',
+            );
+        }
     });
 
     it('pushes to upstream branch after commit when there are outgoing commits', async () => {

@@ -35,11 +35,12 @@ export const LEGACY_CODER_CHECK_OPTIONS = [
  * Registers the shared project check command and rejects retired aggregate-test spellings.
  * @private shared CLI registration for Coder execution
  */
-export function addCoderCheckOptions(command: Command, isCheckBeforeSupported: boolean): void {
-    command.option(
-        '--check <check-command...>',
-        'Run project checks after each prompt; quote the full command when it contains flags or shell composition',
-    );
+export function addCoderCheckOptions(
+    command: Command,
+    isCheckBeforeSupported: boolean,
+    description = 'Run project checks after each prompt; quote the full command when it contains flags or shell composition',
+): void {
+    command.option('--check <check-command...>', description);
     if (isCheckBeforeSupported) {
         command.addOption(
             new Option(

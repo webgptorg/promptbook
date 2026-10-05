@@ -50,4 +50,20 @@ describe('waitForSkippableWorldTimeDeadline', () => {
 
         expect(requestSkipCurrentWait()).toBe('NO_ACTIVE_WAIT');
     });
+
+    it('cancels a finite repair wait without registering queue controls', async () => {
+        const controller = new AbortController();
+        const waitPromise = waitForSkippableWorldTimeDeadline({
+            deadlineTimeMs: Date.now() + 600_000,
+            pollIntervalMs: 30_000,
+            signal: controller.signal,
+        });
+        const interruptedWait = expect(waitPromise).rejects.toMatchObject({ name: 'AbortError' });
+        await Promise.resolve();
+
+        expect(requestSkipCurrentWait()).toBe('NO_ACTIVE_WAIT');
+        controller.abort(new Error('Repair interrupted'));
+        await interruptedWait;
+        expect(requestSkipCurrentWait()).toBe('NO_ACTIVE_WAIT');
+    });
 });

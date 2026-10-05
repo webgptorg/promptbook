@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
-import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { $runWorkspaceGit } from '../../../src/cli/cli-commands/common/workspaceRepository';
 
 /**
  * Git commands used to list changed and untracked files in the working tree.
@@ -10,10 +10,10 @@ import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
  * Note: `--no-renames` is used because a detected rename would be reported as its destination path only, which
  *       would leave the source path of a moved file out of the commit.
  */
-const GIT_CHANGED_FILE_COMMANDS: ReadonlyArray<string> = [
-    'git diff --name-only --no-renames --',
-    'git diff --name-only --no-renames --cached --',
-    'git ls-files --others --exclude-standard',
+const GIT_CHANGED_FILE_ARGUMENTS: ReadonlyArray<ReadonlyArray<string>> = [
+    ['diff', '--name-only', '--no-renames', '-z', '--'],
+    ['diff', '--name-only', '--no-renames', '--cached', '-z', '--'],
+    ['ls-files', '--others', '--exclude-standard', '-z'],
 ];
 
 /**
@@ -80,14 +80,11 @@ export async function listFilesChangedSinceSnapshot(
 export async function listWorkingTreeChangedFiles(projectPath: string): Promise<ReadonlyArray<string>> {
     const changedFiles = new Set<string>();
 
-    for (const command of GIT_CHANGED_FILE_COMMANDS) {
-        const output = await $execCommand({
-            command,
-            cwd: projectPath,
-            isVerbose: false,
-        });
-
-        for (const filePath of output.split('\n').map(normalizeGitFilePath).filter(Boolean)) {
+    for (const argumentsList of GIT_CHANGED_FILE_ARGUMENTS) {
+        // NUL-delimited raw Git output preserves Unicode, quotes, backslashes and significant whitespace.
+        // C-quoted/newline-delimited paths can hash or commit the wrong file, especially in external projects.
+        const output = await $runWorkspaceGit(projectPath, argumentsList);
+        for (const filePath of output.split('\0').filter(Boolean)) {
             changedFiles.add(filePath);
         }
     }

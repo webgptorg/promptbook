@@ -212,8 +212,11 @@ async function $assertNoBrokenRepositoryMetadata(projectPath: string, repository
     }
 }
 
-/** Executes Git without a shell, optional index locks, or credential prompts. */
-async function $runWorkspaceGit(projectPath: string, argumentsList: ReadonlyArray<string>): Promise<string> {
+/**
+ * Executes Git without a shell, optional index locks, or credential prompts, retaining raw output boundaries.
+ * @private shared Git discovery and commit-scope inspection
+ */
+export async function $runWorkspaceGit(projectPath: string, argumentsList: ReadonlyArray<string>): Promise<string> {
     const result = await EXECUTE_FILE('git', [...argumentsList], {
         cwd: projectPath,
         env: { ...process.env, LC_ALL: 'C', GIT_OPTIONAL_LOCKS: '0', GIT_TERMINAL_PROMPT: '0' },

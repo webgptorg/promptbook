@@ -1,5 +1,5 @@
 import { execFile } from 'child_process';
-// cspell:ignore onwarn NOSYSTEM
+// cspell:ignore onwarn NOSYSTEM gpgsign
 import { existsSync, readFileSync, statSync } from 'fs';
 import { chmod, copyFile, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -21,6 +21,10 @@ const REPOSITORY_PATH = resolve(__dirname, '../../../../..');
 const FIXTURE_DIRECTORY = join(__dirname, 'fixtures');
 /** Process helper with fixed executable/argument boundaries. */
 const EXECUTE_FILE = promisify(execFile);
+/** Host disk pressure is not a CLI fixture input; production thresholds are covered by disk-guard tests. */
+const FIXTURE_NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --require ${JSON.stringify(
+    join(__dirname, '../fixtures/healthyDisk.cjs'),
+)}`;
 
 /**
  * Uses the production Rollup entrypoint, external dependencies, asset plugins and UMD format.
@@ -140,6 +144,97 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         if (temporaryPath) await rm(temporaryPath, { recursive: true, force: true });
     });
 
+    it('smoke-tests finite check repair through an installed packed CLI outside the monorepo', async () => {
+        const projectPath = join(temporaryPath, 'fix project');
+        const callerPath = join(temporaryPath, 'fix caller');
+        await mkdir(projectPath);
+        await mkdir(callerPath);
+        const fixHarnessPath = await installMockHarness(join(temporaryPath, 'fix harness'), '../../fixtures/fix.cjs');
+        const environment = {
+            ...process.env,
+            NODE_OPTIONS: FIXTURE_NODE_OPTIONS,
+            PATH: `${fixHarnessPath}:${process.env.PATH}`,
+            BASH_ENV: join(fixHarnessPath, 'bash-env.sh'),
+            GIT_CONFIG_GLOBAL: join(temporaryPath, 'empty-git-config'),
+            GIT_CONFIG_NOSYSTEM: '1',
+        };
+        /** Calls the installed production entrypoint from an unrelated invocation directory. */
+        const run = (argumentsList: string[]) =>
+            EXECUTE_FILE(process.execPath, [join(packagePath, 'bin/promptbook-cli.js'), ...argumentsList], {
+                cwd: callerPath,
+                env: environment,
+                timeout: 60000,
+                maxBuffer: 2 * 1024 * 1024,
+            });
+        /** Runs fixture-only Git commands using explicit argument boundaries. */
+        const git = async (...argumentsList: string[]) =>
+            (await EXECUTE_FILE('git', argumentsList, { cwd: projectPath, env: environment })).stdout.trim();
+        await git('init');
+        await git('config', 'user.name', 'Fixture');
+        await git('config', 'user.email', 'fixture@example.com');
+        await git('config', 'commit.gpgsign', 'false');
+        await writeFile(join(projectPath, '.gitignore'), '.promptbook/\n');
+        await writeFile(join(projectPath, 'value.txt'), 'fixed');
+        await writeFile(join(projectPath, 'package.json'), JSON.stringify({ scripts: { check: 'node check.cjs' } }));
+        await writeFile(
+            join(projectPath, 'check.cjs'),
+            `const fs=require('fs'); if(fs.readFileSync('value.txt','utf8') !== 'fixed') { console.error('Fixture build failure'); process.exit(9); }`,
+        );
+        await git('add', '--all');
+        await git('commit', '-m', 'healthy fixture');
+        const argumentsList = [
+            'coder',
+            'fix',
+            '--harness',
+            'openai-codex',
+            '--path',
+            projectPath,
+            '--no-ui',
+            '--no-questions',
+            '--wait-after-error',
+            '0s',
+        ];
+        const before = await snapshotPlanningProject(projectPath);
+        expect((await run(['coder', '--help'])).stdout).toContain('fix');
+        const help = (await run(['coder', 'fix', '--help'])).stdout;
+        expect(help).toContain('--check');
+        expect(help).not.toContain('--check-before');
+        await run([...argumentsList, '--dry-run']);
+        expect(await snapshotPlanningProject(projectPath)).toEqual(before);
+        const healthy = await run(argumentsList);
+        expect(healthy.stdout).toContain('Checks passed without repair');
+        expect(await git('rev-list', '--count', 'HEAD')).toBe('1');
+        await expect(readFile(join(projectPath, '.promptbook/harness-invocations'))).rejects.toMatchObject({
+            code: 'ENOENT',
+        });
+        await expect(readFile(join(projectPath, 'agents/developer.book'))).rejects.toMatchObject({ code: 'ENOENT' });
+        await expect(readdir(join(projectPath, 'prompts'))).rejects.toMatchObject({ code: 'ENOENT' });
+
+        await mkdir(join(projectPath, 'agents'));
+        await writeFile(
+            join(projectPath, 'agents/developer.book'),
+            'Developer\nFROM @Null\nRULE PACKED_FIX_DEVELOPER\n',
+        );
+        await writeFile(join(projectPath, 'AGENTS.md'), 'PACKED_FIX_CONTEXT');
+        await writeFile(join(projectPath, 'value.txt'), 'broken');
+        await git('add', '--all');
+        await git('commit', '-m', 'failing fixture');
+        const repaired = await run(argumentsList);
+        expect(repaired.stdout).toContain('Repaired and verified');
+        const observed = JSON.parse(await readFile(join(projectPath, '.promptbook/mock-call.json'), 'utf-8'));
+        expect(observed.prompt).toContain('PACKED_FIX_DEVELOPER');
+        expect(observed.prompt).toContain('PACKED_FIX_CONTEXT');
+        expect(observed.prompt).not.toContain('remaining coding prompts');
+        expect(await git('rev-list', '--count', 'HEAD')).toBe('3');
+        const repairFiles = (await readdir(join(projectPath, 'prompts'))).filter((name) => name.endsWith('.md'));
+        expect(repairFiles).toHaveLength(1);
+        expect(
+            parsePromptFile(repairFiles[0]!, await readFile(join(projectPath, 'prompts', repairFiles[0]!), 'utf-8'))
+                .sections[0]?.status,
+        ).toBe('done');
+        expect(await readdir(callerPath)).toEqual([]);
+    });
+
     it('runs the installed CLI in an external project with shared defaults and independent overrides', async () => {
         const callerPath = join(temporaryPath, 'unrelated caller');
         const projectPath = join(temporaryPath, 'selected project with spaces');
@@ -149,6 +244,7 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         const codingHarnessPath = await installMockHarness(join(temporaryPath, 'coding-harness'), 'coding.cjs');
         const environment = {
             ...process.env,
+            NODE_OPTIONS: FIXTURE_NODE_OPTIONS,
             PATH: `${codingHarnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
             BASH_ENV: toPosixPath(join(codingHarnessPath, 'bash-env.sh')),
             GIT_CONFIG_GLOBAL: join(temporaryPath, 'empty-git-config'),
@@ -256,6 +352,7 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         }
         const environment = {
             ...process.env,
+            NODE_OPTIONS: FIXTURE_NODE_OPTIONS,
             PATH: `${harnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
             GIT_CONFIG_GLOBAL: join(temporaryPath, 'empty-git-config'),
             GIT_CONFIG_NOSYSTEM: '1',
@@ -418,6 +515,7 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
                     : [join(packagePath, 'bin/promptbook-cli.js')];
             const environment = {
                 ...process.env,
+                NODE_OPTIONS: FIXTURE_NODE_OPTIONS,
                 PATH: `${harnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
                 NODE_PATH: join(REPOSITORY_PATH, 'node_modules'),
                 TS_NODE_PROJECT: join(REPOSITORY_PATH, 'src/cli/test/tsconfig.json'),

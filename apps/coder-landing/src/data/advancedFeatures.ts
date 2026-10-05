@@ -10,6 +10,7 @@ import {
     PING_COMMAND,
     PING_PERIOD_COMMAND,
     CHECK_BEFORE_FIX_COMMAND,
+    FIX_COMMAND,
     VERIFY_COMMAND,
 } from './commands';
 
@@ -50,6 +51,12 @@ export const ADVANCED_FEATURES: ReadonlyArray<AdvancedFeatureDefinition> = [
         description:
             'Run the checks before the first coding prompt. Stop on failures that were already there, or let one repair prompt fix them before the backlog starts.',
         sampleCommand: CHECK_BEFORE_FIX_COMMAND,
+    },
+    {
+        title: 'Repair checks and stop',
+        description:
+            'Run npm run check, repair failures with one verified PRD, commit eligible changes and exit. A healthy project launches no harness. Ordinary queued tasks stay untouched; verify remains the human review and archive helper.',
+        sampleCommand: FIX_COMMAND,
     },
     {
         title: 'Commits with its own identity',

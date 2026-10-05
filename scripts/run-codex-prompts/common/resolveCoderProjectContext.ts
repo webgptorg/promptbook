@@ -18,10 +18,15 @@ export async function resolveCoderProjectContext(options: {
     readonly projectPath: string;
     readonly agent?: string;
     readonly context?: string;
+    /** Fix can defer the default Book until a failed check actually needs a coding agent. */
+    readonly isDefaultAgentDeferred?: boolean;
 }): Promise<ResolvedCoderProjectContext> {
-    const agentBook = await resolveCoderAgentBook(options.agent, options.projectPath, {
-        defaultRole: DEFAULT_CODER_AGENT_ROLE,
-    });
+    const agentBook =
+        options.isDefaultAgentDeferred && options.agent === undefined
+            ? undefined
+            : await resolveCoderAgentBook(options.agent, options.projectPath, {
+                  defaultRole: DEFAULT_CODER_AGENT_ROLE,
+              });
     const context = await resolveCoderContext(options.context, options.projectPath);
     return { projectPath: options.projectPath, agentBook, context };
 }

@@ -1,3 +1,4 @@
+// cspell:ignore pathspec pathspecs NOGLOB ICASE unstaging unstages
 import { mkdir, realpath, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
@@ -6,6 +7,8 @@ import { resolvePromptbookTemporaryPath } from '../../../src/utils/filesystem/pr
 import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
 import { hasUpstreamBranch, listGitRemotes, readCurrentBranchName, readOptionalGitConfig } from './gitBranchContext';
 import { runGitCommand } from './runGitCommand';
+import { CoderGitOperationError } from './CoderGitOperationError';
+import { quoteGitArgument } from './quoteGitArgument';
 
 /**
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
@@ -26,15 +29,18 @@ export async function commitChanges(
          * Repository-relative paths which are relevant for the current operation.
          *
          * Only these paths are staged and only they end up in the created commit, so unrelated changes of the
-         * project are left in the working tree. Everything is committed when the paths are not provided at all,
-         * while an empty list commits nothing but the file changes already staged before.
+         * project are left in the working tree. Everything is committed when the paths are not provided at all.
+         * An empty scope is a no-op; an explicitly allowed empty commit never absorbs the user's index.
          */
         relevantPaths?: ReadonlyArray<string>;
         excludePaths?: ReadonlyArray<string>;
         projectPath?: string;
         isEmptyCommitAllowed?: boolean;
+        /** Cancels only this job's Git commands, hooks and remote subprocesses. */
+        signal?: AbortSignal;
     },
 ): Promise<void> {
+    options?.signal?.throwIfAborted();
     const projectPath = options?.projectPath || process.cwd();
     const commitMessagePath = resolvePromptbookTemporaryPath(
         projectPath,
@@ -56,7 +62,23 @@ export async function commitChanges(
         //       a pathspec commits the working tree content of those paths and would ignore unstaging them
         const relevantPaths = excludeGitPaths(options?.relevantPaths, excludedGitPaths);
 
-        await stageCommitChanges(projectPath, agentEnv, relevantPaths, excludedGitPaths);
+        if (relevantPaths?.length === 0 && !options?.isEmptyCommitAllowed) {
+            return;
+        }
+
+        // A snapshot contains exact filenames, never Git patterns. Bracketed routes or wildcard characters
+        // must not expand the operation's scope to unrelated files, even when the caller enabled glob pathspecs.
+        const commitEnvironment =
+            relevantPaths === undefined
+                ? agentEnv
+                : {
+                      ...agentEnv,
+                      GIT_LITERAL_PATHSPECS: '1',
+                      GIT_GLOB_PATHSPECS: '0',
+                      GIT_NOGLOB_PATHSPECS: '0',
+                      GIT_ICASE_PATHSPECS: '0',
+                  };
+        await stageCommitChanges(projectPath, commitEnvironment, relevantPaths, excludedGitPaths, options?.signal);
 
         await runGitCommand({
             command: buildGitCommitCommand({
@@ -64,14 +86,19 @@ export async function commitChanges(
                 signingFlag,
                 relevantPaths,
                 isEmptyCommitAllowed: options?.isEmptyCommitAllowed,
+                isBashShell: process.platform !== 'win32' || Boolean(options?.signal),
             }),
             cwd: projectPath,
-            env: agentEnv,
+            env: commitEnvironment,
+            ...(options?.signal ? { signal: options.signal } : {}),
         });
 
         if (options?.autoPush) {
-            await pushCommittedChanges(projectPath, agentEnv);
+            await pushCommittedChanges(projectPath, agentEnv, options.signal);
         }
+    } catch (error) {
+        if (error instanceof CoderGitOperationError) throw error;
+        throw new CoderGitOperationError('commit', stringifyUnknownError(error));
     } finally {
         await unlink(commitMessagePath).catch(() => undefined);
     }
@@ -85,13 +112,15 @@ async function stageCommitChanges(
     agentEnv: Record<string, string> | undefined,
     relevantPaths: ReadonlyArray<string> | undefined,
     excludedGitPaths: ReadonlyArray<string>,
+    signal?: AbortSignal,
 ): Promise<void> {
     // Note: An operation which changed nothing relevant has nothing to stage
     if (relevantPaths === undefined || relevantPaths.length > 0) {
         await runGitCommand({
-            command: buildGitAddCommand(relevantPaths),
+            command: buildGitAddCommand(relevantPaths, process.platform !== 'win32' || Boolean(signal)),
             cwd: projectPath,
             env: agentEnv,
+            ...(signal ? { signal } : {}),
         });
     }
 
@@ -102,22 +131,25 @@ async function stageCommitChanges(
     }
 
     await runGitCommand({
-        command: `git reset --quiet HEAD -- ${excludedGitPaths.map(quoteShellPath).join(' ')}`,
+        command: `git reset --quiet HEAD -- ${excludedGitPaths
+            .map((path) => quoteGitArgument(path, process.platform !== 'win32' || Boolean(signal)))
+            .join(' ')}`,
         cwd: projectPath,
         env: agentEnv,
         isVerbose: false,
+        ...(signal ? { signal } : {}),
     });
 }
 
 /**
  * Builds the git add command for either the whole tree or the relevant paths of the current operation.
  */
-function buildGitAddCommand(relevantPaths: ReadonlyArray<string> | undefined): string {
+function buildGitAddCommand(relevantPaths: ReadonlyArray<string> | undefined, isBashShell: boolean): string {
     if (!relevantPaths || relevantPaths.length === 0) {
         return 'git add .';
     }
 
-    return `git add --all -- ${relevantPaths.map(quoteShellPath).join(' ')}`;
+    return `git add --all -- ${relevantPaths.map((path) => quoteGitArgument(path, isBashShell)).join(' ')}`;
 }
 
 /**
@@ -185,7 +217,7 @@ async function resolvePathThroughExistingAncestor(path: string): Promise<string>
     const missingPathSegments: string[] = [];
     let existingPath = path;
 
-    while (true) {
+    for (;;) {
         try {
             return resolve(await realpath(existingPath), ...missingPathSegments);
         } catch {
@@ -202,20 +234,12 @@ async function resolvePathThroughExistingAncestor(path: string): Promise<string>
 }
 
 /**
- * Quotes one Git path for safe shell execution.
- */
-function quoteShellPath(path: string): string {
-    return JSON.stringify(path);
-}
-
-/**
  * Branded error used when pushing committed changes fails.
  */
-class GitPushFailedError extends Error {
-    public readonly name = 'GitPushFailedError';
-
+class GitPushFailedError extends CoderGitOperationError {
     public constructor(message: string) {
-        super(message);
+        super('push', message);
+        Object.defineProperty(this, 'name', { value: 'GitPushFailedError' });
         Object.setPrototypeOf(this, GitPushFailedError.prototype);
     }
 }
@@ -228,14 +252,19 @@ class GitPushFailedError extends Error {
  * - Uses `git push --set-upstream` on first push when upstream is missing.
  * - Skips pushing when upstream exists and there is nothing to push.
  */
-async function pushCommittedChanges(projectPath: string, agentEnv?: Record<string, string>): Promise<void> {
+async function pushCommittedChanges(
+    projectPath: string,
+    agentEnv?: Record<string, string>,
+    signal?: AbortSignal,
+): Promise<void> {
+    signal?.throwIfAborted();
     if (await hasUpstreamBranch(projectPath, agentEnv)) {
         const commitsAhead = await countCommitsAheadOfUpstream(projectPath, agentEnv);
         if (commitsAhead === 0) {
             return;
         }
 
-        await executeGitPushCommand('git push', projectPath, agentEnv);
+        await executeGitPushCommand('git push', projectPath, agentEnv, signal);
         return;
     }
 
@@ -252,7 +281,15 @@ async function pushCommittedChanges(projectPath: string, agentEnv?: Record<strin
     }
 
     const remoteName = await resolveDefaultRemoteName(currentBranch, projectPath, agentEnv);
-    await executeGitPushCommand(`git push --set-upstream "${remoteName}" "${currentBranch}"`, projectPath, agentEnv);
+    await executeGitPushCommand(
+        `git push --set-upstream ${quoteGitArgument(
+            remoteName,
+            process.platform !== 'win32' || Boolean(signal),
+        )} ${quoteGitArgument(currentBranch, process.platform !== 'win32' || Boolean(signal))}`,
+        projectPath,
+        agentEnv,
+        signal,
+    );
 }
 
 /**
@@ -332,12 +369,14 @@ async function executeGitPushCommand(
     command: string,
     projectPath: string,
     agentEnv?: Record<string, string>,
+    signal?: AbortSignal,
 ): Promise<void> {
     try {
-        await $execCommand({
+        await runGitCommand({
             command,
             cwd: projectPath,
             env: agentEnv,
+            ...(signal ? { signal } : {}),
         });
     } catch (error) {
         throw new GitPushFailedError(buildPushFailureMessage(command, error));
@@ -352,6 +391,7 @@ function buildGitCommitCommand(options: {
     signingFlag?: string;
     relevantPaths?: ReadonlyArray<string>;
     isEmptyCommitAllowed?: boolean;
+    isBashShell: boolean;
 }): string {
     const commandParts = ['git commit'];
 
@@ -363,10 +403,14 @@ function buildGitCommitCommand(options: {
         commandParts.push('--allow-empty');
     }
 
-    commandParts.push(`--file "${options.commitMessagePath}"`);
+    commandParts.push(`--file ${quoteGitArgument(options.commitMessagePath, options.isBashShell)}`);
+
+    if (options.relevantPaths?.length === 0 && options.isEmptyCommitAllowed) {
+        commandParts.push('--only');
+    }
 
     if (options.relevantPaths && options.relevantPaths.length > 0) {
-        commandParts.push('--', ...options.relevantPaths.map(quoteShellPath));
+        commandParts.push('--', ...options.relevantPaths.map((path) => quoteGitArgument(path, options.isBashShell)));
     }
 
     return commandParts.join(' ');

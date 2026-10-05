@@ -4,6 +4,8 @@ import { $applyHarnessInstallationStatus } from './$applyHarnessInstallationStat
 import { $checkHarnessInstallation } from './$checkHarnessInstallation';
 import type { HarnessDefinition } from './HarnessDefinition';
 import { getHarnessDefinition } from './HarnessDefinition';
+import { buildHarnessInstallCommand } from './buildHarnessInstallCommand';
+import { NotAllowed } from '../../../../errors/NotAllowed';
 
 /**
  * Checks that every given CLI coding harness is installed globally and, when the questions are enabled, up to date.
@@ -19,6 +21,7 @@ import { getHarnessDefinition } from './HarnessDefinition';
 export async function $ensureHarnessInstallations(
     harnessNames: ReadonlyArray<PromptRunnerHarnessName | undefined>,
     questionsOptions: NormalizedQuestionsCliOptions,
+    options: { readonly isRequired?: boolean } = {},
 ): Promise<void> {
     const definitions = resolveCheckedHarnessDefinitions(harnessNames);
 
@@ -37,6 +40,16 @@ export async function $ensureHarnessInstallations(
 
     for (const status of statuses) {
         await $applyHarnessInstallationStatus(status, questionsOptions);
+        if (options.isRequired && status.installationState === 'not-installed') {
+            const rechecked = await $checkHarnessInstallation(status.definition, false);
+            if (rechecked.installationState === 'not-installed') {
+                throw new NotAllowed(
+                    `Repair requires ${status.definition.label}. Install it with \`${buildHarnessInstallCommand(
+                        status.definition,
+                    )}\`, then retry. No other task was executed.`,
+                );
+            }
+        }
     }
 }
 

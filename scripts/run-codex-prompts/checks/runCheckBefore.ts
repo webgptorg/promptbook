@@ -1,7 +1,7 @@
 import colors from 'colors';
 import { formatUnknownErrorMessage } from '../common/formatUnknownErrorMessage';
 import type { WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
-import { buildTemporaryPromptScriptPath } from '../common/runGoScript/buildTemporaryPromptScriptPath';
+import { buildCheckBeforeScriptPath } from './buildCheckBeforeScriptPath';
 import { runPromptCheckCommand } from './runPromptCheckCommand';
 import { CoderCheckSetupError } from './projectCheck';
 
@@ -29,6 +29,8 @@ export async function runCheckBefore(options: {
     readonly runPromptCheckCommandExecutor?: typeof runPromptCheckCommand;
     /** Optional cancellation forwarded to the shared command runner. */
     readonly signal?: AbortSignal;
+    /** Preserve the initial check's successful script under the same artifact policy as repair checks. */
+    readonly preserveLogs?: boolean;
 }): Promise<CheckBeforeResult> {
     options.signal?.throwIfAborted();
     const runPromptCheckCommandExecutor = options.runPromptCheckCommandExecutor ?? runPromptCheckCommand;
@@ -46,12 +48,9 @@ export async function runCheckBefore(options: {
         const checkOutput = await runPromptCheckCommandExecutor({
             command: options.checkCommand,
             projectPath: options.projectPath,
-            scriptPath: buildTemporaryPromptScriptPath({
-                projectPath: options.projectPath,
-                scriptDirectoryName: 'coder-prompts',
-                sourceFileName: 'check-before',
-            }),
+            scriptPath: buildCheckBeforeScriptPath(options.projectPath),
             ...(options.signal ? { signal: options.signal } : {}),
+            ...(options.preserveLogs ? { preserveArtifactsOnSuccess: true } : {}),
         });
         options.signal?.throwIfAborted();
 

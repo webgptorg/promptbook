@@ -4,6 +4,7 @@ import { spaceTrim } from 'spacetrim';
 import { increaseHeadings } from '../../../book/scripts/import-markdown/increaseHeadings';
 import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import { AuthenticationError } from '../../../src/errors/AuthenticationError';
+import { EnvironmentMismatchError } from '../../../src/errors/EnvironmentMismatchError';
 import type { RunOptions } from '../cli/RunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import type { CliProgressDisplay } from '../common/cliProgressDisplay';
@@ -37,6 +38,8 @@ import { writePromptRunTrace } from '../prompts/writePromptRunTrace';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { runPromptWithCheckFeedback } from '../checks/runPromptWithCheckFeedback';
 import { CoderCheckSetupError } from '../checks/projectCheck';
+import { CoderCheckFailedError } from '../checks/CoderCheckFailedError';
+import { CoderGitOperationError } from '../git/CoderGitOperationError';
 import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
 
 /**
@@ -47,11 +50,34 @@ import type { CoderRunUiHandle } from '../ui/renderCoderRunUi';
  */
 const MAX_RETRY_ATTEMPTS_AFTER_ERROR = 3;
 
+/** Execution policy for one selected task; no queue, watcher or priority state is required. */
+export type PromptRoundExecutionOptions = Pick<
+    RunOptions,
+    | 'workspace'
+    | 'projectPath'
+    | 'checkCommand'
+    | 'preserveLogs'
+    | 'thinkingLevel'
+    | 'waitForUser'
+    | 'waitAfterError'
+    | 'noCommit'
+    | 'normalizeLineEndings'
+    | 'autoMigrate'
+    | 'allowDestructiveAutoMigrate'
+    | 'autoPush'
+    | 'isIsolated'
+    | 'agentName'
+    | 'model'
+    | 'agent'
+    | 'context'
+    | 'projectContext'
+>;
+
 /**
  * Input required to execute one prompt-processing round.
  */
 export type RunPromptRoundOptions = {
-    options: RunOptions;
+    options: PromptRoundExecutionOptions;
     runner: PromptRunner;
     runnerMetadata: PromptRunnerMetadata;
     nextPrompt: PromptSelection;
@@ -72,6 +98,10 @@ export type RunPromptRoundOptions = {
     projectPath?: string;
     /** Explicit durable artifact location when a temporary execution worktree will be deleted. */
     artifactsProjectPath?: string;
+    /** Scope captured before check-repair authoring and lazy Book initialization. */
+    commitScope?: CoderCommitScope;
+    /** Cancels only this round's owned subprocesses and retry waits. */
+    signal?: AbortSignal;
 };
 
 /**
@@ -93,6 +123,8 @@ export async function runPromptRound({
     waitForRequestedPause,
     projectPath,
     artifactsProjectPath,
+    commitScope,
+    signal,
 }: RunPromptRoundOptions): Promise<void> {
     const roundProjectPath = projectPath ?? options.workspace?.projectPath ?? options.projectPath ?? process.cwd();
     const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
@@ -128,7 +160,7 @@ export async function runPromptRound({
     let attemptCount = 1;
     // Note: The very same snapshot tells which files this round has changed, both for normalizing their line
     //       endings and for committing only them instead of everything which is changed in the project
-    const roundCommitScope = await captureRoundCommitScopeIfNeeded(options, roundProjectPath);
+    const roundCommitScope = commitScope ?? (await captureRoundCommitScopeIfNeeded(options, roundProjectPath));
 
     await withPromptRuntimeLog(
         scriptPath,
@@ -136,7 +168,9 @@ export async function runPromptRound({
             let lastError: unknown;
 
             for (let errorRetryAttempt = 0; errorRetryAttempt <= MAX_RETRY_ATTEMPTS_AFTER_ERROR; errorRetryAttempt++) {
+                let isVerified = false;
                 try {
+                    signal?.throwIfAborted();
                     uiHandle?.startCapturingAgentOutput();
 
                     const result = await runPromptWithCheckFeedback({
@@ -148,6 +182,8 @@ export async function runPromptRound({
                         checkCommand: options.checkCommand,
                         preserveArtifactsOnSuccess: options.preserveLogs,
                         logPath,
+                        onBeforeCheck: () =>
+                            normalizeLineEndingsForCurrentRound(options, roundProjectPath, roundCommitScope),
                         onAttemptStarted: (nextAttemptCount) => {
                             attemptCount = nextAttemptCount;
                             uiHandle?.state.setAttempt(nextAttemptCount);
@@ -162,7 +198,9 @@ export async function runPromptRound({
                                 progress,
                             }),
                         waitForPauseCheckpoint: waitForRequestedPause,
+                        ...(signal ? { signal } : {}),
                     });
+                    isVerified = true;
 
                     await finalizeSuccessfulPromptRound({
                         options,
@@ -179,31 +217,61 @@ export async function runPromptRound({
                         uiHandle,
                         waitForRequestedPause,
                         roundProjectPath,
+                        signal,
                     });
                     return;
                 } catch (error) {
                     uiHandle?.stopCapturingAgentOutput();
+                    if (isVerified) {
+                        // Verification succeeded. Persistence failures must not re-enter the model/check retry loop,
+                        // overwrite a committed success, or duplicate a commit after a rejected push.
+                        const persistenceError =
+                            error instanceof CoderGitOperationError
+                                ? error
+                                : new CoderGitOperationError(
+                                      'record',
+                                      error instanceof Error ? error.message : String(error),
+                                  );
+                        await writePromptErrorLog({
+                            file: nextPrompt.file,
+                            section: nextPrompt.section,
+                            runnerName: runnerMetadata.runnerName,
+                            modelName: runnerMetadata.modelName,
+                            error: persistenceError,
+                        });
+                        throw persistenceError;
+                    }
                     lastError = error;
 
                     // Note: A harness which is not logged in answers every retry the same way, so the user gets
                     //       the sign-in instructions right away instead of after every retry has waited its delay
                     if (
                         error instanceof AuthenticationError ||
+                        error instanceof EnvironmentMismatchError ||
                         error instanceof CoderCheckSetupError ||
+                        error instanceof CoderCheckFailedError ||
+                        error instanceof CoderGitOperationError ||
+                        signal?.aborted ||
                         errorRetryAttempt >= MAX_RETRY_ATTEMPTS_AFTER_ERROR
                     ) {
                         break;
                     }
 
-                    await waitAfterErrorBeforeRetry({
-                        options,
-                        error,
-                        attemptedRetries: errorRetryAttempt + 1,
-                        isRichUiEnabled,
-                        progressDisplay,
-                        uiHandle,
-                        waitForRequestedPause,
-                    });
+                    try {
+                        await waitAfterErrorBeforeRetry({
+                            options,
+                            error,
+                            attemptedRetries: errorRetryAttempt + 1,
+                            isRichUiEnabled,
+                            progressDisplay,
+                            uiHandle,
+                            waitForRequestedPause,
+                            signal,
+                        });
+                    } catch (waitError) {
+                        lastError = waitError;
+                        break;
+                    }
                 }
             }
 
@@ -220,6 +288,7 @@ export async function runPromptRound({
                 uiHandle,
                 waitForRequestedPause,
                 roundProjectPath,
+                isInterrupted: signal?.aborted,
             });
 
             throw lastError;
@@ -280,13 +349,14 @@ async function recordPromptRoundInProgress(options: {
  * Sleeps `options.waitAfterError` while keeping the rich UI and plain console in sync, then resets state for the retry.
  */
 async function waitAfterErrorBeforeRetry(options: {
-    options: RunOptions;
+    options: PromptRoundExecutionOptions;
     error: unknown;
     attemptedRetries: number;
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
     uiHandle?: CoderRunUiHandle;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
+    signal?: AbortSignal;
 }): Promise<void> {
     const {
         options: runOptions,
@@ -328,6 +398,7 @@ async function waitAfterErrorBeforeRetry(options: {
         waitKind: 'after-error',
         isRichUiEnabled,
         uiHandle,
+        signal: options.signal,
     });
 
     progressDisplay?.resumeTimer();
@@ -363,7 +434,7 @@ function setPromptRoundRunningState(options: {
  * Finalizes a successful prompt round, including prompt bookkeeping and commit flow.
  */
 async function finalizeSuccessfulPromptRound(options: {
-    options: RunOptions;
+    options: PromptRoundExecutionOptions;
     nextPrompt: PromptSelection;
     runnerMetadata: PromptRunnerMetadata;
     previousRunnerSignatures?: PromptRunnerAttribution;
@@ -377,6 +448,7 @@ async function finalizeSuccessfulPromptRound(options: {
     uiHandle?: CoderRunUiHandle;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
     roundProjectPath: string;
+    signal?: AbortSignal;
 }): Promise<void> {
     const {
         options: runOptions,
@@ -426,7 +498,11 @@ async function finalizeSuccessfulPromptRound(options: {
         logPath,
         outcome: { kind: 'succeeded', steps: result.steps, loginMethod: result.loginMethod },
     });
-    await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
+    // Checked rounds normalize before each verification, so successful content is never changed afterwards.
+    // Preserve normalization for ordinary rounds which have no selected check command.
+    if (!runOptions.checkCommand?.trim()) {
+        await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
+    }
     await recordPromptDurationInEstimateCache({
         options: runOptions,
         runnerMetadata,
@@ -456,6 +532,7 @@ async function finalizeSuccessfulPromptRound(options: {
             projectPath: roundCommitScope?.repositoryRoot ?? roundProjectPath,
             // Note: An isolated round commits only the agent changes, so a task that needed none must not fail here
             isEmptyCommitAllowed: runOptions.isIsolated,
+            ...(options.signal ? { signal: options.signal } : {}),
         });
     } else {
         uiHandle?.state.setStatusMessage('Leaving changes uncommitted');
@@ -481,12 +558,13 @@ async function finalizeFailedPromptRound(options: {
     promptExecutionStartedDate: moment.Moment;
     attemptCount: number;
     error: unknown;
-    options: RunOptions;
+    options: PromptRoundExecutionOptions;
     logPath: string;
     roundCommitScope?: CoderCommitScope;
     uiHandle?: CoderRunUiHandle;
     waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
     roundProjectPath: string;
+    isInterrupted?: boolean;
 }): Promise<void> {
     const {
         nextPrompt,
@@ -506,20 +584,23 @@ async function finalizeFailedPromptRound(options: {
     uiHandle?.stopCapturingAgentOutput();
     uiHandle?.state.setPhase('error');
     uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
-    await waitForRequestedPause({
-        checkpointLabel: 'recording the prompt failure',
-        phase: 'error',
-        statusMessage: 'Recording prompt failure',
-    });
+    if (!options.isInterrupted)
+        await waitForRequestedPause({
+            checkpointLabel: 'recording the prompt failure',
+            phase: 'error',
+            statusMessage: 'Recording prompt failure',
+        });
 
-    markPromptFailed({
-        file: nextPrompt.file,
-        section: nextPrompt.section,
-        ...runnerMetadata,
-        previousRunnerSignatures,
-        promptExecutionStartedDate,
-        attemptCount,
-    });
+    // Cancellation keeps the last [^] step as the recoverable interrupted status.
+    if (!options.isInterrupted)
+        markPromptFailed({
+            file: nextPrompt.file,
+            section: nextPrompt.section,
+            ...runnerMetadata,
+            previousRunnerSignatures,
+            promptExecutionStartedDate,
+            attemptCount,
+        });
     await writePromptFile(nextPrompt.file);
     await writePromptErrorLog({
         file: nextPrompt.file,
@@ -539,7 +620,8 @@ async function finalizeFailedPromptRound(options: {
         logPath,
         outcome: { kind: 'failed', error },
     });
-    await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
+    if (!options.isInterrupted)
+        await normalizeLineEndingsForCurrentRound(runOptions, roundProjectPath, roundCommitScope);
 }
 
 /**
@@ -550,7 +632,7 @@ async function finalizeFailedPromptRound(options: {
  * harness, model and thinking level did it and everything that harness has written while doing it.
  */
 async function recordPromptRoundTrace(options: {
-    options: RunOptions;
+    options: PromptRoundExecutionOptions;
     nextPrompt: PromptSelection;
     runnerMetadata: PromptRunnerMetadata;
     promptExecutionStartedDate: moment.Moment;
@@ -587,7 +669,7 @@ async function recordPromptRoundTrace(options: {
  * Waits for the optional user confirmation immediately before creating the commit.
  */
 async function waitForCommitConfirmationIfNeeded(options: {
-    options: RunOptions;
+    options: PromptRoundExecutionOptions;
     commitMessage: string;
     isRichUiEnabled: boolean;
     progressDisplay?: CliProgressDisplay;
@@ -631,7 +713,7 @@ function buildCommitPreviewLines(commitMessage: string): string[] {
 /**
  * Runs post-prompt testing-server auto-migration when enabled.
  */
-async function runPostPromptAutoMigrationIfEnabled(options: RunOptions): Promise<void> {
+async function runPostPromptAutoMigrationIfEnabled(options: PromptRoundExecutionOptions): Promise<void> {
     if (!options.autoMigrate) {
         return;
     }
@@ -648,7 +730,7 @@ async function runPostPromptAutoMigrationIfEnabled(options: RunOptions): Promise
  * before its own first prompt has finished.
  */
 async function recordPromptDurationInEstimateCache(options: {
-    options: RunOptions;
+    options: PromptRoundExecutionOptions;
     runnerMetadata: PromptRunnerMetadata;
     promptExecutionStartedDate: moment.Moment;
 }): Promise<void> {
@@ -675,7 +757,7 @@ async function recordPromptDurationInEstimateCache(options: {
  * those files, so a round which does neither of them does not pay for hashing the working tree.
  */
 async function captureRoundCommitScopeIfNeeded(
-    options: RunOptions,
+    options: PromptRoundExecutionOptions,
     roundProjectPath: string,
 ): Promise<CoderCommitScope | undefined> {
     if (options.noCommit && !options.normalizeLineEndings) {
@@ -691,7 +773,7 @@ async function captureRoundCommitScopeIfNeeded(
  * Normalizes line endings in files modified during the current coding round.
  */
 async function normalizeLineEndingsForCurrentRound(
-    options: RunOptions,
+    options: PromptRoundExecutionOptions,
     roundProjectPath: string,
     roundCommitScope?: CoderCommitScope,
 ): Promise<void> {

@@ -33,6 +33,7 @@ import {
 import { addCoderCheckOptions, normalizeCheckCommandOption } from '../common/coderCheckCliOptions';
 import { DEFAULT_WAIT_AFTER_ERROR_MS, parseOptionalWaitDuration } from './waitOptions';
 import { $ensureCoderHarnessGitignoreRules } from './$ensureCoderHarnessGitignoreRules';
+import { withCoderWorkspaceLock } from '../../../../scripts/run-codex-prompts/common/withCoderWorkspaceLock';
 import { addCoderExecutionOptions, type CoderAgentCliOptions } from './agentCliOptions';
 import { printCoderRunFailure } from './printCoderRunFailure';
 
@@ -259,16 +260,21 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 // Check disk space before installations and repository writes; previews require no setup.
                 await $assertSufficientFreeDiskSpace(workspace.projectPath);
 
-                if (await $ensurePromptbookCliInstallations(questionsOptions, workspace.projectPath)) {
+                const isCliUpdated = await withCoderWorkspaceLock(workspace, async () => {
+                    if (await $ensurePromptbookCliInstallations(questionsOptions, workspace.projectPath)) {
+                        return true;
+                    }
+                    await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
+                    await $ensureCoderHarnessGitignoreRules(
+                        workspace.projectPath,
+                        runnerOptions.agentName,
+                        questionsOptions,
+                    );
+                    return false;
+                });
+                if (isCliUpdated) {
                     return process.exit(0);
                 }
-
-                await $ensureHarnessInstallations([runnerOptions.agentName], questionsOptions);
-                await $ensureCoderHarnessGitignoreRules(
-                    workspace.projectPath,
-                    runnerOptions.agentName,
-                    questionsOptions,
-                );
             }
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed

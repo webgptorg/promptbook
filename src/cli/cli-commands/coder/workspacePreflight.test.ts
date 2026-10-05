@@ -5,6 +5,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { promisify } from 'util';
 import { runCodexPrompts } from '../../../../scripts/run-codex-prompts/main/runCodexPrompts';
+import { runCoderFix } from '../../../../scripts/run-codex-prompts/main/runCoderFix';
 import { runCodexPromptsServer } from '../../../../scripts/run-codex-prompts/main/runCodexPromptsServer';
 import { pingCoderHarness } from '../../../../scripts/run-codex-prompts/ping/pingCoderHarness';
 import { verifyPrompts } from '../../../../scripts/verify-prompts/verify-prompts';
@@ -24,6 +25,10 @@ jest.mock('../common/promptbook-cli/$ensurePromptbookCliInstallations', () => ({
 }));
 jest.mock('./$ensureCoderHarnessGitignoreRules', () => ({ $ensureCoderHarnessGitignoreRules: jest.fn() }));
 jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPrompts', () => ({ runCodexPrompts: jest.fn() }));
+jest.mock('../../../../scripts/run-codex-prompts/main/runCoderFix', () => ({
+    ...jest.requireActual('../../../../scripts/run-codex-prompts/main/runCoderFix'),
+    runCoderFix: jest.fn(),
+}));
 jest.mock('../../../../scripts/run-codex-prompts/main/runCodexPromptsServer', () => ({
     runCodexPromptsServer: jest.fn(),
 }));
@@ -42,6 +47,8 @@ const MUTATING_ARGUMENTS = [
     ['find-refactor-candidates'],
     ['run', '--harness', 'openai-codex'],
     ['run', '--harness', 'openai-codex', '--no-commit', '--git-changes', 'ignore'],
+    ['fix', '--harness', 'openai-codex', '--check', 'true'],
+    ['fix', '--harness', 'openai-codex', '--check', 'true', '--no-commit', '--git-changes', 'ignore'],
     ['ping', '--harness', 'openai-codex'],
     ['server', '--harness', 'openai-codex'],
     ['server', '--harness', 'openai-codex', '--no-commit', '--git-changes', 'ignore'],
@@ -57,6 +64,7 @@ const SIDE_EFFECT_BOUNDARIES = [
     $ensurePromptbookCliInstallations,
     $ensureCoderHarnessGitignoreRules,
     runCodexPrompts,
+    runCoderFix,
     runCodexPromptsServer,
     pingCoderHarness,
     verifyPrompts,

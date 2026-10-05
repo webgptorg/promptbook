@@ -49,6 +49,19 @@ describe('pullLatestChanges', () => {
         });
     });
 
+    it('forwards a finite repair cancellation signal into the shared Git executor', async () => {
+        const controller = new AbortController();
+        jest.mocked($execCommand).mockResolvedValue('origin/main');
+
+        await pullLatestChanges('/fixture/project', { signal: controller.signal });
+
+        expect(runGitCommand).toHaveBeenCalledWith({
+            command: 'git pull --rebase',
+            cwd: '/fixture/project',
+            signal: controller.signal,
+        });
+    });
+
     it('pulls from the preferred remote when the branch has no upstream yet', async () => {
         const execMock = $execCommand as ExecCommandMock;
         execMock.mockImplementation(async (options) => {

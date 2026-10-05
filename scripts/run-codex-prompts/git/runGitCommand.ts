@@ -1,16 +1,23 @@
 import colors from 'colors';
+import { randomBytes } from 'crypto';
 import { stat, unlink } from 'fs/promises';
 import { resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
+import { setTimeout as waitForTimeout } from 'timers/promises';
+import { DEFAULT_IS_VERBOSE } from '../../../src/config';
 import { ConflictError } from '../../../src/errors/ConflictError';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { resolvePromptbookTemporaryPath } from '../../../src/utils/filesystem/promptbookTemporaryPath';
 import { ProgressiveBackoff } from '../common/ProgressiveBackoff';
+import { $runGoScriptWithOutput } from '../common/runGoScript/$runGoScriptWithOutput';
+import { quoteBashArgument } from '../common/runGoScript/quoteBashArgument';
+import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
 
 /**
  * Delays used before retrying a Git command blocked by `index.lock`.
  */
-const GIT_INDEX_LOCK_RETRY_DELAYS_MS = Object.freeze([250, 500, 1000, 2000, 4000]);
+const GIT_INDEX_LOCK_RETRY_DELAYS_MS = Object.freeze([1000 / 4, 500, 1000, 2000, 4 * 1000]);
 
 /**
  * Age threshold after which `.git/index.lock` is considered stale.
@@ -40,6 +47,8 @@ type RunGitCommandOptions = {
     readonly cwd?: string;
     readonly env?: Record<string, string>;
     readonly isVerbose?: boolean;
+    /** A finite job cancels the same owned shell tree as its checks and harness. */
+    readonly signal?: AbortSignal;
 };
 
 /**
@@ -55,7 +64,11 @@ type GitIndexLockState = {
  * Runs one Git command and retries when the repository index is still temporarily locked.
  */
 export async function runGitCommand(options: RunGitCommandOptions): Promise<string> {
+    options.signal?.throwIfAborted();
     const cwd = options.cwd ?? process.cwd();
+    const scriptPath = options.signal
+        ? resolvePromptbookTemporaryPath(cwd, 'ptbk-coder', 'git-operations', `${randomBytes(16).toString('hex')}.sh`)
+        : undefined;
     const retryBackoff = new ProgressiveBackoff({
         delaysMs: GIT_INDEX_LOCK_RETRY_DELAYS_MS,
         jitterRatio: 0,
@@ -63,8 +76,26 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
     let lastIndexLockState: GitIndexLockState | undefined;
     let isStaleIndexLockRemoved = false;
 
-    while (true) {
+    for (;;) {
         try {
+            options.signal?.throwIfAborted();
+            if (scriptPath) {
+                // Reuse the existing logged process-tree runner for cancellable Git operations. Git commands
+                // without a finite lifecycle retain their established execution and index-lock retry behavior.
+                const environment = Object.entries({ GIT_TERMINAL_PROMPT: '0', ...options.env })
+                    .map(([name, value]) => quoteBashArgument(`${name}=${value}`))
+                    .join(' ');
+                return await withPromptRuntimeLog(scriptPath, (logPath) =>
+                    $runGoScriptWithOutput({
+                        projectPath: cwd,
+                        scriptPath,
+                        logPath,
+                        scriptContent: `env ${environment} ${options.command}`,
+                        signal: options.signal,
+                        shouldPrintLiveOutput: options.isVerbose ?? DEFAULT_IS_VERBOSE,
+                    }),
+                );
+            }
             return await $execCommand({
                 command: options.command,
                 cwd,
@@ -72,6 +103,7 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
                 isVerbose: options.isVerbose,
             });
         } catch (error) {
+            options.signal?.throwIfAborted();
             const errorMessage = stringifyUnknownError(error);
 
             if (!isGitIndexLockError(errorMessage)) {
@@ -104,10 +136,13 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
             const delayMs = retryBackoff.nextDelayMs();
             console.warn(
                 colors.yellow(
-                    `Git index is busy, retrying \`${options.command}\` in ${formatDelay(delayMs)} (attempt #${retryBackoff.retryCount}).`,
+                    `Git index is busy, retrying \`${options.command}\` in ${formatDelay(delayMs)} (attempt #${
+                        retryBackoff.retryCount
+                    }).`,
                 ),
             );
-            await forTime(delayMs);
+            if (options.signal) await waitForTimeout(delayMs, undefined, { signal: options.signal });
+            else await forTime(delayMs);
         }
     }
 }
@@ -138,7 +173,10 @@ async function resolveGitIndexLockPath(cwd: string, env?: Record<string, string>
 /**
  * Reads the current `index.lock` file state when the lock file still exists.
  */
-async function readGitIndexLockState(cwd: string, env?: Record<string, string>): Promise<GitIndexLockState | undefined> {
+async function readGitIndexLockState(
+    cwd: string,
+    env?: Record<string, string>,
+): Promise<GitIndexLockState | undefined> {
     const indexLockPath = await resolveGitIndexLockPath(cwd, env);
     if (!indexLockPath) {
         return undefined;
@@ -231,7 +269,7 @@ function isFileNotFoundError(error: unknown): boolean {
         error &&
             typeof error === 'object' &&
             'code' in error &&
-            (((error as { code?: string }).code === 'ENOENT') || (error as { code?: string }).code === 'ENOTDIR'),
+            ((error as { code?: string }).code === 'ENOENT' || (error as { code?: string }).code === 'ENOTDIR'),
     );
 }
 

@@ -32,6 +32,7 @@ import {
     getDefaultCoderPromptTemplateDefinitions,
     PROMPTS_DIRECTORY_PATH,
     resolveCoderPromptTemplate,
+    type ResolvedCoderPromptTemplate,
 } from './boilerplateTemplates';
 
 /**
@@ -172,14 +173,17 @@ export async function addCoderPrompt({
     description,
     priority,
     templateOption,
+    promptTemplate,
 }: {
     readonly projectPath: string;
     readonly description: string;
     readonly priority: number;
     readonly templateOption?: string;
+    /** Internal authoring workflows may supply their own bounded instructions instead of the feature template. */
+    readonly promptTemplate?: ResolvedCoderPromptTemplate;
 }): Promise<AddCoderPromptResult> {
     mkdirSync(join(projectPath, PROMPTS_DIRECTORY_PATH), { recursive: true });
-    const prepared = await prepareCoderPrompt({ projectPath, description, priority, templateOption });
+    const prepared = await prepareCoderPrompt({ projectPath, description, priority, templateOption, promptTemplate });
     writeFileSync(join(projectPath, prepared.filePath), prepared.content, { encoding: 'utf-8', flag: 'wx' });
     console.info(colors.green(`✓ Added prompt ${prepared.emojiTag} in ${prepared.filePath}`));
     return { filePath: prepared.filePath, emojiTag: prepared.emojiTag };
@@ -198,6 +202,7 @@ export async function prepareCoderPrompt({
     templateOption,
     numberOffset = 0,
     reservedEmojiTag,
+    promptTemplate: providedPromptTemplate,
 }: {
     readonly projectPath: string;
     readonly description: string;
@@ -205,6 +210,8 @@ export async function prepareCoderPrompt({
     readonly templateOption?: string;
     readonly numberOffset?: number;
     readonly reservedEmojiTag?: string;
+    /** Shared repair authoring preserves numbering and tags without appending ordinary implementation instructions. */
+    readonly promptTemplate?: ResolvedCoderPromptTemplate;
 }): Promise<AddCoderPromptResult & { readonly content: string }> {
     const normalizedDescription = description.trim();
     if (normalizedDescription === '') {
@@ -228,7 +235,8 @@ export async function prepareCoderPrompt({
 
     const promptsDirectory = join(projectPath, PROMPTS_DIRECTORY_PATH);
 
-    const promptTemplate = await resolveCoderPromptTemplate({ projectPath, templateOption });
+    const promptTemplate =
+        providedPromptTemplate ?? (await resolveCoderPromptTemplate({ projectPath, templateOption }));
 
     const promptNumbering = await getPromptNumbering({
         promptsDir: promptsDirectory,
@@ -238,7 +246,16 @@ export async function prepareCoderPrompt({
 
     const emojiTag =
         reservedEmojiTag ||
-        formatPromptEmojiTag((await getFreshPromptEmojiTags({ count: 1, rootDir: projectPath })).selectedEmojis[0]!);
+        formatPromptEmojiTag(
+            (
+                await getFreshPromptEmojiTags({
+                    count: 1,
+                    rootDir: projectPath,
+                    // Bounded internal authoring, such as check repair, needs no project-wide scan cache artifact.
+                    ...(providedPromptTemplate ? { isCacheWriteEnabled: false } : {}),
+                })
+            ).selectedEmojis[0]!,
+        );
 
     const [firstDescriptionLine, ...remainingDescriptionLines] = normalizedDescription.split('\n');
     const title = (firstDescriptionLine ?? '').trim();

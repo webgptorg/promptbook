@@ -8,6 +8,7 @@ import { renderCoderRunUi, type CoderRunUiHandle } from './renderCoderRunUi';
 import { stripAnsi, visibleLength } from './coderRunUiText';
 import { buildCoderRunUiFrame } from './buildCoderRunUiFrame';
 import { Terminal } from '@xterm/xterm';
+import { buildCoderCheckRepairUiFrame } from './buildCoderCheckRepairUiFrame';
 
 /** In-memory TTY exercising Node's real readline key parser with no paid calls. */
 class FixtureTerminal extends PassThrough {
@@ -52,6 +53,29 @@ describe('renderCoderRunUi terminal contract', () => {
         input.write(text);
         jest.advanceTimersByTime(1);
     }
+
+    it('renders a finite repair job and routes Ctrl+C through owned cleanup without queue controls', () => {
+        const onInterrupt = jest.fn();
+        const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+        handle = renderCoderRunUi(moment(), {
+            buildFrameLines: buildCoderCheckRepairUiFrame,
+            onInterrupt,
+            isQueueControlsEnabled: false,
+        });
+        handle.state.setConfig({ agentName: 'Check repair', checkCommand: 'npm run check' });
+        handle.state.setCurrentPrompt('Project checks and repair');
+        press('p');
+        press('x');
+        press('\u0003');
+        expect(onInterrupt).toHaveBeenCalledTimes(1);
+        expect(exitSpy).not.toHaveBeenCalled();
+        expect(getPauseState()).toBe('RUNNING');
+        expect(getEndAfterCurrentPromptState()).toBe(false);
+        const rendered = stripAnsi(writes.join(''));
+        expect(rendered).toContain('Promptbook Coder fix');
+        expect(rendered).toContain('npm run check');
+        expect(rendered).not.toContain('Repo 0 total');
+    });
 
     it('toggles mid-fragment, across tasks, and while waiting for Enter without triggering controls', async () => {
         handle = renderCoderRunUi(moment());

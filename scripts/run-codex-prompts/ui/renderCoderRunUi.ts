@@ -89,6 +89,10 @@ export function renderCoderRunUi(
     options: {
         readonly buildFrameLines?: (options: BuildCoderRunUiFrameOptions) => string[];
         readonly state?: CoderRunUiState;
+        /** Finite jobs cancel their owned activity and finish cleanup instead of exiting directly from a keypress. */
+        readonly onInterrupt?: () => void;
+        /** Jobs without a queue need presentation controls only, independent of global run pause state. */
+        readonly isQueueControlsEnabled?: boolean;
     } = {},
 ): CoderRunUiHandle {
     const state = options.state ?? new CoderRunUiState(startTime);
@@ -327,6 +331,10 @@ export function renderCoderRunUi(
 
     const keypressHandler = (_str: string, key: { ctrl?: boolean; meta?: boolean; name?: string }): void => {
         if (key.ctrl && key.name === 'c') {
+            if (options.onInterrupt) {
+                options.onInterrupt();
+                return;
+            }
             cleanup();
             process.exit(0);
         }
@@ -360,7 +368,8 @@ export function renderCoderRunUi(
         }
 
         // Note: [🏹] The very same key handling is shared with the plain console mode, see `applyCoderRunControlKey`
-        const controlFeedback = applyCoderRunControlKey(key.name);
+        const controlFeedback =
+            options.isQueueControlsEnabled === false ? undefined : applyCoderRunControlKey(key.name);
 
         if (controlFeedback !== undefined) {
             showControlFeedback(controlFeedback);

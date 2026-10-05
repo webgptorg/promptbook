@@ -1,4 +1,5 @@
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { quoteGitArgument } from './quoteGitArgument';
 
 /**
  * Checks whether the current branch has an upstream reference.
@@ -54,7 +55,7 @@ export async function hasLocalBranch(
 ): Promise<boolean> {
     try {
         await $execCommand({
-            command: `git rev-parse --verify --quiet "refs/heads/${branchName}"`,
+            command: `git rev-parse --verify --quiet ${quoteGitArgument(`refs/heads/${branchName}`)}`,
             cwd: projectPath,
             env,
             isVerbose: false,
@@ -76,7 +77,7 @@ export async function readOptionalGitConfig(
 ): Promise<string | undefined> {
     try {
         const value = await $execCommand({
-            command: `git config --get "${name}"`,
+            command: `git config --get ${quoteGitArgument(name)}`,
             cwd: projectPath,
             env,
             isVerbose: false,

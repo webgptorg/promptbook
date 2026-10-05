@@ -5,6 +5,7 @@ import { formatFreeDiskSpaceBytes } from '../../../src/cli/cli-commands/common/d
 import { formatLowFreeDiskSpaceWarning } from '../../../src/cli/cli-commands/common/disk-space/formatLowFreeDiskSpaceWarning';
 import { FREE_DISK_SPACE_RECHECK_INTERVAL_MS } from '../../../src/cli/cli-commands/common/disk-space/freeDiskSpaceConstants';
 import { announcePauseTargetLabel, requestPause } from './waitForPause';
+import type { FreeDiskSpaceStatus } from '../../../src/cli/cli-commands/common/disk-space/FreeDiskSpaceStatus';
 
 /**
  * Measures the free disk space of a run which is already in progress and requests a pause when it became critical.
@@ -32,6 +33,8 @@ export function createFreeDiskSpaceGuard(options: {
      * Whether the run may stop and wait for somebody to free the disk space, disabled by `--no-questions`.
      */
     readonly isAskingQuestionsEnabled: boolean;
+    /** Finite jobs can stop through their own lifecycle instead of entering the global queue pause state. */
+    readonly onCriticalDiskSpace?: (status: FreeDiskSpaceStatus) => Promise<void>;
 }): FreeDiskSpaceGuard {
     const { inspectedPath, isAskingQuestionsEnabled } = options;
 
@@ -50,6 +53,11 @@ export function createFreeDiskSpaceGuard(options: {
         const freeDiskSpaceStatus = await $readFreeDiskSpaceStatus(inspectedPath);
 
         if (freeDiskSpaceStatus === null || freeDiskSpaceStatus.level !== 'critical') {
+            return;
+        }
+
+        if (options.onCriticalDiskSpace) {
+            await options.onCriticalDiskSpace(freeDiskSpaceStatus);
             return;
         }
 

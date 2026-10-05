@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { listGitRemotes, readCurrentBranchName, readOptionalGitConfig, hasUpstreamBranch } from './gitBranchContext';
 import { runGitCommand } from './runGitCommand';
+import { quoteGitArgument } from './quoteGitArgument';
 
 /**
  * Branded error used when pulling repository changes fails.
@@ -17,10 +18,13 @@ class GitPullFailedError extends Error {
 /**
  * Pulls the latest repository changes before the next prompt starts.
  */
-export async function pullLatestChanges(projectPath = process.cwd()): Promise<void> {
-
+export async function pullLatestChanges(
+    projectPath = process.cwd(),
+    options: { readonly signal?: AbortSignal } = {},
+): Promise<void> {
+    options.signal?.throwIfAborted();
     if (await hasUpstreamBranch(projectPath)) {
-        await executeGitPullCommand('git pull --rebase', projectPath);
+        await executeGitPullCommand('git pull --rebase', projectPath, options.signal);
         return;
     }
 
@@ -37,7 +41,15 @@ export async function pullLatestChanges(projectPath = process.cwd()): Promise<vo
     }
 
     const remoteName = await resolveDefaultRemoteName(currentBranch, projectPath);
-    await executeGitPullCommand(`git pull --rebase "${remoteName}" "${currentBranch}"`, projectPath);
+    const isBashShell = process.platform !== 'win32' || Boolean(options.signal);
+    await executeGitPullCommand(
+        `git pull --rebase ${quoteGitArgument(remoteName, isBashShell)} ${quoteGitArgument(
+            currentBranch,
+            isBashShell,
+        )}`,
+        projectPath,
+        options.signal,
+    );
 }
 
 /**
@@ -90,11 +102,12 @@ async function resolveDefaultRemoteName(currentBranch: string, projectPath: stri
 /**
  * Executes one pull command and wraps failures into a detailed branded error.
  */
-async function executeGitPullCommand(command: string, projectPath: string): Promise<void> {
+async function executeGitPullCommand(command: string, projectPath: string, signal?: AbortSignal): Promise<void> {
     try {
         await runGitCommand({
             command,
             cwd: projectPath,
+            ...(signal ? { signal } : {}),
         });
     } catch (error) {
         throw new GitPullFailedError(buildPullFailureMessage(command, error));

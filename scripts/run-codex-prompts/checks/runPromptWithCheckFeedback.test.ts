@@ -205,6 +205,39 @@ describe('runPromptWithCheckFeedback', () => {
         ]);
     });
 
+    it('verifies transformed content on every feedback attempt without changing it after a pass', async () => {
+        const { runner, runPromptMock } = createMockRunner();
+        const events: string[] = [];
+        runPromptMock.mockImplementation(async () => {
+            events.push('repair');
+            return { usage: UNCERTAIN_USAGE };
+        });
+        const onBeforeCheck = jest.fn(async () => {
+            events.push('normalize');
+        });
+        const runPromptCheckCommandExecutor = jest.fn<
+            ReturnType<RunPromptCheckCommandExecutor>,
+            Parameters<RunPromptCheckCommandExecutor>
+        >(async () => {
+            events.push('check');
+            if (runPromptCheckCommandExecutor.mock.calls.length === 1) throw new Error('Still failing');
+            return 'Checks passed';
+        });
+
+        const result = await runPromptWithCheckFeedback({
+            runner,
+            prompt: 'Repair selected checks',
+            scriptPath: 'prompts/repair.sh',
+            projectPath: 'C:\\repo',
+            promptLabel: 'repair',
+            checkCommand: 'npm run check',
+            onBeforeCheck,
+            runPromptCheckCommandExecutor,
+        });
+        expect(result.attemptCount).toBe(2);
+        expect(events).toEqual(['repair', 'normalize', 'check', 'repair', 'normalize', 'check']);
+    });
+
     it('fails after the maximum number of check attempts', async () => {
         const { runner, runPromptMock } = createMockRunner();
         const attemptCounts: number[] = [];

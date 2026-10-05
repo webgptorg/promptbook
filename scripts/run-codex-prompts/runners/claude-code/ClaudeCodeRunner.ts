@@ -195,6 +195,7 @@ async function waitForClaudeCodeSessionLimitReset(
     await waitForSkippableWorldTimeDeadline({
         deadlineTimeMs: resetDeadlineTimeMs,
         pollIntervalMs: CLAUDE_CODE_SESSION_RESURRECTION_POLL_MS,
+        signal: options.signal,
         onTick: async (remainingDelayMs) => {
             options.signal?.throwIfAborted();
             await options.waitForPauseCheckpoint?.({

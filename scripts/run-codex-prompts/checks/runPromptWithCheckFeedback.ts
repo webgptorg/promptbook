@@ -16,7 +16,7 @@ import { limitCheckOutput } from './limitCheckOutput';
 import { runPromptCheckCommand } from './runPromptCheckCommand';
 import { CHECK_REPAIR_INSTRUCTIONS } from './checkRepairInstructions';
 import { assertProjectCheckIsConfigured, CoderCheckSetupError } from './projectCheck';
-import { NotAllowed } from '../../../src/errors/NotAllowed';
+import { CoderCheckFailedError } from './CoderCheckFailedError';
 import { UnexpectedError } from '../../../src/errors/UnexpectedError';
 
 /**
@@ -37,6 +37,8 @@ type RunPromptWithCheckFeedbackOptions = PromptRunOptions & {
     promptLabel: string;
     checkCommand?: string;
     onAttemptStarted?: (attemptCount: number) => void;
+    /** Completes scoped transformations before verification inspects the content to be persisted. */
+    onBeforeCheck?: () => Promise<void>;
 
     /**
      * Notified right before each implementation, checking and fixing step starts, so the caller can
@@ -112,6 +114,8 @@ export async function runPromptWithCheckFeedback(
             stepTracker,
         });
 
+        await options.onBeforeCheck?.();
+        options.signal?.throwIfAborted();
         await waitForCheckPauseCheckpoint(options.waitForPauseCheckpoint, normalizedCheckCommand, attemptCount);
         console.info(colors.gray(`Running check command after attempt #${attemptCount}: ${normalizedCheckCommand}`));
 
@@ -132,7 +136,7 @@ export async function runPromptWithCheckFeedback(
         if (attemptCount >= MAX_PROMPT_CHECK_ATTEMPTS) {
             console.error(colors.red(`Check failed for ${options.promptLabel} after ${attemptCount} attempts.`));
 
-            throw new NotAllowed(
+            throw new CoderCheckFailedError(
                 buildFinalCheckFailureMessage({
                     promptLabel: options.promptLabel,
                     checkCommand: normalizedCheckCommand,

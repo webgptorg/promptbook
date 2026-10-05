@@ -44,6 +44,7 @@ Consequence: the page may reference Claude Code / Codex as familiar anchors, but
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `ptbk coder init`   | Scaffold `prompts/`, `prompts/done/`, `agents/developer.book`, `AGENTS.md`, `.env` agent-identity entries, `.gitignore`, `package.json` scripts, `.vscode/settings.json` |
 | `ptbk coder run`    | Process the prompt queue once, then exit                                                                                                                                 |
+| `ptbk coder fix`    | Run checks, repair genuine failures with one verified PRD, commit eligible changes and exit without processing ordinary queued work. Passing checks launch no harness. |
 | `ptbk coder server` | Same processing, but never exits; watches for new prompts; serves kanban UI                                                                                              |
 | `ptbk coder verify` | Interactive verification of completed prompts; archives to `prompts/done/`                                                                                               |
 

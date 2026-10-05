@@ -4,19 +4,51 @@
 
 ## Usage
 
+`ptbk coder fix` is a finite check-repair job. It always runs the selected project check, authors and executes
+one repair PRD only if checks fail, verifies with the same command, commits eligible changes and exits. It never
+loads or selects ordinary queued work. `coder run --check-before yes-and-fix` uses the same repair service and
+then may continue its queue; `coder verify` is a human review/archive helper and does not execute project checks.
+
+```bash
+ptbk coder fix --harness openai-codex
+ptbk coder fix --harness openai-codex --check "npm run lint && npm run build && npm test"
+ptbk coder fix --harness openai-codex --path ../my-project --agent ./agents/developer.book --context ./AGENTS.md
+```
+
+Omission selects `npm run check`; explicit commands replace it. Missing/unconfigured validation is a setup
+error, not an invitation to invent checks. A passing project needs no installed harness or default Book and
+creates no PRD; a pure check creates no commit. Passing formatters/generators commit their eligible changes
+under the same scoped policy as run. A failed check creates a numbered repair PRD using shared authoring and
+status conventions, with bounded/redacted output and instructions to correct defects without weakening
+validation. At most three check-feedback attempts update that same task. No other PRD is executed or marked,
+regardless of priority, targeting or status; missing `prompts/` is created only for a needed repair artifact.
+Scoped line-ending normalization runs before repair verification, so checks inspect the content being committed.
+Use the shared `--no-normalize-line-endings` option when the project intentionally requires other line endings.
+
+`--no-questions`, `--no-ui`, `--preserve-logs`, and the shared harness/model/thinking/credit options apply.
+Dirty work requires explicit `--git-changes ignore`; unrelated staged/unstaged files stay outside the commit.
+An empty eligible change scope produces no commit, even when unrelated files are already staged.
+`--no-commit` follows the shared `--git-changes ignore` constraint. Pull/push remain explicit opt-ins, and a
+failed commit or push is reported separately from validation without calling a model again. Cancellation
+stops owned processes and preserves recovery artifacts. Fix never resumes arbitrary interrupted PRDs:
+`--git-changes continue` is rejected with recovery guidance. Run, server and fix own the shared workspace
+mutation lease during setup and execution; a live worker blocks another invocation. A stale lease needs explicit removal
+after inspecting the stopped worker's saved work. Dry-run/help execute no checks, installations, agents or writes.
+
 ### Via Promptbook CLI (recommended):
 
 ```bash
 # External usage (when promptbook is installed globally)
 ptbk coder init
 ptbk coder run --harness openai-codex
+ptbk coder fix --harness openai-codex
 ptbk coder plan --harness openai-codex
 
 # Internal usage (within Promptbook repository)
 npx ts-node ./src/cli/test/ptbk.ts coder run --harness openai-codex --model gpt-6-astra
 ```
 
-`run`, `server` and `plan` use the project's Developer (`agents/developer.book`). Planner remains available
+`run`, `fix`, `server` and `plan` use the project's Developer (`agents/developer.book`). Planner remains available
 with `--agent ./agents/planner.book`. These editable local Books supply the persona, instructions, inherited Adam rules,
 imports, TEAM declarations, display identity and prompt-routing aliases. Local edits apply on the next invocation.
 `--harness` selects the coding tool, `--model` selects its model, and `--thinking-level` controls reasoning effort.
@@ -64,6 +96,7 @@ these fallbacks. There is no new environment-variable precedence layer.
 | Registered command                                                                           | Primary Book or filter                                                                      | Project selection                                                    | Additional context                                       |
 | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------- |
 | `coder run`, `coder server`                                                                  | Optional `--agent`, default Developer; task/harness targeting still applies                 | `--path`, default invocation cwd                                     | `--context`, default project AGENTS.md                   |
+| `coder fix`                                                                                  | Optional `--agent`, default Developer, prepared only when a check needs repair              | Same                                                                 | Same                                                     |
 | `coder plan`                                                                                 | Optional `--agent`, default Developer; explicit Planner supported; PRD-only permissions     | Same                                                                 | Same                                                     |
 | `coder list`                                                                                 | Optional `--agent` is a **listing filter**; omission lists all agents                       | Same                                                                 | None                                                     |
 | `init`, `initialize`, `coder init`, `coder initialize`                                       | Creates/preserves all default Books; selects no primary agent                               | Same, through one initializer                                        | Creates/preserves AGENTS.md; does not load agent context |

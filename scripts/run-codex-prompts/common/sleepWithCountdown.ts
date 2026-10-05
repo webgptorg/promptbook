@@ -51,6 +51,8 @@ export async function sleepWithCountdown(options: {
     waitKind: CoderRunWaitKind;
     isRichUiEnabled: boolean;
     uiHandle?: CoderRunUiHandle;
+    /** Stops a finite repair's retry delay immediately when it is cancelled. */
+    signal?: AbortSignal;
 }): Promise<void> {
     const { durationMs, waitKind, isRichUiEnabled, uiHandle } = options;
 
@@ -63,6 +65,7 @@ export async function sleepWithCountdown(options: {
     await waitForSkippableWorldTimeDeadline({
         deadlineTimeMs,
         pollIntervalMs: WAIT_COUNTDOWN_UPDATE_INTERVAL_MS,
+        signal: options.signal,
         onTick: (remainingDurationMs) => {
             const visibleRemainingDurationMs = Math.min(remainingDurationMs, durationMs);
             const statusMessage = describeCoderRunWait(waitKind, visibleRemainingDurationMs, durationMs);

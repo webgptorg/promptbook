@@ -4,7 +4,6 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
 import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChangesMode';
-import { DEFAULT_CODER_AGENT_ROLE } from '../../../src/cli/cli-commands/coder/coderAgentRole';
 import { resolveProjectDirectory } from '../../../src/cli/cli-commands/common/projectCliOptions';
 import { validateCoderRunOptions } from '../../../src/cli/cli-commands/common/validateCoderRunOptions';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
@@ -16,7 +15,6 @@ import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { loadCachedAveragePromptDurationMs } from '../common/coderRunEstimateCache';
 import { createFreeDiskSpaceGuard, type FreeDiskSpaceGuard } from '../common/createFreeDiskSpaceGuard';
 import type { PromptRunnerMetadata } from '../common/PromptRunnerMetadata';
-import { resolveCoderAgent } from '../common/resolveCoderAgent';
 import { sleepWithCountdown } from '../common/sleepWithCountdown';
 import { resolveCoderProjectContext } from '../common/resolveCoderProjectContext';
 import { listenForCoderRunControls } from '../common/listenForCoderRunControls';
@@ -29,9 +27,6 @@ import {
 } from '../common/waitForPause';
 import { waitForSkippableWorldTimeDeadline } from '../common/waitForSkippableWorldTimeDeadline';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
-import { captureCoderCommitScope, resolveCoderCommitScopePaths, type CoderCommitScope } from '../git/coderCommitScope';
-import { commitChanges } from '../git/commitChanges';
-import { commitInitializedAgentBooks } from '../git/commitInitializedAgentBooks';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { pullLatestChanges } from '../git/pullLatestChanges';
 import { runIsolatedPromptRound } from '../isolation/runIsolatedPromptRound';
@@ -58,19 +53,13 @@ import {
     startCoderRunUiSubscriptionUsageRefresh,
     type CoderRunUiSubscriptionUsageRefreshHandle,
 } from '../ui/startCoderRunUiSubscriptionUsageRefresh';
-import { createCheckBeforeRepairPrompt } from '../checks/createCheckBeforeRepairPrompt';
 import { resolveCoderCheckCommand, type CheckBeforeMode } from '../checks/CheckBeforeMode';
-import { limitCheckOutput } from '../checks/limitCheckOutput';
-import { runCheckBefore } from '../checks/runCheckBefore';
 import { assertProjectCheckIsConfigured } from '../checks/projectCheck';
-import { resolvePromptRunner, resolveRunnerModel } from './resolvePromptRunner';
+import { resolveRunnerModel } from './resolvePromptRunner';
+import { prepareCoderPromptExecution } from './prepareCoderPromptExecution';
+import { runCoderCheckRepair } from '../checks/runCoderCheckRepair';
+import { withCoderWorkspaceLock } from '../common/withCoderWorkspaceLock';
 import { runPromptRound } from './runPromptRound';
-import { createCoderTeamPromptRunner } from '../team/createCoderTeamPromptRunner';
-
-/**
- * Commit message for files changed by a successful or failed pre-coding check in repair mode.
- */
-const PRE_CODING_CHECK_CHANGES_COMMIT_MESSAGE = 'chore: Apply changes made by pre-coding checks';
 
 /**
  * Prompt queue snapshot for one top-level loop iteration.
@@ -99,6 +88,13 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             ? normalizedOptions.projectPath!
             : await resolveProjectDirectory(normalizedOptions.projectPath!));
     const options = { ...normalizedOptions, projectPath };
+    if (options.dryRun) return runCodexPromptsWithOwnership(options);
+    return withCoderWorkspaceLock(options.workspace ?? projectPath, () => runCodexPromptsWithOwnership(options));
+}
+
+/** Executes the queue while its caller owns the workspace, or performs a read-only preview. */
+async function runCodexPromptsWithOwnership(options: RunOptions & { readonly projectPath: string }): Promise<void> {
+    const projectPath = options.projectPath;
     resetCoderRunControls();
 
     const runStartDate = moment();
@@ -131,33 +127,10 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         }
         await assertProjectCheckIsConfigured(options.checkCommand, projectPath);
         const resolvedCoderContext = projectContext.context;
-        const resolvedCoderAgent = await resolveCoderAgent(options.agent, projectPath, {
-            defaultRole: DEFAULT_CODER_AGENT_ROLE,
-            isInitializationAllowed: !options.dryRun,
-        });
-        const resolvedAgentSystemMessage = resolvedCoderAgent?.systemMessage;
-
-        if (!options.noCommit && resolvedCoderAgent) {
-            await commitInitializedAgentBooks(projectPath, resolvedCoderAgent.createdAgentBookPaths, options.workspace);
-        }
-
-        const {
-            runner: harnessRunner,
-            actualRunnerModel,
-            runnerMetadata: harnessRunnerMetadata,
-        } = resolvePromptRunner(options);
-        const runner = createCoderTeamPromptRunner(
-            harnessRunner,
-            options.agent,
-            projectPath,
-            options.workspace?.repositoryRoot,
+        const { runner, actualRunnerModel, runnerMetadata, resolvedCoderAgent } = await prepareCoderPromptExecution(
+            options,
         );
-        // Note: The harness only knows itself, so the Book agent it runs as is joined here - this is the single
-        //       place where the whole run report of prompt status lines and run traces is put together
-        const runnerMetadata: PromptRunnerMetadata = {
-            ...harnessRunnerMetadata,
-            agentName: resolvedCoderAgent?.agentName,
-        };
+        const resolvedAgentSystemMessage = resolvedCoderAgent?.systemMessage;
         const promptRunnerIdentity: PromptRunnerIdentity = {
             harnessName: options.agentName,
             modelName: actualRunnerModel,
@@ -485,148 +458,59 @@ async function runCheckBeforeIfNeeded(options: {
         isContinuingInterruptedPrompt,
     } = options;
 
-    if (runOptions.checkBefore === 'no') {
-        return hasWaitedForStart;
-    }
-
-    if (!runOptions.checkCommand) {
-        throw new NotAllowed(
-            spaceTrim(`
-                ${'`--check-before ' + runOptions.checkBefore + '`'} requires a verification command.
-
-                Pass one with ${'`--check <check-command>`'} or use the default ${'`npm run check`'} command.
-            `),
-        );
-    }
-
-    if (isCleanWorkingTreeRequired(runOptions.gitChanges, isContinuingInterruptedPrompt)) {
-        await waitForRequestedPause({
-            checkpointLabel: 'checking the git working tree before checking',
-            phase: 'loading',
-            statusMessage: 'Checking the working tree before checking...',
-        });
-        await ensureWorkingTreeClean(runOptions.workspace?.repositoryRoot ?? runOptions.projectPath);
-    }
-
-    const checkBeforeCommitScope = await captureCheckBeforeCommitScopeIfNeeded(runOptions);
-
-    uiHandle?.startCapturingAgentOutput();
-    const checkBeforeResult = await runCheckBefore({
-        checkCommand: runOptions.checkCommand,
+    let updatedHasWaitedForStart = hasWaitedForStart;
+    const result = await runCoderCheckRepair({
         projectPath: runOptions.projectPath!,
+        workspace: runOptions.workspace,
+        checkCommand: runOptions.checkCommand!,
+        mode: runOptions.checkBefore ?? 'no',
+        intent: 'run',
+        isCommitEnabled: !runOptions.noCommit,
+        isAutoPushEnabled: runOptions.autoPush,
+        isWorkingTreeCleanRequired: isCleanWorkingTreeRequired(runOptions.gitChanges, isContinuingInterruptedPrompt),
+        preserveLogs: runOptions.preserveLogs,
         waitForPauseCheckpoint: waitForRequestedPause,
-    }).finally(() => {
-        uiHandle?.stopCapturingAgentOutput();
+        onInitialCheckStarted: () => uiHandle?.startCapturingAgentOutput(),
+        onInitialCheckFinished: () => uiHandle?.stopCapturingAgentOutput(),
+        onRepairCreated: async (repairPrompt) => {
+            updatedHasWaitedForStart = await waitForPromptConfirmationIfNeeded({
+                options: runOptions,
+                nextPrompt: repairPrompt,
+                promptLabel: buildPromptLabelForDisplay(
+                    repairPrompt.file,
+                    repairPrompt.section,
+                    runOptions.projectPath,
+                ),
+                hasWaitedForStart,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+            });
+        },
+        prepareRepair: async () => async (repairPrompt, commitScope) => {
+            // A repair is authored in this worktree even when ordinary queued tasks use --isolate.
+            await runPromptRound({
+                options: runOptions,
+                runner,
+                runnerMetadata,
+                nextPrompt: repairPrompt,
+                promptLabel: buildPromptLabelForDisplay(
+                    repairPrompt.file,
+                    repairPrompt.section,
+                    runOptions.projectPath,
+                ),
+                resolvedCoderContext,
+                resolvedAgentSystemMessage,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+                waitForRequestedPause,
+                commitScope,
+            });
+        },
     });
-
-    await commitCheckBeforeChangesIfNeeded({
-        runOptions,
-        checkBeforeCommitScope,
-        waitForRequestedPause,
-    });
-
-    if (checkBeforeResult.isPassed) {
-        return hasWaitedForStart;
-    }
-
-    const checkOutput = limitCheckOutput(checkBeforeResult.checkOutput);
-
-    if (runOptions.checkBefore === 'yes-and-fail') {
-        throw new NotAllowed(
-            spaceTrim(
-                (block) => `
-                    Pre-coding check command \`${runOptions.checkCommand}\` failed.
-
-                    The coding agent was not started because the project was already failing before the first queued prompt.
-
-                    ### Check results
-                    ${'```'}
-                    ${block(checkOutput)}
-                    ${'```'}
-                `,
-            ),
-        );
-    }
-
-    const repairPrompt = await createCheckBeforeRepairPrompt({
-        projectPath: runOptions.projectPath!,
-        checkCommand: runOptions.checkCommand,
-        checkOutput,
-    });
-    const repairPromptLabel = buildPromptLabelForDisplay(
-        repairPrompt.file,
-        repairPrompt.section,
-        runOptions.projectPath,
-    );
-    const updatedHasWaitedForStart = await waitForPromptConfirmationIfNeeded({
-        options: runOptions,
-        nextPrompt: repairPrompt,
-        promptLabel: repairPromptLabel,
-        hasWaitedForStart,
-        isRichUiEnabled,
-        progressDisplay,
-        uiHandle,
-    });
-
-    // The repair prompt is created in the current worktree so it can be recorded and committed with the repair.
-    // It therefore intentionally uses the regular round here even when the queue itself uses --isolate.
-    await runPromptRound({
-        options: runOptions,
-        runner,
-        runnerMetadata,
-        nextPrompt: repairPrompt,
-        promptLabel: repairPromptLabel,
-        resolvedCoderContext,
-        resolvedAgentSystemMessage,
-        isRichUiEnabled,
-        progressDisplay,
-        uiHandle,
-        waitForRequestedPause,
-    });
-
+    if (result.error !== undefined) throw result.error;
     return updatedHasWaitedForStart;
-}
-
-/**
- * Captures the files present before a `yes-and-fix` pre-coding check, so only changes made by that check can be committed.
- */
-async function captureCheckBeforeCommitScopeIfNeeded(runOptions: RunOptions): Promise<CoderCommitScope | undefined> {
-    if (runOptions.checkBefore !== 'yes-and-fix' || runOptions.noCommit) {
-        return undefined;
-    }
-
-    return captureCoderCommitScope(runOptions.workspace ?? runOptions.projectPath!);
-}
-
-/**
- * Commits files changed by a `yes-and-fix` pre-coding check before the coder continues to a queued or repair prompt.
- */
-async function commitCheckBeforeChangesIfNeeded(options: {
-    runOptions: RunOptions;
-    checkBeforeCommitScope?: CoderCommitScope;
-    waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
-}): Promise<void> {
-    const { runOptions, checkBeforeCommitScope, waitForRequestedPause } = options;
-
-    if (!checkBeforeCommitScope) {
-        return;
-    }
-
-    const relevantPaths = await resolveCoderCommitScopePaths(checkBeforeCommitScope);
-    if (relevantPaths.length === 0) {
-        return;
-    }
-
-    await waitForRequestedPause({
-        checkpointLabel: 'committing changes made by pre-coding checks',
-        phase: 'checking',
-        statusMessage: 'Committing changes made by pre-coding checks...',
-    });
-    await commitChanges(PRE_CODING_CHECK_CHANGES_COMMIT_MESSAGE, {
-        autoPush: runOptions.autoPush,
-        projectPath: checkBeforeCommitScope.repositoryRoot ?? checkBeforeCommitScope.projectPath,
-        relevantPaths,
-    });
 }
 
 /**

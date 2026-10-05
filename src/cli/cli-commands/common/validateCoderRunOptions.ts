@@ -8,7 +8,22 @@ import { NotAllowed } from '../../../errors/NotAllowed';
  * Validates cross-flag constraints before workspace setup or the run starts.
  * @private shared validation for Coder execution commands
  */
-export function validateCoderRunOptions(options: RunOptions): void {
+export function validateCoderRunOptions(
+    options: Pick<
+        RunOptions,
+        | 'checkCommand'
+        | 'checkBefore'
+        | 'allowDestructiveAutoMigrate'
+        | 'autoMigrate'
+        | 'noCommit'
+        | 'waitForUser'
+        | 'gitChanges'
+        | 'autoPull'
+        | 'dryRun'
+        | 'isIsolated'
+        | 'limit'
+    >,
+): void {
     if (options.checkCommand !== undefined && !options.checkCommand.trim()) {
         throw new NotAllowed(
             spaceTrim(`

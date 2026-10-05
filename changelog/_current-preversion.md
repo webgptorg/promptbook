@@ -1,3 +1,21 @@
+-   Added `ptbk coder fix`: a finite check-repair command with shared Developer/path/context defaults,
+    `npm run check` by default, explicit check overrides, scoped commits and opt-in remote synchronization.
+    Run and fix share the extracted initial check/repair service, repair PRD builder, single-round execution,
+    bounded check feedback, status/trace artifacts and persistence errors. Fix never loads or processes the normal
+    PRD queue, prepares its Book/harness only after a genuine check failure, and keeps previews side-effect free.
+    Passing check-generated changes follow scoped commit policy; pure checks create no PRD, harness call or commit.
+    Empty eligible scopes preserve unrelated staged files, and scoped Git paths retain literal characters and whitespace
+    without expanding path patterns into unrelated work.
+    Run/server/fix share an exclusive workspace mutation lease, including harness setup. Finite retry waits use
+    their own cancellation lifecycle without queue controls. Cancellation preserves recovery artifacts;
+    checks, harnesses, Git hooks and remote operations use the same owned subprocess cancellation mechanism.
+    Exhausted checks, setup/authentication errors and persistence failures stop without another paid attempt.
+    Commit/push failures are distinguished from validation and cannot duplicate verified repair commits.
+    Shared repair verification now follows scoped line-ending normalization, so checks validate the content
+    that will be persisted instead of recording a pass before transforming it.
+    Updated CLI/workflow/landing documentation and added deterministic parser, temporary Git/remote, queue
+    isolation, shared-service continuation and installed-package smoke tests without paid model calls.
+
 -   Added a `ptbk coder` nonce test marker.
 
 -   Added an implementation PRD for replacing default avatars in Promptbook Coder and Agents Server with shared origami animals, including 3D web and terminal ASCII representations.
