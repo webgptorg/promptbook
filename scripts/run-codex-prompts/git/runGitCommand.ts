@@ -94,6 +94,9 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
                         logPath,
                         scriptContent: `env ${environment} ${options.command}`,
                         signal: options.signal,
+                        // Git is already resolved during repository preflight; cancellable operations need
+                        // ownership/logging but do not need to restart the user's login profile each time.
+                        isLoginShell: false,
                         shouldPrintLiveOutput: options.isVerbose ?? DEFAULT_IS_VERBOSE,
                     }),
                 );

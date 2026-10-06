@@ -3,7 +3,7 @@ import { execFile } from 'child_process';
 import { existsSync, readFileSync, statSync } from 'fs';
 import { chmod, copyFile, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
-import { dirname, isAbsolute, join, resolve } from 'path';
+import { delimiter, dirname, isAbsolute, join, resolve } from 'path';
 import { promisify } from 'util';
 import { rollup, type RollupOptions } from 'rollup';
 import typescript from 'typescript';
@@ -21,10 +21,16 @@ const REPOSITORY_PATH = resolve(__dirname, '../../../../..');
 const FIXTURE_DIRECTORY = join(__dirname, 'fixtures');
 /** Process helper with fixed executable/argument boundaries. */
 const EXECUTE_FILE = promisify(execFile);
+/** Real check/repair commands capture and persist Git boundaries, which exceed one minute on Windows. */
+const CLI_WORKFLOW_TIMEOUT_MS = 4 * 60 * 1000;
 /** Host disk pressure is not a CLI fixture input; production thresholds are covered by disk-guard tests. */
 const FIXTURE_NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --require ${JSON.stringify(
     join(__dirname, '../fixtures/healthyDisk.cjs'),
 )}`;
+
+// Each integration case launches several complete CLI processes; keep their individual time limits and
+// allow the whole case to complete its real Git assertions rather than interrupting it between invocations.
+jest.setTimeout(10 * 60 * 1000);
 
 /**
  * Uses the production Rollup entrypoint, external dependencies, asset plugins and UMD format.
@@ -96,12 +102,16 @@ async function installMockHarness(directory: string, fixture = 'codex.cjs'): Pro
     const launcher = join(directory, 'codex');
     await writeFile(
         launcher,
-        `#!/bin/sh\nexec '${process.execPath.replace(/\\/gu, '/').replace(/'/gu, "'\\''")}' '${entrypoint
+        `#!/bin/sh\nif [ "$1" = "--version" ]; then echo 'codex-cli 0.0.0'; exit 0; fi\nexec '${process.execPath
             .replace(/\\/gu, '/')
-            .replace(/'/gu, "'\\''")}' "$@"\n`,
+            .replace(/'/gu, "'\\''")}' '${entrypoint.replace(/\\/gu, '/').replace(/'/gu, "'\\''")}' "$@"\n`,
     );
     await chmod(launcher, 0o755);
-    await writeFile(join(directory, 'codex.cmd'), '@echo off\r\nexit /b 99\r\n');
+    // Native preflight asks for the version; actual harness execution must still use the Bash fixture.
+    await writeFile(
+        join(directory, 'codex.cmd'),
+        '@echo off\r\nif "%~1"=="--version" (\r\n echo codex-cli 0.0.0\r\n exit /b 0\r\n)\r\nexit /b 99\r\n',
+    );
     // Login-shell profiles can reset PATH. BASH_ENV restores the fixture directory before any harness command runs.
     await writeFile(
         join(directory, 'bash-env.sh'),
@@ -153,8 +163,8 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         const environment = {
             ...process.env,
             NODE_OPTIONS: FIXTURE_NODE_OPTIONS,
-            PATH: `${fixHarnessPath}:${process.env.PATH}`,
-            BASH_ENV: join(fixHarnessPath, 'bash-env.sh'),
+            PATH: `${fixHarnessPath}${delimiter}${process.env.PATH}`,
+            BASH_ENV: toPosixPath(join(fixHarnessPath, 'bash-env.sh')),
             GIT_CONFIG_GLOBAL: join(temporaryPath, 'empty-git-config'),
             GIT_CONFIG_NOSYSTEM: '1',
         };
@@ -163,7 +173,7 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             EXECUTE_FILE(process.execPath, [join(packagePath, 'bin/promptbook-cli.js'), ...argumentsList], {
                 cwd: callerPath,
                 env: environment,
-                timeout: 60000,
+                timeout: CLI_WORKFLOW_TIMEOUT_MS,
                 maxBuffer: 2 * 1024 * 1024,
             });
         /** Runs fixture-only Git commands using explicit argument boundaries. */
@@ -225,7 +235,8 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         expect(observed.prompt).toContain('PACKED_FIX_DEVELOPER');
         expect(observed.prompt).toContain('PACKED_FIX_CONTEXT');
         expect(observed.prompt).not.toContain('remaining coding prompts');
-        expect(await git('rev-list', '--count', 'HEAD')).toBe('3');
+        // The two fixture commits are followed by artifact, implementation and verification boundaries.
+        expect(await git('rev-list', '--count', 'HEAD')).toBe('5');
         const repairFiles = (await readdir(join(projectPath, 'prompts'))).filter((name) => name.endsWith('.md'));
         expect(repairFiles).toHaveLength(1);
         expect(
@@ -245,7 +256,7 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         const environment = {
             ...process.env,
             NODE_OPTIONS: FIXTURE_NODE_OPTIONS,
-            PATH: `${codingHarnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
+            PATH: `${codingHarnessPath}${delimiter}${process.env.PATH}`,
             BASH_ENV: toPosixPath(join(codingHarnessPath, 'bash-env.sh')),
             GIT_CONFIG_GLOBAL: join(temporaryPath, 'empty-git-config'),
             GIT_CONFIG_NOSYSTEM: '1',
@@ -263,7 +274,7 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
                 cwd,
                 env: environment,
                 windowsHide: true,
-                timeout: 60000,
+                timeout: CLI_WORKFLOW_TIMEOUT_MS,
                 maxBuffer: 2 * 1024 * 1024,
             });
         const beforeHelp = await readdir(projectPath);
@@ -298,6 +309,14 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         /** Resets only the fixture task and returns the inputs observed by the fake installed harness. */
         const execute = async (extra: string[], cwd?: string) => {
             await writeFile(join(projectPath, 'prompts/defaults.md'), '[ ]\n\nImplement the fixture task.\n');
+            // Each invocation starts from committed inputs; a dirty/untracked task belongs to the user,
+            // so the real persistence service must refuse to overwrite it even under --no-commit.
+            const gitOptions = { cwd: projectPath, env: environment, windowsHide: true };
+            await EXECUTE_FILE('git', ['config', 'user.name', 'Fixture'], gitOptions);
+            await EXECUTE_FILE('git', ['config', 'user.email', 'fixture@example.com'], gitOptions);
+            await EXECUTE_FILE('git', ['config', 'commit.gpgsign', 'false'], gitOptions);
+            await EXECUTE_FILE('git', ['add', '--all'], gitOptions);
+            await EXECUTE_FILE('git', ['commit', '--allow-empty', '-m', 'fixture invocation'], gitOptions);
             await run([...argumentsList, ...extra], cwd);
             return JSON.parse(await readFile(join(projectPath, '.promptbook/mock-call.json'), 'utf-8'));
         };
@@ -353,7 +372,8 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         const environment = {
             ...process.env,
             NODE_OPTIONS: FIXTURE_NODE_OPTIONS,
-            PATH: `${harnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
+            PATH: `${harnessPath}${delimiter}${process.env.PATH}`,
+            BASH_ENV: toPosixPath(join(harnessPath, 'bash-env.sh')),
             GIT_CONFIG_GLOBAL: join(temporaryPath, 'empty-git-config'),
             GIT_CONFIG_NOSYSTEM: '1',
         };
@@ -362,7 +382,7 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             EXECUTE_FILE(process.execPath, [entrypoint, ...argumentsList], {
                 cwd: projectPath,
                 env: executionEnvironment,
-                timeout: 60000,
+                timeout: CLI_WORKFLOW_TIMEOUT_MS,
                 maxBuffer: 2 * 1024 * 1024,
             });
         for (const argumentsList of [
@@ -516,7 +536,7 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             const environment = {
                 ...process.env,
                 NODE_OPTIONS: FIXTURE_NODE_OPTIONS,
-                PATH: `${harnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
+                PATH: `${harnessPath}${delimiter}${process.env.PATH}`,
                 NODE_PATH: join(REPOSITORY_PATH, 'node_modules'),
                 TS_NODE_PROJECT: join(REPOSITORY_PATH, 'src/cli/test/tsconfig.json'),
                 PTBK_PLANNER_TEST_FIXTURE: join(FIXTURE_DIRECTORY, 'conversation.json'),

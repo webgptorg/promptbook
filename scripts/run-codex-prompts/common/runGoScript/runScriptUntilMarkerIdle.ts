@@ -66,6 +66,7 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
             projectPath: options.projectPath,
             scriptPath,
             logPath: options.logPath,
+            isLoginShell: options.isLoginShell,
         });
         const outputLineReaders: Readonly<Record<'stdout' | 'stderr', ScriptOutputLineReader>> = {
             stdout: createScriptOutputLineReader(),

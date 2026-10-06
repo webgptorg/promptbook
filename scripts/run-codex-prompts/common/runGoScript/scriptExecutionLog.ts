@@ -20,17 +20,17 @@ export const SCRIPT_EXECUTION_LOG_RAW_OUTPUT_MARKER = '--- raw output ---';
 /**
  * Command which terminates the Bash process tree rooted at the running harness.
  *
- * Bash's POSIX process IDs differ from Windows process IDs in Git Bash, so the Windows branch resolves the native PID
- * before delegating to `taskkill`. Unix harnesses run in a dedicated Bash job process group, which can be terminated
- * with its negative process ID.
+ * Bash's POSIX process IDs differ from Windows process IDs in Git Bash. Resolve native members of the owned job
+ * group, including background writers whose shell has already exited, before delegating to `taskkill`.
+ * Unix harnesses use the same dedicated Bash job group, terminated with its negative process ID.
  */
 const TERMINATE_BASH_PROCESS_TREE_COMMAND =
     process.platform === 'win32'
         ? spaceTrim(`
-              HARNESS_WINDOWS_PROCESS_ID="$(ps -l -p "$HARNESS_PROCESS_ID" | awk 'NR == 2 { print $4 }')"
-              if [ -n "$HARNESS_WINDOWS_PROCESS_ID" ]; then
+              HARNESS_WINDOWS_PROCESS_IDS="$(ps -l | awk -v groupId="$HARNESS_PROCESS_ID" 'NR > 1 && $3 == groupId { print $4 }')"
+              for HARNESS_WINDOWS_PROCESS_ID in $HARNESS_WINDOWS_PROCESS_IDS; do
                   MSYS_NO_PATHCONV=1 taskkill.exe /PID "$HARNESS_WINDOWS_PROCESS_ID" /T /F > /dev/null 2>&1 || true
-              fi
+              done
           `)
         : spaceTrim(`
               kill -TERM -- "-$HARNESS_PROCESS_ID" 2>/dev/null || true
@@ -150,12 +150,18 @@ const LOGGED_BASH_WRAPPER_COMMAND = spaceTrim(`
 export function buildLoggedBashExecution(
     scriptPath: string,
     logPath?: string,
+    isLoginShell = true,
 ): {
     args: string[];
     env?: Record<string, string>;
 } {
     return {
-        args: ['-lc', LOGGED_BASH_WRAPPER_COMMAND, 'ptbk-coder-temp-script', toPosixPath(scriptPath)],
+        args: [
+            isLoginShell ? '-lc' : '-c',
+            LOGGED_BASH_WRAPPER_COMMAND,
+            'ptbk-coder-temp-script',
+            toPosixPath(scriptPath),
+        ],
         env: logPath ? { [PTBK_CODER_LOG_FILE_ENV_NAME]: toPosixPath(logPath) } : undefined,
     };
 }

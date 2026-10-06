@@ -63,7 +63,18 @@ describe('project defaults through the real prompt queue and round', () => {
         projectPath = join(directory, 'repository', 'nested project');
         await createProject(callerPath, 'CALLER');
         await createProject(projectPath, 'SELECTED');
-        await EXECUTE_FILE('git', ['init'], { cwd: join(directory, 'repository'), windowsHide: true });
+        // Both selected projects need committed inputs so the real ownership checks can distinguish
+        // fixture tasks from unrelated user edits, and the second invocation has its own Git repository.
+        for (const repositoryRoot of [callerPath, join(directory, 'repository')]) {
+            const gitOptions = { cwd: repositoryRoot, windowsHide: true };
+            await EXECUTE_FILE('git', ['init'], gitOptions);
+            await EXECUTE_FILE('git', ['config', 'user.name', 'Fixture'], gitOptions);
+            await EXECUTE_FILE('git', ['config', 'user.email', 'fixture@example.com'], gitOptions);
+            await EXECUTE_FILE('git', ['config', 'commit.gpgsign', 'false'], gitOptions);
+            await writeFile(join(repositoryRoot, '.gitignore'), '.promptbook/\n');
+            await EXECUTE_FILE('git', ['add', '--all'], gitOptions);
+            await EXECUTE_FILE('git', ['commit', '-m', 'fixture'], gitOptions);
+        }
         observed = [];
         jest.spyOn(console, 'info').mockImplementation(() => undefined);
         jest.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -112,7 +123,9 @@ describe('project defaults through the real prompt queue and round', () => {
         );
         await runCodexPrompts({ ...RUN_OPTIONS, projectPath, checkCommand: 'node check.cjs' });
         expect(observed[0]!.prompt).not.toContain('CALLER');
-        expect(await readFile(join(projectPath, 'check-cwd.txt'), 'utf-8')).toBe(projectPath);
+        const checkDirectory = await readFile(join(projectPath, 'check-cwd.txt'), 'utf-8');
+        expect(checkDirectory).toContain(join('.git', 'ptbk-coder', 'check-views'));
+        expect(checkDirectory.endsWith(join('tree', 'nested project'))).toBe(true);
         expect(await readFile(join(callerPath, 'prompts/task.md'), 'utf-8')).toMatch(/^\[ \]/u);
         expect(await readdir(callerPath)).not.toContain('implemented.txt');
         expect(await readdir(join(projectPath, 'prompts/traces'))).toContain('task.md');

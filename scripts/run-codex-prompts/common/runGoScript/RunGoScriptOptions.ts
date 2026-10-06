@@ -6,6 +6,8 @@ export type RunGoScriptOptions = {
     readonly projectPath?: string;
     /** Abort only this invocation's process tree. */
     readonly signal?: AbortSignal;
+    /** Load login profiles for harness discovery by default; checks can use the caller's existing environment. */
+    readonly isLoginShell?: boolean;
     /**
      * Path to the temporary script file.
      */

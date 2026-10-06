@@ -6,6 +6,7 @@ import { spaceTrim } from 'spacetrim';
 import { $runWorkspaceGit } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import { CoderGitOperationError } from './CoderGitOperationError';
 import { listWorkingTreeChangedFiles } from './workingTreeChanges';
+import { runWorkspaceGitWithIndexReadRetry } from './runWorkspaceGitWithIndexReadRetry';
 
 /** Any execute permission marks a regular Git blob as executable, independent of core.filemode. */
 const FILE_EXECUTABLE_PERMISSION_MASK = 0o111;
@@ -117,13 +118,21 @@ export async function captureCoderRepositorySnapshot(
             argumentsList: ReadonlyArray<string>,
             options?: { env?: Record<string, string>; input?: string | Buffer },
         ): Promise<string> =>
-            $runWorkspaceGit(repositoryRoot, argumentsList, {
+            runWorkspaceGitWithIndexReadRetry(repositoryRoot, argumentsList, {
                 ...options,
                 env: { ...gitEnvironment, ...options?.env },
             });
-        const head = await readCoderHead(repositoryRoot, gitEnvironment);
-        const indexOutput = await git(['ls-files', '--stage', '-z']);
-        const indexFlagOutput = await git(['ls-files', '-v', '-z']);
+        // These inspections are read-only. Run them together to avoid paying for serial Git startup on every
+        // boundary; the complete second inspection below still rejects concurrent content/index changes.
+        const [head, indexOutput, indexFlagOutput, untrackedOutput, changedPaths, objectFormatOutput] =
+            await Promise.all([
+                readCoderHead(repositoryRoot, gitEnvironment),
+                git(['ls-files', '--stage', '-z']),
+                git(['ls-files', '-v', '-z']),
+                git(['ls-files', '--others', '--exclude-standard', '-z']),
+                listWorkingTreeChangedFiles(repositoryRoot, gitEnvironment),
+                git(['rev-parse', '--show-object-format']),
+            ]);
         const indexFingerprint = `${indexOutput}\n${indexFlagOutput}`;
         const indexEntries = parseCoderTreeEntries(indexOutput);
         const indexFlags = new Map(
@@ -135,12 +144,9 @@ export async function captureCoderRepositorySnapshot(
         const trackedEntries = head
             ? await readCoderTree(repositoryRoot, head, gitEnvironment)
             : new Map<string, CoderTreeEntry>();
-        const untrackedOutput = await git(['ls-files', '--others', '--exclude-standard', '-z']);
         const excludedPaths = new Set(excludePaths);
-        const dirtyPaths = (await listWorkingTreeChangedFiles(repositoryRoot, gitEnvironment)).filter(
-            (path) => !excludedPaths.has(path),
-        );
-        const objectFormat = (await git(['rev-parse', '--show-object-format'])).trim();
+        const dirtyPaths = changedPaths.filter((path) => !excludedPaths.has(path));
+        const objectFormat = objectFormatOutput.trim();
         const paths = [
             ...new Set([
                 ...trackedEntries.keys(),
@@ -204,13 +210,21 @@ export async function captureCoderRepositorySnapshot(
             },
             gitEnvironment,
         );
-        const afterHashes = await readCoderWorkingFileHashes(repositoryRoot, paths, objectFormat);
+        const [afterHashes, afterHead, afterIndexOutput, afterIndexFlagOutput, afterUntrackedOutput, entries] =
+            await Promise.all([
+                readCoderWorkingFileHashes(repositoryRoot, paths, objectFormat),
+                readCoderHead(repositoryRoot, gitEnvironment),
+                git(['ls-files', '--stage', '-z']),
+                git(['ls-files', '-v', '-z']),
+                git(['ls-files', '--others', '--exclude-standard', '-z']),
+                readCoderTree(repositoryRoot, tree, gitEnvironment),
+            ]);
         if (
-            head !== (await readCoderHead(repositoryRoot, gitEnvironment)) ||
-            indexOutput !== (await git(['ls-files', '--stage', '-z'])) ||
-            indexFlagOutput !== (await git(['ls-files', '-v', '-z'])) ||
+            head !== afterHead ||
+            indexOutput !== afterIndexOutput ||
+            indexFlagOutput !== afterIndexFlagOutput ||
             !areCoderFileHashesEqual(workingFileHashes, afterHashes) ||
-            untrackedOutput !== (await git(['ls-files', '--others', '--exclude-standard', '-z']))
+            untrackedOutput !== afterUntrackedOutput
         ) {
             throw new CoderGitOperationError(
                 'record',
@@ -221,7 +235,7 @@ export async function captureCoderRepositorySnapshot(
             repositoryRoot,
             head,
             tree,
-            entries: await readCoderTree(repositoryRoot, tree, gitEnvironment),
+            entries,
             indexEntries,
             indexFlags,
             indexFingerprint,

@@ -29,6 +29,9 @@ export async function runPromptCheckCommand(options: RunPromptCheckCommandOption
         return await $runGoScriptWithOutput({
             scriptPath: options.scriptPath,
             projectPath: options.projectPath,
+            // The CLI already has the project's tools on PATH. Re-reading login profiles for every check
+            // adds seconds of shell/version-manager startup and can replace that inherited environment.
+            isLoginShell: false,
             scriptContent: spaceTrim(`
             cd ${quoteBashArgument(projectPath)} || exit 1
             ${options.command}

@@ -317,9 +317,10 @@ describe('finite fix and shared run check-repair workflow', () => {
         const execution = runCoderFix({ ...options, signal: controller.signal });
         try {
             await waitUntilWorldTimeDeadline({
-                // Private check capture and local phase preparation must finish before cancelling the owned hook.
-                deadlineTimeMs: Date.now() + 30_000,
-                pollIntervalMs: 10,
+                // Private checks and phase preparation run before this hook. Give that real Git work its
+                // normal test budget, leaving one minute for cancellation assertions and fixture cleanup.
+                deadlineTimeMs: Date.now() + 4 * 60_000,
+                pollIntervalMs: 100,
                 shouldStopWaiting: () => controller.signal.aborted,
                 onTick: async () => {
                     const marker = await readFile(hookReadyPath).catch(() => undefined);
@@ -383,15 +384,18 @@ describe('finite fix and shared run check-repair workflow', () => {
 
     it.each([
         'formatter$HOME.txt',
-        'formatter "quoted".txt',
+        "formatter 'quoted'.txt",
         ' formatter-žluťoučký.txt',
         'formatter[xy].txt',
-        'formatter*.txt',
-        ':(exclude)formatter.txt',
+        // Windows disallows double quotes, asterisks and colons in filenames. Unix also exercises these
+        // literal pathspecs; both platforms retain dollar signs, quoting, whitespace, Unicode and brackets.
+        ...(process.platform === 'win32'
+            ? []
+            : ['formatter "quoted".txt', 'formatter*.txt', ':(exclude)formatter.txt']),
     ])('preserves literal characters in the formatter-produced filename %s', async (formattedPath) => {
         await writeFile(
             join(projectPath, 'format.cjs'),
-            `require('fs').writeFileSync('${formattedPath}', 'formatted');`,
+            `require('fs').writeFileSync(${JSON.stringify(formattedPath)}, 'formatted');`,
         );
         await git('add', '--', 'format.cjs');
         await git('commit', '-m', 'formatter fixture');
@@ -428,6 +432,9 @@ describe('finite fix and shared run check-repair workflow', () => {
     it.each([true, false])(
         'verifies the persisted line endings rather than a pre-normalization pass (normalize: %s)',
         async (isNormalizationEnabled) => {
+            // Production Git reads host defaults, unlike the fixture's setup commands. Keep checkout bytes
+            // deterministic so this case measures the requested normalization, including on Windows.
+            await git('config', 'core.autocrlf', 'false');
             const checkContent = await readFile(join(projectPath, 'check.cjs'), 'utf-8');
             await writeFile(join(projectPath, 'check.cjs'), checkContent.replace("!== 'fixed'", "!== 'fixed\\r\\n'"));
             await git('add', '--', 'check.cjs');

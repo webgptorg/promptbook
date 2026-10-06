@@ -21,6 +21,8 @@ type SpawnLoggedBashScriptOptions = {
     readonly projectPath?: string;
     readonly scriptPath: string;
     readonly logPath?: string;
+    /** Whether shell startup loads login profiles; harnesses retain the default login shell. */
+    readonly isLoginShell?: boolean;
 
     /**
      * Process which owns the temporary harness shell. Defaults to the current coder process.
@@ -37,7 +39,7 @@ type SpawnLoggedBashScriptOptions = {
  * @private internal utility of the coding prompt runner
  */
 export function $spawnLoggedBashScript(options: SpawnLoggedBashScriptOptions): ChildProcessWithoutNullStreams {
-    const bashExecution = buildLoggedBashExecution(options.scriptPath, options.logPath);
+    const bashExecution = buildLoggedBashExecution(options.scriptPath, options.logPath, options.isLoginShell);
     const parentProcessId = options.parentProcessId ?? process.pid;
 
     return spawn('bash', bashExecution.args, {

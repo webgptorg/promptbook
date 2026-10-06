@@ -1,3 +1,19 @@
+-   Fixed shell commands completing before stdout/stderr had drained, which could return incomplete Git metadata
+    or hook diagnostics during concurrent test runs. Added regressions for successful and failed commands whose
+    output arrives after process exit. Windows snapshot inspections now briefly retry transient Git index-open
+    permission errors while preserving full concurrent-change verification; mutations and hooks execute once.
+    Run-loop test fixtures also retry temporary directory cleanup when Windows briefly reports a busy handle.
+
+-   Faster, cross-platform `npm run test`: independent static checks run together with phase timings,
+    content-aware lint/spelling caches and incremental type checking. Package generation, unit tests and
+    production browser verification retain their ordering and failures stop subsequent phases. Fixed Windows
+    path/filename/mode expectations and initialized committed Git fixtures for project ownership checks;
+    batched read-only Git snapshot inspections while retaining concurrent-change verification. Coder checks
+    and cancellable Git operations reuse the caller's environment instead of repeatedly loading login profiles;
+    harness launches keep their existing profile-based discovery. Fixed packed CLI mock harness discovery and
+    committed task fixtures, made line-ending fixtures independent of host Git defaults, and stopped Windows
+    background writers even after their parent shell exits.
+
 -   Fixed Coder private check checkout preparation failing with `stdout maxBuffer length exceeded` in repositories
     with large ignored-file listings. Shared Git execution now drains stdout and stderr through streams without
     a fixed output limit, preserving complete Unicode/NUL-delimited output, exit diagnostics, input and cancellation.

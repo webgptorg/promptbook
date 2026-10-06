@@ -83,7 +83,7 @@ jest.mock('../git/agentGitIdentity', () => ({ buildAgentGitEnv: () => undefined 
 const WORKTREE: CoderIsolationWorktree = {
     taskName: 'example',
     projectPath: 'C:\\project',
-    worktreePath: 'C:\\project/.promptbook/coder-isolation-worktrees/example',
+    worktreePath: join('C:\\project', '.promptbook', 'coder-isolation-worktrees', 'example'),
     worktreeDisplayPath: '.promptbook/coder-isolation-worktrees/example',
     branchName: 'ptbk-coder-isolation/example',
     baseBranchName: 'main',

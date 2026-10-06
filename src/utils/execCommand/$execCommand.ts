@@ -107,8 +107,9 @@ export function $execCommand(options: ExecCommandOptions): Promise<$side_effect 
                 }
             };
 
+            // `exit` can arrive before the stdout/stderr pipes finish. Git metadata and hook diagnostics
+            // must be complete before a following repository inspection uses the command's result.
             commandProcess.on('close', finishWithCode);
-            commandProcess.on('exit', finishWithCode);
             commandProcess.on('disconnect', () => {
                 // Note: Unexpected disconnection should always result in rejection
                 reject(new Error(`Command "${humanReadableCommand}" disconnected`));

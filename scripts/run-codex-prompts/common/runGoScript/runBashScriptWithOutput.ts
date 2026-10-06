@@ -23,6 +23,7 @@ export async function runBashScriptWithOutput(options: RunGoScriptOptions): Prom
             projectPath: options.projectPath,
             scriptPath: options.scriptPath,
             logPath: options.logPath,
+            isLoginShell: options.isLoginShell,
         });
         const outputLineReaders: Readonly<Record<'stdout' | 'stderr', ScriptOutputLineReader>> = {
             stdout: createScriptOutputLineReader(),

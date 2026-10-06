@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
-import { $runWorkspaceGit } from '../../../src/cli/cli-commands/common/workspaceRepository';
+import { runWorkspaceGitWithIndexReadRetry } from './runWorkspaceGitWithIndexReadRetry';
 
 /**
  * Git commands used to list changed and untracked files in the working tree.
@@ -83,10 +83,16 @@ export async function listWorkingTreeChangedFiles(
 ): Promise<ReadonlyArray<string>> {
     const changedFiles = new Set<string>();
 
-    for (const argumentsList of GIT_CHANGED_FILE_ARGUMENTS) {
+    // These read-only listings are independent. Keep their result order while avoiding serial Git startup
+    // on every content boundary; callers which persist content still verify the complete snapshot afterwards.
+    const outputs = await Promise.all(
+        GIT_CHANGED_FILE_ARGUMENTS.map((argumentsList) =>
+            runWorkspaceGitWithIndexReadRetry(projectPath, argumentsList, env ? { env } : undefined),
+        ),
+    );
+    for (const output of outputs) {
         // NUL-delimited raw Git output preserves Unicode, quotes, backslashes and significant whitespace.
         // C-quoted/newline-delimited paths can hash or commit the wrong file, especially in external projects.
-        const output = await $runWorkspaceGit(projectPath, argumentsList, env ? { env } : undefined);
         for (const filePath of output.split('\0').filter(Boolean)) {
             changedFiles.add(filePath);
         }

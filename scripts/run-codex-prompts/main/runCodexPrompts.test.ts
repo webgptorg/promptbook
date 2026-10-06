@@ -231,7 +231,8 @@ describe('runCodexPrompts', () => {
 
     afterEach(async () => {
         workingDirectorySpy.mockRestore();
-        await rm(projectPath, { recursive: true, force: true });
+        // Windows can briefly retain a directory handle after the mocked run finishes.
+        await rm(projectPath, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
     });
 
     it.each([undefined, 'agents/custom role.book'])(

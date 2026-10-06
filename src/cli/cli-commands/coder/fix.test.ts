@@ -137,7 +137,7 @@ describe('coder fix command contract', () => {
                     context: 'EXPLICIT_CONTEXT',
                     agentBook: expect.objectContaining({ agentName: 'Custom Developer' }),
                 }),
-                workspace: expect.objectContaining({ projectPath: expect.stringContaining('/nested project') }),
+                workspace: expect.objectContaining({ projectPath: selectedProject }),
                 preserveLogs: true,
                 noCommit: true,
                 gitChanges: 'ignore',

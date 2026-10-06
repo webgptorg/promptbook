@@ -136,6 +136,8 @@ describe('check change ownership and persistence', () => {
 
     /** Creates local committed Books so isolated execution can resolve context without installing or using a model. */
     const initializeBooks = async (): Promise<void> => {
+        // Keep fixture bytes stable when the production Git commands load the host's checkout configuration.
+        await git('config', 'core.autocrlf', 'false');
         await mkdir(join(projectPath, 'agents/.core'), { recursive: true });
         await writeFile(join(projectPath, 'agents/.core/adam.book'), 'Adam\nFROM @Null\nRULE Fixture foundation.\n');
         await writeFile(join(projectPath, 'agents/developer.book'), 'Developer\nRULE Fixture developer.\n');
@@ -268,7 +270,10 @@ describe('check change ownership and persistence', () => {
             '',
         );
         expect(await git('show', `${checks.hash}:destination.txt`)).toBe('rename');
-        expect(await git('ls-tree', checks.hash, '--', 'executable.sh')).toMatch(/^100755/u);
+        // Windows chmod does not expose Unix execute bits; the snapshot retains the platform's actual mode.
+        expect(await git('ls-tree', checks.hash, '--', 'executable.sh')).toMatch(
+            process.platform === 'win32' ? /^100644/u : /^100755/u,
+        );
         expect(await readFile(join(projectPath, 'binary.bin'))).toEqual(Buffer.from([0, 255, 1, 2]));
         expect(await git('status', '--porcelain')).toBe('');
     });
@@ -569,7 +574,12 @@ describe('check change ownership and persistence', () => {
         await writeFile(join(temporaryRemote, 'hooks/pre-receive'), '#!/bin/sh\nexit 1\n');
         await chmod(join(temporaryRemote, 'hooks/pre-receive'), 0o755);
         await git('remote', 'add', 'origin', temporaryRemote);
-        await expect(runRound(undefined, { autoPush: true })).rejects.toMatchObject({ operation: 'push' });
+        // Surface the full cause if persistence fails before the intended remote rejection.
+        const execution = runRound(undefined, { autoPush: true }).catch((error) => {
+            if (error instanceof CoderGitOperationError && error.operation === 'push') return error;
+            throw error;
+        });
+        await expect(execution).resolves.toMatchObject({ operation: 'push' });
         expect(runHarness).toHaveBeenCalledTimes(1);
         expect(
             (await commits()).filter((commit) => commit.message.includes('Coder-Phase: implementation')),
@@ -632,7 +642,12 @@ describe('check change ownership and persistence', () => {
                 expect(await git('worktree', 'list', '--porcelain')).not.toContain('coder-isolation-worktrees');
                 expect(await git('status', '--porcelain')).toBe('MM user.txt\n');
             } else {
-                await expect(execution).rejects.toMatchObject({ operation: 'record' });
+                await expect(execution).rejects.toMatchObject({
+                    operation: 'record',
+                    message: expect.stringContaining(
+                        kind === 'concurrent-edit' ? 'original checkout changed' : 'changed isolated integration',
+                    ),
+                });
                 expect(await git('worktree', 'list', '--porcelain')).toContain('coder-isolation-worktrees');
                 expect(selection.section.status).not.toBe('done');
                 if (kind === 'merge-index-hook') expect(await git('ls-files', '-v', 'user.txt')).toBe('h user.txt\n');
