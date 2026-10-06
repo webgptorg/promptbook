@@ -229,20 +229,37 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
         await writeFile(join(projectPath, 'value.txt'), 'broken');
         await git('add', '--all');
         await git('commit', '-m', 'failing fixture');
+        const BEFORE_REPAIR_HEAD = await git('rev-parse', 'HEAD');
         const repaired = await run(argumentsList);
         expect(repaired.stdout).toContain('Repaired and verified');
         const observed = JSON.parse(await readFile(join(projectPath, '.promptbook/mock-call.json'), 'utf-8'));
         expect(observed.prompt).toContain('PACKED_FIX_DEVELOPER');
         expect(observed.prompt).toContain('PACKED_FIX_CONTEXT');
         expect(observed.prompt).not.toContain('remaining coding prompts');
-        // The two fixture commits are followed by artifact, implementation and verification boundaries.
+        // Two fixture commits are followed by the implementation and two finalization commits.
         expect(await git('rev-list', '--count', 'HEAD')).toBe('5');
+        const REPAIR_COMMITS = (await git('rev-list', '--reverse', `${BEFORE_REPAIR_HEAD}..HEAD`)).split('\n');
+        const REPAIR_PHASES = await Promise.all(
+            REPAIR_COMMITS.map(
+                async (commit) =>
+                    (await git('show', '-s', '--format=%B', commit)).match(/^\s*Coder-Phase: (\S+)\s*$/mu)?.[1],
+            ),
+        );
+        expect(REPAIR_PHASES).toEqual(['implementation', 'finalization', 'finalization']);
         const repairFiles = (await readdir(join(projectPath, 'prompts'))).filter((name) => name.endsWith('.md'));
         expect(repairFiles).toHaveLength(1);
+        expect((await git('diff', '--name-only', BEFORE_REPAIR_HEAD, 'HEAD')).split('\n').sort()).toEqual(
+            ['value.txt', `prompts/${repairFiles[0]}`, `prompts/traces/${repairFiles[0]}`].sort(),
+        );
+        for (const COMMIT of REPAIR_COMMITS.slice(0, -1)) {
+            expect(await git('show', `${COMMIT}:prompts/${repairFiles[0]}`)).not.toMatch(/^\[x\]/u);
+        }
         expect(
             parsePromptFile(repairFiles[0]!, await readFile(join(projectPath, 'prompts', repairFiles[0]!), 'utf-8'))
                 .sections[0]?.status,
         ).toBe('done');
+        expect(await git('show', 'HEAD:value.txt')).toBe('fixed');
+        expect(await git('status', '--porcelain')).toBe('');
         expect(await readdir(callerPath)).toEqual([]);
     });
 
@@ -268,6 +285,16 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             timeout: 60000,
         });
         expect(resolvedHarness.stdout.trim()).toBe(toPosixPath(join(codingHarnessPath, 'codex')));
+        const HARNESS_VERSION = await EXECUTE_FILE('bash', ['-lc', 'codex --version'], {
+            cwd: projectPath,
+            env: environment,
+            windowsHide: true,
+            timeout: 60000,
+        });
+        expect(HARNESS_VERSION.stdout.trim()).toBe('codex-cli 0.0.0');
+        /** Runs Git only in the selected temporary fixture. */
+        const RUN_GIT = async (...argumentsList: string[]) =>
+            EXECUTE_FILE('git', argumentsList, { cwd: projectPath, env: environment, windowsHide: true });
         /** Runs the packed executable from a directory unrelated to the package or selected project. */
         const run = (argumentsList: string[], cwd = callerPath) =>
             EXECUTE_FILE(process.execPath, [join(packagePath, 'bin/promptbook-cli.js'), ...argumentsList], {
@@ -285,6 +312,9 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             'project directory',
         );
         await run(['init', '--path', projectPath, '--no-questions']);
+        await RUN_GIT('config', 'user.name', 'Fixture');
+        await RUN_GIT('config', 'user.email', 'fixture@example.com');
+        await RUN_GIT('config', 'commit.gpgsign', 'false');
         const packageJson = JSON.parse(await readFile(join(projectPath, 'package.json'), 'utf-8'));
         expect(packageJson.scripts['coder:run']).not.toMatch(/--(?:agent|context|path)\b/u);
         await writeFile(join(projectPath, 'agents/developer.book'), 'Developer\nFROM @Null\nRULE PACKED Developer.\n');
@@ -306,17 +336,13 @@ describe('planning through local and npm-packed CLI entrypoints', () => {
             '--wait-after-error',
             '0s',
         ];
-        /** Resets only the fixture task and returns the inputs observed by the fake installed harness. */
+        /** Records each invocation's fixture inputs and returns what the fake installed harness observed. */
         const execute = async (extra: string[], cwd?: string) => {
             await writeFile(join(projectPath, 'prompts/defaults.md'), '[ ]\n\nImplement the fixture task.\n');
             // Each invocation starts from committed inputs; a dirty/untracked task belongs to the user,
             // so the real persistence service must refuse to overwrite it even under --no-commit.
-            const gitOptions = { cwd: projectPath, env: environment, windowsHide: true };
-            await EXECUTE_FILE('git', ['config', 'user.name', 'Fixture'], gitOptions);
-            await EXECUTE_FILE('git', ['config', 'user.email', 'fixture@example.com'], gitOptions);
-            await EXECUTE_FILE('git', ['config', 'commit.gpgsign', 'false'], gitOptions);
-            await EXECUTE_FILE('git', ['add', '--all'], gitOptions);
-            await EXECUTE_FILE('git', ['commit', '--allow-empty', '-m', 'fixture invocation'], gitOptions);
+            await RUN_GIT('add', '--all');
+            await RUN_GIT('commit', '--allow-empty', '-m', 'fixture invocation inputs');
             await run([...argumentsList, ...extra], cwd);
             return JSON.parse(await readFile(join(projectPath, '.promptbook/mock-call.json'), 'utf-8'));
         };

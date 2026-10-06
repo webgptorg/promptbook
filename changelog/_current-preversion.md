@@ -14,6 +14,12 @@
     committed task fixtures, made line-ending fixtures independent of host Git defaults, and stopped Windows
     background writers even after their parent shell exits.
 
+-   Fixed ESLint plugin conflicts in nested Coder check checkouts by marking the repository ESLint configuration
+    as the root, preventing inheritance from the enclosing checkout while preserving all rules and check steps.
+    Corrected CLI smoke fixtures to track task inputs before independent invocations and provide the mock harness's
+    version command. Repair assertions now verify scoped phase commits and pending status before completion;
+    project-default checks verify selected inputs and repository-relative paths inside private check checkouts.
+
 -   Fixed Coder private check checkout preparation failing with `stdout maxBuffer length exceeded` in repositories
     with large ignored-file listings. Shared Git execution now drains stdout and stderr through streams without
     a fixed output limit, preserving complete Unicode/NUL-delimited output, exit diagnostics, input and cancellation.
