@@ -2,6 +2,8 @@
 
 Agents Server is the main web application where Promptbook agents live
 
+The manGo new-agent wizard uses an independent creation session for every explicit opening. Work is retained across steps; closing or reloading abandons the in-memory draft. See [manGo creation sessions](./src/components/NewAgentDialog/ManGoNewAgentWizard/README.md) for lifecycle, recovery behavior and regression coverage.
+
 ## Local CLI configuration
 
 The installed CLI can initialize a local Agents Server project before it starts the packaged web app:

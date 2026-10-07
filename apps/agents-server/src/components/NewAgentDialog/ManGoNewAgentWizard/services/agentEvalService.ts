@@ -23,12 +23,15 @@ type EvaluateReplyResponse = {
  * @param input - Current Book source, customer input, and generated preview reply.
  * @returns AI-generated checks for the preview result.
  */
-export async function evaluateReply(input: {
-    readonly bookSource: string;
-    readonly customerEmail: string;
-    readonly reply: string;
-}): Promise<ReplyCheck[]> {
-    const response = await postManGoOnboardingJson<EvaluateReplyResponse>('/api/onboarding/evaluate', input);
+export async function evaluateReply(
+    input: {
+        readonly bookSource: string;
+        readonly customerEmail: string;
+        readonly reply: string;
+    },
+    signal?: AbortSignal,
+): Promise<ReplyCheck[]> {
+    const response = await postManGoOnboardingJson<EvaluateReplyResponse>('/api/onboarding/evaluate', input, signal);
 
     return response.checks;
 }

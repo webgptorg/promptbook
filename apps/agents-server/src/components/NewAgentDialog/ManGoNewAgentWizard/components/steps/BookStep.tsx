@@ -1,10 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 
 import { ONBOARDING_ENTRY_PATH, ONBOARDING_STEPS } from '../../config/steps';
 import { useManGoOnboardingNavigation } from '../../ManGoOnboardingNavigation';
-import { generateBook } from '../../services/bookService';
 import { useOnboarding } from '../../state/OnboardingProvider';
 import { ManGoBookEditor } from '../ManGoBookEditor';
 import { StepFooter, StepHeader } from '../StepFrame';
@@ -13,53 +12,34 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Spinner } from '../ui/Spinner';
 
-type Phase = 'init' | 'generating' | 'ready' | 'error';
-
+/** Edits the active draft and requests deliberate Book replacement through the existing service. */
 export function BookStep() {
     const { navigateToPath } = useManGoOnboardingNavigation();
-    const { state, isHydrated, update } = useOnboarding();
-    const [phase, setPhase] = useState<Phase>('init');
-    const [error, setError] = useState<string | null>(null);
-    const startedRef = useRef(false);
-
+    const { state, update, actions } = useOnboarding();
+    const { phase, error } = state.bookGeneration;
     const isBriefAvailable = state.agentName.trim().length > 0 && state.agentBrief.trim().length > 0;
 
-    const generate = useCallback(async () => {
-        setPhase('generating');
-        setError(null);
-        try {
-            const book = await generateBook({ agentName: state.agentName, agentBrief: state.agentBrief });
-            update({ bookSource: book });
-            setPhase('ready');
-        } catch (caught) {
-            setError(caught instanceof Error ? caught.message : 'Generování booku selhalo.');
-            setPhase('error');
-        }
-    }, [state.agentName, state.agentBrief, update]);
-
-    // Generate the Book once, after hydration completes — so we read the persisted
-    // name/brief rather than the initial empty state. Runs a single time (startedRef),
-    // reading the latest values from the closure captured when hydration flips true.
+    // The host resolves ownership before mounting. Navigation retains edits and pending work;
+    // synchronous session state also prevents duplicate generation during Strict Mode replay.
     useEffect(() => {
-        if (!isHydrated || startedRef.current) {
+        if (phase !== 'init') {
             return;
         }
-        startedRef.current = true;
-
-        if (state.bookSource.trim().length > 0) {
-            setPhase('ready');
-        } else if (isBriefAvailable) {
-            void generate();
+        if (!state.bookSource.trim() && isBriefAvailable) {
+            void actions.generate();
         } else {
-            setPhase('ready');
+            update({ bookGeneration: { phase: 'ready', error: null } });
         }
-    }, [generate, isBriefAvailable, isHydrated, state.bookSource]);
+    }, [actions, isBriefAvailable, phase, state.bookSource, update]);
 
     if (phase === 'init' || phase === 'generating') {
         return (
             <div className="mx-auto max-w-2xl">
                 <StepHeader eyebrow="Definice agenta" title="Generujeme book" />
-                <Card variant="elevated" className="flex flex-col items-center justify-center gap-5 px-8 py-20 text-center">
+                <Card
+                    variant="elevated"
+                    className="flex flex-col items-center justify-center gap-5 px-8 py-20 text-center"
+                >
                     <span className="relative flex h-14 w-14 items-center justify-center">
                         <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--ob-accent-200)] opacity-60" />
                         <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--ob-accent-50)]">
@@ -108,7 +88,7 @@ export function BookStep() {
             <ManGoBookEditor
                 value={state.bookSource}
                 onChange={(value) => update({ bookSource: value })}
-                onRegenerate={isBriefAvailable ? () => void generate() : undefined}
+                onRegenerate={isBriefAvailable ? () => void actions.generate() : undefined}
             />
 
             <StepFooter

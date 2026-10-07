@@ -48,6 +48,7 @@ export default async function DashboardPage() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
             <div className="container mx-auto px-4 py-16">
                 <HomepagePrimarySections
+                    creationScope={JSON.stringify([publicUrl.href, currentUser?.username])}
                     agents={agents}
                     folders={folders}
                     isAdmin={isAdmin}

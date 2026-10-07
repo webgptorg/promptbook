@@ -1,18 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-
-import { createId } from '../lib/id';
 import { cn } from '../lib/cn';
-import { agentTestService } from '../services/agentTestService';
-import { evaluateReply, type ReplyCheck } from '../services/agentEvalService';
+import { useOnboarding } from '../state/OnboardingProvider';
 import type { KnowledgeItem } from '../types';
 import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
 import { CONTROL } from './ui/Field';
 import { Spinner } from './ui/Spinner';
-
-type Phase = 'idle' | 'running' | 'done' | 'error';
 
 type EmailTestRunProps = {
     readonly email: string;
@@ -35,7 +29,10 @@ function RunStep({
 }) {
     return (
         <div className="flex gap-3 border-b border-zinc-100 py-3.5 last:border-b-0">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-base" aria-hidden>
+            <div
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-base"
+                aria-hidden
+            >
                 {icon}
             </div>
             <div className="min-w-0 flex-1">
@@ -53,47 +50,11 @@ function RunStep({
     );
 }
 
-export function EmailTestRun({ email, onEmailChange, bookSource, knowledge, onEditBook }: EmailTestRunProps) {
-    const [phase, setPhase] = useState<Phase>('idle');
-    const [reply, setReply] = useState('');
-    const [error, setError] = useState<string | null>(null);
-    const [checks, setChecks] = useState<ReplyCheck[] | null>(null);
-    const [checksLoading, setChecksLoading] = useState(false);
-
+/** Displays session-owned email generation and evaluation results. */
+export function EmailTestRun({ email, onEmailChange, knowledge, onEditBook }: EmailTestRunProps) {
+    const { state, actions } = useOnboarding();
+    const { phase, reply, error, checks, isEvaluating: isChecksLoading } = state.emailTest;
     const readyKnowledge = knowledge.filter((item) => item.status === 'ready').length;
-
-    async function run() {
-        const text = email.trim();
-        if (!text || phase === 'running') {
-            return;
-        }
-        setPhase('running');
-        setReply('');
-        setChecks(null);
-        setError(null);
-
-        try {
-            const result = await agentTestService.send({
-                bookSource,
-                knowledge,
-                messages: [{ id: createId(), role: 'user', content: text }],
-            });
-            setReply(result.content);
-            setPhase('done');
-
-            setChecksLoading(true);
-            try {
-                setChecks(await evaluateReply({ bookSource, customerEmail: text, reply: result.content }));
-            } catch {
-                setChecks([]);
-            } finally {
-                setChecksLoading(false);
-            }
-        } catch (caught) {
-            setError(caught instanceof Error ? caught.message : 'Testovací běh selhal.');
-            setPhase('error');
-        }
-    }
 
     return (
         <div className="space-y-4">
@@ -113,7 +74,7 @@ export function EmailTestRun({ email, onEmailChange, bookSource, knowledge, onEd
                     <Button
                         isLoading={phase === 'running'}
                         leadingIcon={<span aria-hidden>▶</span>}
-                        onClick={() => void run()}
+                        onClick={() => void actions.runEmailTest()}
                         disabled={email.trim().length === 0}
                     >
                         Spustit testovací běh
@@ -125,7 +86,11 @@ export function EmailTestRun({ email, onEmailChange, bookSource, knowledge, onEd
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                     <div className="font-medium">Testovací běh se nezdařil.</div>
                     <p className="mt-1">{error}</p>
-                    <button type="button" onClick={() => void run()} className="mt-1 font-medium underline underline-offset-2">
+                    <button
+                        type="button"
+                        onClick={() => void actions.runEmailTest()}
+                        className="mt-1 font-medium underline underline-offset-2"
+                    >
                         Zkusit znovu
                     </button>
                 </div>
@@ -152,7 +117,9 @@ export function EmailTestRun({ email, onEmailChange, bookSource, knowledge, onEd
                         </RunStep>
                         <RunStep icon="🧠" title="Prohledání znalostí" done>
                             {readyKnowledge > 0
-                                ? `${readyKnowledge} ${readyKnowledge === 1 ? 'zdroj' : 'zdroje/ů'} připojeno k agentovi.`
+                                ? `${readyKnowledge} ${
+                                      readyKnowledge === 1 ? 'zdroj' : 'zdroje/ů'
+                                  } připojeno k agentovi.`
                                 : 'Bez znalostní báze — agent vychází jen z booku.'}
                         </RunStep>
                         <RunStep icon="✍️" title="Návrh odpovědi">
@@ -176,7 +143,7 @@ export function EmailTestRun({ email, onEmailChange, bookSource, knowledge, onEd
                     {phase === 'done' && (
                         <div className="border-t border-zinc-200 bg-zinc-50/60 px-4 py-3.5">
                             <div className="mb-2 text-xs font-semibold text-zinc-500">Kontroly výsledku</div>
-                            {checksLoading ? (
+                            {isChecksLoading ? (
                                 <div className="flex items-center gap-2 text-[13px] text-zinc-500">
                                     <Spinner className="h-4 w-4" /> Hodnotím odpověď proti booku…
                                 </div>
@@ -203,7 +170,12 @@ export function EmailTestRun({ email, onEmailChange, bookSource, knowledge, onEd
                                 <Button variant="outline" size="sm" onClick={onEditBook}>
                                     ✏️ Upravit book
                                 </Button>
-                                <Button variant="ghost" size="sm" leadingIcon={<span aria-hidden>↻</span>} onClick={() => void run()}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    leadingIcon={<span aria-hidden>↻</span>}
+                                    onClick={() => void actions.runEmailTest()}
+                                >
                                     Spustit znovu
                                 </Button>
                             </div>

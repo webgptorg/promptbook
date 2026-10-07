@@ -21,7 +21,7 @@ export type UploadedFile = {
  * @param file - Browser file selected in the knowledge step.
  * @returns Public URL consumed by `KNOWLEDGE` commitments.
  */
-export async function uploadKnowledgeFile(file: File): Promise<UploadedFile> {
-    const publicUrl = await bookEditorUploadHandler(file);
+export async function uploadKnowledgeFile(file: File, signal?: AbortSignal): Promise<UploadedFile> {
+    const publicUrl = await bookEditorUploadHandler(file, { abortSignal: signal });
     return { publicUrl, objectKey: '' };
 }

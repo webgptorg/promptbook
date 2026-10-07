@@ -9,11 +9,7 @@ import { $provideServer } from '../tools/$provideServer';
 import { resolveDefaultAgentsStatus } from '../utils/defaultAgents/resolveDefaultAgentsStatus';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
-import {
-    createServerPublicUrl,
-    resolveRegisteredServerByHost,
-    type ServerRecord,
-} from '../utils/serverRegistry';
+import { createServerPublicUrl, resolveRegisteredServerByHost, type ServerRecord } from '../utils/serverRegistry';
 import { listRegisteredServersUsingServiceRole } from '../utils/serverRegistryNode';
 import { isStandaloneVpsRawIpBootstrapActive } from '../utils/standaloneVpsRawIpBootstrap';
 import { getHomePageAgents } from './_data/getHomePageAgents';
@@ -40,7 +36,7 @@ export default async function HomePage() {
 
     const [{ publicUrl }, isAdmin, { agents, folders, homepageMessage, currentUser }] = await Promise.all([
         $provideServer(),
-        isUserAdmin(), /* <- TODO: [??] Here should be user permissions */
+        isUserAdmin() /* <- TODO: [??] Here should be user permissions */,
         getHomePageAgents(),
     ]);
 
@@ -68,6 +64,7 @@ export default async function HomePage() {
                     />
                 )}
                 <HomepagePrimarySections
+                    creationScope={JSON.stringify([publicUrl.href, currentUser?.username])}
                     agents={agents}
                     folders={folders}
                     isAdmin={isAdmin}
@@ -86,7 +83,9 @@ export default async function HomePage() {
  * @param host - Request host header.
  * @returns Routing instruction or `null` when normal homepage rendering should continue.
  */
-async function resolveIpAddressRouting(host: string | null): Promise<'LOGIN' | 'CONFIGURE' | ReadonlyArray<ServerRecord> | null> {
+async function resolveIpAddressRouting(
+    host: string | null,
+): Promise<'LOGIN' | 'CONFIGURE' | ReadonlyArray<ServerRecord> | null> {
     if (!host || !isIpAddressHost(host)) {
         return null;
     }

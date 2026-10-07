@@ -12,6 +12,8 @@ import { CONTROL } from './ui/Field';
 const GREETING = '👋 Jsem připravený. Vložte zadání — třeba popis e-mailu od zákazníka — a ukážu vám, jak odpovím.';
 
 type TestChatProps = {
+    readonly inputValue: string;
+    readonly onInputChange: (value: string) => void;
     readonly messages: readonly ChatMessage[];
     readonly isSending: boolean;
     readonly onSend: (text: string) => void;
@@ -29,7 +31,12 @@ function Bubble({
     readonly footer?: ReactNode;
 }) {
     return (
-        <div className={cn('group flex max-w-[85%] flex-col gap-1', role === 'user' ? 'items-end self-end' : 'items-start self-start')}>
+        <div
+            className={cn(
+                'group flex max-w-[85%] flex-col gap-1',
+                role === 'user' ? 'items-end self-end' : 'items-start self-start',
+            )}
+        >
             <div
                 className={cn(
                     'whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed',
@@ -45,8 +52,15 @@ function Bubble({
     );
 }
 
-export function TestChat({ messages, isSending, onSend, onStop, onRetry }: TestChatProps) {
-    const [text, setText] = useState('');
+export function TestChat({
+    inputValue: text,
+    onInputChange,
+    messages,
+    isSending,
+    onSend,
+    onStop,
+    onRetry,
+}: TestChatProps) {
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -60,7 +74,7 @@ export function TestChat({ messages, isSending, onSend, onStop, onRetry }: TestC
             return;
         }
         onSend(trimmed);
-        setText('');
+        onInputChange('');
     }
 
     function copy(id: string, content: string) {
@@ -88,7 +102,10 @@ export function TestChat({ messages, isSending, onSend, onStop, onRetry }: TestC
                 </span>
             </div>
 
-            <div ref={scrollRef} className="flex max-h-[420px] min-h-[300px] flex-1 flex-col gap-3.5 overflow-y-auto p-4">
+            <div
+                ref={scrollRef}
+                className="flex max-h-[420px] min-h-[300px] flex-1 flex-col gap-3.5 overflow-y-auto p-4"
+            >
                 <Bubble role="agent">{GREETING}</Bubble>
                 {messages.map((message) =>
                     message.role === 'agent' ? (
@@ -140,7 +157,7 @@ export function TestChat({ messages, isSending, onSend, onStop, onRetry }: TestC
                     aria-label="Testovací zadání pro agenta"
                     placeholder="Vložte testovací zadání pro agenta…"
                     disabled={isSending}
-                    onChange={(event) => setText(event.target.value)}
+                    onChange={(event) => onInputChange(event.target.value)}
                     onKeyDown={(event) => event.key === 'Enter' && submit()}
                     className={cn(CONTROL, 'py-2 disabled:opacity-60')}
                 />

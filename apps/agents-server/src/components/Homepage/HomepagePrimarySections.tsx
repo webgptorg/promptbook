@@ -12,6 +12,8 @@ import { HomepageMessage } from './HomepageMessage';
  * Props for the shared homepage/dashboard agents section.
  */
 type HomepagePrimarySectionsProps = {
+    /** Authenticated user/server scope used to abandon a manGo draft when the host changes. */
+    readonly creationScope?: string;
     /**
      * Local agents rendered in the main agents list.
      */
@@ -42,6 +44,7 @@ type HomepagePrimarySectionsProps = {
  * Renders the homepage/dashboard sections that depend on folder/view query params.
  */
 export function HomepagePrimarySections({
+    creationScope,
     agents,
     folders,
     isAdmin,
@@ -56,6 +59,7 @@ export function HomepagePrimarySections({
         <>
             {!isSubfolderView && <HomepageMessage message={homepageMessage} />}
             <AgentsList
+                creationScope={creationScope}
                 agents={[...agents]}
                 folders={[...folders]}
                 isAdmin={isAdmin}

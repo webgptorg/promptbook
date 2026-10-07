@@ -35,6 +35,9 @@ const APP_E2E_ENV = Object.freeze({
     SUPABASE_TABLE_PREFIX: '',
     POSTGRES_URL: '',
     DATABASE_URL: '',
+    // Background preparation must never inherit a developer's paid OpenAI credentials.
+    OPENAI_API_KEY: 'e2e-unused-api-key',
+    OPENAI_BASE_URL: `${MOCK_SUPABASE_URL}/v1`,
     NEXT_PUBLIC_SUPABASE_URL: MOCK_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiJ9.e2e-signature',
     SUPABASE_SERVICE_ROLE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6InNlcnZpY2Vfcm9sZSJ9.e2e-signature',

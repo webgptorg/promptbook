@@ -21,6 +21,9 @@ const BOILERPLATE_MODE = 'BOILERPLATE';
  */
 const NEW_AGENT_WIZARD_E2E_NOTE = 'Temporary e2e override for new-agent redirect coverage.';
 
+/** Allows a warm server-action metadata cache to observe this test's configured surface. */
+const WIZARD_MODE_CHANGE_TIMEOUT_MS = 45_000;
+
 /**
  * Minimal metadata row shape returned by the metadata API.
  */
@@ -70,6 +73,31 @@ async function setNewAgentWizardMode(page: Parameters<typeof loginAsAdmin>[0], m
 }
 
 /**
+ * Waits for the configured editor without depending on metadata cache timing from earlier specs.
+ * Each unsuccessful opening is cancelled through the normal host path; no creation is submitted.
+ */
+async function openConfiguredClassicEditor(page: Parameters<typeof loginAsAdmin>[0]): Promise<void> {
+    await expect
+        .poll(
+            async () => {
+                await page.getByText('+ Add New Agent', { exact: true }).click();
+                const dialog = page.getByRole('dialog');
+                await expect(dialog).toBeVisible();
+                const isClassicEditorVisible = await page
+                    .getByRole('heading', { name: 'Create New Agent' })
+                    .isVisible();
+                if (!isClassicEditorVisible) {
+                    await page.keyboard.press('Escape');
+                    await expect(dialog).toHaveCount(0);
+                }
+                return isClassicEditorVisible;
+            },
+            { timeout: WIZARD_MODE_CHANGE_TIMEOUT_MS, intervals: [1_000] },
+        )
+        .toBe(true);
+}
+
+/**
  * Ensures homepage agent creation lands on the new chat page without a transient 404.
  */
 test.describe('new agent redirect', () => {
@@ -80,8 +108,7 @@ test.describe('new agent redirect', () => {
 
         try {
             await page.reload();
-            await page.getByText('+ Add New Agent', { exact: true }).click();
-            await expect(page.getByRole('heading', { name: 'Create New Agent' })).toBeVisible();
+            await openConfiguredClassicEditor(page);
 
             await page.getByRole('button', { name: 'Create Agent' }).click();
 

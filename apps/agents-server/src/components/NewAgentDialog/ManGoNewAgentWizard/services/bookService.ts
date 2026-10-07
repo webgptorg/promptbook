@@ -15,14 +15,21 @@ type GenerateBookResponse = {
  * @param input - Agent name and brief captured by the entry step.
  * @returns Editable Book source used by the following wizard steps.
  */
-export async function generateBook(input: {
-    readonly agentName: string;
-    readonly agentBrief: string;
-}): Promise<string> {
-    const response = await postManGoOnboardingJson<GenerateBookResponse>('/api/onboarding/book', {
-        agentName: input.agentName,
-        agentBrief: input.agentBrief,
-    });
+export async function generateBook(
+    input: {
+        readonly agentName: string;
+        readonly agentBrief: string;
+    },
+    signal?: AbortSignal,
+): Promise<string> {
+    const response = await postManGoOnboardingJson<GenerateBookResponse>(
+        '/api/onboarding/book',
+        {
+            agentName: input.agentName,
+            agentBrief: input.agentBrief,
+        },
+        signal,
+    );
 
     return response.book;
 }

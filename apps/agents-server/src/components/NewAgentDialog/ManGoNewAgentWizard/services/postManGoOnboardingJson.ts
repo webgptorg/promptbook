@@ -33,11 +33,13 @@ type ManGoOnboardingApiErrorPayload = {
 export async function postManGoOnboardingJson<ResponsePayload>(
     path: string,
     body: unknown,
+    signal?: AbortSignal,
 ): Promise<ResponsePayload> {
     const response = await fetch(path, {
         method: 'POST',
         headers: MAN_GO_ONBOARDING_JSON_HEADERS,
         body: JSON.stringify(body),
+        signal,
     });
     const payload = await readManGoOnboardingJson(response);
 

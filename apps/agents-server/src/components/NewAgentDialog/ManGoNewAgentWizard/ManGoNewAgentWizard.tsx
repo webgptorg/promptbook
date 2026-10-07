@@ -1,7 +1,7 @@
 'use client';
 
 import type { string_book } from '@promptbook-local/types';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import type { NewAgentWizardMode } from '../../../constants/newAgentWizard';
 import type { AgentVisibility } from '../../../utils/agentVisibility';
 import type { NewAgentOpenEditorRequest } from '../NewAgentOpenEditorRequest';
@@ -9,6 +9,7 @@ import { Dialog } from '../../Portal/Dialog';
 import { ONBOARDING_ENTRY_PATH, ONBOARDING_STEPS } from './config/steps';
 import { ManGoOnboardingNavigationContext } from './ManGoOnboardingNavigation';
 import { OnboardingProvider } from './state/OnboardingProvider';
+import type { OnboardingSession } from './state/createOnboardingSession';
 import { WizardShell } from './components/WizardShell';
 import { BookStep } from './components/steps/BookStep';
 import { DoneStep, type ManGoCreatedAgentPayload } from './components/steps/DoneStep';
@@ -20,6 +21,10 @@ import { ZadaniStep } from './components/steps/ZadaniStep';
  * Props accepted by the imported manGo new-agent wizard.
  */
 type ManGoNewAgentWizardProps = {
+    /** Explicit creation lifetime supplied by the shared host before mounting any UI. */
+    readonly session: OnboardingSession;
+    /** Replaces the complete draft while retaining folder/visibility configuration. */
+    readonly onRestart: () => void;
     /**
      * Metadata-driven flow assignment used for analytics.
      */
@@ -118,11 +123,14 @@ function renderManGoWizardStep(props: {
  * @returns Fullscreen create-agent wizard dialog.
  */
 export function ManGoNewAgentWizard(props: ManGoNewAgentWizardProps) {
-    const { defaultVisibility, onClose, onCreate, onOpenCreatedAgent, onOpenEditor } = props;
-    const [currentPath, setCurrentPath] = useState(ONBOARDING_ENTRY_PATH);
-    const navigateToPath = useCallback((path: string) => {
-        setCurrentPath(path);
-    }, []);
+    const { session, onRestart, defaultVisibility, onClose, onCreate, onOpenCreatedAgent, onOpenEditor } = props;
+    const { currentPath } = useSyncExternalStore(session.subscribe, session.getState, session.getState);
+    const navigateToPath = useCallback(
+        (path: string) => {
+            session.update({ currentPath: path });
+        },
+        [session],
+    );
     const navigationContextValue = useMemo(
         () => ({
             currentPath,
@@ -141,7 +149,7 @@ export function ManGoNewAgentWizard(props: ManGoNewAgentWizardProps) {
             className="!h-[100dvh] !w-screen !max-w-none !overflow-hidden !rounded-none !border-0 !bg-transparent !p-0 !shadow-none"
         >
             <ManGoOnboardingNavigationContext.Provider value={navigationContextValue}>
-                <OnboardingProvider>
+                <OnboardingProvider session={session} onRestart={onRestart}>
                     <WizardShell defaultVisibility={defaultVisibility} onOpenEditor={onOpenEditor}>
                         {renderManGoWizardStep({
                             currentPath,

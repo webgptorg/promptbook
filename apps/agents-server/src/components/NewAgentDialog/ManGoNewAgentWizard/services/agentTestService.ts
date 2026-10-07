@@ -22,7 +22,7 @@ export type AgentTestReply = {
  * Boundary for "run the agent against a test message".
  */
 export type AgentTestService = {
-    send(request: AgentTestRequest): Promise<AgentTestReply>;
+    send(request: AgentTestRequest, signal?: AbortSignal): Promise<AgentTestReply>;
 };
 
 /**
@@ -55,11 +55,15 @@ type AgentTestApiRequest = {
  * Endpoint-backed service used by the step 4 test UI.
  */
 export const agentTestService: AgentTestService = {
-    async send(request) {
-        return postManGoOnboardingJson<AgentTestReply>('/api/onboarding/test', {
-            bookSource: request.bookSource,
-            knowledge: knowledgeUrls(request.knowledge),
-            messages: request.messages.map((message) => ({ role: message.role, content: message.content })),
-        } satisfies AgentTestApiRequest);
+    async send(request, signal) {
+        return postManGoOnboardingJson<AgentTestReply>(
+            '/api/onboarding/test',
+            {
+                bookSource: request.bookSource,
+                knowledge: knowledgeUrls(request.knowledge),
+                messages: request.messages.map((message) => ({ role: message.role, content: message.content })),
+            } satisfies AgentTestApiRequest,
+            signal,
+        );
     },
 };

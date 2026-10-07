@@ -32,6 +32,8 @@ type HeaderTranslate = (key: ServerTranslationKey, variables?: Record<string, st
  * @private type of Header
  */
 type UseHeaderAgentMenusOptions = {
+    /** Authenticated user/server scope used to abandon a manGo draft when the host changes. */
+    readonly creationScope?: string;
     readonly activeAgent: AgentOrganizationAgent | null;
     readonly activeAgentEmail: string;
     readonly activeAgentFolderContext: AgentFolderContext | null;
@@ -148,6 +150,7 @@ async function showNewAgentFailure(
  * @private function of Header
  */
 export function useHeaderAgentMenus({
+    creationScope,
     activeAgent,
     activeAgentEmail,
     activeAgentFolderContext,
@@ -216,6 +219,7 @@ export function useHeaderAgentMenus({
         openNewAgentDialog,
         dialog: newAgentDialog,
     } = useNewAgentDialog({
+        creationScope,
         onCreateFailed: async (error) => {
             await showNewAgentFailure('Failed to create agent:', error, namingSingular, translate);
         },
@@ -265,13 +269,7 @@ export function useHeaderAgentMenus({
                 handleCreateAgent,
             ),
         ],
-        [
-            agentMenuTreeWithActions,
-            createNewAgentLabelNode,
-            handleCreateAgent,
-            isPreparingDialog,
-            viewAllAgentsLabel,
-        ],
+        [agentMenuTreeWithActions, createNewAgentLabelNode, handleCreateAgent, isPreparingDialog, viewAllAgentsLabel],
     );
 
     return {

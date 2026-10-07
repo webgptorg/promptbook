@@ -1,15 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
-
 import { EMAIL_SCENARIOS } from '../../config/emailScenarios';
 import { ONBOARDING_STEPS } from '../../config/steps';
-import { createId } from '../../lib/id';
 import { cn } from '../../lib/cn';
-import { agentTestService } from '../../services/agentTestService';
 import { useManGoOnboardingNavigation } from '../../ManGoOnboardingNavigation';
 import { useOnboarding } from '../../state/OnboardingProvider';
-import type { ChatMessage } from '../../types';
 import { EmailTestRun } from '../EmailTestRun';
 import { SectionLabel, StepFooter, StepHeader } from '../StepFrame';
 import { TestChat } from '../TestChat';
@@ -24,82 +19,13 @@ const SAMPLE_PROMPTS = [
     'Zákazník se ptá, proč mu nedorazilo zboží objednané před 3 dny.',
 ];
 
+/** Tests only the active draft, retaining its conversation and results during navigation. */
 export function TestStep() {
     const { navigateToPath } = useManGoOnboardingNavigation();
-    const { state, update } = useOnboarding();
-
-    const [mode, setMode] = useState<TestMode>('email');
-    const [email, setEmail] = useState(EMAIL_SCENARIOS[1].email);
-
-    const [isSending, setIsSending] = useState(false);
-    const requestRef = useRef(0);
-
-    async function runAgent(history: readonly ChatMessage[]) {
-        const requestId = (requestRef.current += 1);
-        setIsSending(true);
-        try {
-            const reply = await agentTestService.send({
-                bookSource: state.bookSource,
-                knowledge: state.knowledge,
-                messages: history,
-            });
-            if (requestRef.current !== requestId) {
-                return;
-            }
-            update((prev) => ({
-                testMessages: [...prev.testMessages, { id: createId(), role: 'agent', content: reply.content }],
-            }));
-        } catch {
-            if (requestRef.current !== requestId) {
-                return;
-            }
-            update((prev) => ({
-                testMessages: [
-                    ...prev.testMessages,
-                    { id: createId(), role: 'agent', content: 'Omlouvám se, něco se pokazilo. Zkuste to prosím znovu.' },
-                ],
-            }));
-        } finally {
-            if (requestRef.current === requestId) {
-                setIsSending(false);
-            }
-        }
-    }
-
-    function send(text: string) {
-        const trimmed = text.trim();
-        if (!trimmed || isSending) {
-            return;
-        }
-        const history = [...state.testMessages, { id: createId(), role: 'user' as const, content: trimmed }];
-        update(() => ({ testMessages: history }));
-        void runAgent(history);
-    }
-
-    function retry() {
-        if (isSending) {
-            return;
-        }
-        const messages = state.testMessages;
-        let lastUser = -1;
-        for (let index = messages.length - 1; index >= 0; index -= 1) {
-            if (messages[index].role === 'user') {
-                lastUser = index;
-                break;
-            }
-        }
-        if (lastUser < 0) {
-            return;
-        }
-        const history = messages.slice(0, lastUser + 1);
-        update(() => ({ testMessages: history }));
-        void runAgent(history);
-    }
-
-    function stop() {
-        requestRef.current += 1;
-        setIsSending(false);
-    }
+    const { state, update, actions } = useOnboarding();
+    const mode = state.testMode;
+    const email = state.testEmail;
+    const isSending = state.isSendingTestMessage;
 
     const agentName = state.agentName.trim() || 'Nepojmenovaný agent';
     const readyKnowledge = state.knowledge.filter((item) => item.status === 'ready').length;
@@ -114,7 +40,7 @@ export function TestStep() {
             />
 
             <div className="mb-6">
-                <ModeToggle mode={mode} onChange={setMode} />
+                <ModeToggle mode={mode} onChange={(testMode) => update({ testMode })} />
             </div>
 
             <div className="grid items-start gap-6 md:grid-cols-[1fr_1.4fr]">
@@ -150,7 +76,7 @@ export function TestStep() {
                                     <button
                                         key={scenario.id}
                                         type="button"
-                                        onClick={() => setEmail(scenario.email)}
+                                        onClick={() => update({ testEmail: scenario.email })}
                                         className="flex w-full items-start gap-2.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-left shadow-[var(--ob-shadow-xs)] transition-all hover:-translate-y-px hover:border-[color:var(--ob-accent-300)] hover:shadow-[var(--ob-shadow-sm)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ob-ring)]"
                                     >
                                         <span className="text-base" aria-hidden>
@@ -177,7 +103,7 @@ export function TestStep() {
                                         key={prompt}
                                         type="button"
                                         disabled={isSending}
-                                        onClick={() => send(prompt)}
+                                        onClick={() => actions.sendTestMessage(prompt)}
                                         className="group flex w-full items-start gap-2 rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-left text-[13px] leading-relaxed text-zinc-600 shadow-[var(--ob-shadow-xs)] transition-all hover:-translate-y-px hover:border-[color:var(--ob-accent-300)] hover:text-zinc-900 hover:shadow-[var(--ob-shadow-sm)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ob-ring)] disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         <span
@@ -197,18 +123,20 @@ export function TestStep() {
                 {mode === 'email' ? (
                     <EmailTestRun
                         email={email}
-                        onEmailChange={setEmail}
+                        onEmailChange={(testEmail) => update({ testEmail })}
                         bookSource={state.bookSource}
                         knowledge={state.knowledge}
                         onEditBook={() => navigateToPath(ONBOARDING_STEPS[0].path)}
                     />
                 ) : (
                     <TestChat
+                        inputValue={state.testChatInput}
+                        onInputChange={(testChatInput) => update({ testChatInput })}
                         messages={state.testMessages}
                         isSending={isSending}
-                        onSend={send}
-                        onStop={stop}
-                        onRetry={isRetryAvailable ? retry : undefined}
+                        onSend={actions.sendTestMessage}
+                        onStop={actions.stopTestMessage}
+                        onRetry={isRetryAvailable ? actions.retryTestMessage : undefined}
                     />
                 )}
             </div>
@@ -220,7 +148,10 @@ export function TestStep() {
                     </Button>
                 }
                 right={
-                    <Button trailingIcon={<span aria-hidden>→</span>} onClick={() => navigateToPath(ONBOARDING_STEPS[3].path)}>
+                    <Button
+                        trailingIcon={<span aria-hidden>→</span>}
+                        onClick={() => navigateToPath(ONBOARDING_STEPS[3].path)}
+                    >
                         Uložit první verzi
                     </Button>
                 }
@@ -235,7 +166,11 @@ function ModeToggle({ mode, onChange }: { readonly mode: TestMode; readonly onCh
         { id: 'chat', label: 'Konverzace', icon: '💬' },
     ];
     return (
-        <div className="inline-flex rounded-xl border border-zinc-200 bg-white p-0.5 shadow-[var(--ob-shadow-xs)]" role="tablist" aria-label="Režim testu">
+        <div
+            className="inline-flex rounded-xl border border-zinc-200 bg-white p-0.5 shadow-[var(--ob-shadow-xs)]"
+            role="tablist"
+            aria-label="Režim testu"
+        >
             {options.map((option) => {
                 const isActive = option.id === mode;
                 return (

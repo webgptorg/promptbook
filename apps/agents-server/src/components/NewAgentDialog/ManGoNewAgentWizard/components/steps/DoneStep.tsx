@@ -1,11 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
-import { useState } from 'react';
+import { useEffect } from 'react';
 
 import type { AgentVisibility } from '../../../../../utils/agentVisibility';
-import { ONBOARDING_ENTRY_PATH, ONBOARDING_STEPS } from '../../config/steps';
+import { ONBOARDING_STEPS } from '../../config/steps';
 import { useManGoOnboardingNavigation } from '../../ManGoOnboardingNavigation';
 import { createManGoAgentSource } from '../../services/createManGoAgentSource';
 import { useOnboarding } from '../../state/OnboardingProvider';
@@ -53,6 +52,7 @@ type DoneStepProps = {
     readonly onOpenCreatedAgent: (targetPath: string) => void;
 };
 
+/** Displays one completion summary value. */
 function SummaryRow({ label, value }: { readonly label: string; readonly value: ReactNode }) {
     return (
         <div className="flex items-center justify-between gap-4 border-b border-zinc-100 py-2.5 last:border-b-0">
@@ -62,65 +62,22 @@ function SummaryRow({ label, value }: { readonly label: string; readonly value: 
     );
 }
 
+/** Saves and displays the identity retained by this creation session alone. */
 export function DoneStep(props: DoneStepProps) {
     const { defaultVisibility, onCreate, onOpenCreatedAgent } = props;
     const { navigateToPath } = useManGoOnboardingNavigation();
-    const { state, isHydrated, update, reset } = useOnboarding();
-    const savedRef = useRef(false);
-    const [isCreatingAgent, setIsCreatingAgent] = useState(false);
-    const [creationError, setCreationError] = useState<string | null>(null);
-    const [creationAttempt, setCreationAttempt] = useState(0);
+    const { state, actions, reset } = useOnboarding();
+    const { isCreatingAgent, creationError } = state;
 
     const knowledgeCount = state.knowledge.length;
     const isTested = state.testMessages.some((message) => message.role === 'user');
     const isBookAvailable = state.bookSource.trim().length > 0;
     const isCreated = Boolean(state.savedAgentId && state.savedAgentTargetPath);
 
-    // Create the real agent once. Guarded by both a ref (single run) and the session's
-    // saved permanent id (don't re-create on revisit).
+    // Duplicate submission protection belongs to the session, including effect replay/remounts.
     useEffect(() => {
-        if (!isHydrated || savedRef.current) {
-            return;
-        }
-        savedRef.current = true;
-
-        if (state.agentName.trim().length === 0 && state.bookSource.trim().length === 0) {
-            return;
-        }
-
-        if (state.savedAgentId && state.savedAgentTargetPath) {
-            return;
-        }
-
-        const agentSource = createManGoAgentSource(state);
-        const readyKnowledgeCount = state.knowledge.filter((item) => item.status === 'ready').length;
-
-        setIsCreatingAgent(true);
-        setCreationError(null);
-        void onCreate({
-            agentSource,
-            visibility: defaultVisibility,
-            knowledgeCount: readyKnowledgeCount,
-        })
-            .then((agent) => {
-                update({
-                    savedAgentId: agent.permanentId,
-                    savedAgentTargetPath: agent.targetPath,
-                });
-            })
-            .catch((error) => {
-                savedRef.current = false;
-                setCreationError(error instanceof Error ? error.message : 'Vytvoření agenta selhalo.');
-            })
-            .finally(() => {
-                setIsCreatingAgent(false);
-            });
-    }, [creationAttempt, defaultVisibility, isHydrated, onCreate, state, update]);
-
-    function startOver() {
-        reset();
-        navigateToPath(ONBOARDING_ENTRY_PATH);
-    }
+        void actions.createAgent(onCreate, defaultVisibility);
+    }, [actions, defaultVisibility, onCreate]);
 
     return (
         <div className="mx-auto max-w-xl text-center">
@@ -192,7 +149,7 @@ export function DoneStep(props: DoneStepProps) {
                     disabled={(!state.savedAgentTargetPath && !creationError) || isCreatingAgent}
                     onClick={() => {
                         if (creationError) {
-                            setCreationAttempt((previousAttempt) => previousAttempt + 1);
+                            void actions.createAgent(onCreate, defaultVisibility, true);
                             return;
                         }
 
@@ -203,10 +160,14 @@ export function DoneStep(props: DoneStepProps) {
                 >
                     {creationError ? 'Zkusit uložit znovu' : 'Přejít na chat agenta'}
                 </Button>
-                <Button variant="outline" disabled={isCreatingAgent} onClick={() => navigateToPath(ONBOARDING_STEPS[0].path)}>
+                <Button
+                    variant="outline"
+                    disabled={isCreatingAgent}
+                    onClick={() => navigateToPath(ONBOARDING_STEPS[0].path)}
+                >
                     Upravit agenta
                 </Button>
-                <Button variant="ghost" disabled={isCreatingAgent} onClick={startOver}>
+                <Button variant="ghost" disabled={isCreatingAgent} onClick={reset}>
                     Začít nový onboarding
                 </Button>
             </div>

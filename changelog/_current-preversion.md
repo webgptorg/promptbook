@@ -1,3 +1,9 @@
+-   Fixed manGo new-agent onboarding reusing a previous agent's brief, Book, knowledge, tests and saved identity.
+    Each explicit opening or start-over now owns an independent session; navigation/remounts retain its work,
+    and cancelled or superseded generation, upload, test/review and save results cannot affect a later draft.
+    Retired only the obsolete wizard snapshot, preserved host defaults and classic-editor handoff, and documented
+    that closing/reloading abandons the in-memory draft. Added deterministic integration and browser regressions.
+
 -   Fixed shell commands completing before stdout/stderr had drained, which could return incomplete Git metadata
     or hook diagnostics during concurrent test runs. Added regressions for successful and failed commands whose
     output arrives after process exit. Windows snapshot inspections now briefly retry transient Git index-open

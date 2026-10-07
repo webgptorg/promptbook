@@ -1,4 +1,4 @@
-[ ] !!!!!
+[x] by Promptbook Developer on OpenAI Codex `gpt-6.1-sol` thinking `max` (ChatGPT account) - Implementation ~$0.5790 an hour; Checking in progress
 
 [✨🥭] Isolate every manGo new-agent onboarding session
 
@@ -76,3 +76,4 @@ The following observations come from source inspection at `cc82cd1c97d8bc1cdb251
 -   Follow [assignment input](../apps/agents-server/src/components/NewAgentDialog/ManGoNewAgentWizard/components/steps/ZadaniStep.tsx), [Book generation](../apps/agents-server/src/components/NewAgentDialog/ManGoNewAgentWizard/components/steps/BookStep.tsx), [knowledge uploads](../apps/agents-server/src/components/NewAgentDialog/ManGoNewAgentWizard/components/steps/KnowledgeStep.tsx), and [creation/completion](../apps/agents-server/src/components/NewAgentDialog/ManGoNewAgentWizard/components/steps/DoneStep.tsx), including their shared services and tests.
 -   Inspect the [server-side manGo runtime](../apps/agents-server/src/utils/manGoOnboarding/manGoOnboardingAgentRuntime.ts) and its API callers to verify request isolation without assuming a singleton defect.
 -   Keep the implementation DRY, update relevant onboarding documentation and lifecycle comments, and add the implemented fix to the [current changelog](../changelog/_current-preversion.md).
+

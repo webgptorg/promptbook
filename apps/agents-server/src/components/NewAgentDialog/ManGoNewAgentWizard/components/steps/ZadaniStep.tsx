@@ -13,7 +13,7 @@ import { InputField, TextareaField } from '../ui/Field';
  */
 export function ZadaniStep() {
     const { navigateToPath } = useManGoOnboardingNavigation();
-    const { state, update } = useOnboarding();
+    const { state, update, actions } = useOnboarding();
     const isContinueEnabled = state.agentName.trim().length > 0 && state.agentBrief.trim().length > 0;
 
     return (
@@ -52,7 +52,16 @@ export function ZadaniStep() {
                             disabled={!isContinueEnabled}
                             leadingIcon={<span aria-hidden>✨</span>}
                             trailingIcon={<span aria-hidden>→</span>}
-                            onClick={() => navigateToPath(ONBOARDING_STEPS[0].path)}
+                            onClick={() => {
+                                const isAssignmentChanged =
+                                    !state.bookAssignment ||
+                                    state.bookAssignment.agentName !== state.agentName ||
+                                    state.bookAssignment.agentBrief !== state.agentBrief;
+                                if (!state.bookSource.trim() || isAssignmentChanged) {
+                                    void actions.generate();
+                                }
+                                navigateToPath(ONBOARDING_STEPS[0].path);
+                            }}
                         >
                             Vygenerovat book
                         </Button>

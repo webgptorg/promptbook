@@ -25,6 +25,8 @@ import { SortableFolderCard } from './SortableFolderCard';
  * @private function of AgentsList
  */
 type AgentsListListViewProps = {
+    /** Authenticated user/server scope used to abandon a manGo draft when the host changes. */
+    readonly creationScope?: string;
     /**
      * Agent currently shown in the drag overlay.
      */
@@ -178,6 +180,7 @@ type SortableFolderCardProps = ComponentProps<typeof SortableFolderCard>;
  * @private function of AgentsList
  */
 export function AgentsListListView({
+    creationScope,
     activeAgent,
     activeDragItemType,
     activeFolder,
@@ -274,7 +277,7 @@ export function AgentsListListView({
                     })}
                 </SortableContext>
 
-                {isAdmin && <AddAgentButton currentFolderId={currentFolderId} />}
+                {isAdmin && <AddAgentButton creationScope={creationScope} currentFolderId={currentFolderId} />}
                 {canOrganize && (
                     <Link
                         href="/recycle-bin"

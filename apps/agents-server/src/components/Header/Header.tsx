@@ -191,6 +191,7 @@ export function Header(props: HeaderProps) {
         newAgentDialog,
         viewAllAgentsLabel,
     } = useHeaderAgentMenus({
+        creationScope: JSON.stringify([serverName, currentUser?.username]),
         activeAgent,
         activeAgentEmail,
         activeAgentFolderContext,

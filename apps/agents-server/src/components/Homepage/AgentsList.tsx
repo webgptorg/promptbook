@@ -12,6 +12,8 @@ import { useAgentsListState } from './useAgentsListState';
  * Props for the agents list component.
  */
 type AgentsListProps = {
+    /** Authenticated user/server scope used to abandon a manGo draft when the host changes. */
+    readonly creationScope?: string;
     /**
      * List of agents to display, each with basic information and visibility status
      */
@@ -44,7 +46,7 @@ type AgentsListProps = {
  * Renders the agents list with folder navigation and organization controls.
  */
 export function AgentsList(props: AgentsListProps) {
-    const { canOrganize, isAdmin, publicUrl } = props;
+    const { creationScope, canOrganize, isAdmin, publicUrl } = props;
     const state = useAgentsListState(props);
     const contextMenuFolder = state.contextMenuFolder;
     const onDeleteContextMenuFolder =
@@ -89,6 +91,7 @@ export function AgentsList(props: AgentsListProps) {
                 onSetHiddenFoldersVisible={state.setHiddenFoldersVisible}
             />
             <AgentsListListView
+                creationScope={creationScope}
                 activeAgent={state.activeAgent}
                 activeDragItemType={state.activeDragItemType}
                 activeFolder={state.activeFolder}

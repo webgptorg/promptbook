@@ -36,8 +36,8 @@ export type ChatMessage = {
 };
 
 /**
- * The full in-memory state of one onboarding session. Persisted to `sessionStorage`
- * so a refresh does not throw away work-in-progress. No server-side persistence in v1.
+ * Content owned by one explicitly opened onboarding session.
+ * Closing or reloading abandons the in-memory draft; a new opening never resumes it.
  */
 export type OnboardingState = {
     readonly agentName: string;
@@ -49,4 +49,29 @@ export type OnboardingState = {
     readonly savedAgentId: string | null;
     /** Route opened by the final CTA after the agent is created. */
     readonly savedAgentTargetPath: string | null;
+};
+
+/** Draft content and transient UI state that survive navigation within one creation session. */
+export type OnboardingDraftState = OnboardingState & {
+    readonly currentPath: string;
+    readonly bookAssignment: Pick<OnboardingState, 'agentName' | 'agentBrief'> | null;
+    readonly bookGeneration: {
+        readonly phase: 'init' | 'generating' | 'ready' | 'error';
+        readonly error: string | null;
+    };
+    readonly knowledgeUrlInput: string;
+    readonly knowledgeUrlError: string | null;
+    readonly testMode: 'email' | 'chat';
+    readonly testEmail: string;
+    readonly testChatInput: string;
+    readonly isSendingTestMessage: boolean;
+    readonly emailTest: {
+        readonly phase: 'idle' | 'running' | 'done' | 'error';
+        readonly reply: string;
+        readonly error: string | null;
+        readonly checks: ReadonlyArray<{ readonly status: 'ok' | 'warn'; readonly text: string }> | null;
+        readonly isEvaluating: boolean;
+    };
+    readonly isCreatingAgent: boolean;
+    readonly creationError: string | null;
 };
