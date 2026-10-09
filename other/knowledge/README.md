@@ -1,0 +1,1 @@
+In this folder, we store testing knowledge to test that our Agents can correctly interpret and utilize the information provided to them and citate sources accurately.
