@@ -1,2 +1,0 @@
-TODO: !!6 Allow multiple FOREACH in single task
-TODO: [🧠][🍭] How should foreach behave together with postprocessing + expectations

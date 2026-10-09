@@ -1,1 +1,0 @@
-TODO: [🧠] Maybe two versions `FileCacheStorage` (=All in one JSON file) vs `FileStorage` / `DirectoryStorage` (= 1 key+value = 1 file)

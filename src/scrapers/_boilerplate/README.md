@@ -1,3 +1,0 @@
-# 📃 Boilerplate scraper
-
-@@

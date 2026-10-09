@@ -1,9 +1,0 @@
-# 🔼
-
-## Proposal
-
-Abc
-
-## Result
-
--   [ ] Abc

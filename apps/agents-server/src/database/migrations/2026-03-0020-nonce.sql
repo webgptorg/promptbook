@@ -1,1 +1,0 @@
--- Just testing automatic migration mechanism

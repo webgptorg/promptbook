@@ -1,2 +1,0 @@
-ALTER TABLE "prefix_UserChat"
-ADD COLUMN IF NOT EXISTS "title" TEXT NULL;

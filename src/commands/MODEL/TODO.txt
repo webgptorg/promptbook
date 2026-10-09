@@ -1,3 +1,0 @@
-TODO: [🧠] Maybe allow shortcut for `MODEL NAME gpt-4-1106-preview` -> `MODEL gpt-4-1106-preview`
-TODO: [🧠][❔] Should there be possibility to set MODEL for entire pipeline?
-TODO: [🧠] Probably change syntax MODEL VARIANT -> MODEL

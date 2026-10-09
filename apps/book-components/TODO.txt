@@ -1,1 +1,0 @@
-TODO: [✨‼️] The deployment is not working because the serverless function size exceeds the limit. 

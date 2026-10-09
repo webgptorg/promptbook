@@ -1,2 +1,0 @@
-TODO: `opaque` operator for creating same color but opaque
-TODO: !! Suffix all with Color
