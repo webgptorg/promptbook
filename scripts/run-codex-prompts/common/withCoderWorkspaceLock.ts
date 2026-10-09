@@ -1,15 +1,17 @@
+import { AsyncLocalStorage } from 'async_hooks';
 import { randomBytes } from 'crypto';
-import { open, readFile, unlink } from 'fs/promises';
+import { mkdir, open, readFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
+import { ensureProjectGitignoreFile } from '../../../src/cli/cli-commands/common/projectInitialization';
 import {
     $resolveWorkspaceRepository,
     type WorkspaceRepositoryContext,
 } from '../../../src/cli/cli-commands/common/workspaceRepository';
 import { NotAllowed } from '../../../src/errors/NotAllowed';
-import { AsyncLocalStorage } from 'async_hooks';
+import { resolvePromptbookTemporaryPath } from '../../../src/utils/filesystem/promptbookTemporaryPath';
 
-/** Shared repository mutation lease, outside the working tree and therefore outside every commit scope. */
+/** Shared repository mutation lease kept in Promptbook-owned temporary storage. */
 const CODER_WORKSPACE_LOCK_FILENAME = 'ptbk-coder-workspace.lock';
 /** Nested common lifecycle services reuse only the lease owned by this asynchronous job. */
 const WORKSPACE_OWNERSHIP = new AsyncLocalStorage<ReadonlyMap<string, CoderWorkspaceOwnership>>();
@@ -28,11 +30,13 @@ export async function withCoderWorkspaceLock<T>(
     options?: { readonly isNestedOwnershipAllowed?: boolean },
 ): Promise<T> {
     const workspace = typeof project === 'string' ? await $resolveWorkspaceRepository(project) : project;
-    if (!workspace.gitDirectory) {
+    if (!workspace.repositoryRoot) {
         // Direct-script callers retain their existing Git validation; CLI mutation preflight always supplies Git.
         return operation();
     }
-    const lockPath = join(workspace.gitDirectory, CODER_WORKSPACE_LOCK_FILENAME);
+    // Projects in the same checkout share ownership; linked worktrees have their own checkout root.
+    const lockDirectory = resolvePromptbookTemporaryPath(workspace.repositoryRoot, 'ptbk-coder');
+    const lockPath = join(lockDirectory, CODER_WORKSPACE_LOCK_FILENAME);
     const ownedLocks = WORKSPACE_OWNERSHIP.getStore();
     const ownedLock = ownedLocks?.get(lockPath);
     if (options?.isNestedOwnershipAllowed && ownedLock) {
@@ -52,6 +56,7 @@ export async function withCoderWorkspaceLock<T>(
     }
     const token = randomBytes(16).toString('hex');
     let handle;
+    await mkdir(lockDirectory, { recursive: true });
     try {
         handle = await open(lockPath, 'wx');
     } catch (error) {
@@ -70,6 +75,13 @@ export async function withCoderWorkspaceLock<T>(
     }
     try {
         await handle.writeFile(JSON.stringify({ token, processId: process.pid, projectPath: workspace.projectPath }));
+        // Keep the lock out of clean-tree checks and commit scopes even without project-level ignore rules.
+        // Initialize these rules only while owning the lease, so competing workers cannot rewrite them.
+        await ensureProjectGitignoreFile({
+            projectPath: lockDirectory,
+            blockHeader: '# Promptbook Coder workspace lock',
+            rules: [`/${CODER_WORKSPACE_LOCK_FILENAME}`, '/.gitignore'],
+        });
         return await WORKSPACE_OWNERSHIP.run(
             new Map([...(ownedLocks ?? []), [lockPath, { isNestedActivityActive: false }]]),
             operation,

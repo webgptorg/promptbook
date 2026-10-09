@@ -1,3 +1,9 @@
+-   Moved the shared `ptbk coder run` / `server` / `fix` workspace lock into
+    `.promptbook/ptbk-coder/ptbk-coder-workspace.lock` at the checkout root, preserving atomic ownership,
+    nested-job protection and cleanup without reading or modifying workspace locks in Git metadata.
+    Projects in the same repository still share the lock; linked worktrees remain independent. Local ignore
+    rules keep the lock out of clean-tree checks and commits even without a project-level `.gitignore`.
+
 -   Fixed manGo new-agent onboarding reusing a previous agent's brief, Book, knowledge, tests and saved identity.
     Each explicit opening or start-over now owns an independent session; navigation/remounts retain its work,
     and cancelled or superseded generation, upload, test/review and save results cannot affect a later draft.

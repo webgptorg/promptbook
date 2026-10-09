@@ -150,6 +150,10 @@ line-ending preparation, status writes and retained execution artifacts use narr
 they are not attributed to the check command.
 
 The execution checkout owns one serialized workspace lease across agents, checks, status writers and Git.
+The workspace lock is stored at `.promptbook/ptbk-coder/ptbk-coder-workspace.lock` in the checkout root, shared
+by projects in the same repository and separate for linked worktrees. Local ignore rules keep the lock outside
+clean-tree checks and commit scopes. A stale workspace lock requires explicit recovery after its worker exits;
+Coder does not inspect or remove legacy workspace locks in Git metadata.
 Each check runs in a private copy of the current content, with the selected project's relative location and
 dependencies preserved. Its result is imported only while the live checkout still matches the captured boundary;
 an unrelated editor's live write cannot become a check commit. Git's real index lock protects staging across

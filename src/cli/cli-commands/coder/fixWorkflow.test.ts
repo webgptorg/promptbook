@@ -336,7 +336,9 @@ describe('finite fix and shared run check-repair workflow', () => {
         expect(runHarness).toHaveBeenCalledTimes(1);
         expect(await checkCount()).toBe(2);
         expect(await git('rev-list', '--count', 'HEAD')).toBe('1');
-        await expect(readFile(join(projectPath, '.git/ptbk-coder-workspace.lock'))).rejects.toMatchObject({
+        await expect(
+            readFile(join(projectPath, '.promptbook/ptbk-coder/ptbk-coder-workspace.lock')),
+        ).rejects.toMatchObject({
             code: 'ENOENT',
         });
         await assertOrdinaryPromptsUnchanged();
