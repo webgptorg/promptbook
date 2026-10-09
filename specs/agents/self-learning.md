@@ -1,5 +1,7 @@
 # Self-learning
 
+> Warning: this was part of the old specification. Take this document with less authority, especially the implementation technical details.
+
 Agents whose book is **open** learn from their conversations: after a turn, the executing agent may append new content to its own source (samples of the exchange, teacher-suggested commitments). The server persists these changes **append-only**, so learning can never rewrite or corrupt the authored book.
 
 ## Open vs. closed books

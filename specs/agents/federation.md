@@ -1,5 +1,7 @@
 # Federation
 
+> Warning: this was part of the old specification. Take this document with less authority, especially the implementation technical details.
+
 Federation lets one Agents Server instance **see and reuse agents hosted on other Agents Servers**. It is configuration-driven and read-only: a federated server is never written to; its agents are referenced by URL or copied on demand.
 
 ## Configuration

@@ -1,5 +1,7 @@
 # Inheritance and Imports
 
+> Warning: this was part of the old specification. Take this document with less authority, especially the implementation technical details.
+
 How one stored [agent source](../agents.md#persisted-agent-state) becomes the **effective (resolved) source** that is actually compiled and executed. Resolution expands `FROM` (inheritance) and `IMPORT` (textual inclusion) commitments, rewrites compact agent references into canonical URLs, and degrades gracefully when references cannot be loaded.
 
 ## Terminology

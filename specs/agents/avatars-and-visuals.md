@@ -1,5 +1,7 @@
 # Avatars and Visuals
 
+> Warning: this was part of the old specification. Take this document with less authority, especially the implementation technical details.
+
 Every agent has a visual identity used across the UI (directory cards, chat header, manifest icons, social previews). It is resolved from the agent's book with deterministic fallbacks, so an agent **always** has an avatar.
 
 ## Resolution order
@@ -16,11 +18,11 @@ Interactive UIs render visuals as live canvas characters; static consumers (PNG 
 
 `/agents/:agentName/images` is a public gallery page of the agent's generated assets; each asset is served under `/agents/:agentName/images/<name>`:
 
-| Asset | Content |
-| --- | --- |
-| `default-avatar.png` | The agent's avatar as PNG (1024×1024). Default mode deterministically rasterizes the resolved avatar visual; `?mode=generated` opts into the legacy **AI-generated** avatar (below). Cache policy `public, max-age=0, must-revalidate`. |
-| `icon-256.png` | 256×256 icon: the avatar framed in a gradient capsule (used for PWA/manifest icons). |
-| `screenshot-fullhd.png`, `screenshot-phone.png` | Rendered profile screenshots for manifest/social use. |
+| Asset                                           | Content                                                                                                                                                                                                                                 |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `default-avatar.png`                            | The agent's avatar as PNG (1024×1024). Default mode deterministically rasterizes the resolved avatar visual; `?mode=generated` opts into the legacy **AI-generated** avatar (below). Cache policy `public, max-age=0, must-revalidate`. |
+| `icon-256.png`                                  | 256×256 icon: the avatar framed in a gradient capsule (used for PWA/manifest icons).                                                                                                                                                    |
+| `screenshot-fullhd.png`, `screenshot-phone.png` | Rendered profile screenshots for manifest/social use.                                                                                                                                                                                   |
 
 ### AI-generated avatars
 
