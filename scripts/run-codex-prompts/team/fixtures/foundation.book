@@ -1,4 +1,0 @@
-Foundation
-FROM @Null
-IMPORT {./editorial.book}
-RULE Keep the primary agent responsible for the final output.

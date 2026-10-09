@@ -1,4 +1,0 @@
-Developer
-FROM {./foundation.book}
-TEAM Consult {Lawyer} about licensing, or {./lawyer.book} about legal wording.
-GOAL Complete the primary coding task.
