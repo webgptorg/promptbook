@@ -19,20 +19,5 @@
             "caseSensitive": false
         }
     ],
-    "ignorePaths": [
-        "node_modules",
-        ".next",
-        "coverage",
-        "dist",
-        ".git",
-        "src/scrapers/website/examples",
-        "src/scrapers/markdown/examples",
-        "src/other/templates/getTemplatesPipelineCollection.ts",
-        "src/book-2.0/book-language-documentation/czechBookLanguageManualDictionary.ts",
-        "**/tmp/**",
-        "src/utils/random/data/czech-first-male-names.json",
-        "src/utils/random/data/czech-first-female-names.json",
-        "src/utils/random/data/czech-last-male-names.json",
-        "src/utils/random/data/czech-last-female-names.json"
-    ]
+    "ignorePaths": ["node_modules", ".next", "coverage", "dist", ".git", "**/tmp/**"]
 }
