@@ -26,4 +26,4 @@ New work is stored as task Books under `tasks/`. Existing top-level Markdown tas
 
 See [the coder guide](docs/coder.md), [compatibility and verification](docs/compatibility.md), `ptbk coder --help`, and [the specification](https://github.com/webgptorg/promptbook/blob/main/specs/coder.md). Run `npm run check` to verify the build, deterministic fixtures, and installation of the actual npm tarball in an external project.
 
-This prerelease replaces the old collection of npm packages. Versions with a prerelease suffix are published under `next`; stable versions use `latest`. See [release instructions](docs/coder.md#releasing).
+This prerelease replaces the old collection of npm packages. Publishing runs only in GitHub Actions when a `vVERSION` tag is pushed. From a clean, committed tree on a named branch, `npm run release:preminor` or `npm run release:prerelease` checks the release, creates npm's version commit/tag, and atomically pushes the branch and exact tag. Prereleases use `next`; stable releases use `latest`. See [release and push-retry instructions](docs/coder.md#releasing).

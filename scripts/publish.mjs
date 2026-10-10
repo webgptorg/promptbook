@@ -2,13 +2,16 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { validateRelease } from './validate-release.mjs';
 import { verifyPublished } from './verify-published.mjs';
+import { assertPublishContext } from './assert-publish-context.mjs';
+
+assertPublishContext();
 
 /** Publishes exactly ptbk, keeping prereleases off the stable dist-tag. */
 const release = await validateRelease();
 /** Only provenance is an optional publishing argument; package/tag remain fixed. */
 const options = process.argv.slice(2);
 if (options.some(option => option !== '--provenance')) throw new Error('release:publish accepts only --provenance.');
-/** Registry publication inherits only the user's configured npm authentication. */
+/** Registry publication uses the GitHub job's trusted publisher or configured npm token. */
 const publish = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['publish', '--access', 'public', '--tag', release.tag, ...options], { cwd: fileURLToPath(new URL('..', import.meta.url)), stdio: 'inherit', shell: false });
 try {
     const code = await new Promise((resolve, reject) => { publish.once('error', reject); publish.once('exit', code => resolve(code ?? 1)); });

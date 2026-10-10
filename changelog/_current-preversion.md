@@ -1,12 +1,17 @@
 -   Removed npm installation deprecation warnings by upgrading ESLint from 8 to 10 and refreshing the lockfile.
     Migrated to flat configuration, preserving custom rules and file overrides, and installed the previously
     missing TypeScript lint dependencies and runtime global definitions.
-    Updated the declared Node.js requirement to match ESLint 10 (20.19+, 22.13+, or 24+).
+    Updated the declared Node.js requirement to 22.13+ in the Node 22 line, or 24+.
 -   Replaced the former multi-package publishing pipeline with the single `ptbk` CLI package,
-    versioned as the pre-minor prerelease `0.115.0-0`. Added compiled executable packaging,
-    release/version validation, npm prerelease tags, release-triggered GitHub publication,
+    versioned as a pre-minor prerelease. Added compiled executable packaging,
+    release/version validation, npm prerelease tags, version-tag-triggered GitHub publication,
     macOS/Linux CI, external local/global installation checks, and post-publication registry
     version, dist-tag, artifact integrity and executable verification. Node 22.13+ is required.
+-   Restricted npm publication to the official repository's GitHub Actions release job.
+    Local npm version hooks check types, metadata, a named branch and clean tracked/untracked
+    tree, create the normal version commit/tag, and atomically push the current
+    branch and exact new tag to trigger CI. Failed pushes can be retried with
+    `npm run postversion`; local registry verification remains available without publishing.
 -   Implemented the coder task engine with legacy Markdown and task Books, strict scheduling,
     recurrence, deterministic migration, project initialization and authoring, safe Git/check
     phase persistence, recovery journals, harness adapters, agent context and TEAM tools,

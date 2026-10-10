@@ -8,6 +8,7 @@ import { promisify } from 'node:util';
 import { validateRelease } from '../scripts/validate-release.mjs';
 import { assertPublishedMetadata } from '../scripts/verify-published.mjs';
 import { parseBook, parseMarkdown } from '../dist/coder/sources.js';
+import { assertPublishContext } from '../scripts/assert-publish-context.mjs';
 
 /** Executes the installed entry point and fixture-only Git operations. */
 const EXECUTE = promisify(execFile);
@@ -31,6 +32,13 @@ test('release manifest and lockfile use only ptbk and prereleases stay on next',
     assert.equal(release.tag, release.version.includes('-') ? 'next' : 'latest');
     await validateRelease(`v${release.version}`);
     await assert.rejects(validateRelease('v0.1.0'), /must match/);
+});
+
+test('publication requires the GitHub Actions repository and release tag', () => {
+    assert.throws(() => assertPublishContext({}), /through GitHub Actions/);
+    assert.throws(() => assertPublishContext({ GITHUB_ACTIONS: 'true', GITHUB_REPOSITORY: 'someone/fork', RELEASE_TAG: 'v0.115.0-1' }), /through GitHub Actions/);
+    assert.throws(() => assertPublishContext({ GITHUB_ACTIONS: 'true', GITHUB_REPOSITORY: 'webgptorg/promptbook' }), /through GitHub Actions/);
+    assertPublishContext({ GITHUB_ACTIONS: 'true', GITHUB_REPOSITORY: 'webgptorg/promptbook', RELEASE_TAG: 'v0.115.0-1' });
 });
 
 test('release verification rejects a missing or incorrectly tagged registry artifact', () => {
