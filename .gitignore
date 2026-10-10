@@ -1,5 +1,7 @@
 
 node_modules
+dist
+*.tgz
 coverage
 .promptbook
 
