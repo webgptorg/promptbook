@@ -2,6 +2,7 @@
     "autokill": true,
     "terminals": [
         {
+            "--TODO": "TODO: !!! Filter out unnecessary terminals due to reborn",
             "--note-0": "There are 3 types of terminals: 1) Runned automatically when coding (execute=true,onlySingle=false,focus=false) 2) Prepared automatically to be run by user but not executed by default (execute=false,onlySingle=false,focus=false), theese are marked by (💤) 3) Manually run by user (execute=true,onlySingle=true,focus=true)",
             "--note-1": "The (💸) means that script has some cost associated with it, for example, using a paid API or service.",
             "--note-2": "The (💤) means that script is not executed by default but need user to press [Enter] to run it",
@@ -9,7 +10,6 @@
             "--note-4": "The (❗) means that script should be run with caution, for example, it may cause breaking changes, data loss, etc.",
             "--note-5": "The (❗❗) means that script should be run with extreme caution, messing up with LTS versions, etc."
         },
-
         {
             "name": "🐙 Plan PRDs with Planner (💤)",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder plan --harness openai-codex",
