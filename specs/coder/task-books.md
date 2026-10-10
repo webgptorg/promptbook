@@ -25,21 +25,19 @@ Do not change the delimiter or column names.
 
 ## Commitment meanings
 
-| Field | Required meaning |
-| --- | --- |
-| First nonempty line | Human-readable title. It is not the task identity. |
-| `TASK` | Explicit document-type declaration in the header immediately after the title. |
-| `META ID` | Stable unique ID within the workspace. Create once during authoring/migration. |
-| `STATUS` | `todo`, `in-progress`, `done`, `failed`, `not-ready`. |
-| `PRIORITY` | Nonnegative integer; default 0. |
-| `AGENT` | An agent Book requirement using the existing name/path resolver. Relative references resolve against the declaring task Book. |
-| `HARNESS` | A typed requirement for a coding tool. |
-| `MODEL` | A typed model requirement; does not inherit the meaning of the agent Book commitment. |
-| `RUNNER` | Repeatable compatibility selectors for legacy routing, with OR substring matching within the group. |
-| `AFTER` | Inclusive earliest start instant. |
-| `REPEAT` | Fixed-interval recurrence; task Books only. |
-| `PROMPT` | Implementation payload. |
-| `RULE` | Ordered task-local instructions; do not permanently modify the agent Book. |
+- **First nonempty line**: Human-readable title. It is not the task identity.
+- `TASK`: Explicit document-type declaration in the header immediately after the title.
+- `META ID`: Stable unique ID within the workspace. Create once during authoring/migration.
+- `STATUS`: `todo`, `in-progress`, `done`, `failed`, `not-ready`.
+- `PRIORITY`: Nonnegative integer; default 0.
+- `AGENT`: An agent Book requirement using the existing name/path resolver. Relative references resolve against the declaring task Book.
+- `HARNESS`: A typed requirement for a coding tool.
+- `MODEL`: A typed model requirement; does not inherit the meaning of the agent Book commitment.
+- `RUNNER`: Repeatable compatibility selectors for legacy routing, with OR substring matching within the group.
+- `AFTER`: Inclusive earliest start instant.
+- `REPEAT`: Fixed-interval recurrence; task Books only.
+- `PROMPT`: Implementation payload.
+- `RULE`: Ordered task-local instructions; do not permanently modify the agent Book.
 
 When present, `AGENT`, `HARNESS` and `MODEL` form separate AND conditions. An optional `RUNNER` OR group is an additional condition. A missing typed field uses valid invocation/default context. A conflict with an explicit CLI choice must appear as an incompatible task; do not silently switch the tool, model or paid account.
 

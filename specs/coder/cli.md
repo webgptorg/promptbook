@@ -4,19 +4,17 @@
 
 ## Commands
 
-| Command | Required purpose |
-| --- | --- |
-| `ptbk coder init` / `initialize` | Idempotently add missing project files and explain configuration. Preserve the current top-level init aliases as well. |
-| `ptbk coder add` | Create a task from input/a template; the current command does not call a model. New projects prefer task Books. |
-| `ptbk coder generate-boilerplates` | Generate unfinished templates that are not automatically runnable. |
-| `ptbk coder plan` | Discuss the project and propose tasks; write only approved PRD/task files. |
-| `ptbk coder list` | Show the queue, filters and reasons for ineligibility without a model or writes. Without `--agent`, do not filter to Developer. |
-| `ptbk coder run` | Run currently eligible work finitely; do not wait indefinitely for future tasks. |
-| `ptbk coder fix` | Run checks and, only if they fail, create and execute one repair task. |
-| `ptbk coder verify` | Interactive human review of completed results, optional follow-up and archiving. Does not run checks. |
-| `ptbk coder server` | A persistent queue and local web overview over the same engine. |
-| `ptbk coder migrate` | A new deterministic conversion of Markdown tasks to task Books. No model call. |
-| `find-unwritten`, `find-refactor-candidates`, `find-fresh-emoji-tags`, `ping` | Preserve useful authoring/diagnostic tools as separate commands, outside the task loop. |
+- `ptbk coder init` / `initialize`: Idempotently add missing project files and explain configuration. Preserve the current top-level init aliases as well.
+- `ptbk coder add`: Create a task from input/a template; the current command does not call a model. New projects prefer task Books.
+- `ptbk coder generate-boilerplates`: Generate unfinished templates that are not automatically runnable.
+- `ptbk coder plan`: Discuss the project and propose tasks; write only approved PRD/task files.
+- `ptbk coder list`: Show the queue, filters and reasons for ineligibility without a model or writes. Without `--agent`, do not filter to Developer.
+- `ptbk coder run`: Run currently eligible work finitely; do not wait indefinitely for future tasks.
+- `ptbk coder fix`: Run checks and, only if they fail, create and execute one repair task.
+- `ptbk coder verify`: Interactive human review of completed results, optional follow-up and archiving. Does not run checks.
+- `ptbk coder server`: A persistent queue and local web overview over the same engine.
+- `ptbk coder migrate`: A new deterministic conversion of Markdown tasks to task Books. No model call.
+- `find-unwritten`, `find-refactor-candidates`, `find-fresh-emoji-tags`, `ping`: Preserve useful authoring/diagnostic tools as separate commands, outside the task loop.
 
 A command must not silently ignore an unsupported flag. The old `--test` and `--test-before` flags must exit with instructions to use `--check` and `--check-before`. `--priority` remains an alias for the lower priority bound.
 
@@ -45,23 +43,21 @@ These examples describe the target coder; examples using `--tasks`, `migrate`, `
 
 ## Preserved run options
 
-| Option | Contract |
-| --- | --- |
-| `--min-priority`, `--max-priority` | Inclusive nonnegative integer bounds. A conflict with `--priority` or a minimum greater than the maximum is an error. |
-| `--limit` | The maximum number of successfully completed tasks/occurrences. Failure alone does not consume the limit. |
-| `--git-changes fail/ignore/continue` | Defaults to `fail`; see [Git persistence](git-persistence.md). |
-| `--no-commit` | No automatic commits; automatic mode requires `--git-changes ignore`. Preserve the option to save work manually in interactive `--no-auto` mode. |
-| `--no-auto` | Interactive confirmation before a task and at the commit step; automatic continuation is the default. Cannot be combined with `--no-questions`. |
-| `--auto-pull`, `--auto-push` | Explicit opt-in; disabled by default. |
-| `--check`, `--check-before` | The validation contract in the [checks specification](checks.md). |
-| `--isolate` | A separate worktree for one task; the base run remains sequential. |
-| `--no-normalize-line-endings` | Disable standard CRLF-to-LF normalization of changed text files. |
-| `--no-ui`, `--preserve-logs`, `--no-questions` | Plain output, retained diagnostics and noninteractive mode. |
-| `--allow-credits` | Explicit opt-in to OpenAI Codex credit usage. |
-| `--wait-between-prompts` | Minimum time between the starts of two tasks, default 0; execution time counts toward it. |
-| `--wait-after-prompt` | Wait after completing a task, default 0. |
-| `--wait-after-error` | Cooldown before a technical retry, default 10 minutes. Accept documented duration forms such as `30m`, `5s`, `1h30m`. |
-| `--auto-migrate` | Existing test-server migration integration; a separate optional adapter. It is not `coder migrate`. |
+- `--min-priority`, `--max-priority`: Inclusive nonnegative integer bounds. A conflict with `--priority` or a minimum greater than the maximum is an error.
+- `--limit`: The maximum number of successfully completed tasks/occurrences. Failure alone does not consume the limit.
+- `--git-changes fail/ignore/continue`: Defaults to `fail`; see [Git persistence](git-persistence.md).
+- `--no-commit`: No automatic commits; automatic mode requires `--git-changes ignore`. Preserve the option to save work manually in interactive `--no-auto` mode.
+- `--no-auto`: Interactive confirmation before a task and at the commit step; automatic continuation is the default. Cannot be combined with `--no-questions`.
+- `--auto-pull`, `--auto-push`: Explicit opt-in; disabled by default.
+- `--check`, `--check-before`: The validation contract in the [checks specification](checks.md).
+- `--isolate`: A separate worktree for one task; the base run remains sequential.
+- `--no-normalize-line-endings`: Disable standard CRLF-to-LF normalization of changed text files.
+- `--no-ui`, `--preserve-logs`, `--no-questions`: Plain output, retained diagnostics and noninteractive mode.
+- `--allow-credits`: Explicit opt-in to OpenAI Codex credit usage.
+- `--wait-between-prompts`: Minimum time between the starts of two tasks, default 0; execution time counts toward it.
+- `--wait-after-prompt`: Wait after completing a task, default 0.
+- `--wait-after-error`: Cooldown before a technical retry, default 10 minutes. Accept documented duration forms such as `30m`, `5s`, `1h30m`.
+- `--auto-migrate`: Existing test-server migration integration; a separate optional adapter. It is not `coder migrate`.
 
 Exact provider defaults must live in one updatable registry, and help must match runtime behavior. Do not treat model names from historical PRD examples as a permanent product contract.
 

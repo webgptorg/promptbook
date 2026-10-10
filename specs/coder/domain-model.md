@@ -10,15 +10,13 @@ Agent Books and task Books share a readable language and lexical infrastructure.
 
 ## Minimum data contracts
 
-| Entity | Required information |
-| --- | --- |
-| `TaskDefinition` | ID, title, payload/rules, lifecycle, priority, typed routing, raw+normalized trigger, provenance, source reference/revision. |
-| `SourceReference` | Format, project and real path, section/commitment location, version, migration origin. |
-| `ExecutionContext` | Project/Git/worktree paths, agent snapshot, model/harness policy, checks, authority, cancellation. |
-| `Occurrence` | Task ID, schedule revision, due slot, claim, state, initial snapshot, attempt and result links. |
-| `PhaseRecord` | Phase, previous/resulting content, owned scope, check outcome, commit intent and commit ID. |
-| `EligibilityResult` | Ready/waiting/blocked/invalid/unsupported, reason and optional next wake-up. |
-| `RunResult` | Implementation, validation, local persistence, integration and remote sync as separate outcomes. |
+- `TaskDefinition`: ID, title, payload/rules, lifecycle, priority, typed routing, raw+normalized trigger, provenance, source reference/revision.
+- `SourceReference`: Format, project and real path, section/commitment location, version, migration origin.
+- `ExecutionContext`: Project/Git/worktree paths, agent snapshot, model/harness policy, checks, authority, cancellation.
+- `Occurrence`: Task ID, schedule revision, due slot, claim, state, initial snapshot, attempt and result links.
+- `PhaseRecord`: Phase, previous/resulting content, owned scope, check outcome, commit intent and commit ID.
+- `EligibilityResult`: Ready/waiting/blocked/invalid/unsupported, reason and optional next wake-up.
+- `RunResult`: Implementation, validation, local persistence, integration and remote sync as separate outcomes.
 
 **New decision:** internal runtime states include `claimed`, `running`, `checking`, `repairing`, `finalizing`, `completed`, `failed`, `interrupted`, `recovery-required`. These are not additional required `STATUS` values in a task Book; the public lifecycle is their simplified view. `waiting` is an eligibility result rather than a rewrite of `todo`.
 

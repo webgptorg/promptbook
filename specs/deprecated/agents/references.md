@@ -8,12 +8,12 @@
 
 Commitment content may reference agents in compact forms; the server MUST expand them to canonical agent URLs before import:
 
-| Reference form                          | Resolution                                                                       |
-| --------------------------------------- | --------------------------------------------------------------------------------- |
-| `{Agent Name}` / bare name               | Case-/diacritics-insensitive lookup (`normalizeAgentName`) against local agents.  |
-| Permanent id (base58 heuristic)          | Lookup in the local `permanentId` index.                                           |
-| Full agent URL                           | Used as-is.                                                                        |
-| Pseudo-agent reference (below)           | Mapped to a pseudo-agent URL / special semantics.                                  |
+| Reference form | Resolution |
+| --- | --- |
+| `{Agent Name}` / bare name | Case-/diacritics-insensitive lookup (`normalizeAgentName`) against local agents. |
+| Permanent id (base58 heuristic) | Lookup in the local `permanentId` index. |
+| Full agent URL | Used as-is. |
+| Pseudo-agent reference (below) | Mapped to a pseudo-agent URL / special semantics. |
 
 Resolution order for names/ids: **local agents first**, then each configured [federated server](federation.md) (remote lookup maps are fetched with a 1.5 s timeout and cached per server; failures degrade to "not found"). The commitments that carry agent references are `FROM`, `IMPORT`/`IMPORTS`, and `TEAM`.
 
@@ -29,10 +29,8 @@ The book editor surfaces the same diagnostics via `GET /agents/:agentName/api/bo
 
 Two reserved references never resolve to real agents:
 
-| Pseudo-agent | Aliases                       | Meaning                                                                                                         |
-| ------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `{User}`      | `@User`, `user`, `USER`, …     | The human currently using the agent. In `TEAM`, consulting `{User}` pauses and asks the user through a modal; each reply is single-use. |
-| `{Void}`      | `{Null}` and case variants     | Intentional nothingness. `FROM VOID` disables the implicit ancestor; as a teammate it means "no agent".            |
+- `{User}`: The human currently using the agent. In `TEAM`, consulting `{User}` pauses and asks the user through a modal; each reply is single-use. **Aliases:** `@User`, `user`, `USER`, …
+- `{Void}`: Intentional nothingness. `FROM VOID` disables the implicit ancestor; as a teammate it means "no agent". **Aliases:** `{Null}` and case variants.
 
 Pseudo-agents have canonical pseudo URLs and informational profile pages at `/agents/user` and `/agents/void`. They MUST be accepted (case-insensitively) wherever agent references are accepted in commitments that allow them.
 

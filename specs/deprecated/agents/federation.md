@@ -8,11 +8,9 @@ Federation lets one Agents Server instance **see and reuse agents hosted on othe
 
 ## Configuration
 
-| Key                                            | Store                                      | Meaning                                                                                  |
-| ----------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `FEDERATED_SERVERS`                             | Metadata (historical page: `../configuration.md#federation`)  | Comma-separated base URLs of federated Agents Servers (trimmed, empties dropped).         |
-| `SHOW_FEDERATED_SERVERS_PUBLICLY`               | Metadata (default `false`)                  | Whether anonymous visitors may see the federated list.                                     |
-| `FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS`         | Server limit (historical page: `../configuration.md#server-limits`) | Delay between retries when importing a federated agent's book.                      |
+- `FEDERATED_SERVERS`: Comma-separated base URLs of federated Agents Servers (trimmed, empties dropped). **Store:** Metadata (historical page: `../configuration.md#federation`).
+- `SHOW_FEDERATED_SERVERS_PUBLICLY`: Whether anonymous visitors may see the federated list. **Store:** Metadata (default `false`).
+- `FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS`: Delay between retries when importing a federated agent's book. **Store:** Server limit (historical page: `../configuration.md#server-limits`).
 
 `GET /api/federated-agents` returns `{ federatedServers: [...] }` — the configured URL list. When the caller is anonymous **and** `SHOW_FEDERATED_SERVERS_PUBLICLY` is `false`, it MUST return an empty list (the configuration is not disclosed).
 

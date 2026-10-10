@@ -25,11 +25,9 @@ The principle that a revert also restores the task applies only to specific coup
 
 ## Dirty tree
 
-| Mode | Required behavior |
-| --- | --- |
-| `fail` | Refuse uncommitted changes before new implementation; display instructions. |
-| `ignore` | May proceed, but preserves someone else's baseline and does not commit it. Stop persistence on overlap/uncertainty. |
-| `continue` | Require exactly one relevant interrupted task and proof of original ownership/recovery. After completing it, subsequent tasks expect a clean tree again. |
+- `fail`: Refuse uncommitted changes before new implementation; display instructions.
+- `ignore`: May proceed, but preserves someone else's baseline and does not commit it. Stop persistence on overlap/uncertainty.
+- `continue`: Require exactly one relevant interrupted task and proof of original ownership/recovery. After completing it, subsequent tasks expect a clean tree again.
 
 `continue` does not mean treating all dirty content as the agent's work. It cannot be combined with fresh isolation, and `fix` rejects it because it must not restore an arbitrary backlog task. Zero or multiple candidates must produce a clear error. Switching the harness during recovery is possible; author/runner history remains chronological.
 

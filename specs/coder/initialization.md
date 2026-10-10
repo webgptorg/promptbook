@@ -2,16 +2,14 @@
 
 [Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-| Location | Purpose and versioning |
-| --- | --- |
-| `agents/` | Versioned agent Books. Create default roles and helpers without overwriting edits. |
-| `AGENTS.md` | Project instructions; ordinary versioned context. |
-| `tasks/` or `--tasks` | Preferred task Books and their accompanying materials. |
-| `prompts/` | Preserved legacy Markdown task source. |
-| `prompts/templates/`, `prompts/done/`, `prompts/traces/` | Legacy templates, archive and durable traces; outside the active queue. |
-| `.promptbook/ptbk-coder/` | Owned locks, recovery journal, occurrence state, temporary check views and internal cache. Operational items are ignored by Git. |
-| `.promptbook/coder-isolation-worktrees/` | Isolated worktrees, or a documented compatible relocation within `.promptbook`. |
-| `.env` | Local settings/secrets, ignored. Create examples only, without inventing working credentials. |
+- `agents/`: Versioned agent Books. Create default roles and helpers without overwriting edits.
+- `AGENTS.md`: Project instructions; ordinary versioned context.
+- `tasks/` or `--tasks`: Preferred task Books and their accompanying materials.
+- `prompts/`: Preserved legacy Markdown task source.
+- `prompts/templates/`, `prompts/done/`, `prompts/traces/`: Legacy templates, archive and durable traces; outside the active queue.
+- `.promptbook/ptbk-coder/`: Owned locks, recovery journal, occurrence state, temporary check views and internal cache. Operational items are ignored by Git.
+- `.promptbook/coder-isolation-worktrees/`: Isolated worktrees, or a documented compatible relocation within `.promptbook`.
+- `.env`: Local settings/secrets, ignored. Create examples only, without inventing working credentials.
 
 **New decision:** store durable Book-task traces under `traces/` within their actual task source, keyed by stable ID and occurrence. Preserve legacy trace paths. Operational state and locks are not historical result records and must not be committed.
 

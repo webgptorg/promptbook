@@ -14,16 +14,14 @@ The old-prompts archive remains untouched and is not part of this reorganization
 
 ## Retained responsibilities
 
-| Specification | Responsibility |
-| --- | --- |
-| [Agent Book syntax](book-language.md) | Source structure, parameters and composition rules. |
-| [Commitment registry](commitment-registry.md) | Older agent commitment keywords, aliases and effects. |
-| [Agent compilation](agent-compilation.md) | Profile parsing and model-requirements compilation. |
-| [Generated Book documentation](book-documentation.md) | Documentation endpoints and registry-derived output. |
-| [Source resolution](agents/source-resolution.md) | Unresolved/resolved sources and resolution consumers. |
-| [Agent references](agents/references.md) | Compact references, pseudo-agents and book-scoped agents. |
-| [Inheritance](agents/inheritance.md) | FROM and the Adam ancestor. |
-| [Imports](agents/imports.md) | IMPORT expansion, import retries, fallback and cycles. |
-| [Federation](agents/federation.md) | Read-only discovery and reuse across Agents Servers. |
-| [Self-learning](agents/self-learning.md) | OPEN/CLOSED, append-only learning and the Teacher. |
-| [Avatars and visuals](agents/avatars-and-visuals.md) | Historical visual identity and generated image assets. |
+- [Agent Book syntax](book-language.md): Source structure, parameters and composition rules.
+- [Commitment registry](commitment-registry.md): Older agent commitment keywords, aliases and effects.
+- [Agent compilation](agent-compilation.md): Profile parsing and model-requirements compilation.
+- [Generated Book documentation](book-documentation.md): Documentation endpoints and registry-derived output.
+- [Source resolution](agents/source-resolution.md): Unresolved/resolved sources and resolution consumers.
+- [Agent references](agents/references.md): Compact references, pseudo-agents and book-scoped agents.
+- [Inheritance](agents/inheritance.md): FROM and the Adam ancestor.
+- [Imports](agents/imports.md): IMPORT expansion, import retries, fallback and cycles.
+- [Federation](agents/federation.md): Read-only discovery and reuse across Agents Servers.
+- [Self-learning](agents/self-learning.md): OPEN/CLOSED, append-only learning and the Teacher.
+- [Avatars and visuals](agents/avatars-and-visuals.md): Historical visual identity and generated image assets.

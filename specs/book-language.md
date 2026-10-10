@@ -4,10 +4,8 @@
 
 Book is the human-readable language used by Promptbook documents. The coder distinguishes two document types that share lexical infrastructure and have different semantics and runtimes:
 
-| Document type | Responsibility | Specification |
-| --- | --- | --- |
-| Agent Book | A reusable role: persona, rules, knowledge, inheritance and advisors. | [Agent context](coder/agent-context.md), [TEAM](coder/team.md). |
-| Task Book | One work definition: identity, status, priority, routing, payload and triggers. A header TASK declares this document type. | [Task Books](coder/task-books.md), [not-before](coder/not-before.md), [recurrence](coder/recurrence.md). |
+- **Agent Book**: A reusable role: persona, rules, knowledge, inheritance and advisors. See [Agent context](coder/agent-context.md), [TEAM](coder/team.md).
+- **Task Book**: One work definition: identity, status, priority, routing, payload and triggers. A header TASK declares this document type. See [Task Books](coder/task-books.md), [not-before](coder/not-before.md), [recurrence](coder/recurrence.md).
 
 A task Book is not compiled as an agent, does not inherit Adam automatically and does not create a chat profile. Agent Books without the TASK header remain agent Books. A commitment keyword shared by both dialects must be interpreted using the document type; task MODEL and META ID have the task meanings defined in the task contract.
 

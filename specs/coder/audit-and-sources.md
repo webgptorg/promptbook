@@ -4,18 +4,16 @@
 
 ## Audit findings
 
-| Area | State in the analyzed snapshot | Rewrite target |
-| --- | --- | --- |
-| Queue | Top-level `prompts/*.md`, sections, checkboxes, priorities, alternative runner tokens | Preserve and connect task Books to the same engine. |
-| Task Books and `--tasks` | PRD 2026-10-0060 is pending; the current loader reads Markdown | Implement as the preferred new format. |
-| Earliest start date | PRD 0050 is pending; the current matcher treats all backticks as runner tokens | Separate annotation types and time eligibility. |
-| Recurrence | PRD 0070 is pending | Task Books only; replace the old `prompts/recurring` proposal. |
-| Checks and commits | Phase persistence, a private check checkout and separate check commits exist | Preserve this contract without monolithic orchestration functions. |
-| Agent for `plan` | Code uses Developer; an older PRD requested Planner | Developer by default, Planner explicitly. Planning permissions remain restricted. |
-| Server | A separate web UI and persistent queue | Preserve the base coder server; defer the full unified Agent Server. |
-| Parallel tasks | `--parallel` is an unfinished PRD with `@@@` | The base version runs sequentially; do not confuse this with TEAM consultations. |
-| Operational files | Some locks, check views and recovery are in the Git directory | Move owned files to `.promptbook/ptbk-coder` according to PRD 0130. |
-| Commit identity | README claims a mandatory agent signature; code allows ordinary Git identity | Explicitly document the actual fallback; do not retain the false claim. |
+- **Queue**: **Snapshot:** Top-level `prompts/*.md`, sections, checkboxes, priorities, alternative runner tokens. **Target:** Preserve and connect task Books to the same engine.
+- Task Books and `--tasks`: **Snapshot:** PRD 2026-10-0060 is pending; the current loader reads Markdown. **Target:** Implement as the preferred new format.
+- **Earliest start date**: **Snapshot:** PRD 0050 is pending; the current matcher treats all backticks as runner tokens. **Target:** Separate annotation types and time eligibility.
+- **Recurrence**: **Snapshot:** PRD 0070 is pending. **Target:** Task Books only; replace the old `prompts/recurring` proposal.
+- **Checks and commits**: **Snapshot:** Phase persistence, a private check checkout and separate check commits exist. **Target:** Preserve this contract without monolithic orchestration functions.
+- Agent for `plan`: **Snapshot:** Code uses Developer; an older PRD requested Planner. **Target:** Developer by default, Planner explicitly. Planning permissions remain restricted.
+- **Server**: **Snapshot:** A separate web UI and persistent queue. **Target:** Preserve the base coder server; defer the full unified Agent Server.
+- **Parallel tasks**: **Snapshot:** `--parallel` is an unfinished PRD with `@@@`. **Target:** The base version runs sequentially; do not confuse this with TEAM consultations.
+- **Operational files**: **Snapshot:** Some locks, check views and recovery are in the Git directory. **Target:** Move owned files to `.promptbook/ptbk-coder` according to PRD 0130.
+- **Commit identity**: **Snapshot:** README claims a mandatory agent signature; code allows ordinary Git identity. **Target:** Explicitly document the actual fallback; do not retain the false claim.
 
 Evidence: [S01](audit-and-sources.md#s01), [S02](audit-and-sources.md#s02), [S04](audit-and-sources.md#s04), [S05](audit-and-sources.md#s05), [S06](audit-and-sources.md#s06), [S09](audit-and-sources.md#s09), [S10](audit-and-sources.md#s10), [S11](audit-and-sources.md#s11), [S12](audit-and-sources.md#s12).
 

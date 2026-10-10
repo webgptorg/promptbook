@@ -2,14 +2,12 @@
 
 [Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-| Stage | Deliverable | Gate |
-| --- | --- | --- |
-| 1. Contracts and skeleton | Domain types, a fixture corpus of existing behavior, workspace/configuration, CLI shell | Read-only and path/Book precedence scenarios. |
-| 2. Functional legacy coder | One task engine, Markdown adapter, harness boundary, Git scope, checks/fix, recovery, traces | E01-E18 and legacy T/U scenarios. |
-| 3. Product parity | Init/add/plan/verify, seven harnesses, TEAM, terminal and base server, isolation | Packaged CLI and UI/capability scenarios. |
-| 4. Not-before and task Books | Typed annotations, time, Book adapter, `--tasks`, mixed queue, migration | T01-T11 and migration crash/idempotence tests. |
-| 5. Recurrence | Trigger/occurrence store, claims, coalescing, persistent wake-ups | T12-T15, restart/concurrency scenarios. |
-| 6. Replacement of the old coder | Compatibility report, release notes, removal of superseded runner paths | All required scenarios, without silent loss of commands. |
+1. **Contracts and skeleton:** Domain types, a fixture corpus of existing behavior, workspace/configuration, CLI shell. **Gate:** Read-only and path/Book precedence scenarios.
+2. **Functional legacy coder:** One task engine, Markdown adapter, harness boundary, Git scope, checks/fix, recovery, traces. **Gate:** E01-E18 and legacy T/U scenarios.
+3. **Product parity:** Init/add/plan/verify, seven harnesses, TEAM, terminal and base server, isolation. **Gate:** Packaged CLI and UI/capability scenarios.
+4. **Not-before and task Books:** Typed annotations, time, Book adapter, `--tasks`, mixed queue, migration. **Gate:** T01-T11 and migration crash/idempotence tests.
+5. **Recurrence:** Trigger/occurrence store, claims, coalescing, persistent wake-ups. **Gate:** T12-T15, restart/concurrency scenarios.
+6. **Replacement of the old coder:** Compatibility report, release notes, removal of superseded runner paths. **Gate:** All required scenarios, without silent loss of commands.
 
 Stages determine work order rather than permission to omit any required feature from the final delivery. The check/Git contract and ownership must be complete before adding long-term schedules. Deferred directions in the [coder scope](scope.md) have separate future assignments.
 

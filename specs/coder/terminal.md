@@ -4,14 +4,12 @@
 
 An interactive run starts in Normal output. Separate the agent's own messages from runner statuses, commands, tools, file changes, checks and errors. Raw output shows the original stream. Switching modes does not resubmit the prompt or call a model; the selection applies throughout the invocation rather than globally.
 
-| Control | Behavior |
-| --- | --- |
-| `P` | Pause/resume at safe boundaries. Pause starts no further work; clearly show a pending pause for the running phase. |
-| `S` | Skip the current pacing/backoff/poll wait only when that is the current waiting state; never bypass not-before/trigger conditions. |
-| `X` | Finish the current task and then exit; a second press cancels the request. |
-| `O` | Toggle normal/raw output without restarting the harness. |
-| Arrow keys, End | Scroll the buffer / return to following live output. |
-| Ctrl+C / SIGTERM | Stop claiming, terminate only owned subprocesses, save recovery state and release resources. |
+- `P`: Pause/resume at safe boundaries. Pause starts no further work; clearly show a pending pause for the running phase.
+- `S`: Skip the current pacing/backoff/poll wait only when that is the current waiting state; never bypass not-before/trigger conditions.
+- `X`: Finish the current task and then exit; a second press cancels the request.
+- `O`: Toggle normal/raw output without restarting the harness.
+- **Arrow keys, End**: Scroll the buffer / return to following live output.
+- **Ctrl+C / SIGTERM**: Stop claiming, terminate only owned subprocesses, save recovery state and release resources.
 
 Every key must give immediate feedback, including when there is nothing to skip. Resize must neither break the panel nor create load proportional to the entire history. Non-TTY and `--no-ui` modes provide readable ongoing output without dashboard escape sequences.
 
