@@ -1,19 +1,15 @@
 # Project checks and repairs
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-`--check` specifies one project shell command. `--check-before` accepts `no` (default), `yes-and-fail`, `yes-and-fix`. An enabled initial check without an explicit command uses `npm run check`. If neither `--check` nor an enabled `--check-before` is provided, skip optional check phases; the UI must not claim tests passed.
+Every task accepted by start must satisfy the project's configured checks and its requested outcome. Run checks on the content intended for the result commit, including changes made by formatters and other checks. A successful process exit is not sufficient evidence of task completion.
 
-`yes-and-fail` exits after failure. `yes-and-fix` creates one repair task and uses the shared repair service before entering the ordinary queue. `fix` always runs a check (using `npm run check` without explicit `--check`), repairs if necessary, checks again and exits; it never selects ordinary tasks.
+Checks are project-defined, not restricted to software builds. Missing or uninitialized validation is a setup problem, never an automatic pass. Preserve existing checks during initialization. Do not remove assertions, lower thresholds or disable validation merely to make a task pass.
 
-A missing, recursive or uninitialized validation command is a setup error. Do not rewrite it into automatic success. Repair instructions prohibit removing assertions, lowering thresholds, disabling lint/checks or skipping builds merely to obtain a passing result.
+On failure, feed the actual check result into repair of the same active work, then recheck within the configured budget. Preserve attempts and diagnostics. If repair cannot proceed safely, keep the supervisor available with blocked work and an actionable request. Check-generated changes join the task's single result commit.
 
-Checks may modify files. They must check the exact content version intended for persistence, including scoped line-ending normalization. A private check view preserves the project's relative location, dependencies and required ignored files; import its result only if the live checkout still matches the captured boundary.
+For finite run, `--check` selects a shell command and `--check-before` supports `no`, `yes-and-fail` and `yes-and-fix`. Optional checks that were not requested are visibly skipped, not passed. An enabled default software check uses `npm run check`; a non-software project can supply its own command.
 
-## Related specifications
+`ptbk fix` checks and repairs only failing validation; it does not consume the ordinary queue. On a healthy unchanged project it needs no model and creates no repair task or empty commit. A check-only transformation is recorded as its own explicit maintenance task when there is no active task to own it.
 
-- [Execution lifecycle](execution.md)
-- [Attempts, retries and provider limits](retries.md)
-- [Change ownership and Git persistence](git-persistence.md)
-- [Project initialization](initialization.md)
-- [User and CLI contracts](cli.md)
+See [execution](execution.md), [retries](retries.md) and [Git persistence](git-persistence.md).

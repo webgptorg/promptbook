@@ -1,79 +1,46 @@
-# User and CLI contracts
+# Commands and configuration
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
+
+The command root is `ptbk`. With no subcommand, an interactive invocation offers to start the selected project; a noninteractive invocation prints the corresponding instruction without waiting for input. The ordinary workflow is initialization or cloning, followed by `ptbk start`.
 
 ## Commands
 
-All commands belong directly to `ptbk`. Help, examples and newly generated scripts use this single command root. The historical `coder` command group is replaced by the root CLI; see [compatibility and deliberate changes](compatibility.md).
+| Command | Purpose |
+| --- | --- |
+| `init`, `initialize` | Prepare a project, optionally create and start an agenda from intent. |
+| `start` | Operate the ongoing agenda with automatic routing. |
+| `stop`, `restart` | Control the selected project's daemon. |
+| `status`, `show` | Inspect the current process without changing its lifecycle. |
+| `answer` | Inspect and answer pending human requests. |
+| `run` | Execute a finite existing queue with one selected configuration. |
+| `add` | Create a task from description, stdin or a template, without a model call. |
+| `generate-boilerplates` | Create unfinished, non-runnable task templates. |
+| `plan` | Discuss and save approved tasks without implementing them. |
+| `list` | Read-only queue, filters and readiness explanations. |
+| `fix` | Check and repair project validation, not the ordinary queue. |
+| `verify` | Human review, follow-up and archiving of results; not a check run. |
+| `migrate` | Explicit local conversion of Markdown tasks to Books. |
+| `recover` | Inspect and explicitly resolve interrupted/blocked work. |
+| `find-unwritten`, `find-refactor-candidates`, `find-fresh-emoji-tags` | Authoring helpers. |
+| `ping` | An explicit small harness/model call, optionally repeated with `--period`. |
 
-- `ptbk init` / `ptbk initialize`: Idempotently add missing project files and explain configuration.
-- `ptbk add`: Create a task from input/a template; the current command does not call a model. New projects prefer task Books.
-- `ptbk generate-boilerplates`: Generate unfinished templates that are not automatically runnable.
-- `ptbk plan`: Discuss the project and propose tasks; write only approved PRD/task files.
-- `ptbk list`: Show the queue, filters and reasons for ineligibility without a model or writes. Without `--agent`, do not filter to Developer.
-- `ptbk run`: Run currently eligible work finitely; do not wait indefinitely for future tasks.
-- `ptbk fix`: Run checks and, only if they fail, create and execute one repair task.
-- `ptbk verify`: Interactive human review of completed results, optional follow-up and archiving. Does not run checks.
-- `ptbk server`: A persistent queue and local web overview over the same engine.
-- `ptbk migrate`: A new deterministic conversion of Markdown tasks to task Books. No model call.
-- `ptbk recover <task-id>`: Inspect interrupted or blocked work; resume, retry or acknowledge it only through an explicit action. See [recovery](recovery.md).
-- `ptbk find-unwritten`, `ptbk find-refactor-candidates`, `ptbk find-fresh-emoji-tags`, `ptbk ping`: Preserve useful authoring/diagnostic tools as top-level commands of the same utility, outside the task loop.
+## Shared configuration
 
-A command must not silently ignore an unsupported flag. The old `--test` and `--test-before` flags must exit with instructions to use `--check` and `--check-before`. `--priority` remains an alias for the lower priority bound.
+`--path` selects the project; `--tasks` selects its task source. Explicit CLI configuration takes precedence over stored supported settings. `PTBK_HARNESS`, `PTBK_MODEL` and `PTBK_THINKING_LEVEL` remain supported defaults. Task requirements cannot be silently overridden by an incompatible invocation choice.
 
-## First use and a typical run
+`--agent`, `--harness`, `--model`, `--thinking-level` and `--context` configure finite work. Agent, harness and model are separate concepts. Run/fix/plan default to the project's Developer role when an agent is not selected; an explicit Planner is supported. Start discovers all available roles and tools and uses Manager, subject to explicit user restrictions/preferences rather than a hidden fixed Developer configuration.
 
-```bash
-ptbk init --path ./project
-ptbk list --path ./project
-ptbk run --path ./project --harness openai-codex --dry-run
-ptbk run --path ./project --harness openai-codex \
-  --check "npm run check" --check-before yes-and-fix
-```
+Start supports `--daemon` (default), `--raw`, `--interactive`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`. Help must show effective defaults and explain which choices are live-adjustable or require restart. See [controls](controls.md).
 
-These examples describe the target CLI; examples using `--tasks`, `migrate`, `TASK`, `AFTER` and `REPEAT` do not assert availability in the analyzed package.
+## Finite-run and service options
 
-## Configuration and precedence
+Preserve priority bounds (`--min-priority`, `--max-priority`, with `--priority` as the lower-bound alias), successful-task `--limit`, `--git-changes fail|ignore|continue`, `--no-commit`, `--no-auto`, `--auto-pull`, `--auto-push`, `--check`, `--check-before`, `--isolate`, `--no-normalize-line-endings`, `--no-ui`, `--preserve-logs`, `--no-questions` and `--allow-credits`.
 
-- `--path` selects the project; without it, use the working directory captured when the command starts. Resolve relative paths from the invocation directory.
-- Explicit CLI values take precedence over existing supported configuration. Typed task requirements apply before implicit defaults but must not override an explicit user choice.
-- `--harness` selects the tool, `--model` the model and `--thinking-level` the reasoning intensity. `--agent` selects an agent Book; these concepts are not interchangeable.
-- For `run`, `fix`, `plan` and the current `server`, the default is `agents/developer.book`. An explicit Planner remains supported. A missing default must give instructions for `init`; an invalid explicit path must fail without fallback.
-    - See the [`.book` format specification](../book-language.md).
-- Without `--context`, load the project's `AGENTS.md`. Report a missing implicit file only once; an existing unreadable file is an error. Explicit text/a file replaces the default. `--context ""` disables additional context.
-- Preserve `PTBK_HARNESS`, `PTBK_MODEL` and `PTBK_THINKING_LEVEL`; an explicit CLI value always wins. Current non-dry run/server/plan/fix requires a selected harness; `fix` defers installation and Book preparation until a repair is needed. In the target Book mode, a typed task requirement may supply a missing invocation harness only if that provider is configured. Otherwise the task remains blocked. Do not introduce a hidden general layer of environment overrides.
-- Read-only commands must not implicitly initialize Books, install a harness, compile remote inheritance, contact a model or change Git.
+Pacing uses `--wait-between-prompts`, `--wait-after-prompt` and `--wait-after-error`, accepting duration forms such as `30m` and `1h30m`. Initial pacing defaults are zero between/after tasks and ten minutes after a technical error. Thinking settings include `low`, `medium`, `high`, `xhigh`, `max` only where the selected harness supports them; unsupported settings are diagnosed, not falsely accepted.
 
-## Preserved run options
+Validate combinations before work: invalid priority bounds fail; `--no-auto` requires an interactive terminal and conflicts with `--no-questions`; automatic `--no-commit` requires `--git-changes ignore`; isolation requires commits and conflicts with continue; continue conflicts with pre-check repair. Auto-pull requires automatic persistence. Start cannot disable task commits or become a finite `--limit` run.
 
-- `--min-priority`, `--max-priority`: Inclusive nonnegative integer bounds. A conflict with `--priority` or a minimum greater than the maximum is an error.
-- `--limit`: The maximum number of successfully completed tasks/occurrences. Failure alone does not consume the limit.
-- `--git-changes fail/ignore/continue`: Defaults to `fail`; see [Git persistence](git-persistence.md).
-- `--no-commit`: No automatic commits; automatic mode requires `--git-changes ignore`. Preserve the option to save work manually in interactive `--no-auto` mode.
-- `--no-auto`: Interactive confirmation before a task and at the commit step; automatic continuation is the default. Cannot be combined with `--no-questions`.
-- `--auto-pull`, `--auto-push`: Explicit opt-in; disabled by default.
-- `--check`, `--check-before`: The validation contract in the [checks specification](checks.md).
-- `--isolate`: A separate worktree for one task; the base run remains sequential.
-- `--no-normalize-line-endings`: Disable standard CRLF-to-LF normalization of changed text files.
-- `--no-ui`, `--preserve-logs`, `--no-questions`: Plain output, retained diagnostics and noninteractive mode.
-- `--allow-credits`: Explicit opt-in to OpenAI Codex credit usage.
-- `--wait-between-prompts`: Minimum time between the starts of two tasks, default 0; execution time counts toward it.
-- `--wait-after-prompt`: Wait after completing a task, default 0.
-- `--wait-after-error`: Cooldown before a technical retry, default 10 minutes. Accept documented duration forms such as `30m`, `5s`, `1h30m`.
-- `--auto-migrate`: Existing test-server migration integration; a separate optional adapter. It is not `ptbk migrate`.
+Authoring services use explicit `--commit`; optional push requires a commit. An agenda bootstrap follows the task commit contract. `add` retains template/priority input; boilerplate `--count` supports `N` and `N*M` (default `5*1`); verify supports review order and repeatable ignore filters. Optional `--auto-migrate` is a configured project migration hook, distinct from task-format conversion; destructive permission requires that hook to be enabled explicitly.
 
-Exact provider defaults must live in one updatable registry, and help must match runtime behavior. Do not treat model names from historical PRD examples as a permanent product contract.
-
-Supported thinking values are `low`, `medium`, `high`, `xhigh`, `max`; the selected adapter must state whether it uses them. The current Codex fallback is `xhigh`; the historical generated `coder:run` explicitly sets `max`. The new implementation must not silently accept unsupported effort and claim it took effect.
-
-Validate combinations before the first mutation: `--auto-pull` with `--no-commit` is prohibited outside read-only preview; `--isolate` disallows both `--no-commit` and `continue`; `continue` disallows `--check-before yes-and-fix`. `--allow-destructive-auto-migrate` requires `--auto-migrate`.
-
-Unlike run, authoring utilities (`init`, `add`, `generate-boilerplates`, `plan`) default to commits being disabled and use explicit `--commit`; push requires a commit. `add [description]` accepts an argument, stdin or interactive input and preserves `--template`/priority. Boilerplates preserve `--count` in `N` and `N*M` forms (default `5*1`). `verify` preserves review order and a repeatable ignore filter. `ptbk ping` is a real small model call, optionally repeated with `--period`; it is not a read-only offline inspection.
-
-## Related specifications
-
-- [Project paths and task sources](workspace.md)
-- [Project initialization](initialization.md)
-- [Project checks and repairs](checks.md)
-- [Read-only planning](planning.md)
-- [Compatibility and deliberate changes](compatibility.md)
+List/help/dry-run must not install tools, initialize files, call models or modify Git. Never silently ignore an unsupported flag. Read-only previews report missing capabilities without repairing them.

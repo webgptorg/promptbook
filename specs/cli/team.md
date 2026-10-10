@@ -1,18 +1,13 @@
 # TEAM consultations
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [TEAM commitment](../book-language/commitments/team.md)
 
-TEAM references, including inherited/imported declarations, create tools for individual advisors. The primary agent decides whether and when to ask. An advisor runs with its own Book and returns a labeled answer to the same task; its rules are not merged into the main system prompt.
+TEAM is natural-language instruction about whom an agent may consult, in which circumstances and how to cooperate. It is not a reporting hierarchy. A referenced agent can also work on its own tasks. A may include B while B includes A; reciprocal references are valid.
 
-Distinguish names precisely and explain ambiguity errors. Resolve relative references from the declaring Book, including during inheritance. Repeated references to the same Book mean one advisory tool. A local advisor does not require Agent Server. Do not send local credentials to remote Books or allow a remote source to reference the host-local filesystem.
+A consultation uses the advisor's own role and returns its response within the active task. It does not merge the advisor's identity into the requesting agent, claim another queued task or create an independent task commit. The project still has only one active task. Calls happen when requested, not merely because a teammate is listed.
 
-All supported execution harnesses use a shared temporary tool bridge. Verify availability/discovery before work; text in the prompt alone must not falsely imply TEAM support. Without a consultation, no additional paid call occurs. Enforce shared depth, consultation-count, timeout and cancellation limits; an exhausted limit is a concrete result rather than infinite recursion.
+`@User` creates a general human request; `@Expert` uses the running engine's expertise; Void/Null is a valid no-op. Other unresolved or ambiguous references must be visible before they are relied upon. Local and hidden definitions use the same resolver.
 
-Preserve default TEAM limits: a 5-minute consultation timeout, depth 4, 24 calls in total and at most 128,000 response characters. Count each actual inference in usage exactly once. An advisor must not independently claim the queue, commit or perform database migrations.
+Enforce consultation limits, cancellation and accurate usage accounting. Defaults are a five-minute consultation timeout, depth four, 24 calls per task and at most 128,000 response characters. Reaching a limit is an explicit result, not recursion. Advisors cannot acquire authority beyond the task, including in read-only planning.
 
-## Related specifications
-
-- [Agent Books and context](agent-context.md)
-- [Coding harnesses](harnesses.md)
-- [Read-only planning](planning.md)
-- [Attempts, retries and provider limits](retries.md)
+See [non-agents](../agents/non-agents.md), [user interactions](user-interactions.md), [channels](channels.md) and [harnesses](harnesses.md).

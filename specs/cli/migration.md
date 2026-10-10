@@ -1,31 +1,13 @@
-# Migrating Markdown tasks to Books
+# Converting Markdown tasks to Books
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-```bash
-ptbk migrate --path ./project --tasks ./work-items --dry-run
-ptbk migrate --path ./project --tasks ./work-items
-```
+`ptbk migrate` explicitly converts local Markdown task sections into task Books. It performs no model call, harness installation, application implementation or browser action. `--dry-run` previews the plan without writing anything.
 
-Migration is an explicit one-way local operation. It performs no model call, tool installation, checks, implementation, server startup or database migration. Legacy execution must work without migration; one nonblocking tip per invocation may suggest the correct command.
+Create one Book per section. Preserve title, exact descriptive payload, state, priority, opaque routing alternatives, time restrictions, notes, assets and known completion history. Use task commitments and stable references; do not guess whether an opaque selector names a model or agent. Recalculate relative references without modifying unrelated code or URLs.
 
-1. Analyze actual task sections through shared adapters and build a conversion plan. One section produces one Book; naming and IDs are deterministic.
-2. Preserve payload, title/emoji identification, state, priority, routing OR alternatives, time instant, notes and available history. Recalculate relative references structurally rather than by global replacement in code and URLs.
-3. Convert opaque legacy tokens to `RUNNER` and time tokens to `AFTER`; do not guess which token is a model or agent.
-4. Convert every section of one source file, reread the new Books and verify equivalence of normalized meaning.
-5. Only then remove the original from the active queue into a non-executable archive, preserving original bytes and asset availability. Do not archive the original if any of its sections failed conversion.
-6. Persist successful migration in one scoped local commit unless `--no-commit` is set; push is not implicit.
+Verify equivalent meaning for every section before archiving its original file outside the executable queue. Keep the original bytes recoverable. An unconvertible section, changed source/destination or collision must not cause overwriting or premature removal. Unknown completion time remains explicitly unknown, not invented.
 
-Dry-run must not create a directory, lock/journal, source ID, file or commit; keep proposals in memory. Actual migration must use a mutation lease and recovery transaction with origin metadata/checksums. Refuse a task with a live claim.
+Interruption and rerunning must not produce two runnable copies of the same task. Preserve migration provenance, resolve ambiguity before execution and refuse live tasks. A successful conversion uses one scoped maintenance commit unless `--no-commit` was explicitly selected; push is not implicit.
 
-After interruption, the two representations must not be independently runnable. The runtime must identify the authoritative representation from migration provenance/the journal; block ambiguous copies. Repeating a completed migration must neither duplicate anything nor commit again. A changed source/destination, ID collision or lossy construct requires explicit resolution rather than overwrite.
-
-Conversion must not activate incomplete, not-ready, failed or in-progress sections. An older version of ptbk without Book support cannot execute the new tasks; compatibility cannot also be promised for old binaries. New init/authoring prefers Books while existing custom templates and scripts remain preserved.
-
-## Related specifications
-
-- [Project paths and task sources](workspace.md)
-- [Legacy Markdown tasks](task-markdown.md)
-- [Task Books](task-books.md)
-- [Mutation lease, journal and recovery](recovery.md)
-- [Compatibility and deliberate changes](compatibility.md)
+See [Markdown tasks](task-markdown.md), [task Books](task-books.md), [references](../book-language/references.md) and [recovery](recovery.md).

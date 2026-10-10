@@ -1,25 +1,17 @@
 # Project initialization
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-- `agents/`: Versioned agent Books. Create default roles and helpers without overwriting edits.
-- `AGENTS.md`: Project instructions; ordinary versioned context.
-- `tasks/` or `--tasks`: Preferred task Books and their accompanying materials.
-- `prompts/`: Preserved legacy Markdown task source.
-- `prompts/templates/`, `prompts/done/`, `prompts/traces/`: Legacy templates, archive and durable traces; outside the active queue.
-- `.promptbook/ptbk-coder/`: Owned locks, recovery journal, occurrence state, temporary check views and internal cache. Operational items are ignored by Git.
-- `.promptbook/coder-isolation-worktrees/`: Isolated worktrees, or a documented compatible relocation within `.promptbook`.
-- `.env`: Local settings/secrets, ignored. Create examples only, without inventing working credentials.
+`ptbk init` (`ptbk initialize`) prepares either an empty folder or an existing project. Plain interactive invocation asks whether to initialize the current folder or create a project/ongoing agenda from a description. Noninteractive invocation must allow the choice and description to be supplied explicitly; it must not wait for an invisible prompt.
 
-**New decision:** store durable Book-task traces under `traces/` within their actual task source, keyed by stable ID and occurrence. Preserve legacy trace paths. Operational state and locks are not historical result records and must not be committed.
+Basic initialization prepares Git, `agents/`, `tasks/`, project instructions, required [core agents](../agents/core-agents.md), useful role/task templates and the `.ptbk/` ignore rule. It installs supported harness CLIs globally as part of setup and guides required logins. Existing installations are detected; unavailable installation or login is explained, not reported as success. [Harness setup](harnesses.md) determines readiness.
 
-`init` must be repeatable: preserve edited Books, context, scripts, `.env`, editor settings and templates; add missing files/keys without wholesale overwrites. README/templates must not be runnable tasks. Preserve the ability to add Git ignore, gitattributes and relevant VS Code settings without making execution itself depend on the editor.
+Initialization is repeatable. Add missing artifacts without overwriting customized agents, instructions, scripts, settings, templates or existing content. Create only missing core agents. Default ordinary roles include Developer, Planner, Lawyer and Copywriter; their initial TEAM instructions can make the relevant advisors available. Preserve existing validation; otherwise prepare an honest setup requirement rather than a check that always succeeds.
 
-Leave an existing `scripts.check` unchanged. If missing, construct it from actual usable project validation scripts in deterministic order and show its scope. Without validation, create a failing setup placeholder rather than a command that always succeeds. Newly generated command invocations use `ptbk` directly, including `ptbk run`, `ptbk fix` and `ptbk plan`. Migrate only exactly recognized generated historical callers to these commands; diagnose custom scripts and workflows without modifying them.
+## Creating an agenda from intent
 
-## Related specifications
+Offer a simple text input or planning conversation describing the desired project, such as organizing accounting materials or managing customer communication. First perform basic initialization. Then create an ordinary first task assigned explicitly to [Expert](../agents/expert.md), containing that intent and supplied context, and immediately execute it through the common task lifecycle. Expert adapts the project, agents, checks and initial work to the request. Continue into `ptbk start` so the agenda begins operating.
 
-- [Project paths and task sources](workspace.md)
-- [Git preflight](git-preflight.md)
-- [Agent Books and context](agent-context.md)
-- [Project checks and repairs](checks.md)
+Expert comes from the running engine and is never materialized in the project. Basic initialization without an agenda request must not unexpectedly run project work. Existing content remains protected in both flows; unresolved setup requirements are shown before unattended execution.
+
+See [Git preflight](git-preflight.md), [execution](execution.md) and [start](start.md).

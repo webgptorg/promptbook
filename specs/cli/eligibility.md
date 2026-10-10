@@ -1,15 +1,13 @@
-# Task eligibility
+# Task eligibility and ordering
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-Selecting a task requires a valid source, an allowed lifecycle, a complete description without placeholders, a matching priority, compatible routing, a satisfied trigger and an available claim. Evaluation must return an explanation: `ready`, `waiting-until`, `blocked`, `invalid`, `unsupported` or exclusion by a filter; it may also provide the next wake-up.
+A task is eligible only when its source is valid, it is unfinished and enabled, required predecessors are complete, its not-before condition is satisfied, routing is usable and no other project task owns execution. Placeholders and unsupported control syntax cannot become ready work.
 
-The same evaluator serves list, dry-run, the dashboard, the server and the actual claim. It receives injected clock, timezone, configuration and stored state. It performs no I/O, Git operations, waiting or model calls. A parsed-document cache is not a cache of time-dependent eligibility.
+Select higher priorities first, with stable source/reference order for ties. A future high-priority task must not block an eligible lower-priority task. Numeric and natural-language [TASK PRIORITY](../book-language/commitments/task-priority.md) values share an understandable ordering; unresolved interpretation is visible rather than guessed differently by each interface.
 
-## Related specifications
+For `start`, missing routing creates the required Manager task; unavailable explicit routing stays blocked. For `run`, apply the invocation's fixed configuration and filters. Dependencies take precedence over priority.
 
-- [Legacy Markdown tasks](task-markdown.md)
-- [Task Books](task-books.md)
-- [Not-before: earliest start](not-before.md)
-- [Recurring task Books](recurrence.md)
-- [Mutation lease, journal and recovery](recovery.md)
+List, dry-run, terminal, dashboard, API and actual execution must agree on readiness and explain waiting, blocked, invalid and filtered tasks. Read-only views neither call a model nor mutate task sources. Reevaluate readiness on relevant source, capability or time changes.
+
+See [task relationships](task-relationships.md), [not-before](not-before.md), [recurrence](recurrence.md) and [goal discovery](goal-discovery.md).
