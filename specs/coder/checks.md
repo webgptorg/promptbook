@@ -1,19 +1,19 @@
-# Projektové checks a opravy
+# Project checks and repairs
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-`--check` určuje jeden projektový shell příkaz. `--check-before` má `no` (default), `yes-and-fail`, `yes-and-fix`. Zapnutý počáteční check bez explicitního příkazu použije `npm run check`. Když není uveden ani `--check`, ani zapnutý `--check-before`, volitelné check fáze se přeskočí; UI nesmí tvrdit, že testy prošly.
+`--check` specifies one project shell command. `--check-before` accepts `no` (default), `yes-and-fail`, `yes-and-fix`. An enabled initial check without an explicit command uses `npm run check`. If neither `--check` nor an enabled `--check-before` is provided, skip optional check phases; the UI must not claim tests passed.
 
-`yes-and-fail` po neúspěchu skončí. `yes-and-fix` vytvoří jednu opravnou úlohu a využije sdílenou repair službu před přechodem k běžné frontě. `fix` vždy provede check (bez explicitního `--check` použije `npm run check`), případně opraví, znovu ověří a skončí; vůbec nevybírá běžné tasky.
+`yes-and-fail` exits after failure. `yes-and-fix` creates one repair task and uses the shared repair service before entering the ordinary queue. `fix` always runs a check (using `npm run check` without explicit `--check`), repairs if necessary, checks again and exits; it never selects ordinary tasks.
 
-Chybějící, rekurzivní nebo neinicializovaný validační příkaz je setup error. Nepřepisovat ho na automatický úspěch. Opravná instrukce zakazuje odstraňovat assertions, snižovat thresholds, vypínat lint/checks nebo vynechávat builds pouze k získání zeleného výsledku.
+A missing, recursive or uninitialized validation command is a setup error. Do not rewrite it into automatic success. Repair instructions prohibit removing assertions, lowering thresholds, disabling lint/checks or skipping builds merely to obtain a passing result.
 
-Kontroly mohou měnit soubory. Musí kontrolovat přesnou obsahovou verzi určenou k uložení, včetně scoped line-ending normalizace. Soukromý check view zachová projektovou relativní polohu, závislosti a potřebné ignored soubory; výsledek se importuje jen pokud živý checkout stále odpovídá zachycené hranici.
+Checks may modify files. They must check the exact content version intended for persistence, including scoped line-ending normalization. A private check view preserves the project's relative location, dependencies and required ignored files; import its result only if the live checkout still matches the captured boundary.
 
-## Související specifikace
+## Related specifications
 
 - [Execution lifecycle](execution.md)
-- [Pokusy, retry a providerová omezení](retries.md)
-- [Vlastnictví změn a Git persistence](git-persistence.md)
-- [Inicializace projektu](initialization.md)
-- [Uživatelské a CLI kontrakty](cli.md)
+- [Attempts, retries and provider limits](retries.md)
+- [Change ownership and Git persistence](git-persistence.md)
+- [Project initialization](initialization.md)
+- [User and CLI contracts](cli.md)

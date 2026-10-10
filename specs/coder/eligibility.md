@@ -1,15 +1,15 @@
-# Způsobilost tasku
+# Task eligibility
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Výběr tasku vyžaduje: platný zdroj, povolený lifecycle, dokončené zadání bez placeholderů, vyhovující prioritu, kompatibilní routing, splněný trigger a dostupný claim. Vyhodnocení musí vracet vysvětlení: `ready`, `waiting-until`, `blocked`, `invalid`, `unsupported` nebo vyřazení filtrem; může dodat příští wake-up.
+Selecting a task requires a valid source, an allowed lifecycle, a complete description without placeholders, a matching priority, compatible routing, a satisfied trigger and an available claim. Evaluation must return an explanation: `ready`, `waiting-until`, `blocked`, `invalid`, `unsupported` or exclusion by a filter; it may also provide the next wake-up.
 
-Stejný evaluator používá list, dry-run, dashboard, server i skutečný claim. Dostává injektované hodiny, timezone, konfiguraci a uložený stav. Neprovádí I/O, Git, čekání ani modelové volání. Cache parsovaného dokumentu není cache jeho časové způsobilosti.
+The same evaluator serves list, dry-run, the dashboard, the server and the actual claim. It receives injected clock, timezone, configuration and stored state. It performs no I/O, Git operations, waiting or model calls. A parsed-document cache is not a cache of time-dependent eligibility.
 
-## Související specifikace
+## Related specifications
 
-- [Legacy Markdown tasky](task-markdown.md)
+- [Legacy Markdown tasks](task-markdown.md)
 - [Task Books](task-books.md)
-- [Not-before: nejdřívější spuštění](not-before.md)
-- [Opakované task Books](recurrence.md)
-- [Mutační lease, journal a recovery](recovery.md)
+- [Not-before: earliest start](not-before.md)
+- [Recurring task Books](recurrence.md)
+- [Mutation lease, journal and recovery](recovery.md)

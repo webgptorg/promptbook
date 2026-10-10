@@ -1,49 +1,49 @@
-# Legacy Markdown tasky
+# Legacy Markdown tasks
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-## Načtení a stavy
+## Loading and states
 
-Načítat pouze top-level `.md` v legacy zdroji. Ignorovat README podle existujícího pravidla a soubory obsahující `<!--ptbk-coder-ignore-->`. Nevstupovat rekurzivně do archivů, traces, šablon ani screenshots.
+Load only top-level `.md` files from the legacy source. Ignore README according to the existing rule and files containing `<!--ptbk-coder-ignore-->`. Do not recurse into archives, traces, templates or screenshots.
 
-Legacy parser dělí soubor podle samostatné řádky `---`. Každá neprázdná sekce je samostatný task. Jeho stav určuje první neprázdný řádek, ne checklist acceptance criteria v těle. Původní parser není plnohodnotný Markdown AST; jeho chování musí mít kompatibilitní fixtures. Přepis nesmí bez výslovné migrace předefinovat hranice existujících sekcí.
+The legacy parser splits a file on a standalone `---` line. Each nonempty section is a separate task. Its state is determined by the first nonempty line, rather than an acceptance-criteria checklist in the body. The original parser is not a full Markdown AST; compatibility fixtures must cover its behavior. The rewrite must not redefine existing section boundaries without explicit migration.
 
-| Marker | Normalizovaný stav | Automatické nové spuštění |
+| Marker | Normalized state | Automatic new execution |
 | --- | --- | --- |
-| `[ ]` | `todo` | Ano, pokud splní všechny další podmínky. |
-| Žádný marker | `todo`, priorita 0 | Ano, pokud je sekce úplná; při zahájení se doplní stavový řádek. |
-| `[-]`, historické `[.]` | `not-ready` | Ne. |
-| `[^]` | `in-progress` | Ne; jen explicitní ověřená recovery. |
-| `[x]`, `[X]` | `done` | Ne. |
-| `[!]` | `failed` | Ne; vyžaduje vědomé opakování/recovery. |
+| `[ ]` | `todo` | Yes, if all other conditions are satisfied. |
+| No marker | `todo`, priority 0 | Yes, if the section is complete; add a status line when starting. |
+| `[-]`, historical `[.]` | `not-ready` | No. |
+| `[^]` | `in-progress` | No; only explicit verified recovery. |
+| `[x]`, `[X]` | `done` | No. |
+| `[!]` | `failed` | No; requires deliberate retry/recovery. |
 
-Známý marker s neplatnými řídicími metadaty nesmí spadnout do implicitního `todo`. Sekce obsahující authoring placeholder `@@@` se nevykonává. Obyčejný úvodní emoji tag není stav úkolu.
+A known marker with invalid control metadata must not fall back to implicit `todo`. A section containing the authoring placeholder `@@@` must not execute. An ordinary leading emoji tag is not a task state.
 
-## Priority a routing
+## Priority and routing
 
-Počet `!` ve stavových metadatech určuje nezápornou prioritu; větší číslo se spouští dříve. Při shodě zachovat stabilní pořadí podle zdrojových cest a pořadí sekcí. **Nové rozhodnutí:** v mixed frontě explicitně dokumentovat stabilní sekundární klíč `normalizovaná relativní cesta + sekce/ID`, aby výsledek nezávisel na pořadí filesystemu.
+The number of `!` characters in status metadata determines a nonnegative priority; higher values run first. On ties, preserve stable ordering by source path and section order. **New decision:** explicitly document the stable secondary key `normalized relative path + section/ID` for a mixed queue, so results do not depend on filesystem ordering.
 
-Nečasové backtick tokeny jsou historická **any-of** skupina. Normalizovaný token se porovnává jako substring názvu harnessu, modelu a aliasů vybraného Book agenta. Například `gpt` nebo `opus` není striktní model ID. Několik tokenů znamená OR, nikoli povinné splnění všech.
+Non-time backtick tokens form the historical **any-of** group. Compare a normalized token as a substring of the harness name, model name and selected Book agent's aliases. For example, `gpt` or `opus` is not a strict model ID. Multiple tokens mean OR, not a requirement to satisfy all of them.
 
 ```markdown
 [ ] !! use `gpt` `claude`
 
-[název nebo emoji] Oprav export CSV
-Zachovej názvy sloupců a doplň ověření uvozovek.
+[title or emoji] Fix CSV export
+Preserve column names and add verification of quoting.
 ```
 
-Routing filtr v legacy Markdownu sám nemění vybraného providera. Při status update zachovat původní routing a časové anotace jako zdrojová metadata oddělená od historie použitého runneru; historický model v hotovém reportu se nesmí stát novým omezením.
+The legacy Markdown routing filter does not itself change the selected provider. On a status update, preserve original routing and time annotations as source metadata separate from the history of the runner used; a historical model in a completed report must not become a new restriction.
 
-## Změny zdroje během práce
+## Source changes during work
 
-Adapter musí znát soubor, sekci, verzi obsahu a umístění řídicího řádku. Před zápisem stav znovu ověří. Smí zachovat záměrné task-owned změny těla, ale nesmí přepsat konkurenční editaci, přiřadit výsledek nově vložené sekci podle pouhého indexu nebo ignorovat zmizení původního úkolu.
+The adapter must know the file, section, content version and control-line location. Revalidate state before writing. It may preserve intentional task-owned body changes, but must not overwrite a concurrent edit, assign a result to a newly inserted section by index alone or ignore the original task's disappearance.
 
-**Nové rozhodnutí:** zdrojové revize porovnávat pomocí content hash a očekávaného task/section fingerprintu. Konflikt zastaví finalizaci a zachová obě verze k rozřešení. Zachovat newline styl a okolní obsah tam, kde to neodporuje explicitnímu normalizačnímu kroku.
+**New decision:** compare source revisions using a content hash and the expected task/section fingerprint. A conflict stops finalization and preserves both versions for resolution. Preserve newline style and surrounding content where compatible with an explicit normalization step.
 
-## Související specifikace
+## Related specifications
 
 - [Task Books](task-books.md)
-- [Způsobilost tasku](eligibility.md)
-- [Not-before: nejdřívější spuštění](not-before.md)
-- [Migrace Markdown tasků na Books](migration.md)
-- [Mutační lease, journal a recovery](recovery.md)
+- [Task eligibility](eligibility.md)
+- [Not-before: earliest start](not-before.md)
+- [Migrating Markdown tasks to Books](migration.md)
+- [Mutation lease, journal and recovery](recovery.md)

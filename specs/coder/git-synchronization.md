@@ -1,14 +1,14 @@
-# Git synchronizace
+# Git synchronization
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Pull/push jsou samostatné outcomes. Chybějící remote, divergence, conflict, authentication a network failure se nepletou s výsledkem implementace. Lokální dokončení s odmítnutým push zůstává lokálně dokončené a synchronizace pending; nevolat kvůli němu znovu model.
+Pull/push have separate outcomes. A missing remote, divergence, conflict, authentication or network failure must not be confused with the implementation result. Local completion with a rejected push remains locally completed with synchronization pending; do not call the model again because of it.
 
-Zapnutý auto-pull provádí standardní `git pull --rebase` před obnovením fronty mezi koly, při zachování vlastnických guardů a bez autostashe. V izolaci se nikdy nepushuje dočasná větev; push směřuje pouze z původní větve po úspěšné integraci. Pull konflikt zastaví další nebezpečné mutace a zachová stav k ručnímu rozřešení.
+Enabled auto-pull performs standard `git pull --rebase` before refreshing the queue between rounds, preserving ownership guards and using no autostash. In isolation, never push the temporary branch; push only from the original branch after successful integration. A pull conflict stops further unsafe mutations and preserves state for manual resolution.
 
-## Související specifikace
+## Related specifications
 
-- [Vlastnictví změn a Git persistence](git-persistence.md)
-- [Izolace tasku ve worktree](isolation.md)
-- [Mutační lease, journal a recovery](recovery.md)
-- [Traces a výsledky](traces.md)
+- [Change ownership and Git persistence](git-persistence.md)
+- [Task isolation in a worktree](isolation.md)
+- [Mutation lease, journal and recovery](recovery.md)
+- [Traces and results](traces.md)

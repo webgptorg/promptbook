@@ -1,27 +1,27 @@
-# Inicializace projektu
+# Project initialization
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-| Umístění | Účel a verzování |
+| Location | Purpose and versioning |
 | --- | --- |
-| `agents/` | Agent Books, verzuje se. Výchozí role a pomocníci se vytvářejí bez přepsání úprav. |
-| `AGENTS.md` | Projektové instrukce; běžný verzovaný kontext. |
-| `tasks/` nebo `--tasks` | Preferované task Books a jejich doprovodné materiály. |
-| `prompts/` | Zachovaný legacy zdroj Markdown úkolů. |
-| `prompts/templates/`, `prompts/done/`, `prompts/traces/` | Legacy šablony, archiv a durable traces; nejsou aktivní fronta. |
-| `.promptbook/ptbk-coder/` | Vlastní zámky, recovery journal, stav výskytů, dočasné check views a interní cache. Provozní položky ignorované Gitem. |
-| `.promptbook/coder-isolation-worktrees/` | Izolované worktrees, nebo zdokumentovaný kompatibilní přesun uvnitř `.promptbook`. |
-| `.env` | Lokální nastavení/secrets, ignorované. Vytvořit jen vzory, ne vymyšlené funkční credentials. |
+| `agents/` | Versioned agent Books. Create default roles and helpers without overwriting edits. |
+| `AGENTS.md` | Project instructions; ordinary versioned context. |
+| `tasks/` or `--tasks` | Preferred task Books and their accompanying materials. |
+| `prompts/` | Preserved legacy Markdown task source. |
+| `prompts/templates/`, `prompts/done/`, `prompts/traces/` | Legacy templates, archive and durable traces; outside the active queue. |
+| `.promptbook/ptbk-coder/` | Owned locks, recovery journal, occurrence state, temporary check views and internal cache. Operational items are ignored by Git. |
+| `.promptbook/coder-isolation-worktrees/` | Isolated worktrees, or a documented compatible relocation within `.promptbook`. |
+| `.env` | Local settings/secrets, ignored. Create examples only, without inventing working credentials. |
 
-**Nové rozhodnutí:** durable traces Book tasků ukládat pod `traces/` jejich skutečného task zdroje, klíčované stabilním ID a výskytem. Legacy trace cesty zachovat. Provozní stav a zámky nejsou historickým záznamem výsledku a nemají být commitovány.
+**New decision:** store durable Book-task traces under `traces/` within their actual task source, keyed by stable ID and occurrence. Preserve legacy trace paths. Operational state and locks are not historical result records and must not be committed.
 
-`init` musí být opakovatelný: zachovat editované Books, kontext, skripty, `.env`, editorové nastavení a šablony; přidávat chybějící soubory/klíče bez plošného přepsání. README/šablony nesmějí být spustitelné tasky. Zachovat možnost doplnění Git ignore, gitattributes a relevantního VS Code nastavení bez závislosti samotného běhu na editoru.
+`init` must be repeatable: preserve edited Books, context, scripts, `.env`, editor settings and templates; add missing files/keys without wholesale overwrites. README/templates must not be runnable tasks. Preserve the ability to add Git ignore, gitattributes and relevant VS Code settings without making execution itself depend on the editor.
 
-Existující `scripts.check` ponechat přesně. Pokud chybí, sestavit ze skutečných použitelných projektových validačních skriptů v deterministickém pořadí a ukázat rozsah. Bez validace vytvořit selhávající setup placeholder, nikoli příkaz, který vždy vrací úspěch. Migrovat pouze přesně rozpoznané generované historické callery; custom skripty a workflow pouze diagnostikovat.
+Leave an existing `scripts.check` unchanged. If missing, construct it from actual usable project validation scripts in deterministic order and show its scope. Without validation, create a failing setup placeholder rather than a command that always succeeds. Migrate only exactly recognized generated historical callers; diagnose custom scripts and workflows without modifying them.
 
-## Související specifikace
+## Related specifications
 
-- [Projektové cesty a zdroje tasků](workspace.md)
+- [Project paths and task sources](workspace.md)
 - [Git preflight](git-preflight.md)
-- [Agent Books a kontext](agent-context.md)
-- [Projektové checks a opravy](checks.md)
+- [Agent Books and context](agent-context.md)
+- [Project checks and repairs](checks.md)

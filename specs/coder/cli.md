@@ -1,80 +1,80 @@
-# Uživatelské a CLI kontrakty
+# User and CLI contracts
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-## Příkazy
+## Commands
 
-| Příkaz | Závazný účel |
+| Command | Required purpose |
 | --- | --- |
-| `ptbk coder init` / `initialize` | Idempotentně doplní chybějící projektové soubory a vysvětlí konfiguraci. Zachovat také současné top-level init aliasy. |
-| `ptbk coder add` | Vytvoří zadání ze vstupu/šablony; současný příkaz je bez modelu. Nové projekty preferují task Books. |
-| `ptbk coder generate-boilerplates` | Generuje nehotové šablony, které nejsou automaticky spustitelné. |
-| `ptbk coder plan` | Diskuse nad projektem a návrh zadání; zapisuje jen schválené PRD/task soubory. |
-| `ptbk coder list` | Bez modelu a zápisů ukáže frontu, filtry a důvody nezpůsobilosti. Bez `--agent` nefiltruje na Developer. |
-| `ptbk coder run` | Konečný běh aktuálně způsobilé práce; nečeká neomezeně na budoucí tasky. |
-| `ptbk coder fix` | Spustí checks a pouze při jejich selhání vytvoří a vykoná jednu opravnou úlohu. |
-| `ptbk coder verify` | Interaktivní lidská kontrola hotových výsledků, případný follow-up a archivace. Neprovádí checks. |
-| `ptbk coder server` | Persistentní fronta a lokální webový přehled nad stejným enginem. |
-| `ptbk coder migrate` | Nový deterministický převod Markdown tasků na task Books. Žádné modelové volání. |
-| `find-unwritten`, `find-refactor-candidates`, `find-fresh-emoji-tags`, `ping` | Zachovat užitečné authoring/diagnostické nástroje jako oddělené příkazy, ne součást task smyčky. |
+| `ptbk coder init` / `initialize` | Idempotently add missing project files and explain configuration. Preserve the current top-level init aliases as well. |
+| `ptbk coder add` | Create a task from input/a template; the current command does not call a model. New projects prefer task Books. |
+| `ptbk coder generate-boilerplates` | Generate unfinished templates that are not automatically runnable. |
+| `ptbk coder plan` | Discuss the project and propose tasks; write only approved PRD/task files. |
+| `ptbk coder list` | Show the queue, filters and reasons for ineligibility without a model or writes. Without `--agent`, do not filter to Developer. |
+| `ptbk coder run` | Run currently eligible work finitely; do not wait indefinitely for future tasks. |
+| `ptbk coder fix` | Run checks and, only if they fail, create and execute one repair task. |
+| `ptbk coder verify` | Interactive human review of completed results, optional follow-up and archiving. Does not run checks. |
+| `ptbk coder server` | A persistent queue and local web overview over the same engine. |
+| `ptbk coder migrate` | A new deterministic conversion of Markdown tasks to task Books. No model call. |
+| `find-unwritten`, `find-refactor-candidates`, `find-fresh-emoji-tags`, `ping` | Preserve useful authoring/diagnostic tools as separate commands, outside the task loop. |
 
-Příkaz nesmí mlčky ignorovat nepodporovaný přepínač. Staré `--test` a `--test-before` skončí s návodem na `--check` a `--check-before`. `--priority` zůstává aliasem dolní meze priority.
+A command must not silently ignore an unsupported flag. The old `--test` and `--test-before` flags must exit with instructions to use `--check` and `--check-before`. `--priority` remains an alias for the lower priority bound.
 
-## První použití a běžný běh
+## First use and a typical run
 
 ```bash
-ptbk coder init --path ./projekt
-ptbk coder list --path ./projekt
-ptbk coder run --path ./projekt --harness openai-codex --dry-run
-ptbk coder run --path ./projekt --harness openai-codex \
+ptbk coder init --path ./project
+ptbk coder list --path ./project
+ptbk coder run --path ./project --harness openai-codex --dry-run
+ptbk coder run --path ./project --harness openai-codex \
   --check "npm run check" --check-before yes-and-fix
 ```
 
-Příklady se vztahují k cílovému coderu; příklady s `--tasks`, `migrate`, `TASK`, `AFTER` a `REPEAT` nejsou tvrzením o dostupnosti v analyzovaném balíčku.
+These examples describe the target coder; examples using `--tasks`, `migrate`, `TASK`, `AFTER` and `REPEAT` do not assert availability in the analyzed package.
 
-## Konfigurace a precedence
+## Configuration and precedence
 
-- `--path` vybírá projekt; bez něj použít pracovní adresář zachycený na začátku příkazu. Relativní cesta se vyhodnotí od místa invokace.
-- Explicitní CLI hodnoty mají přednost před existující podporovanou konfigurací. Taskovy typované požadavky se uplatní před implicitními defaulty, nesmějí však přepsat explicitní volbu uživatele.
-- `--harness` vybírá nástroj, `--model` model, `--thinking-level` intenzitu uvažování. `--agent` vybírá agent Book; nejsou to zaměnitelné pojmy.
-- Pro `run`, `fix`, `plan` a současný `server` je implicitní `agents/developer.book`. Explicitní Planner zůstává podporován. Neexistující default dá návod na `init`; chybná explicitní cesta skončí chybou bez fallbacku.
-    - Podívej se na [specifikaci formátu `.book`](../book-language.md)
-- Bez `--context` načíst projektový `AGENTS.md`. Chybějící implicitní soubor pouze jednou oznámit; existující nečitelný soubor je chyba. Explicitní text/soubor default nahrazuje. `--context ""` dodatečný kontext vypne.
-- Zachovat `PTBK_HARNESS`, `PTBK_MODEL` a `PTBK_THINKING_LEVEL`; explicitní CLI hodnota vždy vyhrává. Současný non-dry run/server/plan/fix vyžaduje vybraný harness; `fix` odkládá jeho instalaci a přípravu Booku až na potřebu opravy. V cílovém Book režimu může chybějící invokační harness doplnit typovaný task požadavek, pouze je-li daný provider nakonfigurovaný. Jinak task zůstane zablokovaný. Nevytvářet skrytou všeobecnou vrstvu environment overrides.
-- Read-only příkazy nesmějí implicitně inicializovat Books, instalovat harness, kompilovat vzdálenou dědičnost, kontaktovat model ani měnit Git.
+- `--path` selects the project; without it, use the working directory captured when the command starts. Resolve relative paths from the invocation directory.
+- Explicit CLI values take precedence over existing supported configuration. Typed task requirements apply before implicit defaults but must not override an explicit user choice.
+- `--harness` selects the tool, `--model` the model and `--thinking-level` the reasoning intensity. `--agent` selects an agent Book; these concepts are not interchangeable.
+- For `run`, `fix`, `plan` and the current `server`, the default is `agents/developer.book`. An explicit Planner remains supported. A missing default must give instructions for `init`; an invalid explicit path must fail without fallback.
+    - See the [`.book` format specification](../book-language.md).
+- Without `--context`, load the project's `AGENTS.md`. Report a missing implicit file only once; an existing unreadable file is an error. Explicit text/a file replaces the default. `--context ""` disables additional context.
+- Preserve `PTBK_HARNESS`, `PTBK_MODEL` and `PTBK_THINKING_LEVEL`; an explicit CLI value always wins. Current non-dry run/server/plan/fix requires a selected harness; `fix` defers installation and Book preparation until a repair is needed. In the target Book mode, a typed task requirement may supply a missing invocation harness only if that provider is configured. Otherwise the task remains blocked. Do not introduce a hidden general layer of environment overrides.
+- Read-only commands must not implicitly initialize Books, install a harness, compile remote inheritance, contact a model or change Git.
 
-## Zachované volby běhu
+## Preserved run options
 
-| Volba | Kontrakt |
+| Option | Contract |
 | --- | --- |
-| `--min-priority`, `--max-priority` | Inkluzivní nezáporné celočíselné meze. Rozpor s `--priority` nebo minimum větší než maximum je chyba. |
-| `--limit` | Maximum úspěšně dokončených tasků/výskytů. Selhání samo limit nevyčerpá. |
-| `--git-changes fail/ignore/continue` | Výchozí `fail`; význam v [Git persistence](git-persistence.md). |
-| `--no-commit` | Žádné automatické commity; v automatickém režimu vyžaduje `--git-changes ignore`. V interaktivním `--no-auto` zachovat možnost ručního uložení práce. |
-| `--no-auto` | Interaktivní potvrzení před taskem a potvrzení commitového kroku; default je automatické pokračování. Nelze kombinovat s `--no-questions`. |
-| `--auto-pull`, `--auto-push` | Explicitní opt-in, ve výchozím běhu vypnuto. |
-| `--check`, `--check-before` | Kontrakt kontrol v [specifikaci checks](checks.md). |
-| `--isolate` | Samostatný worktree pro jeden task; základní běh stále sekvenční. |
-| `--no-normalize-line-endings` | Vypne standardní normalizaci změněných textových souborů CRLF na LF. |
-| `--no-ui`, `--preserve-logs`, `--no-questions` | Plain výstup, zachování diagnostiky, neinteraktivní režim. |
-| `--allow-credits` | Explicitní opt-in do kreditového režimu OpenAI Codex. |
-| `--wait-between-prompts` | Minimum mezi začátky dvou úkolů, default 0; doba vykonání se započítává. |
-| `--wait-after-prompt` | Čekání po dokončení úkolu, default 0. |
-| `--wait-after-error` | Cooldown před technickým retry, default 10 minut. Přijímá zdokumentované duration formy jako `30m`, `5s`, `1h30m`. |
-| `--auto-migrate` | Stávající integrace migrací testovacích serverů; oddělený volitelný adaptér. Není to `coder migrate`. |
+| `--min-priority`, `--max-priority` | Inclusive nonnegative integer bounds. A conflict with `--priority` or a minimum greater than the maximum is an error. |
+| `--limit` | The maximum number of successfully completed tasks/occurrences. Failure alone does not consume the limit. |
+| `--git-changes fail/ignore/continue` | Defaults to `fail`; see [Git persistence](git-persistence.md). |
+| `--no-commit` | No automatic commits; automatic mode requires `--git-changes ignore`. Preserve the option to save work manually in interactive `--no-auto` mode. |
+| `--no-auto` | Interactive confirmation before a task and at the commit step; automatic continuation is the default. Cannot be combined with `--no-questions`. |
+| `--auto-pull`, `--auto-push` | Explicit opt-in; disabled by default. |
+| `--check`, `--check-before` | The validation contract in the [checks specification](checks.md). |
+| `--isolate` | A separate worktree for one task; the base run remains sequential. |
+| `--no-normalize-line-endings` | Disable standard CRLF-to-LF normalization of changed text files. |
+| `--no-ui`, `--preserve-logs`, `--no-questions` | Plain output, retained diagnostics and noninteractive mode. |
+| `--allow-credits` | Explicit opt-in to OpenAI Codex credit usage. |
+| `--wait-between-prompts` | Minimum time between the starts of two tasks, default 0; execution time counts toward it. |
+| `--wait-after-prompt` | Wait after completing a task, default 0. |
+| `--wait-after-error` | Cooldown before a technical retry, default 10 minutes. Accept documented duration forms such as `30m`, `5s`, `1h30m`. |
+| `--auto-migrate` | Existing test-server migration integration; a separate optional adapter. It is not `coder migrate`. |
 
-Přesné providerové defaulty musí být v jediném aktualizovatelném registru a help musí odpovídat runtime. Nepřevzít názvy modelů z ukázkových historických PRD jako trvalý produktový kontrakt.
+Exact provider defaults must live in one updatable registry, and help must match runtime behavior. Do not treat model names from historical PRD examples as a permanent product contract.
 
-Podporované thinking hodnoty jsou `low`, `medium`, `high`, `xhigh`, `max`; zvolený adaptér musí uvést, zda je používá. Současný Codex fallback je `xhigh`, generovaný `coder:run` explicitně nastavuje `max`. Nová implementace nesmí tiše přijmout nepodporovaný effort a tvrdit, že se uplatnil.
+Supported thinking values are `low`, `medium`, `high`, `xhigh`, `max`; the selected adapter must state whether it uses them. The current Codex fallback is `xhigh`; the generated `coder:run` explicitly sets `max`. The new implementation must not silently accept unsupported effort and claim it took effect.
 
-Před první mutací validovat kombinace: `--auto-pull` s `--no-commit` je zakázáno mimo read-only preview; `--isolate` nepřipouští `--no-commit` ani `continue`; `continue` nepřipouští `--check-before yes-and-fix`. `--allow-destructive-auto-migrate` vyžaduje `--auto-migrate`.
+Validate combinations before the first mutation: `--auto-pull` with `--no-commit` is prohibited outside read-only preview; `--isolate` disallows both `--no-commit` and `continue`; `continue` disallows `--check-before yes-and-fix`. `--allow-destructive-auto-migrate` requires `--auto-migrate`.
 
-Authoring utility (`init`, `add`, `generate-boilerplates`, `plan`) mají oproti runu commity ve výchozím stavu vypnuté a používají explicitní `--commit`; push vyžaduje commit. `add [description]` přijímá argument, stdin nebo interaktivní vstup a zachová `--template`/prioritu. Boilerplates zachovají `--count` ve formách `N` a `N*M` (default `5*1`). `verify` zachová pořadí review a opakovatelný ignore filtr. `ping` je skutečné malé modelové volání, případně opakované s `--period`; nejde o read-only offline inspekci.
+Unlike run, authoring utilities (`init`, `add`, `generate-boilerplates`, `plan`) default to commits being disabled and use explicit `--commit`; push requires a commit. `add [description]` accepts an argument, stdin or interactive input and preserves `--template`/priority. Boilerplates preserve `--count` in `N` and `N*M` forms (default `5*1`). `verify` preserves review order and a repeatable ignore filter. `ping` is a real small model call, optionally repeated with `--period`; it is not a read-only offline inspection.
 
-## Související specifikace
+## Related specifications
 
-- [Projektové cesty a zdroje tasků](workspace.md)
-- [Inicializace projektu](initialization.md)
-- [Projektové checks a opravy](checks.md)
-- [Read-only plánování](planning.md)
-- [Kompatibilita a vědomé změny](compatibility.md)
+- [Project paths and task sources](workspace.md)
+- [Project initialization](initialization.md)
+- [Project checks and repairs](checks.md)
+- [Read-only planning](planning.md)
+- [Compatibility and deliberate changes](compatibility.md)

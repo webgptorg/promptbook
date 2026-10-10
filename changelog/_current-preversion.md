@@ -35,3 +35,6 @@
     interlinked files and expanding the dictionary into a linked term index. Preserved the dated
     audit, acceptance IDs and lower-authority historical agent/server specs in `specs/deprecated/`,
     repaired specification links, and left `old-prompts` and implementation code untouched.
+-   Translated all organized specifications into English, including examples and cross-reference labels,
+    updated heading links, and simplified the dictionary to linked bullet points. The `old-prompts` archive
+    and implementation code remain unchanged.

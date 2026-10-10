@@ -1,17 +1,17 @@
-# Izolace tasku ve worktree
+# Task isolation in a worktree
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-`--isolate` vyžaduje pojmenovanou zdrojovou větev, zapnuté commity a ignored isolation directory. Založí worktree a větev `ptbk-coder-isolation/<task-name>` s kolizně bezpečnou identitou. Mapuje task source, Books, kontext i nested projekt do worktree. Agent, checks a lokální commity běží tam; původní zdroj tasku se během práce nesmí neřízeně přepisovat. Původní větev dostane `done` až ověřenou integrací, nikoli časnou kopií statusu.
+`--isolate` requires a named source branch, enabled commits and an ignored isolation directory. Create a worktree and a branch `ptbk-coder-isolation/<task-name>` with collision-safe identity. Map task sources, Books, context and nested projects into the worktree. The agent, checks and local commits run there; do not overwrite the original task source without coordination during work. The original branch receives `done` only through verified integration, rather than an early status copy.
 
-Zachovat přípravu závislostí a kopii projektového `.env` podle izolované politiky. Neprohlašovat samotný Git worktree za bezpečnostní sandbox ani za izolaci sítě/credentials. Durable výsledky/logy a potřebné ignored výstupy se před cleanup uchovají s ochranou před přepsáním originálních dat.
+Preserve dependency preparation and copying of the project's `.env` according to isolation policy. Do not present a Git worktree itself as a security sandbox or isolation of network/credentials. Preserve durable results/logs and required ignored outputs before cleanup, protecting original data from overwrites.
 
-Úspěšná integrace musí použít `git merge --ff-only` a zachovat fázovou historii i ověřený strom; automatický squash nebo obecný merge bez nových checks není součástí kontraktu. Refusal/conflict nebo neočekávaná změna originálu zachová oba checkouty a přesný návod. Současná politika označuje merge failure jako failed a pokračuje dalším taskem jen tehdy, je-li další mutace bezpečná. Takový task se nezapočítá do limitu úspěchů. Neodstraňovat neintegrovaný worktree/branch automaticky ani při opakovaném spuštění; existující recoverable cíl odmítnout.
+Successful integration must use `git merge --ff-only` and preserve phase history and the verified tree; automatic squash or a general merge without new checks is outside the contract. Refusal/conflict or an unexpected change to the original preserves both checkouts and precise instructions. Current policy marks merge failure as failed and continues to the next task only if further mutation is safe. Such a task does not count toward the success limit. Do not automatically remove an unintegrated worktree/branch, including on rerun; refuse an existing recoverable destination.
 
-## Související specifikace
+## Related specifications
 
-- [Projektové cesty a zdroje tasků](workspace.md)
+- [Project paths and task sources](workspace.md)
 - [Execution lifecycle](execution.md)
-- [Vlastnictví změn a Git persistence](git-persistence.md)
-- [Git synchronizace](git-synchronization.md)
-- [Mutační lease, journal a recovery](recovery.md)
+- [Change ownership and Git persistence](git-persistence.md)
+- [Git synchronization](git-synchronization.md)
+- [Mutation lease, journal and recovery](recovery.md)

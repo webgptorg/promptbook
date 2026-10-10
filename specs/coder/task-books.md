@@ -1,11 +1,11 @@
 # Task Books
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-## Kanonický příklad
+## Canonical example
 
 ```book
-Opravit export CSV
+Fix CSV export
 
 TASK
 META ID csv-export-quoting
@@ -16,50 +16,50 @@ HARNESS openai-codex
 AFTER 2026-10-30T09:00:00+01:00
 
 PROMPT
-Oprav export buněk s čárkou, uvozovkami a novým řádkem.
-Zachovej stávající veřejné rozhraní a doplň regresní test.
+Fix the export of cells containing commas, quotation marks and newlines.
+Preserve the existing public interface and add a regression test.
 
 RULE
-Neměň oddělovač ani názvy sloupců.
+Do not change the delimiter or column names.
 ```
 
-## Význam commitments
+## Commitment meanings
 
-| Pole | Požadovaný význam |
+| Field | Required meaning |
 | --- | --- |
-| První neprázdný řádek | Lidsky čitelný titul. Není identitou tasku. |
-| `TASK` | Explicitní deklarace typu dokumentu v hlavičce bezprostředně po titulu. |
-| `META ID` | Stabilní unikátní ID v rámci workspace. Vytvořit jednou při authoringu/migraci. |
+| First nonempty line | Human-readable title. It is not the task identity. |
+| `TASK` | Explicit document-type declaration in the header immediately after the title. |
+| `META ID` | Stable unique ID within the workspace. Create once during authoring/migration. |
 | `STATUS` | `todo`, `in-progress`, `done`, `failed`, `not-ready`. |
-| `PRIORITY` | Nezáporné celé číslo; default 0. |
-| `AGENT` | Požadavek na agent Book, přes stávající resolver jmen/cest. Relativní reference vůči deklarujícímu task Booku. |
-| `HARNESS` | Typovaný požadavek na coding nástroj. |
-| `MODEL` | Typovaný požadavek na model; nepřebírá význam agentního Book commitmentu. |
-| `RUNNER` | Opakovatelné kompatibilitní legacy selektory, uvnitř skupiny OR substring matching. |
-| `AFTER` | Inkluzivní nejdřívější okamžik startu. |
-| `REPEAT` | Opakování ve fixním intervalu; jen pro task Books. |
-| `PROMPT` | Implementační payload. |
-| `RULE` | Uspořádané task-local instrukce; neupravují trvale agent Book. |
+| `PRIORITY` | Nonnegative integer; default 0. |
+| `AGENT` | An agent Book requirement using the existing name/path resolver. Relative references resolve against the declaring task Book. |
+| `HARNESS` | A typed requirement for a coding tool. |
+| `MODEL` | A typed model requirement; does not inherit the meaning of the agent Book commitment. |
+| `RUNNER` | Repeatable compatibility selectors for legacy routing, with OR substring matching within the group. |
+| `AFTER` | Inclusive earliest start instant. |
+| `REPEAT` | Fixed-interval recurrence; task Books only. |
+| `PROMPT` | Implementation payload. |
+| `RULE` | Ordered task-local instructions; do not permanently modify the agent Book. |
 
-`AGENT`, `HARNESS` a `MODEL`, jsou-li uvedeny, tvoří samostatné AND podmínky. Případná `RUNNER` OR skupina je další podmínkou. Chybějící typované pole použije platný invokační/defaultní kontext. Rozpor s explicitním CLI výběrem se zobrazí jako nekompatibilní task; nedojde k tichému přepnutí nástroje, modelu ani placeného účtu.
+When present, `AGENT`, `HARNESS` and `MODEL` form separate AND conditions. An optional `RUNNER` OR group is an additional condition. A missing typed field uses valid invocation/default context. A conflict with an explicit CLI choice must appear as an incompatible task; do not silently switch the tool, model or paid account.
 
-**Nové rozhodnutí:** task bez `META ID` nebo `STATUS` je neúplný a nevykonatelný. Read-only parser identitu ani stav nedoplňuje. Autorovací příkazy hodnoty doplní jednou. Duplicitní ID zablokuje všechny konfliktní definice.
+**New decision:** a task without `META ID` or `STATUS` is incomplete and non-executable. The read-only parser does not add identity or state. Authoring commands add these values once. A duplicate ID blocks all conflicting definitions.
 
-## Parser a bezeztrátový payload
+## Parser and lossless payload
 
-Oddělit tokenizaci Book bloků od sémantiky agentního a task dialektu. Agent Book bez header deklarace `TASK` zůstává agent Bookem. Soubory bez platné task deklarace v task zdroji se nestávají prací.
+Separate Book-block tokenization from the semantics of the agent and task dialects. An agent Book without a `TASK` header declaration remains an agent Book. Files without a valid task declaration in the task source do not become work.
 
-Vyžadovat neprázdný titul, právě jednu hlavičku `TASK` a právě jeden neprázdný `PROMPT`. `META ID`, `STATUS`, `PRIORITY`, `AGENT`, `HARNESS` a `MODEL` jsou singletony; `RULE` a `RUNNER` se mohou opakovat. `AFTER` a `REPEAT` se mohou opakovat pouze se sémanticky stejnou normalizovanou hodnotou. Implementovat validaci, escape/literal formy a diagnostiky s cestou a řádkem. Nerozpoznané `REPEAT`, `AFTER` nebo budoucí řídicí pole nesmí znamenat okamžitě spustitelný úkol.
+Require a nonempty title, exactly one `TASK` header and exactly one nonempty `PROMPT`. `META ID`, `STATUS`, `PRIORITY`, `AGENT`, `HARNESS` and `MODEL` are singletons; `RULE` and `RUNNER` may repeat. `AFTER` and `REPEAT` may repeat only with semantically identical normalized values. Implement validation, escape/literal forms and diagnostics with a path and line number. Unrecognized `REPEAT`, `AFTER` or future control fields must not produce an immediately runnable task.
 
-**Nové rozhodnutí - přesná literal forma:** migrace zapisuje pod `PROMPT` fenced blok s info stringem `ptbk-task-literal-json`, obsahující právě jeden validní JSON string. Parser dekóduje tento string jako celý payload, bez wrapperu a bez trimování. JSON escaping zachová nové řádky, závěrečný newline, uvozovky, Unicode, řádky `MODEL`/`RULE`, fences i `---`; okolní fence má délku větší než kolidující sekvence backticků v serializaci. Normální `PROMPT` bez tohoto přesného markeru zůstává běžným multiline obsahem. Tuto speciální obálku neplést s code blockem, který je sám obsahem úkolu. Otestovat přesný round-trip.
+**New decision — exact literal form:** migration writes a fenced block under `PROMPT` with the info string `ptbk-task-literal-json`, containing exactly one valid JSON string. The parser decodes that string as the entire payload, without the wrapper or trimming. JSON escaping preserves newlines, a trailing newline, quotation marks, Unicode, `MODEL`/`RULE` lines, fences and `---`; the surrounding fence must be longer than any colliding backtick sequence in the serialization. An ordinary `PROMPT` without this exact marker remains regular multiline content. Do not confuse this special wrapper with a code block that is itself task content. Test an exact round-trip.
 
-Poznámky, historickou cenu, časy a attribution ukládat jako neexekutivní metadata, ne nové routing instrukce. **Nové rozhodnutí:** vyhradit pro ně opakovatelné `META NOTE` a pro migration provenance singleton `META ORIGIN` s validovaným JSON objektem (`sourcePath`, `sectionIndex`, `sourceChecksum`, `migrationVersion`). Neznámá metadata uchovat při round-trip; neznámé executable/control commitments blokovat.
+Store notes, historical costs, times and attribution as non-executable metadata rather than new routing instructions. **New decision:** reserve repeatable `META NOTE` for these and singleton `META ORIGIN` for migration provenance, with a validated JSON object (`sourcePath`, `sectionIndex`, `sourceChecksum`, `migrationVersion`). Preserve unknown metadata during round-trip; block unknown executable/control commitments.
 
-## Související specifikace
+## Related specifications
 
-- [Legacy Markdown tasky](task-markdown.md)
-- [Agent Books a kontext](agent-context.md)
-- [Způsobilost tasku](eligibility.md)
-- [Not-before: nejdřívější spuštění](not-before.md)
-- [Opakované task Books](recurrence.md)
-- [Migrace Markdown tasků na Books](migration.md)
+- [Legacy Markdown tasks](task-markdown.md)
+- [Agent Books and context](agent-context.md)
+- [Task eligibility](eligibility.md)
+- [Not-before: earliest start](not-before.md)
+- [Recurring task Books](recurrence.md)
+- [Migrating Markdown tasks to Books](migration.md)

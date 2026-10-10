@@ -1,19 +1,19 @@
-# Mutační lease, journal a recovery
+# Mutation lease, journal and recovery
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Jeden zapisující vlastník koordinuje agentní změny, checks, status writers, migraci zdrojů, index, integraci a Git operace v dotčeném checkoutu. Live worker blokuje druhou invokaci. Stale zámek se nesmí automaticky ukrást jen podle věku.
+One writing owner coordinates agent changes, checks, status writers, source migration, the index, integration and Git operations in the affected checkout. A live worker blocks a second invocation. A stale lock must not be automatically taken over based only on age.
 
-**Nové rozhodnutí:** uložit identitu workspace/run/worktree, náhodný ownership token, PID/host a heartbeat do `.promptbook/ptbk-coder`; kritická rozhodnutí nespoléhají jen na PID. Související worktrees/nested projekty musí sdílet koordinaci operací, které zasahují tentýž Git index nebo integrační větev. Umístění společné koordinace vyřešit explicitním workspace contextem, nikoli zápisem do `.git`.
+**New decision:** store workspace/run/worktree identity, a random ownership token, PID/host and heartbeat in `.promptbook/ptbk-coder`; critical decisions must not rely on PID alone. Related worktrees/nested projects must share coordination for operations affecting the same Git index or integration branch. Resolve the location of shared coordination through explicit workspace context rather than writes to `.git`.
 
-Journal uchovává hranici fáze, source hash, baseline a výsledné content/index snapshots, očekávaný HEAD, task/occurrence identity, intent vytvořit commit a již nalezený commit. Zápisy jsou atomické a verzované; porušený stav se diagnostikuje, ne resetuje na prázdno. Při restartu nejprve reconcile s historií, potom nabídnout přesný bezpečný krok pokračování.
+The journal records the phase boundary, source hash, baseline and resulting content/index snapshots, expected HEAD, task/occurrence identity, commit creation intent and any commit already found. Writes are atomic and versioned; diagnose corrupted state rather than reset it to empty. On restart, reconcile with history first, then offer a precise safe continuation step.
 
-**Nové rozhodnutí - ovladatelná recovery:** doplnit `ptbk coder recover <task-id>` jako read-only přehled zvoleného přerušeného/blocked výskytu. Mutující akce se zadá explicitně přes `--action resume`, `retry` nebo `acknowledge` a podle potřeby `--occurrence <id>`. `resume` pokračuje jen v prokázané nedokončené fázi, `retry` vědomě opakuje neúspěšný výskyt se stejnou identitou a novým attempt záznamem, `acknowledge` uzavře blokující výskyt jako přijaté selhání, nikoli úspěch. U recurrence pak smí pokračovat až novější due slot. Nejasné vnější účinky vyžadují konkrétní potvrzení obsažené v recovery plánu; příkaz nikdy nevytváří ownership nad neprokázanými bytes. `--dry-run` vypíše plán bez zápisu a všechny akce podléhají lease/revizím. Jde o nový explicitní UX kontrakt, ne existující příkaz analyzovaného coderu.
+**New decision — controllable recovery:** add `ptbk coder recover <task-id>` as a read-only overview of a selected interrupted/blocked occurrence. Specify a mutating action explicitly with `--action resume`, `retry` or `acknowledge`, and `--occurrence <id>` when needed. `resume` continues only a proven unfinished phase; `retry` deliberately repeats a failed occurrence with the same identity and a new attempt record; `acknowledge` closes the blocking occurrence as an accepted failure rather than success. Recurrence may then continue only with a newer due slot. Ambiguous external effects require specific confirmation included in the recovery plan; the command never establishes ownership over unproven bytes. `--dry-run` prints the plan without writes, and all actions are subject to leases/revisions. This is a new explicit UX contract rather than an existing command in the analyzed coder.
 
-## Související specifikace
+## Related specifications
 
-- [Základní pojmy a datové kontrakty](domain-model.md)
-- [Vlastnictví změn a Git persistence](git-persistence.md)
+- [Core concepts and data contracts](domain-model.md)
+- [Change ownership and Git persistence](git-persistence.md)
 - [Execution lifecycle](execution.md)
-- [Opakované task Books](recurrence.md)
-- [Migrace Markdown tasků na Books](migration.md)
+- [Recurring task Books](recurrence.md)
+- [Migrating Markdown tasks to Books](migration.md)

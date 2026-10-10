@@ -1,19 +1,19 @@
-# Persistentní coder server
+# Persistent coder server
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Zachovat lokální přehled fronty, obsahu tasků, běžící práce, stavů a ovládání. Výchozí port současného coder serveru je `4441`. Server smí zůstávat spuštěný po vyčerpání aktuální fronty a reagovat na nové soubory nebo due časy; provádí stejné claim/execution služby jako `run`.
+Preserve the local overview of the queue, task contents, ongoing work, states and controls. The current coder server's default port is `4441`. The server may remain running after the current queue is exhausted and respond to new files or due times; it uses the same claim/execution services as `run`.
 
-Server nesmí spouštět vnořený CLI proces pro každý task ani mít vlastní kopii parseru nebo Git pravidel. Jeho specifickou odpovědností je supervision, wake-up a přenos událostí do UI. UI, terminál a source snapshots musí vidět stejný stav.
+The server must not start a nested CLI process for each task or keep its own copy of the parser or Git rules. Its specific responsibility is supervision, wake-up and event delivery to the UI. The UI, terminal and source snapshots must observe the same state.
 
-**Nové rozhodnutí:** základní web server binduje pouze loopback. Mutující lokální API chrání session tokenem/origin kontrolou, limity payloadu a realpath confinement včetně symlinků. Úpravy tasků používají optimistic version check a stejnou mutační politiku jako soubory. Současná implementace nemá dostatečně explicitní host/auth/path guardy; tuto vlastnost se nepřebírá jako kompatibilitní požadavek.
+**New decision:** the base web server binds only to loopback. Protect mutating local APIs with a session token/origin check, payload limits and realpath confinement including symlinks. Task edits use optimistic version checks and the same mutation policy as files. The current implementation lacks sufficiently explicit host/auth/path guards; that characteristic is not a compatibility requirement.
 
-Volby, které současný server nevystavuje stejně jako `run` (např. `--isolate`, `--limit`, `--check-before`), neprezentovat jako již existující paritu. **Nové rozhodnutí:** sdílené volby v cílovém CLI sjednotit jen tam, kde mají stejný význam; limit persistentního supervisoru případně explicitně odmítnout s návodem na finite run. Help a tests toto rozlišení ověří.
+Do not present options that the current server does not expose in the same way as `run` (such as `--isolate`, `--limit`, `--check-before`) as existing parity. **New decision:** unify shared options in the target CLI only where their meaning is the same; if needed, explicitly reject a limit for the persistent supervisor with instructions to use a finite run. Help and tests must verify this distinction.
 
-## Související specifikace
+## Related specifications
 
 - [Execution lifecycle](execution.md)
-- [Způsobilost tasku](eligibility.md)
-- [Opakované task Books](recurrence.md)
-- [Mutační lease, journal a recovery](recovery.md)
-- [Terminál a řízení běhu](terminal.md)
+- [Task eligibility](eligibility.md)
+- [Recurring task Books](recurrence.md)
+- [Mutation lease, journal and recovery](recovery.md)
+- [Terminal and run controls](terminal.md)

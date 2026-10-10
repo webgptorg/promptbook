@@ -1,18 +1,18 @@
-# Agent Books a kontext
+# Agent Books and context
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Použít existující Book semantics pro persona/rules, `FROM`, `IMPORT`, znalosti a `TEAM`. Reuse stávající kompilace může být úzkou knihovní závislostí; není důvod převzít celý historický runtime. Title, cesta a podporované aliasy slouží routing identitě, nikoli nahrazení stabilního task ID.
+Use existing Book semantics for persona/rules, `FROM`, `IMPORT`, knowledge and `TEAM`. Reusing the existing compilation may be a narrow library dependency; there is no reason to adopt the entire historical runtime. Title, path and supported aliases provide routing identity rather than replacing a stable task ID.
 
-Předávaný request odděluje orchestrace pravidla, efektivní instrukce agenta, task payload, task-local rules a dodatečný projektový kontext. Coder vlastní status a Git finalizaci; harness dostane instrukci sám necommitovat. Změny agentního souboru z disku se načtou v jasném dokumentovaném bodě, minimálně při nové invokaci; jeden běžící attempt má neměnný snapshot.
+The request separates orchestration rules, effective agent instructions, task payload, task-local rules and additional project context. The coder owns status and Git finalization; instruct the harness not to commit itself. Load agent-file changes from disk at a clearly documented point, at least at each new invocation; one running attempt has an immutable snapshot.
 
-Inicializace poskytuje `agents/.core/adam.book`, `agents/developer.book`, `agents/planner.book`, `agents/lawyer.book` a `agents/copywriter.book`. Chybějící lokální TEAM odkazy na Lawyer/Copywriter doplní do Developer/Planner bez přepsání ostatních instrukcí; konfliktní či neplatný Book ponechá s diagnostikou. Znovuspuštění init nesmí přepsat jejich místní úpravy. Chybějící nebo nejednoznačné odkazy se hlásí s deklarujícím souborem.
+Initialization provides `agents/.core/adam.book`, `agents/developer.book`, `agents/planner.book`, `agents/lawyer.book` and `agents/copywriter.book`. Add missing local Lawyer/Copywriter TEAM references to Developer/Planner without overwriting other instructions; leave a conflicting or invalid Book intact with diagnostics. Rerunning init must not overwrite local edits. Report missing or ambiguous references with the declaring file.
 
-## Související specifikace
+## Related specifications
 
-- [Uživatelské a CLI kontrakty](cli.md)
-- [Inicializace projektu](initialization.md)
+- [User and CLI contracts](cli.md)
+- [Project initialization](initialization.md)
 - [Task Books](task-books.md)
-- [TEAM konzultace](team.md)
-- [Coding harnessy](harnesses.md)
-- [Book language](../book-language.md), včetně označených historických principů dědičnosti a importů.
+- [TEAM consultations](team.md)
+- [Coding harnesses](harnesses.md)
+- [Book language](../book-language.md), including explicitly marked historical principles of inheritance and imports.

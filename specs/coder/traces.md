@@ -1,19 +1,19 @@
-# Traces a výsledky
+# Traces and results
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Každý výskyt má dohledatelný run/attempt/phase záznam: task a source snapshot, agent/harness/model/thinking, start/end, skutečný outcome, check command a výsledek, usage/cost s označením odhadu, commit IDs, retry důvody, případnou integration/sync chybu a odkazy na diagnostiku.
+Every occurrence has a traceable run/attempt/phase record: task and source snapshot, agent/harness/model/thinking, start/end, actual outcome, check command and result, usage/cost with estimates labeled, commit IDs, retry reasons, any integration/sync error and diagnostic links.
 
-Legacy trace cesty a suffixy sekcí zachovat; nová recurrence historie nesmí přepisem posledního logu ztratit identitu starších výskytů. Runtime log může zůstat dočasný, ale úspěšná finalizace před cleanup uchová potřebný durable trace. Nehlásit zapushování jen z existence lokálního commitu.
+Preserve legacy trace paths and section suffixes; new recurrence history must not lose older occurrence identities by overwriting the latest log. A runtime log may remain temporary, but successful finalization must preserve the required durable trace before cleanup. Do not report a push merely because a local commit exists.
 
-**Nové rozhodnutí:** před persistencí i zobrazením redigovat známé credentials/secret env hodnoty. Raw znamená nestrukturovaný providerový výstup, nikoli oprávnění publikovat secrets. Auditní stopa uchová informaci, že proběhla redakce; logování nesmí kopírovat `.env` do Git historie. Limity a retence musí být dokumentované.
+**New decision:** redact known credentials/secret environment values before persistence and display. Raw means unstructured provider output rather than permission to publish secrets. The audit trail records that redaction occurred; logging must not copy `.env` into Git history. Limits and retention must be documented.
 
-Při kritickém nedostatku místa dát konkrétní diagnostiku. Nová implementace nesmí zaměnit `--no-questions` za povinnost pokračovat v nebezpečných zápisech: **nové rozhodnutí** je bezpečné neinteraktivní ukončení/recovery místo nekonečného čekání či předstíraného úspěchu.
+Provide concrete diagnostics for critically low disk space. The new implementation must not interpret `--no-questions` as an obligation to continue unsafe writes: the **new decision** is safe noninteractive exit/recovery rather than endless waiting or false success.
 
-## Související specifikace
+## Related specifications
 
-- [Základní pojmy a datové kontrakty](domain-model.md)
+- [Core concepts and data contracts](domain-model.md)
 - [Execution lifecycle](execution.md)
-- [Opakované task Books](recurrence.md)
-- [Git synchronizace](git-synchronization.md)
-- [Provozní kvalita](operations.md)
+- [Recurring task Books](recurrence.md)
+- [Git synchronization](git-synchronization.md)
+- [Operational quality](operations.md)

@@ -1,31 +1,31 @@
-# Migrace Markdown tasků na Books
+# Migrating Markdown tasks to Books
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
 ```bash
-ptbk coder migrate --path ./projekt --tasks ./work-items --dry-run
-ptbk coder migrate --path ./projekt --tasks ./work-items
+ptbk coder migrate --path ./project --tasks ./work-items --dry-run
+ptbk coder migrate --path ./project --tasks ./work-items
 ```
 
-Migrace je explicitní jednosměrná lokální operace. Neprovádí modelové volání, instalaci nástroje, checks, implementaci, server startup ani databázovou migraci. Legacy běh musí fungovat bez migrace; jedna neblokující rada za invokaci může nabídnout správný příkaz.
+Migration is an explicit one-way local operation. It performs no model call, tool installation, checks, implementation, server startup or database migration. Legacy execution must work without migration; one nonblocking tip per invocation may suggest the correct command.
 
-1. Pod společnými adapters analyzovat skutečné task sekce a sestavit převodní plán. Jedna sekce vytvoří jeden Book, pojmenování a ID jsou deterministické.
-2. Zachovat payload, title/emoji identifikaci, stav, prioritu, routing OR alternativy, časový instant, poznámky a dostupnou historii. Relativní reference přepočítat strukturálně, ne globálním nahrazováním v kódu a URL.
-3. Opaque legacy tokeny převést na `RUNNER`, časové na `AFTER`; nehádát, který token je model nebo agent.
-4. Převést všechny sekce jednoho zdrojového souboru, znovu přečíst nové Books a ověřit ekvivalenci normalizovaného významu.
-5. Teprve poté vyřadit originál z aktivní fronty do neexekutivního archivu při zachování původních bytes a dostupnosti assets. Nelze archivovat originál, když část jeho sekcí selhala.
-6. Úspěšnou migraci uložit jedním scoped lokálním commitem, pokud není `--no-commit`; push není implicitní.
+1. Analyze actual task sections through shared adapters and build a conversion plan. One section produces one Book; naming and IDs are deterministic.
+2. Preserve payload, title/emoji identification, state, priority, routing OR alternatives, time instant, notes and available history. Recalculate relative references structurally rather than by global replacement in code and URLs.
+3. Convert opaque legacy tokens to `RUNNER` and time tokens to `AFTER`; do not guess which token is a model or agent.
+4. Convert every section of one source file, reread the new Books and verify equivalence of normalized meaning.
+5. Only then remove the original from the active queue into a non-executable archive, preserving original bytes and asset availability. Do not archive the original if any of its sections failed conversion.
+6. Persist successful migration in one scoped local commit unless `--no-commit` is set; push is not implicit.
 
-Dry-run nesmí vytvořit adresář, lock/journal, source ID, soubor ani commit; návrhy drží v paměti. Reálná migrace musí používat mutační lease a recovery transaction s origin metadata/checksumy. Task s live claimem odmítne.
+Dry-run must not create a directory, lock/journal, source ID, file or commit; keep proposals in memory. Actual migration must use a mutation lease and recovery transaction with origin metadata/checksums. Refuse a task with a live claim.
 
-Při přerušení nesmějí být obě reprezentace nezávisle spustitelné. Runtime musí znát autoritativní reprezentaci podle migration provenance/journalu; nejednoznačné kopie blokuje. Opakovaná dokončená migrace nic neduplikuje ani necommituje znovu. Změněný source/destination, kolize ID nebo ztrátový konstrukt vyžaduje explicitní rozřešení, nikoli overwrite.
+After interruption, the two representations must not be independently runnable. The runtime must identify the authoritative representation from migration provenance/the journal; block ambiguous copies. Repeating a completed migration must neither duplicate anything nor commit again. A changed source/destination, ID collision or lossy construct requires explicit resolution rather than overwrite.
 
-Neúplné, not-ready, failed a in-progress sekce se nesmějí převodem aktivovat. Starší coder bez Book podpory nové tasky neumí vykonat; kompatibilitu nelze slíbit i pro staré binaries. Nový init/authoring preferuje Books, existující custom šablony a skripty zůstanou zachovány.
+Conversion must not activate incomplete, not-ready, failed or in-progress sections. An older coder without Book support cannot execute the new tasks; compatibility cannot also be promised for old binaries. New init/authoring prefers Books while existing custom templates and scripts remain preserved.
 
-## Související specifikace
+## Related specifications
 
-- [Projektové cesty a zdroje tasků](workspace.md)
-- [Legacy Markdown tasky](task-markdown.md)
+- [Project paths and task sources](workspace.md)
+- [Legacy Markdown tasks](task-markdown.md)
 - [Task Books](task-books.md)
-- [Mutační lease, journal a recovery](recovery.md)
-- [Kompatibilita a vědomé změny](compatibility.md)
+- [Mutation lease, journal and recovery](recovery.md)
+- [Compatibility and deliberate changes](compatibility.md)

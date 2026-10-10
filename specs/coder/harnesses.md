@@ -1,33 +1,33 @@
-# Coding harnessy
+# Coding harnesses
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Zachovat adaptéry `openai-codex`, `claude-code`, `github-copilot`, `cline`, `opencode`, `gemini`, `qwen-code`. Sdílejí typovaný request/result a lifecycle; providerová CLI syntaxe, dostupnost, login, verze, parsing událostí, usage a quota detekce patří do adaptéru.
+Preserve the adapters `openai-codex`, `claude-code`, `github-copilot`, `cline`, `opencode`, `gemini`, `qwen-code`. They share a typed request/result and lifecycle; provider CLI syntax, availability, login, versions, event parsing, usage and quota detection belong to the adapter.
 
-Výsledek musí rozlišovat: úspěch, odmítnutí konfigurace, chybějící přihlášení, quota/credit omezení, přechodovou chybu, pád procesu a cancellation. Zachytit exit code i signal/spawn failure. Úspěšná poslední věta modelu nenahrazuje exit/check outcome.
+Results must distinguish success, configuration refusal, missing login, quota/credit limits, transient errors, process crashes and cancellation. Capture exit code and signal/spawn failure. A successful final sentence from the model does not replace an exit/check outcome.
 
-**Oprava identifikovaného rizika:** současná cesta `runScriptUntilMarkerIdle` připouští úspěch při `code === 0 || markerSeen`, přičemž Codex marker může být usage souhrn nebo ukončení neúspěšného turnu. V nové implementaci má terminal failure, signal a nenulový exit přednost. `tokens used` ani `turn.failed` nikdy nejsou důkaz úspěchu; completion marker pouze řídí čekání na trailing output. Jde o závěr ze zdrojové analýzy, nikoli live reprodukci.
+**Correction of an identified risk:** the current `runScriptUntilMarkerIdle` path allows success when `code === 0 || markerSeen`, although a Codex marker may be a usage summary or the end of a failed turn. In the new implementation, terminal failure, a signal and nonzero exit take precedence. Neither `tokens used` nor `turn.failed` proves success; a completion marker only controls waiting for trailing output. This conclusion comes from source analysis rather than a live reproduction.
 
-| Harness | Stávající CLI executable | Adaptační požadavek |
+| Harness | Existing CLI executable | Adapter requirement |
 | --- | --- | --- |
-| OpenAI Codex | `codex` | JSON i plain stream, reasoning, auth attribution, credit/limit detekce. |
-| Claude Code | `claude` | Streamované zprávy, effort, usage a obnovení stejné session po doloženém limitu. |
-| GitHub Copilot | `copilot` | Model/effort, strukturovaný nebo označený fallback výstup. |
-| Gemini | `gemini` | Model a usage; unattended execution policy. |
-| Qwen Code | `qwen` | Model a usage; unattended execution policy. |
-| OpenCode | `opencode` | Provider-qualified model a JSON události. |
-| Cline | `cline` | Provider/model konfigurace bez kontaminace uživatelského nastavení. |
+| OpenAI Codex | `codex` | JSON and plain streams, reasoning, auth attribution and credit/limit detection. |
+| Claude Code | `claude` | Streamed messages, effort, usage and resumption of the same session after a confirmed limit. |
+| GitHub Copilot | `copilot` | Model/effort and structured output or a labeled fallback. |
+| Gemini | `gemini` | Model and usage; unattended execution policy. |
+| Qwen Code | `qwen` | Model and usage; unattended execution policy. |
+| OpenCode | `opencode` | Provider-qualified model and JSON events. |
+| Cline | `cline` | Provider/model configuration without contaminating user settings. |
 
-Modely nehardcodovat v task enginu. Zachovat rozdíl `--model default`: u Codex, Copilot, Claude a OpenCode může znamenat nativní konfiguraci; Gemini, Qwen a Cline jej dle současné politiky překládají na registry default. V trace vždy uvést efektivní výběr nebo jasně přiznat, že jej provider neoznámil.
+Do not hardcode models in the task engine. Preserve the distinction for `--model default`: for Codex, Copilot, Claude and OpenCode, it may mean native configuration; Gemini, Qwen and Cline translate it to the registry default under the current policy. Always record the effective selection in the trace or explicitly acknowledge that the provider did not report it.
 
-Chybějící login skončí s konkrétním návodem pro zvolený harness. Opakované retries nesmí místo autentizace pálit další běhy. Instalace/update nástroje smí proběhnout jen v povoleném execution setup; nikdy kvůli list/help/dry-run. Neinstalovat všechny providery preventivně.
+A missing login must exit with concrete instructions for the selected harness. Repeated retries must not consume more runs in place of authentication. Tool installation/update may occur only during authorized execution setup, never for list/help/dry-run. Do not install all providers preemptively.
 
-U Codexu zachovat preferenci aktivního ChatGPT loginu; API key cesta je explicitní opt-in `PTBK_OPENAI_CODEX_USE_API_KEY=1` s dostupným klíčem a bez aktivní account session. Trace rozlišuje account/API/unknown; automatický fallback na placené API není dovolen. Konkrétní providerové invocation flags validuje adaptér proti podporované verzi.
+For Codex, preserve the preference for an active ChatGPT login; the API-key path is explicit opt-in via `PTBK_OPENAI_CODEX_USE_API_KEY=1`, with an available key and no active account session. The trace distinguishes account/API/unknown; automatic fallback to a paid API is prohibited. The adapter validates specific provider invocation flags against the supported version.
 
-## Související specifikace
+## Related specifications
 
-- [Agent Books a kontext](agent-context.md)
-- [TEAM konzultace](team.md)
-- [Read-only plánování](planning.md)
-- [Pokusy, retry a providerová omezení](retries.md)
-- [Traces a výsledky](traces.md)
+- [Agent Books and context](agent-context.md)
+- [TEAM consultations](team.md)
+- [Read-only planning](planning.md)
+- [Attempts, retries and provider limits](retries.md)
+- [Traces and results](traces.md)

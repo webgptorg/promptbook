@@ -1,31 +1,31 @@
-# Kompatibilita a vědomé změny
+# Compatibility and deliberate changes
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-## Musí zůstat kompatibilní
+## Behavior that must remain compatible
 
-Legacy fronta včetně implicitních tasků, priority a OR routing; všechny stavy a ruční verify; oddělení `fix` od queue; vybraný projekt/context; default Developer; explicitní agent Books a TEAM; základní CLI a podporované harnessy; Git scope, fázové commity, no-commit, isolation a synchronizace; ovládání Normal/Raw a plain output; použití z nainstalovaného balíčku.
+The legacy queue, including implicit tasks, priority and OR routing; all states and manual verify; separation of `fix` from the queue; the selected project/context; default Developer; explicit agent Books and TEAM; the base CLI and supported harnesses; Git scope, phase commits, no-commit, isolation and synchronization; Normal/Raw controls and plain output; use from the installed package.
 
-Init ani migrace nesmějí hromadně přepsat existující backlog Promptbooku jako vedlejší efekt instalace nové verze. Přepis se vyvíjí v samostatném balíčku/modulu s kompatibilitním testovacím corpus a po ověření může nahradit starý vstupní bod.
+Neither init nor migration may rewrite the existing Promptbook backlog wholesale as a side effect of installing a new version. Develop the rewrite in a separate package/module with a compatibility test corpus; it may replace the old entry point after verification.
 
-## Záměrné změny pro lepší implementaci
+## Deliberate changes for a better implementation
 
-| Změna | Důvod a zachovaná hranice |
+| Change | Reason and preserved boundary |
 | --- | --- |
-| Oddělený domain model místo Markdown objektu v celém runtime | Oba formáty a recurrence používají jeden engine. |
-| `.promptbook` místo vlastních souborů v `.git` | Požadavek nového PRD 0130; Git samotný dále pracuje standardně. |
-| Explicitní source revisions a persisted ownership při resume | Ochrana uživatelských editací a skutečná recovery. |
-| Loopback a chráněné lokální mutace serveru | Zachování funkčního UI bez přenosu současných slabých guardů. |
-| Redakce secrets a bounded occurrence historie | Durable diagnostika bez neúmyslného verzování credentials. |
-| Bezpečný noninteractive disk failure | Zákaz dotazů neznamená automatické ignorování kritické chyby. |
-| Přehled odložených/blocked úkolů v list/dry-run | Nové schedule nesmí zmizet z viditelnosti jako prázdná fronta. |
+| A separate domain model rather than a Markdown object throughout the runtime | Both formats and recurrence use one engine. |
+| `.promptbook` instead of owned files in `.git` | Required by new PRD 0130; Git itself continues to operate normally. |
+| Explicit source revisions and persisted ownership during resume | Protect user edits and provide actual recovery. |
+| Loopback and protected local server mutations | Preserve a functional UI without adopting the current weak guards. |
+| Secret redaction and bounded occurrence history | Durable diagnostics without accidentally versioning credentials. |
+| Safe noninteractive disk failure | Prohibiting questions does not imply ignoring a critical error automatically. |
+| An overview of deferred/blocked tasks in list/dry-run | New schedules must not disappear from view as an empty queue. |
 
-Každou změnu příkazového defaultu, exit code nebo výstupního formátu uvést v release notes. **Nové rozhodnutí:** základní exit kontrakt `0` = úspěšné ukončení podle režimu, `1` = execution/check/persistence/sync failure, `2` = neplatná konfigurace/vstup; cancellation `130` pro SIGINT. Prázdná nebo pouze budoucí fronta není chyba, ale musí být poctivě popsána.
+Document every change to a command default, exit code or output format in release notes. **New decision:** the base exit contract is `0` = successful termination according to mode, `1` = execution/check/persistence/sync failure, `2` = invalid configuration/input; cancellation uses `130` for SIGINT. An empty or future-only queue is not an error, but must be described accurately.
 
-## Související specifikace
+## Related specifications
 
-- [Rozsah coderu](scope.md)
-- [Uživatelské a CLI kontrakty](cli.md)
-- [Migrace Markdown tasků na Books](migration.md)
-- [Akceptační scénáře](acceptance.md)
-- [Implementační etapy a Definition of Done](delivery.md)
+- [Coder scope](scope.md)
+- [User and CLI contracts](cli.md)
+- [Migrating Markdown tasks to Books](migration.md)
+- [Acceptance scenarios](acceptance.md)
+- [Implementation stages and Definition of Done](delivery.md)

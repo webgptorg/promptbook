@@ -1,16 +1,16 @@
-# Pokusy, retry a providerová omezení
+# Attempts, retries and provider limits
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Zachovat oddělení check-feedback oprav a retry technického selhání. Check-feedback je omezen na tři implementační/repair pokusy pro stejnou úlohu; technická retry smyčka má v současném kódu počáteční pokus a nejvýše tři další retries. Nesmějí se bez vysvětlení změnit v neomezené ani skrytě násobené placené volání.
+Preserve the separation between check-feedback repairs and technical-failure retries. Check feedback is limited to three implementation/repair attempts for the same task; the technical retry loop in the current code has an initial attempt and at most three additional retries. These must not become unbounded or silently multiplied paid calls without explanation.
 
-**Nové rozhodnutí:** centrální attempt budget a jednotný event/report musí ukázat oba čítače i důvod každého dalšího volání. Providerové zotavení z doložené přechodové chyby zachovává identitu pokusu; persistence, signing a push error se do modelového retry nikdy nemapují. Pokud bezpečný replay nelze prokázat, stav je `recovery-required`.
+**New decision:** a central attempt budget and unified event/report must show both counters and the reason for each additional call. Provider recovery from a confirmed transient error preserves attempt identity; persistence, signing and push errors must never map to a model retry. If safe replay cannot be proven, the state is `recovery-required`.
 
-Quota čekání používat podle providerem oznámeného resetu; když není dostupný, bounded backoff. Po obnovení ověřit dostupnost, neslibovat pevný reset odhadnutý z textu. U dlouhého čekání respektovat pause/cancel a neprovádět placené idle dotazy. Kreditový požadavek Codexu bez `--allow-credits` skončí s návodem.
+Wait for quota according to the reset reported by the provider; if unavailable, use bounded backoff. Verify availability after resuming rather than promise a fixed reset inferred from text. Respect pause/cancel during long waits and do not make paid idle queries. A Codex credit request without `--allow-credits` must exit with instructions.
 
-## Související specifikace
+## Related specifications
 
-- [Projektové checks a opravy](checks.md)
-- [Coding harnessy](harnesses.md)
-- [Mutační lease, journal a recovery](recovery.md)
-- [Provozní kvalita](operations.md)
+- [Project checks and repairs](checks.md)
+- [Coding harnesses](harnesses.md)
+- [Mutation lease, journal and recovery](recovery.md)
+- [Operational quality](operations.md)

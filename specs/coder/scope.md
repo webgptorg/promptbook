@@ -1,30 +1,30 @@
-# Rozsah coderu
+# Coder scope
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-## Zahrnuté pracovní postupy
+## Included workflows
 
-- Inicializace projektu; authoring zadání, šablony a plánovací konverzace.
-- Jednorázový běh fronty, read-only přehled a dry-run.
-- Oprava selhávajících checks bez spuštění běžné fronty.
-- Bezpečné Git commity, explicitní pull/push, izolace úkolu ve worktree a recovery.
-- Persistentní coder server se sdíleným stavem a ovládáním.
-- Sedm stávajících harnessů, agent Books, kontext a TEAM.
-- Tasks v Book formátu, migrace Markdownu, not-before a deterministické opakování.
-- Ruční ověření výsledku a archivace; pomocné příkazy pro authoring a diagnostiku.
+- Project initialization; task authoring, templates and planning conversations.
+- A finite queue run, a read-only overview and dry-run.
+- Repairing failing checks without running the ordinary queue.
+- Safe Git commits, explicit pull/push, task isolation in a worktree and recovery.
+- A persistent coder server with shared state and controls.
+- The seven existing harnesses, agent Books, context and TEAM.
+- Tasks in Book format, Markdown migration, not-before and deterministic recurrence.
+- Manual result verification and archiving; helper commands for authoring and diagnostics.
 
-## Co nepřenášet do jádra
+## What must stay outside the core
 
-Starý pipeline engine, celý Agents Server, Studio, marketingové weby, účtování zákazníků, Supabase/PostgreSQL, vlastní editor a obecné chatové funkce nejsou závislostí coderu. Nepřepisovat celý Promptbook kvůli coderu.
+The old pipeline engine, the entire Agents Server, Studio, marketing websites, customer billing, Supabase/PostgreSQL, a custom editor and general chat features are not coder dependencies. Do not rewrite all of Promptbook for the coder.
 
-Odloženy jsou: plný `ptbk server` nad Agent Serverem a SQLite (PRD 2026-09-0490 je výslovně `not-ready`), paralelní task workery, přirozenojazyčné/eventové triggery, distribuované řízení napříč klony, marketplace agentů a automatické odvozování backlogu z libovolných cílů.
+Deferred features include the full `ptbk server` over Agent Server and SQLite (PRD 2026-09-0490 is explicitly `not-ready`), parallel task workers, natural-language/event triggers, distributed coordination across clones, an agent marketplace and automatic backlog derivation from arbitrary goals.
 
-**Závislosti mezi tasky:** koncept APT je připouští, ale aktuální task PRD nedefinuje vykonatelný kontrakt typu `DEPENDS ON`. Do základní verze se nevymýšlí implicitní DAG ani nová syntaxe. Rozhraní způsobilosti umožní budoucí dependency evaluator; nepodporovaná řídicí syntaxe dnes úkol viditelně zablokuje. Závislosti mezi implementačními etapami v [implementačních etapách](delivery.md) nejsou syntaxí tasků.
+**Task dependencies:** the APT concept allows them, but the current task PRD does not define an executable contract such as `DEPENDS ON`. The base version must not invent an implicit DAG or new syntax. The eligibility interface must allow a future dependency evaluator; unsupported control syntax must visibly block the task today. Dependencies between the [implementation stages](delivery.md) are not task syntax.
 
-Origami avatary z PRD 2026-10-0030 jsou samostatná vizuální dodávka nad sdílenými událostmi. Coder musí mít výměnný renderer identity/stavu a kompatibilní fallback. Fyzikální skládání 3D origami ani úprava Agents Serveru nejsou podmínkou správnosti task enginu. Jejich nezahrnutí do základní dodávky musí být viditelné, nikoli označené jako splněné PRD.
+Origami avatars from PRD 2026-10-0030 are a separate visual deliverable using shared events. The coder must have a replaceable identity/status renderer and a compatible fallback. Physical 3D origami folding and changes to Agents Server are not prerequisites for task-engine correctness. Their exclusion from the base delivery must be visible and must not be presented as a completed PRD.
 
-## Související specifikace
+## Related specifications
 
-- [Základní pojmy a datové kontrakty](domain-model.md)
-- [Implementační etapy a Definition of Done](delivery.md)
-- [Kompatibilita a vědomé změny](compatibility.md)
+- [Core concepts and data contracts](domain-model.md)
+- [Implementation stages and Definition of Done](delivery.md)
+- [Compatibility and deliberate changes](compatibility.md)

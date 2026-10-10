@@ -1,33 +1,33 @@
-# Architektura coderu
+# Coder architecture
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Použít TypeScript a explicitní závislosti. **Nové rozhodnutí:** runtime cílit na Node 22+; současné repo uvádí Node >=18.18 a npm >=8, takže zvýšení minima je vědomá změna. Produkční npm balíček musí fungovat v cizím fixture projektu bez source checkoutu Promptbooku a bez `ts-node` v uživatelském workflow. Současné process adaptéry vyžadují Bash; nová verze jej buď výslovně ověří jako prerequisite, nebo jej nahradí ekvivalentním argv/process adaptérem. macOS/Linux musí být ověřeny; Windows podporu opřít o konkrétní procesní/Git adaptér nebo výslovně dokumentované WSL, nikoli neurčitý cross-platform slib.
+Use TypeScript and explicit dependencies. **New decision:** target Node 22+ at runtime; the repository in the analyzed snapshot declares Node >=18.18 and npm >=8, so raising the minimum is a deliberate change. The production npm package must work in an external fixture project without a Promptbook source checkout and without `ts-node` in the user workflow. Current process adapters require Bash; the new version must either explicitly verify it as a prerequisite or replace it with an equivalent argv/process adapter. Verify macOS/Linux; base Windows support on a concrete process/Git adapter or explicitly documented WSL rather than a vague cross-platform promise.
 
-## Moduly a jejich odpovědnost
+## Modules and their responsibilities
 
-| Modul | Vlastní | Nesmí vlastnit |
+| Module | Owns | Must not own |
 | --- | --- | --- |
-| Domain | TaskDefinition, Occurrence, Attempt, outcome, diagnostiky | Filesystem, subprocess, UI, Git. |
-| Source adapters | Markdown/Book parse, serialize, source revision | Scheduler, harness instalaci. |
-| Eligibility & schedule | Typed routing, čas, intervaly, due sloty | Čekání, Git, modelová volání. |
-| Workspace & configuration | Cesty, zdroje, Book/context selection, effective options | Globální `process.chdir`, skryté změny env. |
-| Claim & state store | Lease, occurrence ledger, atomické transitions, recovery | Modelové rozhodování. |
-| Execution service | Lifecycle jednoho tasku, pokusy, cancellation | Čtení dalšího backlogu, kreslení UI. |
-| Check service | Command setup, izolovaný snapshot, výsledky, repair feedback | Vlastní task frontu. |
-| Git persistence | Ownership, fázové delta, commit/integrace/sync | Interpretaci Book syntaxe. |
-| Harness adapters | Providerový proces, stream, auth/quota/capabilities | Přepis task statusu, vlastní Git commit policy. |
-| Supervisor | Finite/persistent policy, výběr další práce, wake-ups | Duplikaci execution služby. |
-| Presentation | CLI help, terminal/server views, commands nad services | Druhou kanonickou podobu tasků. |
+| Domain | TaskDefinition, Occurrence, Attempt, outcomes, diagnostics | Filesystem, subprocesses, UI, Git. |
+| Source adapters | Markdown/Book parsing, serialization, source revision | Scheduler, harness installation. |
+| Eligibility & schedule | Typed routing, time, intervals, due slots | Waiting, Git, model calls. |
+| Workspace & configuration | Paths, sources, Book/context selection, effective options | Global `process.chdir`, hidden environment changes. |
+| Claim & state store | Lease, occurrence ledger, atomic transitions, recovery | Model decision-making. |
+| Execution service | One task's lifecycle, attempts, cancellation | Reading the next backlog task, drawing the UI. |
+| Check service | Command setup, isolated snapshot, results, repair feedback | Its own task queue. |
+| Git persistence | Ownership, phase deltas, commits/integration/sync | Interpretation of Book syntax. |
+| Harness adapters | Provider process, stream, auth/quota/capabilities | Task status rewriting, their own Git commit policy. |
+| Supervisor | Finite/persistent policy, selection of further work, wake-ups | Duplication of the execution service. |
+| Presentation | CLI help, terminal/server views, commands over services | A second canonical representation of tasks. |
 
-Hodiny, timezone resolver, filesystem, Git, subprocess launcher, state store a harness musí jít nahradit deterministickými test doubles. Adaptéry se kompilují do jedné dependency graph; orchestrace nesmí importovat CLI ani React. Žádný mutable globální „aktuální agent“, task, cwd nebo sdílená cache bez klíče workspace/revize.
+The clock, timezone resolver, filesystem, Git, subprocess launcher, state store and harness must be replaceable by deterministic test doubles. Compile adapters into one dependency graph; orchestration must not import CLI or React. No mutable global current agent, task, cwd or shared cache without a workspace/revision key.
 
-Nepřidávat obecný plugin framework nebo event bus s desítkami abstrakcí před reálnou potřebou. Důležité jsou úzké rozhraní, jeden vlastník každé odpovědnosti a testovatelné hranice. SQLite může být pozdějším adaptérem state store; základní coder jej nevyžaduje.
+Do not add a general plugin framework or an event bus with dozens of abstractions before there is a real need. Narrow interfaces, one owner per responsibility and testable boundaries matter. SQLite may become a later state-store adapter; the base coder does not require it.
 
-## Související specifikace
+## Related specifications
 
-- [Základní pojmy a datové kontrakty](domain-model.md)
-- [Projektové cesty a zdroje tasků](workspace.md)
+- [Core concepts and data contracts](domain-model.md)
+- [Project paths and task sources](workspace.md)
 - [Execution lifecycle](execution.md)
-- [Coding harnessy](harnesses.md)
-- [Implementační etapy a Definition of Done](delivery.md)
+- [Coding harnesses](harnesses.md)
+- [Implementation stages and Definition of Done](delivery.md)

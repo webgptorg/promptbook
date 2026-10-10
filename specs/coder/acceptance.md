@@ -1,78 +1,78 @@
-# Akceptační scénáře
+# Acceptance scenarios
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Implementace je přijatelná až po ověření následujících scénářů nad dočasnými projekty, lokálními Git repozitáři a deterministickými harness/check doubles. Placené modely nejsou podmínkou regresního suite. Real-provider smoke testy jsou oddělené a explicitní.
+The implementation is acceptable only after the following scenarios have been verified using temporary projects, local Git repositories and deterministic harness/check doubles. Paid models are not a prerequisite for the regression suite. Real-provider smoke tests are separate and explicit.
 
-## Tasks a čas
+## Tasks and time
 
-| ID | Scénář a očekávaný výsledek |
+| ID | Scenario and expected result |
 | --- | --- |
-| T01 | Legacy `.md`, task `.book` a mixed queue vykonají ekvivalentní úkol přes stejnou execution službu, každou identitu nejvýše jednou. |
-| T02 | README, ignore marker, nested archiv/trace, `@@@`, `[-]`, `[.]`, `[x]`, `[!]`, `[^]` se nespustí jako nový task. |
-| T03 | Markerless task je ready s prioritou 0; stav se doplní bez ztráty prvního obsahu. Více sekcí mění pouze správnou sekci. |
-| T04 | Priority seřadí nejvyšší první, meze jsou inkluzivní, shody stabilní. Neplatné meze dávají chybu. |
-| T05 | Legacy `gpt`/`opus` zůstává OR substring. Book AGENT/HARNESS/MODEL tvoří AND a RUNNER další OR skupinu. |
-| T06 | Date-only token se neplete s routingem; model s datem zůstane modelem. Datum v těle/URL/reportu nescheduluje. |
-| T07 | Task se nespustí 1 ms před hranicí a smí přesně na ní; timezone, leap day, offset a DST ambiguity jsou ověřeny fake clockem. |
-| T08 | Neplatné/conflicting datum nebo interval je visible blocked; nepromění se na unrestricted ready. |
-| T09 | Future high-priority task neblokuje ready task. `S` jej neuvolní. Finite run skončí s informací o budoucí práci. |
-| T10 | Book round-trip zachová literal uppercase commitments, fences, Unicode, assets i history. Agent Book se nestane taskem. |
-| T11 | Duplicitní ID/missing control metadata a concurrent source edit zabrání mylnému spuštění/finalizaci. |
-| T12 | Weekly recurrence zachová definici `todo`, kotvu, due slot a historii po restartu i rename. Slow run neposouvá kotvu. |
-| T13 | Několik týdnů downtime znamená jeden coalesced výskyt. Žádné překrytí stejného tasku ani catch-up storm. |
-| T14 | Finite run vykoná recurring definici nejvýše jednou; persistentní režim později další slot, bez placeného idle volání. |
-| T15 | Pause/retirement, schedule edit, vyčerpané retry a nejasné přerušení mají správný blocked/next due stav. |
+| T01 | Legacy `.md`, task `.book` and a mixed queue execute equivalent work through the same execution service, each identity at most once. |
+| T02 | README, the ignore marker, nested archive/trace, `@@@`, `[-]`, `[.]`, `[x]`, `[!]`, `[^]` do not run as new tasks. |
+| T03 | A markerless task is ready with priority 0; add state without losing the first content. With multiple sections, change only the correct section. |
+| T04 | Priorities sort highest first, bounds are inclusive and ties stable. Invalid bounds produce an error. |
+| T05 | Legacy `gpt`/`opus` remains OR substring matching. Book AGENT/HARNESS/MODEL form AND conditions, and RUNNER an additional OR group. |
+| T06 | A date-only token is not confused with routing; a model containing a date remains a model. A date in the body/URL/report does not schedule work. |
+| T07 | A task does not start 1 ms before the boundary and may start exactly at it; verify timezone, leap day, offset and DST ambiguity using a fake clock. |
+| T08 | An invalid/conflicting date or interval is visibly blocked; it does not become unrestricted ready work. |
+| T09 | A future high-priority task does not block a ready task. `S` does not release it. A finite run exits with information about future work. |
+| T10 | Book round-trip preserves literal uppercase commitments, fences, Unicode, assets and history. An agent Book does not become a task. |
+| T11 | Duplicate IDs/missing control metadata and concurrent source edits prevent incorrect execution/finalization. |
+| T12 | Weekly recurrence preserves the `todo` definition, anchor, due slot and history across restart and rename. A slow run does not shift the anchor. |
+| T13 | Several weeks of downtime produce one coalesced occurrence. No overlap for the same task or catch-up storm. |
+| T14 | A finite run executes a recurring definition at most once; persistent mode executes a later slot afterward, without paid idle calls. |
+| T15 | Pause/retirement, schedule edits, exhausted retries and ambiguous interruption produce the correct blocked/next-due state. |
 
-## Execution, checks a Git
+## Execution, checks and Git
 
-| ID | Scénář a očekávaný výsledek |
+| ID | Scenario and expected result |
 | --- | --- |
-| E01 | Run bez checks hlásí checks skipped; s `--check` kontroluje skutečné změny. Missing check není úspěch. |
-| E02 | `yes-and-fail` uloží eligible check delta a skončí; `yes-and-fix` opraví a teprve pak smí do fronty. |
-| E03 | `fix` na zdravém projektu nevyžaduje nainstalovaný harness ani výchozí Book, nevytvoří PRD ani empty commit. Výběr harnessu zůstává CLI konfigurací. Formatter-only delta se uloží. |
-| E04 | `fix` při selhání opravuje stejný task maximálně povoleným počtem pokusů; žádný jiný backlog task se nevybere. |
-| E05 | Agent a check změní stejnou řádku: první commit obsahuje agentní obsah, druhý check transformaci. |
-| E06 | Failed check vytvoří vlastní delta commit se skutečným outcome; stále jde o failed validaci. |
-| E07 | Add/delete/rename/mode/symlink/binary a ignored generovaný obsah přežijí správné fáze, repair a recheck. |
-| E08 | Pre-existing staged+unstaged změny zůstanou v původní podobě i staging stavu. Empty owned delta nevytvoří commit z cizího indexu. |
-| E09 | Konkurenční editor, changed HEAD/index a hook měnící obsah zastaví nejednoznačnou persistence, zachovají obě práce. |
-| E10 | Commit/signing failure nevolá znovu model; completion zůstane pending. Rejected push zachová lokální commit bez duplikace. |
-| E11 | Automatický `--no-commit` vyžaduje ignore; supervised výjimka funguje. Nevznikne automatický commit a přes více tasků se udrží vlastní scope odděleně. |
-| E12 | `continue` obnoví jednu prokázanou přerušenou práci, nikoli cizí dirty bytes; 0/2 kandidáti selžou. |
-| E13 | Kill mezi claim, změnou zdroje, checkem, commit intent, skutečným commitem a zápisem výsledku se bezpečně reconciliuje. |
-| E14 | Dva procesy, server + run nebo migration + run nezískají současně týž claim/mutační ownership. Stale lease se neukradne. |
-| E15 | Vlastní state/locks/check views vznikají pod `.promptbook`; v `.git` nejsou vlastní přímo zapisované runtime soubory. |
-| E16 | Isolation mapuje nested projekt i custom tasks; úspěch zachová commity, konflikt zachová worktree a originální práci. |
-| E17 | Přerušení ukončí pouze vlastní process tree a čekání, zachová diagnostiku; neukončí cizí Node procesy. |
-| E18 | Quota/auth/credits a retry budget jsou rozlišeny; zakázané credits se nepoužijí. |
-| E19 | Usage-limit chyba + `tokens used` + exit 1, případně JSON `turn.failed`, nikdy nepublikuje completion ani falešný úspěch. |
+| E01 | A run without checks reports checks skipped; with `--check`, it checks actual changes. A missing check is not success. |
+| E02 | `yes-and-fail` persists the eligible check delta and exits; `yes-and-fix` repairs before it may enter the queue. |
+| E03 | On a healthy project, `fix` requires neither an installed harness nor a default Book, and creates neither a PRD nor an empty commit. Harness selection remains CLI configuration. Persist a formatter-only delta. |
+| E04 | On failure, `fix` repairs the same task up to the allowed attempt count; no other backlog task is selected. |
+| E05 | The agent and a check change the same line: the first commit contains agent content, the second the check transformation. |
+| E06 | A failed check creates its own delta commit with the actual outcome; validation still failed. |
+| E07 | Add/delete/rename/mode/symlink/binary changes and ignored generated content survive the correct phases, repair and recheck. |
+| E08 | Pre-existing staged+unstaged changes retain their original content and staging state. An empty owned delta does not create a commit from someone else's index. |
+| E09 | A concurrent editor, changed HEAD/index and a content-modifying hook stop ambiguous persistence and preserve both parties' work. |
+| E10 | Commit/signing failure does not call the model again; completion remains pending. A rejected push preserves the local commit without duplication. |
+| E11 | Automatic `--no-commit` requires ignore; the supervised exception works. No automatic commit occurs, and owned scope remains separate across multiple tasks. |
+| E12 | `continue` restores one proven interrupted task rather than someone else's dirty bytes; 0/2 candidates fail. |
+| E13 | Termination between claim, source change, check, commit intent, actual commit and result write is reconciled safely. |
+| E14 | Two processes, server + run or migration + run cannot simultaneously acquire the same claim/mutation ownership. A stale lease is not taken over automatically. |
+| E15 | Owned state/locks/check views are created under `.promptbook`; no owned runtime files are written directly into `.git`. |
+| E16 | Isolation maps nested projects and custom tasks; success preserves commits, while a conflict preserves the worktree and original work. |
+| E17 | Interruption terminates only the owned process tree and waits, preserving diagnostics; it does not terminate other Node processes. |
+| E18 | Quota/auth/credits and retry budget are distinguished; prohibited credits are not used. |
+| E19 | A usage-limit error + `tokens used` + exit 1, or JSON `turn.failed`, never publishes completion or false success. |
 
-## Migrace, CLI a rozhraní
+## Migration, CLI and interfaces
 
-| ID | Scénář a očekávaný výsledek |
+| ID | Scenario and expected result |
 | --- | --- |
-| U01 | Init dvakrát zachová custom Books/scripts/AGENTS/env, dokumentaci neoznačí jako task a check nefalšuje. |
-| U02 | `--path`, relativní/absolutní `--tasks`, mezery, nested project a symlink escape mají shodné chování ve všech relevantních příkazech. |
-| U03 | List/help/dry-run nezapisují, nevytvářejí adresáře, neinstalují a nevolají model. Missing explicit input je chyba. |
-| U04 | Migration dry-run je bez side effects; skutečný převod více sekcí zachová význam, odkazy, historii a původní bytes. |
-| U05 | Migration restart v každé hranici transakce nikdy nezpůsobí dva runnable exempláře. Rerun neduplikuje soubory/commity. |
-| U06 | Changed destination/source, ID collision a část nepřevoditelných sekcí se nepřepíše ani předčasně nearchivuje. |
-| U07 | Developer je default i pro plan; explicitní Planner funguje. Invalid Book nevede k tichému fallbacku. |
-| U08 | TEAM poradce je volán jen na žádost, se svou rolí; resolver dědičnosti a hranice remote/local neuniknou workspace policy. |
-| U09 | Plan i jeho poradci nemohou měnit application code ani spouštět shell; schválený PRD save se omezí na správné soubory. |
-| U10 | Normal/raw toggle zachová jeden běh a jeden stream; scroll/resize/bounded buffer a non-TTY jsou čitelné. |
-| U11 | Server claimuje přes stejný engine, vidí source edits a due time; mutující API vyžaduje platný lokální kontext a správnou source revision. |
-| U12 | `verify` provádí lidské review/archive a follow-up; nespustí checks a v no-questions režimu nedělá neodsouhlasené review změny. |
-| U13 | Zabalené CLI funguje v externím fixture projektu, včetně Books, šablon, planning bridge a harness adapterů bez monorepo cest. |
-| U14 | Trace ukazuje reálné outcomes/commit IDs; známý fixture secret se neobjeví ve výstupu ani verzovaných artefaktech. |
+| U01 | Running init twice preserves custom Books/scripts/AGENTS/env, does not treat documentation as a task and does not fake a check. |
+| U02 | `--path`, relative/absolute `--tasks`, spaces, nested projects and symlink escapes behave consistently in all relevant commands. |
+| U03 | List/help/dry-run do not write, create directories, install or call a model. Missing explicit input is an error. |
+| U04 | Migration dry-run has no side effects; actual conversion of multiple sections preserves meaning, references, history and original bytes. |
+| U05 | Restarting migration at every transaction boundary never produces two runnable copies. Rerun does not duplicate files/commits. |
+| U06 | A changed destination/source, ID collision or some unconvertible sections cause no overwrites or premature archiving. |
+| U07 | Developer is the default even for plan; an explicit Planner works. An invalid Book does not cause silent fallback. |
+| U08 | A TEAM advisor is called only on request, with its own role; the inheritance resolver and remote/local boundary remain within workspace policy. |
+| U09 | Plan and its advisors cannot modify application code or launch a shell; an approved PRD save is confined to the correct files. |
+| U10 | Normal/raw toggling preserves one run and one stream; scroll/resize/bounded buffers and non-TTY output remain readable. |
+| U11 | The server claims through the same engine and observes source edits and due time; mutating APIs require valid local context and the correct source revision. |
+| U12 | `verify` performs human review/archive and follow-up; it does not run checks or make unapproved review changes in no-questions mode. |
+| U13 | The packaged CLI works in an external fixture project, including Books, templates, the planning bridge and harness adapters without monorepo paths. |
+| U14 | A trace reports actual outcomes/commit IDs; a known fixture secret appears in neither output nor versioned artifacts. |
 
-## Související specifikace
+## Related specifications
 
-- [Legacy Markdown tasky](task-markdown.md)
+- [Legacy Markdown tasks](task-markdown.md)
 - [Task Books](task-books.md)
-- [Opakované task Books](recurrence.md)
-- [Projektové checks a opravy](checks.md)
-- [Vlastnictví změn a Git persistence](git-persistence.md)
-- [Migrace Markdown tasků na Books](migration.md)
-- [Implementační etapy a Definition of Done](delivery.md)
+- [Recurring task Books](recurrence.md)
+- [Project checks and repairs](checks.md)
+- [Change ownership and Git persistence](git-persistence.md)
+- [Migrating Markdown tasks to Books](migration.md)
+- [Implementation stages and Definition of Done](delivery.md)

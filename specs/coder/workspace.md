@@ -1,21 +1,21 @@
-# Projektové cesty a zdroje tasků
+# Project paths and task sources
 
-[Hlavní specifikace](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Projektový kořen, Git working tree a adresář instalovaného balíčku jsou tři různé cesty. Změna `--path` musí konzistentně ovlivnit Books, kontext, tasky, šablony, cwd subprocessů, checks a artefakty. Git operace používají nalezený obalující repozitář, ale nesmějí kvůli tomu přesunout tasky pod jeho kořen.
+The project root, Git working tree and installed package directory are three distinct paths. Changing `--path` must consistently affect Books, context, tasks, templates, subprocess cwd, checks and artifacts. Git operations use the enclosing repository discovered for the project, but must not move tasks to that repository's root.
 
-## Konfigurace task zdroje
+## Task source configuration
 
-`--tasks <directory>` má default `tasks` relativně k vybranému projektu. Legacy zdroj zůstává `prompts`. Absolutní cesta uvnitř projektu je dovolena; cesty s mezerami musí fungovat. Pro mutace ověřit skutečné cesty a symlinky, aby nebylo možné zapisovat do jiného workspace.
+`--tasks <directory>` defaults to `tasks` relative to the selected project. The legacy source remains `prompts`. An absolute path inside the project is allowed; paths containing spaces must work. For mutations, validate real paths and symlinks to prevent writes into another workspace.
 
-Implicitní neexistující zdroj je prázdný. Explicitní chybějící nebo neplatný `--tasks` je pro read/run chyba; `init` a `migrate` smějí validovaný cíl vytvořit. Při aliasování cest se každý adaptér aplikuje pouze jednou. Stejnou vyřešenou konfiguraci používají všechny příkazy, child workery a izolované worktrees.
+A nonexistent implicit source is empty. An explicit missing or invalid `--tasks` is an error for read/run; `init` and `migrate` may create a validated destination. When paths alias each other, apply each adapter only once. All commands, child workers and isolated worktrees use the same resolved configuration.
 
-Z task zdroje načítat pouze top-level `.book` soubory, stejně nerekurzivně jako legacy frontu. Podadresáře se šablonami, archivy a traces nejsou discovery zdroj.
+Load only top-level `.book` files from the task source, nonrecursively like the legacy queue. Subdirectories containing templates, archives and traces are not discovery sources.
 
-## Související specifikace
+## Related specifications
 
-- [Inicializace projektu](initialization.md)
+- [Project initialization](initialization.md)
 - [Git preflight](git-preflight.md)
-- [Legacy Markdown tasky](task-markdown.md)
+- [Legacy Markdown tasks](task-markdown.md)
 - [Task Books](task-books.md)
-- [Izolace tasku ve worktree](isolation.md)
+- [Task isolation in a worktree](isolation.md)
