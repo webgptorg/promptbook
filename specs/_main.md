@@ -1,14 +1,5 @@
-# Promptbook Coder: main specification
+# Promptbook: main specification
 
-**Standalone product and technical specification**
-
-Version 1.0 | October 7, 2026 | For Pavol Hejný
-
-**Purpose:** recreate Promptbook Coder as a clear, independently maintainable tool. Preserve its essential workflows and complete the currently specified transition to tasks without carrying over historical layers of the entire Promptbook monorepo.
-
-**Decisive source:** `webgptorg/promptbook`, branch `main`, commit `12010a9a1f2df8b23c9c3934f0570caa6daa19da` from October 7, 2026, 10:58:27 CEST. All links in the [source map](coder/audit-and-sources.md) point to this snapshot.
-
-**Document status:** a specification for future implementation only. The analysis draws on source code, tests, CLI, documentation and relevant PRDs. The production coder, paid models and the complete monorepo test suite were not run. Acceptance scenarios in this specification set are requirements for the new implementation rather than reports of tests already performed.
 
 ## Required outcome
 
