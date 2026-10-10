@@ -1,14 +1,11 @@
-# Git synchronization
+# Remote Git synchronization
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-Pull/push have separate outcomes. A missing remote, divergence, conflict, authentication or network failure must not be confused with the implementation result. Local completion with a rejected push remains locally completed with synchronization pending; do not call the model again because of it.
+`--auto-pull` and `--auto-push` explicitly enable remote synchronization; both are disabled by default. Synchronize at safe task boundaries without incorporating unknown dirty changes or interrupting an active task's verified result.
 
-Enabled auto-pull performs standard `git pull --rebase` before refreshing the queue between rounds, preserving ownership guards and using no autostash. In isolation, never push the temporary branch; push only from the original branch after successful integration. A pull conflict stops further unsafe mutations and preserves state for manual resolution.
+Pull refreshes the queue through the configured remote, using rebase without automatic stashing. Push publishes completed local work. In isolated execution, publish only the successfully integrated project branch, never the temporary branch.
 
-## Related specifications
+Remote absence, divergence, conflict, expired authentication and network failures are distinct from task execution. A successful local commit with a rejected push stays locally complete with synchronization pending. Do not call the model or create a duplicate commit because push failed.
 
-- [Change ownership and Git persistence](git-persistence.md)
-- [Task isolation in a worktree](isolation.md)
-- [Mutation lease, journal and recovery](recovery.md)
-- [Traces and results](traces.md)
+Preserve work on conflict. Start remains available, retries safe transient failures and requests input when necessary; it does not force history to continue. See [recovery](recovery.md), [isolation](isolation.md) and [controls](controls.md).

@@ -1,33 +1,15 @@
-# Coding harnesses
+# Harness discovery and execution
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-Preserve the adapters `openai-codex`, `claude-code`, `github-copilot`, `cline`, `opencode`, `gemini`, `qwen-code`. They share a typed request/result and lifecycle; provider CLI syntax, availability, login, versions, event parsing, usage and quota detection belong to the adapter.
+Support `openai-codex`, `claude-code`, `github-copilot`, `cline`, `opencode`, `gemini` and `qwen-code`. A harness provides model/tool execution; it is not an agent identity. Discover installed CLIs, authentication state, supported models and effective capabilities. Installed but signed-out is not usable.
 
-Results must distinguish success, configuration refusal, missing login, quota/credit limits, transient errors, process crashes and cancellation. Capture exit code and signal/spawn failure. A successful final sentence from the model does not replace an exit/check outcome.
+Initialization installs supported harness CLIs globally and guides authentication. Start inspects all available harnesses, verifies that at least one is usable and, when needed, offers installation/login setup before unattended operation. Do not install or authenticate during read-only commands. Installation failures and unsupported environments need concrete diagnostics.
 
-**Correction of an identified risk:** the current `runScriptUntilMarkerIdle` path allows success when `code === 0 || markerSeen`, although a Codex marker may be a usage summary or the end of a failed turn. In the new implementation, terminal failure, a signal and nonzero exit take precedence. Neither `tokens used` nor `turn.failed` proves success; a completion marker only controls waiting for trailing output. This conclusion comes from source analysis rather than a live reproduction.
+Make inventories visible in status, terminal and HTTP interfaces, alongside project agents. Recheck availability when relevant conditions change. Manager may choose among available, authorized tools and models, respecting explicit task restrictions and user preferences. Do not silently substitute an unavailable explicit requirement or invent support for thinking settings or consultation tools.
 
-| Harness | Existing CLI executable | Adapter requirement |
-| --- | --- | --- |
-| OpenAI Codex | `codex` | JSON and plain streams, reasoning, auth attribution and credit/limit detection. |
-| Claude Code | `claude` | Streamed messages, effort, usage and resumption of the same session after a confirmed limit. |
-| GitHub Copilot | `copilot` | Model/effort and structured output or a labeled fallback. |
-| Gemini | `gemini` | Model and usage; unattended execution policy. |
-| Qwen Code | `qwen` | Model and usage; unattended execution policy. |
-| OpenCode | `opencode` | Provider-qualified model and JSON events. |
-| Cline | `cline` | Provider/model configuration without contaminating user settings. |
+Record actual success, failure, missing login, quota, cancellation and effective model/effort. A completion-looking marker or usage summary cannot override a failed process/turn. Report unknown provider information as unknown. Model catalogs/defaults follow the installed adapters, not fixed example model names in this specification.
 
-Do not hardcode models in the task engine. Preserve the distinction for `--model default`: for Codex, Copilot, Claude and OpenCode, it may mean native configuration; Gemini, Qwen and Cline translate it to the registry default under the current policy. Always record the effective selection in the trace or explicitly acknowledge that the provider did not report it.
+Keep account/credit permissions explicit. For Codex, prefer an active account login; API-key execution is explicitly enabled with `PTBK_OPENAI_CODEX_USE_API_KEY=1` and an available key when no active account session is used. Credit usage requires `--allow-credits`. Automatic routing is not permission for an unapproved paid-account fallback.
 
-A missing login must exit with concrete instructions for the selected harness. Repeated retries must not consume more runs in place of authentication. Tool installation/update may occur only during authorized execution setup, never for list/help/dry-run. Do not install all providers preemptively.
-
-For Codex, preserve the preference for an active ChatGPT login; the API-key path is explicit opt-in via `PTBK_OPENAI_CODEX_USE_API_KEY=1`, with an available key and no active account session. The trace distinguishes account/API/unknown; automatic fallback to a paid API is prohibited. The adapter validates specific provider invocation flags against the supported version.
-
-## Related specifications
-
-- [Agent Books and context](agent-context.md)
-- [TEAM consultations](team.md)
-- [Read-only planning](planning.md)
-- [Attempts, retries and provider limits](retries.md)
-- [Traces and results](traces.md)
+See [Manager](../agents/manager.md), [TEAM](team.md), [retries](retries.md) and [planning](planning.md).

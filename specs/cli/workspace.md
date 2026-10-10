@@ -1,21 +1,15 @@
-# Project paths and task sources
+# Project workspace
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-The project root, Git working tree and installed package directory are three distinct paths. Changing `--path` must consistently affect Books, context, tasks, templates, subprocess cwd, checks and artifacts. Git operations use the enclosing repository discovered for the project, but must not move tasks to that repository's root.
+A project is an operating-system directory in a Git working tree. The default is the invocation's current working directory; `--path` selects another. Resolve relative options from the invocation directory. The project, enclosing Git repository and installed package are distinct locations, including when the project is a subdirectory of a repository.
 
-## Task source configuration
+All project agents, tasks, context, checks and runtime state belong to that selected project. Promptbook uses files and Git, not a database. Project selection must apply consistently to every command and interface.
 
-`--tasks <directory>` defaults to `tasks` relative to the selected project. The legacy source remains `prompts`. An absolute path inside the project is allowed; paths containing spaces must work. For mutations, validate real paths and symlinks to prevent writes into another workspace.
+`agents/` contains agent Books; discovery is recursive, including hidden directories for reference resolution. [Hidden agents](../agents/core-agents.md) are excluded from ordinary automatic work selection. `tasks/` is the default task source, configurable with `--tasks`; `prompts/` also supports [Markdown tasks](task-markdown.md). Only top-level task files are executable sources. Templates, archives, traces and accompanying assets are not tasks.
 
-A nonexistent implicit source is empty. An explicit missing or invalid `--tasks` is an error for read/run; `init` and `migrate` may create a validated destination. When paths alias each other, apply each adapter only once. All commands, child workers and isolated worktrees use the same resolved configuration.
+An implicit missing task source is empty. An explicit invalid source is an error; initialization and migration may create their destination. Paths with spaces, nested projects and equivalent paths must work without duplicate discovery. Mutations must not escape the selected workspace through relative paths or symlinks.
 
-Load only top-level `.book` files from the task source, nonrecursively like the legacy queue. Subdirectories containing templates, archives and traces are not discovery sources.
+`.ptbk/` holds project-local runtime records, logs, recovery information, caches and the persistent browser profile. It is Git-ignored, but not entirely disposable: restarting or cleaning caches must not delete login sessions, pending questions or recovery evidence. No Promptbook-owned runtime files are stored directly in `.git`. Only operating-system startup registration may live outside the project; it points back to this project and installation, not to a second store of project data.
 
-## Related specifications
-
-- [Project initialization](initialization.md)
-- [Git preflight](git-preflight.md)
-- [Legacy Markdown tasks](task-markdown.md)
-- [Task Books](task-books.md)
-- [Task isolation in a worktree](isolation.md)
+See [Git preflight](git-preflight.md), [browser](browser.md) and [recovery](recovery.md).

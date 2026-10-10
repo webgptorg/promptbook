@@ -1,17 +1,11 @@
-# Task isolation in a worktree
+# Optional task worktree isolation
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-`--isolate` requires a named source branch, enabled commits and an ignored isolation directory. Create a worktree and a branch `ptbk-coder-isolation/<task-name>` with collision-safe identity. Map task sources, Books, context and nested projects into the worktree. The agent, checks and local commits run there; do not overwrite the original task source without coordination during work. The original branch receives `done` only through verified integration, rather than an early status copy.
+`--isolate` executes one task in a separate Git worktree while preserving the same project identity and sequential task policy. It requires a named branch and enabled commits. Map the selected project, task source, agent definitions, context and necessary dependencies consistently.
 
-Preserve dependency preparation and copying of the project's `.env` according to isolation policy. Do not present a Git worktree itself as a security sandbox or isolation of network/credentials. Preserve durable results/logs and required ignored outputs before cleanup, protecting original data from overwrites.
+The original branch receives result and completion only after verified integration. Preserve the task's single result commit and require fast-forward integration; a changed source branch or conflict preserves both versions and a recoverable result rather than destructive cleanup.
 
-Successful integration must use `git merge --ff-only` and preserve phase history and the verified tree; automatic squash or a general merge without new checks is outside the contract. Refusal/conflict or an unexpected change to the original preserves both checkouts and precise instructions. Current policy marks merge failure as failed and continues to the next task only if further mutation is safe. Such a task does not count toward the success limit. Do not automatically remove an unintegrated worktree/branch, including on rerun; refuse an existing recoverable destination.
+Keep isolation artifacts under ignored `.ptbk/` storage or another explicitly authorized ignored location. Preserve diagnostics and needed state before cleanup; never delete unintegrated work automatically. Copy only authorized local configuration, and do not present a Git worktree as a security sandbox or a separate browser/session identity.
 
-## Related specifications
-
-- [Project paths and task sources](workspace.md)
-- [Execution lifecycle](execution.md)
-- [Change ownership and Git persistence](git-persistence.md)
-- [Git synchronization](git-synchronization.md)
-- [Mutation lease, journal and recovery](recovery.md)
+See [workspace](workspace.md), [Git persistence](git-persistence.md) and [recovery](recovery.md).

@@ -1,19 +1,13 @@
-# Traces and results
+# Execution evidence and logs
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-Every occurrence has a traceable run/attempt/phase record: task and source snapshot, agent/harness/model/thinking, start/end, actual outcome, check command and result, usage/cost with estimates labeled, commit IDs, retry reasons, any integration/sync error and diagnostic links.
+Retain task-linked evidence of actual agent/harness/model/thinking selection, source context, start/end, actions, outputs, checks, attempts, usage, result commits and any integration or synchronization problem. Expose the same observed status through all interfaces. Label estimates and unknown values; do not fabricate progress, cost or model identity.
 
-Preserve legacy trace paths and section suffixes; new recurrence history must not lose older occurrence identities by overwriting the latest log. A runtime log may remain temporary, but successful finalization must preserve the required durable trace before cleanup. Do not report a push merely because a local commit exists.
+Runtime logs and recoverable execution records live in `.ptbk/`. They survive process restart and remain available to recovery and Teacher. Task completion and useful durable project knowledge belong to versioned project files. A rotating diagnostic stream must not erase evidence still needed by pending teaching, recovery or an external action.
 
-**New decision:** redact known credentials/secret environment values before persistence and display. Raw means unstructured provider output rather than permission to publish secrets. The audit trail records that redaction occurred; logging must not copy `.env` into Git history. Limits and retention must be documented.
+Capture reasoning/diagnostic traces only to the extent the harness actually exposes them. Do not claim access to unavailable hidden reasoning. Teaching uses available evidence and can report that evidence is insufficient.
 
-Provide concrete diagnostics for critically low disk space. The new implementation must not interpret `--no-questions` as an obligation to continue unsafe writes: the **new decision** is safe noninteractive exit/recovery rather than endless waiting or false success.
+Redact credentials and sensitive session data before recording or displaying them. Raw output is not an exception. Do not copy browser profiles, passwords or secret environment values into Git or task descriptions. Retention and truncation must be visible and bounded without destroying required pending-work records.
 
-## Related specifications
-
-- [Core concepts and data contracts](domain-model.md)
-- [Execution lifecycle](execution.md)
-- [Recurring task Books](recurrence.md)
-- [Git synchronization](git-synchronization.md)
-- [Operational quality](operations.md)
+See [learning](../agents/learning.md), [recovery](recovery.md) and [browser](browser.md).

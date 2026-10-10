@@ -1,19 +1,13 @@
-# Mutation lease, journal and recovery
+# Interruption, ownership and recovery
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-One writing owner coordinates agent changes, checks, status writers, source migration, the index, integration and Git operations in the affected checkout. A live worker blocks a second invocation. A stale lock must not be automatically taken over based only on age.
+Only one process may mutate or execute tasks in a project at a time. Coordinate related worktrees or nested projects when they affect the same Git checkout. Existing process records must be verified; neither a reused PID nor an old timestamp proves ownership.
 
-**New decision:** store workspace/run/worktree identity, a random ownership token, PID/host and heartbeat in `.promptbook/ptbk-coder`; critical decisions must not rely on PID alone. Related worktrees/nested projects must share coordination for operations affecting the same Git index or integration branch. Resolve the location of shared coordination through explicit workspace context rather than writes to `.git`.
+Retain enough project-local information in `.ptbk/` to distinguish unfinished work, checked results, created commits, pending synchronization, unanswered requests and external effects. Restart reconciles this record with actual files and Git before continuing. Do not discard uncertain state or reset it to empty.
 
-The journal records the phase boundary, source hash, baseline and resulting content/index snapshots, expected HEAD, task/occurrence identity, commit creation intent and any commit already found. Writes are atomic and versioned; diagnose corrupted state rather than reset it to empty. On restart, reconcile with history first, then offer a precise safe continuation step.
+Start automatically resumes a safe unfinished phase after interruption, without repeating accepted work. A failed commit resumes persistence; a failed push resumes synchronization. An ambiguous source edit or external action requires investigation or user input, while the supervisor and its controls remain available.
 
-**New decision — controllable recovery:** add `ptbk recover <task-id>` as a read-only overview of a selected interrupted/blocked occurrence. Specify a mutating action explicitly with `--action resume`, `retry` or `acknowledge`, and `--occurrence <id>` when needed. `resume` continues only a proven unfinished phase; `retry` deliberately repeats a failed occurrence with the same identity and a new attempt record; `acknowledge` closes the blocking occurrence as an accepted failure rather than success. Recurrence may then continue only with a newer due slot. Ambiguous external effects require specific confirmation included in the recovery plan; the command never establishes ownership over unproven bytes. `--dry-run` prints the plan without writes, and all actions are subject to leases/revisions. This is a new explicit UX contract rather than an existing command in the analyzed CLI.
+`ptbk recover <task-reference>` inspects work without mutation. Explicit `--action resume|retry|acknowledge` selects safe continuation, deliberate retry or acceptance of a failed outcome; `--occurrence` disambiguates recurring work and `--dry-run` previews the action. Acknowledgement is not success. All actions use the same ownership and revision checks as automatic recovery.
 
-## Related specifications
-
-- [Core concepts and data contracts](domain-model.md)
-- [Change ownership and Git persistence](git-persistence.md)
-- [Execution lifecycle](execution.md)
-- [Recurring task Books](recurrence.md)
-- [Migrating Markdown tasks to Books](migration.md)
+Never terminate unrelated processes, seize a live browser profile, overwrite user edits or repeat an external action solely to obtain a clean state. See [process modes](process-modes.md), [persistence](persistence.md), [user interactions](user-interactions.md) and [Git persistence](git-persistence.md).

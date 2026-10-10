@@ -1,25 +1,13 @@
-# Not-before: earliest start
+# Earliest execution time
 
-[Main specification](../_main.md) · [Dictionary](../dictionary.md)
+[Main specification](../_main.md)
 
-Markdown recognizes a schedule only as an entire backtick token on the task's own control/status line. Book uses `AFTER`. A date in the title, body, path, example, URL or completed report is not a trigger.
+`TASK AFTER` gives an inclusive earliest-start boundary: execute only when the current time reaches it. A due date is a deadline, not an alternative permission to start. In Markdown, scheduling is recognized only in an entire backtick token on the task's own control line, not dates in descriptions, URLs or model names.
 
-Support a strict grammar: `YYYY-MM-DD`; date and time separated by a space or `T`, time `HH:mm` with optional seconds and fractional seconds; no zone, `Z`, or an offset `+HH:mm`/`-HH:mm`. Accept an offset with the space-separated form as well. Do not claim support for arbitrary ISO variants.
+Accept `YYYY-MM-DD`, or a date plus time separated by a space or `T`, with optional seconds/fraction and `Z` or a numeric offset. A date alone means the beginning of that day. Without an offset, resolve and display the project/invocation's local timezone, retaining it when activating a schedule. Ambiguous or nonexistent local times require clarification or an explicit offset.
 
-```markdown
-[ ] !! `2026-10-30 09:30`
-[ ] `gpt` `2026-10-30T09:30:00+01:00`
-[ ] `gpt-4.1-2025-04-14` `2026-10-30`
-```
+Invalid, conflicting or unrecognized dates block the task; they never remove the restriction. A model identifier containing a date remains a model identifier. Pause/resume and skip-wait controls cannot bypass a task's earliest start.
 
-A date without time means midnight at the beginning of that day. The boundary is `now >= notBefore`. `Z`/an offset determines the instant; without an offset, use one explicitly resolved local invocation timezone and show it to the user. **New decision:** the default is the system's local IANA timezone, captured once at the start of the invocation; if it cannot be resolved reliably, input without an offset is an error. Store the timezone used when activating the schedule. A nonexistent or ambiguous local time at a DST transition requires an explicit offset.
+A finite run reports future work and exits when no eligible work remains. Start waits efficiently, reevaluating source changes and time. Resuming an already-started task follows recovery rules rather than claiming a new scheduled occurrence.
 
-Invalid dates, ranges or date-shaped typos block the task. A model name containing a date is not a date. Repeated identical instants are redundant; different instants in one definition are a conflict. Relative words, a time alone, cron and natural-language conditions are unsupported.
-
-A future high-priority task does not block eligible tasks. A deferred task remains `todo`. `run` exits when no eligible work remains and reports future tasks/the next relevant time. A persistent scheduler wakes on source changes or time. Neither `S` nor pause/resume bypasses this condition. Restoring an already-started task is recovery rather than a new scheduled start.
-
-## Related specifications
-
-- [Task eligibility](eligibility.md)
-- [Recurring task Books](recurrence.md)
-- [Terminal and run controls](terminal.md)
+See [TASK AFTER](../book-language/commitments/task-after.md), [TASK DUE DATE](../book-language/commitments/task-due-date.md) and [recurrence](recurrence.md).
