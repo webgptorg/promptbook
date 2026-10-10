@@ -68,12 +68,12 @@ test('published guide task examples are valid input for the runtime source adapt
 test('init and add explicit commits include created artifacts without claiming unrelated unborn files', async t => {
     const root = await fixture(t);
     await writeFile(join(root, 'user.txt'), 'Existing untracked work\n');
-    await EXECUTE(process.execPath, [CLI, 'coder', 'init', '--commit', '--no-questions'], { cwd: root });
+    await EXECUTE(process.execPath, [CLI, 'init', '--commit', '--no-questions'], { cwd: root });
     const tracked = await EXECUTE('git', ['ls-tree', '--name-only', '-r', 'HEAD'], { cwd: root });
     assert(tracked.stdout.includes('agents/developer.book'));
     assert(!tracked.stdout.includes('user.txt'));
     assert(!tracked.stdout.includes('.promptbook'));
-    await EXECUTE(process.execPath, [CLI, 'coder', 'add', 'Scoped authored task', '--commit'], { cwd: root });
+    await EXECUTE(process.execPath, [CLI, 'add', 'Scoped authored task', '--commit'], { cwd: root });
     const subject = await EXECUTE('git', ['show', '--format=', '--name-only', 'HEAD'], { cwd: root });
     assert.match(subject.stdout, /tasks\/.*\.book/);
     assert.equal(await readFile(join(root, 'user.txt'), 'utf8'), 'Existing untracked work\n');
@@ -89,7 +89,7 @@ test('real CLI migration commits the source deletion and exact archived bytes in
     await writeFile(join(root, '.gitignore'), '.promptbook/\n');
     await EXECUTE('git', ['add', '--', '.gitignore', 'prompts/fixture.md'], { cwd: root });
     await EXECUTE('git', ['commit', '-qm', 'Fixture source'], { cwd: root });
-    await EXECUTE(process.execPath, [CLI, 'coder', 'migrate', '--no-questions'], { cwd: root });
+    await EXECUTE(process.execPath, [CLI, 'migrate', '--no-questions'], { cwd: root });
     const changed = await EXECUTE('git', ['show', '--format=', '--name-status', '--no-renames', 'HEAD'], { cwd: root });
     assert.match(changed.stdout, /D\s+prompts\/fixture.md/);
     assert.match(changed.stdout, /A\s+tasks\/fixture-1.book/);
@@ -97,7 +97,7 @@ test('real CLI migration commits the source deletion and exact archived bytes in
     assert.equal(archives.length, 1);
     assert.equal(await readFile(join(root, 'prompts', 'migrated', archives[0]), 'utf8'), original);
     const head = await EXECUTE('git', ['rev-parse', 'HEAD'], { cwd: root });
-    await EXECUTE(process.execPath, [CLI, 'coder', 'migrate', '--no-questions'], { cwd: root });
+    await EXECUTE(process.execPath, [CLI, 'migrate', '--no-questions'], { cwd: root });
     assert.equal((await EXECUTE('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout, head.stdout);
     assert.equal((await EXECUTE('git', ['status', '--porcelain'], { cwd: root })).stdout, '');
 });

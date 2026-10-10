@@ -38,23 +38,27 @@ test('installed executable resolves its own version/help from an external workin
     const version = await invoke(project, ['--version']);
     assert.equal(version.code, 0);
     assert.equal(version.stdout.trim(), manifest.version);
-    const help = await invoke(project, ['coder', '--help']);
+    const help = await invoke(project, ['--help']);
     assert.equal(help.code, 0);
-    assert.match(help.stdout, /coder <command>/);
+    assert.match(help.stdout, /ptbk <command>/);
     assert.match(help.stdout, /openai-codex/);
     assert.match(help.stdout, /migrate/);
+    assert.doesNotMatch(help.stdout, /ptbk coder/);
+    const legacy = await invoke(project, ['coder', 'run', '--dry-run']);
+    assert.equal(legacy.code, 2);
+    assert.match(legacy.stderr, /Use ptbk <command>/);
 });
 
 test('CLI list and dry-run work without Git, harness, default Book or runtime writes', async (t) => {
     const project = await fixture(t);
     const before = await readdir(project);
-    const list = await invoke(project, ['coder', 'list', '--json']);
+    const list = await invoke(project, ['list', '--json']);
     assert.equal(list.code, 0, list.stderr);
     const state = JSON.parse(list.stdout);
     assert.equal(state.tasks.length, 2);
     assert.equal(state.tasks[0].kind, 'waiting-until');
     assert.equal(state.tasks[1].kind, 'filtered');
-    const preview = await invoke(project, ['coder', 'run', '--dry-run', '--json', '--harness', 'openai-codex', '--model', 'gpt-fixture']);
+    const preview = await invoke(project, ['run', '--dry-run', '--json', '--harness', 'openai-codex', '--model', 'gpt-fixture']);
     assert.equal(preview.code, 0, preview.stderr);
     assert.equal(JSON.parse(preview.stdout).tasks[1].kind, 'ready');
     assert.deepEqual(await readdir(project), before);
@@ -65,17 +69,17 @@ test('CLI list and dry-run work without Git, harness, default Book or runtime wr
 test('CLI detects unsupported and contradictory flags before filesystem mutation', async (t) => {
     const project = await fixture(t);
     for (const [arguments_, expected] of [
-        [['coder', 'list', '--nonsense'], /Unsupported option/],
-        [['coder', 'run', '--test', 'npm test'], /replaced by --check/],
-        [['coder', 'run', '--test-before', 'yes'], /replaced by --check-before/],
-        [['coder', 'list', '--min-priority', '3', '--max-priority', '1'], /Minimum priority/],
-        [['coder', 'list', '--priority', '1', '--min-priority', '2'], /conflicts/],
-        [['coder', 'run', '--no-auto', '--no-questions'], /cannot be combined/],
-        [['coder', 'run', '--no-commit'], /requires --git-changes ignore/],
-        [['coder', 'list', '--check', 'npm test'], /unsupported for list/],
-        [['coder', 'server', '--dry-run'], /does not support --dry-run/],
-        [['coder', 'run', '--thinking-level', 'extreme'], /thinking-level/],
-        [['coder', 'list', '--max-priority', '1.5'], /nonnegative integer/],
+        [['list', '--nonsense'], /Unsupported option/],
+        [['run', '--test', 'npm test'], /replaced by --check/],
+        [['run', '--test-before', 'yes'], /replaced by --check-before/],
+        [['list', '--min-priority', '3', '--max-priority', '1'], /Minimum priority/],
+        [['list', '--priority', '1', '--min-priority', '2'], /conflicts/],
+        [['run', '--no-auto', '--no-questions'], /cannot be combined/],
+        [['run', '--no-commit'], /requires --git-changes ignore/],
+        [['list', '--check', 'npm test'], /unsupported for list/],
+        [['server', '--dry-run'], /does not support --dry-run/],
+        [['run', '--thinking-level', 'extreme'], /thinking-level/],
+        [['list', '--max-priority', '1.5'], /nonnegative integer/],
     ]) {
         const result = await invoke(project, arguments_);
         assert.equal(result.code, 2, `${arguments_.join(' ')}: ${result.stderr}`);
@@ -89,13 +93,13 @@ test('CLI path and custom absolute source options work with spaces and respect e
     const external = await fixture(t);
     await mkdir(path.join(project, 'custom tasks'));
     await writeFile(path.join(project, 'custom tasks', 'custom.book'), 'Custom\nTASK\nMETA ID custom\nSTATUS todo\nPROMPT\nWork\n');
-    const result = await invoke(external, ['coder', 'list', '--path', project, '--tasks', path.join(project, 'custom tasks'), '--json']);
+    const result = await invoke(external, ['list', '--path', project, '--tasks', path.join(project, 'custom tasks'), '--json']);
     assert.equal(result.code, 0, result.stderr);
     assert.deepEqual(JSON.parse(result.stdout).tasks.map((task) => task.id).filter((id) => !id.startsWith('markdown-')), ['custom']);
-    const missing = await invoke(project, ['coder', 'list', '--tasks', 'missing']);
+    const missing = await invoke(project, ['list', '--tasks', 'missing']);
     assert.equal(missing.code, 2);
     assert.match(missing.stderr, /Explicit task source/);
-    const outside = await invoke(project, ['coder', 'list', '--tasks', path.join(external, 'tasks')]);
+    const outside = await invoke(project, ['list', '--tasks', path.join(external, 'tasks')]);
     assert.equal(outside.code, 2);
     assert.match(outside.stderr, /escapes/);
 });
@@ -105,7 +109,7 @@ test('CLI explicit named agent routing matches the Book title without compiling 
     await mkdir(path.join(project, 'agents'));
     await writeFile(path.join(project, 'agents', 'developer.book'), 'Developer\nFROM {https://should-not-be-requested.invalid/agent.book}\nRULE Local fixture\n');
     await writeFile(path.join(project, 'tasks', 'agent.book'), 'Agent task\nTASK\nMETA ID agent-task\nSTATUS todo\nAGENT Developer\nPROMPT\nWork\n');
-    const result = await invoke(project, ['coder', 'list', '--json', '--agent', 'Developer']);
+    const result = await invoke(project, ['list', '--json', '--agent', 'Developer']);
     assert.equal(result.code, 0, result.stderr);
     assert.equal(JSON.parse(result.stdout).tasks.find((task) => task.id === 'agent-task').kind, 'ready');
     assert.deepEqual(await readdir(project), ['agents', 'prompts', 'tasks']);
@@ -114,7 +118,7 @@ test('CLI explicit named agent routing matches the Book title without compiling 
 test('CLI migration preview leaves bytes and directories unchanged and init alias needs no questions', async (t) => {
     const project = await fixture(t);
     const original = await readFile(path.join(project, 'prompts', 'legacy.md'), 'utf8');
-    const preview = await invoke(project, ['coder', 'migrate', '--dry-run', '--tasks', 'new books']);
+    const preview = await invoke(project, ['migrate', '--dry-run', '--tasks', 'new books']);
     assert.equal(preview.code, 0, preview.stderr);
     assert.equal(JSON.parse(preview.stdout).plan.length, 1);
     assert.equal(await readFile(path.join(project, 'prompts', 'legacy.md'), 'utf8'), original);

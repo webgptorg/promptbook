@@ -4,9 +4,21 @@ import { mkdtemp, mkdir, writeFile, readFile, rm, chmod, symlink, access, realpa
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { runQueue, fixChecks, recoverTask } from '../dist/coder/engine.js';
+import { validateCheck } from '../dist/coder/checks.js';
 import { git, captureSnapshot, commitScoped } from '../dist/coder/git.js';
 import { acquireLease, readLedger, readJournals, saveLedger, writeJournal } from '../dist/coder/state.js';
 import { discoverTasks } from '../dist/coder/sources.js';
+
+test('checks reject direct and indirect worker recursion under both command namespaces', async t => {
+    const workspace = await fixture(t, { empty: true });
+    for (const command of ['ptbk run', 'npx ptbk fix', 'ptbk server', 'ptbk coder run']) {
+        await assert.rejects(validateCheck(workspace, command), /recursively invokes/);
+    }
+    await writeFile(path.join(workspace.projectPath, 'package.json'), JSON.stringify({ scripts: {
+        check: 'npm run validate', validate: 'npx ptbk run --no-ui',
+    } }));
+    await assert.rejects(validateCheck(workspace, 'npm run check'), /recursive/);
+});
 
 /** A local fixture has no provider credentials and no dependency on this repository. */
 async function fixture(t, options = {}) {

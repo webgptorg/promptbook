@@ -1,10 +1,12 @@
-# Using ptbk coder
+# Using ptbk
 
 ## Project setup
 
 Install with Node 22.13+ in the Node 22 line, or Node 24+, npm 10+, and Git. npm trusted publishing has its own newer npm requirement; the release workflow supplies it through Node 24.
 
-Run `ptbk coder init --path ./project`. The command can initialize Git, including in unattended mode, but does not commit existing files. Repeating initialization preserves edited agent Books, instructions, templates, environment files, and existing scripts. It adds missing local roles and ignore entries. Existing `scripts.check` stays unchanged. A missing check script is assembled from existing validation scripts; a project without validation receives a setup placeholder that fails until configured.
+Run `ptbk init --path ./project`. The command can initialize Git, including in unattended mode, but does not commit existing files. Repeating initialization preserves edited agent Books, instructions, templates, environment files, and existing scripts. It adds missing local roles and ignore entries. Existing `scripts.check` stays unchanged. A missing check script is assembled from existing validation scripts; a project without validation receives a setup placeholder that fails until configured.
+
+All commands use the `ptbk` root. Replace historical `ptbk coder run` with `ptbk run`, and apply the same change to other commands. Init updates exact recognized generated npm callers and adds missing `coder:run`, `coder:list`, `coder:fix` and `coder:plan` scripts. It reports custom scripts or workflows using the old namespace and preserves their contents for manual editing.
 
 The selected project may be nested in a larger Git checkout. Relative `--path` starts at the invocation directory; relative `--tasks` starts at the selected project. Tasks, context, checks and subprocesses use the selected project. Symlinks cannot redirect task mutations outside it. Only top-level `.book` files in the task source and `.md` files in `prompts/` are discovered. README, archives, templates, traces, ignore markers and unfinished `@@@` work are excluded from execution.
 
@@ -65,9 +67,9 @@ With AFTER, slots remain anchored to that instant. Without it, activation persis
 ## Checks, commits and recovery
 
 ```bash
-ptbk coder run --harness openai-codex --check "npm run check" --check-before yes-and-fix
-ptbk coder fix --harness openai-codex --check "npm run check"
-ptbk coder verify
+ptbk run --harness openai-codex --check "npm run check" --check-before yes-and-fix
+ptbk fix --harness openai-codex --check "npm run check"
+ptbk verify
 ```
 
 Checks are skipped unless configured. `--check-before yes-and-fail` stops on failure; `yes-and-fix` repairs before entering the normal queue. `fix` checks first and never selects backlog tasks. Healthy fix does not prepare a harness or create an empty commit. `verify` is human review and archival; it does not run checks.
@@ -81,11 +83,11 @@ Default `--git-changes fail` refuses a dirty tree. `ignore` preserves staged and
 `--isolate` creates a sequential per-task worktree and integrates with `git merge --ff-only`. It requires commits and a named source branch. A conflicting integration preserves the worktree for recovery. A worktree provides checkout isolation, not a security sandbox.
 
 ```bash
-ptbk coder recover TASK_ID
-ptbk coder recover TASK_ID --action resume --dry-run
-ptbk coder recover TASK_ID --action resume
-ptbk coder recover TASK_ID --action retry
-ptbk coder recover TASK_ID --action acknowledge
+ptbk recover TASK_ID
+ptbk recover TASK_ID --action resume --dry-run
+ptbk recover TASK_ID --action resume
+ptbk recover TASK_ID --action retry
+ptbk recover TASK_ID --action acknowledge
 ```
 
 Inspect recovery first. Resume uses proven journal boundaries and refuses unproven bytes; retry explicitly repeats failed work; acknowledge accepts failure without claiming success. Never change HEAD/index or remove recovery evidence to make a run appear successful. Reverting individual phase commits does not undo external effects or the unversioned recurrence ledger.
@@ -93,15 +95,15 @@ Inspect recovery first. Resume uses proven journal boundaries and refuses unprov
 ## Migration
 
 ```bash
-ptbk coder migrate --tasks work-items --dry-run
-ptbk coder migrate --tasks work-items
+ptbk migrate --tasks work-items --dry-run
+ptbk migrate --tasks work-items
 ```
 
 Migration is deterministic and offline. Every Markdown section becomes a Book with stable provenance and literal payload. After verifying the entire source file, migration archives the original bytes and prevents both representations from becoming runnable during recovery. It preserves referenced assets and rejects collisions and changed destinations. The default is one scoped local commit; use `--no-commit` to retain changes. Repeating a completed migration does not duplicate tasks. Older ptbk binaries cannot run task Books; downgrade requires restoring original Markdown and reviewing recurrence history.
 
 ## Harnesses, planning and TEAM
 
-Supported provider adapters are `openai-codex`, `claude-code`, `github-copilot`, `cline`, `opencode`, `gemini` and `qwen-code`. Install and log into the chosen CLI independently. `ptbk coder --help` shows the single runtime registry and thinking capabilities. Unsupported effort is an error. Provider output does not override a failing exit code, failed turn or signal. Unknown quota and usage stay unknown.
+Supported provider adapters are `openai-codex`, `claude-code`, `github-copilot`, `cline`, `opencode`, `gemini` and `qwen-code`. Install and log into the chosen CLI independently. `ptbk --help` shows the single runtime registry and thinking capabilities. Unsupported effort is an error. Provider output does not override a failing exit code, failed turn or signal. Unknown quota and usage stay unknown.
 
 Codex prefers the active account session. Paid API use requires explicit `PTBK_OPENAI_CODEX_USE_API_KEY=1`; credit use requires `--allow-credits`. The coder does not silently switch provider or account. Known secrets are redacted in streams and traces. Only owned subprocess groups are terminated on cancellation.
 
@@ -126,7 +128,7 @@ Agent Books may select a model with `MODEL NAME model-name` or `MODEL model-name
 
 ## Persistent mode and output
 
-`ptbk coder server --harness openai-codex` serves `http://127.0.0.1:4441`. It uses the same execution engine, watches for source changes and due work, and stays alive when idle. Browser controls use a session token and local origin validation. Edits use source revision checks and the shared lease. Persistent server rejects finite `--limit`.
+`ptbk server --harness openai-codex` serves `http://127.0.0.1:4441`. It uses the same execution engine, watches for source changes and due work, and stays alive when idle. Browser controls use a session token and local origin validation. Edits use source revision checks and the shared lease. Persistent server rejects finite `--limit`.
 
 Interactive runs provide P pause/resume, S pacing/backoff skip, X finish-and-exit toggle, O normal/raw output, arrows to inspect buffered output, and End to follow live output. Pausing waits for safe phase boundaries. Skipping does not bypass AFTER. Non-TTY and `--no-ui` use plain output. Buffers are bounded; no inferred percentages or costs are shown as measured facts.
 
@@ -138,7 +140,7 @@ Exit codes: 0 successful mode completion (including future-only queue), 1 execut
 
 ## Releasing
 
-This repository publishes only `ptbk`, and publication runs only in GitHub Actions. Finish the repository's normal review and commit process before releasing: npm's version lifecycle requires a named branch and a clean, committed working tree, including untracked files. Run `npm run release:preminor` for the next minor prerelease or `npm run release:prerelease` for another prerelease of the current version. These aliases use normal `npm version` behavior: `preversion` runs `npm run typecheck`, `npm run release:validate` and `node scripts/preversion.mjs`. The final check enforces the named branch and clean tracked/untracked tree before any version change. npm then updates the manifest and lockfile and creates a version commit with its matching `vVERSION` tag, and `postversion` atomically pushes the current branch and that exact tag. A pushed `v*` tag triggers `publish.yml`; creating a GitHub Release is optional.
+This repository publishes only `ptbk`, and publication runs only in GitHub Actions. Finish the repository's normal review and commit process before releasing: npm's version lifecycle requires a named branch and a clean, committed working tree, including untracked files. Run `npm run release:preminor` for the next minor prerelease or `npm run release:prerelease` for another prerelease of the current version. These aliases use normal `npm version` behavior: `preversion` first checks the named branch and clean tracked/untracked tree, then runs type checking, release metadata validation and the compiled build. npm then updates the manifest and lockfile and creates a version commit with its matching `vVERSION` tag, and `postversion` atomically pushes the current branch and that exact tag. A pushed `v*` tag triggers `publish.yml`; creating a GitHub Release is optional.
 
 The push uses the branch's configured upstream remote and destination branch, or `origin` and the current branch when no upstream is configured. Git push access to that remote is required. Passing `--no-git-tag-version` explicitly skips the Git preflight, version commit/tag and automatic push; type checking and release metadata validation still run.
 

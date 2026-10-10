@@ -25,7 +25,7 @@
         "test": "npm run build && node --test test/*.test.mjs",
         "check": "npm run typecheck && npm test && npm run test:package",
         "test:package": "node scripts/test-package.mjs",
-        "preversion": "npm run typecheck && npm run release:validate && node scripts/preversion.mjs",
+        "preversion": "node scripts/preversion.mjs && npm run typecheck && npm run release:validate && npm run build",
         "postversion": "node scripts/postversion.mjs",
         "prepack": "npm run build",
         "prepublishOnly": "node scripts/assert-publish-context.mjs && npm run check",
@@ -34,8 +34,10 @@
         "release:publish": "node scripts/publish.mjs",
         "release:validate": "node scripts/validate-release.mjs",
         "release:verify": "node scripts/verify-published.mjs",
-        "coder:run": "npm run build && node bin/ptbk.js coder run --harness openai-codex --thinking-level max",
-        "coder:list": "npm run build && node bin/ptbk.js coder list"
+        "coder:run": "npm run build && node bin/ptbk.js run --harness openai-codex --thinking-level max",
+        "coder:list": "npm run build && node bin/ptbk.js list",
+        "coder:fix": "npm run build && node bin/ptbk.js fix --harness openai-codex --thinking-level max",
+        "coder:plan": "npm run build && node bin/ptbk.js plan --harness openai-codex --thinking-level max"
     },
     "engines": {
         "node": "^22.13.0 || >=24",

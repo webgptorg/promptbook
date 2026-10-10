@@ -94,7 +94,10 @@ test('init is idempotent and preserves custom Books, context, env and check scri
     assert.equal(await readFile(path.join(project, 'agents', 'developer.book'), 'utf8'), developer);
     assert.equal(await readFile(path.join(project, 'AGENTS.md'), 'utf8'), context);
     assert.equal(await readFile(path.join(project, '.env'), 'utf8'), 'PRIVATE_VALUE=original\n');
-    assert.equal(await readFile(path.join(project, 'package.json'), 'utf8'), packageText);
+    const scripts = JSON.parse(await readFile(path.join(project, 'package.json'), 'utf8')).scripts;
+    assert.equal(scripts.check, 'custom checker');
+    assert.equal(scripts['coder:run'], 'custom coder');
+    assert.equal(scripts['coder:list'], 'custom list');
     assert.deepEqual(await initializeProject(workspace), []);
     assert.deepEqual(await discoverTasks(workspace), []);
 });
@@ -122,6 +125,28 @@ test('init creates an honest failing check placeholder and preserves existing va
     await initializeProject(await resolveWorkspace({ path: validated }, true));
     const existing = JSON.parse(await readFile(path.join(validated, 'package.json'), 'utf8'));
     assert.equal(existing.scripts.check, 'npm run typecheck && npm run lint && npm run test && npm run build');
+});
+
+test('init migrates only recognized generated commands and leaves custom callers and workflows intact', async (t) => {
+    const project = await fixture(t);
+    const workflow = 'name: Custom\non: push\njobs:\n  work:\n    steps:\n      - run: npx ptbk coder run --custom-wrapper\n';
+    await mkdir(path.join(project, '.github', 'workflows'), { recursive: true });
+    await writeFile(path.join(project, '.github', 'workflows', 'custom.yml'), workflow);
+    await writeFile(path.join(project, 'package.json'), JSON.stringify({ scripts: {
+        check: 'node --test',
+        'coder:run': 'ptbk coder run --harness openai-codex --thinking-level max',
+        'coder:list': 'custom-wrapper && ptbk coder list',
+    } }));
+    const workspace = await resolveWorkspace({ path: project }, true);
+    await initializeProject(workspace);
+    const scripts = JSON.parse(await readFile(path.join(project, 'package.json'), 'utf8')).scripts;
+    assert.equal(scripts.check, 'node --test');
+    assert.equal(scripts['coder:run'], 'ptbk run --harness openai-codex --thinking-level max');
+    assert.equal(scripts['coder:list'], 'custom-wrapper && ptbk coder list');
+    assert.equal(scripts['coder:fix'], 'ptbk fix --harness openai-codex --thinking-level max');
+    assert.equal(scripts['coder:plan'], 'ptbk plan --harness openai-codex --thinking-level max');
+    assert.equal(await readFile(path.join(project, '.github', 'workflows', 'custom.yml'), 'utf8'), workflow);
+    assert.deepEqual(await initializeProject(workspace), []);
 });
 
 test('every init mutation is confined, including existing context, package and template symlinks', async (t) => {

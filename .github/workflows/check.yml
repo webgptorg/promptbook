@@ -2,7 +2,7 @@ name: Check ptbk
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: ['**']
 permissions:
   contents: read
 jobs:

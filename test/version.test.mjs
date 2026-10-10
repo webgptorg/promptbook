@@ -43,7 +43,7 @@ async function fixture(t, options = {}) {
     await copyFile(path.join(repository, 'scripts/validate-release.mjs'), path.join(root, 'scripts/validate-release.mjs'));
     await writeFile(path.join(root, 'scripts/typecheck.mjs'), "process.stdout.write('Fixture typecheck passed\\n');\n");
     const pkg = { name: 'ptbk', version: '1.2.3', private: false, scripts: {
-        typecheck: 'node scripts/typecheck.mjs', 'release:validate': 'node scripts/validate-release.mjs',
+        typecheck: 'node scripts/typecheck.mjs', build: 'node scripts/typecheck.mjs', 'release:validate': 'node scripts/validate-release.mjs',
         preversion: manifest.scripts.preversion, postversion: manifest.scripts.postversion,
     } };
     await writeFile(path.join(root, 'package.json'), `${JSON.stringify(pkg, null, 2)}\n`);
@@ -66,7 +66,7 @@ async function versionFiles(root) {
 
 test('the package uses npm version lifecycle checks and ordinary Git-tagged release aliases', async () => {
     const pkg = JSON.parse(await readFile(path.join(repository, 'package.json'), 'utf8'));
-    assert.equal(pkg.scripts.preversion, 'npm run typecheck && npm run release:validate && node scripts/preversion.mjs');
+    assert.equal(pkg.scripts.preversion, 'node scripts/preversion.mjs && npm run typecheck && npm run release:validate && npm run build');
     assert.match(pkg.scripts.postversion, /node scripts\/postversion\.mjs/);
     assert.equal(pkg.scripts['release:preminor'], 'npm version preminor');
     assert.equal(pkg.scripts['release:prerelease'], 'npm version prerelease');

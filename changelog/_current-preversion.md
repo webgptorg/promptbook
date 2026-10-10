@@ -44,3 +44,14 @@
     commands with top-level workflows, grouping the contracts under `specs/cli/`, and retaining
     the broader APT framework/server vision as historical material. Preserved legacy identifiers
     and source references for compatibility; implementation code and `old-prompts` are unchanged.
+-   Restored the compiled TypeScript CLI after the implementation cleanup and moved every workflow
+    to the top-level `ptbk` commands, including initialization, execution, checks, planning,
+    migration, recovery and the persistent dashboard. Historical storage paths and task markers
+    retain their compatibility meaning. The removed `coder` command group now explains the replacement.
+-   Initialization upgrades only exact recognized generated npm callers, supplies root-command
+    run/list/fix/plan scripts, and diagnoses custom legacy scripts/workflows without rewriting them.
+    Checks reject both root and historical worker invocations, including indirect npm-script recursion.
+-   Release preflight now rejects dirty/detached checkouts before doing other work and verifies the
+    compiled build before npm changes the version. CI checks all branches on macOS/Linux and Node 22/24;
+    publication remains restricted to the single `ptbk` package through GitHub Actions. Updated the
+    packed local/global installation regressions and documentation to exercise root commands.
