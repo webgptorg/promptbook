@@ -12,6 +12,9 @@
     tree, create the normal version commit/tag, and atomically push the current
     branch and exact new tag to trigger CI. Failed pushes can be retried with
     `npm run postversion`; local registry verification remains available without publishing.
+-   Wait for npm registry propagation after a successful upload instead of failing on the
+    first temporary missing-version response. Keep verification bounded and reject invalid
+    artifact metadata and authentication failures immediately.
 -   Implemented the coder task engine with legacy Markdown and task Books, strict scheduling,
     recurrence, deterministic migration, project initialization and authoring, safe Git/check
     phase persistence, recovery journals, harness adapters, agent context and TEAM tools,

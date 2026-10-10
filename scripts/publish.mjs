@@ -19,7 +19,7 @@ try {
     if (code === 0) {
         try { await verifyPublished(release); }
         catch (error) {
-            process.stderr.write(`Publication succeeded, but registry verification failed: ${error.message}\nRun npm run release:verify before attempting another publication; npm versions cannot be overwritten.\n`);
+            process.stderr.write(`npm accepted ptbk@${release.version}, but public registry verification failed: ${error.message}\nRun npm run release:verify before attempting another publication; npm versions cannot be overwritten. If npm staged the upload, complete its package review before verification.\n`);
             process.exitCode = 1;
         }
     }
