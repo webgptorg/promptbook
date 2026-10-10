@@ -24,6 +24,6 @@ Current Codex account execution requires explicit `--allow-credits` because its 
 
 New work is stored as task Books under `tasks/`. Existing top-level Markdown tasks under `prompts/` remain supported by the same engine. Agent Books under `agents/` define roles and are distinct from task Books.
 
-See [the coder guide](docs/coder.md), [compatibility and verification](docs/compatibility.md), `ptbk coder --help`, and [the specification](https://github.com/webgptorg/promptbook/blob/main/specs/coder.md). Run `npm run check` to verify the build, deterministic fixtures, and installation of the actual npm tarball in an external project.
+See [the coder guide](docs/coder.md), [compatibility and verification](docs/compatibility.md), `ptbk coder --help`, and [the specification](https://github.com/webgptorg/promptbook/blob/main/specs/_main.md). Run `npm run check` to verify the build, deterministic fixtures, and installation of the actual npm tarball in an external project.
 
 This prerelease replaces the old collection of npm packages. Publishing runs only in GitHub Actions when a `vVERSION` tag is pushed. From a clean, committed tree on a named branch, `npm run release:preminor` or `npm run release:prerelease` checks the release, creates npm's version commit/tag, and atomically pushes the branch and exact tag. Normal releases, including numeric prereleases, use `latest` so the default install gets the current CLI. See [release and push-retry instructions](docs/coder.md#releasing).

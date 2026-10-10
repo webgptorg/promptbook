@@ -1,6 +1,8 @@
-# Self-learning
+# Self-learning (historical)
 
-> Warning: this was part of the old specification. Take this document with less authority, especially the implementation technical details.
+> Historical specification retained from the older Agents Server specs. It has lower authority, especially for implementation details; see the [archive policy](../_index.md).
+
+[Historical index](../_index.md) · [Dictionary](../../dictionary.md)
 
 Agents whose book is **open** learn from their conversations: after a turn, the executing agent may append new content to its own source (samples of the exchange, teacher-suggested commitments). The server persists these changes **append-only**, so learning can never rewrite or corrupt the authored book.
 
@@ -19,27 +21,33 @@ Agents whose book is **open** learn from their conversations: after a turn, the 
     - persist only when the change is a pure **append** (after-source starts with before-source; anything else is discarded as unsafe);
     - the appended section is added to the stored **unresolved** child source — inherited/imported content materialized in the resolved source is never copied into the stored book;
     - skip when the appended section is already present (idempotency).
-3. The write goes through the normal [agent update path](../agents.md#editing) — history entry, hash recomputation, [preparation](preparation-and-caching.md) scheduling.
+3. The write goes through the normal agent update path (historical page: `../agents.md#editing`) — history entry, hash recomputation, preparation (historical page: `preparation-and-caching.md`) scheduling.
 
 ### When learning is skipped
 
 Persistence MUST be skipped when any of these hold:
 
 -   the book is `CLOSED` (engine-level skip),
--   [private mode](../chats.md#private-mode) is enabled for the request,
--   the executing agent is a [book-scoped sub-agent](inheritance-and-imports.md#book-scoped-references) (no own row to write to),
+-   private mode (historical page: `../chats.md#private-mode`) is enabled for the request,
+-   the executing agent is a [book-scoped sub-agent](references.md#book-scoped-references) (no own row to write to),
 -   the change is not append-only or is empty.
 
-Users can additionally disable self-learning for their own sessions via the control-panel toggle (shown when the `IS_CONTROL_PANEL_SELF_LEARNING_ENABLED` [metadata key](../configuration.md#control-panel-and-defaults) allows; see [Settings and notifications](../users/settings-and-notifications.md)).
+Users can additionally disable self-learning for their own sessions via the control-panel toggle (shown when the `IS_CONTROL_PANEL_SELF_LEARNING_ENABLED` metadata key (historical page: `../configuration.md#control-panel-and-defaults`) allows; see Settings and notifications (historical page: `../users/settings-and-notifications.md`)).
 
 ## The Teacher agent
 
-The Teacher is the well-known Book-language expert agent [seeded](../agents.md#seeding) into the hidden `.core` folder of every server. At chat time the server connects to it as a remote agent (`/agents/teacher` on the local server, connection cached per process) and passes it to the engine as `teacherAgent`.
+The Teacher is the well-known Book-language expert agent seeded (historical page: `../agents.md#seeding`) into the hidden `.core` folder of every server. At chat time the server connects to it as a remote agent (`/agents/teacher` on the local server, connection cached per process) and passes it to the engine as `teacherAgent`.
 
 The Teacher receives the interaction (prompt + response) plus any teacher instructions from the `OPEN` commitment and answers with suggested book additions (new `KNOWLEDGE`, `RULE`, … commitments). Teacher failures are logged and never fail the user's turn. When the Teacher is unavailable, learning degrades to sample-appending only.
 
 ## Guarantees
 
--   The authored part of a book is immutable under learning — only appends occur, and every applied append is visible in the [source history](../agents.md#editing).
+-   The authored part of a book is immutable under learning — only appends occur, and every applied append is visible in the source history (historical page: `../agents.md#editing`).
 -   Learning writes race-safely: idempotent append checks plus the ordinary update path (hash chain in `prefix_AgentHistory`) keep concurrent turns from duplicating sections.
--   Because persistence works on the unresolved child source, learning composes with [inheritance](inheritance-and-imports.md): a child learns into its own book, never into its parent's.
+-   Because persistence works on the unresolved child source, learning composes with [inheritance](source-resolution.md): a child learns into its own book, never into its parent's.
+
+## Related historical specifications
+
+- [Source resolution](source-resolution.md)
+- [Agent references](references.md)
+- [Commitment registry](../commitment-registry.md)

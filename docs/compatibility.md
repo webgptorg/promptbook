@@ -1,6 +1,6 @@
 # Coder compatibility and verification
 
-This record maps the implementation to [the coder specification](https://github.com/webgptorg/promptbook/blob/main/specs/coder.md). The scenario IDs below identify related requirements; they do not certify every combination in an acceptance scenario. Fixture coverage, provider capability checks and live-provider verification are different forms of evidence.
+This record maps the implementation to [the coder specification](https://github.com/webgptorg/promptbook/blob/main/specs/_main.md). The scenario IDs below identify related requirements; they do not certify every combination in an acceptance scenario. Fixture coverage, provider capability checks and live-provider verification are different forms of evidence.
 
 ## Compatibility table
 

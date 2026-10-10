@@ -31,3 +31,7 @@
     capability or explicit `--allow-credits`. Current Codex versions without that capability
     are refused before inference, including accounts with remaining included usage. Account
     and API authentication are forced explicitly; generated scripts never opt into credits.
+-   Reorganized the specifications around `specs/_main.md`, splitting coder contracts into focused,
+    interlinked files and expanding the dictionary into a linked term index. Preserved the dated
+    audit, acceptance IDs and lower-authority historical agent/server specs in `specs/deprecated/`,
+    repaired specification links, and left `old-prompts` and implementation code untouched.
