@@ -26,10 +26,10 @@ async function fixture(t) {
     return root;
 }
 
-test('release manifest and lockfile use only ptbk and prereleases stay on next', async () => {
+test('release manifest and lockfile use only ptbk and regular prereleases install through latest', async () => {
     const release = await validateRelease();
     assert.match(release.version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/);
-    assert.equal(release.tag, release.version.includes('-') ? 'next' : 'latest');
+    assert.equal(release.tag, 'latest');
     await validateRelease(`v${release.version}`);
     await assert.rejects(validateRelease('v0.1.0'), /must match/);
 });
@@ -42,11 +42,11 @@ test('publication requires the GitHub Actions repository and release tag', () =>
 });
 
 test('release verification rejects a missing or incorrectly tagged registry artifact', () => {
-    const release = { version: '0.115.0-0', tag: 'next' };
-    const metadata = { version: release.version, 'dist-tags': { next: release.version, latest: '0.114.0-50' }, 'dist.tarball': `https://registry.npmjs.org/ptbk/-/ptbk-${release.version}.tgz`, 'dist.integrity': `sha512-${Buffer.alloc(64).toString('base64')}` };
+    const release = { version: '0.115.0-0', tag: 'latest' };
+    const metadata = { version: release.version, 'dist-tags': { latest: release.version }, 'dist.tarball': `https://registry.npmjs.org/ptbk/-/ptbk-${release.version}.tgz`, 'dist.integrity': `sha512-${Buffer.alloc(64).toString('base64')}` };
     assertPublishedMetadata(release, metadata);
     assert.throws(() => assertPublishedMetadata(release, { ...metadata, version: '0.114.0-50' }), /registry version/);
-    assert.throws(() => assertPublishedMetadata(release, { ...metadata, 'dist-tags': { latest: release.version } }), /next dist-tag/);
+    assert.throws(() => assertPublishedMetadata(release, { ...metadata, 'dist-tags': { next: release.version } }), /latest dist-tag/);
     assert.throws(() => assertPublishedMetadata(release, { ...metadata, 'dist.tarball': undefined }), /tarball/);
     assert.throws(() => assertPublishedMetadata(release, { ...metadata, 'dist.integrity': undefined }), /integrity/);
 });

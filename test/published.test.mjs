@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { waitForPublishedMetadata } from '../scripts/verify-published.mjs';
 
 /** The exact prerelease and distribution channel used by registry fixtures. */
-const release = { version: '0.115.0-3', tag: 'next' };
+const release = { version: '0.115.0-3', tag: 'latest' };
 /** A complete public registry response matching the intended artifact. */
 const published = {
     version: release.version,
-    'dist-tags': { next: release.version, latest: '0.114.0-50' },
+    'dist-tags': { next: release.version, latest: release.version },
     'dist.tarball': `https://registry.npmjs.org/ptbk/-/ptbk-${release.version}.tgz`,
     'dist.integrity': `sha512-${Buffer.alloc(64).toString('base64')}`,
 };
@@ -57,21 +57,32 @@ test('npm processing E404 and a temporary network failure are retried until publ
 
 test('stale or missing release dist-tags are retried without accepting the wrong channel', async () => {
     const fixture = pollingFixture([
-        { ...published, 'dist-tags': { next: '0.115.0-2' } },
-        { ...published, 'dist-tags': { latest: release.version } },
+        { ...published, 'dist-tags': { latest: '0.115.0-2' } },
+        { ...published, 'dist-tags': { next: release.version } },
         published,
     ]);
     assert.equal(await waitForPublishedMetadata(release, fixture.options), published);
     assert.equal(fixture.reads(), 3);
     assert.deepEqual(fixture.waits, [10, 10]);
-    assert.match(fixture.messages[0], /next dist-tag/);
+    assert.match(fixture.messages[0], /latest dist-tag/);
+});
+
+test('publishing to next cannot pass verification while default installs still select the old release', async () => {
+    const fixture = pollingFixture([
+        { ...published, 'dist-tags': { next: release.version, latest: '0.114.0-50' } },
+        published,
+    ]);
+    assert.equal(await waitForPublishedMetadata(release, fixture.options), published);
+    assert.equal(fixture.reads(), 2);
+    assert.deepEqual(fixture.waits, [10]);
+    assert.match(fixture.messages[0], /latest dist-tag does not point to 0\.115\.0-3/);
 });
 
 test('registry propagation stops at its bounded deadline with the exact release and last failure', async () => {
     const missing = npmError('E404');
     const fixture = pollingFixture([missing]);
     await assert.rejects(waitForPublishedMetadata(release, fixture.options), error => {
-        assert.match(error.message, /ptbk@0\.115\.0-3.*next.*0\.025 seconds.*3 registry reads.*E404/);
+        assert.match(error.message, /ptbk@0\.115\.0-3.*latest.*0\.025 seconds.*3 registry reads.*E404/);
         assert.equal(error.cause, missing);
         return true;
     });
@@ -80,8 +91,8 @@ test('registry propagation stops at its bounded deadline with the exact release 
 });
 
 test('a permanently stale dist-tag also fails at the deadline', async () => {
-    const fixture = pollingFixture([{ ...published, 'dist-tags': { next: '0.115.0-2' } }]);
-    await assert.rejects(waitForPublishedMetadata(release, fixture.options), /next dist-tag does not point to 0\.115\.0-3/);
+    const fixture = pollingFixture([{ ...published, 'dist-tags': { latest: '0.115.0-2' } }]);
+    await assert.rejects(waitForPublishedMetadata(release, fixture.options), /latest dist-tag does not point to 0\.115\.0-3/);
     assert.equal(fixture.reads(), 3);
 });
 

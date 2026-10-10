@@ -6,7 +6,7 @@ import { assertPublishContext } from './assert-publish-context.mjs';
 
 assertPublishContext();
 
-/** Publishes exactly ptbk, keeping prereleases off the stable dist-tag. */
+/** Publishes exactly ptbk on this repository's default installation channel. */
 const release = await validateRelease();
 /** Only provenance is an optional publishing argument; package/tag remain fixed. */
 const options = process.argv.slice(2);

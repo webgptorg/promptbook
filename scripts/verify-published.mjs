@@ -111,7 +111,7 @@ export async function waitForPublishedMetadata(release, {
     }
 }
 
-/** Verifies registry metadata and local/global installations of the exact published version. */
+/** Verifies exact registry metadata and the version selected by default local/global installs. */
 export async function verifyPublished(release) {
     release ||= await validateRelease();
     await waitForPublishedMetadata(release);
@@ -121,16 +121,18 @@ export async function verifyPublished(release) {
         const prefix = join(temporary, 'global prefix');
         await mkdir(local);
         await writeFile(join(local, 'package.json'), '{"name":"ptbk-registry-fixture","version":"0.0.0","private":true}\n');
-        const installArguments = ['--ignore-scripts', '--no-audit', '--no-fund', ...registryArguments, `ptbk@${release.version}`];
+        // Verify the package users receive without a version selector. Explicitly selecting
+        // npm's default tag prevents an ambient npm configuration from verifying another channel.
+        const installArguments = ['--ignore-scripts', '--no-audit', '--no-fund', '--tag=latest', ...registryArguments, 'ptbk'];
         await execute(npm, ['install', ...installArguments], { cwd: local, timeout: 60_000 });
         const localExecutable = process.platform === 'win32' ? join(local, 'node_modules', 'ptbk', 'bin', 'ptbk.js') : join(local, 'node_modules', '.bin', 'ptbk');
         const installed = await execute(process.platform === 'win32' ? process.execPath : localExecutable, process.platform === 'win32' ? [localExecutable, '--version'] : ['--version'], { cwd: local, timeout: 15_000 });
-        assert.equal(installed.stdout.trim(), release.version, 'The registry-installed local executable reports a different version.');
+        assert.equal(installed.stdout.trim(), release.version, 'The default registry-installed local executable reports a different version.');
         await execute(npm, ['install', '--global', '--prefix', prefix, ...installArguments], { cwd: local, timeout: 60_000 });
         const globalExecutable = process.platform === 'win32' ? join(prefix, 'node_modules', 'ptbk', 'bin', 'ptbk.js') : join(prefix, 'bin', 'ptbk');
         const installedGlobal = await execute(process.platform === 'win32' ? process.execPath : globalExecutable, process.platform === 'win32' ? [globalExecutable, '--version'] : ['--version'], { cwd: local, timeout: 15_000 });
-        assert.equal(installedGlobal.stdout.trim(), release.version, 'The registry-installed global executable reports a different version.');
-        process.stdout.write(`Verified published ptbk@${release.version} (${release.tag}), artifact integrity, and local/global executable installations.\n`);
+        assert.equal(installedGlobal.stdout.trim(), release.version, 'The default registry-installed global executable reports a different version.');
+        process.stdout.write(`Verified published ptbk@${release.version} (${release.tag}), artifact integrity, and default local/global executable installations.\n`);
     } finally {
         await rm(temporary, { recursive: true, force: true });
     }

@@ -15,6 +15,10 @@
 -   Wait for npm registry propagation after a successful upload instead of failing on the
     first temporary missing-version response. Keep verification bounded and reject invalid
     artifact metadata and authentication failures immediately.
+-   Restore `latest` as the npm channel for normal `ptbk` releases, including numeric
+    prereleases, so default local/global installs receive the current coder CLI instead
+    of the legacy package. Verify unversioned installs against the released version and
+    clarify npm's selected-version publication date versus package-wide last publication.
 -   Implemented the coder task engine with legacy Markdown and task Books, strict scheduling,
     recurrence, deterministic migration, project initialization and authoring, safe Git/check
     phase persistence, recovery journals, harness adapters, agent context and TEAM tools,

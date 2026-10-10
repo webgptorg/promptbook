@@ -6,11 +6,11 @@ Requires Node.js 22.13+ in the Node 22 line, or Node 24+, npm 10+, and Git. macO
 
 ```bash
 # Global installation
-npm install --global ptbk@next
+npm install --global ptbk
 ptbk coder init --path ./my-project
 
 # Or install into a project
-npm install --save-dev ptbk@next
+npm install --save-dev ptbk
 npx ptbk coder init
 npx ptbk coder add "Fix CSV quoting and add a regression test"
 npx ptbk coder list
@@ -26,4 +26,4 @@ New work is stored as task Books under `tasks/`. Existing top-level Markdown tas
 
 See [the coder guide](docs/coder.md), [compatibility and verification](docs/compatibility.md), `ptbk coder --help`, and [the specification](https://github.com/webgptorg/promptbook/blob/main/specs/coder.md). Run `npm run check` to verify the build, deterministic fixtures, and installation of the actual npm tarball in an external project.
 
-This prerelease replaces the old collection of npm packages. Publishing runs only in GitHub Actions when a `vVERSION` tag is pushed. From a clean, committed tree on a named branch, `npm run release:preminor` or `npm run release:prerelease` checks the release, creates npm's version commit/tag, and atomically pushes the branch and exact tag. Prereleases use `next`; stable releases use `latest`. See [release and push-retry instructions](docs/coder.md#releasing).
+This prerelease replaces the old collection of npm packages. Publishing runs only in GitHub Actions when a `vVERSION` tag is pushed. From a clean, committed tree on a named branch, `npm run release:preminor` or `npm run release:prerelease` checks the release, creates npm's version commit/tag, and atomically pushes the branch and exact tag. Normal releases, including numeric prereleases, use `latest` so the default install gets the current CLI. See [release and push-retry instructions](docs/coder.md#releasing).

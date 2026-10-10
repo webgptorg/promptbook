@@ -13,7 +13,8 @@ export async function validateRelease(tag = process.env.RELEASE_TAG) {
     if (!versionPattern.test(manifest.version)) throw new Error('Package version is not valid release semver (build metadata is not used for published versions).');
     if (lock.name !== manifest.name || lock.version !== manifest.version || lock.packages[''].name !== manifest.name || lock.packages[''].version !== manifest.version) throw new Error('Manifest and package-lock.json name/version differ.');
     if (tag && tag !== `v${manifest.version}`) throw new Error(`Release tag ${tag} must match v${manifest.version}.`);
-    return { version: manifest.version, tag: manifest.version.includes('-') ? 'next' : 'latest' };
+    // Numeric prereleases are this repository's regular releases and must install by default.
+    return { version: manifest.version, tag: 'latest' };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
