@@ -179,12 +179,15 @@
         "coder:run": "echo \"This should run the coder defined by this package itself\""
     },
     "engines": {
-        "node": ">=18.18.0",
+        "node": "^20.19.0 || ^22.13.0 || >=24",
         "npm": ">=8.0.0"
     },
     "devDependencies": {
+        "@eslint/js": "10.0.1",
         "cspell": "9.0.2",
-        "eslint": "8.57.1"
+        "eslint": "10.12.0",
+        "globals": "16.5.0",
+        "typescript-eslint": "8.71.1"
     },
     "dependencies": {
         "spacetrim": "0.11.60",
