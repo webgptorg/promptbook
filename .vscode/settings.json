@@ -16,7 +16,9 @@
     "search.exclude": {
         "modules/sdk/types/**": true,
         "*/**/node_modules/": true,
-        "*/**/.next/": true
+        "*/**/.next/": true,
+        "tasks/traces": true,
+        "tasks/old-prompts": true
     },
     "grammarly.domain": "technical",
     "markdown.copyFiles.destination": {

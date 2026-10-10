@@ -14,6 +14,6 @@ The historical unfinished PRD for `--min-remaining-limit` and its time windows i
 
 - [Coding harnesses](harnesses.md)
 - [Attempts, retries and provider limits](retries.md)
-- [Persistent coder server](server.md)
+- [Persistent mode and dashboard](server.md)
 - [Traces and results](traces.md)
 - [Implementation stages and Definition of Done](delivery.md)

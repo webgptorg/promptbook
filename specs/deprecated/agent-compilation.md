@@ -1,6 +1,6 @@
 # Agent compilation (historical)
 
-> Historical specification retained from the older Agents Server specs. Language principles remain useful, but old paths, server routes and registry details are not the current coder contract; see the [archive policy](_index.md).
+> Historical specification retained from the older Agents Server specs. Language principles remain useful, but old paths, server routes and registry details are not the current ptbk CLI contract; see the [archive policy](_index.md).
 
 [Historical index](_index.md) · [Dictionary](../dictionary.md)
 

@@ -4,7 +4,7 @@
 
 An **agent** is a portable role defined by an agent Book: persona, rules, knowledge, inheritance and available advisors. A **project** is the selected directory with materials and configuration; it may be a subdirectory of a larger Git repository. A **task** is a specific work definition with its own state and execution conditions. A **harness** is a tool that gives the agent access to code and a model, such as OpenAI Codex or Claude Code.
 
-A **run** is one coder invocation. An **occurrence** is an individual instance of a task; a one-time task has one logical occurrence, while a recurring task has multiple. An **attempt** is a try within the same occurrence. A **check** is a project validation command. A **trace** is a traceable execution record. A **TEAM consultation** is a query to an advisory agent within a task rather than another concurrent task.
+A **run** is one ptbk invocation. An **occurrence** is an individual instance of a task; a one-time task has one logical occurrence, while a recurring task has multiple. An **attempt** is a try within the same occurrence. A **check** is a project validation command. A **trace** is a traceable execution record. A **TEAM consultation** is a query to an advisory agent within a task rather than another concurrent task.
 
 Agent Books and task Books share a readable language and lexical infrastructure. Their document types, meanings and runtimes differ. A task Book must not compile as an agent, automatically inherit Adam or create a chat profile.
 
@@ -22,7 +22,7 @@ Agent Books and task Books share a readable language and lexical infrastructure.
 
 ## Related specifications
 
-- [Coder architecture](architecture.md)
+- [CLI architecture](architecture.md)
 - [Task Books](task-books.md)
 - [Execution lifecycle](execution.md)
 - [Task eligibility](eligibility.md)

@@ -44,5 +44,5 @@ The base guarantee applies to one shared workspace. It does not guarantee global
 - [Not-before: earliest start](not-before.md)
 - [Task eligibility](eligibility.md)
 - [Mutation lease, journal and recovery](recovery.md)
-- [Persistent coder server](server.md)
+- [Persistent mode and dashboard](server.md)
 - [Traces and results](traces.md)

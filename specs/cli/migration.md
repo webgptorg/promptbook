@@ -3,8 +3,8 @@
 [Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
 ```bash
-ptbk coder migrate --path ./project --tasks ./work-items --dry-run
-ptbk coder migrate --path ./project --tasks ./work-items
+ptbk migrate --path ./project --tasks ./work-items --dry-run
+ptbk migrate --path ./project --tasks ./work-items
 ```
 
 Migration is an explicit one-way local operation. It performs no model call, tool installation, checks, implementation, server startup or database migration. Legacy execution must work without migration; one nonblocking tip per invocation may suggest the correct command.
@@ -20,7 +20,7 @@ Dry-run must not create a directory, lock/journal, source ID, file or commit; ke
 
 After interruption, the two representations must not be independently runnable. The runtime must identify the authoritative representation from migration provenance/the journal; block ambiguous copies. Repeating a completed migration must neither duplicate anything nor commit again. A changed source/destination, ID collision or lossy construct requires explicit resolution rather than overwrite.
 
-Conversion must not activate incomplete, not-ready, failed or in-progress sections. An older coder without Book support cannot execute the new tasks; compatibility cannot also be promised for old binaries. New init/authoring prefers Books while existing custom templates and scripts remain preserved.
+Conversion must not activate incomplete, not-ready, failed or in-progress sections. An older version of ptbk without Book support cannot execute the new tasks; compatibility cannot also be promised for old binaries. New init/authoring prefers Books while existing custom templates and scripts remain preserved.
 
 ## Related specifications
 

@@ -4,7 +4,7 @@
 
 ## Non-negotiable invariants
 
-- The coder automatically commits only proven owned changes for the relevant phase, task status and intentionally durable artifacts.
+- Promptbook automatically commits only proven owned changes for the relevant phase, task status and intentionally durable artifacts.
 - Preserve pre-existing staged and unstaged changes, index flags and ongoing user edits. A matching path alone does not prove ownership.
 - Do not use blanket `git add .`, automatic stash, destructive reset/clean, force-push or history rewriting to manufacture a successful state.
 - Hooks and configured signing remain active. A hook changing captured content means an unverified tree rather than a completed task.
@@ -17,7 +17,7 @@ Preserve the new contract for separate check commits. One task may produce multi
 
 A check commit has the subject `chore: Automatically commit changes made by checks`; its body records phase, command, task, attempt and actual outcome. Even a failing check may have its own file changes and commit; that does not make validation successful. An empty delta does not produce an empty commit.
 
-Coder normalization, status updates and finalization belong to their own scope rather than changes attributed to the checker. Support additions, deletions, renames, modes, symlinks and binary blobs; keep ignored outputs available for repair/recheck without bypassing Git ignore policy.
+CLI normalization, status updates and finalization belong to their own scope rather than changes attributed to the checker. Support additions, deletions, renames, modes, symlinks and binary blobs; keep ignored outputs available for repair/recheck without bypassing Git ignore policy.
 
 An intermediate commit must mark work as unfinished. A successful clean run with automatic commits must leave no eligible owned changes unpersisted at the end. A failed completion commit must not publish live `[x]`/`done`. In `--no-commit`, historical completion behavior may remain, but the result and UI must explicitly report `completed, uncommitted` and list retained paths.
 

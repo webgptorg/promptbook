@@ -58,7 +58,7 @@ The implementation is acceptable only after the following scenarios have been ve
 - **U10**: Normal/raw toggling preserves one run and one stream; scroll/resize/bounded buffers and non-TTY output remain readable.
 - **U11**: The server claims through the same engine and observes source edits and due time; mutating APIs require valid local context and the correct source revision.
 - **U12**: `verify` performs human review/archive and follow-up; it does not run checks or make unapproved review changes in no-questions mode.
-- **U13**: The packaged CLI works in an external fixture project, including Books, templates, the planning bridge and harness adapters without monorepo paths.
+- **U13**: The single packaged ptbk CLI works through its top-level commands in an external fixture project, including Books, templates, the planning bridge and harness adapters without monorepo paths. Help, examples and newly generated command invocations use the ptbk command root.
 - **U14**: A trace reports actual outcomes/commit IDs; a known fixture secret appears in neither output nor versioned artifacts.
 
 ## Related specifications

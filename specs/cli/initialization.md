@@ -15,7 +15,7 @@
 
 `init` must be repeatable: preserve edited Books, context, scripts, `.env`, editor settings and templates; add missing files/keys without wholesale overwrites. README/templates must not be runnable tasks. Preserve the ability to add Git ignore, gitattributes and relevant VS Code settings without making execution itself depend on the editor.
 
-Leave an existing `scripts.check` unchanged. If missing, construct it from actual usable project validation scripts in deterministic order and show its scope. Without validation, create a failing setup placeholder rather than a command that always succeeds. Migrate only exactly recognized generated historical callers; diagnose custom scripts and workflows without modifying them.
+Leave an existing `scripts.check` unchanged. If missing, construct it from actual usable project validation scripts in deterministic order and show its scope. Without validation, create a failing setup placeholder rather than a command that always succeeds. Newly generated command invocations use `ptbk` directly, including `ptbk run`, `ptbk fix` and `ptbk plan`. Migrate only exactly recognized generated historical callers to these commands; diagnose custom scripts and workflows without modifying them.
 
 ## Related specifications
 

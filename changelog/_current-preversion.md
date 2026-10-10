@@ -40,3 +40,7 @@
     and implementation code remain unchanged.
 -   Simplified prose-heavy specification tables into bullet points and a numbered delivery list,
     retaining tables for compact state/harness comparisons, module ownership and reference resolution.
+-   Defined Promptbook in the specifications solely as the `ptbk` CLI, replacing the nested coder
+    commands with top-level workflows, grouping the contracts under `specs/cli/`, and retaining
+    the broader APT framework/server vision as historical material. Preserved legacy identifiers
+    and source references for compatibility; implementation code and `old-prompts` are unchanged.

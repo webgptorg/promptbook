@@ -17,7 +17,7 @@ Preserve bounded buffers: the current raw limit of 256,000 characters / 2,048 ch
 
 ## Related specifications
 
-- [Persistent coder server](server.md)
+- [Persistent mode and dashboard](server.md)
 - [Not-before: earliest start](not-before.md)
 - [Execution lifecycle](execution.md)
 - [Traces and results](traces.md)

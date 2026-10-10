@@ -1,8 +1,8 @@
-# Persistent coder server
+# Persistent mode and dashboard
 
 [Main specification](../_main.md) · [Dictionary](../dictionary.md)
 
-Preserve the local overview of the queue, task contents, ongoing work, states and controls. The current coder server's default port is `4441`. The server may remain running after the current queue is exhausted and respond to new files or due times; it uses the same claim/execution services as `run`.
+`ptbk server` starts the CLI's persistent task supervisor and local dashboard. Preserve the local overview of the queue, task contents, ongoing work, states and controls. The analyzed server's default port is `4441`. The server may remain running after the current queue is exhausted and respond to new files or due times; it uses the same claim/execution services as `ptbk run`.
 
 The server must not start a nested CLI process for each task or keep its own copy of the parser or Git rules. Its specific responsibility is supervision, wake-up and event delivery to the UI. The UI, terminal and source snapshots must observe the same state.
 

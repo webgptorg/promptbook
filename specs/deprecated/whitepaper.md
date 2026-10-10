@@ -1,4 +1,6 @@
-# Promptbook
+# Promptbook: historical APT whitepaper
+
+> Historical conceptual paper from October 2, 2026, retained as background. Its framework/engine/agent-server model, broader product claims and implementation-status descriptions belong to that earlier account. Promptbook's current specification defines only the `ptbk` CLI; see the [main specification](../_main.md) and [historical specification policy](_index.md).
 
 ## From AI tasks to autonomous agendas
 

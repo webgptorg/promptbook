@@ -4,31 +4,34 @@
 
 ## Commands
 
-- `ptbk coder init` / `initialize`: Idempotently add missing project files and explain configuration. Preserve the current top-level init aliases as well.
-- `ptbk coder add`: Create a task from input/a template; the current command does not call a model. New projects prefer task Books.
-- `ptbk coder generate-boilerplates`: Generate unfinished templates that are not automatically runnable.
-- `ptbk coder plan`: Discuss the project and propose tasks; write only approved PRD/task files.
-- `ptbk coder list`: Show the queue, filters and reasons for ineligibility without a model or writes. Without `--agent`, do not filter to Developer.
-- `ptbk coder run`: Run currently eligible work finitely; do not wait indefinitely for future tasks.
-- `ptbk coder fix`: Run checks and, only if they fail, create and execute one repair task.
-- `ptbk coder verify`: Interactive human review of completed results, optional follow-up and archiving. Does not run checks.
-- `ptbk coder server`: A persistent queue and local web overview over the same engine.
-- `ptbk coder migrate`: A new deterministic conversion of Markdown tasks to task Books. No model call.
-- `find-unwritten`, `find-refactor-candidates`, `find-fresh-emoji-tags`, `ping`: Preserve useful authoring/diagnostic tools as separate commands, outside the task loop.
+All commands belong directly to `ptbk`. Help, examples and newly generated scripts use this single command root. The historical `coder` command group is replaced by the root CLI; see [compatibility and deliberate changes](compatibility.md).
+
+- `ptbk init` / `ptbk initialize`: Idempotently add missing project files and explain configuration.
+- `ptbk add`: Create a task from input/a template; the current command does not call a model. New projects prefer task Books.
+- `ptbk generate-boilerplates`: Generate unfinished templates that are not automatically runnable.
+- `ptbk plan`: Discuss the project and propose tasks; write only approved PRD/task files.
+- `ptbk list`: Show the queue, filters and reasons for ineligibility without a model or writes. Without `--agent`, do not filter to Developer.
+- `ptbk run`: Run currently eligible work finitely; do not wait indefinitely for future tasks.
+- `ptbk fix`: Run checks and, only if they fail, create and execute one repair task.
+- `ptbk verify`: Interactive human review of completed results, optional follow-up and archiving. Does not run checks.
+- `ptbk server`: A persistent queue and local web overview over the same engine.
+- `ptbk migrate`: A new deterministic conversion of Markdown tasks to task Books. No model call.
+- `ptbk recover <task-id>`: Inspect interrupted or blocked work; resume, retry or acknowledge it only through an explicit action. See [recovery](recovery.md).
+- `ptbk find-unwritten`, `ptbk find-refactor-candidates`, `ptbk find-fresh-emoji-tags`, `ptbk ping`: Preserve useful authoring/diagnostic tools as top-level commands of the same utility, outside the task loop.
 
 A command must not silently ignore an unsupported flag. The old `--test` and `--test-before` flags must exit with instructions to use `--check` and `--check-before`. `--priority` remains an alias for the lower priority bound.
 
 ## First use and a typical run
 
 ```bash
-ptbk coder init --path ./project
-ptbk coder list --path ./project
-ptbk coder run --path ./project --harness openai-codex --dry-run
-ptbk coder run --path ./project --harness openai-codex \
+ptbk init --path ./project
+ptbk list --path ./project
+ptbk run --path ./project --harness openai-codex --dry-run
+ptbk run --path ./project --harness openai-codex \
   --check "npm run check" --check-before yes-and-fix
 ```
 
-These examples describe the target coder; examples using `--tasks`, `migrate`, `TASK`, `AFTER` and `REPEAT` do not assert availability in the analyzed package.
+These examples describe the target CLI; examples using `--tasks`, `migrate`, `TASK`, `AFTER` and `REPEAT` do not assert availability in the analyzed package.
 
 ## Configuration and precedence
 
@@ -57,15 +60,15 @@ These examples describe the target coder; examples using `--tasks`, `migrate`, `
 - `--wait-between-prompts`: Minimum time between the starts of two tasks, default 0; execution time counts toward it.
 - `--wait-after-prompt`: Wait after completing a task, default 0.
 - `--wait-after-error`: Cooldown before a technical retry, default 10 minutes. Accept documented duration forms such as `30m`, `5s`, `1h30m`.
-- `--auto-migrate`: Existing test-server migration integration; a separate optional adapter. It is not `coder migrate`.
+- `--auto-migrate`: Existing test-server migration integration; a separate optional adapter. It is not `ptbk migrate`.
 
 Exact provider defaults must live in one updatable registry, and help must match runtime behavior. Do not treat model names from historical PRD examples as a permanent product contract.
 
-Supported thinking values are `low`, `medium`, `high`, `xhigh`, `max`; the selected adapter must state whether it uses them. The current Codex fallback is `xhigh`; the generated `coder:run` explicitly sets `max`. The new implementation must not silently accept unsupported effort and claim it took effect.
+Supported thinking values are `low`, `medium`, `high`, `xhigh`, `max`; the selected adapter must state whether it uses them. The current Codex fallback is `xhigh`; the historical generated `coder:run` explicitly sets `max`. The new implementation must not silently accept unsupported effort and claim it took effect.
 
 Validate combinations before the first mutation: `--auto-pull` with `--no-commit` is prohibited outside read-only preview; `--isolate` disallows both `--no-commit` and `continue`; `continue` disallows `--check-before yes-and-fix`. `--allow-destructive-auto-migrate` requires `--auto-migrate`.
 
-Unlike run, authoring utilities (`init`, `add`, `generate-boilerplates`, `plan`) default to commits being disabled and use explicit `--commit`; push requires a commit. `add [description]` accepts an argument, stdin or interactive input and preserves `--template`/priority. Boilerplates preserve `--count` in `N` and `N*M` forms (default `5*1`). `verify` preserves review order and a repeatable ignore filter. `ping` is a real small model call, optionally repeated with `--period`; it is not a read-only offline inspection.
+Unlike run, authoring utilities (`init`, `add`, `generate-boilerplates`, `plan`) default to commits being disabled and use explicit `--commit`; push requires a commit. `add [description]` accepts an argument, stdin or interactive input and preserves `--template`/priority. Boilerplates preserve `--count` in `N` and `N*M` forms (default `5*1`). `verify` preserves review order and a repeatable ignore filter. `ptbk ping` is a real small model call, optionally repeated with `--period`; it is not a read-only offline inspection.
 
 ## Related specifications
 

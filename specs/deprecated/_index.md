@@ -4,7 +4,7 @@
 
 ## Authority and retention
 
-These documents already carried a warning that they belonged to an older specification and had lower authority, especially for concrete implementation details. They are retained for language principles and historical context. Their normative wording describes the older Agents Server contract; it does not add requirements to the coder or certify present support. The current coder contracts linked from the main specification take precedence within their scope.
+The older agent/server specifications already carried a lower-authority warning, especially for concrete implementation details. They are retained for language principles and historical context, alongside the APT whitepaper. Their normative wording and broader product descriptions refer to earlier designs; they do not add requirements to the current CLI or certify present support. Promptbook's product scope is the single `ptbk` utility, defined by the contracts linked from the [main specification](../_main.md).
 
 The folder name marks the specification's status, not the deprecation of Book language or every capability mentioned here. No new deprecation of an implemented feature is declared by this reorganization.
 
@@ -14,6 +14,7 @@ The old-prompts archive remains untouched and is not part of this reorganization
 
 ## Retained responsibilities
 
+- [APT whitepaper](whitepaper.md): Historical conceptual model and broader framework/server vision; not the current product contract.
 - [Agent Book syntax](book-language.md): Source structure, parameters and composition rules.
 - [Commitment registry](commitment-registry.md): Older agent commitment keywords, aliases and effects.
 - [Agent compilation](agent-compilation.md): Profile parsing and model-requirements compilation.
