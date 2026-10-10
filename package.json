@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.115.0-2",
+    "version": "0.115.0-3",
     "description": "A local coding agent CLI with Book tasks, safe Git persistence, scheduling and interchangeable coding harnesses.",
     "private": false,
     "sideEffects": false,
