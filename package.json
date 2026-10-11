@@ -1,7 +1,7 @@
 {
     "name": "ptbk",
     "version": "0.117.0-0",
-    "description": "A local coding agent CLI with Book tasks, safe Git persistence, scheduling and interchangeable coding harnesses.",
+    "description": "Promptbook command-line utility for agent, project and task workflows.",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -19,13 +19,14 @@
     },
     "homepage": "https://ptbk.io/",
     "scripts": {
-        "start": "npm run coder:run",
+        "start": "npm run build && node bin/ptbk.js",
+        "ptbk": "npm run build && node bin/ptbk.js",
         "build": "node scripts/build.mjs",
         "typecheck": "tsc -p tsconfig.json --noEmit",
-        "test": "npm run build && node --test test/*.test.mjs",
+        "test": "npm run build && node scripts/test.mjs",
         "check": "npm run typecheck && npm test && npm run test:package",
-        "test:package": "node scripts/test-package.mjs",
-        "preversion": "npm run typecheck && npm run release:validate && node scripts/preversion.mjs",
+        "test:package": "npm run build && node scripts/test-package.mjs",
+        "preversion": "node scripts/preversion.mjs && npm run typecheck && npm run release:validate",
         "postversion": "node scripts/postversion.mjs",
         "prepack": "npm run build",
         "prepublishOnly": "node scripts/assert-publish-context.mjs && npm run check",
@@ -34,8 +35,9 @@
         "release:publish": "node scripts/publish.mjs",
         "release:validate": "node scripts/validate-release.mjs",
         "release:verify": "node scripts/verify-published.mjs",
-        "coder:run": "npm run build && node bin/ptbk.js coder run --harness openai-codex --thinking-level max",
-        "coder:list": "npm run build && node bin/ptbk.js coder list"
+        "release:patch": "npm version patch",
+        "release:minor": "npm version minor",
+        "release:major": "npm version major"
     },
     "engines": {
         "node": "^22.13.0 || >=24",
@@ -43,12 +45,13 @@
     },
     "devDependencies": {
         "@eslint/js": "10.0.1",
+        "@types/node": "22.20.5",
+        "@types/qrcode": "1.5.6",
         "cspell": "9.0.2",
         "eslint": "10.12.0",
         "globals": "16.5.0",
-        "typescript-eslint": "8.71.1",
         "typescript": "6.0.3",
-        "@types/node": "22.20.5"
+        "typescript-eslint": "8.71.1"
     },
     "bin": {
         "ptbk": "bin/ptbk.js"
@@ -59,7 +62,8 @@
         "README.md",
         "LICENSE.md",
         "CHANGELOG.md",
-        "docs/coder.md",
+        "docs/releasing.md",
+        "docs/runtime.md",
         "docs/compatibility.md",
         "changelog/_current-preversion.md"
     ],
@@ -73,5 +77,8 @@
     "publishConfig": {
         "access": "public",
         "registry": "https://registry.npmjs.org/"
+    },
+    "dependencies": {
+        "qrcode": "1.5.4"
     }
 }

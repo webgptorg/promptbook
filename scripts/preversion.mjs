@@ -10,6 +10,9 @@ const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const gitTaggingDisabled = ['', 'false', '0'].includes((process.env.npm_config_git_tag_version ?? 'true').toLowerCase());
 
 if (!gitTaggingDisabled) {
+    if (process.env.npm_config_tag_version_prefix !== undefined && process.env.npm_config_tag_version_prefix !== 'v') {
+        throw new Error('Release tags must use the v prefix to trigger Publish ptbk. Use npm version with --tag-version-prefix=v.');
+    }
     const { stdout: branch } = await execute('git', ['symbolic-ref', '--quiet', '--short', 'HEAD'], { cwd: repositoryRoot }).catch(() => {
         throw new Error('Release versioning requires a named Git branch. Check out the release branch before running npm version.');
     });

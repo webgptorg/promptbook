@@ -13,8 +13,8 @@ const execute = promisify(execFile);
 const registry = 'https://registry.npmjs.org/';
 /** Bounded online requests avoid silently verifying a stale registry cache. */
 const registryArguments = ['--registry', registry, '--prefer-online', '--fetch-retries=0', '--fetch-timeout=15000'];
-/** The npm executable used for registry reads and installation verification. */
-const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+/** npm run exposes its JavaScript entry point so registry commands also work on Windows. */
+const npmCli = process.env.npm_execpath;
 /** npm publication can return successfully before the public registry serves the release. */
 const propagationTimeout = 10 * 60_000;
 /** Fresh registry reads are spaced out while npm finishes processing the artifact. */
@@ -36,8 +36,14 @@ export function assertPublishedMetadata(release, metadata) {
 
 /** Reads the exact release without npm's separate, hidden fetch retry delays. */
 async function readPublishedMetadata(release) {
-    const { stdout } = await execute(npm, ['view', `ptbk@${release.version}`, 'version', 'dist-tags', 'dist.integrity', 'dist.tarball', '--json', ...registryArguments], { timeout: 30_000 });
+    const { stdout } = await executeNpm(['view', `ptbk@${release.version}`, 'version', 'dist-tags', 'dist.integrity', 'dist.tarball', '--json', ...registryArguments], { timeout: 30_000 });
     return JSON.parse(stdout);
+}
+
+/** Execute npm without relying on platform shell shims or interpolating registry values. */
+function executeNpm(args, options) {
+    if (!npmCli) throw new Error('Run registry verification with npm run release:verify.');
+    return execute(process.execPath, [npmCli, ...args], options);
 }
 
 /** Extracts npm's registry error code from a failed child process. */
@@ -124,11 +130,11 @@ export async function verifyPublished(release) {
         // Verify the package users receive without a version selector. Explicitly selecting
         // npm's default tag prevents an ambient npm configuration from verifying another channel.
         const installArguments = ['--ignore-scripts', '--no-audit', '--no-fund', '--tag=latest', ...registryArguments, 'ptbk'];
-        await execute(npm, ['install', ...installArguments], { cwd: local, timeout: 60_000 });
+        await executeNpm(['install', ...installArguments], { cwd: local, timeout: 60_000 });
         const localExecutable = process.platform === 'win32' ? join(local, 'node_modules', 'ptbk', 'bin', 'ptbk.js') : join(local, 'node_modules', '.bin', 'ptbk');
         const installed = await execute(process.platform === 'win32' ? process.execPath : localExecutable, process.platform === 'win32' ? [localExecutable, '--version'] : ['--version'], { cwd: local, timeout: 15_000 });
         assert.equal(installed.stdout.trim(), release.version, 'The default registry-installed local executable reports a different version.');
-        await execute(npm, ['install', '--global', '--prefix', prefix, ...installArguments], { cwd: local, timeout: 60_000 });
+        await executeNpm(['install', '--global', '--prefix', prefix, ...installArguments], { cwd: local, timeout: 60_000 });
         const globalExecutable = process.platform === 'win32' ? join(prefix, 'node_modules', 'ptbk', 'bin', 'ptbk.js') : join(prefix, 'bin', 'ptbk');
         const installedGlobal = await execute(process.platform === 'win32' ? process.execPath : globalExecutable, process.platform === 'win32' ? [globalExecutable, '--version'] : ['--version'], { cwd: local, timeout: 15_000 });
         assert.equal(installedGlobal.stdout.trim(), release.version, 'The default registry-installed global executable reports a different version.');

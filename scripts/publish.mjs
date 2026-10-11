@@ -12,7 +12,10 @@ const release = await validateRelease();
 const options = process.argv.slice(2);
 if (options.some(option => option !== '--provenance')) throw new Error('release:publish accepts only --provenance.');
 /** Registry publication uses the GitHub job's trusted publisher or configured npm token. */
-const publish = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['publish', '--access', 'public', '--tag', release.tag, ...options], { cwd: fileURLToPath(new URL('..', import.meta.url)), stdio: 'inherit', shell: false });
+const npmCli = process.env.npm_execpath;
+if (!npmCli) throw new Error('Run publication through npm run release:publish in GitHub Actions.');
+/** Run npm's JavaScript entry point directly, including on Windows. */
+const publish = spawn(process.execPath, [npmCli, 'publish', '--access', 'public', '--tag', release.tag, ...options], { cwd: fileURLToPath(new URL('..', import.meta.url)), stdio: 'inherit', shell: false });
 try {
     const code = await new Promise((resolve, reject) => { publish.once('error', reject); publish.once('exit', code => resolve(code ?? 1)); });
     process.exitCode = code;

@@ -1,21 +1,29 @@
 name: Check ptbk
 on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit or release tag to check
+        required: false
+        type: string
+        default: ''
   pull_request:
   push:
-    branches: [main]
+    branches: ['**']
 permissions:
   contents: read
 jobs:
   check:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         node: ['22', '24']
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ inputs.ref || github.ref }}
           persist-credentials: false
       - uses: actions/setup-node@v6
         with:

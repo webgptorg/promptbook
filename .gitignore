@@ -4,6 +4,7 @@ dist
 *.tgz
 coverage
 .promptbook
+.ptbk
 
 /secrets.md
 

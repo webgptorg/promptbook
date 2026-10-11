@@ -1,29 +1,37 @@
-# ptbk coder
+# Promptbook (`ptbk`)
 
-`ptbk` is the repository’s single npm package. It installs the `ptbk coder` CLI for local coding tasks, with interchangeable coding harnesses, project checks, Git persistence, and a persistent loopback dashboard.
+Promptbook operates readable agent and task Books over a Git project. This repository publishes one npm package, `ptbk`, which installs the `ptbk` command. Runtime state, requests, traces and the shared browser profile live in ignored `.ptbk/` files.
 
-Requires Node.js 22.13+ in the Node 22 line, or Node 24+, npm 10+, and Git. macOS and Linux are target platforms; use WSL on Windows. Install a coding harness separately and authenticate with its provider.
+Requires Node.js 22.13+ in the Node 22 line, or Node 24+, and npm 10+.
 
 ```bash
 # Global installation
 npm install --global ptbk
-ptbk coder init --path ./my-project
+ptbk init --path ./project
 
-# Or install into a project
+# Project-local installation
 npm install --save-dev ptbk
-npx ptbk coder init
-npx ptbk coder add "Fix CSV quoting and add a regression test"
-npx ptbk coder list
-npx ptbk coder run --harness openai-codex --dry-run
-npx ptbk coder run --harness openai-codex --check "npm run check"
+npx ptbk init
 ```
 
-The coder owns task state and commits. Harnesses receive instructions to leave commits to the coder. Initial project changes are preserved; the default run refuses a dirty working tree. Pull and push require explicit flags. `list` and `run --dry-run` are offline read-only operations.
+Initialization creates missing core agents, task templates and project conventions, preserving customized files. It offers supported harness installation and interactive authentication. `--no-install` skips installation; `--no-questions` avoids terminal prompts. Configure a meaningful project `check` script and commit the initialized project before starting work.
 
-Current Codex account execution requires explicit `--allow-credits` because its CLI cannot enforce the default credit prohibition. Add that flag only when authorizing account credits; see [the credit policy and provider limits](docs/coder.md#harnesses-planning-and-team).
+```bash
+ptbk add "Implement the new behavior and its acceptance checks" --commit
+ptbk list
+ptbk run --dry-run
+ptbk start                     # background agenda, localhost dashboard, reboot persistence
+ptbk show                      # inspect the same process and pending requests
+ptbk answer REQUEST_ID "Reply"
+ptbk stop                      # intentional stop also disables automatic restart
+```
 
-New work is stored as task Books under `tasks/`. Existing top-level Markdown tasks under `prompts/` remain supported by the same engine. Agent Books under `agents/` define roles and are distinct from task Books.
+`start` discovers available authenticated harnesses, uses Manager for missing assignments, and executes one task at a time. It requires reported outcome evidence and passing project checks before committing implementation, dated task completion and learning follow-ups together. It watches future work and materializes goal enquiries when no unfinished backlog remains. Failures retain work and expose recovery diagnostics.
 
-See [the coder guide](docs/coder.md), [compatibility and verification](docs/compatibility.md), `ptbk coder --help`, and [the specification](https://github.com/webgptorg/promptbook/blob/main/specs/_main.md). Run `npm run check` to verify the build, deterministic fixtures, and installation of the actual npm tarball in an external project.
+Use `start --raw` for foreground logs or `start --interactive` for terminal controls. `--no-persist`, `--no-server`, `--no-qr` and `--port` customize startup. `run` executes a finite queue with one configuration; for example `ptbk run --harness openai-codex --check "npm run check" --limit 1`. Harness availability, account policy and capability checks happen before inference; unsupported installed provider features produce an actionable diagnostic.
 
-This prerelease replaces the old collection of npm packages. Publishing runs only in GitHub Actions when a `vVERSION` tag is pushed. From a clean, committed tree on a named branch, `npm run release:preminor` or `npm run release:prerelease` checks the release, creates npm's version commit/tag, and atomically pushes the branch and exact tag. Normal releases, including numeric prereleases, use `latest` so the default install gets the current CLI. See [release and push-retry instructions](docs/coder.md#releasing).
+Global installation, local `npx ptbk`, or a project script such as `"ptbk": "ptbk"` work outside this repository. Each process loads its own installed runtime/version and pins that installation for restart. See [runtime usage](docs/runtime.md), [compatibility and verification](docs/compatibility.md), and [the specification](https://github.com/webgptorg/promptbook/blob/main/specs/_main.md).
+
+For development, use `npm ci` and `npm run check`. Checks validate types, deterministic integration fixtures and real tarball installations in disposable external projects. CI runs on Linux, macOS and Windows with Node 22 and 24.
+
+For releases, run `npm version patch`, `npm version minor`, or `npm version prerelease` on a clean named branch after committing your work. Basic `preversion` checks run locally; `postversion` atomically pushes the version commit and exact `vVERSION` tag. GitHub Actions checks and publishes only `ptbk` with npm provenance, then verifies the public registry and installed CLI. Configure npm trusted publishing once as described in [releasing](docs/releasing.md).
