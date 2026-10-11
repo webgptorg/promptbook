@@ -1,12 +1,13 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { promises as fs } from 'node:fs';
+import type { FileHandle } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { TaskDefinition, Workspace } from './domain.js';
-import { git, type GitIdentity, type GitSnapshot } from './git.js';
+import { git, type FileSnapshot, type GitIdentity, type GitSnapshot } from './git.js';
 import { confinePath } from './workspace.js';
 
 /** Durable result of one occurrence; the ledger is bounded independently from traces. @private */
@@ -55,13 +56,13 @@ export interface AtomicWriteOptions {
     rename?: (source: string, destination: string) => Promise<void>;
     sleep?: (milliseconds: number) => Promise<void>;
 }
-/** Write a complete state file atomically; a crash leaves the previous complete revision. @private */
-export async function atomicWrite(filename: string, value: unknown, options: AtomicWriteOptions = {}): Promise<void> {
+/** Publish complete JSON or binary state using the same atomic replacement and sharing retries. */
+async function atomicReplace(filename: string, write: (handle: FileHandle) => Promise<void>, options: AtomicWriteOptions = {}): Promise<void> {
     await fs.mkdir(path.dirname(filename), { recursive: true });
     const temporary = `${filename}.${randomUUID()}.tmp`;
     try {
         const handle = await fs.open(temporary, 'wx', 0o600);
-        try { await handle.writeFile(`${JSON.stringify(value, null, 2)}\n`); await handle.sync(); } finally { await handle.close(); }
+        try { await write(handle); await handle.sync(); } finally { await handle.close(); }
         // Windows readers and virus scanners may briefly deny replacing an open file. Retry the
         // same complete temporary file; never unlink the previous revision to force replacement.
         for (let attempt = 0; ; attempt++) {
@@ -73,11 +74,15 @@ export async function atomicWrite(filename: string, value: unknown, options: Ato
         }
     } finally { await fs.rm(temporary, { force: true }); }
 }
+/** Write a complete state file atomically; a crash leaves the previous complete revision. @private */
+export async function atomicWrite(filename: string, value: unknown, options: AtomicWriteOptions = {}): Promise<void> {
+    await atomicReplace(filename, handle => handle.writeFile(`${JSON.stringify(value, null, 2)}\n`), options);
+}
 /** Read a required versioned object and distinguish absent state from corruption. @private */
-async function readState<T>(filename: string): Promise<T | undefined> {
+async function readState<T>(filename: string, versions: readonly number[] = [1]): Promise<T | undefined> {
     try {
         const object = JSON.parse(await fs.readFile(filename, 'utf8')) as T & { version?: number };
-        if (!object || object.version !== 1) throw new Error('unsupported or missing schema version');
+        if (!object || !versions.includes(object.version!)) throw new Error('unsupported or missing schema version');
         return object;
     } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
@@ -97,17 +102,114 @@ function journalPath(workspace: Workspace, id: string): string {
     if (!/^[a-zA-Z0-9_-]+$/.test(id)) throw new Error('Invalid journal identity.');
     return path.join(stateDirectory(workspace), 'journals', `${id}.json`);
 }
-/** Persist the last proven execution boundary before the next effect. @private */
-export async function writeJournal(workspace: Workspace, journal: RunJournal): Promise<void> { await atomicWrite(journalPath(workspace, journal.id), journal); }
+
+/** New snapshots reference immutable bytes; optional inline content supports existing journals. */
+interface StoredFileSnapshot extends Omit<FileSnapshot, 'content'> { content?: string; contentRef?: string }
+/** Snapshot metadata remains in the journal independently of the checkout's aggregate byte size. */
+interface StoredSnapshot extends Omit<GitSnapshot, 'files'> { files: Record<string, StoredFileSnapshot> }
+/** Every ownership boundary uses the same compact snapshot representation on disk. */
+interface StoredJournal extends Omit<RunJournal, 'version' | 'baseline' | 'expected' | 'completionRollback' | 'isolation'> {
+    version: 1 | 2;
+    baseline: StoredSnapshot; expected?: StoredSnapshot; completionRollback?: StoredSnapshot;
+    isolation?: Omit<NonNullable<RunJournal['isolation']>, 'origin'> & { origin: StoredSnapshot };
+}
+
+/** Only validated content hashes may select files in the project-local snapshot store. */
+function snapshotBlobPath(directory: string, hash: string): string {
+    if (!/^[a-f0-9]{64}$/.test(hash)) throw new Error('Invalid recovery snapshot reference; state was preserved.');
+    return path.join(directory, hash);
+}
+
+/** Verify stored bytes before they can participate in restoration or a new journal revision. */
+async function readSnapshotBlob(directory: string, hash: string): Promise<Buffer> {
+    const filename = snapshotBlobPath(directory, hash);
+    try {
+        if (!(await fs.lstat(filename)).isFile()) throw new Error(`Recovery snapshot ${hash} is corrupt; state was preserved.`);
+        const bytes = await fs.readFile(filename);
+        if (createHash('sha256').update(bytes).digest('hex') !== hash) throw new Error(`Recovery snapshot ${hash} is corrupt; state was preserved.`);
+        return bytes;
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new Error(`Recovery snapshot ${hash} is missing; state was preserved.`, { cause: error });
+        throw error;
+    }
+}
+
+/** Save each distinct byte sequence before publishing any journal that references it. */
+async function storeSnapshot(snapshot: GitSnapshot, directory: string, contents: Map<string, string>): Promise<StoredSnapshot> {
+    const files: [string, StoredFileSnapshot][] = [];
+    for (const [name, file] of Object.entries(snapshot.files)) {
+        const filename = snapshotBlobPath(directory, file.hash);
+        if (contents.get(file.hash) !== file.content) {
+            const bytes = Buffer.from(file.content, 'base64');
+            if (createHash('sha256').update(bytes).digest('hex') !== file.hash) throw new Error(`Recovery snapshot ${file.hash} is corrupt; state was preserved.`);
+            try {
+                await fs.lstat(filename);
+                await readSnapshotBlob(directory, file.hash);
+            } catch (error) {
+                if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+                await atomicReplace(filename, handle => handle.writeFile(bytes));
+            }
+            contents.set(file.hash, file.content);
+        }
+        files.push([name, { hash: file.hash, mode: file.mode, kind: file.kind, contentRef: file.hash }]);
+    }
+    return { ...snapshot, files: Object.fromEntries(files) };
+}
+
+/** Restore the in-memory snapshot contract and share identical strings across all boundaries. */
+async function loadSnapshot(snapshot: StoredSnapshot, directory: string, contents: Map<string, string>): Promise<GitSnapshot> {
+    const files: [string, FileSnapshot][] = [];
+    for (const [name, file] of Object.entries(snapshot.files)) {
+        let content: string;
+        if (typeof file.content === 'string' && file.contentRef === undefined) content = file.content;
+        else if (typeof file.contentRef === 'string' && file.contentRef === file.hash && file.content === undefined) {
+            const cached = contents.get(file.contentRef);
+            content = cached ?? (await readSnapshotBlob(directory, file.contentRef)).toString('base64');
+            contents.set(file.contentRef, content);
+        } else throw new Error(`Invalid recovery snapshot for ${name}; state was preserved.`);
+        files.push([name, { hash: file.hash, mode: file.mode, kind: file.kind, content }]);
+    }
+    return { ...snapshot, files: Object.fromEntries(files) };
+}
+
+/** Persist compact metadata and deduplicated exact bytes before the next effect. @private */
+export async function writeJournal(workspace: Workspace, journal: RunJournal): Promise<void> {
+    const filename = journalPath(workspace, journal.id);
+    await fs.mkdir(stateDirectory(workspace), { recursive: true });
+    // Isolated checkouts share the origin's operational state, outside their projectPath.
+    const directory = await confinePath(stateDirectory(workspace), path.join(stateDirectory(workspace), 'snapshot-blobs'));
+    await fs.mkdir(directory, { recursive: true });
+    const contents = new Map<string, string>();
+    const stored: StoredJournal = {
+        ...journal,
+        version: 2,
+        baseline: await storeSnapshot(journal.baseline, directory, contents),
+        expected: journal.expected ? await storeSnapshot(journal.expected, directory, contents) : undefined,
+        completionRollback: journal.completionRollback ? await storeSnapshot(journal.completionRollback, directory, contents) : undefined,
+        isolation: journal.isolation ? { ...journal.isolation, origin: await storeSnapshot(journal.isolation.origin, directory, contents) } : undefined,
+    };
+    await atomicWrite(filename, stored);
+}
 /** Read journals in deterministic order without writing to the workspace. @private */
 export async function readJournals(workspace: Workspace, include: (journal: RunJournal) => boolean = () => true): Promise<RunJournal[]> {
     let names: string[];
     try { names = await fs.readdir(path.join(stateDirectory(workspace), 'journals')); }
     catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []; throw error; }
     const journals: RunJournal[] = [];
+    const directory = await confinePath(stateDirectory(workspace), path.join(stateDirectory(workspace), 'snapshot-blobs'));
+    const contents = new Map<string, string>();
     for (const name of names.filter((item) => item.endsWith('.json')).sort()) {
-        const journal = await readState<RunJournal>(path.join(stateDirectory(workspace), 'journals', name));
-        if (!journal || !journal.id || !journal.taskId || !journal.baseline || !journal.phase) throw new Error(`Invalid recovery journal ${name}; state was preserved.`);
+        const stored = await readState<StoredJournal>(path.join(stateDirectory(workspace), 'journals', name), [1, 2]);
+        if (!stored || !stored.id || !stored.taskId || !stored.baseline || !stored.phase) throw new Error(`Invalid recovery journal ${name}; state was preserved.`);
+        const { baseline, expected, completionRollback, isolation, ...metadata } = stored;
+        const journal: RunJournal = {
+            ...metadata,
+            version: 1,
+            baseline: await loadSnapshot(baseline, directory, contents),
+            ...(expected ? { expected: await loadSnapshot(expected, directory, contents) } : {}),
+            ...(completionRollback ? { completionRollback: await loadSnapshot(completionRollback, directory, contents) } : {}),
+            ...(isolation ? { isolation: { ...isolation, origin: await loadSnapshot(isolation.origin, directory, contents) } } : {}),
+        };
         if (include(journal)) journals.push(journal);
     }
     return journals;

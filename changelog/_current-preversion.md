@@ -7,3 +7,4 @@
 - Fix Windows runtime state/browser startup sharing violations, process cancellation, secret-redaction scope, portable trace/learning paths and isolation recovery across Git checkout line-ending filters.
 - Make integration fixtures independent of host path separators and Git line-ending defaults, with bounded completion waits that tolerate hosted-runner load and surface runtime failures immediately.
 - Keep all platform checks running after a matrix failure, bound concurrent fixture processes, and document releasing code fixes under a new immutable version tag.
+- Fix `ptbk run` failing with `Invalid string length` while claiming tasks in large checkouts by storing deduplicated snapshot bytes separately from recovery journal JSON; preserve existing journal compatibility and verify stored bytes before recovery.
