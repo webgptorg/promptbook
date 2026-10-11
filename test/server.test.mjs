@@ -15,6 +15,17 @@ import { resolveWorkspace } from '../dist/coder/workspace.js';
 /** Local fixture Git calls never execute a shell or touch the checkout under test. */
 const run = promisify(execFile);
 
+/** Wait for an observable boundary with a finite deadline and the last returned state on failure. */
+async function until(read, accepts, description, timeout = 60000) {
+    const deadline = Date.now() + timeout; let value;
+    do {
+        value = await read();
+        if (accepts(value)) return value;
+        await delay(100);
+    } while (Date.now() < deadline);
+    assert.fail(`${description}: ${JSON.stringify(value)}`);
+}
+
 /** Reserve then release a loopback port for a real HTTP integration test. */
 async function freePort() {
     const socket = createSocket();
@@ -35,6 +46,8 @@ async function fixture(t, options = {}) {
     await run('git', ['-C', project, 'init', '--quiet']);
     await run('git', ['-C', project, 'config', 'user.name', 'Fixture']);
     await run('git', ['-C', project, 'config', 'user.email', 'fixture@example.test']);
+    await run('git', ['-C', project, 'config', 'commit.gpgsign', 'false']);
+    await run('git', ['-C', project, 'config', 'core.autocrlf', 'false']);
     await mkdir(path.join(project, 'tasks'));
     await mkdir(path.join(project, 'agents'));
     await writeFile(path.join(project, '.gitignore'), '.ptbk/\n');
@@ -54,12 +67,7 @@ async function fixture(t, options = {}) {
         ...options,
     });
     t.after(async () => { controller.abort(); await completion; await rm(project, { recursive: true, force: true }); });
-    let html;
-    for (let attempt = 0; attempt < 150; attempt++) {
-        try { html = await (await fetch(origin)).text(); break; }
-        catch { await delay(20); }
-    }
-    assert.ok(html, 'Server started');
+    const html = await until(async () => { try { return await (await fetch(origin)).text(); } catch { return undefined; } }, Boolean, 'Server started', 30000);
     const token = /const token="([a-f0-9-]+)"/.exec(html)[1];
     const fixtureResult = {
         project, workspace, origin, token, html, controller, completion, calls: () => calls,
@@ -71,12 +79,7 @@ async function fixture(t, options = {}) {
     };
     fixtureResult.pause = async () => {
         await fixtureResult.request('/api/control', { action: 'pause' });
-        for (let attempt = 0; attempt < 150; attempt++) {
-            const state = await (await fixtureResult.request('/api/state')).json();
-            if (!state.running) return;
-            await delay(20);
-        }
-        throw new Error('Server failed to pause after its current finite queue finished.');
+        await until(async () => (await fixtureResult.request('/api/state')).json(), state => !state.running, 'Server paused after its current finite queue finished');
     };
     return fixtureResult;
 }
@@ -143,12 +146,7 @@ test('persistent server executes through the shared engine after source change a
     await run('git', ['-C', server.project, 'add', 'tasks/future.book']);
     await run('git', ['-C', server.project, 'commit', '--quiet', '-m', 'Make fixture due']);
     await server.request('/api/control', { action: 'resume' });
-    let state;
-    for (let attempt = 0; attempt < 150; attempt++) {
-        state = await (await server.request('/api/state')).json();
-        if (state.tasks[0].status === 'done') break;
-        await delay(20);
-    }
+    const state = await until(async () => (await server.request('/api/state')).json(), state => state.tasks[0].status === 'done', 'Server completed the due task');
     assert.equal(state.tasks[0].status, 'done', JSON.stringify(state.events));
     assert.equal(server.calls(), 1);
     assert.equal(await readFile(path.join(server.project, 'output.txt'), 'utf8'), 'Implemented');
@@ -167,6 +165,7 @@ test('server continue recovers once then watches and executes work added on a la
     await run('git', ['-C', project, 'config', 'user.name', 'Fixture']);
     await run('git', ['-C', project, 'config', 'user.email', 'fixture@example.test']);
     await run('git', ['-C', project, 'config', 'commit.gpgsign', 'false']);
+    await run('git', ['-C', project, 'config', 'core.autocrlf', 'false']);
     await mkdir(path.join(project, 'tasks')); await mkdir(path.join(project, 'agents'));
     await writeFile(path.join(project, '.gitignore'), '.ptbk/\n');
     await writeFile(path.join(project, 'agents', 'developer.book'), 'Developer\nFROM VOID\nRULE Implement the fixture.\nCLOSED\n');
@@ -186,42 +185,27 @@ test('server continue recovers once then watches and executes work added on a la
     const port = await freePort(); const origin = `http://127.0.0.1:${port}`; const controller = new AbortController();
     const completion = startCoderServer(workspace, { port, signal: controller.signal, harness: 'openai-codex', gitChanges: 'continue', runHarness: provider });
     t.after(async () => { controller.abort(); await completion; await rm(project, { recursive: true, force: true }); });
-    let html;
-    for (let attempt = 0; attempt < 200; attempt++) {
-        try { html = await (await fetch(origin)).text(); break; } catch { await delay(25); }
-    }
-    assert.ok(html, 'Recovery server started');
+    const html = await until(async () => { try { return await (await fetch(origin)).text(); } catch { return undefined; } }, Boolean, 'Recovery server started', 30000);
     const token = /const token="([a-f0-9-]+)"/.exec(html)[1];
     const request = (route, body) => fetch(`${origin}${route}`, {
         method: body === undefined ? 'GET' : 'POST',
         headers: { 'X-Ptbk-Token': token, ...(body === undefined ? {} : { Origin: origin, 'Content-Type': 'application/json' }) },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
-    let state;
-    for (let attempt = 0; attempt < 200; attempt++) {
-        state = await (await request('/api/state')).json();
-        if (!state.running && state.tasks[0].status === 'done') break;
-        await delay(25);
-    }
+    let state = await until(async () => (await request('/api/state')).json(), state => !state.running && state.tasks[0].status === 'done', 'Server recovered the accepted occurrence');
     assert.equal(state.tasks[0].status, 'done', JSON.stringify(state.events)); assert.equal(calls, 1, 'Recovery does not repeat successful inference');
     await delay(1200);
     state = await (await request('/api/state')).json();
     assert.equal(state.paused, false, JSON.stringify(state.events));
     assert.ok(!state.events.some(event => /Continue requires exactly one/.test(event.message)));
     await request('/api/control', { action: 'pause' });
-    for (let attempt = 0; attempt < 200; attempt++) {
-        state = await (await request('/api/state')).json(); if (!state.running) break; await delay(25);
-    }
+    state = await until(async () => (await request('/api/state')).json(), state => !state.running, 'Server paused after recovery');
     await writeFile(path.join(project, 'tasks', 'later.book'), taskBook('later', ''));
     await ensureCoreAgents(project);
     await run('git', ['-C', project, 'add', '--', 'tasks/later.book']);
     await run('git', ['-C', project, 'commit', '--quiet', '-m', 'New work after recovery']);
     await request('/api/control', { action: 'resume' });
-    for (let attempt = 0; attempt < 200; attempt++) {
-        state = await (await request('/api/state')).json();
-        if (!state.running && state.tasks.find(task => task.id === 'later')?.status === 'done') break;
-        await delay(25);
-    }
+    state = await until(async () => (await request('/api/state')).json(), state => !state.running && state.tasks.find(task => task.id === 'later')?.status === 'done', 'Server completed work added after recovery');
     assert.equal(state.tasks.find(task => task.id === 'later')?.status, 'done', JSON.stringify(state.events));
     assert.equal(calls, 2); assert.equal(state.paused, false);
 });

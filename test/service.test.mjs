@@ -15,6 +15,13 @@ import { runQueue } from '../dist/coder/engine.js';
 import { ensureCoreAgents } from '../dist/coder/agents.js';
 import { processBirth } from '../dist/coder/state.js';
 
+/** Control changes need one supervisor iteration and allow shared CI runner scheduling. */
+const CONTROL_DEADLINE = 30_000;
+/** One accepted result includes subprocess startup, checks, Git validation and persistence. */
+const TASK_DEADLINE = 60_000;
+/** Manager routing and its target each execute and persist a complete accepted result. */
+const ASSIGNMENT_DEADLINE = 2 * TASK_DEADLINE;
+
 /** Produce an isolated committed project with offline agents and a successful checker. */
 async function fixture(t, content = '', nested = '') {
     const root = await realpath(await mkdtemp(path.join(tmpdir(), 'ptbk-service-')));
@@ -47,12 +54,32 @@ async function inventory() {
 }
 
 /** Wait for observable conditions without calling models or changing sources. */
-async function until(read, predicate, label, milliseconds = 30000) {
+async function until(read, predicate, label, milliseconds = CONTROL_DEADLINE) {
     const deadline = Date.now() + milliseconds;
     let value;
-    while (Date.now() < deadline) { value = await read(); if (predicate(value)) return value; await delay(25); }
+    while (Date.now() < deadline) { value = await read(); if (predicate(value)) return value; await delay(100); }
     assert.fail(`${label}: ${JSON.stringify(value)}`);
 }
+
+/** Allow slow CI subprocesses while rejecting genuine service failures on their first observation. */
+async function untilTask(read, predicate, label, milliseconds = TASK_DEADLINE) {
+    return until(async () => {
+        const state = await read();
+        assert.ok(state, `${label}: supervisor became unavailable before the expected result`);
+        assert.equal(state.statistics?.failed ?? 0, 0, `${label}: task failed: ${JSON.stringify(state)}`);
+        assert.ok(!['blocked', 'recovery-required', 'sync-pending', 'setup-required', 'stopped', 'interrupted'].includes(state.status), `${label}: service cannot complete this result: ${JSON.stringify(state)}`);
+        return state;
+    }, predicate, label, milliseconds);
+}
+
+test('accepted-work deadlines report runtime failure immediately rather than waiting for CI allowances', async () => {
+    let reads = 0;
+    await assert.rejects(untilTask(async () => { reads++; return { status: 'waiting', statistics: { failed: 1 } }; }, () => false, 'Failed fixture', ASSIGNMENT_DEADLINE), /task failed/);
+    assert.equal(reads, 1);
+    for (const status of ['blocked', 'recovery-required', 'sync-pending', 'setup-required', 'stopped', 'interrupted']) {
+        await assert.rejects(untilTask(async () => ({ status, statistics: { failed: 0 } }), () => false, 'Unavailable fixture', ASSIGNMENT_DEADLINE), /cannot complete this result/);
+    }
+});
 
 /** Operate the real supervisor with bounded lifecycle cleanup and injected offline dependencies. */
 async function supervise(t, workspace, options = {}) {
@@ -61,7 +88,10 @@ async function supervise(t, workspace, options = {}) {
     const confirmed = new Promise(resolve => { ready = resolve; });
     const completion = runService(workspace, { mode: 'raw', noPersist: true, noQr: true, noServer: true, automatic: false, signal: controller.signal, inspectHarnesses: inventory, onReady: ready, ...options });
     workspace.cleanups.push(async () => { controller.abort(); await completion; });
-    await Promise.race([confirmed, completion.then(() => { throw new Error('Supervisor stopped before ready'); })]);
+    let timeout;
+    try {
+        await Promise.race([confirmed, completion.then(() => { throw new Error('Supervisor stopped before ready'); }), new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Supervisor did not become ready within its startup work deadline')), TASK_DEADLINE); })]);
+    } finally { clearTimeout(timeout); }
     return { controller, completion, inspect: () => serviceCommand(workspace), command: (action, input) => serviceCommand(workspace, action, input) };
 }
 
@@ -138,20 +168,18 @@ test('shared supervisor controls protect optimistic edits and distinguish live s
 
 test('settings changed during a task wait for a safe boundary and retain the active provider configuration', async t => {
     const workspace = await fixture(t, 'TASK Implement fixture\nImplement one change.\nTASK ID fixture\nTASK AGENT @Developer\nTASK HARNESS openai-codex\n');
-    let started;
-    const entered = new Promise(resolve => { started = resolve; });
     let release;
     const held = new Promise(resolve => { release = resolve; });
     const seen = [];
-    const server = await supervise(t, workspace, { model: 'fixture-model', runHarness: async request => { seen.push(request.model); started(); await held; await writeFile(path.join(request.projectPath, 'code.txt'), 'implemented\n'); return { outcome: 'success', exitCode: 0, output: 'Offline change accepted.' }; } });
+    const server = await supervise(t, workspace, { model: 'fixture-model', runHarness: async request => { seen.push(request.model); await held; await writeFile(path.join(request.projectPath, 'code.txt'), 'implemented\n'); return { outcome: 'success', exitCode: 0, output: 'Offline change accepted.' }; } });
     workspace.cleanups.push(async () => release());
-    await entered;
+    await untilTask(server.inspect, () => seen.length > 0, 'Provider entered the fixture');
     const update = await server.command('settings', { settings: { model: 'next-model' } });
     assert.equal(update.active.model, 'fixture-model');
     assert.equal(update.pending.model, 'next-model');
     assert.equal((await server.command('pause')).pausePending, true);
     release();
-    const state = await until(server.inspect, value => !value.running && value.settings.model === 'next-model', 'Pending settings applied');
+    const state = await untilTask(server.inspect, value => !value.running && value.settings.model === 'next-model', 'Pending settings applied');
     assert.equal(state.paused, true);
     assert.deepEqual(seen, ['fixture-model']);
     assert.equal(state.statistics.completed, 1);
@@ -168,9 +196,9 @@ test('automatic start executes its visible Manager prerequisite before the targe
         } else await writeFile(path.join(request.projectPath, 'code.txt'), 'implemented\n');
         return { outcome: 'success', exitCode: 0, output: 'Verified the requested fixture result.', acceptance: { satisfied: true, evidence: 'The requested fixture files were checked.' } };
     } });
-    const state = await until(server.inspect, value => value.tasks.find(task => task.id === 'target')?.status === 'done', 'Manager and target completed', 60000);
+    const state = await untilTask(server.inspect, value => value.tasks.find(task => task.id === 'target')?.status === 'done', 'Manager and target completed', ASSIGNMENT_DEADLINE);
     await server.command('pause');
-    await until(server.inspect, value => !value.running, 'Manager queue paused');
+    await untilTask(server.inspect, value => !value.running, 'Manager queue paused');
     assert.equal(calls.length, 2, JSON.stringify(state.events));
     const tasks = await discoverTasks(workspace);
     const manager = tasks.find(task => task.origin === 'engine:assignment:target');
@@ -197,9 +225,9 @@ test('automatic Markdown routing is an ordinary Manager result and keeps the leg
         } else await writeFile(path.join(request.projectPath, 'code.txt'), 'legacy implemented\n');
         return { outcome: 'success', exitCode: 0, output: 'Verified the requested fixture result.', acceptance: { satisfied: true, evidence: 'Legacy routing or implementation was verified.' } };
     } });
-    const state = await until(server.inspect, value => value.tasks.find(task => task.id === legacy.id)?.status === 'done', 'Legacy task completed', 15000);
+    const state = await untilTask(server.inspect, value => value.tasks.find(task => task.id === legacy.id)?.status === 'done', 'Legacy Manager and target completed', ASSIGNMENT_DEADLINE);
     await server.command('pause');
-    await until(server.inspect, value => !value.running, 'Legacy queue paused');
+    await untilTask(server.inspect, value => !value.running, 'Legacy queue paused');
     assert.equal(calls.length, 2, JSON.stringify(state.events));
     assert.equal(await readFile(filename, 'utf8'), original.replace('[ ]', '[x]'));
     assert.equal((await discoverTasks(workspace)).filter(task => task.source.format === 'markdown').length, 1);
@@ -216,9 +244,9 @@ test('automatic goal enquiry observes backlog and durable cooldown while unavail
     await first.command('stop'); await first.completion;
     await rm(path.join(workspace.tasksPath, 'target.book')); await git(workspace.gitRoot, ['add', '--', 'tasks/target.book']); await git(workspace.gitRoot, ['commit', '-qm', 'Remove future backlog']);
     const second = await supervise(t, workspace, { automatic: true, runHarness: async () => { calls++; return { outcome: 'success', exitCode: 0, output: 'No additional work is justified by the fixture.', acceptance: { satisfied: true, evidence: 'Existing goals were reviewed without fabricating work.' } }; } });
-    await until(second.inspect, value => value.tasks.some(task => task.status === 'done'), 'Goal enquiry completed');
+    await untilTask(second.inspect, value => value.tasks.some(task => task.status === 'done'), 'Goal enquiry completed');
     await second.command('pause');
-    await until(second.inspect, value => !value.running, 'Goal enquiry paused');
+    await untilTask(second.inspect, value => !value.running, 'Goal enquiry paused');
     const generated = await discoverTasks(workspace);
     assert.equal(generated.length, 1);
     assert.match(generated[0].origin, /^engine:goal-enquiry:Developer$/);
@@ -244,12 +272,14 @@ test('startup registration previews pin one project and installation without reg
     assert.match(linux.content, /ExecStart=.*\$\$literal%%/);
     assert.match(linux.content, /WorkingDirectory=.*\$literal%%/);
     assert.match(linux.content, /--resume/);
+    assert.equal(linux.path, path.join('/fixture-home', '.config', 'systemd', 'user', linux.name));
     const mac = startupRegistration(special, paths, 'darwin', '/fixture-home');
     assert.match(mac.content, /space &amp; \$literal%/);
-    assert.match(mac.path, /Library\/LaunchAgents/);
+    assert.equal(mac.path, path.join('/fixture-home', 'Library', 'LaunchAgents', `${mac.name}.plist`));
     const windows = startupRegistration(special, paths, 'win32', '/fixture-home');
     assert.match(windows.content, /InteractiveToken/);
     assert.match(windows.content, /ExecutionTimeLimit>PT0S/);
+    assert.equal(windows.path, path.join(special.statePath, 'startup-task.xml'));
     assert.equal(windows.name, startupRegistration(special, paths, 'win32', '/fixture-home').name);
     assert.throws(() => startupRegistration(special, paths, 'freebsd', '/fixture-home'), /unsupported/);
 });
@@ -274,13 +304,16 @@ test('failed automatic persistence recovery waits for review without repeating i
 });
 
 test('a real detached daemon starts and stops in a deeply nested project with spaces', async t => {
-    const workspace = await fixture(t, 'TASK Future fixture\nTASK ID future\nTASK AFTER 2099-01-01T00:00Z\n', 'long project path '.repeat(12).trimEnd());
+    // Unix exercises the socket length limit; Windows keeps Git metadata below MAX_PATH while exercising spaces and the hashed pipe.
+    const nested = 'long project path '.repeat(process.platform === 'win32' ? 3 : 12).trimEnd();
+    const workspace = await fixture(t, 'TASK Future fixture\nTASK ID future\nTASK AFTER 2099-01-01T00:00Z\n', nested);
     workspace.cleanups.push(() => stopService(workspace));
     const started = await startService(workspace, { mode: 'daemon', noPersist: true, noQr: true, noServer: true, automatic: false, inspectHarnesses: inventory });
     assert.equal(started.mode, 'daemon');
     assert.equal(started.persistent, false);
     const record = await readServiceRecord(workspace);
     assert.equal((await serviceCommand(workspace)).id, record.id);
+    if (process.platform === 'win32') assert.match(record.endpoint, /^\\\\\.\\pipe\\ptbk-[a-f0-9]{24}$/);
     if (process.platform !== 'win32') {
         assert.ok(Buffer.byteLength(record.endpoint) < 100);
         const directory = await lstat(path.dirname(record.endpoint));
@@ -299,12 +332,12 @@ test('shared skip-wait advances supervisor pacing while task dates remain author
     await writeFile(path.join(workspace.tasksPath, 'future.book'), 'TASK Future fixture\nTASK ID future\nTASK AFTER 2099-01-01T00:00Z\n');
     await git(workspace.gitRoot, ['add', '--', 'tasks']); await git(workspace.gitRoot, ['commit', '-qm', 'Pacing fixture agenda']);
     const calls = [];
-    const server = await supervise(t, workspace, { waitBetweenPrompts: 10000, waitAfterPrompt: 10000, runHarness: async request => { calls.push(request.taskId); await writeFile(path.join(request.projectPath, 'code.txt'), `${request.taskId}\n`); return { outcome: 'success', exitCode: 0, output: 'Offline result complete.' }; } });
-    await until(server.inspect, state => state.statistics.completed === 1 && !state.running, 'First paced task completed');
+    const server = await supervise(t, workspace, { waitBetweenPrompts: TASK_DEADLINE, waitAfterPrompt: TASK_DEADLINE, runHarness: async request => { calls.push(request.taskId); await writeFile(path.join(request.projectPath, 'code.txt'), `${request.taskId}\n`); return { outcome: 'success', exitCode: 0, output: 'Offline result complete.' }; } });
+    await untilTask(server.inspect, state => state.statistics.completed === 1 && !state.running, 'First paced task completed');
     await delay(1100);
     assert.deepEqual(calls, ['first']);
     assert.equal((await server.command('skip-wait')).skipped, true);
-    await until(server.inspect, state => state.statistics.completed === 2 && !state.running, 'Second task started after shared skip');
+    await untilTask(server.inspect, state => state.statistics.completed === 2 && !state.running, 'Second task started after shared skip');
     await server.command('pause');
     const state = await server.inspect();
     assert.deepEqual(calls, ['first', 'second']);
@@ -317,20 +350,18 @@ test('raw mode reports an active human request and keeps ordinary unsupported-to
     const originalWrite = process.stdout.write;
     process.stdout.write = function(chunk, ...args) { output += String(chunk); return originalWrite.call(this, chunk, ...args); };
     workspace.cleanups.push(() => { process.stdout.write = originalWrite; });
-    let asked;
-    const entered = new Promise(resolve => { asked = resolve; });
+    let request;
     const server = await supervise(t, workspace, { noQuestions: true, runHarness: async invocation => {
         assert.equal(invocation.tools, undefined, 'Cline receives no unverified host browser tools for an ordinary task');
-        const request = await createRequest(workspace, { kind: 'question', taskId: invocation.taskId, activityId: invocation.occurrenceId, reason: 'The offline fixture needs a human answer.', prompt: 'Which fixture value should be written?' });
-        asked(request);
+        request = await createRequest(workspace, { kind: 'question', taskId: invocation.taskId, activityId: invocation.occurrenceId, reason: 'The offline fixture needs a human answer.', prompt: 'Which fixture value should be written?' });
         const response = await waitForAnswer(workspace, request.id, invocation.signal);
         await writeFile(path.join(invocation.projectPath, 'code.txt'), `${response}\n`);
         return { outcome: 'success', exitCode: 0, output: 'Human response applied to fixture.' };
     } });
-    const request = await entered;
+    await untilTask(server.inspect, () => request !== undefined, 'Provider created its active human request');
     await until(async () => output, value => value.includes(`Pending request ${request.id}`) && value.includes(`ptbk answer "${request.id}"`), 'Raw mode explains how to answer without reading stdin');
     await server.command('answer', { id: request.id, response: 'reviewed' });
-    await until(server.inspect, state => state.statistics.completed === 1 && !state.running, 'Active task received the shared durable answer');
+    await untilTask(server.inspect, state => state.statistics.completed === 1 && !state.running, 'Active task received the shared durable answer');
     await server.command('pause');
     assert.equal(await readFile(path.join(workspace.projectPath, 'code.txt'), 'utf8'), 'reviewed\n');
 });

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import test from 'node:test';
 import { promisify } from 'node:util';
-import { ProjectBrowser, browserTools, discoverBrowserExecutable } from '../dist/coder/browser.js';
+import { ProjectBrowser, browserTools, discoverBrowserExecutable, waitForBrowserEndpoint } from '../dist/coder/browser.js';
 import { resolveWorkspace } from '../dist/coder/workspace.js';
 import { listRequests } from '../dist/coder/requests.js';
 
@@ -19,6 +19,23 @@ async function fixture(t) {
     t.after(() => rm(project, { recursive: true, force: true }));
     return resolveWorkspace({ path: project });
 }
+
+test('Chrome endpoint polling retries Windows sharing locks and partial writes within its startup deadline', async () => {
+    let reads = 0;
+    const endpoint = await waitForBrowserEndpoint('fixture-port-file', {
+        platform: 'win32', timeoutMs: 1000, read: async () => {
+            reads++;
+            if (reads <= 2) throw Object.assign(new Error('Chrome still holds the file'), { code: reads === 1 ? 'EBUSY' : 'EACCES' });
+            if (reads === 3) return '519';
+            return '51943\r\n/devtools/browser/fixture\r\n';
+        },
+    });
+    assert.equal(reads, 4);
+    assert.deepEqual(endpoint, { endpoint: 'http://127.0.0.1:51943', socket: 'ws://127.0.0.1:51943/devtools/browser/fixture' });
+    await assert.rejects(waitForBrowserEndpoint('fixture-port-file', { platform: 'win32', timeoutMs: 20, read: async () => { throw Object.assign(new Error('permanently locked'), { code: 'EBUSY' }); } }), /within 20 ms \(EBUSY\)/);
+    await assert.rejects(waitForBrowserEndpoint('fixture-port-file', { platform: 'linux', timeoutMs: 100, read: async () => { throw Object.assign(new Error('permission denied'), { code: 'EACCES' }); } }), /permission denied/);
+    await assert.rejects(waitForBrowserEndpoint('fixture-port-file', { read: async () => { throw Object.assign(new Error('disk I\/O failure'), { code: 'EIO' }); } }), /disk I\/O failure/);
+});
 
 test('browser inventories and missing executables do not launch or create disposable session profiles', async t => {
     const workspace = await fixture(t);

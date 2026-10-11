@@ -204,7 +204,7 @@ async function infer(workspace: Workspace, journal: RunJournal, options: RunOpti
     if (journal.agentInstructionsHash && journal.agentInstructionsHash !== instructionsHash) throw new Error('Agent instructions changed during the active task; inspect the source before retrying.');
     journal.agent = selection.agentPath; journal.agentInstructionsHash = instructionsHash;
     emit(result, options, 'selection', `Agent ${selection.agentPath}; harness ${selection.harness}; model ${selection.model ?? 'provider native (unknown)'}; thinking ${options.thinkingLevel ?? journal.task.thinkingLevel ?? 'adapter default (unknown)'}.`, journal.task, { agent: selection.agentPath, harness: selection.harness, model: selection.model, thinkingLevel: options.thinkingLevel ?? journal.task.thinkingLevel });
-    const learningSource = (await readJournals(workspace, previous => previous.followupPath === journal.task.source.relativePath && Boolean(previous.learningTarget)))[0];
+    const learningSource = (await readJournals(workspace, previous => previous.followupPath?.replace(/\\/g, '/') === journal.task.source.relativePath && Boolean(previous.learningTarget)))[0];
     if (learningSource?.learningTarget) {
         const target = await prepareAgent(path.join(workspace.projectPath, learningSource.learningTarget), workspace.projectPath);
         if (!target.learning.open) {
@@ -306,7 +306,7 @@ async function trace(workspace: Workspace, journal: RunJournal, outcome: string,
     const filename = await confinePath(workspace.statePath, path.join(directory, `${journal.occurrenceId}.md`));
     const body = `# ${journal.task.title}\n\nTask: ${journal.taskId}\nOccurrence: ${journal.occurrenceId}\nRun/journal: ${journal.id}\nRuntime journal: .ptbk/journals/${journal.id}.json\nRecord: finalization boundary; runtime journal contains authoritative final result and commit IDs\nCommit provenance: Ptbk-Journal: ${journal.id}\nSource: ${journal.task.source.relativePath}\nPayload SHA-256: ${journal.sourceSnapshot?.payloadHash ?? createHash('sha256').update(journal.task.payload).digest('hex')}\nSource snapshot SHA-256: ${journal.sourceSnapshot?.revision ?? 'not recorded'}\nOutcome: ${outcome}\nAgent: ${journal.agent ?? 'not invoked'}\nHarness: ${journal.harness ?? 'not invoked'}\nModel: ${journal.effectiveModel ?? journal.model ?? 'unknown (provider did not report)'}\nThinking: ${journal.thinkingLevel ?? 'unknown (adapter default)'}\nAuthentication: ${journal.authentication ?? 'unknown'}\nUsage: ${journal.usage ? JSON.stringify(journal.usage) : 'unknown'}\nCheck command: ${journal.checkCommand ?? 'not configured'}\nChecks: ${journal.checks ?? 'skipped'}\nOutcome evidence: ${journal.acceptance?.evidence ?? 'not reported'}\nStarted: ${new Date(journal.startedAt).toISOString()}\nUpdated: ${new Date((options.now ?? Date.now)()).toISOString()}\n\n## Exposed provider attempts\n\n${journal.truncatedAttempts ? `[ptbk] ${journal.truncatedAttempts} earlier attempt records were truncated; the latest 100 remain.\n\n` : ''}${JSON.stringify(journal.attemptHistory ?? [], null, 2)}\n\n${journal.output ?? ''}\n`;
     await fs.writeFile(filename, retainedOutput(redactSecrets(body, options.redactProjectPath ?? workspace.projectPath)), { mode: 0o600 });
-    journal.trace = path.relative(path.dirname(workspace.statePath), filename); await writeJournal(workspace, journal); return filename;
+    journal.trace = path.relative(path.dirname(workspace.statePath), filename).split(path.sep).join('/'); await writeJournal(workspace, journal); return filename;
 }
 /** Materialize one deduplicated Teacher task while honoring the agent's current local learning policy. @private */
 async function learningFollowup(workspace: Workspace, journal: RunJournal): Promise<string | undefined> {
@@ -327,7 +327,7 @@ async function learningFollowup(workspace: Workspace, journal: RunJournal): Prom
     catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'EEXIST' || await fs.readFile(filename, 'utf8') !== text) throw new Error(`Learning follow-up conflicts with existing content at ${filename}; both records were preserved.`);
     }
-    journal.followupPath = path.relative(workspace.projectPath, filename); return filename;
+    journal.followupPath = path.relative(workspace.projectPath, filename).split(path.sep).join('/'); return filename;
 }
 /** A failed final candidate check may still use the same active task's remaining repair budget. */
 class FinalResultCheckError extends Error {
@@ -482,6 +482,7 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
     validateRunOptions(options); const result = report();
     if (options.dryRun) return preview(workspace, options, result);
     await ensureGit(workspace);
+    options.redactProjectPath = workspace.projectPath;
     await loadProjectSecrets(workspace.projectPath);
     const lease = await acquireLease(workspace);
     options.assertOwned = () => lease.assertOwned();
@@ -602,7 +603,7 @@ export async function fixChecks(workspace: Workspace, options: RunOptions = {}):
     options = { ...options, redactProjectPath: workspace.projectPath };
     validateRunOptions(options, true); const result = report();
     if (options.dryRun) { emit(result, options, 'dry-run', `Would run ${options.check ?? 'npm run check'} and repair only if it fails.`); return result; }
-    await ensureGit(workspace); await loadProjectSecrets(workspace.projectPath); const lease = await acquireLease(workspace); options.assertOwned = () => lease.assertOwned();
+    await ensureGit(workspace); options.redactProjectPath = workspace.projectPath; await loadProjectSecrets(workspace.projectPath); const lease = await acquireLease(workspace); options.assertOwned = () => lease.assertOwned();
     try {
         if ((await listRecovery(workspace)).length) throw new Error('Interrupted work requires explicit recovery before a new fix task. Use ptbk recover.');
         const baseline = await initialBoundary(workspace, options); await fixOwned(workspace, options, result, baseline.dirtyPaths, lease); return result;
@@ -652,16 +653,29 @@ async function integrateIsolated(workspace: Workspace, journal: RunJournal, ledg
         await assertSnapshot(isolation.origin);
         await git(root, ['merge', '--ff-only', isolation.branch], { signal: options.signal });
     } else {
-        // Integration may have succeeded immediately before interruption; verify the exact accepted worktree bytes.
+        // Integration may have succeeded immediately before interruption. Git may legitimately
+        // convert LF/CRLF or apply checkout filters, so compare accepted Git content as well as
+        // the complete index and file types; any dirty edit remains a recovery boundary.
         const isolatedResult = await captureSnapshot(isolation.view);
-        if ((await changedPaths({ ...isolatedResult, root }, current)).length || current.dirtyPaths.length) throw new Error('Integrated checkout changed before recovery; preserve both versions and inspect the boundary.');
+        if (current.dirtyPaths.length || current.index !== isolatedResult.index) throw new Error('Integrated checkout changed before recovery; preserve both versions and inspect the boundary.');
+        for (const name of await changedPaths({ ...isolatedResult, root }, current)) {
+            const expected = isolatedResult.files[name]; const actual = current.files[name];
+            if (!expected || !actual || expected.kind !== actual.kind || expected.mode !== actual.mode) throw new Error(`Integrated ${name} changed type or permissions before recovery; both versions were preserved.`);
+            const args = ['hash-object', ...(expected.kind === 'symlink' ? ['--no-filters'] : [`--path=${name}`]), '--stdin'];
+            const hashes = await Promise.all([expected, actual].map(entry => git(root, args, { input: Buffer.from(entry.content, 'base64'), signal: options.signal })));
+            if (hashes[0]!.trim() !== hashes[1]!.trim()) throw new Error(`Integrated ${name} differs from the accepted Git content; both versions were preserved.`);
+        }
+        await assertSnapshot(current);
     }
     const mapped = (await discoverTasks(workspace)).find(task => task.id === journal.taskId);
     if (mapped) journal.task = mapped;
-    journal.expected = await captureSnapshot(root); delete journal.isolation;
+    journal.expected = await captureSnapshot(root);
+    if (journal.expected.dirtyPaths.length) throw new Error('Integrated checkout has concurrent edits; preserve the accepted isolated result before recovery.');
     await recordCompletion(workspace, journal, ledger, options, result);
     emit(result, options, 'integrated', `Integrated ${isolation.branch} by fast-forward.`, journal.task);
-    await git(root, ['worktree', 'remove', isolation.view]);
+    try {
+        await git(root, ['worktree', 'remove', isolation.view]); delete journal.isolation; await writeJournal(workspace, journal);
+    } catch (error) { emit(result, options, 'cleanup-pending', `Accepted integration is complete; isolation cleanup needs attention: ${(error as Error).message}`, journal.task); }
     if (options.autoPush) await synchronizeResult(workspace, journal, options, result);
 }
 /** Reconcile a commit intent only when the current HEAD carries this exact journal phase. @private */
@@ -769,7 +783,7 @@ export async function recoverTask(workspace: Workspace, taskId: string, recovery
     const result = report();
     if (!recovery.action || recovery.dryRun) return { ...result, journals, plan };
     if (selected.length !== 1) throw new Error(`Recovery action requires one interrupted occurrence; found ${selected.length}. Select --occurrence.`);
-    await ensureGit(workspace); await loadProjectSecrets(workspace.projectPath); const lease = await acquireLease(workspace, { recoverStale: true }); options.assertOwned = () => lease.assertOwned();
+    await ensureGit(workspace); options.redactProjectPath = workspace.projectPath; await loadProjectSecrets(workspace.projectPath); const lease = await acquireLease(workspace, { recoverStale: true }); options.assertOwned = () => lease.assertOwned();
     try {
         const journal = selected[0]!; const ledger = await readLedger(workspace);
         if (journal.phase === 'completed' && journal.syncPending) {

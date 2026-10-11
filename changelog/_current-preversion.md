@@ -4,3 +4,6 @@
 - Preserve custom initialization files and routing requirements, schedule prerequisites and recurrence, and materialize bounded goal enquiries only when unfinished present/future work is exhausted.
 - Publish only the installable root `ptbk` npm package. Add local npm version preflight and atomic branch/tag push, tagged GitHub Actions publication with OIDC/provenance, and bounded public registry/default installation verification.
 - Validate Node 22/24 installations on Linux/macOS/Windows, deterministic provider and recovery fixtures, real local browser sessions where available, and checked task execution from local/global tarball installations in disposable external projects.
+- Fix Windows runtime state/browser startup sharing violations, process cancellation, secret-redaction scope, portable trace/learning paths and isolation recovery across Git checkout line-ending filters.
+- Make integration fixtures independent of host path separators and Git line-ending defaults, with bounded completion waits that tolerate hosted-runner load and surface runtime failures immediately.
+- Keep all platform checks running after a matrix failure, bound concurrent fixture processes, and document releasing code fixes under a new immutable version tag.

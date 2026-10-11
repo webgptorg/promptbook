@@ -4,6 +4,7 @@ import { promisify } from 'node:util';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
 import type { TaskDefinition, Workspace } from './domain.js';
 import { git, type GitIdentity, type GitSnapshot } from './git.js';
 import { confinePath } from './workspace.js';
@@ -48,14 +49,28 @@ export interface RunJournal {
 export interface WorkspaceLease { token: string; path: string; assertOwned(): Promise<void>; release(): Promise<void> }
 /** Keep all owned operational state in the configured project directory. @private */
 export function stateDirectory(workspace: Workspace): string { return workspace.statePath; }
+/** Filesystem seams keep atomic replacement and Windows sharing failures independently verifiable. @private */
+export interface AtomicWriteOptions {
+    platform?: NodeJS.Platform;
+    rename?: (source: string, destination: string) => Promise<void>;
+    sleep?: (milliseconds: number) => Promise<void>;
+}
 /** Write a complete state file atomically; a crash leaves the previous complete revision. @private */
-export async function atomicWrite(filename: string, value: unknown): Promise<void> {
+export async function atomicWrite(filename: string, value: unknown, options: AtomicWriteOptions = {}): Promise<void> {
     await fs.mkdir(path.dirname(filename), { recursive: true });
     const temporary = `${filename}.${randomUUID()}.tmp`;
     try {
         const handle = await fs.open(temporary, 'wx', 0o600);
         try { await handle.writeFile(`${JSON.stringify(value, null, 2)}\n`); await handle.sync(); } finally { await handle.close(); }
-        await fs.rename(temporary, filename);
+        // Windows readers and virus scanners may briefly deny replacing an open file. Retry the
+        // same complete temporary file; never unlink the previous revision to force replacement.
+        for (let attempt = 0; ; attempt++) {
+            try { await (options.rename ?? fs.rename)(temporary, filename); break; }
+            catch (error) {
+                if ((options.platform ?? process.platform) !== 'win32' || !['EPERM', 'EBUSY', 'EACCES'].includes((error as NodeJS.ErrnoException).code ?? '') || attempt >= 9) throw error;
+                await (options.sleep ?? delay)(Math.min(20 * 2 ** attempt, 250));
+            }
+        }
     } finally { await fs.rm(temporary, { force: true }); }
 }
 /** Read a required versioned object and distinguish absent state from corruption. @private */

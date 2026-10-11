@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, mkdir, readFile, rm, access, symlink, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { spawn } from 'node:child_process';
 import { Readable, PassThrough } from 'node:stream';
-import { DEFAULT_PROCESS_TIMEOUT_MS, HARNESS_REGISTRY, runHarness, runProcess, classifyHarnessResult, redactSecrets } from '../dist/coder/harness.js';
+import { DEFAULT_PROCESS_TIMEOUT_MS, HARNESS_REGISTRY, runHarness, runProcess, classifyHarnessResult, redactSecrets, loadProjectSecrets, prepareProcessArguments } from '../dist/coder/harness.js';
 import { prepareAgent, isPrivateBookAddress } from '../dist/coder/agents.js';
 import { advisorTools, createToolBridge } from '../dist/coder/team.js';
 import { planningReadTools, planConversation } from '../dist/coder/planner.js';
@@ -146,7 +146,7 @@ test('Cline uses disposable credential state without changing native model setti
         assert.equal(result.output.includes('fixture-provider-credential'), false);
         const record = JSON.parse(await readFile(process.env.PTBK_TEST_RECORD, 'utf8'));
         assert.notEqual(record.clineProvider, providerPath);
-        assert.ok(record.clineProvider.includes('.ptbk/cline-'));
+        assert.match(relative(await realpath(directory), record.clineProvider), /^\.ptbk[\\/]cline-[^\\/]+[\\/]providers\.json$/);
         assert.ok(record.args.includes('--config')); assert.ok(record.args.includes('--data-dir'));
         await assert.rejects(access(record.clineProvider));
     } finally { restore(); }
@@ -216,6 +216,34 @@ test('dotenv secrets split across stream chunks never enter output', async () =>
     assert.match(redactSecrets('Bearer ' + secret), /REDACTED/);
 }));
 
+test('project secret scopes follow filesystem aliases and Windows path spellings', async () => fixture(async directory => {
+    const project = join(directory, 'project');
+    const alias = join(directory, 'project-alias');
+    const secret = 'fixture-private-secret-canonical-alias';
+    await mkdir(project);
+    await writeFile(join(project, '.env'), `SERVICE_PASSWORD=${secret}\n`);
+    await symlink(project, alias, process.platform === 'win32' ? 'junction' : 'dir');
+    await loadProjectSecrets(alias);
+    assert.equal(redactSecrets(secret, project), '[REDACTED]');
+    assert.equal(redactSecrets(secret, alias), '[REDACTED]');
+    if (process.platform === 'win32') {
+        assert.equal(redactSecrets(secret, project.toUpperCase()), '[REDACTED]');
+        assert.equal(redactSecrets(secret, `\\\\?\\${project}`), '[REDACTED]');
+    }
+}));
+
+test('Windows explicit check shells retain quoted JavaScript without changing provider argv', async () => fixture(async directory => {
+    const command = `"${process.execPath}" -e "process.stdout.write('Český validated\\n')"`;
+    assert.deepEqual(prepareProcessArguments('C:\\Windows\\System32\\cmd.exe', ['/d', '/s', '/c', command], 'win32'), { args: ['/d', '/s', '/c', `"${command}"`], windowsVerbatimArguments: true });
+    const payload = 'literal & echo %PATH% | "quoted"';
+    assert.deepEqual(prepareProcessArguments(process.execPath, ['--prompt', payload], 'win32'), { args: ['--prompt', payload] });
+    if (process.platform === 'win32') {
+        const result = await runProcess(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', command], { cwd: directory });
+        assert.equal(result.exitCode, 0, result.output || result.spawnError);
+        assert.equal(result.output, 'Český validated\n');
+    }
+}));
+
 test('cancellation kills owned children while an unrelated process survives', async () => fixture(async directory => {
     const unrelated = spawn(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { stdio: 'ignore' });
     const controller = new AbortController();
@@ -248,12 +276,16 @@ test('Book inheritance retains declaring relative paths and distinct TEAM roles'
 }));
 
 test('agent resolver rejects task Books and escaped symlink knowledge', async () => fixture(async directory => {
-    await mkdir(join(directory, 'agents'));
-    await writeFile(join(directory, 'agents', 'task.book'), 'Task title\nTASK\nMETA ID example\nSTATUS todo\nPROMPT work\n');
-    await assert.rejects(prepareAgent('agents/task.book', directory), /Task Book/);
-    await symlink('/etc/passwd', join(directory, 'agents', 'outside.txt'));
-    await writeFile(join(directory, 'agents', 'developer.book'), 'Developer\nFROM VOID\nKNOWLEDGE ./outside.txt\n');
-    await assert.rejects(prepareAgent('agents/developer.book', directory), /escapes/);
+    const project = join(directory, 'project');
+    await mkdir(join(project, 'agents'), { recursive: true });
+    await writeFile(join(project, 'agents', 'task.book'), 'Task title\nTASK\nMETA ID example\nSTATUS todo\nPROMPT work\n');
+    await assert.rejects(prepareAgent('agents/task.book', project), /Task Book/);
+    await rm(join(project, 'agents', 'task.book'));
+    const outside = join(directory, 'outside.txt');
+    await writeFile(outside, 'Fixture knowledge that must stay outside this project');
+    await symlink(outside, join(project, 'agents', 'outside.txt'), 'file');
+    await writeFile(join(project, 'agents', 'developer.book'), 'Developer\nFROM VOID\nKNOWLEDGE ./outside.txt\n');
+    await assert.rejects(prepareAgent('agents/developer.book', project), /escapes/);
 }));
 
 test('FROM is a single unambiguous parent and explicit Void ends inheritance', async () => fixture(async directory => {
@@ -349,7 +381,7 @@ test('planning fails closed for providers without the read-only capability', asy
         assert.ok(record.args.includes('project_root_markers=[]'));
         assert.equal(record.threadParams.config.mcp_servers.unwanted.enabled, false);
         assert.ok(record.methods.indexOf('mcpServerStatus/list') < record.methods.indexOf('turn/start'));
-        assert.ok(record.cwd.includes('.ptbk/planner-'));
+        assert.match(relative(await realpath(directory), record.cwd), /^\.ptbk[\\/]planner-[^\\/]+$/);
         await assert.rejects(access(record.cwd));
     } finally { restore(); }
 }));

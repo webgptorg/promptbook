@@ -15,8 +15,39 @@ export interface BrowserStatus { mode: 'headless' | 'headful'; profile: string; 
 /** A DevTools target describes one tab rather than its cookies or private browser state. */
 interface BrowserTarget { id: string; type: string; url: string; title: string; webSocketDebuggerUrl?: string; }
 
+/** Bounded startup polling, with injected file reads for platform lock regression fixtures. @private */
+export interface BrowserEndpointOptions {
+    signal?: AbortSignal; timeoutMs?: number; platform?: NodeJS.Platform;
+    read?: (path: string) => Promise<string>; check?: () => void;
+}
+
 /** Execute fixed, read-only Git inventory commands without exposing profile file contents. */
 const execute = promisify(execFile);
+
+/** Wait for Chrome's complete endpoint while retrying temporary Windows sharing violations. @private */
+export async function waitForBrowserEndpoint(portFile: string, options: BrowserEndpointOptions = {}): Promise<{ endpoint: string; socket: string }> {
+    const timeout = options.timeoutMs ?? 20_000;
+    if (!Number.isSafeInteger(timeout) || timeout <= 0) throw new InputError('Browser startup timeout must be a positive integer.');
+    const deadline = Date.now() + timeout;
+    const read = options.read || ((path: string) => readFile(path, 'utf8'));
+    let lastFailure: string | undefined;
+    while (Date.now() < deadline) {
+        if (options.signal?.aborted) throw new Error('Browser startup cancelled');
+        options.check?.();
+        try {
+            const [port, socket] = (await read(portFile)).trim().split(/\r?\n/);
+            if (/^\d+$/.test(port || '') && Number(port) > 0 && Number(port) <= 65535 && socket?.startsWith('/devtools/browser/')) return { endpoint: `http://127.0.0.1:${port}`, socket: `ws://127.0.0.1:${port}${socket}` };
+            lastFailure = 'Chrome has not finished writing a valid endpoint';
+        } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code;
+            if (code !== 'ENOENT' && code !== 'EBUSY' && !((options.platform || process.platform) === 'win32' && (code === 'EACCES' || code === 'EPERM'))) throw error;
+            lastFailure = code;
+        }
+        const remaining = deadline - Date.now();
+        if (remaining > 0) await delay(Math.min(100, remaining), undefined, { signal: options.signal });
+    }
+    throw new Error(`Chrome did not expose its loopback DevTools endpoint within ${timeout} ms${lastFailure ? ` (${lastFailure})` : ''}`);
+}
 
 /** Check whether this host can display a real browser window. @private */
 export function desktopAvailable(): boolean { return process.platform === 'darwin' || process.platform === 'win32' || !!(process.env.DISPLAY || process.env.WAYLAND_DISPLAY); }
@@ -109,18 +140,12 @@ export class ProjectBrowser {
         this.child = spawn(this.executable, [`--user-data-dir=${this.profilePath}`, '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1', '--no-first-run', '--no-default-browser-check', '--restore-last-session', ...(this.mode === 'headless' ? ['--headless=new'] : [])], { stdio: 'ignore', shell: false });
         let failure: Error | undefined;
         this.child.once('error', (error) => { failure = error; });
-        const deadline = Date.now() + 20_000;
         try {
-            while (Date.now() < deadline) {
-                if (this.options.signal?.aborted) throw new Error('Browser startup cancelled');
-                if (failure || this.child.exitCode !== null) throw failure || new Error(`Chrome exited during startup (${this.child.exitCode})`);
-                try {
-                    const [port, socket] = (await readFile(portFile, 'utf8')).trim().split(/\r?\n/);
-                    if (/^\d+$/.test(port || '') && socket?.startsWith('/devtools/browser/')) { this.endpoint = `http://127.0.0.1:${port}`; this.browserSocket = `ws://127.0.0.1:${port}${socket}`; return; }
-                } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
-                await delay(100, undefined, { signal: this.options.signal });
-            }
-            throw new Error('Chrome did not expose its loopback DevTools endpoint within 20 seconds');
+            const endpoint = await waitForBrowserEndpoint(portFile, { signal: this.options.signal, check: () => {
+                if (failure || this.child?.exitCode !== null) throw failure || new Error(`Chrome exited during startup (${this.child?.exitCode})`);
+            } });
+            this.endpoint = endpoint.endpoint;
+            this.browserSocket = endpoint.socket;
         } catch (error) { await this.closeOwned(); throw error; }
     }
 

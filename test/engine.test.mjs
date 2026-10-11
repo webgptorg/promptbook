@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, readFile, rm, chmod, symlink, access, realpath } from 'node:fs/promises';
+import { promises as filesystem } from 'node:fs';
+import { mkdtemp, mkdir, writeFile, readFile, readdir, rename, rm, chmod, symlink, access, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { runQueue, fixChecks, recoverTask, taskEligibility } from '../dist/coder/engine.js';
 import { validateCheck } from '../dist/coder/checks.js';
 import { git, discoverGit, captureSnapshot, commitScoped } from '../dist/coder/git.js';
-import { acquireLease, readLedger, readJournals, saveLedger, writeJournal } from '../dist/coder/state.js';
+import { acquireLease, atomicWrite, readLedger, readJournals, saveLedger, writeJournal } from '../dist/coder/state.js';
 import { discoverTasks } from '../dist/coder/sources.js';
 
 test('checks reject direct and indirect worker recursion under both command namespaces', async t => {
@@ -37,6 +38,7 @@ async function fixture(t, options = {}) {
     await git(root, ['config', 'user.name', 'Fixture Coder']);
     await git(root, ['config', 'user.email', 'fixture@example.test']);
     await git(root, ['config', 'commit.gpgsign', 'false']);
+    await git(root, ['config', 'core.autocrlf', options.autocrlf ? 'true' : 'false']);
     await mkdir(path.join(root, 'agents'));
     await mkdir(path.join(root, 'tasks'));
     await mkdir(path.join(root, 'prompts'));
@@ -57,6 +59,31 @@ test('Git discovery and shared worktree leases preserve project path whitespace'
     await lease.release();
     const result = await runQueue(workspace, { harness: 'openai-codex', runHarness: implement() });
     assert.equal(result.completed, 1, JSON.stringify(result.events));
+});
+
+test('atomic runtime state retries transient Windows sharing violations without exposing partial or missing revisions', async t => {
+    const directory = await mkdtemp(path.join(tmpdir(), 'ptbk-atomic-')); t.after(() => rm(directory, { recursive: true, force: true }));
+    const filename = path.join(directory, 'state.json'); const previous = { version: 1, value: 'previous' }; const next = { version: 1, value: 'next' };
+    await atomicWrite(filename, previous); let attempts = 0; const waits = []; const temporaryFiles = new Set();
+    await atomicWrite(filename, next, { platform: 'win32', sleep: async duration => { waits.push(duration); }, rename: async (source, destination) => {
+        temporaryFiles.add(source); assert.deepEqual(JSON.parse(await readFile(source, 'utf8')), next);
+        assert.deepEqual(JSON.parse(await readFile(filename, 'utf8')), previous);
+        if (++attempts < 4) throw Object.assign(new Error('Reader temporarily holds the destination'), { code: ['EPERM', 'EBUSY', 'EACCES'][attempts - 1] });
+        await rename(source, destination);
+    } });
+    assert.equal(attempts, 4); assert.equal(temporaryFiles.size, 1); assert.deepEqual(waits, [20, 40, 80]);
+    assert.deepEqual(JSON.parse(await readFile(filename, 'utf8')), next);
+    attempts = 0;
+    await assert.rejects(atomicWrite(filename, previous, { platform: 'win32', sleep: async () => {}, rename: async () => {
+        attempts++; throw Object.assign(new Error('Destination remained locked'), { code: 'EPERM' });
+    } }), /remained locked/);
+    assert.equal(attempts, 10); assert.deepEqual(JSON.parse(await readFile(filename, 'utf8')), next);
+    assert.deepEqual(await readdir(directory), ['state.json']);
+    attempts = 0;
+    await assert.rejects(atomicWrite(filename, previous, { platform: 'linux', sleep: async () => { assert.fail('Permission errors are not transient on this platform'); }, rename: async () => {
+        attempts++; throw Object.assign(new Error('Real permission error'), { code: 'EACCES' });
+    } }), /Real permission error/);
+    assert.equal(attempts, 1); assert.deepEqual(JSON.parse(await readFile(filename, 'utf8')), next);
 });
 
 /** Deterministic success double writes only the selected checkout. */
@@ -299,6 +326,16 @@ test('isolation preserves the single task result and integrates a Book task by f
     assert.equal(await readFile(path.join(workspace.projectPath, 'code.txt'), 'utf8'), 'isolated\n');
     assert.match(await readFile(path.join(workspace.tasksPath, 'task.book'), 'utf8'), /TASK DONE \d{4}-\d\d-\d\dT/);
     assert.equal(result.commits.length, 1);
+    assert.equal((await captureSnapshot(workspace.gitRoot)).dirtyPaths.length, 0);
+});
+
+test('isolation respects the project Git checkout line-ending policy without changing the accepted blob', async t => {
+    const workspace = await fixture(t, { autocrlf: true });
+    const result = await runQueue(workspace, { isolate: true, harness: 'openai-codex', runHarness: implement('isolated\n') });
+    assert.equal(result.completed, 1, JSON.stringify(result.events));
+    assert.equal(await readFile(path.join(workspace.projectPath, 'code.txt'), 'utf8'), 'isolated\r\n');
+    assert.equal(await git(workspace.gitRoot, ['show', 'HEAD:code.txt']), 'isolated\n');
+    assert.equal((await git(workspace.gitRoot, ['config', '--get', 'core.autocrlf'])).trim(), 'true');
     assert.equal((await captureSnapshot(workspace.gitRoot)).dirtyPaths.length, 0);
 });
 
@@ -614,7 +651,9 @@ test('durable traces identify the selected agent, source snapshot, check and chr
 
 test('aggregate provider and checker output stays within two MiB of valid UTF-8', async t => {
     const workspace = await fixture(t);
-    const result = await runQueue(workspace, { harness: 'openai-codex', check: 'node -e "console.log(\'validated\')"',
+    await writeFile(path.join(workspace.projectPath, 'check.cjs'), "process.stdout.write('validated\\n');\n");
+    await git(workspace.gitRoot, ['add', '--', 'check.cjs']); await git(workspace.gitRoot, ['commit', '-qm', 'Output retention checker']);
+    const result = await runQueue(workspace, { harness: 'openai-codex', check: 'node check.cjs',
         runHarness: async () => ({ outcome: 'success', exitCode: 0, output: '🐙'.repeat(600000) }),
     });
     assert.equal(result.completed, 1, JSON.stringify(result.events)); const journal = (await readJournals(workspace))[0];
@@ -633,6 +672,9 @@ test('OPEN produces one discoverable Teacher follow-up inside the original resul
     const tasks = await discoverTasks(workspace); const learning = tasks.find(task => task.id.startsWith('teach-'));
     assert.ok(learning); assert.equal(learning.agent, 'Teacher'); assert.equal(learning.origin, 'engine:learning:fixture');
     assert.deepEqual(learning.dependencies, ['#fixture']); assert.equal(learning.status, 'todo');
+    const journal = (await readJournals(workspace))[0];
+    assert.equal(journal.followupPath, learning.source.relativePath); assert.ok(!journal.followupPath.includes('\\'));
+    assert.ok(!journal.trace.includes('\\'));
     assert.match(await git(workspace.gitRoot, ['show', `HEAD:${learning.source.relativePath}`]), /Learning limits: Learn new knowledge without changing rules/);
     assert.match(await git(workspace.gitRoot, ['show', 'HEAD:tasks/task.book']), /TASK DONE/);
     assert.equal((await captureSnapshot(workspace.gitRoot)).dirtyPaths.length, 0);
@@ -644,6 +686,9 @@ test('closing an agent protects it from already queued teaching and needs no inf
     await writeFile(source, 'Developer\nFROM VOID\nOPEN\n');
     await git(workspace.gitRoot, ['add', '--', 'agents/developer.book']); await git(workspace.gitRoot, ['commit', '-qm', 'Open policy']);
     assert.equal((await runQueue(workspace, { limit: 1, harness: 'openai-codex', runHarness: implement() })).completed, 1);
+    const original = (await readJournals(workspace))[0];
+    original.followupPath = original.followupPath.replace(/\//g, '\\');
+    await writeJournal(workspace, original);
     await writeFile(source, 'Developer\nFROM VOID\nCLOSED\n');
     await git(workspace.gitRoot, ['add', '--', 'agents/developer.book']); await git(workspace.gitRoot, ['commit', '-qm', 'Close policy']);
     const result = await runQueue(workspace, { limit: 1, agent: 'Teacher', harness: 'openai-codex', requireAcceptance: true, runHarness: async () => { throw new Error('A CLOSED target cannot trigger model teaching'); } });
@@ -722,6 +767,41 @@ test('unintegrated isolated completion resumes fast-forward without repeating th
     assert.equal(await readFile(path.join(workspace.projectPath, 'code.txt'), 'utf8'), 'Isolated accepted work\n');
     assert.match(await readFile(path.join(workspace.tasksPath, 'task.book'), 'utf8'), /TASK DONE/);
     assert.equal((await readJournals(workspace))[0].phase, 'completed');
+});
+
+test('already integrated isolation recovers across Git checkout filters without accepting user edits or duplicating work', async t => {
+    const workspace = await fixture(t, { autocrlf: true }); let calls = 0; let committed = false; let interrupted = false;
+    const actualRename = filesystem.rename;
+    filesystem.rename = async (source, destination) => {
+        if (committed && !interrupted && destination === path.join(workspace.statePath, 'occurrences.json')) {
+            interrupted = true; throw Object.assign(new Error('Simulated interruption after integration'), { code: 'EIO' });
+        }
+        return actualRename(source, destination);
+    };
+    let result;
+    try {
+        result = await runQueue(workspace, { harness: 'openai-codex', isolate: true,
+            onEvent: event => { if (event.type === 'commit') committed = true; },
+            runHarness: async request => { calls++; return implement('Accepted isolated result\n')(request); },
+        });
+    } finally { filesystem.rename = actualRename; }
+    assert.equal(result.completed, 0); assert.equal(result.failed, 1); assert.equal(result.commits.length, 1); assert.ok(interrupted);
+    const journal = (await readJournals(workspace))[0]; assert.ok(journal.isolation); assert.equal(journal.safePhase, 'integrating');
+    assert.equal((await git(workspace.gitRoot, ['rev-parse', 'HEAD'])).trim(), result.commits[0]);
+    assert.equal(await readFile(path.join(workspace.projectPath, 'code.txt'), 'utf8'), 'Accepted isolated result\r\n');
+    await writeFile(path.join(workspace.projectPath, 'code.txt'), 'Concurrent editor changes\r\n');
+    await assert.rejects(recoverTask(workspace, 'fixture', { action: 'resume' }), /Integrated checkout changed before recovery/);
+    assert.equal(await readFile(path.join(workspace.projectPath, 'code.txt'), 'utf8'), 'Concurrent editor changes\r\n');
+    await writeFile(path.join(workspace.projectPath, 'code.txt'), 'Accepted isolated result\r\n');
+    await writeFile(path.join(workspace.projectPath, 'staged-user.txt'), 'Staged user work\n');
+    await git(workspace.gitRoot, ['add', '--', 'staged-user.txt']);
+    await assert.rejects(recoverTask(workspace, 'fixture', { action: 'resume' }), /Integrated checkout changed before recovery/);
+    assert.match(await git(workspace.gitRoot, ['diff', '--cached', '--name-only']), /staged-user.txt/);
+    await git(workspace.gitRoot, ['reset', '--', 'staged-user.txt']); await rm(path.join(workspace.projectPath, 'staged-user.txt'));
+    const resumed = await recoverTask(workspace, 'fixture', { action: 'resume' }, { runHarness: async () => { assert.fail('Accepted inference must never repeat'); } });
+    assert.equal(resumed.completed, 1, JSON.stringify(resumed.events)); assert.equal(resumed.failed, 0); assert.equal(resumed.commits.length, 0);
+    assert.equal(calls, 1); assert.equal((await git(workspace.gitRoot, ['rev-parse', 'HEAD'])).trim(), result.commits[0]);
+    assert.equal((await readJournals(workspace))[0].phase, 'completed'); assert.equal((await captureSnapshot(workspace.gitRoot)).dirtyPaths.length, 0);
 });
 
 test('resume cannot turn exhausted unmet-outcome evidence into a successful completion', async t => {

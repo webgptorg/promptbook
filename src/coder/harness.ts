@@ -58,7 +58,9 @@ const PROJECT_SECRETS = new Map<string, Set<string>>();
 
 /** Canonicalize a redaction scope without changing files. @private */
 function secretScope(projectPath: string): string {
-    try { return realpathSync(projectPath); } catch { return resolve(projectPath); }
+    let canonical: string;
+    try { canonical = realpathSync.native(projectPath); } catch { canonical = resolve(projectPath); }
+    return process.platform === 'win32' ? win32.normalize(canonical).replace(/^\\\\\?\\UNC\\/i, '\\\\').replace(/^\\\\\?\\/, '').toLowerCase() : canonical;
 }
 
 /** Learn local dotenv secret values without applying environment overrides or exposing them. @private */
@@ -75,6 +77,8 @@ export async function loadProjectSecrets(projectPath: string): Promise<void> {
         }
     }
     PROJECT_SECRETS.set(secretScope(projectPath), secrets);
+    const lexical = process.platform === 'win32' ? win32.normalize(resolve(projectPath)).replace(/^\\\\\?\\UNC\\/i, '\\\\').replace(/^\\\\\?\\/, '').toLowerCase() : resolve(projectPath);
+    PROJECT_SECRETS.set(lexical, secrets);
 }
 
 /** Resolve a known harness or throw an actionable configuration error. @private */
@@ -118,6 +122,12 @@ export interface ProcessResult { exitCode: number | null; signal: NodeJS.Signals
 /** Generous task/check deadline; metadata probes and TEAM consultations use shorter explicit bounds. @private */
 export const DEFAULT_PROCESS_TIMEOUT_MS = 60 * 60 * 1000;
 
+/** Preserve explicitly selected cmd.exe check syntax using Node's own Windows shell argument convention. @private */
+export function prepareProcessArguments(command: string, args: string[], platform: NodeJS.Platform = process.platform): { args: string[]; windowsVerbatimArguments?: boolean } {
+    if (platform === 'win32' && /(?:^|[\\/])cmd(?:\.exe)?$/i.test(command) && args.length === 4 && /^\/d$/i.test(args[0]!) && /^\/s$/i.test(args[1]!) && /^\/c$/i.test(args[2]!)) return { args: [args[0]!, args[1]!, args[2]!, `"${args[3]}"`], windowsVerbatimArguments: true };
+    return { args };
+}
+
 /** Resolve Windows npm shims to their Node entry point instead of passing task text through cmd.exe. @private */
 export async function resolveProcessCommand(command: string, args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env, platform: NodeJS.Platform = process.platform): Promise<{ command: string; args: string[] }> {
     if (platform !== 'win32') return { command, args };
@@ -157,8 +167,9 @@ export async function runProcess(command: string, args: string[], options: Proce
     let executable: { command: string; args: string[] };
     try { executable = await resolveProcessCommand(command, args, options.cwd, options.env || process.env); }
     catch (error) { return { exitCode: null, signal: null, output: '', cancelled: false, spawnError: redactSecrets((error as Error).message, redactionPath, secretSnapshot), configurationError: true }; }
+    const invocation = prepareProcessArguments(executable.command, executable.args);
     return new Promise((accept) => {
-        const child = spawn(executable.command, executable.args, { cwd: options.cwd, env: options.env || process.env, shell: false, detached: process.platform !== 'win32', stdio: ['pipe', 'pipe', 'pipe'] });
+        const child = spawn(executable.command, invocation.args, { cwd: options.cwd, env: options.env || process.env, shell: false, ...(invocation.windowsVerbatimArguments ? { windowsVerbatimArguments: true } : {}), detached: process.platform !== 'win32', stdio: ['pipe', 'pipe', 'pipe'] });
         let output = '';
         let pending = '';
         let cancelled = false;
@@ -223,12 +234,13 @@ export async function runProcess(command: string, args: string[], options: Proce
         function terminate(hard = false): void {
             if (!child.pid || closed) return;
             if (process.platform === 'win32') {
-                const killer = spawn('taskkill', ['/PID', String(child.pid), '/T', ...(hard ? ['/F'] : [])], { stdio: 'ignore' });
+                // Console Node providers have no window for taskkill's default close request. Cancel the owned tree immediately.
+                const killer = spawn('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
                 killer.on('error', () => { try { child.kill(hard ? 'SIGKILL' : 'SIGTERM'); } catch { /* Already exited. */ } });
             } else {
                 try { process.kill(-child.pid, hard ? 'SIGKILL' : 'SIGTERM'); } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ESRCH') spawnError = (error as Error).message; }
             }
-            if (!hard) { killTimer ||= setTimeout(() => terminate(true), 1000); killTimer.unref(); }
+            if (!hard && process.platform !== 'win32') { killTimer ||= setTimeout(() => terminate(true), 1000); killTimer.unref(); }
         }
         /** Cancel the complete process group, escalating after a bounded grace period. */
         function cancel(): void { cancelled = true; terminate(); }

@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 /** Discover fixtures explicitly so npm's test script does not depend on shell glob expansion. */
 const tests = (await readdir(new URL('../test/', import.meta.url))).filter(name => name.endsWith('.test.mjs')).sort();
 if (!tests.length) throw new Error('No ptbk test fixtures were found.');
-/** Launch Node's test runner in this checkout on Windows, macOS and Linux. */
-const child = spawn(process.execPath, ['--test', ...tests.map(name => `test/${name}`)], {
+/** Limit fixture processes so hosted runners have room for their Git/provider child processes. */
+const child = spawn(process.execPath, ['--test', '--test-concurrency=2', ...tests.map(name => `test/${name}`)], {
     cwd: fileURLToPath(new URL('../', import.meta.url)),
     stdio: 'inherit',
     shell: false,

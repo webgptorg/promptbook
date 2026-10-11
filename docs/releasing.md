@@ -38,7 +38,7 @@ Normal releases, including numeric prereleases, retain this repository's `latest
 
 Local versioning requires permission to push to the selected Git remote. If branch protection rejects direct pushes, use the repository's authorized release branch/process; the script does not bypass protection. The Actions workflow publishes only in `webgptorg/promptbook`.
 
-## Retry failures without another version bump
+## Recover from release failures
 
 If the atomic push fails, both remote refs remain unchanged and your local version commit/tag remain available. Fix authentication, upstream configuration or the rejected push, then run:
 
@@ -46,7 +46,9 @@ If the atomic push fails, both remote refs remain unchanged and your local versi
 npm run postversion
 ```
 
-Retry from the clean version commit. If the tag was pushed but CI failed before npm accepted the upload, rerun that workflow, or use **Publish ptbk → Run workflow** with the existing `vVERSION` tag. Manual dispatch uses the existing immutable release tag rather than the current branch contents.
+Retry from the clean version commit. If the tag was pushed but CI failed for a temporary runner/network problem before npm accepted the upload, rerun that workflow, or use **Publish ptbk → Run workflow** with the existing `vVERSION` tag. Manual dispatch uses the existing immutable release tag rather than the current branch contents.
+
+If validation found a code or test defect, finish the normal review/commit process for the fix, then run `npm version prerelease` (or the intended next version). The new tag includes the fix and triggers the full platform matrix before publication. Rerunning an older tag still checks its older source; do not move or replace release tags to pick up a fix. Matrix checks complete independently, so a failure on one platform leaves the other platforms' diagnostics available.
 
 If npm accepted the upload but registry verification failed, do not republish that version: npm versions cannot be overwritten. Inspect the registry and retry verification:
 
