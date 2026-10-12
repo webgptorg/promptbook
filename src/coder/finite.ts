@@ -92,9 +92,12 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
         if (action === 'requests') {
             const requests = await listRequests(workspace, true);
             if (!requests.length) { terminal.status('There are no pending user requests.'); return; }
-            const request = requests.length === 1 ? requests[0] : requests[Number(await terminal.question(`Request number (1–${requests.length}, blank to cancel):\n${requests.map((item, index) => `${index + 1}. ${item.prompt}`).join('\n')}`)) - 1];
+            const selected = await terminal.choose('Choose a pending request to answer:', [...requests.map(item => ({ value: item.id, label: item.prompt, description: item.reason })), { value: 'cancel', label: 'Cancel', description: 'Leave the requests pending.' }]);
+            const request = requests.find(item => item.id === selected);
             if (!request) return;
-            const response = await terminal.question(request.prompt);
+            const response = request.choices?.length
+                ? request.choices[Number(await terminal.choose(request.prompt, request.choices.map((label, index) => ({ value: String(index), label }))))]!
+                : await terminal.question(request.prompt);
             if (response.trim()) await control.command('answer', { id: request.id, response });
         } else if (action === 'settings') {
             const value = await terminal.question('Settings for the next finite invocation as JSON (blank to cancel):');
@@ -125,7 +128,7 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
     options.shouldStop = () => finishing || terminal.shouldStop();
     options.skipWait = () => { const requested = waiting && (skip || terminal.skipWait()); skip = false; return requested; };
     options.onWait = value => { waiting = value; terminal.setWaiting(value); supplied.onWait?.(value); };
-    if (supplied.noAuto && supplied.interactive) options.confirm = async (_step, message) => /^(?:y|yes)$/i.test((await terminal.question(`${message}\nAnswer yes or no`)).trim());
+    if (supplied.noAuto && supplied.interactive) options.confirm = async (_step, message) => await terminal.choose(message, [{ value: 'yes', label: 'Yes, continue' }, { value: 'no', label: 'No, decline' }], 'no') === 'yes';
     options.onOutput = text => { terminal.output(text); supplied.onOutput?.(text); };
     options.onEvent = event => {
         events.push({ ...event, message: redactSecrets(event.message, workspace.projectPath) }); if (events.length > 160) events.shift();

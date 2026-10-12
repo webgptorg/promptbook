@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { createFiniteRuntime } from '../dist/coder/finite.js';
 import { resolveWorkspace } from '../dist/coder/workspace.js';
 import { ProjectBrowser } from '../dist/coder/browser.js';
+import { createRequest, listRequests } from '../dist/coder/requests.js';
 
 /** Empty isolated projects let shared presentation be tested without a harness or model call. */
 async function fixture(t) {
@@ -87,4 +88,79 @@ test('finite activity distinguishes unclaimed work from actual task routing and 
     state = await runtime.control.snapshot();
     assert.equal(state.error, 'Git persistence failed'); assert.equal(state.diagnostic, '.ptbk/existing-task-trace.md');
     assert.match(state.nextAction, /preserved task journal/);
+});
+
+test('finite manual confirmations use labeled choices with decline initially focused', async t => {
+    const workspace = await fixture(t);
+    const runtime = await createFiniteRuntime(workspace, { interactive: true, noAuto: true }, () => {});
+    t.after(() => runtime.close());
+    const decisions = ['yes', 'no']; const labels = [];
+    runtime.terminal.question = async () => assert.fail('Predefined confirmations must not open the text composer.');
+    runtime.terminal.choose = async (label, choices, initial) => {
+        labels.push(label);
+        assert.equal(initial, 'no');
+        assert.deepEqual(choices.map(choice => choice.label), ['Yes, continue', 'No, decline']);
+        return decisions.shift();
+    };
+    assert.equal(await runtime.options.confirm('task', 'Execute the reviewed task?'), true);
+    assert.equal(await runtime.options.confirm('commit', 'Commit the accepted result?'), false);
+    assert.deepEqual(labels, ['Execute the reviewed task?', 'Commit the accepted result?']);
+});
+
+/** Minimal DOM objects allow the delivered dashboard script to be exercised without a browser dependency. */
+function dashboardDocument() {
+    const nodes = new Map();
+    /** Preserve the element tree and mutable form state consumed by browser event handlers. */
+    const createElement = tag => ({
+        tagName: tag.toUpperCase(), textContent: '', value: '', children: [], attributes: {},
+        append(...children) { for (const child of children) { child.parent = this; this.children.push(child); } },
+        replaceChildren(...children) { this.children = []; this.append(...children); },
+        setAttribute(name, value) { this.attributes[name] = value; },
+        get firstChild() { return this.children[0]; },
+        remove() { this.parent.children = this.parent.children.filter(child => child !== this); },
+    });
+    return {
+        createElement, querySelectorAll: () => [],
+        getElementById(id) { if (!nodes.has(id)) nodes.set(id, createElement('div')); return nodes.get(id); },
+    };
+}
+
+test('dashboard requests expose predefined answers without applying an implicit default', async t => {
+    const workspace = await fixture(t);
+    const request = await createRequest(workspace, { kind: 'question', reason: 'Select a destination.', prompt: 'Where should the output go?', choices: ['Current folder', '<new project>'] });
+    const open = await createRequest(workspace, { kind: 'question', reason: 'Describe the work.', prompt: 'What should change?' });
+    const runtime = await createFiniteRuntime(workspace, { noServer: false }, () => {});
+    t.after(() => runtime.close());
+    const address = new URL((await runtime.control.snapshot()).url);
+    const html = await (await fetch(address.origin)).text();
+    const script = /<script nonce="[^"]+">([\s\S]*)<\/script>/.exec(html)[1];
+    const document = dashboardDocument();
+    /** Use the real finite control model while replacing the browser's relative fetch transport. */
+    const transport = async (url, options) => ({ ok: true, json: async () => {
+        if (url === '/api/state') return runtime.control.snapshot();
+        const { action, ...input } = JSON.parse(options.body);
+        return runtime.control.command(action, input);
+    } });
+    const refresh = new Function('document', 'location', 'fetch', 'setInterval', `${script}\nreturn refresh;`)(document, address, transport, () => {});
+    await refresh();
+    const cards = document.getElementById('requests').children;
+    const chosen = cards.find(card => card.firstChild.textContent.startsWith(request.prompt));
+    const [prompt, answer, submit] = chosen.children;
+    assert.match(prompt.textContent, /Select a destination/);
+    assert.equal(answer.tagName, 'SELECT');
+    assert.deepEqual(answer.children.slice(1).map(option => option.textContent), request.choices);
+    assert.equal(answer.children[0].disabled, true);
+    assert.equal(answer.children[0].selected, true);
+    assert.equal(submit.disabled, true);
+    assert.equal(cards.find(card => card.firstChild.textContent.startsWith(open.prompt)).children[1].tagName, 'TEXTAREA');
+    assert.equal((await listRequests(workspace, true)).length, 2);
+    answer.value = '<new project>';
+    answer.onchange();
+    await refresh();
+    assert.equal(answer.value, '<new project>');
+    assert.equal(submit.disabled, false);
+    await submit.onclick();
+    assert.equal((await listRequests(workspace)).find(item => item.id === request.id).response, '<new project>');
+    assert.equal((await listRequests(workspace, true)).length, 1);
+    assert.equal(document.getElementById('requests').children.length, 1);
 });

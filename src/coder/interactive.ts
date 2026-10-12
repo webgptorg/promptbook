@@ -10,6 +10,8 @@ interface ComposerRow { text: string; start: number; end: number; }
 export interface TextPromptOptions {
     input?: Readable; output?: Writable; signal?: AbortSignal; initial?: string;
     validate?: (value: string) => string | undefined; onCancel?: () => void;
+    /** Stop owned work on genuine Ctrl+C, while pasted control characters remain ordinary input. */
+    onInterrupt?: () => void;
     heading?: string;
 }
 
@@ -126,7 +128,10 @@ export async function promptText(label: string, options: TextPromptOptions = {})
         if (showingPrompt && ['up', 'down', 'pageup', 'pagedown'].includes(key.name || '')) { promptScroll += (key.name === 'up' || key.name === 'pageup' ? -1 : 1) * (key.name?.startsWith('page') ? Math.max(1, (output.rows || 24) - 2) : 1); return; }
         if (showingPrompt && text) showingPrompt = false;
         const action = composer.key(key, Math.max(1, (output.columns || 80) - 4));
-        if (action === 'cancel') { options.onCancel?.(); reject(new DOMException('Text entry cancelled; no decision was applied.', 'AbortError')); }
+        if (action === 'cancel') {
+            if (key.ctrl && key.name === 'c') options.onInterrupt?.();
+            options.onCancel?.(); reject(new DOMException('Text entry cancelled; no decision was applied.', 'AbortError'));
+        }
         else if (action === 'submit') { error = options.validate?.(composer.state().text) || ''; if (!error) complete(composer.state().text); }
         else if (text) composer.insert(text);
     };

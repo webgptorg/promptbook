@@ -2,6 +2,7 @@ import { mkdir, readFile, readdir, writeFile, rename, unlink, stat, link } from 
 import { join, dirname, relative, resolve, basename } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { promptText } from './interactive.js';
+import { promptChoice } from './choices.js';
 import type { Workspace, TaskDefinition } from './domain.js';
 import { serializeTaskBook, discoverTasks, checksum, parseBook } from './sources.js';
 import { scheduleRevision } from './schedule.js';
@@ -188,7 +189,12 @@ export async function verifyTasks(workspace: Workspace, options: { noQuestions?:
     try {
         for (const task of tasks) {
             process.stdout.write(`\n${task.title}\n${task.source.relativePath}\n${task.payload}\n`);
-            const answer = (await question('Review [a]rchive, [f]ollow-up, [s]kip, [q]uit: ')).trim().toLowerCase();
+            const answer = options.ask ? (await question('Review [a]rchive, [f]ollow-up, [s]kip, [q]uit: ')).trim().toLowerCase() : await promptChoice('Review this completed task:', [
+                { value: 'a', label: 'Archive', description: 'Accept this task and move its source to done.' },
+                { value: 'f', label: 'Follow-up', description: 'Write a new task for further work.' },
+                { value: 's', label: 'Skip', description: 'Leave this task for a later review.' },
+                { value: 'q', label: 'Quit', description: 'Finish reviewing tasks.' },
+            ], { initial: 's' });
             if (answer === 'q') break;
             if (answer === 'f') {
                 const description = await question('Follow-up task: ');

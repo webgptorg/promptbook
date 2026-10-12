@@ -8,7 +8,7 @@ import { migrateTasks } from './migrate.js';
 import { runQueue, fixChecks, recoverTask, taskEligibility, type RunOptions } from './engine.js';
 import { acquireLease, readLedger, type WorkspaceLease } from './state.js';
 import { captureSnapshot, commitScoped } from './git.js';
-import { runHarness, HARNESS_REGISTRY, redactSecrets, getHarness, getHarnessCatalog, loadProjectSecrets } from './harness.js';
+import { runHarness, HARNESS_REGISTRY, redactSecrets, getHarness, loadProjectSecrets } from './harness.js';
 import { planConversation } from './planner.js';
 import { startCoderServer } from './server.js';
 import { createFiniteRuntime } from './finite.js';
@@ -20,6 +20,7 @@ import { updateTaskControls } from './sources.js';
 import { readProjectConfiguration, ensureProjectConfiguration, type ProjectConfiguration } from './configuration.js';
 import { installedEngineVersion } from './version.js';
 import { promptText } from './interactive.js';
+import { promptChoice, promptChoices, type Choice } from './choices.js';
 import { inspectEngineInstallation, checkEngineUpdate, updateEngineInstallation } from './updates.js';
 import { inspectInitializationDestination, prepareInitializationDestination, finalizeInitializationDestination, installProjectEngine, inspectLocalInstallation, inspectProjectReadiness, persistInitializationPending, type PreparedInitializationDestination } from './initialization.js';
 import { reportDiagnostic } from './diagnostics.js';
@@ -273,29 +274,48 @@ function harnessNames(value: string): string[] {
     return names;
 }
 
-/** Ask a bounded setup choice through the shared editor, retaining a visible default. */
+/** Human-readable setup labels retain the stable values used by flags and configuration. */
+const WIZARD_CHOICES: Record<string, { label: string; description?: string }> = {
+    current: { label: 'Current directory' },
+    new: { label: 'New subfolder' },
+    local: { label: 'Install in this project', description: 'Use a local Promptbook dependency.' },
+    global: { label: 'Use the global installation' },
+    headless: { label: 'Keep the browser hidden', description: 'Headless browser mode.' },
+    headful: { label: 'Show the browser', description: 'Visible browser mode.' },
+    isolated: { label: 'Use an isolated browser profile' },
+    existing: { label: 'Use an existing browser profile' },
+    yes: { label: 'Yes' },
+    no: { label: 'No' },
+    retry: { label: 'Retry the update' },
+    continue: { label: 'Continue with the loaded version' },
+    back: { label: 'Back' },
+    ignored: { label: 'Independent project', description: 'Ignore the child directory in the parent repository.' },
+    submodule: { label: 'Git submodule', description: 'Record the child repository in the parent.' },
+    keep: { label: 'Keep current versions' },
+    all: { label: 'Update all listed harnesses' },
+    choose: { label: 'Choose individual harnesses' },
+};
+
+/** Pick a bounded setup choice with arrows and Enter, retaining a visible default. */
 async function wizardChoice(label: string, choices: string[], initial: string, signal: AbortSignal): Promise<string> {
-    return (await promptText(`${label}\nChoices: ${choices.join(', ')}`, { initial, signal, heading: `Promptbook ${await installedEngineVersion()} · Project setup`, validate: value => choices.includes(value.trim().toLowerCase()) ? undefined : `Choose ${choices.join(', ')}.` })).trim().toLowerCase();
+    return promptChoice(label, choices.map(value => ({ value, ...(WIZARD_CHOICES[value] ?? { label: value }) })), {
+        initial, signal, heading: `Promptbook ${await installedEngineVersion()} · Project setup`,
+    });
 }
 
-/** Keep the harness picker bounded and searchable as ordinary integrations are added. */
+/** Keep the harness picker bounded, with every integration reachable through More. */
 async function chooseHarnesses(signal: AbortSignal): Promise<string[]> {
-    let includeMore = false; let query = ''; let offset = 0;
-    for (;;) {
-        const entries = getHarnessCatalog({ includeMore, query, offset, limit: 12 });
-        const choice = (await promptText(`Harnesses\n${entries.map(entry => `${entry.id} (${entry.displayName})`).join('\n') || 'No matching integrations.'}\nComma-separated identifiers; blank defers setup.\nMore · next · back · search TEXT`, {
-            signal, validate: value => {
-                const text = value.trim();
-                if (/^(?:more|next|back|search(?:\s.*)?)$/i.test(text)) return undefined;
-                try { harnessNames(text); return undefined; } catch (error) { return (error as Error).message; }
-            },
-        })).trim();
-        if (/^more$/i.test(choice)) { includeMore = true; offset = 0; continue; }
-        if (/^next$/i.test(choice)) { offset = entries.length === 12 ? offset + 12 : 0; continue; }
-        if (/^back$/i.test(choice)) { includeMore = false; query = ''; offset = 0; continue; }
-        if (/^search(?:\s|$)/i.test(choice)) { query = choice.replace(/^search\s*/i, ''); offset = 0; continue; }
-        return harnessNames(choice);
-    }
+    let includeMore = false;
+    /** Retain checked integrations when returning to the featured catalog. */
+    const choices = (selected: readonly string[] = []): Choice[] => [
+        ...HARNESS_REGISTRY.filter(entry => includeMore || entry.featured || selected.includes(entry.name))
+            .map(entry => ({ value: entry.name, label: entry.displayName })),
+        { value: '@more', label: includeMore ? 'Featured harnesses' : 'More harnesses…', action: true },
+    ];
+    return promptChoices('Select harnesses (leave all unchecked to defer setup)', choices(), {
+        signal, heading: `Promptbook ${await installedEngineVersion()} · Project setup`,
+        onAction: (_value, selected) => { includeMore = !includeMore; return choices(selected); },
+    });
 }
 
 /** Explicit init is the only engine-update gate; a changed engine must be invoked afresh. */
@@ -513,7 +533,9 @@ export async function main(arguments_: string[]): Promise<number> {
         options.onEvent = event => { if (event.type !== 'output') process.stdout.write(`${redactSecrets(typeof event === 'string' ? event : JSON.stringify(event), redactionPath)}\n`); };
         options.confirm = async (_step, message) => {
             if (!process.stdin.isTTY || options.noQuestions) throw new InputError('Confirmation requires an interactive terminal.');
-            return (await promptText(`${message}\nAnswer yes or no`, { signal: controller.signal })).trim().toLowerCase() === 'yes';
+            return await promptChoice(message, [{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }], {
+                initial: 'no', signal: controller.signal,
+            }) === 'yes';
         };
         const workspace = await resolveWorkspace({ path: destination, tasks: parsed.values.tasks as string | undefined }, ['init', 'initialize', 'migrate', 'add', 'generate-boilerplates', 'plan', 'start'].includes(parsed.command));
         diagnosticWorkspace = workspace;
@@ -540,7 +562,16 @@ export async function main(arguments_: string[]): Promise<number> {
             let response = parsed.values.response as string | undefined || parsed.arguments.slice(1).join(' ');
             if (!id) { process.stdout.write(`${JSON.stringify(await listRequests(workspace, true), null, 2)}\n`); return 0; }
             if (!response && process.stdin.isTTY && !options.noQuestions) {
-                response = await promptText('Response', { signal: controller.signal });
+                const request = (await listRequests(workspace)).find(item => item.id === id);
+                if (!request) throw new InputError(`Unknown request ${id}.`);
+                if (request.status !== 'pending') throw new InputError(`Request ${id} was already ${request.status}; no second answer was applied.`);
+                const label = `${request.reason}\n${request.prompt}`;
+                response = request.choices?.length
+                    ? await promptChoice(label, request.choices.map(value => ({ value, label: value })), {
+                        signal: controller.signal,
+                        initial: request.kind === 'confirmation' && request.choices.includes('no') ? 'no' : undefined,
+                    })
+                    : await promptText(label, { signal: controller.signal, heading: 'Response' });
             }
             if (!response) throw new InputError('Supply --response or a reply argument; no invisible prompt was started.');
             const action = String(parsed.values.action || 'answered');
@@ -641,9 +672,12 @@ export async function main(arguments_: string[]): Promise<number> {
                 names: selectedHarnesses, install: true, login: interactive, interactive, signal: controller.signal,
                 harnessSettings: configuration.harnessSettings,
                 chooseUpdates: interactive ? async outdated => {
-                    const choice = await wizardChoice(`Outdated selected global harnesses: ${outdated.map(item => item.name).join(', ')}`, outdated.length === 1 ? ['keep', 'all'] : ['keep', 'all', 'choose'], 'keep', controller.signal);
+                    const choice = await wizardChoice(`Outdated selected global harnesses: ${outdated.map(item => getHarness(item.name).displayName).join(', ')}`, outdated.length === 1 ? ['keep', 'all'] : ['keep', 'all', 'choose'], 'keep', controller.signal);
                     if (choice !== 'choose') return choice as 'keep' | 'all';
-                    return harnessNames(await promptText(`Update which outdated harnesses? ${outdated.map(item => item.name).join(', ')}`, { signal: controller.signal }));
+                    return promptChoices('Select outdated harnesses to update', outdated.map(item => ({
+                        value: item.name, label: getHarness(item.name).displayName,
+                        description: `${item.currentVersion ?? 'unknown'} → ${item.latestVersion ?? 'latest'}`,
+                    })), { signal: controller.signal });
                 } : undefined,
                 onOutput: text => process.stdout.write(redactSecrets(text, redactionPath)),
             });

@@ -1,6 +1,7 @@
 import { emitKeypressEvents } from 'node:readline';
 import { redactSecrets } from './harness.js';
 import { promptText } from './interactive.js';
+import { promptChoice, promptChoices } from './choices.js';
 
 /** Injectable streams permit deterministic control and resize fixtures. @private */
 export interface TerminalSurface {
@@ -38,6 +39,8 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
     isPaused(): boolean; shouldStop(): boolean; skipWait(): boolean; setWaiting(waiting: boolean): void;
     output(chunk: string): void; status(text: string): void; close(): void;
     setPaused(paused: boolean): void; setStopping(stopping: boolean): void; question(prompt: string): Promise<string>;
+    choose(prompt: string, choices: Parameters<typeof promptChoice>[1], initial?: string): Promise<string>;
+    chooseMany(prompt: string, choices: Parameters<typeof promptChoices>[1], initial?: string[]): Promise<string[]>;
     setSnapshot(snapshot: Record<string, unknown>): void;
 } {
     const input = surface.input ?? process.stdin;
@@ -111,6 +114,7 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
     };
     /** Prints at most one screen, independent of total retained history. */
     const renderHistory = () => {
+        if (questioning || closed) return;
         if (snapshot && !isRaw) { renderDashboard(); return; }
         if (!interactive || !viewingHistory) return;
         const entries = isRaw ? rawChunks : normalItems;
@@ -161,19 +165,35 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
         if (!surface.onControl) return;
         void Promise.resolve().then(() => surface.onControl!(action, value)).catch(error => status(`Control failed: ${(error as Error).message}`));
     };
-    /** Give every request the shared multiline composer while isolating runtime output. */
-    const question = async (prompt: string): Promise<string> => {
+    /** Suspend runtime shortcuts and output for an editor or picker, then restore the live view. */
+    const interact = async <T>(entry: (signal: AbortSignal) => Promise<T>): Promise<T> => {
         if (!interactive || closed) throw new Error('Terminal questions require an active interactive terminal.');
         if (questioning) throw new Error('A terminal question is already active.');
         questioning = true; activeQuestion = new AbortController();
         input.removeListener('keypress', keypress);
         if (dashboardActive) { dashboardActive = false; output.write('\u001b[?25h\u001b[?1049l'); }
-        try { return await promptText(plain(redactSecrets(prompt, projectPath)), { input, output, signal: activeQuestion.signal }); }
+        else if (viewingHistory) output.write('\u001b[?1049l');
+        try { return await entry(activeQuestion.signal); }
         finally {
             activeQuestion = undefined; questioning = false;
-            if (!closed) { input.setRawMode(true); input.resume(); input.on('keypress', keypress); renderDashboard(); }
+            if (!closed) {
+                input.setRawMode(true); input.resume(); input.on('keypress', keypress);
+                if (viewingHistory) { output.write('\u001b[?1049h'); renderHistory(); } else renderDashboard();
+            } else { input.setRawMode(Boolean(originalRaw)); input.pause(); }
         }
     };
+    /** Keep provider-controlled labels and descriptions safe while preserving opaque option values. */
+    const safeChoices = (choices: Parameters<typeof promptChoice>[1]): Parameters<typeof promptChoice>[1] => choices.map(choice => ({
+        ...choice,
+        label: plain(redactSecrets(choice.label, projectPath)),
+        ...(choice.description ? { description: plain(redactSecrets(choice.description, projectPath)) } : {}),
+    }));
+    /** Give every freeform request the shared multiline composer while isolating runtime output. */
+    const question = (prompt: string): Promise<string> => interact(signal => promptText(plain(redactSecrets(prompt, projectPath)), { input, output, signal, onInterrupt: cancel }));
+    /** Present a labeled finite decision without requiring the user to transcribe its value. */
+    const choose = (prompt: string, choices: Parameters<typeof promptChoice>[1], initial?: string): Promise<string> => interact(signal => promptChoice(plain(redactSecrets(prompt, projectPath)), safeChoices(choices), { input, output, signal, initial, onInterrupt: cancel }));
+    /** Present independent predefined selections through the same suspended terminal session. */
+    const chooseMany = (prompt: string, choices: Parameters<typeof promptChoices>[1], initial?: string[]): Promise<string[]> => interact(signal => promptChoices(plain(redactSecrets(prompt, projectPath)), safeChoices(choices), { input, output, signal, initial, onInterrupt: cancel }));
     /** Controls state only; the engine applies requests at safe boundaries. */
     const keypress = (_text: string, key: { name?: string; ctrl?: boolean }) => {
         if (questioning || closed) return;
@@ -213,7 +233,7 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
         status(`Controls: P pause, S skip wait, X finish and exit, O normal/raw, arrows scroll, End live.${surface.onControl ? ' Q requests, C settings.' : ''}`);
     }
     return {
-        isPaused: () => isPaused, shouldStop: () => isStopping, question,
+        isPaused: () => isPaused, shouldStop: () => isStopping, question, choose, chooseMany,
         setSnapshot(value) { snapshot = value; renderDashboard(); },
         setPaused(value) { isPaused = value; renderDashboard(); }, setStopping(value) { isStopping = value; renderDashboard(); },
         setWaiting(waiting) { isWaiting = waiting; if (!waiting) isSkipRequested = false; renderDashboard(); },

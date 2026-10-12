@@ -100,6 +100,81 @@ test('shared terminal shortcuts report controls and accept synchronized API stat
 
 test('noninteractive terminal questions fail visibly without reading stdin', async () => {
     const view = fixture(false);
-    try { await assert.rejects(view.terminal.question('Invisible input?'), /interactive terminal/); }
+    try {
+        await assert.rejects(view.terminal.question('Invisible input?'), /interactive terminal/);
+        await assert.rejects(view.terminal.choose('Invisible choice?', [{ value: 'yes', label: 'Yes' }]), /interactive terminal/);
+        await assert.rejects(view.terminal.chooseMany('Invisible choices?', [{ value: 'yes', label: 'Yes' }]), /interactive terminal/);
+    }
     finally { view.terminal.close(); }
+});
+
+test('runtime choices isolate dashboard shortcuts and background output, then restore live controls', async () => {
+    const controls = []; const view = fixture(true, action => controls.push(action));
+    try {
+        view.output.rows = 12;
+        view.terminal.setSnapshot({ engineVersion: 'fixture', status: 'running', tasks: [], requests: [] });
+        const result = view.terminal.choose('Approve the next task?', [{ value: 'yes', label: 'Yes, execute' }, { value: 'no', label: 'No, decline' }], 'no');
+        view.input.emit('keypress', 'p', { name: 'p' });
+        view.input.emit('keypress', 'q', { name: 'q' });
+        view.terminal.output('background provider output\n');
+        view.terminal.status('A new event arrived.');
+        view.output.columns = 40; view.output.emit('resize');
+        assert.match(view.text(), /Approve the next task/);
+        view.input.emit('data', '\u001b[A\r');
+        assert.equal(await result, 'yes');
+        assert.deepEqual(controls, []);
+        assert.equal(view.terminal.isPaused(), false);
+        assert.equal(view.input.listenerCount('keypress'), 1);
+        view.key('p');
+        await new Promise(resolve => setImmediate(resolve));
+        assert.deepEqual(controls, ['pause']);
+        assert.equal(view.terminal.isPaused(), true);
+        assert.match(view.text(), /Promptbook fixture/);
+    } finally { view.terminal.close(); }
+    assert.equal(view.input.isRaw, false);
+    assert.equal(view.output.listenerCount('resize'), 0);
+});
+
+test('closing a runtime with an active picker cancels without restoring closed controls', async () => {
+    const view = fixture();
+    const result = view.terminal.choose('Pick a request:', [{ value: 'request', label: 'Pending request' }]);
+    view.terminal.close();
+    await assert.rejects(result, { name: 'AbortError' });
+    assert.equal(view.input.isRaw, false);
+    assert.equal(view.input.listenerCount('keypress'), 0);
+    assert.equal(view.output.listenerCount('resize'), 0);
+});
+
+test('focused runtime pickers distinguish interrupt, dismissal and pasted Ctrl+C', async () => {
+    const view = fixture();
+    try {
+        const dismissed = view.terminal.choose('Pick a request:', [{ value: 'request', label: 'Pending request' }]);
+        view.input.emit('data', '\u001b[200~\u0003\u001b[201~');
+        assert.equal(view.cancelled(), 0);
+        view.input.emit('data', '\u001b');
+        await assert.rejects(dismissed, { name: 'AbortError' });
+        assert.equal(view.cancelled(), 0);
+        const interrupted = view.terminal.chooseMany('Pick requests:', [{ value: 'request', label: 'Pending request' }]);
+        view.input.emit('data', '\u0003');
+        await assert.rejects(interrupted, { name: 'AbortError' });
+        assert.equal(view.cancelled(), 1);
+    } finally { view.terminal.close(); }
+});
+
+test('focused runtime text entry interrupts only on genuine Ctrl+C', async () => {
+    const view = fixture();
+    try {
+        const pasted = view.terminal.question('Answer this request:');
+        view.input.emit('data', '\u001b[200~pasted\u0003 reply\u001b[201~\u0013');
+        assert.equal(await pasted, 'pasted reply');
+        assert.equal(view.cancelled(), 0);
+        const dismissed = view.terminal.question('Answer this request:');
+        view.input.emit('data', '\u001b');
+        await assert.rejects(dismissed, { name: 'AbortError' });
+        assert.equal(view.cancelled(), 0);
+        const interrupted = view.terminal.question('Answer this request:');
+        view.input.emit('data', '\u0003');
+        await assert.rejects(interrupted, { name: 'AbortError' });
+        assert.equal(view.cancelled(), 1);
+    } finally { view.terminal.close(); }
 });

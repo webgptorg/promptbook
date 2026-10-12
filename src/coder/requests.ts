@@ -18,6 +18,17 @@ interface Answer { response: string; status: UserRequest['status']; answeredAt: 
 /** Validate opaque request IDs before mapping them to filesystem paths. @private */
 function assertId(id: string): void { if (!/^[a-f0-9]{32}$/.test(id)) throw new InputError('Invalid request ID.'); }
 
+/** Require each declared answer to remain readable and uniquely selectable without rewriting its value. */
+function assertChoices(choices: unknown, message = 'Request choices require at most 50 unique readable strings, each 1–1000 characters.'): void {
+    if (choices === undefined) return;
+    if (!Array.isArray(choices) || choices.length > 50) throw new InputError(message);
+    const values = new Set<string>();
+    for (const choice of choices) {
+        if (typeof choice !== 'string' || choice.length > 1000 || !choice.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim() || values.has(choice)) throw new InputError(message);
+        values.add(choice);
+    }
+}
+
 /** Publish a complete immutable record atomically so a crash cannot expose partial JSON. */
 async function writeImmutable(workspace: Workspace, target: string, value: unknown): Promise<void> {
     const temporary = await confinePath(workspace.projectPath, `${target}.${randomUUID()}.tmp`);
@@ -43,6 +54,7 @@ export async function listRequests(workspace: Workspace, pendingOnly = false): P
         const request = JSON.parse(await readFile(await confinePath(workspace.projectPath, join(directory, name)), 'utf8')) as UserRequest;
         assertId(request.id);
         if (request.version !== 1 || request.project !== workspace.projectPath || `${request.id}.json` !== name || !['question', 'confirmation', 'action'].includes(request.kind) || request.status !== 'pending' || typeof request.prompt !== 'string' || typeof request.reason !== 'string' || typeof request.createdAt !== 'string') throw new InputError('Invalid request record; preserved for investigation.');
+        assertChoices(request.choices, 'Invalid request choices; preserved for investigation.');
         try {
             const answer = JSON.parse(await readFile(await confinePath(workspace.projectPath, join(directory, `${request.id}.answer.json`)), 'utf8')) as Answer;
             if (!['answered', 'rejected', 'cancelled'].includes(answer.status) || typeof answer.response !== 'string' || typeof answer.answeredAt !== 'string') throw new InputError('Invalid immutable answer; preserved for investigation.');
@@ -56,8 +68,9 @@ export async function listRequests(workspace: Workspace, pendingOnly = false): P
 /** Create or reuse one unresolved request for the same originating question. @private */
 export async function createRequest(workspace: Workspace, input: Pick<UserRequest, 'kind' | 'reason' | 'prompt' | 'taskId' | 'activityId' | 'choices'>): Promise<UserRequest> {
     if (!['question', 'confirmation', 'action'].includes(input.kind) || typeof input.prompt !== 'string' || typeof input.reason !== 'string' || !input.prompt.trim() || !input.reason.trim() || input.prompt.length > 128_000 || input.reason.length > 128_000) throw new InputError('A user request requires its kind, reason and 1–128000 character question/action.');
-    if (input.choices && (!Array.isArray(input.choices) || input.choices.length > 50 || input.choices.some(choice => typeof choice !== 'string' || choice.length > 1000))) throw new InputError('Request choices must contain at most 50 short strings.');
+    assertChoices(input.choices);
     const content = { ...input, prompt: redactSecrets(input.prompt, workspace.projectPath), reason: redactSecrets(input.reason, workspace.projectPath), ...(input.choices ? { choices: input.choices.map(choice => redactSecrets(choice, workspace.projectPath)) } : {}) };
+    assertChoices(content.choices);
     const id = createHash('sha256').update(JSON.stringify({ project: workspace.projectPath, ...content })).digest('hex').slice(0, 32);
     const existing = (await listRequests(workspace)).find(request => request.id === id);
     if (existing) return existing;

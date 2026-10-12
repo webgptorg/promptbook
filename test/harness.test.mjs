@@ -502,6 +502,40 @@ test('planning saves only after exact preview and explicit human approval', asyn
     } finally { restore(); }
 }));
 
+test('interactive planning approves reviewed files with arrows and Enter rather than typing yes', async () => fixture(async directory => {
+    const restore = await fakeProviders(directory);
+    try {
+        assert.equal((await runProcess('git', ['init'], { cwd: directory })).exitCode, 0);
+        await mkdir(join(directory, 'agents'));
+        await writeFile(join(directory, 'agents', 'developer.book'), 'Developer\nFROM VOID\nRULE Plan\n');
+        process.env.PTBK_TEST_PROPOSE = '1';
+        const workspace = await resolveWorkspace({ path: directory }, true);
+        const input = new PassThrough();
+        Object.assign(input, { isTTY: true, isRaw: false, setRawMode(value) { this.isRaw = value; } });
+        const output = new PassThrough();
+        Object.assign(output, { isTTY: true, rows: 16, columns: 80 });
+        let stage = 0;
+        let displayed = '';
+        output.on('data', chunk => {
+            const screen = chunk.toString(); displayed += screen;
+            if (stage === 0 && screen.includes('Planning message:')) { stage = 1; queueMicrotask(() => input.write('/draft\u0013')); }
+            else if (stage === 1 && screen.includes('Save these exact files?')) { stage = 2; queueMicrotask(() => input.write('\u001b[A\r')); }
+            else if (stage === 2 && screen.includes('Planning message:')) { stage = 3; queueMicrotask(() => input.write('/exit\u0013')); }
+        });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 20_000);
+        try {
+            const result = await planConversation(workspace, { harness: 'openai-codex', prompt: 'Propose work', input, output, signal: controller.signal });
+            assert.equal(stage, 3);
+            assert.equal(result.saved.length, 1);
+            assert.match(await readFile(result.saved[0], 'utf8'), /STATUS not-ready/);
+            assert.match(displayed, /Save reviewed files/);
+            assert.doesNotMatch(displayed, /Type yes to save/);
+            assert.equal(input.isRaw, false);
+        } finally { clearTimeout(timeout); input.destroy(); output.destroy(); }
+    } finally { restore(); }
+}));
+
 test('Windows npm wrappers resolve to direct Node argv without interpolating literal task text', async () => fixture(async directory => {
     const { resolveProcessCommand } = await import('../dist/coder/harness.js');
     const bin = join(directory, 'shim path');

@@ -11,6 +11,7 @@ import { captureSnapshot, commitScoped } from './git.js';
 import { confinePath, InputError, readContext, requireGit } from './workspace.js';
 import { withLease } from './state.js';
 import { promptText } from './interactive.js';
+import { promptChoice } from './choices.js';
 
 /** Planner options use the same role/config precedence as execution. @private */
 export interface PlannerOptions {
@@ -127,7 +128,9 @@ export async function planConversation(workspace: Workspace, options: PlannerOpt
                 if (!proposals.length) { write('No pending task proposals.\n'); continue; }
                 const draft = message === '/draft';
                 for (const proposal of proposals) write(`\nReview ${proposal.path}:\n${renderProposal(workspace, proposal, draft)}\n`);
-                const approval = await question('Save these exact files? Type yes to save:');
+                const approval: { done?: boolean; value: string } = interactive
+                    ? { value: await promptChoice('Save these exact files?', [{ value: 'yes', label: 'Save reviewed files' }, { value: 'no', label: 'Keep proposals unsaved' }], { input: options.input, output, signal: options.signal, initial: 'no' }) }
+                    : await question('Save these exact files? Type yes to save:');
                 if (approval.done) break;
                 if (approval.value.trim().toLowerCase() !== 'yes') { write('Nothing saved.\n'); continue; }
                 await withLease(workspace, async () => {
