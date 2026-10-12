@@ -2,7 +2,7 @@
 
 [Main specification](_main.md)
 
-**Promptbook / ptbk:** One npm package and CLI for operating agents over a project.
+**Promptbook / ptbk:** One npm package and CLI for operating agents over a project. **Engine version:** The version of the installation actually running, not the newest published version.
 
 **APT:** Agent–Project–Task, a convention for organizing connected long-term context. **Agenda:** The responsibility that this whole serves over time; not the expansion of A.
 
@@ -16,14 +16,18 @@
 
 **Task:** Bounded work with a result and completion record. **Occurrence:** One execution instance of recurring work. **Attempt:** A try or repair within that work. **Task origin:** Provenance, not a separate execution type.
 
-**Harness:** An installed/authenticated execution tool with supported models and capabilities. **Model:** The selected inference model. **Thinking level:** Its supported reasoning/effort setting. These are distinct from agent identity.
+**Harness:** A globally installed execution tool enabled/configured per project, with native authentication and supported models/capabilities. **Harness plugin:** Its common setup/execution/update integration. **Featured:** Prominent in catalog presentation, not implicitly enabled or installed. **Model:** The selected inference model. **Thinking level:** Its supported reasoning/effort setting. These are distinct from agent identity and the project browser. See [harnesses](cli/harnesses.md).
+
+**Project browser:** One shared browser/profile configuration per project, independent of harness authentication; isolated by default or explicitly shared. See [browser](cli/browser.md).
 
 **Run:** Finite execution of existing work with a chosen configuration. **Start:** The indefinitely operating project supervisor. **Daemon:** Background process mode. **Persistence:** Automatic continuation after restart, separate from merely being in the background.
 
+**Interactive/noninteractive:** Whether the CLI provides terminal UI and input or uses advance configuration and plain output. **Wizard:** Finite setup flow. **Runtime dashboard:** Live execution state, shared by start and run despite their different lifetimes. See [CLI experience](cli/interactive-ui.md).
+
 **Check:** A project-defined verification of required properties. **Accepted result:** Work that met its task and check requirements, with accurately recorded persistence. A successful check does not prove universal correctness.
 
-**Trace:** Observed execution evidence. **User request:** A durable question, confirmation or requested human action. **Channel:** A way to convey state, control or answers, such as terminal, page or REST API.
+**Trace:** Observed execution evidence, including diagnostics outside a task. **User request:** A durable question, confirmation or requested human action. **Channel:** A way to convey state, control or answers, such as terminal, page or REST API.
 
-**.ptbk:** Git-ignored project runtime storage, including logs, recovery records and persistent browser sessions; not all its contents are disposable.
+**ptbk.json:** Human-readable, versioned project defaults, overridden temporarily by explicit CLI flags. **.ptbk:** Git-ignored runtime storage, including logs, recovery records and the default persistent browser profile; not all contents are disposable. See [configuration](cli/configuration.md).
 
 **Internal/external context:** Where an APT component resides, independently of its role. See the [whitepaper](whitepaper.md) for the conceptual model and its explicitly longer-term directions.

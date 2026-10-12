@@ -2,12 +2,26 @@
 
 [Main specification](../_main.md)
 
-Each running project has one shared browser instance and a persistent Chrome-compatible profile. Agents use it to work with external project context, including authenticated sites. The default profile lives in Git-ignored `.ptbk/`; it is not a disposable temporary profile. Browser sessions survive process and system restarts, subject to the site's own session expiry.
+Each selected project has one browser configuration and, while in use, one shared browser instance. All its agents use that browser for external project context. This singleton is per project folder, not per agent, task or harness and not one browser for the entire machine. It is independent of the project's multiple [harness selections and native logins](harnesses.md).
 
-Promptbook does not collect or store website usernames/passwords as its own credential database. When login, two-factor authentication or another human action is needed, create a [user request](user-interactions.md) and bring the browser to the foreground on an available desktop. The user acts on the real site, then the agent continues with that session. Browser cookies and session tokens are sensitive: keep them out of Git, output, traces and model-visible artifacts.
+## Profile and visibility
 
-Support headless and headful operation, selectable through CLI options and the [shared controls](controls.md). Switching must retain the profile and the active task's consistency. Headless operation supports servers as well as desktop hosts; remote screen transport is not part of this contract. A headless host must not falsely claim that it displayed a login window to the user.
+Choose one profile source:
 
-Use the project profile by default, or explicitly select an existing operating-system browser profile to reuse its sessions. Report the selected profile and preserve its data. Do not open competing instances over the same profile or silently commandeer a browser already using it; request a safe handover when needed.
+- **Isolated project profile** (default): create a persistent profile in Git-ignored `.ptbk/`, isolated from other projects and the user's personal browser.
+- **Other existing profile:** explicitly select a profile anywhere on the system, including another project's profile or a central profile shared by agents.
+- **User's browser profile:** explicitly select an existing Chrome-compatible user profile and reuse its authenticated sessions.
 
-Only one project task owns browser automation at a time. Human intervention and TEAM consultation do not authorize conflicting concurrent browser control. Browser visibility and profile selection are configurable without losing the project's single-browser identity. Stopping Promptbook must not terminate unrelated user browsers.
+Offer the existing/shared choices as secondary options; never select or copy a personal profile implicitly. Explain that choosing a shared profile grants access to its existing sessions and that actions can affect that profile.
+
+Headless/headful is an independent choice available with each profile source. Save defaults in `ptbk.json`; `--browser-profile <path>` and `--browser-mode headless|headful` override them for one invocation without rewriting the file. Shared controls may adjust them at a safe boundary. Mode switching preserves the selected profile and active-task consistency. Profile switching is explicit and must not silently migrate cookies between identities.
+
+## Sessions, safety and human access
+
+Profiles are persistent, not disposable caches. Sessions survive process/system restart subject to site expiry. Promptbook does not collect website usernames/passwords as a credential database; keep profile contents, cookies and tokens out of Git, output, traces and model-visible artifacts.
+
+When login, two-factor authentication or another human action is required, create a [user request](user-interactions.md) and bring the browser forward on an available desktop. The user acts on the real site, then agents continue with that session. A headless host cannot claim it displayed a window; remote screen transport is outside this contract.
+
+Do not open competing instances over a profile, including when another project or a user browser owns it. Request a safe handover or another profile, preserving data. Only one project task owns automation at a time; human intervention and TEAM consultation cannot create conflicting control. Stopping Promptbook must not terminate unrelated user browsers or delete any selected profile.
+
+See [configuration](configuration.md), [controls](controls.md) and [workspace](workspace.md).

@@ -2,16 +2,18 @@
 
 [Main specification](../_main.md)
 
-`ptbk start` is the primary product workflow. Over an initialized or cloned project it starts all eligible project work without requiring the user to select an agent, harness, model or thinking level. A project has one active task at a time, not one concurrent worker per agent.
+`ptbk start` is the primary product workflow. It operates the selected project's agenda indefinitely without requiring per-task agent, harness, model or thinking-level selection. A project has one active task at a time, not one concurrent worker per agent.
 
-With no flags, start a background daemon, enable restart persistence and expose the lightweight localhost dashboard on an automatically chosen free port, searching from 3000. Discover available harnesses, their models and all project agents. If no usable harness exists, guide installation/login before detaching; unattended startup reports the missing setup instead of pretending to be ready.
+Before execution, inspect initialization and readiness. For a missing or partial setup, explain what is missing and offer the same [initialization workflow](initialization.md) when interactive, with the already-selected project as its destination. Preserve completed steps and existing choices, then recheck readiness. A ready project does not repeat onboarding. Raw/noninteractive startup reports missing prerequisites and the explicit init/configuration action instead of launching hidden prompts or pretending to be ready.
 
-After successful startup, print confirmation, project identity, the actual dashboard URL and a clearly rendered, scannable terminal QR code for that same URL. Include useful next commands, such as `ptbk show` and `ptbk stop`. `--no-qr` suppresses the code. Do not display a dashboard QR code when the HTTP server is disabled or failed to start. A localhost QR code does not imply access from another device.
+With no flags, start a background daemon, enable restart persistence and expose the lightweight localhost dashboard on an automatically chosen free port, searching from 3000. An interactive launching terminal may complete missing setup before detaching. Discover project agents and only project-enabled harnesses for routing, reuse their global setup and apply the configured [harness-update policy](harness-updates.md). Unselected installed harnesses are not implicit candidates.
 
-Uncommitted or invalid initial state may prevent startup. Once running, the supervisor must survive ordinary task, check, provider and persistence failures: recover automatically when safe, otherwise remain available in a visible blocked/paused state. It must not exit merely because the queue is empty or a task fails. The intended operating duration is months without routine manual restarts.
+Interactive foreground operation uses the [live terminal dashboard](terminal.md), not a scrolling system log or a wizard with an eventual completion estimate. Raw mode emits plain events. The page/API show the same actual state and running engine version.
 
-For each task, respect explicit routing and let [Manager](../agents/manager.md) fill missing choices. Complete and commit tasks serially. When no unfinished work exists, including future work, use [goal discovery](goal-discovery.md). Waiting does not require continuous model calls.
+After successful startup, show engine version, confirmation, project identity, the actual dashboard URL and a clearly rendered, scannable terminal QR code for that URL. Include useful next commands such as `ptbk show` and `ptbk stop`. `--no-qr` suppresses the code. Do not display it when HTTP is disabled or failed to start. A localhost QR code does not imply access from another device.
 
-Repeated `start` over the same project finds the existing process and shows/connects to it rather than starting a second supervisor. It must not silently replace that process's settings. `stop`, `restart` and inspection are defined in [process modes](process-modes.md).
+Uncommitted or invalid initial state may prevent startup. Once running, survive ordinary task, check, provider, update and persistence failures: recover automatically when safe, otherwise stay inspectable in a visible blocked/paused state with [actionable errors and traces](errors.md). Do not exit merely because the queue is empty or a task fails. The intended operating duration is months without routine manual restarts.
 
-See [controls](controls.md), [dashboard](dashboard.md), [persistence](persistence.md) and [run](run.md).
+Respect explicit routing and let [Manager](../agents/manager.md) fill missing choices among enabled, usable harnesses. Complete and commit tasks serially. With no unfinished work, including future work, use [goal discovery](goal-discovery.md). Waiting does not require continuous model calls.
+
+Repeated start finds the existing process and shows/connects to it, without a second supervisor, repeat initialization or silent configuration replacement. See [controls](controls.md), [dashboard](dashboard.md), [persistence](persistence.md), [process modes](process-modes.md) and [run](run.md).

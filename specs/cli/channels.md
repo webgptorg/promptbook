@@ -4,10 +4,10 @@
 
 Keep three concepts separate: an agent's TEAM relationship, a request needing human input, and the channel carrying that request or its answer.
 
-An interactive foreground process presents questions directly in the terminal. A daemon exposes them through the lightweight page and REST API, and through `ptbk answer`: it can list/select pending requests and submit an answer or decision. Noninteractive use must support identifying the request and supplying the response explicitly.
+Interactive foreground questions use the shared [text-entry and UI contract](interactive-ui.md), without corrupting the live dashboard. A daemon exposes requests through the lightweight page and REST API and through `ptbk answer`, which can list/select requests and submit an answer or decision. Noninteractive use identifies the request and supplies the response explicitly rather than opening a prompt.
 
-The CLI answer path works even when the HTTP server is disabled. Raw mode never reads an invisible interactive prompt; it reports pending requests and how to answer them. Status/show also surface unanswered requests without consuming or answering them.
+The CLI answer path works even without HTTP. Raw mode never reads invisible interactive input; it reports pending requests and how to answer them. Status/show surface unanswered requests without consuming or answering them.
 
-All channels operate on the same durable requests and controls. No channel may grant additional authority, create a second response to an already-resolved request or require the task to be rerun to receive its answer. Other channels can be added without redefining TEAM or request semantics.
+All channels operate on the same durable requests and controls. No channel grants additional authority, creates a second response to an already-resolved request or requires a task rerun to receive its answer. Other channels can be added without redefining TEAM or request semantics.
 
 See [shared controls](controls.md), [user interactions](user-interactions.md), [terminal](terminal.md) and [dashboard](dashboard.md).
