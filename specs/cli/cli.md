@@ -2,20 +2,21 @@
 
 [Main specification](../_main.md)
 
-The command root is `ptbk`. Bare invocation displays [top-level help](help.md), in both interactive and noninteractive environments, without starting work or asking to start. The ordinary workflow is initialization or cloning, followed by `ptbk start`.
+The command root is `ptbk`. Bare invocation displays [top-level help](help.md), in both interactive and noninteractive environments, without starting work or asking to start. The ordinary workflow is initialization or cloning, followed by `ptbk start` and optionally `ptbk dashboard` to observe and control the service.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `init`, `initialize` | Prepare a project, optionally create and start an agenda from intent. |
-| `start` | Operate the ongoing agenda with automatic routing. |
-| `stop`, `restart` | Control the selected project's daemon. |
-| `status`, `show` | Inspect the current process without changing its lifecycle. |
+| `init`, `initialize` | Prepare a project through a finite wizard, optionally create and start an agenda from intent. |
+| `start` | Start the ongoing agenda's daemon and report once; explicit foreground operation is available. |
+| `stop`, `restart` | Control the selected project's daemon and report the outcome once. |
+| `dashboard` | Continuously observe and control an existing project service in the terminal without starting it. |
+| `status`, `show` | Inspect the current process once without changing its lifecycle. |
 | `answer` | Inspect and answer pending human requests. |
 | `run` | Execute a finite existing queue with one selected configuration. |
 | `about` | Show a short product overview and the running engine version. |
-| `add` | Create a task from description, stdin or a template, without a model call. |
+| `add` | Create a task with an interactive wizard or supplied description, stdin or template, without a model call. |
 | `generate-boilerplates` | Create unfinished, non-runnable task templates. |
 | `plan` | Discuss and save approved tasks without implementing them. |
 | `list` | Read-only queue, filters and readiness explanations. |
@@ -32,9 +33,9 @@ The command root is `ptbk`. Bare invocation displays [top-level help](help.md), 
 
 `--agent`, `--harness`, `--model`, `--thinking-level` and `--context` configure finite work. Agent, harness and model are separate concepts. Run/fix/plan default to the project's Developer role when an agent is not selected; an explicit Planner is supported. Start discovers project roles and enabled harnesses and uses Manager, subject to explicit restrictions/preferences rather than a hidden fixed Developer configuration.
 
-[Interactive UI](interactive-ui.md) defines `--interactive` and `--non-interactive`, a wizard for init and a shared runtime dashboard for run/start. Noninteractive initialization accepts destination/child-repository strategy, intent, installation scope, selected harnesses, browser and update decisions through flags rather than prompts. Help documents these choices without dumping provider-specific configuration.
+[CLI presentation and interaction](interactive-ui.md) defines pretty output by default on suitable terminals, shared `--raw`, and the input policy of `--interactive`/`--non-interactive`. Init/add use finite wizards; dashboard uses a continuous control view; default start/stop/restart render a single result. Run and explicit foreground start share the live dashboard. Noninteractive initialization accepts destination/child-repository strategy, intent, installation scope, selected harnesses, browser and update decisions through flags rather than prompts. Help documents these choices without dumping provider-specific configuration.
 
-Start supports `--daemon` (default), `--raw`, `--interactive`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`. Process placement and interaction are distinct; raw/no-UI operation never requests terminal input. `--help` and `--version` follow the shared [help/version contract](help.md). See [controls](controls.md).
+Start supports `--daemon` (default), `--foreground`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`, alongside shared presentation/input options. Daemon and foreground conflict; raw output never implicitly selects foreground operation. `--help` and `--version` follow the shared [help/version contract](help.md). See [process modes](process-modes.md) and [controls](controls.md).
 
 ## Finite-run and service options
 

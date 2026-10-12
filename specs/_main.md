@@ -2,7 +2,7 @@
 
 Promptbook is one npm package, `ptbk`, providing the `ptbk` command-line utility. It operates agents over a selected project directory in Git. Agents, tasks and project material are readable files; versioned `ptbk.json` holds project configuration, while Git-ignored `.ptbk/` holds local runtime state, without a database.
 
-Initialize or clone a project, then use `ptbk start` to operate its agenda indefinitely. Start selects from project agents and enabled, usable global harnesses, executes one task at a time, checks the result and commits work together with its completion. `ptbk run` is the finite, explicitly configured queue workflow. Interactive init is a wizard; interactive start/run share a live dashboard. Terminal, lightweight localhost page and REST API control the same process.
+Initialize or clone a project, then use `ptbk start` to launch its agenda as a background service and report once. Start selects from project agents and enabled, usable global harnesses, executes one task at a time, checks the result and commits work together with its completion. `ptbk run` is the finite, explicitly configured queue workflow. Init/add use finite wizards; `ptbk dashboard` attaches a continuous terminal control view to the existing service. Suitable terminals default to rich presentation, with raw output available throughout. Terminal, lightweight browser SPA and independently usable local API inspect and control the same process.
 
 ## Reading this specification
 
@@ -23,18 +23,19 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Nested projects](cli/nested-projects.md): Explicit Git boundaries for new child projects.
 - [Finite run](cli/run.md): Execute existing work with one configuration.
 - [Start](cli/start.md): Autonomous ongoing operation and startup output.
-- [Process modes](cli/process-modes.md): Daemon, raw, interactive and lifecycle commands.
+- [Process modes](cli/process-modes.md): Daemon/foreground placement, attached clients and one-shot lifecycle commands.
 - [Startup persistence](cli/persistence.md): Recovery across operating-system restarts.
 
 ## Controls and interaction
 
-- [Interactive and noninteractive UI](cli/interactive-ui.md): Wizard/dashboard patterns and shared rich text entry.
+- [CLI presentation and interaction](cli/interactive-ui.md): Pretty/raw output, finite wizards, live dashboards and one-shot results.
 - [Help, about and version](cli/help.md): Readable guidance and the actual running engine version.
-- [Shared controls](cli/controls.md): One runtime control model.
-- [Terminal](cli/terminal.md): Live start/run dashboard, plain output and controls.
-- [Local dashboard and REST API](cli/dashboard.md): Minimal synchronized HTTP interface.
+- [Shared controls](cli/controls.md): One runtime control model with equivalent client capabilities.
+- [Terminal dashboard](cli/terminal.md): Attach with `ptbk dashboard`, observe live state and use keyboard controls.
+- [Local service API](cli/api.md): Independently usable status and control endpoints.
+- [Browser dashboard](cli/dashboard.md): Lightweight JavaScript SPA at `/`, consuming the service API.
 - [User interactions](cli/user-interactions.md): General questions, confirmations and human actions.
-- [Channels](cli/channels.md): Terminal, CLI answers, page and API.
+- [Channels](cli/channels.md): Terminal, CLI answers, browser app and API.
 - [Browser](cli/browser.md): One independently configured browser/profile per project.
 
 ## Agents and work
