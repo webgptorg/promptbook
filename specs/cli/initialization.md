@@ -6,7 +6,7 @@
 
 ## Destination and intent
 
-After the optional [self-update](updates.md) gate, the first project question chooses **Current directory** (default) or **New subfolder**. Show the resolved destination before applying changes. Explicitly supplied destinations need not be asked again. Creating a child inside Git follows [nested-project initialization](nested-projects.md); a nonempty destination must not be treated as a fresh folder.
+After the optional [self-update](updates.md) gate, the first project question uses the shared [single-choice picker](interactive-ui.md#predefined-choices) for **Current directory** (default) or **New subfolder**. Enter accepts Current directory; choosing New subfolder opens a separate text field for its name/path. Show the resolved destination before applying changes. Explicitly supplied destinations need not be asked again. Creating a child inside Git follows [nested-project initialization](nested-projects.md); a nonempty destination must not be treated as a fresh folder.
 
 For a fresh empty destination, offer the shared rich text input for project intent. Leaving it empty creates a useful sample/boilerplate project without a model call or starting agenda work. For an existing project, Git setup or Promptbook artifacts, skip the intent question and preserve the project's purpose; add missing Promptbook support rather than regenerate it.
 
@@ -16,7 +16,7 @@ Check Git, `ptbk.json`, agent/task locations, project instructions, core agents,
 
 Prepare `agents/`, `tasks/`, readable project instructions, required [core agents](../agents/core-agents.md), useful role/task templates, [configuration](configuration.md) and the `.ptbk/` ignore rule. Create only missing core agents. Default ordinary roles include Developer, Planner, Lawyer and Copywriter, with useful TEAM relationships. Preserve existing validation; missing validation must be an honest setup requirement, never an always-successful check.
 
-Apply the destination-specific [local installation choice](installation.md). Let the user select one, several or no harnesses; never assume all are wanted. Use [harness setup](harnesses.md) and its separate [update choices](harness-updates.md), reusing healthy global installations and authentication. Browser selection is an independent step with the isolated project profile as default. Deferred execution prerequisites remain clearly visible rather than falsely reported as ready.
+Apply the destination-specific [local installation choice](installation.md). Let the user select one, several or no harnesses using the shared checkbox picker; never assume all are wanted or ask for comma-separated identifiers. Use [harness setup](harnesses.md) and its separate [update choices](harness-updates.md), reusing healthy global installations and authentication. Browser selection is an independent step with the isolated project profile as default. Deferred execution prerequisites remain clearly visible rather than falsely reported as ready.
 
 Commit authorized setup artifacts, creating the initial commit when none exists or a scoped setup commit on the existing branch. Preserve unrelated files and staged/unstaged changes, hooks and signing. A commit failure is an incomplete setup outcome, not success.
 

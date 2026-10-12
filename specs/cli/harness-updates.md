@@ -8,7 +8,7 @@ Harness updates are independent of [Promptbook self-update](updates.md). They op
 
 Check versions only for the harnesses selected for this setup, after resolving their installation. Do not check/update the entire supported catalog merely because it exists.
 
-If one selected harness is outdated, offer update or keep the current version. If several are outdated, offer **Keep current versions**, **Update all outdated selected harnesses**, or **Choose individually**. The chooser includes only outdated selected harnesses. Current harnesses need no update prompt. Show the global scope and actual outcome; declining an update does not make an otherwise compatible harness unusable.
+If one selected harness is outdated, offer update or keep the current version. If several are outdated, offer **Keep current versions**, **Update all outdated selected harnesses**, or **Choose individually**. Use the shared [single-choice picker](interactive-ui.md#predefined-choices) for this decision and a checkbox picker for Choose individually, including only outdated selected harnesses. Never require typing harness identifiers to select updates. Current harnesses need no update prompt. Show the global scope and actual outcome; declining an update does not make an otherwise compatible harness unusable.
 
 ## Ongoing start
 
