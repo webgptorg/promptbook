@@ -29,7 +29,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 ## Controls and interaction
 
 - [CLI presentation and interaction](cli/interactive-ui.md): Pretty/raw output, finite wizards, live dashboards and one-shot results.
-- [Help, about and version](cli/help.md): Readable guidance and the actual running engine version.
+- [Help, about and version](cli/help.md): Command-scoped pretty/raw help and the actual running engine version.
 - [Shared controls](cli/controls.md): One runtime control model with equivalent client capabilities.
 - [Terminal dashboard](cli/terminal.md): Attach with `ptbk dashboard`, observe live state and use keyboard controls.
 - [Local service API](cli/api.md): Independently usable status and control endpoints.
