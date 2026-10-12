@@ -80,8 +80,20 @@ if (args.includes('--help')) { console.log('--variant --format --model'); proces
 if (args.includes('--version')) { console.log('1.0.0'); process.exit(0); }
 if (args[0] === 'auth') { console.log('1 credentials oauth'); process.exit(0); }
 if (args[0] === 'models') { console.log('fixture/model'); process.exit(0); }
+(async () => {
+const configuration = JSON.parse(process.env.OPENCODE_CONFIG_CONTENT || '{}');
+if (configuration.mcp?.ptbk) {
+    const client = configuration.mcp.ptbk.command[1];
+    const source = require('node:fs').readFileSync(client, 'utf8');
+    const url = JSON.parse(source.match(/const url = (.*);/)[1]);
+    for (const method of ['initialize', 'tools/list']) {
+        await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method }) });
+    }
+}
+if (args[0] === 'mcp') { console.log('Verified fixture native tool discovery'); return; }
 require('node:fs').writeFileSync('result.txt', 'accepted fixture\\n');
 console.log(JSON.stringify({type:'text',part:{text:'PTBK_ACCEPTANCE {"satisfied":true,"evidence":"Created result.txt and ran the project check."}'}}));
+})().catch(error => { console.error(error); process.exitCode = 1; });
 `, { mode: 0o755 });
     const env = { ...process.env, PATH: providers + delimiter + process.env.PATH };
     await execute('git', ['init', '--quiet'], { cwd: fixture });

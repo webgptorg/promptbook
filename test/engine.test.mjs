@@ -103,6 +103,32 @@ test('one task uses one result commit and reports skipped validation honestly', 
     assert.match(await git(workspace.gitRoot, ['show', `${result.commits[0]}:tasks/task.book`]), /TASK ID fixture/);
 });
 
+test('task-selected harnesses receive project-native defaults and browser tools without overriding task requirements', async t => {
+    const { createFiniteRuntime } = await import('../dist/coder/finite.js');
+    for (const taskModel of [undefined, 'explicit-model']) {
+        const workspace = await fixture(t);
+        const source = path.join(workspace.tasksPath, 'task.book');
+        await writeFile(source, `TASK Routed task\n\nTASK ID fixture\nTASK HARNESS claude-code\n${taskModel ? `TASK MODEL ${taskModel}\n` : ''}\nImplement the fixture.\n`);
+        await git(workspace.gitRoot, ['add', '--', 'tasks/task.book']); await git(workspace.gitRoot, ['commit', '-qm', 'Task harness requirement']);
+        let calls = 0;
+        const runtime = await createFiniteRuntime(workspace, {
+            harnessSettings: { 'claude-code': { model: 'configured-model', thinkingLevel: 'medium', apiKeyEnv: 'CUSTOM_SOURCE' } },
+            runHarness: async request => {
+                calls++;
+                assert.equal(request.harness, 'claude-code'); assert.equal(request.model, taskModel ?? 'configured-model');
+                assert.equal(request.thinkingLevel, 'medium'); assert.equal(request.harnessConfiguration.apiKeyEnv, 'CUSTOM_SOURCE');
+                assert(request.tools.some(tool => tool.name === 'browser_navigate'));
+                return implement()(request);
+            },
+        }, () => {});
+        try {
+            const result = await runQueue(workspace, runtime.options);
+            assert.equal(result.completed, 1); assert.equal(calls, 1); assert.equal(result.commits.length, 1);
+            assert.match(await readFile(source, 'utf8'), /TASK DONE/);
+        } finally { await runtime.close(); }
+    }
+});
+
 test('private checks include the checked formatter version in the single result commit', async t => {
     const workspace = await fixture(t);
     await writeFile(path.join(workspace.projectPath, 'check.cjs'), "require('node:fs').writeFileSync('code.txt','checker\\n');\n");

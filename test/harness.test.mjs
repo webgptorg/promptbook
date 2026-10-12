@@ -23,6 +23,7 @@ async function fakeProviders(directory) {
     await mkdir(bin);
     const script = '#!' + process.execPath + '\n' +
         "const args=process.argv.slice(2);\n" +
+        "if(args.includes('--version')) { console.log('fixture 1.2.3'); process.exit(0); }\n" +
         "if(args.includes('--help')) { console.log(process.env.PTBK_TEST_HELP || " + JSON.stringify(helpFlags) + "); process.exit(0); }\n" +
         "if(args[0]==='login' && args[1]==='status') { console.log(process.env.PTBK_TEST_AUTH || 'Logged in using ChatGPT'); process.exit(process.env.PTBK_TEST_AUTH==='Not logged in'?1:0); }\n" +
         "async function nativeDiscover(client){const fs=require('node:fs');const url=JSON.parse(fs.readFileSync(client,'utf8').match(/const url = (.*);/)[1]);if(process.env.PTBK_TEST_IGNORE_MCP)return [];let tools;for(const method of ['initialize','tools/list']){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method})});const value=await r.json();if(method==='tools/list')tools=value.result.tools;}return tools;}\n" +

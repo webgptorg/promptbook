@@ -61,7 +61,7 @@ export async function resolveWorkspace(options: { path?: string; tasks?: string 
         try { if (!(await stat(tasksPath)).isDirectory()) throw new Error('not a directory'); }
         catch { throw new InputError(`Explicit task source is missing or invalid: ${tasksPath}`); }
     }
-    const gitRoot = await findGitRoot(projectPath);
+    const gitRoot = await inspectGitRoot(projectPath);
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (!timezone) throw new InputError('System timezone is unavailable; configure a local IANA timezone.');
     // Occurrence journals are project-local; the execution lease separately coordinates the checkout.
@@ -69,8 +69,10 @@ export async function resolveWorkspace(options: { path?: string; tasks?: string 
     return { projectPath, tasksPath, legacyPath, gitRoot, statePath, timezone };
 }
 
-/** Find checkout boundaries without turning a damaged repository into a new one. */
-async function findGitRoot(projectPath: string): Promise<string | undefined> {
+/** Find checkout boundaries without turning a damaged repository into a new one.
+ * @private Internal initialization and workspace inspection.
+ */
+export async function inspectGitRoot(projectPath: string): Promise<string | undefined> {
     try {
         const { stdout: bare } = await EXEC_FILE('git', ['-C', projectPath, 'rev-parse', '--is-bare-repository']);
         if (bare.trim() === 'true') throw new InputError('Bare repositories cannot be used as coder projects. Choose a working-tree checkout.');
@@ -100,7 +102,7 @@ async function findGitRoot(projectPath: string): Promise<string | undefined> {
  */
 export async function requireGit(workspace: Workspace, initialize = false): Promise<void> {
     if (workspace.gitRoot) return;
-    const existing = await findGitRoot(workspace.projectPath);
+    const existing = await inspectGitRoot(workspace.projectPath);
     if (existing) { workspace.gitRoot = existing; return; }
     if (!initialize) throw new InputError(`No Git repository at ${workspace.projectPath}. Run ptbk init --path ${JSON.stringify(workspace.projectPath)} first.`);
     await EXEC_FILE('git', ['-C', workspace.projectPath, 'init']);

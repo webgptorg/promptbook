@@ -12,6 +12,7 @@ import { runCheck, runPrivateOperation, validateCheck, type CheckResult } from '
 import { confinePath, InputError, resolveAgentSelection } from './workspace.js';
 import { acquireLease, atomicWrite, listRecovery, readJournals, readLedger, saveLedger, writeJournal, type AttemptRecord, type Ledger, type RunJournal, type WorkspaceLease } from './state.js';
 import { alignOwnedIndex, assertSnapshot, captureSnapshot, changedPaths, commitIdentity, commitScoped, discoverGit, git, GitPersistenceError, normalizeOwned, readFileSnapshot, sameFile, writeFileSnapshot, type GitIdentity, type GitSnapshot } from './git.js';
+import { installedEngineVersion } from './version.js';
 
 /** Shared terminal/server event, containing only redacted diagnostics. @private */
 export interface EngineEvent { type: string; message: string; taskId?: string; occurrenceId?: string; time: number; [key: string]: unknown }
@@ -19,7 +20,10 @@ export interface EngineEvent { type: string; message: string; taskId?: string; o
 export interface RunResult { completed: number; failed: number; skipped: number; commits: string[]; exitCode: 0 | 1 | 2 | 130; events: EngineEvent[]; nextWakeUp?: number; syncPending?: boolean; retainedPaths?: string[] }
 /** Common execution options, with deterministic harness/time seams for offline tests. @private */
 export interface RunOptions {
-    harness?: string; model?: string; thinkingLevel?: string; agent?: string; context?: string;
+    harness?: string; harnessVersion?: string; model?: string; thinkingLevel?: string; agent?: string; context?: string;
+    harnessConfiguration?: { apiKeyEnv?: string; configurationPath?: string };
+    harnessSettings?: Record<string, { model?: string; thinkingLevel?: string; apiKeyEnv?: string; configurationPath?: string }>;
+    configurationSources?: Record<string, string>;
     check?: string; checkBefore?: 'no' | 'yes-and-fail' | 'yes-and-fix'; gitChanges?: 'fail' | 'ignore' | 'continue';
     noCommit?: boolean; noAuto?: boolean; noQuestions?: boolean; autoPull?: boolean; autoPush?: boolean;
     isolate?: boolean; normalizeLineEndings?: boolean; limit?: number; minPriority?: number; maxPriority?: number;
@@ -27,6 +31,7 @@ export interface RunOptions {
     dryRun?: boolean; signal?: AbortSignal; onEvent?: (event: EngineEvent) => void; onOutput?: (text: string) => void;
     isPaused?: () => boolean; shouldStop?: () => boolean; skipWait?: () => boolean;
     onWait?: (waiting: boolean) => void;
+    onTaskBoundary?: (activeOptions: RunOptions) => Promise<void> | void;
     confirm?: (step: 'task' | 'commit', message: string) => Promise<boolean>;
     runHarness?: (request: HarnessRequest) => Promise<HarnessResult>; now?: () => number;
     sleep?: (milliseconds: number, signal?: AbortSignal) => Promise<void>; preserveLogs?: boolean;
@@ -34,6 +39,7 @@ export interface RunOptions {
     identity?: GitIdentity; contextNoticeShown?: boolean;
     assertOwned?: () => Promise<void>;
     requireAcceptance?: boolean; tools?: BridgeTool[]; requestProjectPath?: string; taskId?: string; onlyTaskId?: string;
+    toolsForHarness?: (harness: string, taskId: string, occurrenceId: string) => BridgeTool[];
     verifyOutcome?: (task: TaskDefinition, response: HarnessResult, workspace: Workspace) => Promise<{ satisfied: boolean; evidence: string }>;
 }
 /** Initialize a finite report without any workspace side effects. @private */
@@ -118,12 +124,13 @@ async function invocation(workspace: Workspace, task: TaskDefinition, options: R
     if (!harness) throw new Error(`Task ${task.id} has no selected harness. Use --harness or a configured task HARNESS.`);
     const agentPath = await resolveAgent(workspace, options.agent ?? task.agent ?? path.join('agents', 'developer.book'));
     const agent = await prepareAgent(agentPath, workspace.projectPath);
+    const defaults = options.harnessSettings?.[harness];
     let context = options.context; let missingContext = false;
     if (context === undefined) {
         try { context = await fs.readFile(path.join(workspace.projectPath, 'AGENTS.md'), 'utf8'); }
         catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; context = ''; missingContext = true; }
     }
-    return { harness, model: options.model ?? task.model ?? agent.model, agentPath, instructions: agent.instructions, context, missingContext };
+    return { harness, model: options.model ?? task.model ?? defaults?.model ?? agent.model, agentPath, instructions: agent.instructions, context, missingContext };
 }
 /** Resolve an explicit local path or an exact named local role without silent fallback. @private */
 async function resolveAgent(workspace: Workspace, reference: string): Promise<string> {
@@ -133,7 +140,9 @@ async function resolveAgent(workspace: Workspace, reference: string): Promise<st
 async function selectionContext(workspace: Workspace, task: TaskDefinition, options: RunOptions): Promise<EligibilityContext> {
     const reference = options.agent ?? task.agent ?? path.join('agents', 'developer.book');
     const selection = await resolveAgentSelection(workspace, reference);
-    return { now: (options.now ?? Date.now)(), timezone: workspace.timezone, harness: options.harness, model: options.model ?? task.model ?? selection.model, agent: selection.path, agentAliases: selection.aliases, thinkingLevel: options.thinkingLevel, minPriority: options.minPriority, maxPriority: options.maxPriority };
+    const harness = options.harness ?? task.harness;
+    const defaults = harness ? options.harnessSettings?.[harness] : undefined;
+    return { now: (options.now ?? Date.now)(), timezone: workspace.timezone, harness: options.harness, model: options.model ?? task.model ?? defaults?.model ?? selection.model, agent: selection.path, agentAliases: selection.aliases, thinkingLevel: options.thinkingLevel ?? task.thinkingLevel ?? defaults?.thinkingLevel, minPriority: options.minPriority, maxPriority: options.maxPriority };
 }
 /** Share role/path readiness explanations between finite preview and execution without mutation. @private */
 export async function taskEligibility(workspace: Workspace, task: TaskDefinition, options: RunOptions, ledger: Ledger): Promise<EligibilityResult> {
@@ -161,7 +170,7 @@ async function claim(workspace: Workspace, task: TaskDefinition, ledger: Ledger,
     entry.history.push({ id: occurrenceId, slot: dueSlot, startedAt: now, outcome: 'claimed', attempts: 0, commits: [], coalesced });
     if (entry.history.length > 100) entry.history.splice(0, entry.history.length - 100);
     ledger.tasks[task.id] = entry;
-    const journal: RunJournal = { version: 1, id, taskId: task.id, occurrenceId, task, phase: 'claimed', startedAt: now, updatedAt: now, dueSlot, baseline, protectedPaths, commits: [], attempts: 0, identity: options.identity,
+    const journal: RunJournal = { version: 1, engineVersion: await installedEngineVersion(), harnessVersion: options.harnessVersion, id, taskId: task.id, occurrenceId, task, phase: 'claimed', startedAt: now, updatedAt: now, dueSlot, baseline, protectedPaths, commits: [], attempts: 0, identity: options.identity,
         sourceSnapshot: { revision: task.source.revision, payloadHash: createHash('sha256').update(task.payload).digest('hex'), gitHead: baseline.head },
     };
     await writeJournal(workspace, journal); await saveLedger(workspace, ledger);
@@ -198,12 +207,17 @@ async function persistResult(workspace: Workspace, journal: RunJournal, options:
 /** Run one inference plus only safe technical retries; failures never masquerade as completion. @private */
 async function infer(workspace: Workspace, journal: RunJournal, options: RunOptions, result: RunResult, feedback?: string): Promise<HarnessResult> {
     const selection = await invocation(workspace, journal.task, options);
+    const defaults = options.harnessSettings?.[selection.harness];
+    const thinkingLevel = options.thinkingLevel ?? journal.task.thinkingLevel ?? defaults?.thinkingLevel;
+    const harnessConfiguration = options.harnessConfiguration ?? (defaults ? { apiKeyEnv: defaults.apiKeyEnv, configurationPath: defaults.configurationPath } : undefined);
+    const offeredTools = [...(options.tools ?? []), ...(options.toolsForHarness?.(selection.harness, journal.taskId, journal.occurrenceId) ?? [])];
+    const tools = offeredTools.length ? offeredTools : options.tools;
     if (selection.missingContext && !options.contextNoticeShown) { options.contextNoticeShown = true; emit(result, options, 'context-missing', 'Implicit AGENTS.md context is absent; proceeding with the effective agent Book and task instructions.', journal.task); }
     journal.harness = selection.harness; journal.model = selection.model;
     const instructionsHash = createHash('sha256').update(selection.instructions).digest('hex');
     if (journal.agentInstructionsHash && journal.agentInstructionsHash !== instructionsHash) throw new Error('Agent instructions changed during the active task; inspect the source before retrying.');
     journal.agent = selection.agentPath; journal.agentInstructionsHash = instructionsHash;
-    emit(result, options, 'selection', `Agent ${selection.agentPath}; harness ${selection.harness}; model ${selection.model ?? 'provider native (unknown)'}; thinking ${options.thinkingLevel ?? journal.task.thinkingLevel ?? 'adapter default (unknown)'}.`, journal.task, { agent: selection.agentPath, harness: selection.harness, model: selection.model, thinkingLevel: options.thinkingLevel ?? journal.task.thinkingLevel });
+    emit(result, options, 'selection', `Agent ${selection.agentPath}; harness ${selection.harness}; model ${selection.model ?? 'provider native (unknown)'}; thinking ${thinkingLevel ?? 'adapter default (unknown)'}.`, journal.task, { agent: selection.agentPath, harness: selection.harness, model: selection.model, thinkingLevel: thinkingLevel });
     const learningSource = (await readJournals(workspace, previous => previous.followupPath?.replace(/\\/g, '/') === journal.task.source.relativePath && Boolean(previous.learningTarget)))[0];
     if (learningSource?.learningTarget) {
         const target = await prepareAgent(path.join(workspace.projectPath, learningSource.learningTarget), workspace.projectPath);
@@ -224,7 +238,7 @@ async function infer(workspace: Workspace, journal: RunJournal, options: RunOpti
         for (let retry = 0; retry <= 3; retry++) {
             if (options.signal?.aborted || options.shouldStop?.()) return { outcome: 'cancelled', exitCode: 130, output: 'Cancelled before inference.' } as HarnessResult;
             const record: AttemptRecord = { attempt: journal.attempts, retry, startedAt: (options.now ?? Date.now)(), harness: selection.harness, model: selection.model, agent: selection.agentPath,
-                thinkingLevel: options.thinkingLevel ?? journal.task.thinkingLevel, ...(resumeQuota ? { sessionId: journal.sessionId } : {}),
+                thinkingLevel: thinkingLevel, ...(resumeQuota ? { sessionId: journal.sessionId } : {}),
             };
             journal.attemptHistory ??= []; journal.attemptHistory.push(record);
             if (journal.attemptHistory.length > 100) { const excess = journal.attemptHistory.length - 100; journal.attemptHistory.splice(0, excess); journal.truncatedAttempts = (journal.truncatedAttempts ?? 0) + excess; }
@@ -238,16 +252,16 @@ async function infer(workspace: Workspace, journal: RunJournal, options: RunOpti
                 const end = pendingOutput.lastIndexOf('\n');
                 if (end >= 0) { const text = redactSecrets(pendingOutput.slice(0, end + 1), options.redactProjectPath); pendingOutput = pendingOutput.slice(end + 1); options.onOutput?.(text); emit(result, options, 'output', text, journal.task); }
             };
-            const response = await runner({ harness: selection.harness, projectPath: privateWorkspace.projectPath, redactionPath: options.redactProjectPath, taskId: journal.taskId, occurrenceId: journal.occurrenceId, requestProjectPath: options.requestProjectPath ?? path.dirname(workspace.statePath), tools: options.tools, prompt: `${resumeQuota ? 'Continue the same task after its confirmed usage-limit interruption. Preserve existing progress and do not repeat completed external actions.\n\n' : ''}${promptFor(journal.task, selection.instructions, feedback)}`, agentPath: /^(https:|ptbk:)/.test(selection.agentPath) ? selection.agentPath : path.join(privateWorkspace.gitRoot!, path.relative(workspace.gitRoot!, selection.agentPath)), context: selection.context, model: selection.model, thinkingLevel: options.thinkingLevel ?? journal.task.thinkingLevel, allowCredits: options.allowCredits, signal: options.signal, sessionId: resumeQuota ? journal.sessionId : undefined, onOutput: stream });
+            const response = await runner({ harness: selection.harness, harnessConfiguration, projectPath: privateWorkspace.projectPath, redactionPath: options.redactProjectPath, taskId: journal.taskId, occurrenceId: journal.occurrenceId, requestProjectPath: options.requestProjectPath ?? path.dirname(workspace.statePath), tools, prompt: `${resumeQuota ? 'Continue the same task after its confirmed usage-limit interruption. Preserve existing progress and do not repeat completed external actions.\n\n' : ''}${promptFor(journal.task, selection.instructions, feedback)}`, agentPath: /^(https:|ptbk:)/.test(selection.agentPath) ? selection.agentPath : path.join(privateWorkspace.gitRoot!, path.relative(workspace.gitRoot!, selection.agentPath)), context: selection.context, model: selection.model, thinkingLevel: thinkingLevel, allowCredits: options.allowCredits, signal: options.signal, sessionId: resumeQuota ? journal.sessionId : undefined, onOutput: stream });
             Object.assign(record, { finishedAt: (options.now ?? Date.now)(), outcome: response.outcome, exitCode: response.exitCode,
                 ...(response.sessionId ? { sessionId: response.sessionId } : {}), ...(response.usage ? { usage: response.usage } : {}),
-                authentication: response.authentication ?? 'unknown', ...(response.effectiveModel ? { effectiveModel: response.effectiveModel } : {}),
+                authentication: response.authentication ?? 'unknown', harnessVersion: response.harnessVersion ?? options.harnessVersion, ...(response.effectiveModel ? { effectiveModel: response.effectiveModel } : {}),
                 ...(response.outcome !== 'success' ? { reason: redactSecrets(`${response.outcome}: ${response.output}`, options.redactProjectPath).slice(0, 2048) } : {}),
             });
             if (pendingOutput) { const text = redactSecrets(pendingOutput, options.redactProjectPath); options.onOutput?.(text); emit(result, options, 'output', text, journal.task); }
             journal.externalEffects ||= response.externalEffects;
-            journal.thinkingLevel = options.thinkingLevel ?? journal.task.thinkingLevel;
-            journal.authentication = response.authentication ?? 'unknown'; journal.effectiveModel = response.effectiveModel;
+            journal.thinkingLevel = thinkingLevel;
+            journal.authentication = response.authentication ?? 'unknown'; journal.effectiveModel = response.effectiveModel; journal.harnessVersion = response.harnessVersion ?? options.harnessVersion;
             journal.sessionId = response.sessionId ?? journal.sessionId;
             if (response.usage) { journal.usage ??= {}; for (const [key, value] of Object.entries(response.usage)) journal.usage[key] = (journal.usage[key] ?? 0) + value; }
             if (response.usage) emit(result, options, 'usage', 'Observed provider usage.', journal.task, { usage: response.usage, totalUsage: journal.usage, effectiveModel: response.effectiveModel });
@@ -304,7 +318,7 @@ async function trace(workspace: Workspace, journal: RunJournal, outcome: string,
     const directory = await confinePath(workspace.statePath, path.join(workspace.statePath, 'traces', safeId));
     await fs.mkdir(directory, { recursive: true });
     const filename = await confinePath(workspace.statePath, path.join(directory, `${journal.occurrenceId}.md`));
-    const body = `# ${journal.task.title}\n\nTask: ${journal.taskId}\nOccurrence: ${journal.occurrenceId}\nRun/journal: ${journal.id}\nRuntime journal: .ptbk/journals/${journal.id}.json\nRecord: finalization boundary; runtime journal contains authoritative final result and commit IDs\nCommit provenance: Ptbk-Journal: ${journal.id}\nSource: ${journal.task.source.relativePath}\nPayload SHA-256: ${journal.sourceSnapshot?.payloadHash ?? createHash('sha256').update(journal.task.payload).digest('hex')}\nSource snapshot SHA-256: ${journal.sourceSnapshot?.revision ?? 'not recorded'}\nOutcome: ${outcome}\nAgent: ${journal.agent ?? 'not invoked'}\nHarness: ${journal.harness ?? 'not invoked'}\nModel: ${journal.effectiveModel ?? journal.model ?? 'unknown (provider did not report)'}\nThinking: ${journal.thinkingLevel ?? 'unknown (adapter default)'}\nAuthentication: ${journal.authentication ?? 'unknown'}\nUsage: ${journal.usage ? JSON.stringify(journal.usage) : 'unknown'}\nCheck command: ${journal.checkCommand ?? 'not configured'}\nChecks: ${journal.checks ?? 'skipped'}\nOutcome evidence: ${journal.acceptance?.evidence ?? 'not reported'}\nStarted: ${new Date(journal.startedAt).toISOString()}\nUpdated: ${new Date((options.now ?? Date.now)()).toISOString()}\n\n## Exposed provider attempts\n\n${journal.truncatedAttempts ? `[ptbk] ${journal.truncatedAttempts} earlier attempt records were truncated; the latest 100 remain.\n\n` : ''}${JSON.stringify(journal.attemptHistory ?? [], null, 2)}\n\n${journal.output ?? ''}\n`;
+    const body = `# ${journal.task.title}\n\nTask: ${journal.taskId}\nOccurrence: ${journal.occurrenceId}\nRun/journal: ${journal.id}\nEngine version: ${journal.engineVersion ?? 'unknown (older recovery journal)'}\nHarness version: ${journal.harnessVersion ?? 'unknown (not reported)'}\nRuntime journal: .ptbk/journals/${journal.id}.json\nRecord: finalization boundary; runtime journal contains authoritative final result and commit IDs\nCommit provenance: Ptbk-Journal: ${journal.id}\nSource: ${journal.task.source.relativePath}\nPayload SHA-256: ${journal.sourceSnapshot?.payloadHash ?? createHash('sha256').update(journal.task.payload).digest('hex')}\nSource snapshot SHA-256: ${journal.sourceSnapshot?.revision ?? 'not recorded'}\nOutcome: ${outcome}\nAgent: ${journal.agent ?? 'not invoked'}\nHarness: ${journal.harness ?? 'not invoked'}\nModel: ${journal.effectiveModel ?? journal.model ?? 'unknown (provider did not report)'}\nThinking: ${journal.thinkingLevel ?? 'unknown (adapter default)'}\nAuthentication: ${journal.authentication ?? 'unknown'}\nUsage: ${journal.usage ? JSON.stringify(journal.usage) : 'unknown'}\nCheck command: ${journal.checkCommand ?? 'not configured'}\nChecks: ${journal.checks ?? 'skipped'}\nOutcome evidence: ${journal.acceptance?.evidence ?? 'not reported'}\nStarted: ${new Date(journal.startedAt).toISOString()}\nUpdated: ${new Date((options.now ?? Date.now)()).toISOString()}\n\n## Exposed provider attempts\n\n${journal.truncatedAttempts ? `[ptbk] ${journal.truncatedAttempts} earlier attempt records were truncated; the latest 100 remain.\n\n` : ''}${JSON.stringify(journal.attemptHistory ?? [], null, 2)}\n\n${journal.output ?? ''}\n`;
     await fs.writeFile(filename, retainedOutput(redactSecrets(body, options.redactProjectPath ?? workspace.projectPath)), { mode: 0o600 });
     journal.trace = path.relative(path.dirname(workspace.statePath), filename).split(path.sep).join('/'); await writeJournal(workspace, journal); return filename;
 }
@@ -411,11 +425,15 @@ async function failOccurrence(workspace: Workspace, journal: RunJournal, ledger:
     journal.phase = 'recovery-required'; journal.updatedAt = (options.now ?? Date.now)();
     const entry = ledger.tasks[journal.taskId];
     if (entry) { entry.blocked = message; const history = entry.history.find((item) => item.id === journal.occurrenceId); if (history) Object.assign(history, { outcome: 'recovery-required', attempts: journal.attempts, commits: [...journal.commits] }); await saveLedger(workspace, ledger); }
-    await trace(workspace, journal, 'recovery required', options, result).catch(() => undefined);
+    await trace(workspace, journal, 'recovery required', options, result).catch(failure => {
+        const diagnostic = redactSecrets(`Task diagnostic storage unavailable: ${(failure as Error).message}. Original failure: ${message}. Available diagnostics: ${(error as Error).stack ?? String(error)}`, options.redactProjectPath);
+        process.stderr.write(`${diagnostic}\n`);
+        emit(result, options, 'diagnostic-unavailable', diagnostic, journal.task);
+    });
     await writeJournal(workspace, journal);
     result.failed++; result.exitCode = options.signal?.aborted ? 130 : 1;
     emit(result, options, 'recovery-required', message, journal.task, { reason: message, occurrenceId: journal.occurrenceId });
-    emit(result, options, 'error', `Task ${journal.taskId} requires recovery: ${message}. Work and ownership snapshots were preserved. Use ptbk recover ${JSON.stringify(journal.taskId)}.`, journal.task);
+    emit(result, options, 'error', `Task ${journal.taskId} requires recovery: ${message}. Work and ownership snapshots were preserved. Use ptbk recover ${JSON.stringify(journal.taskId)}.`, journal.task, { trace: journal.trace, nextAction: `Inspect ptbk recover ${JSON.stringify(journal.taskId)} before retrying the failed phase.` });
 }
 /** Execute and validate one claimed task with a central three-attempt repair budget. @private */
 async function execute(workspace: Workspace, journal: RunJournal, ledger: Ledger, options: RunOptions, result: RunResult, initialFeedback?: string, resumeReady = false): Promise<void> {
@@ -515,6 +533,7 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
             if (!fixed) return result;
         }
         while (!options.signal?.aborted && !options.shouldStop?.() && result.completed < (options.limit ?? Infinity)) {
+            await options.onTaskBoundary?.(options);
             await wait(0, options);
             if (options.shouldStop?.() || options.signal?.aborted) break;
             await lease.assertOwned();
@@ -549,6 +568,9 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
             if (options.shouldStop?.() || options.signal?.aborted) break;
             lastStart = (options.now ?? Date.now)();
             options.harness ??= selected.harness; options.model ??= selected.model; options.thinkingLevel ??= selected.thinkingLevel;
+            const defaults = options.harness ? options.harnessSettings?.[options.harness] : undefined;
+            options.model ??= defaults?.model; options.thinkingLevel ??= defaults?.thinkingLevel;
+            options.harnessConfiguration ??= defaults ? { apiKeyEnv: defaults.apiKeyEnv, configurationPath: defaults.configurationPath } : undefined;
             await announceIdentity(workspace, options, result);
             await assertSource(selected);
             const baseline = await captureSnapshot(workspace.gitRoot!);
@@ -559,6 +581,7 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
             else await execute(workspace, journal, ledger, options, result);
             configurationFrozen = true; options.harness ??= journal.harness; options.model ??= journal.model ?? journal.effectiveModel; options.thinkingLevel ??= journal.thinkingLevel;
             if (result.failed || result.syncPending || result.completed >= (options.limit ?? Infinity)) break;
+            await options.onTaskBoundary?.(options);
             await wait(options.waitAfterPrompt ?? 0, options);
             if (options.autoPull && !options.shouldStop?.()) await git(workspace.gitRoot!, ['pull', '--rebase'], { signal: options.signal });
         }

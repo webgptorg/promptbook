@@ -11,6 +11,7 @@ import test from 'node:test';
 import { startCoderServer } from '../dist/coder/server.js';
 import { ensureCoreAgents } from '../dist/coder/agents.js';
 import { resolveWorkspace } from '../dist/coder/workspace.js';
+import { readServiceRecord } from '../dist/coder/service.js';
 
 /** Local fixture Git calls never execute a shell or touch the checkout under test. */
 const run = promisify(execFile);
@@ -68,7 +69,7 @@ async function fixture(t, options = {}) {
     });
     t.after(async () => { controller.abort(); await completion; await rm(project, { recursive: true, force: true }); });
     const html = await until(async () => { try { return await (await fetch(origin)).text(); } catch { return undefined; } }, Boolean, 'Server started', 30000);
-    const token = /const token="([a-f0-9-]+)"/.exec(html)[1];
+    const token = (await readServiceRecord(workspace)).token;
     const fixtureResult = {
         project, workspace, origin, token, html, controller, completion, calls: () => calls,
         request: (route, body, headers = {}) => fetch(`${origin}${route}`, {
@@ -88,6 +89,8 @@ test('dashboard has valid inert rendering and protected API rejects missing toke
     const server = await fixture(t);
     const script = /<script nonce="[^"]+">([\s\S]*)<\/script>/.exec(server.html)[1];
     assert.doesNotThrow(() => new Function(script));
+    assert(!server.html.includes(server.token), 'Public HTML never reveals the runtime control capability');
+    assert(!(await fetch(server.origin)).headers.get('content-security-policy').includes(server.token));
     assert.equal((await fetch(`${server.origin}/api/state`)).status, 403);
     const forgedHostStatus = await new Promise((resolve, reject) => {
         const request = httpRequest(`${server.origin}/api/state`, { headers: { Host: 'attacker.example', 'X-Ptbk-Token': server.token } }, (response) => { response.resume(); resolve(response.statusCode); });
@@ -186,7 +189,7 @@ test('server continue recovers once then watches and executes work added on a la
     const completion = startCoderServer(workspace, { port, signal: controller.signal, harness: 'openai-codex', gitChanges: 'continue', runHarness: provider });
     t.after(async () => { controller.abort(); await completion; await rm(project, { recursive: true, force: true }); });
     const html = await until(async () => { try { return await (await fetch(origin)).text(); } catch { return undefined; } }, Boolean, 'Recovery server started', 30000);
-    const token = /const token="([a-f0-9-]+)"/.exec(html)[1];
+    const token = (await readServiceRecord(workspace)).token;
     const request = (route, body) => fetch(`${origin}${route}`, {
         method: body === undefined ? 'GET' : 'POST',
         headers: { 'X-Ptbk-Token': token, ...(body === undefined ? {} : { Origin: origin, 'Content-Type': 'application/json' }) },

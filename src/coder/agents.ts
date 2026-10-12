@@ -2,6 +2,7 @@ import { readFile, realpath, readdir, stat, mkdir, writeFile } from 'node:fs/pro
 import { basename, dirname, isAbsolute, relative, resolve } from 'node:path';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { installedEngineVersion } from './version.js';
 
 /** A resolved advisor declaration retains the file that declared its relative reference. @private */
 export interface TeamMember { name: string; path: string; declaringPath: string; kind?: 'agent' | 'expert' | 'user' | 'void'; }
@@ -240,10 +241,10 @@ export async function resolveAgentReference(raw: string, declaring: string, proj
 
 /** Introspect this installed engine without exposing credentials or project-owned Expert files. @private */
 async function expertBook(projectPath: string): Promise<string> {
-    const manifest = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string };
+    const version = await installedEngineVersion();
     return `Expert
 FROM Void
-PERSONA Promptbook expertise supplied by the running ptbk ${manifest.version} engine.
+PERSONA Promptbook expertise supplied by the running ptbk ${version} engine.
 KNOWLEDGE APT means Agent–Project–Task. An agent is a persistent role; a task is bounded work. This project is ${projectPath}. Runtime records and persistent browser sessions are Git-ignored in .ptbk/.
 KNOWLEDGE Agent names are first nonempty Book lines, unique after case/diacritic/separator normalization. FROM inherits Adam by default; FROM Void terminates; FROM User is invalid; IMPORT includes instructions in place; TEAM @Name and {Multi Word Name} make on-demand consultations, including @User and @Expert.
 KNOWLEDGE Core agents are editable Adam, Manager and closed Teacher in agents/.core/. Hidden agents remain resolvable but do not receive ordinary automatic work. Expert, User and Void are engine references without editable project files.

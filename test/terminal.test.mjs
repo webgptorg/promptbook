@@ -74,6 +74,7 @@ test('scroll and resize render bounded history and restore the terminal', () => 
 
 test('non-TTY output streams immediately without dashboard escapes', () => {
     const view = fixture(false);
+    view.terminal.setSnapshot({ engineVersion: 'fixture', status: 'running' });
     view.terminal.output('partial');
     view.terminal.output(' line\n');
     view.terminal.status('Complete');

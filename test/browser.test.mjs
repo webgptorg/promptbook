@@ -133,3 +133,22 @@ test('real headless browser retains authenticated site sessions across process r
     await resumed.close();
     assert.ok(await readFile(join(profile, 'Default', 'Network', 'Cookies')).catch(() => readFile(join(profile, 'Default', 'Cookies'))));
 });
+
+test('profile and visibility are independent temporary settings and explicit changes never migrate sessions', async t => {
+    const workspace = await fixture(t);
+    const first = join(workspace.projectPath, 'first-profile');
+    const second = join(workspace.projectPath, 'second-profile');
+    await mkdir(first); await mkdir(second);
+    await writeFile(join(first, 'Cookies'), 'first-identity');
+    await writeFile(join(second, 'Cookies'), 'second-identity');
+    const browser = new ProjectBrowser(workspace, { mode: 'headless', profile: first, executable: join(workspace.projectPath, 'missing-chrome') });
+    assert.equal(browser.status().profile, first);
+    assert.equal((await browser.configure({ profile: second })).mode, 'headless');
+    assert.equal(browser.status().profile, second);
+    await assert.rejects(browser.configure({ profile: join(workspace.projectPath, 'missing-profile') }), /does not exist/);
+    assert.equal(browser.status().profile, second);
+    assert.equal(await readFile(join(first, 'Cookies'), 'utf8'), 'first-identity');
+    assert.equal(await readFile(join(second, 'Cookies'), 'utf8'), 'second-identity');
+    assert.equal((await browser.configure({ profile: undefined })).profile, join(workspace.statePath, 'browser/profile'));
+    await browser.close();
+});

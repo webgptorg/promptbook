@@ -1,6 +1,25 @@
 # Using `ptbk`
 
-Run commands from your Git project or select it with `--path DIR`. `--tasks DIR` changes the task directory within that project. Paths, code and daemon workers resolve from the installed package; two projects can use different local versions. `ptbk --help` lists all accepted options. Unknown or contradictory options fail before starting work.
+Run commands from your Git project or select it with `--path DIR`. Relative CLI paths resolve from the invocation directory and must respect the selected project's boundaries. Code and daemon workers resolve from the installed package; two projects can use different local versions. Bare `ptbk`, help, about and dashboards show the invoked/running engine version. `ptbk COMMAND --help` lists detailed options. Inspection never checks for updates or performs setup.
+
+## Saved defaults
+
+`ptbk.json` belongs to the selected project and is versioned. Settings resolve from engine defaults, legacy `PTBK_HARNESS`/`PTBK_MODEL`/`PTBK_THINKING_LEVEL` fallbacks, project configuration, then explicit flags. Explicit false or empty settings clear lower-priority defaults; Boolean flags accept `--flag=false`. CLI and runtime overrides never rewrite an existing configuration.
+
+```json
+{
+    "harnesses": {
+        "openai-codex": { "enabled": true, "model": "your-available-model" },
+        "claude-code": false
+    },
+    "routing": { "agent": "Developer" },
+    "execution": { "check": "npm run check", "waitAfterError": "10m" },
+    "browser": { "mode": "headless", "profile": ".ptbk/browser/profile" },
+    "updates": { "harnesses": true }
+}
+```
+
+`harnesses` also accepts an array of enabled identifiers; an empty array deliberately enables none. Supported settings can be at the top level or grouped under `routing`, `execution` and `process`; process settings include `mode`, `persist`, `server`, `port` and `qr`. Numeric pacing values use milliseconds. Paths in the file resolve from its project, including `tasks`, `context`, local Book references and browser profiles. Never store keys, tokens or browser sessions. Supported integrations accept explicit `apiKeyEnv`/`configurationPath` references through their native environment; unsupported references block execution with a diagnostic.
 
 ## Initialize and author
 
@@ -11,11 +30,17 @@ ptbk list --json
 ptbk run --dry-run --json
 ```
 
-`init`/`initialize` creates missing core Adam, Manager and Teacher Books, ordinary roles, conventions and templates. Existing custom content is preserved. Without `--no-install`, initialization offers global installation of supported harnesses and native interactive login; unattended login instructions remain visible. Basic initialization does not execute tasks. Add `--commit` to persist setup through a scoped commit.
+`init`/`initialize` creates missing core Adam, Manager and Teacher Books, ordinary roles, conventions and templates. Existing custom content is preserved. Interactive setup is a finite wizard; unattended setup supplies `--installation local|global`, `--harnesses NAME,NAME`, browser choices and any nested-project strategy in advance. `--no-install` explicitly defers installation. Local installation uses the exact running version in dependencies, preserving a declared devDependency and healthy local installation. Harness installation is global and touches only selected integrations; native login is reused. Blank initialization never invokes a model.
+
+Setup creates a scoped commit by default; `--no-commit` leaves artifacts for manual persistence. Unrelated staging stays untouched. Generated edits overlapping existing user changes remain uncommitted and are recorded as pending review; initialization/start expose those requirements until the files are committed and clean. Repeating satisfied setup creates no empty commit.
+
+`--new-project DIR` creates a destination. A new child inside Git requires `--nested-strategy ignored|submodule` or `back`; submodules additionally require `--submodule-source URL_OR_PATH`. Parent ignore/submodule metadata remains uncommitted, and the child has its own setup commit. Interactive Back returns to destination selection. In-place setup reuses the existing repository and branch.
+
+Interactive init checks for a newer engine first and offers updating the invoked local/global installation. An authorized successful update exits with a rerun instruction before destination setup. `--self-update` authorizes the unattended equivalent; `--no-self-update` skips it. Offline metadata remains unknown. Harness updates are separate: init offers keep/all/individual choices for outdated selected integrations; start maintains enabled integrations by default, with `--no-auto-update-harnesses` or `updates.harnesses: false` disabling that policy. Updates verify global ownership/version and wait until no project invocation uses the installation.
 
 Set the project's `check` script to actual tests, validation and/or builds. Initialization combines existing check scripts where possible and otherwise creates a failing setup placeholder. Commit your intended project baseline and configure Git identity/signing before automatic execution.
 
-`ptbk init --agenda "Maintain this project's objective"` materializes and executes the installation-provided Expert's bootstrap task, then starts its agenda. It requires an authenticated harness and a checked outcome. Expert is reserved and does not need a project Book.
+`ptbk init --intent "Maintain this project's objective"` on a fresh destination materializes and executes the installation-provided Expert's bootstrap task, then starts its agenda. `--agenda` explicitly requests this flow for an existing project as well. It requires an authenticated harness and a checked outcome. Expert is reserved and does not need a project Book.
 
 A modern task is plain text:
 
@@ -50,9 +75,9 @@ ptbk restart
 ptbk stop
 ```
 
-`run` freezes its initial queue and uses one configuration (Developer unless selected otherwise). A recurring definition runs at most once in that invocation. `fix` validates/repairs the selected check without consuming backlog work. `verify` is human review/archive. `plan` exposes read-only discussion and proposal tools: `/save`, `/draft`, `/discard` and `/exit`. `plan --prompt TEXT --no-questions` can produce a noninteractive draft without implementing it.
+`run` freezes its initial queue and uses one configuration (Developer unless selected otherwise). Interactive run/start share a stable dashboard; `--non-interactive` provides plain output. Run opens its authenticated localhost dashboard until completion; `--no-server` disables it. A recurring definition runs at most once in that invocation. `fix` validates/repairs the selected check without consuming backlog work. `verify` is human review/archive. `plan` exposes read-only discussion and proposal tools: `/save`, `/draft`, `/discard` and `/exit`. `plan --prompt TEXT --no-questions` can produce a noninteractive draft without implementing it.
 
-`start` operates indefinitely, selects from installed authenticated authorized harnesses, respects explicit task requirements and uses Manager to fill missing choices. It does not switch automatically to an API billing account. Future tasks retain their time boundary; blocked or future work prevents an idle goal enquiry. When unfinished backlog is exhausted, ordinary goal-enquiry tasks are generated with a durable cooldown.
+`start` operates indefinitely, selects from enabled, installed authenticated authorized harnesses, respects explicit task requirements and uses Manager to fill missing choices. It does not switch automatically to an API billing account. Future tasks retain their time boundary; blocked or future work prevents an idle goal enquiry. When unfinished backlog is exhausted, ordinary goal-enquiry tasks are generated with a durable cooldown.
 
 The default daemon releases your terminal after reporting its project, actual localhost URL and QR code. Repeating start connects to the existing owner. `--no-qr` suppresses the QR; `--no-server` keeps socket/CLI controls; `--no-persist` disables reboot/crash registration. `--raw` stays in the foreground without hidden stdin questions. `--interactive` requires a terminal and supports P pause, S skip pacing wait, X finish/exit, O normal/raw output, arrows and End. Q opens pending questions; C applies runtime settings.
 
@@ -66,7 +91,9 @@ Automatic start requires outcome evidence and checks (default `npm run check`). 
 
 The localhost dashboard displays the same activity, tasks, settings, agent/harness inventory, requests, statistics and recent outcomes. It binds to `127.0.0.1` and requires its session token for API access. GET `/api/state` uses `X-Ptbk-Token`; POST requests also require `Origin: http://127.0.0.1:PORT`. POST `/api/control` accepts an `action`: `pause`, `resume`, `skip-wait`, `finish`, `stop`, `answer`, or `settings`. An answer includes `id` and `response`; settings use `{"action":"settings","settings":{"waitAfterError":30000}}`. Pacing settings use milliseconds. POST `/api/task` accepts `id`, source `revision` and complete UTF-8 `content`, and rejects stale edits or edits during an active task.
 
-Snapshots list settings capabilities. Routing, checks, pacing, enabled harnesses and browser mode change at safe task boundaries. Mode, profile, persistence, HTTP enablement and port require restart; pending/restart changes are exposed separately. All mutations use the same authorization and workspace ownership across interfaces.
+Snapshots list settings capabilities and the running engine version. Checks, pacing, enabled harnesses and browser mode/profile changes apply at safe task boundaries. A finite run keeps one routing selection; routing changes require a new invocation. Process mode, persistence, HTTP enablement and port require restart. Live changes are temporary; pending/restart changes are exposed separately. All mutations use the same authorization and workspace ownership across interfaces.
+
+The page capability appears only in the displayed session URL fragment; an unauthenticated HTML request never discloses it.
 
 Browser tools use local Chrome/Chromium through CDP and the ignored `.ptbk/browser/profile` by default. Sessions survive restart. `--browser-profile PATH` selects an existing dedicated profile, and `--browser-mode headful` allows human login on desktop systems. Conflicting ownership is refused; only the runtime's browser process is stopped. Password values, cookies and session storage are not exposed through read tools. Login/2FA requests direct you to the actual browser and wait for your answer. A host without a display receives a diagnostic when headful mode cannot run.
 

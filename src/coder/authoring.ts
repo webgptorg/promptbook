@@ -1,12 +1,13 @@
 import { mkdir, readFile, readdir, writeFile, rename, unlink, stat, link } from 'node:fs/promises';
-import { join, dirname, relative, resolve } from 'node:path';
+import { join, dirname, relative, resolve, basename } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { createInterface } from 'node:readline/promises';
+import { promptText } from './interactive.js';
 import type { Workspace, TaskDefinition } from './domain.js';
 import { serializeTaskBook, discoverTasks, checksum, parseBook } from './sources.js';
 import { scheduleRevision } from './schedule.js';
 import { confinePath, InputError, requireGit } from './workspace.js';
 import { discoverAgents, ensureCoreAgents, normalizeAgentName } from './agents.js';
+import { ensureProjectConfiguration, readProjectConfiguration } from './configuration.js';
 
 /** Minimal locally resolvable roles supplied by project initialization. */
 const DEFAULT_BOOKS: Record<string, string> = {
@@ -85,6 +86,17 @@ async function appendMissing(workspace: Workspace, path: string, lines: string[]
  * @private Internal authoring command.
  */
 export async function initializeProject(workspace: Workspace): Promise<string[]> {
+    await readProjectConfiguration(workspace.projectPath);
+    const packagePath = await confinePath(workspace.projectPath, join(workspace.projectPath, 'package.json'));
+    try {
+        const metadata: unknown = JSON.parse(await readFile(packagePath, 'utf8'));
+        if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) throw new InputError(`${packagePath}: package metadata must be an object.`);
+        const scripts = (metadata as { scripts?: unknown }).scripts;
+        if (scripts !== undefined && (!scripts || typeof scripts !== 'object' || Array.isArray(scripts) || Object.values(scripts).some(command => typeof command !== 'string'))) throw new InputError(`${packagePath}.scripts: expected an object of command strings.`);
+    } catch (error) {
+        if (error instanceof SyntaxError) throw new InputError(`${packagePath}: invalid package JSON: ${error.message}`);
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
     await requireGit(workspace, true);
     const changed: string[] = [];
     changed.push(...await ensureCoreAgents(workspace.projectPath));
@@ -99,7 +111,8 @@ export async function initializeProject(workspace: Workspace): Promise<string[]>
     await writeMissing(workspace, join(workspace.projectPath, '.env.example'), '# Select an installed coding harness, for example:\n# PTBK_HARNESS=openai-codex\n# PTBK_THINKING_LEVEL=max\n', changed);
     await appendMissing(workspace, join(workspace.projectPath, '.gitignore'), ['.ptbk/', '.env', 'node_modules/'], changed);
     await appendMissing(workspace, join(workspace.projectPath, '.gitattributes'), ['* text=auto'], changed);
-    const packagePath = await confinePath(workspace.projectPath, join(workspace.projectPath, 'package.json'));
+    changed.push(...await ensureProjectConfiguration(workspace));
+    await writeMissing(workspace, packagePath, `${JSON.stringify({ name: basename(workspace.projectPath).toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[._]+/, '').slice(0, 214) || 'promptbook-project', private: true, scripts: {} }, null, 4)}\n`, changed);
     try {
         const original = await readFile(packagePath, 'utf8');
         const configuration = JSON.parse(original) as { scripts?: Record<string, string> };
@@ -117,7 +130,7 @@ export async function initializeProject(workspace: Workspace): Promise<string[]>
         if (JSON.stringify(JSON.parse(original)) !== JSON.stringify(configuration)) { await replaceSnapshot(workspace, packagePath, original, updated); changed.push(packagePath); }
     } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
     await diagnoseWorkflows(workspace);
-    return changed;
+    return [...new Set(changed)];
 }
 
 /** Creates one reviewed authoring task without calling a model.
@@ -170,8 +183,7 @@ export async function verifyTasks(workspace: Workspace, options: { noQuestions?:
     if (options.noQuestions || (!options.ask && !process.stdin.isTTY)) throw new InputError('verify requires interactive human review. Run it in a terminal without --no-questions.');
     const tasks = (await discoverTasks(workspace)).filter(task => task.status === 'done' && !task.repeat && !(options.ignore || []).some(filter => task.source.relativePath.includes(filter)));
     const changed: string[] = [];
-    const terminal = options.ask ? undefined : createInterface({ input: process.stdin, output: process.stdout });
-    const question = options.ask ?? ((prompt: string) => terminal!.question(prompt));
+    const question = options.ask ?? ((prompt: string) => promptText(prompt));
     const reviewed = new Map<string, Set<number>>();
     try {
         for (const task of tasks) {
@@ -209,6 +221,6 @@ export async function verifyTasks(workspace: Workspace, options: { noQuestions?:
                 changed.push(task.source.path, target);
             }
         }
-    } finally { terminal?.close(); }
+    } finally { reviewed.clear(); }
     return changed;
 }

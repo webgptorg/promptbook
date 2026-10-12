@@ -3,6 +3,11 @@ import { fileURLToPath } from 'node:url';
 import { resolveWorkspace, requireGit } from './workspace.js';
 import { runService, type ServiceOptions, readServiceRecord } from './service.js';
 import { installDaemonLogging } from './logging.js';
+import { reportDiagnostic } from './diagnostics.js';
+import type { Workspace } from './domain.js';
+
+/** The worker retains its selected project for truthful startup diagnostics. */
+let diagnosticWorkspace: Workspace | undefined;
 
 /** Execute only the project and installation pinned in the saved service configuration. */
 async function worker(): Promise<void> {
@@ -12,6 +17,7 @@ async function worker(): Promise<void> {
     if (config.version !== 1 || config.installation !== fileURLToPath(new URL('../..', import.meta.url))) throw new Error('The saved service configuration belongs to another ptbk installation.');
     if (config.desired === 'stopped') return;
     const workspace = await resolveWorkspace({ path: config.project, tasks: config.tasks });
+    diagnosticWorkspace = workspace;
     installDaemonLogging(workspace);
     const record = await readServiceRecord(workspace);
     if (process.argv.includes('--resume') && record?.desired === 'stopped') return;
@@ -24,4 +30,7 @@ async function worker(): Promise<void> {
     }
     finally { process.removeListener('SIGINT', abort); process.removeListener('SIGTERM', abort); }
 }
-await worker().catch(error => { process.stderr.write(`ptbk service failed: ${(error as Error).message}\n`); process.exitCode = 1; });
+await worker().catch(async error => {
+    await reportDiagnostic(error, { command: 'start', phase: 'daemon startup or shutdown', projectPath: diagnosticWorkspace?.projectPath || process.cwd(), workspace: diagnosticWorkspace });
+    process.exitCode = 1;
+});

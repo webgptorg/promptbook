@@ -14,7 +14,7 @@ npm install --save-dev ptbk
 npx ptbk init
 ```
 
-Initialization creates missing core agents, task templates and project conventions, preserving customized files. It offers supported harness installation and interactive authentication. `--no-install` skips installation; `--no-questions` avoids terminal prompts. Configure a meaningful project `check` script and commit the initialized project before starting work.
+Initialization creates missing core agents, task templates, `ptbk.json` and project conventions, preserving customized files. Its wizard offers destination-local installation of the exact running version and selected global harness setup, reusing native login. Unattended setup requires `--installation local|global` or `--no-install`; `--non-interactive` disables prompts. Setup commits only safe generated artifacts; `--no-commit` defers persistence, and edits overlapping user work remain pending review. Configure meaningful project checks before starting work.
 
 ```bash
 ptbk add "Implement the new behavior and its acceptance checks" --commit

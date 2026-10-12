@@ -16,25 +16,29 @@ import { evaluateEligibility } from './schedule.js';
 import { captureSnapshot, commitScoped } from './git.js';
 import { confinePath, InputError, readContext, resolveAgentSelection } from './workspace.js';
 import { discoverAgents, ensureCoreAgents } from './agents.js';
-import { inspectHarnesses, type HarnessInventory } from './setup.js';
-import { getHarness, loadProjectSecrets, redactSecrets } from './harness.js';
+import { inspectHarnesses, maintainHarnesses, type HarnessInventory, type HarnessMaintenanceResult } from './setup.js';
+import { getHarness, getHarnessCatalog, loadProjectSecrets, redactSecrets } from './harness.js';
 import { createRequest, listRequests, answerRequest } from './requests.js';
 import { installStartup, disableStartup, type StartupPaths } from './persistence.js';
 import { createTerminal } from './terminal.js';
 import { ProjectBrowser, browserTools } from './browser.js';
+import { installedEngineVersion } from './version.js';
+import { reportDiagnostic } from './diagnostics.js';
 
 /** Supervisor settings supplement finite options without changing task authority. @private */
 export interface ServiceOptions extends RunOptions {
     mode?: 'daemon' | 'raw' | 'interactive'; noPersist?: boolean; noServer?: boolean; noQr?: boolean; port?: number;
-    browserMode?: 'headless' | 'headful'; browserProfile?: string; enabledHarnesses?: string[];
+    browserMode?: 'headless' | 'headful'; browserProfile?: string; enabledHarnesses?: string[]; autoUpdateHarnesses?: boolean;
+    configurationSources?: Record<string, string>;
+    harnessSettings?: Record<string, { model?: string; thinkingLevel?: string; apiKeyEnv?: string; configurationPath?: string }>;
     automatic?: boolean; onReady?: (record: ServiceRecord) => void;
     inspectHarnesses?: typeof inspectHarnesses;
 }
 /** A versioned process record is verified through its authenticated local control endpoint. @private */
 export interface ServiceRecord {
-    version: 1; id: string; pid: number; ownerId?: string; project: string; installation: string; node: string; endpoint: string; token: string;
+    version: 1; engineVersion: string; id: string; pid: number; ownerId?: string; project: string; installation: string; node: string; endpoint: string; token: string;
     mode: 'daemon' | 'raw' | 'interactive'; desired: 'running' | 'stopped'; startedAt: number; updatedAt: number;
-    url?: string; persistent: boolean; settings: ServiceOptions; status: string; error?: string;
+    url?: string; persistent: boolean; settings: ServiceOptions; status: string; error?: string; diagnostic?: string; nextAction?: string;
 }
 /** One shared control model drives terminal, socket CLI and localhost HTTP. @private */
 export interface RuntimeControl {
@@ -43,13 +47,19 @@ export interface RuntimeControl {
     token: string;
 }
 /** Settings that require process restart are identified before applying them. */
-const STARTUP_SETTINGS = new Set(['mode', 'port', 'noServer', 'noPersist', 'browserProfile']);
+const STARTUP_SETTINGS = new Set(['mode', 'port', 'noServer', 'noPersist']);
 /** Adjustable finite behavior remains discoverable through every shared control snapshot. */
-const LIVE_SETTINGS = new Set(['harness', 'model', 'thinkingLevel', 'agent', 'context', 'enabledHarnesses', 'browserMode', 'check', 'checkBefore', 'gitChanges', 'autoPull', 'autoPush', 'isolate', 'normalizeLineEndings', 'noQuestions', 'allowCredits', 'preserveLogs', 'waitBetweenPrompts', 'waitAfterPrompt', 'waitAfterError', 'minPriority', 'maxPriority']);
+const LIVE_SETTINGS = new Set(['harness', 'model', 'thinkingLevel', 'agent', 'context', 'enabledHarnesses', 'harnessSettings', 'browserMode', 'browserProfile', 'autoUpdateHarnesses', 'check', 'checkBefore', 'gitChanges', 'autoPull', 'autoPush', 'isolate', 'normalizeLineEndings', 'noQuestions', 'allowCredits', 'preserveLogs', 'waitBetweenPrompts', 'waitAfterPrompt', 'waitAfterError', 'minPriority', 'maxPriority']);
 
 /** Strip functions/signals and private callbacks before persisting restart configuration. */
 function serialSettings(options: ServiceOptions): ServiceOptions {
     return JSON.parse(JSON.stringify(options, (_key, value) => typeof value === 'function' || value instanceof AbortSignal ? undefined : value)) as ServiceOptions;
+}
+/** Inspect and maintain only harness identities explicitly enabled for this invocation. */
+function selectedHarnesses(options: ServiceOptions): string[] { return options.enabledHarnesses ?? (options.harness ? [options.harness] : []); }
+/** Keep default catalog output small while retaining opt-in detail for every registered harness. */
+function catalogSummary(includeMore = false): Array<Record<string, unknown>> {
+    return getHarnessCatalog({ includeMore }).map(harness => ({ id: harness.id, name: harness.name, displayName: harness.displayName, featured: harness.featured }));
 }
 /** Keep Unix socket names within the platform limit even for deeply nested projects. */
 function socketDirectory(): string {
@@ -143,14 +153,24 @@ async function body(request: IncomingMessage): Promise<Record<string, unknown>> 
     return value as Record<string, unknown>;
 }
 /** Render the minimal dashboard using textContent for project-controlled text. */
-function dashboard(token: string): string {
-    return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Promptbook</title><style nonce="${token}">body{font:16px system-ui;max-width:960px;margin:32px auto;padding:16px;background:#f6f8f6;color:#17372b}button,input,textarea{font:inherit;padding:8px;margin:4px}article,pre{background:white;padding:16px;border:1px solid #ccd8cf;white-space:pre-wrap;overflow-wrap:anywhere}small{color:#53675c}textarea{width:95%}</style></head><body><h1>Promptbook</h1><p id="status"></p><button data-action="pause">Pause</button><button data-action="resume">Resume</button><button data-action="skip-wait">Skip wait</button><button data-action="finish">Finish and exit</button><button data-action="stop">Stop</button><p id="result" role="status"></p><h2>Requests</h2><div id="requests"></div><h2>Queue</h2><div id="tasks"></div><details><summary>Agents, harnesses, settings and statistics</summary><pre id="details"></pre><textarea id="settings" placeholder='{"waitBetweenPrompts":1000}'></textarea><button id="apply">Apply settings</button></details><details><summary>Recent events</summary><pre id="events"></pre></details><script nonce="${token}">const token=${JSON.stringify(token)};const headers={'X-Ptbk-Token':token,'Content-Type':'application/json'};async function command(action,input={}){const r=await fetch('/api/control',{method:'POST',headers,body:JSON.stringify({action,...input})});const value=await r.json();document.getElementById('result').textContent=JSON.stringify(value);await refresh()}document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>command(b.dataset.action));document.getElementById('apply').onclick=()=>{try{command('settings',{settings:JSON.parse(document.getElementById('settings').value)})}catch(e){document.getElementById('result').textContent=e.message}};async function refresh(){try{const data=await(await fetch('/api/state',{headers})).json();document.getElementById('status').textContent=data.project+' · '+data.status+(data.paused?' · paused':'')+(data.currentTask?' · '+data.currentTask:'');for(const name of ['tasks','requests']){const root=document.getElementById(name);root.replaceChildren();for(const item of data[name]||[]){const card=document.createElement('article');card.textContent=name==='tasks'?item.title+' · '+item.status+' · '+item.eligibility.kind+': '+item.eligibility.reason:item.prompt+'\\n'+item.reason;if(name==='requests'&&item.status==='pending'){const answer=document.createElement('input');const submit=document.createElement('button');submit.textContent='Answer';submit.onclick=()=>command('answer',{id:item.id,response:answer.value});card.append(answer,submit)}root.append(card)}}document.getElementById('details').textContent=JSON.stringify({agents:data.agents,harnesses:data.harnesses,settings:data.settings,pendingSettings:data.pendingSettings,restartSettings:data.restartSettings,settingsCapabilities:data.settingsCapabilities,statistics:data.statistics},null,2);document.getElementById('events').textContent=(data.events||[]).map(e=>e.type+': '+e.message).join('\\n')}catch(e){document.getElementById('result').textContent=e.message}}refresh();setInterval(refresh,1500);</script></body></html>`;
+function dashboard(nonce: string): string {
+    return String.raw`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Promptbook</title><style nonce="${nonce}">body{font:16px system-ui;max-width:960px;margin:32px auto;padding:16px;background:#f6f8f6;color:#17372b}button,input,textarea{font:inherit;padding:8px;margin:4px}article,pre{background:white;padding:16px;border:1px solid #ccd8cf;white-space:pre-wrap;overflow-wrap:anywhere}small{color:#53675c}textarea{width:95%}button:focus,textarea:focus,input:focus{outline:3px solid #287658}</style></head><body><h1 id="identity">Promptbook</h1><p id="status"></p><pre id="active"></pre><button data-action="pause">Pause</button><button data-action="resume">Resume</button><button data-action="skip-wait">Skip wait</button><button data-action="finish">Finish/cancel exit</button><button data-action="stop">Stop</button><p id="result" role="status"></p><h2>Requests</h2><div id="requests"></div><h2>Queue</h2><div id="tasks"></div><details><summary>Agents, harnesses, settings and statistics</summary><pre id="details"></pre><button id="more">More harnesses</button><pre id="catalog"></pre><label for="settings">Temporary future-task settings (JSON)</label><textarea id="settings" placeholder='{"waitBetweenPrompts":1000}'></textarea><button id="apply">Apply settings</button></details><details><summary>Recent activity and diagnostic evidence</summary><pre id="events"></pre></details><script nonce="${nonce}">
+const token=decodeURIComponent(location.hash.slice(1));
+const headers={'X-Ptbk-Token':token,'Content-Type':'application/json'};
+const cards=new Map();
+async function command(action,input={}){try{const r=await fetch('/api/control',{method:'POST',headers,body:JSON.stringify({action,...input})});const value=await r.json();if(!r.ok)throw Error(value.error||'Control rejected');document.getElementById('result').textContent=JSON.stringify(value);await refresh();return value}catch(e){document.getElementById('result').textContent=e.message}}
+document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>command(b.dataset.action));
+document.getElementById('apply').onclick=()=>{try{command('settings',{settings:JSON.parse(document.getElementById('settings').value)})}catch(e){document.getElementById('result').textContent=e.message}};
+document.getElementById('more').onclick=async()=>{const value=await command('harnesses',{more:true});document.getElementById('catalog').textContent=JSON.stringify(value,null,2)};
+async function refresh(){try{if(!token)throw Error('Open the private dashboard link from ptbk show to connect to this process.');const response=await fetch('/api/state',{headers});const data=await response.json();if(!response.ok)throw Error(data.error||'Cannot inspect this process');document.getElementById('identity').textContent='Promptbook '+data.engineVersion;document.getElementById('status').textContent=data.project+' · '+data.mode+' · '+data.status+(data.pausePending?' · pause pending':data.paused?' · paused':'');const current=(data.tasks||[]).find(t=>t.id===data.currentTask);const selected=data.currentSelection||current||data.settings||{};document.getElementById('active').textContent='Task: '+(current?.title||data.currentTask||'idle')+'\nAgent: '+(selected.agent||'none')+' · Harness: '+(selected.harness||'none')+(selected.model?' · Model: '+selected.model:'')+(selected.thinkingLevel?' · Effort: '+selected.thinkingLevel:'')+'\nPhase: '+(data.phase||data.status)+(data.waiting?' · pacing/backoff wait':'')+'\nResults: '+(data.statistics?.completed||0)+' completed · '+(data.statistics?.failed||0)+' failed'+(data.error?'\nFailure: '+data.error+'\nNext: '+(data.nextAction||'inspect ptbk recover and task diagnostics.')+(data.diagnostic?'\nDiagnostic: '+data.diagnostic:''):'');const tasks=document.getElementById('tasks');tasks.replaceChildren();for(const item of data.tasks||[]){const card=document.createElement('article');card.textContent=item.title+' · '+item.status+' · '+item.eligibility.kind+': '+item.eligibility.reason;tasks.append(card)}const live=new Set();for(const item of data.requests||[]){live.add(item.id);let card=cards.get(item.id);if(!card){card=document.createElement('article');const prompt=document.createElement('p');const answer=document.createElement('textarea');answer.setAttribute('aria-label','Answer for request '+item.id);const submit=document.createElement('button');submit.textContent='Answer';submit.onclick=()=>command('answer',{id:item.id,response:answer.value});card.append(prompt,answer,submit);cards.set(item.id,card);document.getElementById('requests').append(card)}card.firstChild.textContent=item.prompt+'\n'+item.reason}for(const[id,card]of cards)if(!live.has(id)){card.remove();cards.delete(id)}document.getElementById('details').textContent=JSON.stringify({agents:data.agents,harnesses:data.harnesses,catalog:data.harnessCatalog,settings:data.settings,pendingSettings:data.pendingSettings,restartSettings:data.restartSettings,settingsCapabilities:data.settingsCapabilities,browser:data.browser,statistics:data.statistics},null,2);document.getElementById('events').textContent=(data.events||[]).map(e=>e.type+': '+e.message).join('\n')}catch(e){document.getElementById('result').textContent=e.message}}refresh();setInterval(refresh,1500);
+</script></body></html>`;
 }
 
 /** Bind a guarded localhost interface; omitted port searches from 3000. @private */
-export async function openDashboard(workspace: Workspace, control: RuntimeControl, selectedPort?: number): Promise<{ url: string; close(): Promise<void> }> {
+export async function openDashboard(workspace: Workspace, control: RuntimeControl, selectedPort?: number): Promise<{ url: string; sessionUrl: string; close(): Promise<void> }> {
     if (selectedPort !== undefined && (!Number.isInteger(selectedPort) || selectedPort < 1 || selectedPort > 65535)) throw new InputError('--port must be between 1 and 65535.');
     let port = selectedPort ?? 3000;
+    const nonce = randomUUID();
     const server = createHttpServer((request, response) => {
         /** Write redacted JSON for all observed state and control outcomes. */
         const respond = (code: number, value: unknown) => { if (response.headersSent) return; response.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); response.end(redactSecrets(JSON.stringify(value), workspace.projectPath)); };
@@ -159,7 +179,7 @@ export async function openDashboard(workspace: Workspace, control: RuntimeContro
             if (request.headers.host !== `127.0.0.1:${port}` || request.headers.origin && request.headers.origin !== origin) return respond(403, { error: 'Invalid local host/origin.' });
             const url = new URL(request.url || '/', origin);
             if (request.method === 'GET' && url.pathname === '/') {
-                response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Security-Policy': `default-src 'none'; script-src 'nonce-${control.token}'; style-src 'nonce-${control.token}'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'` }); response.end(dashboard(control.token)); return;
+                response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Security-Policy': `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'` }); response.end(dashboard(nonce)); return;
             }
             if (!matchesToken(request.headers['x-ptbk-token'], control.token)) return respond(403, { error: 'Session token required.' });
             if (request.method !== 'GET' && request.headers.origin !== origin) return respond(403, { error: 'Local origin required.' });
@@ -176,7 +196,7 @@ export async function openDashboard(workspace: Workspace, control: RuntimeContro
             break;
         } catch (error) { if (!selectedPort && (error as NodeJS.ErrnoException).code === 'EADDRINUSE' && port < 65535) port++; else throw new Error(`Cannot listen on localhost:${port}: ${(error as Error).message}`); }
     }
-    return { url: `http://127.0.0.1:${port}`, close: () => new Promise((resolve, reject) => {
+    return { url: `http://127.0.0.1:${port}`, sessionUrl: `http://127.0.0.1:${port}/#${control.token}`, close: () => new Promise((resolve, reject) => {
         const timeout = setTimeout(() => server.closeAllConnections(), 2000);
         server.close(error => { clearTimeout(timeout); if (error) reject(error); else resolve(); });
         server.closeIdleConnections();
@@ -229,18 +249,19 @@ async function serviceTasks(workspace: Workspace): Promise<TaskDefinition[]> {
 async function readiness(workspace: Workspace, task: TaskDefinition, options: ServiceOptions, inventory: HarnessInventory[], state?: OccurrenceState): Promise<EligibilityResult> {
     let outcome = evaluateEligibility(task, { now: Date.now(), timezone: workspace.timezone, harness: options.harness, model: options.model, thinkingLevel: options.thinkingLevel, minPriority: options.minPriority, maxPriority: options.maxPriority }, state);
     if (!['ready', 'filtered'].includes(outcome.kind) || task.priority < (options.minPriority ?? 0) || task.priority > (options.maxPriority ?? Infinity)) return outcome;
-    let model = options.model ?? task.model;
+    const harness = options.harness ?? task.harness;
+    const defaults = harness ? options.harnessSettings?.[harness] : undefined;
+    let model = options.model ?? task.model ?? defaults?.model;
     try {
         const selection = await resolveAgentSelection(workspace, options.agent ?? task.agent ?? 'Developer');
         model ??= selection.model;
-        outcome = evaluateEligibility(task, { now: Date.now(), timezone: workspace.timezone, harness: options.harness ?? task.harness, model, thinkingLevel: options.thinkingLevel ?? task.thinkingLevel, agent: selection.path, agentAliases: selection.aliases, minPriority: options.minPriority, maxPriority: options.maxPriority }, state);
+        outcome = evaluateEligibility(task, { now: Date.now(), timezone: workspace.timezone, harness, model, thinkingLevel: options.thinkingLevel ?? task.thinkingLevel ?? defaults?.thinkingLevel, agent: selection.path, agentAliases: selection.aliases, minPriority: options.minPriority, maxPriority: options.maxPriority }, state);
     } catch (error) { return { kind: 'blocked', reason: `Required agent is unavailable: ${(error as Error).message}` }; }
     if (outcome.kind !== 'ready' || options.automatic === false) return outcome;
-    const harness = options.harness ?? task.harness;
     if (!task.agent || !harness) return { kind: 'blocked', reason: 'Manager must assign the missing agent/harness before execution.' };
     const available = inventory.find((candidate) => candidate.name === harness && candidate.usable && (!options.enabledHarnesses || options.enabledHarnesses.includes(harness)));
     if (!available) return { kind: 'blocked', reason: `Required harness ${harness} is unavailable or not authorized.` };
-    const thinking = options.thinkingLevel ?? task.thinkingLevel;
+    const thinking = options.thinkingLevel ?? task.thinkingLevel ?? defaults?.thinkingLevel;
     if (thinking && !available.thinkingLevels.includes(thinking)) return { kind: 'blocked', reason: `Harness ${harness} does not support thinking level ${thinking}.` };
     if (model && available.models.length && !available.models.includes(model)) return { kind: 'blocked', reason: `Model ${model} is unavailable in harness ${harness}.` };
     return outcome;
@@ -350,27 +371,48 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
     const controller = new AbortController();
     const browser = new ProjectBrowser(workspace, { mode: supplied.browserMode, profile: supplied.browserProfile, signal: controller.signal });
     let options = { ...supplied, mode: supplied.mode || 'daemon' };
-    let paused = false; let finish = false; let skip = false; let waiting = false; let running = false;
+    let paused = false; let finish = false; let skip = false; let waiting = false; let running = false; let boundaryBusy = true;
     let pending: Partial<ServiceOptions> = {}; let restartSettings: Partial<ServiceOptions> = {};
+    let phase: string | undefined; let currentSelection: Record<string, unknown> | undefined;
     let currentTask: string | undefined; let currentOccurrenceId: string | undefined; let status = 'starting'; let lastResult: RunResult | undefined;
     let inventory: HarnessInventory[] = []; let inventoryAt = 0; let lastWake = 0; let lastTaskStarted = 0;
+    let maintenance: HarnessMaintenanceResult[] = [];
+    const reportedFailures = new Map<string, number>();
     const statistics = { completed: 0, failed: 0, startedAt: Date.now() };
     const events: EngineEvent[] = [];
     const socketPath = endpoint(workspace);
-    const record: ServiceRecord = { version: 1, id: randomUUID(), pid: process.pid, ownerId, project: workspace.projectPath, installation: fileURLToPath(new URL('../..', import.meta.url)), node: process.execPath, endpoint: socketPath, token: randomUUID(), mode: options.mode, desired: 'running', startedAt: Date.now(), updatedAt: Date.now(), persistent: options.mode === 'daemon' && !options.noPersist, settings: serialSettings(options), status };
+    const record: ServiceRecord = { version: 1, engineVersion: await installedEngineVersion(), id: randomUUID(), pid: process.pid, ownerId, project: workspace.projectPath, installation: fileURLToPath(new URL('../..', import.meta.url)), node: process.execPath, endpoint: socketPath, token: randomUUID(), mode: options.mode, desired: 'running', startedAt: Date.now(), updatedAt: Date.now(), persistent: options.mode === 'daemon' && !options.noPersist, settings: serialSettings(options), status };
     /** Persist activity without exposing process authentication in user output. */
     const persist = async () => { record.updatedAt = Date.now(); record.status = status; record.settings = serialSettings({ ...options, ...restartSettings }); await atomicWrite(join(workspace.statePath, 'process.json'), record); };
+    /** Apply staged future-task choices only while the supervisor owns a safe idle boundary. */
+    const applyPending = async () => {
+        if (pending.browserMode || pending.browserProfile !== undefined) await browser.configure({ ...(pending.browserMode ? { mode: pending.browserMode } : {}), ...(pending.browserProfile !== undefined ? { profile: pending.browserProfile } : {}) });
+        options = { ...options, ...pending }; pending = {};
+    };
     /** Add bounded, redacted observations that remain distinct from provider output. */
-    const emit = (event: EngineEvent) => { events.push({ ...event, message: redactSecrets(event.message, workspace.projectPath) }); if (events.length > 160) events.shift(); if (event.taskId) currentTask = event.taskId; if (event.type === 'claimed') { currentOccurrenceId = event.occurrenceId; lastTaskStarted = Date.now(); } options.onEvent?.(event); };
+    const emit = (event: EngineEvent) => {
+        events.push({ ...event, message: redactSecrets(event.message, workspace.projectPath) }); if (events.length > 160) events.shift();
+        if (event.taskId && ['claimed', 'selection'].includes(event.type)) currentTask = event.taskId;
+        if (event.type !== 'output') phase = event.type;
+        if (event.type === 'selection') currentSelection = { agent: event.agent, harness: event.harness, model: event.model, thinkingLevel: event.thinkingLevel };
+        if (event.type === 'error') { record.error = event.message; record.diagnostic = typeof event.trace === 'string' ? event.trace : undefined; record.nextAction = typeof event.nextAction === 'string' ? event.nextAction : undefined; }
+        if (event.type === 'claimed') { currentOccurrenceId = event.occurrenceId; lastTaskStarted = Date.now(); }
+        options.onEvent?.(event);
+    };
     const control: RuntimeControl = { token: record.token,
         async snapshot() {
             const tasks = await serviceTasks(workspace); const ledger = await readLedger(workspace);
             const summaries = await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, payload: task.payload, status: ledger.tasks[task.id]?.claim ? 'in-progress' : task.status, priority: task.priority, priorityRaw: task.priorityRaw, priorityResolved: task.priorityResolved, agent: task.agent, harness: task.harness, model: task.model, thinkingLevel: task.thinkingLevel, parent: task.parent, dependencies: task.dependencies, due: task.dueRaw, source: task.source, eligibility: await readiness(workspace, task, options, inventory, ledger.tasks[task.id]) })));
-            return { id: record.id, pid: record.pid, project: workspace.projectPath, mode: record.mode, status, paused, running, currentTask, url: record.url, persistent: record.persistent, settings: serialSettings(options), pendingSettings: pending, restartSettings, settingsCapabilities: { live: [...LIVE_SETTINGS], requiresRestart: [...STARTUP_SETTINGS], units: 'Pacing values use milliseconds.' }, statistics, lastResult, timezone: workspace.timezone, agents: (await discoverAgents(workspace.projectPath)).map(agent => ({ name: agent.name, hidden: agent.hidden, path: relative(workspace.projectPath, agent.path) })), harnesses: inventory, requests: await listRequests(workspace, true), browser: browser.status(), events,
+            return { id: record.id, pid: record.pid, project: workspace.projectPath, engineVersion: record.engineVersion, mode: record.mode, status, phase, paused, pausePending: paused && running, running, waiting, currentTask, currentSelection, url: record.url, persistent: record.persistent, settings: serialSettings(options), pendingSettings: pending, restartSettings, configurationSources: options.configurationSources, settingsCapabilities: { live: [...LIVE_SETTINGS], requiresRestart: [...STARTUP_SETTINGS], temporary: true, units: 'Pacing values use milliseconds.' }, statistics, lastResult, error: record.error, diagnostic: record.diagnostic, nextAction: record.nextAction, timezone: workspace.timezone, agents: (await discoverAgents(workspace.projectPath)).map(agent => ({ name: agent.name, hidden: agent.hidden, path: relative(workspace.projectPath, agent.path) })), harnesses: inventory.map(({ name, usable, installed, authenticated, diagnostic }) => ({ name, usable, installed, authenticated, diagnostic })), harnessCatalog: catalogSummary(), harnessMaintenance: maintenance, requests: await listRequests(workspace, true), browser: browser.status(), events,
                 tasks: summaries };
         },
         async command(action, input = {}) {
             if (action === 'inspect') return control.snapshot();
+            if (action === 'harnesses') {
+                if (input.more !== undefined && typeof input.more !== 'boolean' || input.name !== undefined && typeof input.name !== 'string') throw new InputError('Harness inspection accepts a name or boolean more choice.');
+                if (typeof input.name === 'string') { getHarness(input.name); return inventory.find(item => item.name === input.name) ?? { ...catalogSummary(true).find(item => item.name === input.name), enabled: false }; }
+                return { featured: catalogSummary(), ...(input.more ? { more: catalogSummary(true) } : {}), detailAction: 'harnesses', detailInput: { name: 'harness-id' } };
+            }
             if (action === 'pause') { paused = true; terminal.setPaused(true); }
             else if (action === 'resume') { paused = false; terminal.setPaused(false); lastWake = 0; }
             else if (action === 'skip-wait') { const cooldown = lastWake > Date.now(); skip = waiting && running; if (cooldown) lastWake = 0; return { skipped: skip || cooldown }; }
@@ -407,19 +449,31 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                 const update = input.settings as Partial<ServiceOptions>;
                 for (const key of Object.keys(update)) if (!LIVE_SETTINGS.has(key) && !STARTUP_SETTINGS.has(key)) throw new InputError(`Unknown/immutable setting ${key}.`);
                 for (const [key, value] of Object.entries(update)) {
-                    if (['noServer', 'noPersist', 'autoPull', 'autoPush', 'isolate', 'normalizeLineEndings', 'noQuestions', 'allowCredits', 'preserveLogs'].includes(key) && typeof value !== 'boolean') throw new InputError(`${key} must be a boolean.`);
+                    if (['noServer', 'noPersist', 'autoPull', 'autoPush', 'isolate', 'normalizeLineEndings', 'noQuestions', 'allowCredits', 'preserveLogs', 'autoUpdateHarnesses'].includes(key) && typeof value !== 'boolean') throw new InputError(`${key} must be a boolean.`);
                     if (['harness', 'model', 'thinkingLevel', 'agent', 'context', 'check', 'browserProfile'].includes(key) && typeof value !== 'string') throw new InputError(`${key} must be a string.`);
                 }
-                if (update.mode && !['daemon', 'raw', 'interactive'].includes(update.mode)) throw new InputError('mode must be daemon, raw or interactive.');
+                if (update.mode !== undefined && !['daemon', 'raw', 'interactive'].includes(update.mode)) throw new InputError('mode must be daemon, raw or interactive.');
                 if (update.port !== undefined && (!Number.isInteger(update.port) || update.port < 1 || update.port > 65535)) throw new InputError('port must be between 1 and 65535.');
-                if (update.checkBefore && !['no', 'yes-and-fail', 'yes-and-fix'].includes(update.checkBefore)) throw new InputError('Invalid checkBefore setting.');
-                if (update.gitChanges && !['fail', 'ignore', 'continue'].includes(update.gitChanges)) throw new InputError('Invalid gitChanges setting.');
+                if (update.checkBefore !== undefined && !['no', 'yes-and-fail', 'yes-and-fix'].includes(update.checkBefore)) throw new InputError('Invalid checkBefore setting.');
+                if (update.gitChanges !== undefined && !['fail', 'ignore', 'continue'].includes(update.gitChanges)) throw new InputError('Invalid gitChanges setting.');
                 if (update.harness) getHarness(update.harness);
-                if (update.enabledHarnesses) { if (!Array.isArray(update.enabledHarnesses)) throw new InputError('enabledHarnesses must be an array.'); for (const name of update.enabledHarnesses) getHarness(name); }
-                if (update.browserMode && !['headless', 'headful'].includes(update.browserMode)) throw new InputError('browserMode must be headless or headful.');
+                if (update.enabledHarnesses !== undefined) { if (!Array.isArray(update.enabledHarnesses) || update.enabledHarnesses.some(name => typeof name !== 'string' || !name.trim())) throw new InputError('enabledHarnesses must be an array of nonempty harness names.'); for (const name of update.enabledHarnesses) getHarness(name); }
+                if (update.harnessSettings !== undefined) {
+                    if (!update.harnessSettings || typeof update.harnessSettings !== 'object' || Array.isArray(update.harnessSettings)) throw new InputError('harnessSettings must be an object.');
+                    for (const [name, defaults] of Object.entries(update.harnessSettings)) {
+                        getHarness(name);
+                        if (!defaults || typeof defaults !== 'object' || Array.isArray(defaults)) throw new InputError(`harnessSettings.${name} must be an object.`);
+                        for (const [key, value] of Object.entries(defaults)) if (!['model', 'thinkingLevel', 'apiKeyEnv', 'configurationPath'].includes(key) || typeof value !== 'string' || !value.trim()) throw new InputError(`Invalid harnessSettings.${name}.${key}; use a nonempty supported configuration reference.`);
+                        if (defaults.apiKeyEnv && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(defaults.apiKeyEnv)) throw new InputError('apiKeyEnv must name an environment variable, never contain a secret.');
+                        validateRunOptions({ model: defaults.model, thinkingLevel: defaults.thinkingLevel });
+                    }
+                }
+                if (update.browserMode !== undefined && !['headless', 'headful'].includes(update.browserMode)) throw new InputError('browserMode must be headless or headful.');
+                if (update.browserProfile !== undefined && !update.browserProfile.trim()) throw new InputError('browserProfile must be a nonempty existing profile path.');
                 validateRunOptions({ ...options, ...pending, ...update });
+                if (update.browserMode !== undefined || update.browserProfile !== undefined) await browser.validateConfiguration({ ...(update.browserMode ? { mode: update.browserMode } : {}), ...(update.browserProfile !== undefined ? { profile: update.browserProfile } : {}) });
                 for (const [key, value] of Object.entries(update)) { if (STARTUP_SETTINGS.has(key)) Object.assign(restartSettings, { [key]: value }); else Object.assign(pending, { [key]: value }); }
-                if (!running) { if (pending.browserMode) await browser.setMode(pending.browserMode); options = { ...options, ...pending }; pending = {}; }
+                if (!running && (!boundaryBusy || paused && pending.browserMode === undefined && pending.browserProfile === undefined && pending.noPersist === undefined)) await applyPending();
                 inventoryAt = 0; await persist(); return { active: serialSettings(options), pending, requiresRestart: restartSettings };
             } else throw new InputError(`Unknown control action ${action}.`);
             await persist(); return { paused, pausePending: paused && running, status, stopping: controller.signal.aborted };
@@ -455,7 +509,6 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
             const outcome = await control.command(action); terminal.status(JSON.stringify(outcome));
         }
     } });
-    let lastPresentation = '';
     let lastRequestPresentation = '';
     /** Foreground requests remain visible while an active provider is waiting for a human reply. */
     const announceRequests = async () => {
@@ -471,11 +524,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
     /** Keep foreground queue/statistics/request presentation synchronized with the control model. */
     const present = async () => {
         if (options.mode !== 'interactive') return;
-        const snapshot = await control.snapshot();
-        const tasks = snapshot.tasks as Array<{ id: string; title: string; status: string; eligibility: EligibilityResult }>;
-        const requests = snapshot.requests as Array<{ id: string; prompt: string }>;
-        const summary = `${snapshot.status}${paused ? ' · paused' : ''} · ${statistics.completed} completed · ${statistics.failed} failed\nQueue (${tasks.length}):\n${tasks.slice(0, 20).map(task => `${task.title} · ${task.status} · ${task.eligibility.kind}: ${task.eligibility.reason}`).join('\n') || 'No queued work.'}\nPending user requests (${requests.length}): ${requests.map(request => `${request.id}: ${request.prompt}`).join('; ') || 'none'}. Q answers requests; C changes settings.`;
-        if (summary !== lastPresentation) { lastPresentation = summary; terminal.status(summary); }
+        terminal.setSnapshot(await control.snapshot());
     };
     const abort = () => controller.abort(); supplied.signal?.addEventListener('abort', abort, { once: true });
     let http: Awaited<ReturnType<typeof openDashboard>> | undefined;
@@ -483,7 +532,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
     let requestObservation: Promise<void> | undefined;
     const requestMonitor = setInterval(() => {
         if (requestObservation || controller.signal.aborted || options.mode === 'daemon') return;
-        requestObservation = announceRequests().catch(() => {}).finally(() => { requestObservation = undefined; });
+        requestObservation = Promise.all([announceRequests(), present()]).then(() => undefined).catch(() => {}).finally(() => { requestObservation = undefined; });
     }, 1000);
     requestMonitor.unref();
     try {
@@ -510,16 +559,19 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
             } finally { await lease.release(); }
         }
         if (controller.signal.aborted) return;
-        if (!options.noServer) { http = await openDashboard(workspace, control, options.port); record.url = http.url; }
+        if (!options.noServer) { http = await openDashboard(workspace, control, options.port); record.url = http.sessionUrl; }
         if (controller.signal.aborted) return;
         status = 'ready'; await persist(); supplied.onReady?.(record);
-        if (options.mode !== 'daemon') process.stdout.write(`ptbk project: ${workspace.projectPath}\n${record.url ? `ptbk dashboard: ${record.url}\n` : ''}`);
+        if (options.mode !== 'daemon') terminal.status(`Promptbook ${record.engineVersion} · project: ${workspace.projectPath}\n${record.url ? `ptbk dashboard: ${record.url}\n` : ''}`);
         await present();
         while (!controller.signal.aborted && !finish) {
+            boundaryBusy = true;
             try {
-                if (pending.browserMode) await browser.setMode(pending.browserMode);
-                options = { ...options, ...pending }; pending = {};
-                if (Date.now() - inventoryAt > 60_000) { inventory = options.automatic === false && !options.inspectHarnesses ? [] : await (options.inspectHarnesses || inspectHarnesses)(workspace.projectPath, { signal: controller.signal }); inventoryAt = Date.now(); }
+                await applyPending();
+                if (Date.now() - inventoryAt > 60_000) {
+                    if (!options.inspectHarnesses && options.automatic !== false) maintenance = await maintainHarnesses(workspace.projectPath, { names: selectedHarnesses(options), harnessSettings: options.harnessSettings, autoUpdate: options.autoUpdateHarnesses !== false, signal: controller.signal, onOutput: text => terminal.status(text) });
+                    inventory = options.automatic === false && !options.inspectHarnesses ? [] : await (options.inspectHarnesses || inspectHarnesses)(workspace.projectPath, { names: selectedHarnesses(options), harnessSettings: options.harnessSettings, signal: controller.signal }); inventoryAt = Date.now();
+                }
                 const available = inventory.filter(item => item.usable && (!options.enabledHarnesses || options.enabledHarnesses.includes(item.name)) && (!options.harness || item.name === options.harness));
                 if (paused || terminal.isPaused() || Date.now() < lastWake) { status = paused || terminal.isPaused() ? 'paused' : 'waiting'; waiting = status === 'waiting'; terminal.setWaiting(waiting); }
                 else if (!available.length && options.automatic !== false) {
@@ -568,9 +620,14 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                         if (ready?.agent && !options.agent) run.agent = ready.agent;
                         if (ready?.model && !options.model) run.model = ready.model;
                         if (ready?.thinkingLevel && !options.thinkingLevel) run.thinkingLevel = ready.thinkingLevel;
-                        running = true; status = 'running'; await persist();
+                        const defaults = run.harness ? options.harnessSettings?.[run.harness] : undefined;
+                        run.model ??= defaults?.model; run.thinkingLevel ??= defaults?.thinkingLevel;
+                        run.harnessVersion = inventory.find(item => item.name === run.harness)?.version;
+                        run.harnessConfiguration = defaults ? { apiKeyEnv: defaults.apiKeyEnv, configurationPath: defaults.configurationPath } : undefined;
+                        currentTask = ready.id; currentSelection = { agent: run.agent, harness: run.harness, model: run.model, thinkingLevel: run.thinkingLevel }; phase = 'starting';
+                        running = true; status = 'running'; await persist(); await present();
                         try { lastResult = await runQueue(workspace, run); statistics.completed += lastResult.completed; statistics.failed += lastResult.failed; }
-                        finally { running = false; currentTask = undefined; currentOccurrenceId = undefined; }
+                        finally { running = false; currentTask = undefined; currentOccurrenceId = undefined; currentSelection = undefined; phase = undefined; }
                         if (lastResult?.failed || lastResult?.syncPending) {
                             status = lastResult.syncPending ? 'sync-pending' : 'blocked';
                             await createRequest(workspace, { kind: 'action', reason: status, prompt: 'Review recent task diagnostics and ptbk recover. Successful inference and local commits were preserved; resolve the failed phase before resuming.' });
@@ -584,10 +641,17 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                 if (controller.signal.aborted) break;
                 status = 'blocked'; record.error = redactSecrets((error as Error).message, workspace.projectPath);
                 emit({ type: 'error', message: record.error, time: Date.now() });
+                const signature = `${phase || 'supervisor cycle'}:${record.error}`;
+                if (Date.now() - (reportedFailures.get(signature) ?? 0) >= 60_000) {
+                    reportedFailures.set(signature, Date.now());
+                    if (reportedFailures.size > 32) reportedFailures.delete(reportedFailures.keys().next().value!);
+                    const diagnostic = await reportDiagnostic(error, { command: 'start', phase: phase || 'supervisor cycle', projectPath: workspace.projectPath, workspace, metadata: { agent: currentSelection?.agent, harness: currentSelection?.harness, model: currentSelection?.model, thinkingLevel: currentSelection?.thinkingLevel, harnessVersion: inventory.find(item => item.name === currentSelection?.harness)?.version, task: currentTask, occurrence: currentOccurrenceId } });
+                    record.diagnostic = diagnostic.trace; record.nextAction = diagnostic.nextAction;
+                }
                 await createRequest(workspace, { kind: 'action', reason: 'Runtime could not continue safely.', prompt: record.error }).catch(() => {});
                 lastWake = Date.now() + 10_000;
                 await persist().catch(() => {});
-            }
+            } finally { boundaryBusy = false; }
             await delay(1000, undefined, { signal: controller.signal }).catch(() => {});
             if (terminal.shouldStop()) finish = true;
         }
@@ -596,10 +660,11 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
         controller.abort(); terminal.close(); supplied.signal?.removeEventListener('abort', abort);
         status = record.desired === 'stopped' || finish || options.mode !== 'daemon' ? 'stopped' : 'interrupted';
         if (finish || options.mode !== 'daemon') record.desired = 'stopped'; await persist().catch(() => {});
-        await browser.close();
-        await http?.close(); await new Promise<void>(resolve => socket.close(() => resolve()));
+        const cleanup = await Promise.allSettled([browser.close(), http?.close(), new Promise<void>(resolve => socket.close(() => resolve()))]);
         if (ownsSocket && process.platform !== 'win32') await unlink(socketPath).catch(() => {});
         if (JSON.parse(await readFile(ownerFile, 'utf8')).id === ownerId) await unlink(ownerFile);
+        const failure = cleanup.find((result): result is PromiseRejectedResult => result.status === 'rejected');
+        if (failure) throw failure.reason;
     }
 }
 
@@ -612,10 +677,14 @@ export function startupPaths(workspace: Workspace): StartupPaths {
 export async function startService(workspace: Workspace, options: ServiceOptions): Promise<Record<string, unknown>> {
     validateRunOptions(options);
     if (options.noCommit || options.limit !== undefined || options.noAuto) throw new InputError('start requires commits and an indefinite automatic agenda.');
-    const existing = await serviceCommand(workspace); if (existing) { process.stdout.write(`Project already running: ${workspace.projectPath}\n${existing.url || ''}\n`); return existing; }
+    const existing = await serviceCommand(workspace); if (existing) {
+        process.stdout.write(`Promptbook ${existing.engineVersion || 'version unavailable'}\nProject already running: ${workspace.projectPath}\n${existing.url || ''}\nUse ptbk show or ptbk stop --path ${JSON.stringify(workspace.projectPath)}.\n`);
+        if (existing.url && !options.noQr) process.stdout.write(await QRCode.toString(String(existing.url), { type: 'terminal', small: true }));
+        return existing;
+    }
     const baseline = await captureSnapshot(workspace.gitRoot || workspace.projectPath);
     if (baseline.dirtyPaths.length && (options.gitChanges ?? 'fail') === 'fail') throw new InputError(`Startup requires a committed baseline. Preserve and commit changes in ${baseline.dirtyPaths.join(', ')} before ptbk start.`);
-    const inventories = await (options.inspectHarnesses || inspectHarnesses)(workspace.projectPath, { signal: options.signal });
+    const inventories = await (options.inspectHarnesses || inspectHarnesses)(workspace.projectPath, { names: selectedHarnesses(options), harnessSettings: options.harnessSettings, signal: options.signal });
     if (!inventories.some(item => item.usable && (!options.harness || options.harness === item.name) && (!options.enabledHarnesses || options.enabledHarnesses.includes(item.name)))) throw new InputError(`No authenticated authorized harness is ready. Run ptbk init to install/login.\n${inventories.map(item => `${item.name}: ${item.diagnostic}`).join('\n')}`);
     if (options.mode && options.mode !== 'daemon') { await runService(workspace, options); return { stopped: true }; }
     const directory = await confinePath(workspace.projectPath, workspace.statePath); await mkdir(directory, { recursive: true, mode: 0o700 });
@@ -641,7 +710,7 @@ export async function startService(workspace: Workspace, options: ServiceOptions
         while (Date.now() < deadline) {
             const state = await serviceCommand(workspace);
             if (state && !['starting', 'stopped', 'interrupted'].includes(String(state.status))) {
-                process.stdout.write(`ptbk started: ${workspace.projectPath}\n${options.noPersist ? 'Persistence disabled.\n' : 'Startup persistence installed for this user/project.\n'}${state.url ? `Dashboard: ${state.url}\n` : ''}Use ptbk status, ptbk answer, or ptbk stop --path ${JSON.stringify(workspace.projectPath)}.\n`);
+                process.stdout.write(`Promptbook ${state.engineVersion}\nptbk started: ${workspace.projectPath}\n${options.noPersist ? 'Persistence disabled.\n' : 'Startup persistence installed for this user/project.\n'}${state.url ? `Dashboard: ${state.url}\n` : ''}Use ptbk show, ptbk answer, or ptbk stop --path ${JSON.stringify(workspace.projectPath)}.\n`);
                 if (state.url && !options.noQr) process.stdout.write(await QRCode.toString(String(state.url), { type: 'terminal', small: true }));
                 return state;
             }

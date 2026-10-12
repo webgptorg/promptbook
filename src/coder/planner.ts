@@ -10,10 +10,12 @@ import { serializeTaskBook } from './sources.js';
 import { captureSnapshot, commitScoped } from './git.js';
 import { confinePath, InputError, readContext, requireGit } from './workspace.js';
 import { withLease } from './state.js';
+import { promptText } from './interactive.js';
 
 /** Planner options use the same role/config precedence as execution. @private */
 export interface PlannerOptions {
     harness?: string; agent?: string; agentPath?: string; context?: string; model?: string; thinkingLevel?: string;
+    harnessConfiguration?: { apiKeyEnv?: string; configurationPath?: string };
     allowCredits?: boolean; signal?: AbortSignal; onOutput?: (chunk: string) => void; noQuestions?: boolean;
     noCommit?: boolean; commit?: boolean; input?: Readable; output?: Writable; tasks?: string; prompt?: string;
 }
@@ -92,23 +94,30 @@ export async function planConversation(workspace: Workspace, options: PlannerOpt
     let conversation = 'Discuss the project and formulate clear tasks with acceptance criteria. Read project files only through list_project and read_project. Use propose_task when the user requests a task proposal; do not attempt application changes or shell commands.';
     /** Perform one bounded read-only inference; no unrestricted execution fallback exists. */
     async function infer(message: string): Promise<void> {
-        const result = await runHarness({ harness: 'openai-codex', projectPath: workspace.projectPath, agentPath, context, model: options.model || process.env.PTBK_MODEL, thinkingLevel: options.thinkingLevel || process.env.PTBK_THINKING_LEVEL, allowCredits: options.allowCredits, signal: options.signal, tools, readOnly: true, timeoutMs: 300_000, maxOutputBytes: 2 * 1024 * 1024, prompt: `${conversation}\n\nUSER: ${message}`, onOutput: options.onOutput || ((chunk) => write(chunk)) });
+        const result = await runHarness({ harness: 'openai-codex', harnessConfiguration: options.harnessConfiguration, projectPath: workspace.projectPath, agentPath, context, model: options.model, thinkingLevel: options.thinkingLevel, allowCredits: options.allowCredits, signal: options.signal, tools, readOnly: true, timeoutMs: 300_000, maxOutputBytes: 2 * 1024 * 1024, prompt: `${conversation}\n\nUSER: ${message}`, onOutput: options.onOutput || ((chunk) => write(chunk)) });
         if (result.outcome !== 'success') throw new InputError(`Planning inference ${result.outcome}: ${result.output}. Existing project files and saved tasks were preserved.`);
         conversation = `${conversation}\n\nUSER: ${message}\n\nASSISTANT: ${result.output}`.slice(-1024 * 1024);
     }
     write('Planning is read-only. Commands: /save (ready), /draft (not-ready), /discard, /exit. EOF discards unsaved proposals.\n');
     if (options.prompt) await infer(options.prompt);
     if (options.noQuestions) return { saved };
-    const reader = createInterface({ input: options.input || process.stdin, crlfDelay: Infinity, terminal: false });
+    const interactive = Boolean(((options.input || process.stdin) as NodeJS.ReadStream).isTTY && (output as NodeJS.WriteStream).isTTY);
+    const reader = interactive ? undefined : createInterface({ input: options.input || process.stdin, crlfDelay: Infinity, terminal: false });
     /** Closing readline also releases a blocked input wait on cancellation. */
-    const cancelInput = () => reader.close();
+    const cancelInput = () => reader?.close();
     options.signal?.addEventListener('abort', cancelInput, { once: true });
-    const iterator = reader[Symbol.asyncIterator]();
+    const iterator = reader?.[Symbol.asyncIterator]();
+    /** Rich terminal entry and explicit scripted input share the same bounded conversation loop. */
+    const question = async (label: string): Promise<{ done?: boolean; value: string }> => {
+        if (interactive) return { value: await promptText(label, { input: options.input, output, signal: options.signal }) };
+        write(label);
+        const next = await iterator!.next();
+        return { done: next.done, value: next.done ? '' : next.value };
+    };
     try {
         for (;;) {
             if (options.signal?.aborted) break;
-            write('plan> ');
-            const next = await iterator.next();
+            const next = await question('Planning message:');
             if (next.done) break;
             const message = next.value.trim();
             if (!message) continue;
@@ -118,8 +127,7 @@ export async function planConversation(workspace: Workspace, options: PlannerOpt
                 if (!proposals.length) { write('No pending task proposals.\n'); continue; }
                 const draft = message === '/draft';
                 for (const proposal of proposals) write(`\nReview ${proposal.path}:\n${renderProposal(workspace, proposal, draft)}\n`);
-                write('Save these exact files? Type yes to save: ');
-                const approval = await iterator.next();
+                const approval = await question('Save these exact files? Type yes to save:');
                 if (approval.done) break;
                 if (approval.value.trim().toLowerCase() !== 'yes') { write('Nothing saved.\n'); continue; }
                 await withLease(workspace, async () => {
@@ -144,6 +152,6 @@ export async function planConversation(workspace: Workspace, options: PlannerOpt
             if (message.startsWith('/')) { write(`Unknown planning command ${message}. Use /save, /draft, /discard or /exit.\n`); continue; }
             await infer(message);
         }
-    } finally { options.signal?.removeEventListener('abort', cancelInput); reader.close(); proposals.length = 0; }
+    } finally { options.signal?.removeEventListener('abort', cancelInput); reader?.close(); proposals.length = 0; }
     return { saved };
 }

@@ -2,11 +2,14 @@ import { spawn, execFile, type ChildProcess } from 'node:child_process';
 import { access, lstat, mkdir, readFile, realpath, unlink, writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { promisify } from 'node:util';
+import { createHash, randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { Workspace } from './domain.js';
 import type { BridgeTool } from './team.js';
 import { confinePath, InputError } from './workspace.js';
 import { createRequest, waitForAnswer } from './requests.js';
+import { discoverGit } from './git.js';
 
 /** Browser presentation and persistent profile configuration, shared across project tasks. @private */
 export interface BrowserOptions { mode?: 'headless' | 'headful'; profile?: string; executable?: string; signal?: AbortSignal; }
@@ -89,14 +92,17 @@ export class ProjectBrowser {
     private profilePath?: string;
     private executable?: string;
     private mode: 'headless' | 'headful';
+    private selectedProfile?: string;
     private pending: Promise<unknown> = Promise.resolve();
     private leasePath?: string;
     private leaseOwned = false;
+    private profileLeasePath?: string;
+    private profileLeaseContents?: string;
     private readonly tabAliases = new Map<string, string>();
-    constructor(private readonly workspace: Workspace, private readonly options: BrowserOptions = {}) { this.mode = options.mode || 'headless'; }
+    constructor(private readonly workspace: Workspace, private readonly options: BrowserOptions = {}) { this.mode = options.mode || 'headless'; this.selectedProfile = options.profile; }
 
     /** Present configuration without launching a browser or inspecting session secrets. */
-    status(): BrowserStatus { return { mode: this.mode, profile: this.profilePath || resolve(this.workspace.projectPath, this.options.profile || '.ptbk/browser/profile'), running: !!this.endpoint && !!this.child && this.child.exitCode === null && this.child.signalCode === null, ...(this.executable ? { executable: this.executable } : {}) }; }
+    status(): BrowserStatus { return { mode: this.mode, profile: this.profilePath || resolve(this.workspace.projectPath, this.selectedProfile || '.ptbk/browser/profile'), running: !!this.endpoint && !!this.child && this.child.exitCode === null && this.child.signalCode === null, ...(this.executable ? { executable: this.executable } : {}) }; }
 
     /** Serialize browser control across primary agents, advisors and human handover. */
     private exclusive<T>(operation: () => Promise<T>): Promise<T> {
@@ -109,11 +115,11 @@ export class ProjectBrowser {
         if (this.leaseOwned) await this.closeOwned();
         if (this.mode === 'headful' && !desktopAvailable()) throw new InputError('Headful browser requested on a host without a desktop; no login window was displayed. Use headless mode or a desktop host.');
         this.executable ||= await discoverBrowserExecutable(this.options.executable);
-        this.profilePath = this.options.profile ? resolve(this.workspace.projectPath, this.options.profile) : await confinePath(this.workspace.projectPath, resolve(this.workspace.statePath, 'browser/profile'));
-        if (this.options.profile) {
+        this.profilePath = this.selectedProfile ? resolve(this.workspace.projectPath, this.selectedProfile) : await confinePath(this.workspace.projectPath, resolve(this.workspace.statePath, 'browser/profile'));
+        if (this.selectedProfile) {
             try { this.profilePath = await realpath(this.profilePath); } catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new InputError(`Explicit browser profile does not exist: ${this.profilePath}`); throw error; }
             await this.assertPrivateProfile();
-        } else await mkdir(this.profilePath, { recursive: true, mode: 0o700 });
+        } else { await mkdir(this.profilePath, { recursive: true, mode: 0o700 }); await this.assertPrivateProfile(); }
         for (const name of ['SingletonLock', 'SingletonSocket', 'lockfile']) {
             try {
                 await lstat(resolve(this.profilePath, name));
@@ -135,6 +141,8 @@ export class ProjectBrowser {
             await writeFile(this.leasePath, JSON.stringify({ pid: process.pid, profile: this.profilePath }), { flag: 'wx', mode: 0o600 });
         }
         this.leaseOwned = true;
+        try { await this.acquireProfileLease(); }
+        catch (error) { await this.closeOwned(); throw error; }
         const portFile = resolve(this.profilePath, 'DevToolsActivePort');
         await unlink(portFile).catch((error: NodeJS.ErrnoException) => { if (error.code !== 'ENOENT') throw error; });
         this.child = spawn(this.executable, [`--user-data-dir=${this.profilePath}`, '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1', '--no-first-run', '--no-default-browser-check', '--restore-last-session', ...(this.mode === 'headless' ? ['--headless=new'] : [])], { stdio: 'ignore', shell: false });
@@ -149,24 +157,49 @@ export class ProjectBrowser {
         } catch (error) { await this.closeOwned(); throw error; }
     }
 
+    /** Lock a canonical profile across projects before Chrome creates its own platform lock. */
+    private async acquireProfileLease(): Promise<void> {
+        const directory = resolve(tmpdir(), `ptbk-browser-${process.getuid?.() ?? 'user'}`);
+        await mkdir(directory, { mode: 0o700 }).catch(error => { if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error; });
+        const attributes = await lstat(directory);
+        if (!attributes.isDirectory() || process.getuid && attributes.uid !== process.getuid() || process.platform !== 'win32' && (attributes.mode & 0o777) !== 0o700) throw new InputError('Browser ownership directory must be private and owned by the current user.');
+        const path = resolve(directory, `${createHash('sha256').update(await realpath(this.profilePath!)).digest('hex')}.json`);
+        const contents = JSON.stringify({ id: randomUUID(), pid: process.pid, project: this.workspace.projectPath });
+        for (let attempt = 0; ; attempt++) {
+            try { await writeFile(path, contents, { flag: 'wx', mode: 0o600 }); break; }
+            catch (error) {
+                if ((error as NodeJS.ErrnoException).code !== 'EEXIST' || attempt) throw error;
+                const existing = await readFile(path, 'utf8'); const owner = JSON.parse(existing) as { pid?: number };
+                if (!Number.isSafeInteger(owner.pid) || owner.pid! <= 0) throw new InputError('Selected browser profile has unverifiable ownership; its lease was preserved.');
+                try { process.kill(owner.pid!, 0); throw new InputError(`Selected browser profile is already owned by PID ${owner.pid}; choose another profile or arrange a safe handover.`); }
+                catch (alive) { if ((alive as NodeJS.ErrnoException).code !== 'ESRCH') throw alive; }
+                if (await readFile(path, 'utf8') !== existing) throw new InputError('Browser profile ownership changed; retry after safe handover.');
+                await unlink(path);
+            }
+        }
+        this.profileLeasePath = path; this.profileLeaseContents = contents;
+    }
+
     /** Refuse explicit profiles whose private session files could enter this checkout's commits. */
-    private async assertPrivateProfile(): Promise<void> {
-        if (!this.workspace.gitRoot || !this.profilePath) return;
-        const root = await realpath(this.workspace.gitRoot);
-        const path = relative(root, this.profilePath);
+    private async assertPrivateProfile(profile = this.profilePath): Promise<void> {
+        if (!profile) return;
+        const gitRoot = await discoverGit(profile);
+        if (!gitRoot) return;
+        const root = await realpath(gitRoot);
+        const path = relative(root, profile);
         if (isAbsolute(path) || path === '..' || path.startsWith('../') || path.startsWith('..\\')) return;
         let ignored = false;
         let tracked = true;
         try {
-            const listing = await execute('git', ['-C', root, 'ls-files', '--cached', '--', this.profilePath], { timeout: 10_000, maxBuffer: 1024 * 1024 });
+            const listing = await execute('git', ['-C', root, 'ls-files', '--cached', '--', profile], { timeout: 10_000, maxBuffer: 1024 * 1024 });
             tracked = !!listing.stdout.trim();
-            await execute('git', ['-C', root, 'check-ignore', '--quiet', '--', this.profilePath], { timeout: 10_000 });
+            await execute('git', ['-C', root, 'check-ignore', '--quiet', '--', profile], { timeout: 10_000 });
             ignored = true;
         } catch { /* Unknown inventory or unignored storage is never suitable for private sessions. */ }
         if (ignored && !tracked) return;
         const request = await createRequest(this.workspace, {
             kind: 'action', reason: 'The selected browser profile is inside a Git checkout and its private session files are not safely excluded from commits.',
-            prompt: `Move the profile ${this.profilePath} outside the checkout, or ignore the entire directory and safely remove any tracked profile files from Git. Preserve its browser sessions, then retry. The profile has not been opened or modified.`,
+            prompt: `Move the profile ${profile} outside the checkout, or ignore the entire directory and safely remove any tracked profile files from Git. Preserve its browser sessions, then retry. The profile has not been opened or modified.`,
         });
         throw new InputError(`Browser profile must remain outside Git history. Move it outside the checkout or ignore its entire directory and remove tracked profile files. Action request ${request.id} is pending.`);
     }
@@ -196,7 +229,37 @@ export class ProjectBrowser {
     async fill(selector: string, value: string, id?: string): Promise<string> { return this.exclusive(async () => { const target = await this.target(id); const result = await devtools(target.webSocketDebuggerUrl!, 'Runtime.evaluate', { expression: `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)return 'Selector missing';if(e.type==='password')return 'Password entry requires human action';e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));return 'Filled';})()`, returnByValue: true }, this.options.signal); return String((result.result as { value?: unknown } | undefined)?.value); }); }
 
     /** Switch visibility by safely restarting only owned Chrome with the same persistent profile. */
-    async setMode(mode: 'headless' | 'headful'): Promise<BrowserStatus> { return this.exclusive(async () => { if (!['headless', 'headful'].includes(mode)) throw new InputError('Browser mode must be headless or headful'); if (mode === 'headful' && !desktopAvailable()) throw new InputError('No desktop is available; a login window cannot be displayed on this host'); const running = !!this.child; if (mode !== this.mode) { if (running) for (const target of await this.targets()) this.tabAliases.set(target.id, target.url); await this.closeOwned(); this.mode = mode; if (running) await this.launch(); } return this.status(); }); }
+    async setMode(mode: 'headless' | 'headful'): Promise<BrowserStatus> { return this.configure({ mode }); }
+
+    /** Validate explicit future-task configuration without launching or stopping any browser. */
+    async validateConfiguration(update: Pick<BrowserOptions, 'mode' | 'profile'>): Promise<void> {
+        const mode = update.mode ?? this.mode;
+        if (!['headless', 'headful'].includes(mode)) throw new InputError('Browser mode must be headless or headful');
+        if (mode === 'headful' && !desktopAvailable()) throw new InputError('No desktop is available; a login window cannot be displayed on this host');
+        const profile = 'profile' in update ? update.profile : this.selectedProfile;
+        if (profile !== undefined) {
+            if (typeof profile !== 'string' || !profile.trim()) throw new InputError('Browser profile must be an existing directory path.');
+            const target = await realpath(resolve(this.workspace.projectPath, profile)).catch(error => { if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new InputError('Selected browser profile does not exist; existing sessions were preserved.'); throw error; });
+            if (!(await lstat(target)).isDirectory()) throw new InputError('Browser profile must be a directory.');
+            await this.assertPrivateProfile(target);
+        }
+    }
+
+    /** Apply explicit profile/visibility choices at a host-approved task boundary, without copying sessions. */
+    async configure(update: Pick<BrowserOptions, 'mode' | 'profile'>): Promise<BrowserStatus> {
+        return this.exclusive(async () => {
+            const mode = update.mode ?? this.mode;
+            const profile = 'profile' in update ? update.profile : this.selectedProfile;
+            await this.validateConfiguration(update);
+            if (mode === this.mode && profile === this.selectedProfile) return this.status();
+            const running = !!this.child; const sameProfile = profile === this.selectedProfile;
+            if (running && sameProfile) for (const target of await this.targets()) this.tabAliases.set(target.id, target.url);
+            await this.closeOwned(); this.mode = mode; this.selectedProfile = profile; this.profilePath = undefined;
+            if (!sameProfile) this.tabAliases.clear();
+            if (running) await this.launch();
+            return this.status();
+        });
+    }
 
     /** Foreground a real login/action window or truthfully report that this host cannot display one. */
     async requestHuman(prompt: string, taskId?: string, activityId?: string): Promise<string> {
@@ -228,6 +291,11 @@ export class ProjectBrowser {
             }
         }
         if (this.leasePath && this.leaseOwned) { await unlink(this.leasePath).catch((error: NodeJS.ErrnoException) => { if (error.code !== 'ENOENT') throw error; }); this.leasePath = undefined; this.leaseOwned = false; }
+        if (this.profileLeasePath && this.profileLeaseContents) {
+            if (await readFile(this.profileLeasePath, 'utf8') === this.profileLeaseContents) await unlink(this.profileLeasePath);
+            else throw new InputError('Browser profile lease ownership changed; the replacement was preserved.');
+            this.profileLeasePath = undefined; this.profileLeaseContents = undefined;
+        }
     }
 
     /** Target only the PID tree spawned by this project when native graceful shutdown fails. */

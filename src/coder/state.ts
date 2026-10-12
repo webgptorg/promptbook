@@ -28,7 +28,7 @@ export interface Ledger { version: 1; tasks: Record<string, LedgerEntry> }
 export interface AttemptRecord {
     attempt: number; retry: number; startedAt: number; finishedAt?: number; outcome?: string; exitCode?: number | null;
     reason?: string; retryReason?: string; cooldownMs?: number; sessionId?: string; usage?: Record<string, number>;
-    harness?: string; model?: string; agent?: string; thinkingLevel?: string; authentication?: string; effectiveModel?: string;
+    harness?: string; harnessVersion?: string; model?: string; agent?: string; thinkingLevel?: string; authentication?: string; effectiveModel?: string;
 }
 /** Recoverable phase boundaries contain exact ownership evidence and commit intents. @private */
 export interface RunJournal {
@@ -36,7 +36,7 @@ export interface RunJournal {
     phase: 'claimed' | 'running' | 'implementation-ready' | 'checking' | 'completion-ready' | 'integrating' | 'completed' | 'recovery-required' | 'failed';
     startedAt: number; updatedAt: number; dueSlot: number; baseline: GitSnapshot;
     expected?: GitSnapshot; completionRollback?: GitSnapshot; metadataPaths?: string[]; protectedPaths: string[]; commits: string[]; attempts: number;
-    harness?: string; model?: string; output?: string; checkCommand?: string; error?: string;
+    engineVersion?: string; harness?: string; harnessVersion?: string; model?: string; output?: string; checkCommand?: string; error?: string;
     pendingPhase?: string; safePhase?: 'implementation-ready' | 'completion-ready' | 'integrating'; syncPending?: boolean; checks?: string; trace?: string;
     thinkingLevel?: string; authentication?: string; effectiveModel?: string; usage?: Record<string, number>; sessionId?: string; identity?: GitIdentity;
     legacyTrace?: string; legacyTraceHash?: string;
