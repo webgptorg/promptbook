@@ -2,7 +2,7 @@
 
 Promptbook is one npm package, `ptbk`, providing the `ptbk` command-line utility. It operates agents over a selected project directory in Git. Agents, tasks and project material are readable files; versioned `ptbk.json` holds project configuration, while Git-ignored `.ptbk/` holds local runtime state, without a database.
 
-Initialize or clone a project, then use `ptbk start` to launch its agenda as a background service and report once. Start selects from project agents and enabled, usable global harnesses, executes one task at a time, checks the result and commits work together with its completion. `ptbk run` is the finite, explicitly configured queue workflow. Init/add use finite wizards; `ptbk dashboard` attaches a continuous terminal control view to the existing service. Suitable terminals default to rich presentation, with raw output available throughout. Terminal, lightweight browser SPA and independently usable local API inspect and control the same process.
+Successful initialization leaves selected harnesses, real checks and a first runnable task ready for plain `ptbk start`, without another setup step. Start launches the agenda as a background service and reports once while actual work begins automatically. It fills missing routing through Manager, executes one task at a time, checks and commits results, and discovers useful goal-driven work when the backlog is empty. `ptbk run` is the finite, explicitly configured queue workflow. Init/add use finite wizards; `ptbk dashboard` attaches a continuous terminal control view to the existing service. Suitable terminals default to rich presentation, with raw output available throughout. Terminal, lightweight browser SPA and independently usable local API inspect and control the same process.
 
 ## Reading this specification
 
@@ -19,10 +19,11 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Commands](cli/cli.md): Command surface and options.
 - [Configuration](cli/configuration.md): `ptbk.json`, defaults and temporary CLI overrides.
 - [Workspace](cli/workspace.md): Project, source paths and `.ptbk/`.
-- [Initialization](cli/initialization.md): Incremental setup, no-op repetition and intent-led creation.
+- [Initialization](cli/initialization.md): Complete selected setup, ready-to-start completion and no-op repetition.
+- [First runnable task](cli/first-task.md): Safe initial work, normal execution and no duplicate starter tasks.
 - [Nested projects](cli/nested-projects.md): Explicit Git boundaries for new child projects.
 - [Finite run](cli/run.md): Execute existing work with one configuration.
-- [Start](cli/start.md): Autonomous ongoing operation and startup output.
+- [Start](cli/start.md): Automatic work progression, ongoing operation and startup output.
 - [Process modes](cli/process-modes.md): Daemon/foreground placement, attached clients and one-shot lifecycle commands.
 - [Startup persistence](cli/persistence.md): Recovery across operating-system restarts.
 
@@ -41,7 +42,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 ## Agents and work
 
 - [Agent context](cli/agent-context.md): Effective role, task and project instructions.
-- [Harnesses](cli/harnesses.md): Project selection, global setup, authentication and execution.
+- [Harnesses](cli/harnesses.md): Complete selected setup, global installations, authentication and execution.
 - [Harness plugins](cli/harness-plugins.md): Common integration contract and featured/More presentation.
 - [Harness updates](cli/harness-updates.md): Selected setup updates and safe ongoing maintenance.
 - [TEAM consultations](cli/team.md): Cooperation within one task.
@@ -49,15 +50,15 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Markdown tasks](cli/task-markdown.md): Supported checkmark-based task sources.
 - [Task origins](cli/task-origins.md): Explicit, derived and goal-driven work.
 - [Task relationships](cli/task-relationships.md): References, subtasks and prerequisites.
-- [Eligibility](cli/eligibility.md): Ready work, priorities and constraints.
-- [Goal discovery](cli/goal-discovery.md): Work enquiry only when no backlog remains.
+- [Eligibility](cli/eligibility.md): Ready work, automatic assignment candidates and real constraints.
+- [Goal discovery](cli/goal-discovery.md): Automatic due enquiries when no backlog remains.
 - [Earliest start](cli/not-before.md): Time boundaries and timezone.
 - [Recurrence](cli/recurrence.md): Repeated occurrences and downtime.
 
 ## Results, safety and service workflows
 
 - [Execution](cli/execution.md): The common task lifecycle.
-- [Checks](cli/checks.md): Validation and repair.
+- [Checks](cli/checks.md): Real initialized validation and repair.
 - [Errors](cli/errors.md): Understandable failures, diagnostic evidence and next actions.
 - [Retries](cli/retries.md): Budgets, authentication and provider waiting.
 - [Git preflight](cli/git-preflight.md): Workspace readiness and safe initialization.
