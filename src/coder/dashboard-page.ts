@@ -24,7 +24,7 @@ export function dashboardPage(nonce: string): string {
 /** Session authorization remains in the URL fragment and request header. */
 let token='';try{token=decodeURIComponent(location.hash.slice(1))}catch{}
 /** Persistent client state keeps drafts, selected options and expanded cards across refreshes. */
-const client={state:null,connected:false,busy:false,refreshing:false,updated:0,requests:new Map(),tasks:new Map(),catalog:null,editor:null,harnessDetail:null};
+const client={state:null,connected:false,busy:false,refreshing:null,updated:0,requests:new Map(),tasks:new Map(),catalog:null,editor:null,harnessDetail:null};
 /** Address a stable application element. */
 const el=id=>document.getElementById(id);
 /** Set text without interpreting project-controlled HTML. */
@@ -42,7 +42,7 @@ async function request(path,body){const response=await fetch(path,{method:body==
 /** Translate applied/deferred outcomes without claiming pending settings are already active. */
 function outcome(action,value){if(action==='settings')return 'Settings accepted. Active: '+Object.keys(value.active||{}).join(', ')+'. Awaiting safe boundary: '+(Object.keys(value.pending||{}).join(', ')||'none')+'. Require restart: '+(Object.keys(value.requiresRestart||{}).join(', ')||'none')+'. Project defaults were not saved.';if(action==='answer')return 'Answer recorded. The durable request is resolved.';if(action==='edit-task')return 'Task source saved.';if(action==='skip-wait')return value.skipped?'Wait skipped. Task eligibility still applies.':'No pacing/backoff wait was skipped.';if(action==='finish')return value.stopping?'Cancellation requested for owned work.':'Finish requested. Current work may continue until a safe stop.';if(action==='stop')return 'Stop requested. Waiting for the process to end.';if(action==='pause')return value.pausePending?'Pause requested. Current work continues; no further task will start.':'Process paused.';if(action==='resume')return 'Process resumed.';return 'Inspection complete.'}
 /** Serialize controls and preserve all unsubmitted fields on failure. */
-async function command(action,input={}){if(client.busy)return;client.busy=true;controls();put('result','Sending '+action+'…');try{const value=await request('/api/control',{action,...input});put('result',outcome(action,value));await refresh();return value}catch(error){put('result','Action failed: '+error.message);throw error}finally{client.busy=false;controls()}}
+async function command(action,input={}){if(client.busy)return;client.busy=true;controls();put('result','Sending '+action+'…');try{const value=await request('/api/control',{action,...input});await refresh(true);put('result',outcome(action,value));return value}catch(error){put('result','Action failed: '+error.message);throw error}finally{client.busy=false;controls()}}
 /** Dispatch an interaction and keep its failure visible without an unhandled promise. */
 function invoke(action,input={},then){void command(action,input).then(value=>{if(value!==undefined)then?.(value)}).catch(()=>{})}
 /** Mark missing connections honestly while keeping the last snapshot and drafts available. */
@@ -76,8 +76,8 @@ function settingValue(){
     if(current!==undefined&&!input.multiple)input.value=typeof current==='object'?JSON.stringify(current):String(current);
     el('setting-value').replaceChildren(input)
 }
-/** Refresh without concurrent requests, page reloads or replacing editable state. */
-async function refresh(){if(client.refreshing)return;client.refreshing=true;try{if(!token)throw Error('Open the private dashboard link printed by ptbk show.');const data=await request('/api/state');client.state=data;client.updated=Date.now();client.connected=true;document.body.classList.remove('stale');overview(data);requests(data.requests||[]);tasks(data.tasks||[]);events(data.events||[]);controls()}catch(error){disconnected(error.message)}finally{client.refreshing=false}}
+/** Share pending polls; mutations queue a fresh snapshot after any older request completes. */
+function refresh(fresh=false){const previous=client.refreshing;if(previous&&!fresh)return previous;const pending=(async()=>{if(previous)await previous;try{if(!token)throw Error('Open the private dashboard link printed by ptbk show.');const data=await request('/api/state');client.state=data;client.updated=Date.now();client.connected=true;document.body.classList.remove('stale');overview(data);requests(data.requests||[]);tasks(data.tasks||[]);events(data.events||[]);controls()}catch(error){disconnected(error.message)}})();client.refreshing=pending;void pending.finally(()=>{if(client.refreshing===pending)client.refreshing=null});return pending}
 document.querySelectorAll('[data-action]').forEach(button=>button.onclick=()=>invoke(button.dataset.action));
 el('more').onclick=()=>invoke('harnesses',{more:true},value=>{client.catalog=Array.isArray(value)?value:value.more||value.featured||[];renderCatalog(client.catalog);el('more').hidden=true;if(el('setting-key').value==='harness')settingValue()});
 el('setting-key').onchange=settingValue;

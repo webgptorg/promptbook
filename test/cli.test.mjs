@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -62,12 +62,36 @@ test('unknown options and invalid mode combinations fail before mutation', async
 });
 
 test('external project init is repeatable and add/list/dry-run work without provider inference', async (t) => {
-    const directory = await mkdtemp(join(tmpdir(), 'ptbk init '));
-    t.after(() => rm(directory, { recursive: true, force: true }));
-    const cli = args => execute(process.execPath, [executable, ...args, '--path', directory], { cwd: directory, timeout: 90_000 });
+    const fixture = await mkdtemp(join(tmpdir(), 'ptbk init '));
+    t.after(() => rm(fixture, { recursive: true, force: true }));
+    const directory = join(fixture, 'external project');
+    const globalConfiguration = join(fixture, 'empty.gitconfig');
+    await mkdir(directory);
+    await writeFile(globalConfiguration, '');
+    /** Fresh initialization must commit without depending on the runner's Git configuration. */
+    const env = {
+        ...process.env,
+        GIT_CONFIG_GLOBAL: globalConfiguration, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_COUNT: '0', GIT_CONFIG_PARAMETERS: '',
+        GIT_AUTHOR_NAME: 'Init fixture', GIT_AUTHOR_EMAIL: 'fixture@example.test',
+        GIT_COMMITTER_NAME: 'Init fixture', GIT_COMMITTER_EMAIL: 'fixture@example.test',
+        CODING_AGENT_GIT_NAME: '', CODING_AGENT_GIT_EMAIL: '',
+    };
+    /** Inspect only this fixture using the same isolated environment as its CLI subprocesses. */
+    const git = args => execute('git', args, { cwd: directory, env });
+    /** Exercise the installed command against a genuinely fresh external project. */
+    const cli = args => execute(process.execPath, [executable, ...args, '--path', directory], { cwd: directory, env, timeout: 90_000 });
+    assert.equal((await git(['config', '--global', '--list'])).stdout, '');
     await cli(['initialize', '--no-install', '--no-questions']);
+    const head = (await git(['rev-parse', 'HEAD'])).stdout;
+    assert.equal((await git(['show', '-s', '--format=%an <%ae>%n%cn <%ce>', 'HEAD'])).stdout.trim(),
+        'Init fixture <fixture@example.test>\nInit fixture <fixture@example.test>');
+    const committedPaths = (await git(['ls-tree', '-r', '--name-only', 'HEAD'])).stdout.trim().split(/\r?\n/);
+    assert.ok(committedPaths.includes('ptbk.json'), 'Initialization persists project configuration');
+    assert.ok(committedPaths.includes('agents/.core/adam.book'), 'Initialization persists core agents');
+    assert.ok(committedPaths.every(path => !path.startsWith('.ptbk/')), 'Runtime files stay outside the setup commit');
     const core = await readFile(join(directory, 'agents', '.core', 'adam.book'), 'utf8');
     await cli(['init', '--no-install', '--no-questions']);
+    assert.equal((await git(['rev-parse', 'HEAD'])).stdout, head, 'Repeated setup never makes an empty commit');
     assert.equal(await readFile(join(directory, 'agents', '.core', 'adam.book'), 'utf8'), core);
     await cli(['add', 'Implement a deterministic fixture', '--no-questions']);
     const list = JSON.parse((await cli(['list', '--json'])).stdout);
@@ -77,6 +101,7 @@ test('external project init is repeatable and add/list/dry-run work without prov
     assert.deepEqual(preview.tasks.map(({ dueSlot, ...row }) => row), list.tasks.map(({ dueSlot, ...row }) => row));
     const answer = await cli(['answer']);
     assert.deepEqual(JSON.parse(answer.stdout), []);
+    assert.equal(await readFile(globalConfiguration, 'utf8'), '', 'Setup never writes a global Git identity');
 });
 
 test('unattended installation decisions and nested Back fail or return before destination mutation', async t => {

@@ -50,6 +50,8 @@ Retry from the clean version commit. If the tag was pushed but CI failed for a t
 
 If validation found a code or test defect, finish the normal review/commit process for the fix, then run `npm version prerelease` (or the intended next version). The new tag includes the fix and triggers the full platform matrix before publication. Rerunning an older tag still checks its older source; do not move or replace release tags to pick up a fix. Matrix checks complete independently, so a failure on one platform leaves the other platforms' diagnostics available.
 
+When validation fails, inspect the failing check jobs before changing npm authentication: the publish job is skipped until every matrix check passes. Fixtures provide their own Git identity and browser cleanup; missing runner identity or a browser test timeout should be fixed in those fixtures rather than by modifying the runner's global Git configuration or bypassing a platform check.
+
 If npm accepted the upload but registry verification failed, do not republish that version: npm versions cannot be overwritten. Inspect the registry and retry verification:
 
 ```bash

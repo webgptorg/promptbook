@@ -6,7 +6,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import test from 'node:test';
 import { promisify } from 'node:util';
-import { ProjectBrowser, browserTools, discoverBrowserExecutable, waitForBrowserEndpoint } from '../dist/coder/browser.js';
+import { EventEmitter } from 'node:events';
+import { ProjectBrowser, browserTools, discoverBrowserExecutable, waitForBrowserEndpoint, waitForBrowserExit } from '../dist/coder/browser.js';
 import { resolveWorkspace } from '../dist/coder/workspace.js';
 import { listRequests } from '../dist/coder/requests.js';
 
@@ -35,6 +36,39 @@ test('Chrome endpoint polling retries Windows sharing locks and partial writes w
     await assert.rejects(waitForBrowserEndpoint('fixture-port-file', { platform: 'win32', timeoutMs: 20, read: async () => { throw Object.assign(new Error('permanently locked'), { code: 'EBUSY' }); } }), /within 20 ms \(EBUSY\)/);
     await assert.rejects(waitForBrowserEndpoint('fixture-port-file', { platform: 'linux', timeoutMs: 100, read: async () => { throw Object.assign(new Error('permission denied'), { code: 'EACCES' }); } }), /permission denied/);
     await assert.rejects(waitForBrowserEndpoint('fixture-port-file', { read: async () => { throw Object.assign(new Error('disk I\/O failure'), { code: 'EIO' }); } }), /disk I\/O failure/);
+});
+
+test('browser exit observation is bounded and releases listeners after every outcome', async () => {
+    const child = Object.assign(new EventEmitter(), { exitCode: null, signalCode: null });
+    assert.equal(await waitForBrowserExit(child, 20), false);
+    assert.equal(child.listenerCount('exit'), 0);
+    const exited = waitForBrowserExit(child, 1000);
+    child.exitCode = 0; child.emit('exit', 0);
+    assert.equal(await exited, true);
+    assert.equal(child.listenerCount('exit'), 0);
+    assert.equal(await waitForBrowserExit(child, 20), true);
+    assert.throws(() => waitForBrowserExit(child, 0), /positive integer/);
+});
+
+test('failed owned browser termination reports the failure and preserves ownership until a retry observes exit', { timeout: 10000 }, async t => {
+    const workspace = await fixture(t);
+    const lease = join(workspace.statePath, 'browser', 'lease.json');
+    await mkdir(join(workspace.statePath, 'browser'), { recursive: true });
+    const leaseContents = JSON.stringify({ pid: process.pid, profile: 'fixture-profile' });
+    await writeFile(lease, leaseContents);
+    const browser = new ProjectBrowser(workspace);
+    const child = Object.assign(new EventEmitter(), { pid: 424242, exitCode: null, signalCode: null });
+    // Substitute the native termination boundary; exercise actual close sequencing and lease files.
+    browser.child = child; browser.leasePath = lease; browser.leaseOwned = true;
+    const attempts = [];
+    browser.terminateOwned = async (owned, force) => { assert.equal(owned, child); attempts.push(force); };
+    await assert.rejects(browser.close(), /PID 424242 did not exit.*ownership leases were preserved/);
+    assert.deepEqual(attempts, [false, true]);
+    assert.equal(await readFile(lease, 'utf8'), leaseContents);
+    assert.equal(child.listenerCount('exit'), 0);
+    child.exitCode = 0; child.emit('exit', 0);
+    await browser.close();
+    await assert.rejects(readFile(lease), { code: 'ENOENT' });
 });
 
 test('browser inventories and missing executables do not launch or create disposable session profiles', async t => {
@@ -104,16 +138,24 @@ test('explicit profiles inside Git are refused before opening unless the directo
 /** Real installed Chrome validates CDP and persistence; CI without a browser skips this one integration. */
 const executable = await discoverBrowserExecutable().catch(() => undefined);
 test('real headless browser retains authenticated site sessions across process restarts and denies password collection', { skip: !executable, timeout: 60000 }, async t => {
-    const workspace = await fixture(t);
+    const project = await realpath(await mkdtemp(join(tmpdir(), 'ptbk-browser-')));
+    const workspace = await resolveWorkspace({ path: project });
+    let browser; let resumed;
     const server = createServer((request, response) => {
         if (request.url === '/login') response.setHeader('Set-Cookie', 'ptbk_fixture=logged-in; Path=/; Max-Age=3600; SameSite=Lax');
         response.end(`<html><title>Fixture</title><body><p>${request.headers.cookie?.includes('ptbk_fixture=logged-in') ? 'Authenticated context' : 'Initial context'}</p><input id="password" type="password" value="never-read-this-value"><input id="note"><button id="apply" onclick="document.querySelector('p').textContent=document.querySelector('#note').value">Apply</button></body></html>`);
     });
+    t.after(async () => {
+        const results = await Promise.allSettled([resumed?.close(), browser?.close()]);
+        server.closeAllConnections();
+        await new Promise(accept => server.close(accept));
+        const failed = results.find(result => result.status === 'rejected');
+        if (failed) throw failed.reason;
+        await rm(project, { recursive: true, force: true });
+    });
     await new Promise(accept => server.listen(0, '127.0.0.1', accept));
-    t.after(() => new Promise(accept => server.close(accept)));
     const origin = `http://127.0.0.1:${server.address().port}`;
-    const browser = new ProjectBrowser(workspace, { mode: 'headless', executable });
-    t.after(() => browser.close());
+    browser = new ProjectBrowser(workspace, { mode: 'headless', executable });
     const tab = await browser.navigate(origin + '/login');
     let page;
     for (let i = 0; i < 50; i++) { page = await browser.readPage(tab); if (page.includes('Initial context')) break; await new Promise(accept => setTimeout(accept, 100)); }
@@ -124,8 +166,7 @@ test('real headless browser retains authenticated site sessions across process r
     assert.match(await browser.readPage(tab), /Updated fixture/);
     const profile = browser.status().profile;
     await browser.close();
-    const resumed = new ProjectBrowser(workspace, { mode: 'headless', executable });
-    t.after(() => resumed.close());
+    resumed = new ProjectBrowser(workspace, { mode: 'headless', executable });
     const next = await resumed.navigate(origin + '/context');
     for (let i = 0; i < 50; i++) { page = await resumed.readPage(next); if (page.includes('Authenticated context')) break; await new Promise(accept => setTimeout(accept, 100)); }
     assert.match(page, /Authenticated context/);

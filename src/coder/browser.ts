@@ -52,6 +52,21 @@ export async function waitForBrowserEndpoint(portFile: string, options: BrowserE
     throw new Error(`Chrome did not expose its loopback DevTools endpoint within ${timeout} ms${lastFailure ? ` (${lastFailure})` : ''}`);
 }
 
+/** Observe only the owned child and release its listener when the bounded shutdown wait ends. @private */
+export function waitForBrowserExit(child: ChildProcess, timeoutMs = 3000): Promise<boolean> {
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) throw new InputError('Browser shutdown timeout must be a positive integer.');
+    if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
+    return new Promise(resolve => {
+        /** Finish the observation without leaving a timer or child listener alive. */
+        function finish(exited: boolean): void { clearTimeout(timer); child.removeListener('exit', exitedHandler); resolve(exited); }
+        /** A native exit event is sufficient even when termination returned earlier. */
+        function exitedHandler(): void { finish(true); }
+        const timer = setTimeout(() => finish(false), timeoutMs);
+        child.once('exit', exitedHandler);
+        if (child.exitCode !== null || child.signalCode !== null) finish(true);
+    });
+}
+
 /** Check whether this host can display a real browser window. @private */
 export function desktopAvailable(): boolean { return process.platform === 'darwin' || process.platform === 'win32' || !!(process.env.DISPLAY || process.env.WAYLAND_DISPLAY); }
 
@@ -280,16 +295,15 @@ export class ProjectBrowser {
     private async closeOwned(): Promise<void> {
         const child = this.child;
         const socket = this.browserSocket;
-        this.child = undefined; this.endpoint = undefined; this.browserSocket = undefined;
         if (child?.pid && child.exitCode === null && child.signalCode === null) {
             if (socket) await devtools(socket, 'Browser.close').catch(() => this.terminateOwned(child, false));
             else await this.terminateOwned(child, false);
-            if (child.exitCode === null && child.signalCode === null) await Promise.race([new Promise<void>((accept) => child.once('exit', () => accept())), delay(3000)]);
-            if (child.exitCode === null && child.signalCode === null) {
+            if (!await waitForBrowserExit(child)) {
                 await this.terminateOwned(child, true);
-                if (child.exitCode === null && child.signalCode === null) await new Promise<void>((accept) => child.once('exit', () => accept()));
+                if (!await waitForBrowserExit(child)) throw new Error(`Owned browser PID ${child.pid} did not exit after termination; its ownership leases were preserved. Retry closing the project browser before using this profile.`);
             }
         }
+        this.child = undefined; this.endpoint = undefined; this.browserSocket = undefined;
         if (this.leasePath && this.leaseOwned) { await unlink(this.leasePath).catch((error: NodeJS.ErrnoException) => { if (error.code !== 'ENOENT') throw error; }); this.leasePath = undefined; this.leaseOwned = false; }
         if (this.profileLeasePath && this.profileLeaseContents) {
             if (await readFile(this.profileLeasePath, 'utf8') === this.profileLeaseContents) await unlink(this.profileLeasePath);
