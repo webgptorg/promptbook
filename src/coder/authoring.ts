@@ -9,6 +9,7 @@ import { scheduleRevision } from './schedule.js';
 import { confinePath, InputError, requireGit } from './workspace.js';
 import { discoverAgents, ensureCoreAgents, normalizeAgentName } from './agents.js';
 import { ensureProjectConfiguration, readProjectConfiguration } from './configuration.js';
+import { installedEngineVersion } from './version.js';
 
 /** Minimal locally resolvable roles supplied by project initialization. */
 const DEFAULT_BOOKS: Record<string, string> = {
@@ -134,10 +135,13 @@ export async function initializeProject(workspace: Workspace): Promise<string[]>
     return [...new Set(changed)];
 }
 
-/** Creates one reviewed authoring task without calling a model.
- * @private Internal add command.
- */
-export async function addTask(workspace: Workspace, description: string, options: { priority?: number; template?: string; status?: TaskDefinition['status']; agent?: string; origin?: string; parent?: string; dependencies?: string[] } = {}): Promise<string> {
+/** Task authoring fields are shared by supplied input and the finite creation wizard. @private */
+export interface TaskAuthoringOptions { priority?: number; template?: string; status?: TaskDefinition['status']; agent?: string; origin?: string; parent?: string; dependencies?: string[]; }
+/** A fully validated task preview is immutable input to the later authorized save. @private */
+export interface PreparedAuthoredTask { path: string; content: string; }
+
+/** Prepare exact task bytes without creating directories, files or runtime storage. @private */
+export async function prepareAuthoredTask(workspace: Workspace, description: string, options: TaskAuthoringOptions = {}): Promise<PreparedAuthoredTask> {
     await requireGit(workspace);
     if (!description.trim()) throw new InputError('A non-empty task description is required.');
     if (!Number.isSafeInteger(options.priority ?? 0) || (options.priority ?? 0) < 0) throw new InputError('Priority must be a nonnegative safe integer.');
@@ -157,11 +161,25 @@ export async function addTask(workspace: Workspace, description: string, options
     const content = serializeTaskBook(task);
     const parsed = parseBook(content, path, workspace.timezone);
     if (!parsed || parsed.diagnostics.length) throw new InputError(`Invalid authored task: ${parsed?.diagnostics.join('; ')}`);
+    return { path, content };
+}
+
+/** Save previously reviewed task bytes under the caller's authoring lease. @private */
+export async function saveAuthoredTask(workspace: Workspace, task: PreparedAuthoredTask): Promise<string> {
+    await requireGit(workspace);
+    const path = await confinePath(workspace.projectPath, task.path);
+    const parsed = parseBook(task.content, path, workspace.timezone);
+    if (!parsed || parsed.diagnostics.length) throw new InputError(`Invalid authored task: ${parsed?.diagnostics.join('; ')}`);
     await confinePath(workspace.projectPath, workspace.tasksPath);
     await mkdir(workspace.tasksPath, { recursive: true });
     await confinePath(workspace.projectPath, path);
-    await writeFile(path, content, { flag: 'wx' });
+    await writeFile(path, task.content, { flag: 'wx' });
     return path;
+}
+
+/** Creates one task from supplied authoring input without calling a model. @private */
+export async function addTask(workspace: Workspace, description: string, options: TaskAuthoringOptions = {}): Promise<string> {
+    return saveAuthoredTask(workspace, await prepareAuthoredTask(workspace, description, options));
 }
 
 /** Creates unfinished task templates that cannot run automatically.
@@ -184,7 +202,8 @@ export async function verifyTasks(workspace: Workspace, options: { noQuestions?:
     if (options.noQuestions || (!options.ask && !process.stdin.isTTY)) throw new InputError('verify requires interactive human review. Run it in a terminal without --no-questions.');
     const tasks = (await discoverTasks(workspace)).filter(task => task.status === 'done' && !task.repeat && !(options.ignore || []).some(filter => task.source.relativePath.includes(filter)));
     const changed: string[] = [];
-    const question = options.ask ?? ((prompt: string) => promptText(prompt));
+    const heading = `Promptbook ${await installedEngineVersion()} · Review completed tasks`;
+    const question = options.ask ?? ((prompt: string) => promptText(prompt, { heading }));
     const reviewed = new Map<string, Set<number>>();
     try {
         for (const task of tasks) {
@@ -194,7 +213,7 @@ export async function verifyTasks(workspace: Workspace, options: { noQuestions?:
                 { value: 'f', label: 'Follow-up', description: 'Write a new task for further work.' },
                 { value: 's', label: 'Skip', description: 'Leave this task for a later review.' },
                 { value: 'q', label: 'Quit', description: 'Finish reviewing tasks.' },
-            ], { initial: 's' });
+            ], { initial: 's', heading, preview: `${task.source.relativePath}\n${task.payload}` });
             if (answer === 'q') break;
             if (answer === 'f') {
                 const description = await question('Follow-up task: ');

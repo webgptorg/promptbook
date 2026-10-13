@@ -21,6 +21,7 @@ ptbk add "Implement the new behavior and its acceptance checks" --commit
 ptbk list
 ptbk run --dry-run
 ptbk start                     # background agenda, localhost dashboard, reboot persistence
+ptbk dashboard                 # attach terminal controls to the existing service
 ptbk show                      # inspect the same process and pending requests
 ptbk answer REQUEST_ID "Reply"
 ptbk stop                      # intentional stop also disables automatic restart
@@ -28,7 +29,9 @@ ptbk stop                      # intentional stop also disables automatic restar
 
 `start` discovers available authenticated harnesses, uses Manager for missing assignments, and executes one task at a time. It requires reported outcome evidence and passing project checks before committing implementation, dated task completion and learning follow-ups together. It watches future work and materializes goal enquiries when no unfinished backlog remains. Failures retain work and expose recovery diagnostics.
 
-Use `start --raw` for foreground logs or `start --interactive` for terminal controls. `--no-persist`, `--no-server`, `--no-qr` and `--port` customize startup. `run` executes a finite queue with one configuration; for example `ptbk run --harness openai-codex --check "npm run check" --limit 1`. Harness availability, account policy and capability checks happen before inference; unsupported installed provider features produce an actionable diagnostic.
+Lifecycle commands report once and return; `start --raw` still launches a daemon. Use `dashboard` to attach terminal controls, or `start --foreground` to own execution in the current terminal (`--raw` gives plain foreground events). Q/Ctrl+C leaves an attached dashboard while its service continues. `--no-persist`, `--no-server`, `--no-qr` and `--port` customize startup. `run` executes a finite queue with one configuration; for example `ptbk run --harness openai-codex --check "npm run check" --limit 1`. Harness availability, account policy and capability checks happen before inference; unsupported installed provider features produce an actionable diagnostic.
+
+Suitable terminals default to rich presentation; `--raw` or redirected output gives plain results without prompts or QR codes. `ptbk add` guides and confirms task creation. Use `ptbk init --help`, `ptbk init help` or `ptbk help init` for the same command-specific offline reference.
 
 Global installation, local `npx ptbk`, or a project script such as `"ptbk": "ptbk"` work outside this repository. Each process loads its own installed runtime/version and pins that installation for restart. See [runtime usage](docs/runtime.md), [compatibility and verification](docs/compatibility.md), and [the specification](https://github.com/webgptorg/promptbook/blob/main/specs/_main.md).
 

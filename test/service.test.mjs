@@ -146,10 +146,20 @@ test('shared supervisor controls protect optimistic edits and distinguish live s
     assert.equal(task.eligibility.kind, 'waiting-until');
     assert.match(task.payload, /Task description/);
     const source = await readFile(task.source.path, 'utf8');
+    const inspectedSource = await server.command('read-task', { id: task.id });
+    assert.equal(inspectedSource.content, source);
+    assert.equal(inspectedSource.revision, task.source.revision);
+    assert.equal(inspectedSource.source, task.source.relativePath);
+    await assert.rejects(server.command('read-task', { id: '../outside' }), /Task not found/);
     await assert.rejects(server.command('edit-task', { id: task.id, revision: 'wrong', content: 'TASK Wrong' }), /Source changed/);
     assert.equal(await readFile(task.source.path, 'utf8'), source);
     await server.command('edit-task', { id: task.id, revision: task.source.revision, content: source.replace('Future work', 'Edited future work') });
     assert.match(await readFile(task.source.path, 'utf8'), /^TASK Edited future work/);
+    const refreshedSource = await server.command('read-task', { id: task.id });
+    const unicodeSource = refreshedSource.content.replace('Task description.', `Task description. ${'ě漢😀'.repeat(12000)}`);
+    await server.command('edit-task', { id: task.id, revision: refreshedSource.revision, content: unicodeSource });
+    assert.equal(await readFile(task.source.path, 'utf8'), unicodeSource, 'Attached task edits retain Unicode over multiple socket chunks');
+    assert.equal((await server.command('read-task', { id: task.id })).content, unicodeSource, 'Source replies preserve Unicode across socket chunks');
     await assert.rejects(server.command('settings', { settings: { noQuestions: 'false' } }), /boolean/);
     await assert.rejects(server.command('settings', { settings: { unknownSetting: true } }), /Unknown/);
     const updated = await server.command('settings', { settings: { waitAfterPrompt: 1234, noServer: false, port: 4999 } });
@@ -157,6 +167,10 @@ test('shared supervisor controls protect optimistic edits and distinguish live s
     assert.equal(updated.active.noServer, true);
     assert.deepEqual(updated.requiresRestart, { noServer: false, port: 4999 });
     assert.equal((await server.inspect()).paused, true);
+    const identity = await server.inspect();
+    await assert.rejects(serviceCommand(workspace, 'resume', {}, { id: randomUUID(), pid: identity.pid }), /identity changed/);
+    assert.equal((await server.inspect()).paused, true, 'A replacement identity cannot receive an attached client mutation');
+    assert.equal((await serviceCommand(workspace, 'inspect', {}, { id: identity.id, pid: identity.pid })).id, identity.id);
     const record = await readServiceRecord(workspace);
     const invalidReply = await new Promise((resolve, reject) => {
         const client = connect(record.endpoint, () => client.write(`${JSON.stringify({ identity: record.id, token: 'wrong', action: 'resume' })}\n`));
@@ -164,6 +178,31 @@ test('shared supervisor controls protect optimistic edits and distinguish live s
     });
     assert.match(invalidReply.error, /identity\/token/);
     assert.equal((await server.inspect()).paused, true);
+});
+
+test('finish controls first preserve current work and then cancel only owned work with intentional-stop state', async t => {
+    const workspace = await fixture(t, 'TASK Held fixture\nTASK ID held\nTASK AGENT @Developer\nTASK HARNESS openai-codex\n');
+    let entered = false; let cancelled = false;
+    const server = await supervise(t, workspace, { runHarness: async request => {
+        entered = true;
+        await new Promise(resolve => {
+            if (request.signal.aborted) { cancelled = true; resolve(); }
+            else request.signal.addEventListener('abort', () => { cancelled = true; resolve(); }, { once: true });
+        });
+        return { outcome: 'failure', exitCode: 130, output: 'Owned fixture cancelled.' };
+    } });
+    await until(server.inspect, () => entered, 'Owned work entered');
+    assert.equal((await server.command('finish')).finishAfterTask, true);
+    const finishing = await server.inspect();
+    assert.equal(finishing.finishAfterTask, true);
+    assert.equal(finishing.running, true);
+    assert.equal(cancelled, false, 'The first finish request leaves current work running');
+    assert.equal((await readServiceRecord(workspace)).desired, 'stopped');
+    assert.equal((await server.command('finish')).stopping, true);
+    await server.completion;
+    assert.equal(cancelled, true);
+    assert.equal((await readServiceRecord(workspace)).desired, 'stopped');
+    assert.equal((await readServiceRecord(workspace)).status, 'stopped');
 });
 
 test('settings changed during a task wait for a safe boundary and retain the active provider configuration', async t => {

@@ -45,9 +45,10 @@ test('skip affects only the current wait and controls give immediate feedback', 
         view.key('p'); assert.equal(view.terminal.isPaused(), true);
         view.key('p'); assert.equal(view.terminal.isPaused(), false);
         view.key('x'); assert.equal(view.terminal.shouldStop(), true);
-        view.key('x'); assert.equal(view.terminal.shouldStop(), false);
-        view.input.emit('keypress', '', { name: 'c', ctrl: true });
+        view.key('x'); assert.equal(view.terminal.shouldStop(), true);
         assert.equal(view.cancelled(), 1);
+        view.input.emit('keypress', '', { name: 'c', ctrl: true });
+        assert.equal(view.cancelled(), 2);
     } finally { view.terminal.close(); }
 });
 
@@ -177,4 +178,32 @@ test('focused runtime text entry interrupts only on genuine Ctrl+C', async () =>
         await assert.rejects(interrupted, { name: 'AbortError' });
         assert.equal(view.cancelled(), 1);
     } finally { view.terminal.close(); }
+});
+
+test('dashboard separates state, queue, results and requests with semantic presentation and suppressed-color parity', () => {
+    const prior = process.env.NO_COLOR;
+    process.env.NO_COLOR = '1';
+    const view = fixture();
+    try {
+        view.output.rows = 24; view.output.columns = 100;
+        view.terminal.setSnapshot({ engineVersion: 'fixture', project: '/tmp', mode: 'interactive', status: 'paused', phase: 'checks', paused: true,
+            currentTask: 'current', currentSelection: { agent: 'Adam', harness: 'unfeatured-provider', model: 'model-one' },
+            tasks: [{ id: 'current', title: 'Current task', status: 'in-progress' }], requests: [{ id: 'pending', prompt: 'Review the result', reason: 'Human review' }],
+            statistics: { completed: 2, failed: 1 }, pendingSettings: { model: 'next-model' }, restartSettings: { port: 4000 } });
+        assert.match(view.text(), /Promptbook fixture/);
+        assert.match(view.text(), /Agent: Adam · Harness: unfeatured-provider/);
+        assert.match(view.text(), /Queue \(1\)/);
+        assert.match(view.text(), /Results: 2 completed · 1 failed/);
+        assert.match(view.text(), /Requests \(1\)/);
+        assert.match(view.text(), /pending safe boundary/);
+        assert.match(view.text(), /restart required/);
+        assert.doesNotMatch(view.text(), /\u001b\[\d+(?:;\d+)*m/);
+        view.clear(); view.output.columns = 20; view.output.rows = 6; view.output.emit('resize');
+        assert(view.text().split('\r\n').length <= 6);
+        view.key('d');
+        assert.match(view.text(), /Details/);
+    } finally {
+        view.terminal.close();
+        if (prior === undefined) delete process.env.NO_COLOR; else process.env.NO_COLOR = prior;
+    }
 });

@@ -125,8 +125,9 @@ console.log(JSON.stringify({type:'text',part:{text:'PTBK_ACCEPTANCE {"satisfied"
     await execute('git', ['add', '--', 'tasks/future.book'], { cwd: fixture });
     await execute('git', ['commit', '--quiet', '-m', 'Future packaged agenda'], { cwd: fixture });
     try {
-        const started = await linkedCli(localLink, ['start', '--no-persist', '--no-server', '--no-qr', '--harness', 'opencode'], fixture, env);
+        const started = await linkedCli(localLink, ['start', '--raw', '--daemon', '--no-persist', '--no-server', '--no-qr', '--harness', 'opencode'], fixture, env);
         assert.match(started.stdout, /ptbk started/);
+        assert.doesNotMatch(started.stdout, /\u001b|[┌┐└┘│]/);
         const first = JSON.parse((await linkedCli(globalLink, ['show', '--json'], fixture, env)).stdout);
         assert.equal(first.mode, 'daemon'); assert.equal(first.url, undefined); assert.equal(first.persistent, false);
         const record = JSON.parse(await readFile(join(fixture, '.ptbk', 'process.json'), 'utf8'));
@@ -142,7 +143,7 @@ console.log(JSON.stringify({type:'text',part:{text:'PTBK_ACCEPTANCE {"satisfied"
         assert.equal(restarted.tasks.find(task => task.id === 'packaged-future').eligibility.kind, 'waiting-until');
     } finally { await linkedCli(localLink, ['stop'], fixture, env); }
     assert.equal(JSON.parse((await linkedCli(localLink, ['status'], fixture, env)).stdout).status, 'stopped');
-    process.stdout.write(`Packed ptbk@${release.version}: local/global installation, checked single-commit execution, installed daemon identity, repeated start, restart preferences and intentional stop passed.\n`);
+    process.stdout.write(`Packed ptbk@${release.version}: local/global installation, checked single-commit execution, raw daemon launch, installed identity, repeated start, restart preferences and intentional stop passed.\n`);
 } finally {
     await rm(temporary, { recursive: true, force: true });
 }

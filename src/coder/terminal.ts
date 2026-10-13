@@ -2,16 +2,18 @@ import { emitKeypressEvents } from 'node:readline';
 import { redactSecrets } from './harness.js';
 import { promptText } from './interactive.js';
 import { promptChoice, promptChoices } from './choices.js';
+import { plainTerminal, presentationFor, style, terminalWidth, wrapTerminal } from './presentation.js';
 
 /** Injectable streams permit deterministic control and resize fixtures. @private */
 export interface TerminalSurface {
     input?: NodeJS.ReadStream; output?: NodeJS.WriteStream;
-    onControl?: (action: 'pause' | 'resume' | 'finish' | 'skip-wait' | 'requests' | 'settings', value?: boolean) => void | Promise<void>;
+    attached?: boolean;
+    onControl?: (action: 'pause' | 'resume' | 'finish' | 'skip-wait' | 'requests' | 'settings' | 'inventory' | 'edit-task', value?: boolean) => void | Promise<void>;
 }
 
 /** Removes cursor controls from structured output and scrollback previews. @private */
 function plain(text: string): string {
-    return text.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '');
+    return plainTerminal(text);
 }
 
 /** Formats complete provider JSON lines without exposing transport fragments. @private */
@@ -38,7 +40,7 @@ function normalLine(line: string): string {
 export function createTerminal(enabled: boolean, cancel: () => void, projectPath: string, surface: TerminalSurface = {}): {
     isPaused(): boolean; shouldStop(): boolean; skipWait(): boolean; setWaiting(waiting: boolean): void;
     output(chunk: string): void; status(text: string): void; close(): void;
-    setPaused(paused: boolean): void; setStopping(stopping: boolean): void; question(prompt: string): Promise<string>;
+    setPaused(paused: boolean): void; setStopping(stopping: boolean): void; question(prompt: string, initial?: string): Promise<string>;
     choose(prompt: string, choices: Parameters<typeof promptChoice>[1], initial?: string): Promise<string>;
     chooseMany(prompt: string, choices: Parameters<typeof promptChoices>[1], initial?: string[]): Promise<string[]>;
     setSnapshot(snapshot: Record<string, unknown>): void;
@@ -62,55 +64,82 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
     let activeQuestion: AbortController | undefined;
     const rawChunks: string[] = [];
     const normalItems: string[] = [];
+    /** Editing is discoverable only when the observed runtime supports both guarded task actions. */
+    const canEditTasks = (): boolean => {
+        const actions = snapshot?.controlCapabilities?.actions;
+        return Array.isArray(actions) && actions.includes('read-task') && actions.includes('edit-task');
+    };
     /** Fit text to visible cells while preserving all remaining detail in activity history. */
     const fit = (text: string, width: number): string[] => {
-        const rows: string[] = [];
-        for (const line of plain(text).split('\n')) {
-            const glyphs = [...line];
-            if (!glyphs.length) rows.push('');
-            else for (let index = 0; index < glyphs.length; index += width) rows.push(glyphs.slice(index, index + width).join(''));
-        }
-        return rows;
+        return wrapTerminal(redactSecrets(text, projectPath), width);
     };
     /** Render stable live regions from the shared runtime snapshot, without imagined progress. */
     const renderDashboard = () => {
         if (!interactive || !snapshot || isRaw || questioning || closed) return;
         if (!dashboardActive) { dashboardActive = true; output.write('\u001b[?1049h\u001b[?25l'); }
-        const width = Math.max(8, output.columns || 80); const height = Math.max(4, output.rows || 24);
+        const width = Math.max(8, (output.columns || 80) - 1); const height = Math.max(4, output.rows || 24);
+        const framed = width >= 40 && height >= 10;
+        const contentWidth = framed ? width - 4 : width;
         const tasks = (snapshot.tasks || []) as Array<Record<string, any>>;
         const current = tasks.find(task => task.id === snapshot!.currentTask);
         const selection = snapshot.currentSelection || current || snapshot.settings || {};
         const stats = snapshot.statistics || {};
         const requests = (snapshot.requests || []) as Array<Record<string, any>>;
         const state = `${snapshot.status || 'starting'}${snapshot.pausePending ? ' · pause pending' : snapshot.paused || isPaused ? ' · paused' : ''}${isStopping ? ' · finish after task' : ''}`;
-        const taskLimit = Math.max(1, Math.min(5, Math.floor(height / 4)));
+        const taskLimit = Math.max(1, Math.min(5, Math.floor(height / 5)));
         const sections = [
-            `Promptbook ${snapshot.engineVersion || 'version unavailable'} · ${snapshot.mode || 'interactive'}`,
+            `Promptbook ${snapshot.engineVersion || 'version unavailable'} · ${snapshot.mode || 'interactive'}${surface.attached ? ' · attached' : ''}`,
             `Project: ${snapshot.project || projectPath}`,
-            `State: ${state}${snapshot.phase ? ` · phase: ${snapshot.phase}` : ''}${snapshot.waiting || isWaiting ? ' · pacing/backoff wait' : ''}`,
+            `State: ${snapshot.connection || 'live'} · ${state}${snapshot.phase ? ` · phase: ${snapshot.phase}` : ''}${snapshot.waiting || isWaiting ? ' · pacing/backoff wait' : ''}`,
             `Agent: ${selection.agent || 'none'} · Harness: ${selection.harness || 'none'}${selection.model ? ` · Model: ${selection.model}` : ''}${selection.thinkingLevel ? ` · Effort: ${selection.thinkingLevel}` : ''}`,
-            `Task: ${current?.title || snapshot.currentTask || 'idle'} · ${stats.completed ?? 0} completed · ${stats.failed ?? 0} failed`,
-            `Queue (${tasks.length}): ${tasks.length ? '' : 'No queued work.'}`,
+            `Task: ${current?.title || snapshot.currentTask || 'idle'}`,
+            `Results: ${stats.completed ?? 0} completed · ${stats.failed ?? 0} failed`,
+            `── Queue (${tasks.length}) ${tasks.length ? '' : '· No queued work.'}`,
             ...tasks.slice(0, viewingDetails ? 200 : taskLimit).map(task => `${task.id === snapshot!.currentTask ? '> ' : '  '}${task.title} · ${task.status}${task.eligibility?.kind ? ` · ${task.eligibility.kind}${viewingDetails ? `: ${task.eligibility.reason}` : ''}` : ''}`),
             ...(tasks.length > (viewingDetails ? 200 : taskLimit) ? [`  … ${tasks.length - (viewingDetails ? 200 : taskLimit)} more; inspect task details with ptbk show or the page.`] : []),
-            `Requests (${requests.length}): ${requests[0]?.prompt || 'none'}${requests.length > 1 ? ` · ${requests.length - 1} more` : ''}`,
+            `── Requests (${requests.length}): ${requests[0]?.prompt || 'none'}${requests.length > 1 ? ` · ${requests.length - 1} more` : ''}`,
+            ...(Object.keys(snapshot.pendingSettings || {}).length ? [`Settings: pending safe boundary (${Object.keys(snapshot.pendingSettings).join(', ')})`] : []),
+            ...(Object.keys(snapshot.restartSettings || {}).length ? [`Settings: restart required (${Object.keys(snapshot.restartSettings).join(', ')})`] : []),
             ...(snapshot.error ? [`Failure: ${snapshot.error}`, `Next: ${snapshot.nextAction || 'inspect ptbk recover and the task diagnostics before resuming.'}`, ...(snapshot.diagnostic ? [`Diagnostic: ${snapshot.diagnostic}`] : [])] : []),
-        ].flatMap(line => fit(line, width));
-        const controls = width >= 80 ? 'P pause · S skip · X exit/cancel · O raw · ↑↓ scroll · End follow · D details · Q requests · C settings'
-            : width >= 48 ? 'P pause S skip X exit O raw D details Q answer C settings'
-            : 'P S X O D Q C · ↑↓ End';
+        ].flatMap(line => fit(line, contentWidth));
+        const controls = surface.attached
+            ? `? help · Q leave · P pause · S skip · X stop/cancel · O plain · D details · R requests · C settings · H harnesses${canEditTasks() ? ' · E edit task' : ''} · ↑↓ End`
+            : `? help · P pause · S skip · X finish/cancel · O plain · D details · Q requests · C settings · H harnesses${canEditTasks() ? ' · E edit task' : ''} · ↑↓ End`;
+        const legend = fit(width < 48 ? surface.attached ? '? help · Q leave' : '? help · Ctrl+C cancel' : controls, width).slice(0, 2);
+        const available = Math.max(1, height - legend.length - (framed ? 2 : 0));
+        const presentation = presentationFor(output);
+        /** Add semantic cues only after bounded rows have been laid out. */
+        const decorate = (line: string, index: number): string => {
+            const tone = index === 0 ? 'title' : line.startsWith('Failure:') ? 'error' : line.startsWith('Next:') || /paused|blocked|wait|pending|restart required/.test(line) ? 'warning'
+                : line.startsWith('──') || line.startsWith('Agent:') ? 'accent' : line.startsWith('Results:') ? 'success' : undefined;
+            return tone ? style(line, tone, presentation) : line;
+        };
+        /** Render bounded rows in place; all details remain reachable in the details view. */
+        const display = (rows: string[]) => {
+            const content = rows.slice(0, available).map((line, index) => framed
+                ? `${style('│', 'muted', presentation)} ${decorate(line, index)}${' '.repeat(Math.max(0, contentWidth - terminalWidth(line)))} ${style('│', 'muted', presentation)}`
+                : decorate(line, index));
+            const border = (left: string, right: string) => style(`${left}${'─'.repeat(width - 2)}${right}`, 'muted', presentation);
+            output.write(`\u001b[H\u001b[2J${[...(framed ? [border('┌', '┐')] : []), ...content, ...(framed ? [border('└', '┘')] : []), ...legend.map(line => style(line, 'muted', presentation))].join('\r\n')}`);
+        };
         if (viewingDetails) {
-            const detail = [...sections, ...requests.map(request => `Request ${request.id}: ${request.prompt}`)].flatMap(line => fit(line, width));
-            scroll = Math.min(Math.max(0, detail.length - Math.max(1, height - 2)), scroll);
-            output.write(`\u001b[H\u001b[2J${[`Promptbook ${snapshot.engineVersion || 'version unavailable'} · Details`.slice(0, width), ...detail.slice(scroll, scroll + Math.max(1, height - 2)), controls.slice(0, width)].join('\r\n')}`);
+            const detail = [...sections, ...tasks.map(task => `Task ${task.id}: ${task.payload || task.title}\nEligibility: ${task.eligibility?.kind || 'unknown'} · ${task.eligibility?.reason || 'not reported'}`),
+                ...requests.map(request => `Request ${request.id}: ${request.prompt}\nReason: ${request.reason}`),
+                `Agents: ${JSON.stringify(snapshot.agents || [])}`, `Harnesses: ${JSON.stringify(snapshot.harnesses || [])}`,
+                `Runtime settings: ${JSON.stringify(snapshot.settings || {})}`, `Settings controls: ${JSON.stringify(snapshot.settingsCapabilities || {})}`,
+                `Pending settings: ${JSON.stringify(snapshot.pendingSettings || {})}`, `Restart settings: ${JSON.stringify(snapshot.restartSettings || {})}`,
+                `Browser: ${JSON.stringify(snapshot.browser || {})}`,
+                `Controls: ${surface.attached ? 'Q or Ctrl+C leave this client. R answers pending requests.' : 'Ctrl+C cancels owned execution. Q answers pending requests.'} P pause/resume. S skip the active pacing wait. X finish, again cancel owned work. O plain/dashboard. H browse featured harnesses and More. C runtime settings.${canEditTasks() ? ' E edits task sources with revision checks and explicit Save.' : ' Task editing is unavailable in this runtime.'} Arrow keys scroll. End follows live activity. D or ? toggles details.`].flatMap(line => fit(line, contentWidth));
+            scroll = Math.min(Math.max(0, detail.length - Math.max(1, available - 1)), scroll);
+            display([fit(`Details · Promptbook ${snapshot.engineVersion || 'version unavailable'}`, contentWidth)[0]!, ...detail.slice(scroll, scroll + Math.max(1, available - 1))]);
             return;
         }
-        const content = sections.slice(0, Math.max(1, height - 4));
-        const remaining = Math.max(0, height - content.length - 2);
-        const activity = normalItems.flatMap(item => fit(item.trimEnd(), width));
+        const content = sections.slice(0, Math.max(1, available - 2));
+        const remaining = Math.max(0, available - content.length);
+        const activity = normalItems.flatMap(item => fit(item.trimEnd(), contentWidth));
         const end = Math.max(0, activity.length - scroll);
         const visible = activity.slice(Math.max(0, end - Math.max(0, remaining - 1)), end);
-        output.write(`\u001b[H\u001b[2J${[...content, `${scroll ? 'Activity history' : 'Activity'}${scroll ? ' · End to follow live' : ''}:`, ...visible, controls.slice(0, width)].slice(0, height).join('\r\n')}`);
+        display([...content, ...fit(`── ${scroll ? 'Activity history' : 'Activity'}${scroll ? ' · End to follow live' : ''}`, contentWidth).slice(0, 1), ...visible]);
     };
     /** Prints at most one screen, independent of total retained history. */
     const renderHistory = () => {
@@ -139,6 +168,7 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
     /** Separates coder messages from provider output. */
     const status = (text: string) => {
         const safe = rememberNormal(`[ptbk] ${plain(redactSecrets(text, projectPath))}\n`);
+        if (closed) { if (!output.destroyed && !output.writableEnded) output.write(safe); return; }
         if (questioning) return;
         if (interactive && snapshot && !isRaw) renderDashboard(); else if (viewingHistory) renderHistory(); else output.write(safe);
     };
@@ -163,7 +193,7 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
     /** Forward a shortcut into shared process controls while retaining finite local controls. */
     const control = (action: Parameters<NonNullable<TerminalSurface['onControl']>>[0], value?: boolean) => {
         if (!surface.onControl) return;
-        void Promise.resolve().then(() => surface.onControl!(action, value)).catch(error => status(`Control failed: ${(error as Error).message}`));
+        void Promise.resolve().then(() => surface.onControl!(action, value)).catch(error => { if ((error as Error).name !== 'AbortError') status(`Control failed: ${(error as Error).message}`); });
     };
     /** Suspend runtime shortcuts and output for an editor or picker, then restore the live view. */
     const interact = async <T>(entry: (signal: AbortSignal) => Promise<T>): Promise<T> => {
@@ -179,7 +209,7 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
             if (!closed) {
                 input.setRawMode(true); input.resume(); input.on('keypress', keypress);
                 if (viewingHistory) { output.write('\u001b[?1049h'); renderHistory(); } else renderDashboard();
-            } else { input.setRawMode(Boolean(originalRaw)); input.pause(); }
+            } else { if (!input.destroyed) input.setRawMode(Boolean(originalRaw)); input.pause(); }
         }
     };
     /** Keep provider-controlled labels and descriptions safe while preserving opaque option values. */
@@ -189,7 +219,7 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
         ...(choice.description ? { description: plain(redactSecrets(choice.description, projectPath)) } : {}),
     }));
     /** Give every freeform request the shared multiline composer while isolating runtime output. */
-    const question = (prompt: string): Promise<string> => interact(signal => promptText(plain(redactSecrets(prompt, projectPath)), { input, output, signal, onInterrupt: cancel }));
+    const question = (prompt: string, initial?: string): Promise<string> => interact(signal => promptText(plain(redactSecrets(prompt, projectPath)), { input, output, signal, initial, onInterrupt: cancel }));
     /** Present a labeled finite decision without requiring the user to transcribe its value. */
     const choose = (prompt: string, choices: Parameters<typeof promptChoice>[1], initial?: string): Promise<string> => interact(signal => promptChoice(plain(redactSecrets(prompt, projectPath)), safeChoices(choices), { input, output, signal, initial, onInterrupt: cancel }));
     /** Present independent predefined selections through the same suspended terminal session. */
@@ -199,18 +229,30 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
         if (questioning || closed) return;
         if (key.ctrl && key.name === 'c') { cancel(); return; }
         if (key.name === 'p') { isPaused = !isPaused; control(isPaused ? 'pause' : 'resume', isPaused); status(isPaused ? 'Pause requested; current phase will finish safely.' : 'Resumed.'); }
-        else if (key.name === 'x') { isStopping = !isStopping; control('finish', isStopping); status(isStopping ? 'Will exit after the current task.' : 'Exit request cancelled.'); }
+        else if (key.name === 'x') {
+            const alreadyStopping = isStopping; isStopping = true;
+            if (alreadyStopping && !surface.onControl) cancel(); else control('finish', true);
+            status(alreadyStopping ? 'Cancellation requested for owned work; waiting for runtime outcome.'
+                : surface.attached ? 'Service finish requested; current task may finish safely. X again cancels owned work. Q leaves this client.'
+                    : 'Will exit after the current task. X again cancels owned work.');
+        }
         else if (key.name === 's') {
             isSkipRequested = isWaiting; if (isWaiting) control('skip-wait', true);
             status(isWaiting ? 'Skipping the current pacing/backoff wait; scheduled eligibility still applies.' : 'There is no pacing/backoff wait to skip now.');
-        } else if (key.name === 'q' && surface.onControl) { control('requests'); }
+        } else if (key.name === 'q' && surface.attached) { cancel(); }
+        else if ((key.name === 'q' && !surface.attached || key.name === 'r' && surface.attached) && surface.onControl) { control('requests'); }
         else if (key.name === 'c' && surface.onControl) { control('settings'); }
+        else if (key.name === 'h' && surface.onControl) { control('inventory'); }
+        else if (key.name === 'e' && surface.onControl) {
+            if (canEditTasks()) control('edit-task');
+            else status('Task editing is unavailable in this runtime. Inspect the task source locally or use an existing project service.');
+        }
         else if (key.name === 'o') {
             isRaw = !isRaw;
             if (isRaw && dashboardActive) { dashboardActive = false; output.write('\u001b[?25h\u001b[?1049l'); }
             status(`${isRaw ? 'Raw' : snapshot ? 'Dashboard' : 'Normal'} output selected.`);
         }
-        else if (key.name === 'd' && snapshot && !isRaw) { viewingDetails = !viewingDetails; scroll = 0; renderDashboard(); }
+        else if ((key.name === 'd' || _text === '?') && snapshot && !isRaw) { viewingDetails = !viewingDetails; scroll = 0; renderDashboard(); }
         else if (key.name === 'up' || key.name === 'down' || key.name === 'end') {
             const entries = isRaw ? rawChunks : normalItems;
             const maximum = snapshot && !isRaw ? viewingDetails ? 10000 : normalItems.flatMap(item => fit(item.trimEnd(), Math.max(8, output.columns || 80))).length - 1 : entries.length - 1;
@@ -230,11 +272,11 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
         input.resume();
         input.on('keypress', keypress);
         output.on('resize', renderHistory);
-        status(`Controls: P pause, S skip wait, X finish and exit, O normal/raw, arrows scroll, End live.${surface.onControl ? ' Q requests, C settings.' : ''}`);
+        status(`Controls: ${surface.attached ? 'Q leave dashboard, Ctrl+C leave dashboard, ' : ''}P pause, S skip wait, X ${surface.attached ? 'stop service / cancel owned work' : 'finish and exit'}, O normal/raw, arrows scroll, End live.${surface.onControl ? `${surface.attached ? ' R' : ' Q'} requests, C settings, H harnesses.` : ''}`);
     }
     return {
         isPaused: () => isPaused, shouldStop: () => isStopping, question, choose, chooseMany,
-        setSnapshot(value) { snapshot = value; renderDashboard(); },
+        setSnapshot(value) { snapshot = value; if (surface.attached) { isPaused = Boolean(value.paused); isStopping = Boolean(value.finishAfterTask); } renderDashboard(); },
         setPaused(value) { isPaused = value; renderDashboard(); }, setStopping(value) { isStopping = value; renderDashboard(); },
         setWaiting(waiting) { isWaiting = waiting; if (!waiting) isSkipRequested = false; renderDashboard(); },
         skipWait: () => { const skip = isWaiting && isSkipRequested; isSkipRequested = false; return skip; },
@@ -247,7 +289,7 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
             while (rawSize > 256000 || rawChunks.length > 2048) rawSize -= rawChunks.shift()!.length;
             normalCarry += safe;
             consumeNormal();
-            if (isRaw && !viewingHistory && !questioning) output.write(safe);
+            if (isRaw && !viewingHistory && !questioning) output.write(plain(bounded));
         },
         close() {
             if (closed) return;
@@ -256,9 +298,11 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
                 consumeNormal(true);
                 input.removeListener('keypress', keypress);
                 output.removeListener('resize', renderHistory);
-                if (dashboardActive) output.write('\u001b[?25h\u001b[?1049l');
-                if (viewingHistory) output.write('\u001b[?1049l');
-                input.setRawMode(Boolean(originalRaw)); input.pause();
+                if (!output.destroyed && !output.writableEnded) {
+                    if (dashboardActive) output.write('\u001b[?25h\u001b[?1049l');
+                    if (viewingHistory) output.write('\u001b[?1049l');
+                }
+                if (!input.destroyed) input.setRawMode(Boolean(originalRaw)); input.pause();
             }
         },
     };

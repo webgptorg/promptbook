@@ -90,6 +90,28 @@ test('finite activity distinguishes unclaimed work from actual task routing and 
     assert.match(state.nextAction, /preserved task journal/);
 });
 
+test('finite dashboards publish controls and distinguish graceful finish from owned cancellation', async t => {
+    const workspace = await fixture(t); let cancelled = 0;
+    const runtime = await createFiniteRuntime(workspace, {}, () => cancelled++);
+    t.after(() => runtime.close());
+    assert.equal((await runtime.control.snapshot()).finishAfterTask, false);
+    assert.deepEqual((await runtime.control.snapshot()).controlCapabilities.actions, ['inspect', 'pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses']);
+    const first = await runtime.control.command('finish');
+    assert.equal(first.finishAfterTask, true);
+    assert.equal(first.cancellationRequested, false);
+    assert.equal(cancelled, 0);
+    assert.equal((await runtime.control.snapshot()).finishAfterTask, true);
+    const second = await runtime.control.command('finish');
+    assert.equal(second.cancellationRequested, true);
+    assert.equal(cancelled, 1);
+    assert.equal(runtime.options.shouldStop(), true);
+    const featured = await runtime.control.command('harnesses');
+    const more = await runtime.control.command('harnesses', { more: true });
+    assert(featured.every(item => item.featured));
+    assert(more.length >= featured.length);
+    assert.equal((await runtime.control.command('harnesses', { name: more[0].name })).name, more[0].name);
+});
+
 test('finite manual confirmations use labeled choices with decline initially focused', async t => {
     const workspace = await fixture(t);
     const runtime = await createFiniteRuntime(workspace, { interactive: true, noAuto: true }, () => {});
@@ -112,15 +134,18 @@ function dashboardDocument() {
     const nodes = new Map();
     /** Preserve the element tree and mutable form state consumed by browser event handlers. */
     const createElement = tag => ({
-        tagName: tag.toUpperCase(), textContent: '', value: '', children: [], attributes: {},
+        tagName: tag.toUpperCase(), textContent: '', value: '', children: [], attributes: {}, dataset: {},
+        classList: { add() {}, remove() {}, toggle() {} },
         append(...children) { for (const child of children) { child.parent = this; this.children.push(child); } },
         replaceChildren(...children) { this.children = []; this.append(...children); },
         setAttribute(name, value) { this.attributes[name] = value; },
         get firstChild() { return this.children[0]; },
+        get childNodes() { return this.children; },
         remove() { this.parent.children = this.parent.children.filter(child => child !== this); },
     });
     return {
-        createElement, querySelectorAll: () => [],
+        createElement, querySelectorAll: () => [], body: createElement('body'),
+        createTextNode: textContent => ({ textContent }),
         getElementById(id) { if (!nodes.has(id)) nodes.set(id, createElement('div')); return nodes.get(id); },
     };
 }
@@ -141,18 +166,25 @@ test('dashboard requests expose predefined answers without applying an implicit 
         const { action, ...input } = JSON.parse(options.body);
         return runtime.control.command(action, input);
     } });
-    const refresh = new Function('document', 'location', 'fetch', 'setInterval', `${script}\nreturn refresh;`)(document, address, transport, () => {});
+    /** Native options retain literal labels and explicit placeholder selection in the fake DOM. */
+    function Option(text, value, defaultSelected = false, selected = false) {
+        const option = document.createElement('option');
+        Object.assign(option, { textContent: text, value, defaultSelected, selected });
+        return option;
+    }
+    const refresh = new Function('document', 'location', 'fetch', 'setInterval', 'Option', `${script}\nreturn async () => { while (client.busy || client.refreshing) await new Promise(resolve => setTimeout(resolve, 1)); await refresh(); };`)(document, address, transport, () => {}, Option);
     await refresh();
     const cards = document.getElementById('requests').children;
     const chosen = cards.find(card => card.firstChild.textContent.startsWith(request.prompt));
-    const [prompt, answer, submit] = chosen.children;
-    assert.match(prompt.textContent, /Select a destination/);
+    const [prompt, reason, answer, submit] = chosen.children;
+    assert.equal(prompt.textContent, request.prompt);
+    assert.match(reason.textContent, /Select a destination/);
     assert.equal(answer.tagName, 'SELECT');
     assert.deepEqual(answer.children.slice(1).map(option => option.textContent), request.choices);
     assert.equal(answer.children[0].disabled, true);
     assert.equal(answer.children[0].selected, true);
     assert.equal(submit.disabled, true);
-    assert.equal(cards.find(card => card.firstChild.textContent.startsWith(open.prompt)).children[1].tagName, 'TEXTAREA');
+    assert.equal(cards.find(card => card.firstChild.textContent.startsWith(open.prompt)).children[2].tagName, 'TEXTAREA');
     assert.equal((await listRequests(workspace, true)).length, 2);
     answer.value = '<new project>';
     answer.onchange();
@@ -160,6 +192,7 @@ test('dashboard requests expose predefined answers without applying an implicit 
     assert.equal(answer.value, '<new project>');
     assert.equal(submit.disabled, false);
     await submit.onclick();
+    await refresh();
     assert.equal((await listRequests(workspace)).find(item => item.id === request.id).response, '<new project>');
     assert.equal((await listRequests(workspace, true)).length, 1);
     assert.equal(document.getElementById('requests').children.length, 1);

@@ -83,7 +83,7 @@ export async function readProjectConfiguration(projectPath: string): Promise<Pro
             }
             const location = `${path}${section ? `.${section}` : ''}.${name}`;
             if (setting.type === 'string' && typeof entry !== 'string' || setting.type === 'boolean' && typeof entry !== 'boolean' || setting.type === 'integer' && (typeof entry !== 'number' || !Number.isSafeInteger(entry) || entry < 0) || setting.type === 'duration' && (typeof entry !== 'string' && (typeof entry !== 'number' || !Number.isSafeInteger(entry) || entry < 0))) throw new InputError(`${location}: expected ${setting.type === 'integer' ? 'a nonnegative integer' : setting.type}.`);
-            if (name === 'mode' && !['daemon', 'raw', 'interactive'].includes(String(entry))) throw new InputError(`${location}: expected daemon, raw or interactive.`);
+            if (name === 'mode' && !['daemon', 'foreground', 'raw', 'interactive'].includes(String(entry))) throw new InputError(`${location}: expected daemon or foreground (legacy raw/interactive are also accepted).`);
             let effective = setting.type === 'integer' ? String(entry) : setting.type === 'duration' && typeof entry === 'number' ? `${entry}ms` : entry as string | boolean;
             if (setting.invert) effective = !entry;
             if (['tasks', 'context', 'agent'].includes(name) && typeof effective === 'string' && effective && (name !== 'agent' || /[\\/]|\.book$/.test(effective))) effective = resolve(projectPath, effective);

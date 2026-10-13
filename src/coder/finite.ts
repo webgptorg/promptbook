@@ -8,7 +8,7 @@ import { openDashboard, type RuntimeControl } from './service.js';
 import { installedEngineVersion } from './version.js';
 import { answerRequest, listRequests } from './requests.js';
 import { ProjectBrowser, browserTools } from './browser.js';
-import { getHarness, getHarnessCatalog, redactSecrets } from './harness.js';
+import { getHarness, getHarnessCatalog, HARNESS_REGISTRY, redactSecrets } from './harness.js';
 import { InputError } from './workspace.js';
 
 /** Finite presentation uses the same state/control channels without creating a supervisor. @private */
@@ -46,10 +46,11 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
     const snapshot = async (): Promise<Record<string, unknown>> => {
         const tasks = await discoverTasks(workspace); const ledger = await readLedger(workspace);
         const selected = tasks.find(task => task.id === currentTask);
-        return { engineVersion, project: workspace.projectPath, mode: supplied.interactive ? 'interactive' : 'raw', lifetime: 'finite', status: lastResult ? lastResult.exitCode ? 'failed' : 'completed' : paused ? 'paused' : currentTask ? 'running' : 'ready', phase, paused, pausePending: paused && Boolean(currentTask), running: Boolean(currentTask), waiting, currentTask,
+        return { engineVersion, project: workspace.projectPath, mode: supplied.interactive ? 'interactive' : 'raw', lifetime: 'finite', status: lastResult ? lastResult.exitCode ? 'failed' : 'completed' : paused ? 'paused' : currentTask ? 'running' : 'ready', phase, paused, pausePending: paused && Boolean(currentTask), running: Boolean(currentTask), waiting, currentTask, finishAfterTask: finishing,
             currentSelection: currentSelection ?? { agent: options.agent ?? selected?.agent ?? 'Developer', harness: options.harness ?? selected?.harness, model: options.model ?? selected?.model, thinkingLevel: options.thinkingLevel ?? selected?.thinkingLevel }, ...failure,
             statistics, lastResult, url, configurationSources: options.configurationSources, settings: JSON.parse(JSON.stringify(options, (_key, value) => typeof value === 'function' || value instanceof AbortSignal ? undefined : value)), pendingSettings: pending, restartSettings,
             settingsCapabilities: { live: [...FINITE_LIVE_SETTINGS], requiresRestart: [...FINITE_SETTINGS].filter(key => !FINITE_LIVE_SETTINGS.has(key)), temporary: true, explanation: 'Finite work keeps one execution selection. Other settings apply to future tasks at a safe boundary.' },
+            controlCapabilities: { actions: ['inspect', 'pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses'] },
             tasks: await Promise.all(tasks.map(async task => ({ ...task, status: ledger.tasks[task.id]?.claim ? 'in-progress' : task.status, eligibility: await taskEligibility(workspace, task, options, ledger) }))), requests: await listRequests(workspace, true), browser: browser.status(), events,
             harnessCatalog: getHarnessCatalog().map(({ id, name, displayName, featured }) => ({ id, name, displayName, featured })) };
     };
@@ -59,14 +60,24 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
             if (action === 'inspect') return snapshot();
             if (action === 'pause' || action === 'resume') { paused = action === 'pause'; terminal.setPaused(paused); }
             else if (action === 'skip-wait') { skip = waiting; return { skipped: skip }; }
-            else if (action === 'finish') { finishing = !finishing; terminal.setStopping(finishing); return { finishAfterTask: finishing }; }
+            else if (action === 'finish') {
+                const cancelOwnedWork = finishing; finishing = true; terminal.setStopping(true);
+                if (cancelOwnedWork) cancel();
+                await refresh(); return { finishAfterTask: true, cancellationRequested: cancelOwnedWork };
+            }
             else if (action === 'stop') cancel();
             else if (action === 'answer') {
                 if (typeof input.id !== 'string' || typeof input.response !== 'string') throw new InputError('Answer requires a request id and response.');
                 return answerRequest(workspace, input.id, input.response);
             } else if (action === 'harnesses') {
-                if (input.more !== undefined && typeof input.more !== 'boolean') throw new InputError('more must be a boolean.');
-                return getHarnessCatalog({ includeMore: input.more === true }).map(({ id, name, displayName, featured }) => ({ id, name, displayName, featured }));
+                if (input.more !== undefined && typeof input.more !== 'boolean' || input.name !== undefined && typeof input.name !== 'string') throw new InputError('Harness inspection accepts a name or boolean more choice.');
+                if (typeof input.name === 'string') {
+                    const harness = getHarness(input.name);
+                    return { id: harness.id, name: harness.name, displayName: harness.displayName, featured: harness.featured,
+                        capabilities: { toolDiscovery: harness.toolDiscovery, readOnly: Boolean(harness.readOnlyTools) }, thinkingLevels: harness.thinkingLevels,
+                        defaultModel: harness.defaultModel, models: 'Unknown; use native harness inspection to discover available models.' };
+                }
+                return (input.more ? HARNESS_REGISTRY : getHarnessCatalog()).map(({ id, name, displayName, featured }) => ({ id, name, displayName, featured }));
             } else if (action === 'settings') {
                 if (!input.settings || typeof input.settings !== 'object' || Array.isArray(input.settings)) throw new InputError('settings must be an object.');
                 const update = input.settings as Partial<FiniteRuntimeOptions>;
@@ -100,8 +111,19 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
                 : await terminal.question(request.prompt);
             if (response.trim()) await control.command('answer', { id: request.id, response });
         } else if (action === 'settings') {
-            const value = await terminal.question('Settings for the next finite invocation as JSON (blank to cancel):');
+            const value = await terminal.question(`Temporary runtime settings as JSON (blank to cancel).\nLive at the next safe boundary: ${[...FINITE_LIVE_SETTINGS].join(', ')}\nNext invocation only: ${[...FINITE_SETTINGS].filter(key => !FINITE_LIVE_SETTINGS.has(key)).join(', ')}\nPacing values use milliseconds.`);
             if (value.trim()) terminal.status(JSON.stringify(await control.command('settings', { settings: JSON.parse(value) })));
+        } else if (action === 'inventory') {
+            let more = false;
+            while (true) {
+                const entries = await control.command('harnesses', { more }) as Array<Record<string, any>>;
+                const picked = await terminal.choose(more ? 'All harnesses:' : 'Featured harnesses:', [...entries.map(item => ({ value: String(item.name), label: String(item.displayName) })),
+                    { value: more ? '@featured' : '@more', label: more ? 'Back to featured' : 'More harnesses' }, { value: '@cancel', label: 'Return to dashboard' }]);
+                if (picked === '@cancel') break;
+                if (picked === '@more' || picked === '@featured') { more = picked === '@more'; continue; }
+                const detail = await control.command('harnesses', { name: picked });
+                await terminal.choose(`Harness details:\n${JSON.stringify(detail, null, 2)}`, [{ value: '@back', label: 'Back to harnesses' }]);
+            }
         } else terminal.status(JSON.stringify(await control.command(action)));
     } });
     /** Serialize refreshes so a slow read cannot overwrite more recent state or recreate closed UI. */

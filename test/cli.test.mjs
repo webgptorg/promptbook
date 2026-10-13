@@ -20,8 +20,11 @@ test('CLI version, command help and bare invocation inspect an external project 
     assert.equal(version.stdout.trim(), await installedVersion());
     const help = await execute(process.execPath, [executable, 'start', '--help', '--path', directory], { cwd: directory });
     assert.match(help.stdout, /Usage: ptbk/);
-    assert.match(help.stdout, /--daemon.*--raw.*--interactive/);
-    assert.match(help.stdout, /answer \[request-id\]/);
+    assert.match(help.stdout, /--daemon/);
+    assert.match(help.stdout, /--foreground/);
+    assert.match(help.stdout, /--raw/);
+    assert.doesNotMatch(help.stdout, /answer \[request-id\]/);
+    assert.match(help.stdout, /Usage: ptbk start/);
     assert.doesNotMatch(help.stdout, /implementation pending|not implemented/);
     const root = await execute(process.execPath, [executable, '--path', directory], { cwd: directory, timeout: 5_000 });
     assert.match(root.stdout, /ptbk start/);
@@ -41,7 +44,7 @@ test('unknown options and invalid mode combinations fail before mutation', async
         [['--typo'], /Unsupported option/],
         [['--path'], /requires a value/],
         [['start', 'unexpected'], /Unexpected arguments/],
-        [['start', '--raw', '--daemon'], /Choose only one/],
+        [['start', '--foreground', '--daemon'], /conflicts/],
         [['start', '--no-server', '--port', '3000'], /conflicts/],
         [['start', '--no-commit'], /requires commits/],
         [['run', '--model', ''], /nonempty value/],

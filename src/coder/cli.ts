@@ -2,7 +2,8 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { resolve, join, relative } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { resolveWorkspace, requireGit, readContext, InputError, resolveAgentSelection } from './workspace.js';
-import { initializeProject, addTask, generateBoilerplates, verifyTasks } from './authoring.js';
+import { initializeProject, addTask, saveAuthoredTask, generateBoilerplates, verifyTasks } from './authoring.js';
+import { addTaskWizard } from './add-wizard.js';
 import { discoverTasks } from './sources.js';
 import { migrateTasks } from './migrate.js';
 import { runQueue, fixChecks, recoverTask, taskEligibility, type RunOptions } from './engine.js';
@@ -25,13 +26,17 @@ import { inspectEngineInstallation, checkEngineUpdate, updateEngineInstallation 
 import { inspectInitializationDestination, prepareInitializationDestination, finalizeInitializationDestination, installProjectEngine, inspectLocalInstallation, inspectProjectReadiness, persistInitializationPending, type PreparedInitializationDestination } from './initialization.js';
 import { reportDiagnostic } from './diagnostics.js';
 import { validateCheck } from './checks.js';
+import { resolveHelpRequest, renderHelp, helpHint } from './help.js';
+import { attachDashboard } from './attached-dashboard.js';
+import { presentationFor, renderPanel, renderDocument, type TerminalPresentation } from './presentation.js';
+import QRCode from 'qrcode';
 
 /** Boolean CLI options whose presence is significant. */
-const BOOLEAN_OPTIONS = new Set(['help', 'version', 'dry-run', 'no-commit', 'commit', 'no-auto', 'no-questions', 'auto-pull', 'auto-push', 'isolate', 'no-normalize-line-endings', 'no-ui', 'preserve-logs', 'allow-credits', 'auto-migrate', 'allow-destructive-auto-migrate', 'json', 'daemon', 'raw', 'interactive', 'non-interactive', 'no-persist', 'no-server', 'no-qr', 'no-install', 'self-update', 'no-self-update', 'auto-update-harnesses', 'no-auto-update-harnesses']);
+const BOOLEAN_OPTIONS = new Set(['help', 'version', 'dry-run', 'no-commit', 'commit', 'no-auto', 'no-questions', 'auto-pull', 'auto-push', 'isolate', 'no-normalize-line-endings', 'no-ui', 'preserve-logs', 'allow-credits', 'auto-migrate', 'allow-destructive-auto-migrate', 'json', 'daemon', 'foreground', 'raw', 'interactive', 'non-interactive', 'no-persist', 'no-server', 'no-qr', 'no-install', 'self-update', 'no-self-update', 'auto-update-harnesses', 'no-auto-update-harnesses']);
 /** Value options accepted by the CLI parser. */
 const VALUE_OPTIONS = new Set(['path', 'tasks', 'harness', 'model', 'thinking-level', 'agent', 'context', 'min-priority', 'max-priority', 'priority', 'limit', 'git-changes', 'check', 'check-before', 'wait-between-prompts', 'wait-after-prompt', 'wait-after-error', 'template', 'count', 'ignore', 'period', 'port', 'action', 'occurrence', 'browser-mode', 'browser-profile', 'agenda', 'intent', 'prompt', 'response', 'request', 'installation', 'new-project', 'nested-strategy', 'submodule-source', 'harnesses']);
 /** Commands supported by the installed executable. */
-const COMMANDS = ['init', 'initialize', 'about', 'start', 'stop', 'restart', 'status', 'show', 'answer', 'add', 'generate-boilerplates', 'plan', 'list', 'run', 'fix', 'verify', 'server', 'migrate', 'recover', 'find-unwritten', 'find-refactor-candidates', 'find-fresh-emoji-tags', 'ping'];
+const COMMANDS = ['init', 'initialize', 'about', 'start', 'stop', 'restart', 'status', 'show', 'dashboard', 'answer', 'add', 'generate-boilerplates', 'plan', 'list', 'run', 'fix', 'verify', 'server', 'migrate', 'recover', 'find-unwritten', 'find-refactor-candidates', 'find-fresh-emoji-tags', 'ping'];
 /** Shared option groups avoid quietly ignoring command-specific flags. */
 const ROUTING_OPTIONS = ['harness', 'model', 'thinking-level', 'agent', 'context'];
 /** Execution switches have meaning only for commands using the shared engine. */
@@ -40,10 +45,10 @@ const EXECUTION_OPTIONS = [...ROUTING_OPTIONS, 'min-priority', 'max-priority', '
 const COMMAND_OPTIONS: Record<string, string[]> = {
     init: [...ROUTING_OPTIONS, 'commit', 'no-commit', 'no-questions', 'auto-push', 'agenda', 'intent', 'no-install', 'allow-credits', 'check', 'installation', 'new-project', 'nested-strategy', 'submodule-source', 'harnesses', 'browser-mode', 'browser-profile', 'self-update', 'no-self-update'],
     initialize: [...ROUTING_OPTIONS, 'commit', 'no-commit', 'no-questions', 'auto-push', 'agenda', 'intent', 'no-install', 'allow-credits', 'check', 'installation', 'new-project', 'nested-strategy', 'submodule-source', 'harnesses', 'browser-mode', 'browser-profile', 'self-update', 'no-self-update'],
-    start: [...EXECUTION_OPTIONS, 'daemon', 'raw', 'no-persist', 'no-server', 'port', 'no-qr', 'browser-mode', 'browser-profile', 'auto-update-harnesses', 'no-auto-update-harnesses', 'harnesses'],
+    start: [...EXECUTION_OPTIONS, 'daemon', 'foreground', 'no-persist', 'no-server', 'port', 'no-qr', 'browser-mode', 'browser-profile', 'auto-update-harnesses', 'no-auto-update-harnesses', 'harnesses'],
     restart: [...EXECUTION_OPTIONS, 'daemon', 'raw', 'no-persist', 'no-server', 'port', 'no-qr', 'browser-mode', 'browser-profile', 'auto-update-harnesses', 'no-auto-update-harnesses', 'harnesses'],
     about: [],
-    stop: [], status: ['json'], show: ['json'], answer: ['request', 'response', 'action', 'json', 'no-questions'],
+    stop: [], status: ['json'], show: ['json'], dashboard: [], answer: ['request', 'response', 'action', 'json', 'no-questions'],
     add: ['commit', 'no-commit', 'no-questions', 'auto-push', 'priority', 'template'],
     'generate-boilerplates': ['commit', 'no-commit', 'no-questions', 'auto-push', 'count'],
     plan: [...ROUTING_OPTIONS, 'commit', 'no-commit', 'no-questions', 'allow-credits', 'prompt'],
@@ -90,14 +95,19 @@ function parseArguments(arguments_: string[]): Parsed {
     if (positional[0] === 'coder') throw new InputError('The coder command group was replaced. Use ptbk <command>, for example ptbk run or ptbk --help.');
     const command = positional.shift() || 'help';
     if (command !== 'help' && !COMMANDS.includes(command)) throw new InputError(`Unknown command ${command}. Use ptbk --help.`);
+    if (command === 'help' && !values.version) {
+        const inherited = new Set(['path', 'tasks', 'help', 'version', 'raw', 'no-ui', 'interactive', 'non-interactive']);
+        for (const name of Object.keys(values)) if (!inherited.has(name)) throw new InputError(`--${name} requires a command. Use ptbk --help.`);
+    }
     if (command !== 'help' && !values.help && !values.version) {
-        const allowed = new Set(['path', 'tasks', 'help', 'version', 'no-ui', 'interactive', 'non-interactive', ...COMMAND_OPTIONS[command]!]);
+        const allowed = new Set(['path', 'tasks', 'help', 'version', 'raw', 'no-ui', 'interactive', 'non-interactive', ...COMMAND_OPTIONS[command]!]);
         for (const name of Object.keys(values)) if (!allowed.has(name)) throw new InputError(`--${name} is unsupported for ${command}. Use ptbk --help.`);
         if (values.json && command === 'run' && !values['dry-run']) throw new InputError('--json on run requires --dry-run.');
         if (values['dry-run'] && command === 'server') throw new InputError('server does not support --dry-run; use ptbk run --dry-run.');
+        if (values['dry-run'] && ['start', 'restart'].includes(command)) throw new InputError(`${command} does not support --dry-run; use ptbk run --dry-run to preview work.`);
     }
     if (values.interactive && (values['non-interactive'] || values['no-ui'] || values.raw || values['no-questions'])) throw new InputError('--interactive conflicts with noninteractive/raw/no-UI/no-questions operation.');
-    if (values.interactive && (!process.stdin.isTTY || !process.stdout.isTTY)) throw new InputError('--interactive requires an interactive terminal; use --non-interactive or --raw.');
+    if (values.interactive && (!process.stdin.isTTY || !presentationFor(process.stdout).pretty)) throw new InputError('--interactive requires an interactive terminal; use --non-interactive or --raw.');
     if (values['self-update'] && values['no-self-update']) throw new InputError('--self-update conflicts with --no-self-update.');
     if (values['auto-update-harnesses'] && values['no-auto-update-harnesses']) throw new InputError('--auto-update-harnesses conflicts with --no-auto-update-harnesses.');
     if (values['installation'] && !['local', 'global'].includes(String(values['installation']))) throw new InputError('--installation must be local or global.');
@@ -135,9 +145,10 @@ export function parseDuration(value: unknown, fallback = 0): number {
 /** Validates execution combinations before filesystem mutation. */
 function runOptions(parsed: Parsed): RunOptions {
     const values = parsed.values;
-    const minPriority = integer(values['min-priority'], '--min-priority');
-    const priority = integer(values.priority, '--priority');
-    const maxPriority = integer(values['max-priority'], '--max-priority');
+    const filtering = ['list', 'run', 'start', 'restart', 'recover', 'server'].includes(parsed.command);
+    const minPriority = filtering ? integer(values['min-priority'], '--min-priority') : undefined;
+    const priority = filtering ? integer(values.priority, '--priority') : undefined;
+    const maxPriority = filtering ? integer(values['max-priority'], '--max-priority') : undefined;
     if (minPriority !== undefined && priority !== undefined && minPriority !== priority) throw new InputError('--priority conflicts with --min-priority.');
     if ((minPriority ?? priority ?? 0) > (maxPriority ?? Infinity)) throw new InputError('Minimum priority exceeds maximum priority.');
     const gitChanges = String(values['git-changes'] || 'fail');
@@ -160,7 +171,7 @@ function runOptions(parsed: Parsed): RunOptions {
     if (values.action && parsed.command !== 'answer' && !['resume', 'retry', 'acknowledge'].includes(String(values.action))) throw new InputError('--action must be resume, retry or acknowledge.');
     if (['start', 'restart'].includes(parsed.command)) {
         if (values['no-commit'] || values.limit !== undefined || values['no-auto']) throw new InputError('start requires commits and indefinite automatic operation; use run for finite or manual work.');
-        if ([values.daemon, values.raw, values.interactive].filter(Boolean).length > 1) throw new InputError('Choose only one of --daemon, --raw or --interactive.');
+        if (values.daemon && values.foreground) throw new InputError('--daemon conflicts with --foreground. Presentation flags do not change process placement.');
         if (values.interactive && !process.stdin.isTTY) throw new InputError('--interactive requires an interactive terminal; use --raw or --daemon.');
         if (values['no-server'] && values.port !== undefined) throw new InputError('--port conflicts with --no-server.');
         if (values['browser-mode'] && !['headless', 'headful'].includes(String(values['browser-mode']))) throw new InputError('--browser-mode must be headless or headful.');
@@ -174,92 +185,13 @@ function runOptions(parsed: Parsed): RunOptions {
     return { harness: harnessName, model: values.model as string | undefined || undefined, thinkingLevel, agent: values.agent as string | undefined || undefined, context: values.context as string | undefined, check: values.check as string | undefined, checkBefore: checkBefore as RunOptions['checkBefore'], gitChanges: gitChanges as RunOptions['gitChanges'], noCommit: !!values['no-commit'], noAuto: !!values['no-auto'], noQuestions: !!values['no-questions'] || !!values['non-interactive'] || !!values['no-ui'] || !!values.raw, autoPull: !!values['auto-pull'], autoPush: !!values['auto-push'], isolate: !!values.isolate, normalizeLineEndings: !values['no-normalize-line-endings'], limit: integer(values.limit, '--limit'), minPriority: minPriority ?? priority, maxPriority, allowCredits: !!values['allow-credits'], preserveLogs: !!values['preserve-logs'], waitBetweenPrompts: parseDuration(values['wait-between-prompts']), waitAfterPrompt: parseDuration(values['wait-after-prompt']), waitAfterError: parseDuration(values['wait-after-error'], 600000), dryRun: !!values['dry-run'] };
 }
 
-/** Show offline, readable help from this installation without dumping provider internals. */
-async function printHelp(command = 'help', projectPath = process.cwd()): Promise<void> {
-    const version = await installedEngineVersion();
-    process.stdout.write(`Promptbook ${version}
-Operate agents and checked tasks over a Git project.
-
-Usage: ptbk <command> [options]
-Project: ${resolve(projectPath)}
-
-Project setup
-  init | initialize           Incremental project setup
-  add [description]           Create a task Book without a model call
-  plan                        Read-only planning and approved task saving
-
-Execution
-  start                       Ongoing agenda; daemon by default
-  run                         Finite execution of the current queue
-  fix                         Check and repair project validation
-  verify                      Human review and archive
-
-Inspection and controls
-  list                        Queue and eligibility
-  stop | restart              Control the project daemon
-  status | show               Process, queue and pending requests
-  answer [request-id] [reply]  Answer a durable human request
-  recover <task-id>           Inspect interrupted work
-  about                       Product and running engine version
-
-Authoring tools
-  migrate                     Convert legacy Markdown to Books
-  generate-boilerplates       Create unfinished task templates
-  find-unwritten              Find placeholders
-  find-refactor-candidates    Find large source files
-  find-fresh-emoji-tags       Suggest unused tags
-  ping                        Explicit small harness/model call
-
-Common options
-  --path DIR --tasks DIR       Select project and task source
-  --interactive               Terminal wizard or dashboard
-  --non-interactive --no-ui    Plain output; no terminal prompts
-  --help --version             Offline help and actual engine version
-
-Start modes: --daemon (default), --raw, --interactive
-Harnesses: OpenAI Codex, Claude Code; More: ptbk init --help
-
-Defaults are saved in ptbk.json. CLI flags and live controls are temporary.
-Routing, pacing and browser changes apply at safe task boundaries.
-Process mode, persistence and HTTP settings require restart.
-
-Examples
-  ptbk init
-  ptbk start
-  ptbk run --dry-run
-  ptbk ${command === 'help' ? 'run' : command} --help
-`);
-    if (command !== 'help') {
-        process.stdout.write(`
-${command} options
-`);
-        const names = [...COMMAND_OPTIONS[command] ?? []];
-        for (const name of names) process.stdout.write(`  --${name}${VALUE_OPTIONS.has(name) ? ' VALUE' : ''}
-`);
-        if (['init', 'initialize'].includes(command)) process.stdout.write(`
-  --new-project DIR creates a destination; nested Git requires
-  --nested-strategy ignored|submodule (with --submodule-source) or back.
-  --installation local|global chooses destination installation.
-  Local installation uses the exact running version in dependencies.
-  --harnesses NAME,NAME selects integrations; an empty value defers setup.
-  --intent TEXT starts Expert bootstrap; blank intent creates sample setup.
-  --self-update updates the invoked installation, then exits for a rerun.
-  --no-install skips installation; --no-commit leaves setup uncommitted.
-  More harnesses: ${HARNESS_REGISTRY.map(harness => harness.name).join(', ')}
-`);
-        if (['run', 'start'].includes(command)) process.stdout.write(`
-  --check COMMAND selects validation; error pacing defaults to 10m.
-  Read-only dry-run never installs, updates, calls models or writes files.
-`);
-    }
-}
-
 /** Derive explicit supervisor settings without turning start into a fixed finite Developer run. */
 function serviceOptions(parsed: Parsed, options: RunOptions, configuration?: ProjectConfiguration): ServiceOptions {
-    let mode = parsed.values.raw ? 'raw' : parsed.values.interactive ? 'interactive' : parsed.values.daemon ? 'daemon' : parsed.values['process-mode'] ?? 'daemon';
-    if (mode === 'interactive' && (parsed.values['no-ui'] || parsed.values['non-interactive'])) mode = 'raw';
-    if (mode === 'interactive' && (!process.stdin.isTTY || !process.stdout.isTTY || options.noQuestions && parsed.values['non-interactive'])) throw new InputError('Interactive process mode requires an interactive terminal; override with --raw or --daemon.');
-    return { ...options, mode: mode as ServiceOptions['mode'],
+    const savedMode = parsed.values['process-mode'];
+    const foreground = !parsed.values.daemon && (parsed.values.foreground !== undefined ? parsed.values.foreground : savedMode && savedMode !== 'daemon');
+    const rich = presentationFor(process.stdout, !!parsed.values.raw || !!parsed.values['no-ui']).pretty;
+    const mode = foreground ? rich && process.stdin.isTTY && parsed.values.interactive !== false && !options.noQuestions && savedMode !== 'raw' ? 'interactive' : 'raw' : 'daemon';
+    return { ...options, mode, quiet: true,
         noPersist: !!parsed.values['no-persist'], noServer: !!parsed.values['no-server'], noQr: !!parsed.values['no-qr'],
         port: integer(parsed.values.port, '--port'), browserMode: parsed.values['browser-mode'] as ServiceOptions['browserMode'], browserProfile: parsed.values['browser-profile'] as string | undefined,
         enabledHarnesses: parsed.values.harnesses !== undefined ? harnessNames(String(parsed.values.harnesses)) : configuration?.enabledHarnesses,
@@ -351,7 +283,7 @@ function restartOptions(parsed: Parsed, options: RunOptions, saved: ServiceOptio
         'no-questions': 'noQuestions', 'auto-pull': 'autoPull', 'auto-push': 'autoPush', isolate: 'isolate',
         'no-normalize-line-endings': 'normalizeLineEndings', 'preserve-logs': 'preserveLogs', 'allow-credits': 'allowCredits',
         'wait-between-prompts': 'waitBetweenPrompts', 'wait-after-prompt': 'waitAfterPrompt', 'wait-after-error': 'waitAfterError',
-        daemon: 'mode', raw: 'mode', interactive: 'mode', 'no-persist': 'noPersist', 'no-server': 'noServer',
+        daemon: 'mode', foreground: 'mode', 'no-persist': 'noPersist', 'no-server': 'noServer',
         'no-qr': 'noQr', port: 'port', 'browser-mode': 'browserMode', 'browser-profile': 'browserProfile',
         harnesses: 'enabledHarnesses', 'auto-update-harnesses': 'autoUpdateHarnesses', 'no-auto-update-harnesses': 'autoUpdateHarnesses',
     };
@@ -360,7 +292,55 @@ function restartOptions(parsed: Parsed, options: RunOptions, saved: ServiceOptio
         if (key) Object.assign(next, { [key]: supplied[key] });
     }
     if (parsed.values.harness !== undefined && parsed.values.harnesses === undefined) next.enabledHarnesses = [String(parsed.values.harness)];
+    next.quiet = true;
     return next;
+}
+
+/** Summarize inspected service state without dumping internal configuration by default. */
+function runtimeSummary(state: Record<string, any>, presentation: TerminalPresentation, title: string): string {
+    const selection = state.currentSelection || {};
+    const tasks = Array.isArray(state.tasks) ? state.tasks : [];
+    const requests = Array.isArray(state.requests) ? state.requests : [];
+    const current = tasks.find((task: Record<string, unknown>) => task.id === state.currentTask);
+    return renderPanel(`Promptbook ${state.engineVersion || 'version unavailable'} · ${title}`, [
+        ['Project', String(state.project)], ['Status', String(state.status ?? 'unknown')],
+        ['Mode', String(state.mode ?? 'no active service')], ['Task', String(current?.title || state.currentTask || 'idle')],
+        ['Agent', String(selection.agent || 'none')], ['Harness', String(selection.harness || 'none')],
+        ...(selection.model ? [['Model', String(selection.model)] as const] : []),
+        ...(selection.thinkingLevel ? [['Effort', String(selection.thinkingLevel)] as const] : []),
+        ['Queue', `${tasks.length} task(s)`], ['Requests', `${requests.length} pending`],
+        ['Results', `${state.statistics?.completed ?? 0} completed, ${state.statistics?.failed ?? 0} failed`],
+        ...(state.url ? [['Browser', String(state.url)] as const] : []),
+    ], presentation, { details: [
+        ...(state.phase ? [`Phase: ${state.phase}`] : []),
+        ...(state.waiting ? ['Waiting for pacing/backoff; skipping never bypasses task eligibility.'] : []),
+        ...(state.error ? [`Failure: ${state.error}`, `Next action: ${state.nextAction || 'Inspect ptbk recover and diagnostics.'}`, ...(state.diagnostic ? [`Diagnostic: ${state.diagnostic}`] : [])] : []),
+        ...tasks.map((task: Record<string, any>) => `[${task.status}] ${task.title}${task.eligibility ? ` · ${task.eligibility.kind}: ${task.eligibility.reason}` : ''}`),
+        ...requests.map((request: Record<string, any>) => `Request ${request.id}: ${request.prompt}\nReason: ${request.reason}`),
+    ], next: [`ptbk dashboard --path ${JSON.stringify(state.project)}`, `ptbk show --path ${JSON.stringify(state.project)} --json`, `ptbk answer --path ${JSON.stringify(state.project)}`] });
+}
+
+/** Render the daemon outcome once, with QR limited to pretty terminal output. */
+async function launchedService(state: Record<string, unknown>, options: ServiceOptions, presentation: TerminalPresentation, alreadyRunning = false): Promise<void> {
+    if (options.mode !== 'daemon') {
+        process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Foreground execution ended`, [['Project', String(state.project ?? process.cwd())], ['Status', 'stopped']], presentation));
+        return;
+    }
+    process.stdout.write(runtimeSummary(state, presentation, alreadyRunning ? 'Project already running' : 'ptbk started'));
+    process.stdout.write(renderDocument('', [{ title: 'Service controls', lines: [`ptbk stop --path ${JSON.stringify(state.project)}`,
+        state.persistent ? 'Startup persistence is enabled.' : 'Startup persistence is disabled.'] }], presentation));
+    if (state.url && !options.noQr) process.stdout.write(await terminalServiceQr(String(state.url), presentation));
+}
+
+/** Render a QR only when it fits, retaining plain glyphs under terminal color suppression. @private */
+export async function terminalServiceQr(url: string, presentation: TerminalPresentation): Promise<string> {
+    if (!presentation.pretty) return '';
+    const size = QRCode.create(url).modules.size;
+    const needed = size + (presentation.color ? 2 : 8);
+    if (needed >= presentation.width) return 'QR omitted because this terminal is too narrow; use the displayed URL or widen the terminal.\n';
+    return presentation.color
+        ? QRCode.toString(url, { type: 'terminal', small: true })
+        : `${await QRCode.toString(url, { type: 'utf8', margin: 4 })}\n`;
 }
 
 /** Reads a description from stdin only when the command explicitly needs it. */
@@ -376,7 +356,7 @@ async function descriptionInput(positional: string[], noQuestions: boolean): Pro
 }
 
 /** Applies authoring changes under the same lease and commits only their paths. */
-async function author(workspace: Workspace, options: RunOptions, commit: boolean, operation: (lease: WorkspaceLease) => Promise<string[]>, deferUserEdits?: (paths: string[]) => Promise<void>): Promise<void> {
+async function author(workspace: Workspace, options: RunOptions, commit: boolean, operation: (lease: WorkspaceLease) => Promise<string[]>, deferUserEdits?: (paths: string[]) => Promise<void>, quiet = false): Promise<void> {
     await requireGit(workspace);
     const lease = await acquireLease(workspace);
     try {
@@ -387,7 +367,7 @@ async function author(workspace: Workspace, options: RunOptions, commit: boolean
         const committable = relativePaths.filter(path => !deferred.includes(path));
         await deferUserEdits?.(deferred.map(path => resolve(before.root, path)));
         if (commit && committable.length) await commitScoped(before, 'chore: Update ptbk tasks and configuration', { paths: committable });
-        for (const path of paths) process.stdout.write(`${path}\n`);
+        if (!quiet) for (const path of paths) process.stdout.write(`${path}\n`);
         if (options.autoPush && commit && committable.length) {
             const { execFile } = await import('node:child_process');
             const { promisify } = await import('node:util');
@@ -397,12 +377,14 @@ async function author(workspace: Workspace, options: RunOptions, commit: boolean
 }
 
 /** Scans useful authoring diagnostics without invoking the task engine. */
-async function diagnostics(workspace: Workspace, command: string): Promise<void> {
+async function diagnostics(workspace: Workspace, command: string, presentation: TerminalPresentation): Promise<void> {
     if (command === 'find-fresh-emoji-tags') {
         const used = (await discoverTasks(workspace)).map(task => task.title).join('\n');
-        process.stdout.write(['🧩', '🛠️', '🌱', '📐', '🧭', '🔬', '🧵', '🦉', '🎛️', '🪴'].filter(tag => !used.includes(tag)).join(' ') + '\n');
+        const tags = ['🧩', '🛠️', '🌱', '📐', '🧭', '🔬', '🧵', '🦉', '🎛️', '🪴'].filter(tag => !used.includes(tag)).join(' ');
+        process.stdout.write(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · Available task tags`, [['Project', workspace.projectPath], ['Tags', tags || 'No unused tags from this set.']], presentation) : `${tags}\n`);
         return;
     }
+    const findings: string[] = [];
     const visit = async (directory: string): Promise<void> => {
         for (const entry of await readdir(directory, { withFileTypes: true })) {
             if (entry.name.startsWith('.') || ['node_modules', 'dist', 'coverage', 'done', 'traces'].includes(entry.name) || entry.isSymbolicLink()) continue;
@@ -412,12 +394,13 @@ async function diagnostics(workspace: Workspace, command: string): Promise<void>
                 if ((await stat(path)).size > 2 * 1024 * 1024) continue;
                 const content = await readFile(path, 'utf8');
                 if (command === 'find-unwritten') {
-                    content.split(/\r?\n/).forEach((line, index) => { if (/@@@|\bTODO\b|\bFIXME\b/.test(line)) process.stdout.write(`${path}:${index + 1}: ${line.slice(0, 200)}\n`); });
-                } else if (content.split('\n').length >= 400) process.stdout.write(`${path}: ${content.split('\n').length} lines\n`);
+                    content.split(/\r?\n/).forEach((line, index) => { if (/@@@|\bTODO\b|\bFIXME\b/.test(line)) { const finding = `${path}:${index + 1}: ${line.slice(0, 200)}`; if (presentation.pretty) findings.push(finding); else process.stdout.write(`${finding}\n`); } });
+                } else if (content.split('\n').length >= 400) { const finding = `${path}: ${content.split('\n').length} lines`; if (presentation.pretty) findings.push(finding); else process.stdout.write(`${finding}\n`); }
             }
         }
     };
     await visit(workspace.projectPath);
+    if (presentation.pretty) process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · ${command}`, [['Project', workspace.projectPath], ['Findings', String(findings.length)]], presentation, { details: findings.length ? findings : ['No matching findings.'] }));
 }
 
 /** Runs the installed CLI and implements the documented exit-code contract.
@@ -433,17 +416,32 @@ export async function main(arguments_: string[]): Promise<number> {
     process.once('SIGINT', abort);
     process.once('SIGTERM', abort);
     try {
+        const helpRequest = resolveHelpRequest(arguments_);
+        if (helpRequest) {
+            const pathOption = arguments_.findIndex(value => value === '--path');
+            const pathValue = arguments_.find(value => value.startsWith('--path='))?.slice(7) ?? (pathOption >= 0 ? arguments_[pathOption + 1] : undefined);
+            const help = renderHelp(helpRequest, { ...presentationFor(process.stdout, helpRequest.raw), version: await installedEngineVersion(), projectPath: resolve(pathValue && !pathValue.startsWith('-') ? pathValue : process.cwd()) });
+            (help.exitCode ? process.stderr : process.stdout).write(help.text);
+            return help.exitCode;
+        }
+        if (COMMANDS.includes(arguments_[0] ?? '')) command = arguments_[0]!;
         const parsed = parseArguments(arguments_);
         command = parsed.command;
+        const presentation = presentationFor(process.stdout, !!parsed.values.raw || !!parsed.values['no-ui'] || !!parsed.values.json);
         if (parsed.values.version) {
             process.stdout.write(`${await installedEngineVersion()}\n`); return 0;
         }
-        if (parsed.values.help || parsed.command === 'help') { await printHelp(parsed.values.help ? parsed.command : 'help', String(parsed.values.path ?? process.cwd())); return 0; }
-        if (parsed.command === 'about') { process.stdout.write(`Promptbook ${await installedEngineVersion()}\nAgents, projects and tasks in readable files.\nExecute checked work with safe Git persistence using ptbk start or ptbk run.\nSaved defaults: ptbk.json. Local recovery and browser state: .ptbk/.\n`); return 0; }
+        if (parsed.command === 'help') {
+            const help = renderHelp({ path: [], raw: !!parsed.values.raw || !!parsed.values['no-ui'] }, { ...presentation, version: await installedEngineVersion(), projectPath: resolve(String(parsed.values.path ?? process.cwd())) });
+            process.stdout.write(help.text); return help.exitCode;
+        }
+        if (parsed.command === 'about') {
+            process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()}`, [['Purpose', 'Agents, projects and tasks in readable files.'], ['Work', 'Checked execution with safe Git persistence.'], ['Defaults', 'ptbk.json'], ['Local state', '.ptbk/ recovery and browser data']], presentation, { next: ['ptbk init', 'ptbk start', 'ptbk dashboard', 'ptbk help'] })); return 0;
+        }
         if (!['add', 'recover', 'answer'].includes(parsed.command) && parsed.arguments.length) throw new InputError(`Unexpected arguments for ${parsed.command}: ${parsed.arguments.join(' ')}`);
         runOptions(parsed);
         const explicitValues = { ...parsed.values };
-        let interactive = !!process.stdin.isTTY && !!process.stdout.isTTY && !parsed.values['non-interactive'] && !parsed.values['no-questions'] && !parsed.values['no-ui'] && !parsed.values.raw;
+        let interactive = !!process.stdin.isTTY && presentation.pretty && parsed.values.interactive !== false && !parsed.values['non-interactive'] && !parsed.values['no-questions'];
         if (['init', 'initialize'].includes(parsed.command)) {
             const target = resolve(String(parsed.values.path ?? process.cwd()), String(parsed.values['new-project'] ?? '.'));
             let exists = false;
@@ -506,7 +504,12 @@ export async function main(arguments_: string[]): Promise<number> {
             destination = prepared.destination;
         }
         phase = 'project configuration';
-        const configuration: ProjectConfiguration = ['stop', 'restart', 'status', 'show', 'answer'].includes(parsed.command)
+        if (parsed.command === 'start') {
+            const existingWorkspace = await resolveWorkspace({ path: destination }, true);
+            const existing = await serviceCommand(existingWorkspace);
+            if (existing) { await launchedService(existing, { mode: 'daemon', quiet: true, noQr: !!parsed.values['no-qr'] }, presentation, true); return 0; }
+        }
+        const configuration: ProjectConfiguration = ['stop', 'restart', 'status', 'show', 'answer', 'dashboard'].includes(parsed.command)
             ? { path: join(destination, 'ptbk.json'), exists: false, values: {}, sources: {}, document: {} }
             : await readProjectConfiguration(destination);
         parsed.values = { ...configuration.values, ...parsed.values };
@@ -520,6 +523,7 @@ export async function main(arguments_: string[]): Promise<number> {
         if (parsed.values['browser-profile']) parsed.values['browser-profile'] = resolve(process.cwd(), String(parsed.values['browser-profile']));
         const options = runOptions(parsed);
         interactive &&= !options.noQuestions;
+        if (!interactive) options.noQuestions = true;
         const harnessSettings = options.harness ? configuration.harnessSettings?.[options.harness] : undefined;
         if (harnessSettings) {
             if (harnessSettings.model !== undefined && explicitValues.model === undefined && (!configuration.sources.model || configuration.sources.model.startsWith('PTBK_') || configuration.sources.model.includes('.harnesses.'))) options.model = harnessSettings.model || undefined;
@@ -545,6 +549,11 @@ export async function main(arguments_: string[]): Promise<number> {
         }
         redactionPath = workspace.projectPath;
         await loadProjectSecrets(workspace.projectPath);
+        if (parsed.command === 'dashboard') {
+            phase = 'dashboard connection';
+            await attachDashboard(workspace, { raw: !presentation.pretty, interactive, signal: controller.signal });
+            return interrupted ? 130 : 0;
+        }
         if (['status', 'show'].includes(parsed.command)) {
             const state = await serviceCommand(workspace);
             const record = await readServiceRecord(workspace);
@@ -555,13 +564,16 @@ export async function main(arguments_: string[]): Promise<number> {
                 inspection = { project: workspace.projectPath, engineVersion: record?.engineVersion ?? (record ? 'unknown (older process record)' : await installedEngineVersion()), status: record?.desired === 'running' ? 'unreachable; inspect preserved process/recovery records' : 'stopped', installation: record?.installation, settings: record?.settings, requests: await listRequests(workspace, true),
                     tasks: await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, source: task.source.relativePath, eligibility: await taskEligibility(workspace, task, {}, ledger) }))) };
             }
-            process.stdout.write(`${redactSecrets(JSON.stringify(inspection, null, 2), redactionPath)}\n`); return 0;
+            process.stdout.write(redactSecrets(presentation.pretty ? runtimeSummary(inspection, presentation, parsed.command === 'show' ? 'Project inspection' : 'Project status') : `${JSON.stringify(inspection, null, 2)}\n`, redactionPath)); return 0;
         }
         if (parsed.command === 'answer') {
             const id = parsed.values.request as string | undefined || parsed.arguments[0];
             let response = parsed.values.response as string | undefined || parsed.arguments.slice(1).join(' ');
-            if (!id) { process.stdout.write(`${JSON.stringify(await listRequests(workspace, true), null, 2)}\n`); return 0; }
-            if (!response && process.stdin.isTTY && !options.noQuestions) {
+            if (!id) {
+                const requests = await listRequests(workspace, true);
+                process.stdout.write(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · Pending requests`, [['Project', workspace.projectPath], ['Requests', `${requests.length} pending`]], presentation, { details: requests.map(request => `${request.id}: ${request.prompt}\nReason: ${request.reason}`), next: ['ptbk answer REQUEST_ID --response "your reply"'] }) : `${JSON.stringify(requests, null, 2)}\n`); return 0;
+            }
+            if (!response && interactive) {
                 const request = (await listRequests(workspace)).find(item => item.id === id);
                 if (!request) throw new InputError(`Unknown request ${id}.`);
                 if (request.status !== 'pending') throw new InputError(`Request ${id} was already ${request.status}; no second answer was applied.`);
@@ -576,16 +588,23 @@ export async function main(arguments_: string[]): Promise<number> {
             if (!response) throw new InputError('Supply --response or a reply argument; no invisible prompt was started.');
             const action = String(parsed.values.action || 'answered');
             if (!['answered', 'rejected', 'cancelled'].includes(action)) throw new InputError('answer --action must be answered, rejected or cancelled.');
-            process.stdout.write(`${JSON.stringify(await answerRequest(workspace, id, response, action as 'answered'), null, 2)}\n`); return 0;
+            const answered = await answerRequest(workspace, id, response, action as 'answered');
+            process.stdout.write(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · Request resolved`, [['Request', answered.id], ['Status', answered.status], ['Response', answered.response ?? '']], presentation) : `${JSON.stringify(answered, null, 2)}\n`); return 0;
         }
-        if (parsed.command === 'stop') { await stopService(workspace); return 0; }
+        if (parsed.command === 'stop') {
+            const prior = await readServiceRecord(workspace);
+            await stopService(workspace, true);
+            process.stdout.write(renderPanel(`Promptbook ${prior?.engineVersion ?? await installedEngineVersion()} · ptbk stopped`, [['Project', workspace.projectPath], ['Status', 'stopped']], presentation, { next: [`ptbk start --path ${JSON.stringify(workspace.projectPath)}`], tone: 'success' })); return 0;
+        }
         if (parsed.command === 'restart') {
             const record = await readServiceRecord(workspace);
             if (!record) throw new InputError('No saved project process exists. Use ptbk start.');
             if (record.mode !== 'daemon') throw new InputError('Restart targets a daemon; this project was started in foreground mode.');
-            await stopService(workspace);
+            await stopService(workspace, true);
             await requireGit(workspace);
-            await startService(workspace, restartOptions({ ...parsed, values: explicitValues }, options, record.settings)); return 0;
+            const restartedOptions = restartOptions({ ...parsed, values: explicitValues }, options, record.settings);
+            const state = await startService(workspace, restartedOptions);
+            await launchedService(state, restartedOptions, presentation); return 0;
         }
         if (parsed.command === 'list' || (parsed.command === 'run' && options.dryRun)) {
             const tasks = await discoverTasks(workspace);
@@ -593,10 +612,11 @@ export async function main(arguments_: string[]): Promise<number> {
             const previewOptions = parsed.command === 'run' ? { ...options, agent: options.agent ?? 'Developer' } : options;
             const rows = await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, source: task.source.relativePath, ...await taskEligibility(workspace, task, previewOptions, ledger) })));
             if (parsed.values.json) process.stdout.write(`${redactSecrets(JSON.stringify({ timezone: workspace.timezone, tasks: rows }, null, 2), redactionPath)}\n`);
+            else if (presentation.pretty) process.stdout.write(redactSecrets(renderPanel(`Promptbook ${await installedEngineVersion()} · Task queue`, [['Project', workspace.projectPath], ['Timezone', workspace.timezone], ['Tasks', String(rows.length)]], presentation, { details: rows.length ? rows.map(row => `[${row.status}] p${row.priority} ${row.title}\n  ${row.source} · ${row.kind}: ${row.reason}`) : ['No tasks discovered.'] }), redactionPath));
             else { process.stdout.write(`Project: ${workspace.projectPath}\nTimezone: ${workspace.timezone}\n`); for (const row of rows) process.stdout.write(redactSecrets(`[${row.status}] p${row.priority} ${row.title}\n  ${row.source} · ${row.kind}: ${row.reason}\n`, redactionPath)); if (!rows.length) process.stdout.write('No tasks discovered.\n'); }
             return 0;
         }
-        if (parsed.command.startsWith('find-')) { await diagnostics(workspace, parsed.command); return 0; }
+        if (parsed.command.startsWith('find-')) { await diagnostics(workspace, parsed.command, presentation); return 0; }
         if (parsed.command === 'recover') {
             if (parsed.arguments.length !== 1) throw new InputError('recover requires exactly one task ID.');
             if (parsed.values.action && !options.dryRun) {
@@ -605,10 +625,14 @@ export async function main(arguments_: string[]): Promise<number> {
             }
             const result = await recoverTask(workspace, parsed.arguments[0]!, { action: parsed.values.action as 'resume' | 'retry' | 'acknowledge' | undefined, occurrence: parsed.values.occurrence as string | undefined, dryRun: !!parsed.values['dry-run'] }, options);
             const review = { ...result, journals: result.journals.map(journal => ({ id: journal.id, taskId: journal.taskId, occurrenceId: journal.occurrenceId, phase: journal.phase, attempts: journal.attempts, commits: journal.commits, error: journal.error, trace: journal.trace, pendingPhase: journal.pendingPhase, syncPending: journal.syncPending })) };
-            process.stdout.write(`${redactSecrets(JSON.stringify(review, null, 2), redactionPath)}\n`); return result.exitCode;
+            process.stdout.write(redactSecrets(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · Recovery inspection`, [['Project', workspace.projectPath], ['Task', parsed.arguments[0]!], ['Action', String(parsed.values.action ?? 'inspection only')]], presentation, { details: review.journals.map(journal => `${journal.id} · ${journal.phase}${journal.error ? `\nFailure: ${journal.error}` : ''}${journal.trace ? `\nDiagnostic: ${journal.trace}` : ''}${journal.syncPending ? '\nSynchronization pending.' : ''}`), next: ['ptbk recover TASK_ID --json', 'Choose --action resume|retry|acknowledge only after reviewing the recovery boundary.'] }) : `${JSON.stringify(review, null, 2)}\n`, redactionPath)); return result.exitCode;
         }
-        if (parsed.command === 'migrate' && options.dryRun) { process.stdout.write(`${redactSecrets(JSON.stringify(await migrateTasks(workspace, { dryRun: true, noCommit: options.noCommit }), null, 2), redactionPath)}\n`); return 0; }
-        readOnly = false;
+        if (parsed.command === 'migrate' && options.dryRun) {
+            const result = await migrateTasks(workspace, { dryRun: true, noCommit: options.noCommit });
+            process.stdout.write(redactSecrets(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · Migration preview`, [['Project', workspace.projectPath]], presentation, { details: [JSON.stringify(result, null, 2)], next: ['ptbk migrate --path PROJECT when ready to apply this conversion.'] }) : `${JSON.stringify(result, null, 2)}\n`, redactionPath)); return 0;
+        }
+        // Task authoring remains an inspection until a draft has been approved or supplied in full.
+        readOnly = parsed.command === 'add';
         phase = 'execution preflight';
         if (parsed.command === 'start') {
             const readiness = await inspectProjectReadiness(workspace);
@@ -686,7 +710,9 @@ export async function main(arguments_: string[]): Promise<number> {
             const readiness = await inspectProjectReadiness(workspace);
             unresolved.push(...readiness.execution.filter(message => !(options.check && /check/i.test(message))));
             const temporarySelection = configuration.exists && JSON.stringify(selectedHarnesses) !== JSON.stringify(configuration.enabledHarnesses ?? []) ? ` --harnesses ${JSON.stringify(selectedHarnesses.join(','))}` : '';
-            process.stdout.write(`Setup: ${changedCount ? `${changedCount} artifact(s) changed` : 'already ready; no files changed'}.\n${unresolved.length ? `Deferred prerequisites:\n${unresolved.map(message => `  ${message}`).join('\n')}\n` : ''}${temporarySelection ? 'Saved harness defaults preserved; pass the temporary selection to start.\n' : ''}Next: ptbk start --path ${JSON.stringify(workspace.projectPath)}${temporarySelection}\n`);
+            const setupOutcome = changedCount ? `${changedCount} artifact(s) changed` : 'already ready; no files changed';
+            const next = `ptbk start --path ${JSON.stringify(workspace.projectPath)}${temporarySelection}`;
+            process.stdout.write(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · Setup complete`, [['Project', workspace.projectPath], ['Setup', setupOutcome], ['Prerequisites', unresolved.length ? `${unresolved.length} deferred` : 'ready']], presentation, { details: [...unresolved, ...(temporarySelection ? ['Saved harness defaults preserved; pass the temporary selection to start.'] : [])], next: [next], tone: unresolved.length ? 'warning' : 'success' }) : `Setup: ${setupOutcome}.\n${unresolved.length ? `Deferred prerequisites:\n${unresolved.map(message => `  ${message}`).join('\n')}\n` : ''}${temporarySelection ? 'Saved harness defaults preserved; pass the temporary selection to start.\n' : ''}Next: ${next}\n`);
             if (agenda) {
                 const harness = options.harness || inventory.find(item => item.usable)?.name;
                 if (!harness) throw new InputError('Agenda initialization needs an authenticated harness; complete the displayed setup, then retry --agenda.');
@@ -701,25 +727,47 @@ export async function main(arguments_: string[]): Promise<number> {
                 const bootstrap = await runQueue(workspace, { ...options, harness, agent: 'ptbk:expert', onlyTaskId: bootstrapId, limit: 1, check: options.check || 'npm run check', requireAcceptance: true, context: await readContext(workspace, options.context) });
                 if (bootstrap.exitCode !== 0) return bootstrap.exitCode;
                 phase = 'agenda startup';
-                await startService(workspace, { ...serviceOptions(parsed, options, configuration), enabledHarnesses: selectedHarnesses, harness: options.harness, mode: 'daemon' });
+                const service = { ...serviceOptions(parsed, options, configuration), enabledHarnesses: selectedHarnesses, harness: options.harness, mode: 'daemon' as const };
+                await launchedService(await startService(workspace, service), service, presentation);
             }
         } else if (parsed.command === 'add') {
-            const description = await descriptionInput(parsed.arguments, !!options.noQuestions);
-            await author(workspace, options, !!parsed.values.commit, async () => [await addTask(workspace, description, { priority: integer(parsed.values.priority, '--priority'), template: parsed.values.template as string | undefined })]);
+            if (interactive) {
+                const preparedTask = await addTaskWizard(workspace, { description: parsed.arguments.length ? parsed.arguments.join(' ') : undefined, priority: integer(parsed.values.priority, '--priority'), template: parsed.values.template as string | undefined, signal: controller.signal });
+                if (!preparedTask) { process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Task creation cancelled`, [['Project', workspace.projectPath], ['Outcome', 'No task was created.']], presentation)); return 0; }
+                readOnly = false;
+                await author(workspace, options, !!parsed.values.commit, async () => [await saveAuthoredTask(workspace, preparedTask)], undefined, presentation.pretty);
+                process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Task saved`, [['Project', workspace.projectPath], ['Task', preparedTask.path], ['Persistence', parsed.values.commit ? 'committed' : 'left uncommitted']], presentation, { next: ['ptbk list', 'ptbk start'], tone: 'success' }));
+            } else {
+                const description = await descriptionInput(parsed.arguments, !interactive || !!options.noQuestions);
+                if (!description.trim()) throw new InputError('A non-empty task description is required.');
+                readOnly = false;
+                let created = '';
+                await author(workspace, options, !!parsed.values.commit, async () => { created = await addTask(workspace, description, { priority: integer(parsed.values.priority, '--priority'), template: parsed.values.template as string | undefined }); return [created]; }, undefined, presentation.pretty);
+                if (presentation.pretty) process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Task saved`, [['Project', workspace.projectPath], ['Task', created]], presentation, { tone: 'success' }));
+            }
         } else if (parsed.command === 'generate-boilerplates') {
-            await author(workspace, options, !!parsed.values.commit, () => generateBoilerplates(workspace, String(parsed.values.count || '5*1')));
+            let paths: string[] = [];
+            await author(workspace, options, !!parsed.values.commit, async () => { paths = await generateBoilerplates(workspace, String(parsed.values.count || '5*1')); return paths; }, undefined, presentation.pretty);
+            if (presentation.pretty) process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Task templates created`, [['Project', workspace.projectPath], ['Templates', String(paths.length)], ['Status', 'not-ready; complete placeholders before execution']], presentation, { details: paths.slice(0, 20), ...(paths.length > 20 ? { next: ['ptbk list to inspect all templates.'] } : {}) }));
         } else if (parsed.command === 'verify') {
-            await author(workspace, options, !!parsed.values.commit, () => verifyTasks(workspace, { noQuestions: options.noQuestions, ignore: parsed.values.ignore as string[] | undefined }));
+            let paths: string[] = [];
+            await author(workspace, options, !!parsed.values.commit, async () => { paths = await verifyTasks(workspace, { noQuestions: options.noQuestions, ignore: parsed.values.ignore as string[] | undefined }); return paths; }, undefined, presentation.pretty);
+            if (presentation.pretty) process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Human review complete`, [['Project', workspace.projectPath], ['Changed paths', String(paths.length)]], presentation, { details: paths.slice(0, 20) }));
         } else if (parsed.command === 'migrate') {
+            let paths: string[] = [];
             await author(workspace, options, !options.noCommit, async lease => {
                 const result = await migrateTasks(workspace, { dryRun: false, noCommit: options.noCommit }, lease);
-                return [...result.created, ...result.archived];
-            });
+                paths = [...result.created, ...result.archived]; return paths;
+            }, undefined, presentation.pretty);
+            if (presentation.pretty) process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Migration complete`, [['Project', workspace.projectPath], ['Changed paths', String(paths.length)]], presentation, { details: paths.slice(0, 20) }));
         } else {
-            if (parsed.command === 'start') { phase = 'supervisor startup'; await startService(workspace, serviceOptions(parsed, options, configuration)); return 0; }
+            if (parsed.command === 'start') { phase = 'supervisor startup'; const service = serviceOptions(parsed, options, configuration); await launchedService(await startService(workspace, service), service, presentation); return 0; }
             options.context = await readContext(workspace, options.context);
             if (options.agent) options.agent = (await resolveAgentSelection(workspace, options.agent)).path;
-            if (parsed.command === 'plan') await planConversation(workspace, { ...options, prompt: parsed.values.prompt as string | undefined, commit: !!parsed.values.commit });
+            if (parsed.command === 'plan') {
+                const result = await planConversation(workspace, { ...options, prompt: parsed.values.prompt as string | undefined, commit: !!parsed.values.commit });
+                if (presentation.pretty) process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Planning complete`, [['Project', workspace.projectPath], ['Saved tasks', String(result.saved.length)]], presentation, { details: result.saved }));
+            }
             else if (parsed.command === 'server') {
                 if (options.limit !== undefined) throw new InputError('server is persistent; use ptbk run --limit for a finite run.');
                 await startCoderServer(workspace, { ...options, port: integer(parsed.values.port, '--port') });
@@ -727,6 +775,7 @@ export async function main(arguments_: string[]): Promise<number> {
                 if (!options.harness) throw new InputError('ping requires --harness or PTBK_HARNESS.');
                 do {
                     const result = await runHarness({ harness: options.harness, harnessConfiguration: options.harnessConfiguration, projectPath: workspace.projectPath, prompt: 'Reply with pong. Do not modify files or run tools.', model: options.model, thinkingLevel: options.thinkingLevel, signal: controller.signal, allowCredits: options.allowCredits, onOutput: text => process.stdout.write(redactSecrets(text, redactionPath)) });
+                    if (presentation.pretty) process.stdout.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Harness probe`, [['Harness', options.harness], ['Outcome', result.outcome]], presentation, { details: [result.output.slice(-8000)], tone: result.outcome === 'success' ? 'success' : 'error' }));
                     if (result.outcome !== 'success') return 1;
                     if (!parsed.values.period) break;
                     await delay(parseDuration(parsed.values.period), undefined, { signal: controller.signal });
@@ -744,7 +793,7 @@ export async function main(arguments_: string[]): Promise<number> {
                     const result = parsed.command === 'fix' ? await fixChecks(workspace, runtime.options) : await runQueue(workspace, runtime.options);
                     await runtime.complete(result);
                     await runtime.close();
-                    process.stdout.write(`${result.completed} completed, ${result.failed} failed${result.syncPending ? ', synchronization pending' : ''}.\n`);
+                    process.stdout.write(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · ${parsed.command} ${result.exitCode ? 'needs attention' : 'complete'}`, [['Project', workspace.projectPath], ['Completed', String(result.completed)], ['Failed', String(result.failed)], ['Synchronization', result.syncPending ? 'pending' : 'no pending synchronization']], presentation, { tone: result.exitCode ? 'warning' : 'success' }) : `${result.completed} completed, ${result.failed} failed${result.syncPending ? ', synchronization pending' : ''}.\n`);
                     return result.exitCode;
                 } finally { await runtime.close(); }
             }
@@ -752,7 +801,13 @@ export async function main(arguments_: string[]): Promise<number> {
         return interrupted ? 130 : 0;
     } catch (error) {
         if (interrupted || (error as Error).name === 'AbortError') return 130;
+        if (phase === 'argument validation' && error instanceof InputError) {
+            const raw = arguments_.some(value => ['--raw', '--raw=true', '--no-ui', '--no-ui=true', '--json'].includes(value));
+            process.stderr.write(renderPanel(`Promptbook ${await installedEngineVersion()} · Invalid ${command === 'preflight' ? 'invocation' : command + ' invocation'}`, [['Error', error.message]], presentationFor(process.stderr, raw), { next: [helpHint(arguments_)], tone: 'error' }));
+            return 2;
+        }
         await reportDiagnostic(error, { command, phase, projectPath: redactionPath, workspace: diagnosticWorkspace, readOnly });
+        if (error instanceof InputError) process.stderr.write(`${helpHint(arguments_)}\n`);
         return (error as { exitCode?: number }).exitCode ?? (error instanceof InputError ? 2 : 1);
     } finally {
         process.removeListener('SIGINT', abort);

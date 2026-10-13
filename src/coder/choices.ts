@@ -15,6 +15,8 @@ export interface ChoicePromptOptions {
     output?: Writable;
     signal?: AbortSignal;
     heading?: string;
+    /** Show reviewed content beside a decision; Ctrl+L exposes the complete text. */
+    preview?: string;
     onInterrupt?: () => void;
     onAction?: (value: string, selected: readonly string[]) => readonly Choice[] | Promise<readonly Choice[]>;
 }
@@ -139,7 +141,7 @@ async function pick(label: string, suppliedChoices: readonly Choice[], multiple:
         const height = Math.max(3, output.rows || 24);
         if (details) {
             const choice = choices[focus]!;
-            const lines = [...(options.heading ? wrap(options.heading, width) : []), ...wrap(label, width), '', ...wrap(choice.label, width),
+            const lines = [...(options.heading ? wrap(options.heading, width) : []), ...wrap(label, width), ...(options.preview ? options.preview.split('\n').flatMap(line => wrap(line, width)) : []), '', ...wrap(choice.label, width),
                 ...(initial.includes(choice.value) && !multiple ? wrap('Default option; Enter confirms it.', width) : []),
                 ...(multiple && !choice.action ? wrap(selected.has(choice.value) ? 'Selected; Space unchecks it.' : 'Unchecked; Space selects it.', width) : []),
                 ...(choice.description ? wrap(choice.description, width) : [])];
@@ -151,11 +153,15 @@ async function pick(label: string, suppliedChoices: readonly Choice[], multiple:
         const titles = [...(options.heading ? [plain(options.heading)] : []), plain(label)];
         const titleCount = Math.min(titles.length, Math.max(1, Math.floor(height / 4)));
         const shownTitles = titles.slice(-titleCount).map(title => clip(title, width));
+        const preview = options.preview ? options.preview.split('\n').flatMap(line => wrap(line, width)) : [];
+        const previewCount = Math.min(preview.length, Math.max(0, Math.floor(height / 2) - 2));
+        const shownPreview = preview.slice(0, previewCount);
+        if (preview.length > previewCount && previewCount) shownPreview[previewCount - 1] = clip('… Ctrl+L shows the complete task', width);
         const footerCount = height >= 5 ? 2 : 1;
-        visibleCount = Math.max(1, height - shownTitles.length - footerCount);
+        visibleCount = Math.max(1, height - shownTitles.length - shownPreview.length - footerCount);
         offset = Math.max(0, Math.min(offset, focus, Math.max(0, choices.length - visibleCount)));
         if (focus >= offset + visibleCount) offset = focus - visibleCount + 1;
-        firstRow = shownTitles.length + 1;
+        firstRow = shownTitles.length + shownPreview.length + 1;
         const rows = choices.slice(offset, offset + visibleCount).map((choice, index) => {
             const prefix = choice.action ? '  ' : multiple ? `[${selected.has(choice.value) ? 'x' : ' '}] ` : '';
             const suffix = choice.disabled ? ' (unavailable)' : !multiple && initial.includes(choice.value) ? ' (default)' : '';
@@ -164,7 +170,7 @@ async function pick(label: string, suppliedChoices: readonly Choice[], multiple:
         const hint = multiple ? '↑↓ move · Space toggle · Enter confirm · Esc cancel' : '↑↓ move · Enter confirm · Esc cancel';
         const compactHint = multiple ? '↑↓ Space Enter Esc' : '↑↓ Enter Esc';
         const status = error || (busy ? 'Opening options…' : activity || `${multiple ? `${selected.size} selected · ` : ''}${focus + 1}/${choices.length} · PgUp/PgDn browse · Ctrl+L details`);
-        const screen = [...shownTitles, ...rows, clip(width < 40 ? compactHint : hint, width), ...(footerCount > 1 ? [clip(status, width)] : [])];
+        const screen = [...shownTitles, ...shownPreview, ...rows, clip(width < 40 ? compactHint : hint, width), ...(footerCount > 1 ? [clip(status, width)] : [])];
         write(`\u001b[H\u001b[2J${screen.join('\r\n')}`);
     };
 
