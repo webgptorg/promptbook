@@ -8,6 +8,7 @@ import { git, readHead, captureSnapshot } from './git.js';
 import { runProcess, type ProcessOptions } from './harness.js';
 import { discoverAgents } from './agents.js';
 import { readProjectConfiguration } from './configuration.js';
+import { inspectProjectCheck } from './check-setup.js';
 
 /** Explicitly authorized versioning boundaries for a newly selected child project. @private */
 export type NestedProjectStrategy = 'back' | 'ignored' | 'submodule';
@@ -80,7 +81,7 @@ export async function persistInitializationPending(workspace: Workspace, paths: 
 }
 
 /** Inspect setup without changing files, installing tools, committing or calling a model. @private */
-export async function inspectProjectReadiness(workspace: Workspace): Promise<ProjectReadiness> {
+export async function inspectProjectReadiness(workspace: Workspace, options: { check?: string } = {}): Promise<ProjectReadiness> {
     const missing: string[] = []; const execution: string[] = [];
     const root = await inspectGitRoot(workspace.projectPath);
     if (!root) missing.push('Git working tree');
@@ -108,12 +109,8 @@ export async function inspectProjectReadiness(workspace: Workspace): Promise<Pro
     for (const role of ['developer', 'planner', 'lawyer', 'copywriter']) if (!agents.some(agent => agent.normalizedName === role)) missing.push(`project agent ${role}`);
     const manifest = await packageMetadata(join(workspace.projectPath, 'package.json'));
     if (!manifest) missing.push('package.json');
-    else {
-        const check = (manifest.scripts as Record<string, unknown> | undefined)?.check;
-        if (typeof configuration.values.check !== 'string' || !configuration.values.check.trim()) {
-            if (typeof check !== 'string' || !check.trim() || check.includes('Configure a real project check script before running ptbk checks.')) execution.push('Configure a real project check command before executing tasks.');
-        }
-    }
+    const validation = await inspectProjectCheck(workspace, options.check);
+    if (validation.diagnostic) execution.push(`Configure a real project check command before executing tasks. Set ptbk.json execution.check or use ptbk init --check COMMAND. ${validation.diagnostic}`);
     if (root) {
         const runtime = relative(root, join(workspace.projectPath, '.ptbk', 'readiness')).split('\\').join('/');
         if (!(await git(root, ['check-ignore', '--no-index', '--', runtime], { allowFailure: true })).trim()) missing.push('.ptbk/ runtime ignore rule');

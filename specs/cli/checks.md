@@ -6,6 +6,8 @@ Every task accepted by start must satisfy the project's configured checks and it
 
 Checks are project-defined, not restricted to software builds. Missing or uninitialized validation is a setup problem, never an automatic pass. Preserve existing checks during initialization. Do not remove assertions, lower thresholds or disable validation merely to make a task pass.
 
+Initialization and interactive start share a finite check configuration step. Validate supplied commands and referenced npm scripts without running them; empty commands, recursive script graphs and generated setup placeholders remain unresolved. A non-software project can save a direct validation command in `ptbk.json.execution.check` without replacing its npm scripts.
+
 On failure, feed the actual check result into repair of the same active work, then recheck within the configured budget. Preserve attempts and diagnostics. If repair cannot proceed safely, keep the supervisor available with blocked work and an actionable request. Check-generated changes join the task's single result commit.
 
 For finite run, `--check` selects a shell command and `--check-before` supports `no`, `yes-and-fail` and `yes-and-fix`. Optional checks that were not requested are visibly skipped, not passed. An enabled default software check uses `npm run check`; a non-software project can supply its own command.

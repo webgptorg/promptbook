@@ -21,6 +21,7 @@ import { updateTaskControls } from './sources.js';
 import { readProjectConfiguration, ensureProjectConfiguration, type ProjectConfiguration } from './configuration.js';
 import { installedEngineVersion } from './version.js';
 import { promptText } from './interactive.js';
+import { inspectProjectCheck, prepareProjectCheck, saveProjectCheck, type CheckSetupUI } from './check-setup.js';
 import { promptChoice, promptChoices, type Choice } from './choices.js';
 import { inspectEngineInstallation, checkEngineUpdate, updateEngineInstallation } from './updates.js';
 import { inspectInitializationDestination, prepareInitializationDestination, finalizeInitializationDestination, installProjectEngine, inspectLocalInstallation, inspectProjectReadiness, persistInitializationPending, type PreparedInitializationDestination } from './initialization.js';
@@ -233,6 +234,20 @@ async function wizardChoice(label: string, choices: string[], initial: string, s
     return promptChoice(label, choices.map(value => ({ value, ...(WIZARD_CHOICES[value] ?? { label: value }) })), {
         initial, signal, heading: `Promptbook ${await installedEngineVersion()} · Project setup`,
     });
+}
+
+/** Share the finite project validation picker and exact-command confirmation between init and start. */
+function checkSetupUi(signal: AbortSignal): CheckSetupUI {
+    return {
+        choose: (label, choices, initial) => promptChoice('Choose project validation', choices, { initial, signal, heading: 'Project validation setup', preview: label }),
+        text: (label, initial) => promptText(label, { initial, signal, heading: 'Project validation command', validate: value => value.trim() ? undefined : 'Supply a command that validates this project.' }),
+        confirm: async label => await promptChoice('Save this project validation command?', [{ value: 'yes', label: 'Save validation' }, { value: 'no', label: 'Keep setup incomplete' }], { initial: 'yes', signal, heading: 'Project validation setup', preview: label.split('\n').slice(1).join('\n') }) === 'yes',
+    };
+}
+
+/** Give an actionable setup path without guessing or disabling the project's validation. */
+function checkSetupAction(workspace: Workspace): string {
+    return `Run ptbk init --path ${JSON.stringify(workspace.projectPath)} --check "<project validation command>", or set execution.check in ptbk.json.`;
 }
 
 /** Keep the harness picker bounded, with every integration reachable through More. */
@@ -467,6 +482,12 @@ export async function main(arguments_: string[]): Promise<number> {
                 if (choice === 'new') { parsed.values['new-project'] = await promptText('New subfolder path', { signal: controller.signal, validate: value => value.trim() ? undefined : 'Supply a folder path.' }); newProject = true; }
             }
             if (newProject) destination = resolve(destination, String(parsed.values['new-project']));
+            if (explicitValues.check !== undefined) {
+                phase = 'project validation setup';
+                try { await validateCheck({ projectPath: destination } as Workspace, String(explicitValues.check)); }
+                catch (error) { throw new InputError((error as Error).message); }
+                phase = 'destination selection';
+            }
             let inspection = await inspectInitializationDestination(destination);
             newProject ||= !inspection.exists;
             inspection = await inspectInitializationDestination(destination, { newProject });
@@ -522,6 +543,7 @@ export async function main(arguments_: string[]): Promise<number> {
         if (explicitValues.agent !== undefined && /[\\/]|\.book$/.test(String(explicitValues.agent))) parsed.values.agent = resolve(process.cwd(), String(explicitValues.agent));
         if (parsed.values['browser-profile']) parsed.values['browser-profile'] = resolve(process.cwd(), String(parsed.values['browser-profile']));
         const options = runOptions(parsed);
+        if (explicitValues.check !== undefined && !String(explicitValues.check).trim()) throw new InputError('--check requires a nonempty project validation command.');
         interactive &&= !options.noQuestions;
         if (!interactive) options.noQuestions = true;
         const harnessSettings = options.harness ? configuration.harnessSettings?.[options.harness] : undefined;
@@ -635,25 +657,40 @@ export async function main(arguments_: string[]): Promise<number> {
         readOnly = parsed.command === 'add';
         phase = 'execution preflight';
         if (parsed.command === 'start') {
-            const readiness = await inspectProjectReadiness(workspace);
+            const readiness = await inspectProjectReadiness(workspace, { check: options.check });
             if (!readiness.ready) {
                 if (!interactive) throw new InputError(`Project setup is incomplete: ${readiness.missing.join(', ')}. Run ptbk init --path ${JSON.stringify(workspace.projectPath)} with explicit installation/harness decisions, then retry start.`);
                 if (await wizardChoice(`Complete missing setup in ${workspace.projectPath}?\n${readiness.missing.join(', ')}`, ['yes', 'no'], 'yes', controller.signal) !== 'yes') throw new InputError('Start requires completed project setup.');
                 const result = await main(['init', '--path', workspace.projectPath,
                     ...(explicitValues.harness ? ['--harness', String(explicitValues.harness)] : []),
                     ...(explicitValues.harnesses !== undefined ? ['--harnesses', String(explicitValues.harnesses)] : []),
+                    ...(explicitValues.check !== undefined ? ['--check', String(explicitValues.check)] : []),
                 ]);
                 if (result !== 0) return result;
                 const refreshed = await readProjectConfiguration(workspace.projectPath);
-                configuration.enabledHarnesses = refreshed.enabledHarnesses; configuration.autoUpdateHarnesses = refreshed.autoUpdateHarnesses;
+                Object.assign(configuration, refreshed);
                 parsed.values = { ...refreshed.values, ...explicitValues };
                 Object.assign(options, runOptions(parsed));
+                for (const key of Object.keys(explicitValues)) configuration.sources[key] = `CLI --${key}`;
+                options.configurationSources = configuration.sources;
                 const checked = await inspectProjectReadiness(workspace);
                 if (!checked.ready) throw new InputError(`Project setup remains incomplete: ${checked.missing.join(', ')}.`);
             }
-            const executionReadiness = await inspectProjectReadiness(workspace);
-            const prerequisites = executionReadiness.execution.filter(message => !(options.check && /check/i.test(message)));
-            if (prerequisites.length) throw new InputError(`Execution prerequisites remain unresolved: ${prerequisites.join(' ')} Complete the indicated setup before starting.`);
+            if ((await inspectProjectCheck(workspace, options.check)).diagnostic && interactive) {
+                phase = 'project validation setup';
+                const selectedCheck = await prepareProjectCheck(workspace, { command: explicitValues.check === undefined ? undefined : String(explicitValues.check), ui: checkSetupUi(controller.signal) });
+                if (!selectedCheck) throw new InputError(`Startup postponed until project validation is configured. ${checkSetupAction(workspace)}`);
+                if (selectedCheck.updated !== undefined) await author(workspace, options, true,
+                    lease => saveProjectCheck(workspace, selectedCheck, () => lease.assertOwned()), pending => persistInitializationPending(workspace, pending), true);
+                Object.assign(configuration, await readProjectConfiguration(workspace.projectPath));
+                for (const key of Object.keys(explicitValues)) configuration.sources[key] = `CLI --${key}`;
+                options.configurationSources = configuration.sources;
+                options.check = selectedCheck.command;
+                phase = 'execution preflight';
+            }
+            const executionReadiness = await inspectProjectReadiness(workspace, { check: options.check });
+            const prerequisites = executionReadiness.execution;
+            if (prerequisites.length) throw new InputError(`Execution prerequisites remain unresolved: ${prerequisites.join(' ')} ${checkSetupAction(workspace)} Complete the indicated setup before starting.`);
             await validateCheck(workspace, options.check ?? 'npm run check');
             if (interactive) {
                 const selected = serviceOptions(parsed, options, configuration).enabledHarnesses ?? (options.harness ? [options.harness] : []);
@@ -676,10 +713,15 @@ export async function main(arguments_: string[]): Promise<number> {
             let changedCount = 0;
             let unresolved: string[] = [];
             phase = 'project setup and installation';
-            await author(workspace, options, !options.noCommit, async () => {
+            await author(workspace, options, !options.noCommit, async lease => {
                 const browser = { mode: parsed.values['browser-mode'] ?? 'headless', ...(parsed.values['browser-profile'] ? { profile: parsed.values['browser-profile'] } : {}) };
                 const paths = await ensureProjectConfiguration(workspace, { harnesses: selectedHarnesses, browser, updates: { harnesses: true } });
                 paths.push(...await initializeProject(workspace));
+                const selectedCheck = await prepareProjectCheck(workspace, { command: explicitValues.check === undefined ? undefined : String(explicitValues.check), ui: interactive ? checkSetupUi(controller.signal) : undefined });
+                if (selectedCheck) {
+                    if (selectedCheck.updated !== undefined) paths.push(...await saveProjectCheck(workspace, selectedCheck, () => lease.assertOwned()));
+                    options.check = selectedCheck.command;
+                }
                 if (!parsed.values['no-install']) {
                     const installation = await installProjectEngine(workspace, { choice: installationChoice, version: await installedEngineVersion(), signal: controller.signal });
                     paths.push(...installation.changed); unresolved.push(...installation.unresolved);
@@ -687,6 +729,9 @@ export async function main(arguments_: string[]): Promise<number> {
                 changedCount = new Set(paths).size;
                 return [...new Set(paths)];
             }, pending => persistInitializationPending(workspace, pending));
+            Object.assign(configuration, await readProjectConfiguration(workspace.projectPath));
+            for (const key of Object.keys(explicitValues)) configuration.sources[key] = `CLI --${key}`;
+            options.configurationSources = configuration.sources;
             if (prepared) {
                 const parentChanges = [...new Set([...prepared.parentChanges, ...await finalizeInitializationDestination(prepared, { signal: controller.signal })])];
                 if (parentChanges.length) process.stdout.write(`Parent metadata left uncommitted:\n${parentChanges.join('\n')}\n`);
@@ -707,13 +752,19 @@ export async function main(arguments_: string[]): Promise<number> {
             });
             for (const item of inventory) if (!item.usable) unresolved.push(`${item.name}: ${item.diagnostic}`);
             if (!selectedHarnesses.length) unresolved.push('No harnesses enabled; select one with --harnesses NAME before starting work.');
-            const readiness = await inspectProjectReadiness(workspace);
-            unresolved.push(...readiness.execution.filter(message => !(options.check && /check/i.test(message))));
+            const readiness = await inspectProjectReadiness(workspace, { check: options.check });
+            unresolved.push(...readiness.execution);
+            const savedCheck = await inspectProjectCheck(workspace);
+            const temporaryCheck = options.check !== undefined && options.check !== savedCheck.command ? ` --check ${JSON.stringify(options.check)}` : '';
             const temporarySelection = configuration.exists && JSON.stringify(selectedHarnesses) !== JSON.stringify(configuration.enabledHarnesses ?? []) ? ` --harnesses ${JSON.stringify(selectedHarnesses.join(','))}` : '';
-            const setupOutcome = changedCount ? `${changedCount} artifact(s) changed` : 'already ready; no files changed';
-            const next = `ptbk start --path ${JSON.stringify(workspace.projectPath)}${temporarySelection}`;
-            process.stdout.write(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · Setup complete`, [['Project', workspace.projectPath], ['Setup', setupOutcome], ['Prerequisites', unresolved.length ? `${unresolved.length} deferred` : 'ready']], presentation, { details: [...unresolved, ...(temporarySelection ? ['Saved harness defaults preserved; pass the temporary selection to start.'] : [])], next: [next], tone: unresolved.length ? 'warning' : 'success' }) : `Setup: ${setupOutcome}.\n${unresolved.length ? `Deferred prerequisites:\n${unresolved.map(message => `  ${message}`).join('\n')}\n` : ''}${temporarySelection ? 'Saved harness defaults preserved; pass the temporary selection to start.\n' : ''}Next: ${next}\n`);
+            const setupOutcome = changedCount ? `${changedCount} artifact(s) changed` : unresolved.length ? 'no files changed; setup remains incomplete' : 'already ready; no files changed';
+            const next = unresolved.length
+                ? `ptbk init --path ${JSON.stringify(workspace.projectPath)}${temporarySelection}${temporaryCheck}${savedCheck.diagnostic && !temporaryCheck ? ' --check "<project validation command>"' : ''}`
+                : `ptbk start --path ${JSON.stringify(workspace.projectPath)}${temporarySelection}${temporaryCheck}`;
+            const retainedChoices = [...(temporarySelection ? ['Saved harness defaults preserved; retain the temporary harness selection in the next invocation.'] : []), ...(temporaryCheck ? ['Saved validation preserved; retain the temporary --check override in the next invocation.'] : [])];
+            process.stdout.write(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · Setup ${unresolved.length ? 'incomplete' : 'complete'}`, [['Project', workspace.projectPath], ['Setup', setupOutcome], ['Prerequisites', unresolved.length ? `${unresolved.length} unresolved` : 'ready']], presentation, { details: [...unresolved, ...retainedChoices], next: [next], tone: unresolved.length ? 'warning' : 'success' }) : `Setup: ${setupOutcome}.\n${unresolved.length ? `Unresolved prerequisites:\n${unresolved.map(message => `  ${message}`).join('\n')}\n` : ''}${retainedChoices.join('\n')}${retainedChoices.length ? '\n' : ''}Next: ${next}\n`);
             if (agenda) {
+                if ((await inspectProjectCheck(workspace, options.check)).diagnostic) throw new InputError(`The agenda was not created or executed because project validation remains unconfigured. ${checkSetupAction(workspace)}`);
                 const harness = options.harness || inventory.find(item => item.usable)?.name;
                 if (!harness) throw new InputError('Agenda initialization needs an authenticated harness; complete the displayed setup, then retry --agenda.');
                 let bootstrapId: string | undefined;

@@ -18,4 +18,6 @@ Resolve paths in the file relative to its project; resolve CLI paths relative to
 
 CLI overrides do not rewrite `ptbk.json`. Live control changes are temporary unless explicitly saved. Recovery may retain a running process's effective settings; a new independent invocation resolves its own configuration. Show effective settings and their sources on request, without secrets.
 
+Check setup is an explicit configuration operation: when the default validation is missing or invalid, a confirmed setup choice or `init --check COMMAND` saves its replacement. Existing valid defaults remain intact; other commands' `--check` flags and an init override of valid validation remain temporary.
+
 Store credential references, not API keys, login tokens or browser sessions. Machine-specific paths can be supplied as temporary overrides. Initialization preserves existing choices and adds only missing required settings. See [initialization](initialization.md), [harnesses](harnesses.md), [browser](browser.md) and [controls](controls.md).

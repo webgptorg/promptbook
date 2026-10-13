@@ -14,6 +14,7 @@ export interface PrivateOperationResult<T> { result: T; changedPaths: string[]; 
 /** Reject unavailable and recursive generated validation rather than pretending it passed. @private */
 export async function validateCheck(workspace: Workspace, command: string): Promise<void> {
     if (!command.trim()) throw new Error('Check setup error: --check must contain a validation command.');
+    if (/PTBK_CHECK_SETUP_REQUIRED|Configure a real project check script/.test(command)) throw new Error('Check setup error: the validation command is an unconfigured setup placeholder. Configure real validation first.');
     if (/\bptbk\s+(?:coder\s+)?(?:start|run|fix|server)\b/.test(command)) throw new Error('Check setup error: the validation command recursively invokes ptbk. Configure a project validation command.');
     /** Find npm script entry points without executing the command or its shell substitutions. */
     const references = (text: string): string[] => [...text.matchAll(/\bnpm\s+(?:(?:--silent|--if-present|-s)\s+)*(?:run(?:-script)?\s+(?:(?:--silent|--if-present|-s)\s+)*([a-zA-Z0-9:_-]+)|(test|start|stop|restart))\b/g)].map(match => match[1] ?? match[2]!);
@@ -26,7 +27,7 @@ export async function validateCheck(workspace: Workspace, command: string): Prom
         /** Walk npm scripts and the lifecycle hooks npm executes for every entry point. */
         function inspect(name: string, lifecycle = true): void {
             const script = pkg.scripts?.[name];
-            if (!script || stack.has(name) || /\bptbk\s+(?:coder\s+)?(?:start|run|fix|server)\b/.test(script) || /PTBK_CHECK_SETUP_REQUIRED|Configure a real project check script/.test(script)) throw new Error(`Check setup error: scripts.${name} is missing, recursive, or an unconfigured setup placeholder. Configure real validation first.`);
+            if (typeof script !== 'string' || !script.trim() || stack.has(name) || /\bptbk\s+(?:coder\s+)?(?:start|run|fix|server)\b/.test(script) || /PTBK_CHECK_SETUP_REQUIRED|Configure a real project check script/.test(script)) throw new Error(`Check setup error: scripts.${name} is missing, recursive, or an unconfigured setup placeholder. Configure real validation first.`);
             stack.add(name);
             if (lifecycle && pkg.scripts?.[`pre${name}`]) inspect(`pre${name}`, false);
             for (const reference of references(script)) inspect(reference);
