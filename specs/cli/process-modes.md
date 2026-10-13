@@ -17,6 +17,8 @@ Every start mode supports the optional HTTP server, automatic or selected port, 
 
 For a daemon, `ptbk stop` safely stops the project's process, and `ptbk restart` restarts it with its effective project configuration. Locate it through `.ptbk/` runtime information and verify its identity; stale records must not control unrelated processes. Concurrent starts must not create duplicate workers.
 
+Read-only inspection may retry an abruptly closed control connection within a bounded budget, authenticating the current process record again before each attempt. Never replay a mutating command when its reply is lost; report that its outcome is unconfirmed. Stop succeeds only after the selected supervisor releases project ownership, not merely because its endpoint is unavailable. A replacement process or owner must remain untouched.
+
 `ptbk status` and `ptbk show` inspect the existing process, version, statistics, pending questions and connection details once without changing its lifecycle. Foreground processes use their own process controls; daemon-only stop/restart clearly report a foreground project.
 
 An intentional daemon stop suppresses automatic startup until a subsequent explicit start. Restart is not an intentional permanent stop. Foreground termination preserves recoverable state without creating a background replacement.

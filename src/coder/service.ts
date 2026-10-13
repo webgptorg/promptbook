@@ -1,4 +1,4 @@
-import { createServer as createSocketServer, connect } from 'node:net';
+import { createServer as createSocketServer, connect, type Socket } from 'node:net';
 import { createServer as createHttpServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { spawn } from 'node:child_process';
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
@@ -120,51 +120,98 @@ export async function readServiceRecord(workspace: Workspace): Promise<ServiceRe
 class ServiceIdentityChangedError extends Error {
     constructor() { super('Process identity changed; no control response was trusted.'); }
 }
+/** Internal transport seams allow deterministic connection lifecycle verification. @private */
+export interface ServiceCommandOptions {
+    connect?: (endpoint: string) => Socket;
+    sleep?: (milliseconds: number) => Promise<void>;
+}
+/** A missing reply permits inspection retries but leaves a mutation's outcome uncertain. */
+class ServiceConnectionClosedError extends Error {
+    /** Connection closure retains a recognizable transport error code. */
+    readonly code: 'ECONNRESET' | 'EPIPE';
+    /** Explain the safe next step without implying an unconfirmed control succeeded. */
+    constructor(action: string, cause?: unknown) {
+        super(action === 'inspect'
+            ? 'Project control endpoint closed without a complete reply; read-only inspection did not complete.'
+            : `Project control endpoint closed without a complete reply; the outcome of ${action} is uncertain. Inspect the project before retrying the action.`, { cause });
+        this.code = (cause as NodeJS.ErrnoException | undefined)?.code === 'EPIPE' ? 'EPIPE' : 'ECONNRESET';
+    }
+}
+/** Only interrupted transports permit a repeated read-only command. */
+function isServiceConnectionClosure(error: unknown): boolean {
+    return ['ECONNRESET', 'EPIPE'].includes((error as NodeJS.ErrnoException | undefined)?.code || '');
+}
+/** An absent listener is harmless only before command delivery has begun. */
+function isServiceEndpointUnavailable(error: unknown): boolean {
+    return ['ENOENT', 'ECONNREFUSED'].includes((error as NodeJS.ErrnoException | undefined)?.code || '');
+}
 /** Authenticate exactly one socket command using the selected immutable process record. */
-async function sendServiceCommand(workspace: Workspace, record: ServiceRecord, action: string, input: Record<string, unknown>): Promise<Record<string, unknown> | undefined> {
+async function sendServiceCommand(record: ServiceRecord, action: string, input: Record<string, unknown>, options: ServiceCommandOptions): Promise<Record<string, unknown> | undefined> {
     return new Promise((resolve, reject) => {
-        const socket = connect(record.endpoint);
+        const socket = (options.connect || connect)(record.endpoint);
         socket.setEncoding('utf8');
-        let data = ''; let settled = false;
-        socket.setTimeout(5000, () => socket.destroy(new Error('Project control endpoint timed out.')));
-        socket.once('connect', () => socket.write(`${JSON.stringify({ token: record.token, identity: record.id, action, input })}\n`));
+        let data = ''; let settled = false; let deliveryStarted = false;
+        /** Settle the command once even when error, end and close arrive together. */
+        const fail = (error: unknown) => { if (settled) return; settled = true; reject(error); };
+        /** A disconnected endpoint is unavailable only when no command reply was accepted. */
+        const succeed = (result: Record<string, unknown> | undefined) => { if (settled) return; settled = true; resolve(result); };
+        socket.setTimeout(5000, () => { fail(new Error('Project control endpoint timed out.')); socket.destroy(); });
+        socket.once('connect', () => {
+            if (settled) return;
+            try {
+                const command = `${JSON.stringify({ token: record.token, identity: record.id, action, input })}\n`;
+                deliveryStarted = true;
+                socket.write(command);
+            } catch (error) {
+                fail(isServiceConnectionClosure(error) || deliveryStarted && isServiceEndpointUnavailable(error) ? new ServiceConnectionClosedError(action, error) : error);
+                socket.destroy();
+            }
+        });
         socket.on('data', chunk => {
+            if (settled) return;
             data += String(chunk);
-            if (Buffer.byteLength(data) > 2 * 1024 * 1024) socket.destroy(new Error('Control reply exceeds 2 MiB.'));
+            if (Buffer.byteLength(data) > 2 * 1024 * 1024) { fail(new Error('Control reply exceeds 2 MiB.')); socket.destroy(); return; }
             const newline = data.indexOf('\n');
             if (newline < 0) return;
             try {
                 const reply = JSON.parse(data.slice(0, newline)) as { id: string; pid: number; error?: string; result: Record<string, unknown> };
                 if (reply.id !== record.id || reply.pid !== record.pid) throw new ServiceIdentityChangedError();
-                settled = true;
+                if (reply.error) fail(new InputError(reply.error)); else succeed(reply.result);
                 socket.end();
-                if (reply.error) reject(new InputError(reply.error)); else resolve(reply.result);
-            } catch (error) { socket.destroy(); reject(error); }
+            } catch (error) { fail(error); socket.destroy(); }
         });
         socket.once('error', error => {
-            settled = true;
-            if (['ENOENT', 'ECONNREFUSED'].includes((error as NodeJS.ErrnoException).code || '')) resolve(undefined);
-            else reject(error);
+            if (isServiceEndpointUnavailable(error) && !deliveryStarted) succeed(undefined);
+            else fail(isServiceConnectionClosure(error) || isServiceEndpointUnavailable(error) ? new ServiceConnectionClosedError(action, error) : error);
         });
-        socket.once('end', () => { if (!settled) reject(new Error('Project control endpoint closed without a complete reply.')); });
+        /** EOF and close without a framed reply have the same ambiguous delivery semantics. */
+        const closed = () => { if (settled) return; fail(new ServiceConnectionClosedError(action)); socket.destroy(); };
+        socket.once('end', closed);
+        socket.once('close', closed);
     });
 }
-/** Send bounded authenticated commands; only read-only inspection may retry a recorded handover. @private */
-export async function serviceCommand(workspace: Workspace, action = 'inspect', input: Record<string, unknown> = {}, expectedIdentity?: { id: string; pid: number }): Promise<Record<string, unknown> | undefined> {
-    for (let attempt = 0; attempt < 2; attempt++) {
+/** Send bounded authenticated commands; only read-only inspection may retry closure or a recorded handover. @private */
+export async function serviceCommand(workspace: Workspace, action = 'inspect', input: Record<string, unknown> = {}, expectedIdentity?: { id: string; pid: number }, options: ServiceCommandOptions = {}): Promise<Record<string, unknown> | undefined> {
+    let handovers = 0;
+    for (let attempt = 0; attempt < 3; attempt++) {
         const record = await readServiceRecord(workspace);
         if (!record) return undefined;
         if (expectedIdentity && (record.id !== expectedIdentity.id || record.pid !== expectedIdentity.pid)) throw new ServiceIdentityChangedError();
         await prepareSocketDirectory(false);
-        try { return await sendServiceCommand(workspace, record, action, input); }
+        try { return await sendServiceCommand(record, action, input, options); }
         catch (error) {
-            if (expectedIdentity || action !== 'inspect' || attempt > 0 || !(error instanceof ServiceIdentityChangedError)) throw error;
-            const replacement = await readServiceRecord(workspace);
-            if (!replacement || replacement.id === record.id) throw error;
-            // Ignore the mismatched response and authenticate anew using current disk credentials.
+            if (action !== 'inspect' || attempt >= 2) throw error;
+            if (error instanceof ServiceIdentityChangedError) {
+                if (expectedIdentity || handovers > 0) throw error;
+                const replacement = await readServiceRecord(workspace);
+                if (!replacement || replacement.id === record.id) throw error;
+                handovers++;
+                // Ignore the mismatched response and authenticate anew using recorded replacement credentials.
+            } else if (!isServiceConnectionClosure(error)) throw error;
+            await (options.sleep || delay)(50 * (attempt + 1));
         }
     }
-    throw new ServiceIdentityChangedError();
+    throw new ServiceConnectionClosedError(action);
 }
 
 /** Constant-time validation rejects unknown local tokens before control handling. */
@@ -503,6 +550,8 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
     };
     const socket = createSocketServer(client => {
         client.setEncoding('utf8');
+        // A disconnected control client cannot terminate the project supervisor.
+        client.on('error', () => client.destroy());
         let text = '';
         client.setTimeout(10_000, () => client.destroy());
         client.on('data', chunk => {
@@ -769,19 +818,24 @@ export async function startService(workspace: Workspace, options: ServiceOptions
 }
 
 /** Stop the authenticated daemon; foreground sessions use their own terminal controls. @private */
-export async function stopService(workspace: Workspace, quiet = false): Promise<void> {
-    const current = await serviceCommand(workspace);
+export async function stopService(workspace: Workspace, quiet = false, options: ServiceCommandOptions = {}): Promise<void> {
+    const current = await serviceCommand(workspace, 'inspect', {}, undefined, options);
     const record = await readServiceRecord(workspace);
+    if (current && (!record || current.id !== record.id || current.pid !== record.pid)) throw new InputError('Project supervisor identity changed while stopping; the new process was preserved.');
     if (current && record?.mode !== 'daemon') throw new InputError('This project runs in the foreground. Use its terminal controls or Ctrl+C.');
-    if (current) await serviceCommand(workspace, 'stop');
-    if (record) { record.desired = 'stopped'; await atomicWrite(join(workspace.statePath, 'process.json'), record); }
+    if (current && record) await serviceCommand(workspace, 'stop', {}, { id: record.id, pid: record.pid }, options);
+    if (record) {
+        const saved = await readServiceRecord(workspace);
+        if (!saved || saved.id !== record.id || saved.pid !== record.pid) throw new InputError('Project supervisor identity changed while stopping; the new process was preserved.');
+        await atomicWrite(join(workspace.statePath, 'process.json'), { ...saved, desired: 'stopped' });
+    }
     const configuration = startupPaths(workspace).configuration;
     try { const saved = JSON.parse(await readFile(configuration, 'utf8')); saved.desired = 'stopped'; await atomicWrite(configuration, saved); } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
     if (record?.persistent) await disableStartup(workspace, startupPaths(workspace));
     const deadline = Date.now() + 30_000;
     while (Date.now() < deadline) {
-        const active = await serviceCommand(workspace);
-        if (active && record && active.id !== record.id) throw new InputError('Project supervisor identity changed while stopping; the new process was preserved.');
+        const active = await serviceCommand(workspace, 'inspect', {}, undefined, options);
+        if (active && record && (active.id !== record.id || active.pid !== record.pid)) throw new InputError('Project supervisor identity changed while stopping; the new process was preserved.');
         let owned = false;
         try {
             const owner = JSON.parse(await readFile(await confinePath(workspace.projectPath, join(workspace.statePath, 'service-owner.lock')), 'utf8')) as { id?: string; pid?: number };
