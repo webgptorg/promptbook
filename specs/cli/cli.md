@@ -9,10 +9,10 @@ The command root is `ptbk`. Bare invocation displays [top-level help](help.md), 
 | Command | Purpose |
 | --- | --- |
 | `init`, `initialize` | Prepare a project through a finite wizard, optionally create and start an agenda from intent. |
-| `start` | Start the ongoing agenda's daemon and report once; explicit foreground operation is available. |
-| `stop`, `restart` | Control the selected project's daemon and report the outcome once. |
+| `start` | Start the ongoing agenda's daemon and report one status snapshot; explicit foreground operation is available. |
+| `stop`, `restart` | Control the selected project's daemon and report the outcome and status once. |
 | `dashboard` | Continuously observe and control an existing project service in the terminal without starting it. |
-| `status`, `show` | Inspect the current process once without changing its lifecycle. |
+| `status`, `show` | Show one snapshot of the shared dashboard state, including requests and connection information, without changing its lifecycle. |
 | `answer` | Inspect and answer pending human requests. |
 | `run` | Execute a finite existing queue with one selected configuration. |
 | `help` | Show top-level or command/subcommand-scoped help in pretty or raw presentation. |
@@ -35,6 +35,8 @@ The command root is `ptbk`. Bare invocation displays [top-level help](help.md), 
 `--agent`, `--harness`, `--model`, `--thinking-level` and `--context` configure finite work. Agent, harness and model are separate concepts. Run/fix/plan default to the project's Developer role when an agent is not selected; an explicit Planner is supported. Start discovers project roles and enabled harnesses and uses Manager, subject to explicit restrictions/preferences rather than a hidden fixed Developer configuration.
 
 [CLI presentation and interaction](interactive-ui.md) defines pretty output by default on suitable terminals, shared `--raw`, and the input policy of `--interactive`/`--non-interactive`. Init/add use finite wizards; dashboard uses a continuous control view; default start/stop/restart render a single result. Run and explicit foreground start share the live dashboard. Noninteractive initialization accepts destination/child-repository strategy, intent, installation scope, selected harnesses, browser and update decisions through flags rather than prompts. Help documents these choices without dumping provider-specific configuration.
+
+Live dashboards and one-shot runtime results follow the [shared status view](status-view.md). `--no-qr` is a presentation option for commands rendering that view, including dashboard, status/show, start/restart and run; it does not hide the URL or change HTTP configuration. Requests, status and connection information are not separate mutually exclusive screens.
 
 Start supports `--daemon` (default), `--foreground`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`, alongside shared presentation/input options. Daemon and foreground conflict; raw output never implicitly selects foreground operation. `--help`, trailing `help` and `ptbk help <command-path>` show only the selected command/subcommand scope; no path means top-level help. These forms and `--version` follow the shared [help/version contract](help.md). See [process modes](process-modes.md) and [controls](controls.md).
 

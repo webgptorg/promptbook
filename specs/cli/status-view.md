@@ -1,0 +1,29 @@
+# Shared project status view
+
+[Main specification](../_main.md) · [Terminal dashboard](terminal.md) · [Browser dashboard](dashboard.md)
+
+There is one coherent project status view, presented live or as a snapshot, not a QR-only launch screen and an unrelated status screen. The shared content and visual hierarchy are a product contract; this does not prescribe a rendering library or internal component structure.
+
+## Live and snapshot forms
+
+`ptbk dashboard`, interactive foreground execution and the browser dashboard continuously update the view from the running service. `ptbk status` and `ptbk show` render one current snapshot and return. Successful start/restart show the same snapshot with the operation outcome; repeated start reports the existing service this way. Stop reports its outcome and stopped state, without advertising a dead server as available. No lifecycle command automatically attaches a live view.
+
+Both forms identify the project, actual service engine version, operating/connection state, current agent/task/harness, phase, queue summary, results, waits/blockers and pending user requests. Include the dashboard connection information below. A snapshot shows when it was observed and cannot imply that it continues updating. Unavailable or stale state is explicit; never invent current activity merely to populate the screen.
+
+Pending [requests to the user](user-interactions.md) have the highest visual priority, ahead of routine activity, statistics and the QR code. Show what requires attention and how to respond without making the user open logs. Automatic assignment and goal discovery are labeled agent work, not human requests. Ordinary waiting explains its reason and next action/opportunity when known.
+
+## URL and QR code
+
+Whenever the project's HTTP dashboard is available, both live and snapshot pretty terminal views show its actual URL and a scannable QR code for that same URL. This includes start's result, status/show and an attached dashboard, not only the initial launch. The browser view offers the same connection information. Keep URL, QR code and project status together; QR display never substitutes for status or obscures user requests.
+
+Use the service's actual address/selected port rather than an assumed default or another project's URL. The textual URL remains visible and usable independently of scanning; a localhost URL does not imply access from another device. Do not change bind address, network exposure or authorization to make the QR code reachable.
+
+`--no-qr` suppresses only the code in commands rendering this view, including dashboard, status/show, start/restart and foreground run. Raw/redirected output contains no QR art or terminal decoration but retains the URL when available. If the terminal cannot fit a scannable code alongside essential information, keep status, requests and the textual URL usable and explicitly indicate the QR limitation rather than clipping an invalid code. No-server, failed startup and stopped/disconnected states must not present an unverified URL/code as a working connection.
+
+Live updates do not repeatedly append QR codes to scrollback or displace focused input. Render a stable connection area while its address remains unchanged; update it when the actual connection changes. Requests and current work remain more prominent than connection decoration.
+
+## Acceptance outcomes
+
+For the same running project, start's result, status/show and a newly attached dashboard contain the same status categories and working URL/QR, differing in observation time and update behavior. Status/show return without starting or stopping work. A pending request is immediately visible in every view; no screen consists solely of a QR code.
+
+Verify a non-default port, repeated start, no-server, stopped service, no-QR, raw/redirected output and a narrow terminal. No view advertises a fabricated or clipped connection code; plain text retains actionable status and available URL. Client refresh/disconnection never changes service ownership.

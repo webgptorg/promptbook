@@ -12,7 +12,7 @@ With no flags, start a background daemon, enable restart persistence and expose 
 
 The default launch is a one-shot command: after startup, render one polished outcome and release the terminal while the service continues in the background. Do not automatically attach a live dashboard. `--raw` changes this result to plain text without changing the daemon lifetime. Explicit `--foreground` keeps execution attached, using the [live terminal dashboard](terminal.md) when interactive or plain events otherwise. The browser/API show the same actual state and running service version.
 
-After successful startup, show engine version, confirmation, project identity, the actual dashboard URL and, in pretty output on a capable terminal, a clearly rendered, scannable QR code for that URL. Include useful next commands such as `ptbk dashboard`, `ptbk show` and `ptbk stop`. `--no-qr` suppresses the code; raw output retains the textual URL without the code. Do not display a URL or QR code for HTTP that is disabled or failed to start. A localhost QR code does not imply access from another device.
+Render the [shared status snapshot](status-view.md) with startup confirmation: project/version, actual operating state, current task or next work phase, queue, pending requests and connection information. Include the actual dashboard URL and scannable QR code in pretty output, following the same no-QR/raw/availability rules as status/show and the live dashboard. Never show only a QR code instead of project status. Pending requests take visual priority. Include useful next commands such as `ptbk dashboard`, `ptbk show` and `ptbk stop`; do not wait for the first task to finish before returning the launch result.
 
 ## Automatic work progression
 

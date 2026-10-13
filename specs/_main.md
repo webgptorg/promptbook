@@ -32,10 +32,11 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [CLI presentation and interaction](cli/interactive-ui.md): Pretty/raw output, finite wizards, live dashboards and one-shot results.
 - [Help, about and version](cli/help.md): Command-scoped pretty/raw help and the actual running engine version.
 - [Shared controls](cli/controls.md): One runtime control model with equivalent client capabilities.
+- [Project status view](cli/status-view.md): One live/snapshot view with prominent requests, status, URL and QR code.
 - [Terminal dashboard](cli/terminal.md): Attach with `ptbk dashboard`, observe live state and use keyboard controls.
 - [Local service API](cli/api.md): Independently usable status and control endpoints.
 - [Browser dashboard](cli/dashboard.md): Lightweight JavaScript SPA at `/`, consuming the service API.
-- [User interactions](cli/user-interactions.md): General questions, confirmations and human actions.
+- [User interactions](cli/user-interactions.md): Highly visible, actionable human requests and response semantics.
 - [Channels](cli/channels.md): Terminal, CLI answers, browser app and API.
 - [Browser](cli/browser.md): One independently configured browser/profile per project.
 
