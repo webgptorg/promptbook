@@ -10,6 +10,8 @@ Commit only changes attributable to the task and authorized setup, preserving un
 
 Start may refuse a dirty initial workspace. After startup it manages its own uncommitted changes and recovers interruptions rather than treating every owned change as a fatal dirty-tree error. Concurrent user edits remain protected. An ambiguous boundary blocks unsafe progress while the supervisor stays available.
 
+Publish task-source updates atomically. Transient Windows file-sharing failures may trigger bounded retries of the same prepared update, with workspace ownership, path confinement and the original source revision checked again before every attempt. Preserve concurrent edits and never delete the destination to force replacement. Exhausted retries leave the accepted work recoverable; they do not rerun the agent or record false completion.
+
 For finite run, preserve `--git-changes fail|ignore|continue`: refuse unrelated dirty state by default, retain it under ignore, or resume exactly one proven interrupted task under continue. No option transfers ownership of unknown changes. Explicit `--no-commit` reports completed-but-uncommitted work and cannot be used for the automatic start loop.
 
 Respect configured Git identity/signing, including `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, `CODING_AGENT_GIT_SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`; report the effective identity when falling back to Git configuration.

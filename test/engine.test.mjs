@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { promises as filesystem } from 'node:fs';
-import { mkdtemp, mkdir, writeFile, readFile, readdir, rename, rm, chmod, symlink, access, realpath } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, readdir, rename, rm, chmod, symlink, access, realpath, link, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { runQueue, fixChecks, recoverTask, taskEligibility } from '../dist/coder/engine.js';
@@ -9,6 +9,7 @@ import { validateCheck } from '../dist/coder/checks.js';
 import { git, discoverGit, captureSnapshot, commitScoped } from '../dist/coder/git.js';
 import { acquireLease, atomicWrite, readLedger, readJournals, saveLedger, writeJournal } from '../dist/coder/state.js';
 import { discoverTasks } from '../dist/coder/sources.js';
+import { replaceFileWithRetry } from '../dist/coder/file-replacement.js';
 
 test('checks reject direct and indirect worker recursion under both command namespaces', async t => {
     const workspace = await fixture(t, { empty: true });
@@ -69,7 +70,7 @@ test('atomic runtime state retries transient Windows sharing violations without 
         temporaryFiles.add(source); assert.deepEqual(JSON.parse(await readFile(source, 'utf8')), next);
         assert.deepEqual(JSON.parse(await readFile(filename, 'utf8')), previous);
         if (++attempts < 4) throw Object.assign(new Error('Reader temporarily holds the destination'), { code: ['EPERM', 'EBUSY', 'EACCES'][attempts - 1] });
-        await rename(source, destination);
+        await replaceFileWithRetry(source, destination);
     } });
     assert.equal(attempts, 4); assert.equal(temporaryFiles.size, 1); assert.deepEqual(waits, [20, 40, 80]);
     assert.deepEqual(JSON.parse(await readFile(filename, 'utf8')), next);
@@ -90,6 +91,54 @@ test('atomic runtime state retries transient Windows sharing violations without 
 function implement(content = 'agent\n') {
     return async request => { await writeFile(path.join(request.projectPath, 'code.txt'), content); return { outcome: 'success', exitCode: 0, output: 'Fixture completed.' }; };
 }
+
+test('exhausted task publication retains checked work and the original source file, then resumes without inference', async t => {
+    const workspace = await fixture(t);
+    await writeFile(path.join(workspace.projectPath, 'check.cjs'), 'process.exit(0);\n');
+    await git(workspace.gitRoot, ['add', '--', 'check.cjs']);
+    await git(workspace.gitRoot, ['commit', '-qm', 'Passing validation']);
+    const source = path.join(workspace.tasksPath, 'task.book');
+    const original = await readFile(source);
+    await mkdir(workspace.statePath);
+    // Keeping an ignored hard link makes deleting/recreating an identical source detectable on every platform.
+    const retained = path.join(workspace.statePath, 'retained-source');
+    await link(source, retained);
+    const originalFile = await stat(source, { bigint: true });
+    let calls = 0;
+    let attempts = 0;
+    const result = await runQueue(workspace, {
+        harness: 'openai-codex', check: 'npm run check', normalizeLineEndings: false,
+        runHarness: async request => { calls++; return implement()(request); },
+        sourceWriteOptions: {
+            platform: 'win32', sleep: async () => {},
+            rename: async () => { attempts++; throw Object.assign(new Error('Task source remained locked'), { code: 'EPERM' }); },
+        },
+    });
+    assert.equal(calls, 1);
+    assert.equal(attempts, 10);
+    assert.equal(result.failed, 1, JSON.stringify(result.events));
+    assert.equal(result.completed, 0);
+    assert.equal(result.commits.length, 0);
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.events.some(event => event.type === 'check-result' && event.outcome === 'passed'));
+    assert.equal(await readFile(path.join(workspace.projectPath, 'code.txt'), 'utf8'), 'agent\n');
+    assert.deepEqual(await readFile(source), original);
+    assert.deepEqual(await readFile(retained), original);
+    assert.equal((await stat(source, { bigint: true })).ino, originalFile.ino, 'Recovery must not delete/recreate an unchanged source');
+    assert.equal((await stat(source, { bigint: true })).nlink, originalFile.nlink);
+    assert.deepEqual(await readdir(workspace.tasksPath), ['task.book']);
+    assert.equal((await readJournals(workspace))[0].phase, 'recovery-required');
+
+    const resumed = await recoverTask(workspace, 'fixture', { action: 'resume' }, {
+        normalizeLineEndings: false,
+        runHarness: async () => { assert.fail('Checked implementation must not run again'); },
+    });
+    assert.equal(resumed.completed, 1, JSON.stringify(resumed.events));
+    assert.equal(resumed.commits.length, 1);
+    assert.equal((await readJournals(workspace))[0].attempts, 1);
+    assert.match(await readFile(source, 'utf8'), /TASK DONE /);
+    assert.equal(await readFile(path.join(workspace.projectPath, 'code.txt'), 'utf8'), 'agent\n');
+});
 
 test('one task uses one result commit and reports skipped validation honestly', async t => {
     const workspace = await fixture(t);

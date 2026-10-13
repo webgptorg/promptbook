@@ -5,10 +5,10 @@ import { promises as fs } from 'node:fs';
 import type { FileHandle } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { setTimeout as delay } from 'node:timers/promises';
 import type { TaskDefinition, Workspace } from './domain.js';
 import { git, type FileSnapshot, type GitIdentity, type GitSnapshot } from './git.js';
 import { confinePath } from './workspace.js';
+import { replaceFileWithRetry, type FileReplacementOptions } from './file-replacement.js';
 
 /** Durable result of one occurrence; the ledger is bounded independently from traces. @private */
 export interface OccurrenceHistory {
@@ -51,11 +51,7 @@ export interface WorkspaceLease { token: string; path: string; assertOwned(): Pr
 /** Keep all owned operational state in the configured project directory. @private */
 export function stateDirectory(workspace: Workspace): string { return workspace.statePath; }
 /** Filesystem seams keep atomic replacement and Windows sharing failures independently verifiable. @private */
-export interface AtomicWriteOptions {
-    platform?: NodeJS.Platform;
-    rename?: (source: string, destination: string) => Promise<void>;
-    sleep?: (milliseconds: number) => Promise<void>;
-}
+export interface AtomicWriteOptions extends FileReplacementOptions {}
 /** Publish complete JSON or binary state using the same atomic replacement and sharing retries. */
 async function atomicReplace(filename: string, write: (handle: FileHandle) => Promise<void>, options: AtomicWriteOptions = {}): Promise<void> {
     await fs.mkdir(path.dirname(filename), { recursive: true });
@@ -63,15 +59,7 @@ async function atomicReplace(filename: string, write: (handle: FileHandle) => Pr
     try {
         const handle = await fs.open(temporary, 'wx', 0o600);
         try { await write(handle); await handle.sync(); } finally { await handle.close(); }
-        // Windows readers and virus scanners may briefly deny replacing an open file. Retry the
-        // same complete temporary file; never unlink the previous revision to force replacement.
-        for (let attempt = 0; ; attempt++) {
-            try { await (options.rename ?? fs.rename)(temporary, filename); break; }
-            catch (error) {
-                if ((options.platform ?? process.platform) !== 'win32' || !['EPERM', 'EBUSY', 'EACCES'].includes((error as NodeJS.ErrnoException).code ?? '') || attempt >= 9) throw error;
-                await (options.sleep ?? delay)(Math.min(20 * 2 ** attempt, 250));
-            }
-        }
+        await replaceFileWithRetry(temporary, filename, undefined, options);
     } finally { await fs.rm(temporary, { force: true }); }
 }
 /** Write a complete state file atomically; a crash leaves the previous complete revision. @private */

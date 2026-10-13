@@ -1,7 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { lstat, readdir, readFile, realpath, rename, unlink, writeFile } from 'node:fs/promises';
+import { lstat, readdir, readFile, realpath, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { MigrationOrigin, OccurrenceState, TaskDefinition, TaskStatus, Workspace } from './domain.js';
+import { replaceFileWithRetry, type FileReplacementOptions } from './file-replacement.js';
 import { bindSchedule, parseDate, parseInterval, scheduleRevision } from './schedule.js';
 
 /** Source checksums are independent of text encoding and line endings. @private */
@@ -482,8 +483,14 @@ export async function discoverTasks(workspace: Workspace): Promise<TaskDefinitio
     return tasks.sort((left, right) => right.priority - left.priority || left.source.relativePath.localeCompare(right.source.relativePath, 'en') || left.source.sectionIndex - right.source.sectionIndex || left.id.localeCompare(right.id, 'en'));
 }
 
+/** Ownership checks and filesystem seams for atomic task source replacement. @private */
+export interface TaskSourceWriteOptions extends FileReplacementOptions {
+    assertOwned?: () => Promise<void>;
+}
+
 /** Replace a task source atomically after verifying the complete discovery revision. */
-async function rewriteTaskSource(task: TaskDefinition, change: (text: string) => string): Promise<TaskDefinition> {
+async function rewriteTaskSource(task: TaskDefinition, change: (text: string) => string, options: TaskSourceWriteOptions = {}): Promise<TaskDefinition> {
+    await options.assertOwned?.();
     if (task.source.projectPath) await assertConfined(task.source.path, task.source.projectPath);
     const text = await readFile(task.source.path, 'utf8');
     if (checksum(text) !== task.source.revision) throw new Error(`Source changed concurrently: ${task.source.path}; retained current contents and refused status update.`);
@@ -493,8 +500,17 @@ async function rewriteTaskSource(task: TaskDefinition, change: (text: string) =>
     const temporary = `${task.source.path}.${randomUUID()}.tmp`;
     try {
         await writeFile(temporary, updated, { flag: 'wx', mode: stat.mode });
-        if (checksum(await readFile(task.source.path, 'utf8')) !== task.source.revision) throw new Error(`Source changed concurrently: ${task.source.path}.`);
-        await rename(temporary, task.source.path);
+        // A Windows reader or virus scanner can briefly hold the destination open. Retain the
+        // same complete candidate and original file, and revalidate ownership and user edits
+        // after every wait rather than unlinking the destination or rebuilding the candidate.
+        await replaceFileWithRetry(temporary, task.source.path, async () => {
+            await options.assertOwned?.();
+            if (task.source.projectPath) await assertConfined(task.source.path, task.source.projectPath);
+            const current = await lstat(task.source.path);
+            if (current.isSymbolicLink()) throw new Error(`Refusing to replace symbolic link task source: ${task.source.path}`);
+            if (!current.isFile()) throw new Error(`Refusing to replace non-file task source: ${task.source.path}`);
+            if (checksum(await readFile(task.source.path, 'utf8')) !== task.source.revision) throw new Error(`Source changed concurrently: ${task.source.path}.`);
+        }, options);
     } finally { await unlink(temporary).catch((error: NodeJS.ErrnoException) => { if (error.code !== 'ENOENT') throw error; }); }
     const timezone = task.scheduleTimezone ?? 'UTC';
     const parsed = task.source.format === 'book' ? parseBook(updated, task.source.path, timezone) : parseMarkdown(updated, task.source.path, timezone).find((candidate) => candidate.source.sectionIndex === task.source.sectionIndex);
@@ -517,9 +533,9 @@ function appendControl(text: string, control: string): string {
 }
 
 /** Materialize a stable ID only during an explicitly authorized mutation. @private */
-export async function assignTaskId(task: TaskDefinition): Promise<TaskDefinition> {
+export async function assignTaskId(task: TaskDefinition, options: TaskSourceWriteOptions = {}): Promise<TaskDefinition> {
     if (task.source.format !== 'book' || task.source.explicitId) return task;
-    return rewriteTaskSource(task, (text) => appendControl(text, `TASK ID ${task.id}`));
+    return rewriteTaskSource(task, (text) => appendControl(text, `TASK ID ${task.id}`), options);
 }
 
 /** Routing/relationship controls changed by an ordinary Manager assignment. @private */
@@ -535,7 +551,7 @@ export interface TaskControlUpdates {
 }
 
 /** Update selected controls while preserving all other task source text. @private */
-export async function updateTaskControls(task: TaskDefinition, updates: TaskControlUpdates): Promise<TaskDefinition> {
+export async function updateTaskControls(task: TaskDefinition, updates: TaskControlUpdates, options: TaskSourceWriteOptions = {}): Promise<TaskDefinition> {
     if (task.source.format !== 'book') throw new Error('Typed task controls require a task Book; migrate this Markdown task explicitly first.');
     return rewriteTaskSource(task, (text) => {
         const fields: Record<keyof TaskControlUpdates, string> = {
@@ -569,24 +585,24 @@ export async function updateTaskControls(task: TaskDefinition, updates: TaskCont
         const parsed = parseBook(updated, task.source.path, task.scheduleTimezone ?? 'UTC');
         if (!parsed || parsed.diagnostics.length) throw new Error(`Invalid task control update: ${parsed?.diagnostics.join('; ') ?? 'not a task Book'}`);
         return updated;
-    });
+    }, options);
 }
 
 /** Append one accepted occurrence's actual completion timestamp without retiring recurrence. @private */
-export async function recordTaskCompletion(task: TaskDefinition, timestamp: number | string = Date.now()): Promise<TaskDefinition> {
-    if (task.source.format === 'markdown') return updateTaskStatus(task, 'done');
+export async function recordTaskCompletion(task: TaskDefinition, timestamp: number | string = Date.now(), options: TaskSourceWriteOptions = {}): Promise<TaskDefinition> {
+    if (task.source.format === 'markdown') return updateTaskStatus(task, 'done', options);
     const stamp = typeof timestamp === 'number' ? new Date(timestamp).toISOString() : timestamp;
     if (!/[T ][^\n]+(?:Z|[+-]\d{2}:\d{2})$/.test(stamp)) throw new Error('Completion requires an actual timestamp with an explicit timezone.');
     parseDate(stamp, 'UTC');
     if (task.diagnostics.length) throw new Error(`Cannot complete an invalid task source: ${task.diagnostics.join('; ')}`);
-    return rewriteTaskSource(task, (text) => appendControl(appendControl(text, `TASK DONE ${stamp}`), `TASK NOTE ptbk-completion-source ${completionRevision(task)}`));
+    return rewriteTaskSource(task, (text) => appendControl(appendControl(text, `TASK DONE ${stamp}`), `TASK NOTE ptbk-completion-source ${completionRevision(task)}`), options);
 }
 
 /** Replace legacy state or explicit Book holds while retaining descriptive content. @private */
-export async function updateTaskStatus(task: TaskDefinition, status: TaskStatus): Promise<TaskDefinition> {
+export async function updateTaskStatus(task: TaskDefinition, status: TaskStatus, options: TaskSourceWriteOptions = {}): Promise<TaskDefinition> {
     if (!STATUSES.has(status)) throw new Error(`Invalid task status ${status}.`);
     if (task.source.format === 'book') {
-        if (status === 'done') return recordTaskCompletion(task);
+        if (status === 'done') return recordTaskCompletion(task, Date.now(), options);
         if (status === 'in-progress') return task;
         return rewriteTaskSource(task, (text) => {
             const statusLine = task.source.statusLine ?? parseBook(text, task.source.path, task.scheduleTimezone ?? 'UTC')?.source.statusLine;
@@ -596,7 +612,7 @@ export async function updateTaskStatus(task: TaskDefinition, status: TaskStatus)
             if (!/^TASK STATUS[ \t]+/.test(line)) throw new Error(`TASK STATUS location changed in ${task.source.path}.`);
             lines[statusLine - 1] = line.replace(/^(TASK STATUS[ \t]+)[^\r\n]*/, `$1${status}`);
             return lines.join('\n');
-        });
+        }, options);
     }
     return rewriteTaskSource(task, (text) => {
         const section = markdownSections(text)[task.source.sectionIndex];
@@ -612,5 +628,5 @@ export async function updateTaskStatus(task: TaskDefinition, status: TaskStatus)
             ? section.text.replace(control, `$1${marker}$2`)
             : `${section.text.slice(0, lineStart)}[${marker}]${newline}${section.text.slice(lineStart)}`;
         return text.slice(0, section.start) + changedSection + text.slice(section.end);
-    });
+    }, options);
 }

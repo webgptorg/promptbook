@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import QRCode from 'qrcode';
 import type { Workspace, TaskDefinition, EligibilityResult, OccurrenceState } from './domain.js';
-import { atomicWrite, acquireLease, readLedger, listRecovery, processBirth } from './state.js';
+import { atomicWrite, acquireLease, readLedger, listRecovery, processBirth, type WorkspaceLease } from './state.js';
+import { replaceFileWithRetry, type FileReplacementOptions } from './file-replacement.js';
 import { runQueue, recoverTask, validateRunOptions, type RunOptions, type RunResult, type EngineEvent } from './engine.js';
 import { discoverTasks, serializeTaskBook, assignTaskId, updateTaskControls, checksum, assertConfined } from './sources.js';
 import { evaluateEligibility } from './schedule.js';
@@ -47,6 +48,28 @@ export interface RuntimeControl {
     snapshot(): Promise<Record<string, unknown>>;
     command(action: string, input?: Record<string, unknown>): Promise<unknown>;
     token: string;
+}
+/**
+ * Save an optimistic dashboard edit while rechecking source and writer ownership before each replacement attempt.
+ * @private Internal shared service control operation.
+ */
+export async function saveTaskEdit(workspace: Workspace, sourcePath: string, previous: Buffer, content: string,
+    lease: Pick<WorkspaceLease, 'assertOwned'>, replacementOptions: FileReplacementOptions = {}): Promise<void> {
+    await assertConfined(sourcePath, workspace.projectPath);
+    const attributes = await lstat(sourcePath);
+    if (!attributes.isFile()) throw new Error('Task editing requires an ordinary project-local source file.');
+    const temporary = `${sourcePath}.${randomUUID()}.tmp`;
+    try {
+        await writeFile(temporary, content, { flag: 'wx', mode: attributes.mode });
+        await replaceFileWithRetry(temporary, sourcePath, async () => {
+            await lease.assertOwned();
+            await assertConfined(sourcePath, workspace.projectPath);
+            if (!(await lstat(sourcePath)).isFile()) throw new Error('Task editing requires an ordinary project-local source file.');
+            if (!(await readFile(sourcePath)).equals(previous)) throw new Error('Source changed while saving; reload before editing.');
+        }, replacementOptions);
+    } finally {
+        await unlink(temporary).catch(error => { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; });
+    }
 }
 /** Settings that require process restart are identified before applying them. */
 const STARTUP_SETTINGS = new Set(['mode', 'port', 'noServer', 'noPersist']);
@@ -270,7 +293,7 @@ async function assignment(workspace: Workspace, target: TaskDefinition, inventor
         const baseline = await captureSnapshot(workspace.gitRoot ?? workspace.projectPath);
         const targetPath = relative(baseline.root, target.source.path).split('\\').join('/');
         if (baseline.dirtyPaths.includes(targetPath)) throw new InputError('Manager cannot change or assign an uncommitted task source; preserve and commit its current edits first.');
-        target = await assignTaskId(target);
+        target = await assignTaskId(target, { assertOwned: () => lease.assertOwned() });
         const id = randomUUID();
         const legacy = target.source.format === 'markdown';
         const routing = relative(workspace.projectPath, join(workspace.tasksPath, 'routing', `${target.id}.json`)).split('\\').join('/');
@@ -278,7 +301,7 @@ async function assignment(workspace: Workspace, target: TaskDefinition, inventor
             ? `Keep the original Markdown source unchanged. Create ${routing} as JSON with version:1, taskId:${JSON.stringify(target.id)}, sourcePayloadChecksum:${JSON.stringify(checksum(target.payload))}, agent and harness strings, and optional model/thinkingLevel strings. This readable result file supplies the legacy task's routing after this assignment completes.`
             : `Write TASK AGENT and TASK HARNESS in the target source; select a supported model/thinking setting when known or use the harness's native default without inventing one. Preserve its assignment prerequisite #${id}.`;
         const generated = await systemTask(workspace, { id, title: `Assign ${target.title}`, agent: '@Manager', harness: options.harness || inventories.find(item => item.usable)?.name, model: options.model, thinkingLevel: options.thinkingLevel, priority: target.priority, parent: `#${target.id}`, origin: `engine:assignment:${target.id}`, payload: `Select only missing execution choices in ${target.source.relativePath} for task #${target.id}. Preserve every explicit requirement. Available authorized harness inventory:\n${JSON.stringify(inventories)}\nAvailable ordinary roles: ${(await discoverAgents(workspace.projectPath)).filter(agent => !agent.hidden).map(agent => agent.name).join(', ')}. Resolve natural-language priority if needed and retain its original wording in TASK NOTE. ${resultInstructions} Do not implement the target task.` });
-        if (!legacy) await updateTaskControls(target, { dependencies: [...(target.dependencies || []), `#${id}`] });
+        if (!legacy) await updateTaskControls(target, { dependencies: [...(target.dependencies || []), `#${id}`] }, { assertOwned: () => lease.assertOwned() });
         await lease.assertOwned();
         await commitScoped(baseline, `Create assignment for ${target.title}`, { paths: [targetPath, relative(baseline.root, generated.source.path).split('\\').join('/')], protectedPaths: baseline.dirtyPaths });
         return true;
@@ -436,13 +459,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                     if (!attributes.isFile()) throw new Error('Task editing requires an ordinary project-local source file.');
                     const previous = await readFile(task.source.path);
                     if (checksum(previous) !== input.revision) throw new Error('Source changed; reload before editing.');
-                    const temporary = `${task.source.path}.${randomUUID()}.tmp`;
-                    try {
-                        await writeFile(temporary, input.content, { flag: 'wx', mode: attributes.mode });
-                        await lease.assertOwned(); await assertConfined(task.source.path, workspace.projectPath);
-                        if (!(await readFile(task.source.path)).equals(previous)) throw new Error('Source changed while saving; reload before editing.');
-                        await rename(temporary, task.source.path);
-                    } finally { await unlink(temporary).catch(error => { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }); }
+                    await saveTaskEdit(workspace, task.source.path, previous, input.content, lease);
                     lastWake = 0; return { saved: true };
                 } finally { await lease.release(); }
             }

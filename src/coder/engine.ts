@@ -13,6 +13,7 @@ import { confinePath, InputError, resolveAgentSelection } from './workspace.js';
 import { acquireLease, atomicWrite, listRecovery, readJournals, readLedger, saveLedger, writeJournal, type AttemptRecord, type Ledger, type RunJournal, type WorkspaceLease } from './state.js';
 import { alignOwnedIndex, assertSnapshot, captureSnapshot, changedPaths, commitIdentity, commitScoped, discoverGit, git, GitPersistenceError, normalizeOwned, readFileSnapshot, sameFile, writeFileSnapshot, type GitIdentity, type GitSnapshot } from './git.js';
 import { installedEngineVersion } from './version.js';
+import type { FileReplacementOptions } from './file-replacement.js';
 
 /** Shared terminal/server event, containing only redacted diagnostics. @private */
 export interface EngineEvent { type: string; message: string; taskId?: string; occurrenceId?: string; time: number; [key: string]: unknown }
@@ -38,6 +39,8 @@ export interface RunOptions {
     redactProjectPath?: string;
     identity?: GitIdentity; contextNoticeShown?: boolean;
     assertOwned?: () => Promise<void>;
+    /** Filesystem seams for verifying task publication failures without repeating inference. */
+    sourceWriteOptions?: FileReplacementOptions;
     requireAcceptance?: boolean; tools?: BridgeTool[]; requestProjectPath?: string; taskId?: string; onlyTaskId?: string;
     toolsForHarness?: (harness: string, taskId: string, occurrenceId: string) => BridgeTool[];
     verifyOutcome?: (task: TaskDefinition, response: HarnessResult, workspace: Workspace) => Promise<{ satisfied: boolean; evidence: string }>;
@@ -357,7 +360,7 @@ async function complete(workspace: Workspace, journal: RunJournal, ledger: Ledge
     try {
         if (journal.task.source.sectionIndex >= 0) {
             journal.metadataPaths.push(path.relative(workspace.gitRoot!, journal.task.source.path).split(path.sep).join('/'));
-            journal.task = await recordTaskCompletion(journal.task, (options.now ?? Date.now)());
+            journal.task = await recordTaskCompletion(journal.task, (options.now ?? Date.now)(), { ...options.sourceWriteOptions, assertOwned: options.assertOwned });
         } else {
             const directory = await confinePath(workspace.projectPath, workspace.tasksPath);
             await fs.mkdir(directory, { recursive: true });
@@ -383,7 +386,10 @@ async function complete(workspace: Workspace, journal: RunJournal, ledger: Ledge
         if (candidate) {
             for (const name of journal.metadataPaths ?? []) {
                 const live = await readFileSnapshot(workspace.gitRoot!, name);
-                if (sameFile(live, candidate.files[name])) await writeFileSnapshot(workspace.gitRoot!, name, beforeMetadata.files[name]);
+                if (sameFile(live, candidate.files[name]) && !sameFile(live, beforeMetadata.files[name])) {
+                    await options.assertOwned?.();
+                    await writeFileSnapshot(workspace.gitRoot!, name, beforeMetadata.files[name]);
+                }
             }
             journal.completionRollback = await captureSnapshot(workspace.gitRoot!);
         }
@@ -574,7 +580,7 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
             await announceIdentity(workspace, options, result);
             await assertSource(selected);
             const baseline = await captureSnapshot(workspace.gitRoot!);
-            if (!options.isolate) selected = await assignTaskId(selected);
+            if (!options.isolate) selected = await assignTaskId(selected, { ...options.sourceWriteOptions, assertOwned: options.assertOwned });
             const journal = await claim(workspace, selected, ledger, baseline, original.dirtyPaths, dueSlot ?? lastStart, options);
             emit(result, options, 'claimed', `Claimed ${selected.title}.`, selected, { occurrenceId: journal.occurrenceId });
             if (options.isolate) await executeIsolated(workspace, journal, ledger, options, result);
@@ -656,7 +662,7 @@ async function executeIsolated(workspace: Workspace, journal: RunJournal, ledger
         }
         const sourceTask = (await discoverTasks(isolated)).find((task) => task.id === journal.taskId);
         if (!sourceTask) throw new Error('Task source could not be mapped into the isolation worktree.');
-        journal.baseline = await captureSnapshot(view); journal.task = await assignTaskId(sourceTask); journal.protectedPaths = [];
+        journal.baseline = await captureSnapshot(view); journal.task = await assignTaskId(sourceTask, { ...options.sourceWriteOptions, assertOwned: options.assertOwned }); journal.protectedPaths = [];
         journal.isolation = { view, branch: isolationBranch, origin, sourcePath: path.relative(root, workspace.projectPath) };
         const isolatedOptions = { ...options, isolate: false, autoPush: false,
             agent: options.agent ? /^(https:|ptbk:)/.test(options.agent) ? options.agent : map(await resolveAgent(workspace, options.agent)) : undefined };

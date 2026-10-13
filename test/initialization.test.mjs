@@ -15,8 +15,8 @@ const execute = promisify(execFile);
 /** Execute a Git command in one isolated fixture. */
 async function git(root, args) { return (await execute('git', ['-C', root, ...args])).stdout; }
 /** Create a temporary directory, optionally with an unborn Git repository. */
-async function fixture(t, repository = true) {
-    const root = await realpath(await mkdtemp(join(tmpdir(), 'ptbk initialization ')));
+async function fixture(t, repository = true, prefix = 'ptbk initialization ') {
+    const root = await realpath(await mkdtemp(join(tmpdir(), prefix)));
     t.after(() => rm(root, { recursive: true, force: true }));
     if (repository) {
         await git(root, ['init', '-q']);
@@ -151,9 +151,10 @@ test('new child initialization refuses nonempty or tracked destinations without 
     assert.deepEqual((await readdir(parent)).sort(), ['.git', 'child']);
 });
 
-test('submodule registration keeps source, child baseline and unrelated parent staging without committing parent', async t => {
+test('submodule registration keeps escaped source, child baseline and unrelated parent staging without committing parent', async t => {
     const parent = await fixture(t);
-    const source = await fixture(t);
+    // Windows separators already require Git config escaping; use a literal backslash on other platforms too.
+    const source = await fixture(t, true, process.platform === 'win32' ? 'ptbk initialization ' : 'ptbk initialization \\source ');
     await writeFile(join(source, '.gitignore'), '.ptbk/\n');
     await writeFile(join(source, 'source.txt'), 'Initial source\n');
     await git(source, ['add', '--', '.gitignore', 'source.txt']);
@@ -170,7 +171,8 @@ test('submodule registration keeps source, child baseline and unrelated parent s
     const childHead = await readHead(child);
     const changed = await finalizeInitializationDestination(prepared);
     assert.deepEqual(changed, [join(parent, '.gitmodules'), child]);
-    assert.match(await readFile(join(parent, '.gitmodules'), 'utf8'), new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.equal(await git(parent, ['config', '--file', '.gitmodules', '--null', '--get', 'submodule.child.url']), `${source}\0`);
+    assert.equal(await git(parent, ['config', '--file', '.gitmodules', '--null', '--get', 'submodule.child.path']), 'child\0');
     assert.equal(await git(parent, ['ls-files', '--stage', '-z', '--', 'owner.txt']), ownerEntry);
     assert.equal(await readHead(parent), parentHead);
     assert.equal(await readHead(child), childHead);
