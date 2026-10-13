@@ -325,6 +325,38 @@ test('missing, ambiguous and cyclic prerequisites remain explicit while parent g
     assert.ok(tasks.find((task) => task.id === 'a').relationshipDiagnostics.some((message) => /Ambiguous prerequisite/.test(message)));
 });
 
+test('transitive prerequisite validity is independent of source order and task priority', async t => {
+    const workspace = await fixture(t);
+    await writeFile(path.join(workspace.tasksPath, 'a-consumer.book'), 'TASK Consumer\nTASK ID consumer\nTASK DEPENDS ON #middle\nTASK PRIORITY 10\n');
+    await writeFile(path.join(workspace.tasksPath, 'b-middle.book'), 'TASK Middle\nTASK ID middle\nTASK DEPENDS ON #leaf\nTASK DONE 2026-10-14T12:00:00Z\n');
+    await writeFile(path.join(workspace.tasksPath, 'z-leaf.book'), 'TASK Leaf\nTASK ID leaf\n');
+    const context = { now: Date.now(), timezone: 'UTC' };
+    let tasks = await discoverTasks(workspace);
+    for (const id of ['consumer', 'middle']) assert.equal(evaluateEligibility(tasks.find(task => task.id === id), context).kind, 'blocked', id);
+    await recordTaskCompletion(tasks.find(task => task.id === 'leaf'), '2026-10-14T12:00:00Z');
+    tasks = await discoverTasks(workspace);
+    assert.equal(evaluateEligibility(tasks.find(task => task.id === 'consumer'), context).kind, 'ready');
+});
+
+test('recurring prerequisite results certify the completed assignment rather than a subsequently edited payload', async t => {
+    const workspace = await fixture(t);
+    const recurring = path.join(workspace.tasksPath, 'recurring.book');
+    await writeFile(recurring, 'TASK Recurring\nOriginal work.\nTASK ID recurring\nTASK REPEAT 1d\n');
+    await writeFile(path.join(workspace.tasksPath, 'consumer.book'), 'TASK Consumer\nTASK ID consumer\nTASK DEPENDS ON #recurring\n');
+    let tasks = await discoverTasks(workspace);
+    await recordTaskCompletion(tasks.find(task => task.id === 'recurring'), '2026-10-14T12:00:00Z');
+    const context = { now: Date.now(), timezone: 'UTC' };
+    tasks = await discoverTasks(workspace);
+    assert.equal(evaluateEligibility(tasks.find(task => task.id === 'consumer'), context).kind, 'ready');
+    await writeFile(recurring, (await readFile(recurring, 'utf8')).replace('Original work.', 'Revised work.'));
+    tasks = await discoverTasks(workspace);
+    assert.equal(evaluateEligibility(tasks.find(task => task.id === 'consumer'), context).kind, 'blocked');
+    assert.equal(evaluateEligibility(tasks.find(task => task.id === 'recurring'), context).kind, 'ready');
+    await recordTaskCompletion(tasks.find(task => task.id === 'recurring'), '2026-10-15T12:00:00Z');
+    tasks = await discoverTasks(workspace);
+    assert.equal(evaluateEligibility(tasks.find(task => task.id === 'consumer'), context).kind, 'ready');
+});
+
 test('Manager control updates preserve prose and fenced examples and reject concurrent source edits', async (t) => {
     const workspace = await fixture(t);
     const file = path.join(workspace.tasksPath, 'work.book');

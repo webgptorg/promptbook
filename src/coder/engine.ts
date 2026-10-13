@@ -512,6 +512,27 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
     options.assertOwned = () => lease.assertOwned();
     try {
         const seen = new Set<string>(); let lastStart: number | undefined; let configurationFrozen = false;
+        const deferred = new Map<string, string>();
+        const wakeUps = new Map<string, number>();
+        /** Keep the reported next time tied to work that is still pending. */
+        function refreshNextWakeUp(): void {
+            result.nextWakeUp = undefined;
+            for (const time of wakeUps.values()) result.nextWakeUp = Math.min(result.nextWakeUp ?? Infinity, time);
+        }
+        /** Remove a temporary skip once the task becomes eligible or leaves the queue. */
+        function clearDeferral(taskId: string): void {
+            if (deferred.delete(taskId)) result.skipped--;
+            wakeUps.delete(taskId);
+        }
+        /** Report changed readiness once, without preventing later reevaluation. */
+        function deferTask(task: TaskDefinition, eligibility: EligibilityResult): void {
+            const signature = JSON.stringify([eligibility.kind, eligibility.reason, eligibility.nextWakeUp, task.source.revision]);
+            if (!deferred.has(task.id)) result.skipped++;
+            if (deferred.get(task.id) !== signature) emit(result, options, eligibility.kind, `${task.title}: ${eligibility.reason}`, task);
+            deferred.set(task.id, signature);
+            if (eligibility.nextWakeUp !== undefined) wakeUps.set(task.id, eligibility.nextWakeUp);
+            else wakeUps.delete(task.id);
+        }
         const initialTaskIds = new Set((await discoverTasks(workspace)).map(task => task.id));
         if (options.gitChanges === 'continue') {
             if (options.limit === 0) return result;
@@ -521,6 +542,7 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
             await resumeOne(workspace, options, result, lease, options.onlyTaskId);
             if (result.failed || result.syncPending || options.signal?.aborted || options.shouldStop?.() || result.completed >= (options.limit ?? Infinity)) return result;
             seen.add(candidates[0]!.taskId);
+            if (candidates[0]!.task.repeat) wakeUps.set(candidates[0]!.taskId, candidates[0]!.dueSlot + candidates[0]!.task.repeat);
             // Recovery establishes its own old boundary; subsequent work requires a clean checkout.
             options.gitChanges = 'fail';
             await wait(options.waitAfterPrompt ?? 0, options);
@@ -544,21 +566,24 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
             if (options.shouldStop?.() || options.signal?.aborted) break;
             await lease.assertOwned();
             const ledger = await readLedger(workspace); const tasks = await discoverTasks(workspace);
+            const present = new Set(tasks.map(task => task.id));
+            for (const taskId of deferred.keys()) if (!present.has(taskId)) clearDeferral(taskId);
             let selected: TaskDefinition | undefined; let dueSlot: number | undefined;
             for (const task of tasks) {
                 if (!initialTaskIds.has(task.id) || options.onlyTaskId && task.id !== options.onlyTaskId) continue;
-                if (configurationFrozen && (task.model && !options.model || task.thinkingLevel && !options.thinkingLevel)) {
-                    seen.add(task.id); result.skipped++; emit(result, options, 'filtered', `${task.title}: explicit model or thinking requirement cannot be matched to this invocation's unreported native default.`, task); continue;
-                }
                 if (seen.has(task.id)) continue;
+                if (configurationFrozen && (task.model && !options.model || task.thinkingLevel && !options.thinkingLevel)) {
+                    deferTask(task, { kind: 'filtered', reason: "explicit model or thinking requirement cannot be matched to this invocation's unreported native default." }); continue;
+                }
                 const eligibility = await taskEligibility(workspace, task, options, ledger);
                 if (eligibility.kind === 'ready') {
-                    if (!(options.harness ?? task.harness)) { emit(result, options, 'blocked', `${task.title}: no configured harness; use --harness.`, task); seen.add(task.id); result.skipped++; continue; }
+                    if (!(options.harness ?? task.harness)) { deferTask(task, { kind: 'blocked', reason: 'no configured harness; use --harness.' }); continue; }
+                    clearDeferral(task.id);
                     selected = task; dueSlot = eligibility.dueSlot; break;
                 }
-                seen.add(task.id); result.skipped++; emit(result, options, eligibility.kind, `${task.title}: ${eligibility.reason}`, task);
-                if (eligibility.nextWakeUp !== undefined) result.nextWakeUp = Math.min(result.nextWakeUp ?? Infinity, eligibility.nextWakeUp);
+                deferTask(task, eligibility);
             }
+            refreshNextWakeUp();
             if (!selected) break;
             const priorExternalResult = (await readJournals(workspace, journal => journal.taskId === selected!.id && journal.phase === 'completed' && Boolean(journal.externalEffects) && !journal.task.repeat && journal.sourceSnapshot?.payloadHash === createHash('sha256').update(selected!.payload).digest('hex')))[0];
             if (priorExternalResult) {
@@ -583,8 +608,11 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
             if (!options.isolate) selected = await assignTaskId(selected, { ...options.sourceWriteOptions, assertOwned: options.assertOwned });
             const journal = await claim(workspace, selected, ledger, baseline, original.dirtyPaths, dueSlot ?? lastStart, options);
             emit(result, options, 'claimed', `Claimed ${selected.title}.`, selected, { occurrenceId: journal.occurrenceId });
+            const completedBeforeTask = result.completed;
             if (options.isolate) await executeIsolated(workspace, journal, ledger, options, result);
             else await execute(workspace, journal, ledger, options, result);
+            if (result.completed > completedBeforeTask && selected.repeat) wakeUps.set(selected.id, journal.dueSlot + selected.repeat);
+            refreshNextWakeUp();
             configurationFrozen = true; options.harness ??= journal.harness; options.model ??= journal.model ?? journal.effectiveModel; options.thinkingLevel ??= journal.thinkingLevel;
             if (result.failed || result.syncPending || result.completed >= (options.limit ?? Infinity)) break;
             await options.onTaskBoundary?.(options);

@@ -22,6 +22,11 @@ const PRIORITIES: Record<string, number> = { lowest: 0, low: 0, ordinary: 0, nor
 /** Complete task control keywords, ordered longest first. */
 const TASK_CONTROLS = ['TASK THINKING LEVEL', 'TASK DEPENDS ON', 'TASK DUE DATE', 'TASK PRIORITY', 'TASK HARNESS', 'TASK RUNNER', 'TASK STATUS', 'TASK ORIGIN', 'TASK PARENT', 'TASK REPEAT', 'TASK AGENT', 'TASK MODEL', 'TASK AFTER', 'TASK DONE', 'TASK NOTE', 'TASK ID'];
 
+/** Shared task instructions and their documented aliases have one effective meaning. */
+const TASK_INSTRUCTIONS: Readonly<Record<string, string>> = {
+    RULE: 'RULE', RULES: 'RULE', NOTE: 'NOTE', NOTES: 'NOTE', COMMENT: 'NOTE', NONCE: 'NOTE', TODO: 'NOTE',
+};
+
 /** Legacy checkbox mappings. */
 const MARKERS: Record<string, TaskStatus> = { ' ': 'todo', '-': 'not-ready', '.': 'not-ready', '^': 'in-progress', x: 'done', X: 'done', '!': 'failed' };
 
@@ -127,9 +132,9 @@ function bookBlocks(lines: string[], from: number): { blocks: BookBlock[]; descr
             (blocks.at(-1)?.body ?? description).push(line);
             continue;
         }
-        const name = !fence && [...TASK_CONTROLS, 'RULE', 'NOTE'].find((keyword) => line === keyword || line.startsWith(`${keyword} `) || line.startsWith(`${keyword}\t`) || line === `${keyword}\r`);
+        const name = !fence && [...TASK_CONTROLS, ...Object.keys(TASK_INSTRUCTIONS)].find((keyword) => line === keyword || line.startsWith(`${keyword} `) || line.startsWith(`${keyword}\t`) || line === `${keyword}\r`);
         const unknown = !fence && /^(TASK(?:[ \t]+[A-Z][A-Z0-9_-]*)?|STATUS|PRIORITY|AGENT|HARNESS|MODEL|RUNNER|AFTER|REPEAT|PROMPT|META)(?:[ \t]+(.*))?\r?$/.exec(line);
-        if (name) blocks.push({ name, argument: line.slice(name.length).trim(), body: [], line: index + 1 });
+        if (name) blocks.push({ name: TASK_INSTRUCTIONS[name] ?? name, argument: line.slice(name.length).trim(), body: [], line: index + 1 });
         else if (unknown) blocks.push({ name: unknown[1]!, argument: unknown[2] ?? '', body: [], line: index + 1 });
         else (blocks.at(-1)?.body ?? description).push(line);
     }
@@ -157,6 +162,12 @@ function completionRevision(task: TaskDefinition): string {
     return checksum(JSON.stringify([task.title, task.payload, task.rules]));
 }
 
+/** Match the latest engine completion evidence against the current assignment. */
+function completionMatchesAssignment(task: TaskDefinition): boolean {
+    const proof = task.metadata?.slice().reverse().find((meta) => /^TASK NOTE ptbk-completion-source [a-f0-9]{64}$/.test(meta));
+    return !proof || proof.slice(-64) === completionRevision(task);
+}
+
 /** Validate migration provenance before discovery uses it for source authority. */
 function originValue(value: string): MigrationOrigin {
     const parsed: unknown = JSON.parse(value);
@@ -170,14 +181,14 @@ function originValue(value: string): MigrationOrigin {
 
 /** Parse a task Book; an agent Book never becomes a task implicitly. @private */
 export function parseBook(text: string, file: string, timezone: string): TaskDefinition | null {
-    const lines = text.split('\n');
+    const lines = text.replace(/^\uFEFF/, '').split('\n');
     const first = lines.findIndex((line) => line.trim());
     if (first < 0) return null;
     if (!/^TASK(?:[ \t]|\r?$)/.test(lines[first]!)) return null;
     const task = taskBase(text, file, 'book', 0);
     task.title = lines[first]!.replace(/^TASK(?:[ \t]+)?/, '').trim();
     if (!task.title) task.diagnostics.push(`${file}:${first + 1}: TASK requires a nonempty title.`);
-    if (TASK_CONTROLS.some((keyword) => lines[first] === keyword || lines[first]!.startsWith(`${keyword} `))) {
+    if (TASK_CONTROLS.some((keyword) => lines[first]!.trimEnd() === keyword || lines[first]!.startsWith(`${keyword} `) || lines[first]!.startsWith(`${keyword}\t`))) {
         task.diagnostics.push(`${file}:${first + 1}: A task control cannot replace the first-line TASK title declaration.`);
     }
     task.metadata = [];
@@ -279,8 +290,7 @@ export function parseBook(text: string, file: string, timezone: string): TaskDef
     if (!task.payload.trim() && !task.title) task.diagnostics.push(`${file}: Task description is empty.`);
     if (task.doneTimestamps.includes('unknown') && !task.origin && !task.source.origin) task.diagnostics.push(`${file}: Unknown historical completion requires explicit conversion provenance in TASK ORIGIN.`);
     if (!task.repeat && task.doneTimestamps.length && task.status === 'todo') task.status = 'done';
-    const proof = task.metadata.slice().reverse().find((meta) => /^TASK NOTE ptbk-completion-source [a-f0-9]{64}$/.test(meta));
-    if (task.status === 'done' && proof && proof.slice(-64) !== completionRevision(task)) {
+    if (task.status === 'done' && !completionMatchesAssignment(task)) {
         task.diagnostics.push(`${file}: Completed assignment changed after its accepted result; review its completion evidence before using it as a prerequisite.`);
     }
     task.scheduleRevision = scheduleRevision(task.after, task.repeat);
@@ -394,6 +404,7 @@ function bindRelationships(tasks: TaskDefinition[]): void {
     }
     const visited = new Set<TaskDefinition>();
     const active: TaskDefinition[] = [];
+    const dependencyOrder: TaskDefinition[] = [];
     /** Mark only a cycle's participating definitions; dependents are checked separately. */
     function visit(task: TaskDefinition): void {
         const index = active.indexOf(task);
@@ -406,12 +417,14 @@ function bindRelationships(tasks: TaskDefinition[]): void {
         if (visited.has(task)) return;
         active.push(task);
         edges.get(task)?.forEach(visit);
-        active.pop(); visited.add(task);
+        active.pop(); visited.add(task); dependencyOrder.push(task);
     }
     tasks.forEach(visit);
-    for (const task of tasks) for (const predecessor of edges.get(task) ?? []) {
+    // Validate predecessors before consumers so invalid completion propagates through
+    // the entire graph independently of filenames, discovery order and priority.
+    for (const task of dependencyOrder) for (const predecessor of edges.get(task) ?? []) {
         const completed = predecessor.status === 'done' || Boolean(predecessor.repeat && predecessor.doneTimestamps?.length && ['todo', 'retired'].includes(predecessor.status));
-        if (!completed || predecessor.diagnostics.length || predecessor.relationshipDiagnostics?.length) {
+        if (!completed || !completionMatchesAssignment(predecessor) || predecessor.diagnostics.length || predecessor.relationshipDiagnostics?.length) {
             task.relationshipDiagnostics!.push(`Prerequisite #${predecessor.id} has no valid completed result in its current source (${predecessor.status}).`);
         }
     }

@@ -22,6 +22,25 @@ interface Commitment { keyword: string; value: string; source: string; line: num
 /** Known multi-line Book commitments; code fences remain literal content. @private */
 const COMMITMENTS = /^(PERSONAE?|GOALS?|RULES?|STYLES?|LANGUAGES?|WRITING SAMPLE|WRITING RULES?|SAMPLES?|EXAMPLES?|FORMATS?|TEMPLATES?|FROM|IMPORTS?|KNOWLEDGE|TEAM|MODELS?|META (?:INPUT PLACEHOLDER|IMAGE|AVATAR|VISUAL|COLOR|FONT|LINK|DOMAIN|DISCLAIMER|VISIBILITY|VOICE|DESCRIPTION|FULLNAME|ID|EMAIL)|NOTES?|COMMENTS?|NONCE|TODO|CLOSED|OPEN|DELETE|CANCEL|DISCARD|REMOVE|CONTEXT|EXPECT|BEHAVIOURS?|AVOID(?:ANCE)?|MESSAGE(?: SUFFIX)?|INITIAL MESSAGE|DICTIONARY|USE (?:USER LOCATION|CALENDAR|POPUP|IMAGE GENERATOR|MCP|PRIVACY|PROJECT)|ACTIONS?)(?:[ \t]+(.*)|$)/;
 
+/** Canonical meanings shared by parsing and explicit instruction withdrawal. */
+const COMMITMENT_ALIASES: Readonly<Record<string, string>> = {
+    PERSONAE: 'PERSONA', GOALS: 'GOAL', RULES: 'RULE', STYLES: 'STYLE', LANGUAGES: 'LANGUAGE',
+    'WRITING RULE': 'WRITING RULES', SAMPLES: 'SAMPLE', EXAMPLE: 'SAMPLE', EXAMPLES: 'SAMPLE',
+    FORMATS: 'FORMAT', TEMPLATES: 'TEMPLATE', IMPORTS: 'IMPORT', MODELS: 'MODEL', ACTIONS: 'ACTION',
+    NOTES: 'NOTE', COMMENT: 'NOTE', COMMENTS: 'NOTE', NONCE: 'NOTE', TODO: 'NOTE',
+    CANCEL: 'DELETE', DISCARD: 'DELETE', REMOVE: 'DELETE',
+};
+
+/** Withdraw exactly one effective instruction, resolving keyword aliases consistently. */
+function withdrawCommitment(parts: Commitment[], declaration: Commitment): void {
+    const target = declaration.value.trim();
+    const reference = COMMITMENTS.exec(target);
+    const canonicalTarget = reference ? `${COMMITMENT_ALIASES[reference[1]!] ?? reference[1]} ${target.slice(reference[1]!.length).trim()}` : target;
+    const matches = parts.map((entry, index) => ({ entry, index })).filter(({ entry }) => `${entry.keyword} ${entry.value.trim()}` === canonicalTarget || entry.value.trim() === target);
+    if (matches.length !== 1) throw new Error(`${declaration.source}:${declaration.line}: DELETE target is ${matches.length ? 'ambiguous' : 'missing'}: ${target}`);
+    parts.splice(matches[0]!.index, 1);
+}
+
 /** Missing core definitions are created from these installed-engine defaults only. @private */
 export const CORE_BOOKS: Readonly<Record<string, string>> = {
     adam: 'Adam\n\nFROM Void\nPERSONA A careful project agent.\nRULE Follow project instructions, preserve existing work and report only evidence actually available.\nRULE Promptbook owns task claiming, checks and Git completion; do not commit or claim other tasks.\n',
@@ -62,11 +81,12 @@ function parseBook(text: string, source: string): { name: string; commitments: C
     const commitments: Commitment[] = [];
     let current: Commitment | undefined;
     let fence: string | undefined;
+    let fenceLine: number | undefined;
     for (const [index, line] of lines.slice(first + 1).entries()) {
         const opening = /^\s*(`{3,}|~{3,})/.exec(line);
         if (opening) {
-            if (!fence) fence = opening[1]!;
-            else if (opening[1]![0] === fence[0] && opening[1]!.length >= fence.length) fence = undefined;
+            if (!fence) { fence = opening[1]!; fenceLine = first + index + 2; }
+            else if (opening[1]![0] === fence[0] && opening[1]!.length >= fence.length && /^\s*(?:`+|~+)\s*$/.test(line)) { fence = undefined; fenceLine = undefined; }
             if (!current) commitments.push(current = { keyword: 'PERSONA', value: '', source, line: first + index + 2 });
             current.value += `\n${line}`;
             continue;
@@ -74,7 +94,7 @@ function parseBook(text: string, source: string): { name: string; commitments: C
         const match = !fence && COMMITMENTS.exec(line);
         if (!fence && /^TASK(?:\s|$)/.test(line)) throw new Error(`Task Book cannot be used as an agent: ${source}`);
         if (match) {
-            const keyword = match[1]!.replace(/^(IMPORT|RULE|STYLE|GOAL|FORMAT|TEMPLATE|LANGUAGE|SAMPLE|MODEL|ACTION|NOTE|COMMENT)S$/, '$1').replace(/^PERSONAE$/, 'PERSONA').replace(/^(CANCEL|DISCARD|REMOVE)$/, 'DELETE');
+            const keyword = COMMITMENT_ALIASES[match[1]!] ?? match[1]!;
             current = { keyword, value: match[2] || '', source, line: first + index + 2 };
             commitments.push(current);
         } else if (line.trim() || current) {
@@ -82,6 +102,7 @@ function parseBook(text: string, source: string): { name: string; commitments: C
             current.value += `\n${line}`;
         }
     }
+    if (fence) throw new Error(`${source}:${fenceLine}: Unclosed literal fence prevents reliable agent commitments.`);
     learningPolicy(commitments, source);
     const parents = commitments.filter((part) => part.keyword === 'FROM');
     if (parents.length > 1) throw new Error(`${source}:${parents[1]!.line}: conflicting FROM declarations; an agent has one parent`);
@@ -321,12 +342,8 @@ export async function readLocalAgentModel(agentPath: string, projectPath: string
                 const included = await expand(imported);
                 if (!included) return undefined;
                 expanded.push(...included);
-            } else if (part.keyword === 'DELETE') {
-                const target = part.value.trim();
-                const matches = expanded.map((entry, index) => ({ entry, index })).filter(({ entry }) => `${entry.keyword} ${entry.value.trim()}` === target || entry.value.trim() === target);
-                if (matches.length !== 1) throw new Error(`${part.source}:${part.line}: DELETE target is ${matches.length ? 'ambiguous' : 'missing'}: ${target}`);
-                expanded.splice(matches[0]!.index, 1);
-            } else if (part.keyword !== 'OPEN' && part.keyword !== 'CLOSED') expanded.push(part);
+            } else if (part.keyword === 'DELETE') withdrawCommitment(expanded, part);
+            else if (part.keyword !== 'OPEN' && part.keyword !== 'CLOSED') expanded.push(part);
         }
         stack.delete(path);
         return expanded;
@@ -367,12 +384,8 @@ export async function prepareAgent(agentPath: string, projectPath: string): Prom
         for (const part of parsed.commitments) {
             if (part.keyword === 'FROM') continue;
             if (part.keyword === 'IMPORT') expanded.push(...await expand(await resolveAgentReference(part.value, path, projectPath)));
-            else if (part.keyword === 'DELETE') {
-                const target = part.value.trim();
-                const matches = expanded.map((entry, index) => ({ entry, index })).filter(({ entry }) => `${entry.keyword} ${entry.value.trim()}` === target || entry.value.trim() === target);
-                if (matches.length !== 1) throw new Error(`${part.source}:${part.line}: DELETE target is ${matches.length ? 'ambiguous' : 'missing'}: ${target}`);
-                expanded.splice(matches[0]!.index, 1);
-            } else if (part.keyword !== 'OPEN' && part.keyword !== 'CLOSED') expanded.push(part);
+            else if (part.keyword === 'DELETE') withdrawCommitment(expanded, part);
+            else if (part.keyword !== 'OPEN' && part.keyword !== 'CLOSED') expanded.push(part);
         }
         stack.delete(path);
         return expanded;

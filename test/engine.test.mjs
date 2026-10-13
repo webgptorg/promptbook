@@ -92,6 +92,51 @@ function implement(content = 'agent\n') {
     return async request => { await writeFile(path.join(request.projectPath, 'code.txt'), content); return { outcome: 'success', exitCode: 0, output: 'Fixture completed.' }; };
 }
 
+test('finite runs reconsider existing dependent tasks after each accepted prerequisite result', async t => {
+    const workspace = await fixture(t, { empty: true });
+    await writeFile(path.join(workspace.tasksPath, 'dependent.book'), 'TASK Dependent\nDependent work.\nTASK ID dependent\nTASK DEPENDS ON #prerequisite\nTASK PRIORITY 10\n');
+    await writeFile(path.join(workspace.tasksPath, 'prerequisite.book'), 'TASK Prerequisite\nPrerequisite work.\nTASK ID prerequisite\n');
+    await writeFile(path.join(workspace.tasksPath, 'blocked.book'), 'TASK Missing prerequisite\nTASK ID blocked\nTASK DEPENDS ON #missing\nTASK PRIORITY 20\n');
+    await git(workspace.gitRoot, ['add', '--', 'tasks']);
+    await git(workspace.gitRoot, ['commit', '-qm', 'Dependent queue']);
+    const calls = [];
+    const result = await runQueue(workspace, { harness: 'openai-codex', runHarness: async request => {
+        calls.push(request.taskId);
+        await writeFile(path.join(request.projectPath, 'code.txt'), `${request.taskId}\n`);
+        if (request.taskId === 'prerequisite') await writeFile(path.join(request.projectPath, 'tasks', 'follow-up.book'), 'TASK Follow-up\nTASK ID follow-up\n');
+        return { outcome: 'success', exitCode: 0, output: 'Completed the selected work.' };
+    } });
+    assert.equal(result.exitCode, 0, JSON.stringify(result.events));
+    assert.deepEqual(calls, ['prerequisite', 'dependent']);
+    assert.equal(result.completed, 2);
+    assert.equal(result.skipped, 1);
+    assert.equal(result.commits.length, 2);
+    assert.equal(result.events.filter(event => event.type === 'blocked' && event.taskId === 'blocked').length, 1);
+    const tasks = await discoverTasks(workspace);
+    assert.equal(tasks.find(task => task.id === 'dependent').status, 'done');
+    assert.equal(tasks.find(task => task.id === 'follow-up').status, 'todo');
+});
+
+test('a future task can become eligible during finite work without waiting or leaving a stale next time', async t => {
+    const workspace = await fixture(t, { empty: true });
+    let now = Date.parse('2026-10-14T12:00:00Z');
+    await writeFile(path.join(workspace.tasksPath, 'future.book'), 'TASK Future\nTASK ID future\nTASK AFTER 2026-10-14T12:01:00Z\nTASK PRIORITY 10\n');
+    await writeFile(path.join(workspace.tasksPath, 'ready.book'), 'TASK Ready\nTASK ID ready\n');
+    await git(workspace.gitRoot, ['add', '--', 'tasks']);
+    await git(workspace.gitRoot, ['commit', '-qm', 'Timed queue']);
+    const calls = [];
+    const result = await runQueue(workspace, { harness: 'openai-codex', now: () => now, runHarness: async request => {
+        calls.push(request.taskId);
+        now += 60_000;
+        return implement(request.taskId)(request);
+    } });
+    assert.equal(result.exitCode, 0, JSON.stringify(result.events));
+    assert.deepEqual(calls, ['ready', 'future']);
+    assert.equal(result.completed, 2);
+    assert.equal(result.skipped, 0);
+    assert.equal(result.nextWakeUp, undefined);
+});
+
 test('exhausted task publication retains checked work and the original source file, then resumes without inference', async t => {
     const workspace = await fixture(t);
     await writeFile(path.join(workspace.projectPath, 'check.cjs'), 'process.exit(0);\n');
