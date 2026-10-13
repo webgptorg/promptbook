@@ -11,6 +11,7 @@ Project agents are editable Books under `agents/`. Core agents are editable Book
 - [Manager](manager.md): Automatic assignment.
 - [Teacher](teacher.md) and [learning](learning.md): Controlled improvements after work.
 - [Expert](expert.md): Knowledge of the running Promptbook engine.
+- [Visual identity](visual-identity.md): Automatic stable avatars and truthful activity across interfaces.
 - [Consistency](consistency.md): Reserved identities and recursion safeguards.
 
 The first nonempty line of a Book is the agent's name. Names are unique after [normalization](../book-language/references.md); file organization does not define identity. [FROM](../book-language/commitments/from.md) supplies inheritance; [TEAM](../book-language/commitments/team.md) describes whom to consult and when. They are different relationships.

@@ -8,6 +8,8 @@ Start enables the local HTTP server by default in either process mode. Bind to l
 
 Expose structured runtime state and the shared control capabilities: actual service engine version, project identity, current agent/task/harness and known model/effort, phase, queue/task details, results/statistics, waits, blockers, errors, pending requests and effective settings. Include the actual dashboard connection URL/availability and state freshness needed by the [shared live/snapshot view](status-view.md); clients must not guess a port. Requests expose their pending count, identity, required response, reason and affected work so every client can make human attention primary. Distinguish automatic assignment/discovery from waiting for the user.
 
+Expose canonical agent identities and observed activity sufficient for clients to apply the shared [visual identity](../agents/visual-identity.md) contract. Different rendering capabilities must not produce different agent attribution or invented execution states; an avatar is not an execution-control identifier.
+
 Support the same applicable actions as the dashboards, including pause/resume, skipping a pacing/backoff wait, graceful stop, answers and allowed settings changes. Report action outcomes and whether settings are active, deferred or require restart; do not report a request as completed before it is applied.
 
 Clients obtain fresh state and observe changes made through other channels. Inspection is read-only; mutations act on the same active process and obey the shared ownership, task, configuration and recovery rules. Core status and control features must not require HTML forms, server-rendered fragments or browser-only business logic.

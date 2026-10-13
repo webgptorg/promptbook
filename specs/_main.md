@@ -43,6 +43,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 ## Agents and work
 
 - [Agent context](cli/agent-context.md): Effective role, task and project instructions.
+- [Agent visual identity](agents/visual-identity.md): Automatic stable avatars, cross-interface recognition and truthful activity.
 - [Harnesses](cli/harnesses.md): Complete selected setup, global installations, authentication and execution.
 - [Harness plugins](cli/harness-plugins.md): Common integration contract and featured/More presentation.
 - [Harness updates](cli/harness-updates.md): Selected setup updates and safe ongoing maintenance.
