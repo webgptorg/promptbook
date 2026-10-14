@@ -10,6 +10,8 @@ Check branch pushes and pull requests with a frozen dependency installation and 
 
 Fixtures preserve the runner's tools and environment, handle canonical paths and platform path conventions, and provide their own Git identity and provider substitutes. They pass on a clean runner without a configured global Git author or signing identity. Await owned background work and close runtime resources before removing fixture projects. Observe the actual completion boundary with bounded waits. Fix failures and races without weakening assertions, removing required platform coverage or bypassing validation.
 
+Reviewed planning saves produce their scoped `PTBK: ` commit on every supported platform, including nested task paths and paths with spaces. Check fixtures inspect the committed contents and preserve unrelated work. A written file without the required commit is pending persistence and fails acceptance. Real browser checks allow bounded startup under runner load and retain actionable, redacted startup failure evidence.
+
 ## Publish workflow
 
 For an authorized release tag or manual dispatch in the official repository, validate the exact immutable tag across the complete check matrix before uploading the single `ptbk` package. The publication job remains blocked when validation fails. A skipped publication following failed validation is an unsuccessful release outcome.

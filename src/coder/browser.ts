@@ -10,6 +10,7 @@ import type { BridgeTool } from './team.js';
 import { confinePath, InputError } from './workspace.js';
 import { createRequest, waitForAnswer } from './requests.js';
 import { discoverGit } from './git.js';
+import { redactSecrets } from './harness-process.js';
 
 /** Browser presentation and persistent profile configuration, shared across project tasks. @private */
 export interface BrowserOptions { mode?: 'headless' | 'headful'; profile?: string; executable?: string; signal?: AbortSignal; }
@@ -29,7 +30,7 @@ const execute = promisify(execFile);
 
 /** Wait for Chrome's complete endpoint while retrying temporary Windows sharing violations. @private */
 export async function waitForBrowserEndpoint(portFile: string, options: BrowserEndpointOptions = {}): Promise<{ endpoint: string; socket: string }> {
-    const timeout = options.timeoutMs ?? 20_000;
+    const timeout = options.timeoutMs ?? 60_000;
     if (!Number.isSafeInteger(timeout) || timeout <= 0) throw new InputError('Browser startup timeout must be a positive integer.');
     const deadline = Date.now() + timeout;
     const read = options.read || ((path: string) => readFile(path, 'utf8'));
@@ -160,16 +161,33 @@ export class ProjectBrowser {
         catch (error) { await this.closeOwned(); throw error; }
         const portFile = resolve(this.profilePath, 'DevToolsActivePort');
         await unlink(portFile).catch((error: NodeJS.ErrnoException) => { if (error.code !== 'ENOENT') throw error; });
-        this.child = spawn(this.executable, [`--user-data-dir=${this.profilePath}`, '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1', '--no-first-run', '--no-default-browser-check', '--restore-last-session', ...(this.mode === 'headless' ? ['--headless=new'] : [])], { stdio: 'ignore', shell: false });
+        this.child = spawn(this.executable, [`--user-data-dir=${this.profilePath}`, '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1', '--no-first-run', '--no-default-browser-check', '--restore-last-session', ...(this.mode === 'headless' ? ['--headless=new'] : [])], { stdio: ['ignore', 'ignore', 'pipe'], shell: false });
+        const child = this.child;
+        const startupOutput: Buffer[] = []; let startupBytes = 0; let truncated = false;
+        /** Retain bounded startup evidence only; regular browser activity is never recorded. */
+        const collectStartup = (chunk: Buffer) => {
+            if (truncated) return;
+            if (startupBytes + chunk.length > 64 * 1024) { truncated = true; return; }
+            startupOutput.push(chunk); startupBytes += chunk.length;
+        };
+        child.stderr?.on('data', collectStartup);
         let failure: Error | undefined;
-        this.child.once('error', (error) => { failure = error; });
+        child.once('error', (error) => { failure = error; });
         try {
             const endpoint = await waitForBrowserEndpoint(portFile, { signal: this.options.signal, check: () => {
-                if (failure || this.child?.exitCode !== null) throw failure || new Error(`Chrome exited during startup (${this.child?.exitCode})`);
+                if (failure || child.exitCode !== null || child.signalCode !== null) throw failure || new Error(`Chrome exited during startup (${child.exitCode ?? child.signalCode})`);
             } });
             this.endpoint = endpoint.endpoint;
             this.browserSocket = endpoint.socket;
-        } catch (error) { await this.closeOwned(); throw error; }
+        } catch (error) {
+            await this.closeOwned();
+            let diagnostic = Buffer.concat(startupOutput).toString('utf8');
+            if (truncated) diagnostic = diagnostic.slice(0, diagnostic.lastIndexOf('\n') + 1);
+            diagnostic = redactSecrets(diagnostic, this.workspace.projectPath)
+                .replace(/((?:cookie|set-cookie|authorization):)[^\r\n]*/gi, '$1 [REDACTED]')
+                .replace(/\b(?:https?|wss?):\/\/\S+/gi, '[browser URL]').trim().slice(0, 8192);
+            throw new Error(`${(error as Error).message}${diagnostic ? `\nBrowser startup diagnostics:\n${diagnostic}` : ''}`, { cause: error });
+        } finally { child.stderr?.removeListener('data', collectStartup); child.stderr?.resume(); }
     }
 
     /** Lock a canonical profile across projects before Chrome creates its own platform lock. */

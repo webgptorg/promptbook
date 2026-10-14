@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, mkdir, readFile, rm, access, symlink, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, relative } from 'node:path';
+import { join, relative, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import { Readable, PassThrough } from 'node:stream';
 import { DEFAULT_PROCESS_TIMEOUT_MS, HARNESS_REGISTRY, runHarness, runProcess, classifyHarnessResult, redactSecrets, loadProjectSecrets, prepareProcessArguments } from '../dist/coder/harness.js';
@@ -577,6 +577,11 @@ test('planning saves only after exact preview and explicit human approval', asyn
         assert.equal(commit.exitCode, 0, commit.output);
         assert.equal(commit.output.trim(), 'Planning Fixture <fixture@example.test>\nPTBK: Save approved planning tasks');
         const book = await readFile(result.saved[0], 'utf8');
+        const committed = await runProcess('git', ['show', `HEAD:${relative(workspace.gitRoot, result.saved[0]).split(sep).join('/')}`], { cwd: directory });
+        assert.equal(committed.exitCode, 0, committed.output);
+        assert.equal(committed.output, book);
+        const committedPaths = await runProcess('git', ['ls-tree', '-r', '--name-only', 'HEAD'], { cwd: directory });
+        assert.equal(committedPaths.output.trim(), 'tasks/reviewed.book', 'Only the exact reviewed proposal belongs to the planning commit');
         assert.match(book, /STATUS not-ready/);
         assert.match(displayed, /Review .*reviewed\.book/);
         assert.match(displayed, /Save these exact files/);
@@ -615,10 +620,31 @@ test('interactive planning approves reviewed files with arrows and Enter rather 
             assert.equal(stage, 3);
             assert.equal(result.saved.length, 1);
             assert.match(await readFile(result.saved[0], 'utf8'), /STATUS not-ready/);
+            const committed = await runProcess('git', ['show', 'HEAD:tasks/reviewed.book'], { cwd: directory });
+            assert.equal(committed.exitCode, 0, committed.output);
+            assert.equal(committed.output, await readFile(result.saved[0], 'utf8'));
             assert.match(displayed, /Save reviewed files/);
             assert.doesNotMatch(displayed, /Type yes to save/);
             assert.equal(input.isRaw, false);
         } finally { clearTimeout(timeout); input.destroy(); output.destroy(); }
+    } finally { restore(); }
+}));
+
+test('planning preserves ignored reviewed files as pending persistence instead of reporting a successful commit', async () => fixture(async directory => {
+    const restore = await fakeProviders(directory);
+    try {
+        await initializePlanningProject(directory);
+        await writeFile(join(directory, '.gitignore'), 'tasks/\n');
+        await mkdir(join(directory, 'agents'));
+        await writeFile(join(directory, 'agents/developer.book'), 'Developer\nFROM Void\nCLOSED\n');
+        process.env.PTBK_TEST_PROPOSE = '1';
+        const workspace = await resolveWorkspace({ path: directory }, true);
+        const output = new PassThrough(); let displayed = '';
+        output.on('data', chunk => displayed += chunk);
+        await assert.rejects(planConversation(workspace, { harness: 'openai-codex', prompt: 'Propose work', input: Readable.from(['/draft\nyes\n/exit\n']), output }), /written but not committed.*Persistence is pending/);
+        assert.match(await readFile(join(workspace.tasksPath, 'reviewed.book'), 'utf8'), /STATUS not-ready/);
+        assert.doesNotMatch(displayed, /Saved .*\(committed\)/);
+        assert.notEqual((await runProcess('git', ['rev-parse', '--verify', 'HEAD'], { cwd: directory })).exitCode, 0);
     } finally { restore(); }
 }));
 

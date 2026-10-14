@@ -50,6 +50,33 @@ test('browser exit observation is bounded and releases listeners after every out
     assert.throws(() => waitForBrowserExit(child, 0), /positive integer/);
 });
 
+test('browser startup failures retain redacted child diagnostics and release ownership without deleting the profile', async t => {
+    const workspace = await fixture(t);
+    const secret = 'fixture-browser-secret-123456';
+    const profile = join(workspace.projectPath, secret);
+    await mkdir(profile);
+    await writeFile(join(profile, 'session.txt'), 'Preserve existing profile bytes.\n');
+    const previous = process.env.PTBK_TEST_BROWSER_SECRET;
+    process.env.PTBK_TEST_BROWSER_SECRET = secret;
+    const browser = new ProjectBrowser(workspace, { mode: 'headless', executable: process.execPath, profile });
+    try {
+        // Node rejects Chrome's flags, giving a deterministic native startup failure.
+        await assert.rejects(browser.navigate('http://127.0.0.1/fixture'), error => {
+            assert.match(error.message, /Chrome exited during startup/);
+            assert.match(error.message, /Browser startup diagnostics:[\s\S]*bad option/);
+            assert.doesNotMatch(error.message, new RegExp(secret));
+            assert.match(error.message, /\[REDACTED\]/);
+            return true;
+        });
+        assert.equal(browser.status().running, false);
+        assert.equal(await readFile(join(profile, 'session.txt'), 'utf8'), 'Preserve existing profile bytes.\n');
+        await assert.rejects(readFile(join(workspace.statePath, 'browser/lease.json')), { code: 'ENOENT' });
+    } finally {
+        await browser.close();
+        if (previous === undefined) delete process.env.PTBK_TEST_BROWSER_SECRET; else process.env.PTBK_TEST_BROWSER_SECRET = previous;
+    }
+});
+
 test('failed owned browser termination reports the failure and preserves ownership until a retry observes exit', { timeout: 10000 }, async t => {
     const workspace = await fixture(t);
     const lease = join(workspace.statePath, 'browser', 'lease.json');
@@ -137,7 +164,7 @@ test('explicit profiles inside Git are refused before opening unless the directo
 
 /** Real installed Chrome validates CDP and persistence; CI without a browser skips this one integration. */
 const executable = await discoverBrowserExecutable().catch(() => undefined);
-test('real headless browser retains authenticated site sessions across process restarts and denies password collection', { skip: !executable, timeout: 60000 }, async t => {
+test('real headless browser retains authenticated site sessions across process restarts and denies password collection', { skip: !executable, timeout: 180000 }, async t => {
     const project = await realpath(await mkdtemp(join(tmpdir(), 'ptbk-browser-')));
     const workspace = await resolveWorkspace({ path: project });
     let browser; let resumed;

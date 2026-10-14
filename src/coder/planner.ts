@@ -1,6 +1,6 @@
 import { createInterface } from 'node:readline';
 import { mkdir, readFile, readdir, realpath, stat, writeFile } from 'node:fs/promises';
-import { basename, dirname, isAbsolute, relative, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { Readable, Writable } from 'node:stream';
 import type { Workspace, TaskDefinition } from './domain.js';
@@ -145,7 +145,11 @@ export async function planConversation(workspace: Workspace, options: PlannerOpt
                     for (const proposal of proposals) {
                         await writeFile(proposal.path, renderProposal(workspace, proposal, draft), { flag: 'wx' });
                     }
-                    if (baseline) await commitScoped(baseline, 'Save approved planning tasks', { paths: proposals.map((proposal) => relative(baseline.root, proposal.path)) });
+                    if (baseline) {
+                        const paths = proposals.map((proposal) => relative(baseline.root, proposal.path).split(sep).join('/'));
+                        const commit = await commitScoped(baseline, 'Save approved planning tasks', { paths });
+                        if (!commit) throw new InputError(`Planning tasks were written but not committed. Persistence is pending; review these files and the Git ignore rules before continuing: ${proposals.map(proposal => proposal.path).join(', ')}`);
+                    }
                     for (const proposal of proposals) { saved.push(proposal.path); write(`Saved ${proposal.path}${draft ? ' (not-ready)' : ' (ready)'}${options.noCommit ? ' (uncommitted)' : ' (committed)'}.\n`); }
                     proposals.length = 0;
                 });
