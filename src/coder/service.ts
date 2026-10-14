@@ -28,6 +28,7 @@ import { installedEngineVersion } from './version.js';
 import { reportDiagnostic } from './diagnostics.js';
 import { dashboardPage } from './dashboard-page.js';
 import { editTaskFromTerminal } from './edit-task-control.js';
+import { captureServiceEnvironment } from './service-environment.js';
 
 /** Supervisor settings supplement finite options without changing task authority. @private */
 export interface ServiceOptions extends RunOptions {
@@ -452,6 +453,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
     let phase: string | undefined; let currentSelection: Record<string, unknown> | undefined;
     let currentTask: string | undefined; let currentOccurrenceId: string | undefined; let status = 'starting'; let lastResult: RunResult | undefined;
     let idleReason: string | undefined; let nextOpportunity: number | undefined;
+    let idleAction: string | undefined; let pacingCooldown = false;
     let inventory: HarnessInventory[] = []; let inventoryAt = 0; let lastWake = 0; let lastTaskStarted = 0;
     let maintenance: HarnessMaintenanceResult[] = [];
     const reportedFailures = new Map<string, number>();
@@ -480,7 +482,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
         async snapshot() {
             const tasks = await serviceTasks(workspace); const ledger = await readLedger(workspace);
             const summaries = await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, payload: task.payload, status: ledger.tasks[task.id]?.claim ? 'in-progress' : task.status, priority: task.priority, priorityRaw: task.priorityRaw, priorityResolved: task.priorityResolved, agent: task.agent, harness: task.harness, model: task.model, thinkingLevel: task.thinkingLevel, parent: task.parent, dependencies: task.dependencies, due: task.dueRaw, source: task.source, eligibility: await taskServiceEligibility(workspace, task, options, inventory, ledger.tasks[task.id]) })));
-            return identifyRuntime({ id: record.id, pid: record.pid, project: workspace.projectPath, engineVersion: record.engineVersion, mode: record.mode, status, phase, finishAfterTask: finish, controlCapabilities: { actions: ['pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses', 'read-task', 'edit-task'] }, paused, pausePending: paused && running, running, waiting, currentTask, currentSelection, url: record.url, idleReason, nextOpportunity, persistent: record.persistent, settings: serialSettings(options), pendingSettings: pending, restartSettings, configurationSources: options.configurationSources, settingsCapabilities: { live: [...LIVE_SETTINGS], requiresRestart: [...STARTUP_SETTINGS], temporary: true, units: 'Pacing values use milliseconds.' }, statistics, lastResult, error: record.error, diagnostic: record.diagnostic, nextAction: record.nextAction, timezone: workspace.timezone, harnesses: inventory.map(({ name, usable, installed, authenticated, diagnostic }) => ({ name, usable, installed, authenticated, diagnostic })), harnessCatalog: catalogSummary(), harnessMaintenance: maintenance, requests: await listRequests(workspace, true), browser: browser.status(), events,
+            return identifyRuntime({ id: record.id, pid: record.pid, project: workspace.projectPath, engineVersion: record.engineVersion, mode: record.mode, status, phase, finishAfterTask: finish, controlCapabilities: { actions: ['pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses', 'read-task', 'edit-task'] }, paused, pausePending: paused && running, running, waiting, currentTask, currentSelection, url: record.url, idleReason, nextOpportunity, persistent: record.persistent, settings: serialSettings(options), pendingSettings: pending, restartSettings, configurationSources: options.configurationSources, settingsCapabilities: { live: [...LIVE_SETTINGS], requiresRestart: [...STARTUP_SETTINGS], temporary: true, units: 'Pacing values use milliseconds.' }, statistics, lastResult, error: record.error, diagnostic: record.diagnostic, nextAction: idleAction || record.nextAction, timezone: workspace.timezone, harnesses: inventory.map(({ name, usable, installed, authenticated, diagnostic }) => ({ name, usable, installed, authenticated, diagnostic })), harnessCatalog: catalogSummary(), harnessMaintenance: maintenance, requests: await listRequests(workspace, true), browser: browser.status(), events,
                 tasks: summaries }, await discoverAgents(workspace.projectPath));
         },
         async command(action, input = {}) {
@@ -491,8 +493,8 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                 return { featured: catalogSummary(), ...(input.more ? { more: catalogSummary(true) } : {}), detailAction: 'harnesses', detailInput: { name: 'harness-id' } };
             }
             if (action === 'pause') { paused = true; terminal.setPaused(true); }
-            else if (action === 'resume') { paused = false; terminal.setPaused(false); lastWake = 0; }
-            else if (action === 'skip-wait') { const cooldown = lastWake > Date.now(); skip = waiting && running; if (cooldown) lastWake = 0; return { skipped: skip || cooldown }; }
+            else if (action === 'resume') { paused = false; terminal.setPaused(false); lastWake = 0; inventoryAt = 0; }
+            else if (action === 'skip-wait') { const cooldown = pacingCooldown && lastWake > Date.now(); skip = waiting && running; if (cooldown) lastWake = 0; return { skipped: skip || cooldown }; }
             else if (action === 'finish') {
                 if (finish) { record.desired = 'stopped'; await persist(); controller.abort(); return { finishAfterTask: true, stopping: true }; }
                 finish = true; terminal.setStopping(true); record.desired = 'stopped'; await persist(); return { finishAfterTask: true, stopping: false };
@@ -529,7 +531,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
             }
             else if (action === 'answer') {
                 if (typeof input.id !== 'string' || typeof input.response !== 'string') throw new InputError('Answer requires request id and response.');
-                const answer = await answerRequest(workspace, input.id, input.response, input.status as 'answered' | undefined); lastWake = 0; return answer;
+                const answer = await answerRequest(workspace, input.id, input.response, input.status as 'answered' | undefined); lastWake = 0; inventoryAt = 0; return answer;
             } else if (action === 'settings') {
                 if (!input.settings || typeof input.settings !== 'object' || Array.isArray(input.settings)) throw new InputError('settings must be an object.');
                 const update = input.settings as Partial<ServiceOptions>;
@@ -677,15 +679,26 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
             boundaryBusy = true;
             try {
                 await applyPending();
+                waiting = false; terminal.setWaiting(false);
+                if (Date.now() >= lastWake) pacingCooldown = false;
                 if (Date.now() - inventoryAt > 60_000) {
                     if (!options.inspectHarnesses && options.automatic !== false) maintenance = await maintainHarnesses(workspace.projectPath, { names: selectedHarnesses(options), harnessSettings: options.harnessSettings, autoUpdate: options.autoUpdateHarnesses !== false, signal: controller.signal, onOutput: text => terminal.status(text) });
                     inventory = options.automatic === false && !options.inspectHarnesses ? [] : await (options.inspectHarnesses || inspectHarnesses)(workspace.projectPath, { names: selectedHarnesses(options), harnessSettings: options.harnessSettings, signal: controller.signal }); inventoryAt = Date.now();
                 }
                 const available = inventory.filter(item => item.usable && (!options.enabledHarnesses || options.enabledHarnesses.includes(item.name)) && (!options.harness || item.name === options.harness));
-                if (paused || terminal.isPaused() || Date.now() < lastWake) { status = paused || terminal.isPaused() ? 'paused' : 'waiting'; waiting = status === 'waiting'; terminal.setWaiting(waiting); }
+                if (paused || terminal.isPaused()) { status = 'paused'; }
+                else if (Date.now() < lastWake) {
+                    waiting = pacingCooldown;
+                    if (pacingCooldown) status = 'waiting';
+                    nextOpportunity = lastWake; terminal.setWaiting(waiting);
+                }
                 else if (!available.length && options.automatic !== false) {
-                    status = 'setup-required'; await createRequest(workspace, { kind: 'action', reason: 'No installed authenticated authorized harness is available.', prompt: 'Install and authenticate a supported harness with ptbk init, or review the harness inventory. Resume after setup.' }); lastWake = Date.now() + 30_000;
+                    status = 'setup-required'; pacingCooldown = false;
+                    idleReason = `No usable enabled harness. ${inventory.map(item => `${item.name}: ${item.diagnostic}`).join('; ') || 'No harness is enabled.'}`;
+                    idleAction = `Review ptbk harnesses --path ${JSON.stringify(workspace.projectPath)} and resolve the reported prerequisite. If the harness works in your terminal, use ptbk restart --path ${JSON.stringify(workspace.projectPath)} from that terminal to refresh daemon discovery paths.`;
+                    await createRequest(workspace, { kind: 'action', reason: idleReason, prompt: idleAction }); lastWake = Date.now() + 30_000; nextOpportunity = lastWake;
                 } else {
+                    idleAction = undefined;
                     const unresolved = await listRecovery(workspace, { includeSync: true });
                     if (unresolved.length) {
                         const safe = unresolved.find(journal => journal.phase === 'completed' && journal.syncPending || ['completion-ready', 'implementation-ready', 'integrating'].includes(journal.safePhase ?? journal.phase) || journal.pendingPhase === 'result');
@@ -695,14 +708,18 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                             lastResult = outcome; statistics.completed += outcome.completed; statistics.failed += outcome.failed;
                             if (outcome.failed || outcome.syncPending || outcome.exitCode === 1) {
                                 status = outcome.syncPending ? 'sync-pending' : 'recovery-required';
+                                idleReason = 'Recorded recovery could not finish safely; review its preserved result and diagnostics.';
+                                idleAction = `Review ptbk recover ${JSON.stringify(safe.taskId)} --path ${JSON.stringify(workspace.projectPath)} and resolve the failed boundary before resuming.`;
                                 await createRequest(workspace, { kind: 'action', taskId: safe.taskId, reason: 'Recorded recovery could not finish safely.', prompt: 'Review ptbk recover and resolve the failed persistence/check/synchronization boundary. Resume retries this same recorded occurrence without inventing a new task.' });
-                                lastWake = Date.now() + (options.waitAfterError ?? 600000);
+                                pacingCooldown = false; lastWake = Date.now() + (options.waitAfterError ?? 600000); nextOpportunity = lastWake;
                             } else {
                                 if (!(await listRecovery(workspace)).length && options.gitChanges === 'continue') options = { ...options, gitChanges: 'fail' };
                                 await persist(); continue;
                             }
                         } else {
-                            status = 'recovery-required'; await createRequest(workspace, { kind: 'action', taskId: unresolved[0]!.taskId, reason: 'Interrupted work has an uncertain boundary.', prompt: `Inspect ptbk recover ${unresolved[0]!.taskId} and explicitly choose resume, retry or acknowledge. User work was preserved.` }); lastWake = Date.now() + 10_000;
+                            status = 'recovery-required'; pacingCooldown = false; idleReason = 'Interrupted work requires recovery at its recorded boundary.';
+                            idleAction = `Inspect ptbk recover ${unresolved[0]!.taskId} --path ${JSON.stringify(workspace.projectPath)} and choose resume, retry or acknowledge.`;
+                            await createRequest(workspace, { kind: 'action', taskId: unresolved[0]!.taskId, reason: 'Interrupted work has an uncertain boundary.', prompt: `Inspect ptbk recover ${unresolved[0]!.taskId} and explicitly choose resume, retry or acknowledge. User work was preserved.` }); lastWake = Date.now() + 10_000; nextOpportunity = lastWake;
                         }
                     } else {
                         let tasks = await serviceTasks(workspace);
@@ -748,9 +765,14 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                         finally { running = false; currentTask = undefined; currentOccurrenceId = undefined; currentSelection = undefined; phase = undefined; }
                         if (lastResult?.failed || lastResult?.syncPending) {
                             status = lastResult.syncPending ? 'sync-pending' : 'blocked';
+                            idleReason = record.error || 'The last task requires review of its failed execution, check or synchronization boundary.';
                             await createRequest(workspace, { kind: 'action', reason: status, prompt: 'Review recent task diagnostics and ptbk recover. Successful inference and local commits were preserved; resolve the failed phase before resuming.' });
-                            lastWake = Date.now() + (options.waitAfterError ?? 600000);
-                        } else { status = 'watching'; lastWake = Math.max(Date.now() + (options.waitAfterPrompt ?? 0), lastTaskStarted + (options.waitBetweenPrompts ?? 0)); waiting = lastWake > Date.now(); terminal.setWaiting(waiting); }
+                            pacingCooldown = false; lastWake = Date.now() + (options.waitAfterError ?? 600000); nextOpportunity = lastWake;
+                        } else {
+                            lastWake = Math.max(Date.now() + (options.waitAfterPrompt ?? 0), lastTaskStarted + (options.waitBetweenPrompts ?? 0)); pacingCooldown = lastWake > Date.now();
+                            status = pacingCooldown ? 'waiting' : 'watching'; waiting = pacingCooldown;
+                            idleReason = pacingCooldown ? 'Waiting between prompts under the configured pacing limits.' : undefined; nextOpportunity = pacingCooldown ? lastWake : undefined; terminal.setWaiting(waiting);
+                        }
                     }
                 }
                 await persist();
@@ -767,7 +789,8 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                     record.diagnostic = diagnostic.trace; record.nextAction = diagnostic.nextAction;
                 }
                 await createRequest(workspace, { kind: 'action', reason: 'Runtime could not continue safely.', prompt: record.error }).catch(() => {});
-                lastWake = Date.now() + 10_000;
+                pacingCooldown = false; waiting = false; terminal.setWaiting(false); idleReason = record.error;
+                lastWake = Date.now() + 10_000; nextOpportunity = lastWake;
                 await persist().catch(() => {});
             } finally { boundaryBusy = false; }
             await delay(1000, undefined, { signal: controller.signal }).catch(() => {});
@@ -812,7 +835,7 @@ export async function startService(workspace: Workspace, options: ServiceOptions
     try {
         await handle.writeFile(JSON.stringify({ pid: process.pid, id: randomUUID(), createdAt: Date.now() })); await handle.close();
         const paths = startupPaths(workspace);
-        await atomicWrite(paths.configuration, { version: 1, project: workspace.projectPath, tasks: workspace.tasksPath, installation: fileURLToPath(new URL('../..', import.meta.url)), options: serialSettings({ ...options, mode: 'daemon' }), desired: 'running' });
+        await atomicWrite(paths.configuration, { version: 1, project: workspace.projectPath, tasks: workspace.tasksPath, installation: fileURLToPath(new URL('../..', import.meta.url)), environment: captureServiceEnvironment(), options: serialSettings({ ...options, mode: 'daemon' }), desired: 'running' });
         const prior = await readServiceRecord(workspace); if (prior) await atomicWrite(join(workspace.statePath, 'process.json'), { ...prior, desired: 'running' });
         if (!options.noPersist) await installStartup(workspace, paths);
         else {

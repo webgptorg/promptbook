@@ -23,9 +23,9 @@ export function agentActivity(state: Record<string, any>): string {
     if (state.currentSelection?.visualIdentity?.id === 'void') return 'Idle';
     if (state.requests?.some((request: Record<string, any>) => request.taskId === state.currentTask && state.currentTask)) return 'Waiting for User';
     if (['stopped', 'completed', 'interrupted', 'disconnected'].includes(state.status) || state.connection === 'disconnected') return 'Idle';
-    if (state.waiting) return 'Waiting for provider / pacing';
     if (state.paused && !state.running) return 'Paused';
     if (['blocked', 'failed', 'recovery-required', 'setup-required', 'sync-pending'].includes(state.status)) return 'Blocked / failed';
+    if (state.waiting) return state.running ? 'Waiting for provider / pacing' : 'Waiting between prompts';
     if (state.currentTask && state.running) return state.phase === 'checking' ? 'Checking' : 'Working';
     return 'Idle';
 }

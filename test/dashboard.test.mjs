@@ -145,6 +145,20 @@ test('browser SPA shares API state and choices, preserves drafts, rejects stale 
     await evaluate.run('refresh()');
     assert.equal(await evaluate.run("document.querySelector('[data-action=resume]').disabled"), true, 'Another client changed the same pause state');
 
+    const readyState = state;
+    state = { ...state, status: 'setup-required', activity: 'Blocked / failed', waiting: false,
+        idleReason: 'openai-codex: codex was not found on PATH.', nextAction: 'Restart ptbk from the configured terminal.', nextOpportunity: Date.now() + 30_000 };
+    await evaluate.run('refresh()');
+    assert.equal(await evaluate.run("document.getElementById('waiting-info').classList.contains('hidden')"), false);
+    assert.match(await evaluate.run("document.getElementById('waiting-reason').textContent"), /codex was not found on PATH/);
+    assert.match(await evaluate.run("document.getElementById('waiting-next').textContent"), /Restart ptbk/);
+    assert.match(await evaluate.run("document.getElementById('waiting-opportunity').textContent"), /Next check\/opportunity/);
+    assert.equal(await evaluate.run("document.querySelector('[data-action=skip-wait]').disabled"), true);
+    assert.equal(await evaluate.run("document.getElementById('work-state').textContent"), 'setup required');
+    state = readyState;
+    await evaluate.run('refresh()');
+    assert.equal(await evaluate.run("document.getElementById('waiting-info').classList.contains('hidden')"), true);
+
     assert.equal(await evaluate.run("document.getElementById('attention').getBoundingClientRect().top < document.getElementById('runtime-title').getBoundingClientRect().top"), true);
     assert.match(await evaluate.run("document.getElementById('attention-summary').textContent"), /2 pending/);
     assert.equal(await evaluate.run("!!document.querySelector('#current-agent svg')"), true);

@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { spawn } from 'node:child_process';
 import { chmod, lstat, mkdtemp, mkdir, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises';
 import { createServer as createSocket, connect } from 'node:net';
 import { hostname, tmpdir } from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { git, captureSnapshot } from '../dist/coder/git.js';
 import { checksum, discoverTasks } from '../dist/coder/sources.js';
 import { createRequest, listRequests, answerRequest, waitForAnswer } from '../dist/coder/requests.js';
@@ -14,6 +16,7 @@ import { startupRegistration } from '../dist/coder/persistence.js';
 import { runQueue } from '../dist/coder/engine.js';
 import { ensureCoreAgents } from '../dist/coder/agents.js';
 import { processBirth } from '../dist/coder/state.js';
+import { captureServiceEnvironment } from '../dist/coder/service-environment.js';
 
 /** Control changes need one supervisor iteration and allow shared CI runner scheduling. */
 const CONTROL_DEADLINE = 30_000;
@@ -415,6 +418,91 @@ test('shared skip-wait advances supervisor pacing while task dates remain author
     const state = await server.inspect();
     assert.deepEqual(calls, ['first', 'second']);
     assert.equal(state.tasks.find(task => task.id === 'future').eligibility.kind, 'waiting-until');
+});
+
+test('setup recheck retains its actual blocker after an answer and resume reinspects repaired login', async t => {
+    const workspace = await fixture(t, 'TASK Future fixture\nTASK ID future\nTASK AFTER 2099-01-01T00:00Z\n');
+    let repaired = false; let probes = 0;
+    const server = await supervise(t, workspace, { automatic: true, inspectHarnesses: async () => {
+        probes++;
+        return repaired ? inventory() : (await inventory()).map(item => ({ ...item, installed: false, authenticated: false, usable: false, diagnostic: 'codex was not found on PATH.' }));
+    }, runHarness: async () => assert.fail('Future or setup-blocked work cannot make a model call') });
+    let state = await until(server.inspect, value => value.status === 'setup-required' && value.requests.length === 1, 'Missing daemon harness is visible');
+    await delay(1100);
+    state = await server.inspect();
+    assert.equal(state.status, 'setup-required'); assert.equal(state.waiting, false);
+    assert.equal(state.activity, 'Blocked / failed');
+    assert.match(state.idleReason, /codex was not found on PATH/); assert.match(state.nextAction, /ptbk restart/);
+    assert.ok(state.nextOpportunity > Date.now());
+    assert.equal((await server.command('skip-wait')).skipped, false, 'Setup rechecks are not skippable pacing');
+    const before = probes;
+    await server.command('answer', { id: state.requests[0].id, response: 'Yes' });
+    state = await until(server.inspect, value => probes > before && value.status === 'setup-required' && !value.requests.length, 'Answer triggers fresh inspection without inventing a healthy login');
+    assert.equal(state.waiting, false); assert.match(state.idleReason, /codex was not found on PATH/);
+    repaired = true;
+    await server.command('resume');
+    state = await until(server.inspect, value => value.status === 'watching' && value.harnesses[0]?.usable, 'Resume rechecks repaired native setup');
+    assert.equal(state.waiting, false); assert.equal(state.activity, 'Idle');
+    assert.doesNotMatch(state.idleReason, /codex was not found/);
+    assert.equal(state.nextAction, undefined);
+});
+
+test('resumed daemon restores native Codex discovery when its OS environment omits the working CLI and login store', async t => {
+    const workspace = await fixture(t, 'TASK Future fixture\nTASK ID future\nTASK AFTER 2099-01-01T00:00Z\n', 'project');
+    const root = path.dirname(workspace.projectPath);
+    const bin = path.join(root, 'global provider bin'); const restricted = path.join(root, 'os manager bin'); const nativeHome = path.join(root, 'native account');
+    const calls = path.join(root, 'metadata.jsonl');
+    await mkdir(bin); await mkdir(restricted); await mkdir(nativeHome); await mkdir(workspace.statePath);
+    const name = process.platform === 'win32' ? 'codex.cmd' : 'codex';
+    await writeFile(path.join(restricted, name), `#!${process.execPath}\nconsole.error('Codex is absent from the OS-manager discovery environment');process.exit(1);\n`, { mode: 0o755 });
+    await writeFile(path.join(bin, name), `#!${process.execPath}
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify(args) + '\\n');
+if (args.includes('--version')) console.log('codex-cli 0.162.1');
+else if (args.join(' ') === 'login status') {
+    if (process.env.CODEX_HOME !== ${JSON.stringify(nativeHome)}) throw Error('Native login store was not restored');
+    console.log('Logged in using ChatGPT');
+} else if (args[0] === 'app-server') {
+    const lines = require('node:readline').createInterface({input: process.stdin});
+    lines.on('close', () => process.exit(0));
+    lines.on('line', line => {
+        const message = JSON.parse(line);
+        if (message.method === 'initialized') return;
+        if (!['initialize', 'model/list'].includes(message.method)) throw Error('No model call is permitted');
+        console.log(JSON.stringify({id: message.id, result: message.method === 'model/list' ? {data: []} : {}}));
+    });
+} else throw Error('No login or task execution is permitted');
+`, { mode: 0o755 });
+    const env = { ...process.env };
+    const pathKey = Object.keys(env).find(key => key.toLowerCase() === 'path') ?? 'PATH';
+    const priorPath = process.env[pathKey]; const priorHome = process.env.CODEX_HOME;
+    process.env[pathKey] = [bin, priorPath].filter(Boolean).join(path.delimiter); process.env.CODEX_HOME = nativeHome;
+    workspace.cleanups.push(() => {
+        if (priorPath === undefined) delete process.env[pathKey]; else process.env[pathKey] = priorPath;
+        if (priorHome === undefined) delete process.env.CODEX_HOME; else process.env.CODEX_HOME = priorHome;
+    });
+    workspace.cleanups.push(() => stopService(workspace, true));
+    const configuration = path.join(workspace.statePath, 'service-config.json');
+    await startService(workspace, { mode: 'daemon', noPersist: true, noServer: true, noQr: true, quiet: true, enabledHarnesses: ['openai-codex'], autoUpdateHarnesses: false });
+    const saved = JSON.parse(await readFile(configuration, 'utf8'));
+    assert.deepEqual(saved.environment, captureServiceEnvironment());
+    await stopService(workspace, true);
+    saved.desired = 'running'; await writeFile(configuration, JSON.stringify(saved));
+    await rm(path.join(workspace.statePath, 'process.json'));
+    env[pathKey] = [restricted, env[pathKey]].filter(Boolean).join(path.delimiter); delete env.CODEX_HOME;
+    const child = spawn(process.execPath, [fileURLToPath(new URL('../dist/coder/service-worker.js', import.meta.url)), '--config', configuration, '--resume'], { cwd: workspace.projectPath, env, stdio: ['ignore', 'ignore', 'pipe'] });
+    let errors = ''; child.stderr.on('data', chunk => { errors += chunk; });
+    const completion = new Promise((resolve, reject) => { child.once('error', reject); child.once('exit', code => resolve(code)); });
+    workspace.cleanups.push(async () => { try { await stopService(workspace, true); } finally { if (child.exitCode === null) child.kill('SIGTERM'); await completion; } });
+    const state = await until(() => serviceCommand(workspace), value => value?.status === 'watching' && value.harnesses[0]?.usable, 'Worker retains launching-terminal account access');
+    assert.equal(state.harnesses[0].authenticated, true, errors);
+    assert.equal(state.waiting, false); assert.equal(state.activity, 'Idle');
+    assert.equal(state.tasks[0].eligibility.kind, 'waiting-until');
+    const actual = (await readFile(calls, 'utf8')).trim().split('\n').map(JSON.parse);
+    assert(actual.some(args => args.join(' ') === 'login status'));
+    assert(actual.every(args => args.includes('--version') || args.join(' ') === 'login status' || args[0] === 'app-server'));
+    assert(!Object.keys(saved.environment).some(key => /KEY|TOKEN|SECRET/.test(key)));
 });
 
 test('raw mode reports an active human request and keeps ordinary unsupported-tool harnesses usable', async t => {

@@ -12,6 +12,8 @@ Both forms identify the project, actual service engine version, operating/connec
 
 Pending [requests to the user](user-interactions.md) have the highest visual priority, ahead of routine activity, statistics, agent avatars and the QR code. Show what requires attention and how to respond without making the user open logs. Automatic assignment and goal discovery are labeled agent work, not human requests. Ordinary waiting explains its reason and next action/opportunity when known.
 
+Keep setup, authentication, recovery and failed-work blockers visible while their bounded recheck timer runs. Such a timer is not a provider call or a skippable prompt-pacing wait. Show the harness's actual diagnostic (for example, the daemon cannot find `codex` on PATH), the concrete repair/restart action and next recheck time in terminal, browser and API snapshots, including after an action request was answered but the prerequisite remains unresolved. `Skip wait` is applicable only to an actual execution/pacing wait; it cannot dismiss setup or authorize blocked work. Resume/answers trigger fresh prerequisite inspection rather than treating an answer as proof of login. An idle service with no provider turn must not imply it is waiting for provider inference.
+
 ## URL and QR code
 
 Whenever the project's HTTP dashboard is available, both live and snapshot pretty terminal views show its actual URL and a scannable QR code for that same URL. This includes start's result, status/show and an attached dashboard, not only the initial launch. The browser view offers the same connection information. Keep URL, QR code and project status together; QR display never substitutes for status or obscures user requests.

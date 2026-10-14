@@ -180,6 +180,21 @@ test('focused runtime text entry interrupts only on genuine Ctrl+C', async () =>
     } finally { view.terminal.close(); }
 });
 
+test('idle setup blockers explain discovery and repair without implying a provider wait', () => {
+    const view = fixture();
+    try {
+        view.output.rows = 30; view.output.columns = 120;
+        view.terminal.setSnapshot({ engineVersion: 'fixture', project: '/tmp', mode: 'daemon', status: 'setup-required', running: false, waiting: false,
+            idleReason: 'openai-codex: codex was not found on PATH.', nextAction: 'Restart ptbk from the configured terminal.', nextOpportunity: Date.now() + 30_000,
+            tasks: [], requests: [], statistics: { completed: 0, failed: 0 } });
+        assert.match(view.text(), /Blocked \/ failed/);
+        assert.match(view.text(), /codex was not found on PATH/);
+        assert.match(view.text(), /Next: Restart ptbk from the configured terminal/);
+        assert.match(view.text(), /Next opportunity:/);
+        assert.doesNotMatch(view.text(), /Waiting for provider|pacing\/backoff wait/);
+    } finally { view.terminal.close(); }
+});
+
 test('dashboard separates state, queue, results and requests with semantic presentation and suppressed-color parity', () => {
     const prior = process.env.NO_COLOR;
     process.env.NO_COLOR = '1';

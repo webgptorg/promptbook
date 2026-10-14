@@ -110,6 +110,8 @@ test('agent faces survive normalization, Book movement and instruction edits acr
     for (const other of ['Manager', 'Teacher', 'Expert', 'Adam']) assert.notDeepEqual(agentVisualIdentity(other).pattern, agentVisualIdentity('Developer').pattern);
     assert.equal(agentActivity({ ...after, requests: [{ taskId: 'work' }] }), 'Waiting for User');
     assert.equal(agentActivity({ ...after, waiting: true }), 'Waiting for provider / pacing');
+    assert.equal(agentActivity({ ...after, status: 'setup-required', running: false, waiting: true }), 'Blocked / failed');
+    assert.equal(agentActivity({ ...after, status: 'waiting', running: false, waiting: true }), 'Waiting between prompts');
     assert.equal(agentActivity({ ...after, status: 'completed' }), 'Idle');
     assert.equal(agentActivity({ ...after, currentSelection: { visualIdentity: agentVisualIdentity('Null') } }), 'Idle');
 });

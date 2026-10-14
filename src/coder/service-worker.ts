@@ -5,6 +5,7 @@ import { runService, type ServiceOptions, readServiceRecord } from './service.js
 import { installDaemonLogging } from './logging.js';
 import { reportDiagnostic } from './diagnostics.js';
 import type { Workspace } from './domain.js';
+import { restoreServiceEnvironment, type ServiceEnvironment } from './service-environment.js';
 
 /** The worker retains its selected project for truthful startup diagnostics. */
 let diagnosticWorkspace: Workspace | undefined;
@@ -13,9 +14,10 @@ let diagnosticWorkspace: Workspace | undefined;
 async function worker(): Promise<void> {
     const index = process.argv.indexOf('--config');
     if (index < 0 || !process.argv[index + 1]) throw new Error('Service worker requires a saved --config path.');
-    const config = JSON.parse(await readFile(process.argv[index + 1]!, 'utf8')) as { version: number; project: string; tasks: string; installation: string; desired: string; options: ServiceOptions };
+    const config = JSON.parse(await readFile(process.argv[index + 1]!, 'utf8')) as { version: number; project: string; tasks: string; installation: string; desired: string; options: ServiceOptions; environment?: ServiceEnvironment };
     if (config.version !== 1 || config.installation !== fileURLToPath(new URL('../..', import.meta.url))) throw new Error('The saved service configuration belongs to another ptbk installation.');
     if (config.desired === 'stopped') return;
+    restoreServiceEnvironment(config.environment);
     const workspace = await resolveWorkspace({ path: config.project, tasks: config.tasks });
     diagnosticWorkspace = workspace;
     installDaemonLogging(workspace);

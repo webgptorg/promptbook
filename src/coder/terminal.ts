@@ -102,6 +102,7 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
             `Agent: ${snapshot.currentTask ? agentLabel(selection) : 'none'} · ${snapshot.activity ?? agentActivity(snapshot)} · Harness: ${snapshot.currentTask ? selection.harness || 'none' : 'none'}${selection.model ? ` · Model: ${selection.model}` : ''}${selection.thinkingLevel ? ` · Effort: ${selection.thinkingLevel}` : ''}`,
             `Task: ${current?.title || snapshot.currentTask || 'idle'}`,
             ...(snapshot.idleReason ? [`Waiting: ${snapshot.idleReason}`] : []),
+            ...(snapshot.idleReason && snapshot.nextAction && !snapshot.error ? [`Next: ${snapshot.nextAction}`] : []),
             ...(snapshot.nextOpportunity ? [`Next opportunity: ${new Date(snapshot.nextOpportunity).toISOString()}`] : []),
             `Results: ${stats.completed ?? 0} completed · ${stats.failed ?? 0} failed`,
             `── Queue (${tasks.length}) ${tasks.length ? '' : '· No queued work.'}`,

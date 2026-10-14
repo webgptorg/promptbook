@@ -62,6 +62,7 @@ export function runtimeSummary(state: Record<string, any>, presentation: Termina
     ], presentation, { details: [
         ...(state.phase ? [`Phase: ${state.phase}`] : []),
         ...(state.idleReason ? [`Waiting: ${state.idleReason}`] : []),
+        ...(state.idleReason && state.nextAction && !state.error ? [`Next: ${state.nextAction}`] : []),
         ...(state.nextOpportunity ? [`Next opportunity: ${new Date(state.nextOpportunity).toISOString()}`] : []),
         ...(state.error ? [`Failure: ${state.error}`, `Next action: ${state.nextAction || 'Inspect ptbk recover and diagnostics.'}`, ...(state.diagnostic ? [`Diagnostic: ${state.diagnostic}`] : [])] : []),
         ...tasks.map((task: Record<string, any>) => `[${task.status}] ${task.title} · ${agentLabel(task, presentation.pretty)}${task.eligibility ? ` · ${task.eligibility.kind}: ${task.eligibility.reason}` : ''}`),
