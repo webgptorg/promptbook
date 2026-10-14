@@ -2,7 +2,9 @@
 
 Promptbook is one npm package, `ptbk`, providing the `ptbk` command-line utility. It operates agents over a selected project directory in Git. Agents, tasks and project material are readable files; versioned `ptbk.json` holds project configuration, while Git-ignored `.ptbk/` holds local runtime state, without a database.
 
-Successful initialization leaves selected harnesses, real checks and a first runnable task ready for plain `ptbk start`, without another setup step. Start launches the agenda as a background service and reports once while actual work begins automatically. It fills missing routing through Manager, executes one task at a time, checks and commits results, and discovers useful goal-driven work when the backlog is empty. `ptbk run` is the finite, explicitly configured queue workflow. Init/add use finite wizards; `ptbk dashboard` attaches a continuous terminal control view to the existing service. Suitable terminals default to rich presentation, with raw output available throughout. Terminal, lightweight browser SPA and independently usable local API inspect and control the same process.
+Successful default initialization leaves selected harnesses, real checks and a first runnable task ready for plain `ptbk start`, without another setup step. Start launches the agenda as a background service and reports once while actual work begins automatically. It fills missing routing through Manager, executes one task at a time and discovers useful goal-driven work when the backlog is empty. Versioned changes from both authoring and execution commit by default with `PTBK: ` subjects; explicit `--no-commit` is the exception. `ptbk run` is the finite, explicitly configured queue workflow.
+
+Init/add use finite wizards; `ptbk dashboard` attaches a continuous, paneled terminal control view with recognizable agent mascot badges. Suitable terminals default to rich presentation, with raw output available throughout. Terminal, lightweight browser SPA and independently usable API control the same process. HTTP includes protected remote tunneling by default, so a phone can use the displayed pairing QR from another network; `--no-tunnel` keeps access local. Human requests remain the most prominent information.
 
 ## Reading this specification
 
@@ -10,7 +12,7 @@ The [whitepaper](whitepaper.md) explains APT principles and clearly identified l
 
 Keep specifications in English, concise and focused on observable behavior, important contracts and invariants. Leave internal representations, algorithms and module organization to implementation unless they are themselves necessary product constraints. Preserve useful behavior, not incidental implementation detail.
 
-[Dictionary](dictionary.md) · [Agents](agents/_index.md) · [Book language](book-language/_index.md) · [Commitment index](book-language/commitments/_index.md)
+[Dictionary](dictionary.md) · [Agents](agents/_index.md) · [Book language](book-language/_index.md) · [References and lookup](book-language/references.md) · [Commitment index](book-language/commitments/_index.md)
 
 ## Installation and operation
 
@@ -33,10 +35,13 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [CLI presentation and interaction](cli/interactive-ui.md): Pretty/raw output, finite wizards, live dashboards and one-shot results.
 - [Help, about and version](cli/help.md): Command-scoped pretty/raw help and the actual running engine version.
 - [Shared controls](cli/controls.md): One runtime control model with equivalent client capabilities.
-- [Project status view](cli/status-view.md): One live/snapshot view with prominent requests, status, URL and QR code.
+- [Project status view](cli/status-view.md): Live/snapshot state, prominent requests and truthful local/remote connection information.
+- [Dashboard panel layout](cli/dashboard-layout.md): Separate attention, work, queue, activity and connection regions.
 - [Terminal dashboard](cli/terminal.md): Attach with `ptbk dashboard`, observe live state and use keyboard controls.
-- [Local service API](cli/api.md): Independently usable status and control endpoints.
+- [Service API](cli/api.md): Independently usable authenticated status and control endpoints.
 - [Browser dashboard](cli/dashboard.md): Lightweight JavaScript SPA at `/`, consuming the service API.
+- [Remote access](cli/remote-access.md): Default protected tunnel, mobile pairing, opt-out and lifecycle.
+- [Tunnel provider decision](cli/tunnel-options.md): Researched alternatives and development/stable-hostname tradeoffs.
 - [User interactions](cli/user-interactions.md): Highly visible, actionable human requests and response semantics.
 - [Channels](cli/channels.md): Terminal, CLI answers, browser app and API.
 - [Browser](cli/browser.md): One independently configured browser/profile per project.
@@ -44,11 +49,12 @@ Keep specifications in English, concise and focused on observable behavior, impo
 ## Agents and work
 
 - [Agent context](cli/agent-context.md): Effective role, task and project instructions.
-- [Agent visual identity](agents/visual-identity.md): Automatic stable avatars, cross-interface recognition and truthful activity.
+- [Agent visual identity](agents/visual-identity.md): Coder-inspired mascot badges, stable identity and truthful activity.
 - [Harnesses](cli/harnesses.md): Complete selected setup, global installations, authentication and execution.
 - [Harness plugins](cli/harness-plugins.md): Common integration contract and featured/More presentation.
 - [Harness updates](cli/harness-updates.md): Selected setup updates and safe ongoing maintenance.
 - [TEAM consultations](cli/team.md): Cooperation within one task.
+- [Authoring and saving](cli/authoring.md): Commit add and other approved versioned changes before dispatch.
 - [Task Books](cli/task-books.md): Readable bounded work and completion stamps.
 - [Markdown tasks](cli/task-markdown.md): Supported checkmark-based task sources.
 - [Task origins](cli/task-origins.md): Explicit, derived and goal-driven work.
@@ -65,7 +71,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Errors](cli/errors.md): Understandable failures, diagnostic evidence and next actions.
 - [Retries](cli/retries.md): Budgets, authentication and provider waiting.
 - [Git preflight](cli/git-preflight.md): Workspace readiness and safe initialization.
-- [Git persistence](cli/git-persistence.md): One task-result commit and change ownership.
+- [Git persistence](cli/git-persistence.md): Default operation commits, PTBK subjects, explicit opt-out and ownership.
 - [Git synchronization](cli/git-synchronization.md): Optional pull/push and pending sync.
 - [Recovery](cli/recovery.md): Interrupted work without duplication or data loss.
 - [Isolation](cli/isolation.md): Optional worktree execution and integration.
@@ -73,4 +79,4 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Planning](cli/planning.md): Read-only discussion and approved task saving.
 - [Migration](cli/migration.md): Lossless Markdown-to-Book conversion.
 - [Operational quality](cli/operations.md): Cross-platform, bounded and observable operation.
-- [Acceptance scenarios](cli/acceptance.md): Representative verifiable product outcomes.
+- [Acceptance scenarios](cli/acceptance.md): Representative verifiable product outcomes; topic-specific contracts add focused acceptance outcomes.

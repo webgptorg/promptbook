@@ -14,9 +14,11 @@ Omitted values inherit; explicit false, empty or disabled values must not be mis
 
 Configuration covers enabled harnesses and their non-secret setup, routing/model preferences, one browser configuration and supported operating/update policies. Multiple harnesses and the single browser are independent settings. A task's explicit requirements remain constraints, not lower-priority defaults to overwrite.
 
+Remote HTTP exposure follows [tunnel configuration](remote-access.md): default enabled when HTTP runs, provider selection and non-secret options are discoverable and can be saved, while `--no-tunnel`/`--tunnel` and `--tunnel-provider` override this invocation. No-server suppresses implicit tunneling. Save credential references rather than provider tokens, pairing links or device sessions. Generated ephemeral URLs and tunnel processes are runtime state, not versioned defaults.
+
 Resolve paths in the file relative to its project; resolve CLI paths relative to the invocation directory. Do not inherit another project's configuration merely because it is an ancestor or contains the installation. Diagnose invalid settings before affected work, with their location; do not silently fall back after a configuration error.
 
-CLI overrides do not rewrite `ptbk.json`. Live control changes are temporary unless explicitly saved. Recovery may retain a running process's effective settings; a new independent invocation resolves its own configuration. Show effective settings and their sources on request, without secrets.
+CLI overrides do not rewrite `ptbk.json`. Live control changes are temporary unless explicitly saved. A confirmed save of versioned settings is an [authoring operation](authoring.md), committed by default; temporary control changes need no commit. Recovery may retain a running process's effective settings; a new independent invocation resolves its own configuration. Show effective settings and their sources on request, without secrets.
 
 Check setup is an explicit configuration operation: when the default validation is missing or invalid, a confirmed setup choice or `init --check COMMAND` saves its replacement. Existing valid defaults remain intact; other commands' `--check` flags and an init override of valid validation remain temporary.
 
