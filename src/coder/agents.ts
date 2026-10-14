@@ -118,12 +118,15 @@ function within(root: string, target: string): boolean {
     return part === '' || (part !== '..' && !part.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`) && !isAbsolute(part));
 }
 
+/** Distinguish excluded discovery candidates from unreadable or malformed project Books. */
+class AgentPathBoundaryError extends Error {}
+
 /** Resolve a local file without allowing a symlink to escape the selected project. @private */
 export async function agentLocalPath(path: string, projectPath: string): Promise<string> {
     const root = await realpath(projectPath);
     const target = await realpath(resolve(projectPath, path));
-    if (!within(root, target)) throw new Error(`Agent/knowledge reference escapes project: ${path}`);
-    if (relative(root, target).split(/[\\/]/).some(part => ['.git', '.ptbk'].includes(part))) throw new Error(`Agent/knowledge reference enters private runtime or Git metadata: ${path}`);
+    if (!within(root, target)) throw new AgentPathBoundaryError(`Agent/knowledge reference escapes project: ${path}`);
+    if (relative(root, target).split(/[\\/]/).some(part => ['.git', '.ptbk'].includes(part))) throw new AgentPathBoundaryError(`Agent/knowledge reference enters private runtime or Git metadata: ${path}`);
     return target;
 }
 
@@ -199,7 +202,9 @@ export async function discoverAgents(projectPath: string, options: { name?: stri
         const safe = await agentLocalPath(path, projectPath);
         if (files.has(safe)) return;
         files.add(safe);
-        const attributes = await stat(safe);
+        // Windows file IDs can exceed Number's integer precision; rounding can
+        // falsely merge distinct agents while deduplicating actual hard links.
+        const attributes = await stat(safe, { bigint: true });
         if (attributes.ino) { const identity = `${attributes.dev}:${attributes.ino}`; if (fileIdentities.has(identity)) return; fileIdentities.add(identity); }
         const text = await sourceText(safe);
         const name = text.replace(/^\uFEFF/, '').split(/\r?\n/).find(line => line.trim())?.trim();
@@ -247,7 +252,9 @@ export async function discoverAgents(projectPath: string, options: { name?: stri
         for (const path of [...new Set(paths.split('\0'))].sort()) {
             if (!path.endsWith('.book') || path.split(/[\\/]/).some(part => ['.git', '.ptbk'].includes(part))) continue;
             try { await inspect(resolve(projectPath, path), 'project', path.split(/[\\/]/).some(part => part.startsWith('.') || part === 'node_modules')); }
-            catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+            // Git for Windows can enumerate Books below directory junctions. Exclude
+            // their canonical targets just as the filesystem walk excludes links.
+            catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT' && !(error instanceof AgentPathBoundaryError)) throw error; }
         }
     }
     if (options.includeIgnored && requested !== undefined && !identities.has(requested)) await walk(projectPath, 'ignored', true);

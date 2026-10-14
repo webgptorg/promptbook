@@ -8,18 +8,22 @@ import { resolveWorkspace } from '../dist/coder/workspace.js';
 import { ProjectBrowser } from '../dist/coder/browser.js';
 import { createRequest, listRequests } from '../dist/coder/requests.js';
 
-/** Empty isolated projects let shared presentation be tested without a harness or model call. */
-async function fixture(t) {
+/** Close the finite runtime and drain its reads before removing the isolated project. */
+async function fixture(t, options = {}, cancel = () => {}) {
     const directory = await realpath(await mkdtemp(join(tmpdir(), 'ptbk-finite-ui-')));
-    t.after(() => rm(directory, { recursive: true, force: true }));
-    return resolveWorkspace({ path: directory });
+    let runtime;
+    t.after(async () => {
+        try { await runtime?.close(); }
+        finally { await rm(directory, { recursive: true, force: true }); }
+    });
+    const workspace = await resolveWorkspace({ path: directory });
+    runtime = await createFiniteRuntime(workspace, options, cancel);
+    return { workspace, runtime };
 }
 
 test('finite page shares real version and controls and closes with its invocation', async t => {
-    const workspace = await fixture(t);
     let stopped = false;
-    const runtime = await createFiniteRuntime(workspace, { interactive: false, noServer: false, noTunnel: true }, () => { stopped = true; });
-    t.after(() => runtime.close());
+    const { runtime } = await fixture(t, { interactive: false, noServer: false, noTunnel: true }, () => { stopped = true; });
     const state = await runtime.control.snapshot();
     const version = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version;
     assert.equal(state.engineVersion, version);
@@ -65,8 +69,7 @@ test('finite page shares real version and controls and closes with its invocatio
 });
 
 test('finite HTTP closes even when browser cleanup fails', async t => {
-    const workspace = await fixture(t);
-    const runtime = await createFiniteRuntime(workspace, { noServer: false, noTunnel: true }, () => {});
+    const { runtime } = await fixture(t, { noServer: false, noTunnel: true });
     const address = new URL((await runtime.control.snapshot()).url);
     const original = ProjectBrowser.prototype.close;
     ProjectBrowser.prototype.close = async () => { throw new Error('Observed browser cleanup failure'); };
@@ -76,9 +79,7 @@ test('finite HTTP closes even when browser cleanup fails', async t => {
 });
 
 test('finite activity distinguishes unclaimed work from actual task routing and recovery diagnostics', async t => {
-    const workspace = await fixture(t);
-    const runtime = await createFiniteRuntime(workspace, {}, () => {});
-    t.after(() => runtime.close());
+    const { runtime } = await fixture(t);
     runtime.options.onEvent({ type: 'waiting-until', taskId: 'future', message: 'Future work', time: 1 });
     assert.equal((await runtime.control.snapshot()).running, false);
     runtime.options.onEvent({ type: 'selection', taskId: 'active', message: 'Observed routing', time: 2, agent: '/actual/developer.book', harness: 'claude-code', model: 'observed-model', thinkingLevel: 'high' });
@@ -91,9 +92,8 @@ test('finite activity distinguishes unclaimed work from actual task routing and 
 });
 
 test('finite dashboards publish controls and distinguish graceful finish from owned cancellation', async t => {
-    const workspace = await fixture(t); let cancelled = 0;
-    const runtime = await createFiniteRuntime(workspace, {}, () => cancelled++);
-    t.after(() => runtime.close());
+    let cancelled = 0;
+    const { runtime } = await fixture(t, {}, () => cancelled++);
     assert.equal((await runtime.control.snapshot()).finishAfterTask, false);
     assert.deepEqual((await runtime.control.snapshot()).controlCapabilities.actions, ['inspect', 'pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses']);
     const first = await runtime.control.command('finish');
@@ -113,9 +113,7 @@ test('finite dashboards publish controls and distinguish graceful finish from ow
 });
 
 test('finite manual confirmations use labeled choices with decline initially focused', async t => {
-    const workspace = await fixture(t);
-    const runtime = await createFiniteRuntime(workspace, { interactive: true, noAuto: true }, () => {});
-    t.after(() => runtime.close());
+    const { runtime } = await fixture(t, { interactive: true, noAuto: true });
     const decisions = ['yes', 'no']; const labels = [];
     runtime.terminal.question = async () => assert.fail('Predefined confirmations must not open the text composer.');
     runtime.terminal.choose = async (label, choices, initial) => {
@@ -151,11 +149,9 @@ function dashboardDocument() {
 }
 
 test('dashboard requests expose predefined answers without applying an implicit default', async t => {
-    const workspace = await fixture(t);
+    const { workspace, runtime } = await fixture(t, { noServer: false, noTunnel: true });
     const request = await createRequest(workspace, { kind: 'question', reason: 'Select a destination.', prompt: 'Where should the output go?', choices: ['Current folder', '<new project>'] });
     const open = await createRequest(workspace, { kind: 'question', reason: 'Describe the work.', prompt: 'What should change?' });
-    const runtime = await createFiniteRuntime(workspace, { noServer: false, noTunnel: true }, () => {});
-    t.after(() => runtime.close());
     const address = new URL((await runtime.control.snapshot()).url);
     const html = await (await fetch(address.origin)).text();
     const script = /<script nonce="[^"]+">([\s\S]*)<\/script>/.exec(html)[1];

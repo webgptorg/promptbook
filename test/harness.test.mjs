@@ -549,10 +549,20 @@ test('Cline refuses unverified tools before any task can be submitted', async ()
     } finally { restore(); }
 }));
 
+/** Give planning saves a repository-local author and signing policy independent of the runner. */
+async function initializePlanningProject(directory) {
+    // fakeProviders restores this fixture's environment after planning finishes.
+    for (const key of ['CODING_AGENT_GIT_NAME', 'CODING_AGENT_GIT_EMAIL', 'CODING_AGENT_GIT_SIGNING_KEY', 'CODING_AGENT_GPG_KEY_ID', 'GIT_AUTHOR_NAME', 'GIT_AUTHOR_EMAIL', 'GIT_COMMITTER_NAME', 'GIT_COMMITTER_EMAIL']) delete process.env[key];
+    for (const args of [['init', '--quiet'], ['config', 'user.name', 'Planning Fixture'], ['config', 'user.email', 'fixture@example.test'], ['config', 'commit.gpgsign', 'false']]) {
+        const result = await runProcess('git', args, { cwd: directory });
+        assert.equal(result.exitCode, 0, result.output);
+    }
+}
+
 test('planning saves only after exact preview and explicit human approval', async () => fixture(async directory => {
     const restore = await fakeProviders(directory);
     try {
-        assert.equal((await runProcess('git', ['init'], { cwd: directory })).exitCode, 0);
+        await initializePlanningProject(directory);
         await mkdir(join(directory, 'agents'));
         await writeFile(join(directory, 'agents', 'developer.book'), 'Developer\nFROM VOID\nRULE Plan\n');
         await writeFile(join(directory, 'app.ts'), 'untouched application bytes\n');
@@ -563,6 +573,9 @@ test('planning saves only after exact preview and explicit human approval', asyn
         output.on('data', chunk => displayed += chunk);
         const result = await planConversation(workspace, { harness: 'openai-codex', prompt: 'Propose work', input: Readable.from(['/draft\nyes\n/exit\n']), output });
         assert.equal(result.saved.length, 1);
+        const commit = await runProcess('git', ['log', '-1', '--format=%an <%ae>%n%s'], { cwd: directory });
+        assert.equal(commit.exitCode, 0, commit.output);
+        assert.equal(commit.output.trim(), 'Planning Fixture <fixture@example.test>\nPTBK: Save approved planning tasks');
         const book = await readFile(result.saved[0], 'utf8');
         assert.match(book, /STATUS not-ready/);
         assert.match(displayed, /Review .*reviewed\.book/);
@@ -578,7 +591,7 @@ test('planning saves only after exact preview and explicit human approval', asyn
 test('interactive planning approves reviewed files with arrows and Enter rather than typing yes', async () => fixture(async directory => {
     const restore = await fakeProviders(directory);
     try {
-        assert.equal((await runProcess('git', ['init'], { cwd: directory })).exitCode, 0);
+        await initializePlanningProject(directory);
         await mkdir(join(directory, 'agents'));
         await writeFile(join(directory, 'agents', 'developer.book'), 'Developer\nFROM VOID\nRULE Plan\n');
         process.env.PTBK_TEST_PROPOSE = '1';

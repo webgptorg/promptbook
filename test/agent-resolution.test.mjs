@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtemp, realpath, mkdir, rm, writeFile, unlink, symlink } from 'node:fs/promises';
+import { promises as fs } from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+import { mkdtemp, realpath, mkdir, rm, writeFile, unlink, symlink, link } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { resolveWorkspace, resolveAgentSelection } from '../dist/coder/workspace.js';
@@ -58,6 +60,11 @@ test('winning-tier collisions and malformed sources fail; private state, task ti
     await writeFile(join(outside, 'escape.book'), 'Escape\nFROM Void\n');
     await symlink(outside, join(root, 'agents/outside'), process.platform === 'win32' ? 'junction' : 'dir');
     await assert.rejects(resolveAgentSelection(workspace, 'Escape'), /missing/);
+    // Reproduce Git for Windows enumerating junction descendants on every platform.
+    const blob = (await promisify(execFile)('git', ['-C', root, 'hash-object', '-w', '--', join(outside, 'escape.book')])).stdout.trim();
+    await promisify(execFile)('git', ['-C', root, 'update-index', '--add', '--cacheinfo', `100644,${blob},agents/outside/escape.book`]);
+    await assert.rejects(resolveAgentSelection(workspace, 'Escape'), /missing/);
+    await assert.rejects(resolveAgentSelection(workspace, 'agents/outside/escape.book'), /escapes project/);
 });
 
 test('read-only lookup without Git still searches explicit dependency references instead of caching a premature miss', async t => {
@@ -68,4 +75,35 @@ test('read-only lookup without Git still searches explicit dependency references
     await writeFile(source, 'Package Role\nFROM Void\nCLOSED\n');
     assert.equal((await resolveAgentSelection(workspace, '{Package Role}')).path, source);
     assert.equal((await discoverAgents(root, { name: 'Package Role', includeIgnored: true }))[0].tier, 'ignored');
+});
+
+test('large file identities preserve distinct agents while hard-linked copies remain one definition', async t => {
+    const workspace = await fixture(t); const root = workspace.projectPath;
+    await mkdir(join(root, 'agents/.core'), { recursive: true });
+    await mkdir(join(root, 'roles'));
+    const manager = join(root, 'agents/.core/manager.book');
+    const developer = join(root, 'agents/developer.book');
+    const alias = join(root, 'roles/developer.book');
+    await writeFile(manager, 'Manager\nFROM Void\nCLOSED\n');
+    await writeFile(developer, 'Developer\nFROM Void\nCLOSED\n');
+    await link(developer, alias);
+    const identities = new Map([[manager, 9007199254740992n], [developer, 9007199254740993n], [alias, 9007199254740993n]]);
+    assert.equal(Number(identities.get(manager)), Number(identities.get(developer)), 'These distinct file IDs collide when rounded to Number');
+    const originalStat = fs.stat;
+    /** Preserve real filesystem reads, substituting only full-width file IDs. */
+    fs.stat = async (path, options) => {
+        const attributes = await originalStat(path, options);
+        const identity = identities.get(path);
+        if (identity !== undefined) {
+            attributes.dev = options?.bigint ? 1n : 1;
+            attributes.ino = options?.bigint ? identity : Number(identity);
+        }
+        return attributes;
+    };
+    syncBuiltinESMExports();
+    try {
+        const agents = await discoverAgents(root);
+        assert.deepEqual(agents.map(agent => agent.name).sort(), ['Developer', 'Manager']);
+        assert.equal((await resolveAgentSelection(workspace, 'Developer')).path, developer);
+    } finally { fs.stat = originalStat; syncBuiltinESMExports(); }
 });
