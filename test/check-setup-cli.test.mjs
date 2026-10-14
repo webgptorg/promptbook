@@ -181,7 +181,7 @@ test('check setup leaves overlapping owner configuration pending and preserves u
 });
 
 
-test('successful init validates saved execution choices and leaves plain start ready without inference', async t => {
+for (const harness of ['claude-code', 'openai-codex']) test(`successful init reuses ${harness} login and leaves saved execution ready without inference`, async t => {
     const { project, cli, git, env } = await fixture(t);
     await projectValidation(project);
     await writeFile(join(project, 'package.json'), JSON.stringify({ scripts: { check: 'node validate.cjs' }, dependencies: { ptbk: '1.2.3' } }));
@@ -196,26 +196,50 @@ test('successful init validates saved execution choices and leaves plain start r
     // A copied Windows environment is case-sensitive; preserve its inherited Path key and entries.
     const pathKey = Object.keys(env).find(key => key.toLowerCase() === 'path') ?? 'PATH';
     env[pathKey] = [bin, env[pathKey]].filter(Boolean).join(delimiter);
-    for (const name of ['claude', 'npm']) {
-        const source = `#!${process.execPath}\nconst fs=require('node:fs');const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(record)},JSON.stringify({name:${JSON.stringify(name)},args})+'\\n');if(args.includes('--version'))console.log('claude 1.2.3');else if(args.includes('--help'))console.log('--output-format --effort --model --mcp-config --input-format --allowedTools');else if(args[0]==='auth'&&args[1]==='status')console.log(JSON.stringify({loggedIn:true,authMethod:'oauth'}));else if(args[0]==='view')console.log(JSON.stringify('1.2.3'));else throw Error('No execution, installation or login is authorized by this setup fixture');\n`;
+    for (const name of [harness === 'openai-codex' ? 'codex' : 'claude', 'npm']) {
+        const source = `#!${process.execPath}
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+const record = ${JSON.stringify(record)};
+fs.appendFileSync(record, JSON.stringify({name: ${JSON.stringify(name)}, args}) + '\\n');
+if (args.includes('--version')) console.log(${JSON.stringify(name)} + ' 1.2.3');
+else if (args.includes('--help')) console.log('--json --sandbox --model --output-format --effort --mcp-config --input-format --allowedTools');
+else if (args[0] === 'auth' && args[1] === 'status') console.log(JSON.stringify({loggedIn: true, authMethod: 'oauth'}));
+else if (args[0] === 'login' && args[1] === 'status') console.log('Logged in using ChatGPT');
+else if (args[0] === 'view') console.log(JSON.stringify('1.2.3'));
+else if (args[0] === 'app-server') {
+    const lines = require('node:readline').createInterface({input: process.stdin});
+    lines.on('close', () => process.exit(0));
+    lines.on('line', line => {
+        const message = JSON.parse(line);
+        fs.appendFileSync(record, JSON.stringify({name: 'codex-rpc', method: message.method}) + '\\n');
+        if (message.method === 'initialized') return;
+        if (!['initialize', 'model/list'].includes(message.method)) throw Error('Setup must never start a thread or model turn');
+        console.log(JSON.stringify({id: message.id, result: message.method === 'model/list' ? {data: [{model: 'fixture-native-model'}]} : {}}));
+    });
+} else throw Error('No execution, installation or login is authorized by this setup fixture');
+`;
         await writeFile(join(bin, process.platform === 'win32' ? name + '.cmd' : name), source, { mode: 0o755 });
     }
     await git(['init', '-q']);
     await git(['add', '--', 'package.json', 'report.txt', 'validate.cjs', 'review-report.cjs']);
     await git(['commit', '-qm', 'Existing project baseline']);
-    const initialized = await cli(['init', '--harnesses', 'claude-code', '--no-self-update', '--non-interactive']);
+    const initialized = await cli(['init', '--harnesses', harness, '--no-self-update', '--non-interactive']);
     assert.equal(initialized.code, undefined, initialized.stdout);
     assert.match(initialized.stdout, /Prerequisites|Next: ptbk start/);
     assert.doesNotMatch(initialized.stdout, /Unresolved prerequisites|incomplete/);
     const saved = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
-    assert.deepEqual(saved.harnesses, ['claude-code']);
+    assert.deepEqual(saved.harnesses, [harness]);
+    assert.notEqual(saved.execution?.allowCredits, true, 'Healthy account access needs no saved credit opt-in');
     const firstRecord = await readFile(join(project, 'tasks', 'templates', 'initialization.json'), 'utf8');
     const head = (await git(['rev-parse', 'HEAD'])).stdout;
     await cli(['init', '--no-self-update', '--non-interactive']);
     assert.equal((await git(['rev-parse', 'HEAD'])).stdout, head);
     assert.equal(await readFile(join(project, 'tasks', 'templates', 'initialization.json'), 'utf8'), firstRecord);
     const calls = (await readFile(record, 'utf8')).trim().split('\n').map(JSON.parse);
-    assert(calls.every(call => call.args.includes('--version') || call.args.includes('--help') || call.args[0] === 'auth' || call.args[0] === 'view'));
+    assert(calls.every(call => call.name === 'codex-rpc'
+        ? ['initialize', 'initialized', 'model/list'].includes(call.method)
+        : call.args.includes('--version') || call.args.includes('--help') || ['auth', 'view', 'app-server'].includes(call.args[0]) || call.args.join(' ') === 'login status'));
     const workspace = await import('../dist/coder/workspace.js').then(({ resolveWorkspace }) => resolveWorkspace({ path: project }));
     const readiness = await import('../dist/coder/initialization.js').then(({ inspectProjectReadiness }) => inspectProjectReadiness(workspace));
     assert.equal(readiness.ready, true);

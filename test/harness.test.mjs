@@ -11,7 +11,8 @@ import { advisorTools, createToolBridge } from '../dist/coder/team.js';
 import { planningReadTools, planConversation } from '../dist/coder/planner.js';
 import { resolveWorkspace } from '../dist/coder/workspace.js';
 
-const helpFlags = '--json --sandbox --ignore-user-config --ignore-rules --disable --output-format --effort --thinking --mcp-config --variant --reasoning-effort --additional-mcp-config --approval-mode --safe-mode --tools --strict-mcp-config --bare --deny-tool --disable-builtin-mcps --excluded-tools --plan --auto-approve --no-credits --strict-config --input-format --allowedTools --restricted --setting-sources --settings --disable-slash-commands --acp --no-auto-update --no-custom-instructions --no-bash-env --pure --config --data-dir --model';
+/** Baseline native capabilities omit optional credit flags, as the installed Codex CLI does. */
+const helpFlags = '--json --sandbox --ignore-user-config --ignore-rules --disable --output-format --effort --thinking --mcp-config --variant --reasoning-effort --additional-mcp-config --approval-mode --safe-mode --tools --strict-mcp-config --bare --deny-tool --disable-builtin-mcps --excluded-tools --plan --auto-approve --strict-config --input-format --allowedTools --restricted --setting-sources --settings --disable-slash-commands --acp --no-auto-update --no-custom-instructions --no-bash-env --pure --config --data-dir --model';
 
 async function fixture(action) {
     const directory = await mkdtemp(join(tmpdir(), 'ptbk-harness-'));
@@ -24,7 +25,7 @@ async function fakeProviders(directory) {
     const script = '#!' + process.execPath + '\n' +
         "const args=process.argv.slice(2);\n" +
         "if(args.includes('--version')) { console.log('fixture 1.2.3'); process.exit(0); }\n" +
-        "if(args.includes('--help')) { console.log(process.env.PTBK_TEST_HELP || " + JSON.stringify(helpFlags) + "); process.exit(0); }\n" +
+        "if(args.includes('--help')) { console.log((args[0]==='app-server'&&process.env.PTBK_TEST_APP_SERVER_HELP) || process.env.PTBK_TEST_HELP || " + JSON.stringify(helpFlags) + "); process.exit(0); }\n" +
         "if(args[0]==='login' && args[1]==='status') { console.log(process.env.PTBK_TEST_AUTH || 'Logged in using ChatGPT'); process.exit(process.env.PTBK_TEST_AUTH==='Not logged in'?1:0); }\n" +
         "async function nativeDiscover(client){const fs=require('node:fs');const url=JSON.parse(fs.readFileSync(client,'utf8').match(/const url = (.*);/)[1]);if(process.env.PTBK_TEST_IGNORE_MCP)return [];let tools;for(const method of ['initialize','tools/list']){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method})});const value=await r.json();if(method==='tools/list')tools=value.result.tools;}return tools;}\n" +
         "if(args.includes('--headless')){const fs=require('node:fs');let pending=Buffer.alloc(0),sessionId,tools=[],create;const methods=[];const emit=m=>{const b=JSON.stringify(m);process.stdout.write('Content-Length: '+Buffer.byteLength(b)+'\\r\\n\\r\\n'+b)};process.stdin.on('end',()=>process.exit(0));process.stdin.on('data',async chunk=>{pending=Buffer.concat([pending,chunk]);for(;;){const p=pending.indexOf('\\r\\n\\r\\n');if(p<0)return;const n=Number(pending.subarray(0,p).toString().match(/Content-Length: (\\d+)/i)[1]);if(pending.length<p+4+n)return;const m=JSON.parse(pending.subarray(p+4,p+4+n).toString());pending=pending.subarray(p+4+n);methods.push(m.method);if(m.method==='connect')emit({jsonrpc:'2.0',id:m.id,result:{protocolVersion:3}});else if(m.method==='session.create'){create=m.params;sessionId=m.params.sessionId;tools=await nativeDiscover(m.params.mcpServers.ptbk.args[0]);emit({jsonrpc:'2.0',id:m.id,result:{sessionId}})}else if(m.method==='session.mcp.list')emit({jsonrpc:'2.0',id:m.id,result:{servers:[{name:'ptbk',status:'connected'}]}});else if(m.method==='session.mcp.listTools')emit({jsonrpc:'2.0',id:m.id,result:{tools}});else if(m.method==='session.send'){fs.writeFileSync(process.env.PTBK_TEST_RECORD,JSON.stringify({args,input:m.params.prompt,cwd:process.cwd(),methods,create}));emit({jsonrpc:'2.0',id:m.id,result:{messageId:'ack'}});emit({jsonrpc:'2.0',method:'session.event',params:{sessionId,event:{type:'assistant.usage',data:{inputTokens:11,outputTokens:4}}}});emit({jsonrpc:'2.0',method:'session.event',params:{sessionId,event:{type:'session.idle',data:{}}}});}}});return;}\n" +
@@ -426,19 +427,61 @@ test('planner rejects external MCP tools before starting any model turn', async 
     } finally { restore(); }
 }));
 
-test('Codex refuses account inference when native credit prohibition is unavailable', async () => fixture(async directory => {
+test('Codex reuses ChatGPT account execution without optional credit flags or credit opt-in', async () => fixture(async directory => {
     const restore = await fakeProviders(directory);
     try {
-        process.env.PTBK_TEST_HELP = helpFlags.replace(' --no-credits', '');
-        let result = await runHarness({ harness: 'openai-codex', projectPath: directory, prompt: 'Task' });
-        assert.equal(result.outcome, 'configuration');
-        assert.match(result.output, /cannot enforce credit-free/);
-        await assert.rejects(access(process.env.PTBK_TEST_RECORD));
-        result = await runHarness({ harness: 'openai-codex', projectPath: directory, prompt: 'Task', allowCredits: true });
-        assert.equal(result.outcome, 'success');
+        for (const allowCredits of [undefined, false, true]) {
+            const result = await runHarness({ harness: 'openai-codex', projectPath: directory, prompt: 'Task', allowCredits });
+            assert.equal(result.outcome, 'success', result.output);
+            assert.equal(result.authentication, 'account');
+            const record = JSON.parse(await readFile(process.env.PTBK_TEST_RECORD, 'utf8'));
+            assert.ok(record.args.includes('forced_login_method="chatgpt"'));
+            assert.equal(record.args.includes('--no-credits'), false);
+            assert.equal(record.args.includes('--disable-credits'), false);
+        }
+    } finally { restore(); }
+}));
+
+test('Codex applies optional native credit controls only when advertised and not opted into credits', async () => fixture(async directory => {
+    const restore = await fakeProviders(directory);
+    try {
+        for (const flag of ['--no-credits', '--disable-credits']) {
+            process.env.PTBK_TEST_HELP = `${helpFlags} ${flag}`;
+            for (const allowCredits of [false, true]) {
+                const result = await runHarness({ harness: 'openai-codex', projectPath: directory, prompt: 'Task', allowCredits });
+                assert.equal(result.outcome, 'success', result.output);
+                const record = JSON.parse(await readFile(process.env.PTBK_TEST_RECORD, 'utf8'));
+                assert.equal(record.args.includes(flag), !allowCredits);
+            }
+        }
+    } finally { restore(); }
+}));
+
+test('Codex account credit exhaustion stays a quota result without promising disabled native billing', async () => fixture(async directory => {
+    const restore = await fakeProviders(directory);
+    try {
+        process.env.PTBK_TEST_EXIT = '1';
+        process.env.PTBK_TEST_RESULT = JSON.stringify({ type: 'error', message: 'Usage limit exceeded: account credits exhausted' });
+        const result = await runHarness({ harness: 'openai-codex', projectPath: directory, prompt: 'Task' });
+        assert.equal(result.outcome, 'quota', result.output);
+        assert.equal(result.authentication, 'account');
+        assert.match(result.output, /native Codex\/account billing controls/);
+        assert.doesNotMatch(result.output, /Credit use is disabled|authentication required|cannot enforce credit-free/);
+    } finally { restore(); }
+}));
+
+test('Codex planning needs only app-server supported flags when exec advertises an optional credit control', async () => fixture(async directory => {
+    const restore = await fakeProviders(directory);
+    try {
+        process.env.PTBK_TEST_HELP = `${helpFlags} --no-credits`;
+        process.env.PTBK_TEST_APP_SERVER_HELP = helpFlags;
+        const result = await runHarness({ harness: 'openai-codex', projectPath: directory, prompt: 'Plan', readOnly: true });
+        assert.equal(result.outcome, 'success', result.output);
+        assert.equal(result.authentication, 'account');
         const record = JSON.parse(await readFile(process.env.PTBK_TEST_RECORD, 'utf8'));
-        assert.ok(record.args.includes('forced_login_method="chatgpt"'));
+        assert.equal(record.args[0], 'app-server');
         assert.equal(record.args.includes('--no-credits'), false);
+        assert.ok(record.methods.indexOf('mcpServerStatus/list') < record.methods.indexOf('turn/start'));
     } finally { restore(); }
 }));
 

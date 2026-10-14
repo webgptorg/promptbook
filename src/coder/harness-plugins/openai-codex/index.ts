@@ -76,13 +76,13 @@ async function prepare(input: InvocationInput) {
     let cleanup: (() => Promise<void>) | undefined;
     requireFlag('--json'); requireFlag('--sandbox');
     args.push('exec', '--json', '--color', 'never', '--sandbox', request.readOnly ? 'read-only' : 'workspace-write', '-c', 'approval_policy="never"');
-    // forced_login_method controls authentication, not purchased ChatGPT credits.
-    // Require an explicit provider-enforced credit prohibition instead of inventing a config key.
+    // Reuse subscription authentication without falling back to API billing.
+    // Account billing remains governed by native Codex/account controls; this is not a credit cap.
     args.push('-c', authentication === 'api' ? 'forced_login_method="api"' : 'forced_login_method="chatgpt"');
+    // Credit controls are optional capabilities, not prerequisites for a healthy account login.
     if (authentication === 'account' && !request.allowCredits) {
         if (help.includes('--no-credits')) args.push('--no-credits');
         else if (help.includes('--disable-credits')) args.push('--disable-credits');
-        else throw new Error('The installed Codex CLI cannot enforce credit-free account execution. No model call was made. Use --allow-credits only if you authorize account credits, or select a harness with an enforceable credit policy. API billing remains a separate explicit opt-in.');
     }
     if (request.readOnly) {
         requireFlag('--ignore-user-config'); requireFlag('--ignore-rules'); requireFlag('--disable');
@@ -122,10 +122,7 @@ async function runCodexWithTools(request: HarnessRequest, command: { args: strin
     for (let index = 0; index < command.args.length; index++) {
         const argument = command.args[index]!;
         if (argument === '-c' || argument === '--disable') args.push(argument, command.args[++index]!);
-        else if (argument === '--no-credits' || argument === '--disable-credits') {
-            if (!help.output.includes(argument)) throw new Error('Codex app-server cannot enforce the requested credit prohibition; explicit --allow-credits is required for TEAM/planning. No model call was made.');
-            args.push(argument);
-        }
+        else if ((argument === '--no-credits' || argument === '--disable-credits') && help.output.includes(argument)) args.push(argument);
     }
     let threadId: string | undefined;
     let started = false;

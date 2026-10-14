@@ -28,6 +28,8 @@ Successful initialization means plain `ptbk start` in this project can begin wor
 
 Check readiness using the saved settings that a new start will use, not only temporary flags or wizard memory. Do not claim project tests passed when init did not run them. Later credential expiry, provider outages, changed project files and genuinely task-specific decisions remain possible runtime problems; they are not excuses to defer known setup.
 
+Reuse a working native Codex ChatGPT login under the [account and billing rules](harnesses.md#codex-account-login-and-billing). Missing optional credit-control flags alone must not mark this selected harness incomplete or prescribe `--allow-credits` as a setup requirement. Report actual missing authentication or required execution capabilities separately from provider quota/billing limits.
+
 Cancellation, deferral or an unresolved prerequisite preserves completed progress but ends with an explicit incomplete/not-ready outcome and the concrete resume action. It must not report successful initialization or recommend an immediately usable start. Noninteractive init fails actionably when required decisions are absent; it never leaves invisible prompts.
 
 Repeating init with the same version, choices and satisfied prerequisites is a no-op: no rewritten files, duplicated first task/templates, reset configuration, repeated login or empty commit. A newer engine may add missing required artifacts without overwriting customization. Finish with a short changed/already-ready/unresolved summary; show `ptbk start` as the ordinary next command only when ready.

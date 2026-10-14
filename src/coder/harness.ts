@@ -210,7 +210,7 @@ export async function runHarness(request: HarnessRequest): Promise<HarnessResult
             output += '\nThe provider did not discover the required ptbk tools. Update the provider CLI or correct its MCP configuration; this turn cannot be reported as successful.';
         }
         if (outcome === 'authentication') output += `\nLogin: ${harness.login}. Authentication failures are not retried automatically.`;
-        if (outcome === 'quota' && request.harness === 'openai-codex' && !request.allowCredits && /credit/i.test(output)) output += '\nCredit use is disabled. Explicitly use --allow-credits to authorize credits; API billing still requires PTBK_OPENAI_CODEX_USE_API_KEY=1.';
+        if (outcome === 'quota' && request.harness === 'openai-codex' && authentication === 'account' && !request.allowCredits && /credit/i.test(output)) output += '\nAccount credit limits follow native Codex/account billing controls. ptbk did not enable a paid fallback or switch to API billing; API billing requires PTBK_OPENAI_CODEX_USE_API_KEY=1 and an available key.';
         return { outcome, exitCode: processResult.exitCode, signal: processResult.signal, output: redacted(output), ...metadata, authentication, ...(harnessVersion ? { harnessVersion } : {}), ...(budget.externalEffects ? { externalEffects: true } : {}), effectiveModel: metadata.effectiveModel || (request.model && request.model !== 'default' ? request.model : harness.nativeDefault ? 'provider-native (not reported)' : harness.defaultModel), ...(!request.teamBudget && Object.keys(budget.usage).length ? { usage: budget.usage } : {}) };
     } catch (error) {
         const output = redacted((error as Error).message);
