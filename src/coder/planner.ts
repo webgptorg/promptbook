@@ -140,14 +140,13 @@ export async function planConversation(workspace: Workspace, options: PlannerOpt
                         if (path !== proposal.path) throw new InputError('Proposal path changed since preview. Review the current source again.');
                         try { await stat(path); throw new InputError(`Proposal destination changed since preview: ${path}. No existing file was overwritten.`); } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
                     }
-                    const baseline = options.commit && !options.noCommit ? await captureSnapshot(workspace.gitRoot!) : undefined;
+                    const baseline = !options.noCommit ? await captureSnapshot(workspace.gitRoot!) : undefined;
                     await mkdir(workspace.tasksPath, { recursive: true });
                     for (const proposal of proposals) {
                         await writeFile(proposal.path, renderProposal(workspace, proposal, draft), { flag: 'wx' });
-                        saved.push(proposal.path);
-                        write(`Saved ${proposal.path}${draft ? ' (not-ready)' : ' (ready)'}.\n`);
                     }
-                    if (baseline) await commitScoped(baseline, 'docs: Save reviewed coder tasks', { paths: proposals.map((proposal) => relative(baseline.root, proposal.path)) });
+                    if (baseline) await commitScoped(baseline, 'Save approved planning tasks', { paths: proposals.map((proposal) => relative(baseline.root, proposal.path)) });
+                    for (const proposal of proposals) { saved.push(proposal.path); write(`Saved ${proposal.path}${draft ? ' (not-ready)' : ' (ready)'}${options.noCommit ? ' (uncommitted)' : ' (committed)'}.\n`); }
                     proposals.length = 0;
                 });
                 continue;

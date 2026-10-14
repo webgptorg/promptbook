@@ -258,7 +258,7 @@ test('agent identities normalize diacritics and camel case and include hidden ne
     assert.equal(normalizeAgentName('Jóhn Smith'), normalizeAgentName('johnSmith'));
     await writeFile(path.join(project, 'agents', 'collision.book'), 'johnSmith\nFROM Void\n');
     await assert.rejects(discoverAgents(project), /Ambiguous.*renamed.book.*collision.book|Ambiguous.*collision.book.*renamed.book/);
-    await assert.rejects(resolveAgentSelection(workspace, definitions[0].path), /Ambiguous/);
+    assert.equal((await resolveAgentSelection(workspace, definitions[0].path)).path, definitions[0].path);
 });
 
 test('core repair is individual, reserved identities cannot be shadowed, and Teacher must be closed', async t => {

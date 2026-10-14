@@ -3,7 +3,7 @@ import { resolve, relative, dirname, join, isAbsolute, basename } from 'node:pat
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import type { Workspace } from './domain.js';
-import { discoverAgents, nonAgentReference, normalizeAgentName, readLocalAgentModel } from './agents.js';
+import { resolveAgentReference, nonAgentReference, normalizeAgentName, readLocalAgentModel } from './agents.js';
 
 /** Runs Git without interpolating project paths into a shell. */
 const EXEC_FILE = promisify(execFile);
@@ -125,27 +125,12 @@ export async function resolveAgentSelection(workspace: Workspace, reference: str
         if (special.kind === 'user' || special.kind === 'void') throw new InputError(`${special.name} cannot execute a queued task; it is a TEAM reference${special.kind === 'void' ? ' or empty foundation' : ''}.`);
         return { path: special.path, aliases: [special.name, special.path] };
     }
-    let agents;
-    try { agents = await discoverAgents(workspace.projectPath); }
-    catch (error) { throw new InputError((error as Error).message); }
-    const explicit = isAbsolute(reference) || /[\\/]/.test(reference) || reference.endsWith('.book');
     let selected;
-    if (explicit) {
-        const target = await confinePath(workspace.projectPath, resolve(workspace.projectPath, reference));
-        selected = agents.find((agent) => agent.path === target);
-        if (!selected) {
-            let text: string;
-            try { text = await readFile(target, 'utf8'); }
-            catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new InputError(`Agent Book does not exist: ${reference}`); throw error; }
-            if (/^TASK(?:\s|$)/m.test(text)) throw new InputError(`Invalid agent Book: ${reference}; task Books cannot be selected as agents.`);
-            const title = text.replace(/^\uFEFF/, '').split(/\r?\n/).find((line) => line.trim())?.trim();
-            if (!title || nonAgentReference(title)) throw new InputError(`Invalid or reserved agent identity in ${reference}`);
-            const conflicting = agents.find((agent) => agent.normalizedName === normalizeAgentName(title));
-            if (conflicting) throw new InputError(`Ambiguous normalized agent name ${title}: ${conflicting.path} and ${target}`);
-            selected = { name: title, path: target };
-        }
-    } else selected = agents.find((agent) => agent.normalizedName === normalizeAgentName(reference));
-    if (!selected) throw new InputError(`Agent ${reference} is missing; run ptbk init or provide an explicit Book path.`);
+    try {
+        const path = await resolveAgentReference(reference, join(workspace.projectPath, 'ptbk.json'), workspace.projectPath);
+        const name = (await readFile(path, 'utf8')).replace(/^\uFEFF/, '').split(/\r?\n/).find(line => line.trim())!.trim();
+        selected = { path, name };
+    } catch (error) { throw new InputError((error as NodeJS.ErrnoException).code === 'ENOENT' ? `Agent Book does not exist: ${reference}` : (error as Error).message); }
     const model = await readLocalAgentModel(selected.path, workspace.projectPath);
     return { path: selected.path, aliases: [...new Set([reference, selected.name, normalizeAgentName(selected.name), basename(selected.path, '.book'), selected.path])], ...(model ? { model } : {}) };
 }

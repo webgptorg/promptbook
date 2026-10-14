@@ -65,10 +65,10 @@ test('runtime dashboard uses bounded stable regions and the invoked installation
     assert.equal(version, manifest.version);
     terminal.setSnapshot({ engineVersion: version, project: '/fixture', mode: 'interactive', status: 'watching', tasks: [], requests: [], statistics: { completed: 2, failed: 1 } });
     assert.match(view.text(), new RegExp('Promptbook ' + version.replace(/[.]/g, '\\.')));
-    assert.match(view.text(), /Task: idle/);
+    assert.match(view.text(), /Task: idle/i);
     view.clear();
     terminal.output('check output\n');
-    assert.match(view.text(), /\u001b\[H\u001b\[2J/);
+    assert.match(view.text(), /\u001b\[H\u001b\[2K/);
     assert.match(view.text(), /Activity/);
     view.output.rows = 5; view.output.columns = 32; view.clear();
     view.output.emit('resize');

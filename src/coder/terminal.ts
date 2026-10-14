@@ -3,7 +3,7 @@ import { redactSecrets } from './harness.js';
 import { promptText } from './interactive.js';
 import { promptChoice, promptChoices } from './choices.js';
 import { plainTerminal, presentationFor, style, terminalWidth, wrapTerminal } from './presentation.js';
-import { attentionRequests, dashboardUrl, terminalQrRows, agentLabel } from './status-view.js';
+import { attentionRequests, dashboardUrl, pairingUrl, connectionDetails, terminalQrRows, agentLabel } from './status-view.js';
 import { agentActivity } from './agent-identity.js';
 
 /** Injectable streams permit deterministic control and resize fixtures. @private */
@@ -139,23 +139,69 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
                 `Agents: ${JSON.stringify(snapshot.agents || [])}`, `Harnesses: ${JSON.stringify(snapshot.harnesses || [])}`,
                 `Runtime settings: ${JSON.stringify(snapshot.settings || {})}`, `Settings controls: ${JSON.stringify(snapshot.settingsCapabilities || {})}`,
                 `Pending settings: ${JSON.stringify(snapshot.pendingSettings || {})}`, `Restart settings: ${JSON.stringify(snapshot.restartSettings || {})}`,
-                `Browser: ${JSON.stringify(snapshot.browser || {})}`,
+                `Browser: ${JSON.stringify(snapshot.browser || {})}`, ...connectionDetails(snapshot, true),
                 `Controls: ${surface.attached ? 'Q or Ctrl+C leave this client. R answers pending requests.' : 'Ctrl+C cancels owned execution. Q answers pending requests.'} P pause/resume. S skip the active pacing wait. X finish, again cancel owned work. O plain/dashboard. H browse featured harnesses and More. C runtime settings.${canEditTasks() ? ' E edits task sources with revision checks and explicit Save.' : ' Task editing is unavailable in this runtime.'} Arrow keys scroll. End follows live activity. D or ? toggles details.`].flatMap(line => fit(line, contentWidth));
             scroll = Math.min(Math.max(0, detail.length - Math.max(1, available - 1)), scroll);
             display([fit(`Details · Promptbook ${snapshot.engineVersion || 'version unavailable'}`, contentWidth)[0]!, ...detail.slice(scroll, scroll + Math.max(1, available - 1))]);
             return;
         }
-        const address = dashboardUrl(snapshot);
+        const address = pairingUrl(snapshot, true);
         if (address !== qrAddress) { qrAddress = address; qrRows = address && !surface.noQr ? terminalQrRows(address) : []; }
-        let connection = address ? [...fit(`Dashboard: ${address}`, contentWidth), ...(qrRows.length ? qrRows[0]!.length <= contentWidth && sections.length + qrRows.length + 3 <= available
-            ? ['── Dashboard connection QR', ...qrRows] : fit('QR omitted: terminal cannot fit a scannable code; use the URL.', contentWidth) : [])] : [];
-        if (connection.length > Math.max(0, available - (requests.length ? 3 : 2))) connection = fit('Dashboard URL / QR: D details (terminal too small).', contentWidth).slice(0, Math.max(0, available - 3));
-        const content = [...sections.slice(0, Math.max(1, available - connection.length - (!requests.length && available >= 8 ? 1 : 0))), ...connection];
-        const remaining = Math.max(0, available - content.length);
-        const activity = normalItems.flatMap(item => fit(item.trimEnd(), contentWidth));
-        const end = Math.max(0, activity.length - scroll);
-        const visible = activity.slice(Math.max(0, end - Math.max(0, remaining - 1)), end);
-        display([...content, ...(remaining ? fit(`── ${scroll ? 'Activity history' : 'Activity'}${scroll ? ' · End to follow live' : ''}`, contentWidth).slice(0, 1) : []), ...visible]);
+        /** Each region has its own boundary; allocate rows before composing the terminal frame. */
+        const pane = (title: string, lines: string[], paneWidth: number, rows: number): string[] => {
+            const inner = Math.max(2, paneWidth - 4);
+            const label = fit(title, inner)[0] || title;
+            const content = lines.flatMap(line => fit(line, inner)).slice(0, Math.max(1, rows - 2));
+            while (content.length < Math.max(1, rows - 2)) content.push('');
+            return [style(`┌ ${label} ${'─'.repeat(Math.max(0, paneWidth - terminalWidth(label) - 4))}┐`, 'accent', presentation),
+                ...content.map(line => `│ ${decorate(line, 1)}${' '.repeat(Math.max(0, inner - terminalWidth(line)))} │`),
+                style(`└${'─'.repeat(Math.max(0, paneWidth - 2))}┘`, 'muted', presentation)];
+        };
+        const header = fit(`Promptbook ${snapshot.engineVersion || 'version unavailable'} · ${snapshot.project || projectPath} · ${snapshot.mode || 'interactive'}${surface.attached ? ' · attached' : ''} · ${state} · ${snapshot.settings?.noCommit ? 'UNCOMMITTED' : 'automatic commits'}`, width).slice(0, 2);
+        const settingNotice = [Object.keys(snapshot.pendingSettings || {}).length ? 'Settings pending safe boundary' : '', Object.keys(snapshot.restartSettings || {}).length ? 'Settings restart required' : ''].filter(Boolean).join(' · ');
+        if (settingNotice) header.push(...fit(settingNotice, width).slice(0, 1));
+        if (width < 40 || height < 20 || width < 100 && height < 24) {
+            const compact = [...(requests.length ? [`USER ATTENTION · ${requests.length}`, `Respond: ${surface.attached ? 'R' : 'Q'} · ${requests[0]!.prompt}`] : []),
+                ...(height >= 8 ? [header[0]!] : []),
+                `Current work: ${snapshot.activity ?? agentActivity(snapshot)}`, `Task: ${current?.title || snapshot.currentTask || 'Idle'}`,
+                `Queue: ${tasks.length} · ${stats.completed ?? 0} completed`,
+                ...(height >= 8 ? [`Connection: ${snapshot.remote?.status ?? 'local only'} · D for URL / QR details`, `Activity: ${normalItems.at(-1)?.trimEnd() ?? 'No recent activity.'}`] : [])];
+            const controls = surface.attached ? '? help · D details · Q leave' : '? help · D details · Q requests';
+            output.write(`\u001b[H${[...compact.slice(0, height - 1), controls].map(line => `\u001b[2K${fit(line, width)[0]}`).join('\r\n')}`); return;
+        }
+        const attention = requests.length ? pane(`Needs your attention · ${requests.length} · User`, [`${requests[0]!.prompt}`, `Affected: ${requests[0]!.taskId ?? 'system'} · ${surface.attached ? 'R' : 'Q'} to answer · ptbk answer ${requests[0]!.id}`], width, Math.min(5, Math.max(3, height - 15))) : [];
+        const work = [
+            `Agent: ${snapshot.currentTask ? agentLabel(selection) : 'none'} · ${snapshot.activity ?? agentActivity(snapshot)}`,
+            `Task: ${current?.title || snapshot.currentTask || 'Idle'}`,
+            `${snapshot.phase || state} · Harness: ${selection.harness || 'none'}${selection.model ? ` · ${selection.model}` : ''}${selection.thinkingLevel ? ` · ${selection.thinkingLevel}` : ''}`,
+            ...(snapshot.error ? [`Failure: ${snapshot.error}`, `Next: ${snapshot.nextAction || 'Inspect ptbk recover.'}`] : snapshot.idleReason ? [`Waiting: ${snapshot.idleReason}`, ...(snapshot.nextAction ? [`Next: ${snapshot.nextAction}`] : [])] : []),
+            ...(snapshot.nextOpportunity ? [`Next opportunity: ${new Date(snapshot.nextOpportunity).toISOString()}`] : []),
+        ];
+        const queue = tasks.length ? tasks.slice(0, taskLimit).map(task => `${task.title} · ${agentLabel(task)} · ${task.eligibility?.kind || task.status}`) : ['No queued work.'];
+        const results = [`Results: ${stats.completed ?? 0} completed · ${stats.failed ?? 0} failed`,
+            ...(Object.keys(snapshot.pendingSettings || {}).length ? ['Settings pending safe boundary'] : []),
+            ...(Object.keys(snapshot.restartSettings || {}).length ? ['Settings restart required'] : []), ...normalItems.slice(-2).reverse().map(item => item.trimEnd())];
+        const connected = connectionDetails(snapshot, true);
+        const room = Math.max(10, height - header.length - attention.length - legend.length);
+        let panels: string[];
+        if (width >= 100) {
+            const leftWidth = Math.floor((width - 2) * .56); const rightWidth = width - leftWidth - 2;
+            const topRows = Math.max(5, Math.floor(room * .48)); const bottomRows = Math.max(5, room - topRows);
+            const qrFits = qrRows.length && qrRows[0]!.length <= rightWidth - 4 && connected.flatMap(line => fit(line, rightWidth - 4)).length + qrRows.length <= bottomRows - 2;
+            const connection = [...connected, ...(qrRows.length ? qrFits ? qrRows : ['QR omitted: terminal cannot fit a scannable code; use the pairing link.'] : [])];
+            const left = [...pane('Current work', work, leftWidth, topRows), ...pane('Results and activity', results, leftWidth, bottomRows)];
+            const right = [...pane(`Queue · ${tasks.length}`, queue, rightWidth, topRows), ...pane('Connection', connection, rightWidth, bottomRows)];
+            panels = left.map((line, index) => `${line}  ${right[index] ?? ''}`);
+        } else {
+            const resultRows = room < 16 ? 4 : 5;
+            const workRows = Math.max(4, room - resultRows - 7);
+            panels = [...pane('Current work', work, width, workRows), ...pane(`Queue · ${tasks.length}`, queue, width, 3),
+                ...pane('Results and activity', results, width, resultRows), ...pane('Connection · D for URL / pairing details', connected, width, 4)];
+        }
+        const screen = [...header, ...attention, ...panels, ...legend].slice(0, height);
+        // Update bounded rows in place without clearing the whole screen or appending frames to scrollback.
+        output.write(`\u001b[H${Array.from({ length: height }, (_, index) => `\u001b[2K${screen[index] ?? ''}`).join('\r\n')}`);
+
     };
     /** Prints at most one screen, independent of total retained history. */
     const renderHistory = () => {

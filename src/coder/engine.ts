@@ -11,7 +11,7 @@ import { runHarness, redactSecrets, loadProjectSecrets, type HarnessRequest, typ
 import { runCheck, runPrivateOperation, validateCheck, type CheckResult } from './checks.js';
 import { confinePath, InputError, resolveAgentSelection } from './workspace.js';
 import { acquireLease, atomicWrite, listRecovery, readJournals, readLedger, saveLedger, writeJournal, type AttemptRecord, type Ledger, type RunJournal, type WorkspaceLease } from './state.js';
-import { alignOwnedIndex, assertSnapshot, captureSnapshot, changedPaths, commitIdentity, commitScoped, discoverGit, git, GitPersistenceError, normalizeOwned, readFileSnapshot, sameFile, writeFileSnapshot, type GitIdentity, type GitSnapshot } from './git.js';
+import { alignOwnedIndex, assertSnapshot, captureSnapshot, changedPaths, commitIdentity, commitScoped, discoverGit, git, GitPersistenceError, normalizeOwned, protectUnrelatedChanges, readFileSnapshot, sameFile, writeFileSnapshot, type GitIdentity, type GitSnapshot, type UncommittedOwnership } from './git.js';
 import { installedEngineVersion } from './version.js';
 import type { FileReplacementOptions } from './file-replacement.js';
 import { listRequests, waitForAnswer } from './requests.js';
@@ -28,6 +28,8 @@ export interface RunOptions {
     configurationSources?: Record<string, string>;
     check?: string; checkBefore?: 'no' | 'yes-and-fail' | 'yes-and-fix'; gitChanges?: 'fail' | 'ignore' | 'continue';
     noCommit?: boolean; noAuto?: boolean; noQuestions?: boolean; autoPull?: boolean; autoPush?: boolean;
+    /** A supervisor may continue only the exact pending bytes it previously checkpointed. */
+    ownedChanges?: UncommittedOwnership;
     isolate?: boolean; normalizeLineEndings?: boolean; limit?: number; minPriority?: number; maxPriority?: number;
     allowCredits?: boolean; waitBetweenPrompts?: number; waitAfterPrompt?: number; waitAfterError?: number;
     dryRun?: boolean; signal?: AbortSignal; onEvent?: (event: EngineEvent) => void; onOutput?: (text: string) => void;
@@ -77,8 +79,8 @@ export function validateRunOptions(options: RunOptions, fix = false): void {
     }
     if ((options.minPriority ?? 0) > (options.maxPriority ?? Infinity)) throw new InputError('Minimum priority exceeds maximum priority.');
     if (options.noAuto && options.noQuestions) throw new InputError('--no-auto cannot be combined with --no-questions.');
-    if (options.noCommit && !options.noAuto && (options.gitChanges ?? 'fail') !== 'ignore' && !options.dryRun) throw new InputError('Automatic --no-commit requires --git-changes ignore.');
     if (options.autoPull && options.noCommit && !options.dryRun) throw new InputError('--auto-pull cannot be used with --no-commit.');
+    if (options.autoPush && options.noCommit && !options.dryRun) throw new InputError('--auto-push cannot be used with --no-commit.');
     if (options.isolate && (options.noCommit || options.gitChanges === 'continue')) throw new InputError('--isolate requires commits and cannot resume with --git-changes continue.');
     if (options.gitChanges === 'continue' && (fix || options.checkBefore === 'yes-and-fix')) throw new InputError('--git-changes continue cannot be used for fix or --check-before yes-and-fix.');
     for (const [name, value] of Object.entries({ waitBetweenPrompts: options.waitBetweenPrompts, waitAfterPrompt: options.waitAfterPrompt, waitAfterError: options.waitAfterError })) {
@@ -110,7 +112,7 @@ async function ensureGit(workspace: Workspace): Promise<void> {
 }
 /** Guard the existing staged and unstaged baseline according to the chosen dirty policy. @private */
 async function initialBoundary(workspace: Workspace, options: RunOptions): Promise<GitSnapshot> {
-    const baseline = await captureSnapshot(workspace.gitRoot!);
+    const baseline = protectUnrelatedChanges(await captureSnapshot(workspace.gitRoot!), options.noCommit ? options.ownedChanges : undefined);
     if ((options.gitChanges ?? 'fail') === 'fail' && baseline.dirtyPaths.length) throw new Error(`Uncommitted changes in ${baseline.dirtyPaths.join(', ')}. Commit your work or explicitly select --git-changes ignore.`);
     return baseline;
 }
@@ -335,6 +337,8 @@ async function learningFollowup(workspace: Workspace, journal: RunJournal): Prom
     if (!journal.agent || /^(ptbk:|https:)/.test(journal.agent)) return;
     const agent = await prepareAgent(journal.agent, workspace.projectPath);
     journal.learning = agent.learning;
+    // Resolving a dependency's role never grants Teacher permission to rewrite its package.
+    if (path.relative(workspace.projectPath, agent.path).split(/[\\/]/).includes('node_modules')) return;
     if (!agent.learning.open) return;
     const teacherPath = await resolveAgent(workspace, 'Teacher');
     const teacher = await prepareAgent(teacherPath, workspace.projectPath);

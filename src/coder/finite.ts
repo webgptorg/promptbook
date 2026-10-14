@@ -6,15 +6,17 @@ import { type RunOptions, type RunResult, type EngineEvent, taskEligibility, val
 import { discoverTasks } from './sources.js';
 import { readLedger } from './state.js';
 import { createTerminal } from './terminal.js';
-import { openDashboard, type RuntimeControl } from './service.js';
+import { openDashboard, serviceCommand, type RuntimeControl } from './service.js';
 import { installedEngineVersion } from './version.js';
 import { answerRequest, listRequests } from './requests.js';
 import { ProjectBrowser, browserTools } from './browser.js';
 import { getHarness, getHarnessCatalog, HARNESS_REGISTRY, redactSecrets } from './harness.js';
 import { InputError } from './workspace.js';
+import type { TunnelOptions } from './tunnel.js';
+import { connectionDetails } from './status-view.js';
 
 /** Finite presentation uses the same state/control channels without creating a supervisor. @private */
-export interface FiniteRuntimeOptions extends RunOptions {
+export interface FiniteRuntimeOptions extends RunOptions, TunnelOptions {
     interactive?: boolean; noServer?: boolean; noQr?: boolean; port?: number;
     browserMode?: 'headless' | 'headful'; browserProfile?: string;
 }
@@ -31,6 +33,7 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
     complete(result: RunResult): Promise<void>; close(): Promise<void>;
 }> {
     validateRunOptions(supplied);
+    if (await serviceCommand(workspace)) throw new InputError('This project already has an active service. Use ptbk dashboard, or stop it before starting finite work; no second dashboard/tunnel was created.');
     const engineVersion = await installedEngineVersion();
     const options: RunOptions = { ...supplied };
     const browser = new ProjectBrowser(workspace, { mode: supplied.browserMode, profile: supplied.browserProfile, signal: supplied.signal });
@@ -50,7 +53,7 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
         const selected = tasks.find(task => task.id === currentTask);
         return identifyRuntime({ engineVersion, project: workspace.projectPath, mode: supplied.interactive ? 'interactive' : 'raw', lifetime: 'finite', status: lastResult ? lastResult.exitCode ? 'failed' : 'completed' : paused ? 'paused' : currentTask ? 'running' : 'ready', phase, paused, pausePending: paused && Boolean(currentTask), running: Boolean(currentTask), waiting, currentTask, finishAfterTask: finishing,
             currentSelection: currentSelection ?? { agent: options.agent ?? selected?.agent ?? 'Developer', harness: options.harness ?? selected?.harness, model: options.model ?? selected?.model, thinkingLevel: options.thinkingLevel ?? selected?.thinkingLevel }, ...failure,
-            statistics, lastResult, url, configurationSources: options.configurationSources, settings: JSON.parse(JSON.stringify(options, (_key, value) => typeof value === 'function' || value instanceof AbortSignal ? undefined : value)), pendingSettings: pending, restartSettings,
+            statistics, lastResult, url, ...(page?.connection() ?? {}), configurationSources: options.configurationSources, settings: JSON.parse(JSON.stringify(options, (_key, value) => typeof value === 'function' || value instanceof AbortSignal ? undefined : value)), pendingSettings: pending, restartSettings,
             settingsCapabilities: { live: [...FINITE_LIVE_SETTINGS], requiresRestart: [...FINITE_SETTINGS].filter(key => !FINITE_LIVE_SETTINGS.has(key)), temporary: true, explanation: 'Finite work keeps one execution selection. Other settings apply to future tasks at a safe boundary.' },
             controlCapabilities: { actions: ['inspect', 'pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses'] },
             tasks: await Promise.all(tasks.map(async task => ({ ...task, status: ledger.tasks[task.id]?.claim ? 'in-progress' : task.status, eligibility: await taskEligibility(workspace, task, options, ledger) }))), requests: await listRequests(workspace, true), browser: browser.status(), events,
@@ -81,6 +84,7 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
                 }
                 return (input.more ? HARNESS_REGISTRY : getHarnessCatalog()).map(({ id, name, displayName, featured }) => ({ id, name, displayName, featured }));
             } else if (action === 'settings') {
+                if (input.save) throw new InputError('Saving defaults is available through the project service; finite settings are temporary.');
                 if (!input.settings || typeof input.settings !== 'object' || Array.isArray(input.settings)) throw new InputError('settings must be an object.');
                 const update = input.settings as Partial<FiniteRuntimeOptions>;
                 for (const [key, value] of Object.entries(update)) {
@@ -131,7 +135,7 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
     /** Serialize refreshes so a slow read cannot overwrite more recent state or recreate closed UI. */
     const refresh = async () => {
         if (closed || refreshing) return refreshing;
-        refreshing = snapshot().then(state => { if (!closed) terminal.setSnapshot(state); }).finally(() => { refreshing = undefined; });
+        refreshing = snapshot().then(state => { if (!closed) terminal.setSnapshot({ ...state, ...(supplied.interactive ? page?.trustedConnection() : {}) }); }).finally(() => { refreshing = undefined; });
         return refreshing;
     };
     const refreshTimer = setInterval(() => { void refresh().catch(error => terminal.status(`Dashboard refresh failed: ${(error as Error).message}`)); }, 1000);
@@ -145,7 +149,7 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
         if (rejected) throw rejected.reason;
     };
     try {
-        if (supplied.noServer === false) { page = await openDashboard(workspace, control, supplied.port); url = page.sessionUrl; terminal.status(`Dashboard: ${url}`); }
+        if (supplied.noServer === false) { page = await openDashboard(workspace, control, supplied.port, supplied); await page.startTunnel(); url = page.url; terminal.status(connectionDetails({ ...page.connection(), status: 'ready' }, false).join('\n')); }
         await refresh();
     } catch (error) { await close(); throw error; }
     options.isPaused = () => paused || terminal.isPaused();

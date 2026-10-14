@@ -161,9 +161,11 @@ test('browser SPA shares API state and choices, preserves drafts, rejects stale 
 
     assert.equal(await evaluate.run("document.getElementById('attention').getBoundingClientRect().top < document.getElementById('runtime-title').getBoundingClientRect().top"), true);
     assert.match(await evaluate.run("document.getElementById('attention-summary').textContent"), /2 pending/);
-    assert.equal(await evaluate.run("!!document.querySelector('#current-agent svg')"), true);
+    assert.equal(await evaluate.run("!!document.querySelector('#current-agent .mascot')"), true);
     await until(() => evaluate.run("!!document.querySelector('#connection-qr svg')"), value => value);
-    assert.equal(await evaluate.run("document.getElementById('dashboard-url').textContent"), page.sessionUrl);
+    assert((await evaluate.run("document.getElementById('dashboard-url').textContent")).includes(page.url));
+    assert.equal(await evaluate.run('location.hash'), '', 'Pairing capability is removed before refresh');
+    assert(!(await evaluate.run("document.getElementById('dashboard-url').textContent")).includes('#pair='));
     await click(evaluate, '#more');
     await until(() => evaluate.run("document.getElementById('catalog').textContent"), value => value.includes('Extra fixture'));
     await click(evaluate, '#catalog button:last-child');

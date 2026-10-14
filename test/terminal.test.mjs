@@ -206,10 +206,10 @@ test('dashboard separates state, queue, results and requests with semantic prese
             tasks: [{ id: 'current', title: 'Current task', status: 'in-progress' }], requests: [{ id: 'pending', prompt: 'Review the result', reason: 'Human review' }],
             statistics: { completed: 2, failed: 1 }, pendingSettings: { model: 'next-model' }, restartSettings: { port: 4000 } });
         assert.match(view.text(), /Promptbook fixture/);
-        assert.match(view.text(), /Agent: Adam · Paused · Harness: unfeatured-provider/);
-        assert.match(view.text(), /Queue \(1\)/);
+        assert.match(view.text(), /Agent: Adam · Paused/);
+        assert.match(view.text(), /Queue · 1/);
         assert.match(view.text(), /Results: 2 completed · 1 failed/);
-        assert.match(view.text(), /Requests \(1\)/);
+        assert.match(view.text(), /Needs your attention · 1/);
         assert.match(view.text(), /pending safe boundary/);
         assert.match(view.text(), /restart required/);
         assert.doesNotMatch(view.text(), /\u001b\[\d+(?:;\d+)*m/);

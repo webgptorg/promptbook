@@ -11,6 +11,25 @@ export interface GitSnapshot {
     root: string; head: string | null; index: string; indexFlags: string;
     files: Record<string, FileSnapshot>; dirtyPaths: string[];
 }
+/** Verified uncommitted bytes owned by one project supervisor, without embedding snapshot content. @private */
+export interface UncommittedOwnership { version: 1; root: string; head: string | null; index: string; indexFlags: string; files: Record<string, Pick<FileSnapshot, 'hash' | 'kind' | 'mode'> | null> }
+
+/** Remove only unchanged, previously attributable dirty paths from a task's protected baseline. @private */
+export function protectUnrelatedChanges(snapshot: GitSnapshot, ownership?: UncommittedOwnership): GitSnapshot {
+    if (!ownership) return snapshot;
+    if (ownership.version !== 1 || ownership.root !== snapshot.root || ownership.head !== snapshot.head || ownership.index !== snapshot.index || ownership.indexFlags !== snapshot.indexFlags) throw new GitPersistenceError('Uncommitted ownership no longer matches the Git boundary; reconcile pending work before continuing.');
+    for (const [name, file] of Object.entries(ownership.files)) {
+        const current = snapshot.files[name];
+        if (file ? !current || file.hash !== current.hash || file.kind !== current.kind || file.mode !== current.mode : current !== undefined) throw new GitPersistenceError(`Previously owned uncommitted content changed: ${name}. Review the concurrent edit before continuing.`);
+    }
+    return { ...snapshot, dirtyPaths: snapshot.dirtyPaths.filter(name => !(name in ownership.files)) };
+}
+
+/** Checkpoint signatures only for the supervisor's attributable pending paths. @private */
+export function uncommittedOwnership(snapshot: GitSnapshot, paths: string[]): UncommittedOwnership {
+    return { version: 1, root: snapshot.root, head: snapshot.head, index: snapshot.index, indexFlags: snapshot.indexFlags,
+        files: Object.fromEntries([...new Set(paths)].map(name => { const file = snapshot.files[name]; return [name, file ? { hash: file.hash, kind: file.kind, mode: file.mode } : null]; })) };
+}
 /** Options for a scoped commit made using a private index. @private */
 export interface ScopedCommitOptions { paths?: string[]; protectedPaths?: string[]; expected?: GitSnapshot; signal?: AbortSignal }
 /** Actual per-command Git attribution and configured signing policy. @private */
@@ -241,7 +260,8 @@ export async function commitScoped(baseline: GitSnapshot, message: string, optio
         const beforeTree = baseline.head ? (await git(baseline.root, ['rev-parse', `${baseline.head}^{tree}`])).trim() : null;
         if (intendedTree === beforeTree) return undefined;
         await assertSnapshot(current);
-        await git(baseline.root, [...identityArgs(), 'commit', '-m', message], { env: { ...env, ...identityEnv() }, signal: options.signal });
+        const prefixedMessage = `PTBK: ${message.replace(/^(?:PTBK: )+/, '')}`;
+        await git(baseline.root, [...identityArgs(), 'commit', '-m', prefixedMessage], { env: { ...env, ...identityEnv() }, signal: options.signal });
         commit = (await readHead(baseline.root)) ?? undefined;
         const committedTree = (await git(baseline.root, ['rev-parse', 'HEAD^{tree}'])).trim();
         const after = await captureSnapshot(baseline.root);

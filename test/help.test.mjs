@@ -83,7 +83,7 @@ test('command references contain only applicable syntax, defaults and examples',
     assert.match(start, /default: first free port from 3000/);
     assert.match(start, /default: 10m/);
     assert.match(start, /require restart/);
-    assert.doesNotMatch(start, /--installation|--template|--intent|--limit|--no-commit/);
+    assert.doesNotMatch(start, /--installation|--template|--intent|--limit/);
     const restart = help('restart');
     assert.doesNotMatch(restart, /--foreground|--dry-run/);
     const add = help('add');

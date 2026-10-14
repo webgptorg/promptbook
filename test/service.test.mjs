@@ -700,3 +700,41 @@ test('process birth remains stable when the caller changes locale and timezone',
         if (timezone === undefined) delete process.env.TZ; else process.env.TZ = timezone;
     }
 });
+
+test('saved runtime defaults commit one owned configuration operation and retain temporary changes in runtime only', async t => {
+    const workspace = await fixture(t, 'TASK Future\nTASK ID future\nTASK AFTER 2099-01-01T00:00Z\n');
+    const configuration = path.join(workspace.projectPath, 'ptbk.json');
+    await writeFile(configuration, JSON.stringify({ execution: { waitAfterPrompt: 20 }, browser: { mode: 'headless' }, harnesses: [] }));
+    await git(workspace.gitRoot, ['add', '--', 'ptbk.json']); await git(workspace.gitRoot, ['commit', '-qm', 'Fixture defaults']);
+    const before = (await captureSnapshot(workspace.gitRoot)).head;
+    const server = await supervise(t, workspace);
+    await server.command('pause'); await until(server.inspect, state => state.paused && !state.running, 'Paused boundary'); await delay(1100);
+    const temporary = await server.command('settings', { settings: { waitAfterPrompt: 25 } });
+    assert.equal(temporary.savedDefaults, false); assert.equal((await captureSnapshot(workspace.gitRoot)).head, before);
+    const saved = await server.command('settings', { settings: { waitAfterPrompt: 30 }, save: true });
+    assert.equal(saved.savedDefaults, true); assert.equal(saved.committed, true);
+    assert.equal(JSON.parse(await readFile(configuration, 'utf8')).waitAfterPrompt, 30);
+    assert.equal(JSON.parse(await readFile(configuration, 'utf8')).execution.waitAfterPrompt, undefined);
+    assert.equal((await git(workspace.gitRoot, ['log', '-1', '--format=%s'])).trim(), 'PTBK: Update project configuration');
+    assert.deepEqual((await captureSnapshot(workspace.gitRoot)).dirtyPaths, []);
+});
+
+test('explicit uncommitted supervision checkpoints owned bytes across tasks and restart without inventing commits', async t => {
+    const workspace = await fixture(t, 'TASK First\nTASK ID first\nTASK AGENT Developer\nTASK HARNESS openai-codex\n');
+    await writeFile(path.join(workspace.tasksPath, 'second.book'), 'TASK Second\nTASK ID second\nTASK AGENT Developer\nTASK HARNESS openai-codex\n');
+    await git(workspace.gitRoot, ['add', '--', 'tasks/second.book']); await git(workspace.gitRoot, ['commit', '-qm', 'Second fixture']);
+    const head = (await captureSnapshot(workspace.gitRoot)).head; let calls = 0;
+    const options = { noCommit: true, runHarness: async request => { calls++; await writeFile(path.join(request.projectPath, 'code.txt'), `accepted ${calls}\n`); return { outcome: 'success', exitCode: 0, output: 'Accepted fixture.' }; } };
+    const first = await supervise(t, workspace, options);
+    await untilTask(first.inspect, state => state.statistics.completed === 2 && !state.running, 'Both uncommitted results');
+    assert.equal(calls, 2); assert.equal((await captureSnapshot(workspace.gitRoot)).head, head);
+    assert.equal((await first.inspect()).settings.noCommit, true);
+    first.controller.abort(); await first.completion;
+    const restarted = await supervise(t, workspace, options); await delay(1200);
+    assert.equal(calls, 2); assert.equal((await restarted.inspect()).statistics.completed, 0);
+    assert.equal((await captureSnapshot(workspace.gitRoot)).head, head);
+    restarted.controller.abort(); await restarted.completion;
+    await writeFile(path.join(workspace.projectPath, 'code.txt'), 'User changed pending work.\n');
+    await assert.rejects(runService(workspace, { mode: 'raw', noCommit: true, noServer: true, automatic: false }), /Previously owned.*changed/);
+    await assert.rejects(readFile(path.join(workspace.statePath, 'service-owner.lock')), { code: 'ENOENT' });
+});

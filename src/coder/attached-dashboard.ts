@@ -3,7 +3,7 @@ import { serviceCommand, readServiceRecord } from './service.js';
 import { createTerminal } from './terminal.js';
 import { InputError } from './workspace.js';
 import { editTaskFromTerminal } from './edit-task-control.js';
-import { attentionRequests, dashboardUrl } from './status-view.js';
+import { attentionRequests, dashboardUrl, connectionDetails } from './status-view.js';
 
 /** Client-only presentation options never configure or start the project's service. @private */
 export interface AttachedDashboardOptions {
@@ -117,12 +117,12 @@ export async function attachDashboard(workspace: Workspace, options: AttachedDas
         const requests = attentionRequests(snapshot);
         const current = tasks.find(task => task.id === snapshot.currentTask);
         const selection = snapshot.currentSelection || current || {};
-        const signature = JSON.stringify([snapshot.status, snapshot.phase, snapshot.paused, snapshot.pausePending, snapshot.waiting, snapshot.currentTask, selection, snapshot.statistics, snapshot.finishAfterTask, tasks.map(task => [task.id, task.status, task.eligibility]), requests.map(request => request.id), snapshot.pendingSettings, snapshot.restartSettings, snapshot.error]);
+        const signature = JSON.stringify([snapshot.status, snapshot.phase, snapshot.paused, snapshot.pausePending, snapshot.waiting, snapshot.currentTask, selection, snapshot.statistics, snapshot.finishAfterTask, tasks.map(task => [task.id, task.status, task.eligibility]), requests.map(request => request.id), snapshot.pendingSettings, snapshot.restartSettings, snapshot.error, snapshot.localUrl, snapshot.remote, snapshot.pairing]);
         if (!interactive && signature !== stateSignature) {
             terminal.status(`Promptbook ${snapshot.engineVersion || 'version unavailable'} · ${workspace.projectPath} · ${snapshot.mode || 'unknown mode'} · live\nState: ${snapshot.status || 'unknown'}${snapshot.pausePending ? ' · pause pending' : snapshot.paused ? ' · paused' : ''}${snapshot.waiting ? ' · pacing/backoff wait' : ''}${snapshot.finishAfterTask ? ' · finish after current task' : ''}\nPhase: ${snapshot.phase || 'not reported'}\nTask: ${current?.title || snapshot.currentTask || 'idle'} · Agent: ${selection.agent || 'none'} · Harness: ${selection.harness || 'none'}${selection.model ? ` · Model: ${selection.model}` : ''}${selection.thinkingLevel ? ` · Effort: ${selection.thinkingLevel}` : ''}\nQueue: ${tasks.length} · Results: ${snapshot.statistics?.completed ?? 0} completed, ${snapshot.statistics?.failed ?? 0} failed\nRequests: ${requests.length}${requests.length ? ` · answer with ptbk answer --path ${JSON.stringify(workspace.projectPath)}` : ''}${snapshot.error ? `\nFailure: ${bounded(snapshot.error)}\nNext: ${snapshot.nextAction || 'Inspect ptbk status and recovery evidence.'}${snapshot.diagnostic ? `\nDiagnostic: ${snapshot.diagnostic}` : ''}` : ''}`);
         }
         if (!interactive && signature !== stateSignature) {
-            if (dashboardUrl(snapshot)) terminal.status(`Dashboard: ${dashboardUrl(snapshot)}`);
+            if (dashboardUrl(snapshot)) terminal.status(connectionDetails(snapshot, false).join('\n'));
             for (const request of requests) terminal.status(`USER ATTENTION · Request ${request.id}: ${request.prompt}\nReason: ${request.reason}\nAffected work: ${request.taskId ?? 'system activity'}\nAnswer: ptbk answer ${JSON.stringify(request.id)} --path ${JSON.stringify(workspace.projectPath)} --response "your reply"`);
         }
         stateSignature = signature;
@@ -143,7 +143,8 @@ export async function attachDashboard(workspace: Workspace, options: AttachedDas
     options.signal?.addEventListener('abort', leave, { once: true });
     process.once('SIGINT', leave); process.once('SIGTERM', leave);
     try {
-        present(first);
+        if (interactive && !options.command) Object.assign(first, await send('connection').catch(() => undefined));
+    present(first);
         while (!closed) {
             if (['stopped', 'interrupted'].includes(String(latest.status))) { ending = `Service ${latest.status}; dashboard observation ended. Inspect ptbk status before starting again.`; break; }
             await wait();
@@ -160,6 +161,7 @@ export async function attachDashboard(workspace: Workspace, options: AttachedDas
                 break;
             }
             if (snapshot.id !== identity.id || snapshot.pid !== identity.pid || snapshot.project !== workspace.projectPath) { ending = 'Service identity changed; this dashboard has disconnected. Reopen ptbk dashboard to inspect the replacement process. No controls were sent to it.'; break; }
+            if (interactive && !options.command) Object.assign(snapshot, await send('connection').catch(() => undefined));
             present(snapshot);
         }
     } finally {

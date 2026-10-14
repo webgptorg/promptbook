@@ -234,7 +234,7 @@ test('private checks include the checked formatter version in the single result 
     assert.equal(result.completed, 1, JSON.stringify(result.events));
     assert.equal(result.commits.length, 1);
     assert.equal(await git(workspace.gitRoot, ['show', `${result.commits[0]}:code.txt`]), 'checker\n');
-    assert.match(await git(workspace.gitRoot, ['show', '-s', '--format=%B', result.commits[0]]), /^Fixture implementation\n\nImplement the fixture\./);
+    assert.match(await git(workspace.gitRoot, ['show', '-s', '--format=%B', result.commits[0]]), /^PTBK: Fixture implementation\n\nImplement the fixture\./);
     assert.equal((await captureSnapshot(workspace.gitRoot)).dirtyPaths.length, 0);
 });
 
@@ -377,12 +377,11 @@ test('lease prevents two independent writers and a nested project shares the sam
     } finally { await first.release(); }
 });
 
-test('automatic no-commit requires explicit ignore and retains work across tasks', async t => {
+test('automatic no-commit retains owned work across tasks with the default dirty policy', async t => {
     const workspace = await fixture(t);
-    await assert.rejects(runQueue(workspace, { noCommit: true }), /requires --git-changes ignore/);
     await writeFile(path.join(workspace.tasksPath, 'second.book'), 'TASK Second\n\nTASK ID second\n\nImplement second.\n');
     await git(workspace.gitRoot, ['add', '--', 'tasks/second.book']); await git(workspace.gitRoot, ['commit', '-qm', 'Second task']);
-    const result = await runQueue(workspace, { noCommit: true, gitChanges: 'ignore', harness: 'openai-codex', runHarness: implement() });
+    const result = await runQueue(workspace, { noCommit: true, harness: 'openai-codex', runHarness: implement() });
     assert.equal(result.completed, 2); assert.equal(result.commits.length, 0); assert.ok(result.retainedPaths.includes('code.txt'));
 });
 

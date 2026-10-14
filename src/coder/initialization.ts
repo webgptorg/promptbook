@@ -4,7 +4,7 @@ import { dirname, join, relative, resolve, isAbsolute, delimiter } from 'node:pa
 import { randomUUID } from 'node:crypto';
 import type { Workspace } from './domain.js';
 import { confinePath, InputError, inspectGitRoot, realTarget, requireGit } from './workspace.js';
-import { git, readHead, captureSnapshot } from './git.js';
+import { git, readHead, captureSnapshot, protectUnrelatedChanges, type UncommittedOwnership } from './git.js';
 import { runProcess, type ProcessOptions } from './harness.js';
 import { discoverAgents } from './agents.js';
 import { readProjectConfiguration } from './configuration.js';
@@ -81,7 +81,7 @@ export async function persistInitializationPending(workspace: Workspace, paths: 
 }
 
 /** Inspect setup without changing files, installing tools, committing or calling a model. @private */
-export async function inspectProjectReadiness(workspace: Workspace, options: { check?: string } = {}): Promise<ProjectReadiness> {
+export async function inspectProjectReadiness(workspace: Workspace, options: { check?: string; noCommit?: boolean } = {}): Promise<ProjectReadiness> {
     const missing: string[] = []; const execution: string[] = [];
     const root = await inspectGitRoot(workspace.projectPath);
     if (!root) missing.push('Git working tree');
@@ -99,8 +99,8 @@ export async function inspectProjectReadiness(workspace: Workspace, options: { c
     await required(workspace.tasksPath, 'task directory', true);
     await required(join(workspace.tasksPath, 'templates', 'task.book'), 'task template');
     if (await required(join(workspace.projectPath, 'AGENTS.md'), 'project instructions') && !(await readFile(join(workspace.projectPath, 'AGENTS.md'), 'utf8')).trim()) execution.push('Add readable project instructions to AGENTS.md.');
-    for (const role of ['adam', 'manager', 'teacher']) await required(join(workspace.projectPath, 'agents', '.core', `${role}.book`), `core agent ${role}`);
     const agents = await discoverAgents(workspace.projectPath);
+    for (const role of ['adam', 'manager', 'teacher']) if (!agents.some(agent => agent.normalizedName === role)) missing.push(`core agent ${role}`);
     for (const role of ['adam', 'manager', 'teacher']) {
         const path = await confinePath(workspace.projectPath, join(workspace.projectPath, 'agents', '.core', `${role}.book`));
         const definition = agents.find(agent => agent.path === path);
@@ -120,15 +120,21 @@ export async function inspectProjectReadiness(workspace: Workspace, options: { c
     if (unavailable.length) execution.push(`Install missing declared project dependencies with the project's package manager before plain ptbk start: ${unavailable.slice(0, 50).join(', ')}${unavailable.length > 50 ? ` and ${unavailable.length - 50} more` : ''}.`);
     const validation = await inspectProjectCheck(workspace, options.check);
     if (validation.diagnostic) execution.push(`Configure a real project check command before executing tasks. Set ptbk.json execution.check or use ptbk init --check COMMAND. ${validation.diagnostic}`);
+    let owned: UncommittedOwnership | undefined;
+    if (root && options.noCommit) {
+        try { owned = JSON.parse(await readFile(await confinePath(workspace.projectPath, join(workspace.statePath, 'uncommitted.json')), 'utf8')) as UncommittedOwnership; }
+        catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+        protectUnrelatedChanges(await captureSnapshot(root), owned);
+    }
     if (root) {
         const runtime = relative(root, join(workspace.projectPath, '.ptbk', 'readiness')).split('\\').join('/');
         if (!(await git(root, ['check-ignore', '--no-index', '--', runtime], { allowFailure: true })).trim()) missing.push('.ptbk/ runtime ignore rule');
-        if (!await readHead(root)) execution.push('Commit the setup baseline before unattended execution.');
-        else if ((configuration.values['git-changes'] ?? 'fail') === 'fail' && (await git(root, ['status', '--porcelain=v1', '-z'])).length) execution.push('Review and commit or stash remaining workspace changes before plain ptbk start; its saved Git policy requires a clean baseline.');
+        if (!options.noCommit && !await readHead(root)) execution.push('Commit the setup baseline before unattended execution.');
+        else if ((configuration.values['git-changes'] ?? 'fail') === 'fail' && protectUnrelatedChanges(await captureSnapshot(root), owned).dirtyPaths.length) execution.push('Review and commit remaining unrelated workspace changes before start; its saved Git policy requires a clean baseline.');
     }
     const installation = await inspectLocalInstallation(workspace.projectPath);
     if (installation.declared && !installation.usable) execution.push(`Repair the declared local ptbk installation (${installation.requestedVersion}).`);
-    const pending = await activeInitializationPending(workspace, (await readInitializationPending(workspace)).paths);
+    const pending = (await activeInitializationPending(workspace, (await readInitializationPending(workspace)).paths)).filter(path => !owned?.files[relative(root ?? workspace.projectPath, path).split('\\').join('/')]);
     if (pending.length) execution.push(`Review and commit generated setup edits that overlap existing work: ${pending.map(path => relative(workspace.projectPath, path)).join(', ')}. Unrelated staged and unstaged changes were preserved.`);
     return { ready: !missing.length, missing, execution };
 }

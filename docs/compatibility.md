@@ -9,7 +9,7 @@ The package implements the command surface in [the specification](https://github
 | Tasks | Modern TASK Books, Markdown checkmarks, recurring occurrences, prerequisites, parents, priorities, origin metadata and deterministic migration. |
 | Agents | Normalized recursive discovery, hidden agents, inheritance/imports, core Adam/Manager/Teacher, Expert/User/Void, bounded TEAM consultations and OPEN/CLOSED learning. |
 | Execution | Finite runs, continuous supervision, checked single-result commits, worktree isolation, scoped staging and recovery journals. |
-| Controls | Shared terminal, authenticated local socket and localhost HTTP controls; durable questions and answers also work without HTTP. |
+| Controls | Shared terminal, authenticated local socket and protected local/Cloudflare HTTP controls; durable questions and answers also work without HTTP. |
 | Browser | Chrome/Chromium CDP tools with a persistent profile and exclusive ownership; explicit human-action requests handle login and 2FA. |
 | Persistence | Current-user systemd, launchd or Windows Task Scheduler registrations. Missing OS/session prerequisites fail with a diagnostic. |
 | Harnesses | Codex, Claude Code, Gemini CLI, Qwen Code, GitHub Copilot, Cline and OpenCode adapters; native protocol/capability checks precede inference and read-only tools are constrained. |

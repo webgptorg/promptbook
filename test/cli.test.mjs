@@ -46,7 +46,7 @@ test('unknown options and invalid mode combinations fail before mutation', async
         [['start', 'unexpected'], /Unexpected arguments/],
         [['start', '--foreground', '--daemon'], /conflicts/],
         [['start', '--no-server', '--port', '3000'], /conflicts/],
-        [['start', '--no-commit'], /requires commits/],
+        [['start', '--tunnel', '--no-server'], /conflicts/],
         [['run', '--model', ''], /nonempty value/],
         [['start', '--limit', '1'], /indefinite/],
         [['start', '--browser-mode', 'invalid'], /headless or headful/],

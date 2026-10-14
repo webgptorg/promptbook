@@ -18,7 +18,7 @@ async function fixture(t) {
 test('finite page shares real version and controls and closes with its invocation', async t => {
     const workspace = await fixture(t);
     let stopped = false;
-    const runtime = await createFiniteRuntime(workspace, { interactive: false, noServer: false }, () => { stopped = true; });
+    const runtime = await createFiniteRuntime(workspace, { interactive: false, noServer: false, noTunnel: true }, () => { stopped = true; });
     t.after(() => runtime.close());
     const state = await runtime.control.snapshot();
     const version = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version;
@@ -27,7 +27,7 @@ test('finite page shares real version and controls and closes with its invocatio
     assert.equal(state.currentTask, undefined);
     assert.equal(state.statistics.completed, 0);
     const address = new URL(state.url);
-    assert.equal(address.hash.slice(1), runtime.control.token);
+    assert.equal(address.hash, '', 'Ordinary state must not include credentials');
     const html = await (await fetch(address.origin)).text();
     assert.doesNotThrow(() => new Function(/<script nonce="[^"]+">([\s\S]*)<\/script>/.exec(html)[1]));
     assert.equal(html.includes(runtime.control.token), false);
@@ -66,7 +66,7 @@ test('finite page shares real version and controls and closes with its invocatio
 
 test('finite HTTP closes even when browser cleanup fails', async t => {
     const workspace = await fixture(t);
-    const runtime = await createFiniteRuntime(workspace, { noServer: false }, () => {});
+    const runtime = await createFiniteRuntime(workspace, { noServer: false, noTunnel: true }, () => {});
     const address = new URL((await runtime.control.snapshot()).url);
     const original = ProjectBrowser.prototype.close;
     ProjectBrowser.prototype.close = async () => { throw new Error('Observed browser cleanup failure'); };
@@ -154,7 +154,7 @@ test('dashboard requests expose predefined answers without applying an implicit 
     const workspace = await fixture(t);
     const request = await createRequest(workspace, { kind: 'question', reason: 'Select a destination.', prompt: 'Where should the output go?', choices: ['Current folder', '<new project>'] });
     const open = await createRequest(workspace, { kind: 'question', reason: 'Describe the work.', prompt: 'What should change?' });
-    const runtime = await createFiniteRuntime(workspace, { noServer: false }, () => {});
+    const runtime = await createFiniteRuntime(workspace, { noServer: false, noTunnel: true }, () => {});
     t.after(() => runtime.close());
     const address = new URL((await runtime.control.snapshot()).url);
     const html = await (await fetch(address.origin)).text();
@@ -173,7 +173,7 @@ test('dashboard requests expose predefined answers without applying an implicit 
         Object.assign(option, { textContent: text, value, defaultSelected, selected });
         return option;
     }
-    const refresh = new Function('document', 'location', 'fetch', 'setInterval', 'Option', `${script}\nreturn async () => { while (client.busy || client.refreshing) await new Promise(resolve => setTimeout(resolve, 1)); await refresh(); };`)(document, address, transport, () => {}, Option);
+    const refresh = new Function('document', 'location', 'history', 'fetch', 'setInterval', 'Option', `${script}\nreturn async () => { while (client.busy || client.refreshing) await new Promise(resolve => setTimeout(resolve, 1)); await refresh(); };`)(document, address, { replaceState() {} }, transport, () => {}, Option);
     await refresh();
     const cards = document.getElementById('requests').children;
     const chosen = cards.find(card => card.firstChild.textContent.endsWith(request.prompt));

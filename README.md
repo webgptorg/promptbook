@@ -17,10 +17,10 @@ npx ptbk init
 Initialization creates missing core agents, task templates, `ptbk.json` and project conventions, preserving customized files. Its wizard offers destination-local installation of the exact running version and selected global harness setup, reusing native login. Unattended setup requires `--installation local|global` or `--no-install`; `--non-interactive` disables prompts. Setup commits only safe generated artifacts; `--no-commit` defers persistence, and edits overlapping user work remain pending review. Configure meaningful project checks before starting work.
 
 ```bash
-ptbk add "Implement the new behavior and its acceptance checks" --commit
+ptbk add "Implement the new behavior and its acceptance checks"
 ptbk list
 ptbk run --dry-run
-ptbk start                     # background agenda, localhost dashboard, reboot persistence
+ptbk start                     # background agenda, protected remote dashboard, reboot persistence
 ptbk dashboard                 # attach terminal controls to the existing service
 ptbk show                      # inspect the same process and pending requests
 ptbk answer REQUEST_ID "Reply"

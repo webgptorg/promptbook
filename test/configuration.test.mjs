@@ -116,3 +116,21 @@ test('bare, help and about expose the invoked version and bypass configuration o
     assert.match((await call(['about'])).stdout, new RegExp(version.replaceAll('.', '\\.')));
     assert.deepEqual(await readdir(project), ['ptbk.json']);
 });
+
+test('tunnel defaults retain explicit opt-out and resolve credential references without installing or publishing', async t => {
+    const project = await fixture(t);
+    const document = { tunnel: { enabled: false, provider: 'cloudflare-named', hostname: 'dashboard.example.com', id: '00000000-0000-4000-8000-000000000000', credentialsFile: './private/connector.json', client: './tools/cloudflared' } };
+    const original = JSON.stringify(document);
+    await writeFile(join(project, 'ptbk.json'), original);
+    const configuration = await readProjectConfiguration(project);
+    assert.equal(configuration.values['no-tunnel'], true);
+    assert.equal(configuration.values['tunnel-provider'], 'cloudflare-named');
+    assert.equal(configuration.values['tunnel-credentials-file'], resolve(project, 'private/connector.json'));
+    assert.equal(configuration.values['tunnel-client'], resolve(project, 'tools/cloudflared'));
+    assert.equal(configuration.sourceText, original);
+    assert.deepEqual(await readdir(project), ['ptbk.json']);
+    await writeFile(join(project, 'ptbk.json'), JSON.stringify({ tunnel: { provider: 'unknown' } }));
+    await assert.rejects(readProjectConfiguration(project), /tunnel.provider.*unknown/);
+    await writeFile(join(project, 'ptbk.json'), JSON.stringify({ tunnel: { token: 'private-token' } }));
+    await assert.rejects(readProjectConfiguration(project), /unsupported tunnel setting/);
+});

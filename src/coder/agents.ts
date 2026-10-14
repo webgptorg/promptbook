@@ -2,6 +2,8 @@ import { readFile, realpath, readdir, stat, mkdir, writeFile } from 'node:fs/pro
 import { basename, dirname, isAbsolute, relative, resolve } from 'node:path';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { installedEngineVersion } from './version.js';
 
 /** A resolved advisor declaration retains the file that declared its relative reference. @private */
@@ -11,7 +13,7 @@ export interface TeamMember { name: string; path: string; declaringPath: string;
 export interface LearningPolicy { open: boolean; limits?: string; }
 
 /** A discovered project identity, including hidden supporting definitions. @private */
-export interface AgentDefinition { name: string; normalizedName: string; path: string; hidden: boolean; learning: LearningPolicy; }
+export interface AgentDefinition { name: string; normalizedName: string; path: string; hidden: boolean; learning: LearningPolicy; tier?: 'agents' | 'project' | 'ignored'; }
 
 /** Immutable Book snapshot used for one inference attempt. @private */
 export interface PreparedAgent { name: string; path: string; instructions: string; aliases: string[]; team: TeamMember[]; learning: LearningPolicy; sources: Record<string, string>; model?: string; modelParameters?: Record<string, string>; }
@@ -121,6 +123,7 @@ export async function agentLocalPath(path: string, projectPath: string): Promise
     const root = await realpath(projectPath);
     const target = await realpath(resolve(projectPath, path));
     if (!within(root, target)) throw new Error(`Agent/knowledge reference escapes project: ${path}`);
+    if (relative(root, target).split(/[\\/]/).some(part => ['.git', '.ptbk'].includes(part))) throw new Error(`Agent/knowledge reference enters private runtime or Git metadata: ${path}`);
     return target;
 }
 
@@ -180,41 +183,74 @@ async function sourceText(source: string): Promise<string> {
     return bytes.toString('utf8');
 }
 
-/** Discover canonical identities recursively, rejecting every ambiguity before selection. @private */
-export async function discoverAgents(projectPath: string): Promise<AgentDefinition[]> {
+/** Discover winning identities in precedence order; ignored dependencies are searched only for explicit lookup. @private */
+export async function discoverAgents(projectPath: string, options: { name?: string; includeIgnored?: boolean } = {}): Promise<AgentDefinition[]> {
     projectPath = await realpath(projectPath);
     const result: AgentDefinition[] = [];
     const identities = new Map<string, AgentDefinition>();
-    const visited = new Map<string, boolean>();
+    const visited = new Set<string>();
     const files = new Set<string>();
-    /** Walk hidden and ordinary folders without following aliases outside the workspace. */
-    async function walk(directory: string, hidden: boolean): Promise<void> {
+    const fileIdentities = new Set<string>();
+    const ignoredDeadline = Date.now() + 15_000;
+    let ignoredEntries = 0;
+    const requested = options.name === undefined ? undefined : normalizeAgentName(agentReferenceName(options.name));
+    /** Inspect actual declarations, ignoring tasks and shadows before interpreting lower-tier instructions. */
+    async function inspect(path: string, tier: NonNullable<AgentDefinition['tier']>, hidden: boolean): Promise<void> {
+        const safe = await agentLocalPath(path, projectPath);
+        if (files.has(safe)) return;
+        files.add(safe);
+        const attributes = await stat(safe);
+        if (attributes.ino) { const identity = `${attributes.dev}:${attributes.ino}`; if (fileIdentities.has(identity)) return; fileIdentities.add(identity); }
+        const text = await sourceText(safe);
+        const name = text.replace(/^\uFEFF/, '').split(/\r?\n/).find(line => line.trim())?.trim();
+        if (name && /^(?:`{3,}|~{3,})/.test(name) || !name && tier !== 'agents') return;
+        if (name && /^TASK(?:\s|$)/.test(name)) return;
+        if (requested !== undefined && normalizeAgentName(name ?? '') !== requested) return;
+        const normalizedName = normalizeAgentName(name ?? '');
+        const previous = identities.get(normalizedName);
+        if (previous && previous.tier !== tier) return;
+        const parsed = parseBook(text, safe);
+        if (!normalizedName) throw new Error(`${safe}: agent name has no usable identity`);
+        if (nonAgentReference(parsed.name)) throw new Error(`${safe}: reserved non-agent identity ${parsed.name} cannot be a project Book`);
+        if (previous) throw new Error(`Ambiguous normalized agent name ${parsed.name}: ${previous.path} and ${safe}`);
+        const agent = { name: parsed.name, normalizedName, path: safe, hidden, tier, learning: learningPolicy(parsed.commitments, safe) };
+        identities.set(normalizedName, agent); result.push(agent);
+    }
+    /** Walk hidden and ignored folders without escaping the workspace or entering private state. */
+    async function walk(directory: string, tier: NonNullable<AgentDefinition['tier']>, hidden: boolean): Promise<void> {
         let safe: string;
         try { safe = await agentLocalPath(directory, projectPath); }
         catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return; throw error; }
-        if (visited.has(safe) && (!visited.get(safe) || hidden)) return;
-        visited.set(safe, hidden);
+        const visit = `${tier}:${safe}`;
+        if (visited.has(visit)) return;
+        visited.add(visit);
         const entries = (await readdir(safe, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name));
         for (const entry of entries) {
-            const path = await agentLocalPath(resolve(safe, entry.name), projectPath);
+            if (tier === 'ignored' && (++ignoredEntries > 100_000 || Date.now() > ignoredDeadline)) throw new Error('Agent discovery is incomplete: ignored content exceeded the bounded search. Provide an explicit local Book path or reduce the searched project.');
+            if (['.git', '.ptbk'].includes(entry.name) || tier === 'project' && entry.name === 'node_modules') continue;
+            let path: string;
+            try { path = await agentLocalPath(resolve(safe, entry.name), projectPath); }
+            catch (error) { if (entry.isSymbolicLink()) continue; throw error; }
             const attributes = entry.isSymbolicLink() ? await stat(path) : entry;
-            if (attributes.isDirectory()) await walk(path, hidden || entry.name.startsWith('.'));
-            else if (files.has(path) && !hidden) { const existing = result.find((agent) => agent.path === path); if (existing) existing.hidden = false; }
-            else if (attributes.isFile() && entry.name.endsWith('.book') && !files.has(path)) {
-                files.add(path);
-                const parsed = parseBook(await sourceText(path), path);
-                const normalizedName = normalizeAgentName(parsed.name);
-                if (!normalizedName) throw new Error(`${path}: agent name has no usable identity`);
-                if (nonAgentReference(parsed.name)) throw new Error(`${path}: reserved non-agent identity ${parsed.name} cannot be a project Book`);
-                const agent = { name: parsed.name, normalizedName, path, hidden, learning: learningPolicy(parsed.commitments, path) };
-                const previous = identities.get(normalizedName);
-                if (previous) throw new Error(`Ambiguous normalized agent name ${parsed.name}: ${previous.path} and ${path}`);
-                identities.set(normalizedName, agent);
-                result.push(agent);
-            }
+            if (attributes.isDirectory()) await walk(path, tier, hidden || entry.name.startsWith('.'));
+            else if (attributes.isFile() && entry.name.endsWith('.book')) await inspect(path, tier, hidden);
         }
     }
-    await walk(resolve(projectPath, 'agents'), false);
+    await walk(resolve(projectPath, 'agents'), 'agents', false);
+    if (requested === undefined || !identities.has(requested)) {
+        let paths: string;
+        try { paths = (await promisify(execFile)('git', ['-C', projectPath, 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 15_000 })).stdout; }
+        catch (error) {
+            if (/not a git repository/i.test((error as Error).message)) { await walk(projectPath, 'project', false); paths = ''; }
+            else throw new Error(`Agent discovery is incomplete: cannot inspect non-ignored project Books: ${(error as Error).message}`);
+        }
+        for (const path of [...new Set(paths.split('\0'))].sort()) {
+            if (!path.endsWith('.book') || path.split(/[\\/]/).some(part => ['.git', '.ptbk'].includes(part))) continue;
+            try { await inspect(resolve(projectPath, path), 'project', path.split(/[\\/]/).some(part => part.startsWith('.') || part === 'node_modules')); }
+            catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+        }
+    }
+    if (options.includeIgnored && requested !== undefined && !identities.has(requested)) await walk(projectPath, 'ignored', true);
     const teacher = result.find((agent) => agent.normalizedName === 'teacher');
     if (teacher?.learning.open) throw new Error(`${teacher.path}: Teacher must end in CLOSED to prevent a self-teaching loop`);
     return result;
@@ -227,7 +263,9 @@ export async function ensureCoreAgents(projectPath: string): Promise<string[]> {
     const { confinePath } = await import('./workspace.js');
     const directory = await confinePath(projectPath, resolve(projectPath, 'agents/.core'));
     await mkdir(directory, { recursive: true });
+    const existing = await discoverAgents(projectPath);
     for (const [role, content] of Object.entries(CORE_BOOKS)) {
+        if (existing.some(agent => agent.normalizedName === role)) continue;
         const path = await confinePath(projectPath, resolve(directory, `${role}.book`));
         try { await writeFile(path, content, { flag: 'wx' }); changed.push(path); }
         catch (error) { if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error; }
@@ -238,9 +276,16 @@ export async function ensureCoreAgents(projectPath: string): Promise<string[]> {
     return changed;
 }
 
-/** Resolve a shared identity from its declaring Book; filenames never override name uniqueness. @private */
+/** Validate reference syntax without consuming prose after an unbraced @ token. @private */
+export function agentReferenceName(raw: string): string {
+    const reference = raw.trim();
+    if (!reference || reference.startsWith('@') && !/^@[^\s{}]+$/.test(reference) || /[{}]/.test(reference) && !/^\{[^{}]+\}$/.test(reference)) throw new Error(`Malformed agent reference ${JSON.stringify(raw)}; use @Name or {Complete Name}.`);
+    return reference.replace(/^\{(.*)\}$/, '$1').replace(/^["']|["']$/g, '').replace(/^@/, '');
+}
+
+/** Resolve a shared identity from its declaring Book using ordered, read-only lookup. @private */
 export async function resolveAgentReference(raw: string, declaring: string, projectPath: string): Promise<string> {
-    const reference = raw.trim().replace(/^\{(.*)\}$/, '$1').replace(/^["']|["']$/g, '').replace(/^@/, '');
+    const reference = agentReferenceName(raw);
     const nonAgent = nonAgentReference(reference);
     if (nonAgent) return nonAgent.path;
     if (/^https?:/i.test(reference)) return (await remoteUrl(reference)).href;
@@ -249,12 +294,13 @@ export async function resolveAgentReference(raw: string, declaring: string, proj
         if (!reference.endsWith('.book') && !reference.includes('/')) throw new Error(`Remote Book must use an explicit remote reference: ${declaring}`);
         return (await remoteUrl(new URL(reference, declaring).href)).href;
     }
-    const agents = await discoverAgents(projectPath);
     if (reference.includes('/') || reference.includes('\\') || reference.endsWith('.book') || reference.startsWith('.')) {
         const target = await agentLocalPath(resolve(dirname(declaring), reference), projectPath);
-        parseBook(await sourceText(target), target);
+        const parsed = parseBook(await sourceText(target), target);
+        if (nonAgentReference(parsed.name)) throw new Error(`${target}: reserved non-agent identity ${parsed.name} cannot be a project Book`);
         return target;
     }
+    const agents = await discoverAgents(projectPath, { name: reference, includeIgnored: true });
     const matches = agents.filter((agent) => agent.normalizedName === normalizeAgentName(reference));
     if (matches.length !== 1) throw new Error(`${declaring}: reference {${reference}} is ${matches.length ? 'ambiguous' : 'missing'}`);
     return matches[0]!.path;
@@ -267,7 +313,7 @@ async function expertBook(projectPath: string): Promise<string> {
 FROM Void
 PERSONA Promptbook expertise supplied by the running ptbk ${version} engine.
 KNOWLEDGE APT means Agent–Project–Task. An agent is a persistent role; a task is bounded work. This project is ${projectPath}. Runtime records and persistent browser sessions are Git-ignored in .ptbk/.
-KNOWLEDGE Agent names are first nonempty Book lines, unique after case/diacritic/separator normalization. FROM inherits Adam by default; FROM Void terminates; FROM User is invalid; IMPORT includes instructions in place; TEAM @Name and {Multi Word Name} make on-demand consultations, including @User and @Expert.
+KNOWLEDGE Agent names are first nonempty Book lines compared without case, diacritics or separators. Resolve engine non-agents first, then agents/, ordinary project Books and explicitly requested ignored dependencies; only winning-tier duplicates are ambiguous. FROM inherits Adam by default; FROM Void terminates; FROM User is invalid; IMPORT includes instructions in place; TEAM @Name and {Multi Word Name} make on-demand consultations, including @User and @Expert.
 KNOWLEDGE Core agents are editable Adam, Manager and closed Teacher in agents/.core/. Hidden agents remain resolvable but do not receive ordinary automatic work. Expert, User and Void are engine references without editable project files.
 KNOWLEDGE Task Books start TASK followed by a title; TASK ID, TASK AGENT, TASK HARNESS, TASK MODEL, TASK THINKING LEVEL, TASK PRIORITY, TASK AFTER, TASK DUE DATE, TASK REPEAT, TASK DEPENDS ON, TASK PARENT, TASK STATUS, TASK DONE and TASK ORIGIN describe bounded work. Natural prose and fenced examples remain payload. Completion stamps record actual checked work and Git results.
 KNOWLEDGE ptbk init prepares files and Git; start operates indefinitely; run is finite; list is read-only; add saves a task without a model call; plan discusses read-only and saves reviewed tasks. The engine owns checks, recovery, task completion and commits. Human requests are durable and answerable through terminal, CLI and localhost HTTP interfaces.
@@ -305,17 +351,16 @@ function modelConfiguration(parts: Commitment[]): { model?: string; modelParamet
 /** Resolve an inherited local MODEL without network, knowledge reads, setup or advisor calls. @private */
 export async function readLocalAgentModel(agentPath: string, projectPath: string): Promise<string | undefined> {
     if (/^https?:/i.test(agentPath) || nonAgentReference(agentPath)) return undefined;
-    const agents = await discoverAgents(projectPath);
     const defaultAdam = 'ptbk:default-adam';
     const stack = new Set<string>();
     /** Name and path resolution deliberately leaves remote dependencies unknown without DNS or fetch. */
     async function referencePath(raw: string, declaring: string): Promise<string | undefined> {
-        const reference = raw.trim().replace(/^\{(.*)\}$/, '$1').replace(/^["']|["']$/g, '').replace(/^@/, '');
+        const reference = agentReferenceName(raw);
         if (/^https?:/i.test(reference)) return undefined;
         const special = nonAgentReference(reference);
         if (special) return special.path;
         if (reference.includes('/') || reference.includes('\\') || reference.endsWith('.book') || reference.startsWith('.')) return agentLocalPath(resolve(dirname(declaring), reference), projectPath);
-        const matches = agents.filter(agent => agent.normalizedName === normalizeAgentName(reference));
+        const matches = await discoverAgents(projectPath, { name: reference, includeIgnored: true });
         if (!matches.length && normalizeAgentName(reference) === 'adam') return defaultAdam;
         if (matches.length !== 1) throw new Error(`${declaring}: reference {${reference}} is ${matches.length ? 'ambiguous' : 'missing'}`);
         return matches[0]!.path;

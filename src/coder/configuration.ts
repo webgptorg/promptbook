@@ -14,6 +14,8 @@ export interface ProjectConfiguration {
     autoUpdateHarnesses?: boolean;
     harnessSettings?: Record<string, { model?: string; thinkingLevel?: string; apiKeyEnv?: string; configurationPath?: string }>;
     document: Record<string, unknown>;
+    /** Exact validated bytes used by optimistic versioned configuration saves. */
+    sourceText?: string;
 }
 
 /** Supported saved settings map directly to temporary command options. */
@@ -71,14 +73,14 @@ export async function readProjectConfiguration(projectPath: string): Promise<Pro
         throw new InputError(`${path}: ${error instanceof SyntaxError ? `invalid JSON${position ? ` at ${position}` : ''}` : (error as Error).message}. Correct the saved configuration before continuing.`);
     }
     rejectSecrets(document, path);
-    result.exists = true; result.document = document;
+    result.exists = true; result.document = document; result.sourceText = text;
     const sections: Array<[string, Record<string, unknown>]> = [['', document]];
     for (const section of ['routing', 'execution', 'process']) if (document[section] !== undefined) sections.push([section, object(document[section], `${path}.${section}`)]);
     for (const [section, entries] of sections) {
         for (const [name, entry] of Object.entries(entries)) {
             const setting = SETTINGS[name];
             if (!setting) {
-                if (!section && ['routing', 'execution', 'process', 'browser', 'harnesses', 'updates', '$schema'].includes(name)) continue;
+                if (!section && ['routing', 'execution', 'process', 'browser', 'harnesses', 'updates', 'tunnel', '$schema'].includes(name)) continue;
                 throw new InputError(`${path}${section ? `.${section}` : ''}.${name}: unsupported setting.`);
             }
             const location = `${path}${section ? `.${section}` : ''}.${name}`;
@@ -129,6 +131,17 @@ export async function readProjectConfiguration(projectPath: string): Promise<Pro
         const updates = object(document.updates, `${path}.updates`);
         if (Object.keys(updates).some(key => key !== 'harnesses') || updates.harnesses !== undefined && typeof updates.harnesses !== 'boolean') throw new InputError(`${path}.updates: only the boolean harnesses setting is supported.`);
         result.autoUpdateHarnesses = updates.harnesses as boolean | undefined;
+    }
+    if (document.tunnel !== undefined) {
+        const tunnel = object(document.tunnel, `${path}.tunnel`);
+        for (const [key, value] of Object.entries(tunnel)) {
+            if (!['enabled', 'provider', 'client', 'hostname', 'id', 'credentialsFile'].includes(key)) throw new InputError(`${path}.tunnel.${key}: unsupported tunnel setting; store only non-secret options and credential references.`);
+            if (key === 'enabled' ? typeof value !== 'boolean' : typeof value !== 'string' || !value.trim()) throw new InputError(`${path}.tunnel.${key}: expected ${key === 'enabled' ? 'boolean' : 'nonempty string'}.`);
+            if (key === 'provider' && !['cloudflare-quick', 'cloudflare-named'].includes(String(value))) throw new InputError(`${path}.tunnel.provider: unknown provider.`);
+            const option = key === 'enabled' ? 'no-tunnel' : key === 'credentialsFile' ? 'tunnel-credentials-file' : `tunnel-${key}`;
+            result.values[option] = key === 'enabled' ? !value : ['client', 'credentialsFile'].includes(key) ? resolve(projectPath, String(value)) : String(value);
+            result.sources[option] = `${path}.tunnel.${key}`;
+        }
     }
     const selectedHarness = result.values.harness;
     if (typeof selectedHarness === 'string' && result.harnessSettings?.[selectedHarness]) {

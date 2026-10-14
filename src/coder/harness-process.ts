@@ -41,6 +41,8 @@ export function redactSecrets(text: string, projectPath = process.cwd(), secretS
         if (value && value.length >= 8 && /(?:TOKEN|SECRET|PASSWORD|API_?KEY|PRIVATE_?KEY|CREDENTIAL)/i.test(key)) result = result.split(value).join('[REDACTED]');
     }
     return result
+        .replace(/(#pair=)[A-Za-z0-9_-]+/g, '$1[REDACTED]')
+        .replace(/(ptbk-device(?:-[a-f0-9]+)?=)[A-Za-z0-9_-]+/g, '$1[REDACTED]')
         .replace(/\b(?:sk-(?:proj-|ant-)?[A-Za-z0-9_-]{12,}|gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{12,}|npm_[A-Za-z0-9_]{12,})\b/g, '[REDACTED]')
         .replace(/(Bearer\s+)[A-Za-z0-9._~+\/-]{8,}/gi, '$1[REDACTED]')
         .replace(/((?:api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)\s*["']?\s*[:=]\s*["']?)[^\s,"'}]+/gi, '$1[REDACTED]');

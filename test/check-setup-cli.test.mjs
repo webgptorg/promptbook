@@ -224,7 +224,7 @@ else if (args[0] === 'app-server') {
     await git(['init', '-q']);
     await git(['add', '--', 'package.json', 'report.txt', 'validate.cjs', 'review-report.cjs']);
     await git(['commit', '-qm', 'Existing project baseline']);
-    const initialized = await cli(['init', '--harnesses', harness, '--no-self-update', '--non-interactive']);
+    const initialized = await cli(['init', '--harnesses', harness, '--no-tunnel', '--no-self-update', '--non-interactive']);
     assert.equal(initialized.code, undefined, initialized.stdout);
     assert.match(initialized.stdout, /Prerequisites|Next: ptbk start/);
     assert.doesNotMatch(initialized.stdout, /Unresolved prerequisites|incomplete/);
@@ -233,7 +233,7 @@ else if (args[0] === 'app-server') {
     assert.notEqual(saved.execution?.allowCredits, true, 'Healthy account access needs no saved credit opt-in');
     const firstRecord = await readFile(join(project, 'tasks', 'templates', 'initialization.json'), 'utf8');
     const head = (await git(['rev-parse', 'HEAD'])).stdout;
-    await cli(['init', '--no-self-update', '--non-interactive']);
+    await cli(['init', '--no-tunnel', '--no-self-update', '--non-interactive']);
     assert.equal((await git(['rev-parse', 'HEAD'])).stdout, head);
     assert.equal(await readFile(join(project, 'tasks', 'templates', 'initialization.json'), 'utf8'), firstRecord);
     const calls = (await readFile(record, 'utf8')).trim().split('\n').map(JSON.parse);

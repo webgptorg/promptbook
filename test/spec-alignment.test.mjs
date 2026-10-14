@@ -139,9 +139,9 @@ test('live terminals retain complete QR modules on roomy screens and attention o
     const output = new EventEmitter();
     Object.assign(output, { isTTY: true, columns: 120, rows: 70, write(chunk) { text += chunk; } });
     const terminal = createTerminal(true, () => assert.fail('Presentation must not execute or cancel work'), '/project', { input, output });
-    const url = 'http://127.0.0.1:4321/#private';
+    const url = 'http://127.0.0.1:4321/#pair=private';
     try {
-        terminal.setSnapshot({ project: '/project', status: 'ready', url, tasks: [], requests: [] });
+        terminal.setSnapshot({ project: '/project', status: 'ready', url: url.split('#')[0], pairingUrl: url, pairing: { status: 'available', expiresAt: Date.now() + 600000 }, tasks: [], requests: [] });
         const rows = terminalQrRows(url);
         assert.equal(rows[0].length, QRCode.create(url).modules.size + 8);
         for (const row of rows) assert(text.includes(row), 'Every QR row and its quiet zone is retained');

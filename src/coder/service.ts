@@ -1,6 +1,5 @@
 import { identifyRuntime } from './agent-identity.js';
 import { createServer as createSocketServer, connect, type Socket } from 'node:net';
-import { createServer as createHttpServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { spawn } from 'node:child_process';
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, writeFile, unlink, open, chmod, stat, lstat, rename, rmdir } from 'node:fs/promises';
@@ -15,7 +14,7 @@ import { replaceFileWithRetry, type FileReplacementOptions } from './file-replac
 import { runQueue, recoverTask, validateRunOptions, type RunOptions, type RunResult, type EngineEvent } from './engine.js';
 import { discoverTasks, serializeTaskBook, assignTaskId, updateTaskControls, checksum, assertConfined } from './sources.js';
 import { evaluateEligibility } from './schedule.js';
-import { captureSnapshot, commitScoped } from './git.js';
+import { captureSnapshot, commitScoped, changedPaths, protectUnrelatedChanges, uncommittedOwnership, type UncommittedOwnership } from './git.js';
 import { confinePath, InputError, readContext, resolveAgentSelection } from './workspace.js';
 import { discoverAgents, prepareAgent, ensureCoreAgents } from './agents.js';
 import { inspectHarnesses, maintainHarnesses, type HarnessInventory, type HarnessMaintenanceResult } from './setup.js';
@@ -26,12 +25,18 @@ import { createTerminal } from './terminal.js';
 import { ProjectBrowser, browserTools } from './browser.js';
 import { installedEngineVersion } from './version.js';
 import { reportDiagnostic } from './diagnostics.js';
-import { dashboardPage } from './dashboard-page.js';
+import { openDashboard } from './dashboard-server.js';
+import { validateTunnelOptions, type TunnelOptions } from './tunnel.js';
+
+/** Shared protected dashboard entry point. @private */
+export { openDashboard } from './dashboard-server.js';
 import { editTaskFromTerminal } from './edit-task-control.js';
 import { captureServiceEnvironment } from './service-environment.js';
+import { readProjectConfiguration } from './configuration.js';
+import { connectionDetails } from './status-view.js';
 
 /** Supervisor settings supplement finite options without changing task authority. @private */
-export interface ServiceOptions extends RunOptions {
+export interface ServiceOptions extends RunOptions, TunnelOptions {
     mode?: 'daemon' | 'raw' | 'interactive'; noPersist?: boolean; noServer?: boolean; noQr?: boolean; port?: number;
     browserMode?: 'headless' | 'headful'; browserProfile?: string; enabledHarnesses?: string[]; autoUpdateHarnesses?: boolean;
     configurationSources?: Record<string, string>;
@@ -74,13 +79,58 @@ export async function saveTaskEdit(workspace: Workspace, sourcePath: string, pre
     }
 }
 /** Settings that require process restart are identified before applying them. */
-const STARTUP_SETTINGS = new Set(['mode', 'port', 'noServer', 'noPersist']);
+const STARTUP_SETTINGS = new Set(['mode', 'port', 'noServer', 'noPersist', 'noTunnel', 'tunnelProvider']);
 /** Adjustable finite behavior remains discoverable through every shared control snapshot. */
 const LIVE_SETTINGS = new Set(['harness', 'model', 'thinkingLevel', 'agent', 'context', 'enabledHarnesses', 'harnessSettings', 'browserMode', 'browserProfile', 'autoUpdateHarnesses', 'check', 'checkBefore', 'gitChanges', 'autoPull', 'autoPush', 'isolate', 'normalizeLineEndings', 'noQuestions', 'allowCredits', 'preserveLogs', 'waitBetweenPrompts', 'waitAfterPrompt', 'waitAfterError', 'minPriority', 'maxPriority']);
 
 /** Strip functions/signals and private callbacks before persisting restart configuration. */
 function serialSettings(options: ServiceOptions): ServiceOptions {
-    return JSON.parse(JSON.stringify(options, (key, value) => key === 'quiet' || typeof value === 'function' || value instanceof AbortSignal ? undefined : value)) as ServiceOptions;
+    return JSON.parse(JSON.stringify(options, (key, value) => ['quiet', 'ownedChanges'].includes(key) || typeof value === 'function' || value instanceof AbortSignal ? undefined : value)) as ServiceOptions;
+}
+/** Load pending ownership only for explicit uncommitted continuation; committed mode never adopts it. */
+async function readOwnedChanges(workspace: Workspace, noCommit?: boolean): Promise<UncommittedOwnership | undefined> {
+    if (!noCommit) return undefined;
+    try { return JSON.parse(await readFile(await confinePath(workspace.projectPath, join(workspace.statePath, 'uncommitted.json')), 'utf8')) as UncommittedOwnership; }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; return undefined; }
+}
+/** Save one system operation's pending signatures instead of claiming a commit in opt-out mode. */
+async function saveSystemOperation(workspace: Workspace, options: ServiceOptions, baseline: Awaited<ReturnType<typeof captureSnapshot>>, message: string, paths: string[]): Promise<void> {
+    if (!options.noCommit) { await commitScoped(baseline, message, { paths, protectedPaths: baseline.dirtyPaths }); return; }
+    const current = await captureSnapshot(baseline.root);
+    const changes = await changedPaths(baseline, current);
+    if (changes.some(path => !paths.includes(path) || baseline.dirtyPaths.includes(path))) throw new InputError('System authoring overlaps unrelated changes; pending work was preserved.');
+    options.ownedChanges = uncommittedOwnership(current, [...Object.keys(options.ownedChanges?.files ?? {}), ...changes]);
+    await atomicWrite(join(workspace.statePath, 'uncommitted.json'), options.ownedChanges);
+}
+/** Save validated runtime choices as one versioned operation while retaining unrelated defaults. */
+async function saveDefaults(workspace: Workspace, options: ServiceOptions, update: Partial<ServiceOptions>): Promise<void> {
+    const lease = await acquireLease(workspace);
+    try {
+        const baseline = protectUnrelatedChanges(await captureSnapshot(workspace.gitRoot ?? workspace.projectPath), options.ownedChanges);
+        const configuration = await readProjectConfiguration(workspace.projectPath);
+        if (!configuration.exists) throw new InputError('Initialize ptbk.json before saving runtime defaults.');
+        const source = Buffer.from(configuration.sourceText!, 'utf8');
+        const document = structuredClone(configuration.document);
+        const names: Record<string, string> = { noServer: 'server', noPersist: 'persist', normalizeLineEndings: 'normalizeLineEndings' };
+        const inverted = new Set(['noServer', 'noPersist']);
+        for (const [key, value] of Object.entries(update)) {
+            if (key === 'browserMode' || key === 'browserProfile') { document.browser = { ...document.browser as Record<string, unknown>, [key === 'browserMode' ? 'mode' : 'profile']: value }; }
+            else if (key === 'noTunnel' || key === 'tunnelProvider') { document.tunnel = { ...document.tunnel as Record<string, unknown>, [key === 'noTunnel' ? 'enabled' : 'provider']: key === 'noTunnel' ? !value : value }; }
+            else if (key === 'autoUpdateHarnesses') document.updates = { harnesses: value };
+            else if (key === 'enabledHarnesses' || key === 'harnessSettings') {
+                const enabled = update.enabledHarnesses ?? configuration.enabledHarnesses ?? [];
+                const settings = update.harnessSettings ?? configuration.harnessSettings ?? {};
+                document.harnesses = Object.fromEntries([...new Set([...enabled, ...Object.keys(settings)])].map(name => [name, { ...settings[name], enabled: enabled.includes(name) }]));
+            } else {
+                const name = names[key] ?? key;
+                for (const section of ['routing', 'execution', 'process']) { const object = document[section]; if (object && typeof object === 'object') delete (object as Record<string, unknown>)[name]; }
+                document[name] = inverted.has(key) ? !value : value;
+            }
+        }
+        if (baseline.dirtyPaths.includes(relative(baseline.root, configuration.path).split('\\').join('/'))) throw new InputError('Saved configuration overlaps existing user edits; review those edits before saving defaults.');
+        await saveTaskEdit(workspace, configuration.path, source, `${JSON.stringify(document, null, 4)}\n`, lease);
+        await saveSystemOperation(workspace, options, baseline, 'Update project configuration', [relative(baseline.root, configuration.path).split('\\').join('/')]);
+    } finally { await lease.release(); }
 }
 /** Inspect and maintain only harness identities explicitly enabled for this invocation. */
 function selectedHarnesses(options: ServiceOptions): string[] { return options.enabledHarnesses ?? (options.harness ? [options.harness] : []); }
@@ -220,56 +270,6 @@ export async function serviceCommand(workspace: Workspace, action = 'inspect', i
 function matchesToken(actual: unknown, expected: string): boolean {
     return typeof actual === 'string' && Buffer.byteLength(actual) === Buffer.byteLength(expected) && timingSafeEqual(Buffer.from(actual), Buffer.from(expected));
 }
-/** Parse a bounded JSON body with explicit errors rather than trusting Content-Length. */
-async function body(request: IncomingMessage): Promise<Record<string, unknown>> {
-    let bytes = 0; const chunks: Buffer[] = [];
-    for await (const chunk of request) { const part = Buffer.from(chunk); bytes += part.length; if (bytes > 256 * 1024) throw new InputError('Control body exceeds 256 KiB.'); chunks.push(part); }
-    const value = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new InputError('Control body must be an object.');
-    return value as Record<string, unknown>;
-}
-/** Bind a guarded localhost interface; omitted port searches from 3000. @private */
-export async function openDashboard(workspace: Workspace, control: RuntimeControl, selectedPort?: number): Promise<{ url: string; sessionUrl: string; close(): Promise<void> }> {
-    if (selectedPort !== undefined && (!Number.isInteger(selectedPort) || selectedPort < 1 || selectedPort > 65535)) throw new InputError('--port must be between 1 and 65535.');
-    let port = selectedPort ?? 3000;
-    const nonce = randomUUID();
-    const server = createHttpServer((request, response) => {
-        /** Write redacted JSON for all observed state and control outcomes. */
-        const respond = (code: number, value: unknown) => { if (response.headersSent) return; response.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); response.end(redactSecrets(JSON.stringify(value), workspace.projectPath)); };
-        void (async () => {
-            const origin = `http://127.0.0.1:${port}`;
-            if (request.headers.host !== `127.0.0.1:${port}` || request.headers.origin && request.headers.origin !== origin) return respond(403, { error: 'Invalid local host/origin.' });
-            const url = new URL(request.url || '/', origin);
-            if (request.method === 'GET' && url.pathname === '/') {
-                response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Security-Policy': `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'` }); response.end(dashboardPage(nonce)); return;
-            }
-            if (!matchesToken(request.headers['x-ptbk-token'], control.token)) return respond(403, { error: 'Session token required.' });
-            if (request.method !== 'GET' && request.headers.origin !== origin) return respond(403, { error: 'Local origin required.' });
-            if (request.method === 'GET' && url.pathname === '/api/state') return respond(200, await control.snapshot());
-            if (request.method === 'GET' && url.pathname === '/api/connection') {
-                const address = `${origin}/#${control.token}`;
-                const { modules } = QRCode.create(address);
-                return respond(200, { url: address, size: modules.size, modules: Array.from(modules.data) });
-            }
-            if (request.method === 'POST' && url.pathname === '/api/control') { const input = await body(request); if (typeof input.action !== 'string') throw new InputError('A control action is required.'); return respond(200, await control.command(input.action, input)); }
-            if (request.method === 'POST' && url.pathname === '/api/task') return respond(200, await control.command('edit-task', await body(request)));
-            return respond(404, { error: 'Route not found.' });
-        })().catch(error => respond(error instanceof InputError || error instanceof SyntaxError ? 400 : 409, { error: (error as Error).message }));
-    });
-    server.requestTimeout = 15_000;
-    for (;;) {
-        try {
-            await new Promise<void>((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', () => { server.removeListener('error', reject); resolve(); }); });
-            break;
-        } catch (error) { if (!selectedPort && (error as NodeJS.ErrnoException).code === 'EADDRINUSE' && port < 65535) port++; else throw new Error(`Cannot listen on localhost:${port}: ${(error as Error).message}`); }
-    }
-    return { url: `http://127.0.0.1:${port}`, sessionUrl: `http://127.0.0.1:${port}/#${control.token}`, close: () => new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => server.closeAllConnections(), 2000);
-        server.close(error => { clearTimeout(timeout); if (error) reject(error); else resolve(); });
-        server.closeIdleConnections();
-    }) };
-}
-
 /** Materialize engine-generated work under the same mutation lease as authoring. */
 async function systemTask(workspace: Workspace, task: Partial<TaskDefinition> & Pick<TaskDefinition, 'title' | 'payload'>): Promise<TaskDefinition> {
     const id = task.id ?? randomUUID();
@@ -351,7 +351,7 @@ async function assignment(workspace: Workspace, target: TaskDefinition, inventor
     }
     const lease = await acquireLease(workspace);
     try {
-        const baseline = await captureSnapshot(workspace.gitRoot ?? workspace.projectPath);
+        const baseline = protectUnrelatedChanges(await captureSnapshot(workspace.gitRoot ?? workspace.projectPath), options.ownedChanges);
         const targetPath = relative(baseline.root, target.source.path).split('\\').join('/');
         if (baseline.dirtyPaths.includes(targetPath)) throw new InputError('Manager cannot change or assign an uncommitted task source; preserve and commit its current edits first.');
         target = await assignTaskId(target, { assertOwned: () => lease.assertOwned() });
@@ -364,7 +364,7 @@ async function assignment(workspace: Workspace, target: TaskDefinition, inventor
         const generated = await systemTask(workspace, { id, title: `Assign ${target.title}`, agent: '@Manager', harness: options.harness || inventories.find(item => item.usable)?.name, model: options.model, thinkingLevel: options.thinkingLevel, priority: target.priority, parent: `#${target.id}`, origin: `engine:assignment:${target.id}`, payload: `Select only missing execution choices in ${target.source.relativePath} for task #${target.id}. Preserve every explicit requirement. Available authorized harness inventory:\n${JSON.stringify(inventories)}\nAvailable ordinary roles: ${(await discoverAgents(workspace.projectPath)).filter(agent => !agent.hidden).map(agent => agent.name).join(', ')}. Resolve natural-language priority if needed and retain its original wording in TASK NOTE. ${resultInstructions} Do not implement the target task.` });
         if (!legacy) await updateTaskControls(target, { dependencies: [...(target.dependencies || []), `#${id}`] }, { assertOwned: () => lease.assertOwned() });
         await lease.assertOwned();
-        await commitScoped(baseline, `Create assignment for ${target.title}`, { paths: [targetPath, relative(baseline.root, generated.source.path).split('\\').join('/')], protectedPaths: baseline.dirtyPaths });
+        await saveSystemOperation(workspace, options, baseline, `Create assignment for ${target.title}`, [targetPath, relative(baseline.root, generated.source.path).split('\\').join('/')]);
         return true;
     } finally { await lease.release(); }
 }
@@ -382,22 +382,24 @@ async function enquire(workspace: Workspace, inventory: HarnessInventory[], opti
     if (!agents.length) return { reason: 'No ordinary goal-bearing agents are available for discovery.' };
     const lease = await acquireLease(workspace);
     try {
-        const baseline = await captureSnapshot(workspace.gitRoot ?? workspace.projectPath);
+        const baseline = protectUnrelatedChanges(await captureSnapshot(workspace.gitRoot ?? workspace.projectPath), options.ownedChanges);
         const agent = agents[schedule.index % agents.length]!;
         const generated = await systemTask(workspace, { title: `Review goals for ${agent.name}`, agent: agent.path, harness: options.harness || inventory.find(item => item.usable)?.name, model: options.model, thinkingLevel: options.thinkingLevel, origin: `engine:goal-enquiry:${agent.name}`, payload: 'Review your goals and current project evidence. Create bounded useful task Books only when justified, including future dates where appropriate. If no useful work is needed, explain why without inventing busywork. Do not perform the proposed work during this enquiry.' });
         await lease.assertOwned();
-        await commitScoped(baseline, `Create goal enquiry for ${agent.name}`, { paths: [relative(baseline.root, generated.source.path).split('\\').join('/')], protectedPaths: baseline.dirtyPaths });
+        await saveSystemOperation(workspace, options, baseline, `Create goal enquiry for ${agent.name}`, [relative(baseline.root, generated.source.path).split('\\').join('/')]);
         await atomicWrite(filename, { version: 1, nextAt: Date.now() + 3600000, index: schedule.index + 1 });
     } finally { await lease.release(); }
 }
 
 /** Operate one project indefinitely while sharing controls and preserving every failure. @private */
 export async function runService(workspace: Workspace, supplied: ServiceOptions): Promise<void> {
-    validateRunOptions(supplied);
-    if (supplied.noCommit || supplied.limit !== undefined || supplied.noAuto) throw new InputError('start requires automatic task commits and an indefinite agenda; use run for finite/manual work.');
+    validateRunOptions(supplied); validateTunnelOptions(supplied);
+    if (supplied.limit !== undefined || supplied.noAuto) throw new InputError('start requires an indefinite agenda; use run for finite/manual work.');
     const existing = await serviceCommand(workspace);
     if (existing) throw new InputError('This project already has a running supervisor. Use status/show or stop.');
     if (supplied.signal?.aborted) return;
+    const previousOwnedChanges = await readOwnedChanges(workspace, supplied.noCommit);
+    if (previousOwnedChanges) protectUnrelatedChanges(await captureSnapshot(workspace.gitRoot ?? workspace.projectPath), previousOwnedChanges);
     await loadProjectSecrets(workspace.projectPath);
     await mkdir(await confinePath(workspace.projectPath, workspace.statePath), { recursive: true, mode: 0o700 });
     await prepareSocketDirectory(true);
@@ -448,6 +450,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
     const controller = new AbortController();
     const browser = new ProjectBrowser(workspace, { mode: supplied.browserMode, profile: supplied.browserProfile, signal: controller.signal });
     let options = { ...supplied, mode: supplied.mode || 'daemon' };
+    options.ownedChanges = previousOwnedChanges;
     let paused = false; let finish = false; let skip = false; let waiting = false; let running = false; let boundaryBusy = true;
     let pending: Partial<ServiceOptions> = {}; let restartSettings: Partial<ServiceOptions> = {};
     let phase: string | undefined; let currentSelection: Record<string, unknown> | undefined;
@@ -484,10 +487,11 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
         async snapshot() {
             const tasks = await serviceTasks(workspace); const ledger = await readLedger(workspace);
             const summaries = await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, payload: task.payload, status: ledger.tasks[task.id]?.claim ? 'in-progress' : task.status, priority: task.priority, priorityRaw: task.priorityRaw, priorityResolved: task.priorityResolved, agent: task.agent, harness: task.harness, model: task.model, thinkingLevel: task.thinkingLevel, parent: task.parent, dependencies: task.dependencies, due: task.dueRaw, source: task.source, eligibility: await taskServiceEligibility(workspace, task, options, inventory, ledger.tasks[task.id]) })));
-            return identifyRuntime({ id: record.id, pid: record.pid, project: workspace.projectPath, engineVersion: record.engineVersion, mode: record.mode, status, phase, finishAfterTask: finish, controlCapabilities: { actions: ['pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses', 'read-task', 'edit-task'] }, paused, pausePending: paused && running, running, waiting, currentTask, currentSelection, url: record.url, idleReason, nextOpportunity, persistent: record.persistent, settings: serialSettings(options), pendingSettings: pending, restartSettings, configurationSources: options.configurationSources, settingsCapabilities: { live: [...LIVE_SETTINGS], requiresRestart: [...STARTUP_SETTINGS], temporary: true, units: 'Pacing values use milliseconds.' }, statistics, lastResult, error: record.error, diagnostic: record.diagnostic, nextAction: idleAction || record.nextAction, timezone: workspace.timezone, harnesses: inventory.map(({ name, usable, installed, authenticated, diagnostic }) => ({ name, usable, installed, authenticated, diagnostic })), harnessCatalog: catalogSummary(), harnessMaintenance: maintenance, requests: await listRequests(workspace, true), browser: browser.status(), events,
+            return identifyRuntime({ id: record.id, pid: record.pid, project: workspace.projectPath, engineVersion: record.engineVersion, mode: record.mode, status, phase, finishAfterTask: finish, controlCapabilities: { actions: ['pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses', 'read-task', 'edit-task'] }, paused, pausePending: paused && running, running, waiting, currentTask, currentSelection, url: record.url, ...(http?.connection() ?? {}), idleReason, nextOpportunity, persistent: record.persistent, settings: serialSettings(options), pendingSettings: pending, restartSettings, configurationSources: options.configurationSources, settingsCapabilities: { live: [...LIVE_SETTINGS], requiresRestart: [...STARTUP_SETTINGS], temporary: true, units: 'Pacing values use milliseconds.' }, statistics, lastResult, error: record.error, diagnostic: record.diagnostic, nextAction: idleAction || record.nextAction, timezone: workspace.timezone, harnesses: inventory.map(({ name, usable, installed, authenticated, diagnostic }) => ({ name, usable, installed, authenticated, diagnostic })), harnessCatalog: catalogSummary(), harnessMaintenance: maintenance, requests: await listRequests(workspace, true), browser: browser.status(), events,
                 tasks: summaries }, await discoverAgents(workspace.projectPath));
         },
         async command(action, input = {}) {
+            if (['connection', 'pair-renew', 'access-devices', 'access-revoke', 'api-token'].includes(action)) { if (!http) throw new InputError('HTTP is disabled.'); return http.trustedCommand(action, input); }
             if (action === 'inspect') return control.snapshot();
             if (action === 'harnesses') {
                 if (input.more !== undefined && typeof input.more !== 'boolean' || input.name !== undefined && typeof input.name !== 'string') throw new InputError('Harness inspection accepts a name or boolean more choice.');
@@ -527,19 +531,22 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                     if (!attributes.isFile()) throw new Error('Task editing requires an ordinary project-local source file.');
                     const previous = await readFile(task.source.path);
                     if (checksum(previous) !== input.revision) throw new Error('Source changed; reload before editing.');
+                    const baseline = protectUnrelatedChanges(await captureSnapshot(workspace.gitRoot ?? workspace.projectPath), options.ownedChanges);
                     await saveTaskEdit(workspace, task.source.path, previous, input.content, lease);
-                    lastWake = 0; return { saved: true };
+                    await saveSystemOperation(workspace, options, baseline, `Edit task - ${task.title}`, [relative(baseline.root, task.source.path).split('\\').join('/')]);
+                    lastWake = 0; return { saved: true, committed: !options.noCommit };
                 } finally { await lease.release(); }
             }
             else if (action === 'answer') {
                 if (typeof input.id !== 'string' || typeof input.response !== 'string') throw new InputError('Answer requires request id and response.');
                 const answer = await answerRequest(workspace, input.id, input.response, input.status as 'answered' | undefined); lastWake = 0; inventoryAt = 0; return answer;
             } else if (action === 'settings') {
+                if (input.save !== undefined && typeof input.save !== 'boolean') throw new InputError('save must be boolean.');
                 if (!input.settings || typeof input.settings !== 'object' || Array.isArray(input.settings)) throw new InputError('settings must be an object.');
                 const update = input.settings as Partial<ServiceOptions>;
                 for (const key of Object.keys(update)) if (!LIVE_SETTINGS.has(key) && !STARTUP_SETTINGS.has(key)) throw new InputError(`Unknown/immutable setting ${key}.`);
                 for (const [key, value] of Object.entries(update)) {
-                    if (['noServer', 'noPersist', 'autoPull', 'autoPush', 'isolate', 'normalizeLineEndings', 'noQuestions', 'allowCredits', 'preserveLogs', 'autoUpdateHarnesses'].includes(key) && typeof value !== 'boolean') throw new InputError(`${key} must be a boolean.`);
+                    if (['noServer', 'noPersist', 'noTunnel', 'autoPull', 'autoPush', 'isolate', 'normalizeLineEndings', 'noQuestions', 'allowCredits', 'preserveLogs', 'autoUpdateHarnesses'].includes(key) && typeof value !== 'boolean') throw new InputError(`${key} must be a boolean.`);
                     if (['harness', 'model', 'thinkingLevel', 'agent', 'context', 'check', 'browserProfile'].includes(key) && typeof value !== 'string') throw new InputError(`${key} must be a string.`);
                 }
                 if (update.mode !== undefined && !['daemon', 'raw', 'interactive'].includes(update.mode)) throw new InputError('mode must be daemon, raw or interactive.');
@@ -560,11 +567,15 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                 }
                 if (update.browserMode !== undefined && !['headless', 'headful'].includes(update.browserMode)) throw new InputError('browserMode must be headless or headful.');
                 if (update.browserProfile !== undefined && !update.browserProfile.trim()) throw new InputError('browserProfile must be a nonempty existing profile path.');
-                validateRunOptions({ ...options, ...pending, ...update });
+                validateRunOptions({ ...options, ...pending, ...update }); validateTunnelOptions({ ...options, ...restartSettings, ...update });
                 if (update.browserMode !== undefined || update.browserProfile !== undefined) await browser.validateConfiguration({ ...(update.browserMode ? { mode: update.browserMode } : {}), ...(update.browserProfile !== undefined ? { profile: update.browserProfile } : {}) });
+                if (input.save) {
+                    if (running || boundaryBusy) throw new InputError('Pause the service and wait for its safe boundary before saving versioned defaults.');
+                    await saveDefaults(workspace, options, update);
+                }
                 for (const [key, value] of Object.entries(update)) { if (STARTUP_SETTINGS.has(key)) Object.assign(restartSettings, { [key]: value }); else Object.assign(pending, { [key]: value }); }
                 if (!running && (!boundaryBusy || paused && pending.browserMode === undefined && pending.browserProfile === undefined && pending.noPersist === undefined)) await applyPending();
-                inventoryAt = 0; await persist(); return { active: serialSettings(options), pending, requiresRestart: restartSettings };
+                inventoryAt = 0; await persist(); return { active: serialSettings(options), pending, requiresRestart: restartSettings, savedDefaults: input.save === true, committed: input.save ? !options.noCommit : undefined };
             } else throw new InputError(`Unknown control action ${action}.`);
             await persist(); return { paused, pausePending: paused && running, status, stopping: controller.signal.aborted };
         },
@@ -584,11 +595,13 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
             }
             const index = text.indexOf('\n'); if (index < 0) return;
             client.removeAllListeners('data');
+            let trustedAccess = false;
             void (async () => {
                 const input = JSON.parse(text.slice(0, index));
                 if (input.identity !== record.id || !matchesToken(input.token, record.token)) throw new InputError('Project process identity/token mismatch.');
+                trustedAccess = ['connection', 'pair-renew', 'api-token', 'access-devices', 'access-revoke'].includes(input.action);
                 return control.command(input.action, input.input);
-            })().then(result => client.end(`${redactSecrets(JSON.stringify({ id: record.id, pid: record.pid, result }), workspace.projectPath)}\n`), error => client.end(`${JSON.stringify({ id: record.id, pid: record.pid, error: (error as Error).message })}\n`));
+            })().then(result => { const reply = JSON.stringify({ id: record.id, pid: record.pid, result }); client.end(`${trustedAccess ? reply : redactSecrets(reply, workspace.projectPath)}\n`); }, error => client.end(`${JSON.stringify({ id: record.id, pid: record.pid, error: redactSecrets((error as Error).message, workspace.projectPath) })}\n`));
         });
     });
     const terminal = createTerminal(options.mode === 'interactive', () => controller.abort(), workspace.projectPath, { noQr: options.noQr, onControl: async action => {
@@ -635,9 +648,15 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
         if (requests.length > shown.length) terminal.status(`${requests.length - shown.length} more pending requests are available through ptbk answer or status.`);
     };
     /** Keep foreground queue/statistics/request presentation synchronized with the control model. */
+    let displayedConnection = '';
+    /** Raw foreground observations update public addresses and health without pairing secrets. */
     const present = async () => {
+        if (options.mode === 'raw' && http) {
+            const connection = http.connection(); const signature = JSON.stringify(connection);
+            if (signature !== displayedConnection) { displayedConnection = signature; terminal.status(connectionDetails({ ...connection, status }, false).join('\n')); }
+        }
         if (options.mode !== 'interactive') return;
-        terminal.setSnapshot(await control.snapshot());
+        terminal.setSnapshot({ ...await control.snapshot(), ...(http?.trustedConnection() ?? {}) });
     };
     const abort = () => controller.abort(); supplied.signal?.addEventListener('abort', abort, { once: true });
     let http: Awaited<ReturnType<typeof openDashboard>> | undefined;
@@ -665,14 +684,14 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
         if (options.automatic !== false) {
             const lease = await acquireLease(workspace);
             try {
-                const baseline = await captureSnapshot(workspace.gitRoot ?? workspace.projectPath);
+                const baseline = protectUnrelatedChanges(await captureSnapshot(workspace.gitRoot ?? workspace.projectPath), options.ownedChanges);
                 const files = await ensureCoreAgents(workspace.projectPath);
                 await lease.assertOwned();
-                if (files.length) await commitScoped(baseline, 'Create missing Promptbook core agents', { paths: files.map(file => relative(baseline.root, file).split('\\').join('/')), protectedPaths: baseline.dirtyPaths });
+                if (files.length) await saveSystemOperation(workspace, options, baseline, 'Create missing Promptbook core agents', files.map(file => relative(baseline.root, file).split('\\').join('/')));
             } finally { await lease.release(); }
         }
         if (controller.signal.aborted) return;
-        if (!options.noServer) { http = await openDashboard(workspace, control, options.port); record.url = http.sessionUrl; }
+        if (!options.noServer) { http = await openDashboard(workspace, control, options.port, options); await http.startTunnel(); record.url = http.url; }
         if (controller.signal.aborted) return;
         status = 'ready'; await persist(); supplied.onReady?.(record);
         if (options.mode !== 'daemon') terminal.status(`Promptbook ${record.engineVersion} · project: ${workspace.projectPath}\n${record.url ? `ptbk dashboard: ${record.url}\n` : ''}`);
@@ -771,7 +790,13 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                         idleReason = undefined; nextOpportunity = undefined;
                         currentTask = ready.id; currentSelection = { agent: run.agent, harness: run.harness, model: run.model, thinkingLevel: run.thinkingLevel }; phase = 'starting';
                         running = true; status = 'running'; await persist(); await present();
-                        try { lastResult = await runQueue(workspace, run); statistics.completed += lastResult.completed; statistics.failed += lastResult.failed; }
+                        try {
+                            lastResult = await runQueue(workspace, run); statistics.completed += lastResult.completed; statistics.failed += lastResult.failed;
+                            if (options.noCommit && lastResult.retainedPaths?.length) {
+                                options.ownedChanges = uncommittedOwnership(await captureSnapshot(workspace.gitRoot!), [...Object.keys(options.ownedChanges?.files ?? {}), ...lastResult.retainedPaths]);
+                                await atomicWrite(join(workspace.statePath, 'uncommitted.json'), options.ownedChanges);
+                            }
+                        }
                         finally { running = false; currentTask = undefined; currentOccurrenceId = undefined; currentSelection = undefined; phase = undefined; }
                         if (lastResult?.failed || lastResult?.syncPending) {
                             status = lastResult.syncPending ? 'sync-pending' : 'blocked';
@@ -789,6 +814,11 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                 await present();
             } catch (error) {
                 if (controller.signal.aborted) break;
+                if (/^Workspace is owned by PID .*Wait for the worker to finish\./.test((error as Error).message)) {
+                    status = 'watching'; idleReason = 'Waiting for the active workspace writer to finish its authorized operation.';
+                    nextOpportunity = Date.now() + 1000; pacingCooldown = false; waiting = false;
+                    await persist(); await present(); await delay(1000, undefined, { signal: controller.signal }).catch(() => {}); continue;
+                }
                 status = 'blocked'; record.error = redactSecrets((error as Error).message, workspace.projectPath);
                 emit({ type: 'error', message: record.error, time: Date.now() });
                 const signature = `${phase || 'supervisor cycle'}:${record.error}`;
@@ -812,10 +842,10 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
         status = record.desired === 'stopped' || finish || options.mode !== 'daemon' ? 'stopped' : 'interrupted';
         if (finish || options.mode !== 'daemon') record.desired = 'stopped'; await persist().catch(() => {});
         const cleanup = await Promise.allSettled([browser.close(), http?.close(), new Promise<void>(resolve => socket.close(() => resolve()))]);
-        if (ownsSocket && process.platform !== 'win32') await unlink(socketPath).catch(() => {});
-        if (JSON.parse(await readFile(ownerFile, 'utf8')).id === ownerId) await unlink(ownerFile);
         const failure = cleanup.find((result): result is PromiseRejectedResult => result.status === 'rejected');
         if (failure) throw failure.reason;
+        if (ownsSocket && process.platform !== 'win32') await unlink(socketPath).catch(() => {});
+        if (JSON.parse(await readFile(ownerFile, 'utf8')).id === ownerId) await unlink(ownerFile);
     }
 }
 
@@ -826,14 +856,14 @@ export function startupPaths(workspace: Workspace): StartupPaths {
 
 /** Start one daemon, either through its OS manager or an explicitly nonpersistent child. @private */
 export async function startService(workspace: Workspace, options: ServiceOptions): Promise<Record<string, unknown>> {
-    validateRunOptions(options);
-    if (options.noCommit || options.limit !== undefined || options.noAuto) throw new InputError('start requires commits and an indefinite automatic agenda.');
+    validateRunOptions(options); validateTunnelOptions(options);
+    if (options.limit !== undefined || options.noAuto) throw new InputError('start requires an indefinite automatic agenda.');
     const existing = await serviceCommand(workspace); if (existing) {
         if (!options.quiet) process.stdout.write(`Promptbook ${existing.engineVersion || 'version unavailable'}\nProject already running: ${workspace.projectPath}\n${existing.url || ''}\nUse ptbk show or ptbk stop --path ${JSON.stringify(workspace.projectPath)}.\n`);
         if (!options.quiet && existing.url && !options.noQr) process.stdout.write(await QRCode.toString(String(existing.url), { type: 'terminal', small: true }));
         return existing;
     }
-    const baseline = await captureSnapshot(workspace.gitRoot || workspace.projectPath);
+    const baseline = protectUnrelatedChanges(await captureSnapshot(workspace.gitRoot || workspace.projectPath), await readOwnedChanges(workspace, options.noCommit));
     if (baseline.dirtyPaths.length && (options.gitChanges ?? 'fail') === 'fail') throw new InputError(`Startup requires a committed baseline. Preserve and commit changes in ${baseline.dirtyPaths.join(', ')} before ptbk start.`);
     const inventories = await (options.inspectHarnesses || inspectHarnesses)(workspace.projectPath, { names: selectedHarnesses(options), harnessSettings: options.harnessSettings, signal: options.signal });
     if (!inventories.some(item => item.usable && (!options.harness || options.harness === item.name) && (!options.enabledHarnesses || options.enabledHarnesses.includes(item.name)))) throw new InputError(`No authenticated authorized harness is ready. Run ptbk init to install/login.\n${inventories.map(item => `${item.name}: ${item.diagnostic}`).join('\n')}`);
