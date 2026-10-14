@@ -15,6 +15,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 ## Installation and operation
 
 - [Installation](cli/installation.md): Global/local package and destination-specific dependency setup.
+- [Checks and publication on GitHub Actions](cli/releasing.md): Required hosted validation and verified releases.
 - [Engine updates](cli/updates.md): Update the invoked installation, then rerun.
 - [Commands](cli/cli.md): Command surface and options.
 - [Configuration](cli/configuration.md): `ptbk.json`, defaults and temporary CLI overrides.

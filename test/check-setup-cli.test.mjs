@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import test from 'node:test';
@@ -193,7 +193,9 @@ test('successful init validates saved execution choices and leaves plain start r
     const bin = join(project, '..', 'global-bin');
     await mkdir(bin);
     const record = join(bin, 'calls.jsonl');
-    env.PATH = bin + (process.platform === 'win32' ? ';' : ':') + env.PATH;
+    // A copied Windows environment is case-sensitive; preserve its inherited Path key and entries.
+    const pathKey = Object.keys(env).find(key => key.toLowerCase() === 'path') ?? 'PATH';
+    env[pathKey] = [bin, env[pathKey]].filter(Boolean).join(delimiter);
     for (const name of ['claude', 'npm']) {
         const source = `#!${process.execPath}\nconst fs=require('node:fs');const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(record)},JSON.stringify({name:${JSON.stringify(name)},args})+'\\n');if(args.includes('--version'))console.log('claude 1.2.3');else if(args.includes('--help'))console.log('--output-format --effort --model --mcp-config --input-format --allowedTools');else if(args[0]==='auth'&&args[1]==='status')console.log(JSON.stringify({loggedIn:true,authMethod:'oauth'}));else if(args[0]==='view')console.log(JSON.stringify('1.2.3'));else throw Error('No execution, installation or login is authorized by this setup fixture');\n`;
         await writeFile(join(bin, process.platform === 'win32' ? name + '.cmd' : name), source, { mode: 0o755 });

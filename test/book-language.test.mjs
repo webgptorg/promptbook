@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -9,7 +9,8 @@ import { evaluateEligibility } from '../dist/coder/schedule.js';
 
 /** Provide an isolated Book directory without initialization or provider access. */
 async function fixture(t) {
-    const project = await mkdtemp(path.join(os.tmpdir(), 'ptbk-book-language-'));
+    // Agent discovery reports canonical paths, including expanded Windows short directory names.
+    const project = await realpath(await mkdtemp(path.join(os.tmpdir(), 'ptbk-book-language-')));
     t.after(() => rm(project, { recursive: true, force: true }));
     await mkdir(path.join(project, 'agents'));
     return project;

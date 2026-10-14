@@ -272,7 +272,8 @@ test('automatic assignment does not require a Developer role and waits for genui
     assert.equal(awaiting.eligibility.kind, 'awaiting-assignment', JSON.stringify(awaiting));
     assert.match(awaiting.eligibility.reason, /automatic Manager/);
     await server.command('resume');
-    const state = await untilTask(server.inspect, state => state.tasks.find(task => task.id === 'target')?.status === 'done', 'Project-specific Manager routing completes', ASSIGNMENT_DEADLINE);
+    // TASK DONE is published before final events; observe the accepted runtime result as well.
+    const state = await untilTask(server.inspect, state => state.tasks.find(task => task.id === 'target')?.status === 'done' && !state.running && state.statistics.completed === 2, 'Project-specific Manager routing completes', ASSIGNMENT_DEADLINE);
     await server.command('pause');
     assert.equal(calls.length, 2);
     assert.equal(state.tasks.find(task => task.id === 'target').visualIdentity.name, 'Artisan');
