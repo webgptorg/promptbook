@@ -58,7 +58,9 @@ function retainedOutput(text: string): string {
 }
 /** Publish bounded events so a long invocation cannot retain its entire raw stream. @private */
 function emit(result: RunResult, options: RunOptions, type: string, message: string, task?: TaskDefinition, extra: Record<string, unknown> = {}): void {
-    const event: EngineEvent = { type, message: redactSecrets(message, options.redactProjectPath), time: (options.now ?? Date.now)(), ...(task ? { taskId: task.id } : {}), ...extra };
+    const selection = task && ['output', 'message', 'completed', 'failed'].includes(type) ? [...result.events].reverse().find(event => event.taskId === task.id && event.type === 'selection') : undefined;
+    const event: EngineEvent = { type, message: redactSecrets(message, options.redactProjectPath), time: (options.now ?? Date.now)(), ...(task ? { taskId: task.id } : {}),
+        ...(selection ? { agent: selection.agent, agentName: selection.agentName } : {}), ...extra };
     result.events.push(event); if (result.events.length > 512) result.events.shift(); options.onEvent?.(event);
 }
 /** Validate combinations before a lease, file mutation, provider setup, or inference. @private */
@@ -122,7 +124,7 @@ async function assertSource(task: TaskDefinition): Promise<void> {
     if (createHash('sha256').update(text).digest('hex') !== task.source.revision) throw new Error(`Source changed concurrently for ${task.id}; no completion was published.`);
 }
 /** Resolve task-local selection before implicit Developer and freeze its Book for this occurrence. @private */
-async function invocation(workspace: Workspace, task: TaskDefinition, options: RunOptions): Promise<{ harness: string; model?: string; agentPath: string; instructions: string; context: string; missingContext?: boolean }> {
+async function invocation(workspace: Workspace, task: TaskDefinition, options: RunOptions): Promise<{ harness: string; model?: string; agentPath: string; agentName: string; instructions: string; context: string; missingContext?: boolean }> {
     const harness = options.harness ?? task.harness;
     if (!harness) throw new Error(`Task ${task.id} has no selected harness. Use --harness or a configured task HARNESS.`);
     const agentPath = await resolveAgent(workspace, options.agent ?? task.agent ?? path.join('agents', 'developer.book'));
@@ -133,7 +135,7 @@ async function invocation(workspace: Workspace, task: TaskDefinition, options: R
         try { context = await fs.readFile(path.join(workspace.projectPath, 'AGENTS.md'), 'utf8'); }
         catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; context = ''; missingContext = true; }
     }
-    return { harness, model: options.model ?? task.model ?? defaults?.model ?? agent.model, agentPath, instructions: agent.instructions, context, missingContext };
+    return { harness, model: options.model ?? task.model ?? defaults?.model ?? agent.model, agentPath, agentName: agent.name, instructions: agent.instructions, context, missingContext };
 }
 /** Resolve an explicit local path or an exact named local role without silent fallback. @private */
 async function resolveAgent(workspace: Workspace, reference: string): Promise<string> {
@@ -220,7 +222,7 @@ async function infer(workspace: Workspace, journal: RunJournal, options: RunOpti
     const instructionsHash = createHash('sha256').update(selection.instructions).digest('hex');
     if (journal.agentInstructionsHash && journal.agentInstructionsHash !== instructionsHash) throw new Error('Agent instructions changed during the active task; inspect the source before retrying.');
     journal.agent = selection.agentPath; journal.agentInstructionsHash = instructionsHash;
-    emit(result, options, 'selection', `Agent ${selection.agentPath}; harness ${selection.harness}; model ${selection.model ?? 'provider native (unknown)'}; thinking ${thinkingLevel ?? 'adapter default (unknown)'}.`, journal.task, { agent: selection.agentPath, harness: selection.harness, model: selection.model, thinkingLevel: thinkingLevel });
+    emit(result, options, 'selection', `Agent ${selection.agentName}; harness ${selection.harness}; model ${selection.model ?? 'provider native (unknown)'}; thinking ${thinkingLevel ?? 'adapter default (unknown)'}.`, journal.task, { agent: selection.agentPath, agentName: selection.agentName, harness: selection.harness, model: selection.model, thinkingLevel: thinkingLevel });
     const learningSource = (await readJournals(workspace, previous => previous.followupPath?.replace(/\\/g, '/') === journal.task.source.relativePath && Boolean(previous.learningTarget)))[0];
     if (learningSource?.learningTarget) {
         const target = await prepareAgent(path.join(workspace.projectPath, learningSource.learningTarget), workspace.projectPath);
@@ -253,7 +255,7 @@ async function infer(workspace: Workspace, journal: RunJournal, options: RunOpti
             const stream = (chunk: string) => {
                 pendingOutput = (pendingOutput + chunk).slice(-2 * 1024 * 1024);
                 const end = pendingOutput.lastIndexOf('\n');
-                if (end >= 0) { const text = redactSecrets(pendingOutput.slice(0, end + 1), options.redactProjectPath); pendingOutput = pendingOutput.slice(end + 1); options.onOutput?.(text); emit(result, options, 'output', text, journal.task); }
+                if (end >= 0) { const text = redactSecrets(pendingOutput.slice(0, end + 1), options.redactProjectPath); pendingOutput = pendingOutput.slice(end + 1); options.onOutput?.(text); emit(result, options, 'output', text, journal.task, { agent: selection.agentPath, agentName: selection.agentName }); }
             };
             const response = await runner({ harness: selection.harness, harnessConfiguration, projectPath: privateWorkspace.projectPath, redactionPath: options.redactProjectPath, taskId: journal.taskId, occurrenceId: journal.occurrenceId, requestProjectPath: options.requestProjectPath ?? path.dirname(workspace.statePath), tools, prompt: `${resumeQuota ? 'Continue the same task after its confirmed usage-limit interruption. Preserve existing progress and do not repeat completed external actions.\n\n' : ''}${promptFor(journal.task, selection.instructions, feedback)}`, agentPath: /^(https:|ptbk:)/.test(selection.agentPath) ? selection.agentPath : path.join(privateWorkspace.gitRoot!, path.relative(workspace.gitRoot!, selection.agentPath)), context: selection.context, model: selection.model, thinkingLevel: thinkingLevel, allowCredits: options.allowCredits, signal: options.signal, sessionId: resumeQuota ? journal.sessionId : undefined, onOutput: stream });
             Object.assign(record, { finishedAt: (options.now ?? Date.now)(), outcome: response.outcome, exitCode: response.exitCode,
@@ -261,7 +263,7 @@ async function infer(workspace: Workspace, journal: RunJournal, options: RunOpti
                 authentication: response.authentication ?? 'unknown', harnessVersion: response.harnessVersion ?? options.harnessVersion, ...(response.effectiveModel ? { effectiveModel: response.effectiveModel } : {}),
                 ...(response.outcome !== 'success' ? { reason: redactSecrets(`${response.outcome}: ${response.output}`, options.redactProjectPath).slice(0, 2048) } : {}),
             });
-            if (pendingOutput) { const text = redactSecrets(pendingOutput, options.redactProjectPath); options.onOutput?.(text); emit(result, options, 'output', text, journal.task); }
+            if (pendingOutput) { const text = redactSecrets(pendingOutput, options.redactProjectPath); options.onOutput?.(text); emit(result, options, 'output', text, journal.task, { agent: selection.agentPath, agentName: selection.agentName }); }
             journal.externalEffects ||= response.externalEffects;
             journal.thinkingLevel = thinkingLevel;
             journal.authentication = response.authentication ?? 'unknown'; journal.effectiveModel = response.effectiveModel; journal.harnessVersion = response.harnessVersion ?? options.harnessVersion;

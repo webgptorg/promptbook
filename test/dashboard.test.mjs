@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import test from 'node:test';
+import { agentVisualIdentity } from '../dist/coder/agent-identity.js';
 import { openDashboard } from '../dist/coder/service.js';
 import { ProjectBrowser, discoverBrowserExecutable } from '../dist/coder/browser.js';
 import { resolveWorkspace } from '../dist/coder/workspace.js';
@@ -90,11 +91,11 @@ test('browser SPA shares API state and choices, preserves drafts, rejects stale 
     const all = [...featured, { id: 'fixture-extra', name: 'fixture-extra', displayName: 'Extra fixture', featured: false }];
     const calls = [];
     let state = { engineVersion: '9.8.7-test', project: projectPath, mode: 'daemon', persistent: false, status: 'working', phase: 'inference', running: true, waiting: false, paused: false,
-        currentTask: 'work', currentSelection: { agent: 'Developer', harness: 'fixture-extra', model: 'observed-model', thinkingLevel: 'high' },
+        currentTask: 'work', currentSelection: { agent: 'Developer', visualIdentity: agentVisualIdentity('Developer'), harness: 'fixture-extra', model: 'observed-model', thinkingLevel: 'high' },
         statistics: { completed: 2, failed: 0 }, settings: { waitAfterPrompt: 20 }, pendingSettings: {}, restartSettings: {},
-        settingsCapabilities: { live: ['waitAfterPrompt', 'harness', 'browserMode'], requiresRestart: ['mode'] }, harnessCatalog: featured, agents: [{ name: 'Developer' }],
-        tasks: [{ id: 'work', title: 'Actual fixture task', payload: 'A source-controlled description.', status: 'in-progress', priority: 3, source: { relativePath: 'tasks/work.book', revision: 'rev1' }, eligibility: { kind: 'ready', reason: 'Eligible.' } }],
-        requests: [{ id: 'choose', prompt: 'Choose the deployment target', reason: 'Human decision.', choices: ['local', 'preview'] }, { id: 'text', prompt: 'Explain your preference', reason: 'Human response.' }], events: [{ type: 'output', message: 'Provider observation' }, { type: 'check', message: 'Check observed' }] };
+        settingsCapabilities: { live: ['waitAfterPrompt', 'harness', 'browserMode'], requiresRestart: ['mode'] }, harnessCatalog: featured, agents: [{ name: 'Developer', visualIdentity: agentVisualIdentity('Developer') }],
+        tasks: [{ id: 'work', title: 'Actual fixture task', visualIdentity: agentVisualIdentity('Developer'), payload: 'A source-controlled description.', status: 'in-progress', priority: 3, source: { relativePath: 'tasks/work.book', revision: 'rev1' }, eligibility: { kind: 'ready', reason: 'Eligible.' } }],
+        requests: [{ id: 'choose', prompt: 'Choose the deployment target', reason: 'Human decision.', taskId: 'work', choices: ['local', 'preview'] }, { id: 'text', prompt: 'Explain your preference', reason: 'Human response.' }], events: [{ type: 'output', message: 'Provider observation' }, { type: 'check', message: 'Check observed' }] };
     let snapshotGate, snapshotWaiting = false;
     page = await openDashboard(workspace, { token: randomUUID(), snapshot: async () => {
         const observed = structuredClone(state);
@@ -144,6 +145,11 @@ test('browser SPA shares API state and choices, preserves drafts, rejects stale 
     await evaluate.run('refresh()');
     assert.equal(await evaluate.run("document.querySelector('[data-action=resume]').disabled"), true, 'Another client changed the same pause state');
 
+    assert.equal(await evaluate.run("document.getElementById('attention').getBoundingClientRect().top < document.getElementById('runtime-title').getBoundingClientRect().top"), true);
+    assert.match(await evaluate.run("document.getElementById('attention-summary').textContent"), /2 pending/);
+    assert.equal(await evaluate.run("!!document.querySelector('#current-agent svg')"), true);
+    await until(() => evaluate.run("!!document.querySelector('#connection-qr svg')"), value => value);
+    assert.equal(await evaluate.run("document.getElementById('dashboard-url').textContent"), page.sessionUrl);
     await click(evaluate, '#more');
     await until(() => evaluate.run("document.getElementById('catalog').textContent"), value => value.includes('Extra fixture'));
     await click(evaluate, '#catalog button:last-child');
@@ -171,6 +177,7 @@ test('browser SPA shares API state and choices, preserves drafts, rejects stale 
     await page.close(); closed = true;
     await evaluate.run('refresh()');
     assert.equal(await evaluate.run("document.getElementById('connection').textContent"), 'Disconnected');
+    assert.equal(await evaluate.run("document.querySelector('#connection-qr svg')"), null);
     assert.match(await evaluate.run("document.getElementById('connection-note').textContent"), /Last snapshot/);
     assert.equal(await evaluate.run("document.querySelector('[data-action=stop]').disabled"), true);
     assert.equal(await evaluate.run("document.querySelector('[data-request=text] textarea').value"), 'Unsubmitted response');

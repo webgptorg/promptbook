@@ -14,9 +14,9 @@ import { planConversation } from './planner.js';
 import { startCoderServer } from './server.js';
 import { createFiniteRuntime } from './finite.js';
 import type { Workspace } from './domain.js';
-import { startService, stopService, serviceCommand, readServiceRecord, type ServiceOptions } from './service.js';
+import { startService, stopService, serviceCommand, readServiceRecord, taskServiceEligibility, type ServiceOptions } from './service.js';
 import { listRequests, answerRequest } from './requests.js';
-import { setupHarnesses, inspectHarnesses } from './setup.js';
+import { setupHarnesses, inspectHarnesses, inspectHarnessExecution } from './setup.js';
 import { updateTaskControls } from './sources.js';
 import { readProjectConfiguration, ensureProjectConfiguration, type ProjectConfiguration } from './configuration.js';
 import { installedEngineVersion } from './version.js';
@@ -30,7 +30,13 @@ import { validateCheck } from './checks.js';
 import { resolveHelpRequest, renderHelp, helpHint } from './help.js';
 import { attachDashboard } from './attached-dashboard.js';
 import { presentationFor, renderPanel, renderDocument, type TerminalPresentation } from './presentation.js';
-import QRCode from 'qrcode';
+import { runtimeSummary, terminalServiceQr, dashboardUrl, agentLabel } from './status-view.js';
+import { identifyRuntime } from './agent-identity.js';
+import { discoverAgents } from './agents.js';
+import { ensureFirstTask } from './first-task.js';
+
+/** Shared QR rendering remains available to existing internal consumers. @private */
+export { terminalServiceQr } from './status-view.js';
 
 /** Boolean CLI options whose presence is significant. */
 const BOOLEAN_OPTIONS = new Set(['help', 'version', 'dry-run', 'no-commit', 'commit', 'no-auto', 'no-questions', 'auto-pull', 'auto-push', 'isolate', 'no-normalize-line-endings', 'no-ui', 'preserve-logs', 'allow-credits', 'auto-migrate', 'allow-destructive-auto-migrate', 'json', 'daemon', 'foreground', 'raw', 'interactive', 'non-interactive', 'no-persist', 'no-server', 'no-qr', 'no-install', 'self-update', 'no-self-update', 'auto-update-harnesses', 'no-auto-update-harnesses']);
@@ -49,7 +55,7 @@ const COMMAND_OPTIONS: Record<string, string[]> = {
     start: [...EXECUTION_OPTIONS, 'daemon', 'foreground', 'no-persist', 'no-server', 'port', 'no-qr', 'browser-mode', 'browser-profile', 'auto-update-harnesses', 'no-auto-update-harnesses', 'harnesses'],
     restart: [...EXECUTION_OPTIONS, 'daemon', 'raw', 'no-persist', 'no-server', 'port', 'no-qr', 'browser-mode', 'browser-profile', 'auto-update-harnesses', 'no-auto-update-harnesses', 'harnesses'],
     about: [],
-    stop: [], status: ['json'], show: ['json'], dashboard: [], answer: ['request', 'response', 'action', 'json', 'no-questions'],
+    stop: [], status: ['json', 'no-qr'], show: ['json', 'no-qr'], dashboard: ['no-qr'], answer: ['request', 'response', 'action', 'json', 'no-questions'],
     add: ['commit', 'no-commit', 'no-questions', 'auto-push', 'priority', 'template'],
     'generate-boilerplates': ['commit', 'no-commit', 'no-questions', 'auto-push', 'count'],
     plan: [...ROUTING_OPTIONS, 'commit', 'no-commit', 'no-questions', 'allow-credits', 'prompt'],
@@ -311,30 +317,6 @@ function restartOptions(parsed: Parsed, options: RunOptions, saved: ServiceOptio
     return next;
 }
 
-/** Summarize inspected service state without dumping internal configuration by default. */
-function runtimeSummary(state: Record<string, any>, presentation: TerminalPresentation, title: string): string {
-    const selection = state.currentSelection || {};
-    const tasks = Array.isArray(state.tasks) ? state.tasks : [];
-    const requests = Array.isArray(state.requests) ? state.requests : [];
-    const current = tasks.find((task: Record<string, unknown>) => task.id === state.currentTask);
-    return renderPanel(`Promptbook ${state.engineVersion || 'version unavailable'} · ${title}`, [
-        ['Project', String(state.project)], ['Status', String(state.status ?? 'unknown')],
-        ['Mode', String(state.mode ?? 'no active service')], ['Task', String(current?.title || state.currentTask || 'idle')],
-        ['Agent', String(selection.agent || 'none')], ['Harness', String(selection.harness || 'none')],
-        ...(selection.model ? [['Model', String(selection.model)] as const] : []),
-        ...(selection.thinkingLevel ? [['Effort', String(selection.thinkingLevel)] as const] : []),
-        ['Queue', `${tasks.length} task(s)`], ['Requests', `${requests.length} pending`],
-        ['Results', `${state.statistics?.completed ?? 0} completed, ${state.statistics?.failed ?? 0} failed`],
-        ...(state.url ? [['Browser', String(state.url)] as const] : []),
-    ], presentation, { details: [
-        ...(state.phase ? [`Phase: ${state.phase}`] : []),
-        ...(state.waiting ? ['Waiting for pacing/backoff; skipping never bypasses task eligibility.'] : []),
-        ...(state.error ? [`Failure: ${state.error}`, `Next action: ${state.nextAction || 'Inspect ptbk recover and diagnostics.'}`, ...(state.diagnostic ? [`Diagnostic: ${state.diagnostic}`] : [])] : []),
-        ...tasks.map((task: Record<string, any>) => `[${task.status}] ${task.title}${task.eligibility ? ` · ${task.eligibility.kind}: ${task.eligibility.reason}` : ''}`),
-        ...requests.map((request: Record<string, any>) => `Request ${request.id}: ${request.prompt}\nReason: ${request.reason}`),
-    ], next: [`ptbk dashboard --path ${JSON.stringify(state.project)}`, `ptbk show --path ${JSON.stringify(state.project)} --json`, `ptbk answer --path ${JSON.stringify(state.project)}`] });
-}
-
 /** Render the daemon outcome once, with QR limited to pretty terminal output. */
 async function launchedService(state: Record<string, unknown>, options: ServiceOptions, presentation: TerminalPresentation, alreadyRunning = false): Promise<void> {
     if (options.mode !== 'daemon') {
@@ -344,18 +326,7 @@ async function launchedService(state: Record<string, unknown>, options: ServiceO
     process.stdout.write(runtimeSummary(state, presentation, alreadyRunning ? 'Project already running' : 'ptbk started'));
     process.stdout.write(renderDocument('', [{ title: 'Service controls', lines: [`ptbk stop --path ${JSON.stringify(state.project)}`,
         state.persistent ? 'Startup persistence is enabled.' : 'Startup persistence is disabled.'] }], presentation));
-    if (state.url && !options.noQr) process.stdout.write(await terminalServiceQr(String(state.url), presentation));
-}
-
-/** Render a QR only when it fits, retaining plain glyphs under terminal color suppression. @private */
-export async function terminalServiceQr(url: string, presentation: TerminalPresentation): Promise<string> {
-    if (!presentation.pretty) return '';
-    const size = QRCode.create(url).modules.size;
-    const needed = size + (presentation.color ? 2 : 8);
-    if (needed >= presentation.width) return 'QR omitted because this terminal is too narrow; use the displayed URL or widen the terminal.\n';
-    return presentation.color
-        ? QRCode.toString(url, { type: 'terminal', small: true })
-        : `${await QRCode.toString(url, { type: 'utf8', margin: 4 })}\n`;
+    if (dashboardUrl(state) && !options.noQr) process.stdout.write(await terminalServiceQr(dashboardUrl(state)!, presentation));
 }
 
 /** Reads a description from stdin only when the command explicitly needs it. */
@@ -573,7 +544,7 @@ export async function main(arguments_: string[]): Promise<number> {
         await loadProjectSecrets(workspace.projectPath);
         if (parsed.command === 'dashboard') {
             phase = 'dashboard connection';
-            await attachDashboard(workspace, { raw: !presentation.pretty, interactive, signal: controller.signal });
+            await attachDashboard(workspace, { raw: !presentation.pretty, interactive, noQr: !!parsed.values['no-qr'], signal: controller.signal });
             return interrupted ? 130 : 0;
         }
         if (['status', 'show'].includes(parsed.command)) {
@@ -584,9 +555,12 @@ export async function main(arguments_: string[]): Promise<number> {
                 const ledger = await readLedger(workspace);
                 const tasks = await discoverTasks(workspace);
                 inspection = { project: workspace.projectPath, engineVersion: record?.engineVersion ?? (record ? 'unknown (older process record)' : await installedEngineVersion()), status: record?.desired === 'running' ? 'unreachable; inspect preserved process/recovery records' : 'stopped', installation: record?.installation, settings: record?.settings, requests: await listRequests(workspace, true),
-                    tasks: await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, source: task.source.relativePath, eligibility: await taskEligibility(workspace, task, {}, ledger) }))) };
+                    tasks: await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, agent: task.agent, harness: task.harness, model: task.model, source: task.source.relativePath, eligibility: await taskEligibility(workspace, task, {}, ledger) }))) };
             }
-            process.stdout.write(redactSecrets(presentation.pretty ? runtimeSummary(inspection, presentation, parsed.command === 'show' ? 'Project inspection' : 'Project status') : `${JSON.stringify(inspection, null, 2)}\n`, redactionPath)); return 0;
+            inspection = identifyRuntime(inspection, await discoverAgents(workspace.projectPath));
+            process.stdout.write(redactSecrets(parsed.values.json ? `${JSON.stringify(inspection, null, 2)}\n` : runtimeSummary(inspection, presentation, parsed.command === 'show' ? 'Project inspection' : 'Project status'), redactionPath));
+            if (!parsed.values.json && !parsed.values['no-qr'] && dashboardUrl(inspection)) process.stdout.write(await terminalServiceQr(dashboardUrl(inspection)!, presentation));
+            return 0;
         }
         if (parsed.command === 'answer') {
             const id = parsed.values.request as string | undefined || parsed.arguments[0];
@@ -615,8 +589,10 @@ export async function main(arguments_: string[]): Promise<number> {
         }
         if (parsed.command === 'stop') {
             const prior = await readServiceRecord(workspace);
+            const observed = await serviceCommand(workspace).catch(() => undefined);
             await stopService(workspace, true);
-            process.stdout.write(renderPanel(`Promptbook ${prior?.engineVersion ?? await installedEngineVersion()} · ptbk stopped`, [['Project', workspace.projectPath], ['Status', 'stopped']], presentation, { next: [`ptbk start --path ${JSON.stringify(workspace.projectPath)}`], tone: 'success' })); return 0;
+            const stopped = identifyRuntime({ ...observed, project: workspace.projectPath, engineVersion: prior?.engineVersion ?? await installedEngineVersion(), status: 'stopped', phase: undefined, currentTask: undefined, currentSelection: undefined, running: false, waiting: false, paused: false, url: undefined, idleReason: 'Stopped by user.', nextOpportunity: undefined, requests: await listRequests(workspace, true) }, await discoverAgents(workspace.projectPath).catch(() => []));
+            process.stdout.write(runtimeSummary(stopped, presentation, 'ptbk stopped')); return 0;
         }
         if (parsed.command === 'restart') {
             const record = await readServiceRecord(workspace);
@@ -632,10 +608,12 @@ export async function main(arguments_: string[]): Promise<number> {
             const tasks = await discoverTasks(workspace);
             const ledger = await readLedger(workspace);
             const previewOptions = parsed.command === 'run' ? { ...options, agent: options.agent ?? 'Developer' } : options;
-            const rows = await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, source: task.source.relativePath, ...await taskEligibility(workspace, task, previewOptions, ledger) })));
+            const service = serviceOptions(parsed, options, configuration);
+            const inventory = parsed.command === 'list' ? await inspectHarnesses(workspace.projectPath, { names: service.enabledHarnesses ?? (options.harness ? [options.harness] : []), harnessSettings: configuration.harnessSettings, signal: controller.signal }) : [];
+            const rows = identifyRuntime({ project: workspace.projectPath, tasks: await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, status: task.status, priority: task.priority, agent: task.agent, harness: task.harness, model: task.model, source: task.source.relativePath, ...await (parsed.command === 'list' ? taskServiceEligibility(workspace, task, service, inventory, ledger.tasks[task.id]) : taskEligibility(workspace, task, previewOptions, ledger)) }))) }, await discoverAgents(workspace.projectPath)).tasks as Array<Record<string, any>>;
             if (parsed.values.json) process.stdout.write(`${redactSecrets(JSON.stringify({ timezone: workspace.timezone, tasks: rows }, null, 2), redactionPath)}\n`);
-            else if (presentation.pretty) process.stdout.write(redactSecrets(renderPanel(`Promptbook ${await installedEngineVersion()} · Task queue`, [['Project', workspace.projectPath], ['Timezone', workspace.timezone], ['Tasks', String(rows.length)]], presentation, { details: rows.length ? rows.map(row => `[${row.status}] p${row.priority} ${row.title}\n  ${row.source} · ${row.kind}: ${row.reason}`) : ['No tasks discovered.'] }), redactionPath));
-            else { process.stdout.write(`Project: ${workspace.projectPath}\nTimezone: ${workspace.timezone}\n`); for (const row of rows) process.stdout.write(redactSecrets(`[${row.status}] p${row.priority} ${row.title}\n  ${row.source} · ${row.kind}: ${row.reason}\n`, redactionPath)); if (!rows.length) process.stdout.write('No tasks discovered.\n'); }
+            else if (presentation.pretty) process.stdout.write(redactSecrets(renderPanel(`Promptbook ${await installedEngineVersion()} · Task queue`, [['Project', workspace.projectPath], ['Timezone', workspace.timezone], ['Tasks', String(rows.length)]], presentation, { details: rows.length ? rows.map(row => `[${row.status}] p${row.priority} ${row.title}\n  ${agentLabel(row, presentation.pretty)} · ${row.source} · ${row.kind}: ${row.reason}`) : ['No tasks discovered.'] }), redactionPath));
+            else { process.stdout.write(`Project: ${workspace.projectPath}\nTimezone: ${workspace.timezone}\n`); for (const row of rows) process.stdout.write(redactSecrets(`[${row.status}] p${row.priority} ${row.title}\n  ${agentLabel(row, presentation.pretty)} · ${row.source} · ${row.kind}: ${row.reason}\n`, redactionPath)); if (!rows.length) process.stdout.write('No tasks discovered.\n'); }
             return 0;
         }
         if (parsed.command.startsWith('find-')) { await diagnostics(workspace, parsed.command, presentation); return 0; }
@@ -716,7 +694,8 @@ export async function main(arguments_: string[]): Promise<number> {
             await author(workspace, options, !options.noCommit, async lease => {
                 const browser = { mode: parsed.values['browser-mode'] ?? 'headless', ...(parsed.values['browser-profile'] ? { profile: parsed.values['browser-profile'] } : {}) };
                 const paths = await ensureProjectConfiguration(workspace, { harnesses: selectedHarnesses, browser, updates: { harnesses: true } });
-                paths.push(...await initializeProject(workspace));
+                paths.push(...await initializeProject(workspace, { sample: !!prepared?.fresh && !agenda }));
+                if (!agenda) paths.push(...(await ensureFirstTask(workspace, { harness: configuration.enabledHarnesses?.[0] ?? selectedHarnesses[0] })).paths);
                 const selectedCheck = await prepareProjectCheck(workspace, { command: explicitValues.check === undefined ? undefined : String(explicitValues.check), ui: interactive ? checkSetupUi(controller.signal) : undefined });
                 if (selectedCheck) {
                     if (selectedCheck.updated !== undefined) paths.push(...await saveProjectCheck(workspace, selectedCheck, () => lease.assertOwned()));
@@ -752,28 +731,31 @@ export async function main(arguments_: string[]): Promise<number> {
             });
             for (const item of inventory) if (!item.usable) unresolved.push(`${item.name}: ${item.diagnostic}`);
             if (!selectedHarnesses.length) unresolved.push('No harnesses enabled; select one with --harnesses NAME before starting work.');
-            const readiness = await inspectProjectReadiness(workspace, { check: options.check });
-            unresolved.push(...readiness.execution);
+            const readiness = await inspectProjectReadiness(workspace);
+            unresolved.push(...readiness.missing, ...readiness.execution);
+            const savedInventory = await inspectHarnessExecution(workspace.projectPath, await inspectHarnesses(workspace.projectPath, { names: configuration.enabledHarnesses ?? [], harnessSettings: configuration.harnessSettings, signal: controller.signal }), { harnessSettings: configuration.harnessSettings, model: configuration.values.model as string | undefined, thinkingLevel: configuration.values['thinking-level'] as string | undefined, allowCredits: configuration.values['allow-credits'] === true, signal: controller.signal });
+            if (!savedInventory.length) unresolved.push('No harness is enabled in saved ptbk.json; enable a usable harness before plain ptbk start.');
+            for (const item of savedInventory) if (!item.usable && !unresolved.some(message => message.startsWith(`${item.name}:`))) unresolved.push(`${item.name}: ${item.diagnostic}`);
+            if (options.noCommit) unresolved.push('Setup changes were left uncommitted by --no-commit; review and commit them before starting.');
             const savedCheck = await inspectProjectCheck(workspace);
             const temporaryCheck = options.check !== undefined && options.check !== savedCheck.command ? ` --check ${JSON.stringify(options.check)}` : '';
             const temporarySelection = configuration.exists && JSON.stringify(selectedHarnesses) !== JSON.stringify(configuration.enabledHarnesses ?? []) ? ` --harnesses ${JSON.stringify(selectedHarnesses.join(','))}` : '';
             const setupOutcome = changedCount ? `${changedCount} artifact(s) changed` : unresolved.length ? 'no files changed; setup remains incomplete' : 'already ready; no files changed';
             const next = unresolved.length
                 ? `ptbk init --path ${JSON.stringify(workspace.projectPath)}${temporarySelection}${temporaryCheck}${savedCheck.diagnostic && !temporaryCheck ? ' --check "<project validation command>"' : ''}`
-                : `ptbk start --path ${JSON.stringify(workspace.projectPath)}${temporarySelection}${temporaryCheck}`;
-            const retainedChoices = [...(temporarySelection ? ['Saved harness defaults preserved; retain the temporary harness selection in the next invocation.'] : []), ...(temporaryCheck ? ['Saved validation preserved; retain the temporary --check override in the next invocation.'] : [])];
+                : `ptbk start --path ${JSON.stringify(workspace.projectPath)}`;
+            const retainedChoices = [...(temporarySelection ? [unresolved.length ? 'Saved harness defaults preserved; retain the temporary harness selection in the next setup invocation.' : 'Saved harness defaults preserved; plain start uses the saved selection.'] : []), ...(temporaryCheck ? [unresolved.length ? 'Saved validation preserved; retain the temporary --check override in the next setup invocation.' : 'Saved validation preserved; plain start uses the saved check.'] : [])];
             process.stdout.write(presentation.pretty ? renderPanel(`Promptbook ${await installedEngineVersion()} · Setup ${unresolved.length ? 'incomplete' : 'complete'}`, [['Project', workspace.projectPath], ['Setup', setupOutcome], ['Prerequisites', unresolved.length ? `${unresolved.length} unresolved` : 'ready']], presentation, { details: [...unresolved, ...retainedChoices], next: [next], tone: unresolved.length ? 'warning' : 'success' }) : `Setup: ${setupOutcome}.\n${unresolved.length ? `Unresolved prerequisites:\n${unresolved.map(message => `  ${message}`).join('\n')}\n` : ''}${retainedChoices.join('\n')}${retainedChoices.length ? '\n' : ''}Next: ${next}\n`);
+            if (unresolved.length) return 2;
             if (agenda) {
                 if ((await inspectProjectCheck(workspace, options.check)).diagnostic) throw new InputError(`The agenda was not created or executed because project validation remains unconfigured. ${checkSetupAction(workspace)}`);
                 const harness = options.harness || inventory.find(item => item.usable)?.name;
                 if (!harness) throw new InputError('Agenda initialization needs an authenticated harness; complete the displayed setup, then retry --agenda.');
                 let bootstrapId: string | undefined;
                 await author(workspace, options, true, async () => {
-                    const path = await addTask(workspace, agenda!);
-                    const task = (await discoverTasks(workspace)).find(item => item.source.path === path)!;
-                    bootstrapId = task.id;
-                    await updateTaskControls(task, { agent: '@Expert', harness, origin: 'engine:agenda-bootstrap' });
-                    return [path];
+                    const first = await ensureFirstTask(workspace, { intent: agenda, harness });
+                    bootstrapId = first.taskId;
+                    return first.paths;
                 });
                 const bootstrap = await runQueue(workspace, { ...options, harness, agent: 'ptbk:expert', onlyTaskId: bootstrapId, limit: 1, check: options.check || 'npm run check', requireAcceptance: true, context: await readContext(workspace, options.context) });
                 if (bootstrap.exitCode !== 0) return bootstrap.exitCode;
@@ -834,7 +816,7 @@ export async function main(arguments_: string[]): Promise<number> {
             } else {
                 phase = 'task execution';
                 const runtime = await createFiniteRuntime(workspace, { ...options, onEvent: undefined,
-                    interactive,
+                    interactive, noQr: !!parsed.values['no-qr'],
                     noServer: parsed.command === 'run' ? !!parsed.values['no-server'] : true,
                     port: integer(parsed.values.port, '--port'),
                     browserMode: parsed.values['browser-mode'] as 'headless' | 'headful' | undefined,

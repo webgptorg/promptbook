@@ -247,6 +247,39 @@ test('automatic start executes its visible Manager prerequisite before the targe
     assert.equal((await captureSnapshot(workspace.gitRoot)).dirtyPaths.length, 0);
 });
 
+test('automatic assignment does not require a Developer role and waits for genuine prerequisites', async t => {
+    const workspace = await fixture(t, 'TASK Bounded change\nImplement the fixture change.\nTASK ID target\nTASK DEPENDS ON #prerequisite\n');
+    await rm(path.join(workspace.projectPath, 'agents', 'developer.book'));
+    await writeFile(path.join(workspace.projectPath, 'agents', 'artisan.book'), 'Artisan\nFROM Void\nGOAL Maintain the fixture.\nCLOSED\n');
+    await writeFile(path.join(workspace.tasksPath, 'prerequisite.book'), 'TASK Existing prerequisite\nTASK ID prerequisite\nTASK AFTER 2099-01-01T00:00Z\nTASK AGENT @Artisan\nTASK HARNESS openai-codex\n');
+    await git(workspace.gitRoot, ['add', '.']); await git(workspace.gitRoot, ['commit', '-qm', 'Project-specific roles and prerequisites']);
+    const calls = [];
+    const server = await supervise(t, workspace, { automatic: true, runHarness: async request => {
+        calls.push(request.taskId);
+        if (request.agentPath.endsWith('manager.book')) {
+            const filename = path.join(request.projectPath, 'tasks', 'target.book');
+            await writeFile(filename, `${await readFile(filename, 'utf8')}TASK AGENT @Artisan\nTASK HARNESS openai-codex\n`);
+        } else await writeFile(path.join(request.projectPath, 'code.txt'), 'implemented\n');
+        return { outcome: 'success', exitCode: 0, output: 'Accepted fixture work.', acceptance: { satisfied: true, evidence: 'The bounded requested fixture files were checked.' } };
+    } });
+    await delay(1100);
+    assert.equal(calls.length, 0, 'Missing routing never bypasses an unfinished prerequisite');
+    assert.equal((await discoverTasks(workspace)).some(task => task.origin?.startsWith('engine:assignment:')), false);
+    await server.command('pause');
+    await writeFile(path.join(workspace.tasksPath, 'prerequisite.book'), 'TASK Existing prerequisite\nTASK ID prerequisite\nTASK DONE 2026-01-01T00:00:00Z\n');
+    await git(workspace.gitRoot, ['add', '.']); await git(workspace.gitRoot, ['commit', '-qm', 'Prerequisite completed']);
+    const awaiting = (await server.inspect()).tasks.find(task => task.id === 'target');
+    assert.equal(awaiting.eligibility.kind, 'awaiting-assignment', JSON.stringify(awaiting));
+    assert.match(awaiting.eligibility.reason, /automatic Manager/);
+    await server.command('resume');
+    const state = await untilTask(server.inspect, state => state.tasks.find(task => task.id === 'target')?.status === 'done', 'Project-specific Manager routing completes', ASSIGNMENT_DEADLINE);
+    await server.command('pause');
+    assert.equal(calls.length, 2);
+    assert.equal(state.tasks.find(task => task.id === 'target').visualIdentity.name, 'Artisan');
+    assert(state.events.some(event => event.type === 'selection' && event.visualIdentity?.name === 'Manager'));
+    assert(state.events.some(event => event.type === 'completed' && event.visualIdentity?.name === 'Artisan'));
+});
+
 test('automatic Markdown routing is an ordinary Manager result and keeps the legacy source format', async t => {
     const workspace = await fixture(t);
     const filename = path.join(workspace.legacyPath, 'work.md');

@@ -134,7 +134,7 @@ function dashboardDocument() {
     const nodes = new Map();
     /** Preserve the element tree and mutable form state consumed by browser event handlers. */
     const createElement = tag => ({
-        tagName: tag.toUpperCase(), textContent: '', value: '', children: [], attributes: {}, dataset: {},
+        tagName: tag.toUpperCase(), textContent: '', value: '', children: [], attributes: {}, dataset: {}, style: {},
         classList: { add() {}, remove() {}, toggle() {} },
         append(...children) { for (const child of children) { child.parent = this; this.children.push(child); } },
         replaceChildren(...children) { this.children = []; this.append(...children); },
@@ -144,7 +144,7 @@ function dashboardDocument() {
         remove() { this.parent.children = this.parent.children.filter(child => child !== this); },
     });
     return {
-        createElement, querySelectorAll: () => [], body: createElement('body'),
+        createElement, createElementNS: (namespaceURI, tag) => ({ ...createElement(tag), namespaceURI }), querySelectorAll: () => [], body: createElement('body'),
         createTextNode: textContent => ({ textContent }),
         getElementById(id) { if (!nodes.has(id)) nodes.set(id, createElement('div')); return nodes.get(id); },
     };
@@ -163,6 +163,7 @@ test('dashboard requests expose predefined answers without applying an implicit 
     /** Use the real finite control model while replacing the browser's relative fetch transport. */
     const transport = async (url, options) => ({ ok: true, json: async () => {
         if (url === '/api/state') return runtime.control.snapshot();
+        if (url === '/api/connection') return { url: address.href, size: 1, modules: [1] };
         const { action, ...input } = JSON.parse(options.body);
         return runtime.control.command(action, input);
     } });
@@ -175,16 +176,16 @@ test('dashboard requests expose predefined answers without applying an implicit 
     const refresh = new Function('document', 'location', 'fetch', 'setInterval', 'Option', `${script}\nreturn async () => { while (client.busy || client.refreshing) await new Promise(resolve => setTimeout(resolve, 1)); await refresh(); };`)(document, address, transport, () => {}, Option);
     await refresh();
     const cards = document.getElementById('requests').children;
-    const chosen = cards.find(card => card.firstChild.textContent.startsWith(request.prompt));
+    const chosen = cards.find(card => card.firstChild.textContent.endsWith(request.prompt));
     const [prompt, reason, answer, submit] = chosen.children;
-    assert.equal(prompt.textContent, request.prompt);
+    assert.equal(prompt.textContent, 'User · ' + request.prompt);
     assert.match(reason.textContent, /Select a destination/);
     assert.equal(answer.tagName, 'SELECT');
     assert.deepEqual(answer.children.slice(1).map(option => option.textContent), request.choices);
     assert.equal(answer.children[0].disabled, true);
     assert.equal(answer.children[0].selected, true);
     assert.equal(submit.disabled, true);
-    assert.equal(cards.find(card => card.firstChild.textContent.startsWith(open.prompt)).children[2].tagName, 'TEXTAREA');
+    assert.equal(cards.find(card => card.firstChild.textContent.endsWith(open.prompt)).children[2].tagName, 'TEXTAREA');
     assert.equal((await listRequests(workspace, true)).length, 2);
     answer.value = '<new project>';
     answer.onchange();

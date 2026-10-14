@@ -3,11 +3,14 @@ import { redactSecrets } from './harness.js';
 import { promptText } from './interactive.js';
 import { promptChoice, promptChoices } from './choices.js';
 import { plainTerminal, presentationFor, style, terminalWidth, wrapTerminal } from './presentation.js';
+import { attentionRequests, dashboardUrl, terminalQrRows, agentLabel } from './status-view.js';
+import { agentActivity } from './agent-identity.js';
 
 /** Injectable streams permit deterministic control and resize fixtures. @private */
 export interface TerminalSurface {
     input?: NodeJS.ReadStream; output?: NodeJS.WriteStream;
     attached?: boolean;
+    noQr?: boolean;
     onControl?: (action: 'pause' | 'resume' | 'finish' | 'skip-wait' | 'requests' | 'settings' | 'inventory' | 'edit-task', value?: boolean) => void | Promise<void>;
 }
 
@@ -64,6 +67,8 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
     let activeQuestion: AbortController | undefined;
     const rawChunks: string[] = [];
     const normalItems: string[] = [];
+    let qrAddress: string | undefined; let qrRows: string[] = [];
+    let requestNotice = '';
     /** Editing is discoverable only when the observed runtime supports both guarded task actions. */
     const canEditTasks = (): boolean => {
         const actions = snapshot?.controlCapabilities?.actions;
@@ -84,18 +89,23 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
         const current = tasks.find(task => task.id === snapshot!.currentTask);
         const selection = snapshot.currentSelection || current || snapshot.settings || {};
         const stats = snapshot.statistics || {};
-        const requests = (snapshot.requests || []) as Array<Record<string, any>>;
+        const requests = attentionRequests(snapshot);
         const state = `${snapshot.status || 'starting'}${snapshot.pausePending ? ' · pause pending' : snapshot.paused || isPaused ? ' · paused' : ''}${isStopping ? ' · finish after task' : ''}`;
         const taskLimit = Math.max(1, Math.min(5, Math.floor(height / 5)));
         const sections = [
+            ...(requests.length ? [`USER ATTENTION · ${requests.length} pending · User`,
+                `Respond: ${surface.attached ? 'R' : 'Q'} requests · ptbk answer ${requests[0]!.id}`,
+                `Request: ${requests[0]!.prompt}`, `Reason: ${requests[0]!.reason}`, `Affected work: ${requests[0]!.taskId ?? 'system activity'}`] : []),
             `Promptbook ${snapshot.engineVersion || 'version unavailable'} · ${snapshot.mode || 'interactive'}${surface.attached ? ' · attached' : ''}`,
             `Project: ${snapshot.project || projectPath}`,
             `State: ${snapshot.connection || 'live'} · ${state}${snapshot.phase ? ` · phase: ${snapshot.phase}` : ''}${snapshot.waiting || isWaiting ? ' · pacing/backoff wait' : ''}`,
-            `Agent: ${selection.agent || 'none'} · Harness: ${selection.harness || 'none'}${selection.model ? ` · Model: ${selection.model}` : ''}${selection.thinkingLevel ? ` · Effort: ${selection.thinkingLevel}` : ''}`,
+            `Agent: ${snapshot.currentTask ? agentLabel(selection) : 'none'} · ${snapshot.activity ?? agentActivity(snapshot)} · Harness: ${snapshot.currentTask ? selection.harness || 'none' : 'none'}${selection.model ? ` · Model: ${selection.model}` : ''}${selection.thinkingLevel ? ` · Effort: ${selection.thinkingLevel}` : ''}`,
             `Task: ${current?.title || snapshot.currentTask || 'idle'}`,
+            ...(snapshot.idleReason ? [`Waiting: ${snapshot.idleReason}`] : []),
+            ...(snapshot.nextOpportunity ? [`Next opportunity: ${new Date(snapshot.nextOpportunity).toISOString()}`] : []),
             `Results: ${stats.completed ?? 0} completed · ${stats.failed ?? 0} failed`,
             `── Queue (${tasks.length}) ${tasks.length ? '' : '· No queued work.'}`,
-            ...tasks.slice(0, viewingDetails ? 200 : taskLimit).map(task => `${task.id === snapshot!.currentTask ? '> ' : '  '}${task.title} · ${task.status}${task.eligibility?.kind ? ` · ${task.eligibility.kind}${viewingDetails ? `: ${task.eligibility.reason}` : ''}` : ''}`),
+            ...tasks.slice(0, viewingDetails ? 200 : taskLimit).map(task => `${task.id === snapshot!.currentTask ? '> ' : '  '}${task.title} · ${agentLabel(task)} · ${task.status}${task.eligibility?.kind ? ` · ${task.eligibility.kind}${viewingDetails ? `: ${task.eligibility.reason}` : ''}` : ''}`),
             ...(tasks.length > (viewingDetails ? 200 : taskLimit) ? [`  … ${tasks.length - (viewingDetails ? 200 : taskLimit)} more; inspect task details with ptbk show or the page.`] : []),
             `── Requests (${requests.length}): ${requests[0]?.prompt || 'none'}${requests.length > 1 ? ` · ${requests.length - 1} more` : ''}`,
             ...(Object.keys(snapshot.pendingSettings || {}).length ? [`Settings: pending safe boundary (${Object.keys(snapshot.pendingSettings).join(', ')})`] : []),
@@ -110,7 +120,7 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
         const presentation = presentationFor(output);
         /** Add semantic cues only after bounded rows have been laid out. */
         const decorate = (line: string, index: number): string => {
-            const tone = index === 0 ? 'title' : line.startsWith('Failure:') ? 'error' : line.startsWith('Next:') || /paused|blocked|wait|pending|restart required/.test(line) ? 'warning'
+            const tone = line.startsWith('USER ATTENTION') ? 'warning' : index === 0 ? 'title' : line.startsWith('Failure:') ? 'error' : line.startsWith('Next:') || /paused|blocked|wait|pending|restart required/.test(line) ? 'warning'
                 : line.startsWith('──') || line.startsWith('Agent:') ? 'accent' : line.startsWith('Results:') ? 'success' : undefined;
             return tone ? style(line, tone, presentation) : line;
         };
@@ -134,12 +144,17 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
             display([fit(`Details · Promptbook ${snapshot.engineVersion || 'version unavailable'}`, contentWidth)[0]!, ...detail.slice(scroll, scroll + Math.max(1, available - 1))]);
             return;
         }
-        const content = sections.slice(0, Math.max(1, available - 2));
+        const address = dashboardUrl(snapshot);
+        if (address !== qrAddress) { qrAddress = address; qrRows = address && !surface.noQr ? terminalQrRows(address) : []; }
+        let connection = address ? [...fit(`Dashboard: ${address}`, contentWidth), ...(qrRows.length ? qrRows[0]!.length <= contentWidth && sections.length + qrRows.length + 3 <= available
+            ? ['── Dashboard connection QR', ...qrRows] : fit('QR omitted: terminal cannot fit a scannable code; use the URL.', contentWidth) : [])] : [];
+        if (connection.length > Math.max(0, available - (requests.length ? 3 : 2))) connection = fit('Dashboard URL / QR: D details (terminal too small).', contentWidth).slice(0, Math.max(0, available - 3));
+        const content = [...sections.slice(0, Math.max(1, available - connection.length - (!requests.length && available >= 8 ? 1 : 0))), ...connection];
         const remaining = Math.max(0, available - content.length);
         const activity = normalItems.flatMap(item => fit(item.trimEnd(), contentWidth));
         const end = Math.max(0, activity.length - scroll);
         const visible = activity.slice(Math.max(0, end - Math.max(0, remaining - 1)), end);
-        display([...content, ...fit(`── ${scroll ? 'Activity history' : 'Activity'}${scroll ? ' · End to follow live' : ''}`, contentWidth).slice(0, 1), ...visible]);
+        display([...content, ...(remaining ? fit(`── ${scroll ? 'Activity history' : 'Activity'}${scroll ? ' · End to follow live' : ''}`, contentWidth).slice(0, 1) : []), ...visible]);
     };
     /** Prints at most one screen, independent of total retained history. */
     const renderHistory = () => {
@@ -276,7 +291,18 @@ export function createTerminal(enabled: boolean, cancel: () => void, projectPath
     }
     return {
         isPaused: () => isPaused, shouldStop: () => isStopping, question, choose, chooseMany,
-        setSnapshot(value) { snapshot = value; if (surface.attached) { isPaused = Boolean(value.paused); isStopping = Boolean(value.finishAfterTask); } renderDashboard(); },
+        setSnapshot(value) {
+            snapshot = value;
+            if (surface.attached) { isPaused = Boolean(value.paused); isStopping = Boolean(value.finishAfterTask); }
+            const requests = attentionRequests(value);
+            const signature = JSON.stringify(requests.map(request => [request.id, request.prompt, request.reason]));
+            if (!surface.attached && (!interactive || isRaw) && signature !== requestNotice) {
+                for (const request of requests.slice(0, 20)) status(`USER ATTENTION · Request ${request.id}: ${request.prompt}\nReason: ${request.reason}\nAffected work: ${request.taskId ?? 'system activity'}\nAnswer: ptbk answer ${JSON.stringify(request.id)} --path ${JSON.stringify(projectPath)} --response "your reply"`);
+                if (requests.length > 20) status(`${requests.length} pending user requests; inspect ptbk answer for all requests.`);
+            }
+            requestNotice = signature;
+            renderDashboard();
+        },
         setPaused(value) { isPaused = value; renderDashboard(); }, setStopping(value) { isStopping = value; renderDashboard(); },
         setWaiting(waiting) { isWaiting = waiting; if (!waiting) isSkipRequested = false; renderDashboard(); },
         skipWait: () => { const skip = isWaiting && isSkipRequested; isSkipRequested = false; return skip; },

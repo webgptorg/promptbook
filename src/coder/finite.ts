@@ -1,3 +1,5 @@
+import { identifyRuntime } from './agent-identity.js';
+import { discoverAgents } from './agents.js';
 import { randomUUID } from 'node:crypto';
 import type { Workspace } from './domain.js';
 import { type RunOptions, type RunResult, type EngineEvent, taskEligibility, validateRunOptions } from './engine.js';
@@ -13,7 +15,7 @@ import { InputError } from './workspace.js';
 
 /** Finite presentation uses the same state/control channels without creating a supervisor. @private */
 export interface FiniteRuntimeOptions extends RunOptions {
-    interactive?: boolean; noServer?: boolean; port?: number;
+    interactive?: boolean; noServer?: boolean; noQr?: boolean; port?: number;
     browserMode?: 'headless' | 'headful'; browserProfile?: string;
 }
 /** Runtime controls distinguish the single finite invocation's fixed routing from future defaults. */
@@ -46,13 +48,13 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
     const snapshot = async (): Promise<Record<string, unknown>> => {
         const tasks = await discoverTasks(workspace); const ledger = await readLedger(workspace);
         const selected = tasks.find(task => task.id === currentTask);
-        return { engineVersion, project: workspace.projectPath, mode: supplied.interactive ? 'interactive' : 'raw', lifetime: 'finite', status: lastResult ? lastResult.exitCode ? 'failed' : 'completed' : paused ? 'paused' : currentTask ? 'running' : 'ready', phase, paused, pausePending: paused && Boolean(currentTask), running: Boolean(currentTask), waiting, currentTask, finishAfterTask: finishing,
+        return identifyRuntime({ engineVersion, project: workspace.projectPath, mode: supplied.interactive ? 'interactive' : 'raw', lifetime: 'finite', status: lastResult ? lastResult.exitCode ? 'failed' : 'completed' : paused ? 'paused' : currentTask ? 'running' : 'ready', phase, paused, pausePending: paused && Boolean(currentTask), running: Boolean(currentTask), waiting, currentTask, finishAfterTask: finishing,
             currentSelection: currentSelection ?? { agent: options.agent ?? selected?.agent ?? 'Developer', harness: options.harness ?? selected?.harness, model: options.model ?? selected?.model, thinkingLevel: options.thinkingLevel ?? selected?.thinkingLevel }, ...failure,
             statistics, lastResult, url, configurationSources: options.configurationSources, settings: JSON.parse(JSON.stringify(options, (_key, value) => typeof value === 'function' || value instanceof AbortSignal ? undefined : value)), pendingSettings: pending, restartSettings,
             settingsCapabilities: { live: [...FINITE_LIVE_SETTINGS], requiresRestart: [...FINITE_SETTINGS].filter(key => !FINITE_LIVE_SETTINGS.has(key)), temporary: true, explanation: 'Finite work keeps one execution selection. Other settings apply to future tasks at a safe boundary.' },
             controlCapabilities: { actions: ['inspect', 'pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses'] },
             tasks: await Promise.all(tasks.map(async task => ({ ...task, status: ledger.tasks[task.id]?.claim ? 'in-progress' : task.status, eligibility: await taskEligibility(workspace, task, options, ledger) }))), requests: await listRequests(workspace, true), browser: browser.status(), events,
-            harnessCatalog: getHarnessCatalog().map(({ id, name, displayName, featured }) => ({ id, name, displayName, featured })) };
+            harnessCatalog: getHarnessCatalog().map(({ id, name, displayName, featured }) => ({ id, name, displayName, featured })) }, await discoverAgents(workspace.projectPath));
     };
     const control: RuntimeControl = { token: randomUUID(), snapshot,
         async command(action, input = {}) {
@@ -99,7 +101,7 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
             await refresh(); return { paused, pausePending: paused && Boolean(currentTask), finishAfterTask: finishing };
         },
     };
-    const terminal = createTerminal(Boolean(supplied.interactive), cancel, workspace.projectPath, { onControl: async action => {
+    const terminal = createTerminal(Boolean(supplied.interactive), cancel, workspace.projectPath, { noQr: supplied.noQr, onControl: async action => {
         if (action === 'requests') {
             const requests = await listRequests(workspace, true);
             if (!requests.length) { terminal.status('There are no pending user requests.'); return; }
@@ -157,7 +159,7 @@ export async function createFiniteRuntime(workspace: Workspace, supplied: Finite
         if (event.type !== 'output') {
             phase = event.type;
             if (event.taskId && ['claimed', 'selection'].includes(event.type)) currentTask = event.taskId;
-            if (event.type === 'selection') currentSelection = { agent: event.agent, harness: event.harness, model: event.model, thinkingLevel: event.thinkingLevel };
+            if (event.type === 'selection') currentSelection = { agent: event.agent, agentName: event.agentName, harness: event.harness, model: event.model, thinkingLevel: event.thinkingLevel };
             if (event.type === 'error') failure = { error: event.message, diagnostic: typeof event.trace === 'string' ? event.trace : undefined, nextAction: typeof event.nextAction === 'string' ? event.nextAction : undefined };
             if (event.type === 'claimed') occurrence = event.occurrenceId;
             if (event.type === 'completed') { statistics.completed++; currentTask = undefined; occurrence = undefined; }

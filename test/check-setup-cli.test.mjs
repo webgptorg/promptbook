@@ -31,15 +31,19 @@ async function fixture(t) {
         PTBK_HARNESS: '', PTBK_MODEL: '', PTBK_THINKING_LEVEL: '',
     };
     /** Invoke one CLI operation within this fixture's configuration boundary. */
-    const cli = args => execute(process.execPath, [executable, ...args, '--path', project], { cwd: project, env, timeout: 30_000 });
+    const cli = async args => {
+        try { return await execute(process.execPath, [executable, ...args, '--path', project], { cwd: project, env, timeout: 30_000 }); }
+        catch (error) { if (args[0] === 'init' && error.code === 2 && /Unresolved prerequisites:/.test(error.stdout)) return error; throw error; }
+    };
     /** Inspect only this disposable repository without interpolating paths in shell commands. */
     const git = args => execute('git', args, { cwd: project, env, timeout: 30_000 });
-    return { project, cli, git };
+    return { project, cli, git, env };
 }
 
 /** Supply real non-software validation of the fixture's project material. */
 async function projectValidation(project) {
     await writeFile(join(project, 'report.txt'), 'Reviewed project report\n');
+    await writeFile(join(project, 'review-report.cjs'), 'throw new Error("Setup must not execute this temporary check");\n');
     await writeFile(join(project, 'validate.cjs'), "const assert = require('node:assert/strict');\nconst fs = require('node:fs');\nassert.equal(fs.readFileSync('report.txt', 'utf8'), 'Reviewed project report\\n');\n");
 }
 
@@ -55,7 +59,7 @@ test('init stores a supplied missing project check and later start resolves it w
     assert.equal(JSON.parse((await git(['show', 'HEAD:ptbk.json'])).stdout).execution.check, 'node validate.cjs', 'The selected check is part of the scoped setup commit');
     assert.doesNotMatch(initialized.stdout, /Configure a real project check command/);
     assert.match(initialized.stdout, /harness/i, 'Deferred integration setup remains visible');
-    await git(['add', '--', 'report.txt', 'validate.cjs']);
+    await git(['add', '--', 'report.txt', 'validate.cjs', 'review-report.cjs']);
     await git(['commit', '--quiet', '-m', 'Project validation material']);
     await assert.rejects(cli(['start', '--non-interactive', '--no-persist', '--no-server']), error => {
         assert.match(error.stderr, /harness|authenticated/i);
@@ -67,6 +71,7 @@ test('init stores a supplied missing project check and later start resolves it w
 
 test('repeated init reports an unresolved check with a corrective action instead of claiming readiness', async t => {
     const { project, cli, git } = await fixture(t);
+    await writeFile(join(project, 'owner.txt'), 'Existing project purpose\n');
     await cli(['init', ...setupOptions]);
     const head = (await git(['rev-parse', 'HEAD'])).stdout;
     const configuration = await readFile(join(project, 'ptbk.json'), 'utf8');
@@ -82,6 +87,7 @@ test('repeated init reports an unresolved check with a corrective action instead
 
 test('noninteractive start identifies how to configure missing validation before launching a supervisor', async t => {
     const { project, cli, git } = await fixture(t);
+    await writeFile(join(project, 'owner.txt'), 'Existing project purpose\n');
     await cli(['init', ...setupOptions]);
     const head = (await git(['rev-parse', 'HEAD'])).stdout;
     const taskFiles = await readdir(join(project, 'tasks'));
@@ -133,7 +139,7 @@ test('init preserves existing valid defaults and keeps an explicit different che
     saved.execution = { ...saved.execution, check: 'node validate.cjs', waitAfterError: 1234 };
     saved.routing = { context: 'Owner project instructions' };
     await writeFile(join(project, 'ptbk.json'), `${JSON.stringify(saved, null, 4)}\n`);
-    await git(['add', '--', 'ptbk.json', 'report.txt', 'validate.cjs']);
+    await git(['add', '--', 'ptbk.json', 'report.txt', 'validate.cjs', 'review-report.cjs']);
     await git(['commit', '--quiet', '-m', 'Owner validation choices']);
     const configurationBefore = await readFile(join(project, 'ptbk.json'), 'utf8');
     const manifestBefore = await readFile(join(project, 'package.json'), 'utf8');
@@ -151,7 +157,7 @@ test('check setup leaves overlapping owner configuration pending and preserves u
     await projectValidation(project);
     await cli(['init', ...setupOptions]);
     await writeFile(join(project, 'owner.txt'), 'Owner baseline\n');
-    await git(['add', '--', 'report.txt', 'validate.cjs', 'owner.txt']);
+    await git(['add', '--', 'report.txt', 'validate.cjs', 'review-report.cjs', 'owner.txt']);
     await git(['commit', '--quiet', '-m', 'Owner baseline']);
     const head = (await git(['rev-parse', 'HEAD'])).stdout;
     const originalConfiguration = (await git(['show', 'HEAD:ptbk.json'])).stdout;
@@ -172,4 +178,44 @@ test('check setup leaves overlapping owner configuration pending and preserves u
     const pending = JSON.parse(await readFile(join(project, '.ptbk', 'initialization-pending.json'), 'utf8'));
     assert.ok(pending.paths.includes('ptbk.json'));
     assert.match(initialized.stdout, /review|pending/i);
+});
+
+
+test('successful init validates saved execution choices and leaves plain start ready without inference', async t => {
+    const { project, cli, git, env } = await fixture(t);
+    await projectValidation(project);
+    await writeFile(join(project, 'package.json'), JSON.stringify({ scripts: { check: 'node validate.cjs' }, dependencies: { ptbk: '1.2.3' } }));
+    await mkdir(join(project, 'node_modules', 'ptbk', 'bin'), { recursive: true });
+    await mkdir(join(project, 'node_modules', '.bin'), { recursive: true });
+    await writeFile(join(project, 'node_modules', 'ptbk', 'package.json'), JSON.stringify({ name: 'ptbk', version: '1.2.3', bin: 'bin/ptbk.js' }));
+    await writeFile(join(project, 'node_modules', 'ptbk', 'bin', 'ptbk.js'), '// Installed local fixture engine\n');
+    await writeFile(join(project, 'node_modules', '.bin', process.platform === 'win32' ? 'ptbk.cmd' : 'ptbk'), '// Installed link\n');
+    const bin = join(project, '..', 'global-bin');
+    await mkdir(bin);
+    const record = join(bin, 'calls.jsonl');
+    env.PATH = bin + (process.platform === 'win32' ? ';' : ':') + env.PATH;
+    for (const name of ['claude', 'npm']) {
+        const source = `#!${process.execPath}\nconst fs=require('node:fs');const args=process.argv.slice(2);fs.appendFileSync(${JSON.stringify(record)},JSON.stringify({name:${JSON.stringify(name)},args})+'\\n');if(args.includes('--version'))console.log('claude 1.2.3');else if(args.includes('--help'))console.log('--output-format --effort --model --mcp-config --input-format --allowedTools');else if(args[0]==='auth'&&args[1]==='status')console.log(JSON.stringify({loggedIn:true,authMethod:'oauth'}));else if(args[0]==='view')console.log(JSON.stringify('1.2.3'));else throw Error('No execution, installation or login is authorized by this setup fixture');\n`;
+        await writeFile(join(bin, process.platform === 'win32' ? name + '.cmd' : name), source, { mode: 0o755 });
+    }
+    await git(['init', '-q']);
+    await git(['add', '--', 'package.json', 'report.txt', 'validate.cjs', 'review-report.cjs']);
+    await git(['commit', '-qm', 'Existing project baseline']);
+    const initialized = await cli(['init', '--harnesses', 'claude-code', '--no-self-update', '--non-interactive']);
+    assert.equal(initialized.code, undefined, initialized.stdout);
+    assert.match(initialized.stdout, /Prerequisites|Next: ptbk start/);
+    assert.doesNotMatch(initialized.stdout, /Unresolved prerequisites|incomplete/);
+    const saved = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
+    assert.deepEqual(saved.harnesses, ['claude-code']);
+    const firstRecord = await readFile(join(project, 'tasks', 'templates', 'initialization.json'), 'utf8');
+    const head = (await git(['rev-parse', 'HEAD'])).stdout;
+    await cli(['init', '--no-self-update', '--non-interactive']);
+    assert.equal((await git(['rev-parse', 'HEAD'])).stdout, head);
+    assert.equal(await readFile(join(project, 'tasks', 'templates', 'initialization.json'), 'utf8'), firstRecord);
+    const calls = (await readFile(record, 'utf8')).trim().split('\n').map(JSON.parse);
+    assert(calls.every(call => call.args.includes('--version') || call.args.includes('--help') || call.args[0] === 'auth' || call.args[0] === 'view'));
+    const workspace = await import('../dist/coder/workspace.js').then(({ resolveWorkspace }) => resolveWorkspace({ path: project }));
+    const readiness = await import('../dist/coder/initialization.js').then(({ inspectProjectReadiness }) => inspectProjectReadiness(workspace));
+    assert.equal(readiness.ready, true);
+    assert.deepEqual(readiness.execution, []);
 });

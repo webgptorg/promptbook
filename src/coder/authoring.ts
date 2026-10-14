@@ -87,7 +87,7 @@ async function appendMissing(workspace: Workspace, path: string, lines: string[]
 /** Initializes a Book-based project while preserving edited files and scripts.
  * @private Internal authoring command.
  */
-export async function initializeProject(workspace: Workspace): Promise<string[]> {
+export async function initializeProject(workspace: Workspace, options: { sample?: boolean } = {}): Promise<string[]> {
     await readProjectConfiguration(workspace.projectPath);
     const packagePath = await confinePath(workspace.projectPath, join(workspace.projectPath, 'package.json'));
     try {
@@ -115,14 +115,18 @@ export async function initializeProject(workspace: Workspace): Promise<string[]>
     await appendMissing(workspace, join(workspace.projectPath, '.gitattributes'), ['* text=auto'], changed);
     changed.push(...await ensureProjectConfiguration(workspace));
     await writeMissing(workspace, packagePath, `${JSON.stringify({ name: basename(workspace.projectPath).toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[._]+/, '').slice(0, 214) || 'promptbook-project', private: true, scripts: {} }, null, 4)}\n`, changed);
+    if (options.sample) {
+        await writeMissing(workspace, join(workspace.projectPath, 'README.md'), '# Promptbook sample project\n\nThis workspace keeps agents and tasks in readable Books. Run `npm run check` to validate the project material, then `ptbk start` to process the first readiness task.\n', changed);
+        await writeMissing(workspace, join(workspace.projectPath, 'scripts', 'check.cjs'), SAMPLE_CHECK, changed);
+    }
     try {
         const original = await readFile(packagePath, 'utf8');
         const configuration = JSON.parse(original) as { scripts?: Record<string, string> };
         const scripts = configuration.scripts ||= {};
         if (scripts.check === undefined) {
             const checks = ['typecheck', 'lint', 'test', 'build'].filter(name => scripts[name] && !/\b(?:ptbk|coder|npm (?:run )?check)\b/.test(scripts[name]));
-            scripts.check = checks.length ? checks.map(name => `npm run ${name}`).join(' && ') : 'node -e "console.error(\'Configure a real project check script before running ptbk checks.\'); process.exit(1)"';
-            process.stdout.write(`Initialized check scope: ${checks.join(', ') || 'setup placeholder (fails until configured)'}.\n`);
+            scripts.check = checks.length ? checks.map(name => `npm run ${name}`).join(' && ') : options.sample ? 'node scripts/check.cjs' : 'node -e "console.error(\'Configure a real project check script before running ptbk checks.\'); process.exit(1)"';
+            process.stdout.write(`Initialized check scope: ${checks.join(', ') || (options.sample ? 'sample project material validation' : 'setup placeholder (fails until configured)')}.\n`);
         }
         for (const [name, command] of Object.entries({ 'ptbk:start': 'ptbk start', 'ptbk:run': 'ptbk run', 'ptbk:list': 'ptbk list', ...GENERATED_SCRIPTS })) {
             if (scripts[name] === undefined || scripts[name] === command.replace('ptbk ', 'ptbk coder ')) scripts[name] = command;
@@ -134,6 +138,22 @@ export async function initializeProject(workspace: Workspace): Promise<string[]>
     await diagnoseWorkflows(workspace);
     return [...new Set(changed)];
 }
+
+/** Dependency-free sample validation checks actual project artifacts and fails on broken setup. */
+const SAMPLE_CHECK = `/** Validate the sample's readable project material without a provider call. */
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+assert.ok(fs.readFileSync('AGENTS.md', 'utf8').trim(), 'Project instructions are empty');
+assert.ok(fs.readFileSync('README.md', 'utf8').trim(), 'Project overview is empty');
+assert.ok(JSON.parse(fs.readFileSync('ptbk.json', 'utf8')), 'Project configuration is invalid');
+assert.ok(JSON.parse(fs.readFileSync('package.json', 'utf8')).scripts.check, 'Validation is missing');
+for (const role of ['adam', 'manager', 'teacher']) {
+    const book = fs.readFileSync('agents/.core/' + role + '.book', 'utf8');
+    assert.equal(book.trim().split(/\\r?\\n/)[0].toLowerCase(), role, 'Core agent identity changed');
+}
+assert.ok(fs.statSync('tasks').isDirectory(), 'Task directory is missing');
+console.log('Sample project material validated.');
+`;
 
 /** Task authoring fields are shared by supplied input and the finite creation wizard. @private */
 export interface TaskAuthoringOptions { priority?: number; template?: string; status?: TaskDefinition['status']; agent?: string; origin?: string; parent?: string; dependencies?: string[]; }

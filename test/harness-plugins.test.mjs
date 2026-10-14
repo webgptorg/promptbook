@@ -9,7 +9,7 @@ import { HARNESS_REGISTRY, getHarnessCatalog, runHarness } from '../dist/coder/h
 import { HARNESS_PLUGINS, getHarnessPlugin } from '../dist/coder/harness-plugins/index.js';
 import { compareHarnessVersions } from '../dist/coder/harness-plugins/shared.js';
 import { acquireHarnessUsage, withHarnessUpdate } from '../dist/coder/harness-plugins/locks.js';
-import { inspectHarnesses, setupHarnesses, checkHarnessUpdates, maintainHarnesses } from '../dist/coder/setup.js';
+import { inspectHarnesses, setupHarnesses, inspectHarnessExecution, checkHarnessUpdates, maintainHarnesses } from '../dist/coder/setup.js';
 
 /** Fake global npm/provider executables make every metadata/update check account- and network-free. */
 async function fixture(t) {
@@ -55,6 +55,16 @@ test('selected-only discovery/setup reuse a healthy native login without touchin
     const actual = await commands(record);
     assert.ok(actual.every(command => command.name === 'claude'));
     assert.ok(actual.every(command => command.args[1] !== 'login'));
+});
+
+test('execution readiness validates advertised flags and saved settings without inference or login', async t => {
+    const { project, record, options } = await fixture(t);
+    const inventory = await inspectHarnesses(project, options);
+    assert.equal((await inspectHarnessExecution(project, inventory))[0].usable, true);
+    const invalid = await inspectHarnessExecution(project, inventory, { thinkingLevel: 'unsupported-fixture-effort' });
+    assert.equal(invalid[0].usable, false);
+    assert.match(invalid[0].diagnostic, /Saved thinking level/);
+    assert((await commands(record)).every(command => command.name === 'claude' && (command.args.includes('--version') || command.args.includes('--help') || command.args.join(' ') === 'auth status --json')));
 });
 
 test('read-only inventory never performs version-network checks or updates and project dependencies are rejected', async t => {

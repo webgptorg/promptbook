@@ -344,7 +344,8 @@ test('pending generated edits remain visible until reviewed, without changing ow
     assert.equal(await readFile(record, 'utf8'), original);
     await git(root, ['add', '--', 'package.json']);
     await git(root, ['commit', '-qm', 'Review pending setup']);
-    assert.doesNotMatch((await inspectProjectReadiness(workspace)).execution.join('\n'), /Review and commit/);
+    assert.doesNotMatch((await inspectProjectReadiness(workspace)).execution.join('\n'), /Review and commit generated setup edits/);
+    assert.match((await inspectProjectReadiness(workspace)).execution.join('\n'), /clean baseline/);
     assert.equal(await readFile(record, 'utf8'), original);
     await persistInitializationPending(workspace, []);
     await assert.rejects(readFile(record), error => error.code === 'ENOENT');

@@ -8,6 +8,9 @@ import { inspectProjectCheck, prepareProjectCheck, saveProjectCheck } from '../d
 /** Generated setup validation must remain an honest failure until the project defines a real check. */
 const placeholder = 'node -e "console.error(\'Configure a real project check script before running ptbk checks.\'); process.exit(1)"';
 
+/** Real entry files let setup verify references without executing the deliberately failing fixture. */
+const CHECK_FILES = ['validation.mjs', 'validate.mjs', 'saved-check.mjs', 'temporary-check.mjs', 'compile.mjs', 'validate-documents.mjs'];
+
 /** Disposable project configuration permits checking setup without starting a service or running a model. */
 async function fixture(t, document = { harnesses: [] }, scripts = { check: placeholder }) {
     const root = await mkdtemp(join(tmpdir(), 'ptbk check setup '));
@@ -17,6 +20,7 @@ async function fixture(t, document = { harnesses: [] }, scripts = { check: place
     const previous = `${JSON.stringify(document, null, 2)}\n`;
     await writeFile(path, previous);
     await writeFile(join(root, 'package.json'), JSON.stringify({ scripts }));
+    for (const name of CHECK_FILES) await writeFile(join(root, name), 'throw new Error("Setup inspection must never execute validation");\n');
     return { workspace, path, previous };
 }
 
@@ -39,7 +43,7 @@ test('validation inspection is read-only for absent setup and honors explicit bl
     const absent = await inspectProjectCheck(workspace);
     assert.equal(absent.command, 'npm run check');
     assert.match(absent.diagnostic, /unconfigured setup placeholder/);
-    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['package.json']);
+    assert.deepEqual((await readdir(workspace.projectPath)).sort(), files.filter(name => name !== 'ptbk.json').sort());
 });
 
 test('valid saved validation skips onboarding and preserves every configuration byte', async t => {
@@ -111,7 +115,7 @@ test('repair updates the existing effective check location while preserving lowe
 test('invalid explicit commands fail before prompting or changing the project', async t => {
     const { workspace, path, previous } = await fixture(t);
     const files = (await readdir(workspace.projectPath)).sort();
-    for (const command of ['', 'ptbk start', 'npm run missing', placeholder]) {
+    for (const command of ['', 'ptbk start', 'npm run missing', 'node missing-validation.mjs', placeholder]) {
         await assert.rejects(prepareProjectCheck(workspace, { command, ui: noPrompt }), /Check setup error/);
         assert.equal(await readFile(path, 'utf8'), previous);
         assert.deepEqual((await readdir(workspace.projectPath)).sort(), files);
@@ -176,7 +180,7 @@ test('deferral and declining save keep the validation prerequisite unresolved wi
     } }), undefined);
     assert.match((await inspectProjectCheck(workspace)).diagnostic, /unconfigured setup placeholder/);
     assert.equal(await readFile(path, 'utf8'), previous);
-    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['package.json', 'ptbk.json']);
+    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['package.json', 'ptbk.json', ...CHECK_FILES].sort());
 });
 
 test('preparing and saving a shell check never executes its command or substitutions', async t => {
@@ -186,7 +190,7 @@ test('preparing and saving a shell check never executes its command or substitut
     const prepared = await prepareProjectCheck(workspace, { command });
     await saveProjectCheck(workspace, prepared);
     await assert.rejects(readFile(marker), error => error.code === 'ENOENT');
-    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['package.json', 'ptbk.json']);
+    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['package.json', 'ptbk.json', ...CHECK_FILES].sort());
 });
 
 test('saving protects concurrent configuration edits and leaves no candidate files', async t => {
@@ -196,7 +200,7 @@ test('saving protects concurrent configuration edits and leaves no candidate fil
     await writeFile(path, edited);
     await assert.rejects(saveProjectCheck(workspace, prepared), /configuration changed concurrently/);
     assert.equal(await readFile(path, 'utf8'), edited);
-    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['package.json', 'ptbk.json']);
+    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['package.json', 'ptbk.json', ...CHECK_FILES].sort());
 });
 
 test('ownership and configuration are rechecked immediately before publishing a prepared choice', async t => {
@@ -209,7 +213,7 @@ test('ownership and configuration are rechecked immediately before publishing a 
     }), /configuration changed concurrently/);
     assert.equal(assertions, 2);
     assert.equal(await readFile(path, 'utf8'), edited);
-    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['package.json', 'ptbk.json']);
+    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['package.json', 'ptbk.json', ...CHECK_FILES].sort());
 });
 
 test('a replaced config symlink cannot overwrite its target during validation setup', async t => {
@@ -225,5 +229,5 @@ test('a replaced config symlink cannot overwrite its target during validation se
     }
     await assert.rejects(saveProjectCheck(workspace, prepared), /refusing to replace a symlink/);
     assert.equal(await readFile(target, 'utf8'), prepared.previous);
-    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['owner-config.json', 'package.json', 'ptbk.json']);
+    assert.deepEqual((await readdir(workspace.projectPath)).sort(), ['owner-config.json', 'package.json', 'ptbk.json', ...CHECK_FILES].sort());
 });

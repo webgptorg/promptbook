@@ -109,12 +109,22 @@ export async function inspectProjectReadiness(workspace: Workspace, options: { c
     for (const role of ['developer', 'planner', 'lawyer', 'copywriter']) if (!agents.some(agent => agent.normalizedName === role)) missing.push(`project agent ${role}`);
     const manifest = await packageMetadata(join(workspace.projectPath, 'package.json'));
     if (!manifest) missing.push('package.json');
+    const dependencies = { ...(manifest?.dependencies as Record<string, unknown> | undefined), ...(manifest?.devDependencies as Record<string, unknown> | undefined) };
+    const unavailable: string[] = [];
+    for (const name of Object.keys(dependencies)) {
+        if (!/^(?:@[a-zA-Z0-9._-]+\/)?[a-zA-Z0-9._-]+$/.test(name) || ['.', '..'].includes(name)) throw new InputError(`package.json: invalid dependency name ${name}; correct its declaration before setup.`);
+        const metadata = await confinePath(workspace.projectPath, join(workspace.projectPath, 'node_modules', name, 'package.json'));
+        try { if (!(await stat(metadata)).isFile()) unavailable.push(name); }
+        catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; unavailable.push(name); }
+    }
+    if (unavailable.length) execution.push(`Install missing declared project dependencies with the project's package manager before plain ptbk start: ${unavailable.slice(0, 50).join(', ')}${unavailable.length > 50 ? ` and ${unavailable.length - 50} more` : ''}.`);
     const validation = await inspectProjectCheck(workspace, options.check);
     if (validation.diagnostic) execution.push(`Configure a real project check command before executing tasks. Set ptbk.json execution.check or use ptbk init --check COMMAND. ${validation.diagnostic}`);
     if (root) {
         const runtime = relative(root, join(workspace.projectPath, '.ptbk', 'readiness')).split('\\').join('/');
         if (!(await git(root, ['check-ignore', '--no-index', '--', runtime], { allowFailure: true })).trim()) missing.push('.ptbk/ runtime ignore rule');
         if (!await readHead(root)) execution.push('Commit the setup baseline before unattended execution.');
+        else if ((configuration.values['git-changes'] ?? 'fail') === 'fail' && (await git(root, ['status', '--porcelain=v1', '-z'])).length) execution.push('Review and commit or stash remaining workspace changes before plain ptbk start; its saved Git policy requires a clean baseline.');
     }
     const installation = await inspectLocalInstallation(workspace.projectPath);
     if (installation.declared && !installation.usable) execution.push(`Repair the declared local ptbk installation (${installation.requestedVersion}).`);

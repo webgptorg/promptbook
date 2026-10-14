@@ -21,6 +21,8 @@ test('checks reject direct and indirect worker recursion under both command name
     } }));
     await assert.rejects(validateCheck(workspace, 'npm run check'), /recursive/);
     await assert.rejects(validateCheck(workspace, 'npm run validate'), /recursive/);
+    await writeFile(path.join(workspace.projectPath, 'check.cjs'), 'throw new Error("Inspection must not execute validation");\n');
+    await writeFile(path.join(workspace.projectPath, 'tests.cjs'), 'throw new Error("Inspection must not execute tests");\n');
     await writeFile(path.join(workspace.projectPath, 'package.json'), JSON.stringify({ scripts: {
         check: 'node check.cjs', test: 'node tests.cjs', pretest: 'npm run hidden', hidden: 'ptbk start',
     } }));

@@ -103,7 +103,9 @@ console.log(JSON.stringify({type:'text',part:{text:'PTBK_ACCEPTANCE {"satisfied"
     await writeFile(join(fixture, '.gitignore'), 'node_modules/\n');
     await execute('git', ['add', '.'], { cwd: fixture });
     await execute('git', ['commit', '--quiet', '-m', 'External project baseline'], { cwd: fixture });
-    await linkedCli(localLink, ['init', '--no-install', '--no-questions', '--commit'], fixture, env);
+    await assert.rejects(linkedCli(localLink, ['init', '--no-install', '--no-questions', '--commit'], fixture, env), error => error.code === 2 && /Unresolved prerequisites:/.test(error.stdout));
+    const starter = (await readdir(join(fixture, 'tasks'))).find(name => name.endsWith('.book'));
+    await rm(join(fixture, 'tasks', starter)); // The package execution fixture exercises its own explicit task.
     await writeFile(join(fixture, 'agents', 'developer.book'), 'Developer\nFROM Void\nRULE Implement and verify the fixture.\nCLOSED\n');
     await execute('git', ['add', '.'], { cwd: fixture });
     await execute('git', ['commit', '--quiet', '-m', 'Fixture project configuration'], { cwd: fixture });
@@ -134,15 +136,15 @@ console.log(JSON.stringify({type:'text',part:{text:'PTBK_ACCEPTANCE {"satisfied"
         assert.equal(await realpath(resolve(record.installation)), await realpath(resolve(fixture, 'node_modules', 'ptbk')));
         const repeated = await linkedCli(localLink, ['start'], fixture, env);
         assert.match(repeated.stdout, /already running/);
-        assert.equal(JSON.parse((await linkedCli(localLink, ['status'], fixture, env)).stdout).pid, first.pid);
+        assert.equal(JSON.parse((await linkedCli(localLink, ['status', '--json'], fixture, env)).stdout).pid, first.pid);
         await linkedCli(localLink, ['restart', '--no-qr'], fixture, env);
-        const restarted = JSON.parse((await linkedCli(localLink, ['show'], fixture, env)).stdout);
+        const restarted = JSON.parse((await linkedCli(localLink, ['show', '--json'], fixture, env)).stdout);
         assert.notEqual(restarted.id, first.id);
         assert.equal(restarted.persistent, false, 'An explicit restart option must preserve saved no-persist');
         assert.equal(restarted.url, undefined, 'An explicit restart option must preserve saved no-server');
         assert.equal(restarted.tasks.find(task => task.id === 'packaged-future').eligibility.kind, 'waiting-until');
     } finally { await linkedCli(localLink, ['stop'], fixture, env); }
-    assert.equal(JSON.parse((await linkedCli(localLink, ['status'], fixture, env)).stdout).status, 'stopped');
+    assert.equal(JSON.parse((await linkedCli(localLink, ['status', '--json'], fixture, env)).stdout).status, 'stopped');
     process.stdout.write(`Packed ptbk@${release.version}: local/global installation, checked single-commit execution, raw daemon launch, installed identity, repeated start, restart preferences and intentional stop passed.\n`);
 } finally {
     await rm(temporary, { recursive: true, force: true });

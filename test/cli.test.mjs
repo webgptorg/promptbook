@@ -79,7 +79,10 @@ test('external project init is repeatable and add/list/dry-run work without prov
     /** Inspect only this fixture using the same isolated environment as its CLI subprocesses. */
     const git = args => execute('git', args, { cwd: directory, env });
     /** Exercise the installed command against a genuinely fresh external project. */
-    const cli = args => execute(process.execPath, [executable, ...args, '--path', directory], { cwd: directory, env, timeout: 90_000 });
+    const cli = async args => {
+        try { return await execute(process.execPath, [executable, ...args, '--path', directory], { cwd: directory, env, timeout: 90_000 }); }
+        catch (error) { if (['init', 'initialize'].includes(args[0]) && error.code === 2 && /Unresolved prerequisites:/.test(error.stdout)) return error; throw error; }
+    };
     assert.equal((await git(['config', '--global', '--list'])).stdout, '');
     await cli(['initialize', '--no-install', '--no-questions']);
     const head = (await git(['rev-parse', 'HEAD'])).stdout;
@@ -98,7 +101,9 @@ test('external project init is repeatable and add/list/dry-run work without prov
     const task = list.tasks.find(item => item.title === 'Implement a deterministic fixture');
     assert.ok(task, 'Added task is discoverable');
     const preview = JSON.parse((await cli(['run', '--dry-run', '--json'])).stdout);
-    assert.deepEqual(preview.tasks.map(({ dueSlot, ...row }) => row), list.tasks.map(({ dueSlot, ...row }) => row));
+    assert.deepEqual(preview.tasks.map(row => row.id), list.tasks.map(row => row.id));
+    assert.equal(task.kind, 'awaiting-assignment');
+    assert.match(task.reason, /automatic Manager/);
     const answer = await cli(['answer']);
     assert.deepEqual(JSON.parse(answer.stdout), []);
     assert.equal(await readFile(globalConfiguration, 'utf8'), '', 'Setup never writes a global Git identity');
@@ -135,7 +140,10 @@ test('init persists safe artifacts while generated package edits leave owner sta
     await git(['add', 'package.json', 'owner.txt']);
     const stagedPackage = (await git(['show', ':package.json'])).stdout;
     const stagedOwner = (await git(['show', ':owner.txt'])).stdout;
-    const call = () => execute(process.execPath, [executable, 'init', '--path', directory, '--no-install', '--non-interactive'], { cwd: directory, timeout: 30_000 });
+    const call = async () => {
+        try { return await execute(process.execPath, [executable, 'init', '--path', directory, '--no-install', '--non-interactive'], { cwd: directory, timeout: 30_000 }); }
+        catch (error) { assert.equal(error.code, 2); assert.match(error.stdout, /Unresolved prerequisites:/); return error; }
+    };
     const initialized = await call();
     assert.match(initialized.stdout, /package.json/); assert.match(initialized.stdout, /pending|review/i);
     assert.equal((await git(['show', ':package.json'])).stdout, stagedPackage);

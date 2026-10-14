@@ -18,6 +18,16 @@ export async function validateCheck(workspace: Workspace, command: string): Prom
     if (/\bptbk\s+(?:coder\s+)?(?:start|run|fix|server)\b/.test(command)) throw new Error('Check setup error: the validation command recursively invokes ptbk. Configure a project validation command.');
     /** Find npm script entry points without executing the command or its shell substitutions. */
     const references = (text: string): string[] => [...text.matchAll(/\bnpm\s+(?:(?:--silent|--if-present|-s)\s+)*(?:run(?:-script)?\s+(?:(?:--silent|--if-present|-s)\s+)*([a-zA-Z0-9:_-]+)|(test|start|stop|restart))\b/g)].map(match => match[1] ?? match[2]!);
+    /** Check statically named Node entry files without evaluating shell substitutions or running validation. */
+    const inspectFiles = async (text: string): Promise<void> => {
+        for (const match of text.matchAll(/\bnode\s+(?:"([^"\n]+\.(?:c|m)?js)"|'([^'\n]+\.(?:c|m)?js)'|([^\s;&|'"`$]+\.(?:c|m)?js))(?=\s|$|[;&|])/g)) {
+            const reference = match[1] ?? match[2] ?? match[3]!;
+            const filename = path.resolve(workspace.projectPath, reference);
+            try { if (!(await fs.stat(filename)).isFile()) throw new Error('not a file'); }
+            catch (error) { throw new Error(`Check setup error: validation entry ${reference} is unavailable (${(error as Error).message}). Restore this file or configure the intended check command.`); }
+        }
+    };
+    await inspectFiles(command);
     const entryPoints = references(command);
     if (entryPoints.length) {
         let pkg: { scripts?: Record<string, string> };
@@ -25,16 +35,17 @@ export async function validateCheck(workspace: Workspace, command: string): Prom
         catch (error) { throw new Error(`Check setup error: cannot read project package.json: ${(error as Error).message}`); }
         const stack = new Set<string>();
         /** Walk npm scripts and the lifecycle hooks npm executes for every entry point. */
-        function inspect(name: string, lifecycle = true): void {
+        async function inspect(name: string, lifecycle = true): Promise<void> {
             const script = pkg.scripts?.[name];
             if (typeof script !== 'string' || !script.trim() || stack.has(name) || /\bptbk\s+(?:coder\s+)?(?:start|run|fix|server)\b/.test(script) || /PTBK_CHECK_SETUP_REQUIRED|Configure a real project check script/.test(script)) throw new Error(`Check setup error: scripts.${name} is missing, recursive, or an unconfigured setup placeholder. Configure real validation first.`);
             stack.add(name);
-            if (lifecycle && pkg.scripts?.[`pre${name}`]) inspect(`pre${name}`, false);
-            for (const reference of references(script)) inspect(reference);
-            if (lifecycle && pkg.scripts?.[`post${name}`]) inspect(`post${name}`, false);
+            await inspectFiles(script);
+            if (lifecycle && pkg.scripts?.[`pre${name}`]) await inspect(`pre${name}`, false);
+            for (const reference of references(script)) await inspect(reference);
+            if (lifecycle && pkg.scripts?.[`post${name}`]) await inspect(`post${name}`, false);
             stack.delete(name);
         }
-        for (const name of entryPoints) inspect(name);
+        for (const name of entryPoints) await inspect(name);
     }
 }
 /** Copy the live checkout, including ignored dependencies, without copying any operational views. @private */

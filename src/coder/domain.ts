@@ -95,7 +95,7 @@ export interface OccurrenceState {
 
 /** Selection outcome and optional scheduler wake-up. @private */
 export interface EligibilityResult {
-    kind: 'ready' | 'waiting-until' | 'blocked' | 'invalid' | 'unsupported' | 'filtered';
+    kind: 'ready' | 'awaiting-assignment' | 'waiting-until' | 'blocked' | 'invalid' | 'unsupported' | 'filtered';
     reason: string;
     nextWakeUp?: number;
     dueSlot?: number;

@@ -16,6 +16,34 @@ export interface HarnessSetupOptions extends InspectionOptions {
     chooseUpdates?: (outdated: HarnessVersionCheck[]) => Promise<HarnessUpdateChoice>;
 }
 
+/** Saved execution choices must produce a native command before setup can report readiness. @private */
+export interface HarnessExecutionInspection extends InspectionOptions {
+    model?: string; thinkingLevel?: string; allowCredits?: boolean;
+    harnessSettings?: Record<string, { model?: string; thinkingLevel?: string; apiKeyEnv?: string; configurationPath?: string }>;
+}
+
+/** Verify advertised native flags and saved defaults without submitting inference or repeating login. @private */
+export async function inspectHarnessExecution(projectPath: string, inventory: HarnessInventory[], options: HarnessExecutionInspection = {}): Promise<HarnessInventory[]> {
+    return Promise.all(inventory.map(async item => {
+        if (!item.usable) return item;
+        const plugin = getHarnessPlugin(item.name);
+        const settings = options.harnessSettings?.[item.name];
+        const model = options.model ?? settings?.model;
+        const thinkingLevel = options.thinkingLevel ?? settings?.thinkingLevel;
+        try {
+            if (model && item.models.length && !item.models.includes(model)) throw new Error(`Saved model ${model} is not available.`);
+            if (thinkingLevel && !item.thinkingLevels.includes(thinkingLevel)) throw new Error(`Saved thinking level ${thinkingLevel} is unsupported.`);
+            const request = { harness: item.name, projectPath, prompt: 'Project readiness inspection; do not execute.', model, thinkingLevel, allowCredits: options.allowCredits, signal: options.signal, harnessConfiguration: settings };
+            const env = { ...process.env };
+            await plugin.configure(request, env);
+            const help = await plugin.help(request);
+            const command = await plugin.prepare({ request, prompt: request.prompt, help, env, authentication: item.authentication === 'none' ? 'unknown' : item.authentication });
+            await command.cleanup?.();
+            return item;
+        } catch (error) { return { ...item, usable: false, diagnostic: `Execution setup is incomplete: ${redactSecrets((error as Error).message, projectPath)}` }; }
+    }));
+}
+
 /** Discover requested integrations without installation, login, version-network checks or project writes. @private */
 export async function inspectHarnesses(projectPath: string, options: InspectionOptions & { names?: string[] } = {}): Promise<HarnessInventory[]> {
     const selected = options.names === undefined ? HARNESS_PLUGINS : [...new Set(options.names)].map(getHarnessPlugin);

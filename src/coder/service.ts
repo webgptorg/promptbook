@@ -1,3 +1,4 @@
+import { identifyRuntime } from './agent-identity.js';
 import { createServer as createSocketServer, connect, type Socket } from 'node:net';
 import { createServer as createHttpServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { spawn } from 'node:child_process';
@@ -16,7 +17,7 @@ import { discoverTasks, serializeTaskBook, assignTaskId, updateTaskControls, che
 import { evaluateEligibility } from './schedule.js';
 import { captureSnapshot, commitScoped } from './git.js';
 import { confinePath, InputError, readContext, resolveAgentSelection } from './workspace.js';
-import { discoverAgents, ensureCoreAgents } from './agents.js';
+import { discoverAgents, prepareAgent, ensureCoreAgents } from './agents.js';
 import { inspectHarnesses, maintainHarnesses, type HarnessInventory, type HarnessMaintenanceResult } from './setup.js';
 import { getHarness, HARNESS_REGISTRY, loadProjectSecrets, redactSecrets } from './harness.js';
 import { createRequest, listRequests, answerRequest } from './requests.js';
@@ -244,6 +245,11 @@ export async function openDashboard(workspace: Workspace, control: RuntimeContro
             if (!matchesToken(request.headers['x-ptbk-token'], control.token)) return respond(403, { error: 'Session token required.' });
             if (request.method !== 'GET' && request.headers.origin !== origin) return respond(403, { error: 'Local origin required.' });
             if (request.method === 'GET' && url.pathname === '/api/state') return respond(200, await control.snapshot());
+            if (request.method === 'GET' && url.pathname === '/api/connection') {
+                const address = `${origin}/#${control.token}`;
+                const { modules } = QRCode.create(address);
+                return respond(200, { url: address, size: modules.size, modules: Array.from(modules.data) });
+            }
             if (request.method === 'POST' && url.pathname === '/api/control') { const input = await body(request); if (typeof input.action !== 'string') throw new InputError('A control action is required.'); return respond(200, await control.command(input.action, input)); }
             if (request.method === 'POST' && url.pathname === '/api/task') return respond(200, await control.command('edit-task', await body(request)));
             return respond(404, { error: 'Route not found.' });
@@ -305,31 +311,38 @@ async function serviceTasks(workspace: Workspace): Promise<TaskDefinition[]> {
     return tasks;
 }
 
-/** Evaluate the same source, routing and authorization prerequisites in every control channel. */
-async function readiness(workspace: Workspace, task: TaskDefinition, options: ServiceOptions, inventory: HarnessInventory[], state?: OccurrenceState): Promise<EligibilityResult> {
-    let outcome = evaluateEligibility(task, { now: Date.now(), timezone: workspace.timezone, harness: options.harness, model: options.model, thinkingLevel: options.thinkingLevel, minPriority: options.minPriority, maxPriority: options.maxPriority }, state);
-    if (!['ready', 'filtered'].includes(outcome.kind) || task.priority < (options.minPriority ?? 0) || task.priority > (options.maxPriority ?? Infinity)) return outcome;
+/** Evaluate the same source, routing and authorization prerequisites in every control channel. @private */
+export async function taskServiceEligibility(workspace: Workspace, task: TaskDefinition, options: ServiceOptions, inventory: HarnessInventory[], state?: OccurrenceState): Promise<EligibilityResult> {
+    const selectedAgent = task.origin?.startsWith('engine:') ? task.agent : options.agent ?? task.agent;
+    const scheduling = options.automatic !== false && task.priorityResolved === false ? { ...task, priorityResolved: true } : task;
+    let outcome = evaluateEligibility(scheduling, { now: Date.now(), timezone: workspace.timezone, harness: options.harness, model: options.model, thinkingLevel: options.thinkingLevel, agent: selectedAgent, minPriority: options.minPriority, maxPriority: options.maxPriority }, state);
+    if (outcome.kind !== 'ready') return outcome;
     const harness = options.harness ?? task.harness;
     const defaults = harness ? options.harnessSettings?.[harness] : undefined;
     let model = options.model ?? task.model ?? defaults?.model;
-    try {
-        const selection = await resolveAgentSelection(workspace, options.agent ?? task.agent ?? 'Developer');
-        model ??= selection.model;
-        outcome = evaluateEligibility(task, { now: Date.now(), timezone: workspace.timezone, harness, model, thinkingLevel: options.thinkingLevel ?? task.thinkingLevel ?? defaults?.thinkingLevel, agent: selection.path, agentAliases: selection.aliases, minPriority: options.minPriority, maxPriority: options.maxPriority }, state);
-    } catch (error) { return { kind: 'blocked', reason: `Required agent is unavailable: ${(error as Error).message}` }; }
+    const reference = selectedAgent ?? (options.automatic === false ? 'Developer' : undefined);
+    if (reference) {
+        try {
+            const selection = await resolveAgentSelection(workspace, reference);
+            model ??= selection.model;
+            outcome = evaluateEligibility(scheduling, { now: Date.now(), timezone: workspace.timezone, harness, model, thinkingLevel: options.thinkingLevel ?? task.thinkingLevel ?? defaults?.thinkingLevel, agent: selection.path, agentAliases: selection.aliases, minPriority: options.minPriority, maxPriority: options.maxPriority }, state);
+        } catch (error) { return { kind: 'blocked', reason: `Required agent is unavailable: ${(error as Error).message}` }; }
+    }
     if (outcome.kind !== 'ready' || options.automatic === false) return outcome;
-    if (!task.agent || !harness) return { kind: 'blocked', reason: 'Manager must assign the missing agent/harness before execution.' };
-    const available = inventory.find((candidate) => candidate.name === harness && candidate.usable && (!options.enabledHarnesses || options.enabledHarnesses.includes(harness)));
-    if (!available) return { kind: 'blocked', reason: `Required harness ${harness} is unavailable or not authorized.` };
-    const thinking = options.thinkingLevel ?? task.thinkingLevel ?? defaults?.thinkingLevel;
-    if (thinking && !available.thinkingLevels.includes(thinking)) return { kind: 'blocked', reason: `Harness ${harness} does not support thinking level ${thinking}.` };
-    if (model && available.models.length && !available.models.includes(model)) return { kind: 'blocked', reason: `Model ${model} is unavailable in harness ${harness}.` };
+    if (harness) {
+        const available = inventory.find(candidate => candidate.name === harness && candidate.usable && (!options.enabledHarnesses || options.enabledHarnesses.includes(harness)));
+        if (!available) return { kind: 'blocked', reason: `Required harness ${harness} is unavailable or not authorized.` };
+        const thinking = options.thinkingLevel ?? task.thinkingLevel ?? defaults?.thinkingLevel;
+        if (thinking && !available.thinkingLevels.includes(thinking)) return { kind: 'blocked', reason: `Harness ${harness} does not support thinking level ${thinking}.` };
+        if (model && available.models.length && !available.models.includes(model)) return { kind: 'blocked', reason: `Model ${model} is unavailable in harness ${harness}.` };
+    }
+    if (!task.agent || !task.harness || task.priorityResolved === false) return { kind: 'awaiting-assignment', reason: 'Awaiting automatic Manager assignment of missing routing/priority.' };
     return outcome;
 }
 
 /** Generate a visible Manager prerequisite without replacing any explicit target requirement. */
 async function assignment(workspace: Workspace, target: TaskDefinition, inventories: HarnessInventory[], options: ServiceOptions): Promise<boolean> {
-    if (target.origin?.startsWith('engine:') || target.agent && target.harness && target.priorityResolved !== false) return false;
+    if (target.origin?.startsWith('engine:') && target.origin !== 'engine:initial-readiness' || target.agent && target.harness && target.priorityResolved !== false) return false;
     const related = (await discoverTasks(workspace)).find(task => task.origin === `engine:assignment:${target.id}`);
     if (related) {
         if (related.status === 'done') await createRequest(workspace, { kind: 'action', taskId: target.id, reason: 'Manager completed without usable routing.', prompt: `Review ${target.source.relativePath} and fill its missing routing/priority; then resume the project.` });
@@ -356,13 +369,16 @@ async function assignment(workspace: Workspace, target: TaskDefinition, inventor
 }
 
 /** Fair goal enquiries have durable cooldowns and only occur with an entirely empty backlog. */
-async function enquire(workspace: Workspace, inventory: HarnessInventory[], options: ServiceOptions): Promise<void> {
+async function enquire(workspace: Workspace, inventory: HarnessInventory[], options: ServiceOptions): Promise<{ reason: string; nextAt?: number } | undefined> {
     const filename = await confinePath(workspace.projectPath, join(workspace.statePath, 'discovery.json'));
     let schedule = { version: 1, nextAt: 0, index: 0 };
     try { schedule = JSON.parse(await readFile(filename, 'utf8')); } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
-    if (Date.now() < schedule.nextAt) return;
-    const agents = (await discoverAgents(workspace.projectPath)).filter(agent => !agent.hidden);
-    if (!agents.length) return;
+    if (Date.now() < schedule.nextAt) return { reason: 'Goal discovery cooldown; no unfinished backlog.', nextAt: schedule.nextAt };
+    const agents = [];
+    for (const agent of (await discoverAgents(workspace.projectPath)).filter(agent => !agent.hidden)) {
+        if (/^GOAL(?:S)?(?:[ \t]|$)/m.test((await prepareAgent(agent.path, workspace.projectPath)).instructions)) agents.push(agent);
+    }
+    if (!agents.length) return { reason: 'No ordinary goal-bearing agents are available for discovery.' };
     const lease = await acquireLease(workspace);
     try {
         const baseline = await captureSnapshot(workspace.gitRoot ?? workspace.projectPath);
@@ -435,6 +451,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
     let pending: Partial<ServiceOptions> = {}; let restartSettings: Partial<ServiceOptions> = {};
     let phase: string | undefined; let currentSelection: Record<string, unknown> | undefined;
     let currentTask: string | undefined; let currentOccurrenceId: string | undefined; let status = 'starting'; let lastResult: RunResult | undefined;
+    let idleReason: string | undefined; let nextOpportunity: number | undefined;
     let inventory: HarnessInventory[] = []; let inventoryAt = 0; let lastWake = 0; let lastTaskStarted = 0;
     let maintenance: HarnessMaintenanceResult[] = [];
     const reportedFailures = new Map<string, number>();
@@ -454,7 +471,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
         events.push({ ...event, message: redactSecrets(event.message, workspace.projectPath) }); if (events.length > 160) events.shift();
         if (event.taskId && ['claimed', 'selection'].includes(event.type)) currentTask = event.taskId;
         if (event.type !== 'output') phase = event.type;
-        if (event.type === 'selection') currentSelection = { agent: event.agent, harness: event.harness, model: event.model, thinkingLevel: event.thinkingLevel };
+        if (event.type === 'selection') currentSelection = { agent: event.agent, agentName: event.agentName, harness: event.harness, model: event.model, thinkingLevel: event.thinkingLevel };
         if (event.type === 'error') { record.error = event.message; record.diagnostic = typeof event.trace === 'string' ? event.trace : undefined; record.nextAction = typeof event.nextAction === 'string' ? event.nextAction : undefined; }
         if (event.type === 'claimed') { currentOccurrenceId = event.occurrenceId; lastTaskStarted = Date.now(); }
         options.onEvent?.(event);
@@ -462,9 +479,9 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
     const control: RuntimeControl = { token: record.token,
         async snapshot() {
             const tasks = await serviceTasks(workspace); const ledger = await readLedger(workspace);
-            const summaries = await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, payload: task.payload, status: ledger.tasks[task.id]?.claim ? 'in-progress' : task.status, priority: task.priority, priorityRaw: task.priorityRaw, priorityResolved: task.priorityResolved, agent: task.agent, harness: task.harness, model: task.model, thinkingLevel: task.thinkingLevel, parent: task.parent, dependencies: task.dependencies, due: task.dueRaw, source: task.source, eligibility: await readiness(workspace, task, options, inventory, ledger.tasks[task.id]) })));
-            return { id: record.id, pid: record.pid, project: workspace.projectPath, engineVersion: record.engineVersion, mode: record.mode, status, phase, finishAfterTask: finish, controlCapabilities: { actions: ['pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses', 'read-task', 'edit-task'] }, paused, pausePending: paused && running, running, waiting, currentTask, currentSelection, url: record.url, persistent: record.persistent, settings: serialSettings(options), pendingSettings: pending, restartSettings, configurationSources: options.configurationSources, settingsCapabilities: { live: [...LIVE_SETTINGS], requiresRestart: [...STARTUP_SETTINGS], temporary: true, units: 'Pacing values use milliseconds.' }, statistics, lastResult, error: record.error, diagnostic: record.diagnostic, nextAction: record.nextAction, timezone: workspace.timezone, agents: (await discoverAgents(workspace.projectPath)).map(agent => ({ name: agent.name, hidden: agent.hidden, path: relative(workspace.projectPath, agent.path) })), harnesses: inventory.map(({ name, usable, installed, authenticated, diagnostic }) => ({ name, usable, installed, authenticated, diagnostic })), harnessCatalog: catalogSummary(), harnessMaintenance: maintenance, requests: await listRequests(workspace, true), browser: browser.status(), events,
-                tasks: summaries };
+            const summaries = await Promise.all(tasks.map(async task => ({ id: task.id, title: task.title, payload: task.payload, status: ledger.tasks[task.id]?.claim ? 'in-progress' : task.status, priority: task.priority, priorityRaw: task.priorityRaw, priorityResolved: task.priorityResolved, agent: task.agent, harness: task.harness, model: task.model, thinkingLevel: task.thinkingLevel, parent: task.parent, dependencies: task.dependencies, due: task.dueRaw, source: task.source, eligibility: await taskServiceEligibility(workspace, task, options, inventory, ledger.tasks[task.id]) })));
+            return identifyRuntime({ id: record.id, pid: record.pid, project: workspace.projectPath, engineVersion: record.engineVersion, mode: record.mode, status, phase, finishAfterTask: finish, controlCapabilities: { actions: ['pause', 'resume', 'skip-wait', 'finish', 'stop', 'answer', 'settings', 'harnesses', 'read-task', 'edit-task'] }, paused, pausePending: paused && running, running, waiting, currentTask, currentSelection, url: record.url, idleReason, nextOpportunity, persistent: record.persistent, settings: serialSettings(options), pendingSettings: pending, restartSettings, configurationSources: options.configurationSources, settingsCapabilities: { live: [...LIVE_SETTINGS], requiresRestart: [...STARTUP_SETTINGS], temporary: true, units: 'Pacing values use milliseconds.' }, statistics, lastResult, error: record.error, diagnostic: record.diagnostic, nextAction: record.nextAction, timezone: workspace.timezone, harnesses: inventory.map(({ name, usable, installed, authenticated, diagnostic }) => ({ name, usable, installed, authenticated, diagnostic })), harnessCatalog: catalogSummary(), harnessMaintenance: maintenance, requests: await listRequests(workspace, true), browser: browser.status(), events,
+                tasks: summaries }, await discoverAgents(workspace.projectPath));
         },
         async command(action, input = {}) {
             if (action === 'inspect') return control.snapshot();
@@ -570,7 +587,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
             })().then(result => client.end(`${redactSecrets(JSON.stringify({ id: record.id, pid: record.pid, result }), workspace.projectPath)}\n`), error => client.end(`${JSON.stringify({ id: record.id, pid: record.pid, error: (error as Error).message })}\n`));
         });
     });
-    const terminal = createTerminal(options.mode === 'interactive', () => controller.abort(), workspace.projectPath, { onControl: async action => {
+    const terminal = createTerminal(options.mode === 'interactive', () => controller.abort(), workspace.projectPath, { noQr: options.noQr, onControl: async action => {
         if (action === 'requests') {
             const outstanding = await listRequests(workspace, true);
             if (!outstanding.length) { terminal.status('There are no pending user requests.'); return; }
@@ -693,8 +710,11 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                             running = true; status = 'preparing'; await persist();
                             try {
                                 const unfinished = tasks.filter(task => !['done', 'retired'].includes(task.status));
-                                if (!unfinished.length) { await enquire(workspace, available, options); tasks = await serviceTasks(workspace); }
-                                const target = tasks.find(task => task.status === 'todo' && !task.diagnostics.length && !task.relationshipDiagnostics?.length && (!task.after || task.after <= Date.now()) && (!task.agent || !task.harness || task.priorityResolved === false) && !task.origin?.startsWith('engine:'));
+                                idleReason = undefined; nextOpportunity = undefined;
+                                if (!unfinished.length) { const discovery = await enquire(workspace, available, options); idleReason = discovery?.reason; nextOpportunity = discovery?.nextAt; tasks = await serviceTasks(workspace); }
+                                const assignmentLedger = await readLedger(workspace);
+                                let target: TaskDefinition | undefined;
+                                for (const task of tasks) if ((await taskServiceEligibility(workspace, task, options, inventory, assignmentLedger.tasks[task.id])).kind === 'awaiting-assignment') { target = task; break; }
                                 if (target && await assignment(workspace, target, available, options)) { tasks = await serviceTasks(workspace); }
                             } finally { running = false; }
                         }
@@ -703,19 +723,25 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                         // Explicit per-task harness choices take precedence over an automatic bootstrap.
                         const ledger = await readLedger(workspace);
                         let ready: TaskDefinition | undefined;
-                        for (const candidate of tasks) if ((await readiness(workspace, candidate, options, inventory, ledger.tasks[candidate.id])).kind === 'ready') { ready = candidate; break; }
+                        for (const candidate of tasks) if ((await taskServiceEligibility(workspace, candidate, options, inventory, ledger.tasks[candidate.id])).kind === 'ready') { ready = candidate; break; }
                         if (paused || terminal.isPaused() || controller.signal.aborted || finish) { status = 'paused'; await persist(); await present(); await delay(1000, undefined, { signal: controller.signal }).catch(() => {}); continue; }
-                        if (!ready) { status = 'watching'; await persist(); await present(); await delay(1000, undefined, { signal: controller.signal }).catch(() => {}); if (terminal.shouldStop()) finish = true; continue; }
+                        if (!ready) {
+                            const outcomes = await Promise.all(tasks.filter(task => !['done', 'retired'].includes(task.status)).map(task => taskServiceEligibility(workspace, task, options, inventory, ledger.tasks[task.id])));
+                            if (outcomes.length) idleReason = [...new Set(outcomes.map(outcome => outcome.reason))].join('; ');
+                            const times = outcomes.flatMap(outcome => outcome.nextWakeUp === undefined ? [] : [outcome.nextWakeUp]);
+                            if (times.length) nextOpportunity = Math.min(...times);
+                            status = 'watching'; await persist(); await present(); await delay(1000, undefined, { signal: controller.signal }).catch(() => {}); if (terminal.shouldStop()) finish = true; continue; }
                         run.onlyTaskId = ready.id;
                         if (ready?.harness && !options.harness) run.harness = ready.harness;
                         if (run.harness && getHarness(run.harness).toolDiscovery) run.tools = browserTools(browser, ready.id, () => currentOccurrenceId);
-                        if (ready?.agent && !options.agent) run.agent = ready.agent;
+                        if (ready?.agent && (!options.agent || ready.origin?.startsWith('engine:'))) run.agent = ready.agent;
                         if (ready?.model && !options.model) run.model = ready.model;
                         if (ready?.thinkingLevel && !options.thinkingLevel) run.thinkingLevel = ready.thinkingLevel;
                         const defaults = run.harness ? options.harnessSettings?.[run.harness] : undefined;
                         run.model ??= defaults?.model; run.thinkingLevel ??= defaults?.thinkingLevel;
                         run.harnessVersion = inventory.find(item => item.name === run.harness)?.version;
                         run.harnessConfiguration = defaults ? { apiKeyEnv: defaults.apiKeyEnv, configurationPath: defaults.configurationPath } : undefined;
+                        idleReason = undefined; nextOpportunity = undefined;
                         currentTask = ready.id; currentSelection = { agent: run.agent, harness: run.harness, model: run.model, thinkingLevel: run.thinkingLevel }; phase = 'starting';
                         running = true; status = 'running'; await persist(); await present();
                         try { lastResult = await runQueue(workspace, run); statistics.completed += lastResult.completed; statistics.failed += lastResult.failed; }

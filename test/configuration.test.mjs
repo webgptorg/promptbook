@@ -60,7 +60,8 @@ test('saved settings override legacy environment; explicit flags override saved 
     const env = { ...process.env, PTBK_HARNESS: 'claude-code', PTBK_MODEL: 'environment-model' };
     const call = flags => execute(process.execPath, [executable, 'list', '--json', '--path', project, ...flags], { cwd: project, env });
     const saved = JSON.parse((await call([])).stdout);
-    assert.equal(saved.tasks[0].kind, 'ready');
+    assert.equal(saved.tasks[0].kind, 'blocked');
+    assert.match(saved.tasks[0].reason, /harness.*unavailable|Model.*unavailable/i);
     const temporary = JSON.parse((await call(['--model', 'temporary-model'])).stdout);
     assert.equal(temporary.tasks[0].kind, 'filtered');
     assert.match(temporary.tasks[0].reason, /model/i);
