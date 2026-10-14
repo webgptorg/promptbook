@@ -30,6 +30,8 @@ export interface HarnessResult {
     quotaResetAt?: number;
     acceptance?: { satisfied: boolean; evidence: string };
     externalEffects?: boolean;
+    /** Host-created requests whose replies have not yet been supplied to this provider turn. */
+    userRequestIds?: string[];
 }
 
 /** Harness plugin metadata shared by setup and runtime. @private */
@@ -137,6 +139,7 @@ function providerMetadata(output: string, tools: BridgeTool[]): { usage?: Record
 
 /** Execute one provider turn, with immutable agent context and actual on-demand TEAM tools. @private */
 export async function runHarness(request: HarnessRequest): Promise<HarnessResult> {
+    const userRequestIds: string[] = [];
     let releaseUsage: (() => Promise<void>) | undefined;
     let bridge: ToolBridge | undefined;
     let cleanup: (() => Promise<void>) | undefined;
@@ -174,12 +177,15 @@ export async function runHarness(request: HarnessRequest): Promise<HarnessResult
                 const { createRequest, waitForAnswer } = await import('./requests.js');
                 const workspace = await resolveWorkspace({ path: request.requestProjectPath || request.redactionPath || request.projectPath });
                 const human = await createRequest(workspace, { kind: 'question', taskId: request.taskId, activityId: request.occurrenceId, reason: 'The responsible agent requested human project context through TEAM @User.', prompt: question });
-                const answer = await waitForAnswer(workspace, human.id, signal);
-                return { output: answer };
+                // Direct conversations without a task checkpoint retain their existing synchronous reply contract.
+                if (!request.taskId || !request.occurrenceId) return { output: await waitForAnswer(workspace, human.id, signal) };
+                userRequestIds.push(human.id);
+                return { output: JSON.stringify({ pending_user_request: human.id, question, instruction: 'Finish this turn with unmet acceptance. Promptbook will wait for the durable User reply and continue this task; do not poll or ask the same question again.' }) };
             }
             const advisorReadTools = (request.tools || (await import('./planner.js')).planningReadTools(request.projectPath)).filter((tool) => tool.name !== 'propose_task' && tool.readOnly !== false);
             const result = await runHarness({ ...request, model: requestedModel, agentPath: member.path, prompt: question, onOutput: undefined, signal, readOnly: true, tools: advisorReadTools, teamBudget: childBudget, timeoutMs: 300_000, maxOutputBytes: 2 * 1024 * 1024 });
             if (result.outcome !== 'success') throw new Error(`Advisor ${member.name} ${result.outcome}: ${result.output}`);
+            userRequestIds.push(...(result.userRequestIds ?? []));
             return result;
         }, request.signal)].map((tool) => ({ ...tool, invoke: async (input: Record<string, unknown>) => {
             if (tool.readOnly === false) budget.externalEffects = true;
@@ -193,6 +199,7 @@ export async function runHarness(request: HarnessRequest): Promise<HarnessResult
             agent ? `AGENT INSTRUCTIONS:\n${agent.instructions}` : '',
             request.context ? `PROJECT CONTEXT:\n${request.context}` : '',
             bridge ? `AVAILABLE ADVISORS/TOOLS: ${tools.map((tool) => tool.name).join(', ')}. Consult advisors only when useful; each advisor has its own Book.` : '',
+            'USER REQUESTS: If a tool reports pending_user_request, finish this turn with acceptance satisfied=false. The host owns waiting and will supply the actual reply before continuation; do not retry, poll or fabricate approval.',
             'ACCEPTANCE: Verify the requested outcome, explain available evidence and unmet requirements. Report only actual actions/checks. Include a JSON line {"acceptance":{"satisfied":true|false,"evidence":"concrete evidence and any limits"}} in your final report.',
             `TASK:\n${request.prompt}`,
         ].filter(Boolean).join('\n\n');
@@ -211,7 +218,7 @@ export async function runHarness(request: HarnessRequest): Promise<HarnessResult
         }
         if (outcome === 'authentication') output += `\nLogin: ${harness.login}. Authentication failures are not retried automatically.`;
         if (outcome === 'quota' && request.harness === 'openai-codex' && authentication === 'account' && !request.allowCredits && /credit/i.test(output)) output += '\nAccount credit limits follow native Codex/account billing controls. ptbk did not enable a paid fallback or switch to API billing; API billing requires PTBK_OPENAI_CODEX_USE_API_KEY=1 and an available key.';
-        return { outcome, exitCode: processResult.exitCode, signal: processResult.signal, output: redacted(output), ...metadata, authentication, ...(harnessVersion ? { harnessVersion } : {}), ...(budget.externalEffects ? { externalEffects: true } : {}), effectiveModel: metadata.effectiveModel || (request.model && request.model !== 'default' ? request.model : harness.nativeDefault ? 'provider-native (not reported)' : harness.defaultModel), ...(!request.teamBudget && Object.keys(budget.usage).length ? { usage: budget.usage } : {}) };
+        return { outcome, exitCode: processResult.exitCode, signal: processResult.signal, output: redacted(output), ...metadata, ...(userRequestIds.length ? { userRequestIds: [...new Set(userRequestIds)] } : {}), authentication, ...(harnessVersion ? { harnessVersion } : {}), ...(budget.externalEffects ? { externalEffects: true } : {}), effectiveModel: metadata.effectiveModel || (request.model && request.model !== 'default' ? request.model : harness.nativeDefault ? 'provider-native (not reported)' : harness.defaultModel), ...(!request.teamBudget && Object.keys(budget.usage).length ? { usage: budget.usage } : {}) };
     } catch (error) {
         const output = redacted((error as Error).message);
         return { outcome: request.signal?.aborted ? 'cancelled' : /authentication required/i.test(output) ? 'authentication' : 'configuration', exitCode: null, output, authentication, ...(harnessVersion ? { harnessVersion } : {}), ...(budget.externalEffects ? { externalEffects: true } : {}) };

@@ -10,6 +10,7 @@ import { git, discoverGit, captureSnapshot, commitScoped } from '../dist/coder/g
 import { acquireLease, atomicWrite, readLedger, readJournals, saveLedger, writeJournal } from '../dist/coder/state.js';
 import { discoverTasks } from '../dist/coder/sources.js';
 import { replaceFileWithRetry } from '../dist/coder/file-replacement.js';
+import { createRequest, listRequests, answerRequest } from '../dist/coder/requests.js';
 
 test('checks reject direct and indirect worker recursion under both command namespaces', async t => {
     const workspace = await fixture(t, { empty: true });
@@ -840,6 +841,35 @@ test('automatic acceptance requires actual requested-outcome evidence beyond a z
     assert.equal(result.completed, 0); assert.equal(result.failed, 1); assert.equal(result.commits.length, 0);
     assert.ok(result.events.some(event => event.type === 'error' && /Missing requested-outcome evidence/.test(event.message)));
     assert.doesNotMatch(await readFile(path.join(workspace.tasksPath, 'task.book'), 'utf8'), /TASK DONE/);
+});
+
+test('finite User clarification checkpoints once and resumes the same occurrence with the actual reply', async t => {
+    const workspace = await fixture(t); let calls = 0;
+    await writeFile(path.join(workspace.tasksPath, 'later.book'), 'TASK Later fixture\nTASK ID later\nTASK PRIORITY -1\nTASK AGENT @Developer\nTASK HARNESS openai-codex\n');
+    await git(workspace.gitRoot, ['add', '--', 'tasks/later.book']); await git(workspace.gitRoot, ['commit', '-qm', 'Later fixture agenda']);
+    const provider = async request => {
+        calls++;
+        if (calls === 1) {
+            await createRequest(workspace, { kind: 'question', taskId: request.taskId, activityId: request.occurrenceId, reason: 'Missing fixture intent', prompt: 'What should the fixture implement?' });
+            return { outcome: 'success', exitCode: 0, output: JSON.stringify({ type: 'item.completed', item: { type: 'mcpToolCall', status: 'completed', name: 'fixture-external-action', receipt: 'fixture-receipt-42' } }), externalEffects: true, acceptance: { satisfied: false, evidence: 'Missing intent' } };
+        }
+        assert.match(request.prompt, /USER REPLY: Write the confirmed fixture result/);
+        assert.match(request.prompt, /fixture-receipt-42/, 'Human continuation retains reported prior effects');
+        await implement()(request);
+        return { outcome: 'success', exitCode: 0, output: 'Verified the confirmed result', acceptance: { satisfied: true, evidence: 'The confirmed file was written.' } };
+    };
+    const first = await runQueue(workspace, { harness: 'openai-codex', requireAcceptance: true, runHarness: provider });
+    assert.equal(first.failed, 0); assert.equal(first.completed, 0); assert.equal(first.exitCode, 2); assert.equal(calls, 1);
+    let journal = (await readJournals(workspace))[0]; const occurrence = journal.occurrenceId;
+    assert.equal(journal.phase, 'awaiting-user'); assert.equal(journal.attempts, 0);
+    const unanswered = await recoverTask(workspace, 'fixture', { action: 'resume' }, { requireAcceptance: true, runHarness: provider });
+    assert.equal(unanswered.failed, 0); assert.equal(unanswered.exitCode, 2); assert.equal(calls, 1);
+    const request = (await listRequests(workspace, true))[0];
+    await answerRequest(workspace, request.id, 'Write the confirmed fixture result');
+    const resumed = await recoverTask(workspace, 'fixture', { action: 'resume' }, { requireAcceptance: true, runHarness: provider });
+    assert.equal(resumed.completed, 1, JSON.stringify(resumed.events)); assert.equal(resumed.failed, 0); assert.equal(calls, 2);
+    journal = (await readJournals(workspace))[0];
+    assert.equal(journal.occurrenceId, occurrence); assert.equal(journal.attempts, 1); assert.equal(journal.phase, 'completed');
 });
 
 test('recorded external effects forbid a blind transient retry even with unchanged local files', async t => {

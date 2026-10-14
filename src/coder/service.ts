@@ -473,6 +473,8 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
         events.push({ ...event, message: redactSecrets(event.message, workspace.projectPath) }); if (events.length > 160) events.shift();
         if (event.taskId && ['claimed', 'selection'].includes(event.type)) currentTask = event.taskId;
         if (event.type !== 'output') phase = event.type;
+        if (event.type === 'waiting-user') { status = 'waiting-user'; currentTask = event.taskId; waiting = false; nextOpportunity = undefined; }
+        if (event.type === 'attempt') status = 'running';
         if (event.type === 'selection') currentSelection = { agent: event.agent, agentName: event.agentName, harness: event.harness, model: event.model, thinkingLevel: event.thinkingLevel };
         if (event.type === 'error') { record.error = event.message; record.diagnostic = typeof event.trace === 'string' ? event.trace : undefined; record.nextAction = typeof event.nextAction === 'string' ? event.nextAction : undefined; }
         if (event.type === 'claimed') { currentOccurrenceId = event.occurrenceId; lastTaskStarted = Date.now(); }
@@ -701,9 +703,17 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                     idleAction = undefined;
                     const unresolved = await listRecovery(workspace, { includeSync: true });
                     if (unresolved.length) {
-                        const safe = unresolved.find(journal => journal.phase === 'completed' && journal.syncPending || ['completion-ready', 'implementation-ready', 'integrating'].includes(journal.safePhase ?? journal.phase) || journal.pendingPhase === 'result');
+                        const safe = unresolved.find(journal => journal.phase === 'awaiting-user' || journal.phase === 'completed' && journal.syncPending || ['completion-ready', 'implementation-ready', 'integrating'].includes(journal.safePhase ?? journal.phase) || journal.pendingPhase === 'result');
                         if (safe) {
-                            const recovered = await recoverTask(workspace, safe.taskId, { action: 'resume', occurrence: safe.occurrenceId }, { ...options, signal: controller.signal, onEvent: emit });
+                            running = true; currentTask = safe.taskId;
+                            currentSelection = { agent: safe.agent, harness: safe.harness, model: safe.model, thinkingLevel: safe.thinkingLevel };
+                            let recovered: Awaited<ReturnType<typeof recoverTask>>;
+                            try { recovered = await recoverTask(workspace, safe.taskId, { action: 'resume', occurrence: safe.occurrenceId }, {
+                                ...options, waitForUser: true, signal: controller.signal, onEvent: emit,
+                                ...(safe.harness && getHarness(safe.harness).toolDiscovery ? { tools: browserTools(browser, safe.taskId, () => safe.occurrenceId) } : {}),
+                                onOutput: text => { terminal.output(text); options.onOutput?.(text); },
+                            }); }
+                            finally { running = false; currentTask = undefined; currentSelection = undefined; phase = undefined; }
                             const { journals: _journals, plan: _plan, ...outcome } = recovered;
                             lastResult = outcome; statistics.completed += outcome.completed; statistics.failed += outcome.failed;
                             if (outcome.failed || outcome.syncPending || outcome.exitCode === 1) {
@@ -736,7 +746,7 @@ export async function runService(workspace: Workspace, supplied: ServiceOptions)
                             } finally { running = false; }
                         }
                         const bootstrap = available[0];
-                        const run: RunOptions = { ...options, limit: 1, harness: options.harness || (options.automatic !== false ? bootstrap?.name : undefined), context: await readContext(workspace, options.context), signal: controller.signal, requireAcceptance: options.automatic !== false, check: options.check || (options.automatic !== false ? 'npm run check' : undefined), isPaused: () => paused || terminal.isPaused(), shouldStop: () => finish || terminal.shouldStop(), skipWait: () => { const result = skip || terminal.skipWait(); skip = false; return result; }, onWait: value => { waiting = value; terminal.setWaiting(value); }, onEvent: event => { emit(event); if (options.mode !== 'daemon' && event.type !== 'output') terminal.status(`${event.type}: ${event.message}`); }, onOutput: text => { terminal.output(text); options.onOutput?.(text); } };
+                        const run: RunOptions = { ...options, waitForUser: true, limit: 1, harness: options.harness || (options.automatic !== false ? bootstrap?.name : undefined), context: await readContext(workspace, options.context), signal: controller.signal, requireAcceptance: options.automatic !== false, check: options.check || (options.automatic !== false ? 'npm run check' : undefined), isPaused: () => paused || terminal.isPaused(), shouldStop: () => finish || terminal.shouldStop(), skipWait: () => { const result = skip || terminal.skipWait(); skip = false; return result; }, onWait: value => { waiting = value; terminal.setWaiting(value); }, onEvent: event => { emit(event); if (options.mode !== 'daemon' && event.type !== 'output') terminal.status(`${event.type}: ${event.message}`); }, onOutput: text => { terminal.output(text); options.onOutput?.(text); } };
                         // Explicit per-task harness choices take precedence over an automatic bootstrap.
                         const ledger = await readLedger(workspace);
                         let ready: TaskDefinition | undefined;

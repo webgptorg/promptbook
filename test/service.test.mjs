@@ -505,6 +505,39 @@ else if (args.join(' ') === 'login status') {
     assert(!Object.keys(saved.environment).some(key => /KEY|TOKEN|SECRET/.test(key)));
 });
 
+test('User clarification survives supervisor restart without retrying and accepted replies continue the agenda', async t => {
+    const workspace = await fixture(t, 'TASK Confirmed fixture\nTASK ID human-fixture\nTASK AGENT @Developer\nTASK HARNESS openai-codex\nTASK PRIORITY 3\n');
+    await writeFile(path.join(workspace.tasksPath, 'next.book'), 'TASK Next fixture\nTASK ID next-fixture\nTASK AGENT @Developer\nTASK HARNESS openai-codex\nTASK PRIORITY 2\n');
+    await writeFile(path.join(workspace.tasksPath, 'future.book'), 'TASK Future fixture\nTASK ID future\nTASK AFTER 2099-01-01T00:00Z\n');
+    await git(workspace.gitRoot, ['add', '--', 'tasks']); await git(workspace.gitRoot, ['commit', '-qm', 'Clarification fixture agenda']);
+    const calls = []; let question;
+    const provider = async request => {
+        calls.push(request.taskId);
+        if (calls.length === 1) {
+            question = await createRequest(workspace, { kind: 'question', taskId: request.taskId, activityId: request.occurrenceId, reason: 'Missing fixture intent', prompt: 'Which result should be written?' });
+            return { outcome: 'success', exitCode: 0, output: 'User clarification is pending.', userRequestIds: [question.id], acceptance: { satisfied: false, evidence: 'An actual User reply is required.' } };
+        }
+        if (request.taskId === 'human-fixture') assert.match(request.prompt, /USER REPLY: Write the confirmed result/);
+        await writeFile(path.join(request.projectPath, request.taskId + '.txt'), 'Confirmed result\n');
+        return { outcome: 'success', exitCode: 0, output: 'Verified the fixture result.', acceptance: { satisfied: true, evidence: 'The requested fixture file exists.' } };
+    };
+    const first = await supervise(t, workspace, { automatic: true, runHarness: provider });
+    let state = await until(first.inspect, value => value.phase === 'waiting-user' && value.requests.length === 1, 'User wait is visible');
+    assert.equal(state.activity, 'Waiting for User'); assert.equal(state.statistics.failed, 0); assert.equal(state.waiting, false);
+    assert.equal((await first.command('skip-wait')).skipped, false);
+    await delay(1100); assert.deepEqual(calls, ['human-fixture']);
+    first.controller.abort(); await first.completion;
+    const second = await supervise(t, workspace, { automatic: true, runHarness: provider });
+    state = await until(second.inspect, value => value.phase === 'waiting-user' && value.requests.length === 1, 'Restart retains the same unanswered request');
+    assert.equal(state.requests[0].id, question.id); assert.deepEqual(calls, ['human-fixture']); assert.equal(state.statistics.failed, 0);
+    await second.command('answer', { id: question.id, response: 'Write the confirmed result' });
+    state = await untilTask(second.inspect, value => value.statistics.completed === 2 && !value.running, 'The confirmed task and next task complete in one agenda');
+    assert.deepEqual(calls, ['human-fixture', 'human-fixture', 'next-fixture']);
+    assert.equal(state.requests.length, 0); assert.equal(state.statistics.failed, 0);
+    assert.equal(state.tasks.find(task => task.id === 'human-fixture').status, 'done');
+    assert.equal(state.tasks.find(task => task.id === 'next-fixture').status, 'done');
+});
+
 test('raw mode reports an active human request and keeps ordinary unsupported-tool harnesses usable', async t => {
     const workspace = await fixture(t, 'TASK Human-reviewed fixture\nTASK ID human\nTASK AGENT @Developer\nTASK HARNESS cline\n');
     let output = '';

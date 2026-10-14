@@ -14,6 +14,7 @@ import { acquireLease, atomicWrite, listRecovery, readJournals, readLedger, save
 import { alignOwnedIndex, assertSnapshot, captureSnapshot, changedPaths, commitIdentity, commitScoped, discoverGit, git, GitPersistenceError, normalizeOwned, readFileSnapshot, sameFile, writeFileSnapshot, type GitIdentity, type GitSnapshot } from './git.js';
 import { installedEngineVersion } from './version.js';
 import type { FileReplacementOptions } from './file-replacement.js';
+import { listRequests, waitForAnswer } from './requests.js';
 
 /** Shared terminal/server event, containing only redacted diagnostics. @private */
 export interface EngineEvent { type: string; message: string; taskId?: string; occurrenceId?: string; time: number; [key: string]: unknown }
@@ -32,6 +33,8 @@ export interface RunOptions {
     dryRun?: boolean; signal?: AbortSignal; onEvent?: (event: EngineEvent) => void; onOutput?: (text: string) => void;
     isPaused?: () => boolean; shouldStop?: () => boolean; skipWait?: () => boolean;
     onWait?: (waiting: boolean) => void;
+    /** Ongoing supervision waits durably; finite execution reports the unresolved request and returns. */
+    waitForUser?: boolean;
     onTaskBoundary?: (activeOptions: RunOptions) => Promise<void> | void;
     confirm?: (step: 'task' | 'commit', message: string) => Promise<boolean>;
     runHarness?: (request: HarnessRequest) => Promise<HarnessResult>; now?: () => number;
@@ -443,10 +446,55 @@ async function failOccurrence(workspace: Workspace, journal: RunJournal, ledger:
     emit(result, options, 'recovery-required', message, journal.task, { reason: message, occurrenceId: journal.occurrenceId });
     emit(result, options, 'error', `Task ${journal.taskId} requires recovery: ${message}. Work and ownership snapshots were preserved. Use ptbk recover ${JSON.stringify(journal.taskId)}.`, journal.task, { trace: journal.trace, nextAction: `Inspect ptbk recover ${JSON.stringify(journal.taskId)} before retrying the failed phase.` });
 }
+/** Suspend a known provider outcome for actual human replies, without retrying or accepting silence. */
+async function awaitTaskUser(workspace: Workspace, journal: RunJournal, options: RunOptions, result: RunResult, reportedIds: string[] = []): Promise<string | undefined> {
+    const requestWorkspace = { ...workspace, projectPath: options.requestProjectPath ?? options.redactProjectPath ?? workspace.projectPath };
+    const requests = (await listRequests(requestWorkspace)).filter(request => request.taskId === journal.taskId && request.activityId === journal.occurrenceId
+        && !journal.handledRequestIds?.includes(request.id) && (request.status === 'pending' || reportedIds.includes(request.id) || journal.awaitingRequestIds?.includes(request.id)));
+    if (!requests.length && !journal.awaitingRequestIds?.length) return '';
+    if (journal.phase !== 'awaiting-user') {
+        journal.awaitingRequestIds = requests.map(request => request.id);
+        journal.expected = await captureSnapshot(workspace.gitRoot!); journal.checkCommand = options.check;
+        delete journal.safePhase; delete journal.pendingPhase;
+        // Clarification is not a failed implementation/repair attempt.
+        journal.attempts = Math.max(0, journal.attempts - 1);
+        await boundary(workspace, journal, 'awaiting-user', options);
+    }
+    emit(result, options, 'waiting-user', `Waiting for User on ${journal.awaitingRequestIds!.length} durable request(s); no model retry is running.`, journal.task,
+        { requestIds: journal.awaitingRequestIds, occurrenceId: journal.occurrenceId });
+    if (!options.waitForUser && requests.some(request => request.status === 'pending')) { result.skipped++; result.exitCode = 2; return undefined; }
+    const replies: string[] = [];
+    for (const id of journal.awaitingRequestIds!) {
+        const request = requests.find(item => item.id === id);
+        const answer = await waitForAnswer(requestWorkspace, id, options.signal);
+        replies.push(`USER QUESTION: ${request?.prompt ?? id}\nUSER REPLY: ${answer}`);
+    }
+    await options.assertOwned?.(); await assertSource(journal.task); await assertSnapshot(journal.expected!);
+    journal.handledRequestIds = [...(journal.handledRequestIds ?? []), ...journal.awaitingRequestIds!];
+    journal.awaitingRequestIds = undefined;
+    const priorReports = (journal.output ?? '').split('\n').flatMap(line => {
+        try {
+            const event = JSON.parse(line);
+            const item = event.item;
+            if (item && ['agentMessage', 'agent_message', 'commandExecution', 'command_execution', 'mcpToolCall', 'mcp_tool_call'].includes(item.type)) return [JSON.stringify(item)];
+            if (event.type === 'result' && typeof event.result === 'string') return [event.result];
+            if (event.type === 'assistant') return (event.message?.content ?? []).filter((part: { type?: string }) => part.type === 'text').map((part: { text?: string }) => part.text ?? '');
+        } catch { /* Unstructured output remains in the preserved journal/trace. */ }
+        return [];
+    }).slice(-20).join('\n').slice(-16_384);
+    journal.userFeedback = redactSecrets(`${journal.userFeedback ?? ''}\nPREVIOUS TURN EVIDENCE: ${journal.acceptance?.evidence ?? 'Not reported'}\n${priorReports}\n${replies.join('\n\n')}\nThe User consultation above is complete; do not repeat it. Continue only the requested task. Preserve prior work and external effects; do not repeat completed actions.`, options.redactProjectPath);
+    await boundary(workspace, journal, 'claimed', options);
+    return journal.userFeedback;
+}
+
 /** Execute and validate one claimed task with a central three-attempt repair budget. @private */
 async function execute(workspace: Workspace, journal: RunJournal, ledger: Ledger, options: RunOptions, result: RunResult, initialFeedback?: string, resumeReady = false): Promise<void> {
     try {
-        let feedback = initialFeedback;
+        let feedback = initialFeedback ?? journal.userFeedback;
+        if (journal.phase === 'awaiting-user') {
+            feedback = await awaitTaskUser(workspace, journal, options, result);
+            if (feedback === undefined) return;
+        }
         await options.assertOwned?.();
         await ensureCoreAgents(workspace.projectPath);
         for (let attempt = journal.attempts + (resumeReady ? 0 : 1); attempt <= 3; attempt++) {
@@ -455,6 +503,9 @@ async function execute(workspace: Workspace, journal: RunJournal, ledger: Ledger
                 const baseline = attempt === 1 ? journal.baseline : await captureSnapshot(workspace.gitRoot!);
                 const response = await infer(workspace, journal, options, result, feedback);
                 if (response.outcome !== 'success') throw new Error(`Harness ${response.outcome} (exit ${response.exitCode}): ${redactSecrets(response.output, options.redactProjectPath)}${response.outcome === 'authentication' ? ' Authenticate the selected provider before retrying.' : ''}`);
+                const reply = await awaitTaskUser(workspace, journal, options, result, response.userRequestIds);
+                if (reply === undefined) return;
+                if (reply) { feedback = reply; attempt--; continue; }
                 if (response.acceptance?.satisfied === false) {
                     feedback = `Requested outcome remains incomplete: ${response.acceptance.evidence}\nPreserve completed work and external effects; repair only the unmet requirements.`;
                     journal.expected = await captureSnapshot(workspace.gitRoot!); await boundary(workspace, journal, 'implementation-ready', options);
@@ -488,7 +539,12 @@ async function execute(workspace: Workspace, journal: RunJournal, ledger: Ledger
             if (attempt === 3) throw new Error(`Check-feedback budget exhausted after three implementation/repair attempts. ${feedback}`);
             emit(result, options, 'repair', `Checks failed; requesting repair ${attempt + 1}/3 for the same occurrence.`, journal.task);
         }
-    } catch (error) { await failOccurrence(workspace, journal, ledger, error, options, result); }
+    } catch (error) {
+        if (journal.phase === 'awaiting-user' && options.signal?.aborted) {
+            await writeJournal(workspace, journal); result.exitCode = 130;
+            emit(result, options, 'waiting-user', 'User wait interrupted; the same request and occurrence are retained for restart.', journal.task);
+        } else await failOccurrence(workspace, journal, ledger, error, options, result);
+    }
 }
 /** Describe the current finite queue without creating any runtime file or calling a model. @private */
 async function preview(workspace: Workspace, options: RunOptions, result: RunResult): Promise<RunResult> {
@@ -616,7 +672,7 @@ export async function runQueue(workspace: Workspace, options: RunOptions = {}): 
             if (result.completed > completedBeforeTask && selected.repeat) wakeUps.set(selected.id, journal.dueSlot + selected.repeat);
             refreshNextWakeUp();
             configurationFrozen = true; options.harness ??= journal.harness; options.model ??= journal.model ?? journal.effectiveModel; options.thinkingLevel ??= journal.thinkingLevel;
-            if (result.failed || result.syncPending || result.completed >= (options.limit ?? Infinity)) break;
+            if (journal.phase === 'awaiting-user' || result.failed || result.syncPending || result.completed >= (options.limit ?? Infinity)) break;
             await options.onTaskBoundary?.(options);
             await wait(options.waitAfterPrompt ?? 0, options);
             if (options.autoPull && !options.shouldStop?.()) await git(workspace.gitRoot!, ['pull', '--rebase'], { signal: options.signal });
@@ -786,6 +842,13 @@ async function resumeOne(workspace: Workspace, options: RunOptions, result: RunR
         const isolation = journal.isolation;
         const map = (filename: string) => path.join(isolation.view, path.relative(workspace.gitRoot!, filename));
         workspace = { ...workspace, gitRoot: isolation.view, projectPath: path.join(isolation.view, isolation.sourcePath), tasksPath: map(workspace.tasksPath), legacyPath: map(workspace.legacyPath) };
+    }
+    if (journal.phase === 'awaiting-user') {
+        if (!journal.expected) throw new Error('User-wait checkpoint is missing; preserve it for explicit recovery.');
+        await assertSnapshot(journal.expected);
+        await execute(workspace, journal, ledger, { ...options, check: options.check ?? journal.checkCommand }, result);
+        if (journal.isolation && (journal.phase as string) === 'integrating') await integrateIsolated(originWorkspace, journal, ledger, options, result);
+        return result;
     }
     const phase = journal.pendingPhase;
     const reconciled = await reconcileIntent(workspace, journal);

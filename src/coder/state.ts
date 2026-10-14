@@ -33,7 +33,7 @@ export interface AttemptRecord {
 /** Recoverable phase boundaries contain exact ownership evidence and commit intents. @private */
 export interface RunJournal {
     version: 1; id: string; taskId: string; occurrenceId: string; task: TaskDefinition;
-    phase: 'claimed' | 'running' | 'implementation-ready' | 'checking' | 'completion-ready' | 'integrating' | 'completed' | 'recovery-required' | 'failed';
+    phase: 'claimed' | 'running' | 'awaiting-user' | 'implementation-ready' | 'checking' | 'completion-ready' | 'integrating' | 'completed' | 'recovery-required' | 'failed';
     startedAt: number; updatedAt: number; dueSlot: number; baseline: GitSnapshot;
     expected?: GitSnapshot; completionRollback?: GitSnapshot; metadataPaths?: string[]; protectedPaths: string[]; commits: string[]; attempts: number;
     engineVersion?: string; harness?: string; harnessVersion?: string; model?: string; output?: string; checkCommand?: string; error?: string;
@@ -43,6 +43,7 @@ export interface RunJournal {
     agent?: string; agentInstructionsHash?: string;
     sourceSnapshot?: { revision: string; payloadHash: string; gitHead: string | null };
     attemptHistory?: AttemptRecord[]; truncatedAttempts?: number; technicalRetries?: number; externalEffects?: boolean; acceptance?: { satisfied: boolean; evidence: string };
+    awaitingRequestIds?: string[]; handledRequestIds?: string[]; userFeedback?: string;
     learning?: { open: boolean; limits?: string }; followupPath?: string; learningTarget?: string;
     isolation?: { view: string; branch: string; origin: GitSnapshot; sourcePath: string }; 
 }

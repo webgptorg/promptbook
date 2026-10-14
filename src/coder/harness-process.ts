@@ -240,14 +240,26 @@ export async function runProcess(command: string, args: string[], options: Proce
 /** Categorize failures using terminal process outcome; completion markers never manufacture success. @private */
 export function classifyHarnessResult(result: ProcessResult): HarnessOutcome {
     if (result.cancelled) return 'cancelled';
-    const text = result.output;
+    // Provider/tool observations and echoed task text are not terminal failure evidence.
+    const diagnostics: string[] = result.spawnError ? [result.spawnError] : [];
+    let terminalFailure = false;
+    for (const line of result.output.split('\n')) {
+        try {
+            const event = JSON.parse(line) as Record<string, unknown>;
+            if (event?.type === 'result' && typeof event.result === 'string' && event.is_error !== false && event.status !== 'success') diagnostics.push(event.result);
+            if (event && typeof event === 'object' && (['error', 'failed', 'turn.failed'].includes(String(event.type)) || event.status === 'failed' || event.status === 'error' || event.is_error === true)) {
+                terminalFailure = true; diagnostics.push(line);
+            }
+        } catch { diagnostics.push(line); }
+    }
+    const text = diagnostics.join('\n');
     if (/usage.?limit|quota.?exceed|rate.?limit|insufficient.?quota|credit(?:s)? (?:required|exhausted|balance)|out of credits|hit your limit|too many requests/i.test(text)) return 'quota';
     if (/not (?:logged|signed) in|authentication (?:failed|required)|unauthenticated|invalid.?api.?key|unauthorized|login required|please (?:log|sign) in/i.test(text)) return 'authentication';
     if (result.configurationError) return 'configuration';
     if (/unknown (?:option|argument)|invalid (?:configuration|model)|unsupported (?:model|reasoning|effort)|unrecognized (?:option|argument)/i.test(text)) return 'configuration';
     if (result.spawnError || result.signal) return 'process-failure';
     if (/ECONNRESET|ETIMEDOUT|service unavailable|temporarily unavailable|overloaded|\bHTTP 50[234]\b/i.test(text)) return 'transient';
-    if (result.exitCode !== 0 || /"(?:type|status)"\s*:\s*"(?:turn\.failed|failed|error)"|"is_error"\s*:\s*true/.test(text)) return 'process-failure';
+    if (result.exitCode !== 0 || terminalFailure) return 'process-failure';
     return 'success';
 }
 
