@@ -6,6 +6,6 @@
 
 The planner and its TEAM advisors cannot write application files, launch unrestricted shell work or delegate that authority. Only reviewed task proposals may be saved. Show their exact paths/content and reject stale previews after concurrent changes.
 
-Support `/save` for ready work, `/draft` for not-ready work, `/discard` and `/exit`. EOF discards unsaved proposals while preserving saved files. A planning inference is limited to five minutes and 2 MiB of output. Commit only explicitly approved authoring changes; do not start the queue as a side effect.
+Support `/save` for ready work, `/draft` for not-ready work, `/discard` and `/exit`. EOF discards unsaved proposals while preserving saved files. A planning inference is limited to five minutes and 2 MiB of output. An approved save commits only its authoring changes by default under [automatic persistence](git-persistence.md); `--no-commit` explicitly opts out. Approval is not a separate requirement to remember `--commit`. Do not start the queue as a side effect. An already-running agenda may consume ready work only after its save completes.
 
-This differs from the explicitly requested agenda-creation flow in [initialization](initialization.md), which creates and executes Expert's first task. See [TEAM](team.md) and [CLI](cli.md).
+This differs from the explicitly requested agenda-creation flow in [initialization](initialization.md), which creates and executes Expert's first task. See [authoring](authoring.md), [TEAM](team.md) and [CLI](cli.md).

@@ -17,7 +17,7 @@ The command root is `ptbk`. Bare invocation displays [top-level help](help.md), 
 | `run` | Execute a finite existing queue with one selected configuration. |
 | `help` | Show top-level or command/subcommand-scoped help in pretty or raw presentation. |
 | `about` | Show a short product overview and the running engine version. |
-| `add` | Create a task with an interactive wizard or supplied description, stdin or template, without a model call. |
+| `add` | Create and commit a task through a wizard or supplied description, stdin or template, without a model call. |
 | `generate-boilerplates` | Create unfinished, non-runnable task templates. |
 | `plan` | Discuss and save approved tasks without implementing them. |
 | `list` | Read-only queue, filters and readiness explanations. |
@@ -40,14 +40,16 @@ Live dashboards and one-shot runtime results follow the [shared status view](sta
 
 Start supports `--daemon` (default), `--foreground`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`, alongside shared presentation/input options. Daemon and foreground conflict; raw output never implicitly selects foreground operation. `--help`, trailing `help` and `ptbk help <command-path>` show only the selected command/subcommand scope; no path means top-level help. These forms and `--version` follow the shared [help/version contract](help.md). See [process modes](process-modes.md) and [controls](controls.md).
 
-## Finite-run and service options
+## Persistence and finite-run options
 
-Preserve priority bounds (`--min-priority`, `--max-priority`, with `--priority` as the lower-bound alias), successful-task `--limit`, `--git-changes fail|ignore|continue`, `--no-commit`, `--no-auto`, `--auto-pull`, `--auto-push`, `--check`, `--check-before`, `--isolate`, `--no-normalize-line-endings`, `--no-ui`, `--preserve-logs`, `--no-questions` and `--allow-credits`.
+Every mutating workflow commits its own versioned project changes by default under [Git persistence](git-persistence.md), with a `PTBK: ` subject prefix. This includes init, add, other authoring services and work dispatched by start/run. `--no-commit` explicitly opts out for the invoked workflow; `--commit` is the explicit/default compatibility form. Neither option grants ownership of unrelated changes. Status reports the selected persistence mode. Read-only/no-op and runtime-only actions create no commits; push is never implied merely by committing.
+
+Preserve priority bounds (`--min-priority`, `--max-priority`, with `--priority` as the lower-bound alias), successful-task `--limit`, `--git-changes fail|ignore|continue`, `--no-auto`, `--auto-pull`, `--auto-push`, `--check`, `--check-before`, `--isolate`, `--no-normalize-line-endings`, `--no-ui`, `--preserve-logs`, `--no-questions` and `--allow-credits`.
 
 Pacing uses `--wait-between-prompts`, `--wait-after-prompt` and `--wait-after-error`, accepting duration forms such as `30m` and `1h30m`. Initial pacing defaults are zero between/after tasks and ten minutes after a technical error. Thinking settings include `low`, `medium`, `high`, `xhigh`, `max` only where the selected harness supports them; unsupported settings are diagnosed, not falsely accepted.
 
-Validate combinations before work: invalid priority bounds fail; `--no-auto` requires an interactive terminal and conflicts with `--no-questions` and noninteractive operation; automatic `--no-commit` requires `--git-changes ignore`; isolation requires commits and conflicts with continue; continue conflicts with pre-check repair. Auto-pull requires automatic persistence. Start cannot disable task commits or become a finite `--limit` run.
+Validate combinations before work: invalid priority bounds fail; `--no-auto` requires an interactive terminal and conflicts with `--no-questions` and noninteractive operation; isolation requires commits and conflicts with continue; continue conflicts with pre-check repair. Explicit no-commit conflicts with isolation and automatic pull/push, but does not require ignore merely to allow its own new writes. Pre-existing dirty state still follows the selected ownership policy. Start cannot become a finite `--limit` run.
 
-Authoring services use explicit `--commit`; optional push requires a commit. An agenda bootstrap follows the task commit contract; initialization's setup commits follow [initialization](initialization.md). `add` retains template/priority input; boilerplate `--count` supports `N` and `N*M` (default `5*1`); verify supports review order and repeatable ignore filters. Optional `--auto-migrate` is a configured project migration hook, distinct from task-format conversion; destructive permission requires that hook to be enabled explicitly.
+[Authoring](authoring.md) saves and commits one approved logical operation by default; optional push requires a commit. An agenda bootstrap follows the task persistence contract; initialization follows [initialization](initialization.md). `add` retains template/priority input; boilerplate `--count` supports `N` and `N*M` (default `5*1`); verify supports review order and repeatable ignore filters. Optional `--auto-migrate` is a configured project migration hook, distinct from task-format conversion; destructive permission requires that hook to be enabled explicitly.
 
 List/help/about/version/dry-run must not install or update tools, initialize files, authenticate, call models or modify Git. Never silently ignore an unsupported flag. Read-only previews report missing capabilities without repairing them.
