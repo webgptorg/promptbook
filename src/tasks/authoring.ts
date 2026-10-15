@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { pathExists } from '../common/fs.js';
-import { shortId, slugify } from '../common/ids.js';
+import { slugify } from '../common/ids.js';
 import { fileTimestamp } from '../common/time.js';
 
 /**
@@ -13,8 +13,8 @@ export type NewTaskBook = {
     readonly title: string;
     /** Natural-language description. */
     readonly description?: string;
-    /** Optional stable ID. */
-    readonly id?: string;
+    /** Stable task ID (every new task gets one; see `generateTaskId`). */
+    readonly id: string;
     /** Additional commitment lines, e.g. `['TASK AGENT @Developer', 'TASK PRIORITY 2']`. */
     readonly commitments?: readonly string[];
 };
@@ -28,18 +28,9 @@ export function renderTaskBook(task: NewTaskBook): string {
     const title = task.title.replace(/\s+/g, ' ').trim();
     const lines = [`TASK ${title}`];
     if (task.description?.trim()) lines.push('', task.description.trim());
-    const commitments = [...(task.id ? [`TASK ID ${task.id}`] : []), ...(task.commitments ?? [])];
+    const commitments = [`TASK ID ${task.id}`, ...(task.commitments ?? [])];
     if (commitments.length) lines.push('', ...commitments);
     return `${lines.join('\n')}\n`;
-}
-
-/**
- * Generates a stable task ID from a title (`improve-csv-export-k3x9`).
- *
- * @private task authoring
- */
-export function generateTaskId(title: string): string {
-    return `${slugify(title, 32)}-${shortId(4)}`;
 }
 
 /**

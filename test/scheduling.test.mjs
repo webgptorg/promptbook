@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { formatDuration, parseDuration, parseInterval } from '../dist/common/duration.js';
 import { formatIsoWithOffset, parseDateTime } from '../dist/common/time.js';
-import { readMarkdownTasks, setMarkdownControl, splitMarkdownSections } from '../dist/tasks/markdown.js';
+import { readMarkdownTasks, setMarkdownControl, setMarkdownTaskId, splitMarkdownSections } from '../dist/tasks/markdown.js';
 import { parsePriority } from '../dist/tasks/priority.js';
 import { recurrenceState } from '../dist/tasks/recurrence.js';
 import { readTaskBook } from '../dist/tasks/book-task.js';
@@ -64,9 +64,32 @@ test('Markdown completion attaches to the section identity, not its number', () 
     const source = 'First\n---\n[ ]\n\nSecond task\n';
     const [, second] = readMarkdownTasks({ source, path: '/p/a.md', relativePath: 'a.md', order: 1, timeZone: 'UTC' });
     const shifted = `New first\n---\n${source}`;
-    const completed = setMarkdownControl(shifted, second.source.sectionHash, 'x', 'done 2026-10-14T10:00:00Z');
+    const completed = setMarkdownControl(shifted, { hash: second.source.sectionHash }, 'x', 'done 2026-10-14T10:00:00Z');
     assert.match(completed, /\[x\] done 2026-10-14T10:00:00Z\n\nSecond task/);
-    assert.throws(() => setMarkdownControl('Other\n', second.source.sectionHash, 'x', ''), /moved or disappeared/);
+    assert.throws(() => setMarkdownControl('Other\n', { hash: second.source.sectionHash }, 'x', ''), /moved or disappeared/);
+});
+
+test('Markdown task IDs: metadata comment is neither status, title nor description; edits keep the ID', () => {
+    const source = 'First\n---\n<!-- ptbk-task-id: second-abc123 -->\n[-] !\n\nSecond task\n\nDetails.\n---\n[ ]\n\nThird task\n';
+    const tasks = readMarkdownTasks({ source, path: '/p/a.md', relativePath: 'a.md', order: 1, timeZone: 'UTC' });
+    assert.equal(tasks.length, 3);
+    const second = tasks[1];
+    assert.equal(second.id, 'second-abc123');
+    assert.equal(second.ref, '#second-abc123');
+    assert.equal(second.status, 'not-ready', 'the control line after the ID comment still decides the state');
+    assert.equal(second.title, 'Second task');
+    assert.equal(second.description, 'Details.');
+    const edited = source.replace('Second task', 'Second task (renamed)');
+    const completed = setMarkdownControl(edited, { id: 'second-abc123' }, 'x', 'done 2026-10-14T10:00:00Z');
+    assert.match(completed, /<!-- ptbk-task-id: second-abc123 -->\n\[x\] done 2026-10-14T10:00:00Z\n\nSecond task \(renamed\)/, 'located by ID, not by content or number');
+    const third = tasks[2];
+    const withId = setMarkdownTaskId(source, third.source.sectionHash, 'third-xyz789');
+    const reread = readMarkdownTasks({ source: withId, path: '/p/a.md', relativePath: 'a.md', order: 1, timeZone: 'UTC' })[2];
+    assert.equal(reread.id, 'third-xyz789');
+    assert.equal(reread.source.sectionHash, third.source.sectionHash, 'adding an ID does not change the section identity');
+    const invalid = readMarkdownTasks({ source: '<!-- ptbk-task-id: ../escape -->\n[ ]\n\nBad\n', path: '/p/b.md', relativePath: 'b.md', order: 1, timeZone: 'UTC' })[0];
+    assert.equal(invalid.id, undefined);
+    assert.ok(invalid.diagnostics.some((diagnostic) => diagnostic.severity === 'error'), 'path-unsafe IDs are errors');
 });
 
 test('recurrence keeps anchors, coalesces downtime and never shifts slots on completion', () => {

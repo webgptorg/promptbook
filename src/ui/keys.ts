@@ -36,7 +36,11 @@ export type KeyName =
     | 'u'
     | 'k'
     | 'w'
-    | 'l';
+    | 'l'
+    | 'o'
+    | 't'
+    | 'v'
+    | 'x';
 
 /**
  * Escape sequences of named keys.
@@ -86,6 +90,10 @@ const CONTROL: Readonly<Record<string, KeyEvent>> = {
     '\x0b': { type: 'key', name: 'k', ctrl: true },
     '\x17': { type: 'key', name: 'w', ctrl: true },
     '\x0c': { type: 'key', name: 'l', ctrl: true },
+    '\x0f': { type: 'key', name: 'o', ctrl: true },
+    '\x14': { type: 'key', name: 't', ctrl: true },
+    '\x16': { type: 'key', name: 'v', ctrl: true },
+    '\x18': { type: 'key', name: 'x', ctrl: true },
 };
 
 /**

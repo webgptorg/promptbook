@@ -10,12 +10,14 @@ import { setting, type EffectiveSettings } from '../project/config.js';
 import { runCheck } from '../project/checks.js';
 import type { AgentCatalog, EffectiveAgent } from '../project/agents.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
-import { commitPaths, findCommitWithTrailer, gitStatus, readAtHead } from '../project/git.js';
+import { commitPaths, findCommitWithTrailer, gitStatus, readAtHead, stageableFiles } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
 import { runHarness, type HarnessRunResult } from '../harness/run.js';
 import { readTaskBook, stampBookCompletion } from '../tasks/book-task.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
 import { assignmentText, isRecurring, type Task } from '../tasks/model.js';
+import { assignFollowUpIds, declaredTaskIds } from '../tasks/prepare.js';
+import { readTaskQueue } from '../tasks/sources.js';
 import { ToolBridge, type BridgeTool } from './bridge.js';
 import { createLearningTask, isTeacher } from './generated.js';
 import type { HarnessPool } from './harnesses.js';
@@ -25,7 +27,8 @@ import { parseAgentReport, type AgentReport } from './result.js';
 import type { RouteResolution } from './routing.js';
 import type { ActiveRecord, ResultRecord, RoutingSelection, StateStore, WorkKind } from './state.js';
 import { teamTools, type ConsultationBudget } from './team.js';
-import { createTrace, recordDiagnostic, type TraceFile } from './traces.js';
+import { TaskTrace, traceHeader } from './task-trace.js';
+import { recordDiagnostic } from './traces.js';
 
 /**
  * Routable resolution of a task.
@@ -67,7 +70,9 @@ export type ExecutionHooks = {
     /** Absolute paths written by concurrent authoring (never attributed to the task). */
     readonly excludedPaths: () => ReadonlySet<string>;
     /** Additional tools (project browser); they report created user requests like `ask_user`. */
-    readonly extraTools?: (context: { readonly onUserRequest: (request: UserRequest) => void }) => BridgeTool[];
+    readonly extraTools?: (context: { readonly onUserRequest: (request: UserRequest) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
+    /** Finalizes evidence that belongs in the result commit (browser recordings of this task). */
+    readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
 };
 
 /**
@@ -127,6 +132,8 @@ export type WorkItem = {
     readonly extraPrompt?: string;
     /** Engine-created files belonging to this work (absolute). */
     readonly createdPaths: readonly string[];
+    /** Other tasks this work changes on purpose (e.g. the target of an assignment), for commit metadata. */
+    readonly relatedTaskIds?: readonly string[];
     /** Validates a `done` report and returns extra edits to apply. */
     readonly validateReport?: (report: AgentReport, changedPaths: readonly string[]) => Promise<ReportValidation>;
     /** Create a Teacher follow-up on success (optionally decided from the changed paths). */
@@ -182,8 +189,10 @@ function relativeKey(environment: ExecutionEnvironment, path: string): string {
 export async function captureSnapshot(environment: Pick<ExecutionEnvironment, 'project' | 'repositoryRoot'>, excluded: ReadonlySet<string> = new Set()): Promise<Record<string, string | null>> {
     const snapshot: Record<string, string | null> = {};
     const runtimeDirectory = join(environment.project.root, '.ptbk');
+    // Task traces are engine-owned evidence staged per task and trace policy, never "unrelated" or task changes.
+    const tracesDirectory = join(environment.project.root, 'traces');
     for (const entry of await gitStatus(environment.project.root, environment.repositoryRoot)) {
-        if (isPathInside(runtimeDirectory, entry.path) || excluded.has(entry.path)) continue;
+        if (isPathInside(runtimeDirectory, entry.path) || isPathInside(tracesDirectory, entry.path) || excluded.has(entry.path)) continue;
         if (!isPathInside(environment.project.root, entry.path)) continue;
         snapshot[toProjectRelative(environment.project.root, entry.path)] = (await hashFileIfExists(entry.path)) ?? null;
     }
@@ -192,8 +201,10 @@ export async function captureSnapshot(environment: Pick<ExecutionEnvironment, 'p
 
 /**
  * Paths whose fingerprint changed since the pre-task snapshot.
+ *
+ * @private task execution
  */
-function changedPaths(before: Readonly<Record<string, string | null>>, after: Readonly<Record<string, string | null>>): string[] {
+export function changedPaths(before: Readonly<Record<string, string | null>>, after: Readonly<Record<string, string | null>>): string[] {
     return [...new Set([...Object.keys(before), ...Object.keys(after)])].filter((path) => before[path] !== after[path]).sort();
 }
 
@@ -234,21 +245,71 @@ async function applyCompletion(environment: ExecutionEnvironment, item: WorkItem
         updated = stampBookCompletion(updated, at, environment.timeZone);
     } else {
         const annotation = `done ${formatIsoWithOffset(at, environment.timeZone)} by ${item.route.selection.agent} (${item.route.selection.harness}${item.route.selection.model ? ` ${item.route.selection.model}` : ''})`;
-        updated = setMarkdownControl(original, task.source.sectionHash!, 'x', annotation);
+        updated = setMarkdownControl(original, { id: task.id, hash: task.source.sectionHash }, 'x', annotation);
     }
     await writeFile(task.source.path, updated);
     return { paths: [task.source.relativePath], revert: async () => writeFile(task.source.path, original) };
 }
 
 /**
+ * Task IDs of a commit beyond the executing task: follow-ups created by the work and other tasks it changed.
+ */
+async function commitTaskIds(environment: ExecutionEnvironment, task: Task, owned: readonly string[], related: readonly string[]): Promise<{ created: string[]; related: string[] }> {
+    const created = new Set<string>();
+    const touched = new Set<string>(related);
+    for (const relativePath of owned) {
+        if (!/\.(book|md)$/i.test(relativePath)) continue;
+        const absolutePath = resolve(environment.project.root, relativePath);
+        const current = await readFile(absolutePath, 'utf8').catch(() => undefined);
+        if (current === undefined) continue;
+        const before = new Set(declaredTaskIds(absolutePath, (await readAtHead(environment.repositoryRoot, absolutePath)) ?? ''));
+        for (const id of declaredTaskIds(absolutePath, current)) {
+            if (id === task.id) continue;
+            if (before.has(id)) touched.add(id);
+            else created.add(id);
+        }
+    }
+    return { created: [...created], related: [...touched].filter((id) => id !== task.id && !created.has(id)) };
+}
+
+/**
+ * Gives task files written by the agent during this work their own IDs (before checks, inside the result commit).
+ */
+async function prepareFollowUps(environment: ExecutionEnvironment, task: Task, owned: readonly string[]): Promise<void> {
+    const candidates = owned.filter((path) => /\.(book|md)$/i.test(path) && path !== task.source.relativePath);
+    if (!candidates.length) return;
+    const tasksRelative = toProjectRelative(environment.project.root, environment.tasksDirectory);
+    const queue = await readTaskQueue({ root: environment.project.root, tasksDirectory: environment.tasksDirectory, timeZone: environment.timeZone });
+    for (const relativePath of candidates) {
+        const directory = relativePath.includes('/') ? relativePath.slice(0, relativePath.lastIndexOf('/')) : '';
+        if (directory !== tasksRelative && directory !== 'prompts') continue;
+        const absolutePath = resolve(environment.project.root, relativePath);
+        const otherIds = new Set(queue.tasks.filter((other) => other.source.relativePath !== relativePath && other.id).map((other) => other.id!));
+        await assignFollowUpIds({ path: absolutePath, relativePath, previous: await readAtHead(environment.repositoryRoot, absolutePath), otherIds, timeZone: environment.timeZone });
+    }
+}
+
+/**
+ * Trace files eligible for the task's result commit under the saved trace policy (never ignored evidence).
+ */
+async function traceCommitPaths(environment: ExecutionEnvironment, trace: TaskTrace): Promise<string[]> {
+    if (!environment.commit || !setting<boolean>(environment.settings, 'traces.commit')) return [];
+    await trace.flush();
+    return await stageableFiles(environment.project.root, trace.relativeDirectory);
+}
+
+/**
  * Executes one work item through the common lifecycle: run the agent, verify the reported outcome and project
- * checks on the content to be committed, stamp completion and follow-ups, and commit one result.
+ * checks on the content to be committed, stamp completion and follow-ups, and commit one result with its task ID
+ * and policy-eligible traces.
  *
  * @private task execution
  */
 export async function executeWork(environment: ExecutionEnvironment, item: WorkItem): Promise<ExecutionOutcome> {
     const { project, settings, state, hooks } = environment;
     const task = item.task;
+    if (!task.id) throw new PtbkError(`"${task.title}" has no stable task ID; it must be prepared before execution.`, { kind: 'internal', task: task.ref });
+    const taskId = task.id;
     const selection: RoutingSelection = item.route.selection;
     const repairBudget = Math.max(1, setting<number>(settings, 'execution.repairAttempts'));
     const technicalBudget = setting<number>(settings, 'execution.technicalRetries');
@@ -260,6 +321,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         runId: item.runId ?? shortId(10),
         worktree: item.worktree,
         taskRef: task.ref,
+        taskId,
         taskTitle: task.title,
         sourcePath: task.source.relativePath,
         sectionHash: task.source.sectionHash,
@@ -283,6 +345,15 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         await state.writeActive(record);
     };
     await save({});
+    const trace = await TaskTrace.open(project, taskId);
+    if (trace.problem) hooks.emit({ type: 'activity', text: `Evidence limitation: ${trace.problem}`, level: 'warning' });
+    const runLabel = `run ${record.runId}${occurrence ? ` · occurrence ${occurrence}` : ''}`;
+    if (!item.resume) {
+        await trace.section(`Task ${taskId} · ${runLabel}`, [traceHeader({ id: taskId, title: task.title, source: task.source.relativePath }), `Kind: ${item.kind}${task.origin ? ` · origin: ${task.origin}` : ''}${task.parent ? ` · parent: ${task.parent}` : ''}`]);
+        await trace.event('started', { runId: record.runId, occurrence, kind: item.kind, title: task.title, source: task.source.relativePath, origin: task.origin, parent: task.parent, assignment: assignmentText(task), engineVersion: ENGINE_VERSION });
+    } else {
+        await trace.event('resumed', { runId: record.runId, occurrence: record.occurrence, phase: record.phase, attempt: record.attempt, engineVersion: ENGINE_VERSION });
+    }
     const agent: EffectiveAgent = item.route.agent;
     const budget: ConsultationBudget = { calls: 0 };
     const pending: { request?: UserRequest } = {};
@@ -290,7 +361,6 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         pending.request = undefined;
     };
     let lastResult: HarnessRunResult | undefined;
-    let lastTrace: TraceFile | undefined;
     let lastReport: AgentReport | undefined;
     const contextFile = setting<string | null>(settings, 'paths.context');
     const context = contextFile ? await readTextIfExists(resolve(project.root, contextFile)) : undefined;
@@ -299,6 +369,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     const finishResult = async (outcome: ResultRecord['outcome'], summary: string, commit?: string): Promise<void> => {
         await state.appendResult({
             taskRef: task.ref,
+            taskId,
             title: task.title,
             kind: item.kind,
             outcome,
@@ -311,7 +382,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             summary,
             startedAt: record.startedAt,
             endedAt: new Date().toISOString(),
-            trace: lastTrace?.relativePath,
+            trace: trace.reference,
+            occurrence: record.occurrence,
             engineVersion: ENGINE_VERSION,
             harnessVersion: item.route.inspection.version,
             usage: lastResult?.usage,
@@ -321,9 +393,10 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     const fail = async (reason: string): Promise<ExecutionOutcome> => {
         await save({ phase: 'failed', failure: reason });
         await finishResult('failed', reason);
-        await recordDiagnostic(project, { phase: 'task execution', message: reason, details: { task: task.ref, trace: lastTrace?.relativePath } });
+        await trace.event('failed', { runId: record.runId, reason });
+        await recordDiagnostic(project, { phase: 'task execution', message: reason, details: { task: task.ref, taskId, trace: trace.reference } });
         hooks.emit({ type: 'activity', text: `Failed: ${reason}`, level: 'error' });
-        return { kind: 'failed', reason, trace: lastTrace?.relativePath };
+        return { kind: 'failed', reason, trace: trace.reference };
     };
 
     // Resume an awaiting-user checkpoint only with a real reply.
@@ -331,10 +404,11 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         const request = await environment.requests.get(record.requestId);
         if (!request || request.status === 'pending') return { kind: 'awaiting-user', requestId: record.requestId };
         await environment.requests.markConsumed(request.id);
+        await trace.event('user-answer', { requestId: request.id, status: request.status, answer: request.answer, via: request.resolvedVia });
         await save({ phase: 'executing', requestId: undefined, answeredRequests: [...(record.answeredRequests ?? []), request.id] });
     }
 
-    if (record.phase === 'failed') return { kind: 'failed', reason: record.failure ?? 'The task needs recovery.' };
+    if (record.phase === 'failed') return { kind: 'failed', reason: record.failure ?? 'The task needs recovery.', trace: trace.reference };
     if (record.phase === 'committed' || record.phase === 'synchronizing') {
         await state.clearActive();
         return { kind: 'completed', commit: record.commitSha, summary: 'Recovered a committed result.', changedPaths: [] };
@@ -347,6 +421,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     for (;;) {
         if (environment.signal.aborted) {
             await save({});
+            await trace.event('interrupted', { runId: record.runId, phase: record.phase });
             return { kind: 'interrupted' };
         }
         if (!skipAgent) {
@@ -355,6 +430,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             await save({ phase: 'executing', attempt });
             hooks.emit({ type: 'phase', phase: attempt > 1 ? 'repairing' : 'executing', detail: attempt > 1 ? `repair attempt ${attempt}/${repairBudget}` : undefined });
             hooks.emit({ type: 'attempt', attempt, budget: repairBudget });
+            const attemptLabel = `${record.runId}-a${attempt}${record.technicalRetries ? `-t${record.technicalRetries}` : ''}`;
             const answers: Array<{ question: string; answer: string }> = [];
             for (const id of record.answeredRequests ?? []) {
                 const request = await environment.requests.get(id);
@@ -370,7 +446,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         pool: environment.pool,
                         settings,
                         requests: environment.requests,
-                        task: { ref: task.ref, title: task.title, occurrence },
+                        task: { ref: task.ref, id: taskId, title: task.title, occurrence: record.occurrence },
+                        trace,
                         agentName: agent.name,
                         harness: selection.harness,
                         depth: 0,
@@ -382,7 +459,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         },
                         onActivity: (text) => hooks.emit({ type: 'activity', text }),
                     }),
-                    ...(hooks.extraTools?.({ onUserRequest: (request) => (pending.request = request) }) ?? []),
+                    ...(hooks.extraTools?.({ onUserRequest: (request) => (pending.request = request), trace, attempt: attemptLabel }) ?? []),
                 );
             }
             const prompt = buildTaskPrompt({
@@ -402,8 +479,29 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const promptDirectory = await ensureDirectory(project.runtime.temporary);
             const promptFile = join(promptDirectory, `prompt-${record.runId}-${attempt}.md`);
             await writeFile(promptFile, prompt);
-            lastTrace = await createTrace(project, `a${attempt}-${task.title}`, bridge ? [bridge.secret] : []);
-            await lastTrace?.write(`Task: ${task.ref} "${task.title}"\nAgent: ${agent.name}\nHarness: ${selection.harness} ${item.route.inspection.version ?? ''}\nModel: ${selection.model ?? '(harness default)'}\nThinking: ${selection.thinkingLevel ?? '(default)'}\n\n## Prompt\n\n${prompt}\n## Events\n`);
+            const harnessLabel = `${plugin.displayName} ${item.route.inspection.version ?? ''}`.trim();
+            await trace.section(`Attempt ${attempt}/${repairBudget}${record.technicalRetries ? ` (technical retry ${record.technicalRetries})` : ''} · ${runLabel}`, [
+                `Agent: ${agent.name} · Harness: ${harnessLabel} · Model: ${selection.model ?? '(harness default)'} · Thinking: ${selection.thinkingLevel ?? '(default)'}`,
+                `Started: ${new Date().toISOString()}`,
+                '',
+                '## Prompt',
+                '',
+                bridge ? prompt.split(bridge.secret).join('[REDACTED]') : prompt,
+                '## Harness output (as exposed to Promptbook; hidden reasoning is never captured)',
+                '',
+            ]);
+            await trace.event('attempt-started', {
+                runId: record.runId,
+                attempt,
+                occurrence: record.occurrence,
+                technicalRetry: record.technicalRetries,
+                agent: agent.name,
+                harness: selection.harness,
+                harnessVersion: item.route.inspection.version,
+                model: selection.model ?? null,
+                thinkingLevel: selection.thinkingLevel ?? null,
+                engineVersion: ENGINE_VERSION,
+            });
             resetPending();
             try {
                 lastResult = await runHarness(
@@ -419,6 +517,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         mcp: bridge?.launch(),
                         env: environment.env,
                         timeoutMs: TURN_TIMEOUT_MS,
+                        stallTimeoutMs: setting<number>(settings, 'execution.stallTimeout'),
                         signal: environment.signal,
                         allowCredits: setting<boolean>(settings, 'execution.allowCredits'),
                         authentication: item.route.inspection.authentication,
@@ -427,8 +526,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                             if (event.type === 'activity') hooks.emit({ type: 'activity', text: event.text });
                             else if (event.type === 'error') hooks.emit({ type: 'activity', text: event.text, level: 'warning' });
                             else if (event.type === 'model') hooks.emit({ type: 'model', model: event.model });
-                            if (event.type !== 'reasoning') void lastTrace?.write(`[${event.type}] ${'text' in event ? event.text : JSON.stringify(event)}`);
                         },
+                        onOutput: (stream, line) => trace.output(stream, bridge ? line.split(bridge.secret).join('[REDACTED]') : line),
                     },
                     item.route.inspection.executablePath ?? plugin.executable,
                 );
@@ -436,14 +535,26 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 await bridge?.close();
                 await rm(promptFile, { force: true });
             }
-            await lastTrace?.write(`\n## Outcome\n\n${lastResult.outcome}: ${lastResult.diagnostic}\nExit code: ${String(lastResult.exitCode)}\n\n## Final message\n\n${lastResult.finalMessage}\n\n## stderr (tail)\n\n${lastResult.stderr.slice(-8000)}`);
-            const history = [...record.history, { attempt, outcome: lastResult.outcome, diagnostic: lastResult.diagnostic, trace: lastTrace?.relativePath, at: new Date().toISOString() }];
+            await trace.text(`\n## Attempt outcome\n\n${lastResult.outcome}: ${lastResult.diagnostic}\nExit code: ${String(lastResult.exitCode)} · duration ${Math.round(lastResult.durationMs / 1000)}s${lastResult.model ? ` · model ${lastResult.model}` : ''}`);
+            await trace.event('attempt-finished', {
+                runId: record.runId,
+                attempt,
+                outcome: lastResult.outcome,
+                diagnostic: lastResult.diagnostic,
+                exitCode: lastResult.exitCode,
+                durationMs: lastResult.durationMs,
+                model: lastResult.model ?? null,
+                usage: lastResult.usage ?? null,
+                costUsd: lastResult.costUsd ?? null,
+            });
+            const history = [...record.history, { attempt, outcome: lastResult.outcome, diagnostic: lastResult.diagnostic, trace: trace.reference, occurrence: record.occurrence, at: new Date().toISOString() }];
             await save({ history, feedback: undefined });
             const waitAfterPrompt = setting<number>(settings, 'execution.waitAfterPrompt');
             if (waitAfterPrompt > 0 && !environment.signal.aborted) await hooks.wait(waitAfterPrompt, { kind: 'pacing', reason: 'Pause after a harness call (--wait-after-prompt).' });
 
             if (lastResult.outcome === 'cancelled' || environment.signal.aborted) {
                 await save({ attempt: attempt - 1 });
+                await trace.event('interrupted', { runId: record.runId, attempt });
                 return { kind: 'interrupted' };
             }
             if (lastResult.outcome === 'authentication') {
@@ -453,12 +564,14 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             }
             if (lastResult.outcome === 'quota') {
                 await save({ attempt: attempt - 1 });
+                await trace.event('waiting', { reason: 'provider quota', diagnostic: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS });
                 return { kind: 'quota', reason: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS };
             }
             const report = parseAgentReport(lastResult.messages);
             if (pending.request && (!report || report.status === 'waiting-for-user')) {
                 await save({ phase: 'awaiting-user', requestId: pending.request.id, attempt: attempt - 1 });
                 hooks.emit({ type: 'phase', phase: 'awaiting-user', detail: pending.request.id });
+                await trace.event('awaiting-user', { runId: record.runId, requestId: pending.request.id });
                 await finishResult('awaiting-user', `Waiting for the answer to ${pending.request.id}.`);
                 return { kind: 'awaiting-user', requestId: pending.request.id };
             }
@@ -467,27 +580,31 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 if (technical > technicalBudget) return await fail(`${lastResult.diagnostic} (technical retries exhausted)`);
                 await save({ technicalRetries: technical, attempt: attempt - 1, feedback: `The previous run ended with a technical failure (${lastResult.diagnostic}). Continue the task.` });
                 hooks.emit({ type: 'activity', text: `${lastResult.diagnostic} — technical retry ${technical}/${technicalBudget}`, level: 'warning' });
+                await trace.event('technical-retry', { runId: record.runId, retry: technical, budget: technicalBudget, diagnostic: lastResult.diagnostic });
                 const waited = await hooks.wait(setting<number>(settings, 'execution.waitAfterError'), { kind: 'error-backoff', reason: `Technical failure: ${lastResult.diagnostic}` });
                 if (waited === 'cancelled') return { kind: 'interrupted' };
                 continue;
             }
             if (!report) {
                 await save({ feedback: 'Your final message did not end with the required PTBK_RESULT line, so the outcome could not be verified. Verify the result and end with the completion line.' });
+                await trace.event('repair-needed', { attempt, reason: 'missing completion report' });
                 continue;
             }
             lastReport = report;
+            await trace.event('report', { attempt, status: report.status, summary: report.summary, reason: report.reason });
             if (pending.request && report.status !== 'waiting-for-user') {
                 await environment.requests.resolve(pending.request.id, { status: 'cancelled', answer: `${agent.name} finished the turn without needing the answer.`, via: undefined }).catch(() => undefined);
             }
             if (report.status === 'blocked') return await fail(`${agent.name} reported the task as blocked: ${report.reason ?? report.summary}`);
             if (report.status === 'waiting-for-user') {
-                await save({ feedback: 'You reported waiting-for-user without calling ask_user. Ask through the tool, or complete the task.' });
+                await save({ feedback: 'You reported waiting-for-user without calling ask_user. Ask through the tool only for a genuine blocker, or complete the task.' });
                 continue;
             }
             if (item.validateReport) {
                 const validation = await item.validateReport(report, await changed());
                 if (!validation.ok) {
                     await save({ feedback: validation.feedback });
+                    await trace.event('repair-needed', { attempt, reason: validation.feedback });
                     continue;
                 }
                 const extra = (await validation.apply?.()) ?? [];
@@ -497,12 +614,14 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             if (setting<boolean>(settings, 'execution.autoMigrate') && migrateCommand) {
                 hooks.emit({ type: 'activity', text: `Running migration hook: ${migrateCommand}` });
                 const migration = await runCheck(project.root, migrateCommand, { env: environment.env, signal: environment.signal });
+                await trace.event('migration-hook', { command: migrateCommand, passed: migration.passed, exitCode: migration.exitCode });
                 if (!migration.passed) {
                     await save({ feedback: `The migration hook \`${migrateCommand}\` failed:\n\n${migration.output}` });
                     continue;
                 }
             }
             if (setting<boolean>(settings, 'execution.normalizeLineEndings')) await normalizeLineEndings(environment, await changed());
+            await prepareFollowUps(environment, task, await changed());
         }
         skipAgent = false;
 
@@ -520,18 +639,17 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const created: string[] = [];
             const wantsLearning = typeof item.learning === 'function' ? item.learning(await changed()) : item.learning;
             if (wantsLearning && setting<boolean>(settings, 'learning.enabled') && agent.definition && !isTeacher(agent.name) && agent.learning.open) {
-                const ref = task.id ? `#${task.id}` : task.ref;
-                const learningPath = await createLearningTask({
+                const learning = await createLearningTask({
                     projectRoot: project.root,
                     tasksDirectory: environment.tasksDirectory,
                     task,
-                    taskRef: ref,
+                    taskRef: `#${taskId}`,
                     agent,
-                    trace: lastTrace?.relativePath,
-                    occurrence,
+                    trace: trace.reference,
+                    occurrence: record.occurrence,
                     timeZone: environment.timeZone,
                 });
-                created.push(relativeKey(environment, learningPath));
+                created.push(relativeKey(environment, learning.path));
             }
             await save({ completionApplied: true, completionBackup: { source: originalSource, created }, createdPaths: [...new Set([...record.createdPaths, ...created])] });
         }
@@ -549,7 +667,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             hooks.emit({ type: 'phase', phase: 'checking', detail: check });
             hooks.emit({ type: 'activity', text: `Running check: ${check}` });
             const result = await runCheck(project.root, check, { env: environment.env, signal: environment.signal });
-            await lastTrace?.write(`\n## Check \`${check}\` (${result.passed ? 'passed' : 'failed'}, exit ${String(result.exitCode)})\n\n${result.output}`);
+            await trace.section(`Check \`${check}\` (${result.passed ? 'passed' : 'failed'}, exit ${String(result.exitCode)})`, [result.output]);
+            await trace.event('check', { command: check, passed: result.passed, exitCode: result.exitCode, durationMs: result.durationMs, failure: result.failure });
             if (environment.signal.aborted) return { kind: 'interrupted' };
             if (result.failure && !result.passed && result.exitCode === null) {
                 hooks.emit({ type: 'activity', text: `Check could not run: ${result.failure}`, level: 'error' });
@@ -564,7 +683,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             hooks.emit({ type: 'activity', text: `Check passed (${Math.round(result.durationMs / 1000)}s)` });
         }
 
-        // Persist: one scoped commit with the result, completion and follow-ups.
+        // Persist: one scoped commit with the result, completion, follow-ups and policy-eligible traces.
         const owned = await changed();
         if (environment.commit) {
             await save({ phase: 'committing' });
@@ -573,14 +692,24 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             let sha = existing;
             if (!sha) {
                 try {
+                    await hooks.finalizeEvidence?.(trace).catch((error: unknown) => hooks.emit({ type: 'activity', text: `Evidence limitation: ${errorMessage(error)}`, level: 'warning' }));
+                    const ids = await commitTaskIds(environment, task, owned, item.relatedTaskIds ?? []);
+                    await trace.event('committing', { runId: record.runId, paths: owned, createdTaskIds: ids.created, relatedTaskIds: ids.related });
+                    const evidence = await traceCommitPaths(environment, trace);
                     const outcome = await hooks.gitLock(() =>
                         commitPaths({
                             projectRoot: project.root,
                             repositoryRoot: environment.repositoryRoot,
-                            paths: owned.map((path) => resolve(project.root, path)),
+                            paths: [...owned.map((path) => resolve(project.root, path)), ...evidence],
                             subject: task.title,
                             body: assignmentText(task),
-                            trailers: { 'PTBK-Task': task.ref, 'PTBK-Run': record.runId, ...(occurrence ? { 'PTBK-Occurrence': occurrence } : {}) },
+                            trailers: {
+                                'Task-ID': taskId,
+                                'Created-Task-ID': ids.created,
+                                'Related-Task-ID': ids.related,
+                                'PTBK-Run': record.runId,
+                                ...(record.occurrence ? { 'PTBK-Occurrence': record.occurrence } : {}),
+                            },
                             temporaryDirectory: project.runtime.temporary,
                             env: environment.env,
                         }),
@@ -590,7 +719,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     const reason = errorMessage(error);
                     const details = error instanceof PtbkError ? error.details.reason : undefined;
                     await save({ phase: 'committing', failure: details ?? reason });
-                    await recordDiagnostic(project, { phase: 'commit', message: reason, details: { task: task.ref, reason: details } });
+                    await trace.event('commit-failed', { runId: record.runId, reason: details ?? reason }, { local: true });
+                    await recordDiagnostic(project, { phase: 'commit', message: reason, details: { task: task.ref, taskId, reason: details } });
                     hooks.emit({ type: 'activity', text: `Commit failed: ${details ?? reason}`, level: 'error' });
                     return { kind: 'persistence-failed', reason: details ?? reason };
                 }
@@ -605,19 +735,22 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 }
             }
             await save({ phase: 'committed', commitSha: sha });
+            // Recorded after the snapshot: the commit cannot contain its own hash.
+            await trace.event('committed', { runId: record.runId, occurrence: record.occurrence, commit: sha ?? null }, { local: true });
             const summary = lastReport?.summary || 'Completed.';
             await finishResult('completed', summary, sha);
             await state.clearActive();
-            hooks.emit({ type: 'activity', text: `Committed ${sha ? sha.slice(0, 8) : '(no changes)'} PTBK: ${task.title}` });
+            hooks.emit({ type: 'activity', text: `Committed ${sha ? sha.slice(0, 8) : '(no changes)'} PTBK: ${task.title} (Task-ID ${taskId})` });
             return { kind: 'completed', commit: sha, summary, changedPaths: owned, report: lastReport };
         }
+        await hooks.finalizeEvidence?.(trace).catch(() => undefined);
         const after = await captureSnapshot(environment, hooks.excludedPaths());
         await state.addOwnedUncommitted(Object.fromEntries(owned.map((path) => [path, after[path] ?? null])));
         const summary = lastReport?.summary || 'Completed (uncommitted).';
+        await trace.event('completed-uncommitted', { runId: record.runId, occurrence: record.occurrence, paths: owned });
         await finishResult('completed-uncommitted', summary);
         await state.clearActive();
         hooks.emit({ type: 'activity', text: `Checked but not committed (--no-commit): ${owned.length} path(s)` });
         return { kind: 'completed', summary, changedPaths: owned, report: lastReport };
     }
 }
-

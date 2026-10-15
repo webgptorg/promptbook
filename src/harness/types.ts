@@ -123,6 +123,10 @@ export type HarnessRunRequest = {
     readonly readableDirectories: readonly string[];
     /** Streaming events. */
     readonly onEvent?: (event: HarnessEvent) => void;
+    /** Every raw output line as exposed by the harness (for the task's consolidated trace). */
+    readonly onOutput?: (stream: 'stdout' | 'stderr', line: string) => void;
+    /** Silence after which the harness is considered stalled (unattended operation; 0 disables). */
+    readonly stallTimeoutMs?: number;
 };
 
 /**

@@ -53,6 +53,10 @@ export type AgentView = {
  */
 export type CurrentWorkView = {
     readonly taskRef: string;
+    /** Stable task ID (also in its commits' `Task-ID` trailer). */
+    readonly taskId?: string;
+    /** Project-relative audit directory (`traces/<task-id>/`). */
+    readonly trace?: string;
     readonly taskTitle: string;
     /** task, assignment, learning, discovery, ... */
     readonly kind: string;
@@ -97,6 +101,8 @@ export type WaitView = {
  */
 export type QueueItemView = {
     readonly ref: string;
+    /** Stable task ID (absent until prepared for execution). */
+    readonly id?: string;
     readonly title: string;
     readonly readiness: string;
     readonly reason: string;
@@ -116,6 +122,12 @@ export type QueueItemView = {
  */
 export type ResultView = {
     readonly ref: string;
+    /** Stable task ID. */
+    readonly taskId?: string;
+    /** Consolidated harness log of the task. */
+    readonly trace?: string;
+    /** Recurring occurrence (ISO). */
+    readonly occurrence?: string;
     readonly title: string;
     readonly outcome: string;
     readonly agent?: string;
@@ -141,9 +153,13 @@ export type RequestView = {
     readonly blocking: boolean;
     readonly createdAt: string;
     readonly taskRef?: string;
+    /** Stable ID of the originating task. */
+    readonly taskId?: string;
     readonly taskTitle?: string;
     readonly agent?: string;
     readonly origin: string;
+    /** Safe resolution already attempted. */
+    readonly attempted?: string;
 };
 
 /**
@@ -169,6 +185,7 @@ export type ErrorView = {
     readonly summary: string;
     readonly phase?: string;
     readonly task?: string;
+    readonly taskId?: string;
     readonly next?: string;
     readonly trace?: string;
 };

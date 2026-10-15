@@ -1,6 +1,8 @@
 import { ENGINE_VERSION } from '../common/version.js';
 import { fit, stringWidth, truncate, wrap } from './ansi.js';
-import { TextEditor } from './composer.js';
+import { clipboardImage, droppedFile, inlineSegments, isImagePath, MAX_ATTACHMENT_BYTES } from './attachments.js';
+import { inlineBadge, type BadgeActivity } from './badges.js';
+import { itemLabel, TextEditor, type ComposedSegment } from './composer.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { InlineRenderer } from './screen.js';
 import { symbols, type TerminalProfile } from './terminal.js';
@@ -11,6 +13,20 @@ import { symbols, type TerminalProfile } from './terminal.js';
  * @private terminal prompts
  */
 export const CANCELLED: unique symbol = Symbol('cancelled');
+
+/**
+ * Key that produced the most recent `CANCELLED`: Esc (go back) or Ctrl+C (abandon the wizard).
+ */
+let lastCancellation: 'escape' | 'interrupt' = 'escape';
+
+/**
+ * Whether the most recent cancellation was Ctrl+C (abandon) rather than Esc (go back).
+ *
+ * @private terminal prompts
+ */
+export function wasInterrupted(): boolean {
+    return lastCancellation === 'interrupt';
+}
 
 /**
  * Header context of a wizard step.
@@ -24,6 +40,8 @@ export type WizardFrame = {
     readonly step?: string;
     /** Already-answered summary lines. */
     readonly summary?: readonly string[];
+    /** Procedural guide shown with its mascot (Expert in init), reacting to the step. */
+    readonly guide?: { readonly name: string; readonly activity: BadgeActivity; readonly note?: string };
 };
 
 /**
@@ -51,6 +69,7 @@ function header(terminal: TerminalProfile, frame: WizardFrame): string[] {
     const gap = Math.max(1, width - stringWidth(frame.title) - stringWidth(`ptbk ${ENGINE_VERSION}`) - 2);
     const lines = [`${title}${' '.repeat(gap)}${version}`];
     if (frame.step) lines.push(style.muted(frame.step));
+    if (frame.guide) lines.push(`${inlineBadge(frame.guide.name, frame.guide.activity, style)}${frame.guide.note ? style.muted(` · ${truncate(frame.guide.note, Math.max(10, width - 24))}`) : ''}`);
     for (const line of frame.summary ?? []) lines.push(style.muted(`  ${terminal.unicode ? '✔' : 'OK'} ${line}`));
     lines.push('');
     return lines;
@@ -58,8 +77,14 @@ function header(terminal: TerminalProfile, frame: WizardFrame): string[] {
 
 /**
  * Runs an interactive inline prompt until a value is produced.
+ *
+ * `setup` receives a redraw function for asynchronous updates (clipboard reads, dropped files).
  */
-async function interact<T>(view: () => { lines: string[]; cursor?: { row: number; column: number } }, onKey: (event: KeyEvent) => T | undefined): Promise<T | typeof CANCELLED> {
+async function interact<T>(
+    view: () => { lines: string[]; cursor?: { row: number; column: number } },
+    onKey: (event: KeyEvent) => T | undefined,
+    setup?: (redraw: () => void) => void,
+): Promise<T | typeof CANCELLED> {
     const renderer = new InlineRenderer();
     return await new Promise<T | typeof CANCELLED>((resolve) => {
         let finished = false;
@@ -79,15 +104,18 @@ async function interact<T>(view: () => { lines: string[]; cursor?: { row: number
         };
         const keyboard = new KeyboardSession((event) => {
             if (event.type === 'key' && event.name === 'c' && event.ctrl) {
+                lastCancellation = 'interrupt';
                 finish(CANCELLED);
                 return;
             }
+            if (event.type === 'key' && event.name === 'escape') lastCancellation = 'escape';
             const result = onKey(event);
             if (result !== undefined) finish(result);
             else redraw();
         });
         keyboard.start();
         process.stdout.on('resize', redraw);
+        setup?.(redraw);
         redraw();
     });
 }
@@ -265,51 +293,242 @@ export async function selectMany<T>(
 }
 
 /**
- * Bounded multiline text field with visible cursor, safe paste and discoverable submit/newline/cancel keys.
+ * A labeled on/off control of a toggle list.
+ *
+ * @private terminal prompts
+ */
+export type Toggle<K extends string> = { readonly key: K; readonly label: string; readonly description: string };
+
+/**
+ * Several labeled on/off controls on one screen with a live explanation of their combined effect.
+ *
+ * Space toggles the focused control, Enter confirms all, Esc goes back without applying.
+ *
+ * @private terminal prompts
+ */
+export async function toggleList<K extends string>(
+    terminal: TerminalProfile,
+    options: { frame: WizardFrame; question: string; intro?: string; toggles: readonly Toggle<K>[]; initial: Readonly<Record<K, boolean>>; effect: (values: Readonly<Record<K, boolean>>) => readonly string[] },
+): Promise<Record<K, boolean> | typeof CANCELLED> {
+    const { style } = terminal;
+    const values = { ...options.initial } as Record<K, boolean>;
+    let focus = 0;
+    const result = await interact<Record<K, boolean>>(
+        () => {
+            const width = Math.min(terminal.columns() - 1, 110);
+            const lines = [...header(terminal, options.frame), style.bold(`${style.accent('?')} ${options.question}`)];
+            if (options.intro) for (const line of wrap(options.intro, width - 2)) lines.push(style.muted(`  ${line}`));
+            lines.push('');
+            options.toggles.forEach((toggle, index) => {
+                const box = values[toggle.key] ? (terminal.unicode ? '◉' : '[x]') : terminal.unicode ? '○' : '[ ]';
+                const pointer = index === focus ? style.accent(terminal.unicode ? '❯' : '>') : ' ';
+                const label = index === focus ? style.bold(toggle.label) : toggle.label;
+                lines.push(`${pointer} ${values[toggle.key] ? style.success(box) : box} ${label}  ${style.muted(values[toggle.key] ? 'yes' : 'no')}`);
+                for (const line of wrap(toggle.description, width - 6)) lines.push(style.muted(`      ${line}`));
+            });
+            lines.push('');
+            for (const line of options.effect(values)) for (const wrapped of wrap(line, width - 4)) lines.push(`  ${style.accent(wrapped)}`);
+            lines.push(legend(terminal, ['↑↓ move', 'Space toggle', 'Enter confirm', 'Esc back']));
+            return { lines };
+        },
+        (event) => {
+            if (event.type !== 'key') return undefined;
+            if (event.name === 'up') focus = (focus + options.toggles.length - 1) % options.toggles.length;
+            else if (event.name === 'down' || event.name === 'tab') focus = (focus + 1) % options.toggles.length;
+            else if (event.name === 'space') {
+                const key = options.toggles[focus]!.key;
+                values[key] = !values[key];
+            } else if (event.name === 'enter') return { ...values };
+            else if (event.name === 'escape') return CANCELLED as never;
+            return undefined;
+        },
+    );
+    return result === (CANCELLED as unknown) ? CANCELLED : result;
+}
+
+/**
+ * Result of the rich composer: the complete payload in order (pasted blocks in full, attachments at their positions).
+ *
+ * @private terminal prompts
+ */
+export type ComposedInput = { readonly segments: readonly ComposedSegment[]; readonly text: string };
+
+/**
+ * Largest pasted block accepted in one paste.
+ */
+const MAX_PASTE_CHARACTERS = 10 * 1024 * 1024;
+
+/**
+ * The shared rich composer: bounded multiline field with visible cursor, safe paste, compact tokens for long pasted
+ * blocks and attached images/files (inspectable, expandable and removable), and discoverable keys.
+ *
+ * @private terminal prompts
+ */
+export async function composeRich(
+    terminal: TerminalProfile,
+    options: { frame: WizardFrame; question: string; initial?: string | readonly ComposedSegment[]; placeholder?: string; required?: boolean; hint?: string; attachments?: boolean; singleLine?: boolean; aside?: () => readonly string[] },
+): Promise<ComposedInput | typeof CANCELLED> {
+    const { style } = terminal;
+    const editor = new TextEditor(options.initial ?? '');
+    editor.tokenizePastes = !options.singleLine;
+    const attachmentsAllowed = options.attachments === true;
+    let message = '';
+    let attachPath: TextEditor | undefined;
+    let busy = '';
+    let refresh: () => void = () => undefined;
+    const box = terminal.unicode ? { tl: '╭', tr: '╮', bl: '╰', br: '╯', h: '─', v: '│' } : { tl: '+', tr: '+', bl: '+', br: '+', h: '-', v: '|' };
+    const attachFile = async (raw: string): Promise<boolean> => {
+        const found = await droppedFile(raw);
+        if (!found) {
+            message = `No readable file at ${raw.trim() || '(empty path)'}.`;
+            return false;
+        }
+        if (found.bytes > MAX_ATTACHMENT_BYTES) {
+            message = `That file is larger than ${MAX_ATTACHMENT_BYTES / 1024 / 1024} MB and was not attached.`;
+            return false;
+        }
+        const name = found.path.split(/[\\/]/).pop() ?? 'file';
+        editor.attach({ kind: isImagePath(found.path) ? 'image' : 'file', path: found.path, name, bytes: found.bytes });
+        return true;
+    };
+    const inspection = (): string | undefined => {
+        const item = editor.itemAtCursor();
+        if (!item) return undefined;
+        if (item.kind === 'paste') {
+            const first = item.text.split('\n').find((line) => line.trim()) ?? '';
+            return `${itemLabel(item)} “${truncate(first.trim(), 50)}” · Ctrl+T expand to edit · Backspace remove`;
+        }
+        return `${itemLabel(item)} ${item.path}${item.bytes ? ` (${Math.max(1, Math.round(item.bytes / 1024))} KB)` : ''} · Backspace remove`;
+    };
+    const result = await interact<ComposedInput>(
+        () => {
+            const width = Math.min(terminal.columns() - 1, 110);
+            const inner = width - 4;
+            const lines = [...header(terminal, options.frame)];
+            for (const line of options.aside?.() ?? []) lines.push(line);
+            lines.push(style.bold(`${style.accent('?')} ${options.question}`));
+            if (options.hint) for (const line of wrap(options.hint, width - 2)) lines.push(style.muted(`  ${line}`));
+            const maxRows = options.singleLine ? 1 : Math.max(3, Math.min(14, terminal.rows() - lines.length - 7));
+            const layout = editor.layout(inner, maxRows);
+            lines.push(style.accent(`${box.tl}${box.h.repeat(width - 2)}${box.tr}`));
+            const top = lines.length;
+            const content = !editor.empty || editor.value ? layout.lines : [style.muted(options.placeholder ?? '')];
+            const minimum = options.singleLine ? 1 : Math.max(3, Math.min(maxRows, content.length));
+            for (let row = 0; row < minimum; row++) lines.push(`${style.accent(box.v)} ${fit(content[row] ?? '', inner)} ${style.accent(box.v)}`);
+            const scroll = layout.hiddenAbove || layout.hiddenBelow ? ` ${layout.hiddenAbove ? `↑${layout.hiddenAbove}` : ''}${layout.hiddenBelow ? ` ↓${layout.hiddenBelow}` : ''} ` : '';
+            lines.push(style.accent(`${box.bl}${box.h.repeat(Math.max(0, width - 2 - stringWidth(scroll)))}${scroll}${box.br}`));
+            if (attachPath) {
+                const pathLayout = attachPath.layout(width - 18, 1);
+                lines.push(`  ${style.bold('Attach file:')} ${pathLayout.lines[0] ?? ''}`);
+                lines.push(message ? `  ${style.warning(message)}` : legend(terminal, ['Enter attach', 'Esc back', 'paste or drop a path']));
+                return { lines, cursor: { row: lines.length - 2, column: 15 + pathLayout.cursor.column } };
+            }
+            const inspected = inspection();
+            if (busy) lines.push(`  ${style.muted(busy)}`);
+            else if (message) lines.push(`  ${style.warning(message)}`);
+            else if (inspected) lines.push(`  ${style.muted(truncate(inspected, width - 2))}`);
+            const items = editor.insertedItems;
+            const keys = options.singleLine
+                ? ['Enter submit', 'Esc cancel']
+                : ['Enter submit', 'Ctrl+J newline', ...(attachmentsAllowed ? ['Ctrl+O attach file', 'Ctrl+V paste image'] : []), 'Esc cancel', 'paste never submits'];
+            lines.push(legend(terminal, items.length ? [`${items.length} item${items.length === 1 ? '' : 's'} attached/pasted`, ...keys] : keys));
+            return { lines, cursor: { row: top + (!editor.empty || editor.value ? layout.cursor.row : 0), column: 2 + (!editor.empty || editor.value ? layout.cursor.column : 0) } };
+        },
+        (event) => {
+            if (busy) return undefined;
+            if (attachPath) {
+                if (event.type === 'key' && event.name === 'escape') {
+                    attachPath = undefined;
+                    message = '';
+                    return undefined;
+                }
+                if (event.type === 'key' && event.name === 'enter') {
+                    const raw = attachPath.value;
+                    busy = 'Checking the file…';
+                    void attachFile(raw).then((ok) => {
+                        busy = '';
+                        if (ok) {
+                            attachPath = undefined;
+                            message = '';
+                        }
+                        refresh();
+                    });
+                    return undefined;
+                }
+                message = '';
+                attachPath.handle(event);
+                return undefined;
+            }
+            message = '';
+            if (event.type === 'paste') {
+                if (event.text.length > MAX_PASTE_CHARACTERS) {
+                    message = `The pasted text is larger than ${MAX_PASTE_CHARACTERS / 1024 / 1024} MB and was not inserted.`;
+                    return undefined;
+                }
+                if (attachmentsAllowed && !options.singleLine && /^\s*['"]?(file:\/\/|[/~]|[A-Za-z]:[\\/])/.test(event.text) && !event.text.trim().includes('\n')) {
+                    busy = 'Checking the pasted path…';
+                    void droppedFile(event.text).then((found) => {
+                        busy = '';
+                        if (found && found.bytes <= MAX_ATTACHMENT_BYTES) editor.attach({ kind: isImagePath(found.path) ? 'image' : 'file', path: found.path, name: found.path.split(/[\\/]/).pop() ?? 'file', bytes: found.bytes });
+                        else editor.paste(event.text);
+                        refresh();
+                    });
+                    return undefined;
+                }
+                editor.paste(event.text);
+                return undefined;
+            }
+            if (event.type === 'key' && event.ctrl && attachmentsAllowed && !options.singleLine && event.name === 'o') {
+                attachPath = new TextEditor('');
+                attachPath.tokenizePastes = false;
+                return undefined;
+            }
+            if (event.type === 'key' && event.ctrl && attachmentsAllowed && !options.singleLine && event.name === 'v') {
+                busy = 'Reading an image from the clipboard…';
+                void clipboardImage().then((image) => {
+                    busy = '';
+                    if ('problem' in image) message = image.problem;
+                    else if (image.bytes > MAX_ATTACHMENT_BYTES) message = 'The clipboard image is too large to attach.';
+                    else editor.attach({ kind: 'image', path: image.path, name: image.path.split(/[\\/]/).pop() ?? 'clipboard.png', bytes: image.bytes });
+                    refresh();
+                });
+                return undefined;
+            }
+            if (event.type === 'key' && event.ctrl && event.name === 't') {
+                if (!editor.expandAtCursor()) message = 'Move the cursor next to a [Pasted text] item to expand it for editing.';
+                return undefined;
+            }
+            if (options.singleLine && event.type === 'key' && event.name === 'newline') return undefined;
+            const action = editor.handle(event);
+            if (action === 'submit') {
+                if (options.required && editor.empty) {
+                    message = 'A value is required.';
+                    return undefined;
+                }
+                const segments = editor.segments();
+                return { segments, text: inlineSegments(segments) };
+            }
+            if (action === 'cancel') return CANCELLED as never;
+            return undefined;
+        },
+        (redraw) => {
+            refresh = redraw;
+        },
+    );
+    return result === (CANCELLED as unknown) ? CANCELLED : result;
+}
+
+/**
+ * Bounded multiline text field (the rich composer without attachments), returning the complete text.
  *
  * @private terminal prompts
  */
 export async function composeText(
     terminal: TerminalProfile,
-    options: { frame: WizardFrame; question: string; initial?: string; placeholder?: string; required?: boolean; hint?: string },
+    options: { frame: WizardFrame; question: string; initial?: string; placeholder?: string; required?: boolean; hint?: string; singleLine?: boolean },
 ): Promise<string | typeof CANCELLED> {
-    const { style } = terminal;
-    const editor = new TextEditor(options.initial ?? '');
-    let message = '';
-    const box = terminal.unicode ? { tl: '╭', tr: '╮', bl: '╰', br: '╯', h: '─', v: '│' } : { tl: '+', tr: '+', bl: '+', br: '+', h: '-', v: '|' };
-    const result = await interact<string>(
-        () => {
-            const width = Math.min(terminal.columns() - 1, 110);
-            const inner = width - 4;
-            const lines = [...header(terminal, options.frame), style.bold(`${style.accent('?')} ${options.question}`)];
-            if (options.hint) for (const line of wrap(options.hint, width - 2)) lines.push(style.muted(`  ${line}`));
-            const maxRows = Math.max(3, Math.min(12, terminal.rows() - lines.length - 6));
-            const layout = editor.layout(inner, maxRows);
-            lines.push(style.accent(`${box.tl}${box.h.repeat(width - 2)}${box.tr}`));
-            const top = lines.length;
-            const content = editor.value ? layout.lines : [style.muted(options.placeholder ?? '')];
-            const minimum = Math.max(3, Math.min(maxRows, content.length));
-            for (let row = 0; row < minimum; row++) lines.push(`${style.accent(box.v)} ${fit(content[row] ?? '', inner)} ${style.accent(box.v)}`);
-            const scroll = layout.hiddenAbove || layout.hiddenBelow ? ` ${layout.hiddenAbove ? `↑${layout.hiddenAbove}` : ''}${layout.hiddenBelow ? ` ↓${layout.hiddenBelow}` : ''} ` : '';
-            lines.push(style.accent(`${box.bl}${box.h.repeat(Math.max(0, width - 2 - stringWidth(scroll)))}${scroll}${box.br}`));
-            lines.push(message ? `  ${style.warning(message)}` : legend(terminal, ['Enter submit', 'Ctrl+J newline', 'Esc cancel', 'paste never submits']));
-            return { lines, cursor: { row: top + (editor.value ? layout.cursor.row : 0), column: 2 + (editor.value ? layout.cursor.column : 0) } };
-        },
-        (event) => {
-            const action = editor.handle(event);
-            message = '';
-            if (action === 'submit') {
-                if (options.required && !editor.value.trim()) {
-                    message = 'A value is required.';
-                    return undefined;
-                }
-                return editor.value;
-            }
-            if (action === 'cancel') return CANCELLED as never;
-            return undefined;
-        },
-    );
-    return result === (CANCELLED as unknown) ? CANCELLED : result;
+    const result = await composeRich(terminal, options);
+    return result === CANCELLED ? CANCELLED : result.text;
 }
 
 /**
@@ -319,7 +538,7 @@ export async function composeText(
  */
 export async function inputLine(terminal: TerminalProfile, options: { frame: WizardFrame; question: string; initial?: string; placeholder?: string; validate?: (value: string) => string | undefined }): Promise<string | typeof CANCELLED> {
     for (;;) {
-        const value = await composeText(terminal, { frame: options.frame, question: options.question, initial: options.initial, placeholder: options.placeholder, required: true });
+        const value = await composeText(terminal, { frame: options.frame, question: options.question, initial: options.initial, placeholder: options.placeholder, required: true, singleLine: true });
         if (value === CANCELLED) return CANCELLED;
         const single = value.replace(/\s*\n\s*/g, ' ').trim();
         const problem = options.validate?.(single);

@@ -110,9 +110,19 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
     { key: 'execution.normalizeLineEndings', type: 'boolean', default: true, description: 'Normalize CRLF in changed files of LF projects.', application: 'next-task' },
     { key: 'execution.allowCredits', type: 'boolean', default: false, description: 'Authorize explicit paid-credit fallback where supported.', application: 'next-task' },
     { key: 'execution.questions', type: 'boolean', default: true, description: 'Allow agents to ask the user.', application: 'next-task' },
-    { key: 'execution.preserveLogs', type: 'boolean', default: false, description: 'Keep all traces without rotation.', application: 'live' },
+    { key: 'execution.preserveLogs', type: 'boolean', default: false, description: 'Keep all system logs in .ptbk/ without rotation (task traces are never rotated).', application: 'live' },
     { key: 'execution.autoMigrate', type: 'boolean', default: false, description: 'Run the configured migration hook after agent work.', application: 'next-task' },
     { key: 'execution.migrateCommand', type: 'string', default: undefined, description: 'Project migration hook command.', application: 'next-task' },
+    {
+        key: 'execution.stallTimeout',
+        type: 'duration',
+        default: 45 * 60_000,
+        description: 'A harness producing no output for this long is treated as stalled and retried (0 disables).',
+        application: 'next-task',
+    },
+    { key: 'traces.commit', type: 'boolean', default: false, description: 'Include task traces (traces/<task-id>/) in result commits; false ignores the whole traces/ tree.', application: 'next-task' },
+    { key: 'traces.ignoreVideos', type: 'boolean', default: true, description: 'Keep trace videos out of Git even when traces are committed.', application: 'next-task' },
+    { key: 'traces.recordVideo', type: 'boolean', default: true, description: 'Record browser activity of tasks using the project browser.', application: 'next-task' },
     { key: 'browser.profile', type: 'string', default: 'isolated', description: '`isolated` or a browser profile path.', application: 'next-task' },
     { key: 'browser.mode', type: 'enum', values: ['headless', 'headful'], default: 'headless', description: 'Browser visibility.', application: 'next-task' },
     { key: 'browser.executable', type: 'string', default: undefined, description: 'Chrome-compatible browser executable.', application: 'next-task' },
@@ -304,7 +314,7 @@ export async function readProjectConfigFile(project: Project): Promise<{ raw: Re
 /**
  * Known top-level keys of `ptbk.json`.
  */
-const KNOWN_TOP_LEVEL_KEYS = new Set(['$schema', 'version', 'paths', 'routing', 'execution', 'browser', 'server', 'service', 'discovery', 'learning', 'team', 'timezone', 'harnesses', 'initialized']);
+const KNOWN_TOP_LEVEL_KEYS = new Set(['$schema', 'version', 'paths', 'routing', 'execution', 'traces', 'browser', 'server', 'service', 'discovery', 'learning', 'team', 'timezone', 'harnesses', 'initialized']);
 
 /**
  * Parses the per-harness map of `ptbk.json`.

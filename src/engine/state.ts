@@ -1,6 +1,6 @@
 import { appendFile, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { ensureDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
+import { ensureDirectory, listDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
 import type { ThinkingLevel } from '../project/config.js';
 
 /**
@@ -49,6 +49,8 @@ export type AttemptRecord = {
     readonly trace?: string;
     /** Time (ISO). */
     readonly at: string;
+    /** Recurring occurrence of this attempt (ISO). */
+    readonly occurrence?: string;
 };
 
 /**
@@ -63,6 +65,8 @@ export type ActiveRecord = {
     readonly runId: string;
     /** Task reference. */
     readonly taskRef: string;
+    /** Stable task ID (names `traces/<task-id>/`). */
+    readonly taskId: string;
     /** Task title. */
     readonly taskTitle: string;
     /** Project-relative source path. */
@@ -139,6 +143,8 @@ export type TaskBlocker = {
 export type ResultRecord = {
     /** Task reference. */
     readonly taskRef: string;
+    /** Stable task ID. */
+    readonly taskId?: string;
     /** Title. */
     readonly title: string;
     /** Kind. */
@@ -163,8 +169,10 @@ export type ResultRecord = {
     readonly startedAt: string;
     /** End (ISO). */
     readonly endedAt: string;
-    /** Trace path. */
+    /** Trace path (`traces/<task-id>/harness.log`). */
     readonly trace?: string;
+    /** Recurring occurrence (ISO). */
+    readonly occurrence?: string;
     /** Engine version. */
     readonly engineVersion: string;
     /** Harness version. */
@@ -211,6 +219,38 @@ export class StateStore {
     /** Removes the active record after the task's outcome is fully recorded. */
     public async clearActive(): Promise<void> {
         await rm(this.file('active.json'), { force: true });
+    }
+
+    /**
+     * Checkpointed tasks that released execution while waiting for a person (answer or recovery decision), keyed by
+     * task ID, so independent work can continue (`.ptbk/state/parked/`).
+     */
+    public async readParked(): Promise<ActiveRecord[]> {
+        const records: ActiveRecord[] = [];
+        for (const entry of await listDirectory(this.file('parked'))) {
+            if (!entry.isFile || !entry.name.endsWith('.json')) continue;
+            const record = await readJsonIfExists<ActiveRecord>(join(this.file('parked'), entry.name)).catch(() => undefined);
+            if (record) records.push(record);
+        }
+        return records.sort((a, b) => a.updatedAt.localeCompare(b.updatedAt));
+    }
+
+    /** Checkpoints a waiting task and releases the active slot. */
+    public async park(record: ActiveRecord): Promise<void> {
+        await ensureDirectory(this.file('parked'));
+        await writeJsonAtomic(join(this.file('parked'), `${record.taskId}.json`), { ...record, updatedAt: new Date().toISOString() });
+        await this.clearActive();
+    }
+
+    /** Restores a checkpointed task as the active one. */
+    public async unpark(record: ActiveRecord): Promise<void> {
+        await this.writeActive(record);
+        await rm(join(this.file('parked'), `${record.taskId}.json`), { force: true });
+    }
+
+    /** Removes a checkpoint (its task was acknowledged or disappeared). */
+    public async dropParked(taskId: string): Promise<void> {
+        await rm(join(this.file('parked'), `${taskId}.json`), { force: true });
     }
 
     /** Reads task blockers. */

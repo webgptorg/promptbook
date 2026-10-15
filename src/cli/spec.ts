@@ -188,7 +188,7 @@ export const EXECUTION_POLICY_OPTIONS: OptionGroup = {
         { name: 'normalize-line-endings', type: 'boolean', negatable: true, negatedOnly: true, description: 'Keep CRLF line endings in changed files.' },
         { name: 'questions', type: 'boolean', negatable: true, negatedOnly: true, description: 'Agents may not ask the user questions.' },
         { name: 'allow-credits', type: 'boolean', description: 'Authorize explicit paid-credit fallback where the harness supports it.' },
-        { name: 'preserve-logs', type: 'boolean', description: 'Keep all traces without rotation.' },
+        { name: 'preserve-logs', type: 'boolean', description: 'Keep all system logs in .ptbk/ without rotation (task traces are never rotated).' },
         { name: 'auto-migrate', type: 'boolean', description: 'Run the configured migration hook (execution.migrateCommand) after agent work.' },
         { name: 'wait-between-prompts', type: 'duration', valueName: '<duration>', description: 'Pause between tasks (e.g. 30m, 1h30m).', defaultText: '0' },
         { name: 'wait-after-prompt', type: 'duration', valueName: '<duration>', description: 'Pause after each harness call.', defaultText: '0' },

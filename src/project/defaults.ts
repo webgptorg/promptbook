@@ -158,26 +158,52 @@ TASK AGENT @Planner
 ];
 
 /**
- * Stable ID of the first runnable task created by initialization.
+ * ID of the readiness starter task created by engines before the Expert bootstrap (recognized, never recreated).
  *
  * @private initialization defaults
  */
-export const STARTER_TASK_ID = 'promptbook-readiness-check';
+export const LEGACY_STARTER_TASK_ID = 'promptbook-readiness-check';
 
 /**
- * First runnable task: small, safe and project-local.
+ * Project-relative path of the preserved initial specification.
  *
  * @private initialization defaults
  */
-export function starterTask(options: { agent?: string }): string {
-    return `TASK Check that the project is ready for Promptbook work
+export const INITIAL_SPECIFICATION = 'specs/_initial.md';
 
-Inspect the initialized project and record a short readiness summary in \`docs/promptbook-readiness.md\`: what the project contains, how it is validated and anything that looks incomplete or risky.
-Do not change the project's purpose, do not implement unrelated features and do not require any external accounts or deployments.
+/**
+ * Project-relative directory of the initial specification's attachments.
+ *
+ * @private initialization defaults
+ */
+export const INITIAL_ASSETS = 'specs/_initial';
 
-TASK ID ${STARTER_TASK_ID}
-${options.agent ? `TASK AGENT ${options.agent}\n` : ''}TASK ORIGIN initialization
-`;
+/**
+ * The first task: an ordinary Expert task transforming the project according to the preserved initial specification.
+ *
+ * `specificationLink` is the relative link from the task source to `specs/_initial.md`.
+ *
+ * @private initialization defaults
+ */
+export function bootstrapTask(options: { blank: boolean; specificationLink: string }): { title: string; description: string } {
+    const link = `[\`${INITIAL_SPECIFICATION}\`](${options.specificationLink})`;
+    if (options.blank) {
+        return {
+            title: 'Review the initialized project',
+            description: [
+                `The initial specification ${link} is intentionally blank, so do not invent a project purpose.`,
+                'Perform a small project-local readiness review: inspect the initialized project and record a short summary in `docs/promptbook-readiness.md` (what the project contains, how it is validated, anything incomplete or risky).',
+                'Preserve the original specification and existing content. Do not request extra credentials, deploy anything or cause external effects.',
+            ].join('\n\n'),
+        };
+    }
+    return {
+        title: 'Transform the project according to the initial specification',
+        description: [
+            `Transform this project according to the initial specification in ${link} and its linked assets. Preserve the original specification; create or adapt the project content, agents, checks and follow-up tasks needed to fulfill it.`,
+            'The linked specification is the source of the user\'s intent: read it in full, keep it unchanged, and write any additional specifications or other project files next to it instead of replacing it.',
+        ].join('\n\n'),
+    };
 }
 
 /**
@@ -194,6 +220,8 @@ These instructions apply to every agent working on **${options.name}**.
 
 - \`agents/\` holds agent Books (supporting core agents live in \`agents/.core/\`).
 - \`tasks/\` holds task Books; \`tasks/templates/\` holds templates, which are not tasks.
+- \`specs/\` holds the project's specifications; \`specs/_initial.md\` preserves the original initial input — keep it unchanged.
+- \`traces/<task-id>/\` holds Promptbook's per-task audit evidence; never edit it or treat it as tasks or agents.
 - \`ptbk.json\` holds versioned Promptbook configuration; \`.ptbk/\` is Git-ignored runtime state.
 
 ## Working rules
@@ -209,18 +237,20 @@ These instructions apply to every agent working on **${options.name}**.
  *
  * @private initialization defaults
  */
-export function sampleReadme(options: { name: string; intent?: string }): string {
+export function sampleReadme(options: { name: string }): string {
     return `# ${options.name}
 
-${options.intent?.trim() || 'A project operated by Promptbook agents. Describe its purpose here, add tasks with `ptbk add` and run them with `ptbk start`.'}
+A project operated by Promptbook agents. Its initial specification is preserved in [specs/_initial.md](specs/_initial.md).
 
 ## Working with Promptbook
 
 \`\`\`bash
+ptbk dashboard  # live view and controls of the running agenda
 ptbk add "Describe the next piece of work"
-ptbk start      # background agenda
-ptbk dashboard  # live view and controls
+ptbk stop       # stop the background agenda (ptbk start resumes it)
 \`\`\`
+
+Each task's audit trail is in \`traces/<task-id>/\`; commits carry the same ID in a \`Task-ID\` trailer.
 `;
 }
 

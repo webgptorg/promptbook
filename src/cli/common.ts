@@ -59,6 +59,9 @@ export function settingOverrides(context: CommandContext): Record<string, unknow
     set('service.persist', flag(context, 'persist'));
     if (flag(context, 'harness-updates') === false) overrides['service.harnessUpdates'] = 'off';
     set('service.qr', flag(context, 'qr'));
+    set('traces.commit', flag(context, 'commit-traces'));
+    set('traces.ignoreVideos', flag(context, 'ignore-trace-videos'));
+    set('traces.recordVideo', flag(context, 'record-video'));
     const contextFile = option<string>(context, 'context');
     if (contextFile !== undefined) overrides['paths.context'] = contextFile === '' ? null : contextFile;
     if (option<number>(context, 'port') !== undefined && (option<number>(context, 'port')! < 1 || option<number>(context, 'port')! > 65535)) {

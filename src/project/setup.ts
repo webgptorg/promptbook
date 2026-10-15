@@ -2,12 +2,10 @@ import { writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, listDirectory, pathExists, readTextIfExists } from '../common/fs.js';
-import { formatAgentReference } from '../book/references.js';
 import { readTaskQueue } from '../tasks/sources.js';
 import { AgentCatalog } from './agents.js';
-import { CORE_AGENTS, DEFAULT_ROLES, RUNTIME_IGNORE_LINE, STARTER_TASK_ID, TASK_TEMPLATES, projectInstructions, starterTask } from './defaults.js';
+import { CORE_AGENTS, DEFAULT_ROLES, LEGACY_STARTER_TASK_ID, RUNTIME_IGNORE_LINE, TASK_TEMPLATES, projectInstructions } from './defaults.js';
 import { git, gitOrThrow, inspectGit } from './git.js';
-import { newTaskPath } from '../tasks/authoring.js';
 
 /**
  * Writes a new file only when it does not exist yet; returns whether it was created.
@@ -50,6 +48,77 @@ export async function ensureRuntimeIgnore(root: string, extraLines: readonly str
     const prefix = content && !content.endsWith('\n') ? '\n' : '';
     await writeFile(path, `${content}${prefix}${content ? '\n' : ''}# Promptbook runtime state\n${missing.join('\n')}\n`);
     return path;
+}
+
+/**
+ * Trace policy deciding which evidence Git versions.
+ *
+ * @private project setup
+ */
+export type TraceGitPolicy = { readonly commit: boolean; readonly ignoreVideos: boolean };
+
+/**
+ * First line of the managed trace block in `.gitignore`.
+ */
+const TRACE_BLOCK_START = '# >>> ptbk traces (managed from ptbk.json "traces"; change those settings instead)';
+
+/**
+ * Last line of the managed trace block in `.gitignore`.
+ */
+const TRACE_BLOCK_END = '# <<< ptbk traces';
+
+/**
+ * Ignore lines implementing a trace policy.
+ *
+ * Without trace commits the whole root-level tree is ignored (its videos too); with them, videos can still be
+ * excluded, and events appended after a result commit (`local/`) never dirty the tree again.
+ *
+ * @private project setup
+ */
+export function traceIgnoreLines(policy: TraceGitPolicy): string[] {
+    if (!policy.commit) return ['/traces/'];
+    return [...(policy.ignoreVideos ? ['/traces/*/video/'] : []), '/traces/*/local/'];
+}
+
+/**
+ * Brings the managed trace block of `.gitignore` in line with the policy, preserving every other entry.
+ *
+ * Returns the changed path, or `undefined` when the rules already match. Already tracked files stay tracked.
+ *
+ * @private project setup
+ */
+export async function ensureTraceIgnoreRules(root: string, policy: TraceGitPolicy): Promise<string | undefined> {
+    const path = join(root, '.gitignore');
+    const content = (await readTextIfExists(path)) ?? '';
+    const newline = content.includes('\r\n') ? '\r\n' : '\n';
+    const lines = content.split(/\r?\n/);
+    const block = [TRACE_BLOCK_START, ...traceIgnoreLines(policy), TRACE_BLOCK_END];
+    const start = lines.indexOf(TRACE_BLOCK_START);
+    const end = start >= 0 ? lines.indexOf(TRACE_BLOCK_END, start) : -1;
+    let next: string[];
+    if (start >= 0 && end > start) {
+        if (lines.slice(start, end + 1).join('\n') === block.join('\n')) return undefined;
+        next = [...lines.slice(0, start), ...block, ...lines.slice(end + 1)];
+    } else {
+        const body = [...lines];
+        while (body.length && body[body.length - 1] === '') body.pop();
+        next = [...body, ...(body.length ? [''] : []), ...block, ''];
+    }
+    const text = next.join(newline);
+    await writeFile(path, text.endsWith(newline) ? text : `${text}${newline}`);
+    return path;
+}
+
+/**
+ * Whether the managed trace block of `.gitignore` matches the policy.
+ *
+ * @private project setup
+ */
+export async function traceIgnoreRulesMatch(root: string, policy: TraceGitPolicy): Promise<boolean> {
+    const lines = ((await readTextIfExists(join(root, '.gitignore'))) ?? '').split(/\r?\n/);
+    const start = lines.indexOf(TRACE_BLOCK_START);
+    const end = start >= 0 ? lines.indexOf(TRACE_BLOCK_END, start) : -1;
+    return start >= 0 && end > start && lines.slice(start + 1, end).join('\n') === traceIgnoreLines(policy).join('\n');
 }
 
 /**
@@ -107,24 +176,21 @@ export async function ensureProjectInstructions(root: string, name: string, chec
 }
 
 /**
- * Creates the first runnable task once per project (never duplicated, reopened or resurrected).
+ * Whether the project already has its first task: the Expert bootstrap or an older readiness starter, open,
+ * completed or archived (it is never duplicated, reopened or resurrected).
  *
  * @private project setup
  */
-export async function ensureStarterTask(options: { root: string; tasksDirectory: string; agentsDirectory: string; timeZone: string; alreadyCreated: boolean; skip?: boolean }): Promise<string | undefined> {
-    if (options.alreadyCreated || options.skip) return undefined;
-    const tasksRoot = join(options.root, options.tasksDirectory);
+export async function hasFirstTask(options: { root: string; tasksDirectory: string; timeZone: string; knownIds: readonly string[] }): Promise<boolean> {
+    const ids = new Set([LEGACY_STARTER_TASK_ID, ...options.knownIds]);
     const queue = await readTaskQueue({ root: options.root, tasksDirectory: options.tasksDirectory, timeZone: options.timeZone });
-    if (queue.tasks.some((task) => task.id === STARTER_TASK_ID)) return undefined;
-    for (const archived of await listDirectory(join(tasksRoot, 'archive'))) {
-        if (archived.isFile && (await readTextIfExists(join(tasksRoot, 'archive', archived.name)))?.includes(`TASK ID ${STARTER_TASK_ID}`)) return undefined;
+    if (queue.tasks.some((task) => task.id && ids.has(task.id))) return true;
+    const archive = join(options.root, options.tasksDirectory, 'archive');
+    for (const archived of await listDirectory(archive)) {
+        const text = archived.isFile ? await readTextIfExists(join(archive, archived.name)) : undefined;
+        if (text && [...ids].some((id) => text.includes(`TASK ID ${id}`) || text.includes(`ptbk-task-id: ${id}`))) return true;
     }
-    const catalog = await AgentCatalog.load(options.root, options.agentsDirectory);
-    const developer = catalog.ordinary().find((definition) => definition.normalized === 'developer');
-    const path = await newTaskPath(tasksRoot, 'promptbook readiness check', Date.now(), options.timeZone);
-    await ensureDirectory(tasksRoot);
-    await writeFile(path, starterTask({ agent: developer ? formatAgentReference(developer.name) : undefined }), { flag: 'wx' });
-    return path;
+    return false;
 }
 
 /**

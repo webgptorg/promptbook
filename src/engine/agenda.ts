@@ -11,9 +11,12 @@ import { setControlCommitment } from '../book/edit.js';
 import { normalizeAgentName } from '../book/references.js';
 import { loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type EffectiveSettings, type ThinkingLevel } from '../project/config.js';
 import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent } from '../project/agents.js';
-import { commitPaths, inspectGit, git as runGit } from '../project/git.js';
+import { commitPaths, inspectGit, stageableFiles, git as runGit } from '../project/git.js';
+import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
+import { generateTaskId, traceDirectoryOf } from '../tasks/identity.js';
+import { assignTaskId } from '../tasks/prepare.js';
 import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
 import { HARNESS_PLUGINS, harnessName } from '../harness/registry.js';
@@ -25,7 +28,7 @@ import { describePriority } from '../tasks/priority.js';
 import { findTask, readTaskQueue } from '../tasks/sources.js';
 import { agentView, type BadgeActivity } from '../ui/badges.js';
 import type { BridgeTool } from './bridge.js';
-import { captureSnapshot, executeWork, type ExecutionEnvironment, type ExecutionOutcome, type WorkItem } from './executor.js';
+import { captureSnapshot, changedPaths, executeWork, type ExecutionEnvironment, type ExecutionOutcome, type WorkItem } from './executor.js';
 import {
     applyAssignment,
     assignmentPrompt,
@@ -55,7 +58,8 @@ import type {
     WaitView,
 } from './snapshot.js';
 import { StateStore, type ActiveRecord, type ResultRecord } from './state.js';
-import { recordDiagnostic, rotateTraces } from './traces.js';
+import { TaskTrace } from './task-trace.js';
+import { recordDiagnostic } from './traces.js';
 import { integrateWorktree, prepareWorktree } from './isolation.js';
 import { shortId } from '../common/ids.js';
 
@@ -108,8 +112,12 @@ export type AgendaOptions = {
     readonly run?: RunOptions;
     /** Plain event stream (raw/noninteractive output). */
     readonly onEvent?: (text: string, level: 'info' | 'warning' | 'error') => void;
-    /** Additional tools for agents (project browser). */
-    readonly extraTools?: (task: Task, context: { readonly onUserRequest: (request: UserRequest) => void }) => BridgeTool[];
+    /** Additional tools for agents (project browser); `trace`/`attempt` identify the evidence they belong to. */
+    readonly extraTools?: (task: Task, context: { readonly onUserRequest: (request: UserRequest) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
+    /** Finalizes task evidence produced outside the harness (browser video) before the result commit. */
+    readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
+    /** Releases per-task resources after every executed piece of work, whatever its outcome. */
+    readonly afterWork?: () => Promise<void>;
 };
 
 /**
@@ -237,6 +245,29 @@ export class Agenda {
         this.recentResults = results.slice(0, 20).map(resultView);
         await this.refreshRequests();
         this.log(`ptbk ${ENGINE_VERSION} ${this.options.mode === 'run' ? 'run' : 'agenda'} started for ${project.root}${this.commitMode ? '' : ' (explicit no-commit mode)'}`);
+        await this.applyTraceIgnoreRules();
+    }
+
+    /**
+     * Applies the saved trace policy to the project's `.gitignore` (projects initialized by an older engine), as a
+     * scoped configuration commit. A user-edited `.gitignore` is left alone and reported instead.
+     */
+    private async applyTraceIgnoreRules(): Promise<void> {
+        if (!this.repositoryRoot) return;
+        const { project } = this.options;
+        const file = await loadSettings(project, { env: this.options.env });
+        const policy = { commit: setting<boolean>(file, 'traces.commit'), ignoreVideos: setting<boolean>(file, 'traces.ignoreVideos') };
+        if (await traceIgnoreRulesMatch(project.root, policy)) return;
+        const gitignore = resolve(project.root, '.gitignore');
+        const dirty = await captureSnapshot({ project, repositoryRoot: this.repositoryRoot });
+        if (dirty['.gitignore'] !== undefined) {
+            this.logOnce('The trace ignore rules in .gitignore do not match ptbk.json "traces"; .gitignore has uncommitted edits, so it was left unchanged (run `ptbk init` to apply them).', 'warning');
+            return;
+        }
+        await ensureTraceIgnoreRules(project.root, policy);
+        const commit = this.commitMode ? await this.commitAuthoring([gitignore], 'Apply trace ignore rules').catch(() => undefined) : undefined;
+        if (!this.commitMode) await this.state.addOwnedUncommitted({ '.gitignore': null });
+        this.log(`Applied the trace policy to .gitignore (${policy.commit ? 'traces committed' : 'traces/ ignored'})${commit ? ` (${commit.slice(0, 8)})` : ''}.`);
     }
 
     /**
@@ -380,14 +411,14 @@ export class Agenda {
     /**
      * Writes and commits an authored task file at a safe boundary (never folded into the active task).
      */
-    public async addTaskFile(path: string, content: string, summary: string, commit: boolean = this.commitMode): Promise<{ path: string; commit?: string }> {
+    public async addTaskFile(path: string, content: string, summary: string, commit: boolean = this.commitMode, taskIds: readonly string[] = []): Promise<{ path: string; commit?: string }> {
         const absolute = await confinePath(this.options.project.root, path);
         this.authoredPaths.add(absolute);
         await ensureDirectory(dirname(absolute));
         await writeFile(absolute, content, { flag: 'wx' });
         let sha: string | undefined;
         if (commit) {
-            sha = await this.commitAuthoring([absolute], summary);
+            sha = await this.commitAuthoring([absolute], summary, taskIds);
             // Committed sources are clean again; later edits (e.g. Manager routing) belong to the work that makes them.
             this.authoredPaths.delete(absolute);
         } else await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, absolute)]: null });
@@ -396,13 +427,27 @@ export class Agenda {
         return { path: absolute, commit: sha };
     }
 
-    /** Commits authored paths under the Git lock. */
-    private async commitAuthoring(paths: readonly string[], summary: string): Promise<string | undefined> {
+    /** Commits authored paths under the Git lock (with the task IDs they concern). */
+    private async commitAuthoring(paths: readonly string[], summary: string, taskIds: readonly string[] = []): Promise<string | undefined> {
         if (!this.repositoryRoot) throw new PtbkError('The project is not in a Git working tree.', { kind: 'setup', next: ['Run `ptbk init`.'] });
         const outcome = await this.gitMutex.run(() =>
-            commitPaths({ projectRoot: this.options.project.root, repositoryRoot: this.repositoryRoot!, paths, subject: summary, temporaryDirectory: this.options.project.runtime.temporary, env: this.options.env }),
+            commitPaths({
+                projectRoot: this.options.project.root,
+                repositoryRoot: this.repositoryRoot!,
+                paths,
+                subject: summary,
+                trailers: { 'Task-ID': taskIds },
+                temporaryDirectory: this.options.project.runtime.temporary,
+                env: this.options.env,
+            }),
         );
         return outcome.committed ? outcome.sha : undefined;
+    }
+
+    /** Policy-eligible trace files of a task for a task-related commit (never ignored evidence). */
+    private async traceFiles(taskId: string): Promise<string[]> {
+        if (!this.commitMode || !setting<boolean>(this.settings, 'traces.commit')) return [];
+        return await stageableFiles(this.options.project.root, traceDirectoryOf(taskId));
     }
 
     /** Updates connection information (owned by the service). */
@@ -570,9 +615,11 @@ export class Agenda {
             blocking: request.blocking,
             createdAt: request.createdAt,
             taskRef: request.origin.taskRef,
+            taskId: request.origin.taskId,
             taskTitle: request.origin.taskTitle,
             agent: request.origin.agent,
             origin: request.origin.kind,
+            attempted: request.attempted,
         }));
         this.touch();
     }
@@ -657,6 +704,7 @@ export class Agenda {
             await this.continueActive(active);
             return;
         }
+        if (await this.resumeParked()) return;
         this.blockers = this.blockers.filter((blocker) => blocker.kind !== 'recovery' && blocker.kind !== 'persistence');
         if (!(await this.checkBeforeWork())) return;
         if (setting<boolean>(this.settings, 'execution.autoPull') && this.commitMode) await this.pull();
@@ -746,7 +794,9 @@ export class Agenda {
         const blockers = await this.state.readBlockers();
         const pending = await this.requests.list({ status: 'pending' });
         const awaitingUser = new Map<string, string>();
-        for (const request of pending) if (request.origin.taskRef && request.blocking) awaitingUser.set(request.origin.taskRef, request.id);
+        for (const request of pending) if (request.origin.taskRef && request.blocking) awaitingUser.set(request.origin.taskId ? `#${request.origin.taskId}` : request.origin.taskRef, request.id);
+        // Checkpointed tasks wait for their person until resumed, even once answered (resumption restores them first).
+        for (const parked of await this.state.readParked()) awaitingUser.set(`#${parked.taskId}`, parked.requestId ?? parked.recoveryRequestId ?? 'checkpoint');
         const uncommitted = new Set<string>();
         if (this.commitMode && this.repositoryRoot) {
             const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, new Set());
@@ -793,6 +843,7 @@ export class Agenda {
                 const resolution = routeCache.get(item.task.ref);
                 return {
                     ref: item.task.ref,
+                    id: item.task.id,
                     title: item.task.title,
                     readiness: item.readiness.kind,
                     reason: item.readiness.reason,
@@ -867,15 +918,37 @@ export class Agenda {
                 gitLock: (action) => this.gitMutex.run(action),
                 excludedPaths: () => this.authoredPaths,
                 extraTools: this.options.extraTools ? (context) => this.options.extraTools!(task, context) : undefined,
+                finalizeEvidence: this.options.finalizeEvidence,
             },
         };
     }
 
     // ── Starting work ────────────────────────────────────────────────────────
 
+    /**
+     * Gives a task lacking a stable ID its ID in a scoped preparation operation (committed by default) and returns the
+     * re-read task; `undefined` when preparation could not complete (retried on the next evaluation).
+     */
+    private async prepareIdentity(task: Task, options: { separateCommit?: boolean } = {}): Promise<Task | undefined> {
+        if (task.id) return task;
+        const separateCommit = options.separateCommit ?? true;
+        try {
+            const id = await assignTaskId(task);
+            const commit = this.commitMode && separateCommit ? await this.commitAuthoring([task.source.path], `Assign task ID - ${task.title}`, [id]) : undefined;
+            if (!this.commitMode && separateCommit) await this.state.addOwnedUncommitted({ [task.source.relativePath]: null });
+            this.log(`Assigned task ID ${id} to "${task.title}" (${task.source.relativePath})${commit ? ` (${commit.slice(0, 8)})` : ' (uncommitted)'}.`);
+            const queue = await readTaskQueue({ root: this.options.project.root, tasksDirectory: this.tasksDirectory, explicit: Boolean(this.options.tasksDirectory), timeZone: this.timeZone });
+            return findTask(queue.tasks, `#${id}`).task;
+        } catch (error) {
+            await this.reportError('task ID preparation', error, task.ref);
+            return undefined;
+        }
+    }
+
     /** Starts the selected task (or its Manager prerequisite). */
     private async startTask(next: EvaluatedTask): Promise<void> {
-        const task = next.task;
+        const task = await this.prepareIdentity(next.task);
+        if (!task) return;
         if (next.readiness.kind === 'needs-assignment') {
             await this.assign(task);
             return;
@@ -1009,15 +1082,16 @@ export class Agenda {
         const model = harness === preferred ? setting<string | undefined>(this.settings, 'routing.model') : this.settings.harnesses[harness]?.model;
         const thinking = harness === preferred ? setting<ThinkingLevel | undefined>(this.settings, 'routing.thinkingLevel') : this.settings.harnesses[harness]?.thinkingLevel;
         const created = await createAssignmentTask({ target, tasksDirectory: this.tasksDirectory, bootstrap: { harness, model, thinkingLevel: thinking }, timeZone: this.timeZone });
-        this.log(`Missing routing for "${target.title}": Manager prerequisite ${toProjectRelative(this.options.project.root, created.path)}`);
+        this.log(`Missing routing for "${target.title}": Manager prerequisite ${toProjectRelative(this.options.project.root, created.path)} (Task-ID ${created.id})`);
+        if (target.id) await (await TaskTrace.open(this.options.project, target.id)).event('assignment-requested', { managerTaskId: created.id, managerTask: toProjectRelative(this.options.project.root, created.path) });
         const managerTask = readTaskBook({ source: await readFile(created.path, 'utf8'), path: created.path, relativePath: toProjectRelative(this.options.project.root, created.path), order: 0, timeZone: this.timeZone })!;
         const route = await this.route(managerTask);
         if (route.kind !== 'routable') {
             this.log(`Manager prerequisite is not routable: ${route.reason}`, 'error');
             return;
         }
-        const item = await this.buildWorkItem(managerTask, route, { createdPaths: created.paths });
-        if (item) await this.execute(item);
+        const item = await this.buildWorkItem(managerTask, route, { createdPaths: [created.path] });
+        if (item) await this.execute({ ...item, relatedTaskIds: target.id ? [target.id] : [] });
     }
 
     /** Creates and executes a goal enquiry when one is due; returns false when none is due. */
@@ -1046,7 +1120,7 @@ export class Agenda {
         }
         const chosen = due[0]!.definition;
         this.phase = 'discovering';
-        const path = await createDiscoveryTask({ tasksDirectory: this.tasksDirectory, agentName: chosen.name, timeZone: this.timeZone });
+        const { path } = await createDiscoveryTask({ tasksDirectory: this.tasksDirectory, agentName: chosen.name, timeZone: this.timeZone });
         this.log(`Goal discovery: asking ${chosen.name} whether its goals justify new work.`);
         const task = readTaskBook({ source: await readFile(path, 'utf8'), path, relativePath: toProjectRelative(this.options.project.root, path), order: 0, timeZone: this.timeZone })!;
         const route = await this.route(task);
@@ -1084,7 +1158,8 @@ export class Agenda {
         const { stampBookCompletion } = await import('../tasks/book-task.js');
         const source = await readFile(task.source.path, 'utf8');
         await writeFile(task.source.path, stampBookCompletion(appendCommitment(source, 'TASK NOTE', note), Date.now(), this.timeZone));
-        const commit = this.commitMode ? await this.commitAuthoring([task.source.path], task.title) : undefined;
+        if (task.id) await (await TaskTrace.open(this.options.project, task.id)).event('completed-without-model', { note });
+        const commit = this.commitMode ? await this.commitAuthoring([task.source.path, ...(task.id ? await this.traceFiles(task.id) : [])], task.title, task.id ? [task.id] : []) : undefined;
         this.log(`${task.title}: ${note}${commit ? ` (${commit.slice(0, 8)})` : ''}`);
     }
 
@@ -1096,6 +1171,8 @@ export class Agenda {
         const targetRef = item.kind === 'assignment' ? originTarget(item.task) : undefined;
         this.current = {
             taskRef: item.task.ref,
+            taskId: item.task.id,
+            trace: item.task.id ? `${traceDirectoryOf(item.task.id)}/` : undefined,
             taskTitle: item.task.title,
             kind: item.kind,
             agent: agentView(selection.agent, 'working'),
@@ -1120,6 +1197,8 @@ export class Agenda {
             outcome = { kind: 'failed', reason: errorMessage(error) };
             const record = await this.state.readActive();
             if (record) await this.state.writeActive({ ...record, phase: 'failed', failure: errorMessage(error) });
+        } finally {
+            await this.options.afterWork?.().catch(() => undefined);
         }
         const finished = this.current;
         this.current = undefined;
@@ -1131,22 +1210,24 @@ export class Agenda {
                 this.runSucceeded++;
                 await this.state.setBlocker(item.task.ref, undefined);
                 this.recentResults = (await this.state.recentResults(20)).map(resultView);
-                if (setting<boolean>(this.settings, 'execution.autoPush') && outcome.commit) await this.push();
-                if (!setting<boolean>(this.settings, 'execution.preserveLogs')) await rotateTraces(this.options.project, new Set());
+                if (setting<boolean>(this.settings, 'execution.autoPush') && outcome.commit) await this.push(item.task.id);
                 const pacing = setting<number>(this.settings, 'execution.waitBetweenPrompts');
                 if (pacing > 0 && !this.stopRequested) await this.wait(pacing, { kind: 'pacing', reason: 'Pause between tasks (--wait-between-prompts).', skippable: true });
                 break;
             }
-            case 'awaiting-user':
+            case 'awaiting-user': {
                 this.log(`"${item.task.title}" waits for your answer to ${outcome.requestId} (ptbk answer ${outcome.requestId}).`, 'warning');
                 await this.refreshRequests();
                 if (this.options.mode === 'run') this.executedInRun.add(item.task.ref);
+                const record = await this.state.readActive();
+                if (record) await this.checkpoint(record);
                 break;
+            }
             case 'failed':
                 this.failed++;
                 this.executedInRun.add(item.task.ref);
                 this.recentResults = (await this.state.recentResults(20)).map(resultView);
-                this.addError({ at: new Date().toISOString(), summary: `"${item.task.title}" failed: ${outcome.reason}`, phase: 'task execution', task: item.task.ref, trace: outcome.trace, next: `Answer the recovery request or run \`ptbk recover ${item.task.ref}\`.` });
+                this.addError({ at: new Date().toISOString(), summary: `"${item.task.title}" failed: ${outcome.reason}`, phase: 'task execution', task: item.task.ref, taskId: item.task.id, trace: outcome.trace, next: `Answer the recovery request or run \`ptbk recover ${item.task.ref}\`.` });
                 break;
             case 'setup':
                 this.setBlocker({ kind: 'harness', title: `${harnessName(selection.harness)} needs setup`, reason: outcome.reason, action: outcome.next, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
@@ -1201,7 +1282,8 @@ export class Agenda {
     }
 
     /** Continues the task recorded in the active record. */
-    private async continueActive(record: ActiveRecord): Promise<void> {
+    private async continueActive(initialRecord: ActiveRecord): Promise<void> {
+        let record = initialRecord;
         if (this.options.mode === 'run' && record.instanceId !== this.options.instanceId && setting<string>(this.settings, 'execution.gitChanges') !== 'continue' && record.phase !== 'awaiting-user') {
             this.finishedSummary = {
                 completed: this.completed,
@@ -1218,9 +1300,12 @@ export class Agenda {
         }
         if (record.phase === 'awaiting-user' && record.requestId) {
             const request = await this.requests.get(record.requestId);
+            if (request?.status === 'pending' && (await this.checkpoint(record))) return;
             if (request?.status === 'pending') {
                 this.current = {
                     taskRef: record.taskRef,
+                    taskId: record.taskId,
+                    trace: record.taskId ? `${traceDirectoryOf(record.taskId)}/` : undefined,
                     taskTitle: record.taskTitle,
                     kind: record.kind,
                     agent: agentView(record.routing.agent, 'waiting-user'),
@@ -1242,7 +1327,7 @@ export class Agenda {
                     this.finishRun([]);
                     return;
                 }
-                await this.wait(IDLE_RECHECK_MS, { kind: 'user', reason: `"${record.taskTitle}" waits for your answer to ${request.id}.`, action: `ptbk answer ${request.id}`, skippable: false });
+                await this.wait(IDLE_RECHECK_MS, { kind: 'user', reason: `"${record.taskTitle}" waits for your answer to ${request.id} and holds uncommitted changes, so other work waits too.`, action: `ptbk answer ${request.id}`, skippable: false });
                 this.current = undefined;
                 return;
             }
@@ -1257,9 +1342,17 @@ export class Agenda {
             this.lastPersistenceRetry = Date.now();
         }
         const queue = await readTaskQueue({ root: this.options.project.root, tasksDirectory: this.tasksDirectory, explicit: Boolean(this.options.tasksDirectory), timeZone: this.timeZone });
-        const task =
+        const located =
+            (record.taskId ? findTask(queue.tasks, `#${record.taskId}`).task : undefined) ??
             queue.tasks.find((candidate) => candidate.source.relativePath === record.sourcePath && (!record.sectionHash || candidate.source.sectionHash === record.sectionHash)) ??
             findTask(queue.tasks, record.taskRef).task;
+        // Records written by an older engine may predate stable IDs: prepare the ID before resuming.
+        // Its source may already hold this run's uncommitted edits, so the ID joins the task's own result commit.
+        const task = located && !located.id ? await this.prepareIdentity(located, { separateCommit: false }) : located;
+        if (task?.id && record.taskId !== task.id) {
+            record = { ...record, taskId: task.id, taskRef: task.ref, sectionHash: task.source.sectionHash };
+            await this.state.writeActive(record);
+        }
         if (!task) {
             await this.state.writeActive({ ...record, phase: 'failed', failure: `The task source ${record.sourcePath} moved or disappeared during execution.` });
             return;
@@ -1297,7 +1390,8 @@ export class Agenda {
                 reason: `"${record.taskTitle}" failed: ${record.failure ?? 'unknown reason'}`,
                 question: 'How should ptbk continue? Retry runs the task again with a fresh attempt budget; acknowledging records the failure (TASK STATUS failed) and moves on. Partial changes stay in the working tree.',
                 choices: [...RECOVERY_CHOICES],
-                origin: { kind: 'recovery', taskRef: record.taskRef, taskTitle: record.taskTitle, agent: record.routing.agent },
+                origin: { kind: 'recovery', taskRef: record.taskRef, taskId: record.taskId, taskTitle: record.taskTitle, agent: record.routing.agent },
+                attempted: `${record.attempt} attempt(s) and ${record.technicalRetries} technical retr${record.technicalRetries === 1 ? 'y' : 'ies'} within the configured budgets. Evidence: ${record.taskId ? `traces/${record.taskId}/` : 'see ptbk recover'}.`,
                 blocking: true,
             });
             requestId = request.id;
@@ -1305,6 +1399,7 @@ export class Agenda {
             await this.refreshRequests();
         }
         if (request.status === 'pending') {
+            if (await this.checkpoint({ ...record, recoveryRequestId: request.id })) return;
             this.setBlocker({ kind: 'recovery', title: `"${record.taskTitle}" needs a decision`, reason: record.failure ?? 'The task failed.', action: `ptbk answer ${request.id}` });
             if (this.options.mode === 'run') {
                 this.finishRun([]);
@@ -1332,13 +1427,15 @@ export class Agenda {
             const source = await readFile(path, 'utf8');
             const updated = path.endsWith('.book')
                 ? setControlCommitment(source, 'TASK STATUS', 'failed')
-                : setMarkdownControl(source, record.sectionHash!, '!', `failed ${formatIsoWithOffset(Date.now(), this.timeZone)}: ${(record.failure ?? '').slice(0, 160)}`);
+                : setMarkdownControl(source, { id: record.taskId, hash: record.sectionHash }, '!', `failed ${formatIsoWithOffset(Date.now(), this.timeZone)}: ${(record.failure ?? '').slice(0, 160)}`);
             await writeFile(path, updated);
-            if (this.commitMode) await this.commitAuthoring([path], `Mark failed - ${record.taskTitle}`);
+            if (record.taskId) await (await TaskTrace.open(this.options.project, record.taskId)).event('failure-acknowledged', { runId: record.runId, failure: record.failure });
+            if (this.commitMode) await this.commitAuthoring([path, ...(record.taskId ? await this.traceFiles(record.taskId) : [])], `Mark failed - ${record.taskTitle}`, record.taskId ? [record.taskId] : []);
         } catch (error) {
             this.log(`Could not mark "${record.taskTitle}" as failed in its source: ${errorMessage(error)}`, 'warning');
         }
         await this.state.clearActive();
+        if (record.taskId) await this.state.dropParked(record.taskId);
         this.log(`Acknowledged the failure of "${record.taskTitle}". Partial changes (if any) remain uncommitted for review.`, 'warning');
     }
 
@@ -1391,7 +1488,16 @@ export class Agenda {
         }
         const path = await newTaskPath(this.tasksDirectory, 'repair failing project check', Date.now(), this.timeZone);
         const agent = setting<string>(this.settings, 'routing.defaultAgent');
-        await writeFile(path, renderTaskBook({ title: 'Repair the failing project check', description: `The project check \`${check}\` fails before work. Fix the underlying defects without weakening validation.\n\n\`\`\`\n${result.output.slice(-6000)}\n\`\`\``, commitments: [`TASK AGENT {${agent}}`, 'TASK ORIGIN maintenance: failing project check'] }), { flag: 'wx' });
+        await writeFile(
+            path,
+            renderTaskBook({
+                title: 'Repair the failing project check',
+                description: `The project check \`${check}\` fails before work. Fix the underlying defects without weakening validation.\n\n\`\`\`\n${result.output.slice(-6000)}\n\`\`\``,
+                id: generateTaskId('repair failing project check'),
+                commitments: [`TASK AGENT {${agent}}`, 'TASK ORIGIN maintenance: failing project check'],
+            }),
+            { flag: 'wx' },
+        );
         const outcome = await this.executeMaintenance(path, check);
         this.checkedBefore = outcome.kind === 'completed';
         return this.checkedBefore;
@@ -1413,12 +1519,56 @@ export class Agenda {
     }
 
     /** Pushes completed work when automatic push is enabled (failures stay local and pending). */
-    private async push(): Promise<void> {
+    private async push(taskId?: string): Promise<void> {
         if (!this.repositoryRoot) return;
         this.phase = 'synchronizing';
         const result = await this.gitMutex.run(() => runGit(this.repositoryRoot!, ['push'], { timeoutMs: 120_000 }));
         if (result.exitCode === 0) this.log('Pushed completed work.');
         else this.log(`Push failed; the commit stays local and synchronization is pending: ${result.stderr.trim().split('\n').slice(-2).join(' ')}`, 'warning');
+        // Synchronization happens after the result snapshot, so it is recorded as a local (post-commit) event.
+        if (taskId) await (await TaskTrace.open(this.options.project, taskId)).event('push', { ok: result.exitCode === 0, detail: result.exitCode === 0 ? undefined : result.stderr.trim().slice(-500) }, { local: true });
+    }
+
+    /**
+     * Checkpoints a task waiting for a person (answer or recovery decision) and releases execution so independent
+     * work can continue — only when it holds no uncommitted changes. Otherwise the wait stays a project-wide blocker
+     * whose reason is shown. Returns whether the task was checkpointed.
+     */
+    private async checkpoint(record: ActiveRecord): Promise<boolean> {
+        if (!this.repositoryRoot || record.worktree || !record.taskId) return false;
+        const owned = changedPaths(record.preSnapshot, await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, this.authoredPaths));
+        if (owned.length) {
+            this.setBlocker({
+                kind: 'recovery',
+                title: `"${record.taskTitle}" holds uncommitted changes while waiting`,
+                reason: `It waits for a person and has uncommitted changes (${owned.slice(0, 4).join(', ')}${owned.length > 4 ? ', …' : ''}), so other tasks cannot run safely without mixing them into another result.`,
+                action: record.requestId || record.recoveryRequestId ? `ptbk answer ${record.requestId ?? record.recoveryRequestId}` : `ptbk recover ${record.taskRef}`,
+            });
+            return false;
+        }
+        await this.state.park(record);
+        await (await TaskTrace.open(this.options.project, record.taskId)).event('checkpointed', { phase: record.phase, requestId: record.requestId ?? record.recoveryRequestId });
+        this.log(`"${record.taskTitle}" is checkpointed until its request is resolved; independent work continues.`);
+        return true;
+    }
+
+    /**
+     * Restores a checkpointed task whose request was resolved, so it resumes at the correct phase without another
+     * Start/Run action. Returns whether one was restored.
+     */
+    private async resumeParked(): Promise<boolean> {
+        if (!this.repositoryRoot) return false;
+        for (const record of await this.state.readParked()) {
+            const requestId = record.phase === 'awaiting-user' ? record.requestId : record.recoveryRequestId;
+            const request = requestId ? await this.requests.get(requestId) : undefined;
+            if (request?.status === 'pending') continue;
+            // The checkpoint held no changes; later commits by other tasks are the new baseline.
+            const preSnapshot = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, this.authoredPaths);
+            await this.state.unpark({ ...record, preSnapshot, instanceId: this.options.instanceId });
+            this.log(`Resuming "${record.taskTitle}" after its request was ${request?.status ?? 'resolved'}.`);
+            return true;
+        }
+        return false;
     }
 
     // ── Views ────────────────────────────────────────────────────────────────
@@ -1481,8 +1631,13 @@ export class Agenda {
 
     /** Applies a recovery action from `ptbk recover` through the running process. */
     public async recover(taskRef: string, action: 'resume' | 'retry' | 'acknowledge'): Promise<string> {
-        const record = await this.state.readActive();
-        if (!record || (record.taskRef !== taskRef && record.sourcePath !== taskRef.replace(/\\/g, '/'))) {
+        const matches = (candidate: ActiveRecord | undefined): boolean =>
+            Boolean(candidate && (candidate.taskRef === taskRef || `#${candidate.taskId}` === taskRef || candidate.taskId === taskRef || candidate.sourcePath === taskRef.replace(/\\/g, '/')));
+        const active = await this.state.readActive();
+        const parked = matches(active) ? undefined : (await this.state.readParked()).find(matches);
+        if (parked) await this.state.dropParked(parked.taskId);
+        const record = matches(active) ? active : parked;
+        if (!record) {
             const blockers = await this.state.readBlockers();
             if (blockers[taskRef]) {
                 await this.state.setBlocker(taskRef, undefined);
@@ -1498,7 +1653,11 @@ export class Agenda {
             if (record.recoveryRequestId) await this.requests.resolve(record.recoveryRequestId, { status: 'answered', answer: RECOVERY_CHOICES[0], via: 'cli' }).catch(() => undefined);
             await this.retryRecord(record);
         } else {
-            if (record.phase === 'failed') throw new PtbkError('A failed task cannot resume; use --action retry or --action acknowledge.', { kind: 'usage' });
+            if (record.phase === 'failed') {
+                if (parked) await this.state.park(parked);
+                throw new PtbkError('A failed task cannot resume; use --action retry or --action acknowledge.', { kind: 'usage' });
+            }
+            if (parked) await this.state.unpark(parked);
             this.wake();
         }
         await this.refreshRequests();
@@ -1513,6 +1672,9 @@ export class Agenda {
 function resultView(result: ResultRecord): ResultView {
     return {
         ref: result.taskRef,
+        taskId: result.taskId,
+        trace: result.trace,
+        occurrence: result.occurrence,
         title: result.title,
         outcome: result.outcome,
         agent: result.agent,

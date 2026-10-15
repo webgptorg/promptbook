@@ -109,6 +109,10 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
             'mcp_servers.ptbk.startup_timeout_sec=30',
             '-c',
             'mcp_servers.ptbk.tool_timeout_sec=900',
+            // ptbk's own tools enforce task authority themselves; per-call approval would be an invisible prompt in
+            // unattended exec (Codex then rejects the call as "approval unavailable"). Older Codex ignores the key.
+            '-c',
+            'mcp_servers.ptbk.default_tools_approval_mode="approve"',
         );
     }
     args.push('-');

@@ -1,12 +1,62 @@
-import { EXIT } from '../../common/errors.js';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { EXIT, PtbkError } from '../../common/errors.js';
+import { listDirectory, pathExists } from '../../common/fs.js';
 import { formatShortTime } from '../../common/time.js';
 import { loadSettings } from '../../project/config.js';
+import { commitsOfTask, inspectGit } from '../../project/git.js';
+import type { Project } from '../../project/workspace.js';
 import { previewQueue } from '../../engine/preview.js';
+import type { RecordingStatus } from '../../browser/recording.js';
+import { findTask } from '../../tasks/sources.js';
+import { traceDirectoryOf } from '../../tasks/identity.js';
+import type { Task } from '../../tasks/model.js';
 import { describePriority } from '../../tasks/priority.js';
 import { fit, stringWidth, truncate } from '../../ui/ansi.js';
 import { renderPanel } from '../../ui/panels.js';
 import { selectedProject, printJson, tasksOverride } from '../common.js';
 import { flag, type CommandContext } from '../context.js';
+
+/**
+ * Read-only inspection of one task: identity, audit trail, recording status and commits (resolved from Git).
+ */
+async function inspectTask(context: CommandContext, project: Project, task: Task, readiness: { kind: string; reason: string }): Promise<number> {
+    const trace = task.id ? traceDirectoryOf(task.id) : undefined;
+    const files = trace ? (await listDirectory(join(project.root, trace))).filter((entry) => entry.isFile).map((entry) => `${trace}/${entry.name}`) : [];
+    const video = trace && (await pathExists(join(project.root, trace, 'video.json'))) ? (JSON.parse(await readFile(join(project.root, trace, 'video.json'), 'utf8')) as RecordingStatus) : undefined;
+    const gitInfo = await inspectGit(project.root);
+    const commits = task.id && gitInfo.state === 'repository' ? await commitsOfTask(gitInfo.root, task.id) : [];
+    const details = {
+        ref: task.ref,
+        id: task.id ?? null,
+        title: task.title,
+        source: task.source.relativePath,
+        section: task.source.section,
+        status: task.status,
+        readiness: readiness.kind,
+        reason: readiness.reason,
+        trace: trace ? `${trace}/` : null,
+        traceFiles: files,
+        video: video ?? null,
+        commits,
+    };
+    if (flag(context, 'json')) {
+        printJson(details);
+        return EXIT.success;
+    }
+    const lines = [
+        `Task: ${task.title}`,
+        `ID: ${task.id ?? 'not assigned yet (assigned when the task is prepared for execution)'}`,
+        `Source: ${task.source.relativePath}${task.source.section ? ` (section ${task.source.section})` : ''}`,
+        `Readiness: ${readiness.kind} — ${readiness.reason}`,
+        `Trace: ${trace ? `${trace}/${files.length ? ` (${files.map((file) => file.slice(trace.length + 1)).join(', ')})` : ' (no evidence yet)'}` : '—'}`,
+        `Video: ${video ? `${video.state}${video.segments.length ? ` · ${video.segments.map((segment) => (segment.file ? `${trace}/${segment.file}` : `${segment.label}: ${segment.status}`)).join(', ')}` : ''}` : 'none recorded'}`,
+        `Commits: ${commits.length ? '' : 'none yet'}`,
+        ...commits.map((commit) => `  ${commit.sha.slice(0, 10)} ${commit.date.slice(0, 16)} ${commit.subject}${commit.role === 'task' ? '' : ` (${commit.role === 'created' ? 'created here' : 'related'})`}`),
+    ];
+    context.terminal.write(`${lines.join('\n')}\n`);
+    return EXIT.success;
+}
 
 /**
  * `ptbk list`: read-only queue with the same readiness explanations as execution.
@@ -17,6 +67,14 @@ export default async function list(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const settings = await loadSettings(project, { env: context.env });
     const preview = await previewQueue(project, { settings, mode: 'start', tasksDirectory: tasksOverride(context), env: context.env });
+    const [reference] = context.positionals;
+    if (reference) {
+        const found = findTask(preview.evaluated.map((item) => item.task), reference);
+        if (found.ambiguous) throw new PtbkError(`"${reference}" matches ${found.ambiguous.length} tasks.`, { kind: 'usage', reason: found.ambiguous.map((task) => `${task.ref} (${task.source.relativePath})`).join('\n'), next: ['Use the task ID (#id) or the source path.'] });
+        if (!found.task) throw new PtbkError(`No task matches "${reference}".`, { kind: 'not-found', next: ['Run `ptbk list --all` to see task references.'] });
+        const readiness = preview.evaluated.find((item) => item.task === found.task)!.readiness;
+        return await inspectTask(context, project, found.task, readiness);
+    }
     const all = flag(context, 'all') === true;
     const readyOnly = flag(context, 'ready') === true;
     const items = preview.evaluated.filter((item) => (all || !['done', 'retired'].includes(item.readiness.kind)) && (!readyOnly || item.readiness.kind === 'ready' || item.readiness.kind === 'needs-assignment'));

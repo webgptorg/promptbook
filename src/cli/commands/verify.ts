@@ -5,6 +5,7 @@ import { ensureDirectory, pathExists, toProjectRelative } from '../../common/fs.
 import { loadSettings, setting } from '../../project/config.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
 import { StateStore } from '../../engine/state.js';
+import { generateTaskId } from '../../tasks/identity.js';
 import { newTaskPath, renderTaskBook, splitTitle } from '../../tasks/authoring.js';
 import { splitMarkdownSections } from '../../tasks/markdown.js';
 import { isRecurring, type Task } from '../../tasks/model.js';
@@ -84,8 +85,11 @@ export default async function verify(context: CommandContext): Promise<number> {
             if (text === CANCELLED) continue;
             const { title, description } = splitTitle(text);
             const path = await newTaskPath(tasksDirectory, title, Date.now(), timeZone);
-            await writeFile(path, renderTaskBook({ title, description, commitments: [`TASK PARENT ${task.ref}`, `TASK ORIGIN review of ${task.ref}`] }), { flag: 'wx' });
-            if (commit && gitInfo.state === 'repository') await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: [path], subject: `Add task - ${title}`, temporaryDirectory: project.runtime.temporary });
+            const id = generateTaskId(title);
+            await writeFile(path, renderTaskBook({ title, description, id, commitments: [`TASK PARENT ${task.ref}`, `TASK ORIGIN review of ${task.ref}`] }), { flag: 'wx' });
+            if (commit && gitInfo.state === 'repository') {
+                await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: [path], subject: `Add task - ${title}`, trailers: { 'Task-ID': id, 'Related-Task-ID': task.id }, temporaryDirectory: project.runtime.temporary, env: context.env });
+            }
             terminal.write(`Added follow-up ${toProjectRelative(project.root, path)}\n`);
         }
     }

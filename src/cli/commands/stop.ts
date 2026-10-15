@@ -20,7 +20,7 @@ export default async function stop(context: CommandContext): Promise<number> {
     await renderServiceResult(context, snapshot, {
         outcome: {
             title: result.wasRunning ? 'Stopped' : 'Not running',
-            message: `${result.message}${result.wasRunning ? ' Interrupted work keeps its recovery record.' : ''} Automatic startup is disabled until the next \`ptbk start\`.`,
+            message: `${result.message}${result.wasRunning ? ' Interrupted work keeps its recovery record.' : ''} Automatic startup is disabled until the next \`ptbk start\` (or a successful \`ptbk init\`).`,
             tone: result.wasRunning ? 'success' : 'muted',
         },
         next: ['ptbk start'],

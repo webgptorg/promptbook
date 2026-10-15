@@ -9,6 +9,8 @@ import { setting, type EffectiveSettings } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import type { BridgeTool } from '../engine/bridge.js';
 import type { RequestStore, UserRequest } from '../engine/requests.js';
+import type { TaskTrace } from '../engine/task-trace.js';
+import { BrowserRecorder, cleanStaleRecordings, type ScreencastPort } from './recording.js';
 
 /**
  * Maximal page text returned to an agent.
@@ -144,6 +146,12 @@ class CdpConnection {
         });
     }
 
+    /** Subscribes to protocol events; returns the unsubscribe function. */
+    public on(listener: (message: Record<string, unknown>) => void): () => void {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
+    }
+
     /** Closes the socket. */
     public close(): void {
         this.socket.close();
@@ -160,12 +168,47 @@ export class ProjectBrowser {
     private connection?: CdpConnection;
     private sessionId?: string;
     private note?: string;
+    /** Task-linked recording of browser activity (`traces/<task-id>/video/`). */
+    public readonly recorder: BrowserRecorder;
 
     public constructor(
         private readonly project: Project,
         private readonly settings: () => EffectiveSettings,
         private readonly env: NodeJS.ProcessEnv,
-    ) {}
+    ) {
+        this.recorder = new BrowserRecorder(project, () => setting<boolean>(this.settings(), 'traces.recordVideo'), env);
+        void cleanStaleRecordings(project);
+    }
+
+    /** Associates subsequent browser use with a task attempt for recording. */
+    public async useFor(trace: TaskTrace, attempt: string): Promise<void> {
+        await this.recorder.attach(trace, attempt);
+    }
+
+    /** Unsubscribes the page-transition listener of the current connection. */
+    private navigationListener?: () => void;
+
+    /** Ensures the browser runs and recording of the attached task has begun. */
+    private async active(): Promise<{ connection: CdpConnection; sessionId: string }> {
+        const target = await this.ensure();
+        // Page transitions (including link clicks and redirects) are listed with the recording segment.
+        this.navigationListener ??= target.connection.on((message) => {
+            if (message.method !== 'Page.frameNavigated' || message.sessionId !== target.sessionId) return;
+            const frame = (message.params as { frame?: { parentId?: string; url?: string } }).frame;
+            if (frame && !frame.parentId && frame.url && frame.url !== 'about:blank') this.recorder.visited(frame.url);
+        });
+        const port: ScreencastPort = {
+            send: (method, params) => target.connection.send(method, params ?? {}, target.sessionId),
+            onFrame: (listener) =>
+                target.connection.on((message) => {
+                    if (message.method !== 'Page.screencastFrame' || message.sessionId !== target.sessionId) return;
+                    const params = message.params as { data: string; sessionId: number; metadata?: { timestamp?: number } };
+                    listener({ data: params.data, sessionId: params.sessionId, timestamp: params.metadata?.timestamp });
+                }),
+        };
+        await this.recorder.begin(port);
+        return target;
+    }
 
     /** Launches (or reuses) the browser and attaches to one page. */
     private async ensure(): Promise<{ connection: CdpConnection; sessionId: string }> {
@@ -175,7 +218,12 @@ export class ProjectBrowser {
         if (!executable) throw new PtbkError('No Chrome-compatible browser is installed.', { kind: 'setup', next: ['Install Google Chrome or Chromium, or set ptbk.json browser.executable.'] });
         const profile = browserProfileDirectory(this.project, settings);
         await ensureDirectory(profile);
-        const owner = await profileOwner(profile);
+        let owner = await profileOwner(profile);
+        // Ownership is often transient (a browser still shutting down): recheck briefly before involving a person.
+        for (let attempt = 0; owner && attempt < 10; attempt++) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            owner = await profileOwner(profile);
+        }
         if (owner) {
             throw new PtbkError(`The browser profile ${profile} is in use by another browser (PID ${owner}).`, {
                 kind: 'conflict',
@@ -215,7 +263,7 @@ export class ProjectBrowser {
 
     /** Evaluates JavaScript in the page and returns its value. */
     private async evaluate<T>(expression: string): Promise<T> {
-        const { connection, sessionId } = await this.ensure();
+        const { connection, sessionId } = await this.active();
         const result = await connection.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }, sessionId);
         if (result.exceptionDetails) throw new Error(`Page script failed: ${JSON.stringify(result.exceptionDetails).slice(0, 300)}`);
         return (result.result as { value: T }).value;
@@ -239,11 +287,13 @@ export class ProjectBrowser {
     /** Navigates and waits for the load event (bounded). */
     public async open(url: string): Promise<string> {
         if (!/^https?:\/\//i.test(url)) throw new PtbkError('Only http(s) URLs can be opened.', { kind: 'usage' });
-        const { connection, sessionId } = await this.ensure();
+        const { connection, sessionId } = await this.active();
         const loaded = connection.waitFor('Page.loadEventFired', 30_000, sessionId);
         await connection.send('Page.navigate', { url }, sessionId);
         await loaded;
-        return await this.read();
+        const page = await this.read();
+        this.recorder.visited(page.split('\n')[1] ?? url);
+        return page;
     }
 
     /** Clicks an element by ref. */
@@ -254,8 +304,22 @@ export class ProjectBrowser {
         return await this.read();
     }
 
-    /** Types into an element by ref (optionally submitting its form). */
+    /** Types into an element by ref (optionally submitting its form); secret fields are never recorded. */
     public async type(reference: number, text: string, submit: boolean): Promise<string> {
+        const secret = await this.evaluate<boolean>(`(() => { const element = document.querySelector('[data-ptbk-ref="${Number(reference)}"]'); return Boolean(element && (element.type === 'password' || /otp|one-time|password|passcode/i.test(element.autocomplete || element.name || ''))); })()`);
+        if (secret) await this.recorder.pause('secret entry into a password/one-time-code field (not recorded)');
+        try {
+            return await this.typeInto(reference, text, submit);
+        } finally {
+            if (secret) {
+                await new Promise((resolve) => setTimeout(resolve, 1500));
+                await this.recorder.resume();
+            }
+        }
+    }
+
+    /** Sets an element's value and dispatches input events. */
+    private async typeInto(reference: number, text: string, submit: boolean): Promise<string> {
         const ok = await this.evaluate<boolean>(`(() => {
             const element = document.querySelector('[data-ptbk-ref="${Number(reference)}"]');
             if (!element) return false;
@@ -274,7 +338,7 @@ export class ProjectBrowser {
 
     /** Saves a screenshot into ignored runtime storage and returns its path. */
     public async screenshot(): Promise<string> {
-        const { connection, sessionId } = await this.ensure();
+        const { connection, sessionId } = await this.active();
         const result = await connection.send('Page.captureScreenshot', { format: 'png' }, sessionId);
         const directory = await ensureDirectory(join(this.project.runtime.temporary, 'screenshots'));
         const path = join(directory, `${shortId()}.png`);
@@ -282,8 +346,9 @@ export class ProjectBrowser {
         return path;
     }
 
-    /** Brings the window forward for a human action (only meaningful with a visible window). */
+    /** Brings the window forward for a human action (only meaningful with a visible window); the human part is not recorded. */
     public async bringToFront(): Promise<string | undefined> {
+        await this.recorder.pause('human action in the project browser (sign-in, two-factor authentication or consent; not recorded)');
         if (!this.connection || !this.sessionId) return this.note;
         await this.connection.send('Page.bringToFront', {}, this.sessionId).catch(() => undefined);
         return this.note;
@@ -291,6 +356,8 @@ export class ProjectBrowser {
 
     /** Stops only the browser process this service launched (never the user's browsers or the profile). */
     public close(): void {
+        this.navigationListener?.();
+        this.navigationListener = undefined;
         this.connection?.close();
         this.connection = undefined;
         this.sessionId = undefined;
@@ -304,7 +371,7 @@ export class ProjectBrowser {
  *
  * @private project browser
  */
-export function browserTools(browser: ProjectBrowser, requests: RequestStore, task: { ref: string; title: string; agent?: string }, onUserRequest: (request: UserRequest) => void): BridgeTool[] {
+export function browserTools(browser: ProjectBrowser, requests: RequestStore, task: { ref: string; id?: string; title: string; agent?: string }, onUserRequest: (request: UserRequest) => void): BridgeTool[] {
     const run = async (action: () => Promise<string>): Promise<{ text: string; isError?: boolean }> => {
         try {
             return { text: await action() };
@@ -345,7 +412,7 @@ export function browserTools(browser: ProjectBrowser, requests: RequestStore, ta
         },
         {
             name: 'browser_request_user_action',
-            description: 'Ask the human to act in the shared browser (log in, two-factor authentication, consent). Then end your turn with status waiting-for-user.',
+            description: 'Only when a website genuinely requires a human-only step (sign-in, two-factor authentication, consent) that the existing session cannot satisfy: ask the human to act in the shared browser. Then end your turn with status waiting-for-user.',
             inputSchema: { type: 'object', properties: { reason: { type: 'string' } }, required: ['reason'] },
             handler: (input) =>
                 run(async () => {
@@ -354,8 +421,9 @@ export function browserTools(browser: ProjectBrowser, requests: RequestStore, ta
                         kind: 'action',
                         reason: String(input.reason ?? 'A website needs your action in the project browser.'),
                         question: `Complete the action in the project browser${note ? ` (${note})` : ''}, then confirm.`,
+                        attempted: 'The task used the existing session of the shared project browser; the website still requires this human-only step.',
                         choices: ['Done', 'I cannot do it'],
-                        origin: { kind: 'browser', taskRef: task.ref, taskTitle: task.title, agent: task.agent },
+                        origin: { kind: 'browser', taskRef: task.ref, taskId: task.id, taskTitle: task.title, agent: task.agent },
                         blocking: true,
                     });
                     onUserRequest(request);

@@ -9,7 +9,7 @@ import { validateRelease } from './validate-release.mjs';
 
 /**
  * Packs the single `ptbk` package and verifies it the way users install it: project-local and global
- * installations in disposable folders (with spaces), then a real init → run → daemon start/stop cycle driven by a
+ * installations in disposable folders (with spaces), then a real init → automatic daemon start → bootstrap task → stop cycle driven by a
  * deterministic harness substitute. Nothing touches the checkout or the system global prefix.
  */
 const execute = promisify(execFile);
@@ -127,41 +127,41 @@ try {
     const global = process.platform === 'win32' ? join(prefix, 'ptbk.cmd') : join(prefix, 'bin', 'ptbk');
     assert.equal((await linked(global, ['--version'], bare)).stdout.trim(), release.version);
 
-    // 3. Init → run → daemon with the local installation in an existing project.
+    // 3. Init (automatic background start) → the daemon executes the Expert bootstrap with the local installation.
     await git(fixture, ['init', '--quiet']);
     await git(fixture, ['add', '.']);
     await git(fixture, ['commit', '--quiet', '-m', 'External project baseline']);
-    const init = await linkedResult(local, ['init', '--non-interactive', '--harness', 'openai-codex', '--check', 'npm run check', '--raw'], fixture, env);
-    assert.equal(init.code, 0, `${init.stdout}\n${init.stderr}`);
-    assert.match(init.stdout, /Ready to start/);
-    const run = await linkedResult(local, ['run', '--raw'], fixture, env);
-    assert.equal(run.code, 0, `${run.stdout}\n${run.stderr}`);
-    assert.match(run.stdout, /1 completed, 0 failed/);
-    assert.match((await git(fixture, ['log', '-1', '--format=%s'])).stdout, /^PTBK: Check that the project is ready/);
-    assert.equal((await git(fixture, ['status', '--porcelain'])).stdout.trim(), '');
     try {
-        const started = await linkedResult(local, ['start', '--no-tunnel', '--no-persist', '--raw'], fixture, env);
-        assert.equal(started.code, 0, `${started.stdout}\n${started.stderr}`);
-        assert.doesNotMatch(started.stdout, /\x1b|[╭╮╰╯]/);
+        const init = await linkedResult(local, ['init', '--non-interactive', '--harness', 'openai-codex', '--check', 'npm run check', '--no-tunnel', '--no-persist', '--raw'], fixture, env);
+        assert.equal(init.code, 0, `${init.stdout}\n${init.stderr}`);
+        assert.match(init.stdout, /^Project ready · agenda running/m);
+        assert.doesNotMatch(init.stdout, /\x1b|[╭╮╰╯]/);
+        const deadline = Date.now() + 90_000;
+        while (!/^PTBK: Review the initialized project$/m.test((await git(fixture, ['log', '--format=%s'])).stdout)) {
+            if (Date.now() > deadline) throw new Error('The started service did not complete the Expert bootstrap task.');
+            await new Promise((resolvePromise) => setTimeout(resolvePromise, 500));
+        }
+        assert.match((await git(fixture, ['log', '-1', '--format=%B', '--grep', 'Review the initialized project'])).stdout, /^Task-ID: \S+$/m);
         const snapshot = JSON.parse((await linked(global, ['status', '--json'], fixture, env)).stdout);
         assert.equal(snapshot.service.mode, 'daemon');
         assert.equal(snapshot.engine.version, release.version);
         assert.equal(await realpath(resolve(snapshot.engine.installation)), await realpath(join(fixture, 'node_modules', 'ptbk')), 'The daemon runs the project-local installation.');
         assert.match((await linked(local, ['start', '--raw'], fixture, env)).stdout, /^Already running/);
     } finally {
-        await linkedResult(local, ['stop', '--raw'], fixture, env);
+        await linkedResult(local, ['stop', '--after-task', '--raw'], fixture, env);
     }
     assert.equal(JSON.parse((await linked(local, ['status', '--json'], fixture, env)).stdout).service.state, 'stopped');
+    assert.equal((await git(fixture, ['status', '--porcelain'])).stdout.trim(), '');
 
     // 4. A global invocation initializing a fresh folder installs the exact running version locally.
     const fresh = join(temporary, 'fresh project');
-    const freshInit = await linkedResult(global, ['init', '--path', fresh, '--non-interactive', '--installation', 'local', '--harness', 'openai-codex', '--raw'], temporary, { ...env, PTBK_LOCAL_INSTALL_SPEC: tarball });
+    const freshInit = await linkedResult(global, ['init', '--path', fresh, '--non-interactive', '--installation', 'local', '--harness', 'openai-codex', '--no-start', '--raw'], temporary, { ...env, PTBK_LOCAL_INSTALL_SPEC: tarball });
     assert.equal(freshInit.code, 0, `${freshInit.stdout}\n${freshInit.stderr}`);
     const manifest = JSON.parse(await readFile(join(fresh, 'package.json'), 'utf8'));
     assert(manifest.dependencies?.ptbk, 'ptbk is a regular dependency of the new project');
     assert.equal(JSON.parse(await readFile(join(fresh, 'node_modules', 'ptbk', 'package.json'), 'utf8')).version, release.version);
     assert.equal((await git(fresh, ['status', '--porcelain'])).stdout.trim(), '');
-    process.stdout.write(`Packed ptbk@${release.version}: local/global installations, init, single-commit run, daemon lifecycle and destination-local installation passed.\n`);
+    process.stdout.write(`Packed ptbk@${release.version}: local/global installations, init with automatic start, Expert bootstrap commit, daemon lifecycle and destination-local installation passed.\n`);
 } catch (error) {
     failure = error;
 } finally {

@@ -83,6 +83,18 @@ const MAX_IGNORED_FILES = 60_000;
 const NEVER_SEARCH = new Set(['.git', RUNTIME_DIRECTORY_NAME]);
 
 /**
+ * Root-level task audit evidence: tracked or ignored, it is never a source of agent definitions.
+ */
+const TRACES_DIRECTORY_NAME = 'traces';
+
+/**
+ * Whether a path is inside the project's root-level `traces/` evidence directory.
+ */
+function isTraceEvidence(root: string, path: string): boolean {
+    return isPathInside(join(root, TRACES_DIRECTORY_NAME), path);
+}
+
+/**
  * Recursively collects `.book` files without following directory symlinks.
  */
 async function walkBooks(directory: string, root: string, budget: { files: number }, skipDirectory: (path: string, name: string) => boolean): Promise<string[]> {
@@ -148,10 +160,10 @@ export class AgentCatalog {
         if (catalog.inGit) {
             others = (await listProjectFiles(root)).filter((path) => path.toLowerCase().endsWith('.book'));
         } else {
-            others = await walkBooks(root, root, budget, (path, name) => name === 'node_modules' || isPathInside(absoluteAgents, path));
+            others = await walkBooks(root, root, budget, (path, name) => name === 'node_modules' || isPathInside(absoluteAgents, path) || isTraceEvidence(root, path));
         }
         for (const path of others) {
-            if (isPathInside(absoluteAgents, path) || path.split(sep).includes(RUNTIME_DIRECTORY_NAME)) continue;
+            if (isPathInside(absoluteAgents, path) || path.split(sep).includes(RUNTIME_DIRECTORY_NAME) || isTraceEvidence(root, path)) continue;
             await catalog.add(path, 3);
         }
         catalog.validateTiers();
@@ -168,12 +180,12 @@ export class AgentCatalog {
         try {
             const entries = this.inGit ? await listIgnoredEntries(this.root) : [join(this.root, 'node_modules')];
             for (const entry of entries) {
-                if (isPathInside(this.agentsDirectory, entry) || entry.split(sep).includes(RUNTIME_DIRECTORY_NAME) || entry.split(sep).includes('.git')) continue;
+                if (isPathInside(this.agentsDirectory, entry) || entry.split(sep).includes(RUNTIME_DIRECTORY_NAME) || entry.split(sep).includes('.git') || isTraceEvidence(this.root, entry)) continue;
                 if (entry.toLowerCase().endsWith('.book')) {
                     await this.add(entry, 4);
                     continue;
                 }
-                for (const path of await walkBooks(entry, this.root, budget, () => false)) await this.add(path, 4);
+                for (const path of await walkBooks(entry, this.root, budget, (candidate) => isTraceEvidence(this.root, candidate))) await this.add(path, 4);
                 if (budget.files < 0) break;
             }
             if (budget.files < 0) this.ignoredIncomplete = `the ignored-content search stopped after ${MAX_IGNORED_FILES} entries`;

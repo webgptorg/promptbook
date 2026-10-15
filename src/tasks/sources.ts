@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { isDirectory, listDirectory, toProjectRelative } from '../common/fs.js';
 import { readTaskBook } from './book-task.js';
+import { taskIdKey } from './identity.js';
 import { isIgnoredMarkdown, readMarkdownTasks } from './markdown.js';
 import type { Task } from './model.js';
 
@@ -92,18 +93,23 @@ export async function readTaskQueue(options: TaskSourceOptions): Promise<TaskQue
             }
         }
     }
+    // IDs differing only by case would share `traces/<task-id>/` on case-insensitive file systems.
     const problems: string[] = [];
     const byId = new Map<string, Task[]>();
-    for (const task of tasks) if (task.id) byId.set(task.id, [...(byId.get(task.id) ?? []), task]);
+    for (const task of tasks) if (task.id) byId.set(taskIdKey(task.id), [...(byId.get(taskIdKey(task.id)) ?? []), task]);
     const duplicated = new Set<string>();
-    for (const [id, owners] of byId) {
+    for (const [key, owners] of byId) {
         if (owners.length < 2) continue;
-        duplicated.add(id);
-        problems.push(`TASK ID "${id}" is used by ${owners.map((owner) => owner.source.relativePath).join(', ')}.`);
+        duplicated.add(key);
+        problems.push(`TASK ID "${owners[0]!.id}" is used by ${owners.map((owner) => `${owner.source.relativePath}${owner.source.section ? `#${owner.source.section}` : ''}`).join(', ')}.`);
     }
     const result = tasks.map((task) =>
-        task.id && duplicated.has(task.id)
-            ? { ...task, ref: task.source.relativePath, diagnostics: [...task.diagnostics, { line: 0, message: `Duplicate TASK ID "${task.id}".`, severity: 'error' as const }] }
+        task.id && duplicated.has(taskIdKey(task.id))
+            ? {
+                  ...task,
+                  ref: task.source.kind === 'markdown' ? `${task.source.relativePath}#${task.source.section}` : task.source.relativePath,
+                  diagnostics: [...task.diagnostics, { line: 0, message: `Duplicate TASK ID "${task.id}"; no definition with it runs until the IDs are unique.`, severity: 'error' as const }],
+              }
             : task,
     );
     return { tasks: result.sort((a, b) => a.source.order - b.source.order), problems, directories };
@@ -118,7 +124,7 @@ export function findTask(tasks: readonly Task[], reference: string): { task?: Ta
     const text = reference.trim().replace(/\\/g, '/').replace(/^\.\//, '');
     const candidates = tasks.filter((task) => {
         if (task.ref === text) return true;
-        if (task.id && (text === task.id || text === `#${task.id}`)) return true;
+        if (task.id && [taskIdKey(task.id), `#${taskIdKey(task.id)}`].includes(taskIdKey(text))) return true;
         if (task.source.kind === 'book' && task.source.relativePath === text) return true;
         if (task.source.kind === 'markdown' && `${task.source.relativePath}#${task.source.section}` === text) return true;
         return false;

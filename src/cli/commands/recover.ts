@@ -15,19 +15,24 @@ import { flag, option, type CommandContext } from '../context.js';
 export default async function recover(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const state = new StateStore(project.runtime.state);
-    const record = await state.readActive();
+    const active = await state.readActive();
+    const parked = await state.readParked();
+    const records = [...(active ? [active] : []), ...parked];
     const blockers = await state.readBlockers();
     const { terminal } = context;
     const [reference] = context.positionals;
     const action = option<'resume' | 'retry' | 'acknowledge'>(context, 'action');
+    const matches = (record: (typeof records)[number]): boolean => !reference || [record.taskRef, record.sourcePath, record.taskId, `#${record.taskId}`].includes(reference);
+    const record = records.find(matches);
     if (!reference || !action) {
-        if (!record && !Object.keys(blockers).length) {
+        if (!records.length && !Object.keys(blockers).length) {
             terminal.write('No interrupted or failed work is recorded.\n');
             return EXIT.success;
         }
-        if (record && (!reference || reference === record.taskRef || reference === record.sourcePath)) {
+        for (const record of records.filter(matches)) {
             const lines = [
-                `Task: ${record.taskTitle} (${record.taskRef}) — ${record.kind}`,
+                `Task: ${record.taskTitle} (${record.taskRef}) — ${record.kind}${record === active ? '' : ' — checkpointed (independent work continues)'}`,
+                `Task ID: ${record.taskId ?? 'unknown'}${record.taskId ? ` · evidence: traces/${record.taskId}/` : ''}`,
                 `Phase: ${record.phase}${record.failure ? ` — ${record.failure}` : ''}`,
                 `Attempts: ${record.attempt} implementation/repair, ${record.technicalRetries} technical retries`,
                 `Routing: ${record.routing.agent} on ${record.routing.harness}${record.routing.model ? ` ${record.routing.model}` : ''}`,
@@ -37,6 +42,7 @@ export default async function recover(context: CommandContext): Promise<number> 
                 ...record.history.map((attempt) => `  attempt ${attempt.attempt}: ${attempt.outcome} — ${attempt.diagnostic}${attempt.trace ? ` (${attempt.trace})` : ''}`),
                 '',
                 `Actions: ptbk recover ${record.taskRef} --action resume|retry|acknowledge`,
+                '',
             ];
             terminal.write(`${lines.join('\n')}\n`);
         }

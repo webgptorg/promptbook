@@ -14,6 +14,7 @@ import { HarnessPool } from '../../engine/harnesses.js';
 import { renderAgentInstructions } from '../../engine/prompt.js';
 import { RequestStore } from '../../engine/requests.js';
 import { teamTools } from '../../engine/team.js';
+import { generateTaskId } from '../../tasks/identity.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
 import { CANCELLED, composeText, confirm } from '../../ui/prompts.js';
 import { selectedProject, writableTasksDirectory } from '../common.js';
@@ -158,7 +159,7 @@ export default async function plan(context: CommandContext): Promise<number> {
             return;
         }
         const fingerprint = await directoryFingerprint(tasksDirectory);
-        const files: Array<{ path: string; content: string }> = [];
+        const files: Array<{ path: string; id: string; content: string }> = [];
         for (const proposal of proposals) {
             const commitments: string[] = [];
             if (proposal.agent) commitments.push(`TASK AGENT ${proposal.agent}`);
@@ -167,7 +168,8 @@ export default async function plan(context: CommandContext): Promise<number> {
             commitments.push('TASK ORIGIN planning');
             let path = await newTaskPath(tasksDirectory, proposal.title, Date.now(), setting<string>(settings, 'timezone'));
             while (files.some((file) => file.path === path)) path = path.replace(/\.book$/, `-${shortId(3)}.book`);
-            files.push({ path, content: renderTaskBook({ title: proposal.title, description: proposal.description, commitments }) });
+            const id = generateTaskId(proposal.title);
+            files.push({ path, id, content: renderTaskBook({ title: proposal.title, description: proposal.description, id, commitments }) });
         }
         for (const file of files) terminal.write(`\n${terminal.style.bold(toProjectRelative(project.root, file.path))}\n${file.content}`);
         const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
@@ -180,7 +182,15 @@ export default async function plan(context: CommandContext): Promise<number> {
         for (const file of files) await writeFile(file.path, file.content, { flag: 'wx' });
         const gitInfo = await inspectGit(project.root);
         if (commit && gitInfo.state === 'repository') {
-            const outcome = await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: files.map((file) => file.path), subject: `Add ${files.length} planned task${files.length === 1 ? '' : 's'}`, temporaryDirectory: project.runtime.temporary });
+            const outcome = await commitPaths({
+                projectRoot: project.root,
+                repositoryRoot: gitInfo.root,
+                paths: files.map((file) => file.path),
+                subject: `Add ${files.length} planned task${files.length === 1 ? '' : 's'}`,
+                trailers: { 'Task-ID': files.map((file) => file.id) },
+                temporaryDirectory: project.runtime.temporary,
+                env: context.env,
+            });
             terminal.write(`Saved and committed ${outcome.committed ? outcome.sha.slice(0, 8) : ''}.\n`);
         } else terminal.write(`Saved ${files.length} file(s) without committing (--no-commit); a default \`ptbk start\` will wait until you commit them.\n`);
         proposals = [];

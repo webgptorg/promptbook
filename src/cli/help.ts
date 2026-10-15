@@ -88,9 +88,9 @@ export function renderTopLevelHelp(commands: readonly CommandSpec[], terminal: T
         {
             heading: 'Ordinary workflow',
             rows: [
-                ['1. ptbk init', 'Prepare this project (finite wizard; flags for unattended use).'],
-                ['2. ptbk start', 'Run the agenda as a background service; reports once and returns.'],
-                ['3. ptbk dashboard', 'Attach a live terminal view and controls (leaving it keeps the service running).'],
+                ['1. ptbk init', 'Describe your project and set it up; the agenda then starts in the background.'],
+                ['2. ptbk dashboard', 'Attach a live terminal view and controls (leaving it keeps the service running).'],
+                ['   ptbk start', 'Start an already initialized, cloned or stopped project; ptbk stop stops it.'],
             ],
         },
     ];

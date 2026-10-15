@@ -116,7 +116,16 @@ export type RunProcessOptions = {
     readonly inheritStdio?: boolean;
     /** Keeps stdin open for a request/response protocol; the controller writes and ends it. */
     readonly stdinController?: (controls: { write: (text: string) => void; end: () => void }) => void;
+    /** Terminates a process that produced no output for this long (unattended stall detection). */
+    readonly stallTimeoutMs?: number;
+    /** Output tail that looks like a question to a terminal; such a silent process is stopped much sooner. */
+    readonly inputPromptPattern?: RegExp;
 };
+
+/**
+ * Silence after a prompt-looking output tail that classifies a process as waiting for hidden input.
+ */
+const INPUT_WAIT_MS = 2 * 60_000;
 
 /**
  * Observed outcome of a subprocess.
@@ -128,6 +137,8 @@ export type ProcessResult = {
     readonly exitCode: number | null;
     /** Terminating signal, if any. */
     readonly signal: NodeJS.Signals | null;
+    /** The process was stopped as stalled: silent too long, or silently waiting for terminal input. */
+    readonly stalled?: 'no-output' | 'input-prompt';
     /** Captured stdout (possibly truncated at the start). */
     readonly stdout: string;
     /** Captured stderr (possibly truncated at the start). */
@@ -242,8 +253,17 @@ export async function runProcess(command: string, args: readonly string[], optio
     };
     return await new Promise<ProcessResult>((resolvePromise) => {
         const limit = options.maxOutputBytes ?? DEFAULT_MAX_OUTPUT_BYTES;
-        const stdout = new OutputBuffer(limit, options.onStdoutLine);
-        const stderr = new OutputBuffer(limit, options.onStderrLine);
+        let lastOutputAt = Date.now();
+        let lastLine = '';
+        const observe =
+            (callback?: (line: string) => void) =>
+            (line: string): void => {
+                if (line.trim()) lastLine = line;
+                callback?.(line);
+            };
+        const stdout = new OutputBuffer(limit, observe(options.onStdoutLine));
+        const stderr = new OutputBuffer(limit, observe(options.onStderrLine));
+        let stalled: ProcessResult['stalled'];
         let timedOut = false;
         let cancelled = false;
         let settled = false;
@@ -287,8 +307,34 @@ export async function runProcess(command: string, args: readonly string[], optio
             if (options.signal.aborted) onAbort();
             else options.signal.addEventListener('abort', onAbort, { once: true });
         }
-        child.stdout?.setEncoding('utf8').on('data', (chunk: string) => stdout.push(chunk));
-        child.stderr?.setEncoding('utf8').on('data', (chunk: string) => stderr.push(chunk));
+        if ((options.stallTimeoutMs ?? 0) > 0 || options.inputPromptPattern) {
+            const watchdog = setInterval(
+                () => {
+                    const silence = Date.now() - lastOutputAt;
+                    if (options.inputPromptPattern && silence >= INPUT_WAIT_MS && options.inputPromptPattern.test(lastLine)) stalled = 'input-prompt';
+                    else if ((options.stallTimeoutMs ?? 0) > 0 && silence >= options.stallTimeoutMs!) stalled = 'no-output';
+                    if (stalled) {
+                        clearInterval(watchdog);
+                        stop();
+                    }
+                },
+                Math.min(15_000, Math.max(250, Math.floor((options.stallTimeoutMs || INPUT_WAIT_MS) / 4))),
+            );
+            watchdog.unref();
+            timers.push(watchdog);
+        }
+        child.stdout?.setEncoding('utf8').on('data', (chunk: string) => {
+            lastOutputAt = Date.now();
+            stdout.push(chunk);
+            const tail = chunk.split(/\r?\n/).pop();
+            if (tail?.trim()) lastLine = tail;
+        });
+        child.stderr?.setEncoding('utf8').on('data', (chunk: string) => {
+            lastOutputAt = Date.now();
+            stderr.push(chunk);
+            const tail = chunk.split(/\r?\n/).pop();
+            if (tail?.trim()) lastLine = tail;
+        });
         child.stdin?.on('error', () => undefined);
         if (child.stdin) {
             const stdin = child.stdin;
@@ -308,6 +354,7 @@ export async function runProcess(command: string, args: readonly string[], optio
             if (settled) return;
             settled = true;
             for (const timer of timers) clearTimeout(timer);
+            for (const timer of timers) clearInterval(timer);
             options.signal?.removeEventListener('abort', onAbort);
             stdout.end();
             stderr.end();
@@ -319,6 +366,7 @@ export async function runProcess(command: string, args: readonly string[], optio
                 truncated: stdout.truncated || stderr.truncated,
                 timedOut,
                 cancelled,
+                stalled,
                 spawnError,
                 durationMs: Date.now() - started,
             });

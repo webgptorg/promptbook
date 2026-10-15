@@ -9,6 +9,7 @@ import { parseBook } from '../../book/parse.js';
 import { loadSettings, setting } from '../../project/config.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
 import { newTaskPath, renderTaskBook, splitTitle } from '../../tasks/authoring.js';
+import { generateTaskId } from '../../tasks/identity.js';
 import { lookupService } from '../../service/control.js';
 import { acquireProjectLock } from '../../service/records.js';
 import { shortId } from '../../common/ids.js';
@@ -107,14 +108,16 @@ export default async function add(context: CommandContext): Promise<number> {
     const description = option<string>(context, 'title') ? text : split.description;
     const controls = controlLines(context, timeZone);
     if ((context.options as Record<string, unknown>).__notReady) controls.push('TASK STATUS not-ready');
+    const id = generateTaskId(title);
     if (templateSource) {
         const keywordOf = (line: string): string | undefined => matchCommitmentKeyword(line)?.definition.keyword;
+        // A template is copied as new work: it never passes on a task ID.
         const fromTemplate = parseBook(templateSource)
-            .commitments.filter((commitment) => commitment.keyword.startsWith('TASK ') || commitment.keyword === 'RULE')
+            .commitments.filter((commitment) => (commitment.keyword.startsWith('TASK ') && commitment.keyword !== 'TASK ID') || commitment.keyword === 'RULE')
             .map((commitment) => `${commitment.written} ${commitment.body}`.trim());
         const merged = [...controls, ...fromTemplate.filter((line) => keywordOf(line) === 'RULE' || !controls.some((control) => keywordOf(control) === keywordOf(line)))];
-        content = renderTaskBook({ title, description: description || undefined, commitments: merged });
-    } else content = renderTaskBook({ title, description: description || undefined, commitments: controls });
+        content = renderTaskBook({ title, description: description || undefined, id, commitments: merged });
+    } else content = renderTaskBook({ title, description: description || undefined, id, commitments: controls });
     const parsed = parseBook(content);
     if (parsed.kind !== 'task') throw new PtbkError('The task could not be rendered as a task Book.', { kind: 'internal' });
     if (terminal.interactive && flag(context, 'yes') !== true && !context.positionals.length && !flag(context, 'stdin')) {
@@ -131,8 +134,8 @@ export default async function add(context: CommandContext): Promise<number> {
     const lookup = await lookupService(project);
     if (lookup.state === 'running') {
         // The running service writes and commits at a safe boundary, never folding it into an active task.
-        const result = await lookup.client.request<{ path: string; commit?: string }>('add-task', { path, content, summary, commit });
-        report(context, project.root, result.path, result.commit, commit, title);
+        const result = await lookup.client.request<{ path: string; commit?: string }>('add-task', { path, content, summary, commit, taskIds: [id] });
+        report(context, project.root, result.path, result.commit, commit, title, id);
         return EXIT.success;
     }
     const gitInfo = await inspectGit(project.root);
@@ -143,7 +146,7 @@ export default async function add(context: CommandContext): Promise<number> {
         let sha: string | undefined;
         if (commit && gitInfo.state === 'repository') {
             try {
-                const outcome = await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: [path], subject: summary, temporaryDirectory: project.runtime.temporary, env: context.env });
+                const outcome = await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: [path], subject: summary, trailers: { 'Task-ID': id }, temporaryDirectory: project.runtime.temporary, env: context.env });
                 sha = outcome.committed ? outcome.sha : undefined;
             } catch (error) {
                 throw new PtbkError('The task was written, but committing it failed.', {
@@ -160,7 +163,7 @@ export default async function add(context: CommandContext): Promise<number> {
             const { hashFileIfExists } = await import('../../common/fs.js');
             await new StateStore(project.runtime.state).addOwnedUncommitted({ [toProjectRelative(project.root, path)]: (await hashFileIfExists(path)) ?? null });
         }
-        report(context, project.root, path, sha, commit, title);
+        report(context, project.root, path, sha, commit, title, id);
         return EXIT.success;
     } catch (error) {
         if (!(error instanceof PtbkError) && (await pathExists(path))) await rm(path, { force: true });
@@ -173,9 +176,13 @@ export default async function add(context: CommandContext): Promise<number> {
 /**
  * Reports the created task, its reference and commit.
  */
-function report(context: CommandContext, root: string, path: string, commit: string | undefined, commitMode: boolean, title: string): void {
+function report(context: CommandContext, root: string, path: string, commit: string | undefined, commitMode: boolean, title: string, id: string): void {
     const relativePath = toProjectRelative(root, path);
     const { terminal } = context;
     const committed = commit ? `committed ${commit.slice(0, 8)} (PTBK: Add task - ${title})` : commitMode ? 'nothing to commit' : 'NOT committed (--no-commit): a default `ptbk start` treats it as an uncommitted source until you commit it';
-    terminal.write(terminal.pretty ? `${terminal.style.success('✔')} Added ${terminal.style.bold(title)}\n  ${terminal.style.muted(relativePath)} · ${committed}\n` : `Added task "${title}" at ${relativePath}; ${committed}\n`);
+    terminal.write(
+        terminal.pretty
+            ? `${terminal.style.success('✔')} Added ${terminal.style.bold(title)}\n  ${terminal.style.muted(`${relativePath} · Task-ID ${id}`)} · ${committed}\n`
+            : `Added task "${title}" (Task-ID ${id}) at ${relativePath}; ${committed}\n`,
+    );
 }

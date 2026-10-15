@@ -7,6 +7,7 @@ import { loadSettings, setting } from '../../project/config.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
 import { lookupService } from '../../service/control.js';
 import { readTaskBook } from '../../tasks/book-task.js';
+import { generateTaskId } from '../../tasks/identity.js';
 import { isIgnoredMarkdown, readMarkdownTasks, splitMarkdownSections } from '../../tasks/markdown.js';
 import type { Task } from '../../tasks/model.js';
 import { PROMPTS_DIRECTORY } from '../../tasks/sources.js';
@@ -16,7 +17,7 @@ import { flag, type CommandContext } from '../context.js';
 /**
  * One planned Book.
  */
-type PlannedBook = { readonly path: string; readonly content: string; readonly task: Task };
+type PlannedBook = { readonly path: string; readonly content: string; readonly task: Task; readonly id: string };
 
 /**
  * Rewrites relative Markdown links when the converted Book lives in another directory.
@@ -33,10 +34,10 @@ function relink(text: string, fromDirectory: string, toDirectory: string): strin
 /**
  * Renders a section as an equivalent task Book.
  */
-function sectionBook(task: Task, controlLine: string | undefined, origin: string): string {
+function sectionBook(task: Task, id: string, controlLine: string | undefined, origin: string): string {
     const lines = [`TASK ${task.title}`];
     if (task.description) lines.push('', task.description);
-    const commitments: string[] = [`TASK ID ${slugify(`${basename(task.source.relativePath, '.md')}-${task.source.section}`, 60)}`];
+    const commitments: string[] = [`TASK ID ${id}`];
     if (task.status === 'not-ready') commitments.push('TASK STATUS not-ready');
     if (task.status === 'failed') commitments.push('TASK STATUS failed');
     if (task.status === 'done') commitments.push(`TASK DONE ${task.doneStamps[0] && task.doneStamps[0] !== 'unknown' ? task.doneStamps[0] : 'unknown'}`);
@@ -92,7 +93,9 @@ export default async function migrate(context: CommandContext): Promise<number> 
             const section = sections[task.source.section! - 1]!;
             const controlLine = section.controlLine !== undefined ? section.lines[section.controlLine]!.trim() : undefined;
             const relinked = { ...task, description: relink(task.description, dirname(file), tasksDirectory) };
-            const content = sectionBook(relinked, controlLine, `${relativePath}#${task.source.section}`);
+            // The section's stable ID survives conversion; a section without one receives it now.
+            const id = task.id ?? generateTaskId(task.title);
+            const content = sectionBook(relinked, id, controlLine, `${relativePath}#${task.source.section}`);
             const path = join(tasksDirectory, `${basename(file, '.md')}-${String(task.source.section).padStart(2, '0')}-${slugify(task.title, 40)}.book`);
             if ((await pathExists(path)) || planned.some((item) => item.path === path) || books.some((item) => item.path === path)) problems.push(`${toProjectRelative(project.root, path)} already exists`);
             const reread = readTaskBook({ source: content, path, relativePath: toProjectRelative(project.root, path), order: 0, timeZone });
@@ -103,9 +106,10 @@ export default async function migrate(context: CommandContext): Promise<number> 
                 (reread.status === task.status || (task.status === 'done' && reread.status === 'done')) &&
                 reread.priority.value === task.priority.value &&
                 reread.after === task.after &&
+                reread.id === id &&
                 JSON.stringify(reread.routing.runners) === JSON.stringify(task.routing.runners);
             if (!equivalent) problems.push(`section ${task.source.section} cannot be converted with equivalent meaning`);
-            books.push({ path, content, task });
+            books.push({ path, content, task, id });
         }
         if (problems.length) {
             blocked.push(`${relativePath}: ${problems.join('; ')}`);
@@ -120,7 +124,7 @@ export default async function migrate(context: CommandContext): Promise<number> 
         }
         archives.push({ from: file, to: archive });
     }
-    for (const book of planned) terminal.write(`${dryRun ? 'Would create' : 'Create'} ${toProjectRelative(project.root, book.path)} (${book.task.status}) ← ${book.task.ref}\n`);
+    for (const book of planned) terminal.write(`${dryRun ? 'Would create' : 'Create'} ${toProjectRelative(project.root, book.path)} (${book.task.status}, Task-ID ${book.id}) ← ${book.task.ref}\n`);
     for (const item of archives) terminal.write(`${dryRun ? 'Would archive' : 'Archive'} ${toProjectRelative(project.root, item.from)} → ${toProjectRelative(project.root, item.to)}\n`);
     for (const problem of blocked) terminal.write(`Not converted: ${problem}\n`);
     if (dryRun || !planned.length) return blocked.length ? EXIT.incomplete : EXIT.success;
@@ -137,7 +141,9 @@ export default async function migrate(context: CommandContext): Promise<number> 
             repositoryRoot: gitInfo.root,
             paths: [...planned.map((book) => book.path), ...archives.flatMap((item) => [item.from, item.to])],
             subject: 'Migrate Markdown tasks to Books',
+            trailers: { 'Task-ID': planned.map((book) => book.id) },
             temporaryDirectory: project.runtime.temporary,
+            env: context.env,
         });
         if (outcome.committed) terminal.write(`Committed ${outcome.sha.slice(0, 8)} (PTBK: Migrate Markdown tasks to Books).\n`);
     } else if (!commit) terminal.write('Not committed (--no-commit).\n');

@@ -123,6 +123,9 @@ export async function waitFor(condition, { timeoutMs = 60_000, intervalMs = 250,
 
 /**
  * Creates an initialized ptbk project with the fake harness (global installation, real check).
+ *
+ * By default init does not start the agenda (`--no-start`) so tests control execution; `options.start` keeps the
+ * automatic background start (local-only, without persistence) and `options.initArgs` adds init flags.
  */
 export async function initializedProject(t, options = {}) {
     const beforeRemoval = [];
@@ -139,9 +142,17 @@ export async function initializedProject(t, options = {}) {
     }
     const args = ['init', '--path', project, '--non-interactive', '--installation', 'global', '--harness', 'openai-codex', '--raw'];
     if (options.check) args.push('--check', 'node check.mjs');
+    args.push(...(options.start ? ['--no-tunnel', '--no-persist'] : ['--no-start']), ...(options.initArgs ?? []));
     const result = await ptbk(args, { cwd: directory, env: harness.env });
     if (![0, 3].includes(result.code)) throw new Error(`init failed (${result.code}):\n${result.output}`);
     return { directory, project, env: harness.env, log: harness.log, init: result };
+}
+
+/**
+ * Full commit messages, newest first.
+ */
+export async function messages(project) {
+    return (await git(project, ['log', '--format=%B%x00'])).split('\0').map((message) => message.trim()).filter(Boolean);
 }
 
 /**

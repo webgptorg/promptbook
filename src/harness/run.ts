@@ -6,7 +6,7 @@ import type { HarnessEvent, HarnessPlugin, HarnessRunRequest, ParserState } from
  *
  * @private harness execution
  */
-export type HarnessOutcome = 'completed' | 'failed' | 'cancelled' | 'timed-out' | 'authentication' | 'quota' | 'spawn-error';
+export type HarnessOutcome = 'completed' | 'failed' | 'cancelled' | 'timed-out' | 'stalled' | 'authentication' | 'quota' | 'spawn-error';
 
 /**
  * Observed result of one harness invocation.
@@ -51,6 +51,11 @@ const QUOTA_PATTERN = /usage limit|rate[ _-]?limit|quota|insufficient_quota|cred
  * Signals of missing or expired authentication.
  */
 const AUTH_PATTERN = /not logged in|please (run )?(\/)?login|log ?in required|unauthori[sz]ed|\b401\b|invalid api key|authentication (failed|required)|oauth token (has )?expired|forbidden.*auth|no credentials/i;
+
+/**
+ * Output tails of a process silently waiting for terminal input it will never receive in unattended operation.
+ */
+const INPUT_PROMPT_PATTERN = /(\[y\/n\]|\(y\/n\)|\[yes\/no\]|press (enter|any key)|do you want to (proceed|continue|allow)|allow (this|once|always)\b|approve\b.*\?|password:|passphrase|continue\?)\s*$/i;
 
 /**
  * Classifies a failure from the harness's own error output.
@@ -115,9 +120,13 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
             input: invocation.input,
             timeoutMs: request.timeoutMs,
             signal: request.signal,
+            stallTimeoutMs: request.stallTimeoutMs,
+            inputPromptPattern: INPUT_PROMPT_PATTERN,
             onStdoutLine: (line) => {
+                request.onOutput?.('stdout', line);
                 for (const event of plugin.parseLine(line, state)) handle(event);
             },
+            onStderrLine: (line) => request.onOutput?.('stderr', line),
         });
     } finally {
         await invocation.cleanup?.().catch(() => undefined);
@@ -135,6 +144,10 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
     if (result.spawnError) return { ...base, outcome: 'spawn-error', diagnostic: `${plugin.displayName} could not be started: ${result.spawnError}` };
     if (result.cancelled) return { ...base, outcome: 'cancelled', diagnostic: `${plugin.displayName} was cancelled.` };
     if (result.timedOut) return { ...base, outcome: 'timed-out', diagnostic: `${plugin.displayName} exceeded its time limit and was stopped.` };
+    if (result.stalled === 'input-prompt') {
+        return { ...base, outcome: 'stalled', diagnostic: `${plugin.displayName} stopped producing output while apparently waiting for terminal input ("${result.stderr.trim().split('\n').pop() || result.stdout.trim().split('\n').pop() || '?'}"); unattended runs cannot answer hidden prompts, so it was stopped.` };
+    }
+    if (result.stalled === 'no-output') return { ...base, outcome: 'stalled', diagnostic: `${plugin.displayName} produced no output for ${Math.round((request.stallTimeoutMs ?? 0) / 60_000)} minutes and was stopped as stalled.` };
     const failureText = [turnFailed ?? '', ...errors, result.stderr.slice(-4000)].join('\n');
     if (result.exitCode !== 0 || turnFailed) {
         const classified = classifyFailure(failureText);

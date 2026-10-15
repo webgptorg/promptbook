@@ -104,7 +104,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     }
     const taskSource = task.text.replace(/^TASK DONE .*$/gm, '').trim();
     parts.push(
-        `## Your task\n\n- Title: ${task.title}\n- Reference: ${task.ref}\n- Source: \`${task.source.relativePath}\`${task.source.kind === 'markdown' ? ` (section ${task.source.section})` : ''}\n\n\`\`\`\`text\n${taskSource}\n\`\`\`\``,
+        `## Your task\n\n- Title: ${task.title}\n- Reference: ${task.ref}${task.id ? `\n- Task ID: ${task.id} (audit trail in \`traces/${task.id}/\`, written by Promptbook)` : ''}\n- Source: \`${task.source.relativePath}\`${task.source.kind === 'markdown' ? ` (section ${task.source.section})` : ''}\n\n\`\`\`\`text\n${taskSource}\n\`\`\`\``,
     );
     if (input.answers?.length) {
         parts.push(`## Answers from the user\n\n${input.answers.map((item) => `- Q: ${item.question}\n  A: ${item.answer}`).join('\n')}`);
@@ -113,7 +113,9 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     const rules = [
         'Work only inside the project directory. Promptbook records the result: do not commit, amend, push, reset, stash or rewrite Git history.',
         'Do not add `TASK DONE` or change the completion state of this task; Promptbook stamps completion after verifying your result.',
-        `To create follow-up work, write new task Books at the top level of \`${input.tasksDirectory}/\` (first line \`TASK <title>\`, then a description; optional \`TASK AGENT @Name\`, \`TASK PRIORITY <n>\`, \`TASK AFTER <ISO date>\`). Never mark them done.`,
+        `To create follow-up work, write new task Books at the top level of \`${input.tasksDirectory}/\` (first line \`TASK <title>\`, then a description; optional \`TASK AGENT @Name\`, \`TASK PRIORITY <n>\`, \`TASK AFTER <ISO date>\`). Never mark them done and never copy another task's \`TASK ID\`; Promptbook gives each new task its own ID.`,
+        'Do not edit `traces/` (Promptbook-owned audit evidence) and never treat files there as task or agent definitions.',
+        'You run unattended. Resolve ordinary choices yourself from the task, the project instructions, established rules and the permissions already granted; do not stop to confirm routine or already authorized actions (for example each post of an authorized recurring publication).',
         input.check
             ? `The project check \`${input.check}\` must pass before the task is accepted. Run it yourself and fix failures properly; never weaken tests, assertions or thresholds to make it pass.`
             : 'No project check is configured; verify your result by other appropriate means.',
@@ -124,7 +126,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     else if (input.tools.team) rules.push('The `consult` tool of the `ptbk` MCP server can consult `@Expert` about Promptbook itself.');
     if (input.tools.askUser) {
         rules.push(
-            `If you genuinely need a human decision or action, call the \`ask_user\` tool (optionally with \`choices\`), then end your turn with status \`waiting-for-user\`. Do not wait for the answer inside your turn; the task resumes with the answer.`,
+            `Only when you are genuinely blocked on something you cannot safely resolve (required login/2FA, missing authority, a consequential ambiguity the task does not settle), call the \`ask_user\` tool with the minimal question, the \`reason\` and what you \`attempted\` (optionally with \`choices\`), then end your turn with status \`waiting-for-user\`. Do not wait for the answer inside your turn; the task resumes automatically with the answer.`,
         );
     } else rules.push('The user is not available for questions in this run; decide reasonably or report `blocked` with a reason.');
     if (input.tools.browser) rules.push('Use the `browser_*` tools of the `ptbk` MCP server for websites; they share the project browser and its logged-in sessions.');

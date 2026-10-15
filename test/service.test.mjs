@@ -37,7 +37,7 @@ test('daemon lifecycle: one service, repeated start reports it, add is executed 
     assert.equal((await status(project, env)).service.pid, first.service.pid);
     const record = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     assert.equal(record.pid, first.service.pid);
-    await waitFor(async () => (await subjects(project)).includes('PTBK: Check that the project is ready for Promptbook work'), { message: 'the starter task to be committed' });
+    await waitFor(async () => (await subjects(project)).includes('PTBK: Review the initialized project'), { message: 'the Expert bootstrap task to be committed' });
     const added = await ptbk(['add', 'Write the welcome page', '--raw'], { cwd: project, env });
     assert.match(added.stdout, /committed [0-9a-f]{8}/, added.output);
     await waitFor(async () => (await subjects(project)).includes('PTBK: Write the welcome page'), { timeoutMs: 90_000, message: 'the added task to be executed after Manager assignment' });
@@ -112,17 +112,40 @@ test('attached raw dashboard observes the running service and leaving it does no
 
 test('stop interrupts owned work recoverably; the next start resumes it without repeating accepted work', async (t) => {
     const { project, env, log } = await initializedProject(t, { check: CHECK });
+    await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
     await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
-    await waitFor(async () => (await subjects(project)).includes('PTBK: Check that the project is ready for Promptbook work'), { message: 'the starter task' });
+    await waitFor(async () => (await subjects(project)).includes('PTBK: Write the welcome page'), { message: 'the added task' });
     const stopped = await ptbk(['stop', '--raw'], { cwd: project, env });
     assert.equal(stopped.code, 0, stopped.output);
     const record = await readFile(join(project, '.ptbk', 'state', 'active.json'), 'utf8').then(JSON.parse, () => undefined);
     const dirty = (await git(project, ['status', '--porcelain'])).trim();
     if (dirty) assert.ok(record, `uncommitted changes after stop must belong to a recovery record:\n${dirty}`);
     await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
-    await waitFor(async () => (await subjects(project)).some((subject) => subject.startsWith('PTBK: Learn from: Check that the project')), { message: 'the learning task to finish after restart' });
+    await waitFor(async () => (await subjects(project)).some((subject) => subject.startsWith('PTBK: Learn from: Write the welcome page')), { message: 'the learning task to finish after restart' });
     await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
     const learningTurns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((entry) => entry.learning);
     assert.ok(learningTurns.length <= 2, 'an interrupted turn may be redone once, never repeatedly');
-    assert.equal((await subjects(project)).filter((subject) => subject.startsWith('PTBK: Learn from: Check that the project')).length, 1, 'one result commit');
+    assert.equal((await subjects(project)).filter((subject) => subject.startsWith('PTBK: Learn from: Write the welcome page')).length, 1, 'one result commit');
+});
+
+test('init starts the agenda automatically, returns without waiting, and an explicit init resumes after an intentional stop', async (t) => {
+    const { project, env, init } = await initializedProject(t, { check: CHECK, start: true });
+    assert.equal(init.code, 0, init.output);
+    assert.match(init.stdout, /^Project ready · agenda running/m, init.output);
+    assert.match(init.stdout, /Service: running in the background \(PID \d+\)/);
+    assert.match(init.stdout, /Next: ptbk dashboard/);
+    assert.doesNotMatch(init.stdout, /ptbk start \(/, 'a successful init never asks for another start');
+    assert.equal((await status(project, env)).service.state === 'stopped', false, 'the service runs after init returned');
+    await waitFor(async () => (await subjects(project)).includes('PTBK: Review the initialized project'), { message: 'the Expert bootstrap task, executed by the service' });
+    const repeated = await ptbk(['init', '--non-interactive', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    assert.equal(repeated.code, 0, repeated.output);
+    assert.match(repeated.stdout, /already running \(reused\)/, 'repeating init reuses the service');
+    await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
+    assert.equal(JSON.parse(await readFile(join(project, '.ptbk', 'service', 'launch.json'), 'utf8')).intentionallyStopped, true);
+    const again = await ptbk(['init', '--non-interactive', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    assert.equal(again.code, 0, again.output);
+    assert.match(again.stdout, /Service: running in the background/, 'an explicit init performs an authorized start');
+    assert.equal(JSON.parse(await readFile(join(project, '.ptbk', 'service', 'launch.json'), 'utf8')).intentionallyStopped, false);
+    await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
+    assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
 });

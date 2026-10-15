@@ -24,6 +24,8 @@ export type RequestOrigin = {
     readonly kind: 'task' | 'setup' | 'recovery' | 'browser' | 'system';
     /** Affected task reference. */
     readonly taskRef?: string;
+    /** Stable ID of the affected task (links the request to `traces/<task-id>/`). */
+    readonly taskId?: string;
     /** Affected task title. */
     readonly taskTitle?: string;
     /** Asking agent. */
@@ -55,6 +57,8 @@ export type UserRequest = {
     readonly reason: string;
     /** What to answer or do. */
     readonly question: string;
+    /** Safe resolution already attempted before involving the user. */
+    readonly attempted?: string;
     /** Declared answers (open-ended when absent). */
     readonly choices?: readonly string[];
     /** Origin. */
@@ -78,7 +82,7 @@ export type UserRequest = {
  *
  * @private user requests
  */
-export type NewRequest = Pick<UserRequest, 'kind' | 'reason' | 'question' | 'origin' | 'blocking'> & { readonly choices?: readonly string[] };
+export type NewRequest = Pick<UserRequest, 'kind' | 'reason' | 'question' | 'origin' | 'blocking'> & { readonly choices?: readonly string[]; readonly attempted?: string };
 
 /**
  * Validates declared answers: unique, readable, nonempty strings within the limits.
@@ -115,11 +119,25 @@ export class RequestStore {
         return join(this.directory, `${id}.json`);
     }
 
-    /** Creates and persists a pending request. */
+    /**
+     * Creates and persists a pending request.
+     *
+     * Repeated reports of the same unresolved condition (same origin, question and answers) return the one pending
+     * request instead of asking again.
+     */
     public async create(input: NewRequest): Promise<UserRequest> {
         const problem = validateChoices(input.choices);
         if (problem) throw new PtbkError('The request has invalid declared answers.', { kind: 'usage', reason: problem });
         await ensureDirectory(this.directory);
+        const duplicate = (await this.list({ status: 'pending' })).find(
+            (existing) =>
+                existing.origin.kind === input.origin.kind &&
+                (existing.origin.taskId ?? existing.origin.taskRef) === (input.origin.taskId ?? input.origin.taskRef) &&
+                existing.origin.occurrence === input.origin.occurrence &&
+                existing.question.trim() === input.question.trim() &&
+                JSON.stringify(existing.choices ?? []) === JSON.stringify(input.choices ?? []),
+        );
+        if (duplicate) return duplicate;
         const now = new Date().toISOString();
         const request: UserRequest = {
             id: `r-${shortId(6)}`,
@@ -127,6 +145,7 @@ export class RequestStore {
             status: 'pending',
             reason: input.reason,
             question: input.question,
+            attempted: input.attempted?.trim() || undefined,
             choices: input.choices?.length ? [...input.choices] : undefined,
             origin: input.origin,
             blocking: input.blocking,

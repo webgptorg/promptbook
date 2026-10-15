@@ -4,6 +4,7 @@ import { formatIsoWithOffset, parseDateTime } from '../common/time.js';
 import { appendCommitment, setControlCommitment } from '../book/edit.js';
 import { commitmentsOf, parseBook, singleValue, type BookDocument } from '../book/parse.js';
 import { THINKING_LEVELS, type ThinkingLevel } from '../project/config.js';
+import { taskIdProblem } from './identity.js';
 import type { DeclaredStatus, Task, TaskDiagnostic } from './model.js';
 import { parsePriority } from './priority.js';
 
@@ -34,11 +35,6 @@ const TASK_CONTROLS = new Set([
  * Valid `TASK STATUS` values.
  */
 const STATUS_VALUES = new Set(['todo', 'not-ready', 'failed', 'retired']);
-
-/**
- * Valid shape of a `TASK ID`.
- */
-const TASK_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/;
 
 /**
  * Splits a reference list (`#a, #b tasks/c.book`).
@@ -100,8 +96,10 @@ function taskFromDocument(document: BookDocument, options: { source: string; pat
             diagnostics.push({ line: commitment.startLine + 1, message: `Unsupported task control \`${commitment.written}\`.`, severity: 'error' });
         }
     }
-    const id = single('TASK ID');
-    if (id !== undefined && !TASK_ID_PATTERN.test(id)) diagnostics.push({ line: 0, message: `TASK ID "${id}" must be a single token of letters, digits, '.', '_' or '-'.`, severity: 'error' });
+    const declaredId = single('TASK ID');
+    const idProblem = declaredId === undefined ? undefined : taskIdProblem(declaredId);
+    if (idProblem) diagnostics.push({ line: 0, message: idProblem, severity: 'error' });
+    const id = idProblem ? undefined : declaredId;
     const thinking = single('TASK THINKING LEVEL');
     if (thinking !== undefined && !THINKING_LEVELS.includes(thinking as ThinkingLevel)) {
         diagnostics.push({ line: 0, message: `TASK THINKING LEVEL "${thinking}" is not one of ${THINKING_LEVELS.join(', ')}.`, severity: 'error' });

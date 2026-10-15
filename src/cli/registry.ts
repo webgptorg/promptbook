@@ -45,22 +45,23 @@ export const COMMANDS: readonly CommandSpec[] = [
         name: 'init',
         aliases: ['initialize'],
         category: 'Start here',
-        summary: 'Prepare a project through a finite wizard (or flags), ready for `ptbk start`.',
-        description: `Incrementally prepares an empty folder or an existing project: Git, ptbk.json, agents (core agents Adam, Manager and Teacher plus default roles), task templates, project instructions, the .ptbk/ ignore rule, local or global installation, selected harnesses (installed, logged in and verified), the project browser, a real project check and a first runnable task. Setup artifacts are committed with a "PTBK: " subject.
+        summary: 'Set up a project from your intent, then start its agenda in the background.',
+        description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (core agents Adam, Manager and Teacher plus default roles), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified), the project browser, trace settings and a real project check, and saves one ordinary Expert task that transforms the project according to the initial specification. Setup is committed with a "PTBK: " subject and the task's Task-ID trailer.
 
-Repeating init with satisfied prerequisites changes nothing. For a fresh folder, an intent creates a first task for Expert, runs it and continues into \`ptbk start\`; a blank intent creates a sample project without any model call.
+After successful setup the agenda starts automatically as a background service (the same operation as \`ptbk start\`); init returns without waiting for the first task. Watch it with \`ptbk dashboard\`, stop it with \`ptbk stop\`. Repeating init with satisfied prerequisites changes nothing and reuses a running service.
 
-Without a terminal (or with --non-interactive), supply decisions with flags: missing decisions fail before any change.`,
+Without a terminal (or with --non-interactive), supply decisions with flags: missing decisions fail before any change, and blank intent creates a skeleton whose first task is a readiness review.`,
         optionGroups: [
             {
-                title: 'Destination and intent',
+                title: 'Initial input and destination',
                 options: [
+                    { name: 'intent', type: 'string', valueName: '<text>', description: 'What you are working on, saved verbatim in specs/_initial.md (new projects only).' },
+                    { name: 'intent-file', type: 'string', valueName: '<path|->', description: 'Read the intent verbatim from a file (or standard input with -).' },
+                    { name: 'attach', type: 'string', valueName: '<path>', repeatable: true, description: 'Attach an image or file to the intent (repeatable); copied into specs/_initial/ and linked.' },
                     { name: 'subfolder', type: 'string', valueName: '<name>', description: 'Initialize a new subfolder of the selected path instead of the directory itself.' },
                     { name: 'nested', type: 'enum', values: ['ignored', 'submodule'], valueName: '<strategy>', description: 'For a new child inside an existing Git repository: independent ignored repository or Git submodule.' },
                     { name: 'submodule-url', type: 'string', valueName: '<url>', description: 'Source URL recorded for a submodule child (required with --nested submodule).' },
-                    { name: 'intent', type: 'string', valueName: '<text>', description: 'What the new project should achieve (fresh folders only); starts the agenda after setup.' },
-                    { name: 'intent-file', type: 'string', valueName: '<path>', description: 'Read the intent from a file.' },
-                    { name: 'self-update', type: 'enum', values: ['yes', 'no'], valueName: '<decision>', description: 'Update this ptbk installation first when a newer release exists.', defaultText: 'asked interactively; no when unattended' },
+                    { name: 'self-update', type: 'enum', values: ['yes', 'no'], valueName: '<decision>', description: 'Update this ptbk installation first when a newer release exists (your input is kept for the rerun).', defaultText: 'asked interactively; no when unattended' },
                 ],
             },
             {
@@ -74,32 +75,43 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                 ],
             },
             {
-                title: 'Browser and validation',
+                title: 'Browser, traces and validation',
                 options: [
                     { name: 'browser-profile', type: 'string', valueName: '<path|isolated>', description: 'Project browser profile.', defaultText: 'isolated profile in .ptbk/' },
                     { name: 'browser-mode', type: 'enum', values: ['headless', 'headful'], valueName: '<mode>', description: 'Browser visibility.', defaultText: 'headless' },
+                    { name: 'commit-traces', type: 'boolean', negatable: true, description: 'Include task traces (traces/<task-id>/) in result commits; --no-commit-traces ignores the whole traces/ folder.', defaultText: 'off' },
+                    { name: 'ignore-trace-videos', type: 'boolean', negatable: true, description: 'Keep trace videos out of Git even when traces are committed.', defaultText: 'on' },
+                    { name: 'record-video', type: 'boolean', negatable: true, description: 'Record browser activity of tasks using the project browser.', defaultText: 'on' },
                     { name: 'check', type: 'string', valueName: '<command>', description: 'Project check to save when none is configured (otherwise a temporary override).' },
                     { name: 'defer-check', type: 'boolean', description: 'Explicitly defer the check decision (setup stays incomplete).' },
                 ],
             },
             COMMIT_OPTIONS,
-            { title: 'Agenda start after an intent (startup-only)', options: [...SERVER_OPTIONS.options, { name: 'persist', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not register restart persistence.' }] },
+            {
+                title: 'Automatic background start (startup-only)',
+                options: [
+                    { name: 'start', type: 'boolean', negatable: true, negatedOnly: true, description: 'Only prepare the project; do not start the agenda (start it later with `ptbk start`).' },
+                    { name: 'persist', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not register restart persistence.' },
+                    ...SERVER_OPTIONS.options,
+                ],
+            },
             PROJECT_OPTIONS,
             PRESENTATION_OPTIONS,
         ],
         examples: [
-            { command: 'ptbk init', description: 'Interactive wizard in the current directory.' },
+            { command: 'ptbk init', description: 'Describe your project, answer a few setup questions; the agenda then starts in the background.' },
             { command: 'ptbk init --subfolder my-agenda', description: 'Create and initialize a new folder.' },
-            { command: 'ptbk init --non-interactive --installation local --harness openai-codex --check "npm test"', description: 'Unattended setup.' },
-            { command: 'ptbk init --intent "A static site about birds"', description: 'Fresh project created by Expert, then started.' },
+            { command: 'ptbk init --non-interactive --installation local --harness openai-codex --check "npm test"', description: 'Unattended setup with a blank intent (readiness review).' },
+            { command: 'ptbk init --intent-file brief.md --attach mockup.png --harness claude-code --installation local', description: 'Unattended setup from a written brief with an image.' },
+            { command: 'ptbk dashboard', description: 'Afterwards: watch and control the running agenda.' },
         ],
         run: lazy(() => import('./commands/init.js')),
     },
     {
         name: 'start',
         category: 'Run the agenda',
-        summary: 'Start the ongoing agenda as a background service and report once.',
-        description: `Starts actual work: executes eligible tasks one at a time, routes unassigned tasks through Manager, checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon, serves the local dashboard/API on a free loopback port (from 3000) with protected remote access through a managed tunnel, renders one status snapshot and returns the terminal.
+        summary: 'Start (or resume) the ongoing agenda as a background service and report once.',
+        description: `Successful \`ptbk init\` already starts the agenda; use start for an initialized, cloned or intentionally stopped project. Starts actual work: executes eligible tasks one at a time, routes unassigned tasks through Manager, checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon, serves the local dashboard/API on a free loopback port (from 3000) with protected remote access through a managed tunnel, renders one status snapshot and returns the terminal.
 
 Missing setup is offered through the same initialization workflow when interactive; unattended starts report what is missing. Repeated start reports the existing service without starting another one. Use \`ptbk dashboard\` to watch it live.`,
         optionGroups: [START_OPTIONS, SERVER_OPTIONS, BROWSER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, { title: 'Context', options: [EXECUTION_SELECTION_OPTIONS.options[4]!] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
@@ -115,7 +127,7 @@ Missing setup is offered through the same initialization workflow when interacti
         name: 'stop',
         category: 'Run the agenda',
         summary: "Stop the project's daemon (it stays stopped after reboot).",
-        description: 'Stops the daemon safely: owned work is cancelled and keeps its recovery record (use --after-task to finish the current task first). An intentional stop also removes startup persistence until the next explicit `ptbk start`.',
+        description: 'Stops the daemon safely: owned work is cancelled and keeps its recovery record (use --after-task to finish the current task first). An intentional stop also removes startup persistence until the next explicit `ptbk start` (or the start performed by a successful `ptbk init`).',
         optionGroups: [
             {
                 title: 'Stop',
@@ -274,8 +286,9 @@ Missing setup is offered through the same initialization workflow when interacti
     {
         name: 'list',
         category: 'Observe and respond',
-        summary: 'List tasks with readiness explanations (read-only).',
-        description: 'Shows the queue in execution order with the reason each task is ready, waiting or blocked, the same way start, run and the dashboards evaluate it. Never assigns IDs, calls a model or creates Manager tasks.',
+        summary: 'List tasks with readiness explanations, or inspect one task (read-only).',
+        description: 'Shows the queue in execution order with the reason each task is ready, waiting or blocked, the same way start, run and the dashboards evaluate it. With a task reference (#task-id or source path) it shows that task’s ID, audit trail in traces/<task-id>/, recording status and the commits carrying its Task-ID. Never assigns IDs, calls a model or creates Manager tasks.',
+        arguments: [{ name: 'task', description: 'Task to inspect: #task-id, task ID or source path.' }],
         optionGroups: [
             {
                 title: 'Filter',
@@ -291,6 +304,7 @@ Missing setup is offered through the same initialization workflow when interacti
         examples: [
             { command: 'ptbk list', description: 'Unfinished tasks with reasons.' },
             { command: 'ptbk list --all --json', description: 'Everything, machine-readable.' },
+            { command: 'ptbk list "#improve-csv-export-k3x9qa"', description: 'One task: trace, video and commits.' },
         ],
         run: lazy(() => import('./commands/list.js')),
     },

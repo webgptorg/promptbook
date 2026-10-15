@@ -135,6 +135,7 @@
             const busy = state.busy.has(request.id);
             const item = h('article', { className: 'request', 'data-request': request.id });
             item.append(h('div', { className: 'reason' }, request.reason));
+            if (request.attempted) item.append(h('div', { className: 'muted' }, `Already attempted: ${request.attempted}`));
             item.append(
                 h(
                     'div',
@@ -186,7 +187,8 @@
                 ),
             );
             const rows = [
-                ['Task', `${current.taskRef}${current.kind !== 'task' ? ` (${current.kind})` : ''}`],
+                ['Task', `${current.taskId || current.taskRef}${current.kind !== 'task' ? ` (${current.kind})` : ''}`],
+                ...(current.trace ? [['Trace', current.trace]] : []),
                 ['Harness', `${current.harnessName} · ${model}${current.thinkingLevel ? ` · ${current.thinkingLevel}` : ''}`],
                 ['Phase', `${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? ` · ${current.detail}` : ''}`],
                 ['Since', time(current.startedAt)],
@@ -308,7 +310,7 @@
                     'ul',
                     { className: 'list' },
                     snapshot.results.recent.slice(0, 6).map((result) =>
-                        h('li', {}, h('span', { className: 'title' }, result.title, h('span', { className: 'why' }, `${result.agent || ''} ${result.commit ? `· ${result.commit.slice(0, 8)}` : ''} · ${time(result.endedAt)}`)), pill(result.outcome, result.outcome.startsWith('completed') ? 'ok' : result.outcome === 'failed' ? 'bad' : 'warn')),
+                        h('li', {}, h('span', { className: 'title' }, result.title, h('span', { className: 'why' }, `${result.agent || ''} ${result.commit ? `· ${result.commit.slice(0, 8)}` : ''}${result.taskId ? ` · ${result.taskId}` : ''} · ${time(result.endedAt)}`)), pill(result.outcome, result.outcome.startsWith('completed') ? 'ok' : result.outcome === 'failed' ? 'bad' : 'warn')),
                     ),
                 ),
             );

@@ -250,7 +250,8 @@ export async function commitPaths(options: {
     readonly paths: readonly string[];
     readonly subject: string;
     readonly body?: string;
-    readonly trailers?: Readonly<Record<string, string>>;
+    /** Message trailers; a list repeats the trailer (e.g. several `Task-ID` values). */
+    readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>>;
     readonly temporaryDirectory: string;
     readonly env?: NodeJS.ProcessEnv;
 }): Promise<CommitOutcome> {
@@ -264,7 +265,7 @@ export async function commitPaths(options: {
     const stagedPaths = new Set(staged.split('\0').filter(Boolean));
     if (!relative.some((path) => stagedPaths.has(path))) return { committed: false, reason: 'no-changes' };
     const identity = await resolveCommitIdentity(repositoryRoot, options.env);
-    const trailers = Object.entries(options.trailers ?? {}).map(([key, value]) => `${key}: ${value.replace(/\s+/g, ' ')}`);
+    const trailers = Object.entries(options.trailers ?? {}).flatMap(([key, value]) => [...new Set(value === undefined ? [] : typeof value === 'string' ? [value] : value)].map((item) => `${key}: ${item.replace(/\s+/g, ' ')}`));
     const message = [prefixedSubject(options.subject), options.body?.trim() ? `\n${options.body.trim()}` : '', trailers.length ? `\n${trailers.join('\n')}` : '']
         .join('\n')
         .replace(/\n{3,}/g, '\n\n')
@@ -339,6 +340,40 @@ export async function readAtHead(repositoryRoot: string, absolutePath: string): 
     const relativePath = absolutePath.slice(repositoryRoot.length + 1).split(sep).join('/');
     const result = await git(repositoryRoot, ['show', `HEAD:${relativePath}`]);
     return result.exitCode === 0 ? result.stdout : undefined;
+}
+
+/**
+ * Commits carrying a task's ID (`Task-ID` or `Created-Task-ID` trailer), newest first.
+ *
+ * Commit SHAs are resolved from Git and the stable ID rather than stored in the committed tree.
+ *
+ * @private Git persistence
+ */
+export async function commitsOfTask(repositoryRoot: string, taskId: string, maxCount = 2000): Promise<Array<{ sha: string; subject: string; date: string; role: 'task' | 'created' | 'related' }>> {
+    const result = await git(repositoryRoot, ['log', `--max-count=${maxCount}`, '--format=%H%x00%cI%x00%s%x00%B%x01']);
+    if (result.exitCode !== 0) return [];
+    const found: Array<{ sha: string; subject: string; date: string; role: 'task' | 'created' | 'related' }> = [];
+    for (const record of result.stdout.split('\x01')) {
+        const [sha, date, subject, body] = record.split('\0');
+        if (!sha?.trim() || !body) continue;
+        const lines = body.split('\n').map((line) => line.trim());
+        const role = lines.includes(`Task-ID: ${taskId}`) ? 'task' : lines.includes(`Created-Task-ID: ${taskId}`) ? 'created' : lines.includes(`Related-Task-ID: ${taskId}`) ? 'related' : undefined;
+        if (role) found.push({ sha: sha.trim(), subject: subject ?? '', date: date ?? '', role });
+    }
+    return found;
+}
+
+/**
+ * Lists changed or untracked, non-ignored files below a project-relative directory (absolute paths).
+ *
+ * Ignored evidence is never returned, so it is never force-added.
+ *
+ * @private Git persistence
+ */
+export async function stageableFiles(projectRoot: string, relativeDirectory: string): Promise<string[]> {
+    const result = await git(projectRoot, ['ls-files', '-z', '--modified', '--others', '--exclude-standard', '--', relativeDirectory]);
+    if (result.exitCode !== 0) return [];
+    return [...new Set(result.stdout.split('\0').filter(Boolean).map((path) => resolve(projectRoot, path)))];
 }
 
 /**

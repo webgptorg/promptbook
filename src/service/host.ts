@@ -78,7 +78,12 @@ export class ServiceHost {
             persistenceNote: options.persistenceNote,
             run: options.run,
             onEvent: options.onEvent,
-            extraTools: (task, context) => browserTools(this.browser, new RequestStore(options.project.runtime.requests), { ref: task.ref, title: task.title, agent: task.routing.agent }, context.onUserRequest),
+            extraTools: (task, context) => {
+                void this.browser.useFor(context.trace, context.attempt);
+                return browserTools(this.browser, new RequestStore(options.project.runtime.requests), { ref: task.ref, id: task.id, title: task.title, agent: task.routing.agent }, context.onUserRequest);
+            },
+            finalizeEvidence: async () => await this.browser.recorder.finish(),
+            afterWork: async () => await this.browser.recorder.detach(),
         });
         this.auth = new AuthStore(options.project);
         this.browser = new ProjectBrowser(options.project, () => this.agenda.effectiveSettings, options.env);
@@ -191,6 +196,7 @@ export class ServiceHost {
     /** Releases every owned resource (tunnel, HTTP, control, record, lock). */
     public async shutdown(): Promise<void> {
         clearInterval(this.pairingRefresh);
+        await this.browser.recorder.detach().catch(() => undefined);
         this.browser.close();
         this.tunnel?.stop();
         this.tunnel = undefined;
@@ -240,7 +246,13 @@ export class ServiceHost {
             case 'settings':
                 return await applySettings(agenda, params);
             case 'add-task':
-                return await agenda.addTaskFile(String(params.path), String(params.content), String(params.summary), typeof params.commit === 'boolean' ? params.commit : undefined);
+                return await agenda.addTaskFile(
+                    String(params.path),
+                    String(params.content),
+                    String(params.summary),
+                    typeof params.commit === 'boolean' ? params.commit : undefined,
+                    Array.isArray(params.taskIds) ? params.taskIds.map(String) : [],
+                );
             case 'recover':
                 return { message: await agenda.recover(String(params.taskRef), params.action as 'resume' | 'retry' | 'acknowledge') };
             case 'pairing': {

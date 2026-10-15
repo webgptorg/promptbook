@@ -8,6 +8,7 @@
  *   FAIL_CHECK_ONCE → first attempt writes a file that fails the fixture check
  *   BLOCKED         → reports blocked
  *   NO_REPORT       → omits the completion line
+ *   CREATE_FOLLOW_UP → also writes two follow-up task Books: one without an ID, one copying this task's ID
  * Every executed turn is appended to $FAKE_CODEX_LOG (one JSON line) when set.
  */
 import { spawn } from 'node:child_process';
@@ -137,7 +138,7 @@ async function main() {
     } else if (prompt.includes('NO_REPORT') && attempt === 1) {
         message('I did something but forgot the report.');
     } else if (prompt.includes('ASK_USER') && !prompt.includes('## Answers from the user')) {
-        const text = await callTool('ask_user', { question: 'Which color should the fixture use?', choices: ['red', 'blue'] });
+        const text = await callTool('ask_user', { question: 'Which color should the fixture use?', choices: ['red', 'blue'], reason: 'The task does not say which color to use.', attempted: 'Checked the task and project instructions.' });
         message(`${text}\nPTBK_RESULT ${JSON.stringify({ status: 'waiting-for-user', summary: 'asked the user' })}`);
     } else {
         const answer = /A: (.+)/.exec(prompt)?.[1];
@@ -148,6 +149,12 @@ async function main() {
         if (existsSync(join(process.cwd(), 'docs')) || prompt.includes('docs/promptbook-readiness.md')) {
             mkdirSync(join(process.cwd(), 'docs'), { recursive: true });
             writeFileSync(join(process.cwd(), 'docs', 'promptbook-readiness.md'), '# Readiness\n\nFixture project is ready.\n');
+        }
+        if (prompt.includes('CREATE_FOLLOW_UP')) {
+            const tasksDirectory = /top level of `([^`]+)\/`/.exec(prompt)?.[1] ?? 'tasks';
+            const id = /- Task ID: (\S+)/.exec(prompt)?.[1];
+            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-one.book'), 'TASK Follow-up one\n\nMore work.\n\nTASK AGENT @Developer\n');
+            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-two.book'), `TASK Follow-up two\n\nCopied definition.\n\nTASK ID ${id}\nTASK AGENT @Developer\n`);
         }
         print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'add' }] } });
         done(`Wrote ${file}`);

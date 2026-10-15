@@ -98,6 +98,8 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     for (const request of snapshot.requests) {
         lines.push(`- ${request.id}${request.blocking ? ' [blocking]' : ''} ${request.reason}`);
         lines.push(`  ${request.question.replace(/\n/g, '\n  ')}`);
+        if (request.attempted) lines.push(`  Already attempted: ${request.attempted}`);
+        if (request.taskId) lines.push(`  Task ID: ${request.taskId}`);
         if (request.choices?.length) lines.push(`  Choices: ${request.choices.join(' | ')}`);
         lines.push(`  Answer: ptbk answer ${request.id} "<answer>"`);
     }
@@ -107,6 +109,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
         lines.push(`- ${current.agent.name} (${activityLabel(current.agent.activity)}) on "${current.taskTitle}" [${current.taskRef}]${current.kind !== 'task' ? ` (${current.kind})` : ''}`);
         lines.push(`  Harness: ${current.harnessName}; model: ${current.model ?? 'harness default (unknown)'}${current.modelSource === 'requested' ? ' (requested)' : ''}; thinking: ${current.thinkingLevel ?? 'default'}`);
         lines.push(`  Phase: ${current.phase}${current.attempt ? ` (attempt ${current.attempt}/${current.attemptBudget})` : ''}${current.detail ? `; ${current.detail}` : ''}`);
+        if (current.taskId) lines.push(`  Task ID: ${current.taskId}; trace: ${current.trace ?? `traces/${current.taskId}/`}`);
     } else lines.push(`- ${snapshot.phase}${snapshot.wait ? `: ${snapshot.wait.reason}` : ''}`);
     if (snapshot.wait && snapshot.current) lines.push(`  Waiting: ${snapshot.wait.reason}${snapshot.wait.until ? ` (until ${snapshot.wait.until})` : ''}`);
     if (snapshot.wait?.action) lines.push(`  Next action: ${snapshot.wait.action}`);
@@ -116,7 +119,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     for (const item of snapshot.queue.slice(0, 20)) lines.push(`- [${item.readiness}] ${item.title} (${item.ref})${item.agent ? ` ${item.agent}` : ''} — ${item.reason}`);
     if (snapshot.queue.length > 20) lines.push(`- … ${snapshot.queue.length - 20} more (ptbk list)`);
     lines.push('', `RESULTS: ${snapshot.results.completed} completed, ${snapshot.results.failed} failed`);
-    for (const result of snapshot.results.recent.slice(0, 5)) lines.push(`- ${result.outcome}: ${result.title}${result.commit ? ` (${result.commit.slice(0, 8)})` : ''}`);
+    for (const result of snapshot.results.recent.slice(0, 5)) lines.push(`- ${result.outcome}: ${result.title}${result.commit ? ` (${result.commit.slice(0, 8)})` : ''}${result.taskId ? ` [Task-ID ${result.taskId}]` : ''}`);
     const error = snapshot.errors[snapshot.errors.length - 1];
     if (error) lines.push(`Last error: ${error.summary}${error.next ? ` Next: ${error.next}` : ''}${error.trace ? ` Diagnostics: ${error.trace}` : ''}`);
     lines.push('', 'CONNECTION');
@@ -159,6 +162,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
             const marker = focused ? style.accent(marks.pointer) : style.warning(marks.warn);
             attention.push(`${marker} ${style.bold(request.reason)} ${style.muted(`(${request.id}${request.blocking ? ', blocking' : ''})`)}`);
             for (const line of wrap(request.question, total - 8).slice(0, focused ? 8 : 2)) attention.push(`   ${line}`);
+            if (focused && request.attempted) for (const line of wrap(`Already attempted: ${request.attempted}`, total - 8).slice(0, 3)) attention.push(`   ${style.muted(line)}`);
             if (request.choices?.length) attention.push(`   ${style.muted('Choices:')} ${request.choices.map((choice, choiceIndex) => `${style.accent(`[${choiceIndex + 1}]`)} ${choice}`).join('  ')}`);
             attention.push(`   ${style.muted(options.live ? 'Press A to answer' : `Answer: ptbk answer ${request.id}`)}${request.taskTitle ? style.muted(` · affects “${request.taskTitle}”`) : ''}`);
         });
@@ -179,7 +183,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         ];
         for (let row = 0; row < 3; row++) work.push(`${badgeLines[row]}  ${info[row]}`);
         work.push(`${style.muted('Phase')} ${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? style.muted(` · ${current.detail}`) : ''}`);
-        work.push(`${style.muted('Task ')} ${current.taskRef}${current.kind !== 'task' ? style.muted(` (${current.kind})`) : ''}`);
+        work.push(`${style.muted('Task ')} ${current.taskId ?? current.taskRef}${current.kind !== 'task' ? style.muted(` (${current.kind})`) : ''}${current.trace ? style.muted(` · trace ${current.trace}`) : ''}`);
     } else {
         work.push(snapshot.service.state === 'stopped' ? style.muted('The service is stopped.') : `${style.bold(snapshot.phase)}${snapshot.wait ? ` ${marks.dot} ${snapshot.wait.reason}` : ''}`);
     }
