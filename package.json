@@ -8,10 +8,10 @@
         "type": "git",
         "url": "git+https://github.com/webgptorg/promptbook.git"
     },
-    "author": "Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)",
+    "author": "Pavol Hejn\u00fd <pavol@ptbk.io> (https://www.pavolhejny.com/)",
     "contributors": [
-        "Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)",
-        "Jiří Jahn <jiri@ptbk.io> (https://www.ptbk.io/)"
+        "Pavol Hejn\u00fd <pavol@ptbk.io> (https://www.pavolhejny.com/)",
+        "Ji\u0159\u00ed Jahn <jiri@ptbk.io> (https://www.ptbk.io/)"
     ],
     "license": "BUSL-1.1",
     "bugs": {
@@ -24,20 +24,20 @@
         "build": "node scripts/build.mjs",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "test": "npm run build && node scripts/test.mjs",
-        "check": "npm run typecheck && npm test && npm run test:package",
         "test:package": "npm run build && node scripts/test-package.mjs",
-        "preversion": "node scripts/preversion.mjs && npm run typecheck && npm run release:validate",
+        "check": "npm run typecheck && npm test && npm run test:package",
+        "preversion": "node scripts/preversion.mjs && npm run typecheck && npm test && npm run release:validate",
         "postversion": "node scripts/postversion.mjs",
         "prepack": "npm run build",
-        "prepublishOnly": "node scripts/assert-publish-context.mjs && npm run check",
-        "release:preminor": "npm version preminor",
-        "release:prerelease": "npm version prerelease",
-        "release:publish": "node scripts/publish.mjs",
+        "prepublishOnly": "node scripts/assert-publish-context.mjs",
         "release:validate": "node scripts/validate-release.mjs",
+        "release:publish": "node scripts/publish.mjs",
         "release:verify": "node scripts/verify-published.mjs",
         "release:patch": "npm version patch",
         "release:minor": "npm version minor",
-        "release:major": "npm version major"
+        "release:major": "npm version major",
+        "release:prerelease": "npm version prerelease",
+        "release:preminor": "npm version preminor"
     },
     "engines": {
         "node": "^22.13.0 || >=24",
@@ -61,11 +61,7 @@
         "dist/",
         "README.md",
         "LICENSE.md",
-        "CHANGELOG.md",
-        "docs/releasing.md",
-        "docs/runtime.md",
-        "docs/compatibility.md",
-        "changelog/_current-preversion.md"
+        "CHANGELOG.md"
     ],
     "keywords": [
         "cli",

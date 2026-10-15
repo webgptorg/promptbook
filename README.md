@@ -1,40 +1,64 @@
 # Promptbook (`ptbk`)
 
-Promptbook operates readable agent and task Books over a Git project. This repository publishes one npm package, `ptbk`, which installs the `ptbk` command. Runtime state, requests, traces and the shared browser profile live in ignored `.ptbk/` files.
+Promptbook operates readable **agents** and **tasks** over a Git project. Agents are Books with lasting roles, goals and rules; tasks are bounded work. The agenda executes one task at a time, routes unassigned tasks through Manager, verifies every result with your project check and commits it together with its completion record (`PTBK: <task title>`). When the backlog is empty, agents with goals are asked whether new work is useful.
 
-Requires Node.js 22.13+ in the Node 22 line, or Node 24+, and npm 10+.
+This repository publishes exactly one npm package, `ptbk`, which installs the `ptbk` command. It requires Node.js 22.13+ (Node 22 line) or 24+, npm 10+ and Git.
+
+## Install
 
 ```bash
-# Global installation
+# Global
 npm install --global ptbk
-ptbk init --path ./project
 
-# Project-local installation
+# Or project-local (no PATH entry; use npx or npm scripts)
 npm install --save-dev ptbk
-npx ptbk init
+npx ptbk --version
 ```
 
-Initialization creates missing core agents, task templates, `ptbk.json` and project conventions, preserving customized files. Its wizard offers destination-local installation of the exact running version and selected global harness setup, reusing native login. Unattended setup requires `--installation local|global` or `--no-install`; `--non-interactive` disables prompts. Setup commits only safe generated artifacts; `--no-commit` defers persistence, and edits overlapping user work remain pending review. Configure meaningful project checks before starting work.
+Global and local installations are independent; every project keeps using the installation that started it, including after restarts.
+
+## Use
 
 ```bash
-ptbk add "Implement the new behavior and its acceptance checks"
-ptbk list
-ptbk run --dry-run
-ptbk start                     # background agenda, protected remote dashboard, reboot persistence
-ptbk dashboard                 # attach terminal controls to the existing service
-ptbk show                      # inspect the same process and pending requests
-ptbk answer REQUEST_ID "Reply"
-ptbk stop                      # intentional stop also disables automatic restart
+ptbk init                 # wizard: destination, harnesses, browser, project check, first task
+ptbk start                # background agenda + local dashboard + protected remote access
+ptbk dashboard            # live terminal view and controls (Q leaves, the service keeps running)
+ptbk status               # one snapshot: requests, current work, queue, connection
+ptbk add "Improve CSV export"   # creates and commits a task; Manager assigns it
+ptbk answer               # answer questions agents asked you
+ptbk stop                 # stop (stays stopped after reboot until the next start)
+ptbk run --limit 1        # finite run with one agent/harness configuration
 ```
 
-`start` discovers available authenticated harnesses, uses Manager for missing assignments, and executes one task at a time. It requires reported outcome evidence and passing project checks before committing implementation, dated task completion and learning follow-ups together. It watches future work and materializes goal enquiries when no unfinished backlog remains. Failures retain work and expose recovery diagnostics.
+Run `ptbk help` for all commands and `ptbk help <command>` for one command's options, defaults and examples.
 
-Lifecycle commands report once and return; `start --raw` still launches a daemon. Use `dashboard` to attach terminal controls, or `start --foreground` to own execution in the current terminal (`--raw` gives plain foreground events). Q/Ctrl+C leaves an attached dashboard while its service continues. `--no-persist`, `--no-server`, `--no-qr` and `--port` customize startup. `run` executes a finite queue with one configuration; for example `ptbk run --harness openai-codex --check "npm run check" --limit 1`. Harness availability, account policy and capability checks happen before inference; unsupported installed provider features produce an actionable diagnostic.
+-   **Unattended setup:** `ptbk init --non-interactive --installation local --harness openai-codex --check "npm test"`.
+-   **Harnesses:** OpenAI Codex and Claude Code are featured; GitHub Copilot, Cline, OpenCode, Gemini CLI and Qwen Code are also supported. They are installed globally and use their own login.
+-   **Files:** agents in `agents/` (core Adam, Manager and Teacher in `agents/.core/`), tasks in `tasks/` (Books or Markdown), configuration in `ptbk.json`, runtime state in the Git-ignored `.ptbk/`.
+-   **Remote access:** `ptbk start` serves a dashboard on `127.0.0.1` and publishes it through a Cloudflare quick tunnel; devices must pair with a single-use link shown in the local terminal (`ptbk access pair`). Use `--no-tunnel` for local-only access or `--no-server` for neither.
+-   **Presentation:** pretty terminal UI by default; `--raw` (or redirected output) gives plain text without prompts. `--non-interactive` never asks questions.
+-   **Commits:** every mutating workflow commits its own changes with a `PTBK: ` subject; `--no-commit` is the explicit exception.
 
-Suitable terminals default to rich presentation; `--raw` or redirected output gives plain results without prompts or QR codes. `ptbk add` guides and confirms task creation. Use `ptbk init --help`, `ptbk init help` or `ptbk help init` for the same command-specific offline reference.
+The behavior is defined by [the specification](specs/_main.md).
 
-Global installation, local `npx ptbk`, or a project script such as `"ptbk": "ptbk"` work outside this repository. Each process loads its own installed runtime/version and pins that installation for restart. See [runtime usage](docs/runtime.md), [compatibility and verification](docs/compatibility.md), and [the specification](https://github.com/webgptorg/promptbook/blob/main/specs/_main.md).
+## Develop
 
-For development, use `npm ci` and `npm run check`. Checks validate types, deterministic integration fixtures and real tarball installations in disposable external projects. CI runs on Linux, macOS and Windows with Node 22 and 24.
+```bash
+npm ci
+npm run check        # typecheck, tests with a fake harness, packed local/global installation checks
+npm run ptbk -- --help
+```
 
-For releases, run `npm version patch`, `npm version minor`, or `npm version prerelease` on a clean named branch after committing your work. Basic `preversion` checks run locally; `postversion` atomically pushes the version commit and exact `vVERSION` tag. GitHub Actions checks and publishes only `ptbk` with npm provenance, then verifies the public registry and installed CLI. Configure npm trusted publishing once as described in [releasing](docs/releasing.md).
+## Release
+
+From a clean, committed, named branch:
+
+```bash
+npm version prerelease    # or patch / minor / major
+```
+
+`preversion` verifies the clean branch, typechecks, runs the tests and validates the manifest/lockfile. `postversion` atomically pushes the version commit and its `vX.Y.Z` tag. GitHub Actions then runs **Check ptbk** on Node 22/24 × Linux/macOS/Windows for the tag and, only if it passes, **Publish ptbk** publishes the single `ptbk` package with npm provenance and verifies the public registry and default local/global installations. Publishing needs the `NPM_TOKEN` secret or npm trusted publishing configured for this repository.
+
+## License
+
+See [LICENSE.md](LICENSE.md).

@@ -1,0 +1,190 @@
+import { runProcess } from '../../../common/process.js';
+import { baseInspection, helpText, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
+import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest, ParserState } from '../../types.js';
+
+/**
+ * Environment variables that could switch Codex to API billing.
+ */
+const API_KEY_VARIABLES = ['OPENAI_API_KEY', 'CODEX_API_KEY', 'OPENAI_BASE_URL'];
+
+/**
+ * Copies an environment without API-key overrides (account sessions win over present keys).
+ */
+function withoutApiKeys(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+    const copy = { ...env };
+    for (const name of API_KEY_VARIABLES) delete copy[name];
+    return copy;
+}
+
+/**
+ * Formats a TOML string literal (JSON string syntax is valid TOML basic-string syntax).
+ */
+function toml(value: string): string {
+    return JSON.stringify(value);
+}
+
+/**
+ * Fetches the installed Codex model catalog over its app-server metadata RPC, without starting a thread or turn.
+ */
+async function listCodexModels(context: HarnessContext): Promise<string[]> {
+    const models: string[] = [];
+    let controls: { write: (text: string) => void; end: () => void } | undefined;
+    const send = (message: unknown): void => controls?.write(`${JSON.stringify(message)}\n`);
+    await runProcess('codex', ['app-server'], {
+        cwd: context.projectRoot,
+        env: context.env,
+        timeoutMs: 10_000,
+        signal: context.signal,
+        stdinController: (value) => {
+            controls = value;
+            send({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { clientInfo: { name: 'ptbk-inventory', version: '1' } } });
+        },
+        onStdoutLine: (line) => {
+            const message = parseJsonLine(line);
+            if (message?.id === 1) {
+                send({ jsonrpc: '2.0', method: 'initialized' });
+                send({ jsonrpc: '2.0', id: 2, method: 'model/list', params: { limit: 100 } });
+            } else if (message?.id === 2) {
+                const data = (message.result as { data?: Array<{ model?: string; id?: string; hidden?: boolean }> } | undefined)?.data ?? [];
+                for (const entry of data) if (!entry.hidden && (entry.model || entry.id)) models.push((entry.model ?? entry.id)!);
+                controls?.end();
+            }
+        },
+    });
+    return [...new Set(models)];
+}
+
+/**
+ * Inspects installation and native login (`codex login status`), never running inference.
+ */
+async function inspect(context: HarnessContext): Promise<HarnessInspection> {
+    const { inspection, executablePath } = await baseInspection(plugin, context);
+    if (!executablePath) return inspection;
+    const status = await probe(context, executablePath, ['login', 'status'], withoutApiKeys(context.env));
+    if (status.ok && /logged in using chatgpt/i.test(status.output)) {
+        return withAuthentication(inspection, true, 'account', plugin.loginHint, `Ready (ChatGPT account login${inspection.version ? `, v${inspection.version}` : ''}).`);
+    }
+    const apiOptIn = context.env.PTBK_OPENAI_CODEX_USE_API_KEY === '1';
+    const hasKey = Boolean(context.env.OPENAI_API_KEY || context.env.CODEX_API_KEY);
+    if (apiOptIn && (hasKey || (status.ok && /api key/i.test(status.output)))) {
+        return withAuthentication(inspection, true, 'api', plugin.loginHint, 'Ready (API key; explicit PTBK_OPENAI_CODEX_USE_API_KEY=1).');
+    }
+    const detail = status.ok && /api key/i.test(status.output)
+        ? 'Logged in with an API key, but API billing requires PTBK_OPENAI_CODEX_USE_API_KEY=1.'
+        : 'Installed but not logged in.';
+    return withAuthentication(inspection, false, 'none', plugin.loginHint, detail);
+}
+
+/**
+ * Builds `codex exec --json` with the workspace-write (or read-only) sandbox and no approvals.
+ */
+async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvocation> {
+    const context = { projectRoot: request.projectRoot, env: request.env };
+    const execHelp = await helpText(context, 'codex', ['exec', '--help']);
+    const api = request.authentication === 'api';
+    const env = api ? { ...request.env, CODEX_API_KEY: request.env.CODEX_API_KEY ?? request.env.OPENAI_API_KEY } : withoutApiKeys(request.env);
+    const args = ['exec', '--json', '--color', 'never', '--skip-git-repo-check', '--sandbox', request.readOnly ? 'read-only' : 'workspace-write'];
+    args.push('-c', 'approval_policy="never"', '-c', `forced_login_method=${toml(api ? 'api' : 'chatgpt')}`);
+    if (!request.readOnly) args.push('-c', 'sandbox_workspace_write.network_access=true');
+    for (const directory of request.readableDirectories) if (execHelp.includes('--add-dir') && !request.readOnly) args.push('--add-dir', directory);
+    if (!api && !request.allowCredits) {
+        // Apply a native credit restriction only when the installed CLI actually supports one.
+        if (execHelp.includes('--no-credits')) args.push('--no-credits');
+        else if (execHelp.includes('--disable-credits')) args.push('--disable-credits');
+    }
+    if (request.model) args.push('--model', request.model);
+    if (request.thinkingLevel) args.push('-c', `model_reasoning_effort=${toml(request.thinkingLevel)}`);
+    if (request.mcp) {
+        const environment = Object.entries(request.mcp.env)
+            .map(([key, value]) => `${key}=${toml(value)}`)
+            .join(', ');
+        args.push(
+            '-c',
+            `mcp_servers.ptbk.command=${toml(request.mcp.command)}`,
+            '-c',
+            `mcp_servers.ptbk.args=[${request.mcp.args.map(toml).join(', ')}]`,
+            '-c',
+            `mcp_servers.ptbk.env={${environment}}`,
+            '-c',
+            'mcp_servers.ptbk.startup_timeout_sec=30',
+            '-c',
+            'mcp_servers.ptbk.tool_timeout_sec=900',
+        );
+    }
+    args.push('-');
+    return { args, input: request.prompt, env };
+}
+
+/**
+ * Parses `codex exec --json` events.
+ */
+function parseLine(line: string, state: ParserState): HarnessEvent[] {
+    const event = parseJsonLine(line);
+    if (!event) return [];
+    const events: HarnessEvent[] = [];
+    const type = event.type;
+    if (type === 'thread.started' && typeof event.thread_id === 'string') events.push({ type: 'session', id: event.thread_id });
+    else if (type === 'item.started' || type === 'item.completed') {
+        const item = (event.item ?? {}) as Record<string, unknown>;
+        const completed = type === 'item.completed';
+        switch (item.type) {
+            case 'agent_message':
+                if (completed && typeof item.text === 'string') events.push({ type: 'message', text: item.text });
+                break;
+            case 'reasoning':
+                if (completed && typeof item.text === 'string') events.push({ type: 'reasoning', text: item.text });
+                break;
+            case 'command_execution':
+                if (!completed && typeof item.command === 'string') events.push({ type: 'activity', text: `$ ${item.command.replace(/\s+/g, ' ').slice(0, 160)}` });
+                else if (completed && typeof item.exit_code === 'number' && item.exit_code !== 0) events.push({ type: 'activity', text: `command exited with ${item.exit_code}` });
+                break;
+            case 'file_change': {
+                const changes = Array.isArray(item.changes) ? (item.changes as Array<{ path?: string; kind?: string }>) : [];
+                if (completed && changes.length) events.push({ type: 'activity', text: `edited ${changes.map((change) => change.path).join(', ').slice(0, 160)}` });
+                break;
+            }
+            case 'mcp_tool_call':
+                if (!completed) events.push({ type: 'activity', text: `${String(item.server)}.${String(item.tool)} ${summarizeToolInput(item.arguments)}`.trim() });
+                break;
+            case 'web_search':
+                if (!completed) events.push({ type: 'activity', text: `web search ${String(item.query ?? '')}`.trim() });
+                break;
+            case 'error':
+                if (typeof item.message === 'string') events.push({ type: 'error', text: item.message });
+                break;
+            default:
+                break;
+        }
+    } else if (type === 'turn.completed') {
+        const usage = (event.usage ?? {}) as Record<string, unknown>;
+        events.push({ type: 'usage', usage: Object.fromEntries(Object.entries(usage).filter(([, value]) => typeof value === 'number')) as Record<string, number> });
+    } else if (type === 'turn.failed') {
+        events.push({ type: 'turn-failed', text: String((event.error as { message?: string } | undefined)?.message ?? 'Codex turn failed.') });
+    } else if (type === 'error' && typeof event.message === 'string') {
+        events.push({ type: 'error', text: event.message });
+    }
+    void state;
+    return events;
+}
+
+/**
+ * OpenAI Codex integration.
+ *
+ * @private harness plugin
+ */
+export const plugin: HarnessPlugin = {
+    id: 'openai-codex',
+    displayName: 'OpenAI Codex',
+    featured: true,
+    executable: 'codex',
+    npmPackage: '@openai/codex',
+    homepage: 'https://developers.openai.com/codex/cli',
+    thinkingLevels: ['low', 'medium', 'high', 'xhigh'],
+    capabilities: { mcp: true, readOnly: true },
+    loginArgs: ['login'],
+    loginHint: 'Run `codex login` and sign in with your ChatGPT account.',
+    inspect,
+    listModels: listCodexModels,
+    buildInvocation,
+    parseLine,
+};

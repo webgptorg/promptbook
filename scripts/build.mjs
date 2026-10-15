@@ -1,13 +1,30 @@
 import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-import { copyFile, rm } from 'node:fs/promises';
+import { cp, copyFile, mkdir, readdir, rm } from 'node:fs/promises';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
-/** Compile the isolated ESM runtime while preserving the repository's CommonJS configs. */
+/**
+ * Builds the single publishable `ptbk` package:
+ * - compiles `src/` to ESM in `dist/` (the `dist/package.json` boundary marks it as ESM),
+ * - copies the browser dashboard assets,
+ * - ships the product specification as the running engine's Expert reference material.
+ */
 const execute = promisify(execFile);
-await rm(new URL('../dist', import.meta.url), { recursive: true, force: true });
-await execute(process.execPath, [fileURLToPath(new URL('../node_modules/typescript/bin/tsc', import.meta.url)), '-p', 'tsconfig.json'], { cwd: fileURLToPath(new URL('..', import.meta.url)) }).catch(error => {
-    process.stderr.write(error.stdout || error.message);
-    process.exitCode = 1;
-});
-if (!process.exitCode) await copyFile(new URL('../src/package.json', import.meta.url), new URL('../dist/package.json', import.meta.url));
+const root = fileURLToPath(new URL('..', import.meta.url));
+const dist = join(root, 'dist');
+
+await rm(dist, { recursive: true, force: true });
+try {
+    await execute(process.execPath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '-p', 'tsconfig.json'], { cwd: root });
+} catch (error) {
+    process.stderr.write(error.stdout || error.stderr || error.message);
+    process.exit(1);
+}
+await copyFile(join(root, 'src', 'package.json'), join(dist, 'package.json'));
+await mkdir(join(dist, 'service', 'spa'), { recursive: true });
+for (const file of await readdir(join(root, 'src', 'service', 'spa'))) {
+    await copyFile(join(root, 'src', 'service', 'spa', file), join(dist, 'service', 'spa', file));
+}
+await cp(join(root, 'specs'), join(dist, 'expert'), { recursive: true, filter: (source) => !source.endsWith('.DS_Store') });
+process.stdout.write('Built dist/ (ESM runtime, dashboard assets, Expert documentation).\n');

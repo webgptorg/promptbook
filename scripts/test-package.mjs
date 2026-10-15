@@ -1,151 +1,173 @@
-import { mkdtemp, mkdir, readFile, writeFile, rm, readdir, realpath } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
+import { chmod, copyFile, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, delimiter, resolve } from 'node:path';
+import { delimiter, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { execFile } from 'node:child_process';
-import assert from 'node:assert/strict';
 import { validateRelease } from './validate-release.mjs';
 
-/** Execute npm and installed CLI processes without a shell on Unix. */
+/**
+ * Packs the single `ptbk` package and verifies it the way users install it: project-local and global
+ * installations in disposable folders (with spaces), then a real init → run → daemon start/stop cycle driven by a
+ * deterministic harness substitute. Nothing touches the checkout or the system global prefix.
+ */
 const execute = promisify(execFile);
-/** The checkout under test is independent of the caller's current project. */
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
-/** Use npm's JavaScript entry point, including on Windows where .cmd needs a shell. */
 const npmCli = process.env.npm_execpath;
-if (!npmCli) throw new Error('Run this smoke test with npm run test:package.');
-/** Disposable installations never alter the checkout or the system global prefix. */
-const temporary = await mkdtemp(join(tmpdir(), 'ptbk-package-'));
+if (!npmCli) throw new Error('Run this check with `npm run test:package`.');
+const temporary = await realpath(await mkdtemp(join(tmpdir(), 'ptbk package ')));
 
-/** Run npm with isolated installation settings; no dependencies need lifecycle scripts. */
-function npm(args, cwd = repositoryRoot) {
-    return execute(process.execPath, [npmCli, ...args], { cwd, timeout: 60_000, maxBuffer: 2 * 1024 * 1024 });
+/**
+ * Runs npm through its JavaScript entry point (works on Windows without a shell).
+ */
+function npm(args, cwd = repositoryRoot, env = process.env) {
+    return execute(process.execPath, [npmCli, ...args], { cwd, env, timeout: 180_000, maxBuffer: 8 * 1024 * 1024 });
 }
 
-/** Exercise installed links rather than just running the checkout's JavaScript file. */
-function linkedCli(path, args, cwd, env = process.env) {
+/**
+ * Runs an installed `ptbk` link (cmd.exe shims on Windows).
+ */
+function linked(path, args, cwd, env = process.env) {
     if (process.platform === 'win32') {
-        // cmd.exe needs explicit quotes around executable/arguments containing project spaces.
-        const command = [path, ...args].map(value => `"${value}"`).join(' ');
-        return execute('cmd.exe', ['/d', '/s', '/c', `"${command}"`], { cwd, env, timeout: 90_000, windowsVerbatimArguments: true });
+        const command = [path, ...args].map((value) => `"${value}"`).join(' ');
+        return execute('cmd.exe', ['/d', '/s', '/c', `"${command}"`], { cwd, env, timeout: 180_000, windowsVerbatimArguments: true, maxBuffer: 8 * 1024 * 1024 });
     }
-    return execute(path, args, { cwd, env, timeout: 90_000 });
+    return execute(path, args, { cwd, env, timeout: 180_000, maxBuffer: 8 * 1024 * 1024 });
 }
 
+/**
+ * Runs a link that is expected to fail and returns its result.
+ */
+async function linkedResult(path, args, cwd, env) {
+    try {
+        const { stdout, stderr } = await linked(path, args, cwd, env);
+        return { code: 0, stdout, stderr };
+    } catch (error) {
+        return { code: error.code, stdout: error.stdout ?? '', stderr: error.stderr ?? '' };
+    }
+}
+
+/**
+ * Git with a fixture identity (no global author or signing needed).
+ */
+function git(cwd, args) {
+    return execute('git', ['-c', 'commit.gpgsign=false', '-c', 'user.name=Package Fixture', '-c', 'user.email=fixture@example.test', ...args], { cwd });
+}
+
+let failure;
 try {
     const release = await validateRelease();
     const { stdout } = await npm(['pack', '--ignore-scripts', '--json', '--pack-destination', temporary]);
     const packed = JSON.parse(stdout)[0];
     assert.equal(packed.name, 'ptbk');
     assert.equal(packed.version, release.version);
-    const files = packed.files.map(file => file.path);
-    for (const required of ['bin/ptbk.js', 'dist/cli.js', 'dist/package.json', 'dist/coder/cli.js', 'dist/coder/service-worker.js', 'dist/coder/browser.js', 'README.md', 'LICENSE.md', 'docs/releasing.md', 'docs/runtime.md']) {
+    const files = packed.files.map((file) => file.path.split('\\').join('/'));
+    for (const required of [
+        'bin/ptbk.js',
+        'dist/cli.js',
+        'dist/package.json',
+        'dist/service/worker.js',
+        'dist/service/supervisor.js',
+        'dist/engine/mcp-server.js',
+        'dist/service/spa/index.html',
+        'dist/service/spa/app.js',
+        'dist/expert/_main.md',
+        'README.md',
+        'LICENSE.md',
+    ]) {
         assert(files.includes(required), `Missing package file: ${required}`);
     }
-    assert(!files.some(path => /(?:^|\/)(?:\.env(?:\..*)?|node_modules|tasks|specs|src|test|scripts|\.github)(?:\/|$)/.test(path)), 'Package includes repository-only files.');
+    assert(!files.some((path) => /^(src|test|scripts|tasks|specs|agents|\.github|design|other|changelog)\//.test(path) || /(^|\/)\.env/.test(path)), 'The package includes repository-only files.');
     const tarball = join(temporary, packed.filename);
+
+    // Deterministic harness substitute and a `git` identity for fixtures.
+    const bin = join(temporary, 'fake bin');
+    await mkdir(bin);
+    await copyFile(join(repositoryRoot, 'test', 'fixtures', 'fake-codex.mjs'), join(bin, 'codex.mjs'));
+    if (process.platform === 'win32') await writeFile(join(bin, 'codex.cmd'), `@echo off\r\n"${process.execPath}" "%~dp0codex.mjs" %*\r\n`);
+    else {
+        await writeFile(join(bin, 'codex'), `#!/bin/sh\nexec "${process.execPath}" "${join(bin, 'codex.mjs')}" "$@"\n`);
+        await chmod(join(bin, 'codex'), 0o755);
+    }
+    const pathKey = Object.keys(process.env).find((key) => key.toUpperCase() === 'PATH') ?? 'PATH';
+    const env = {
+        ...process.env,
+        [pathKey]: `${bin}${delimiter}${process.env[pathKey] ?? ''}`,
+        CODING_AGENT_GIT_NAME: 'Package Fixture',
+        CODING_AGENT_GIT_EMAIL: 'fixture@example.test',
+        PTBK_HOME: join(temporary, 'ptbk home'),
+        NO_COLOR: '1',
+    };
+
+    // 1. Project-local installation (devDependency) used through the link, npm scripts and npx.
     const fixture = join(temporary, 'external project');
-    const globalPrefix = join(temporary, 'global prefix');
     await mkdir(fixture);
-    await writeFile(join(fixture, 'package.json'), JSON.stringify({ name: 'ptbk-package-fixture', version: '99.0.0', private: true, scripts: { ptbk: 'ptbk', check: 'node -e "if(require(\'node:fs\').readFileSync(\'result.txt\',\'utf8\')!==\'accepted fixture\\n\')process.exit(1)"' } }, null, 2));
+    await writeFile(join(fixture, 'package.json'), `${JSON.stringify({ name: 'ptbk-package-fixture', version: '1.0.0', private: true, scripts: { ptbk: 'ptbk', check: 'ptbk lint' } }, null, 2)}\n`);
+    await writeFile(join(fixture, '.gitignore'), 'node_modules/\n');
     await npm(['install', '--save-dev', '--ignore-scripts', '--no-audit', '--no-fund', tarball], fixture);
-    const localLink = join(fixture, 'node_modules', '.bin', process.platform === 'win32' ? 'ptbk.cmd' : 'ptbk');
-    assert.equal((await linkedCli(localLink, ['--version'], fixture)).stdout.trim(), release.version);
-    const scripted = await npm(['run', '--silent', 'ptbk', '--', '--version'], fixture);
-    assert.equal(scripted.stdout.trim(), release.version);
-    const npx = await npm(['exec', '--offline', '--', 'ptbk', '--version'], fixture);
-    assert.equal(npx.stdout.trim(), release.version);
-    const installed = JSON.parse(await readFile(join(fixture, 'node_modules', 'ptbk', 'package.json'), 'utf8'));
-    assert.equal(installed.bin.ptbk, 'bin/ptbk.js');
+    const local = join(fixture, 'node_modules', '.bin', process.platform === 'win32' ? 'ptbk.cmd' : 'ptbk');
+    assert.equal((await linked(local, ['--version'], fixture)).stdout.trim(), release.version);
+    assert.equal((await npm(['run', '--silent', 'ptbk', '--', '--version'], fixture)).stdout.trim(), release.version);
+    assert.equal((await npm(['exec', '--offline', '--', 'ptbk', '--version'], fixture)).stdout.trim(), release.version);
     const esm = JSON.parse(await readFile(join(fixture, 'node_modules', 'ptbk', 'dist', 'package.json'), 'utf8'));
     assert.equal(esm.type, 'module');
     assert.equal(esm.private, true, 'The ESM boundary must never become another publishable package.');
-    const bareProject = join(temporary, 'empty project');
-    await mkdir(bareProject);
-    const instructions = await linkedCli(localLink, ['--path', bareProject], fixture);
-    assert.match(instructions.stdout, /ptbk start/);
-    const help = await linkedCli(localLink, ['start', '--help', '--path', bareProject], fixture);
-    assert.match(help.stdout, /Usage: ptbk/);
-    assert.deepEqual(await readdir(bareProject), [], 'Package inspection must not initialize a project.');
-    await npm(['install', '--global', '--prefix', globalPrefix, '--ignore-scripts', '--no-audit', '--no-fund', tarball], fixture);
-    const globalLink = process.platform === 'win32' ? join(globalPrefix, 'ptbk.cmd') : join(globalPrefix, 'bin', 'ptbk');
-    assert.equal((await linkedCli(globalLink, ['--version'], bareProject)).stdout.trim(), release.version);
-    assert.match((await linkedCli(globalLink, ['--help'], bareProject)).stdout, /ptbk/);
-    // Use a deterministic installed-provider substitute. No account, inference or system-global tool install is used.
-    const providers = join(temporary, 'fixture providers');
-    await mkdir(providers);
-    await writeFile(join(providers, 'opencode'), '#!' + process.execPath + '\n' + `
-const args = process.argv.slice(2);
-if (args.includes('--help')) { console.log('--variant --format --model'); process.exit(0); }
-if (args.includes('--version')) { console.log('1.0.0'); process.exit(0); }
-if (args[0] === 'auth') { console.log('1 credentials oauth'); process.exit(0); }
-if (args[0] === 'models') { console.log('fixture/model'); process.exit(0); }
-(async () => {
-const configuration = JSON.parse(process.env.OPENCODE_CONFIG_CONTENT || '{}');
-if (configuration.mcp?.ptbk) {
-    const client = configuration.mcp.ptbk.command[1];
-    const source = require('node:fs').readFileSync(client, 'utf8');
-    const url = JSON.parse(source.match(/const url = (.*);/)[1]);
-    for (const method of ['initialize', 'tools/list']) {
-        await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method }) });
-    }
-}
-if (args[0] === 'mcp') { console.log('Verified fixture native tool discovery'); return; }
-require('node:fs').writeFileSync('result.txt', 'accepted fixture\\n');
-console.log(JSON.stringify({type:'text',part:{text:'PTBK_ACCEPTANCE {"satisfied":true,"evidence":"Created result.txt and ran the project check."}'}}));
-})().catch(error => { console.error(error); process.exitCode = 1; });
-`, { mode: 0o755 });
-    const env = { ...process.env, PATH: providers + delimiter + process.env.PATH };
-    await execute('git', ['init', '--quiet'], { cwd: fixture });
-    await execute('git', ['config', 'user.name', 'Package Fixture'], { cwd: fixture });
-    await execute('git', ['config', 'user.email', 'fixture@example.test'], { cwd: fixture });
-    await execute('git', ['config', 'commit.gpgsign', 'false'], { cwd: fixture });
-    await writeFile(join(fixture, '.gitignore'), 'node_modules/\n');
-    await execute('git', ['add', '.'], { cwd: fixture });
-    await execute('git', ['commit', '--quiet', '-m', 'External project baseline'], { cwd: fixture });
-    await assert.rejects(linkedCli(localLink, ['init', '--no-install', '--no-questions', '--commit'], fixture, env), error => error.code === 2 && /Unresolved prerequisites:/.test(error.stdout));
-    const starter = (await readdir(join(fixture, 'tasks'))).find(name => name.endsWith('.book'));
-    await rm(join(fixture, 'tasks', starter)); // The package execution fixture exercises its own explicit task.
-    await writeFile(join(fixture, 'agents', 'developer.book'), 'Developer\nFROM Void\nRULE Implement and verify the fixture.\nCLOSED\n');
-    await execute('git', ['add', '.'], { cwd: fixture });
-    await execute('git', ['commit', '--quiet', '-m', 'Fixture project configuration'], { cwd: fixture });
-    await linkedCli(localLink, ['add', 'Create result.txt with accepted fixture and verify it', '--no-questions', '--commit'], fixture, env);
-    const before = Number((await execute('git', ['rev-list', '--count', 'HEAD'], { cwd: fixture })).stdout.trim());
-    const preview = JSON.parse((await linkedCli(globalLink, ['run', '--dry-run', '--json'], fixture, env)).stdout);
-    assert.equal(preview.tasks.length, 1);
-    assert.equal(preview.tasks[0].kind, 'ready');
-    const result = await linkedCli(localLink, ['run', '--harness', 'opencode', '--agent', 'Developer', '--limit', '1', '--check', 'npm run check', '--no-questions', '--no-ui'], fixture, env);
-    assert.match(result.stdout, /1 completed, 0 failed/);
-    assert.equal(await readFile(join(fixture, 'result.txt'), 'utf8'), 'accepted fixture\n');
-    assert.equal(Number((await execute('git', ['rev-list', '--count', 'HEAD'], { cwd: fixture })).stdout.trim()), before + 1);
-    assert.equal((await execute('git', ['status', '--porcelain'], { cwd: fixture })).stdout, '');
-    const completed = JSON.parse((await linkedCli(globalLink, ['list', '--json'], fixture, env)).stdout).tasks[0];
-    assert.equal(completed.status, 'done');
-    assert.match(await readFile(join(fixture, completed.source), 'utf8'), /TASK DONE \d{4}-\d{2}-\d{2}T/);
-    // Exercise the actual installed worker in a detached process with a future-only agenda.
-    await writeFile(join(fixture, 'tasks', 'future.book'), 'TASK Future packaged work\nTASK ID packaged-future\nTASK AGENT @Developer\nTASK HARNESS opencode\nTASK AFTER 2099-01-01T00:00:00Z\n\nDo not execute before its earliest start.\n');
-    await execute('git', ['add', '--', 'tasks/future.book'], { cwd: fixture });
-    await execute('git', ['commit', '--quiet', '-m', 'Future packaged agenda'], { cwd: fixture });
+
+    // Read-only commands never initialize a project.
+    const bare = join(temporary, 'bare project');
+    await mkdir(bare);
+    assert.match((await linked(local, ['--path', bare, '--raw'], fixture)).stdout, /ptbk start/);
+    assert.match((await linked(local, ['start', '--help', '--raw'], bare)).stdout, /ptbk start/);
+    assert.deepEqual(await readdir(bare), [], 'Help must not initialize a project.');
+
+    // 2. Global installation into a disposable prefix.
+    const prefix = join(temporary, 'global prefix');
+    await npm(['install', '--global', '--prefix', prefix, '--ignore-scripts', '--no-audit', '--no-fund', tarball], fixture);
+    const global = process.platform === 'win32' ? join(prefix, 'ptbk.cmd') : join(prefix, 'bin', 'ptbk');
+    assert.equal((await linked(global, ['--version'], bare)).stdout.trim(), release.version);
+
+    // 3. Init → run → daemon with the local installation in an existing project.
+    await git(fixture, ['init', '--quiet']);
+    await git(fixture, ['add', '.']);
+    await git(fixture, ['commit', '--quiet', '-m', 'External project baseline']);
+    const init = await linkedResult(local, ['init', '--non-interactive', '--harness', 'openai-codex', '--check', 'npm run check', '--raw'], fixture, env);
+    assert.equal(init.code, 0, `${init.stdout}\n${init.stderr}`);
+    assert.match(init.stdout, /Ready to start/);
+    const run = await linkedResult(local, ['run', '--raw'], fixture, env);
+    assert.equal(run.code, 0, `${run.stdout}\n${run.stderr}`);
+    assert.match(run.stdout, /1 completed, 0 failed/);
+    assert.match((await git(fixture, ['log', '-1', '--format=%s'])).stdout, /^PTBK: Check that the project is ready/);
+    assert.equal((await git(fixture, ['status', '--porcelain'])).stdout.trim(), '');
     try {
-        const started = await linkedCli(localLink, ['start', '--raw', '--daemon', '--no-persist', '--no-server', '--no-qr', '--harness', 'opencode'], fixture, env);
-        assert.match(started.stdout, /ptbk started/);
-        assert.doesNotMatch(started.stdout, /\u001b|[┌┐└┘│]/);
-        const first = JSON.parse((await linkedCli(globalLink, ['show', '--json'], fixture, env)).stdout);
-        assert.equal(first.mode, 'daemon'); assert.equal(first.url, undefined); assert.equal(first.persistent, false);
-        const record = JSON.parse(await readFile(join(fixture, '.ptbk', 'process.json'), 'utf8'));
-        assert.equal(await realpath(resolve(record.installation)), await realpath(resolve(fixture, 'node_modules', 'ptbk')));
-        const repeated = await linkedCli(localLink, ['start'], fixture, env);
-        assert.match(repeated.stdout, /already running/);
-        assert.equal(JSON.parse((await linkedCli(localLink, ['status', '--json'], fixture, env)).stdout).pid, first.pid);
-        await linkedCli(localLink, ['restart', '--no-qr'], fixture, env);
-        const restarted = JSON.parse((await linkedCli(localLink, ['show', '--json'], fixture, env)).stdout);
-        assert.notEqual(restarted.id, first.id);
-        assert.equal(restarted.persistent, false, 'An explicit restart option must preserve saved no-persist');
-        assert.equal(restarted.url, undefined, 'An explicit restart option must preserve saved no-server');
-        assert.equal(restarted.tasks.find(task => task.id === 'packaged-future').eligibility.kind, 'waiting-until');
-    } finally { await linkedCli(localLink, ['stop'], fixture, env); }
-    assert.equal(JSON.parse((await linkedCli(localLink, ['status', '--json'], fixture, env)).stdout).status, 'stopped');
-    process.stdout.write(`Packed ptbk@${release.version}: local/global installation, checked single-commit execution, raw daemon launch, installed identity, repeated start, restart preferences and intentional stop passed.\n`);
+        const started = await linkedResult(local, ['start', '--no-tunnel', '--no-persist', '--raw'], fixture, env);
+        assert.equal(started.code, 0, `${started.stdout}\n${started.stderr}`);
+        assert.doesNotMatch(started.stdout, /\x1b|[╭╮╰╯]/);
+        const snapshot = JSON.parse((await linked(global, ['status', '--json'], fixture, env)).stdout);
+        assert.equal(snapshot.service.mode, 'daemon');
+        assert.equal(snapshot.engine.version, release.version);
+        assert.equal(await realpath(resolve(snapshot.engine.installation)), await realpath(join(fixture, 'node_modules', 'ptbk')), 'The daemon runs the project-local installation.');
+        assert.match((await linked(local, ['start', '--raw'], fixture, env)).stdout, /^Already running/);
+    } finally {
+        await linkedResult(local, ['stop', '--raw'], fixture, env);
+    }
+    assert.equal(JSON.parse((await linked(local, ['status', '--json'], fixture, env)).stdout).service.state, 'stopped');
+
+    // 4. A global invocation initializing a fresh folder installs the exact running version locally.
+    const fresh = join(temporary, 'fresh project');
+    const freshInit = await linkedResult(global, ['init', '--path', fresh, '--non-interactive', '--installation', 'local', '--harness', 'openai-codex', '--raw'], temporary, { ...env, PTBK_LOCAL_INSTALL_SPEC: tarball });
+    assert.equal(freshInit.code, 0, `${freshInit.stdout}\n${freshInit.stderr}`);
+    const manifest = JSON.parse(await readFile(join(fresh, 'package.json'), 'utf8'));
+    assert(manifest.dependencies?.ptbk, 'ptbk is a regular dependency of the new project');
+    assert.equal(JSON.parse(await readFile(join(fresh, 'node_modules', 'ptbk', 'package.json'), 'utf8')).version, release.version);
+    assert.equal((await git(fresh, ['status', '--porcelain'])).stdout.trim(), '');
+    process.stdout.write(`Packed ptbk@${release.version}: local/global installations, init, single-commit run, daemon lifecycle and destination-local installation passed.\n`);
+} catch (error) {
+    failure = error;
 } finally {
-    await rm(temporary, { recursive: true, force: true });
+    await rm(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }).catch(() => undefined);
+}
+if (failure) {
+    process.stderr.write(`${failure.stack ?? failure}\n`);
+    process.exitCode = 1;
 }
