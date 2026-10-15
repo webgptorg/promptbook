@@ -10,7 +10,9 @@ Each integration exposes its stable identifier, display name and featured status
 
 The execution contract accepts the selected project directory and effective instructions, plus supported model/effort options, and runs the harness in noninteractive exec/autonomous (YOLO-style) mode. Promptbook does not need to reproduce every feature of the harness's own UI. Return actual activity, result, cancellation, failures and exposed diagnostics/usage. Tool-specific execution and setup details stay with the integration.
 
-Autonomous execution does not bypass Promptbook's project boundaries, task constraints, paid-use authorization or human-action requirements. Unsupported required capabilities block the affected work rather than being silently ignored.
+Expose the available full output/diagnostic stream for the owning task's consolidated [harness trace](traces.md), with attempt boundaries and actual harness identity. Include exposed reasoning where available; never promise hidden reasoning or replace the stream with only a final summary. Apply secret redaction before persistence. Missing capture capabilities and interrupted streams must be distinguishable from empty successful output.
+
+Follow [unattended operation](autonomous-operation.md): known execution permissions are resolved during attended setup, not by hidden per-tool prompts in a detached worker. Unexpected input waits must be detectable and recoverable or actionable. Autonomous execution does not bypass project boundaries, task constraints, paid-use authorization or genuine human-action requirements. Unsupported required capabilities block the affected work rather than being silently ignored.
 
 ## A catalog that can grow
 

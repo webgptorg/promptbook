@@ -9,9 +9,11 @@
 
 Daemon and foreground are mutually exclusive. `--raw` changes output, not process placement: `ptbk start --raw` still launches a daemon and returns once; `ptbk start --foreground --raw` stays in the foreground. `--interactive` enables appropriate terminal interaction, not an implicit foreground mode. Run remains finite foreground execution; init and add remain finite authoring/setup workflows.
 
+Successful init performs the ordinary daemon start after technical setup and then returns. It does not become foreground execution, attach a dashboard or wait for its first task to finish. Reuse the same lifecycle operation when start first needs initialization; one request must not recursively create another worker. A running service is reused without changing its existing configuration or paused state. See [initialization](initialization.md).
+
 Start, stop and restart normally perform one daemon operation, show a single pretty or raw outcome, then exit. Start may first use the shared setup wizard when permitted; `--non-interactive` forbids it. A detached daemon never prompts on the launching terminal. Repeated start reports the existing process without attaching a dashboard, creating another worker or replacing its configuration.
 
-`ptbk dashboard` attaches a continuous terminal view to the selected project's existing process without starting or taking ownership of it. Closing, interrupting or disconnecting this client leaves the service running; stopping the service is a separate explicit control. A missing or unreachable process produces an actionable diagnostic, not implicit initialization or startup. See [terminal dashboard](terminal.md).
+`ptbk dashboard` attaches a continuous terminal view to the selected project's existing process without starting or taking ownership of it. Closing, interrupting or disconnecting this client leaves the service running; stopping the service is a separate explicit control. A missing or unreachable process produces an actionable diagnostic, not implicit initialization or startup. It has no wizard step total or predefined completion. See [terminal dashboard](terminal.md).
 
 Every start mode supports the optional HTTP server, automatic or selected port, and the same project/runtime state. `--no-server` disables HTTP; `--port` selects its port. Diagnose conflicting or invalid options rather than ignoring them.
 
@@ -21,6 +23,6 @@ Read-only inspection may retry an abruptly closed control connection within a bo
 
 `ptbk status` and `ptbk show` inspect the existing process, version, statistics, pending questions and connection details once without changing its lifecycle. Foreground processes use their own process controls; daemon-only stop/restart clearly report a foreground project.
 
-An intentional daemon stop suppresses automatic startup until a subsequent explicit start. Restart is not an intentional permanent stop. Foreground termination preserves recoverable state without creating a background replacement.
+An intentional daemon stop suppresses automatic startup until a subsequent authorized start, including the start operation in a successful explicit init. Merely opening a dashboard or rebooting does not undo that stop. Restart is not an intentional permanent stop. Foreground termination preserves recoverable state without creating a background replacement.
 
-See [startup persistence](persistence.md), [controls](controls.md) and [recovery](recovery.md).
+See [startup persistence](persistence.md), [unattended operation](autonomous-operation.md), [controls](controls.md) and [recovery](recovery.md).

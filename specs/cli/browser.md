@@ -20,8 +20,14 @@ Headless/headful is an independent choice available with each profile source. Sa
 
 Profiles are persistent, not disposable caches. Sessions survive process/system restart subject to site expiry. Promptbook does not collect website usernames/passwords as a credential database; keep profile contents, cookies and tokens out of Git, output, traces and model-visible artifacts.
 
-When login, two-factor authentication or another human action is required, create a [user request](user-interactions.md) and bring the browser forward on an available desktop. The user acts on the real site, then agents continue with that session. A headless host cannot claim it displayed a window; remote screen transport is outside this contract.
+Reuse valid sessions for the task's authorized actions without routine reconfirmation. Resolve known required login during attended setup where possible. When a genuinely necessary login, two-factor authentication or another human-only action remains, create a [user request](user-interactions.md) and bring the browser forward on an available desktop. The user acts on the real site, then agents continue with that session. A headless host cannot claim it displayed a window; remote screen transport is outside this contract. Follow [unattended operation](autonomous-operation.md), not repeated per-post approval by default.
 
-Do not open competing instances over a profile, including when another project or a user browser owns it. Request a safe handover or another profile, preserving data. Only one project task owns automation at a time; human intervention and TEAM consultation cannot create conflicting control. Stopping Promptbook must not terminate unrelated user browsers or delete any selected profile.
+Do not open competing instances over a profile, including when another project or a user browser owns it. Recheck transient ownership safely; when handover truly needs a person, request it or another profile without seizing or copying live data. Only one project task owns automation at a time; human intervention and TEAM consultation cannot create conflicting control. Stopping Promptbook must not terminate unrelated user browsers or delete any selected profile.
+
+## Task-linked browser evidence
+
+When enabled by [trace configuration](trace-configuration.md), record the browser activity of each owning task in its root-level `traces/<task-id>/` record. Reusing the shared browser must not mix unrelated tasks into one untraceable recording. Include playable recordings and identifiable segments for attempts/occurrences, covering actual page actions rather than merely reporting that browser tooling was invoked.
+
+Apply [trace recording and privacy rules](traces.md#browser-recordings) in headless and headful operation, excluding sensitive authentication/session material. Recording policy is independent of profile selection, visibility and whether videos are committed. Do not open the dashboard or record unrelated desktop activity as a side effect of capturing the browser. Missing or failed recording is reported honestly without unnecessarily stopping safe agenda work.
 
 See [configuration](configuration.md), [controls](controls.md) and [workspace](workspace.md).

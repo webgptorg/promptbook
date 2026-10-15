@@ -2,12 +2,26 @@
 
 [Main specification](../_main.md) · [Initialization](initialization.md)
 
-The first initialization of Promptbook support in a project creates a small, safe test task so that `init` followed by plain `start` demonstrates real agent work. It is an unfinished runnable task in the configured task source, not a disabled boilerplate, sample text outside the queue or an already-completed demonstration.
+The first initialization creates one ordinary unfinished task in the configured task source. Its purpose is to turn the technically initialized project into the project described by the user's initial specification. The initializer prepares support; this task creates project-specific content. It is the same kind of task as one saved by `ptbk add` or authored directly in a task file, not a privileged bootstrap execution path.
 
-Give it a clear title and bounded, project-local outcome: inspect the initialized project and record a short readiness summary without changing its purpose or implementing unrelated features. Use the ordinary selected harness, configured checks, completion stamp and result commit. Require no extra credentials, deployment, external side effects or manual task configuration. Assign an existing ordinary agent or let automatic Manager assignment resolve missing routing; do not reference an unavailable example agent/model.
+## Source and assignment
 
-Basic init saves this task with the setup artifacts but does not execute it or call a model. Start executes it through the normal lifecycle and shows its actual agent, progress and outcome. Do not bypass checks or mark it complete merely because the daemon started. It obeys queue ordering and ownership; it must not erase, complete or reorder existing user tasks just to force a demonstration.
+Assign the task explicitly with `TASK AGENT @Expert`, give it a stable [task ID](task-identity.md), and link to the initialized project's `specs/_initial.md`. Resolve the link correctly even when the task source is customized. Expert comes from the running engine, understands Promptbook and is never materialized as a project agent.
 
-A first intent-driven Expert task fulfills this purpose without an additional generic test task. Repeating or resuming init recognizes an existing starter or its recorded completion and never duplicates, reopens or resurrects it, including after ordinary archiving. Preserve user edits. Once a project has passed its initial starter workflow, routine initialization or upgrade is not a request to generate more test work.
+Generate the title and assignment in English. The essential instruction is: "Transform this project according to the initial specification in `specs/_initial.md` and its linked assets. Preserve the original specification; create or adapt the project content, agents, checks and follow-up tasks needed to fulfill it."
 
-See [Task Books](task-books.md), [Manager](../agents/manager.md) and [checks](checks.md).
+The linked specification, not a rewritten copy embedded in the task, is the source of the user's intent. Its original text and attachments remain intact. Expert can write additional specifications or other project files without replacing that source. This applies equally to an application, accounting agenda, publishing workflow or another project purpose.
+
+For deliberately blank input, the same Expert task performs a small project-local readiness review without inventing a purpose, requesting extra credentials or causing unrelated external effects. Do not create a second generic test task alongside the bootstrap task. Existing content and user work remain protected.
+
+## Normal execution
+
+Save the task with the setup artifacts before the service may claim it. Successful init automatically starts the background agenda, which begins eligible work without an open dashboard or another command. Init itself does not call a model or execute the bootstrap inline; the daemon does not wait for the wizard to become a dashboard.
+
+Use normal routing constraints, selected harnesses, checks, repairs, completion stamps, [traces](traces.md) and result commits. Do not mark the task complete because initialization or daemon launch succeeded. The task's accepted changes, completion and generated follow-ups share its ordinary result commit. Follow-ups receive their own identities and use normal scheduling; they do not need a second initialization or manual Run action.
+
+Respect queue ordering and ownership in an existing project. Do not erase, complete or reorder user tasks merely to force a demonstration. The new empty project's bootstrap is its initial eligible work.
+
+Repeating or resuming init recognizes the saved starter or its recorded completion and never duplicates, reopens or resurrects it, including after archiving. Preserve user edits and the original task ID. Once initial bootstrapping exists, routine upgrades are not requests for another bootstrap. A failed launch resumes the queued task through start; a failed task uses ordinary recovery rather than regenerating it.
+
+See [Task Books](task-books.md), [Expert](../agents/expert.md), [execution](execution.md) and [start](start.md).
