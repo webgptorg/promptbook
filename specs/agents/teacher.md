@@ -2,7 +2,7 @@
 
 [Agents](_index.md)
 
-Teacher is an editable core agent supplied with `FROM Expert` and an explicit final `CLOSED`. The user may customize its teaching instructions or parent, including inheriting a local specialization of Expert. It must remain closed to automatic learning.
+Teacher is an editable core agent supplied with `FROM @Expert` and an explicit final `CLOSED`. The user may customize its teaching instructions or parent, including inheriting a local specialization of Expert. It must remain closed to automatic learning.
 
 Teacher executes ordinary learning tasks that improve an eligible agent from completed work. It receives the original assignment, result, available execution evidence, current agent definition and that agent's learning permission. It changes only what that permission allows and must not turn an inference or missing evidence into a learned fact.
 

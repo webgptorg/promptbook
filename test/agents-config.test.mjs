@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { AgentCatalog, resolveEffectiveAgent, validateAgents } from '../dist/project/agents.js';
+import { AgentCatalog, resolveEffectiveAgent, teamReferences, validateAgents } from '../dist/project/agents.js';
+import { ADAM_BOOK, TEACHER_BOOK } from '../dist/project/defaults.js';
 import { loadSettings, resolveSettings, updateProjectConfig } from '../dist/project/config.js';
 import { projectAt } from '../dist/project/workspace.js';
 import { git, initRepository, temporaryDirectory } from './helpers.mjs';
@@ -75,6 +76,44 @@ test('inheritance: implicit Adam, FROM chains, Expert foundation, cycles and FRO
     const diagnostics = await validateAgents(catalog);
     assert.ok(diagnostics.some((diagnostic) => /Teacher must end with CLOSED/.test(diagnostic.message)));
     assert.equal((await resolveEffectiveAgent(catalog, '@Developer')).learning.open, true);
+});
+
+test('reference examples: @ and brace forms everywhere, normalized names, built-ins first, then agents/, project, ignored content', async (t) => {
+    const root = await temporaryDirectory(t);
+    await initRepository(root);
+    await files(root, {
+        '.gitignore': 'node_modules/\n',
+        'agents/.core/adam.book': 'Adam\n\nFROM @Void\n\nRULE Never claim work you did not verify, and report blockers honestly.\nRULE …\nCLOSED\n',
+        'agents/.core/teacher.book': 'Teacher\n\nFROM @Expert\n\nRULE …\nCLOSED\n',
+        'agents/developer.book': 'Developer\n\nNOTE This is not needed because its implicitly FROM @Adam\n\nTEAM When you need to write `book` language consult with @Expert\nRULE …\nCLOSED\n',
+        'agents/frontend-developer.book': 'Frontend Developer\n\nFROM @Developer\nKNOWLEDGE …\nCLOSED\n',
+        'agents/ux-designer.book': 'UX Designer\n\nTEAM When you need to write `book` language consult with @Expert, to do the frontend tasks consult with {Frontend Developer}\nKNOWLEDGE …\nCLOSED\n',
+        'docs/frontend-copy.book': 'Frontend Developer\nRULE shadowed by agents/\n',
+        'node_modules/pkg/frontend.book': 'Frontend Developer\nRULE shadowed twice\n',
+        'node_modules/pkg/designer.book': 'Design System Keeper\nRULE only in a dependency\n',
+    });
+    const catalog = await AgentCatalog.load(root);
+    for (const reference of ['@Void', '@Null', '{Void}', '{Null}', '@Expert', '{Expert}', '@User', '{User}']) assert.equal((await catalog.resolve(reference)).kind, 'non-agent', reference);
+    assert.equal((await catalog.resolve('@Adam')).definition.relativePath, (await catalog.resolve('{Adam}')).definition.relativePath, '@Adam and {Adam} are the same reference');
+    for (const reference of ['{Frontend Developer}', '{FrontendDeveloper}', '{frontend Developer}', '{Frontend_Developer}', '{-Fronténd Developer}', '@FrontendDeveloper']) {
+        const resolved = await catalog.resolve(reference);
+        assert.equal(resolved.kind, 'agent', reference);
+        assert.equal(resolved.definition.relativePath, 'agents/frontend-developer.book', `${reference} resolves in agents/ before the project and node_modules copies`);
+    }
+    assert.deepEqual((await resolveEffectiveAgent(catalog, '@Adam')).chain, ['Adam'], 'FROM @Void ends inheritance');
+    assert.deepEqual((await resolveEffectiveAgent(catalog, '@Teacher')).chain, ['Teacher', 'Expert']);
+    const developer = await resolveEffectiveAgent(catalog, '@Developer');
+    assert.deepEqual(developer.chain, ['Developer', 'Adam'], 'implicit Adam; the NOTE text is not a FROM');
+    assert.deepEqual(teamReferences(developer), ['@Expert']);
+    assert.deepEqual((await resolveEffectiveAgent(catalog, '{Frontend Developer}')).chain, ['Frontend Developer', 'Developer', 'Adam']);
+    const designer = await resolveEffectiveAgent(catalog, '{UX Designer}');
+    assert.deepEqual(teamReferences(designer), ['@Expert', '{Frontend Developer}']);
+    assert.equal(designer.learning.open, false);
+    assert.equal((await catalog.resolve('{Design System Keeper}')).definition.tier, 4, 'Git-ignored content is the last tier');
+    assert.deepEqual((await validateAgents(catalog)).filter((diagnostic) => diagnostic.severity === 'error'), []);
+    assert.match(ADAM_BOOK, /^FROM @Void$/m, 'supplied defaults use the @ form');
+    assert.match(ADAM_BOOK, /CLOSED\n$/);
+    assert.match(TEACHER_BOOK, /^FROM @Expert$/m);
 });
 
 test('configuration precedence: defaults < legacy environment < ptbk.json < CLI < runtime; explicit false/null kept', () => {

@@ -6,9 +6,11 @@ Non-agents exist as engine-defined references without project files. They must n
 
 | Reference | FROM | TEAM |
 | --- | --- | --- |
-| Void, alias Null (also `0`) | Ends inheritance; supplies no instructions. | Valid no-op; no consultation or error. |
-| User | Invalid; inheritance must fail with a clear diagnostic. | Consults the user through the general request mechanism. |
-| Expert | Supplies Promptbook expertise from the running engine. | Consults that runtime's Promptbook expert. |
+| `@Void`, alias `@Null` (also the legacy `0`) | Ends inheritance; supplies no instructions. | Valid no-op; no consultation or error. |
+| `@User` | Invalid; inheritance must fail with a clear diagnostic. | Consults the user through the general request mechanism. |
+| `@Expert` | Supplies Promptbook expertise from the running engine. | Consults that runtime's Promptbook expert. |
+
+The brace forms `{Void}`, `{Null}`, `{User}` and `{Expert}` are the same references. These built-ins are checked before any project file, as the first tier of [resolution](../book-language/references.md#ordered-resolution).
 
 Void and User are special semantics, not ordinary model-backed roles. Expert does behave like a knowledgeable agent, but its definition and runtime context belong to the engine. It may internally share Book mechanisms; no internal representation is prescribed.
 

@@ -6,7 +6,7 @@ The engine expects three editable core agents: **Adam**, **Manager** and **Teach
 
 On initialization and execution setup, create each missing definition from the installed engine's defaults. An incomplete core directory is repaired individually, not replaced wholesale. Existing customized files must not be overwritten, including when the package is updated. An invalid existing definition needs a diagnostic, not silent replacement.
 
-Adam supplies the default inherited foundation. Its supplied definition ends inheritance with `FROM Void`. Manager inherits Adam by the usual default. Teacher is supplied with `FROM Expert` and ends with `CLOSED`; its parent can be customized, but its closure requirement remains.
+Adam supplies the default inherited foundation. Its supplied definition ends inheritance with `FROM @Void` and ends with `CLOSED`, so the shared foundation is not changed by automatic learning. Manager inherits Adam by the usual default. Teacher is supplied with `FROM @Expert` and ends with `CLOSED`; its parent can be customized, but its closure requirement remains. Supplied defaults use the `@`/brace [reference forms](../book-language/references.md#examples); existing projects' customized core Books are not rewritten to adopt them.
 
 Any hidden directory inside `agents/`, not only `.core/`, contains supporting definitions rather than ordinary automatic task candidates. They remain discoverable for inheritance, imports, TEAM and explicit/internal assignments. Adam normally provides shared instructions, Manager handles assignment tasks and Teacher handles learning tasks. Hidden placement is not an access-control boundary.
 

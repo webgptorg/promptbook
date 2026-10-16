@@ -479,7 +479,7 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
         if (parent.kind === 'non-agent') {
             if (parent.name === 'Void') break;
             if (parent.name === 'User') {
-                diagnostics.push({ path: current.relativePath, line: (from.commitment?.startLine ?? 0) + 1, message: 'User cannot be an inheritance parent (FROM User is invalid).', severity: 'error' });
+                diagnostics.push({ path: current.relativePath, line: (from.commitment?.startLine ?? 0) + 1, message: 'User cannot be an inheritance parent (FROM @User is invalid).', severity: 'error' });
                 break;
             }
             current = 'Expert';
