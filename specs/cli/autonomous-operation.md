@@ -20,7 +20,7 @@ Resolve recoverable technical problems automatically within bounded budgets: rec
 
 ## Exceptional human involvement
 
-Create a [human request](user-interactions.md) only for a concrete condition the system cannot safely resolve, such as required login/2FA, genuinely missing authority, an irreconcilable user edit, or a consequential ambiguity not settled by the task. Explain what is blocked, what recovery was attempted and the minimum action needed. Retain one actionable request and notify through the configured channels; do not repeatedly ask the same question or require a dashboard to be open for its record to exist.
+Create or continue an **agent-authored [human chat](user-interactions.md)** only for a concrete condition the system cannot safely resolve, such as required login/2FA, genuinely missing authority, an irreconcilable user edit, or a consequential ambiguity not settled by the task. Explain what is blocked, what recovery was attempted and the minimum action needed. Retain one actionable waiting conversation and notify through the configured channels; do not repeatedly ask the same question or require a dashboard to be open for its record to exist.
 
 Autonomy is not blanket permission: authenticated access alone does not authorize unrelated publication, purchases, destructive changes or spending. Preserve task/project boundaries, paid-use limits, explicit review requirements and platform safeguards. Silence is never a new approval. Do not bypass authentication or weaken rules to avoid reporting an exceptional blocker.
 
@@ -34,6 +34,6 @@ Provide per-task [audit traces](traces.md), not merely a global log. Optional mo
 
 ## Acceptance outcomes
 
-With an awake supported host, available dependencies, an authenticated selected browser and a configured, authorized recurring AI-news publishing agenda, leave all dashboards closed for a simulated month. Scheduled work and follow-ups continue without routine confirmation; returning users can inspect each result, task ID, Git history and retained logs/video. Include temporary network/provider failures and restarts: work resumes without duplicated posts or model calls for idle waits.
+With an awake supported host, available dependencies, an authenticated selected browser and a configured, authorized recurring AI-news publishing agenda, leave all dashboards closed for a simulated month. Scheduled work and follow-ups continue without routine confirmation; returning users can inspect each result, task name, Git history and retained logs/video. Include temporary network/provider failures and restarts: work resumes without duplicated posts or model calls for idle waits.
 
-Inject an avoidable harness confirmation and a recoverable technical failure: neither silently stops the agenda awaiting an operator. Inject genuine expired authentication or missing authority: retain one clear request, preserve effects and continue independent work where safe. Resume after resolution without manual dispatch. Explicit review requirements and stop/pause controls remain respected.
+Inject an avoidable harness confirmation and a recoverable technical failure: neither silently stops the agenda awaiting an operator. Inject genuine expired authentication or missing authority: retain one clear agent-authored waiting chat, preserve effects and continue independent work where safe. Resume after resolution without manual dispatch. Explicit review requirements and stop/pause controls remain respected.

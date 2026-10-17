@@ -6,7 +6,7 @@
 
 Bare `ptbk`, `ptbk help` and `ptbk --help` show the same top-level overview. It explains the tool, ordinary workflow, command groups and common options without expanding every command's full reference. `ptbk about` gives a short product/engine overview.
 
-For any supported command or nested subcommand path, `<path> --help`, `<path> help` and `ptbk help <path without ptbk>` show help only for that command path. For example, `ptbk init --help`, `ptbk init help` and `ptbk help init` are equivalent; `ptbk start --help` describes start, not the entire CLI. Apply the same rule to dashboard, add and every other command, including aliases and supported nested subcommands.
+For any supported command or nested subcommand path, `<path> --help`, `<path> help` and `ptbk help <path without ptbk>` show help only for that command path. For example, `ptbk init --help`, `ptbk init help` and `ptbk help init` are equivalent; `ptbk start --help` describes start, not the entire CLI. Apply the same rule to dashboard, chat, ask, answer, add and every other command, including aliases and supported nested subcommands.
 
 Scoped help shows the full invocation, its purpose, relevant arguments/options and defaults, applicable inherited options, immediate subcommands if any, and useful examples for that scope. It must not repeat unrelated commands or options belonging to other workflows. Offer a brief way back to broader help instead of dumping it. Unknown command paths produce a concise scoped diagnostic and guidance, not successful top-level help. Usage errors point to the affected command's help.
 
