@@ -1,13 +1,11 @@
 # Interaction channels
 
-[Main specification](../_main.md)
+[Main specification](../_main.md) · [Chats](chats.md)
 
-Keep three concepts separate: an agent's TEAM relationship, a request needing human input, and the channel carrying that request or its answer.
+Keep separate **who communicates** (a Chat Book's participants), **what requires attention** (a waiting message/action and linked task) and **where the user sees it** (terminal chat, attached dashboard, browser SPA, API or CLI answer compatibility). No channel creates a separate request entity or separate task runner.
 
-Interactive questions in an attached `ptbk dashboard` or owning foreground session use the shared [text-entry and UI contract](interactive-ui.md), without corrupting the live dashboard. A daemon exposes the same requests through that terminal client, the lightweight [browser SPA](dashboard.md), the independently usable [API](api.md) and `ptbk answer`, which can list/select requests and submit an answer or decision. Noninteractive use identifies the request and supplies the response explicitly rather than opening a prompt.
+`ptbk chat` opens a new user↔agent conversation directly, without the dashboard; terminal/dashboard/browser/API expose the same existing chat names, message history, composer, linked tasks and response semantics. `ptbk answer` targets a selected waiting chat for backward compatibility. A foreground or attached dashboard can enter its full chat view; status/show merely report actionable and unread summaries. Raw/noninteractive invocation never blocks on invisible input.
 
-The CLI answer path works even without HTTP. Raw mode never reads invisible interactive input; it reports pending requests and how to answer them. Status/show surface unanswered requests once without consuming or answering them. Closing an attached dashboard does not cancel a pending request or stop its service.
+Actions and messages from every client use shared ownership, project authentication, Git persistence and idempotency. A reply committed in one channel appears in all others and cannot be duplicated by reconnect or stale UI. Closing any client does not cancel a chat, queued task or running service. Channel differences may change input presentation but not a speaker's identity or thread content.
 
-All channels operate on the same durable requests and controls. No channel grants additional authority, creates a second response to an already-resolved request or requires a task rerun to receive its answer. Other channels can be added without redefining TEAM or request semantics.
-
-See [shared controls](controls.md), [user interactions](user-interactions.md), [terminal](terminal.md) and [dashboard](dashboard.md).
+See [chat UI](chat-ui.md), [service API](api.md) and [user interactions](user-interactions.md).

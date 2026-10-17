@@ -1,13 +1,13 @@
-# TEAM consultations
+# TEAM consultation as task-scoped chats
 
-[Main specification](../_main.md) · [TEAM commitment](../book-language/commitments/team.md)
+[Main specification](../_main.md) · [TEAM commitment](../book-language/commitments/team.md) · [Chats](chats.md)
 
-TEAM is natural-language instruction about whom an agent may consult, in which circumstances and how to cooperate. It is not a reporting hierarchy. A referenced agent can also work on its own tasks. A may include B while B includes A; reciprocal references are valid.
+TEAM describes, in ordinary language, **whom an agent may consult** and in which circumstances; it is neither inheritance nor a reporting hierarchy. Agent A may consult B and vice versa. A consultation uses the advisor's own instructions but does not create an independent executing task or grant new authority.
 
-A consultation uses the advisor's own role and returns its response within the active task. It does not merge the advisor's identity into the requesting agent, claim another queued task or create an independent task commit. The project still has only one active task. Calls happen when requested, not merely because a teammate is listed.
+A task-scoped **agent↔agent consultation is recorded as a Chat Book** with exactly its two current participants, linked to the originating task. Preserve actual messages and attribution, including consultations with built-in Expert. Such internal messages are **batched into the owning task's single result commit**, not separate Git commits. Evidence remains recoverable while work is incomplete. These internal chats may be inspected in all-chats/related-task views without being confused with requests waiting for the human. Multiple consultations can create separate threads related to one task.
 
-`@User` creates a general human request; `@Expert` uses the running engine's expertise; Void/Null is a valid no-op. Other unresolved or ambiguous references must be visible before they are relied upon. Local and hidden definitions use the same resolver.
+`TEAM @User` instead initiates/continues a durable **agent↔User chat**. Its messages are committed individually and a truly blocking question checkpoints the owning task under [human interactions](user-interactions.md). `TEAM @Expert` uses engine-version expertise; Void/Null is a no-op. All participants are name-resolved under the common precedence; wrong-kind and unresolved names produce diagnostics.
 
-Enforce consultation limits, cancellation and accurate usage accounting. Defaults are a five-minute consultation timeout, depth four, 24 calls per task and at most 128,000 response characters. Reaching a limit is an explicit result, not recursion. Advisors cannot acquire authority beyond the task, including in read-only planning.
+Maintain bounded consultation (initial defaults: five minutes, depth four, 24 calls/task, 128,000 response characters); reaching a limit reports an actual outcome, not recursive hidden work. Advisors cannot exceed task authority. Human waiting does not hold an MCP consultation open through the user's think time.
 
-See [non-agents](../agents/non-agents.md), [user interactions](user-interactions.md), [channels](channels.md) and [harnesses](harnesses.md).
+See [channels](channels.md), [non-agents](../agents/non-agents.md), [traces](traces.md) and [Git persistence](git-persistence.md).

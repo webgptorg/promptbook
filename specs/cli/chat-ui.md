@@ -1,0 +1,17 @@
+# Chat presentation and entry points
+
+[Chats](chats.md) · [Terminal dashboard](terminal.md) · [Browser dashboard](dashboard.md)
+
+Chat is a **real, persistent conversation screen**, not a one-off answer box. Show the thread name, participants and message authors with consistent agent identity, chronological messages, actionable outstanding questions, related tasks and a [rich composer](rich-input.md). User↔agent and task-scoped agent↔agent histories use the same presentation concepts while respecting current participant restrictions.
+
+`ptbk chat` **directly opens a new chat** from the selected project without loading or attaching a dashboard or first presenting the chat list. Before opening the new thread, select **one agent**; default choice list includes visible, nonhidden ordinary project agents. Offer an intentional More/hidden option for core/hidden agents and valid `@Expert`; do not invite chatting with `@User`, `@Void` or `@Null`. Accept an explicit agent selection noninteractively. Generate or confirm a readable distinct thread name; preserve a separate new thread even when the same agent already has others. Close the terminal chat client with **Ctrl+C** without stopping the background service or deleting the conversation. Allow reopening an existing thread by its normalized name via a separate explicit selection/option.
+
+The live terminal dashboard provides a discoverable **Chat** shortcut (proposed `C`) for starting a chat and a **human-attention** shortcut (retain `A`) that opens the corresponding **existing conversation**, not an independent request-answer screen. The dashboard emphasizes the number of unread/actionable chats, especially those *waiting for the user*, while offering a bounded **all chats** view. Agent-originated messages are attributed to their actual agent, including Fixer, not to the environment. The browser SPA offers the same new-chat, all-chats, resume, reply and related-task navigation using accessible controls.
+
+Unread is not necessarily actionable; actionable is not necessarily unread. Always distinguish a new message, a waiting question/approval and an unrelated notification. New arrivals never steal focus or submit drafts. On narrow terminals/screens preserve required action, thread name, speaker and composer. Selecting a predefined response uses shared choice controls; freeform discussion uses the rich composer. Viewing a request does not resolve it; actual committed answer/update does.
+
+`ptbk ask` may remain a supported task-submission/quick-question entry point, but it must not fork a second anonymous human-request model. `ptbk add` remains explicit finite task authoring, and `ptbk chat` is the conversational interface that may later request task creation. Status/show exposes chat attention summaries without opening an interactive client; raw/noninteractive mode never prompts invisibly.
+
+## Acceptance outcomes
+
+From a ready project, run `ptbk chat`, select an ordinary agent, discuss project status, then Ctrl+C: service survives and messages persist. Open another chat to that same agent without merging their histories. From dashboard press the new-chat key; from a waiting question press A and reach its authored conversation, reply once, and watch the same task resume. Inspect all chats and cross-linked tasks on terminal and browser. A hidden Fixer or Expert is selectable intentionally; User cannot chat with itself. Inputs and read/unread markers survive refresh without duplicating messages.
