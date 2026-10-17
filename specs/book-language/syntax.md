@@ -2,21 +2,29 @@
 
 [Book language](_index.md) · [Commitments](commitments/_index.md)
 
-Book source is UTF-8 natural-language text. Ignore leading empty lines for document identification. An agent's first nonempty line is its nonempty name. A task's first nonempty line is `TASK` followed by its nonempty title; a later TASK declaration does not turn an agent into a task.
+A Book is UTF-8 human-readable text. Ignore leading blank lines. **The first nonempty line is the entity's nonempty display name**; its normalized form is the only logical entity key. This applies equally to agents, tasks and chats. Do not derive identity from the filename, folder, an auto-generated opaque ID or a Git hash.
 
-A commitment begins at the start of a line with a recognized uppercase keyword, possibly containing spaces, followed by its content. Match the complete keyword: `TASK AGENT` and `TASK DONE` are not new TASK declarations. Content may continue on following lines until the next commitment or end of the document. Natural prose outside commitments remains meaningful instruction/description.
+The canonical way to disambiguate document kind is `ENTITY AGENT`, `ENTITY TASK` or `ENTITY CHAT` after the name. In conventional `agents/`, `tasks/` and `chats/` locations the folder supplies the default kind when ENTITY is absent; a file elsewhere must be classifiable from an explicit ENTITY or existing legacy syntax. For backward compatibility, recognize the old initial `TASK <title>` spelling as a *task named <title>*, not literally named "TASK <title>"; preserve existing content and use the canonical header on intentional conversion. In legacy agent Books without an ENTITY, the unprefixed name remains valid. Conflicting location and ENTITY declarations, or an unclassifiable source, receive a diagnostic instead of guessed dispatch.
+
+A commitment begins at the start of a line with a recognized uppercase keyword (possibly containing spaces), followed by content which may continue until the next commitment or end. Match the complete keyword: `TASK AGENT` or `CHAT MESSAGE` is not a new task/chat header. Natural prose outside commitments retains its meaning. Literal fenced text remains literal, including examples that look like commitments or references.
 
 ```book
-Developer
+Improve CSV export
+ENTITY TASK
 
-Help maintain this project's software.
-GOAL Keep the product useful and maintainable.
-TEAM For legal questions, consult @Lawyer. For missing intent, ask @User.
-OPEN Learn useful knowledge, but do not change my rules.
+Preserve column names and quote cells with commas or newlines.
+TASK AGENT @Developer
+LINK {Discuss CSV requirements}
 ```
 
-Fenced literal/code content is preserved as text and does not execute embedded commitment-looking lines. Editing or migration must preserve the payload rather than reinterpret examples as control fields. Diagnostics identify the file, line and conflicting or unsupported control.
+```book
+Discuss CSV requirements
+ENTITY CHAT
+CHAT MEMBER @User
+CHAT MEMBER @Developer
+CHAT MESSAGE @User 2026-10-17T14:00:00+02:00
+Can the export support multiline fields?
+LINK {Improve CSV export}
+```
 
-Repeatable instruction commitments accumulate in source order. Single-value control commitments must have one unambiguous effective value. FROM names one parent. An agent's own OPEN or CLOSED declaration is last, if present; neither is required for the default open state. A task has no learning policy of its own.
-
-Unknown task control commitments must not be silently ignored to make work runnable. Preserve unrecognized descriptive metadata on round-trip without claiming it has an implemented capability. The language's uppercase notation does not make arbitrary prose a new feature.
+Repeatable commitments accumulate in order; single-value controls must be unambiguous. FROM and OPEN/CLOSED are agent-only. Task work, chat turns and generic LINKS have their own contracts. Preserve natural text, source spelling, Unicode, attachments, metadata and literal blocks during mutation. Diagnostics identify a source and offending location. Unknown control commitments must not silently activate work or grant permission; preserve unknown descriptive material for round-tripping.

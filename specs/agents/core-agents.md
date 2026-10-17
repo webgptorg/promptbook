@@ -1,13 +1,11 @@
-# Core agents and hidden definitions
+# Core agents and minimal project-owned defaults
 
-[Agents](_index.md)
+[Agents](_index.md) · [Engine and project evolution](../concepts/engine-and-project.md)
 
-The engine expects three editable core agents: **Adam**, **Manager** and **Teacher**, materialized as `agents/.core/adam.book`, `manager.book` and `teacher.book`.
+The engine expects four **editable** project roles: **Adam**, **Manager**, **Teacher** and **Fixer**, materialized if absent under `agents/.core/` as `adam.book`, `manager.book`, `teacher.book` and `fixer.book`. A core agent has exactly the normal Book, routing, TEAM, learning, Git and runtime behavior of any other agent. Its only special property is that the engine requires its role to be present.
 
-On initialization and execution setup, create each missing definition from the installed engine's defaults. An incomplete core directory is repaired individually, not replaced wholesale. Existing customized files must not be overwritten, including when the package is updated. An invalid existing definition needs a diagnostic, not silent replacement.
+Initialize each missing core definition individually with a **small, comprehensible boilerplate**, not a large embedded encyclopedia of Promptbook. Existing agent Books belong to the user/project: **never replace, reset or bulk-regenerate them on reinitialization or engine upgrade**, even when they have learned or diverged from new defaults. Introduce a newly required core agent without replacing the older three; diagnose existing invalid sources and use ordinary authorized repairs. Names are resolved through the shared name resolver; duplicates are maintenance diagnostics rather than an invitation to overwrite a user's file.
 
-Adam supplies the default inherited foundation. Its supplied definition ends inheritance with `FROM @Void` and ends with `CLOSED`, so the shared foundation is not changed by automatic learning. Manager inherits Adam by the usual default. Teacher is supplied with `FROM @Expert` and ends with `CLOSED`; its parent can be customized, but its closure requirement remains. Supplied defaults use the `@`/brace [reference forms](../book-language/references.md#examples); existing projects' customized core Books are not rewritten to adopt them.
+Initial policies: Adam provides the common inheritance foundation (`FROM @Void`, initially `CLOSED`); Manager inherits Adam by default; Teacher inherits `@Expert` and must remain `CLOSED` to avoid recursive teaching; Fixer may consult `@Expert` through TEAM and is explicitly **OPEN** to normal project-specific learning. These are individual Book choices, not category-wide restrictions. Later customization of permitted core Books follows the same guarantees as customization of specialist agents.
 
-Any hidden directory inside `agents/`, not only `.core/`, contains supporting definitions rather than ordinary automatic task candidates. They remain discoverable for inheritance, imports, TEAM and explicit/internal assignments. Adam normally provides shared instructions, Manager handles assignment tasks and Teacher handles learning tasks. Hidden placement is not an access-control boundary.
-
-See [inheritance](../book-language/inheritance.md), [non-agents](non-agents.md) and [consistency](consistency.md).
+Core definitions in `agents/.core/` are hidden from **ordinary default agent pickers and goal discovery**, but remain eligible for explicit selection, assignments, name resolution and internal work. Hidden status is not access control. `@Expert` is a comprehensive, version-matched built-in **non-agent**, never a project core file. See [Fixer](fixer.md), [Teacher](teacher.md), [inheritance](../book-language/inheritance.md) and [non-agents](non-agents.md).

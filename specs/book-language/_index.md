@@ -1,14 +1,12 @@
 # Book language
 
-[Main specification](../_main.md)
+[Main specification](../_main.md) · [Project model](../concepts/project-model.md)
 
-Book is a human-readable language of natural text and commitments. It describes both a persistent agent (who works and why) and a bounded task (what work to do).
+Book is a human-readable language of natural text and commitments. It defines **agents, tasks and chats**, each in one `.book` source. The **first nonempty line is the entity's name**, and the rest contains prose and commitments. The entity kind is determined by its explicit `ENTITY` commitment or by the conventional source location; legacy `TASK <title>` headers remain readable only for compatibility.
 
-An agent starts with its name on the first nonempty line. A task starts with `TASK <title>` on that line. The two document kinds share notation, not identity, default inheritance or runtime purpose.
+- [Syntax](syntax.md): Document name, entity kind, text and commitment boundaries.
+- [References](references.md): One normalized name resolver and graph links across all three kinds.
+- [Inheritance](inheritance.md): Agent-only FROM, implicit Adam and termination.
+- [Commitments](commitments/_index.md): One document per canonical commitment.
 
-- [Syntax](syntax.md): Source structure, text, literal content and commitment boundaries.
-- [References](references.md): Normalized agent names and stable task references.
-- [Inheritance](inheritance.md): FROM, implicit Adam and termination.
-- [Commitments](commitments/_index.md): One file per canonical commitment, with aliases in that same file.
-
-[Agents](../agents/_index.md) describes role categories and learning. [Task Books](../cli/task-books.md) describes execution-facing task semantics. The language specifies observable meaning and readable source, not parser classes or an internal representation.
+[Agents](../agents/_index.md), [Task Books](../cli/task-books.md) and [Chats](../cli/chats.md) define distinct semantics; common syntax does not make a chat executable or a task inheritable.

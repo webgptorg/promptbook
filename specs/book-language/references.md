@@ -1,101 +1,36 @@
-# Referencing agents and tasks
+# One resolver for agent, task and chat names
 
-[Book language](_index.md)
+[Book language](_index.md) · [Project model](../concepts/project-model.md)
 
-## Agent syntax and normalization
+## Name is identity
 
-An agent's identity comes from its first nonempty source line, not its filename or folder. An agent whose name is a single word without whitespace is referenced with `@`: `@Adam`, `@Paul`, `@Developer`. A multiword name is wrapped in braces: `{Paul Smith}`, `{Frontend Developer}`; braces work for single-word names too, as in `{Adam}`. `@Adam` and `{Adam}` are only two spellings of exactly the same reference with exactly the same meaning, not different kinds of agent. An unbraced `@` reference stops at its token boundary; it must not consume following prose to guess a multiword name.
+Agents, tasks and chats use the **same** reference forms and normalization. A one-word name can be written `@Adam`; any name, including a single word, can be written in braces: `{Adam}`, `{Frontend Developer}`, `{Discuss CSV export}`. `@Adam` and `{Adam}` have identical meaning. Unbraced `@` stops at its token boundary, never greedily consumes following prose. These forms work in any of the three entity kinds, in dedicated reference commitments and in meaningful nonliteral Book prose.
 
-Normalize both the reference and declared name identically: ignore case, diacritics and word separators, including whitespace, underscores and hyphens. Word boundaries and camel case do not distinguish identity. All of `{Frontend Developer}`, `{FrontendDeveloper}`, `{frontend     Developer}`, `{Frontend_Developer}`, `{-Fronténd Developer}` and `@FrontendDeveloper` resolve to the same canonical name. Keep the original display name and source spelling; normalization is comparison, not a source rewrite or fuzzy semantic matching.
+Compare normalized names by removing differences in case, diacritics and separator spelling (spaces, underscores, hyphens and equivalent word boundaries). `{Čeněk}`, `@Cenek` and `{c e n e k}` have the same logical name; likewise `{Frontend Developer}`, `{FrontendDeveloper}`, `{frontend     Developer}`, `{Frontend_Developer}` and `{-Fronténd Developer}`. Normalization is **exact comparison after canonicalization**, not fuzzy or semantic name matching. Retain the declared display spelling in user interfaces and files.
 
-Write references in these two forms everywhere, including dedicated reference fields: `FROM @Void`, `FROM @Developer`, `FROM {Frontend Developer}`. For compatibility a dedicated field such as FROM also accepts a bare name (`FROM Void`); supplied defaults and examples use the `@`/brace forms. FROM, IMPORT, TEAM, TASK AGENT, CLI agent selection and Manager use this same resolution contract. Preserve literal/code examples as text; ordinary email addresses or unrelated syntax must not accidentally become dispatch instructions. Empty or malformed explicit references receive a diagnostic, not an arbitrary fallback.
+There is **no separate TASK ID, CHAT ID or AGENT ID**. A file's first nonempty name line is the logical key regardless of its basename and extension. Renaming that line changes the reference identity and requires explicit reconciliation of affected links and historical evidence; moving the file without renaming does not. Preserve actual Git provenance, attempts and occurrences without manufacturing an opaque entity ID. New generated entity names should be readable and distinct under normalization, especially when opening multiple chats with the same agent.
 
-## Ordered resolution
+## Deterministic, project-scoped lookup
 
-For each normalized name, consult these tiers in order, stopping at the first tier containing a match:
+Resolve a name in the selected project directory, not another current directory, package installation or arbitrary parent. Use the same algorithm regardless of the source entity kind. No source wins by matching the reference's original case, accents, separators or filename more closely; **normalize before comparing** and use only precedence to select the winner.
 
-1. **Built-in (non-)agents:** `@Void`, `@Null` (the same as Void; also the legacy `0` alias), `@Expert` and `@User`, equally `{Void}`, `{Null}`, `{Expert}` and `{User}`. Adam, Manager and Teacher are editable core Books, not built-ins in this tier.
-2. **The project's agents directory:** Agent definitions in `.book` files recursively under `agents/`, including hidden subdirectories and definitions there excluded by Git. Use the configured directory where supported; the conventional directory name is not an agent identity.
-3. **The rest of the project:** Agent definitions in non-Git-ignored `.book` files outside that directory, including tracked and untracked sources.
-4. **The ignored remainder:** Agent definitions in Git-ignored project content outside the agents directory, including `node_modules`. Git ignore is a lower discovery priority, not a prohibition on resolving an explicitly referenced agent.
+1. **Engine built-ins:** `@Void`/`@Null` (also legacy `0`), `@User`, `@Expert` are reserved, unshadowable, Book-like non-agent references supplied by the running engine.
+2. **Common project locations, not Git-ignored:** search Book definitions in `agents/`, `tasks/`, then `chats/`, recursively. Search **shallow before deep** within each location; for equal depth, resolve ties by the listed folder order and stable path ordering.
+3. **Other non-Git-ignored project locations:** search remaining `.book` definitions in the project, shallow before deep and deterministically by path.
+4. **Git-ignored project content:** only after both nonignored tiers, search eligible ignored `.book` definitions, including generated artifacts and `node_modules`, using common-folder, depth and path order consistently.
 
-A Book must actually declare an agent under [source syntax](syntax.md); task Books, documentation snippets and filenames are not agent definitions. Report the selected source and tier on inspection. Reevaluate on relevant changes; a cached miss or lower-tier hit must not hide a newly added higher-priority definition. Discovery is read-only and must not install packages, execute package code, call models or create core files just to answer a lookup.
+The first definition whose **normalized declared name** matches wins. There is no merge of Books and no automatic fallback to another definition because it spells the name more precisely. Folder names suggest default entity kind, not identity. An explicit source path can be used where an API requires unambiguous source inspection, but it is not an alternate entity ID or permission to evade the logical resolver.
 
-One matching definition at the winning tier resolves the name. Multiple distinct definitions with that normalized name in that tier are an ambiguity: report their paths and do not select by filesystem order or continue into lower tiers. A higher-tier definition intentionally shadows lower-tier copies; their mere presence is not a global duplicate-name error. Deduplicate multiple paths to the same file. A malformed higher-tier definition must not silently select a different lower-tier agent.
+Within a tier and path order, duplicates are **shadowed, not fatal by default**. Report competing paths, effective winner and potential category mismatches as diagnostics for [Fixer](../agents/fixer.md) to inspect. A reference in an agent-only commitment such as FROM or TASK AGENT must resolve to the correct type; if the winning Book is a task/chat, report the mismatch instead of silently selecting a lower-priority agent. Missing, malformed or category-incompatible references never select a random fallback.
 
-Reserved non-agents cannot be replaced by files. Explicitly declared project agents using reserved names are diagnosed; neither those files nor packaged copies override the engine identities. Missing required core Books follow initialization; an unresolved ordinary reference is not permission to invent an agent or silently change inheritance.
+Excluded from discovery: Git metadata, local `.ptbk/` runtime/browser profiles, `traces/` evidence and other explicit data-only regions; do not escape the project through symlinks or traverse nested project runtime. Include hidden supporting agents and ignored dependencies only in their stated tiers, without automatically selecting them for general work. Discovery must be read-only; expensive ignored-content scans may be deferred but their incompleteness must be disclosed. Cached matches must respect changed project files and Git ignore state.
 
-Supported explicit local Book paths resolve from the declaring Book, with an unambiguous target and the same reserved-name and workspace protections. Name lookup stays within the selected project, excludes Git metadata, `.ptbk/` runtime/browser data and root-level `traces/` audit evidence, and must not escape through symlinks or inspect another nested project's private runtime. Tracked evidence is still evidence, not a source of active agent definitions. Expensive ignored-content search may be deferred until needed but must not be silently omitted. Report incomplete discovery rather than a definitive missing-agent result.
+## Typed meaning and graph edges
 
-Moving a definition does not change its normalized identity, although moving between tiers may change precedence. Hidden and dependency-provided definitions can satisfy explicit references without becoming ordinary goal-discovery candidates or authorizing edits to dependencies. Resolution does not grant permission to rewrite a source or execute all discovered agents.
+A reference can point from **any Book kind to any other** through `LINK` or appropriate domain commitments. These edges are **directed**: `A` referring to `B` does not require writing an inverse reference in `B`. Views can show both references made and references received. Multiple chats may refer to one task, and one chat may refer to multiple tasks; no relationship requires a task to exist. A link alone does not imply execution order, consultation, conversation participants, write authority or task assignment.
 
-## Examples
-
-The supplied foundation ends inheritance explicitly and is closed to automatic learning:
-
-```book
-Adam
-
-FROM @Void
-
-RULE Never claim work you did not verify, and report blockers honestly.
-RULE …
-CLOSED
-```
-
-Teacher builds on the engine's built-in Expert:
-
-```book
-Teacher
-
-FROM @Expert
-
-RULE …
-CLOSED
-```
-
-An agent without FROM inherits Adam, so writing it is unnecessary. A NOTE only comments; its text never becomes a control:
-
-```book
-Developer
-
-NOTE This is not needed because its implicitly FROM @Adam
-
-TEAM When you need to write `book` language consult with @Expert
-RULE …
-CLOSED
-```
-
-A single-word parent is referenced with `@`; a multiword one would be `FROM {Frontend Developer}`:
-
-```book
-Frontend Developer
-
-FROM @Developer
-KNOWLEDGE …
-CLOSED
-```
-
-TEAM prose mixes both forms, each resolved through the same tiers:
-
-```book
-UX Designer
-
-TEAM When you need to write `book` language consult with @Expert, to do the frontend tasks consult with {Frontend Developer}
-KNOWLEDGE …
-CLOSED
-```
-
-Here `@Expert` resolves in tier 1 without any project file, `@Developer` and `{Frontend Developer}` resolve in `agents/`, and a Frontend Developer Book elsewhere in the project or in `node_modules` would only be used when no higher tier defines that name. OPEN/CLOSED belongs to each Book itself; CLOSED in these examples is a choice of these Books, not a requirement of reference syntax.
-
-## Tasks
-
-Task titles may repeat and are never required to become unique slugs. Use a stable task reference such as `#<task-id>` from `TASK ID`, or an explicit local task source reference where unambiguous. New authoring assigns persistent [task IDs](../cli/task-identity.md); existing/manual sources lacking one receive it before execution through scoped preparation. List and dry-run never write IDs. The same identity connects source, commits and traces and survives renames, moves and format conversion.
-
-Relationships must resolve to one task, even when two titles and commit messages are identical. Do not silently pick a matching title, change references on rename or reuse another task's identity. Show ambiguous/missing references and block only work that depends on them.
+Specific commitments impose additional semantics: FROM requires an agent or supported non-agent parent; TEAM describes consultation; TASK AGENT assigns an agent; TASK PARENT/TASK DEPENDS ON require a task; CHAT MEMBER chooses a participant. Literal examples, Markdown code blocks, incidental email addresses and malformed text must not be treated as active relationships.
 
 ## Acceptance outcomes
 
-Exercise both syntaxes and every Frontend Developer spelling above through FROM, TEAM and TASK AGENT, and resolve the example Books exactly as described. A NOTE mentioning `FROM @Adam` creates no inheritance. They select the same agent and visual identity. Place matching Books in agents/, ordinary project content and ignored node_modules: remove each winning definition in turn and verify the documented fallback. Same-tier collisions fail with paths; lower-tier copies do not. Engine non-agents always retain their semantics, including brace forms. A task Book, trace snapshot, filename match, cache, ignored-directory optimization or symlink outside the project cannot produce a false agent match.
-
-See [task relationships](../cli/task-relationships.md), [TASK ID](commitments/task-id.md) and [agent consistency](../agents/consistency.md).
+Create `Čeněk` at a higher-precedence project path and `Cenek` in `node_modules`: both `@Cenek` and `{Čeněk}` select the first, with a discoverable collision diagnostic. Create two Book files with the same normalized name in a common folder: stable lookup picks one and does not merge them; Fixer can propose a correction. Resolve every combination of agent/task/chat links, including a task↔chat M:N graph. Test source renames, case/diacritics, duplicate titles, hidden cores, excluded traces, nested projects, tie-breaking paths and wrong-kind targets without creating runtime IDs or rewriting sources during read-only lookup.

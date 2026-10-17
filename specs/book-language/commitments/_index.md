@@ -4,6 +4,17 @@
 
 Each canonical commitment has one specification file. Listed aliases share its semantics and file; keywords containing spaces remain a single commitment.
 
+## Shared document and link commitments
+
+- [ENTITY](entity.md)
+- [LINK](link.md)
+
+## Chat commitments
+
+- [CHAT MEMBER](chat-member.md)
+- [CHAT MESSAGE](chat-message.md)
+- [CHAT STATUS](chat-status.md)
+
 ## Agent and shared instructions
 
 - [PERSONA](persona.md)
@@ -31,7 +42,6 @@ Each canonical commitment has one specification file. Listed aliases share its s
 ## Task commitments
 
 - [TASK](task.md)
-- [TASK ID](task-id.md)
 - [TASK AGENT](task-agent.md)
 - [TASK HARNESS](task-harness.md)
 - [TASK MODEL](task-model.md)

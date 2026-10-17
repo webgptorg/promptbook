@@ -1,16 +1,11 @@
-# Agent and automatic-work consistency
+# Agent and project consistency
 
-[Agents](_index.md)
+[Agents](_index.md) · [Shared resolution](../book-language/references.md)
 
-Validate the following before execution, and again when relevant definitions change:
+Check relevant definitions when the project changes and before work that depends on them. A normalized-name collision within or across Book kinds is **not normally fatal**: use deterministic first-wins resolution, report the effective definition and shadowed sources, and let [Fixer](fixer.md) propose or safely apply remediation. A wrong-kind match in a type-constrained commitment is a real reference error; missing and malformed definitions cannot be guessed away. Reserved built-in non-agent names cannot be replaced by project Books.
 
-- Agent references use the [shared normalization and ordered resolution](../book-language/references.md). At the first matching tier, a normalized name must identify one definition. Same-tier collisions are errors; a higher-tier definition may shadow lower-tier copies. Project agents cannot replace reserved non-agent names Void, Null, `0`, User or Expert.
-- Required core agents exist; create only missing defaults. Report malformed or conflicting existing definitions with their source locations. Core Books are distinct from engine-supplied non-agents.
-- Inheritance and textual inclusion terminate. An agent without FROM inherits Adam; every chain must reach an explicit empty or engine-defined foundation rather than cycle. Adam may inherit a custom ancestor, provided the full chain terminates. It need not directly inherit Void.
-- User cannot be an inheritance parent. Teacher's own Book must end in CLOSED. Report an open Teacher as unsafe configuration, explaining the self-teaching loop; do not run that loop.
+Initialize only missing required core agents. Do not silently erase customized or learned core content. Report invalid syntax with source context. Agent inheritance must terminate; FROM cycles and User as a parent are errors. TEAM cycles/reciprocal consultations are permitted but actual consultations are bounded. Teacher must remain CLOSED; Fixer may be OPEN and learns normally.
 
-TEAM references may be reciprocal or cyclic. That is valid and does not create an inheritance error, but actual consultations have bounded depth, count, time and cancellation.
+Manager assignment, teaching, Fixer maintenance and goal discovery use regular tasks and the same project ownership constraints. Prevent recursive manager assignment, teacher self-teaching, Fixer issue spam and unbounded model or commit loops. Dependency cycles block affected tasks, not the whole supervisor.
 
-Manager assignment, teaching and goal discovery are ordinary generated tasks, yet the engine must prevent automatic-work recursion and duplicate generation. Core dispatch cannot require an infinite chain of dispatch tasks; teaching cannot recursively teach Teacher; empty results cannot cause a busy loop. Cyclic task dependencies block the affected work with an explanation.
-
-Malformed configuration must never be repaired by erasing custom source. Resolving a Book in ignored/dependency content neither makes it an ordinary discovery candidate nor authorizes modifying the package. A running supervisor exposes the problem and remains controllable. See [recovery](../cli/recovery.md), [TEAM](../cli/team.md) and [goal discovery](../cli/goal-discovery.md).
+Ignored/dependency Book discovery does not grant authority to change third-party packages. A running service stays inspectable when any of these problems blocks work. See [recovery](../cli/recovery.md) and [task relationships](../cli/task-relationships.md).
