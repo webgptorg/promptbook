@@ -1,33 +1,32 @@
-# Shared project browser
+# Shared project browser and profile selection
 
-[Main specification](../_main.md)
+[Main specification](../_main.md) · [Initialization](initialization.md) · [Project configuration](configuration.md)
 
-Each selected project has one browser configuration and, while in use, one shared browser instance. All its agents use that browser for external project context. This singleton is per project folder, not per agent, task or harness and not one browser for the entire machine. It is independent of the project's multiple [harness selections and native logins](harnesses.md).
+Each selected project has one browser configuration and, while active, one coordinated browser instance shared by its agents. The instance/automation ownership is **per project**, not one process per agent, task or harness; the underlying **profile storage may be shared across multiple projects** when explicitly selected. Browser website sessions and harness/model authentication are independent.
 
-## Profile and visibility
+## Four explicit profile sources
 
-Choose one profile source:
+Offer all **four** choices during attended init and equivalent configuration in noninteractive use:
 
-- **Isolated project profile** (default): create a persistent profile in Git-ignored `.ptbk/`, isolated from other projects and the user's personal browser.
-- **Other existing profile:** explicitly select a profile anywhere on the system, including another project's profile or a central profile shared by agents.
-- **User's browser profile:** explicitly select an existing Chrome-compatible user profile and reuse its authenticated sessions.
+1. **Promptbook-managed global profile (DEFAULT):** create a dedicated, persistent Chrome-compatible browser profile in the operating system's per-user Promptbook application-data location on first use; reuse that same Promptbook-only profile for another project on the **same machine/account**. It is **not** the user's regular Chrome profile, not copied from it, and not located in a particular project working directory.
+2. **Isolated project profile:** create/reuse an independent persistent profile under this project's ignored `.ptbk/`. No other project is implicitly given that profile.
+3. **User's existing Chrome profile:** explicitly reuse the user's ordinary Chrome-compatible profile and its already authenticated website sessions. Never select or copy it implicitly.
+4. **Custom existing profile path:** let the user provide a path to another browser profile anywhere permitted on the machine.
 
-Offer the existing/shared choices as secondary options; never select or copy a personal profile implicitly. Explain that choosing a shared profile grants access to its existing sessions and that actions can affect that profile.
+Selection is per project and saved as a **portable source kind** in `ptbk.json`; the engine resolves its own managed global path for the current OS user at runtime. Do not write machine-specific global absolute paths or session secrets into Git. The isolated option has a project-relative location. Explicit custom paths follow configuration precedence and validate existence/ownership. Existing project settings survive reinit; the **new default** applies when no choice is already saved. Do not silently migrate cookies or sessions while switching modes. Explain sharing and privacy trade-offs clearly in the picker.
 
-Headless/headful is an independent choice available with each profile source. Save defaults in `ptbk.json`; `--browser-profile <path>` and `--browser-mode headless|headful` override them for one invocation without rewriting the file. Shared controls may adjust them at a safe boundary. Mode switching preserves the selected profile and active-task consistency. Profile switching is explicit and must not silently migrate cookies between identities.
+Headless/headful is independent of profile source; `--browser-profile <path>` and `--browser-mode headless|headful` remain temporary CLI overrides without modifying saved defaults. Shared controls may switch safely at a boundary. All four choices retain authenticated sessions across engine/system restarts subject to site expiration.
 
-## Sessions, safety and human access
+## Shared profiles and safe ownership
 
-Profiles are persistent, not disposable caches. Sessions survive process/system restart subject to site expiry. Promptbook does not collect website usernames/passwords as a credential database; keep profile contents, cookies and tokens out of Git, output, traces and model-visible artifacts.
+The global Promptbook profile is deliberately reusable across **different projects** on one machine, but simultaneous ownership does not authorize competing browser processes to lock or corrupt it. Coordinate access across projects with a safe handover/serialization policy; never forcibly seize or copy a profile or kill unrelated user browsers. A project still has one owner of automation at a time. Report busy/conflicting ownership and retry or request a genuinely needed user action. Choosing a custom/personal shared profile is similarly subject to ownership checks.
 
-Reuse valid sessions for the task's authorized actions without routine reconfirmation. Resolve known required login during attended setup where possible. When a genuinely necessary login, two-factor authentication or another human-only action remains, create a [user request](user-interactions.md) and bring the browser forward on an available desktop. The user acts on the real site, then agents continue with that session. A headless host cannot claim it displayed a window; remote screen transport is outside this contract. Follow [unattended operation](autonomous-operation.md), not repeated per-post approval by default.
+Browser profile contents, cookies and tokens never enter Git, trace text, chat Books or model-visible context as credentials. Promptbook is not a website-password database. Attended setup should resolve known login needs when possible; a new required login/2FA later becomes an agent-authored [human chat](user-interactions.md) and, on a desktop, a genuine browser action. Headless hosts must not pretend to have displayed a window. Keep authority and unattended-work constraints intact.
 
-Do not open competing instances over a profile, including when another project or a user browser owns it. Recheck transient ownership safely; when handover truly needs a person, request it or another profile without seizing or copying live data. Only one project task owns automation at a time; human intervention and TEAM consultation cannot create conflicting control. Stopping Promptbook must not terminate unrelated user browsers or delete any selected profile.
+## Task evidence
 
-## Task-linked browser evidence
+When enabled, record only page activity attributable to the owning task, with distinct segments for attempts/recurrences, under its [name-derived trace record](traces.md). Include actual browser actions in headless/headful use, not unrelated desktop or other project activity; mask credentials/authentication frames. Recording and video Git inclusion remain independent of profile choice. Failure/unsupported recording is disclosed, not fabricated; optional evidence failure does not unnecessarily block safe work. Stopping Promptbook never deletes any selected persistent profile.
 
-When enabled by [trace configuration](trace-configuration.md), record the browser activity of each owning task in its root-level `traces/<task-id>/` record. Reusing the shared browser must not mix unrelated tasks into one untraceable recording. Include playable recordings and identifiable segments for attempts/occurrences, covering actual page actions rather than merely reporting that browser tooling was invoked.
+## Acceptance outcomes
 
-Apply [trace recording and privacy rules](traces.md#browser-recordings) in headless and headful operation, excluding sensitive authentication/session material. Recording policy is independent of profile selection, visibility and whether videos are committed. Do not open the dashboard or record unrelated desktop activity as a side effect of capturing the browser. Missing or failed recording is reported honestly without unnecessarily stopping safe agenda work.
-
-See [configuration](configuration.md), [controls](controls.md) and [workspace](workspace.md).
+Initialize two distinct projects on the same OS account using defaults: both choose and reuse one **Promptbook-managed global** profile across restarts without touching the user's real Chrome profile. Isolated project mode remains separate; explicit user and custom profile selections work and can be changed without implicit cookie migration. Concurrent projects cannot launch competing instances against the same shared profile. Headless/headful and recording flags remain independent and secure.
