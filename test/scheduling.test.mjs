@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { formatDuration, parseDuration, parseInterval } from '../dist/common/duration.js';
 import { formatIsoWithOffset, parseDateTime } from '../dist/common/time.js';
-import { readMarkdownTasks, setMarkdownControl, setMarkdownTaskId, splitMarkdownSections } from '../dist/tasks/markdown.js';
+import { readMarkdownTasks, setMarkdownControl, splitMarkdownSections } from '../dist/tasks/markdown.js';
 import { parsePriority } from '../dist/tasks/priority.js';
 import { recurrenceState } from '../dist/tasks/recurrence.js';
 import { readTaskBook } from '../dist/tasks/book-task.js';
@@ -69,27 +69,20 @@ test('Markdown completion attaches to the section identity, not its number', () 
     assert.throws(() => setMarkdownControl('Other\n', { hash: second.source.sectionHash }, 'x', ''), /moved or disappeared/);
 });
 
-test('Markdown task IDs: metadata comment is neither status, title nor description; edits keep the ID', () => {
+test('Markdown legacy ID comments are historical metadata only: the title is the identity, the comment is not content', () => {
     const source = 'First\n---\n<!-- ptbk-task-id: second-abc123 -->\n[-] !\n\nSecond task\n\nDetails.\n---\n[ ]\n\nThird task\n';
     const tasks = readMarkdownTasks({ source, path: '/p/a.md', relativePath: 'a.md', order: 1, timeZone: 'UTC' });
     assert.equal(tasks.length, 3);
     const second = tasks[1];
-    assert.equal(second.id, 'second-abc123');
-    assert.equal(second.ref, '#second-abc123');
-    assert.equal(second.status, 'not-ready', 'the control line after the ID comment still decides the state');
+    assert.equal(second.legacyId, 'second-abc123');
+    assert.equal(second.ref, '{Second task}', 'referenced by name, never by the legacy ID');
+    assert.equal(second.key, 'secondtask');
+    assert.equal(second.status, 'not-ready', 'the control line after the comment still decides the state');
     assert.equal(second.title, 'Second task');
     assert.equal(second.description, 'Details.');
-    const edited = source.replace('Second task', 'Second task (renamed)');
-    const completed = setMarkdownControl(edited, { id: 'second-abc123' }, 'x', 'done 2026-10-14T10:00:00Z');
-    assert.match(completed, /<!-- ptbk-task-id: second-abc123 -->\n\[x\] done 2026-10-14T10:00:00Z\n\nSecond task \(renamed\)/, 'located by ID, not by content or number');
-    const third = tasks[2];
-    const withId = setMarkdownTaskId(source, third.source.sectionHash, 'third-xyz789');
-    const reread = readMarkdownTasks({ source: withId, path: '/p/a.md', relativePath: 'a.md', order: 1, timeZone: 'UTC' })[2];
-    assert.equal(reread.id, 'third-xyz789');
-    assert.equal(reread.source.sectionHash, third.source.sectionHash, 'adding an ID does not change the section identity');
-    const invalid = readMarkdownTasks({ source: '<!-- ptbk-task-id: ../escape -->\n[ ]\n\nBad\n', path: '/p/b.md', relativePath: 'b.md', order: 1, timeZone: 'UTC' })[0];
-    assert.equal(invalid.id, undefined);
-    assert.ok(invalid.diagnostics.some((diagnostic) => diagnostic.severity === 'error'), 'path-unsafe IDs are errors');
+    const completed = setMarkdownControl(source, { hash: second.source.sectionHash }, 'x', 'done 2026-10-14T10:00:00Z');
+    assert.match(completed, /<!-- ptbk-task-id: second-abc123 -->\n\[x\] done 2026-10-14T10:00:00Z\n\nSecond task/, 'the historical comment is preserved, never regenerated');
+    assert.equal(tasks[2].legacyId, undefined, 'no ID is generated for sections without one');
 });
 
 test('recurrence keeps anchors, coalesces downtime and never shifts slots on completion', () => {
@@ -108,15 +101,15 @@ test('recurrence keeps anchors, coalesces downtime and never shifts slots on com
 });
 
 test('eligibility: priority order, future work never blocks, dependencies and cycles explained', async () => {
-    const read = (name, body) => readTaskBook({ source: `TASK ${name}\n${body}`, path: `/p/tasks/${name}.book`, relativePath: `tasks/${name}.book`, order: name.charCodeAt(0), timeZone: 'UTC' });
+    const read = (name, body) => readTaskBook({ source: `${name}\nENTITY TASK\n${body}`, path: `/p/tasks/${name}.book`, relativePath: `tasks/${name}.book`, order: name.charCodeAt(0), timeZone: 'UTC' });
     const tasks = [
-        read('a', 'TASK ID a\nTASK PRIORITY 1\nTASK AGENT @Developer'),
-        read('b', 'TASK ID b\nTASK PRIORITY 9\nTASK AFTER 2099-01-01\nTASK AGENT @Developer'),
-        read('c', 'TASK ID c\nTASK PRIORITY 5\nTASK DEPENDS ON #a\nTASK AGENT @Developer'),
-        read('d', 'TASK ID d\nTASK DEPENDS ON #e'),
-        read('e', 'TASK ID e\nTASK DEPENDS ON #d'),
-        read('f', 'TASK ID f\nTASK DEPENDS ON #missing'),
-        read('g', 'TASK ID g\nTASK PRIORITY 3'),
+        read('a', 'TASK PRIORITY 1\nTASK AGENT @Developer'),
+        read('b', 'TASK PRIORITY 9\nTASK AFTER 2099-01-01\nTASK AGENT @Developer'),
+        read('c', 'TASK PRIORITY 5\nTASK DEPENDS ON {a}\nTASK AGENT @Developer'),
+        read('d', 'TASK DEPENDS ON @e'),
+        read('e', 'TASK DEPENDS ON {d}'),
+        read('f', 'TASK DEPENDS ON {missing}'),
+        read('g', 'TASK PRIORITY 3'),
     ];
     const evaluated = await evaluateQueue(tasks, {
         now: Date.parse('2026-10-14T00:00:00Z'),
@@ -128,12 +121,12 @@ test('eligibility: priority order, future work never blocks, dependencies and cy
         route: async (task) => (task.routing.agent ? { kind: 'routable' } : { kind: 'needs-assignment', reason: 'No TASK AGENT yet.' }),
         assignmentFor: new Map(),
     });
-    const kinds = Object.fromEntries(evaluated.map((item) => [item.task.id, item.readiness.kind]));
+    const kinds = Object.fromEntries(evaluated.map((item) => [item.task.key, item.readiness.kind]));
     assert.equal(kinds.a, 'ready');
     assert.equal(kinds.b, 'waiting-until');
     assert.equal(kinds.c, 'waiting-dependency');
     assert.equal(kinds.d, 'blocked');
     assert.equal(kinds.f, 'blocked');
     assert.equal(kinds.g, 'needs-assignment');
-    assert.equal(selectNext(evaluated).task.id, 'g');
+    assert.equal(selectNext(evaluated).task.key, 'g');
 });

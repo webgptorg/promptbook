@@ -5,10 +5,9 @@ import { ensureDirectory } from '../../common/fs.js';
 import { runCheck, validateCheckCommand } from '../../project/checks.js';
 import { loadSettings, setting } from '../../project/config.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
-import { generateTaskId } from '../../tasks/identity.js';
 import { lookupService } from '../../service/control.js';
 import { ServiceHost } from '../../service/host.js';
-import { selectedProject, settingOverrides, tasksOverride, writableTasksDirectory } from '../common.js';
+import { distinctTaskName, selectedProject, settingOverrides, tasksOverride, writableTasksDirectory } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -47,9 +46,8 @@ export default async function fix(context: CommandContext): Promise<number> {
     await writeFile(
         taskPath,
         renderTaskBook({
-            title: 'Repair the failing project check',
+            title: await distinctTaskName(project, settings, 'Repair the failing project check'),
             description: `The project check \`${check}\` fails (exit ${String(result.exitCode)}). Fix the underlying defects without weakening validation: do not delete assertions, disable rules, lower thresholds or skip checks.\n\nCheck output (tail):\n\n\`\`\`\n${result.output.slice(-6000)}\n\`\`\``,
-            id: generateTaskId('repair failing project check'),
             commitments,
         }),
         { flag: 'wx' },

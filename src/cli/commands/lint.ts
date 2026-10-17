@@ -20,11 +20,24 @@ export default async function lint(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const settings = await loadSettings(project, { env: context.env });
     const findings: Finding[] = settings.diagnostics.map((diagnostic) => ({ severity: diagnostic.severity, location: diagnostic.location, message: diagnostic.message }));
-    const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'));
+    const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'), setting<string>(settings, 'paths.tasks'));
     for (const diagnostic of await validateAgents(catalog)) {
         findings.push({ severity: diagnostic.severity, location: `${diagnostic.path || 'agents'}${diagnostic.line ? `:${diagnostic.line}` : ''}`, message: diagnostic.message });
     }
+    // Directed LINKs and chat participants use the same resolver as every other reference.
+    for (const entry of catalog.index.all()) {
+        if (entry.tier === 4) continue;
+        for (const commitment of entry.document.commitments.filter((item) => item.keyword === 'LINK' || item.keyword === 'CHAT MEMBER')) {
+            for (const reference of commitment.value.match(/\{[^}]+\}|@[^\s,]+/g) ?? []) {
+                const resolution = await catalog.index.resolve(reference);
+                if (resolution.kind === 'missing' || resolution.kind === 'invalid') {
+                    findings.push({ severity: commitment.keyword === 'LINK' ? 'warning' : 'error', location: `${entry.relativePath}:${commitment.startLine + 1}`, message: `${commitment.keyword} ${reference} does not resolve${resolution.kind === 'invalid' ? ` (${resolution.reason})` : ''}.` });
+                }
+            }
+        }
+    }
     const queue = await readTaskQueue({
+        index: catalog.index,
         root: project.root,
         tasksDirectory: tasksOverride(context) ?? resolve(project.root, setting<string>(settings, 'paths.tasks')),
         explicit: Boolean(tasksOverride(context)),
@@ -35,7 +48,7 @@ export default async function lint(context: CommandContext): Promise<number> {
         for (const diagnostic of task.diagnostics) findings.push({ severity: diagnostic.severity, location: `${task.source.relativePath}${task.source.section ? `#${task.source.section}` : ''}${diagnostic.line ? `:${diagnostic.line}` : ''}`, message: diagnostic.message });
         for (const reference of task.dependsOn) {
             const found = findTask(queue.tasks, reference);
-            if (!found.task) findings.push({ severity: 'error', location: task.source.relativePath, message: found.ambiguous ? `Dependency ${reference} is ambiguous.` : `Dependency ${reference} does not exist.` });
+            if (!found.task) findings.push({ severity: 'error', location: task.source.relativePath, message: `Dependency ${reference} does not exist.` });
         }
         if (task.routing.agent && task.status !== 'done') {
             const resolution = await catalog.resolve(task.routing.agent);

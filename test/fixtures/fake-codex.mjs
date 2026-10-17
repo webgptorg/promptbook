@@ -4,11 +4,13 @@
  *
  * It answers metadata probes like the real CLI and, for `codex exec --json`, emits the real JSONL event format.
  * Behavior is driven by markers in the task text:
- *   ASK_USER        → asks the user through the ptbk MCP bridge, then waits for the answer
+ *   ASK_USER        → asks the user in a chat through the ptbk MCP bridge, then waits for the answer
  *   FAIL_CHECK_ONCE → first attempt writes a file that fails the fixture check
  *   BLOCKED         → reports blocked
  *   NO_REPORT       → omits the completion line
- *   CREATE_FOLLOW_UP → also writes two follow-up task Books: one without an ID, one copying this task's ID
+ *   CREATE_FOLLOW_UP → also writes two follow-up task Books: one with a new name, one copying this task's name
+ * Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
+ * through the `create_task` tool and one containing CORRECTION adds a `PTBK_LEARN` note.
  * Every executed turn is appended to $FAKE_CODEX_LOG (one JSON line) when set.
  */
 import { spawn } from 'node:child_process';
@@ -121,15 +123,26 @@ async function callTool(name, toolArguments) {
 
 async function main() {
     const prompt = readFileSync(0, 'utf8');
-    const reference = /- Reference: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
-    const title = /- Title: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
+    const reference = /- Reference: (\{[^}]+\}|\S+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
+    const title = /- Name: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
+    const chat = prompt.startsWith('# Conversation');
     const attempt = /## Feedback from attempt (\d+)/.exec(prompt) ? Number(/## Feedback from attempt (\d+)/.exec(prompt)[1]) + 1 : 1;
-    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry') })}\n`);
+    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat })}\n`);
     print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
     print({ type: 'turn.started' });
     const message = (text) => print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text } });
     const done = (summary, extra = {}) => message(`${summary}\n\nPTBK_RESULT ${JSON.stringify({ status: 'done', summary, evidence: 'fixture', ...extra })}`);
-    if (prompt.includes('## Assignment work')) {
+    if (chat) {
+        const conversation = prompt.slice(prompt.indexOf('## Conversation so far'), prompt.indexOf('## How to answer'));
+        const last = [...conversation.matchAll(/\*\*@User\*\* \([^)]*\):\n([^\n]*)/g)].pop()?.[1] ?? '';
+        let text = `Fixture reply to: ${last}`;
+        if (last.includes('CREATE_TASK')) {
+            const created = await callTool('create_task', { title: 'Task from chat', description: `Requested in a chat: ${last}`, agent: '@Developer', priority: 4 });
+            text += `\n${created}`;
+        }
+        if (last.includes('CORRECTION')) text += '\nPTBK_LEARN Prefer short answers in this project.';
+        message(text);
+    } else if (prompt.includes('## Assignment work')) {
         done('Developer fits this task.', { routing: { agent: '@Developer', harness: null, model: null, thinkingLevel: null }, priority: 3 });
     } else if (prompt.includes('## Learning work') || prompt.includes('## Goal enquiry')) {
         done('Nothing to change.');
@@ -137,13 +150,13 @@ async function main() {
         message(`Cannot do it.\nPTBK_RESULT ${JSON.stringify({ status: 'blocked', summary: 'blocked', reason: 'fixture blocker' })}`);
     } else if (prompt.includes('NO_REPORT') && attempt === 1) {
         message('I did something but forgot the report.');
-    } else if (prompt.includes('ASK_USER') && !prompt.includes('## Answers from the user')) {
+    } else if (prompt.includes('ASK_USER') && !prompt.includes('## Conversation with the user')) {
         const text = await callTool('ask_user', { question: 'Which color should the fixture use?', choices: ['red', 'blue'], reason: 'The task does not say which color to use.', attempted: 'Checked the task and project instructions.' });
         message(`${text}\nPTBK_RESULT ${JSON.stringify({ status: 'waiting-for-user', summary: 'asked the user' })}`);
     } else {
-        const answer = /A: (.+)/.exec(prompt)?.[1];
+        const answer = [...prompt.slice(prompt.indexOf('## Conversation with the user')).matchAll(/^- @User: (.+)$/gm)].pop()?.[1];
         mkdirSync(join(process.cwd(), 'output'), { recursive: true });
-        const file = join(process.cwd(), 'output', `${reference.replace(/[^A-Za-z0-9]+/g, '-')}.txt`);
+        const file = join(process.cwd(), 'output', `${reference.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}.txt`);
         const content = prompt.includes('FAIL_CHECK_ONCE') && attempt === 1 ? 'BROKEN\n' : `${title}${answer ? ` (${answer})` : ''}\n`;
         writeFileSync(file, content);
         if (existsSync(join(process.cwd(), 'docs')) || prompt.includes('docs/promptbook-readiness.md')) {
@@ -152,9 +165,8 @@ async function main() {
         }
         if (prompt.includes('CREATE_FOLLOW_UP')) {
             const tasksDirectory = /top level of `([^`]+)\/`/.exec(prompt)?.[1] ?? 'tasks';
-            const id = /- Task ID: (\S+)/.exec(prompt)?.[1];
-            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-one.book'), 'TASK Follow-up one\n\nMore work.\n\nTASK AGENT @Developer\n');
-            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-two.book'), `TASK Follow-up two\n\nCopied definition.\n\nTASK ID ${id}\nTASK AGENT @Developer\n`);
+            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-one.book'), 'Follow-up one\nENTITY TASK\n\nMore work.\n\nTASK AGENT @Developer\n');
+            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-two.book'), `${title}\nENTITY TASK\n\nCopied definition under the same name.\n\nTASK AGENT @Developer\n`);
         }
         print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'add' }] } });
         done(`Wrote ${file}`);

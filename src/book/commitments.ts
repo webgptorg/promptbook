@@ -1,9 +1,9 @@
 /**
- * Which document kinds a commitment belongs to.
+ * Which document kinds a commitment belongs to (`both` = agents and tasks, `chat` = chats, `any` = every kind).
  *
  * @private Book language
  */
-export type CommitmentScope = 'agent' | 'task' | 'both';
+export type CommitmentScope = 'agent' | 'task' | 'both' | 'chat' | 'any';
 
 /**
  * How a commitment's content is interpreted.
@@ -41,6 +41,11 @@ export type CommitmentDefinition = {
  * @private Book language
  */
 export const COMMITMENTS: readonly CommitmentDefinition[] = [
+    { keyword: 'ENTITY', aliases: [], scope: 'any', kind: 'control', description: 'Kind of the Book: `AGENT`, `TASK` or `CHAT` (the first line is its name).' },
+    { keyword: 'LINK', aliases: ['LINKS'], scope: 'any', kind: 'repeatable-control', description: 'Directed reference to another agent, task or chat (no scheduling or authority).' },
+    { keyword: 'CHAT MEMBER', aliases: [], scope: 'chat', kind: 'repeatable-control', description: 'Participant of a chat (`@User` and one agent, or two agents of a task).' },
+    { keyword: 'CHAT MESSAGE', aliases: [], scope: 'chat', kind: 'instruction', description: 'One durable message: `CHAT MESSAGE <sender> <timestamp>` followed by its text.' },
+    { keyword: 'CHAT STATUS', aliases: [], scope: 'chat', kind: 'control', description: '`open`, `waiting-for-user` or `resolved`.' },
     { keyword: 'PERSONA', aliases: ['PERSONAE'], scope: 'agent', kind: 'instruction', description: 'Role and identity of the agent.' },
     { keyword: 'GOAL', aliases: ['GOALS'], scope: 'agent', kind: 'instruction', description: 'Lasting objective, also used for goal discovery.' },
     { keyword: 'RULE', aliases: ['RULES'], scope: 'both', kind: 'instruction', description: 'Behavioral constraint (task rules apply only to that task).' },
@@ -59,11 +64,11 @@ export const COMMITMENTS: readonly CommitmentDefinition[] = [
     { keyword: 'TEAM', aliases: [], scope: 'agent', kind: 'instruction', description: 'Whom the agent may consult and when.' },
     { keyword: 'OPEN', aliases: [], scope: 'agent', kind: 'instruction', description: 'Permits learning, optionally with natural-language limits.' },
     { keyword: 'CLOSED', aliases: [], scope: 'agent', kind: 'flag', description: 'Prohibits automatic learning changes.' },
-    { keyword: 'NOTE', aliases: ['NOTES', 'COMMENT', 'NONCE', 'TODO'], scope: 'both', kind: 'instruction', description: 'Non-executable commentary.' },
+    { keyword: 'NOTE', aliases: ['NOTES', 'COMMENT', 'NONCE', 'TODO'], scope: 'any', kind: 'instruction', description: 'Non-executable commentary.' },
     { keyword: 'DELETE', aliases: ['CANCEL', 'DISCARD', 'REMOVE'], scope: 'agent', kind: 'instruction', description: 'Withdraws an identified earlier commitment.' },
     { keyword: 'DICTIONARY', aliases: [], scope: 'agent', kind: 'instruction', description: 'Terminology for the role\'s work.' },
-    { keyword: 'TASK', aliases: [], scope: 'task', kind: 'control', description: 'Declares a task: `TASK <title>` on the first nonempty line.' },
-    { keyword: 'TASK ID', aliases: [], scope: 'task', kind: 'control', description: 'Stable reference key, distinct from the title.' },
+    { keyword: 'TASK', aliases: [], scope: 'task', kind: 'control', description: 'Legacy task header: `TASK <title>` on the first line declares the task named <title>.' },
+    { keyword: 'TASK ID', aliases: [], scope: 'task', kind: 'control', description: 'Legacy historical metadata; never identity (the task name is).' },
     { keyword: 'TASK AGENT', aliases: [], scope: 'task', kind: 'control', description: 'Responsible agent.' },
     { keyword: 'TASK HARNESS', aliases: [], scope: 'task', kind: 'control', description: 'Required execution harness.' },
     { keyword: 'TASK MODEL', aliases: [], scope: 'task', kind: 'control', description: 'Required model.' },

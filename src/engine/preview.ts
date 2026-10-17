@@ -4,12 +4,11 @@ import { AgentCatalog } from '../project/agents.js';
 import { inspectGit } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
 import { evaluateQueue, type EvaluatedTask } from '../tasks/eligibility.js';
-import { isRecurring } from '../tasks/model.js';
+import { isRecurring, nameKey } from '../tasks/model.js';
 import { findTask, readTaskQueue } from '../tasks/sources.js';
 import { captureSnapshot } from './executor.js';
 import { originTarget, workKindOf } from './generated.js';
 import { HarnessPool } from './harnesses.js';
-import { RequestStore } from './requests.js';
 import { resolveRoute, type RouteResolution, type RunSelection } from './routing.js';
 import { StateStore } from './state.js';
 
@@ -38,16 +37,17 @@ export async function previewQueue(
     const env = options.env ?? process.env;
     const timeZone = setting<string>(settings, 'timezone');
     const tasksDirectory = options.tasksDirectory ?? resolve(project.root, setting<string>(settings, 'paths.tasks'));
-    const queue = await readTaskQueue({ root: project.root, tasksDirectory, explicit: Boolean(options.tasksDirectory), timeZone });
-    const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'));
+    const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'), setting<string>(settings, 'paths.tasks'));
+    const queue = await readTaskQueue({ root: project.root, tasksDirectory, explicit: Boolean(options.tasksDirectory), timeZone, index: catalog.index });
     const pool = new HarnessPool(project.root, settings, env);
     await pool.refresh(options.runSelection ? [...new Set([...pool.enabled(), options.runSelection.harness])] : pool.enabled(), true);
     const state = new StateStore(project.runtime.state);
     const blockers = await state.readBlockers().catch(() => ({}));
     const activations = await state.readActivations().catch(() => ({}) as Record<string, number>);
-    const requests = await new RequestStore(project.runtime.requests).list({ status: 'pending' }).catch(() => []);
+    // Checkpointed tasks wait for the user's reply in their chat.
     const awaitingUser = new Map<string, string>();
-    for (const request of requests) if (request.origin.taskRef && request.blocking) awaitingUser.set(request.origin.taskRef, request.id);
+    for (const parked of await state.readParked().catch(() => [])) awaitingUser.set(parked.taskKey || nameKey(parked.taskTitle), parked.waitingChat ?? parked.recoveryChat ?? 'checkpoint');
+    const active = await state.readActive().catch(() => undefined);
     const uncommitted = new Set<string>();
     const gitInfo = await inspectGit(project.root);
     if (gitInfo.state === 'repository' && setting<boolean>(settings, 'execution.commit')) {
@@ -59,17 +59,18 @@ export async function previewQueue(
         if (workKindOf(task) !== 'assignment' || task.status === 'done') continue;
         const target = originTarget(task);
         const found = target ? findTask(queue.tasks, target).task : undefined;
-        if (found) assignmentFor.set(found.ref, task.ref);
+        if (found) assignmentFor.set(found.key, task.title);
     }
     const routes = new Map<string, RouteResolution>();
     const now = Date.now();
     const evaluated = await evaluateQueue(queue.tasks, {
         now,
         timeZone,
+        activeKey: active ? active.taskKey || nameKey(active.taskTitle) : undefined,
         awaitingUser,
         recovery: new Map(Object.entries(blockers).map(([ref, blocker]) => [ref, (blocker as { reason: string }).reason])),
         uncommittedSources: uncommitted,
-        activation: (task) => (isRecurring(task) ? (activations[task.id ?? task.ref] ?? now) : now),
+        activation: (task) => (isRecurring(task) ? (activations[task.key] ?? now) : now),
         route: async (task) => {
             const resolution = await resolveRoute(task, { mode: options.mode, catalog, pool, settings, runSelection: options.runSelection });
             routes.set(task.ref, resolution);

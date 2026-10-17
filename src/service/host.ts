@@ -7,8 +7,7 @@ import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary, type RunOptions } from '../engine/agenda.js';
 import type { ConnectionView } from '../engine/snapshot.js';
 import { ProjectBrowser, browserTools } from '../browser/browser.js';
-import { RequestStore } from '../engine/requests.js';
-import { applyAnswer, applyControlAction, applySettings } from './actions.js';
+import { applyChatAction, applyControlAction, applySettings } from './actions.js';
 import { AuthStore } from './auth.js';
 import { startControlServer } from './control.js';
 import { startHttpServer, type RunningHttpServer } from './http.js';
@@ -78,12 +77,15 @@ export class ServiceHost {
             persistenceNote: options.persistenceNote,
             run: options.run,
             onEvent: options.onEvent,
-            extraTools: (task, context) => {
+            extraTools: (_task, context) => {
                 void this.browser.useFor(context.trace, context.attempt);
-                return browserTools(this.browser, new RequestStore(options.project.runtime.requests), { ref: task.ref, id: task.id, title: task.title, agent: task.routing.agent }, context.onUserRequest);
+                return browserTools(this.browser, context.chats, context.agent, context.onUserChat);
             },
             finalizeEvidence: async () => await this.browser.recorder.finish(),
-            afterWork: async () => await this.browser.recorder.detach(),
+            afterWork: async () => {
+                await this.browser.recorder.detach();
+                this.browser.releaseShared();
+            },
         });
         this.auth = new AuthStore(options.project);
         this.browser = new ProjectBrowser(options.project, () => this.agenda.effectiveSettings, options.env);
@@ -241,8 +243,13 @@ export class ServiceHost {
             case 'stop-now':
             case 'cancel-stop':
                 return applyControlAction(agenda, method);
-            case 'answer':
-                return await applyAnswer(agenda, params, (params.via as 'terminal' | 'cli' | undefined) ?? 'cli');
+            case 'chat-list':
+            case 'chat-agents':
+            case 'chat-get':
+            case 'chat-read':
+            case 'chat-create':
+            case 'chat-send':
+                return await applyChatAction(agenda, method, params, typeof params.via === 'string' ? params.via : 'cli');
             case 'settings':
                 return await applySettings(agenda, params);
             case 'add-task':
@@ -251,7 +258,7 @@ export class ServiceHost {
                     String(params.content),
                     String(params.summary),
                     typeof params.commit === 'boolean' ? params.commit : undefined,
-                    Array.isArray(params.taskIds) ? params.taskIds.map(String) : [],
+                    Array.isArray(params.taskNames) ? params.taskNames.map(String) : [],
                 );
             case 'recover':
                 return { message: await agenda.recover(String(params.taskRef), params.action as 'resume' | 'retry' | 'acknowledge') };

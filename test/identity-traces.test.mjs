@@ -4,9 +4,10 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { TextEditor } from '../dist/ui/composer.js';
 import { readableHarnessLine } from '../dist/engine/task-trace.js';
-import { RequestStore } from '../dist/engine/requests.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../dist/project/setup.js';
-import { generateTaskId, taskIdProblem } from '../dist/tasks/identity.js';
+import { distinctName, nameKeyPath, traceDirectoryOf } from '../dist/tasks/identity.js';
+import { ChatStore } from '../dist/chats/store.js';
+import { taskChats } from '../dist/chats/task-chats.js';
 import { git, initializedProject, messages, ptbk, subjects, temporaryDirectory } from './helpers.mjs';
 
 /**
@@ -21,13 +22,17 @@ async function changedFiles(project, revision = 'HEAD') {
     return (await git(project, ['show', '--name-only', '--format=', revision])).trim().split('\n').filter(Boolean);
 }
 
-test('task IDs: generated IDs are path-safe and unique; unsafe explicit IDs are rejected', () => {
-    const first = generateTaskId('Improve CSV export');
-    const second = generateTaskId('Improve CSV export');
-    assert.match(first, /^improve-csv-export-[a-z0-9]{6}$/);
-    assert.notEqual(first, second, 'identical titles never share an ID');
-    assert.equal(taskIdProblem(first), undefined);
-    for (const bad of ['../x', 'a/b', 'con', 'trailing.', 'has space', '-leading']) assert.ok(taskIdProblem(bad), bad);
+test('task names: trace paths derive deterministically and safely from the normalized name; new names are distinct', () => {
+    assert.equal(traceDirectoryOf('Improve CSV export'), traceDirectoryOf('  improve   csv-export '), 'equivalent names share one identity');
+    assert.notEqual(traceDirectoryOf('Improve CSV export'), traceDirectoryOf('Improve PDF export'));
+    for (const unsafe of ['../../etc/passwd', 'a/b\\c', 'CON', '...', 'name.']) {
+        const path = nameKeyPath(unsafe);
+        assert.ok(path && !path.includes('/') && !path.includes('\\') && !path.startsWith('.') && !/^con$/i.test(path), `${unsafe} → ${path}`);
+    }
+    assert.equal(distinctName('Same title', new Set()), 'Same title');
+    const second = distinctName('Same title', new Set(['sametitle']));
+    assert.notEqual(second.toLowerCase().replace(/[^a-z0-9]/g, ''), 'sametitle', 'a readable disambiguation, not an opaque ID');
+    assert.match(second, /^Same title/);
 });
 
 test('composer: long pastes become compact tokens with the full payload; expand, remove and attachments keep order', () => {
@@ -80,53 +85,65 @@ test('trace ignore rules follow the policy and preserve unrelated .gitignore ent
     assert.match(content, /^\*\.log$/m);
 });
 
-test('requests: a repeated report of the same unresolved condition keeps one pending request', async (t) => {
+test('task chats: a repeated report of the same unanswered question keeps one waiting agent-authored chat', async (t) => {
     const directory = await temporaryDirectory(t);
-    const store = new RequestStore(directory);
-    const input = { kind: 'action', reason: 'Login required', question: 'Sign in to the site, then confirm.', choices: ['Done'], origin: { kind: 'browser', taskRef: '#t-1', taskId: 't-1' }, blocking: true, attempted: 'Reused the saved session.' };
-    const first = await store.create(input);
-    const second = await store.create(input);
-    assert.equal(second.id, first.id);
-    assert.equal(first.attempted, 'Reused the saved session.');
-    assert.equal((await store.list({ status: 'pending' })).length, 1);
+    const store = new ChatStore({ root: directory, runtime: { state: join(directory, '.ptbk', 'state') } }, { timeZone: 'UTC' });
+    const chats = taskChats(store, { name: 'Publish the post', key: 'publishthepost' }, { takenNames: () => new Set() });
+    const input = { agent: '@Developer', reason: 'Login required', question: 'Sign in to the site, then confirm.', choices: ['Done'], attempted: 'Reused the saved session.' };
+    const first = await chats.askUser(input);
+    const second = await chats.askUser(input);
+    assert.equal(second.chat, first.chat);
+    assert.equal(second.reused, true);
+    const listed = await store.list();
+    assert.equal(listed.length, 1);
+    const [stored] = listed;
+    assert.equal(stored.chat.status, 'waiting-for-user');
+    assert.deepEqual(stored.chat.links, ['{Publish the post}']);
+    assert.equal(stored.chat.messages[0].sender, '@Developer', 'the request is authored by the asking agent, not the environment');
+    assert.match(stored.chat.messages[0].text, /Already attempted: Reused the saved session\./);
+    assert.deepEqual(stored.chat.messages[0].choices, ['Done']);
 });
 
-test('legacy tasks receive an ID before execution; identical titles keep separate IDs, commits and traces', async (t) => {
+test('same-name tasks: the first by resolver order runs; the copy is shadowed, reported and never renamed', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     for (const name of ['a.book', 'b.book']) await writeFile(join(project, 'tasks', name), 'TASK Same title\n\nDo it.\n\nTASK AGENT @Developer\n');
     await git(project, ['add', 'tasks']);
     await git(project, ['commit', '-qm', 'manual tasks']);
     const listed = JSON.parse((await ptbk(['list', '--json'], { cwd: project, env })).stdout);
-    assert.ok(listed.tasks.filter((task) => task.title === 'Same title').every((task) => task.id === undefined), 'list never writes IDs');
-    assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
+    const same = listed.tasks.filter((task) => task.title === 'Same title');
+    assert.equal(same.length, 2);
+    assert.deepEqual(same.map((task) => task.readiness).sort(), ['blocked', 'ready'], JSON.stringify(same));
+    assert.match(same.find((task) => task.readiness === 'blocked').reason, /tasks\/a\.book/);
+    assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'list never writes');
     const run = await ptbk(['run', '--raw', '--limit', '2'], { cwd: project, env });
     assert.equal(run.code, 0, run.output);
     const history = await subjects(project);
-    assert.equal(history.filter((subject) => subject === 'PTBK: Same title').length, 2);
-    assert.equal(history.filter((subject) => subject === 'PTBK: Assign task ID - Same title').length, 2, 'a scoped preparation commit per legacy task');
-    const ids = (await messages(project)).filter((message) => message.startsWith('PTBK: Same title')).map((message) => /^Task-ID: (\S+)$/m.exec(message)[1]);
-    assert.equal(new Set(ids).size, 2);
-    for (const id of ids) await readFile(join(project, 'traces', id, 'harness.log'), 'utf8');
-    for (const name of ['a.book', 'b.book']) assert.match(await readFile(join(project, 'tasks', name), 'utf8'), /^TASK ID same-title-[a-z0-9]{6}$/m);
+    assert.equal(history.filter((subject) => subject === 'PTBK: Same title').length, 1, 'only the winning copy is addressable');
+    const [message] = (await messages(project)).filter((item) => item.startsWith('PTBK: Same title'));
+    assert.match(message, /^Task-Name: Same title$/m);
+    assert.doesNotMatch(message, /Task-ID/);
+    await readFile(join(project, traceDirectoryOf('Same title'), 'harness.log'), 'utf8');
+    assert.equal(await readFile(join(project, 'tasks', 'b.book'), 'utf8'), 'TASK Same title\n\nDo it.\n\nTASK AGENT @Developer\n', 'the shadowed copy is not renamed or merged');
+    const lint = await ptbk(['lint', '--json'], { cwd: project, env });
+    assert.ok(JSON.parse(lint.stdout).findings.some((finding) => /shadow/i.test(finding.message) && finding.location.includes('tasks/b.book')), lint.stdout);
 });
 
-test('follow-ups written by an agent get their own IDs (a copied ID is replaced) inside the result commit', async (t) => {
+test('follow-ups written by an agent are linked by name inside the result commit; a same-name copy stays shadowed', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Plan more CREATE_FOLLOW_UP', '--agent', 'Developer', '--priority', '5', '--raw'], { cwd: project, env });
     const run = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(run.code, 0, run.output);
     const [message] = await messages(project);
-    const taskId = /^Task-ID: (\S+)$/m.exec(message)[1];
-    const created = [...message.matchAll(/^Created-Task-ID: (\S+)$/gm)].map((match) => match[1]);
-    const one = await readFile(join(project, 'tasks', 'zz-follow-up-one.book'), 'utf8');
-    const two = await readFile(join(project, 'tasks', 'zz-follow-up-two.book'), 'utf8');
-    const oneId = /^TASK ID (\S+)$/m.exec(one)[1];
-    const twoId = /^TASK ID (\S+)$/m.exec(two)[1];
-    assert.notEqual(twoId, taskId, 'a copied definition is new work with a new ID');
-    assert.ok(created.includes(oneId) && created.includes(twoId), message);
-    assert.ok(!created.includes(taskId));
+    assert.match(message, /^Task-Name: Plan more CREATE_FOLLOW_UP$/m);
+    const created = [...message.matchAll(/^Created-Task-Name: (.+)$/gm)].map((match) => match[1]);
+    assert.ok(created.includes('Follow-up one'), message);
+    assert.ok(!created.includes('Plan more CREATE_FOLLOW_UP'), 'a copy under the same name is not new work');
     const files = await changedFiles(project);
     assert.ok(files.includes('tasks/zz-follow-up-one.book') && files.includes('tasks/zz-follow-up-two.book'));
+    const listed = JSON.parse((await ptbk(['list', '--json', '--all'], { cwd: project, env })).stdout);
+    const copy = listed.tasks.find((task) => task.source === 'tasks/zz-follow-up-two.book');
+    assert.equal(copy.readiness, 'blocked', JSON.stringify(copy));
+    assert.match(await readFile(join(project, 'tasks', 'zz-follow-up-two.book'), 'utf8'), /^Plan more CREATE_FOLLOW_UP$/m, 'never renamed automatically');
 });
 
 test('trace policy: committed traces share the result commit; videos and post-commit events stay out; the tree stays clean', async (t) => {
@@ -139,13 +156,15 @@ test('trace policy: committed traces share the result commit; videos and post-co
     await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
     const run = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(run.code, 0, run.output);
-    const taskId = /^Task-ID: (\S+)$/m.exec((await messages(project))[0])[1];
+    const taskName = /^Task-Name: (.+)$/m.exec((await messages(project))[0])[1];
+    assert.equal(taskName, 'Write the welcome page');
+    const trace = traceDirectoryOf(taskName);
     const files = await changedFiles(project);
-    assert.ok(files.includes(`traces/${taskId}/harness.log`), files.join('\n'));
-    assert.ok(files.includes(`traces/${taskId}/events.jsonl`));
+    assert.ok(files.includes(`${trace}/harness.log`), files.join('\n'));
+    assert.ok(files.includes(`${trace}/events.jsonl`));
     assert.ok(!files.some((file) => file.includes('/local/')), 'post-commit events are never in the snapshot');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'events after the commit do not dirty the tree');
-    await readFile(join(project, 'traces', taskId, 'local', 'events.jsonl'), 'utf8');
+    await readFile(join(project, trace, 'local', 'events.jsonl'), 'utf8');
 });
 
 test('initial input: verbatim text and attachments with working relative links; the Expert task links it', async (t) => {
@@ -163,7 +182,7 @@ test('initial input: verbatim text and attachments with working relative links; 
     assert.equal(await readFile(join(project, 'specs', '_initial', 'notes.txt'), 'utf8'), 'notes');
     const task = (await readdir(join(project, 'tasks'))).find((name) => name.endsWith('.book'));
     const content = await readFile(join(project, 'tasks', task), 'utf8');
-    assert.match(content, /^TASK Transform the project according to the initial specification$/m);
+    assert.match(content, /^Transform the project according to the initial specification\nENTITY TASK$/m);
     assert.match(content, /\(\.\.\/specs\/_initial\.md\)/);
     assert.ok((await changedFiles(project)).includes('specs/_initial/image-1.png'), 'specification and assets are versioned with the task');
 });
@@ -174,13 +193,24 @@ test('a task waiting for the user is checkpointed so independent work continues;
     await ptbk(['add', 'Independent work', '--agent', 'Developer', '--priority', '1', '--raw'], { cwd: project, env });
     const first = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(first.code, 3, first.output);
-    assert.match(first.stdout, /1 completed, 0 failed; 1 request\(s\) waiting for you/);
+    assert.match(first.stdout, /1 completed, 0 failed; 1 chat\(s\) waiting for you/);
     assert.equal((await subjects(project))[0], 'PTBK: Independent work', 'independent work progressed while the question waits');
     const inspect = await ptbk(['recover', '--raw'], { cwd: project, env });
     assert.match(inspect.stdout, /checkpointed/);
-    const [request] = JSON.parse((await ptbk(['answer', '--json'], { cwd: project, env })).stdout);
-    assert.equal(request.attempted, 'Checked the task and project instructions.');
-    assert.equal((await ptbk(['answer', request.id, 'blue', '--raw'], { cwd: project, env })).code, 0);
+    const [chat] = JSON.parse((await ptbk(['answer', '--json'], { cwd: project, env })).stdout);
+    assert.equal(chat.agent, '@Developer', 'the waiting chat is authored by the task agent');
+    assert.match(chat.awaiting.text, /Already attempted: Checked the task and project instructions\./);
+    assert.deepEqual(chat.awaiting.choices, ['red', 'blue']);
+    assert.deepEqual(chat.links, ['{Choose a color ASK_USER}']);
+    const invalid = await ptbk(['answer', chat.name, 'green', '--raw'], { cwd: project, env });
+    assert.notEqual(invalid.code, 0, 'an offered decision accepts only its answers');
+    const before = (await subjects(project)).length;
+    assert.equal((await ptbk(['answer', chat.name, 'blue', '--raw'], { cwd: project, env })).code, 0);
+    const answerCommit = (await messages(project))[0];
+    assert.equal((await subjects(project)).length, before + 1, 'the answer is its own commit');
+    assert.match(answerCommit, /^PTBK: Chat - /);
+    assert.match(answerCommit, /^Chat-Name: /m);
+    assert.match(answerCommit, /^Task-Name: Choose a color ASK_USER$/m);
     const second = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(second.code, 0, second.output);
     assert.equal((await subjects(project))[0], 'PTBK: Choose a color ASK_USER');

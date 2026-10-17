@@ -7,7 +7,7 @@ import type { AgentCatalog, EffectiveAgent } from '../project/agents.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { setBookControls } from '../tasks/book-task.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
-import { generateTaskId } from '../tasks/identity.js';
+import { distinctName } from '../tasks/identity.js';
 import type { Task } from '../tasks/model.js';
 import type { HarnessPool } from './harnesses.js';
 
@@ -52,7 +52,7 @@ export function workKindOf(task: Task): 'assignment' | 'learning' | 'discovery' 
  */
 export function originTarget(task: Task): string | undefined {
     const origin = task.origin ?? '';
-    const match = /^(?:assignment for|learning from)\s+(\S+)/i.exec(origin);
+    const match = /^(?:assignment for|learning from(?: chat)?)\s+(\{[^}]+\}|@\S+|\S+)/i.exec(origin);
     return match?.[1];
 }
 
@@ -61,7 +61,7 @@ export function originTarget(task: Task): string | undefined {
  *
  * @private generated work
  */
-export type CreatedTask = { readonly path: string; readonly id: string };
+export type CreatedTask = { readonly path: string; readonly name: string };
 
 /**
  * Creates the Manager prerequisite for a task with missing routing (the target already has its stable ID).
@@ -73,23 +73,24 @@ export async function createAssignmentTask(options: {
     tasksDirectory: string;
     bootstrap: { harness: string; model?: string; thinkingLevel?: ThinkingLevel };
     timeZone: string;
+    /** Normalized names already used by Books (the new task gets a distinct readable name). */
+    taken: ReadonlySet<string>;
 }): Promise<CreatedTask & { targetRef: string }> {
-    if (!options.target.id) throw new PtbkError('The task needs its stable ID before Manager assignment.', { kind: 'internal' });
-    const ref = `#${options.target.id}`;
-    const id = generateTaskId(`assign ${options.target.title}`);
+    if (!options.target.key) throw new PtbkError('The task needs a usable name before Manager assignment.', { kind: 'internal' });
+    const ref = options.target.ref;
+    const name = distinctName(`Assign routing: ${options.target.title}`, options.taken);
     const path = await newTaskPath(options.tasksDirectory, `assign ${options.target.title}`, Date.now(), options.timeZone);
     const commitments = [`TASK AGENT @Manager`, `TASK HARNESS ${options.bootstrap.harness}`];
     if (options.bootstrap.model) commitments.push(`TASK MODEL ${options.bootstrap.model}`);
     if (options.bootstrap.thinkingLevel) commitments.push(`TASK THINKING LEVEL ${options.bootstrap.thinkingLevel}`);
     commitments.push(`TASK PRIORITY ${options.target.priority.value}`, `TASK PARENT ${ref}`, `TASK ORIGIN ${ASSIGNMENT_ORIGIN} ${ref}`);
     const content = renderTaskBook({
-        title: `Assign routing: ${options.target.title}`,
-        description: `Choose the responsible agent and execution configuration for ${ref} ("${options.target.title}"). Promptbook writes the decision into that task.`,
-        id,
+        title: name,
+        description: `Choose the responsible agent and execution configuration for ${ref}. Promptbook writes the decision into that task.`,
         commitments,
     });
     await writeFile(path, content, { flag: 'wx' });
-    return { path, id, targetRef: ref };
+    return { path, name, targetRef: ref };
 }
 
 /**
@@ -227,23 +228,43 @@ export async function createLearningTask(options: {
     trace?: string;
     occurrence?: string;
     timeZone: string;
+    taken: ReadonlySet<string>;
 }): Promise<CreatedTask> {
     const path = await newTaskPath(options.tasksDirectory, `learn ${options.task.title}`, Date.now(), options.timeZone);
-    const id = generateTaskId(`learn ${options.task.title}`);
+    const name = distinctName(`Learn from: ${options.task.title}`, options.taken);
     const agentPath = options.agent.definition ? toProjectRelative(options.projectRoot, options.agent.definition.path) : '(engine)';
     const commitments = ['TASK AGENT @Teacher', `TASK PARENT ${options.taskRef}`, `TASK ORIGIN ${LEARNING_ORIGIN} ${options.taskRef} by ${formatAgentReference(options.agent.name)}`];
     if (options.trace) commitments.push(`TASK NOTE Evidence: ${options.trace}${options.occurrence ? ` (occurrence ${options.occurrence})` : ''}`);
     await writeFile(
         path,
         renderTaskBook({
-            title: `Learn from: ${options.task.title}`,
+            title: name,
             description: `Review how ${options.agent.name} performed ${options.taskRef} and improve \`${agentPath}\` where the available evidence justifies it and its learning permission allows. Making no change is a valid result.`,
-            id,
             commitments,
         }),
         { flag: 'wx' },
     );
-    return { path, id };
+    return { path, name };
+}
+
+/**
+ * Creates the Teacher task for a correction or lasting preference stated in a committed human↔agent chat.
+ *
+ * @private generated work
+ */
+export async function createChatLearningTask(options: { tasksDirectory: string; chat: string; agent: string; agentPath: string; note: string; timeZone: string; taken: ReadonlySet<string> }): Promise<CreatedTask> {
+    const path = await newTaskPath(options.tasksDirectory, `learn chat ${options.chat}`, Date.now(), options.timeZone);
+    const name = distinctName(`Learn from chat: ${options.chat}`, options.taken);
+    await writeFile(
+        path,
+        renderTaskBook({
+            title: name,
+            description: `In the chat {${options.chat}}, the user corrected ${options.agent} or stated a lasting project-specific preference: "${options.note.replace(/\s+/g, ' ').slice(0, 500)}". Review the chat and improve \`${options.agentPath}\` where the conversation justifies it and its learning permission allows. Making no change is a valid result.`,
+            commitments: ['TASK AGENT @Teacher', `TASK ORIGIN ${LEARNING_ORIGIN} chat {${options.chat}} by ${formatAgentReference(options.agent)}`, `LINK {${options.chat}}`],
+        }),
+        { flag: 'wx' },
+    );
+    return { path, name };
 }
 
 /**
@@ -269,20 +290,20 @@ export function learningPrompt(options: { learner: EffectiveAgent; agentPath: st
  *
  * @private generated work
  */
-export async function createDiscoveryTask(options: { tasksDirectory: string; agentName: string; timeZone: string }): Promise<CreatedTask> {
-    const path = await newTaskPath(options.tasksDirectory, `goals ${options.agentName}`, Date.now(), options.timeZone);
-    const id = generateTaskId(`goals ${options.agentName}`);
+export async function createDiscoveryTask(options: { tasksDirectory: string; agentName: string; timeZone: string; taken: ReadonlySet<string>; now?: number }): Promise<CreatedTask> {
+    const at = options.now ?? Date.now();
+    const path = await newTaskPath(options.tasksDirectory, `goals ${options.agentName}`, at, options.timeZone);
+    const name = distinctName(`Goal enquiry: ${options.agentName} (${new Date(at).toISOString().slice(0, 10)})`, options.taken);
     await writeFile(
         path,
         renderTaskBook({
-            title: `Goal enquiry: ${options.agentName}`,
+            title: name,
             description: `Decide whether ${options.agentName}'s goals justify new work now, and record any useful tasks.`,
-            id,
             commitments: [`TASK AGENT ${formatAgentReference(options.agentName)}`, `TASK ORIGIN ${DISCOVERY_ORIGIN}`],
         }),
         { flag: 'wx' },
     );
-    return { path, id };
+    return { path, name };
 }
 
 /**

@@ -9,27 +9,24 @@ import { fileTimestamp } from '../common/time.js';
  * @private task authoring
  */
 export type NewTaskBook = {
-    /** Human title (first line `TASK <title>`). */
+    /** Task name: the first line and the task's identity (choose a distinct one with `distinctName`). */
     readonly title: string;
     /** Natural-language description. */
     readonly description?: string;
-    /** Stable task ID (every new task gets one; see `generateTaskId`). */
-    readonly id: string;
     /** Additional commitment lines, e.g. `['TASK AGENT @Developer', 'TASK PRIORITY 2']`. */
     readonly commitments?: readonly string[];
 };
 
 /**
- * Renders a task Book source.
+ * Renders a task Book in the canonical form: the name line, `ENTITY TASK`, the description, then commitments.
  *
  * @private task authoring
  */
 export function renderTaskBook(task: NewTaskBook): string {
     const title = task.title.replace(/\s+/g, ' ').trim();
-    const lines = [`TASK ${title}`];
+    const lines = [title, 'ENTITY TASK'];
     if (task.description?.trim()) lines.push('', task.description.trim());
-    const commitments = [`TASK ID ${task.id}`, ...(task.commitments ?? [])];
-    if (commitments.length) lines.push('', ...commitments);
+    if (task.commitments?.length) lines.push('', ...task.commitments);
     return `${lines.join('\n')}\n`;
 }
 

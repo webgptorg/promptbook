@@ -1,8 +1,8 @@
 import { errorMessage } from '../common/errors.js';
 import { clockTime, formatShortTime } from '../common/time.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
-import { fit } from './ansi.js';
-import { TextEditor } from './composer.js';
+import type { ChatAgentChoice } from '../chats/service.js';
+import { runChatClient, type ChatSource } from './chat-client.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { FullScreen } from './screen.js';
 import { renderQr, renderStatusPretty, type PreparedQr } from './status-view.js';
@@ -20,8 +20,8 @@ export type DashboardSource = {
     readonly watch: (since: number) => Promise<ServiceSnapshot>;
     /** Runtime control. */
     readonly action: (name: 'pause' | 'resume' | 'skip-wait' | 'stop' | 'stop-now' | 'cancel-stop') => Promise<{ outcome: string }>;
-    /** Answers a request. */
-    readonly answer: (id: string, answer: string, status?: string) => Promise<void>;
+    /** Chats (the same committed operations as `ptbk chat`). */
+    readonly chats: ChatSource;
     /** Existing (or explicitly renewed) pairing link. */
     readonly pairing: (renew: boolean) => Promise<{ available: boolean; url?: string; remote?: boolean }>;
     /** The invocation owns the service lifetime (foreground start / run). */
@@ -52,9 +52,11 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
     }
     const seen = new Set(previous?.activity.map((line) => `${line.at}${line.text}`) ?? []);
     for (const line of next.activity) if (!seen.has(`${line.at}${line.text}`) && previous) lines.push(`${line.level === 'info' ? '' : `${line.level.toUpperCase()}: `}${line.text}`);
-    const previousRequests = new Set(previous?.requests.map((request) => request.id) ?? []);
-    for (const request of next.requests) {
-        if (!previousRequests.has(request.id)) lines.push(`ATTENTION ${request.id}: ${request.reason} — ${request.question.split('\n')[0]} (answer with: ptbk answer ${request.id} "<answer>")`);
+    const previousWaiting = new Set(previous?.chats.waiting.map((chat) => `${chat.name}\u0000${chat.messages}`) ?? []);
+    for (const chat of next.chats.waiting) {
+        if (!previousWaiting.has(`${chat.name}\u0000${chat.messages}`)) {
+            lines.push(`ATTENTION ${chat.awaiting?.sender ?? chat.agent ?? 'An agent'} waits for you in {${chat.name}}: ${(chat.awaiting?.text ?? '').split('\n')[0]} (answer with: ptbk answer "${chat.name}" "<answer>")`);
+        }
     }
     return lines;
 }
@@ -76,7 +78,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     let activityOffset = 0;
     let feedback = '';
     let feedbackTimer: NodeJS.Timeout | undefined;
-    let input: { kind: 'choice'; requestId: string; choices: readonly string[]; focus: number } | { kind: 'text'; requestId: string; editor: TextEditor } | undefined;
+    let input: { kind: 'agents'; agents: readonly ChatAgentChoice[]; more: boolean; focus: number } | { kind: 'chats'; focus: number } | undefined;
+    let nested = false;
     let qr: PreparedQr | undefined;
     let qrKey = '';
     let pairingUrl: string | undefined;
@@ -124,11 +127,14 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     };
 
     const legend = (): string => {
-        if (input?.kind === 'text') return '  Enter send · Ctrl+J newline · Esc cancel';
-        if (input?.kind === 'choice') return '  ↑↓ choose · Enter send · 1-9 pick · Esc cancel';
+        if (input?.kind === 'agents') return '  ↑↓ choose · Enter open a new chat · Esc cancel';
+        if (input?.kind === 'chats') return '  ↑↓ choose · Enter open · Esc back';
+        const waiting = snapshot.chats.waiting.length;
         const parts = [
-            snapshot.requests.length ? 'A answer' : '',
-            snapshot.requests.length > 1 ? 'N next request' : '',
+            waiting ? 'A answer' : '',
+            waiting > 1 ? 'N next' : '',
+            'C chat',
+            `L chats${snapshot.chats.unread ? ` (${snapshot.chats.unread} unread)` : ''}`,
             snapshot.service.state === 'paused' || snapshot.service.state === 'pausing' ? 'P resume' : 'P pause',
             'S skip wait',
             stopPressed ? 'X again: stop now' : 'X stop service',
@@ -140,22 +146,31 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         return `  ${parts.join(' · ')}${feedback ? `   ${marks.arrow} ${feedback}` : ''}`;
     };
 
+    const visibleAgents = (): ChatAgentChoice[] => (input?.kind === 'agents' ? (input.more ? [...input.agents] : input.agents.filter((agent) => agent.group === 'ordinary')) : []);
+
     const inputLines = (): string[] | undefined => {
         if (!input) return undefined;
         const { style } = terminal;
-        const request = snapshot.requests.find((item) => item.id === input!.requestId);
-        if (!request) return [style.muted('This request was resolved elsewhere.')];
-        if (input.kind === 'choice') {
-            const focus = input.focus;
-            return [style.bold(`Answer ${request.id}:`), ...input.choices.map((choice, index) => `${index === focus ? style.accent(marks.pointer) : ' '} ${index === focus ? style.accent(marks.radioOn) : style.muted(marks.radioOff)} ${style.accent(`${index + 1}.`)} ${choice}`)];
+        const pointer = (focused: boolean): string => (focused ? style.accent(marks.pointer) : ' ');
+        if (input.kind === 'agents') {
+            const agents = visibleAgents();
+            const rows = agents.map((agent, index) => `${pointer(index === input!.focus)} ${agent.name}${agent.group === 'ordinary' ? '' : style.muted(agent.group === 'expert' ? ' (engine-provided)' : ' (hidden/core)')}${agent.description ? style.muted(` · ${agent.description}`) : ''}`);
+            if (!input.more) rows.push(`${pointer(input.focus === agents.length)} ${style.muted('More… (hidden/core agents, Expert)')}`);
+            return [style.bold('New chat — who do you want to talk to?'), ...rows];
         }
-        const width = Math.min(terminal.columns(), 140) - 8;
-        const layout = input.editor.layout(width, 6);
-        return [style.bold(`Answer ${request.id} (Enter sends, Ctrl+J newline):`), ...(input.editor.value ? layout.lines : [style.muted('Type your answer…')]).map((line) => `${style.accent('│')} ${fit(line, width)}`)];
+        const chats = snapshot.chats.recent;
+        if (!chats.length) return [style.muted('No chats yet; press C to start one.')];
+        return [
+            style.bold(`All chats (${snapshot.chats.total}${snapshot.chats.total > chats.length ? `, latest ${chats.length}` : ''})`),
+            ...chats.map(
+                (chat, index) =>
+                    `${pointer(index === input!.focus)} ${chat.status === 'waiting-for-user' ? style.warning(`${marks.warn} `) : ''}${chat.name}${chat.unread ? style.accent(` · ${chat.unread} unread`) : ''}${style.muted(` · ${chat.members.join(', ')}${chat.links.length ? ` · ${chat.links.join(', ')}` : ''}`)}`,
+            ),
+        ];
     };
 
     const draw = (): void => {
-        if (plain) return;
+        if (plain || nested) return;
         const lines = renderStatusPretty(snapshot, terminal, {
             qr,
             noQr: options.noQr,
@@ -174,23 +189,41 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         finished?.(reason);
     };
 
-    const startAnswer = (): void => {
-        const request = snapshot.requests[focusRequest] ?? snapshot.requests[0];
-        if (!request) {
-            notify('No pending request.');
-            return;
+    /** Opens a chat in the full-screen chat client; Esc returns to the dashboard (the chat stays). */
+    const openChat = async (target: Parameters<typeof runChatClient>[2]): Promise<void> => {
+        input = undefined;
+        nested = true;
+        keyboard.stop();
+        try {
+            await runChatClient(terminal, source.chats, target, { embedded: true, screen });
+        } catch (error) {
+            feedback = `Chat failed: ${errorMessage(error)}`;
+        } finally {
+            nested = false;
+            keyboard.start();
+            screen.invalidate();
+            draw();
         }
-        input = request.choices?.length ? { kind: 'choice', requestId: request.id, choices: request.choices, focus: 0 } : { kind: 'text', requestId: request.id, editor: new TextEditor() };
-        draw();
     };
 
-    const submitAnswer = async (requestId: string, answer: string): Promise<void> => {
-        input = undefined;
+    /** A: the conversation of the most urgent (focused) agent waiting for the user. */
+    const openWaiting = (): void => {
+        const chat = snapshot.chats.waiting[focusRequest] ?? snapshot.chats.waiting[0];
+        if (!chat) {
+            notify('No agent is waiting for you.');
+            return;
+        }
+        void openChat({ kind: 'existing', name: chat.name });
+    };
+
+    /** C: choose the agent of a new chat. */
+    const startNewChat = async (): Promise<void> => {
         try {
-            await source.answer(requestId, answer);
-            notify(`Answer to ${requestId} applied.`);
+            const agents = await source.chats.agents();
+            input = { kind: 'agents', agents, more: !agents.some((agent) => agent.group === 'ordinary'), focus: 0 };
+            draw();
         } catch (error) {
-            notify(`Not applied: ${errorMessage(error)}`);
+            notify(`Chats unavailable: ${errorMessage(error)}`);
         }
     };
 
@@ -209,19 +242,19 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 draw();
                 return;
             }
-            if (input.kind === 'choice') {
-                const current = input;
-                if (event.type === 'key' && event.name === 'up') current.focus = (current.focus - 1 + current.choices.length) % current.choices.length;
-                else if (event.type === 'key' && event.name === 'down') current.focus = (current.focus + 1) % current.choices.length;
-                else if (event.type === 'key' && event.name === 'enter') void submitAnswer(current.requestId, current.choices[current.focus]!);
-                else if (event.type === 'text' && /^[1-9]$/.test(event.text) && Number(event.text) <= current.choices.length) current.focus = Number(event.text) - 1;
-                draw();
-                return;
+            const count = input.kind === 'agents' ? visibleAgents().length + (input.more ? 0 : 1) : snapshot.chats.recent.length;
+            if (event.type === 'key' && event.name === 'up' && count) input.focus = (input.focus - 1 + count) % count;
+            else if (event.type === 'key' && event.name === 'down' && count) input.focus = (input.focus + 1) % count;
+            else if (event.type === 'key' && event.name === 'enter') {
+                if (input.kind === 'agents') {
+                    const agent = visibleAgents()[input.focus];
+                    if (agent) void openChat({ kind: 'new', agent });
+                    else input = { ...input, more: true, focus: visibleAgents().length };
+                } else {
+                    const chat = snapshot.chats.recent[input.focus];
+                    if (chat) void openChat({ kind: 'existing', name: chat.name });
+                }
             }
-            const action = input.editor.handle(event);
-            if (action === 'submit') {
-                if (input.editor.value.trim()) void submitAnswer(input.requestId, input.editor.value);
-            } else if (action === 'cancel') input = undefined;
             draw();
             return;
         }
@@ -234,7 +267,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             if (event.name === 'up') activityOffset = Math.min(activityOffset + 1, Math.max(0, snapshot.activity.length - 3));
             else if (event.name === 'down') activityOffset = Math.max(0, activityOffset - 1);
             else if (event.name === 'end') activityOffset = 0;
-            else if (event.name === 'enter' && snapshot.requests.length) startAnswer();
+            else if (event.name === 'enter' && snapshot.chats.waiting.length) openWaiting();
             draw();
             return;
         }
@@ -255,10 +288,17 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 stopPressed = true;
                 return;
             case 'a':
-                startAnswer();
+                openWaiting();
+                return;
+            case 'c':
+                void startNewChat();
+                return;
+            case 'l':
+                input = { kind: 'chats', focus: 0 };
+                draw();
                 return;
             case 'n':
-                focusRequest = snapshot.requests.length ? (focusRequest + 1) % snapshot.requests.length : 0;
+                focusRequest = snapshot.chats.waiting.length ? (focusRequest + 1) % snapshot.chats.waiting.length : 0;
                 draw();
                 return;
             case 'r':
@@ -314,7 +354,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 if (plain) process.stdout.write(plainDifference(previous, next).map(plainLine).join(''));
                 previous = next;
                 snapshot = next;
-                if (focusRequest >= snapshot.requests.length) focusRequest = 0;
+                if (focusRequest >= snapshot.chats.waiting.length) focusRequest = 0;
                 draw();
                 void refreshQr();
                 if (['stopped', 'finished'].includes(snapshot.service.state)) {
@@ -343,7 +383,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
 }
 
 /**
- * Plain continuous observation (raw/noninteractive): readable lines, conspicuous request notices, no prompts.
+ * Plain continuous observation (raw/noninteractive): readable lines, conspicuous waiting-chat notices, no prompts.
  */
 async function runPlainDashboard(terminal: TerminalProfile, source: DashboardSource): Promise<'left' | 'ended'> {
     let previous: ServiceSnapshot | undefined;

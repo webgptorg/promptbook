@@ -21,21 +21,24 @@ import { flag, type CommandContext } from '../context.js';
  * Read-only inspection of one task: identity, audit trail, recording status and commits (resolved from Git).
  */
 async function inspectTask(context: CommandContext, project: Project, task: Task, readiness: { kind: string; reason: string }): Promise<number> {
-    const trace = task.id ? traceDirectoryOf(task.id) : undefined;
-    const files = trace ? (await listDirectory(join(project.root, trace))).filter((entry) => entry.isFile).map((entry) => `${trace}/${entry.name}`) : [];
-    const video = trace && (await pathExists(join(project.root, trace, 'video.json'))) ? (JSON.parse(await readFile(join(project.root, trace, 'video.json'), 'utf8')) as RecordingStatus) : undefined;
+    const trace = traceDirectoryOf(task.title);
+    const files = (await listDirectory(join(project.root, trace))).filter((entry) => entry.isFile).map((entry) => `${trace}/${entry.name}`);
+    const video = (await pathExists(join(project.root, trace, 'video.json'))) ? (JSON.parse(await readFile(join(project.root, trace, 'video.json'), 'utf8')) as RecordingStatus) : undefined;
     const gitInfo = await inspectGit(project.root);
-    const commits = task.id && gitInfo.state === 'repository' ? await commitsOfTask(gitInfo.root, task.id) : [];
+    const commits = gitInfo.state === 'repository' ? await commitsOfTask(gitInfo.root, task.title, task.legacyId) : [];
     const details = {
         ref: task.ref,
-        id: task.id ?? null,
+        name: task.title,
+        key: task.key,
+        legacyId: task.legacyId ?? null,
+        shadowedBy: task.shadowedBy ?? null,
         title: task.title,
         source: task.source.relativePath,
         section: task.source.section,
         status: task.status,
         readiness: readiness.kind,
         reason: readiness.reason,
-        trace: trace ? `${trace}/` : null,
+        trace: `${trace}/`,
         traceFiles: files,
         video: video ?? null,
         commits,
@@ -45,11 +48,12 @@ async function inspectTask(context: CommandContext, project: Project, task: Task
         return EXIT.success;
     }
     const lines = [
-        `Task: ${task.title}`,
-        `ID: ${task.id ?? 'not assigned yet (assigned when the task is prepared for execution)'}`,
+        `Task: ${task.title} (${task.ref})`,
+        ...(task.legacyId ? [`Legacy ID: ${task.legacyId} (historical metadata only)`] : []),
+        ...(task.shadowedBy ? [`Shadowed by: ${task.shadowedBy} (same normalized name; this copy is not addressable)`] : []),
         `Source: ${task.source.relativePath}${task.source.section ? ` (section ${task.source.section})` : ''}`,
         `Readiness: ${readiness.kind} — ${readiness.reason}`,
-        `Trace: ${trace ? `${trace}/${files.length ? ` (${files.map((file) => file.slice(trace.length + 1)).join(', ')})` : ' (no evidence yet)'}` : '—'}`,
+        `Trace: ${trace}/${files.length ? ` (${files.map((file) => file.slice(trace.length + 1)).join(', ')})` : ' (no evidence yet)'}`,
         `Video: ${video ? `${video.state}${video.segments.length ? ` · ${video.segments.map((segment) => (segment.file ? `${trace}/${segment.file}` : `${segment.label}: ${segment.status}`)).join(', ')}` : ''}` : 'none recorded'}`,
         `Commits: ${commits.length ? '' : 'none yet'}`,
         ...commits.map((commit) => `  ${commit.sha.slice(0, 10)} ${commit.date.slice(0, 16)} ${commit.subject}${commit.role === 'task' ? '' : ` (${commit.role === 'created' ? 'created here' : 'related'})`}`),
@@ -70,7 +74,6 @@ export default async function list(context: CommandContext): Promise<number> {
     const [reference] = context.positionals;
     if (reference) {
         const found = findTask(preview.evaluated.map((item) => item.task), reference);
-        if (found.ambiguous) throw new PtbkError(`"${reference}" matches ${found.ambiguous.length} tasks.`, { kind: 'usage', reason: found.ambiguous.map((task) => `${task.ref} (${task.source.relativePath})`).join('\n'), next: ['Use the task ID (#id) or the source path.'] });
         if (!found.task) throw new PtbkError(`No task matches "${reference}".`, { kind: 'not-found', next: ['Run `ptbk list --all` to see task references.'] });
         const readiness = preview.evaluated.find((item) => item.task === found.task)!.readiness;
         return await inspectTask(context, project, found.task, readiness);
@@ -87,7 +90,7 @@ export default async function list(context: CommandContext): Promise<number> {
                 const route = preview.routes.get(task.ref);
                 return {
                     ref: task.ref,
-                    id: task.id,
+                    name: task.title,
                     title: task.title,
                     source: task.source.relativePath,
                     section: task.source.section,

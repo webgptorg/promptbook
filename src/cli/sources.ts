@@ -1,6 +1,7 @@
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import type { ControlClient } from '../service/control.js';
 import type { ServiceHost } from '../service/host.js';
+import { controlChatSource } from '../ui/chat-client.js';
 import type { DashboardSource } from '../ui/dashboard.js';
 
 /**
@@ -13,9 +14,7 @@ export function controlSource(client: ControlClient): DashboardSource {
         snapshot: () => client.request<ServiceSnapshot>('snapshot'),
         watch: (since) => client.request<ServiceSnapshot>('watch', { since, timeoutMs: 20_000 }, 35_000),
         action: (name) => client.request<{ outcome: string }>(name),
-        answer: async (id, answer, status) => {
-            await client.request('answer', { id, answer, status, via: 'terminal' });
-        },
+        chats: controlChatSource((method, params) => client.request(method, params ?? {}), 'terminal'),
         pairing: (renew) => client.request('pairing', { renew }),
         owning: false,
     };
@@ -31,9 +30,7 @@ export function hostSource(host: ServiceHost): DashboardSource {
         snapshot: async () => host.agenda.snapshot(),
         watch: (since) => host.control<ServiceSnapshot>('watch', { since, timeoutMs: 20_000 }),
         action: (name) => host.control<{ outcome: string }>(name),
-        answer: async (id, answer, status) => {
-            await host.control('answer', { id, answer, status, via: 'terminal' });
-        },
+        chats: controlChatSource((method, params) => host.control(method, params ?? {}), 'terminal'),
         pairing: (renew) => host.control('pairing', { renew }),
         owning: true,
     };

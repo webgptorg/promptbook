@@ -12,12 +12,10 @@ import { runHarness } from '../../harness/run.js';
 import { ToolBridge } from '../../engine/bridge.js';
 import { HarnessPool } from '../../engine/harnesses.js';
 import { renderAgentInstructions } from '../../engine/prompt.js';
-import { RequestStore } from '../../engine/requests.js';
 import { teamTools } from '../../engine/team.js';
-import { generateTaskId } from '../../tasks/identity.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
 import { CANCELLED, composeText, confirm } from '../../ui/prompts.js';
-import { selectedProject, writableTasksDirectory } from '../common.js';
+import { distinctTaskName, selectedProject, writableTasksDirectory } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -112,7 +110,6 @@ export default async function plan(context: CommandContext): Promise<number> {
                       catalog,
                       pool,
                       settings,
-                      requests: new RequestStore(project.runtime.requests),
                       task: { ref: 'planning', title: 'Planning conversation' },
                       agentName: agent.name,
                       harness: plugin.id,
@@ -120,7 +117,7 @@ export default async function plan(context: CommandContext): Promise<number> {
                       budget: { calls: 0 },
                       questionsAllowed: false,
                       signal: new AbortController().signal,
-                      onUserRequest: () => undefined,
+                      onUserChat: () => undefined,
                       onActivity: (text) => terminal.write(terminal.style.muted(`  · ${text}\n`)),
                   },
                   { includeUser: false },
@@ -159,7 +156,7 @@ export default async function plan(context: CommandContext): Promise<number> {
             return;
         }
         const fingerprint = await directoryFingerprint(tasksDirectory);
-        const files: Array<{ path: string; id: string; content: string }> = [];
+        const files: Array<{ path: string; title: string; content: string }> = [];
         for (const proposal of proposals) {
             const commitments: string[] = [];
             if (proposal.agent) commitments.push(`TASK AGENT ${proposal.agent}`);
@@ -168,8 +165,8 @@ export default async function plan(context: CommandContext): Promise<number> {
             commitments.push('TASK ORIGIN planning');
             let path = await newTaskPath(tasksDirectory, proposal.title, Date.now(), setting<string>(settings, 'timezone'));
             while (files.some((file) => file.path === path)) path = path.replace(/\.book$/, `-${shortId(3)}.book`);
-            const id = generateTaskId(proposal.title);
-            files.push({ path, id, content: renderTaskBook({ title: proposal.title, description: proposal.description, id, commitments }) });
+            const title = await distinctTaskName(project, settings, proposal.title, files.map((file) => file.title));
+            files.push({ path, title, content: renderTaskBook({ title, description: proposal.description, commitments }) });
         }
         for (const file of files) terminal.write(`\n${terminal.style.bold(toProjectRelative(project.root, file.path))}\n${file.content}`);
         const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
@@ -187,7 +184,7 @@ export default async function plan(context: CommandContext): Promise<number> {
                 repositoryRoot: gitInfo.root,
                 paths: files.map((file) => file.path),
                 subject: `Add ${files.length} planned task${files.length === 1 ? '' : 's'}`,
-                trailers: { 'Task-ID': files.map((file) => file.id) },
+                trailers: { 'Task-Name': files.map((file) => file.title) },
                 temporaryDirectory: project.runtime.temporary,
                 env: context.env,
             });

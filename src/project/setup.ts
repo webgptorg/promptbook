@@ -2,9 +2,10 @@ import { writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, listDirectory, pathExists, readTextIfExists } from '../common/fs.js';
+import { nameKey } from '../tasks/model.js';
 import { readTaskQueue } from '../tasks/sources.js';
 import { AgentCatalog } from './agents.js';
-import { CORE_AGENTS, DEFAULT_ROLES, LEGACY_STARTER_TASK_ID, RUNTIME_IGNORE_LINE, TASK_TEMPLATES, projectInstructions } from './defaults.js';
+import { CORE_AGENTS, DEFAULT_ROLES, FIRST_TASK_NAMES, LEGACY_STARTER_TASK_ID, RUNTIME_IGNORE_LINE, TASK_TEMPLATES, projectInstructions } from './defaults.js';
 import { git, gitOrThrow, inspectGit } from './git.js';
 
 /**
@@ -181,14 +182,16 @@ export async function ensureProjectInstructions(root: string, name: string, chec
  *
  * @private project setup
  */
-export async function hasFirstTask(options: { root: string; tasksDirectory: string; timeZone: string; knownIds: readonly string[] }): Promise<boolean> {
-    const ids = new Set([LEGACY_STARTER_TASK_ID, ...options.knownIds]);
+export async function hasFirstTask(options: { root: string; tasksDirectory: string; timeZone: string; knownNames?: readonly string[] }): Promise<boolean> {
+    const keys = new Set([...FIRST_TASK_NAMES, ...(options.knownNames ?? [])].map((name) => nameKey(name)));
     const queue = await readTaskQueue({ root: options.root, tasksDirectory: options.tasksDirectory, timeZone: options.timeZone });
-    if (queue.tasks.some((task) => task.id && ids.has(task.id))) return true;
+    if (queue.tasks.some((task) => keys.has(task.key) || task.legacyId === LEGACY_STARTER_TASK_ID)) return true;
     const archive = join(options.root, options.tasksDirectory, 'archive');
     for (const archived of await listDirectory(archive)) {
         const text = archived.isFile ? await readTextIfExists(join(archive, archived.name)) : undefined;
-        if (text && [...ids].some((id) => text.includes(`TASK ID ${id}`) || text.includes(`ptbk-task-id: ${id}`))) return true;
+        if (!text) continue;
+        const firstLine = text.split(/\r?\n/).find((line) => line.trim()) ?? '';
+        if (keys.has(nameKey(firstLine.replace(/^#+\s*/, ''))) || text.includes(`TASK ID ${LEGACY_STARTER_TASK_ID}`) || text.includes(`ptbk-task-id: ${LEGACY_STARTER_TASK_ID}`)) return true;
     }
     return false;
 }

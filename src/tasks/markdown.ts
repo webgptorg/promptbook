@@ -1,8 +1,8 @@
 import { sha256 } from '../common/fs.js';
 import { parseDateTime } from '../common/time.js';
 import { PtbkError } from '../common/errors.js';
-import { MARKDOWN_TASK_ID_LINE, markdownTaskIdLine, taskIdProblem } from './identity.js';
-import type { DeclaredStatus, Task, TaskDiagnostic } from './model.js';
+import { MARKDOWN_LEGACY_ID_LINE } from './identity.js';
+import { nameKey, nameReference, type DeclaredStatus, type Task, type TaskDiagnostic } from './model.js';
 
 /**
  * Marker comment excluding a Markdown file from the queue.
@@ -53,11 +53,11 @@ export type MarkdownSection = {
     readonly title?: string;
     /** Description after the title. */
     readonly description: string;
-    /** Task ID from the `<!-- ptbk-task-id: … -->` metadata line. */
-    readonly id?: string;
-    /** Index (within `lines`) of the task ID metadata line. */
+    /** Legacy `<!-- ptbk-task-id: … -->` value (historical metadata only, never identity). */
+    readonly legacyId?: string;
+    /** Index (within `lines`) of that legacy metadata line. */
     readonly idLine?: number;
-    /** Identity hash: section content without its control and task ID lines. */
+    /** Revision hash: section content without its control and legacy metadata lines (locates the section for writes). */
     readonly hash: string;
 };
 
@@ -93,13 +93,13 @@ export function splitMarkdownSections(source: string): MarkdownSection[] {
 }
 
 /**
- * Interprets one section's control line, task ID metadata, title and description.
+ * Interprets one section's control line, title and description.
  *
- * The task ID line is metadata: it is neither the control line, the title nor part of the description.
+ * A legacy task ID comment is historical metadata: it is neither the control line, the title nor the description.
  */
 function analyzeSection(lines: string[], index: number, startLine: number, endLine: number): MarkdownSection {
-    const idLine = lines.findIndex((line) => MARKDOWN_TASK_ID_LINE.test(line));
-    const id = idLine >= 0 ? MARKDOWN_TASK_ID_LINE.exec(lines[idLine]!)![1] : undefined;
+    const idLine = lines.findIndex((line) => MARKDOWN_LEGACY_ID_LINE.test(line));
+    const legacyId = idLine >= 0 ? MARKDOWN_LEGACY_ID_LINE.exec(lines[idLine]!)![1] : undefined;
     const content = (line: string, lineIndex: number): boolean => lineIndex !== idLine && line.trim() !== '';
     let cursor = lines.findIndex(content);
     let controlLine: number | undefined;
@@ -129,7 +129,7 @@ function analyzeSection(lines: string[], index: number, startLine: number, endLi
         titleLine,
         title,
         description,
-        id,
+        legacyId,
         idLine: idLine >= 0 ? idLine : undefined,
         hash: sha256(identity).slice(0, 16),
     };
@@ -191,12 +191,12 @@ export function readMarkdownTasks(options: { source: string; path: string; relat
         }
         const metadata = status === 'done' ? { priority: 0, selectors: [] as string[] } : parseControlMetadata(section.controlRest, options.timeZone, diagnostics, line);
         const placeholder = /@@@/.test(section.title) || /@@@/.test(section.description);
-        const idProblem = section.id === undefined ? undefined : taskIdProblem(section.id);
-        if (idProblem) diagnostics.push({ line: section.startLine + (section.idLine ?? 0) + 1, message: idProblem, severity: 'error' });
-        const id = idProblem ? undefined : section.id;
+        const key = nameKey(section.title);
+        if (!key) diagnostics.push({ line, message: 'The task title is empty after normalization.', severity: 'error' });
         tasks.push({
-            ref: id ? `#${id}` : `${options.relativePath}#${section.index}`,
-            id,
+            ref: nameReference(section.title),
+            key,
+            legacyId: section.legacyId,
             title: section.title,
             description: section.description,
             rules: [],
@@ -226,18 +226,18 @@ export function readMarkdownTasks(options: { source: string; path: string; relat
 }
 
 /**
- * Locator of a Markdown task section: its task ID when it has one, otherwise its identity hash.
+ * Locator of a Markdown task section: its revision hash (the section number alone is never identity).
  *
  * @private Markdown tasks
  */
-export type SectionLocator = { readonly id?: string; readonly hash?: string };
+export type SectionLocator = { readonly hash?: string };
 
 /**
  * Finds the one section matching a locator, refusing moved, disappeared or duplicated sections.
  */
 function locateSection(source: string, locator: SectionLocator): MarkdownSection {
     const sections = splitMarkdownSections(source);
-    const matches = sections.filter((section) => (locator.id ? section.id === locator.id : section.hash === locator.hash));
+    const matches = sections.filter((section) => section.hash === locator.hash);
     if (matches.length !== 1) {
         throw new PtbkError(matches.length ? 'The Markdown task section is duplicated.' : 'The Markdown task section moved or disappeared.', {
             kind: 'conflict',
@@ -249,22 +249,7 @@ function locateSection(source: string, locator: SectionLocator): MarkdownSection
 }
 
 /**
- * Adds a task ID metadata line to the section with the given identity hash (directly before its first content line).
- *
- * @private Markdown tasks
- */
-export function setMarkdownTaskId(source: string, sectionHash: string, id: string): string {
-    const newline = source.includes('\r\n') ? '\r\n' : '\n';
-    const section = locateSection(source, { hash: sectionHash });
-    if (section.id !== undefined) return source;
-    const lines = source.split(/\r?\n/);
-    const first = section.lines.findIndex((line) => line.trim() !== '');
-    lines.splice(section.startLine + Math.max(0, first), 0, markdownTaskIdLine(id));
-    return lines.join(newline);
-}
-
-/**
- * Rewrites the control line of the section identified by its task ID (or, without an ID, its identity hash).
+ * Rewrites the control line of the section identified by its revision hash.
  *
  * The section is located by identity (not by its number) so that a result is never attached to the wrong task.
  *

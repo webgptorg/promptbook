@@ -221,7 +221,7 @@ export const BROWSER_OPTIONS: OptionGroup = {
     title: 'Project browser',
     options: [
         { name: 'browser-mode', type: 'enum', values: ['headless', 'headful'], valueName: '<mode>', description: 'Browser visibility for this invocation.', defaultText: 'browser.mode' },
-        { name: 'browser-profile', type: 'string', valueName: '<path>', description: 'Browser profile for this invocation (`isolated` for the project profile).', defaultText: 'browser.profile' },
+        { name: 'browser-profile', type: 'string', valueName: '<source>', description: 'Browser profile: `global` (dedicated Promptbook profile shared by your projects, default), `isolated` (this project only), `user` (your Chrome profile) or a profile path. Temporary unless saved by init.', defaultText: 'browser.profile' },
     ],
 };
 

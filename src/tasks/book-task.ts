@@ -4,8 +4,8 @@ import { formatIsoWithOffset, parseDateTime } from '../common/time.js';
 import { appendCommitment, setControlCommitment } from '../book/edit.js';
 import { commitmentsOf, parseBook, singleValue, type BookDocument } from '../book/parse.js';
 import { THINKING_LEVELS, type ThinkingLevel } from '../project/config.js';
-import { taskIdProblem } from './identity.js';
-import type { DeclaredStatus, Task, TaskDiagnostic } from './model.js';
+import type { EntityKind } from '../book/parse.js';
+import { nameKey, nameReference, type DeclaredStatus, type Task, type TaskDiagnostic } from './model.js';
 import { parsePriority } from './priority.js';
 
 /**
@@ -14,6 +14,8 @@ import { parsePriority } from './priority.js';
 const TASK_CONTROLS = new Set([
     'TASK',
     'TASK ID',
+    'ENTITY',
+    'LINK',
     'TASK AGENT',
     'TASK HARNESS',
     'TASK MODEL',
@@ -57,14 +59,29 @@ function runnerSelectors(value: string): string[] {
 }
 
 /**
- * Reads a task Book file into a task.
+ * Options of reading one task Book.
+ *
+ * @private task Books
+ */
+export type TaskBookOptions = {
+    readonly source: string;
+    readonly path: string;
+    readonly relativePath: string;
+    readonly order: number;
+    readonly timeZone: string;
+    /** Kind implied by the location (`task` inside the task source directory). */
+    readonly defaultKind?: EntityKind;
+};
+
+/**
+ * Reads a task Book file into a task (its first nonempty line is the task's name).
  *
  * Malformed control commitments are errors that keep the task from running.
  *
  * @private task Books
  */
-export function readTaskBook(options: { source: string; path: string; relativePath: string; order: number; timeZone: string }): Task | undefined {
-    const document = parseBook(options.source);
+export function readTaskBook(options: TaskBookOptions): Task | undefined {
+    const document = parseBook(options.source, { defaultKind: options.defaultKind ?? 'task' });
     if (document.kind !== 'task') return undefined;
     return taskFromDocument(document, options);
 }
@@ -72,7 +89,7 @@ export function readTaskBook(options: { source: string; path: string; relativePa
 /**
  * Builds a task from a parsed task document.
  */
-function taskFromDocument(document: BookDocument, options: { source: string; path: string; relativePath: string; order: number; timeZone: string }): Task {
+function taskFromDocument(document: BookDocument, options: TaskBookOptions): Task {
     const diagnostics: TaskDiagnostic[] = document.diagnostics
         .filter((diagnostic) => !/later `TASK` line/.test(diagnostic.message))
         .map((diagnostic) => ({ line: diagnostic.line, message: diagnostic.message, severity: diagnostic.severity }));
@@ -96,10 +113,9 @@ function taskFromDocument(document: BookDocument, options: { source: string; pat
             diagnostics.push({ line: commitment.startLine + 1, message: `Unsupported task control \`${commitment.written}\`.`, severity: 'error' });
         }
     }
-    const declaredId = single('TASK ID');
-    const idProblem = declaredId === undefined ? undefined : taskIdProblem(declaredId);
-    if (idProblem) diagnostics.push({ line: 0, message: idProblem, severity: 'error' });
-    const id = idProblem ? undefined : declaredId;
+    const legacyId = commitmentsOf(document, 'TASK ID')[0]?.value || undefined;
+    const key = nameKey(document.name);
+    if (!key) diagnostics.push({ line: document.headerLine + 1, message: 'The task name is empty after normalization.', severity: 'error' });
     const thinking = single('TASK THINKING LEVEL');
     if (thinking !== undefined && !THINKING_LEVELS.includes(thinking as ThinkingLevel)) {
         diagnostics.push({ line: 0, message: `TASK THINKING LEVEL "${thinking}" is not one of ${THINKING_LEVELS.join(', ')}.`, severity: 'error' });
@@ -140,12 +156,13 @@ function taskFromDocument(document: BookDocument, options: { source: string; pat
     }
     if (status === 'todo' && doneStamps.length && repeatMs === undefined) status = 'done';
     const text = options.source;
-    const placeholder = /@@@/.test(document.name) || /@@@/.test(document.intro);
+    const placeholder = /@@@/.test(document.name) || /@@@/.test(document.prose);
     return {
-        ref: id ? `#${id}` : options.relativePath,
-        id,
+        ref: nameReference(document.name),
+        key,
+        legacyId,
         title: document.name,
-        description: document.intro,
+        description: document.prose,
         rules: commitmentsOf(document, 'RULE').map((rule) => rule.body),
         source: { kind: 'book', path: options.path, relativePath: options.relativePath, fileHash: sha256(options.source), order: options.order },
         status,

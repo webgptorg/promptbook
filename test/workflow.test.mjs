@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { traceDirectoryOf } from '../dist/tasks/identity.js';
 import { git, initializedProject, messages, ptbk, subjects } from './helpers.mjs';
 
 /**
@@ -19,23 +20,27 @@ async function changedFiles(project, revision = 'HEAD') {
 }
 
 /**
- * Pending requests as JSON.
+ * Chats whose agent waits for the user, as JSON.
  */
-async function pendingRequests(project, env) {
+async function waitingChats(project, env) {
     return JSON.parse((await ptbk(['answer', '--json'], { cwd: project, env })).stdout);
 }
 
-test('unattended init saves setup, a blank initial specification and one Expert task with its ID; repeating it is a no-op', async (t) => {
+test('unattended init saves setup, a blank initial specification and one named Expert task; repeating it is a no-op', async (t) => {
     const { project, env, init } = await initializedProject(t);
     assert.equal(init.code, 0, init.output);
     assert.match(init.stdout, /Setup complete · service not running/);
     assert.match(init.stdout, /Service: not started \(--no-start\)/);
     assert.deepEqual(await subjects(project), ['PTBK: Initialize project']);
-    for (const path of ['ptbk.json', 'AGENTS.md', 'agents/.core/adam.book', 'agents/.core/manager.book', 'agents/.core/teacher.book', 'agents/developer.book', 'tasks/templates/feature.book']) {
+    for (const path of ['ptbk.json', 'AGENTS.md', 'agents/.core/adam.book', 'agents/.core/manager.book', 'agents/.core/teacher.book', 'agents/.core/fixer.book', 'agents/developer.book', 'tasks/templates/feature.book']) {
         await readFile(join(project, path), 'utf8');
     }
     assert.equal(await readFile(join(project, 'specs', '_initial.md'), 'utf8'), '', 'blank intent is preserved as blank');
     assert.match(await readFile(join(project, 'agents', '.core', 'teacher.book'), 'utf8'), /CLOSED\s*$/);
+    const fixer = await readFile(join(project, 'agents', '.core', 'fixer.book'), 'utf8');
+    assert.match(fixer, /^Fixer\nENTITY AGENT\nFROM @Adam\n/);
+    assert.match(fixer, /^TEAM Consult @Expert/m);
+    assert.match(fixer, /^OPEN /m, 'Fixer is open to project-specific learning');
     const ignore = await readFile(join(project, '.gitignore'), 'utf8');
     assert.match(ignore, /\.ptbk\//);
     assert.match(ignore, /^\/traces\/$/m, 'traces stay local by default');
@@ -43,20 +48,22 @@ test('unattended init saves setup, a blank initial specification and one Expert 
     assert.equal(config.harnesses['openai-codex'].enabled, true);
     assert.equal(config.execution.check, 'ptbk lint');
     assert.deepEqual(config.traces, { commit: false, ignoreVideos: true, recordVideo: true });
+    assert.equal(config.browser.profile, 'global', 'the dedicated Promptbook profile is the new default (a portable kind, no machine path)');
     const tasks = (await readdir(join(project, 'tasks'))).filter((name) => name.endsWith('.book'));
     assert.equal(tasks.length, 1);
     const bootstrap = await readFile(join(project, 'tasks', tasks[0]), 'utf8');
     assert.match(bootstrap, /^TASK AGENT @Expert$/m);
     assert.match(bootstrap, /\]\(\.\.\/specs\/_initial\.md\)/, 'links the initial specification from the task source');
-    const id = /^TASK ID (\S+)$/m.exec(bootstrap)[1];
-    assert.match((await messages(project))[0], new RegExp(`^Task-ID: ${id}$`, 'm'), 'the setup commit references the first task');
+    assert.match(bootstrap, /^Review the initialized project\nENTITY TASK$/m, 'the first line is the task name; no ID is generated');
+    assert.doesNotMatch(bootstrap, /TASK ID/);
+    assert.match((await messages(project))[0], /^Task-Name: Review the initialized project$/m, 'the setup commit references the first task by name');
     const again = await ptbk(['init', '--non-interactive', '--no-start', '--raw'], { cwd: project, env });
     assert.equal(again.code, 0, again.output);
     assert.deepEqual(await subjects(project), ['PTBK: Initialize project'], 'no empty or duplicate setup commit');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
     assert.equal((await readdir(join(project, 'tasks'))).filter((name) => name.endsWith('.book')).length, 1, 'the first task is never duplicated');
     const list = JSON.parse((await ptbk(['list', '--json'], { cwd: project, env })).stdout);
-    assert.equal(list.tasks[0].id, id);
+    assert.equal(list.tasks[0].name, 'Review the initialized project');
     assert.equal(list.tasks[0].readiness, 'ready');
     const refused = await ptbk(['init', '--non-interactive', '--no-start', '--intent', 'Something else', '--raw'], { cwd: project, env });
     assert.notEqual(refused.code, 0, 'a recorded purpose is not reauthored');
@@ -72,22 +79,23 @@ test('unattended init without required decisions fails before any change', async
     await assert.rejects(readdir(empty));
 });
 
-test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-ID trailers, local traces and the learning follow-up', async (t) => {
+test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-Name trailers, local traces and the learning follow-up', async (t) => {
     const { project, env } = await initializedProject(t);
     const bootstrap = await ptbk(['run', '--agent', 'Expert', '--raw'], { cwd: project, env });
     assert.equal(bootstrap.code, 0, bootstrap.output);
     assert.match(bootstrap.stdout, /1 completed, 0 failed/);
     assert.equal((await subjects(project))[0], 'PTBK: Review the initialized project');
-    const bootstrapId = /^Task-ID: (\S+)$/m.exec((await messages(project))[0])[1];
+    assert.match((await messages(project))[0], /^Task-Name: Review the initialized project$/m);
+    const bootstrapTrace = traceDirectoryOf('Review the initialized project');
     assert.ok((await changedFiles(project)).includes('docs/promptbook-readiness.md'));
     assert.ok(!(await changedFiles(project)).some((file) => file.startsWith('traces/')), 'traces are not committed by default');
-    const harnessLog = await readFile(join(project, 'traces', bootstrapId, 'harness.log'), 'utf8');
+    const harnessLog = await readFile(join(project, bootstrapTrace, 'harness.log'), 'utf8');
     assert.match(harnessLog, /Attempt 1\/3/);
     assert.match(harnessLog, /agent_message/, 'the exposed harness stream is kept, not only a summary');
-    const events = (await readFile(join(project, 'traces', bootstrapId, 'events.jsonl'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
+    const events = (await readFile(join(project, bootstrapTrace, 'events.jsonl'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
     assert.deepEqual(events.map((event) => event.event).slice(0, 2), ['started', 'attempt-started']);
     assert.ok(events.some((event) => event.event === 'check' && event.passed));
-    const local = await readFile(join(project, 'traces', bootstrapId, 'local', 'events.jsonl'), 'utf8');
+    const local = await readFile(join(project, bootstrapTrace, 'local', 'events.jsonl'), 'utf8');
     assert.match(local, /"event":"committed"/, 'the commit SHA is recorded after the snapshot, outside it');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
 
@@ -100,12 +108,13 @@ test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-ID trai
     const files = await changedFiles(project);
     assert.ok(files.some((file) => /learn-/.test(file)), 'Teacher follow-up is part of the result commit');
     const [message] = await messages(project);
-    const taskId = /^Task-ID: (\S+)$/m.exec(message)[1];
-    const followUpId = /^Created-Task-ID: (\S+)$/m.exec(message)[1];
-    assert.notEqual(taskId, followUpId);
+    assert.match(message, /^Task-Name: Write the welcome page$/m);
+    const followUp = /^Created-Task-Name: (.+)$/m.exec(message)[1];
+    assert.equal(followUp, 'Learn from: Write the welcome page');
     const learning = await readFile(join(project, files.find((file) => /learn-/.test(file))), 'utf8');
-    assert.match(learning, new RegExp(`^TASK ID ${followUpId}$`, 'm'));
-    assert.match(learning, new RegExp(`Evidence: traces/${taskId}/harness\\.log`));
+    assert.match(learning, /^Learn from: Write the welcome page\nENTITY TASK$/m);
+    assert.doesNotMatch(learning, /TASK ID/);
+    assert.ok(learning.includes(`Evidence: ${traceDirectoryOf('Write the welcome page')}/harness.log`), learning);
     const task = (await readdir(join(project, 'tasks'))).find((name) => name.includes('welcome-page') && !name.includes('learn-'));
     assert.match(await readFile(join(project, 'tasks', task), 'utf8'), /TASK DONE \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}/);
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
@@ -113,7 +122,7 @@ test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-ID trai
     assert.match(developerRun.stdout, /0 completed/, "Teacher's learning task is incompatible with a Developer run");
     const teacherRun = await ptbk(['run', '--agent', 'Teacher', '--raw'], { cwd: project, env });
     assert.match(teacherRun.stdout, /1 completed/, teacherRun.output);
-    assert.match((await messages(project))[0], new RegExp(`^Task-ID: ${followUpId}$`, 'm'));
+    assert.match((await messages(project))[0], /^Task-Name: Learn from: Write the welcome page$/m);
 });
 
 test('a failing check feeds a repair attempt; completion is only stamped after the check passes', async (t) => {
@@ -133,9 +142,11 @@ test('a blocked agent leaves a recovery decision; acknowledging records the fail
     const run = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(run.code, 1, run.output);
     assert.match(run.stdout, /reported the task as blocked/);
-    const requests = await pendingRequests(project, env);
-    assert.equal(requests.length, 1);
-    assert.deepEqual(requests[0].choices, ['Retry the task', 'Acknowledge the failure']);
+    const chats = await waitingChats(project, env);
+    assert.equal(chats.length, 1);
+    assert.equal(chats[0].agent, '@Developer', 'the task agent asks, not the environment');
+    assert.deepEqual(chats[0].awaiting.choices, ['Retry the task', 'Acknowledge the failure']);
+    assert.deepEqual(chats[0].links, ['{Impossible BLOCKED work}']);
     const inspect = await ptbk(['recover', '--raw'], { cwd: project, env });
     assert.match(inspect.stdout, /Phase: failed/);
     const reference = /Task: .* \(([^)]+)\) —/.exec(inspect.stdout)[1];
@@ -144,7 +155,7 @@ test('a blocked agent leaves a recovery decision; acknowledging records the fail
     assert.equal((await subjects(project))[0], 'PTBK: Mark failed - Impossible BLOCKED work');
     const list = JSON.parse((await ptbk(['list', '--json'], { cwd: project, env })).stdout);
     assert.equal(list.tasks.find((task) => task.title === 'Impossible BLOCKED work').readiness, 'failed');
-    assert.equal((await pendingRequests(project, env)).length, 0);
+    assert.equal((await waitingChats(project, env)).length, 0);
 });
 
 test('a user question makes a finite run incomplete; the answer resumes the same task', async (t) => {
@@ -152,10 +163,10 @@ test('a user question makes a finite run incomplete; the answer resumes the same
     await ptbk(['add', 'Choose a color ASK_USER', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
     const first = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(first.code, 3, first.output);
-    assert.match(first.stdout, /request\(s\) waiting for you/);
-    const [request] = await pendingRequests(project, env);
-    assert.equal(request.question, 'Which color should the fixture use?');
-    assert.equal((await ptbk(['answer', request.id, 'blue', '--raw'], { cwd: project, env })).code, 0);
+    assert.match(first.stdout, /chat\(s\) waiting for you/);
+    const [chat] = await waitingChats(project, env);
+    assert.match(chat.awaiting.text, /Which color should the fixture use\?/);
+    assert.equal((await ptbk(['answer', chat.name, 'blue', '--raw'], { cwd: project, env })).code, 0);
     const second = await ptbk(['run', '--raw', '--limit', '1', '--git-changes', 'continue'], { cwd: project, env });
     assert.equal(second.code, 0, second.output);
     assert.equal((await subjects(project))[0], 'PTBK: Choose a color ASK_USER');

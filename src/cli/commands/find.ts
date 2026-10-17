@@ -4,9 +4,8 @@ import { toProjectRelative } from '../../common/fs.js';
 import { loadSettings, setting } from '../../project/config.js';
 import { commitPaths, inspectGit, listProjectFiles } from '../../project/git.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
-import { generateTaskId } from '../../tasks/identity.js';
 import { readTaskQueue } from '../../tasks/sources.js';
-import { printJson, selectedProject, writableTasksDirectory } from '../common.js';
+import { distinctTaskName, printJson, selectedProject, writableTasksDirectory } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -53,26 +52,25 @@ export async function findRefactorCandidates(context: CommandContext): Promise<n
     if (flag(context, 'create-tasks') && top.length) {
         const tasksDirectory = await writableTasksDirectory(context, project, settings);
         const created: string[] = [];
-        const ids: string[] = [];
+        const names: string[] = [];
         for (const candidate of top) {
             const path = await newTaskPath(tasksDirectory, `refactor ${candidate.path}`, Date.now(), setting<string>(settings, 'timezone'));
-            const id = generateTaskId(`refactor ${candidate.path}`);
+            const title = await distinctTaskName(project, settings, `Refactor ${candidate.path}`, names);
             await writeFile(
                 path,
                 renderTaskBook({
-                    title: `Refactor ${candidate.path}`,
+                    title,
                     description: `\`${candidate.path}\` has ${candidate.lines} lines. Split it into cohesive, well-named units without changing behavior; keep tests passing.`,
-                    id,
                     commitments: ['TASK PRIORITY 0', 'TASK ORIGIN refactor candidate'],
                 }),
                 { flag: 'wx' },
             );
             created.push(path);
-            ids.push(id);
+            names.push(title);
         }
         const gitInfo = await inspectGit(project.root);
         const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
-        if (commit && gitInfo.state === 'repository') await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: created, subject: `Add ${created.length} refactoring task(s)`, trailers: { 'Task-ID': ids }, temporaryDirectory: project.runtime.temporary, env: context.env });
+        if (commit && gitInfo.state === 'repository') await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: created, subject: `Add ${created.length} refactoring task(s)`, trailers: { 'Task-Name': names }, temporaryDirectory: project.runtime.temporary, env: context.env });
         context.terminal.write(`Created ${created.length} refactoring task(s).\n`);
     }
     if (flag(context, 'json')) printJson(top);

@@ -1,7 +1,8 @@
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { loadSettings } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
-import { RequestStore } from '../engine/requests.js';
+import { ChatStore } from '../chats/store.js';
+import { setting } from '../project/config.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import { StateStore } from '../engine/state.js';
 import type { ControlClient } from '../service/control.js';
@@ -12,13 +13,13 @@ import { flag, type CommandContext } from './context.js';
 import { printJson } from './common.js';
 
 /**
- * Builds the snapshot of a project whose service is not running (requests and history are still readable).
+ * Builds the snapshot of a project whose service is not running (chats and history are still readable).
  *
  * @private service views
  */
 export async function stoppedSnapshot(project: Project): Promise<ServiceSnapshot> {
     const settings = await loadSettings(project).catch(() => undefined);
-    const requests = await new RequestStore(project.runtime.requests).list({ status: 'pending' }).catch(() => []);
+    const chats = await new ChatStore(project, { timeZone: settings ? setting<string>(settings, 'timezone') : 'UTC' }).summaries().catch(() => []);
     const results = await new StateStore(project.runtime.state).recentResults(10).catch(() => []);
     const installation = detectInstallation();
     return {
@@ -39,8 +40,13 @@ export async function stoppedSnapshot(project: Project): Promise<ServiceSnapshot
         phase: 'stopped',
         queue: [],
         queueTotal: 0,
-        results: { completed: results.filter((result) => result.outcome.startsWith('completed')).length, failed: results.filter((result) => result.outcome === 'failed').length, recent: results.slice(0, 5).map((result) => ({ ref: result.taskRef, taskId: result.taskId, trace: result.trace, occurrence: result.occurrence, title: result.title, outcome: result.outcome, agent: result.agent, harness: result.harness, model: result.model, commit: result.commit, summary: result.summary, endedAt: result.endedAt, attempts: result.attempts })) },
-        requests: requests.map((request) => ({ id: request.id, kind: request.kind, reason: request.reason, question: request.question, choices: request.choices, blocking: request.blocking, createdAt: request.createdAt, taskRef: request.origin.taskRef, taskId: request.origin.taskId, taskTitle: request.origin.taskTitle, agent: request.origin.agent, origin: request.origin.kind, attempted: request.attempted })),
+        results: { completed: results.filter((result) => result.outcome.startsWith('completed')).length, failed: results.filter((result) => result.outcome === 'failed').length, recent: results.slice(0, 5).map((result) => ({ ref: result.taskRef, trace: result.trace, occurrence: result.occurrence, title: result.title, outcome: result.outcome, agent: result.agent, harness: result.harness, model: result.model, commit: result.commit, summary: result.summary, endedAt: result.endedAt, attempts: result.attempts })) },
+        chats: {
+            waiting: chats.filter((chat) => chat.status === 'waiting-for-user' && chat.humanFacing),
+            unread: chats.reduce((sum, chat) => sum + chat.unread, 0),
+            total: chats.length,
+            recent: chats.slice(0, 30),
+        },
         blockers: [],
         errors: [],
         activity: [],

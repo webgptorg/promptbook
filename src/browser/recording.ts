@@ -17,7 +17,7 @@ const MAX_FRAME_HOLD_MS = 60_000;
 const MAX_SEGMENT_BYTES = 1024 * 1024 * 1024;
 
 /**
- * Status of one recorded segment as listed in `traces/<task-id>/video.json`.
+ * Status of one recorded segment as listed in `traces/<name-key>/video.json`.
  *
  * @private browser recording
  */
@@ -204,7 +204,7 @@ export type ScreencastPort = {
 };
 
 /**
- * Records the project browser for the task that currently owns it, into `traces/<task-id>/video/`.
+ * Records the project browser for the task that currently owns it, into `traces/<name-key>/video/`.
  *
  * Only the project browser's page is captured (never the desktop or other browsers); human sign-in and secret entry
  * are excluded and listed as gaps. Failures degrade to an honest status and never stop the task.
@@ -237,15 +237,15 @@ export class BrowserRecorder {
 
     /** Associates the next browser activity with a task attempt (finishing a segment of another attempt/task). */
     public async attach(trace: TaskTrace, label: string): Promise<void> {
-        if (this.trace && this.trace.taskId !== trace.taskId) await this.detach();
+        if (this.trace && this.trace.key !== trace.key) await this.detach();
         else if (this.trace && this.label !== label) await this.finish();
         this.trace = trace;
         this.label = label;
     }
 
     /** Whether the attached task is the given one. */
-    public isAttachedTo(taskId: string): boolean {
-        return this.trace?.taskId === taskId;
+    public isAttachedTo(taskKey: string): boolean {
+        return this.trace?.key === taskKey;
     }
 
     /** Starts capturing on first browser use of the attached task (no-op when disabled or already recording). */
@@ -260,7 +260,7 @@ export class BrowserRecorder {
         }
         try {
             this.port = port;
-            this.frameDirectory = await ensureDirectory(join(this.project.runtime.temporary, 'recordings', `${this.trace.taskId}-${this.label}-${++this.segments}`));
+            this.frameDirectory = await ensureDirectory(join(this.project.runtime.temporary, 'recordings', `${this.trace.key.replace(/\//g, '-')}-${this.label}-${++this.segments}`));
             this.frames = [];
             this.bytes = 0;
             this.startedAt = Date.now();

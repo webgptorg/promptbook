@@ -19,6 +19,12 @@
         busy: new Set(),
         qrFor: null,
         frame: 0,
+        /** Open chat: its name, loaded messages and the message count they reflect. */
+        chat: null,
+        /** Agents offered for a new chat (loaded on demand). */
+        agents: null,
+        newChat: false,
+        showAllChats: false,
     };
 
     /** Creates a DOM element; text children are always inserted as text (never parsed as HTML). */
@@ -106,69 +112,205 @@
         }
     }
 
-    /** Submits an answer once. */
-    async function answer(id, value, status) {
-        if (state.busy.has(id)) return;
-        state.busy.add(id);
+    /** Loads (or reloads) the open chat; opening marks it read but never answers anything. */
+    async function loadChat(name) {
+        try {
+            const detail = await api(`/api/chats/${encodeURIComponent(name)}`);
+            const changed = !state.chat || state.chat.name !== detail.summary.name || state.chat.detail?.messages.length !== detail.messages.length || state.chat.detail?.summary.status !== detail.summary.status;
+            state.chat = { name: detail.summary.name, detail };
+            if (changed) await api(`/api/chats/${encodeURIComponent(detail.summary.name)}/read`, { method: 'POST' }).catch(() => undefined);
+        } catch (error) {
+            toast(`Chat unavailable: ${error.message}`);
+            state.chat = null;
+        }
+        render(state.snapshot);
+    }
+
+    function openChat(name) {
+        state.newChat = false;
+        state.chat = { name, detail: null };
+        render(state.snapshot);
+        loadChat(name);
+    }
+
+    /** Sends one message (an answer is an ordinary committed chat message); stale views are rejected by the service. */
+    async function sendMessage(name, text, expected) {
+        if (state.busy.has(name)) return;
+        state.busy.add(name);
         render(state.snapshot);
         try {
-            await api(`/api/requests/${encodeURIComponent(id)}/answer`, { method: 'POST', body: { answer: value, status: status || 'answered' } });
-            state.drafts.delete(id);
-            toast('Answer applied.');
+            const result = await api(`/api/chats/${encodeURIComponent(name)}/messages`, { method: 'POST', body: { text, expected } });
+            state.drafts.delete(`chat:${name}`);
+            toast(result.commit ? `Saved (${result.commit.slice(0, 8)}).` : 'Saved.');
         } catch (error) {
-            toast(`Not applied: ${error.message}`);
+            toast(`Not sent: ${error.message}`);
         } finally {
-            state.busy.delete(id);
+            state.busy.delete(name);
+        }
+        if (state.chat && state.chat.name === name) await loadChat(name);
+        else render(state.snapshot);
+    }
+
+    async function startChat(agent, text) {
+        if (state.busy.has('new-chat')) return;
+        state.busy.add('new-chat');
+        render(state.snapshot);
+        try {
+            const result = await api('/api/chats', { method: 'POST', body: { agent, text } });
+            state.drafts.delete('chat:new');
+            toast(`Started {${result.name}}.`);
+            openChat(result.name);
+        } catch (error) {
+            toast(`Not started: ${error.message}`);
+        } finally {
+            state.busy.delete('new-chat');
             render(state.snapshot);
         }
     }
 
+    async function showNewChat() {
+        state.newChat = true;
+        state.chat = null;
+        render(state.snapshot);
+        if (!state.agents) {
+            try {
+                state.agents = (await api('/api/chat-agents')).agents;
+            } catch (error) {
+                toast(`Agents unavailable: ${error.message}`);
+            }
+            render(state.snapshot);
+        }
+    }
+
+    /** Text area with a persistent draft (survives re-renders and reconnects). */
+    function composer(key, label, onSend, disabled) {
+        const field = h('textarea', { 'data-draft': key, 'aria-label': label, placeholder: 'Type a message…', disabled });
+        field.value = state.drafts.get(key) || '';
+        field.addEventListener('input', () => state.drafts.set(key, field.value));
+        field.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault();
+                if (field.value.trim()) onSend(field.value);
+            }
+        });
+        return h('div', {}, field, h('div', { className: 'row', style: 'margin-top:8px' }, h('button', { className: 'primary', disabled, onclick: () => (field.value.trim() ? onSend(field.value) : field.focus()) }, 'Send'), h('span', { className: 'muted' }, 'Ctrl+Enter sends')));
+    }
+
     function renderAttention(snapshot) {
-        const requests = snapshot.requests;
-        const card = h('section', { className: `card attention ${requests.length ? '' : 'empty'}`, 'aria-label': 'Needs your attention' });
-        card.append(h('h2', {}, h('span', {}, requests.length ? `Needs your attention (${requests.length})` : 'Needs your attention'), requests.length ? pill('action required', 'warn') : null));
-        if (!requests.length) {
-            card.append(h('p', { className: 'muted' }, 'Nothing needs you right now.'));
+        const waiting = snapshot.chats.waiting;
+        const card = h('section', { className: `card attention ${waiting.length ? '' : 'empty'}`, 'aria-label': 'Needs your attention' });
+        card.append(h('h2', {}, h('span', {}, waiting.length ? `Needs your attention (${waiting.length})` : 'Needs your attention'), waiting.length ? pill('waiting for you', 'warn') : null));
+        if (!waiting.length) {
+            card.append(h('p', { className: 'muted' }, 'No agent is waiting for you.'));
             return card;
         }
-        for (const request of requests) {
-            const busy = state.busy.has(request.id);
-            const item = h('article', { className: 'request', 'data-request': request.id });
-            item.append(h('div', { className: 'reason' }, request.reason));
-            if (request.attempted) item.append(h('div', { className: 'muted' }, `Already attempted: ${request.attempted}`));
-            item.append(
-                h(
-                    'div',
-                    { className: 'meta' },
-                    `${request.id} · ${request.origin}${request.agent ? ` · asked by ${request.agent}` : ''}${request.taskTitle ? ` · affects “${request.taskTitle}”` : ''} · ${time(request.createdAt)}${request.blocking ? ' · blocking' : ''}`,
-                ),
-            );
-            item.append(h('div', { className: 'question' }, request.question));
-            if (request.choices && request.choices.length) {
-                item.append(h('div', { className: 'choices', role: 'group', 'aria-label': 'Answers' }, request.choices.map((choice) => h('button', { className: 'primary', disabled: busy, onclick: () => answer(request.id, choice) }, choice))));
-            } else {
-                const field = h('textarea', { 'data-draft': request.id, 'aria-label': `Answer to ${request.id}`, placeholder: 'Type your answer…', disabled: busy });
-                field.value = state.drafts.get(request.id) || '';
-                field.addEventListener('input', () => state.drafts.set(request.id, field.value));
-                field.addEventListener('keydown', (event) => {
-                    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-                        event.preventDefault();
-                        if (field.value.trim()) answer(request.id, field.value);
-                    }
-                });
-                item.append(field);
-                item.append(
-                    h(
-                        'div',
-                        { className: 'row', style: 'margin-top:8px' },
-                        h('button', { className: 'primary', disabled: busy, onclick: () => (field.value.trim() ? answer(request.id, field.value) : field.focus()) }, 'Send answer'),
-                        h('span', { className: 'muted' }, 'Ctrl+Enter sends'),
-                    ),
-                );
-            }
-            item.append(h('div', { className: 'row', style: 'margin-top:6px' }, h('button', { disabled: busy, onclick: () => window.confirm('Decline this request? The agent is told it was declined.') && answer(request.id, 'Declined by the user.', 'rejected') }, 'Decline')));
+        for (const chat of waiting) {
+            const busy = state.busy.has(chat.name);
+            const item = h('article', { className: 'request', 'data-chat': chat.name });
+            item.append(h('div', { className: 'reason' }, `${chat.awaiting ? chat.awaiting.sender : chat.agent || 'An agent'} asks in “${chat.name}”`));
+            item.append(h('div', { className: 'meta' }, `${chat.members.join(', ')}${chat.links.length ? ` · ${chat.links.join(', ')}` : ''}${chat.last ? ` · ${time(chat.last.at)}` : ''}${chat.unread ? ` · ${chat.unread} unread` : ''}`));
+            if (chat.awaiting) item.append(h('div', { className: 'question' }, chat.awaiting.text));
+            const actions = h('div', { className: 'choices', role: 'group', 'aria-label': 'Answers' });
+            for (const choice of (chat.awaiting && chat.awaiting.choices) || []) actions.append(h('button', { className: 'primary', disabled: busy, onclick: () => sendMessage(chat.name, choice, chat.messages) }, choice));
+            actions.append(h('button', { onclick: () => openChat(chat.name) }, 'Open conversation'));
+            item.append(actions);
             card.append(item);
         }
+        return card;
+    }
+
+    function renderThread(snapshot) {
+        const chat = state.chat;
+        const card = h('section', { className: 'card chats thread', 'aria-label': 'Conversation' });
+        if (!chat.detail) {
+            card.append(h('h2', {}, h('span', {}, chat.name)), h('p', { className: 'muted' }, 'Loading…'));
+            return card;
+        }
+        const { summary, messages } = chat.detail;
+        card.append(
+            h(
+                'h2',
+                {},
+                h('span', {}, summary.name),
+                h('span', { className: 'row' }, pill(summary.status === 'waiting-for-user' ? 'waiting for you' : summary.status, summary.status === 'waiting-for-user' ? 'warn' : summary.status === 'open' ? 'ok' : ''), h('button', { onclick: () => ((state.chat = null), render(state.snapshot)) }, 'Close')),
+            ),
+        );
+        card.append(h('div', { className: 'meta muted' }, `${summary.members.join(', ')} · ${summary.path}${summary.links.length ? ` · links ${summary.links.join(', ')}` : ''}`));
+        const thread = h('div', { className: 'messages', role: 'log', 'aria-live': 'polite' });
+        for (const message of messages) {
+            const user = message.sender.replace(/^@/, '').toLowerCase() === 'user';
+            thread.append(
+                h(
+                    'article',
+                    { className: `message ${user ? 'user' : 'agent'}` },
+                    h('div', { className: 'meta' }, h('strong', {}, user ? 'You' : message.sender), ` · ${time(message.at)}`),
+                    h('div', { className: 'text' }, message.text),
+                    message.choices && message.choices.length ? h('div', { className: 'muted' }, `Offered: ${message.choices.join(' | ')}`) : null,
+                ),
+            );
+        }
+        const last = messages[messages.length - 1];
+        if (last && last.sender.replace(/^@/, '').toLowerCase() === 'user' && summary.status === 'open') thread.append(h('p', { className: 'muted' }, `Waiting for ${summary.agent || 'the agent'}’s reply…`));
+        card.append(thread);
+        requestAnimationFrame(() => {
+            thread.scrollTop = thread.scrollHeight;
+        });
+        const busy = state.busy.has(summary.name);
+        if (summary.humanFacing) {
+            if (summary.awaiting && summary.awaiting.choices && summary.awaiting.choices.length && summary.status === 'waiting-for-user') {
+                card.append(h('div', { className: 'choices', role: 'group', 'aria-label': 'Offered answers' }, summary.awaiting.choices.map((choice) => h('button', { className: 'primary', disabled: busy, onclick: () => sendMessage(summary.name, choice, messages.length) }, choice))));
+            }
+            card.append(composer(`chat:${summary.name}`, `Message to ${summary.agent || 'the agent'}`, (text) => sendMessage(summary.name, text, messages.length), busy));
+        } else card.append(h('p', { className: 'muted' }, 'A task-internal consultation between agents (read-only).'));
+        return card;
+    }
+
+    function renderNewChat() {
+        const card = h('section', { className: 'card chats', 'aria-label': 'New chat' });
+        card.append(h('h2', {}, h('span', {}, 'New chat'), h('button', { onclick: () => ((state.newChat = false), render(state.snapshot)) }, 'Cancel')));
+        if (!state.agents) {
+            card.append(h('p', { className: 'muted' }, 'Loading agents…'));
+            return card;
+        }
+        const select = h('select', { 'aria-label': 'Agent', 'data-draft': 'chat:new-agent' });
+        const ordinary = state.agents.filter((agent) => agent.group === 'ordinary');
+        const more = state.agents.filter((agent) => agent.group !== 'ordinary');
+        if (ordinary.length) select.append(h('optgroup', { label: 'Project agents' }, ordinary.map((agent) => h('option', { value: agent.reference }, agent.name))));
+        if (more.length) select.append(h('optgroup', { label: 'More: hidden/core agents and Expert' }, more.map((agent) => h('option', { value: agent.reference }, agent.name))));
+        if (state.drafts.get('chat:new-agent')) select.value = state.drafts.get('chat:new-agent');
+        select.addEventListener('change', () => state.drafts.set('chat:new-agent', select.value));
+        card.append(h('div', { className: 'row' }, h('label', {}, 'Talk to ', select)));
+        card.append(composer('chat:new', 'First message', (text) => startChat(select.value, text), state.busy.has('new-chat')));
+        card.append(h('p', { className: 'muted' }, 'Every message is saved in chats/ and committed. Agents reply read-only and create ordinary tasks only when you ask for work.'));
+        return card;
+    }
+
+    function renderChats(snapshot) {
+        if (state.newChat) return renderNewChat();
+        if (state.chat) return renderThread(snapshot);
+        const chats = snapshot.chats;
+        const card = h('section', { className: 'card chats', 'aria-label': 'Chats' });
+        card.append(h('h2', {}, h('span', {}, `Chats (${chats.total}${chats.unread ? `, ${chats.unread} unread` : ''})`), h('button', { className: 'primary', onclick: showNewChat }, 'New chat')));
+        if (!chats.recent.length) {
+            card.append(h('p', { className: 'muted' }, 'No chats yet. Start one to ask an agent about the project or to plan work.'));
+            return card;
+        }
+        const items = state.showAllChats ? chats.recent : chats.recent.slice(0, 6);
+        card.append(
+            h(
+                'ul',
+                { className: 'list' },
+                items.map((chat) =>
+                    h(
+                        'li',
+                        {},
+                        h('a', { href: '#', className: 'title', onclick: (event) => (event.preventDefault(), openChat(chat.name)) }, chat.name, h('span', { className: 'why' }, `${chat.members.join(', ')}${chat.last ? ` · ${chat.last.sender}: ${chat.last.preview}` : ''}`)),
+                        chat.status === 'waiting-for-user' ? pill('waiting for you', 'warn') : chat.unread ? pill(`${chat.unread} unread`, 'ok') : pill(chat.status, ''),
+                    ),
+                ),
+            ),
+        );
+        if (chats.recent.length > 6) card.append(h('button', { onclick: () => ((state.showAllChats = !state.showAllChats), render(state.snapshot)) }, state.showAllChats ? 'Show fewer' : `Show all ${chats.recent.length}`));
         return card;
     }
 
@@ -187,7 +329,7 @@
                 ),
             );
             const rows = [
-                ['Task', `${current.taskId || current.taskRef}${current.kind !== 'task' ? ` (${current.kind})` : ''}`],
+                ['Task', `${current.taskRef}${current.kind !== 'task' ? ` (${current.kind})` : ''}`],
                 ...(current.trace ? [['Trace', current.trace]] : []),
                 ['Harness', `${current.harnessName} · ${model}${current.thinkingLevel ? ` · ${current.thinkingLevel}` : ''}`],
                 ['Phase', `${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? ` · ${current.detail}` : ''}`],
@@ -310,7 +452,7 @@
                     'ul',
                     { className: 'list' },
                     snapshot.results.recent.slice(0, 6).map((result) =>
-                        h('li', {}, h('span', { className: 'title' }, result.title, h('span', { className: 'why' }, `${result.agent || ''} ${result.commit ? `· ${result.commit.slice(0, 8)}` : ''}${result.taskId ? ` · ${result.taskId}` : ''} · ${time(result.endedAt)}`)), pill(result.outcome, result.outcome.startsWith('completed') ? 'ok' : result.outcome === 'failed' ? 'bad' : 'warn')),
+                        h('li', {}, h('span', { className: 'title' }, result.title, h('span', { className: 'why' }, `${result.agent || ''} ${result.commit ? `· ${result.commit.slice(0, 8)}` : ''} · ${time(result.endedAt)}`)), pill(result.outcome, result.outcome.startsWith('completed') ? 'ok' : result.outcome === 'failed' ? 'bad' : 'warn')),
                     ),
                 ),
             );
@@ -358,7 +500,7 @@
         const focusDraft = active && active.getAttribute && active.getAttribute('data-draft');
         const selection = focusDraft ? [active.selectionStart, active.selectionEnd] : null;
         const scroll = window.scrollY;
-        app.replaceChildren(renderAttention(snapshot), renderWork(snapshot), renderControls(snapshot), renderQueue(snapshot), renderActivity(snapshot), renderConnection(snapshot));
+        app.replaceChildren(renderAttention(snapshot), renderChats(snapshot), renderWork(snapshot), renderControls(snapshot), renderQueue(snapshot), renderActivity(snapshot), renderConnection(snapshot));
         if (focusDraft) {
             const field = app.querySelector(`[data-draft="${CSS.escape(focusDraft)}"]`);
             if (field) {
@@ -370,9 +512,9 @@
         const live = state.connected ? 'live' : 'disconnected — showing last known state';
         headerStatus.replaceChildren(
             h('strong', {}, snapshot.project.name),
-            ` · ptbk ${snapshot.engine.version} · ${snapshot.service.mode} · ${snapshot.service.state}${snapshot.service.commitMode === 'no-commit' ? ' · NO-COMMIT' : ''}${snapshot.requests.length ? ` · ${snapshot.requests.length} request(s)` : ''} · ${live} · observed ${time(snapshot.observedAt)}`,
+            ` · ptbk ${snapshot.engine.version} · ${snapshot.service.mode} · ${snapshot.service.state}${snapshot.service.commitMode === 'no-commit' ? ' · NO-COMMIT' : ''}${snapshot.chats.waiting.length ? ` · ${snapshot.chats.waiting.length} waiting for you` : ''} · ${live} · observed ${time(snapshot.observedAt)}`,
         );
-        document.title = `${snapshot.requests.length ? `(${snapshot.requests.length}) ` : ''}${snapshot.project.name} · Promptbook`;
+        document.title = `${snapshot.chats.waiting.length ? `(${snapshot.chats.waiting.length}) ` : ''}${snapshot.project.name} · Promptbook`;
     }
 
     /** Pairing screen for unauthenticated visitors (no project data). */
@@ -401,6 +543,11 @@
                 state.snapshot = snapshot;
                 state.revision = snapshot.revision;
                 render(snapshot);
+                // New messages in the open chat arrive without stealing focus or drafts.
+                if (state.chat && state.chat.detail) {
+                    const summary = snapshot.chats.recent.find((chat) => chat.name === state.chat.name);
+                    if (summary && (summary.messages !== state.chat.detail.messages.length || summary.status !== state.chat.detail.summary.status)) loadChat(state.chat.name);
+                }
                 if (snapshot.service.state === 'stopped' || snapshot.service.state === 'finished') {
                     await new Promise((resolve) => setTimeout(resolve, 5000));
                 }

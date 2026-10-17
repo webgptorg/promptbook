@@ -43,8 +43,15 @@ test('agent lookup: non-agents, agents/ tier, other Books, then ignored node_mod
     assert.equal(vendor.kind, 'agent');
     assert.equal(vendor.definition.tier, 4);
     assert.ok(!catalog.ordinary().some((definition) => definition.name === 'Vendor Agent'));
-    assert.equal((await catalog.resolve('@Twin')).kind, 'ambiguous');
-    assert.equal((await catalog.resolve('{Not an agent}')).kind, 'missing');
+    assert.deepEqual(front.shadowed.map((entry) => entry.relativePath), ['docs/agents/front-copy.book'], 'the lower-tier copy is shadowed, not merged');
+    const twin = await catalog.resolve('@Twin');
+    assert.equal(twin.kind, 'agent', 'same-name Books resolve deterministically (first by depth, root order, then path)');
+    assert.equal(twin.definition.relativePath, 'agents/a/dup.book');
+    assert.deepEqual(twin.shadowed.map((entry) => entry.relativePath), ['agents/b/dup.book']);
+    assert.ok(catalog.diagnostics.some((diagnostic) => diagnostic.severity === 'warning' && diagnostic.path === 'agents/b/dup.book' && /shadow/i.test(diagnostic.message)), 'the collision is reported for Fixer');
+    const wrongKind = await catalog.resolve('{Not an agent}');
+    assert.equal(wrongKind.kind, 'wrong-kind', 'a task name is never silently treated as an agent');
+    assert.equal(wrongKind.entry.relativePath, 'tasks/task.book');
     assert.ok(catalog.diagnostics.some((diagnostic) => /reserved/.test(diagnostic.message)));
     assert.equal((await catalog.resolve('@User')).kind, 'non-agent');
 });

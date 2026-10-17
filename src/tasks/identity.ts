@@ -1,71 +1,62 @@
-import { shortId, slugify } from '../common/ids.js';
-
-/**
- * Shape of a task ID: one filesystem-safe token (it names `traces/<task-id>/` on every platform).
- */
-const TASK_ID_SHAPE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/;
+import { createHash } from 'node:crypto';
+import { normalizeAgentName } from '../book/references.js';
 
 /**
  * File names Windows reserves regardless of extension.
  */
-const RESERVED_NAMES = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
+const RESERVED_NAMES = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i;
 
 /**
- * Explains why a task ID is not usable, or returns `undefined` for a valid ID.
+ * Longest name key used verbatim as a directory name; longer keys are shortened with a hash suffix.
+ */
+const MAX_KEY_LENGTH = 80;
+
+/**
+ * Deterministic, filesystem-safe directory name derived from a Book's **normalized** name.
  *
- * IDs must be single path-safe tokens: letters, digits, `.`, `_` or `-`, starting with a letter or digit, without
- * `..`, a trailing dot or a name reserved by Windows.
+ * Equivalent spellings (`{Improve CSV export}`, `@ImproveCsvExport`) map to the same key; it is a pure function of
+ * the normalized name, never an allocated ID. Letters/digits outside `[a-z0-9]` are hex-escaped so every script works.
  *
  * @private task identity
  */
-export function taskIdProblem(id: string): string | undefined {
-    if (!TASK_ID_SHAPE.test(id)) return `TASK ID "${id}" must be one token (at most 80 letters, digits, '.', '_' or '-', starting with a letter or digit).`;
-    if (id.includes('..') || id.endsWith('.')) return `TASK ID "${id}" must not contain ".." or end with a dot (it names traces/${id}/).`;
-    if (RESERVED_NAMES.test(id)) return `TASK ID "${id}" is a reserved file name on Windows.`;
-    return undefined;
+export function nameKeyPath(name: string): string {
+    const normalized = normalizeAgentName(name);
+    let key = '';
+    for (const character of normalized) key += /[a-z0-9]/.test(character) ? character : `_${character.codePointAt(0)!.toString(16)}`;
+    if (!key) key = '_';
+    if (RESERVED_NAMES.test(key)) key = `${key}_`;
+    if (key.length > MAX_KEY_LENGTH) key = `${key.slice(0, MAX_KEY_LENGTH - 13)}-${createHash('sha256').update(normalized).digest('hex').slice(0, 12)}`;
+    return key;
 }
 
 /**
- * Key comparing task IDs on case-insensitive file systems (two IDs differing only by case would share a trace directory).
+ * Project-relative POSIX directory of a task's audit evidence: `traces/<name-key>`.
  *
  * @private task identity
  */
-export function taskIdKey(id: string): string {
-    return id.toLowerCase();
+export function traceDirectoryOf(taskName: string): string {
+    return `traces/${nameKeyPath(taskName)}`;
 }
 
 /**
- * Generates a new, readable and practically unique task ID (`improve-csv-export-k3x9qa`).
- *
- * The ID never changes afterwards, even when the title does.
+ * Legacy Markdown metadata line that once carried a generated task ID (read as history only, never written).
  *
  * @private task identity
  */
-export function generateTaskId(title: string): string {
-    return `${slugify(title, 40)}-${shortId(6)}`;
-}
+export const MARKDOWN_LEGACY_ID_LINE = /^\s*<!--\s*ptbk-task-id:\s*(\S+?)\s*-->\s*$/;
 
 /**
- * Markdown metadata line carrying a section's task ID.
+ * Picks a readable name that is distinct under normalization from the given taken keys (`Name`, `Name (2)`, …).
+ *
+ * New authoring uses this so a new task or chat does not silently shadow (or get shadowed by) an existing Book.
  *
  * @private task identity
  */
-export const MARKDOWN_TASK_ID_LINE = /^\s*<!--\s*ptbk-task-id:\s*(\S+?)\s*-->\s*$/;
-
-/**
- * Renders the Markdown task ID metadata line.
- *
- * @private task identity
- */
-export function markdownTaskIdLine(id: string): string {
-    return `<!-- ptbk-task-id: ${id} -->`;
-}
-
-/**
- * Project-relative POSIX directory holding a task's audit evidence.
- *
- * @private task identity
- */
-export function traceDirectoryOf(id: string): string {
-    return `traces/${id}`;
+export function distinctName(base: string, taken: ReadonlySet<string>): string {
+    const name = base.replace(/\s+/g, ' ').trim() || 'Untitled';
+    if (!taken.has(normalizeAgentName(name))) return name;
+    for (let counter = 2; ; counter++) {
+        const candidate = `${name} (${counter})`;
+        if (!taken.has(normalizeAgentName(candidate))) return candidate;
+    }
 }

@@ -79,7 +79,14 @@ test('non-agents: Void/Null/0, User and Expert are reserved', () => {
 test('task Books: controls, malformed controls block, done stamps complete one-time tasks', () => {
     const read = (source) => readTaskBook({ source, path: '/p/tasks/t.book', relativePath: 'tasks/t.book', order: 1, timeZone: 'UTC' });
     const task = read('TASK Export\n\nDo it.\n\nTASK ID export-1\nTASK AGENT @Developer\nTASK PRIORITY high\nTASK AFTER 2026-10-30T09:00:00+01:00\nTASK DEPENDS ON #a, #b\nRULE Keep API.');
-    assert.equal(task.ref, '#export-1');
+    assert.equal(task.title, 'Export', 'the legacy `TASK <title>` header names the task');
+    assert.equal(task.ref, '@Export', 'the name is the identity (a single word is referenced as @Name)');
+    assert.equal(task.legacyId, 'export-1', 'a legacy TASK ID is historical metadata only');
+    const canonical = read('Export the CSV\nENTITY TASK\n\nDo it.\n\nTASK AGENT @Developer');
+    assert.equal(canonical.title, 'Export the CSV');
+    assert.equal(canonical.key, 'exportthecsv');
+    assert.equal(canonical.description, 'Do it.');
+    assert.equal(read('Plain name in the tasks folder\n\nThe folder supplies the kind.').title, 'Plain name in the tasks folder');
     assert.equal(task.priority.value, 5);
     assert.equal(task.after, Date.parse('2026-10-30T08:00:00Z'));
     assert.deepEqual(task.dependsOn, ['#a', '#b']);
@@ -92,5 +99,6 @@ test('task Books: controls, malformed controls block, done stamps complete one-t
     assert.ok(read('TASK X\nTASK AFTER someday').diagnostics.some((diagnostic) => diagnostic.severity === 'error'));
     assert.ok(read('TASK X\nTASK REPEAT 1 month').diagnostics.some((diagnostic) => diagnostic.severity === 'error'));
     assert.equal(read('TASK @@@ placeholder').placeholder, true);
-    assert.equal(read('Developer'), undefined);
+    assert.equal(read('Developer\nENTITY AGENT\n\nPERSONA A developer.'), undefined, 'an explicit agent is not a task, even in tasks/');
+    assert.ok(read('Mixed\nENTITY TASK\nENTITY CHAT')?.diagnostics.some((diagnostic) => diagnostic.severity === 'error') ?? true, 'conflicting ENTITY declarations are diagnosed');
 });

@@ -141,7 +141,7 @@ try {
             if (Date.now() > deadline) throw new Error('The started service did not complete the Expert bootstrap task.');
             await new Promise((resolvePromise) => setTimeout(resolvePromise, 500));
         }
-        assert.match((await git(fixture, ['log', '-1', '--format=%B', '--grep', 'Review the initialized project'])).stdout, /^Task-ID: \S+$/m);
+        assert.match((await git(fixture, ['log', '-1', '--format=%B', '--grep', 'Review the initialized project'])).stdout, /^Task-Name: Review the initialized project$/m);
         const snapshot = JSON.parse((await linked(global, ['status', '--json'], fixture, env)).stdout);
         assert.equal(snapshot.service.mode, 'daemon');
         assert.equal(snapshot.engine.version, release.version);

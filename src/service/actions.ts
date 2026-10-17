@@ -1,7 +1,6 @@
 import { PtbkError } from '../common/errors.js';
 import { parseSettingValue, SETTING_SPEC_BY_KEY } from '../project/config.js';
 import type { Agenda } from '../engine/agenda.js';
-import type { UserRequest } from '../engine/requests.js';
 
 /**
  * Runtime actions shared by every channel (terminal, browser, API, CLI).
@@ -41,16 +40,35 @@ export function applyControlAction(agenda: Agenda, action: string): { action: st
 }
 
 /**
- * Validates and applies an answer from any channel.
+ * Chat operations shared by every channel (terminal, browser, API, CLI); writes go through the agenda's chat store.
  *
  * @private shared runtime controls
  */
-export async function applyAnswer(agenda: Agenda, params: Readonly<Record<string, unknown>>, via: UserRequest['resolvedVia']): Promise<UserRequest> {
-    const id = String(params.id ?? '');
-    const status = (params.status as 'answered' | 'cancelled' | 'rejected' | 'unable' | undefined) ?? 'answered';
-    if (!['answered', 'cancelled', 'rejected', 'unable'].includes(status)) throw new PtbkError(`Invalid answer status ${status}.`, { kind: 'usage' });
-    const answer = typeof params.answer === 'string' ? params.answer : '';
-    return await agenda.answer(id, answer, via, status);
+export async function applyChatAction(agenda: Agenda, method: string, params: Readonly<Record<string, unknown>>, via: string): Promise<unknown> {
+    const text = (key: string): string => (typeof params[key] === 'string' ? (params[key] as string) : '');
+    switch (method) {
+        case 'chat-list':
+            return await agenda.chatList();
+        case 'chat-agents':
+            return agenda.chatAgents();
+        case 'chat-get':
+            return await agenda.chatGet(text('name'));
+        case 'chat-read':
+            await agenda.chatRead(text('name'));
+            return { read: true };
+        case 'chat-create': {
+            if (!text('agent')) throw new PtbkError('Choose the agent of the new chat.', { kind: 'usage' });
+            const written = await agenda.chatCreate(text('agent'), text('text'), { name: text('title') || undefined });
+            return { name: written.chat.name, path: written.relativePath, commit: written.commit, messages: written.chat.messages.length };
+        }
+        case 'chat-send': {
+            const expected = typeof params.expected === 'number' ? params.expected : undefined;
+            const written = await agenda.chatSend(text('name'), text('text'), { expected, via });
+            return { name: written.chat.name, path: written.relativePath, commit: written.commit, messages: written.chat.messages.length, status: written.chat.status };
+        }
+        default:
+            throw new PtbkError(`Unknown chat action "${method}".`, { kind: 'usage' });
+    }
 }
 
 /**

@@ -51,7 +51,7 @@ export type HarnessInspection = {
  * @private harness plugin contract
  */
 export type HarnessCapabilities = {
-    /** Can load the ptbk MCP bridge (TEAM consultations, user requests, browser tools). */
+    /** Can load the ptbk MCP bridge (TEAM consultations, chats with the user, browser tools). */
     readonly mcp: boolean;
     /** Can enforce read-only execution (planning, consultations). */
     readonly readOnly: boolean;

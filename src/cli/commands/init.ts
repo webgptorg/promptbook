@@ -1,9 +1,9 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
 import { ensureDirectory, isDirectory, pathExists, toProjectRelative } from '../../common/fs.js';
 import { ENGINE_VERSION } from '../../common/version.js';
+import { describeBrowserProfile, userChromeProfile } from '../../browser/browser.js';
 import { checkCandidates, validateCheckCommand } from '../../project/checks.js';
 import { enabledHarnesses, getPath, loadSettings, readProjectConfigFile, setting, updateProjectConfig } from '../../project/config.js';
 import { INITIAL_ASSETS, INITIAL_SPECIFICATION, bootstrapTask, sampleReadme } from '../../project/defaults.js';
@@ -35,7 +35,6 @@ import type { ServiceSnapshot } from '../../engine/snapshot.js';
 import { lookupService } from '../../service/control.js';
 import { launchDaemon } from '../../service/launcher.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
-import { generateTaskId } from '../../tasks/identity.js';
 import { wrap } from '../../ui/ansi.js';
 import { materializeAttachments, isImagePath } from '../../ui/attachments.js';
 import type { BadgeActivity } from '../../ui/badges.js';
@@ -62,7 +61,7 @@ export type InitResult = {
     readonly notes: readonly string[];
     readonly commit?: string;
     /** The ordinary Expert bootstrap task created by this run. */
-    readonly firstTask?: { readonly id: string; readonly title: string; readonly path: string };
+    readonly firstTask?: { readonly title: string; readonly path: string };
 };
 
 /**
@@ -86,15 +85,6 @@ class EngineUpdated extends Error {}
 function answered<T>(value: T | typeof CANCELLED): T {
     if (value === CANCELLED) throw wasInterrupted() ? new WizardCancelled('cancelled') : new WizardBack('back');
     return value;
-}
-
-/**
- * Default Chrome user-data directory of this platform.
- */
-function defaultChromeProfile(): string {
-    if (process.platform === 'darwin') return join(homedir(), 'Library', 'Application Support', 'Google', 'Chrome');
-    if (process.platform === 'win32') return join(process.env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'), 'Google', 'Chrome', 'User Data');
-    return join(homedir(), '.config', 'google-chrome');
 }
 
 /**
@@ -495,20 +485,28 @@ export async function initializeProject(context: CommandContext, options: { proj
             const choice = answered(
                 await selectOne(terminal, {
                     frame: frame('browser', 'agents share one browser for websites'),
-                    question: 'Which browser profile should agents share for websites in this project?',
+                    question: 'Which browser profile should agents use for websites in this project?',
                     choices: [
-                        { value: 'isolated', label: 'Isolated project profile', description: 'persistent profile in .ptbk/, separate from your browser' },
-                        { value: 'other', label: 'Another existing profile', description: 'e.g. a profile shared by several projects' },
-                        { value: 'user', label: 'Your Chrome profile', description: 'reuses your logged-in sessions' },
+                        { value: 'global', label: 'Dedicated Promptbook profile', description: 'a separate Promptbook-only profile, reused by your other projects (one project at a time); not your Chrome profile' },
+                        { value: 'isolated', label: 'Isolated project profile', description: 'only this project, stored in .ptbk/ (Git-ignored)' },
+                        { value: 'user', label: 'Your Chrome profile', description: 'reuses your logged-in sessions; agents act as you' },
+                        { value: 'custom', label: 'Custom profile path', description: 'another existing browser profile directory' },
                     ],
-                    defaultValue: 'isolated',
+                    defaultValue: 'global',
                 }),
             );
-            if (choice === 'other') state.browserProfile = answered(await inputLine(terminal, { frame: frame('browser'), question: 'Path of the browser profile directory:' }));
-            else if (choice === 'user') {
-                const ok = answered(await confirm(terminal, { frame: frame('browser'), question: `Agents will act with every session in ${defaultChromeProfile()}, and their actions affect that profile. Use it?`, defaultYes: false }));
-                state.browserProfile = ok ? defaultChromeProfile() : 'isolated';
-            } else state.browserProfile = 'isolated';
+            if (choice === 'custom') {
+                state.browserProfile = answered(
+                    await inputLine(terminal, {
+                        frame: frame('browser'),
+                        question: 'Path of the existing browser profile directory:',
+                        validate: (value) => (!value.trim() ? 'Enter a path.' : ['global', 'isolated', 'user'].includes(value.trim()) ? 'Choose that option instead of typing its name.' : undefined),
+                    }),
+                ).trim();
+            } else if (choice === 'user') {
+                const ok = answered(await confirm(terminal, { frame: frame('browser'), question: `Agents will act with every session in ${userChromeProfile()} and their actions affect that profile; Chrome must be closed while they use it. Use it?`, defaultYes: false }));
+                state.browserProfile = ok ? 'user' : 'global';
+            } else state.browserProfile = choice;
             state.browserMode = answered(
                 await selectOne(terminal, {
                     frame: frame('browser'),
@@ -520,7 +518,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                     defaultValue: state.browserMode ?? 'headless',
                 }),
             );
-            answers.set('browser', `Browser: ${state.browserProfile === 'isolated' ? 'isolated project profile' : state.browserProfile}, ${state.browserMode}`);
+            answers.set('browser', `Browser: ${describeBrowserProfile(state.browserProfile ?? 'global')}, ${state.browserMode}`);
         },
         // 7. Trace recording and Git inclusion (three explicit project choices).
         traces: async () => {
@@ -544,7 +542,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                 await toggleList(terminal, {
                     frame: frame('traces', 'every task keeps its own audit trail'),
                     question: 'Traces: how should task evidence be kept?',
-                    intro: 'Each task records its harness output, events and (when enabled) browser video in traces/<task-id>/, linked to its commits by Task-ID. Traces can contain project data and page content; sign-in steps are not recorded.',
+                    intro: 'Each task records its harness output, events and (when enabled) browser video in traces/<name-key>/, linked to its commits by the Task-Name trailer. Traces can contain project data and page content; sign-in steps are not recorded.',
                     toggles: [
                         { key: 'commit', label: 'Commit traces to Git', description: 'include each task’s traces in its result commit (shared with everyone who can read the repository); otherwise traces stay local and the whole traces/ folder is ignored' },
                         { key: 'ignoreVideos', label: 'Ignore trace videos in Git', description: 'keep browser videos local even when traces are committed (videos are large and may show sensitive pages)' },
@@ -855,7 +853,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     const settingsChanges: Record<string, unknown> = {};
     if (!routingHarness && (usableSelected[0] ?? selected[0])) settingsChanges['routing.harness'] = usableSelected[0] ?? selected[0];
     if (state.saveCheck !== undefined) settingsChanges['execution.check'] = state.saveCheck;
-    if (!rawConfig.browser || option<string>(context, 'browser-profile') !== undefined) settingsChanges['browser.profile'] = state.browserProfile ?? 'isolated';
+    if (!rawConfig.browser || option<string>(context, 'browser-profile') !== undefined) settingsChanges['browser.profile'] = state.browserProfile ?? 'global';
     if (!rawConfig.browser || option<string>(context, 'browser-mode') !== undefined) settingsChanges['browser.mode'] = state.browserMode ?? 'headless';
     for (const [key, value] of [
         ['traces.commit', tracePolicy.commit],
@@ -875,21 +873,20 @@ export async function initializeProject(context: CommandContext, options: { proj
     const marker = ((await readProjectConfigFile(project)).raw.initialized ?? {}) as { starterTask?: string; installation?: string; engineVersion?: string };
     let firstTask: InitResult['firstTask'];
     const tasksRoot = join(root, tasksDirectory);
-    if (newPurpose && !marker.starterTask && !(await hasFirstTask({ root, tasksDirectory, timeZone, knownIds: [] }))) {
+    if (newPurpose && !marker.starterTask && !(await hasFirstTask({ root, tasksDirectory, timeZone }))) {
         const blank = blankIntent(state.intent?.segments ?? []);
         const specification = join(root, INITIAL_SPECIFICATION);
         const draftPath = await newTaskPath(tasksRoot, blank ? 'review initialized project' : 'transform project', Date.now(), timeZone);
         const link = relative(dirname(draftPath), specification).split(sep).join('/');
         const content = bootstrapTask({ blank, specificationLink: link });
-        const id = generateTaskId(blank ? 'readiness review' : 'bootstrap');
-        await writeFile(draftPath, renderTaskBook({ title: content.title, description: content.description, id, commitments: ['TASK AGENT @Expert', 'TASK ORIGIN initialization'] }), { flag: 'wx' });
+        await writeFile(draftPath, renderTaskBook({ title: content.title, description: content.description, commitments: ['TASK AGENT @Expert', 'TASK ORIGIN initialization'] }), { flag: 'wx' });
         createdPaths.push(draftPath);
-        firstTask = { id, title: content.title, path: draftPath };
+        firstTask = { title: content.title, path: draftPath };
     }
     const effectiveInstallation = installation === 'existing' ? (marker.installation ?? 'local') : installation;
     if (firstTask || !marker.engineVersion || marker.installation !== effectiveInstallation) {
         const raw = (await readProjectConfigFile(project)).raw;
-        raw.initialized = { ...(raw.initialized as object | undefined), engineVersion: marker.engineVersion ?? ENGINE_VERSION, ...(firstTask ? { starterTask: firstTask.id } : {}), installation: effectiveInstallation };
+        raw.initialized = { ...(raw.initialized as object | undefined), engineVersion: marker.engineVersion ?? ENGINE_VERSION, ...(firstTask ? { starterTask: firstTask.title } : {}), installation: effectiveInstallation };
         await writeFile(project.configPath, `${JSON.stringify(raw, null, 4)}\n`);
         createdPaths.push(project.configPath);
     }
@@ -909,7 +906,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                     repositoryRoot: repository.repositoryRoot,
                     paths: uniquePaths,
                     subject: configBefore ? 'Update project setup' : 'Initialize project',
-                    trailers: { 'Task-ID': firstTask ? [firstTask.id] : [] },
+                    trailers: { 'Task-Name': firstTask ? [firstTask.title] : [] },
                     temporaryDirectory: project.runtime.temporary,
                     env: context.env,
                 });
@@ -1005,7 +1002,7 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
         : ready
           ? [['ptbk start', service?.kind === 'failed' ? 'start the service after fixing the problem above' : 'start the agenda in the background']]
           : [['ptbk init', 'resume setup after resolving the items above']];
-    const first = result.firstTask ? `${result.firstTask.title} → Expert (Task-ID ${result.firstTask.id}, ${toProjectRelative(root, result.firstTask.path)})` : undefined;
+    const first = result.firstTask ? `{${result.firstTask.title}} → Expert (${toProjectRelative(root, result.firstTask.path)})` : undefined;
     const headline = !ready ? 'Setup incomplete' : running ? 'Project ready · agenda running' : 'Setup complete · service not running';
     if (!terminal.pretty) {
         const lines = [`${headline}: ${root} (ptbk ${ENGINE_VERSION})`];

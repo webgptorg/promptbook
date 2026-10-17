@@ -8,7 +8,7 @@ import { rotateServiceLog } from '../service/records.js';
 
 /**
  * Records a system diagnostic (`.ptbk/logs/diagnostics.jsonl`), e.g. for initialization, startup or updates without a
- * task; task evidence lives in `traces/<task-id>/`. Returns the log path or `undefined` (never a fictitious path).
+ * task; task evidence lives in `traces/<name-key>/`. Returns the log path or `undefined` (never a fictitious path).
  *
  * @private execution evidence
  */

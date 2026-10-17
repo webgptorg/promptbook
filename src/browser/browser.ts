@@ -1,14 +1,15 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { readFile, readlink, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readFile, readlink, rm, writeFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, pathExists } from '../common/fs.js';
-import { shortId } from '../common/ids.js';
+import { shortHash, shortId } from '../common/ids.js';
 import { isProcessAlive, terminateProcessTree, which } from '../common/process.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import type { BridgeTool } from '../engine/bridge.js';
-import type { RequestStore, UserRequest } from '../engine/requests.js';
+import type { TaskChats } from '../chats/task-chats.js';
 import type { TaskTrace } from '../engine/task-trace.js';
 import { BrowserRecorder, cleanStaleRecordings, type ScreencastPort } from './recording.js';
 
@@ -53,13 +54,115 @@ export async function findBrowserExecutable(settings: EffectiveSettings, env: No
 }
 
 /**
- * Resolves the profile directory: the isolated project profile in `.ptbk/` or an explicitly selected path.
+ * Where the project's browser profile comes from (saved in ptbk.json as a portable kind, never a machine path for
+ * the managed global profile).
  *
  * @private project browser
  */
-export function browserProfileDirectory(project: Project, settings: EffectiveSettings): string {
+export type BrowserProfileSource = 'global' | 'isolated' | 'user' | 'custom';
+
+/**
+ * Classifies a `browser.profile` value: `global`, `isolated`, `user`, or a custom profile path.
+ *
+ * @private project browser
+ */
+export function browserProfileSource(value: string): BrowserProfileSource {
+    return value === 'global' || value === 'isolated' || value === 'user' ? value : 'custom';
+}
+
+/**
+ * The current OS user's Promptbook application-data directory (`PTBK_HOME` overrides it).
+ *
+ * @private project browser
+ */
+export function promptbookAppData(env: NodeJS.ProcessEnv = process.env): string {
+    if (env.PTBK_HOME) return env.PTBK_HOME;
+    if (process.platform === 'darwin') return join(homedir(), 'Library', 'Application Support', 'Promptbook');
+    if (process.platform === 'win32') return join(env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'), 'Promptbook');
+    return join(env.XDG_DATA_HOME || join(homedir(), '.local', 'share'), 'promptbook');
+}
+
+/**
+ * The dedicated Promptbook-managed browser profile shared by this user's projects (not the user's own Chrome profile).
+ *
+ * @private project browser
+ */
+export function globalBrowserProfile(env: NodeJS.ProcessEnv = process.env): string {
+    return join(promptbookAppData(env), 'browser-profile');
+}
+
+/**
+ * The user's ordinary Chrome user-data directory on this platform.
+ *
+ * @private project browser
+ */
+export function userChromeProfile(env: NodeJS.ProcessEnv = process.env): string {
+    if (process.platform === 'darwin') return join(homedir(), 'Library', 'Application Support', 'Google', 'Chrome');
+    if (process.platform === 'win32') return join(env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'), 'Google', 'Chrome', 'User Data');
+    return join(homedir(), '.config', 'google-chrome');
+}
+
+/**
+ * Resolves the profile directory of the selected source: the managed global profile, the isolated project profile in
+ * `.ptbk/`, the user's Chrome profile, or a custom path (relative paths resolve against the project).
+ *
+ * @private project browser
+ */
+export function browserProfileDirectory(project: Project, settings: EffectiveSettings, env: NodeJS.ProcessEnv = process.env): string {
     const profile = setting<string>(settings, 'browser.profile');
-    return profile === 'isolated' ? project.runtime.browserProfile : profile;
+    switch (browserProfileSource(profile)) {
+        case 'global':
+            return globalBrowserProfile(env);
+        case 'isolated':
+            return project.runtime.browserProfile;
+        case 'user':
+            return userChromeProfile(env);
+        case 'custom':
+            return resolve(project.root, profile);
+    }
+}
+
+/**
+ * Human description of a `browser.profile` value.
+ *
+ * @private project browser
+ */
+export function describeBrowserProfile(value: string): string {
+    switch (browserProfileSource(value)) {
+        case 'global':
+            return 'dedicated Promptbook profile shared by your projects';
+        case 'isolated':
+            return 'isolated project profile';
+        case 'user':
+            return 'your Chrome profile';
+        case 'custom':
+            return `custom profile ${value}`;
+    }
+}
+
+/**
+ * Cross-project ownership of a shared profile: one project's automation at a time (`<app data>/locks/`).
+ *
+ * Returns a release function, or the PID of the live owner when another process holds it.
+ */
+async function claimProfile(profileDirectory: string, project: Project, env: NodeJS.ProcessEnv): Promise<{ release: () => Promise<void> } | { owner: number; project?: string }> {
+    const directory = await ensureDirectory(join(promptbookAppData(env), 'locks'));
+    const path = join(directory, `browser-${shortHash(profileDirectory, 16)}.json`);
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            await writeFile(path, JSON.stringify({ pid: process.pid, project: project.root, profile: profileDirectory, at: new Date().toISOString() }), { flag: 'wx' });
+            return { release: async () => await rm(path, { force: true }) };
+        } catch {
+            const holder = await readFile(path, 'utf8')
+                .then((text) => JSON.parse(text) as { pid?: number; project?: string })
+                .catch(() => undefined);
+            if (holder?.pid === process.pid) return { release: async () => await rm(path, { force: true }) };
+            if (holder?.pid && isProcessAlive(holder.pid)) return { owner: holder.pid, project: holder.project };
+            // A stale claim of a process that no longer runs is removed, never a live one.
+            await rm(path, { force: true });
+        }
+    }
+    return { owner: -1 };
 }
 
 /**
@@ -165,10 +268,12 @@ class CdpConnection {
  */
 export class ProjectBrowser {
     private child?: ChildProcess;
+    /** Release of the cross-project claim of a shared profile. */
+    private releaseClaim?: () => Promise<void>;
     private connection?: CdpConnection;
     private sessionId?: string;
     private note?: string;
-    /** Task-linked recording of browser activity (`traces/<task-id>/video/`). */
+    /** Task-linked recording of browser activity (`traces/<name-key>/video/`). */
     public readonly recorder: BrowserRecorder;
 
     public constructor(
@@ -216,8 +321,27 @@ export class ProjectBrowser {
         const settings = this.settings();
         const executable = await findBrowserExecutable(settings, this.env);
         if (!executable) throw new PtbkError('No Chrome-compatible browser is installed.', { kind: 'setup', next: ['Install Google Chrome or Chromium, or set ptbk.json browser.executable.'] });
-        const profile = browserProfileDirectory(this.project, settings);
-        await ensureDirectory(profile);
+        const source = browserProfileSource(setting<string>(settings, 'browser.profile'));
+        const profile = browserProfileDirectory(this.project, settings, this.env);
+        if (source === 'user' || source === 'custom') {
+            // An existing profile is reused as it is; it is never created, copied or migrated implicitly.
+            if (!(await pathExists(profile))) throw new PtbkError(`The selected browser profile ${profile} does not exist.`, { kind: 'configuration', next: ['Choose another profile in ptbk.json `browser.profile` (global, isolated, user or a path), or pass --browser-profile.'] });
+        } else await ensureDirectory(profile);
+        if (source !== 'isolated') {
+            let claim = await claimProfile(profile, this.project, this.env);
+            for (let attempt = 0; 'owner' in claim && attempt < 10; attempt++) {
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                claim = await claimProfile(profile, this.project, this.env);
+            }
+            if ('owner' in claim) {
+                throw new PtbkError(`The shared browser profile is in use by another Promptbook project${claim.project ? ` (${claim.project})` : ''}.`, {
+                    kind: 'conflict',
+                    reason: `One project automates a shared profile at a time; PID ${claim.owner} holds ${profile}.`,
+                    next: ['The other project releases it after its current task; ptbk retries later. Choose an isolated profile to avoid waiting.'],
+                });
+            }
+            this.releaseClaim = claim.release;
+        }
         let owner = await profileOwner(profile);
         // Ownership is often transient (a browser still shutting down): recheck briefly before involving a person.
         for (let attempt = 0; owner && attempt < 10; attempt++) {
@@ -225,6 +349,7 @@ export class ProjectBrowser {
             owner = await profileOwner(profile);
         }
         if (owner) {
+            await this.releaseProfile();
             throw new PtbkError(`The browser profile ${profile} is in use by another browser (PID ${owner}).`, {
                 kind: 'conflict',
                 next: ['Close that browser to hand the profile over, or choose another profile (ptbk.json browser.profile).'],
@@ -238,6 +363,17 @@ export class ProjectBrowser {
         const activePortFile = join(profile, 'DevToolsActivePort');
         await writeFile(activePortFile, '').catch(() => undefined);
         const args = [`--user-data-dir=${profile}`, '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', ...(headless ? ['--headless=new'] : []), 'about:blank'];
+        try {
+            return await this.launch(executable, args, activePortFile, headless);
+        } catch (error) {
+            // A browser that did not come up is stopped and a shared profile is released again.
+            this.close();
+            throw error;
+        }
+    }
+
+    /** Starts the browser process and attaches to one page. */
+    private async launch(executable: string, args: readonly string[], activePortFile: string, headless: boolean): Promise<{ connection: CdpConnection; sessionId: string }> {
         this.child = spawn(executable, args, { stdio: 'ignore', windowsHide: headless, detached: process.platform !== 'win32' });
         this.child.unref();
         const deadline = Date.now() + STARTUP_TIMEOUT_MS;
@@ -363,6 +499,24 @@ export class ProjectBrowser {
         this.sessionId = undefined;
         if (this.child) terminateProcessTree(this.child);
         this.child = undefined;
+        void this.releaseProfile();
+    }
+
+    /** Releases this project's claim of a shared profile. */
+    private async releaseProfile(): Promise<void> {
+        const release = this.releaseClaim;
+        this.releaseClaim = undefined;
+        await release?.().catch(() => undefined);
+    }
+
+    /**
+     * After a task: a browser on a shared profile (global, user or custom) is closed so other projects can use the
+     * profile; the isolated project profile stays open for the next task.
+     */
+    public releaseShared(): void {
+        if (!this.child && !this.releaseClaim) return;
+        if (browserProfileSource(setting<string>(this.settings(), 'browser.profile')) === 'isolated') return;
+        this.close();
     }
 }
 
@@ -371,7 +525,7 @@ export class ProjectBrowser {
  *
  * @private project browser
  */
-export function browserTools(browser: ProjectBrowser, requests: RequestStore, task: { ref: string; id?: string; title: string; agent?: string }, onUserRequest: (request: UserRequest) => void): BridgeTool[] {
+export function browserTools(browser: ProjectBrowser, chats: TaskChats | undefined, agent: string, onUserChat: (chat: { chat: string; awaited: number }) => void): BridgeTool[] {
     const run = async (action: () => Promise<string>): Promise<{ text: string; isError?: boolean }> => {
         try {
             return { text: await action() };
@@ -416,18 +570,17 @@ export function browserTools(browser: ProjectBrowser, requests: RequestStore, ta
             inputSchema: { type: 'object', properties: { reason: { type: 'string' } }, required: ['reason'] },
             handler: (input) =>
                 run(async () => {
+                    if (!chats) throw new PtbkError('The user is not available in this run; report blocked with the reason instead.', { kind: 'unsupported' });
                     const note = await browser.bringToFront();
-                    const request = await requests.create({
-                        kind: 'action',
+                    const chat = await chats.askUser({
+                        agent,
                         reason: String(input.reason ?? 'A website needs your action in the project browser.'),
-                        question: `Complete the action in the project browser${note ? ` (${note})` : ''}, then confirm.`,
-                        attempted: 'The task used the existing session of the shared project browser; the website still requires this human-only step.',
+                        attempted: 'I used the existing session of the shared project browser; the website still requires this human-only step.',
+                        question: `Please complete the action in the project browser${note ? ` (${note})` : ''}, then confirm here.`,
                         choices: ['Done', 'I cannot do it'],
-                        origin: { kind: 'browser', taskRef: task.ref, taskId: task.id, taskTitle: task.title, agent: task.agent },
-                        blocking: true,
                     });
-                    onUserRequest(request);
-                    return `Created user request ${request.id}. End your turn now with status waiting-for-user.`;
+                    onUserChat(chat);
+                    return `The request is in the chat {${chat.chat}}, waiting for the user. End your turn now with status waiting-for-user.`;
                 }),
         },
     ];

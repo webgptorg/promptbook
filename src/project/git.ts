@@ -4,6 +4,7 @@ import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, hashFileIfExists, isDirectory, isPathInside, writeFileAtomic } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
 import { runProcess, type ProcessResult } from '../common/process.js';
+import { normalizeAgentName } from '../book/references.js';
 import { rm } from 'node:fs/promises';
 
 /**
@@ -343,21 +344,29 @@ export async function readAtHead(repositoryRoot: string, absolutePath: string): 
 }
 
 /**
- * Commits carrying a task's ID (`Task-ID` or `Created-Task-ID` trailer), newest first.
+ * Commits carrying a task's name (`Task-Name`, `Created-Task-Name` or `Related-Task-Name` trailer, compared by
+ * normalized name), newest first; legacy `Task-ID` trailers match the task's historical ID.
  *
- * Commit SHAs are resolved from Git and the stable ID rather than stored in the committed tree.
+ * Commit SHAs are resolved from Git and the readable name rather than stored in the committed tree.
  *
  * @private Git persistence
  */
-export async function commitsOfTask(repositoryRoot: string, taskId: string, maxCount = 2000): Promise<Array<{ sha: string; subject: string; date: string; role: 'task' | 'created' | 'related' }>> {
+export async function commitsOfTask(repositoryRoot: string, taskName: string, legacyId?: string, maxCount = 2000): Promise<Array<{ sha: string; subject: string; date: string; role: 'task' | 'created' | 'related' }>> {
     const result = await git(repositoryRoot, ['log', `--max-count=${maxCount}`, '--format=%H%x00%cI%x00%s%x00%B%x01']);
     if (result.exitCode !== 0) return [];
+    const key = normalizeAgentName(taskName);
     const found: Array<{ sha: string; subject: string; date: string; role: 'task' | 'created' | 'related' }> = [];
     for (const record of result.stdout.split('\x01')) {
         const [sha, date, subject, body] = record.split('\0');
         if (!sha?.trim() || !body) continue;
-        const lines = body.split('\n').map((line) => line.trim());
-        const role = lines.includes(`Task-ID: ${taskId}`) ? 'task' : lines.includes(`Created-Task-ID: ${taskId}`) ? 'created' : lines.includes(`Related-Task-ID: ${taskId}`) ? 'related' : undefined;
+        const roles = new Set<string>();
+        for (const line of body.split('\n')) {
+            const match = /^(Task|Created-Task|Related-Task)-(Name|ID):\s*(.+)$/.exec(line.trim());
+            if (!match) continue;
+            const matches = match[2] === 'Name' ? normalizeAgentName(match[3]!) === key : Boolean(legacyId) && match[3]!.trim() === legacyId;
+            if (matches) roles.add(match[1]!);
+        }
+        const role = roles.has('Task') ? 'task' : roles.has('Created-Task') ? 'created' : roles.has('Related-Task') ? 'related' : undefined;
         if (role) found.push({ sha: sha.trim(), subject: subject ?? '', date: date ?? '', role });
     }
     return found;

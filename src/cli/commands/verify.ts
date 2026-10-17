@@ -5,13 +5,12 @@ import { ensureDirectory, pathExists, toProjectRelative } from '../../common/fs.
 import { loadSettings, setting } from '../../project/config.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
 import { StateStore } from '../../engine/state.js';
-import { generateTaskId } from '../../tasks/identity.js';
 import { newTaskPath, renderTaskBook, splitTitle } from '../../tasks/authoring.js';
 import { splitMarkdownSections } from '../../tasks/markdown.js';
 import { isRecurring, type Task } from '../../tasks/model.js';
 import { readTaskQueue } from '../../tasks/sources.js';
 import { CANCELLED, composeText, selectOne } from '../../ui/prompts.js';
-import { selectedProject, writableTasksDirectory } from '../common.js';
+import { distinctTaskName, selectedProject, writableTasksDirectory } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -83,12 +82,13 @@ export default async function verify(context: CommandContext): Promise<number> {
         if (choice === 'follow-up') {
             const text = await composeText(terminal, { frame: { title: 'ptbk verify', step: 'Follow-up task' }, question: `What should follow "${task.title}"?`, required: true });
             if (text === CANCELLED) continue;
-            const { title, description } = splitTitle(text);
+            const split = splitTitle(text);
+            const title = await distinctTaskName(project, settings, split.title);
+            const description = split.description;
             const path = await newTaskPath(tasksDirectory, title, Date.now(), timeZone);
-            const id = generateTaskId(title);
-            await writeFile(path, renderTaskBook({ title, description, id, commitments: [`TASK PARENT ${task.ref}`, `TASK ORIGIN review of ${task.ref}`] }), { flag: 'wx' });
+            await writeFile(path, renderTaskBook({ title, description, commitments: [`TASK PARENT ${task.ref}`, `TASK ORIGIN review of ${task.ref}`] }), { flag: 'wx' });
             if (commit && gitInfo.state === 'repository') {
-                await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: [path], subject: `Add task - ${title}`, trailers: { 'Task-ID': id, 'Related-Task-ID': task.id }, temporaryDirectory: project.runtime.temporary, env: context.env });
+                await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: [path], subject: `Add task - ${title}`, trailers: { 'Task-Name': title, 'Related-Task-Name': task.title }, temporaryDirectory: project.runtime.temporary, env: context.env });
             }
             terminal.write(`Added follow-up ${toProjectRelative(project.root, path)}\n`);
         }

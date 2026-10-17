@@ -23,7 +23,7 @@ const MAX_EVENT_LOG_BYTES = 16 * 1024 * 1024;
 const MAX_FIELD_CHARS = 200_000;
 
 /**
- * File names inside `traces/<task-id>/`.
+ * File names inside `traces/<name-key>/`.
  *
  * @private task traces
  */
@@ -41,7 +41,7 @@ export const TRACE_FILES = {
 } as const;
 
 /**
- * Root-level audit trail of one task: `traces/<task-id>/`.
+ * Root-level audit trail of one task: `traces/<name-key>/`.
  *
  * Writing never throws; an unavailable trace is reported once through `problem` instead of inventing a saved path.
  *
@@ -50,7 +50,7 @@ export const TRACE_FILES = {
 export class TaskTrace {
     /** Absolute directory. */
     public readonly directory: string;
-    /** Project-relative POSIX directory (`traces/<task-id>`). */
+    /** Project-relative POSIX directory (`traces/<name-key>`). */
     public readonly relativeDirectory: string;
     /** Why evidence could not be written (first failure). */
     public problem?: string;
@@ -61,19 +61,25 @@ export class TaskTrace {
 
     private constructor(
         private readonly project: Project,
-        public readonly taskId: string,
+        /** Task name the trace belongs to (its directory is derived from the normalized name). */
+        public readonly taskName: string,
         secrets: readonly string[],
     ) {
-        this.relativeDirectory = traceDirectoryOf(taskId);
-        this.directory = join(project.root, 'traces', taskId);
+        this.relativeDirectory = traceDirectoryOf(taskName);
+        this.directory = join(project.root, this.relativeDirectory);
         this.redact = createRedactor(secrets);
     }
 
+    /** Normalized-name key of the trace (`traces/<key>/`). */
+    public get key(): string {
+        return this.relativeDirectory.slice('traces/'.length);
+    }
+
     /**
-     * Opens (creating when needed) the trace directory of a task.
+     * Opens (creating when needed) the trace directory of a task, named after its normalized name.
      */
-    public static async open(project: Project, taskId: string, secrets: readonly string[] = []): Promise<TaskTrace> {
-        const trace = new TaskTrace(project, taskId, secrets);
+    public static async open(project: Project, taskName: string, secrets: readonly string[] = []): Promise<TaskTrace> {
+        const trace = new TaskTrace(project, taskName, secrets);
         try {
             await ensureDirectory(trace.directory);
         } catch (error) {
@@ -170,8 +176,8 @@ export class TaskTrace {
  *
  * @private task traces
  */
-export function traceHeader(task: { readonly id: string; readonly title: string; readonly source: string }): string {
-    return `ptbk ${ENGINE_VERSION} · task ${task.id} · "${task.title}" · ${task.source}`;
+export function traceHeader(task: { readonly title: string; readonly source: string }): string {
+    return `ptbk ${ENGINE_VERSION} · task {${task.title}} · ${task.source}`;
 }
 
 /**

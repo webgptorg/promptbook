@@ -4,6 +4,9 @@ import { StateStore } from '../../engine/state.js';
 import { lookupService } from '../../service/control.js';
 import { acquireProjectLock } from '../../service/records.js';
 import { shortId } from '../../common/ids.js';
+import { parseReferenceValue } from '../../book/references.js';
+import { traceDirectoryOf } from '../../tasks/identity.js';
+import { nameKey } from '../../tasks/model.js';
 import { selectedProject } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
@@ -22,7 +25,8 @@ export default async function recover(context: CommandContext): Promise<number> 
     const { terminal } = context;
     const [reference] = context.positionals;
     const action = option<'resume' | 'retry' | 'acknowledge'>(context, 'action');
-    const matches = (record: (typeof records)[number]): boolean => !reference || [record.taskRef, record.sourcePath, record.taskId, `#${record.taskId}`].includes(reference);
+    const referenceKey = reference ? (parseReferenceValue(reference)?.normalized ?? nameKey(reference)) : undefined;
+    const matches = (record: (typeof records)[number]): boolean => !reference || [record.taskRef, record.sourcePath].includes(reference.replace(/\\/g, '/')) || (record.taskKey || nameKey(record.taskTitle)) === referenceKey;
     const record = records.find(matches);
     if (!reference || !action) {
         if (!records.length && !Object.keys(blockers).length) {
@@ -32,12 +36,12 @@ export default async function recover(context: CommandContext): Promise<number> 
         for (const record of records.filter(matches)) {
             const lines = [
                 `Task: ${record.taskTitle} (${record.taskRef}) — ${record.kind}${record === active ? '' : ' — checkpointed (independent work continues)'}`,
-                `Task ID: ${record.taskId ?? 'unknown'}${record.taskId ? ` · evidence: traces/${record.taskId}/` : ''}`,
+                `Evidence: ${traceDirectoryOf(record.taskTitle)}/`,
                 `Phase: ${record.phase}${record.failure ? ` — ${record.failure}` : ''}`,
                 `Attempts: ${record.attempt} implementation/repair, ${record.technicalRetries} technical retries`,
                 `Routing: ${record.routing.agent} on ${record.routing.harness}${record.routing.model ? ` ${record.routing.model}` : ''}`,
                 `Commit mode: ${record.noCommit ? 'no-commit' : 'automatic'}${record.commitSha ? `; committed ${record.commitSha}` : ''}`,
-                `Pending user request: ${record.requestId ?? record.recoveryRequestId ?? 'none'}`,
+                `Waiting for your reply: ${record.waitingChat ?? record.recoveryChat ? `chat {${record.waitingChat ?? record.recoveryChat}} (ptbk answer "${record.waitingChat ?? record.recoveryChat}")` : 'no'}`,
                 `Engine-created files: ${record.createdPaths.join(', ') || 'none'}`,
                 ...record.history.map((attempt) => `  attempt ${attempt.attempt}: ${attempt.outcome} — ${attempt.diagnostic}${attempt.trace ? ` (${attempt.trace})` : ''}`),
                 '',

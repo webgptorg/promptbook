@@ -46,7 +46,7 @@ export const COMMANDS: readonly CommandSpec[] = [
         aliases: ['initialize'],
         category: 'Start here',
         summary: 'Set up a project from your intent, then start its agenda in the background.',
-        description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (core agents Adam, Manager and Teacher plus default roles), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified), the project browser, trace settings and a real project check, and saves one ordinary Expert task that transforms the project according to the initial specification. Setup is committed with a "PTBK: " subject and the task's Task-ID trailer.
+        description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (core agents Adam, Manager, Teacher and Fixer plus default roles), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified), the project browser, trace settings and a real project check, and saves one ordinary Expert task that transforms the project according to the initial specification. Setup is committed with a "PTBK: " subject and the task's Task-Name trailer.
 
 After successful setup the agenda starts automatically as a background service (the same operation as \`ptbk start\`); init returns without waiting for the first task. Watch it with \`ptbk dashboard\`, stop it with \`ptbk stop\`. Repeating init with satisfied prerequisites changes nothing and reuses a running service.
 
@@ -79,7 +79,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                 options: [
                     { name: 'browser-profile', type: 'string', valueName: '<path|isolated>', description: 'Project browser profile.', defaultText: 'isolated profile in .ptbk/' },
                     { name: 'browser-mode', type: 'enum', values: ['headless', 'headful'], valueName: '<mode>', description: 'Browser visibility.', defaultText: 'headless' },
-                    { name: 'commit-traces', type: 'boolean', negatable: true, description: 'Include task traces (traces/<task-id>/) in result commits; --no-commit-traces ignores the whole traces/ folder.', defaultText: 'off' },
+                    { name: 'commit-traces', type: 'boolean', negatable: true, description: 'Include task traces (traces/<name-key>/) in result commits; --no-commit-traces ignores the whole traces/ folder.', defaultText: 'off' },
                     { name: 'ignore-trace-videos', type: 'boolean', negatable: true, description: 'Keep trace videos out of Git even when traces are committed.', defaultText: 'on' },
                     { name: 'record-video', type: 'boolean', negatable: true, description: 'Record browser activity of tasks using the project browser.', defaultText: 'on' },
                     { name: 'check', type: 'string', valueName: '<command>', description: 'Project check to save when none is configured (otherwise a temporary override).' },
@@ -158,7 +158,7 @@ Missing setup is offered through the same initialization workflow when interacti
         name: 'dashboard',
         category: 'Observe and respond',
         summary: 'Attach a live terminal view and controls to the running service.',
-        description: 'Continuously shows the shared project status (requests first, current work, queue, results and connection) and offers controls: A answer, P pause/resume, S skip a pacing wait, X stop the service, R renew pairing, O plain presentation, Q leave. Leaving never stops the service. With --raw it streams plain state changes instead.',
+        description: 'Continuously shows the shared project status (agents waiting for you first, current work, queue, results and connection) and offers controls: A opens the conversation of the agent waiting for you, C starts a new chat, L lists all chats, N focuses the next waiting chat, P pause/resume, S skip a pacing wait, X stop the service, R renew pairing, O plain presentation, Q leave. Leaving never stops the service. With --raw it streams plain state changes instead.',
         optionGroups: [{ title: 'View', options: [SERVER_OPTIONS.options[4]!] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
             { command: 'ptbk dashboard', description: 'Live view of the current project.' },
@@ -170,7 +170,7 @@ Missing setup is offered through the same initialization workflow when interacti
         name: 'status',
         aliases: ['show'],
         category: 'Observe and respond',
-        summary: 'Show one snapshot of the service status, requests and connection.',
+        summary: 'Show one snapshot of the service status, chat attention and connection.',
         description: 'Renders the same grouped status as the dashboard once and returns. It never starts work, a service or a tunnel, and never mints pairing credentials.',
         optionGroups: [{ title: 'View', options: [SERVER_OPTIONS.options[4]!, JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
@@ -180,29 +180,78 @@ Missing setup is offered through the same initialization workflow when interacti
         run: lazy(() => import('./commands/status.js')),
     },
     {
-        name: 'answer',
+        name: 'chat',
         category: 'Observe and respond',
-        summary: 'List and answer pending requests to the user.',
-        description: 'Without arguments, lists pending requests (and lets you pick and answer one interactively). With a request ID and an answer, applies it once. Works with or without a running service or HTTP.',
-        arguments: [
-            { name: 'request-id', description: 'Request to answer, e.g. r-k3x9m2.' },
-            { name: 'answer', description: 'Answer text (or one of the declared choices).', variadic: true },
-        ],
+        summary: 'Start a persistent conversation with one agent, or reopen a chat by name.',
+        description: 'Directly opens a new chat in the selected project: choose one agent first (visible project agents; More shows hidden/core agents and Expert), then talk in a full-screen conversation. Every message is saved in chats/ and committed ("PTBK: Chat - <name>"); the agent replies read-only and may create ordinary tasks when you ask for work. Ctrl+C closes only the client: the service and the conversation stay. Works with or without a running service; no dashboard is needed.',
+        arguments: [{ name: 'message', description: 'First message (noninteractive use; prints the reply when it arrives).', variadic: true }],
         optionGroups: [
             {
-                title: 'Answer',
+                title: 'Chat',
                 options: [
-                    { name: 'decline', type: 'boolean', description: 'Decline the request instead of answering.' },
-                    { name: 'stdin', type: 'boolean', description: 'Read the answer from standard input.' },
+                    { name: 'agent', type: 'string', valueName: '<agent>', description: 'Agent of the new chat, e.g. Developer, @Developer or "{Frontend Developer}".' },
+                    { name: 'open', type: 'string', valueName: '<name>', description: 'Reopen an existing chat by its name (normalized).' },
+                    { name: 'title', type: 'string', valueName: '<name>', description: 'Name of the new chat (default: derived from the agent and first message, made distinct).' },
+                    { name: 'list', type: 'boolean', description: 'List all chats (waiting for you first) and exit.' },
+                    { name: 'stdin', type: 'boolean', description: 'Read the message from standard input.' },
                     JSON_OPTION,
                 ],
             },
+            COMMIT_OPTIONS,
             PROJECT_OPTIONS,
             PRESENTATION_OPTIONS,
         ],
         examples: [
-            { command: 'ptbk answer', description: 'List pending requests.' },
-            { command: 'ptbk answer r-k3x9m2 "Use PostgreSQL"', description: 'Answer one request.' },
+            { command: 'ptbk chat', description: 'Choose an agent and start a new conversation.' },
+            { command: 'ptbk chat --agent Developer "How far is the CSV export?"', description: 'Start a chat noninteractively and print the reply.' },
+            { command: 'ptbk chat --open "Developer: How far is the CSV export?"', description: 'Reopen an existing chat.' },
+            { command: 'ptbk chat --list', description: 'List all chats.' },
+        ],
+        run: lazy(() => import('./commands/chat.js')),
+    },
+    {
+        name: 'ask',
+        category: 'Observe and respond',
+        summary: 'Ask one agent a quick question (saved as an ordinary chat) and print the answer.',
+        description: 'Creates a new chat with the agent (default: routing.defaultAgent), waits for its read-only answer and prints it. The question and answer stay in chats/ and can be continued with `ptbk chat --open`. Use `ptbk add` for explicit work.',
+        arguments: [{ name: 'question', description: 'Your question.', variadic: true }],
+        optionGroups: [
+            {
+                title: 'Question',
+                options: [
+                    { name: 'agent', type: 'string', valueName: '<agent>', description: 'Agent to ask (default: routing.defaultAgent).' },
+                    { name: 'title', type: 'string', valueName: '<name>', description: 'Name of the chat.' },
+                    { name: 'stdin', type: 'boolean', description: 'Read the question from standard input.' },
+                ],
+            },
+            COMMIT_OPTIONS,
+            PROJECT_OPTIONS,
+            PRESENTATION_OPTIONS,
+        ],
+        examples: [{ command: 'ptbk ask --agent Expert "Which commitments can a task Book use?"', description: 'Quick enquiry.' }],
+        run: lazy(() => import('./commands/ask.js')),
+    },
+    {
+        name: 'answer',
+        category: 'Observe and respond',
+        summary: 'Answer an agent that waits for you in a chat.',
+        description: 'Without arguments, lists chats whose agent waits for your answer, decision or action (and lets you pick and answer one interactively). With a chat name and an answer, appends it as your committed message; offered answers must be chosen exactly (ask questions with `ptbk chat --open`). The waiting task resumes on a valid answer. Works with or without a running service or HTTP.',
+        arguments: [
+            { name: 'chat', description: 'Name of the waiting chat.' },
+            { name: 'answer', description: 'Answer text (or one of the offered answers).', variadic: true },
+        ],
+        optionGroups: [
+            {
+                title: 'Answer',
+                options: [{ name: 'stdin', type: 'boolean', description: 'Read the answer from standard input.' }, JSON_OPTION],
+            },
+            COMMIT_OPTIONS,
+            PROJECT_OPTIONS,
+            PRESENTATION_OPTIONS,
+        ],
+        examples: [
+            { command: 'ptbk answer', description: 'List agents waiting for you.' },
+            { command: 'ptbk answer "Developer asks: Which database?" "Use PostgreSQL"', description: 'Answer one waiting chat.' },
         ],
         run: lazy(() => import('./commands/answer.js')),
     },
@@ -287,8 +336,8 @@ Missing setup is offered through the same initialization workflow when interacti
         name: 'list',
         category: 'Observe and respond',
         summary: 'List tasks with readiness explanations, or inspect one task (read-only).',
-        description: 'Shows the queue in execution order with the reason each task is ready, waiting or blocked, the same way start, run and the dashboards evaluate it. With a task reference (#task-id or source path) it shows that task’s ID, audit trail in traces/<task-id>/, recording status and the commits carrying its Task-ID. Never assigns IDs, calls a model or creates Manager tasks.',
-        arguments: [{ name: 'task', description: 'Task to inspect: #task-id, task ID or source path.' }],
+        description: 'Shows the queue in execution order with the reason each task is ready, waiting or blocked, the same way start, run and the dashboards evaluate it. With a task reference ({Task name}, @Name, a bare name or a source path) it shows the task, any same-name copies it shadows, its audit trail in traces/<name-key>/, recording status and the commits carrying its Task-Name. Never edits sources, calls a model or creates Manager tasks.',
+        arguments: [{ name: 'task', description: 'Task to inspect: "{Task name}", a bare name or a source path.' }],
         optionGroups: [
             {
                 title: 'Filter',

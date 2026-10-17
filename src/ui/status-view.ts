@@ -93,23 +93,24 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     );
     if (snapshot.service.persistenceNote) lines.push(`Persistence: ${snapshot.service.persistenceNote}`);
     lines.push(`Observed: ${snapshot.observedAt} (snapshot)`, '');
-    lines.push(`NEEDS YOUR ATTENTION (${snapshot.requests.length})`);
-    if (!snapshot.requests.length) lines.push('- nothing');
-    for (const request of snapshot.requests) {
-        lines.push(`- ${request.id}${request.blocking ? ' [blocking]' : ''} ${request.reason}`);
-        lines.push(`  ${request.question.replace(/\n/g, '\n  ')}`);
-        if (request.attempted) lines.push(`  Already attempted: ${request.attempted}`);
-        if (request.taskId) lines.push(`  Task ID: ${request.taskId}`);
-        if (request.choices?.length) lines.push(`  Choices: ${request.choices.join(' | ')}`);
-        lines.push(`  Answer: ptbk answer ${request.id} "<answer>"`);
+    const waiting = snapshot.chats.waiting;
+    lines.push(`NEEDS YOUR ATTENTION (${waiting.length})`);
+    if (!waiting.length) lines.push('- nothing');
+    for (const chat of waiting) {
+        lines.push(`- ${chat.awaiting?.sender ?? chat.agent ?? 'An agent'} waits for you in the chat {${chat.name}}`);
+        if (chat.awaiting) lines.push(`  ${chat.awaiting.text.replace(/\n/g, '\n  ')}`);
+        if (chat.awaiting?.choices?.length) lines.push(`  Choices: ${chat.awaiting.choices.join(' | ')}`);
+        if (chat.links.length) lines.push(`  Links: ${chat.links.join(', ')}`);
+        lines.push(`  Answer: ptbk answer "${chat.name}" "<answer>" · discuss: ptbk chat --open "${chat.name}"`);
     }
+    lines.push(`CHATS: ${snapshot.chats.total} total, ${snapshot.chats.unread} unread message(s), ${waiting.length} waiting for you (ptbk chat --list)`);
     lines.push('', 'CURRENT WORK');
     if (snapshot.current) {
         const current = snapshot.current;
         lines.push(`- ${current.agent.name} (${activityLabel(current.agent.activity)}) on "${current.taskTitle}" [${current.taskRef}]${current.kind !== 'task' ? ` (${current.kind})` : ''}`);
         lines.push(`  Harness: ${current.harnessName}; model: ${current.model ?? 'harness default (unknown)'}${current.modelSource === 'requested' ? ' (requested)' : ''}; thinking: ${current.thinkingLevel ?? 'default'}`);
         lines.push(`  Phase: ${current.phase}${current.attempt ? ` (attempt ${current.attempt}/${current.attemptBudget})` : ''}${current.detail ? `; ${current.detail}` : ''}`);
-        if (current.taskId) lines.push(`  Task ID: ${current.taskId}; trace: ${current.trace ?? `traces/${current.taskId}/`}`);
+        if (current.trace) lines.push(`  Trace: ${current.trace}`);
     } else lines.push(`- ${snapshot.phase}${snapshot.wait ? `: ${snapshot.wait.reason}` : ''}`);
     if (snapshot.wait && snapshot.current) lines.push(`  Waiting: ${snapshot.wait.reason}${snapshot.wait.until ? ` (until ${snapshot.wait.until})` : ''}`);
     if (snapshot.wait?.action) lines.push(`  Next action: ${snapshot.wait.action}`);
@@ -119,7 +120,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     for (const item of snapshot.queue.slice(0, 20)) lines.push(`- [${item.readiness}] ${item.title} (${item.ref})${item.agent ? ` ${item.agent}` : ''} — ${item.reason}`);
     if (snapshot.queue.length > 20) lines.push(`- … ${snapshot.queue.length - 20} more (ptbk list)`);
     lines.push('', `RESULTS: ${snapshot.results.completed} completed, ${snapshot.results.failed} failed`);
-    for (const result of snapshot.results.recent.slice(0, 5)) lines.push(`- ${result.outcome}: ${result.title}${result.commit ? ` (${result.commit.slice(0, 8)})` : ''}${result.taskId ? ` [Task-ID ${result.taskId}]` : ''}`);
+    for (const result of snapshot.results.recent.slice(0, 5)) lines.push(`- ${result.outcome}: ${result.title}${result.commit ? ` (${result.commit.slice(0, 8)})` : ''}`);
     const error = snapshot.errors[snapshot.errors.length - 1];
     if (error) lines.push(`Last error: ${error.summary}${error.next ? ` Next: ${error.next}` : ''}${error.trace ? ` Diagnostics: ${error.trace}` : ''}`);
     lines.push('', 'CONNECTION');
@@ -156,20 +157,18 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
 
     // Attention: highest priority, full width.
     const attention: string[] = [];
-    if (snapshot.requests.length) {
-        snapshot.requests.forEach((request, index) => {
-            const focused = options.live && index === options.live.focusRequest;
-            const marker = focused ? style.accent(marks.pointer) : style.warning(marks.warn);
-            attention.push(`${marker} ${style.bold(request.reason)} ${style.muted(`(${request.id}${request.blocking ? ', blocking' : ''})`)}`);
-            for (const line of wrap(request.question, total - 8).slice(0, focused ? 8 : 2)) attention.push(`   ${line}`);
-            if (focused && request.attempted) for (const line of wrap(`Already attempted: ${request.attempted}`, total - 8).slice(0, 3)) attention.push(`   ${style.muted(line)}`);
-            if (request.choices?.length) attention.push(`   ${style.muted('Choices:')} ${request.choices.map((choice, choiceIndex) => `${style.accent(`[${choiceIndex + 1}]`)} ${choice}`).join('  ')}`);
-            attention.push(`   ${style.muted(options.live ? 'Press A to answer' : `Answer: ptbk answer ${request.id}`)}${request.taskTitle ? style.muted(` · affects “${request.taskTitle}”`) : ''}`);
-        });
-    }
+    const waiting = snapshot.chats.waiting;
+    waiting.forEach((chat, index) => {
+        const focused = options.live && index === options.live.focusRequest;
+        const marker = focused ? style.accent(marks.pointer) : style.warning(marks.warn);
+        attention.push(`${marker} ${style.bold(chat.awaiting?.sender ?? chat.agent ?? 'An agent')} ${style.muted('waits for you in')} ${style.bold(`{${chat.name}}`)}${chat.unread ? style.accent(` · ${chat.unread} unread`) : ''}`);
+        for (const line of wrap(chat.awaiting?.text ?? '', total - 8).slice(0, focused ? 8 : 2)) attention.push(`   ${line}`);
+        if (chat.awaiting?.choices?.length) attention.push(`   ${style.muted('Choices:')} ${chat.awaiting.choices.map((choice, choiceIndex) => `${style.accent(`[${choiceIndex + 1}]`)} ${choice}`).join('  ')}`);
+        attention.push(`   ${style.muted(options.live ? 'Press A to open the conversation' : `Answer: ptbk answer "${chat.name}"`)}${chat.links.length ? style.muted(` · ${chat.links.join(', ')}`) : ''}`);
+    });
     if (options.live?.input) attention.push('', ...options.live.input);
-    if (attention.length) output.push(...renderPanel({ title: `${marks.warn} Needs your attention (${snapshot.requests.length})`, lines: attention, width: total, tone: 'attention', unicode, style }));
-    else output.push(style.muted(`  ${marks.ok} Nothing needs your attention.`));
+    if (attention.length) output.push(...renderPanel({ title: `${marks.warn} Needs your attention (${waiting.length})`, titleRight: `${snapshot.chats.total} chats · ${snapshot.chats.unread} unread`, lines: attention, width: total, tone: waiting.length ? 'attention' : 'accent', unicode, style }));
+    else output.push(style.muted(`  ${marks.ok} Nothing needs your attention.${snapshot.chats.total ? ` ${snapshot.chats.total} chat(s)${snapshot.chats.unread ? `, ${snapshot.chats.unread} unread message(s)` : ''}.` : ''}`));
 
     // Current work.
     const work: string[] = [];
@@ -183,7 +182,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         ];
         for (let row = 0; row < 3; row++) work.push(`${badgeLines[row]}  ${info[row]}`);
         work.push(`${style.muted('Phase')} ${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? style.muted(` · ${current.detail}`) : ''}`);
-        work.push(`${style.muted('Task ')} ${current.taskId ?? current.taskRef}${current.kind !== 'task' ? style.muted(` (${current.kind})`) : ''}${current.trace ? style.muted(` · trace ${current.trace}`) : ''}`);
+        work.push(`${style.muted('Task ')} ${current.taskRef}${current.kind !== 'task' ? style.muted(` (${current.kind})`) : ''}${current.trace ? style.muted(` · trace ${current.trace}`) : ''}`);
     } else {
         work.push(snapshot.service.state === 'stopped' ? style.muted('The service is stopped.') : `${style.bold(snapshot.phase)}${snapshot.wait ? ` ${marks.dot} ${snapshot.wait.reason}` : ''}`);
     }

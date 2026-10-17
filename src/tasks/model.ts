@@ -1,3 +1,4 @@
+import { formatAgentReference, normalizeAgentName } from '../book/references.js';
 import type { ThinkingLevel } from '../project/config.js';
 
 /**
@@ -88,12 +89,16 @@ export type TaskRouting = {
  * @private task model
  */
 export type Task = {
-    /** Stable reference: `#<TASK ID>`, otherwise the source path (with `#<section>` for Markdown). */
+    /** Reference to the task by its name (`{Improve CSV export}` or `@Name`). */
     readonly ref: string;
-    /** Explicit `TASK ID`. */
-    readonly id?: string;
-    /** Human title (not unique). */
+    /** Normalized name: the task's identity (no separate ID). */
+    readonly key: string;
+    /** Legacy `TASK ID` / Markdown `ptbk-task-id` value, kept only as historical metadata. */
+    readonly legacyId?: string;
+    /** Display name: the first nonempty line (not enforced unique; the resolver picks one winner). */
     readonly title: string;
+    /** Name of the Book that wins the same normalized name, when this task is shadowed by it. */
+    readonly shadowedBy?: string;
     /** Natural-language description. */
     readonly description: string;
     /** Task-local rules. */
@@ -161,4 +166,22 @@ export function assignmentText(task: Task): string {
     const parts = [task.description.trim()];
     if (task.rules.length) parts.push(task.rules.map((rule) => `RULE ${rule}`).join('\n'));
     return parts.filter(Boolean).join('\n\n');
+}
+
+/**
+ * Reference to a named Book (`@Name` for one word, `{Name}` otherwise).
+ *
+ * @private task model
+ */
+export function nameReference(name: string): string {
+    return formatAgentReference(name);
+}
+
+/**
+ * Normalized name key of a task, agent or chat name (identity comparison).
+ *
+ * @private task model
+ */
+export function nameKey(name: string): string {
+    return normalizeAgentName(name);
 }

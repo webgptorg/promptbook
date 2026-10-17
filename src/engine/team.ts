@@ -10,7 +10,8 @@ import { runHarness } from '../harness/run.js';
 import { ToolBridge, type BridgeTool, type ToolResult } from './bridge.js';
 import type { HarnessPool } from './harnesses.js';
 import { renderAgentInstructions } from './prompt.js';
-import type { RequestStore, UserRequest } from './requests.js';
+import type { TaskChats } from '../chats/task-chats.js';
+import { validateChoices } from '../chats/chat-book.js';
 import type { TaskTrace } from './task-trace.js';
 
 /**
@@ -30,9 +31,10 @@ export type TeamContext = {
     readonly catalog: AgentCatalog;
     readonly pool: HarnessPool;
     readonly settings: EffectiveSettings;
-    readonly requests: RequestStore;
-    /** Task reference, stable ID and title. */
-    readonly task: { readonly ref: string; readonly id?: string; readonly title: string; readonly occurrence?: string };
+    /** Chats of the executing task (absent where no human chat or recorded consultation is possible, e.g. planning). */
+    readonly chats?: TaskChats;
+    /** Task reference, name and occurrence. */
+    readonly task: { readonly ref: string; readonly title: string; readonly occurrence?: string };
     /** The task's audit trail (consultations are recorded in its harness log). */
     readonly trace?: TaskTrace;
     /** Consulting agent. */
@@ -47,32 +49,26 @@ export type TeamContext = {
     readonly questionsAllowed: boolean;
     /** Cancellation. */
     readonly signal: AbortSignal;
-    /** Records a created user request. */
-    readonly onUserRequest: (request: UserRequest) => void;
+    /** Records the chat now waiting for the user (the task checkpoints after its turn). */
+    readonly onUserChat: (chat: { readonly chat: string; readonly awaited: number }) => void;
     /** Activity reporting. */
     readonly onActivity: (text: string) => void;
 };
 
 /**
- * Creates a durable user request for a question and returns its reference promptly.
+ * Starts or continues the agent→User chat for a genuine blocker and returns promptly (the human answers later).
  */
 async function askUser(context: TeamContext, question: string, choices: unknown, reason: string, attempted = ''): Promise<ToolResult> {
-    if (!context.questionsAllowed) return { text: 'The user is not available for questions in this run (--no-questions). Decide reasonably or report blocked.', isError: true };
+    if (!context.questionsAllowed || !context.chats) return { text: 'The user is not available for questions in this run (--no-questions). Decide reasonably or report blocked.', isError: true };
     if (!question.trim()) return { text: 'The question is empty.', isError: true };
-    const request = await context.requests.create({
-        kind: Array.isArray(choices) && choices.length ? 'confirmation' : 'question',
-        reason: reason || `${context.agentName} needs your input on "${context.task.title}".`,
-        question,
-        attempted,
-        choices: Array.isArray(choices) ? (choices as string[]) : undefined,
-        origin: { kind: 'task', taskRef: context.task.ref, taskId: context.task.id, taskTitle: context.task.title, agent: context.agentName, occurrence: context.task.occurrence },
-        blocking: true,
-    });
-    context.onUserRequest(request);
-    context.onActivity(`asked the user (${request.id})`);
-    await context.trace?.event('user-request', { requestId: request.id, agent: context.agentName, question, reason: request.reason, attempted: request.attempted, choices: request.choices });
+    const problem = validateChoices(choices);
+    if (problem) return { text: `Invalid choices: ${problem}`, isError: true };
+    const chat = await context.chats.askUser({ agent: context.agentName, question, reason, attempted, choices: Array.isArray(choices) && choices.length ? (choices as string[]) : undefined });
+    context.onUserChat(chat);
+    context.onActivity(`${chat.reused ? 'still waiting for' : 'asked'} the user in the chat {${chat.chat}}`);
+    await context.trace?.event('user-chat', { chat: chat.chat, agent: context.agentName, question, reason, attempted, choices, reused: chat.reused });
     return {
-        text: `Created user request ${request.id}. The user answers asynchronously. End your turn now with PTBK_RESULT {"status":"waiting-for-user","summary":"…"}; the task resumes automatically with the answer.`,
+        text: `The question is in the chat {${chat.chat}}, waiting for the user. End your turn now with PTBK_RESULT {"status":"waiting-for-user","summary":"…"}; the task resumes automatically with the reply.`,
     };
 }
 
@@ -135,7 +131,11 @@ async function consultAgent(context: TeamContext, reference: string, question: s
         if (result.outcome !== 'completed') return { text: `Consultation of ${advisor.name} ended without an answer: ${result.diagnostic}`, isError: true };
         const limit = setting<number>(context.settings, 'team.maxResponseChars');
         const answer = result.finalMessage.trim() || '(no answer)';
-        return { text: answer.length > limit ? `${answer.slice(0, limit)}\n[… response truncated at ${limit} characters]` : answer };
+        const bounded = answer.length > limit ? `${answer.slice(0, limit)}\n[… response truncated at ${limit} characters]` : answer;
+        // Task-scoped agent↔agent conversation: a chat Book saved with the owning task's one result commit.
+        const chat = await context.chats?.recordConsultation({ from: context.agentName, to: advisor.name, question, answer: bounded }).catch(() => undefined);
+        if (chat) await context.trace?.event('consultation-chat', { chat });
+        return { text: bounded };
     } finally {
         context.signal.removeEventListener('abort', abort);
         await bridge.close();
@@ -154,7 +154,7 @@ export function teamTools(context: TeamContext, options: { includeUser?: boolean
         {
             name: 'consult',
             description:
-                'Consult another agent of this project (reference like "@Lawyer" or "{Frontend Developer}"), "@Expert" for Promptbook expertise, or "@User" to ask the human (only for a genuine blocker, see ask_user). Returns the advisor\'s answer; for @User it returns a pending request reference.',
+                'Consult another agent of this project (reference like "@Lawyer" or "{Frontend Developer}"), "@Expert" for Promptbook expertise, or "@User" to ask the human (only for a genuine blocker, see ask_user). Returns the advisor\'s answer; for @User it starts a chat waiting for the human.',
             inputSchema: {
                 type: 'object',
                 properties: { agent: { type: 'string', description: 'Agent reference, e.g. @Lawyer' }, question: { type: 'string' }, choices: { type: 'array', items: { type: 'string' }, description: 'Optional predefined answers (only for @User)' } },
@@ -177,7 +177,7 @@ export function teamTools(context: TeamContext, options: { includeUser?: boolean
         tools.push({
             name: 'ask_user',
             description:
-                'Exceptional: ask the human only when the work is genuinely blocked on something you cannot safely resolve (required login/2FA, missing authority, a consequential ambiguity the task and project do not settle). Never ask to confirm an already authorized or routine action, to choose ordinary implementation details, or to repeat the task. Returns a pending request reference immediately; then end your turn with status waiting-for-user.',
+                'Exceptional: ask the human only when the work is genuinely blocked on something you cannot safely resolve (required login/2FA, missing authority, a consequential ambiguity the task and project do not settle). Never ask to confirm an already authorized or routine action, to choose ordinary implementation details, or to repeat the task. Your question goes into a durable chat with the user; then end your turn with status waiting-for-user.',
             inputSchema: {
                 type: 'object',
                 properties: {

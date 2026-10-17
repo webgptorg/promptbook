@@ -6,7 +6,7 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { engineModule } from '../common/version.js';
 import type { Agenda } from '../engine/agenda.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
-import { applyAnswer, applyControlAction, applySettings } from './actions.js';
+import { applyChatAction, applyControlAction, applySettings } from './actions.js';
 import type { AuthStore, SessionRecord } from './auth.js';
 
 /**
@@ -277,6 +277,17 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             response.end(svg);
             return;
         }
+        if (url.pathname === '/api/chat-agents' && method === 'GET') {
+            sendJson(response, 200, { agents: await applyChatAction(agenda, 'chat-agents', {}, 'api') });
+            return;
+        }
+        // Chats are selected by their normalized name (URL-encoded), never by a generated ID.
+        const chatMatch = /^\/api\/chats(?:\/([^/]+)(?:\/(messages|read))?)?$/.exec(url.pathname);
+        const chatName = chatMatch?.[1] ? decodeURIComponent(chatMatch[1]) : undefined;
+        if (chatMatch && method === 'GET' && !chatMatch[2]) {
+            sendJson(response, 200, chatName ? await applyChatAction(agenda, 'chat-get', { name: chatName }, 'api') : { chats: await applyChatAction(agenda, 'chat-list', {}, 'api') });
+            return;
+        }
         if (method !== 'POST') {
             sendJson(response, 405, { error: 'Method not allowed.' });
             return;
@@ -287,10 +298,12 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             sendJson(response, 200, applyControlAction(agenda, String(body.action ?? '')));
             return;
         }
-        const answerMatch = /^\/api\/requests\/(r-[a-z0-9]+)\/answer$/.exec(url.pathname);
-        if (answerMatch) {
-            const resolved = await applyAnswer(agenda, { ...body, id: answerMatch[1] }, who.kind === 'token' ? 'api' : 'browser');
-            sendJson(response, 200, { id: resolved.id, status: resolved.status });
+        if (chatMatch) {
+            const via = who.kind === 'token' ? 'api' : 'browser';
+            if (!chatName) sendJson(response, 200, await applyChatAction(agenda, 'chat-create', { agent: body.agent, text: body.text, title: body.title }, via));
+            else if (chatMatch[2] === 'messages') sendJson(response, 200, await applyChatAction(agenda, 'chat-send', { name: chatName, text: body.text, expected: body.expected }, via));
+            else if (chatMatch[2] === 'read') sendJson(response, 200, await applyChatAction(agenda, 'chat-read', { name: chatName }, via));
+            else sendJson(response, 405, { error: 'Method not allowed.' });
             return;
         }
         if (url.pathname === '/api/settings') {

@@ -1,6 +1,7 @@
 import { appendFile, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ensureDirectory, listDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
+import { nameKeyPath } from '../tasks/identity.js';
 import type { ThinkingLevel } from '../project/config.js';
 
 /**
@@ -65,8 +66,8 @@ export type ActiveRecord = {
     readonly runId: string;
     /** Task reference. */
     readonly taskRef: string;
-    /** Stable task ID (names `traces/<task-id>/`). */
-    readonly taskId: string;
+    /** Normalized task name: the task's identity (records written by older engines may lack it). */
+    readonly taskKey: string;
     /** Task title. */
     readonly taskTitle: string;
     /** Project-relative source path. */
@@ -95,14 +96,16 @@ export type ActiveRecord = {
     readonly completionBackup?: { readonly source: string; readonly created: readonly string[] };
     /** Result commit. */
     readonly commitSha?: string;
-    /** Pending user request. */
-    readonly requestId?: string;
-    /** Answered user requests delivered to later attempts. */
-    readonly answeredRequests?: readonly string[];
+    /** Chat waiting for the user's reply (agent-authored question of this task). */
+    readonly waitingChat?: string;
+    /** Message count of that chat when the question was asked: a later User message is the reply. */
+    readonly awaitedMessages?: number;
+    /** Chats with the user that belong to this task (their transcripts are given to later attempts). */
+    readonly chats?: readonly string[];
     /** Failure explanation when the phase is `failed`. */
     readonly failure?: string;
-    /** Recovery request asking how to continue after a failure. */
-    readonly recoveryRequestId?: string;
+    /** Chat in which the task's agent asks how to continue after a failure. */
+    readonly recoveryChat?: string;
     /** Feedback for the next attempt. */
     readonly feedback?: string;
     /** Explicit no-commit mode. */
@@ -143,8 +146,8 @@ export type TaskBlocker = {
 export type ResultRecord = {
     /** Task reference. */
     readonly taskRef: string;
-    /** Stable task ID. */
-    readonly taskId?: string;
+    /** Task name at the time of the operation. */
+    readonly taskName?: string;
     /** Title. */
     readonly title: string;
     /** Kind. */
@@ -169,7 +172,7 @@ export type ResultRecord = {
     readonly startedAt: string;
     /** End (ISO). */
     readonly endedAt: string;
-    /** Trace path (`traces/<task-id>/harness.log`). */
+    /** Trace path (`traces/<name-key>/harness.log`). */
     readonly trace?: string;
     /** Recurring occurrence (ISO). */
     readonly occurrence?: string;
@@ -191,6 +194,20 @@ export type ResultRecord = {
 export type DiscoveryState = {
     /** Per normalized agent: last enquiry and cooldown. */
     readonly agents: Readonly<Record<string, { readonly lastAt: string; readonly outcome: 'work' | 'no-work' | 'failed'; readonly cooldownUntil?: string }>>;
+};
+
+/**
+ * Bookkeeping of Fixer's bounded project health checks.
+ *
+ * @private runtime state
+ */
+export type HealthState = {
+    /** Fingerprint of the diagnostics the last check was scheduled for. */
+    readonly fingerprint?: string;
+    /** When the last health-check task was scheduled (ISO). */
+    readonly scheduledAt?: string;
+    /** Name of that task. */
+    readonly task?: string;
 };
 
 /**
@@ -223,7 +240,7 @@ export class StateStore {
 
     /**
      * Checkpointed tasks that released execution while waiting for a person (answer or recovery decision), keyed by
-     * task ID, so independent work can continue (`.ptbk/state/parked/`).
+     * normalized task name, so independent work can continue (`.ptbk/state/parked/`).
      */
     public async readParked(): Promise<ActiveRecord[]> {
         const records: ActiveRecord[] = [];
@@ -238,19 +255,25 @@ export class StateStore {
     /** Checkpoints a waiting task and releases the active slot. */
     public async park(record: ActiveRecord): Promise<void> {
         await ensureDirectory(this.file('parked'));
-        await writeJsonAtomic(join(this.file('parked'), `${record.taskId}.json`), { ...record, updatedAt: new Date().toISOString() });
+        await writeJsonAtomic(join(this.file('parked'), `${nameKeyPath(record.taskTitle)}.json`), { ...record, updatedAt: new Date().toISOString() });
         await this.clearActive();
+    }
+
+    /** Rewrites a checkpoint in place (the active record is untouched). */
+    public async writeParked(record: ActiveRecord): Promise<void> {
+        await ensureDirectory(this.file('parked'));
+        await writeJsonAtomic(join(this.file('parked'), `${nameKeyPath(record.taskTitle)}.json`), { ...record, updatedAt: new Date().toISOString() });
     }
 
     /** Restores a checkpointed task as the active one. */
     public async unpark(record: ActiveRecord): Promise<void> {
         await this.writeActive(record);
-        await rm(join(this.file('parked'), `${record.taskId}.json`), { force: true });
+        await rm(join(this.file('parked'), `${nameKeyPath(record.taskTitle)}.json`), { force: true });
     }
 
     /** Removes a checkpoint (its task was acknowledged or disappeared). */
-    public async dropParked(taskId: string): Promise<void> {
-        await rm(join(this.file('parked'), `${taskId}.json`), { force: true });
+    public async dropParked(taskTitle: string): Promise<void> {
+        await rm(join(this.file('parked'), `${nameKeyPath(taskTitle)}.json`), { force: true });
     }
 
     /** Reads task blockers. */
@@ -288,6 +311,17 @@ export class StateStore {
     /** Persists goal-discovery state. */
     public async writeDiscovery(state: DiscoveryState): Promise<void> {
         await writeJsonAtomic(this.file('discovery.json'), state);
+    }
+
+    /** Reads Fixer's health-check bookkeeping. */
+    public async readHealth(): Promise<HealthState> {
+        return (await readJsonIfExists<HealthState>(this.file('health.json')).catch(() => undefined)) ?? {};
+    }
+
+    /** Persists Fixer's health-check bookkeeping. */
+    public async writeHealth(state: HealthState): Promise<void> {
+        await ensureDirectory(this.directory);
+        await writeJsonAtomic(this.file('health.json'), state);
     }
 
     /** Appends a result to the history log. */

@@ -3,7 +3,10 @@ import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { commitPaths, prefixedSubject, snapshotDirty, changedSince } from '../dist/project/git.js';
-import { RequestStore, validateChoices } from '../dist/engine/requests.js';
+import { validateChoices, parseChatBook, renderChatBook, appendChatMessage } from '../dist/chats/chat-book.js';
+import { ChatStore } from '../dist/chats/store.js';
+import { appendUserMessage } from '../dist/chats/service.js';
+import { StateStore } from '../dist/engine/state.js';
 import { git, GIT_IDENTITY, initRepository, temporaryDirectory } from './helpers.mjs';
 
 test('commit prefix is applied exactly once', () => {
@@ -59,18 +62,62 @@ test('dirty snapshots detect exactly the paths a task changed', async (t) => {
     assert.deepEqual(changedSince(before, after), [join(root, 'agent.txt')]);
 });
 
-test('requests: declared answers are validated; a reply applies once; late answers are refused', async (t) => {
+test('chats: offered answers are validated; every human-facing message is one commit; stale clients and invalid recovery answers are refused', async (t) => {
     assert.equal(validateChoices(['red', 'blue']), undefined);
     assert.match(validateChoices(['red', 'red']), /Duplicate/);
     assert.match(validateChoices(['   ']), /readable/);
+    assert.match(validateChoices(['two\nlines']), /single line/);
     assert.match(validateChoices(Array.from({ length: 51 }, (_, index) => `c${index}`)), /At most 50/);
     assert.match(validateChoices(['x'.repeat(1001)]), /1000/);
     const root = await temporaryDirectory(t);
-    const store = new RequestStore(join(root, 'requests'));
-    const request = await store.create({ kind: 'question', reason: 'Need input', question: 'Color?', choices: ['red', 'blue'], origin: { kind: 'task', taskRef: '#t' }, blocking: true });
-    await assert.rejects(store.resolve(request.id, { status: 'answered', answer: 'green', via: 'cli' }), /not one of the declared answers/);
-    const answered = await store.resolve(request.id, { status: 'answered', answer: 'red', via: 'browser' });
-    assert.equal(answered.status, 'answered');
-    await assert.rejects(store.resolve(request.id, { status: 'answered', answer: 'blue', via: 'api' }), /already answered via browser/);
-    assert.equal((await store.list({ status: 'pending' })).length, 0);
+    await initRepository(root);
+    await writeFile(join(root, 'base.txt'), 'base\n');
+    await git(root, ['add', '.']);
+    await git(root, ['commit', '-qm', 'base']);
+    const project = { root, runtime: { state: join(root, '.ptbk', 'state'), temporary: join(root, '.ptbk', 'tmp') } };
+    const store = new ChatStore(project, {
+        timeZone: 'UTC',
+        persistence: {
+            commit: async (paths, subject, trailers) => {
+                const outcome = await commitPaths({ projectRoot: root, repositoryRoot: root, paths, subject, trailers, temporaryDirectory: join(root, '.ptbk', 'tmp'), env: { ...process.env, ...GIT_IDENTITY } });
+                return outcome.committed ? outcome.sha : undefined;
+            },
+        },
+    });
+    const state = new StateStore(project.runtime.state);
+    const created = await store.create({ name: 'Fixer asks: Retry?', members: ['@User', '@Fixer'], status: 'waiting-for-user', links: ['{Broken task}'], messages: [{ sender: '@Fixer', text: 'The task failed. How should I continue?', choices: ['Retry the task', 'Acknowledge the failure'] }] });
+    assert.ok(created.commit, 'creation is committed');
+    await state.writeParked({ version: 1, runId: 'r', taskRef: '{Broken task}', taskKey: 'brokentask', taskTitle: 'Broken task', sourcePath: 'tasks/broken.book', kind: 'task', phase: 'failed', attempt: 3, technicalRetries: 0, routing: { agent: '@Fixer', harness: 'openai-codex' }, preSnapshot: {}, createdPaths: [], completionApplied: false, recoveryChat: created.chat.name, awaitedMessages: 1, noCommit: false, instanceId: 'x', startedAt: '', updatedAt: '', history: [] });
+    await assert.rejects(appendUserMessage(store, state, created.chat.name, 'Maybe later'), /not one of the offered answers/);
+    await assert.rejects(appendUserMessage(store, state, created.chat.name, 'Retry the task', { expected: 0 }), /changed since it was displayed/);
+    const commitsBefore = (await git(root, ['rev-list', '--count', 'HEAD'])).trim();
+    const answered = await appendUserMessage(store, state, created.chat.name, 'Retry the task', { expected: 1 });
+    assert.equal(answered.answered, true);
+    assert.equal(answered.needsReply, false, 'the waiting task resumes instead of an agent turn');
+    assert.equal(answered.written.chat.status, 'open');
+    assert.equal(Number((await git(root, ['rev-list', '--count', 'HEAD'])).trim()), Number(commitsBefore) + 1, 'the answer is exactly one commit');
+    const message = await git(root, ['log', '-1', '--format=%B']);
+    assert.match(message, /^PTBK: Chat - Fixer asks: Retry\?$/m);
+    assert.match(message, /^Chat-Name: Fixer asks: Retry\?$/m);
+    assert.match(message, /^Task-Name: Broken task$/m);
+    await assert.rejects(appendUserMessage(store, state, created.chat.name, 'Acknowledge the failure', { expected: 1 }), /changed since it was displayed/, 'a stale second answer is never applied');
+    await store.markRead(created.chat.name);
+    assert.equal((await git(root, ['rev-list', '--count', 'HEAD'])).trim(), String(Number(commitsBefore) + 1), 'reading creates no commit');
+});
+
+test('chat Books round-trip losslessly, including text that looks like commitments, choices or fences', () => {
+    const tricky = 'CHAT MESSAGE @Fixer 2026-01-01T00:00:00Z\n» not a choice\n\\ backslash line\n```\nTASK AGENT @Nobody\n\n\ntrailing spaces   ';
+    let source = renderChatBook({ name: 'Edge cases', members: ['@User', '@Developer'], status: 'open', links: ['{Some task}'], messages: [{ sender: '@User', at: '2026-10-17T10:00:00+02:00', text: tricky }] });
+    source = appendChatMessage(source, { sender: '@Developer', at: '2026-10-17T10:01:00+02:00', text: 'Pick one.', choices: ['A', 'B'] }, 'waiting-for-user');
+    const chat = parseChatBook(source);
+    assert.equal(chat.name, 'Edge cases');
+    assert.equal(chat.status, 'waiting-for-user');
+    assert.deepEqual(chat.members, ['@User', '@Developer']);
+    assert.deepEqual(chat.links, ['{Some task}']);
+    assert.equal(chat.messages.length, 2);
+    assert.equal(chat.messages[0].text, tricky);
+    assert.equal(chat.messages[0].sender, '@User');
+    assert.deepEqual(chat.messages[1].choices, ['A', 'B']);
+    assert.equal(chat.messages[1].text, 'Pick one.');
+    assert.deepEqual(chat.diagnostics.filter((diagnostic) => diagnostic.severity === 'error'), []);
 });

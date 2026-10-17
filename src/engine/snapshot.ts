@@ -1,3 +1,4 @@
+import type { ChatSummary } from '../chats/store.js';
 import type { BadgeActivity } from '../ui/badges.js';
 
 /**
@@ -53,9 +54,7 @@ export type AgentView = {
  */
 export type CurrentWorkView = {
     readonly taskRef: string;
-    /** Stable task ID (also in its commits' `Task-ID` trailer). */
-    readonly taskId?: string;
-    /** Project-relative audit directory (`traces/<task-id>/`). */
+    /** Project-relative audit directory (`traces/<name-key>/`). */
     readonly trace?: string;
     readonly taskTitle: string;
     /** task, assignment, learning, discovery, ... */
@@ -74,7 +73,7 @@ export type CurrentWorkView = {
     readonly startedAt: string;
     /** For assignment work: the target task. */
     readonly target?: { readonly ref: string; readonly title: string };
-    /** Extra detail (check command, request id, ...). */
+    /** Extra detail (check command, waiting chat, ...). */
     readonly detail?: string;
 };
 
@@ -101,8 +100,6 @@ export type WaitView = {
  */
 export type QueueItemView = {
     readonly ref: string;
-    /** Stable task ID (absent until prepared for execution). */
-    readonly id?: string;
     readonly title: string;
     readonly readiness: string;
     readonly reason: string;
@@ -122,8 +119,6 @@ export type QueueItemView = {
  */
 export type ResultView = {
     readonly ref: string;
-    /** Stable task ID. */
-    readonly taskId?: string;
     /** Consolidated harness log of the task. */
     readonly trace?: string;
     /** Recurring occurrence (ISO). */
@@ -140,26 +135,26 @@ export type ResultView = {
 };
 
 /**
- * A pending human request (highest visual priority).
+ * One chat in status views: waiting-for-user chats are the highest-priority attention items.
  *
  * @private shared status view model
  */
-export type RequestView = {
-    readonly id: string;
-    readonly kind: string;
-    readonly reason: string;
-    readonly question: string;
-    readonly choices?: readonly string[];
-    readonly blocking: boolean;
-    readonly createdAt: string;
-    readonly taskRef?: string;
-    /** Stable ID of the originating task. */
-    readonly taskId?: string;
-    readonly taskTitle?: string;
-    readonly agent?: string;
-    readonly origin: string;
-    /** Safe resolution already attempted. */
-    readonly attempted?: string;
+export type ChatView = ChatSummary;
+
+/**
+ * Chat attention: chats awaiting the user (agent-authored questions), unread counts and recent threads.
+ *
+ * @private shared status view model
+ */
+export type ChatsView = {
+    /** Chats whose agent waits for the user's answer or action, most urgent first. */
+    readonly waiting: readonly ChatView[];
+    /** Unread messages across chats (not necessarily actionable). */
+    readonly unread: number;
+    /** All chats. */
+    readonly total: number;
+    /** Recently active chats (bounded). */
+    readonly recent: readonly ChatView[];
 };
 
 /**
@@ -185,7 +180,6 @@ export type ErrorView = {
     readonly summary: string;
     readonly phase?: string;
     readonly task?: string;
-    readonly taskId?: string;
     readonly next?: string;
     readonly trace?: string;
 };
@@ -272,7 +266,8 @@ export type ServiceSnapshot = {
     readonly queue: readonly QueueItemView[];
     readonly queueTotal: number;
     readonly results: { readonly completed: number; readonly failed: number; readonly recent: readonly ResultView[] };
-    readonly requests: readonly RequestView[];
+    /** Chat attention summary (agent-authored waiting chats first). */
+    readonly chats: ChatsView;
     readonly blockers: readonly BlockerView[];
     readonly errors: readonly ErrorView[];
     readonly activity: readonly ActivityView[];

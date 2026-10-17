@@ -15,7 +15,7 @@ export type Readiness =
     | { readonly kind: 'active'; readonly reason: string }
     | { readonly kind: 'waiting-until'; readonly until: number; readonly reason: string }
     | { readonly kind: 'waiting-dependency'; readonly reason: string; readonly on: readonly string[] }
-    | { readonly kind: 'awaiting-user'; readonly reason: string; readonly requestId: string }
+    | { readonly kind: 'awaiting-user'; readonly reason: string; readonly chat: string }
     | { readonly kind: 'blocked'; readonly reason: string; readonly next?: string }
     | { readonly kind: 'incompatible'; readonly reason: string }
     | { readonly kind: 'not-ready'; readonly reason: string }
@@ -46,19 +46,19 @@ export type EligibilityContext = {
     readonly now: number;
     /** Time zone for display. */
     readonly timeZone: string;
-    /** Reference of the task currently owning execution. */
-    readonly activeRef?: string;
-    /** Pending human requests per task reference. */
+    /** Normalized name of the task currently owning execution. */
+    readonly activeKey?: string;
+    /** Chat waiting for the user, per task name key. */
     readonly awaitingUser: ReadonlyMap<string, string>;
-    /** Runtime recovery/failure blockers per task reference. */
+    /** Runtime recovery/failure blockers per task name key. */
     readonly recovery: ReadonlyMap<string, string>;
     /** Task source files that are not committed (only relevant with automatic commits). */
     readonly uncommittedSources: ReadonlySet<string>;
-    /** Retained activation time (recurrence anchor) per task reference. */
+    /** Retained activation time (recurrence anchor) per task name key. */
     readonly activation: (task: Task) => number;
     /** Routing check. */
     readonly route: (task: Task) => Promise<RouteCheck>;
-    /** Unfinished Manager assignment task per target reference. */
+    /** Unfinished Manager assignment task per target name key. */
     readonly assignmentFor: ReadonlyMap<string, string>;
 };
 
@@ -76,13 +76,13 @@ function isComplete(task: Task): boolean {
 function inDependencyCycle(start: Task, tasks: readonly Task[]): boolean {
     const visiting = new Set<string>();
     const visit = (task: Task): boolean => {
-        if (visiting.has(task.ref)) return task.ref === start.ref;
-        visiting.add(task.ref);
+        if (visiting.has(task.key)) return task.key === start.key;
+        visiting.add(task.key);
         for (const reference of task.dependsOn) {
             const found = findTask(tasks, reference).task;
             if (found && visit(found)) return true;
         }
-        visiting.delete(task.ref);
+        visiting.delete(task.key);
         return false;
     };
     return visit(start);
@@ -94,7 +94,10 @@ function inDependencyCycle(start: Task, tasks: readonly Task[]): boolean {
  * @private task eligibility
  */
 export async function evaluateTask(task: Task, tasks: readonly Task[], context: EligibilityContext): Promise<Readiness> {
-    if (context.activeRef === task.ref) return { kind: 'active', reason: 'Currently executing.' };
+    if (task.shadowedBy) {
+        return { kind: 'blocked', reason: `Shadowed: ${task.shadowedBy} wins the same name "${task.title}", so this copy is not a separate task.`, next: 'Rename one of them (Fixer can propose a correction).' };
+    }
+    if (context.activeKey === task.key) return { kind: 'active', reason: 'Currently executing.' };
     if (task.status === 'retired') return { kind: 'retired', reason: 'Recurring work retired.' };
     if (task.status === 'done') return { kind: 'done', reason: `Completed ${task.doneStamps[task.doneStamps.length - 1] ?? ''}`.trim() };
     if (hasBlockingDiagnostics(task)) {
@@ -111,15 +114,14 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
     if (task.status === 'not-ready') return { kind: 'not-ready', reason: 'Held as not ready.' };
     if (task.status === 'failed') return { kind: 'failed', reason: 'Marked as failed; use `ptbk recover` to retry or acknowledge.' };
     if (task.status === 'needs-recovery') return { kind: 'needs-recovery', reason: 'Interrupted work requires recovery (`ptbk recover`).' };
-    const recovery = context.recovery.get(task.ref);
+    const recovery = context.recovery.get(task.key);
     if (recovery) return { kind: 'needs-recovery', reason: recovery };
-    const request = context.awaitingUser.get(task.ref);
-    if (request) return { kind: 'awaiting-user', reason: `Waiting for your answer to request ${request}.`, requestId: request };
+    const chat = context.awaitingUser.get(task.key);
+    if (chat) return { kind: 'awaiting-user', reason: `Waiting for your reply in the chat {${chat}}.`, chat };
     const waitingOn: string[] = [];
     for (const reference of task.dependsOn) {
         const found = findTask(tasks, reference);
-        if (found.ambiguous) return { kind: 'blocked', reason: `Dependency ${reference} is ambiguous (${found.ambiguous.map((item) => item.source.relativePath).join(', ')}).` };
-        if (!found.task) return { kind: 'blocked', reason: `Dependency ${reference} was not found.`, next: 'Fix the TASK DEPENDS ON reference.' };
+        if (!found.task) return { kind: 'blocked', reason: `Dependency ${reference} was not found.`, next: 'Fix the TASK DEPENDS ON reference (dependencies name tasks).' };
         if (!isComplete(found.task)) waitingOn.push(found.task.ref);
     }
     if (task.dependsOn.length && inDependencyCycle(task, tasks)) return { kind: 'blocked', reason: 'The task is part of a dependency cycle.', next: 'Remove one TASK DEPENDS ON in the cycle.' };
@@ -140,7 +142,7 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
             next: 'Commit it (or create tasks with `ptbk add`, which commits automatically).',
         };
     }
-    const assignment = context.assignmentFor.get(task.ref);
+    const assignment = context.assignmentFor.get(task.key);
     if (assignment) return { kind: 'assigning', reason: `Manager is assigning routing (${assignment}).`, via: assignment };
     const route = await context.route(task);
     if (route.kind === 'needs-assignment') return { kind: 'needs-assignment', reason: route.reason };

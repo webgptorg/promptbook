@@ -16,13 +16,14 @@ import { runHarness, type HarnessRunResult } from '../harness/run.js';
 import { readTaskBook, stampBookCompletion } from '../tasks/book-task.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
 import { assignmentText, isRecurring, type Task } from '../tasks/model.js';
-import { assignFollowUpIds, declaredTaskIds } from '../tasks/prepare.js';
-import { readTaskQueue } from '../tasks/sources.js';
+import { parseBook } from '../book/parse.js';
+import { normalizeAgentName } from '../book/references.js';
 import { ToolBridge, type BridgeTool } from './bridge.js';
 import { createLearningTask, isTeacher } from './generated.js';
 import type { HarnessPool } from './harnesses.js';
 import { buildTaskPrompt } from './prompt.js';
-import type { RequestStore, UserRequest } from './requests.js';
+import type { ChatStore } from '../chats/store.js';
+import { taskChats } from '../chats/task-chats.js';
 import { parseAgentReport, type AgentReport } from './result.js';
 import type { RouteResolution } from './routing.js';
 import type { ActiveRecord, ResultRecord, RoutingSelection, StateStore, WorkKind } from './state.js';
@@ -69,8 +70,8 @@ export type ExecutionHooks = {
     readonly gitLock: <T>(action: () => Promise<T>) => Promise<T>;
     /** Absolute paths written by concurrent authoring (never attributed to the task). */
     readonly excludedPaths: () => ReadonlySet<string>;
-    /** Additional tools (project browser); they report created user requests like `ask_user`. */
-    readonly extraTools?: (context: { readonly onUserRequest: (request: UserRequest) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
+    /** Additional tools (project browser); a human-only step becomes a chat waiting for the user, like `ask_user`. */
+    readonly extraTools?: (context: { readonly chats: ReturnType<typeof taskChats>; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
     /** Finalizes evidence that belongs in the result commit (browser recordings of this task). */
     readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
 };
@@ -86,7 +87,10 @@ export type ExecutionEnvironment = {
     readonly catalog: AgentCatalog;
     readonly pool: HarnessPool;
     readonly state: StateStore;
-    readonly requests: RequestStore;
+    /** The project's chats (human-facing questions are committed per message). */
+    readonly chats: ChatStore;
+    /** Normalized names of every Book (new chats get distinct names). */
+    readonly takenNames: () => ReadonlySet<string>;
     /** Git working tree root. */
     readonly repositoryRoot: string;
     /** Owning process instance. */
@@ -132,8 +136,8 @@ export type WorkItem = {
     readonly extraPrompt?: string;
     /** Engine-created files belonging to this work (absolute). */
     readonly createdPaths: readonly string[];
-    /** Other tasks this work changes on purpose (e.g. the target of an assignment), for commit metadata. */
-    readonly relatedTaskIds?: readonly string[];
+    /** Other tasks this work changes on purpose (e.g. the target of an assignment), by name, for commit metadata. */
+    readonly relatedTaskNames?: readonly string[];
     /** Validates a `done` report and returns extra edits to apply. */
     readonly validateReport?: (report: AgentReport, changedPaths: readonly string[]) => Promise<ReportValidation>;
     /** Create a Teacher follow-up on success (optionally decided from the changed paths). */
@@ -157,7 +161,7 @@ export type WorkItem = {
  */
 export type ExecutionOutcome =
     | { readonly kind: 'completed'; readonly commit?: string; readonly summary: string; readonly changedPaths: readonly string[]; readonly report?: AgentReport }
-    | { readonly kind: 'awaiting-user'; readonly requestId: string }
+    | { readonly kind: 'awaiting-user'; readonly chat: string }
     | { readonly kind: 'failed'; readonly reason: string; readonly trace?: string }
     | { readonly kind: 'setup'; readonly reason: string; readonly next?: string }
     | { readonly kind: 'quota'; readonly reason: string; readonly retryAfterMs: number }
@@ -231,7 +235,7 @@ async function applyCompletion(environment: ExecutionEnvironment, item: WorkItem
     let updated: string;
     if (task.source.kind === 'book') {
         const current = readTaskBook({ source: original, path: task.source.path, relativePath: task.source.relativePath, order: 0, timeZone: environment.timeZone });
-        if (!current || current.title !== task.title || (task.id && current.id !== task.id)) {
+        if (!current || current.key !== task.key) {
             throw new PtbkError('The task source changed identity during execution.', {
                 kind: 'conflict',
                 task: task.ref,
@@ -245,48 +249,44 @@ async function applyCompletion(environment: ExecutionEnvironment, item: WorkItem
         updated = stampBookCompletion(updated, at, environment.timeZone);
     } else {
         const annotation = `done ${formatIsoWithOffset(at, environment.timeZone)} by ${item.route.selection.agent} (${item.route.selection.harness}${item.route.selection.model ? ` ${item.route.selection.model}` : ''})`;
-        updated = setMarkdownControl(original, { id: task.id, hash: task.source.sectionHash }, 'x', annotation);
+        updated = setMarkdownControl(original, { hash: task.source.sectionHash }, 'x', annotation);
     }
     await writeFile(task.source.path, updated);
     return { paths: [task.source.relativePath], revert: async () => writeFile(task.source.path, original) };
 }
 
 /**
- * Task IDs of a commit beyond the executing task: follow-ups created by the work and other tasks it changed.
+ * Task names declared in a task source text (a Book, or the sections of a Markdown file).
  */
-async function commitTaskIds(environment: ExecutionEnvironment, task: Task, owned: readonly string[], related: readonly string[]): Promise<{ created: string[]; related: string[] }> {
-    const created = new Set<string>();
-    const touched = new Set<string>(related);
-    for (const relativePath of owned) {
-        if (!/\.(book|md)$/i.test(relativePath)) continue;
-        const absolutePath = resolve(environment.project.root, relativePath);
-        const current = await readFile(absolutePath, 'utf8').catch(() => undefined);
-        if (current === undefined) continue;
-        const before = new Set(declaredTaskIds(absolutePath, (await readAtHead(environment.repositoryRoot, absolutePath)) ?? ''));
-        for (const id of declaredTaskIds(absolutePath, current)) {
-            if (id === task.id) continue;
-            if (before.has(id)) touched.add(id);
-            else created.add(id);
-        }
+function declaredTaskNames(path: string, source: string): string[] {
+    if (!source) return [];
+    if (path.toLowerCase().endsWith('.book')) {
+        const document = parseBook(source, { defaultKind: 'task' });
+        return document.kind === 'task' && document.name ? [document.name] : [];
     }
-    return { created: [...created], related: [...touched].filter((id) => id !== task.id && !created.has(id)) };
+    return [];
 }
 
 /**
- * Gives task files written by the agent during this work their own IDs (before checks, inside the result commit).
+ * Task names of a commit beyond the executing task: follow-ups created by the work and other tasks it changed.
  */
-async function prepareFollowUps(environment: ExecutionEnvironment, task: Task, owned: readonly string[]): Promise<void> {
-    const candidates = owned.filter((path) => /\.(book|md)$/i.test(path) && path !== task.source.relativePath);
-    if (!candidates.length) return;
-    const tasksRelative = toProjectRelative(environment.project.root, environment.tasksDirectory);
-    const queue = await readTaskQueue({ root: environment.project.root, tasksDirectory: environment.tasksDirectory, timeZone: environment.timeZone });
-    for (const relativePath of candidates) {
-        const directory = relativePath.includes('/') ? relativePath.slice(0, relativePath.lastIndexOf('/')) : '';
-        if (directory !== tasksRelative && directory !== 'prompts') continue;
+async function commitTaskNames(environment: ExecutionEnvironment, task: Task, owned: readonly string[], related: readonly string[]): Promise<{ created: string[]; related: string[] }> {
+    const created = new Map<string, string>();
+    const touched = new Map<string, string>(related.map((name) => [normalizeAgentName(name), name]));
+    for (const relativePath of owned) {
+        if (!/\.book$/i.test(relativePath)) continue;
         const absolutePath = resolve(environment.project.root, relativePath);
-        const otherIds = new Set(queue.tasks.filter((other) => other.source.relativePath !== relativePath && other.id).map((other) => other.id!));
-        await assignFollowUpIds({ path: absolutePath, relativePath, previous: await readAtHead(environment.repositoryRoot, absolutePath), otherIds, timeZone: environment.timeZone });
+        const current = await readFile(absolutePath, 'utf8').catch(() => undefined);
+        if (current === undefined) continue;
+        const before = new Set(declaredTaskNames(absolutePath, (await readAtHead(environment.repositoryRoot, absolutePath)) ?? '').map(normalizeAgentName));
+        for (const name of declaredTaskNames(absolutePath, current)) {
+            const key = normalizeAgentName(name);
+            if (key === task.key) continue;
+            if (before.has(key)) touched.set(key, name);
+            else created.set(key, name);
+        }
     }
+    return { created: [...created.values()], related: [...touched.entries()].filter(([key]) => key !== task.key && !created.has(key)).map(([, name]) => name) };
 }
 
 /**
@@ -308,8 +308,7 @@ async function traceCommitPaths(environment: ExecutionEnvironment, trace: TaskTr
 export async function executeWork(environment: ExecutionEnvironment, item: WorkItem): Promise<ExecutionOutcome> {
     const { project, settings, state, hooks } = environment;
     const task = item.task;
-    if (!task.id) throw new PtbkError(`"${task.title}" has no stable task ID; it must be prepared before execution.`, { kind: 'internal', task: task.ref });
-    const taskId = task.id;
+    if (!task.key) throw new PtbkError(`"${task.title}" has no usable name.`, { kind: 'internal', task: task.ref });
     const selection: RoutingSelection = item.route.selection;
     const repairBudget = Math.max(1, setting<number>(settings, 'execution.repairAttempts'));
     const technicalBudget = setting<number>(settings, 'execution.technicalRetries');
@@ -321,7 +320,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         runId: item.runId ?? shortId(10),
         worktree: item.worktree,
         taskRef: task.ref,
-        taskId,
+        taskKey: task.key,
         taskTitle: task.title,
         sourcePath: task.source.relativePath,
         sectionHash: task.source.sectionHash,
@@ -345,21 +344,22 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         await state.writeActive(record);
     };
     await save({});
-    const trace = await TaskTrace.open(project, taskId);
+    const trace = await TaskTrace.open(project, task.title);
     if (trace.problem) hooks.emit({ type: 'activity', text: `Evidence limitation: ${trace.problem}`, level: 'warning' });
     const runLabel = `run ${record.runId}${occurrence ? ` · occurrence ${occurrence}` : ''}`;
     if (!item.resume) {
-        await trace.section(`Task ${taskId} · ${runLabel}`, [traceHeader({ id: taskId, title: task.title, source: task.source.relativePath }), `Kind: ${item.kind}${task.origin ? ` · origin: ${task.origin}` : ''}${task.parent ? ` · parent: ${task.parent}` : ''}`]);
+        await trace.section(`Task {${task.title}} · ${runLabel}`, [traceHeader({ title: task.title, source: task.source.relativePath }), `Kind: ${item.kind}${task.origin ? ` · origin: ${task.origin}` : ''}${task.parent ? ` · parent: ${task.parent}` : ''}`]);
         await trace.event('started', { runId: record.runId, occurrence, kind: item.kind, title: task.title, source: task.source.relativePath, origin: task.origin, parent: task.parent, assignment: assignmentText(task), engineVersion: ENGINE_VERSION });
     } else {
         await trace.event('resumed', { runId: record.runId, occurrence: record.occurrence, phase: record.phase, attempt: record.attempt, engineVersion: ENGINE_VERSION });
     }
     const agent: EffectiveAgent = item.route.agent;
     const budget: ConsultationBudget = { calls: 0 };
-    const pending: { request?: UserRequest } = {};
+    const pending: { chat?: { chat: string; awaited: number } } = {};
     const resetPending = (): void => {
-        pending.request = undefined;
+        pending.chat = undefined;
     };
+    const chats = taskChats(environment.chats, { name: task.title, key: task.key }, { takenNames: environment.takenNames });
     let lastResult: HarnessRunResult | undefined;
     let lastReport: AgentReport | undefined;
     const contextFile = setting<string | null>(settings, 'paths.context');
@@ -369,7 +369,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     const finishResult = async (outcome: ResultRecord['outcome'], summary: string, commit?: string): Promise<void> => {
         await state.appendResult({
             taskRef: task.ref,
-            taskId,
+            taskName: task.title,
             title: task.title,
             kind: item.kind,
             outcome,
@@ -394,18 +394,21 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         await save({ phase: 'failed', failure: reason });
         await finishResult('failed', reason);
         await trace.event('failed', { runId: record.runId, reason });
-        await recordDiagnostic(project, { phase: 'task execution', message: reason, details: { task: task.ref, taskId, trace: trace.reference } });
+        await recordDiagnostic(project, { phase: 'task execution', message: reason, details: { task: task.ref, trace: trace.reference } });
         hooks.emit({ type: 'activity', text: `Failed: ${reason}`, level: 'error' });
         return { kind: 'failed', reason, trace: trace.reference };
     };
 
-    // Resume an awaiting-user checkpoint only with a real reply.
-    if (record.phase === 'awaiting-user' && record.requestId) {
-        const request = await environment.requests.get(record.requestId);
-        if (!request || request.status === 'pending') return { kind: 'awaiting-user', requestId: record.requestId };
-        await environment.requests.markConsumed(request.id);
-        await trace.event('user-answer', { requestId: request.id, status: request.status, answer: request.answer, via: request.resolvedVia });
-        await save({ phase: 'executing', requestId: undefined, answeredRequests: [...(record.answeredRequests ?? []), request.id] });
+    // Resume an awaiting-user checkpoint only with a real reply in its chat.
+    if (record.phase === 'awaiting-user' && record.waitingChat) {
+        const stored = await environment.chats.find(record.waitingChat);
+        const reply = stored?.chat.messages.slice(record.awaitedMessages ?? 0).find((message) => message.senderKey === 'user');
+        // A valid answer reopens the chat; resolving it without an answer lets the task continue with what it has.
+        if (!stored || stored.chat.status === 'waiting-for-user' || (!reply && stored.chat.status !== 'resolved')) return { kind: 'awaiting-user', chat: record.waitingChat };
+        await trace.event('user-reply', { chat: stored.chat.name, at: reply?.at, reply: reply?.text ?? '(resolved without a reply)' });
+        await save({ phase: 'executing', waitingChat: undefined, awaitedMessages: undefined, chats: [...new Set([...(record.chats ?? []), stored.chat.name])] });
+        // The agent's question is answered: the chat's action state is resolved (a later message reopens the conversation).
+        await environment.chats.setStatus(stored.chat.name, 'resolved').catch(() => undefined);
     }
 
     if (record.phase === 'failed') return { kind: 'failed', reason: record.failure ?? 'The task needs recovery.', trace: trace.reference };
@@ -414,7 +417,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         return { kind: 'completed', commit: record.commitSha, summary: 'Recovered a committed result.', changedPaths: [] };
     }
     let skipAgent = record.phase === 'checking' || record.phase === 'finalizing' || record.phase === 'committing';
-    if (record.history.length && record.phase === 'executing' && !record.feedback && !record.answeredRequests?.length) {
+    if (record.history.length && record.phase === 'executing' && !record.feedback && !record.chats?.length) {
         record = { ...record, feedback: 'A previous attempt was interrupted. The working tree may contain its partial changes: inspect them and continue. Do not repeat external actions without verifying their current state.' };
     }
 
@@ -431,10 +434,10 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             hooks.emit({ type: 'phase', phase: attempt > 1 ? 'repairing' : 'executing', detail: attempt > 1 ? `repair attempt ${attempt}/${repairBudget}` : undefined });
             hooks.emit({ type: 'attempt', attempt, budget: repairBudget });
             const attemptLabel = `${record.runId}-a${attempt}${record.technicalRetries ? `-t${record.technicalRetries}` : ''}`;
-            const answers: Array<{ question: string; answer: string }> = [];
-            for (const id of record.answeredRequests ?? []) {
-                const request = await environment.requests.get(id);
-                if (request?.answer !== undefined) answers.push({ question: request.question, answer: request.status === 'answered' ? request.answer : `(${request.status}) ${request.answer}` });
+            const conversations: Array<{ chat: string; messages: Array<{ sender: string; text: string }> }> = [];
+            for (const name of record.chats ?? []) {
+                const stored = await environment.chats.find(name);
+                if (stored) conversations.push({ chat: stored.chat.name, messages: stored.chat.messages.map((message) => ({ sender: message.sender, text: message.text })) });
             }
             const tools: BridgeTool[] = [];
             const plugin = item.route.plugin;
@@ -445,8 +448,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         catalog: environment.catalog,
                         pool: environment.pool,
                         settings,
-                        requests: environment.requests,
-                        task: { ref: task.ref, id: taskId, title: task.title, occurrence: record.occurrence },
+                        chats,
+                        task: { ref: task.ref, title: task.title, occurrence: record.occurrence },
                         trace,
                         agentName: agent.name,
                         harness: selection.harness,
@@ -454,12 +457,12 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         budget,
                         questionsAllowed: environment.questionsAllowed,
                         signal: environment.signal,
-                        onUserRequest: (request) => {
-                            pending.request = request;
+                        onUserChat: (chat) => {
+                            pending.chat = chat;
                         },
                         onActivity: (text) => hooks.emit({ type: 'activity', text }),
                     }),
-                    ...(hooks.extraTools?.({ onUserRequest: (request) => (pending.request = request), trace, attempt: attemptLabel }) ?? []),
+                    ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), trace, attempt: attemptLabel }) ?? []),
                 );
             }
             const prompt = buildTaskPrompt({
@@ -473,7 +476,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 feedback: record.feedback,
                 attempt,
                 extra: item.extraPrompt,
-                answers,
+                conversations,
             });
             const bridge = tools.length ? await ToolBridge.start(tools) : undefined;
             const promptDirectory = await ensureDirectory(project.runtime.temporary);
@@ -568,12 +571,12 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 return { kind: 'quota', reason: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS };
             }
             const report = parseAgentReport(lastResult.messages);
-            if (pending.request && (!report || report.status === 'waiting-for-user')) {
-                await save({ phase: 'awaiting-user', requestId: pending.request.id, attempt: attempt - 1 });
-                hooks.emit({ type: 'phase', phase: 'awaiting-user', detail: pending.request.id });
-                await trace.event('awaiting-user', { runId: record.runId, requestId: pending.request.id });
-                await finishResult('awaiting-user', `Waiting for the answer to ${pending.request.id}.`);
-                return { kind: 'awaiting-user', requestId: pending.request.id };
+            if (pending.chat && (!report || report.status === 'waiting-for-user')) {
+                await save({ phase: 'awaiting-user', waitingChat: pending.chat.chat, awaitedMessages: pending.chat.awaited, chats: [...new Set([...(record.chats ?? []), pending.chat.chat])], attempt: attempt - 1 });
+                hooks.emit({ type: 'phase', phase: 'awaiting-user', detail: `{${pending.chat.chat}}` });
+                await trace.event('awaiting-user', { runId: record.runId, chat: pending.chat.chat });
+                await finishResult('awaiting-user', `Waiting for the user's reply in the chat {${pending.chat.chat}}.`);
+                return { kind: 'awaiting-user', chat: pending.chat.chat };
             }
             if (lastResult.outcome !== 'completed') {
                 const technical = record.technicalRetries + 1;
@@ -592,8 +595,9 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             }
             lastReport = report;
             await trace.event('report', { attempt, status: report.status, summary: report.summary, reason: report.reason });
-            if (pending.request && report.status !== 'waiting-for-user') {
-                await environment.requests.resolve(pending.request.id, { status: 'cancelled', answer: `${agent.name} finished the turn without needing the answer.`, via: undefined }).catch(() => undefined);
+            if (pending.chat && report.status !== 'waiting-for-user') {
+                // The question no longer blocks the task; the chat stays as an ordinary open conversation.
+                await environment.chats.setStatus(pending.chat.chat, 'open').catch(() => undefined);
             }
             if (report.status === 'blocked') return await fail(`${agent.name} reported the task as blocked: ${report.reason ?? report.summary}`);
             if (report.status === 'waiting-for-user') {
@@ -621,7 +625,6 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 }
             }
             if (setting<boolean>(settings, 'execution.normalizeLineEndings')) await normalizeLineEndings(environment, await changed());
-            await prepareFollowUps(environment, task, await changed());
         }
         skipAgent = false;
 
@@ -629,7 +632,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         if (!record.completionApplied) {
             await save({ phase: 'finalizing' });
             hooks.emit({ type: 'phase', phase: 'finalizing' });
-            const activation = isRecurring(task) ? (await state.readActivations())[task.id ?? task.ref] : undefined;
+            const activation = isRecurring(task) ? (await state.readActivations())[task.key] : undefined;
             const originalSource = await readFile(task.source.path, 'utf8');
             try {
                 await applyCompletion(environment, item, Date.now(), activation);
@@ -643,11 +646,12 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     projectRoot: project.root,
                     tasksDirectory: environment.tasksDirectory,
                     task,
-                    taskRef: `#${taskId}`,
+                    taskRef: task.ref,
                     agent,
                     trace: trace.reference,
                     occurrence: record.occurrence,
                     timeZone: environment.timeZone,
+                    taken: environment.takenNames(),
                 });
                 created.push(relativeKey(environment, learning.path));
             }
@@ -693,8 +697,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             if (!sha) {
                 try {
                     await hooks.finalizeEvidence?.(trace).catch((error: unknown) => hooks.emit({ type: 'activity', text: `Evidence limitation: ${errorMessage(error)}`, level: 'warning' }));
-                    const ids = await commitTaskIds(environment, task, owned, item.relatedTaskIds ?? []);
-                    await trace.event('committing', { runId: record.runId, paths: owned, createdTaskIds: ids.created, relatedTaskIds: ids.related });
+                    const names = await commitTaskNames(environment, task, owned, item.relatedTaskNames ?? []);
+                    await trace.event('committing', { runId: record.runId, paths: owned, createdTasks: names.created, relatedTasks: names.related });
                     const evidence = await traceCommitPaths(environment, trace);
                     const outcome = await hooks.gitLock(() =>
                         commitPaths({
@@ -704,9 +708,9 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                             subject: task.title,
                             body: assignmentText(task),
                             trailers: {
-                                'Task-ID': taskId,
-                                'Created-Task-ID': ids.created,
-                                'Related-Task-ID': ids.related,
+                                'Task-Name': task.title,
+                                'Created-Task-Name': names.created,
+                                'Related-Task-Name': names.related,
                                 'PTBK-Run': record.runId,
                                 ...(record.occurrence ? { 'PTBK-Occurrence': record.occurrence } : {}),
                             },
@@ -720,7 +724,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     const details = error instanceof PtbkError ? error.details.reason : undefined;
                     await save({ phase: 'committing', failure: details ?? reason });
                     await trace.event('commit-failed', { runId: record.runId, reason: details ?? reason }, { local: true });
-                    await recordDiagnostic(project, { phase: 'commit', message: reason, details: { task: task.ref, taskId, reason: details } });
+                    await recordDiagnostic(project, { phase: 'commit', message: reason, details: { task: task.ref, reason: details } });
                     hooks.emit({ type: 'activity', text: `Commit failed: ${details ?? reason}`, level: 'error' });
                     return { kind: 'persistence-failed', reason: details ?? reason };
                 }
@@ -740,7 +744,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const summary = lastReport?.summary || 'Completed.';
             await finishResult('completed', summary, sha);
             await state.clearActive();
-            hooks.emit({ type: 'activity', text: `Committed ${sha ? sha.slice(0, 8) : '(no changes)'} PTBK: ${task.title} (Task-ID ${taskId})` });
+            hooks.emit({ type: 'activity', text: `Committed ${sha ? sha.slice(0, 8) : '(no changes)'} PTBK: ${task.title}` });
             return { kind: 'completed', commit: sha, summary, changedPaths: owned, report: lastReport };
         }
         await hooks.finalizeEvidence?.(trace).catch(() => undefined);

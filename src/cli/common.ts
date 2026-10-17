@@ -1,7 +1,9 @@
 import { resolve } from 'node:path';
 import { usageError } from '../common/errors.js';
 import { confinePath } from '../common/fs.js';
+import { BookIndex } from '../project/books.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
+import { distinctName } from '../tasks/identity.js';
 import type { Project } from '../project/workspace.js';
 import { resolveExistingProject } from '../project/workspace.js';
 import { flag, option, type CommandContext } from './context.js';
@@ -128,4 +130,14 @@ export async function readStdin(): Promise<string> {
  */
 export async function writableTasksDirectory(context: CommandContext, project: Project, settings: EffectiveSettings): Promise<string> {
     return await confinePath(project.root, tasksOverride(context) ?? resolve(project.root, setting<string>(settings, 'paths.tasks')));
+}
+
+/**
+ * A readable task name distinct (under normalization) from every Book the shared resolver knows in the project.
+ *
+ * @private CLI helpers
+ */
+export async function distinctTaskName(project: Project, settings: EffectiveSettings, base: string, extraTaken: Iterable<string> = []): Promise<string> {
+    const index = await BookIndex.load(project.root, { agents: setting<string>(settings, 'paths.agents'), tasks: setting<string>(settings, 'paths.tasks') });
+    return distinctName(base, new Set([...index.names(), ...extraTaken]));
 }

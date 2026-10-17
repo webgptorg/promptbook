@@ -2,6 +2,7 @@ import { ENGINE_VERSION } from '../common/version.js';
 import type { EffectiveAgent, EffectiveInstruction } from '../project/agents.js';
 import { teamReferences } from '../project/agents.js';
 import type { Task } from '../tasks/model.js';
+import { traceDirectoryOf } from '../tasks/identity.js';
 import { RESULT_MARKER } from './result.js';
 
 /**
@@ -81,8 +82,8 @@ export type TaskPromptInput = {
     readonly attempt: number;
     /** Extra instructions for engine-generated work (Manager, Teacher, discovery). */
     readonly extra?: string;
-    /** A user's answers relevant to this task. */
-    readonly answers?: ReadonlyArray<{ readonly question: string; readonly answer: string }>;
+    /** Chats with the user that belong to this task (full transcripts, so replies are seen in context). */
+    readonly conversations?: ReadonlyArray<{ readonly chat: string; readonly messages: ReadonlyArray<{ readonly sender: string; readonly text: string }> }>;
 };
 
 /**
@@ -104,16 +105,20 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     }
     const taskSource = task.text.replace(/^TASK DONE .*$/gm, '').trim();
     parts.push(
-        `## Your task\n\n- Title: ${task.title}\n- Reference: ${task.ref}${task.id ? `\n- Task ID: ${task.id} (audit trail in \`traces/${task.id}/\`, written by Promptbook)` : ''}\n- Source: \`${task.source.relativePath}\`${task.source.kind === 'markdown' ? ` (section ${task.source.section})` : ''}\n\n\`\`\`\`text\n${taskSource}\n\`\`\`\``,
+        `## Your task\n\n- Name: ${task.title}\n- Reference: ${task.ref} (the task's name is its identity; audit trail in \`${traceDirectoryOf(task.title)}/\`, written by Promptbook)\n- Source: \`${task.source.relativePath}\`${task.source.kind === 'markdown' ? ` (section ${task.source.section})` : ''}\n\n\`\`\`\`text\n${taskSource}\n\`\`\`\``,
     );
-    if (input.answers?.length) {
-        parts.push(`## Answers from the user\n\n${input.answers.map((item) => `- Q: ${item.question}\n  A: ${item.answer}`).join('\n')}`);
+    if (input.conversations?.length) {
+        parts.push(
+            `## Conversation with the user\n\n${input.conversations
+                .map((conversation) => `Chat {${conversation.chat}}:\n${conversation.messages.map((message) => `- ${message.sender}: ${message.text.replace(/\n/g, '\n  ')}`).join('\n')}`)
+                .join('\n\n')}\n\nThe latest @User messages are the user's reply; continue the task with it.`,
+        );
     }
     if (input.extra) parts.push(input.extra);
     const rules = [
         'Work only inside the project directory. Promptbook records the result: do not commit, amend, push, reset, stash or rewrite Git history.',
         'Do not add `TASK DONE` or change the completion state of this task; Promptbook stamps completion after verifying your result.',
-        `To create follow-up work, write new task Books at the top level of \`${input.tasksDirectory}/\` (first line \`TASK <title>\`, then a description; optional \`TASK AGENT @Name\`, \`TASK PRIORITY <n>\`, \`TASK AFTER <ISO date>\`). Never mark them done and never copy another task's \`TASK ID\`; Promptbook gives each new task its own ID.`,
+        `To create follow-up work, write new task Books at the top level of \`${input.tasksDirectory}/\` (first line: the task's name, second line \`ENTITY TASK\`, then a description; optional \`TASK AGENT @Name\`, \`TASK PRIORITY <n>\`, \`TASK AFTER <ISO date>\`). Give each a readable name distinct from existing tasks (the first line is its identity) and never mark them done.`,
         'Do not edit `traces/` (Promptbook-owned audit evidence) and never treat files there as task or agent definitions.',
         'You run unattended. Resolve ordinary choices yourself from the task, the project instructions, established rules and the permissions already granted; do not stop to confirm routine or already authorized actions (for example each post of an authorized recurring publication).',
         input.check

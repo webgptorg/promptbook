@@ -1,323 +1,100 @@
-import { readFile, realpath } from 'node:fs/promises';
-import { join, resolve, sep } from 'node:path';
-import { isPathInside, listDirectory, sha256, toProjectRelative } from '../common/fs.js';
-import { commitmentsOf, parseBook, singleValue, type BookDocument } from '../book/parse.js';
-import { findAgentReferences, nonAgentOf, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
+import { commitmentsOf, singleValue, type BookDocument } from '../book/parse.js';
+import { findAgentReferences, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
+import { BookIndex, type BookDiagnostic as BookIndexDiagnostic, type BookEntry, type BookTier } from './books.js';
 import { expertInstructions } from './expert.js';
-import { inspectGit, listIgnoredEntries, listProjectFiles } from './git.js';
-import { RUNTIME_DIRECTORY_NAME } from './workspace.js';
 
 /**
- * Lookup tier of a project agent definition (tier 1 are the engine non-agents).
- *
- * - 2: the agents directory (recursively, including hidden and ignored content there)
- * - 3: other non-ignored project Books
- * - 4: Git-ignored project content outside the agents directory (e.g. node_modules)
+ * Lookup tier of a project agent definition (tier 1 are the engine non-agents); see `BookTier`.
  *
  * @private agent resolution
  */
-export type AgentTier = 2 | 3 | 4;
+export type AgentTier = BookTier;
 
 /**
- * One agent Book found in the project.
+ * One agent Book found in the project (an entry of the shared Book index).
  *
  * @private agent resolution
  */
-export type AgentDefinition = {
-    /** Declared display name (first nonempty line). */
-    readonly name: string;
-    /** Normalized comparison key. */
-    readonly normalized: string;
-    /** Absolute Book path. */
-    readonly path: string;
-    /** Project-relative POSIX path. */
-    readonly relativePath: string;
-    /** Lookup tier. */
-    readonly tier: AgentTier;
-    /** Inside a hidden directory of the agents directory (supporting definition). */
-    readonly hidden: boolean;
-    /** Inside `agents/.core/`. */
-    readonly core: boolean;
-    /** Parsed document. */
-    readonly document: BookDocument;
-    /** Content hash (for consistent snapshots). */
-    readonly hash: string;
-};
+export type AgentDefinition = BookEntry & { readonly kind: 'agent' };
 
 /**
  * A problem with agent definitions, located in a file.
  *
  * @private agent resolution
  */
-export type AgentDiagnostic = {
-    /** Project-relative path ('' when not file-specific). */
-    readonly path: string;
-    /** 1-based line (0 when not line-specific). */
-    readonly line: number;
-    /** Explanation. */
-    readonly message: string;
-    /** Errors make the affected agent unusable. */
-    readonly severity: 'error' | 'warning';
-};
+export type AgentDiagnostic = BookIndexDiagnostic;
 
 /**
  * Result of resolving an agent reference.
+ *
+ * Name lookup is shared by agents, tasks and chats: when the winning Book is not an agent, that is a reference error
+ * (`wrong-kind`), never a reason to pick a lower-priority agent.
  *
  * @private agent resolution
  */
 export type AgentResolution =
     | { readonly kind: 'non-agent'; readonly name: NonAgentName }
-    | { readonly kind: 'agent'; readonly definition: AgentDefinition }
-    | { readonly kind: 'ambiguous'; readonly tier: AgentTier; readonly candidates: readonly AgentDefinition[] }
+    | { readonly kind: 'agent'; readonly definition: AgentDefinition; readonly shadowed: readonly BookEntry[] }
+    | { readonly kind: 'wrong-kind'; readonly entry: BookEntry }
     | { readonly kind: 'missing'; readonly incomplete?: string }
     | { readonly kind: 'invalid'; readonly reason: string };
 
 /**
- * Upper bound of files inspected in ignored content (keeps lookup bounded in huge dependency trees).
- */
-const MAX_IGNORED_FILES = 60_000;
-
-/**
- * Directories never searched for agents.
- */
-const NEVER_SEARCH = new Set(['.git', RUNTIME_DIRECTORY_NAME]);
-
-/**
- * Root-level task audit evidence: tracked or ignored, it is never a source of agent definitions.
- */
-const TRACES_DIRECTORY_NAME = 'traces';
-
-/**
- * Whether a path is inside the project's root-level `traces/` evidence directory.
- */
-function isTraceEvidence(root: string, path: string): boolean {
-    return isPathInside(join(root, TRACES_DIRECTORY_NAME), path);
-}
-
-/**
- * Recursively collects `.book` files without following directory symlinks.
- */
-async function walkBooks(directory: string, root: string, budget: { files: number }, skipDirectory: (path: string, name: string) => boolean): Promise<string[]> {
-    const found: string[] = [];
-    const stack = [directory];
-    while (stack.length) {
-        const current = stack.pop()!;
-        for (const entry of await listDirectory(current)) {
-            if (--budget.files < 0) return found;
-            const path = join(current, entry.name);
-            if (entry.isDirectory) {
-                if (NEVER_SEARCH.has(entry.name) || skipDirectory(path, entry.name)) continue;
-                stack.push(path);
-            } else if ((entry.isFile || entry.isSymbolicLink) && entry.name.toLowerCase().endsWith('.book')) {
-                if (entry.isSymbolicLink) {
-                    try {
-                        if (!isPathInside(await realpath(root), await realpath(path))) continue;
-                    } catch {
-                        continue;
-                    }
-                }
-                found.push(path);
-            }
-        }
-    }
-    return found;
-}
-
-/**
- * The project's agent definitions with lazy loading of the ignored tier.
+ * Agent view of the project's shared Book index.
  *
  * @private agent resolution
  */
 export class AgentCatalog {
-    /** Definitions by tier (tier 4 only after `loadIgnoredTier`). */
-    private readonly definitions: AgentDefinition[] = [];
-    /** Problems found while loading. */
-    public readonly diagnostics: AgentDiagnostic[] = [];
-    /** Whether the ignored tier was searched. */
-    private ignoredLoaded = false;
-    /** Explanation when the ignored tier search was incomplete. */
-    private ignoredIncomplete?: string;
+    private constructor(public readonly index: BookIndex) {}
 
-    private constructor(
-        /** Absolute project root. */
-        public readonly root: string,
-        /** Absolute agents directory. */
-        public readonly agentsDirectory: string,
-        /** Whether the project is in a Git working tree (needed to classify ignored content). */
-        private readonly inGit: boolean,
-    ) {}
+    /** Absolute project root. */
+    public get root(): string {
+        return this.index.projectRoot;
+    }
 
-    /**
-     * Loads tiers 2 and 3 of a project (read-only; never creates files).
-     */
-    public static async load(root: string, agentsDirectory = 'agents'): Promise<AgentCatalog> {
-        const absoluteAgents = resolve(root, agentsDirectory);
-        const gitInfo = await inspectGit(root);
-        const catalog = new AgentCatalog(root, absoluteAgents, gitInfo.state === 'repository');
-        const budget = { files: MAX_IGNORED_FILES };
-        for (const path of await walkBooks(absoluteAgents, root, budget, () => false)) await catalog.add(path, 2);
-        let others: string[];
-        if (catalog.inGit) {
-            others = (await listProjectFiles(root)).filter((path) => path.toLowerCase().endsWith('.book'));
-        } else {
-            others = await walkBooks(root, root, budget, (path, name) => name === 'node_modules' || isPathInside(absoluteAgents, path) || isTraceEvidence(root, path));
-        }
-        for (const path of others) {
-            if (isPathInside(absoluteAgents, path) || path.split(sep).includes(RUNTIME_DIRECTORY_NAME) || isTraceEvidence(root, path)) continue;
-            await catalog.add(path, 3);
-        }
-        catalog.validateTiers();
-        return catalog;
+    /** Absolute agents directory. */
+    public get agentsDirectory(): string {
+        return this.index.rootPath('agents');
+    }
+
+    /** Problems of the project's Books (shadowed duplicates, malformed sources, reserved names). */
+    public get diagnostics(): readonly AgentDiagnostic[] {
+        return this.index.diagnostics;
     }
 
     /**
-     * Searches Git-ignored content outside the agents directory (tier 4), once.
+     * Loads the project's Books (read-only; never creates files).
      */
+    public static async load(root: string, agentsDirectory = 'agents', tasksDirectory = 'tasks'): Promise<AgentCatalog> {
+        return new AgentCatalog(await BookIndex.load(root, { agents: agentsDirectory, tasks: tasksDirectory }));
+    }
+
+    /** Searches Git-ignored content (tier 4), once. */
     public async loadIgnoredTier(): Promise<void> {
-        if (this.ignoredLoaded) return;
-        this.ignoredLoaded = true;
-        const budget = { files: MAX_IGNORED_FILES };
-        try {
-            const entries = this.inGit ? await listIgnoredEntries(this.root) : [join(this.root, 'node_modules')];
-            for (const entry of entries) {
-                if (isPathInside(this.agentsDirectory, entry) || entry.split(sep).includes(RUNTIME_DIRECTORY_NAME) || entry.split(sep).includes('.git') || isTraceEvidence(this.root, entry)) continue;
-                if (entry.toLowerCase().endsWith('.book')) {
-                    await this.add(entry, 4);
-                    continue;
-                }
-                for (const path of await walkBooks(entry, this.root, budget, (candidate) => isTraceEvidence(this.root, candidate))) await this.add(path, 4);
-                if (budget.files < 0) break;
-            }
-            if (budget.files < 0) this.ignoredIncomplete = `the ignored-content search stopped after ${MAX_IGNORED_FILES} entries`;
-        } catch (error) {
-            this.ignoredIncomplete = `the ignored-content search failed: ${(error as Error).message}`;
-        }
-        this.validateTiers();
+        await this.index.loadIgnoredTier();
     }
 
-    /**
-     * Reads one Book and records it when it declares an agent.
-     */
-    private async add(path: string, tier: AgentTier): Promise<void> {
-        const absolute = resolve(path);
-        if (this.definitions.some((definition) => definition.path === absolute)) return;
-        let source: string;
-        try {
-            source = await readFile(absolute, 'utf8');
-        } catch (error) {
-            this.diagnostics.push({ path: toProjectRelative(this.root, absolute), line: 0, message: `Unreadable Book: ${(error as Error).message}`, severity: 'warning' });
-            return;
-        }
-        const document = parseBook(source);
-        if (document.kind !== 'agent') return;
-        const relativePath = toProjectRelative(this.root, absolute);
-        const insideAgents = isPathInside(this.agentsDirectory, absolute);
-        const segments = insideAgents ? toProjectRelative(this.agentsDirectory, absolute).split('/').slice(0, -1) : [];
-        const definition: AgentDefinition = {
-            name: document.name,
-            normalized: normalizeAgentName(document.name),
-            path: absolute,
-            relativePath,
-            tier,
-            hidden: segments.some((segment) => segment.startsWith('.')),
-            core: segments[0] === '.core',
-            document,
-            hash: sha256(source),
-        };
-        if (!definition.normalized) {
-            this.diagnostics.push({ path: relativePath, line: document.headerLine + 1, message: 'The agent name is empty after normalization.', severity: 'error' });
-            return;
-        }
-        const reserved = nonAgentOf(definition.normalized);
-        if (reserved) {
-            this.diagnostics.push({
-                path: relativePath,
-                line: document.headerLine + 1,
-                message: `"${document.name}" is reserved for the engine-supplied ${reserved}; this file cannot replace it.`,
-                severity: 'error',
-            });
-            return;
-        }
-        for (const diagnostic of document.diagnostics) this.diagnostics.push({ path: relativePath, line: diagnostic.line, message: diagnostic.message, severity: diagnostic.severity });
-        this.definitions.push(definition);
-    }
-
-    /**
-     * Reports same-tier collisions (they are only errors when the name is resolved at that tier).
-     */
-    private validateTiers(): void {
-        const seen = new Set(this.diagnostics.map((diagnostic) => `${diagnostic.path}:${diagnostic.message}`));
-        const groups = new Map<string, AgentDefinition[]>();
-        for (const definition of this.definitions) {
-            const key = `${definition.tier}:${definition.normalized}`;
-            groups.set(key, [...(groups.get(key) ?? []), definition]);
-        }
-        for (const group of groups.values()) {
-            if (group.length < 2) continue;
-            const winningTier = this.winningTier(group[0]!.normalized);
-            if (winningTier !== group[0]!.tier) continue;
-            const message = `Agent name "${group[0]!.name}" is defined ${group.length} times in tier ${group[0]!.tier}: ${group.map((definition) => definition.relativePath).join(', ')}.`;
-            if (seen.has(`:${message}`)) continue;
-            this.diagnostics.push({ path: '', line: 0, message, severity: 'error' });
-        }
-    }
-
-    /**
-     * Lowest (highest-priority) tier defining a normalized name.
-     */
-    private winningTier(normalized: string): AgentTier | undefined {
-        const tiers = this.definitions.filter((definition) => definition.normalized === normalized).map((definition) => definition.tier);
-        return tiers.length ? (Math.min(...tiers) as AgentTier) : undefined;
-    }
-
-    /**
-     * All loaded definitions.
-     */
+    /** All loaded agent definitions in resolution order. */
     public all(): readonly AgentDefinition[] {
-        return this.definitions;
+        return this.index.all().filter((entry): entry is AgentDefinition => entry.kind === 'agent');
     }
 
     /**
-     * Ordinary project roles: candidates for Manager assignment and goal discovery.
-     *
-     * Hidden/core supporting definitions and dependency-provided (ignored) definitions are excluded.
+     * Ordinary project roles: winning, non-hidden agents outside ignored content — candidates for Manager assignment,
+     * goal discovery and the default chat picker.
      */
     public ordinary(): AgentDefinition[] {
-        const result: AgentDefinition[] = [];
-        for (const definition of this.definitions) {
-            if (definition.tier === 4 || definition.hidden) continue;
-            const resolution = this.resolveLoaded(definition.normalized);
-            if (resolution.kind === 'agent' && resolution.definition === definition) result.push(definition);
-        }
-        return result;
+        return this.index.winners('agent').filter((entry): entry is AgentDefinition => entry.kind === 'agent' && entry.tier !== 4 && !entry.hidden);
     }
 
     /**
-     * Resolves among loaded tiers only.
-     */
-    private resolveLoaded(normalized: string): AgentResolution {
-        const nonAgent = nonAgentOf(normalized);
-        if (nonAgent) return { kind: 'non-agent', name: nonAgent };
-        for (const tier of [2, 3, 4] as const) {
-            const matches = this.definitions.filter((definition) => definition.tier === tier && definition.normalized === normalized);
-            if (matches.length === 1) return { kind: 'agent', definition: matches[0]! };
-            if (matches.length > 1) return { kind: 'ambiguous', tier, candidates: matches };
-        }
-        return { kind: 'missing' };
-    }
-
-    /**
-     * Resolves a reference (`@Name`, `{Name}` or a bare name) through the ordered tiers.
+     * Resolves a reference (`@Name`, `{Name}` or a bare name) through the shared ordered resolver.
      */
     public async resolve(reference: string): Promise<AgentResolution> {
-        const parsed = parseReferenceValue(reference);
-        if (!parsed) return { kind: 'invalid', reason: `"${reference}" is not a valid agent reference.` };
-        const loaded = this.resolveLoaded(parsed.normalized);
-        if (loaded.kind !== 'missing') return loaded;
-        await this.loadIgnoredTier();
-        const withIgnored = this.resolveLoaded(parsed.normalized);
-        if (withIgnored.kind === 'missing' && this.ignoredIncomplete) return { kind: 'missing', incomplete: this.ignoredIncomplete };
-        return withIgnored;
+        const resolution = await this.index.resolve(reference);
+        if (resolution.kind !== 'book') return resolution;
+        if (resolution.entry.kind !== 'agent') return { kind: 'wrong-kind', entry: resolution.entry };
+        return { kind: 'agent', definition: resolution.entry as AgentDefinition, shadowed: resolution.shadowed };
     }
 }
 
@@ -331,8 +108,8 @@ export function describeResolution(reference: string, resolution: AgentResolutio
         case 'agent':
         case 'non-agent':
             return undefined;
-        case 'ambiguous':
-            return `Agent reference ${reference} is ambiguous in tier ${resolution.tier}: ${resolution.candidates.map((candidate) => candidate.relativePath).join(', ')}.`;
+        case 'wrong-kind':
+            return `${reference} names the ${resolution.entry.kind} ${resolution.entry.relativePath}, not an agent (the first Book with that name wins).`;
         case 'missing':
             return `Agent ${reference} was not found${resolution.incomplete ? ` (lookup incomplete: ${resolution.incomplete})` : ''}.`;
         case 'invalid':
@@ -394,7 +171,7 @@ export type EffectiveAgent = {
 /**
  * Keywords that are not instructions for the model.
  */
-const NON_INSTRUCTION_KEYWORDS = new Set(['FROM', 'IMPORT', 'OPEN', 'CLOSED', 'NOTE', 'DELETE']);
+const NON_INSTRUCTION_KEYWORDS = new Set(['FROM', 'IMPORT', 'OPEN', 'CLOSED', 'NOTE', 'DELETE', 'ENTITY', 'LINK']);
 
 /**
  * Determines the learning permission declared by an agent's own Book.
@@ -540,8 +317,8 @@ async function localInstructions(catalog: AgentCatalog, definition: AgentDefinit
             result.push({ keyword: 'DELETE', text: commitment.body, agent: definition.name, source: definition.relativePath });
             continue;
         }
-        if (NON_INSTRUCTION_KEYWORDS.has(commitment.keyword) || commitment.definition.scope === 'task') {
-            if (commitment.definition.kind === 'control' && commitment.continuation) {
+        if (NON_INSTRUCTION_KEYWORDS.has(commitment.keyword) || commitment.definition.scope === 'task' || commitment.definition.scope === 'chat') {
+            if (commitment.definition.kind !== 'instruction' && commitment.continuation) {
                 result.push({ keyword: 'PROSE', text: commitment.continuation, agent: definition.name, source: definition.relativePath });
             }
             continue;
