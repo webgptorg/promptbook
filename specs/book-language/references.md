@@ -15,9 +15,9 @@ There is **no separate TASK ID, CHAT ID or AGENT ID**. A file's first nonempty n
 Resolve a name in the selected project directory, not another current directory, package installation or arbitrary parent. Use the same algorithm regardless of the source entity kind. No source wins by matching the reference's original case, accents, separators or filename more closely; **normalize before comparing** and use only precedence to select the winner.
 
 1. **Engine built-ins:** `@Void`/`@Null` (also legacy `0`), `@User`, `@Expert` are reserved, unshadowable, Book-like non-agent references supplied by the running engine.
-2. **Common project locations, not Git-ignored:** search Book definitions in `agents/`, `tasks/`, then `chats/`, recursively. Search **shallow before deep** within each location; for equal depth, resolve ties by the listed folder order and stable path ordering.
+2. **Common project locations, not Git-ignored:** search Book definitions in `agents/`, `tasks/`, then `chats/`, recursively. Within this tier rank by **relative nesting depth first** (shallow wins across all three common roots), then by listed root order (`agents/`, `tasks/`, `chats/`), then by stable lexical path. Never let exact surface spelling alter that rank.
 3. **Other non-Git-ignored project locations:** search remaining `.book` definitions in the project, shallow before deep and deterministically by path.
-4. **Git-ignored project content:** only after both nonignored tiers, search eligible ignored `.book` definitions, including generated artifacts and `node_modules`, using common-folder, depth and path order consistently.
+4. **Git-ignored project content:** only after both nonignored tiers, search eligible ignored `.book` definitions, including generated artifacts and `node_modules`, using relative depth, common-folder and stable path order consistently.
 
 The first definition whose **normalized declared name** matches wins. There is no merge of Books and no automatic fallback to another definition because it spells the name more precisely. Folder names suggest default entity kind, not identity. An explicit source path can be used where an API requires unambiguous source inspection, but it is not an alternate entity ID or permission to evade the logical resolver.
 

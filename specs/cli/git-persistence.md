@@ -16,7 +16,7 @@ Every commit automatically created by Promptbook starts with the exact prefix `P
 
 A task-result subject is `PTBK: <task title>`; its descriptive assignment, including task-local rules, remains the body. Preserve that correspondence rather than substitute execution metadata. Other operations describe the action, for example `PTBK: Initialize project`, `PTBK: Add task - Improve CSV export` or `PTBK: Update project configuration`. Optional body details explain the scoped changes. An add commit records task creation, not execution or TASK DONE.
 
-Task-attributable commits carry a human-readable `Task-Name: <declared name>` trailer, plus source/revision context for historical reconciliation. There is **no separately generated task name**. Creation, assignment, results, repair, recovery, integration and recurring occurrences preserve the name that was valid at that operation; renames explicitly relate old and new names. A commit with several tasks identifies the affected names and distinguishes executing work from generated follow-ups.
+Task-attributable commits carry a human-readable `Task-Name: <declared name>` trailer, plus source/revision context for historical reconciliation. There is **no separately generated task ID**. Creation, assignment, results, repair, recovery, integration and recurring occurrences preserve the name that was valid at that operation; renames explicitly relate old and new names. A commit with several tasks identifies the affected names and distinguishes executing work from generated follow-ups.
 
 ## Task results and ownership
 

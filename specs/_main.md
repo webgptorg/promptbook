@@ -82,7 +82,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Errors](cli/errors.md): Understandable failures, diagnostic evidence and next actions.
 - [Retries](cli/retries.md): Bounded automatic repairs, authentication and provider waiting.
 - [Git preflight](cli/git-preflight.md): Workspace readiness and safe initialization.
-- [Git persistence](cli/git-persistence.md): Default operation commits, task-ID correlation, trace inclusion, explicit opt-out and ownership.
+- [Git persistence](cli/git-persistence.md): Default operation commits, task-name correlation, trace inclusion, explicit opt-out and ownership.
 - [Git synchronization](cli/git-synchronization.md): Optional pull/push and pending sync.
 - [Recovery](cli/recovery.md): Interrupted work without duplication or data loss.
 - [Isolation](cli/isolation.md): Optional worktree execution and integration.

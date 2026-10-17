@@ -30,6 +30,8 @@ Chats are **not tasks**. A user may ask about project progress or advice without
 
 Every human-facing question, confirmation, missing login, TEAM @User consultation and exceptional runtime request is **a chat initiated/continued by an identified agent**. The initiator is the first-message sender; the request is not an anonymous alert from the environment or a separate persistent request entity. A task that needs a human answer records its task↔chat association, checkpoints, releases its ownership if safe and resumes **only on an actual valid reply**. Failed/expired responses remain distinct from approval, preserve evidence, and cannot be applied twice. Multiple pending messages must survive restarts, even if no dashboard is open. A human can continue asking clarifying questions before giving a decision; the chat is a genuine conversation, not a one-field dialog.
 
+A committed user correction or project-specific instruction in an open agent's chat is eligible for a normal linked Teacher task under [learning](../agents/learning.md); the response must not silently mutate the agent without authorized checked work. This is how Fixer can improve after a human explains an issue, using the same mechanism as all open agents.
+
 A User may start a new chat without opening a task or dashboard. Choose the target agent **before the first message**. The default picker shows nonhidden ordinary project agents, with an explicit way to access hidden/core agents and valid engine non-agent Expert. User, Void and Null are not selectable target speakers. The chat and its history remain accessible after terminal disconnect and can be resumed by name.
 
 ## Commit boundaries
