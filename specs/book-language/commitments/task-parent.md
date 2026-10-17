@@ -4,4 +4,4 @@
 
 **Document:** Task.
 
-References the task of which this is a subtask or derived piece of work. It supplies a visible relationship, not an implicit execution dependency. Declare required ordering with TASK DEPENDS ON. Repeated display titles do not make the relationship ambiguous when stable references are used.
+References a parent task through its normalized Book name, for example `TASK PARENT {Improve CSV export}`. This groups tasks but does not imply execution order; `TASK DEPENDS ON` does. Duplicate names use the resolver's first winner with collision diagnostics, never a generated task ID.

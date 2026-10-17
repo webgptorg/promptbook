@@ -1,13 +1,9 @@
-# Task references and relationships
+# Task and conversation relationships
 
-[Main specification](../_main.md)
+[Project model](../concepts/project-model.md) · [References](../book-language/references.md)
 
-Tasks can reference other tasks, form parent/subtask relationships and require predecessor work. These are explicit task metadata, not relationships inferred from file order, similar titles or agent teams.
+`TASK PARENT` links one task to another. `TASK DEPENDS ON` names prerequisite tasks. Parent grouping alone does not impose order; missing, wrong-kind or cyclic required dependencies block affected work. Manager assignment, Teacher learning and Fixer repair are ordinary task relationships, not exceptional task types. All targets use the shared normalized Book-name resolver, **not task IDs**.
 
-`TASK PARENT` links a subtask to its parent. `TASK DEPENDS ON` identifies work that must complete before execution. Parent grouping alone does not imply an execution order; required ordering is explicit. Missing, ambiguous or cyclic dependencies block affected tasks with a clear reason, not the entire supervisor process.
+Generic `LINK` and Book references connect any Agent, Task or Chat, yielding a **directed** graph. One task can relate to many chats and one chat to many tasks, with no mandatory relationship at all. Views may show incoming and outgoing edges without writing inverse source links. LINK alone never schedules a task, grants authority, creates a participant or enforces a dependency.
 
-Manager's assignment is a prerequisite of its target. Teacher's learning task follows and refers to the completed task that supplied its evidence. Both are ordinary task relationships, and both remain visible in the queue and Git record.
-
-Use stable [references](../book-language/references.md), including for identically named tasks. Rename or movement must not silently redirect a reference to another task. A revert or source change requires reevaluating dependencies; a previous done label is not sufficient proof that a required result still exists.
-
-See [origins](task-origins.md), [Manager](../agents/manager.md) and [Teacher](../agents/teacher.md).
+Names can collide: the deterministic first winner applies, with maintenance diagnostics for shadowed files; do not silently switch to an alternate task. Renames, deletion or reverted results require intentional reference and history reconciliation. See [Chats](chats.md), [task origins](task-origins.md) and [task identity](task-identity.md).

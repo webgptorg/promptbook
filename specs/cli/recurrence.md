@@ -4,7 +4,7 @@
 
 `TASK REPEAT` defines a positive fixed interval in seconds, minutes, hours, days or weeks, for example `30m`, `7d`, `every 2 weeks` or `P1W`. A day is 24 hours and a week is seven days. Calendar months/years are not fixed intervals. Reject invalid, zero or overflowing values.
 
-`TASK AFTER`, when supplied, anchors the first occurrence. Otherwise the first occurrence is eligible at activation and its anchor is retained. Completion does not shift the schedule. Retain occurrence identity, completion stamps, failures and next due time across restart and renaming.
+`TASK AFTER`, when supplied, anchors the first occurrence. Otherwise the first occurrence is eligible at activation and its anchor is retained. Completion does not shift the schedule. Retain occurrence sequence, completion stamps, failures and next due time across restart. Changing the task's first-line name changes its logical identity and requires explicit migration of schedule and historical evidence.
 
 Each successful occurrence appends its own `TASK DONE` timestamp and has one task-result commit. The presence of previous stamps does not retire an active recurring definition. Explicit pause/retirement prevents further occurrences; resuming does not erase history.
 

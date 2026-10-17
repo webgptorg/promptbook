@@ -1,7 +1,7 @@
-# TASK
+# TASK (legacy task header)
 
 [Commitments](_index.md) · [Syntax](../syntax.md)
 
 **Document:** Task.
 
-Declares a task as the first nonempty line: `TASK <title>`. The title must be nonempty but need not be unique. Following natural text describes the requested result. Task Books do not inherit Adam. See [task Books](../../cli/task-books.md).
+The legacy first-line form `TASK <title>` declares the task named `<title>`, not an opaque ID and not literally "TASK <title>". New task Books use the **plain first-line name** and `ENTITY TASK` or the conventional `tasks/` location. Task titles need not be enforced unique; normalized resolver precedence selects one. Task Books do not inherit Adam.
