@@ -1,45 +1,25 @@
-# Per-task execution traces
+# Per-task execution audit
 
-[Main specification](../_main.md) · [Task identity](task-identity.md) · [Trace configuration](trace-configuration.md)
+[Main specification](../_main.md) · [Name-based task identity](task-identity.md) · [Trace configuration](trace-configuration.md)
 
-Every executed task has its own audit trail in `traces/<task-id>/` at the selected project's root, alongside the default `tasks/` directory. This is the primary task evidence location, whether Git-tracked or ignored, not a global log under `.ptbk/` or a traces folder inside the task source. Its directory name is the same stable ID present in the task source and task-related Git commits.
+Executed tasks have root-level `traces/<name-key>/` audit directories. The key is a deterministic safe encoding of the task's **normalized first-line Book name**, never a generated ID or filename. Source revisions, actual commit history and the declared name at each operation provide provenance. An intentional rename changes name-based identity; preserve prior evidence and explicitly reconcile its references rather than reassigning it to a same-name duplicate.
 
-## Evidence belonging to one task
+## Evidence
 
-Create the record from the first attempt and retain it for successful, failed, interrupted and waiting work. Keep attempts, recurring occurrences, repairs, TEAM consultations and resumed phases distinguishable under the same task identity; do not overwrite a failed attempt with a successful retry. Child/follow-up tasks have their own IDs and trace directories with visible parent/origin links.
+Retain success, failure, interruption, recovery and human-chat waiting records from the first attempt onward. Separate attempts, recurring occurrences, repairs and task-scoped TEAM consultations under the same task without inventing subtask IDs. New follow-ups have their own readable names and trace locations.
 
-Each task's trace directory contains:
+Keep one consolidated readable stream of **available harness output**, including exposed tool observations, text, errors and diagnostic/reasoning material actually exposed. Preserve chronological harness/attempt/occurrence boundaries. Record source revision, selected agent/harness/model/effort and versions, actions, check/formatter outcomes, usage when known, external effects, linked chats, commits and sync/recovery results. Unknown, truncated or private reasoning is labeled unavailable, never fabricated; Teacher/Fixer can use only actual evidence.
 
-- One consolidated readable text file of the harness output exposed to Promptbook, including exposed reasoning/diagnostic traces, messages and tool observations. Preserve the available full stream in chronological order, with harness, attempt and occurrence boundaries; a final-answer summary alone is not a substitute.
-- Task-linked event logs and outcome/context information: source and assignment, actual agent/harness/model/thinking selection, engine and harness versions, start/end and waits, actions, checks, attempts, usage, external-result references, errors and persistence/integration/synchronization outcomes. Link relevant saved artifacts and result commits.
-- Playable browser video when enabled and the task uses the project browser, plus an explicit recording status when video is disabled, not applicable, unavailable, incomplete or failed.
+## Browser video and secrets
 
-File names and supporting log formats are implementation choices; the root `traces/<task-id>/` contract and consolidated harness text are not. Status, task inspection and results expose the same task ID and paths so a user can navigate from a task or Git commit to its log and video without guessing by title or timestamp. Label unknown data and estimates; do not fabricate progress, cost, model identity or missing footage.
+When recording is enabled, capture playable project-browser actions owned by the task in headless/headful use, with relevant tab transitions and segmented attempts/occurrences. No unrelated desktop, user browser, other project or next task is captured. Exclude or mask password/login/2FA frames, cookies, tokens and other secrets in both text and video; label intentional gaps. Disabled, unsupported, failed or partial capture is explicit. Optional evidence failure does not unnecessarily block safe work; required evidence can still be an acceptance condition.
 
-Capture reasoning only to the extent the harness actually exposes it. Do not claim access to hidden internal reasoning, reconstruct it as fact, or substitute a model-generated explanation for a captured trace. Mark unavailable channels and redactions explicitly. Teacher uses the available evidence and can report insufficiency.
+[Trace policy](trace-configuration.md) decides if finalized evidence and video join the task's **one result commit** with accepted changes, TASK DONE and follow-ups. Internal agent↔agent Chat Books/messages produced in the task join that same commit. Separately committed human↔agent messages can be linked, never retroactively pulled into the result. Commit metadata uses `Task-Name: <name>`, **not TASK ID**. A commit cannot contain its own SHA within its tree; record post-commit events without a self-referential commit loop.
 
-## Browser recordings
+Local `.ptbk/` holds live ownership/recovery, chat read markers and system diagnostics, while `chats/` holds durable conversations. A system diagnostic without a task is not given a fake task name. Trace copies are evidence, never executable Books. Preserve unresolved-effects evidence across restart, failure and Git revert without automatically repeating external work.
 
-When recording is enabled, capture the browser activity attributable to the task from its first browser use through its last relevant action. This applies to the shared persistent browser, including headless/headful operation; reusing its instance does not justify omitting recording. Include relevant tab/page transitions and enough context to replay what was actually done. Multiple segments are allowed when sessions, attempts or occurrences require them, with their order and gaps identified.
-
-Scope video to the project browser and owning task, not the user's entire desktop, unrelated browsers or the next task. Retain successful and failed action evidence. A month later, a problematic post should be traceable to its task, commit, exposed harness output and browser replay. Recording does not replace verification that the external action actually succeeded.
-
-Finalize available video before the result commit when it is selected for versioning. Disabling video means no new video capture, not disabling text logs. Unsupported capture, storage exhaustion or recorder failure is a visible evidence limitation; preserve available logs and continue otherwise safe work unless the task explicitly requires that evidence for acceptance. Do not claim a nonexistent recording or pause the whole agenda over optional capture.
-
-## Git and recovery
-
-Apply the saved [trace policy](trace-configuration.md). When included, a task's finalized pre-commit evidence and eligible video belong in the same result commit as its accepted changes, completion/checkmark and generated follow-up definitions. Every task-related commit carries its task ID under [Git persistence](git-persistence.md), even when traces are ignored. Ignored traces remain locally accessible and survive restart.
-
-Resolve the result commit SHA from Git and the stable ID; a commit cannot contain its own final hash in its own file tree. Retain post-commit/push/recovery events without creating a self-referential chain of bookkeeping commits or falsely claiming that later events were present in an earlier snapshot. Uncommitted mode keeps task identity and local evidence but never invents a commit SHA. Git revert does not undo a recorded external effect or justify repeating it.
-
-Keep necessary live ownership, recovery indexes and pending-request state in `.ptbk/`, referencing task traces rather than making `.ptbk/` the only evidence store. Initialization/startup/update diagnostics without a task remain separate system diagnostics under [errors](errors.md); do not invent a task ID for them. Existing recoverable legacy evidence must remain reachable when storage conventions change.
-
-## Sensitive data and retention
-
-Redact credentials, tokens, passwords and sensitive session data before storing or displaying them, including raw harness output. Never copy browser profiles or secret environment values into Git, tasks or trace artifacts. Protect video too: exclude or mask authentication/secret-entry material, recording any intentional gap rather than leaking it. Explain that ordinary page content may still contain sensitive project data before enabling Git inclusion.
-
-Keep retention, storage limits, archival and any truncation visible. Do not silently rotate away the audit period promised to the user or evidence needed for unresolved effects, recovery or Teacher. Bound storage without silently deleting pending-work records; degrade optional capture before losing essential recovery state. Recording failure or read-only inspection reports the actual limitation and available redacted diagnostics, never a fictitious saved path. Trace copies are evidence, not executable task/agent definitions.
+Redact before storing/displaying. Never version browser profiles or credentials; warn that permitted project/page content can still be sensitive. Retention limits and truncation must be visible and preserve pending-work evidence before optional capture. A missing path is not reported as saved.
 
 ## Acceptance outcomes
 
-Execute two identically titled tasks: their sources, commits and `traces/<task-id>/` paths remain unambiguous. Retry one, resume it after restart and execute a recurring occurrence: all evidence stays distinguishable without ID changes or loss of older attempts. Record a browser task and inspect its video alongside the actual result commit. Exercise every trace-policy combination, no browser use, disabled recording and capture/storage failure. No ignored video is accidentally committed, no missing recording is reported as present, and no failure reruns an already successful external action.
+Run retry/recurrence, human wait and internal TEAM chat, then rename and reconcile a task. Preserve accurately attributed evidence and commit links by name and historical revisions without generated IDs. A shadowed duplicate cannot merge records. Recorded video is playable and redacted; optional capture failures report real evidence limitations without false files.

@@ -4,6 +4,17 @@
 
 **Fixer is an ordinary editable, default-OPEN core agent**, initialized as a small `agents/.core/fixer.book`. Its job is to **introspect the particular running project** and improve its health over time: detect malformed Book syntax, normalized-name collisions and shadowing, unresolved references, problematic configuration, recurring failures, broken workflows or maintenance opportunities. It can inspect available logs, traces, actual diagnostics and project context, without inventing evidence or exposing secrets.
 
+A deliberately minimal initial example (not a special runtime implementation):
+
+```book
+Fixer
+ENTITY AGENT
+FROM @Adam
+GOAL Keep this Promptbook project healthy by finding and safely fixing real problems.
+TEAM Consult @Expert for current Promptbook syntax and capabilities.
+OPEN Learn verified project-specific repair practices and preferences.
+```
+
 Fixer has `TEAM` access to the built-in **Expert** for current Promptbook syntax, runtime capabilities and version-specific knowledge. Expert is general and engine-owned; Fixer applies that knowledge to the project's own state and retains learned project-specific practices. An engine upgrade refreshes Expert but does not reset Fixer's accumulated local Book.
 
 Run Fixer's checks opportunistically and at a bounded, persisted cadence, including after relevant diagnostic changes; do not invent a continuous busy polling loop, new permanent privileged service or thousands of repetitive notifications. The work is ordinary scheduled/derived tasks in the project's **single-task** agenda. Diagnose issues with their source, impact and confidence; ordinary low-risk repairs within existing authority can be done and checked automatically. A risky, ambiguous or human-dependent correction is handled through a **chat initiated by Fixer to @User** with a specific explanation, options when useful and links to affected entities/tasks. Do not silently rewrite ambiguous definitions or unrelated project files.
