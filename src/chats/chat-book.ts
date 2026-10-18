@@ -1,6 +1,6 @@
-import { matchCommitmentKeyword } from '../book/commitments.js';
 import { commitmentsOf, parseBook, singleValue, type BookDiagnostic } from '../book/parse.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
+import { needsLiteralEscape, renderDeclaration } from '../book/write.js';
 
 /**
  * Durable action state of a chat (independent of per-viewer read markers).
@@ -96,7 +96,7 @@ export function validateChoices(choices: unknown): string | undefined {
  * Whether a message line must be escaped so it stays literal text (commitments, fences, escapes, choice markers).
  */
 function needsEscape(line: string): boolean {
-    return line.startsWith('\\') || line.startsWith('»') || /^\s{0,3}(`{3,}|~{3,})/.test(line) || Boolean(matchCommitmentKeyword(line));
+    return line.startsWith('»') || needsLiteralEscape(line);
 }
 
 /**
@@ -115,7 +115,7 @@ export function renderChatMessage(message: Pick<ChatMessage, 'sender' | 'at' | '
  * @private chats
  */
 export function renderChatBook(chat: { name: string; members: readonly string[]; status: ChatStatus; links?: readonly string[]; messages?: ReadonlyArray<Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices'>> }): string {
-    const lines = [chat.name.replace(/\s+/g, ' ').trim(), 'ENTITY CHAT', ...chat.members.map((member) => `CHAT MEMBER ${member}`), `CHAT STATUS ${chat.status}`, ...(chat.links ?? []).map((link) => `LINK ${link}`), ''];
+    const lines = [renderDeclaration('chat', chat.name), ...chat.members.map((member) => `CHAT MEMBER ${member}`), `CHAT STATUS ${chat.status}`, ...(chat.links ?? []).map((link) => `LINK ${link}`), ''];
     for (const message of chat.messages ?? []) lines.push(...renderChatMessage(message));
     return `${lines.join('\n')}\n`;
 }
@@ -137,7 +137,7 @@ export function appendChatMessage(source: string, message: Pick<ChatMessage, 'se
  * @private chats
  */
 export function setChatStatus(source: string, status: ChatStatus): string {
-    const document = parseBook(source, { defaultKind: 'chat' });
+    const document = parseBook(source);
     const lines = source.split('\n');
     const existing = document.commitments.find((commitment) => commitment.keyword === 'CHAT STATUS');
     if (existing) {
@@ -145,7 +145,7 @@ export function setChatStatus(source: string, status: ChatStatus): string {
         lines[existing.startLine] = `CHAT STATUS ${status}${carriage}`;
         return lines.join('\n');
     }
-    const anchor = [...document.commitments].filter((commitment) => commitment.keyword === 'CHAT MEMBER' || commitment.keyword === 'ENTITY').pop();
+    const anchor = [...document.commitments].filter((commitment) => commitment.keyword === 'CHAT MEMBER').pop();
     lines.splice(anchor ? anchor.startLine + 1 : document.headerLine + 1, 0, `CHAT STATUS ${status}`);
     return lines.join('\n');
 }
@@ -156,9 +156,9 @@ export function setChatStatus(source: string, status: ChatStatus): string {
  * @private chats
  */
 export function parseChatBook(source: string): ChatBook {
-    const document = parseBook(source, { defaultKind: 'chat' });
+    const document = parseBook(source);
     const diagnostics: BookDiagnostic[] = [...document.diagnostics];
-    if (document.kind !== 'chat' && document.kind !== 'empty') diagnostics.push({ line: document.headerLine + 1, message: 'This Book is not a chat (missing or conflicting ENTITY CHAT).', severity: 'error' });
+    if (document.kind !== 'chat' && document.kind !== 'empty' && !document.legacy?.plainHeader) diagnostics.push({ line: document.headerLine + 1, message: 'This Book is not a chat (it must start with `CHAT <name>`).', severity: 'error' });
     const members = commitmentsOf(document, 'CHAT MEMBER').map((commitment) => commitment.value.trim());
     for (const member of members) if (!parseReferenceValue(member)) diagnostics.push({ line: 0, message: `CHAT MEMBER "${member}" is not a valid reference.`, severity: 'error' });
     const statusValue = singleValue(document, 'CHAT STATUS');
@@ -168,7 +168,7 @@ export function parseChatBook(source: string): ChatBook {
     const messageCommitments = commitmentsOf(document, 'CHAT MESSAGE');
     const messages: ChatMessage[] = [];
     for (const commitment of messageCommitments) {
-        const header = /^(\{[^}]+\}|@\S+)\s+(\S+)$/.exec(commitment.value.trim());
+        const header = /^(\{\{[^}]+\}\}|\{[^}]+\}|@\S+)\s+(\S+)$/.exec(commitment.value.trim());
         if (!header) {
             diagnostics.push({ line: commitment.startLine + 1, message: 'A CHAT MESSAGE needs `<sender> <timestamp>`.', severity: 'error' });
             continue;

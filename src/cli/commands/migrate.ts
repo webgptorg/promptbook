@@ -1,7 +1,9 @@
 import { readFile, rename, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { EXIT, PtbkError } from '../../common/errors.js';
-import { ensureDirectory, listDirectory, pathExists, toProjectRelative } from '../../common/fs.js';
+import { ensureDirectory, isPathInside, listDirectory, pathExists, sha256, toProjectRelative } from '../../common/fs.js';
+import { convertLegacyBook } from '../../book/convert.js';
+import { renderCommitment } from '../../book/write.js';
 import { slugify } from '../../common/ids.js';
 import { loadSettings, setting } from '../../project/config.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
@@ -35,9 +37,9 @@ function relink(text: string, fromDirectory: string, toDirectory: string): strin
  * Renders a section as an equivalent task Book.
  */
 function sectionBook(task: Task, controlLine: string | undefined, origin: string): string {
-    // The canonical first line is the task's name and identity; no opaque ID is generated.
-    const lines = [task.title, 'ENTITY TASK'];
-    if (task.description) lines.push('', task.description);
+    // `TASK <existing name>` declares the task (its identity; no opaque ID, no new date); the payload goes under GOAL.
+    const lines = [`TASK ${task.title}`];
+    if (task.description) lines.push(...renderCommitment('GOAL', task.description));
     const commitments: string[] = [];
     if (task.status === 'not-ready') commitments.push('TASK STATUS not-ready');
     if (task.status === 'failed') commitments.push('TASK STATUS failed');
@@ -48,11 +50,17 @@ function sectionBook(task: Task, controlLine: string | undefined, origin: string
     commitments.push(`TASK ORIGIN migrated from ${origin}`);
     if (controlLine) commitments.push(`TASK NOTE Original control line: ${controlLine}`);
     if (task.legacyId) commitments.push(`TASK NOTE Historical ID before migration: ${task.legacyId}`);
-    return `${lines.join('\n')}\n\n${commitments.join('\n')}\n`;
+    return `${[...lines, ...commitments].join('\n')}\n`;
 }
 
 /**
- * `ptbk migrate`: explicit, lossless Markdown-to-Book conversion (no model call).
+ * A planned conversion of an existing Book written in former syntax.
+ */
+type PlannedConversion = { readonly path: string; readonly hash: string; readonly content: string; readonly name: string; readonly notes: readonly string[] };
+
+/**
+ * `ptbk migrate`: explicit, lossless conversion of Markdown task sections into task Books and of Books in former
+ * syntax (plain name line, `ENTITY`, introduction text) into canonical `AGENT|TASK|CHAT <name>` Books (no model call).
  *
  * @private command
  */
@@ -63,8 +71,9 @@ export default async function migrate(context: CommandContext): Promise<number> 
     const tasksDirectory = await writableTasksDirectory(context, project, settings);
     const { terminal } = context;
     const dryRun = flag(context, 'dry-run') === true;
-    let files = context.positionals.map((file) => resolve(context.cwd, file));
-    if (!files.length) {
+    const explicit = context.positionals.map((file) => resolve(context.cwd, file));
+    let files = explicit.filter((file) => !file.toLowerCase().endsWith('.book'));
+    if (!explicit.length) {
         for (const directory of [tasksDirectory, resolve(project.root, PROMPTS_DIRECTORY)]) {
             for (const entry of await listDirectory(directory)) {
                 if (entry.isFile && entry.name.toLowerCase().endsWith('.md') && !isIgnoredMarkdown(entry.name, await readFile(join(directory, entry.name), 'utf8'))) files.push(join(directory, entry.name));
@@ -72,10 +81,6 @@ export default async function migrate(context: CommandContext): Promise<number> 
         }
     }
     files = [...new Set(files)];
-    if (!files.length) {
-        terminal.write('No Markdown task files to migrate.\n');
-        return EXIT.success;
-    }
     if (!dryRun && (await lookupService(project)).state === 'running') {
         throw new PtbkError('A running service owns this project; migration refuses live tasks.', { kind: 'conflict', next: ['Stop the service first (`ptbk stop`).'] });
     }
@@ -129,28 +134,60 @@ export default async function migrate(context: CommandContext): Promise<number> 
         }
         archives.push({ from: file, to: archive });
     }
-    for (const book of planned) terminal.write(`${dryRun ? 'Would create' : 'Create'} ${toProjectRelative(project.root, book.path)} (${book.task.status}, {${book.task.title}}) ← ${book.task.ref}\n`);
+    // Books in former syntax: every indexed project Book (not dependencies) and the task templates.
+    const conversions: PlannedConversion[] = [];
+    const books = explicit.length
+        ? explicit.filter((file) => file.toLowerCase().endsWith('.book'))
+        : [
+              ...index
+                  .all()
+                  .filter((entry) => entry.tier !== 4)
+                  .map((entry) => entry.path),
+              ...(await listDirectory(join(tasksDirectory, 'templates'))).filter((entry) => entry.isFile && entry.name.endsWith('.book')).map((entry) => join(tasksDirectory, 'templates', entry.name)),
+          ];
+    for (const path of [...new Set(books)]) {
+        const source = await readFile(path, 'utf8').catch(() => undefined);
+        if (source === undefined) continue;
+        const relativePath = toProjectRelative(project.root, path);
+        const location = (['agents', 'tasks', 'chats'] as const).find((root) => isPathInside(index.rootPath(root), path));
+        const conversion = convertLegacyBook(source, location);
+        if (conversion.kind === 'blocked') blocked.push(`${relativePath}: ${conversion.reason}`);
+        if (conversion.kind !== 'converted') continue;
+        conversions.push({ path, hash: sha256(source), content: conversion.content, name: conversion.name, notes: conversion.notes });
+    }
+    if (!planned.length && !conversions.length && !blocked.length) {
+        terminal.write('Nothing to migrate: no Markdown task files and no Books in former syntax.\n');
+        return EXIT.success;
+    }
+    for (const book of planned) terminal.write(`${dryRun ? 'Would create' : 'Create'} ${toProjectRelative(project.root, book.path)} (${book.task.status}, {{${book.task.title}}}) ← ${book.task.ref}\n`);
+    for (const item of conversions) terminal.write(`${dryRun ? 'Would convert' : 'Convert'} ${toProjectRelative(project.root, item.path)} → ${item.content.split('\n')[0]}${item.notes.length ? ` (${item.notes.join('; ')})` : ''}\n`);
     for (const item of archives) terminal.write(`${dryRun ? 'Would archive' : 'Archive'} ${toProjectRelative(project.root, item.from)} → ${toProjectRelative(project.root, item.to)}\n`);
     for (const problem of blocked) terminal.write(`Not converted: ${problem}\n`);
-    if (dryRun || !planned.length) return blocked.length ? EXIT.incomplete : EXIT.success;
+    if (dryRun || (!planned.length && !conversions.length)) return blocked.length ? EXIT.incomplete : EXIT.success;
+    for (const item of conversions) {
+        // A source changed since planning is never overwritten.
+        if (sha256(await readFile(item.path, 'utf8')) !== item.hash) throw new PtbkError(`${toProjectRelative(project.root, item.path)} changed during migration; nothing more was written.`, { kind: 'conflict', next: ['Run `ptbk migrate` again.'] });
+    }
     for (const book of planned) await writeFile(book.path, book.content, { flag: 'wx' });
+    for (const item of conversions) await writeFile(item.path, item.content);
     for (const item of archives) {
         await ensureDirectory(dirname(item.to));
         await rename(item.from, item.to);
     }
     const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
+    const subject = planned.length && conversions.length ? 'Migrate Markdown tasks and former Book syntax' : planned.length ? 'Migrate Markdown tasks to Books' : 'Convert Books to canonical syntax';
     const gitInfo = await inspectGit(project.root);
     if (commit && gitInfo.state === 'repository') {
         const outcome = await commitPaths({
             projectRoot: project.root,
             repositoryRoot: gitInfo.root,
-            paths: [...planned.map((book) => book.path), ...archives.flatMap((item) => [item.from, item.to])],
-            subject: 'Migrate Markdown tasks to Books',
+            paths: [...planned.map((book) => book.path), ...archives.flatMap((item) => [item.from, item.to]), ...conversions.map((item) => item.path)],
+            subject: subject,
             trailers: { 'Task-Name': planned.map((book) => book.task.title) },
             temporaryDirectory: project.runtime.temporary,
             env: context.env,
         });
-        if (outcome.committed) terminal.write(`Committed ${outcome.sha.slice(0, 8)} (PTBK: Migrate Markdown tasks to Books).\n`);
+        if (outcome.committed) terminal.write(`Committed ${outcome.sha.slice(0, 8)} (PTBK: ${subject}).\n`);
     } else if (!commit) terminal.write('Not committed (--no-commit).\n');
     return blocked.length ? EXIT.incomplete : EXIT.success;
 }

@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { writeFile, rm } from 'node:fs/promises';
 import { ensureDirectory } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
+import { normalizeAgentName, referenceName } from '../book/references.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
 import { resolveEffectiveAgent, type AgentCatalog } from '../project/agents.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
@@ -65,10 +66,10 @@ async function askUser(context: TeamContext, question: string, choices: unknown,
     if (problem) return { text: `Invalid choices: ${problem}`, isError: true };
     const chat = await context.chats.askUser({ agent: context.agentName, question, reason, attempted, choices: Array.isArray(choices) && choices.length ? (choices as string[]) : undefined });
     context.onUserChat(chat);
-    context.onActivity(`${chat.reused ? 'still waiting for' : 'asked'} the user in the chat {${chat.chat}}`);
+    context.onActivity(`${chat.reused ? 'still waiting for' : 'asked'} the user in the chat {{${chat.chat}}}`);
     await context.trace?.event('user-chat', { chat: chat.chat, agent: context.agentName, question, reason, attempted, choices, reused: chat.reused });
     return {
-        text: `The question is in the chat {${chat.chat}}, waiting for the user. End your turn now with PTBK_RESULT {"status":"waiting-for-user","summary":"…"}; the task resumes automatically with the reply.`,
+        text: `The question is in the chat {{${chat.chat}}}, waiting for the user. End your turn now with PTBK_RESULT {"status":"waiting-for-user","summary":"…"}; the task resumes automatically with the reply.`,
     };
 }
 
@@ -163,13 +164,13 @@ export function teamTools(context: TeamContext, options: { includeUser?: boolean
             handler: async (input) => {
                 const reference = String(input.agent ?? '').trim();
                 const question = String(input.question ?? '');
-                const normalized = reference.replace(/^@|^\{|\}$/g, '').toLowerCase().replace(/[\s_-]/g, '');
+                const normalized = normalizeAgentName(referenceName(reference));
                 if (['void', 'null', '0'].includes(normalized)) return { text: 'Void/Null is a no-op reference; no consultation happened.' };
                 if (normalized === 'user') {
                     if (!includeUser) return { text: 'Advisors cannot ask the user; answer with what you know.', isError: true };
                     return await askUser(context, question, input.choices, '');
                 }
-                return await consultAgent(context, reference.startsWith('@') || reference.startsWith('{') ? reference : `{${reference}}`, question);
+                return await consultAgent(context, reference.startsWith('@') || reference.startsWith('{') ? reference : `{{${reference}}}`, question);
             },
         },
     ];

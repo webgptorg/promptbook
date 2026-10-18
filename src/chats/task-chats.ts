@@ -1,4 +1,4 @@
-import { formatAgentReference, parseReferenceValue } from '../book/references.js';
+import { formatAgentReference, parseReferenceValue, referenceName } from '../book/references.js';
 import type { ChatBook } from './chat-book.js';
 import type { ChatStore } from './store.js';
 
@@ -37,10 +37,10 @@ function questionText(input: { question: string; reason?: string; attempted?: st
  * @private chats
  */
 export function taskChats(store: ChatStore, task: { readonly name: string; readonly key: string }, options: { readonly takenNames: () => ReadonlySet<string>; readonly onCreated?: (path: string) => void }): TaskChats {
-    const taskRef = `{${task.name}}`;
+    const taskRef = `{{${task.name}}}`;
     return {
         askUser: async (input) => {
-            const agentRef = formatAgentReference(input.agent.replace(/^@|^\{|\}$/g, ''));
+            const agentRef = formatAgentReference(referenceName(input.agent));
             const text = questionText(input);
             const agentKey = parseReferenceValue(agentRef)?.normalized;
             const existing = (await store.list()).find(
@@ -54,7 +54,7 @@ export function taskChats(store: ChatStore, task: { readonly name: string; reado
                 return { chat: written.chat.name, awaited: written.chat.messages.length, reused: false };
             }
             const created = await store.create({
-                name: `${input.agent.replace(/^@|^\{|\}$/g, '')} asks: ${input.question.split('\n').find((line) => line.trim())?.trim().slice(0, 70) ?? task.name}`,
+                name: `${referenceName(input.agent)} asks: ${input.question.split('\n').find((line) => line.trim())?.trim().slice(0, 70) ?? task.name}`,
                 members: ['@User', agentRef],
                 status: 'waiting-for-user',
                 links: [taskRef],
@@ -66,10 +66,10 @@ export function taskChats(store: ChatStore, task: { readonly name: string; reado
             return { chat: created.chat.name, awaited: created.chat.messages.length, reused: false };
         },
         recordConsultation: async (input) => {
-            const from = formatAgentReference(input.from.replace(/^@|^\{|\}$/g, ''));
-            const to = formatAgentReference(input.to.replace(/^@|^\{|\}$/g, ''));
+            const from = formatAgentReference(referenceName(input.from));
+            const to = formatAgentReference(referenceName(input.to));
             const created = await store.create({
-                name: `Consultation: ${input.from.replace(/^@|^\{|\}$/g, '')} with ${input.to.replace(/^@|^\{|\}$/g, '')} on ${task.name}`.slice(0, 120),
+                name: `Consultation: ${referenceName(input.from)} with ${referenceName(input.to)} on ${task.name}`.slice(0, 120),
                 members: [from, to],
                 status: 'resolved',
                 links: [taskRef],

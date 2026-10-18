@@ -1,4 +1,4 @@
-import { normalizeAgentName } from '../book/references.js';
+import { normalizeAgentName, referenceName } from '../book/references.js';
 import { setting, type EffectiveSettings, type ThinkingLevel } from '../project/config.js';
 import { resolveEffectiveAgent, type AgentCatalog, type EffectiveAgent } from '../project/agents.js';
 import { harnessName, harnessPlugin } from '../harness/registry.js';
@@ -97,7 +97,7 @@ export async function resolveRoute(task: Task, context: RoutingContext): Promise
     }
     let agentReference = task.routing.agent;
     if (run) {
-        if (agentReference && normalizeAgentName(agentReference.replace(/^[@{]|}$/g, '')) !== normalizeAgentName(run.agent.replace(/^[@{]|}$/g, ''))) {
+        if (agentReference && normalizeAgentName(referenceName(agentReference)) !== normalizeAgentName(referenceName(run.agent))) {
             return { kind: 'incompatible', reason: `Requires agent ${agentReference}, but this run uses ${run.agent}.` };
         }
         agentReference = run.agent;
@@ -105,7 +105,7 @@ export async function resolveRoute(task: Task, context: RoutingContext): Promise
         if (task.source.kind === 'book') return { kind: 'needs-assignment', reason: 'No TASK AGENT yet; Manager will assign routing first.' };
         agentReference = setting<string>(settings, 'routing.defaultAgent');
     }
-    const agent = await resolveEffectiveAgent(context.catalog, agentReference.startsWith('@') || agentReference.startsWith('{') ? agentReference : `{${agentReference}}`);
+    const agent = await resolveEffectiveAgent(context.catalog, agentReference.startsWith('@') || agentReference.startsWith('{') ? agentReference : `{{${agentReference}}}`);
     const agentErrors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (agentErrors.length) {
         return { kind: 'blocked', reason: agentErrors.map((diagnostic) => `${diagnostic.path ? `${diagnostic.path}: ` : ''}${diagnostic.message}`).join(' '), next: 'Fix the agent definition or the TASK AGENT reference.' };

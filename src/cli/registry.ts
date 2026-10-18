@@ -390,9 +390,9 @@ Missing setup is offered through the same initialization workflow when interacti
     {
         name: 'migrate',
         category: 'Author work',
-        summary: 'Convert Markdown task sections into task Books (no model call).',
-        description: 'Creates one Book per Markdown section, preserving title, payload, state, priority, selectors (as TASK RUNNER), time restrictions and known completion history, verifies the meaning and moves the original file into tasks/archive/. Unconvertible sections block the file. One maintenance commit.',
-        arguments: [{ name: 'file', description: 'Markdown files to convert (default: all in the task sources).', variadic: true }],
+        summary: 'Convert Markdown tasks and Books in former syntax into canonical Books (no model call).',
+        description: 'Creates one `TASK <name>` Book per Markdown section (the payload under GOAL), preserving title, state, priority, selectors (as TASK RUNNER), time restrictions and known completion history, verifies the meaning and moves the original file into tasks/archive/. Books in former syntax (a plain name line, ENTITY, text directly under the name) become `AGENT|TASK|CHAT <name>` Books with the same name and content; descriptive text moves under GOAL, PERSONA or NOTE. Ambiguous kinds and names that cannot follow a keyword are reported, not guessed. Read-only commands never convert anything. One maintenance commit.',
+        arguments: [{ name: 'file', description: 'Markdown or Book files to convert (default: all task sources and project Books).', variadic: true }],
         optionGroups: [{ title: 'Migration', options: [QUEUE_FILTER_OPTIONS.options[5]!] }, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
             { command: 'ptbk migrate --dry-run', description: 'Preview the conversion.' },

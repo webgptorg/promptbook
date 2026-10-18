@@ -75,7 +75,7 @@ test('Markdown legacy ID comments are historical metadata only: the title is the
     assert.equal(tasks.length, 3);
     const second = tasks[1];
     assert.equal(second.legacyId, 'second-abc123');
-    assert.equal(second.ref, '{Second task}', 'referenced by name, never by the legacy ID');
+    assert.equal(second.ref, '{{Second task}}', 'referenced by name, never by the legacy ID');
     assert.equal(second.key, 'secondtask');
     assert.equal(second.status, 'not-ready', 'the control line after the comment still decides the state');
     assert.equal(second.title, 'Second task');
@@ -101,7 +101,7 @@ test('recurrence keeps anchors, coalesces downtime and never shifts slots on com
 });
 
 test('eligibility: priority order, future work never blocks, dependencies and cycles explained', async () => {
-    const read = (name, body) => readTaskBook({ source: `${name}\nENTITY TASK\n${body}`, path: `/p/tasks/${name}.book`, relativePath: `tasks/${name}.book`, order: name.charCodeAt(0), timeZone: 'UTC' });
+    const read = (name, body) => readTaskBook({ source: `TASK ${name}\n${body}`, path: `/p/tasks/${name}.book`, relativePath: `tasks/${name}.book`, order: name.charCodeAt(0), timeZone: 'UTC' });
     const tasks = [
         read('a', 'TASK PRIORITY 1\nTASK AGENT @Developer'),
         read('b', 'TASK PRIORITY 9\nTASK AFTER 2099-01-01\nTASK AGENT @Developer'),

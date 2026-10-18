@@ -5,7 +5,7 @@ import { loadSettings, setting } from '../../project/config.js';
 import { commitPaths, inspectGit, listProjectFiles } from '../../project/git.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
 import { readTaskQueue } from '../../tasks/sources.js';
-import { distinctTaskName, printJson, selectedProject, writableTasksDirectory } from '../common.js';
+import { generatedTaskName, printJson, selectedProject, writableTasksDirectory } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -55,7 +55,7 @@ export async function findRefactorCandidates(context: CommandContext): Promise<n
         const names: string[] = [];
         for (const candidate of top) {
             const path = await newTaskPath(tasksDirectory, `refactor ${candidate.path}`, Date.now(), setting<string>(settings, 'timezone'));
-            const title = await distinctTaskName(project, settings, `Refactor ${candidate.path}`, names);
+            const title = await generatedTaskName(project, settings, `Refactor ${candidate.path}`, names);
             await writeFile(
                 path,
                 renderTaskBook({

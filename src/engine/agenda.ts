@@ -3,9 +3,9 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, relative, resolve } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { formatDuration } from '../common/duration.js';
-import { confinePath, ensureDirectory, toProjectRelative } from '../common/fs.js';
+import { confinePath, ensureDirectory, pathExists, toProjectRelative } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
-import { formatIsoWithOffset, formatShortTime } from '../common/time.js';
+import { creationTimestamp, formatIsoWithOffset, formatShortTime } from '../common/time.js';
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { setControlCommitment } from '../book/edit.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
@@ -15,7 +15,10 @@ import { commitPaths, inspectGit, stageableFiles, git as runGit } from '../proje
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
-import { distinctName, traceDirectoryOf } from '../tasks/identity.js';
+import { distinctName, generatedName, traceDirectoryOf } from '../tasks/identity.js';
+import { BookIndex } from '../project/books.js';
+import { parseBook } from '../book/parse.js';
+import { renderDeclaration } from '../book/write.js';
 import { ChatStore, type ChatSummary, type ChatWrite } from '../chats/store.js';
 import { isHumanFacing } from '../chats/chat-book.js';
 import { taskChats } from '../chats/task-chats.js';
@@ -245,6 +248,7 @@ export class Agenda {
                           },
                       }
                     : { commit: async (paths, subject, trailers) => await this.commitAuthoring(paths, subject, trailers) },
+                takenNames: async () => await this.freshTakenNames(),
             });
         }
         return this.chatStore;
@@ -317,6 +321,17 @@ export class Agenda {
         if (!this.repositoryRoot) return;
         const { ensureCoreAgents } = await import('../project/setup.js');
         const created = await ensureCoreAgents(this.options.project.root, setting<string>(this.settings, 'paths.agents'));
+        // Sources in former syntax are never rewritten automatically: they wait for an explicit `ptbk migrate`.
+        const legacy = (this.catalog?.index.all() ?? []).filter((entry) => entry.tier !== 4 && entry.document.legacy && entry.kind === 'invalid');
+        if (legacy.length) {
+            this.logOnce(
+                `${legacy.length} Book(s) use former syntax (a plain name line instead of AGENT/TASK/CHAT <name>) and are not usable until converted: ${legacy
+                    .slice(0, 5)
+                    .map((entry) => entry.relativePath)
+                    .join(', ')}${legacy.length > 5 ? ', …' : ''}. Run \`ptbk migrate\` to convert them.`,
+                'warning',
+            );
+        }
         if (!created.length) return;
         const commit = this.commitMode ? await this.commitAuthoring(created, 'Add required core agents').catch(() => undefined) : undefined;
         if (!this.commitMode) for (const path of created) await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, path)]: null });
@@ -482,9 +497,22 @@ export class Agenda {
     /**
      * Starts a new user-led chat with one agent (its first message is committed), then lets the agent reply.
      */
-    public async chatCreate(agent: string, text: string, options: { readonly name?: string } = {}): Promise<ChatWrite> {
-        const written = await createUserChat(this.chats, this.catalog, agent, text, options);
-        this.log(`New chat {${written.chat.name}}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
+    public async chatCreate(agent: string, text: string, options: { readonly name?: string; readonly requestKey?: string } = {}): Promise<ChatWrite> {
+        // A retried creation (same client request key) returns the chat already prepared, never a second name.
+        const previous = options.requestKey ? this.createdChats.get(options.requestKey) : undefined;
+        const existing = previous ? await this.chats.find(previous) : undefined;
+        if (existing) return existing;
+        const written: ChatWrite = await this.chatCreation.run(async () => {
+            const again = options.requestKey ? this.createdChats.get(options.requestKey) : undefined;
+            const stored = again ? await this.chats.find(again) : undefined;
+            return stored ?? (await createUserChat(this.chats, this.catalog, agent, text, options));
+        });
+        if (options.requestKey) {
+            if (this.createdChats.get(options.requestKey) === written.chat.name) return written;
+            this.createdChats.set(options.requestKey, written.chat.name);
+            if (this.createdChats.size > 500) this.createdChats.delete(this.createdChats.keys().next().value!);
+        }
+        this.log(`New chat {{${written.chat.name}}}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
         await this.chats.markRead(written.chat.name);
         await this.refreshChats();
         this.queueChatReply(written.chat.name);
@@ -497,12 +525,18 @@ export class Agenda {
      */
     public async chatSend(name: string, text: string, options: { readonly expected?: number; readonly via?: string } = {}): Promise<ChatWrite> {
         const { written, needsReply } = await appendUserMessage(this.chats, this.state, name, text, { expected: options.expected });
-        this.log(`Message in {${written.chat.name}}${options.via ? ` via ${options.via}` : ''}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
+        this.log(`Message in {{${written.chat.name}}}${options.via ? ` via ${options.via}` : ''}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
         await this.refreshChats();
         if (needsReply) this.queueChatReply(written.chat.name);
         this.wake();
         return written;
     }
+
+    /** Chats created per client request key (retries return the same chat). */
+    private readonly createdChats = new Map<string, string>();
+
+    /** Serializes chat creation so a retried request cannot race its original. */
+    private readonly chatCreation = new Mutex();
 
     /** Chats queued for an agent reply (one turn at a time, outside the single-task queue). */
     private readonly chatTurns = new Mutex();
@@ -526,24 +560,25 @@ export class Agenda {
                     },
                     name,
                 );
-                if (turn.error) this.log(`No reply in {${name}}: ${turn.error}`, 'warning');
-                else if (turn.reply) this.log(`Reply in {${turn.reply.chat.name}}${turn.createdTasks.length ? ` (created ${turn.createdTasks.map((task) => `{${task}}`).join(', ')})` : ''}.`);
+                if (turn.error) this.log(`No reply in {{${name}}}: ${turn.error}`, 'warning');
+                else if (turn.reply) this.log(`Reply in {{${turn.reply.chat.name}}}${turn.createdTasks.length ? ` (created ${turn.createdTasks.map((task) => `{{${task}}}`).join(', ')})` : ''}.`);
                 await this.refreshChats();
             })
-            .catch((error: unknown) => this.log(`The reply in {${name}} failed: ${errorMessage(error)}`, 'warning'));
+            .catch((error: unknown) => this.log(`The reply in {{${name}}} failed: ${errorMessage(error)}`, 'warning'));
     }
 
     /** Creates an ordinary task requested in a chat (own authoring commit, linked to the chat). */
     private async createChatTask(input: { readonly title: string; readonly description: string; readonly agent?: string; readonly priority?: number; readonly chat: string }): Promise<string> {
         if (!input.title) throw new PtbkError('A task needs a name.', { kind: 'usage' });
-        const title = distinctName(input.title, await this.takenNames());
+        const title = generatedName(input.title, { taken: await this.takenNames(), timeZone: this.timeZone });
         const commitments: string[] = [];
         if (input.agent) commitments.push(`TASK AGENT ${input.agent.startsWith('@') || input.agent.startsWith('{') ? input.agent : formatAgentReference(input.agent)}`);
         if (input.priority !== undefined) commitments.push(`TASK PRIORITY ${input.priority}`);
-        commitments.push(`TASK ORIGIN chat {${input.chat}}`, `LINK {${input.chat}}`);
-        const path = await newTaskPath(this.tasksDirectory, title, Date.now(), this.timeZone);
-        await this.addTaskFile(path, renderTaskBook({ title, description: input.description || undefined, commitments }), `Add task - ${title}`, this.commitMode, [title]);
-        return title;
+        commitments.push(`TASK ORIGIN chat {{${input.chat}}}`, `LINK {{${input.chat}}}`);
+        const path = await newTaskPath(this.tasksDirectory, input.title, Date.now(), this.timeZone);
+        // The final name (rechecked at publication) is what the chat reports and links.
+        const published = await this.addTaskFile(path, renderTaskBook({ title, description: input.description || undefined, commitments }), `Add task - ${title}`, this.commitMode, [title]);
+        return published.names[0] ?? title;
     }
 
     /** Schedules one Teacher task for a chat correction, unless equivalent teaching work is still unresolved. */
@@ -556,7 +591,7 @@ export class Agenda {
         const created = await createChatLearningTask({ tasksDirectory: this.tasksDirectory, chat: input.chat, agent: learner.definition.name, agentPath: learner.definition.relativePath, note: input.note, timeZone: this.timeZone, taken: await this.takenNames() });
         if (this.commitMode) await this.commitAuthoring([created.path], `Add task - ${created.name}`, { 'Task-Name': created.name, 'Chat-Name': input.chat });
         else await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, created.path)]: null });
-        this.log(`Scheduled {${created.name}} for Teacher from the chat {${input.chat}}.`);
+        this.log(`Scheduled {{${created.name}}} for Teacher from the chat {{${input.chat}}}.`);
         this.wake();
         return created.name;
     }
@@ -589,20 +624,49 @@ export class Agenda {
     /**
      * Writes and commits an authored task file at a safe boundary (never folded into the active task).
      */
-    public async addTaskFile(path: string, content: string, summary: string, commit: boolean = this.commitMode, taskNames: readonly string[] = []): Promise<{ path: string; commit?: string }> {
-        const absolute = await confinePath(this.options.project.root, path);
-        this.authoredPaths.add(absolute);
-        await ensureDirectory(dirname(absolute));
-        await writeFile(absolute, content, { flag: 'wx' });
-        let sha: string | undefined;
-        if (commit) {
-            sha = await this.commitAuthoring([absolute], summary, { 'Task-Name': taskNames });
-            // Committed sources are clean again; later edits (e.g. Manager routing) belong to the work that makes them.
-            this.authoredPaths.delete(absolute);
-        } else await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, absolute)]: null });
-        this.log(`Added ${toProjectRelative(this.options.project.root, absolute)}${sha ? ` (${sha.slice(0, 8)})` : ' (uncommitted)'}`);
-        this.wake();
-        return { path: absolute, commit: sha };
+    public async addTaskFile(path: string, content: string, summary: string, commit: boolean = this.commitMode, taskNames: readonly string[] = []): Promise<{ path: string; commit?: string; names: string[] }> {
+        return await this.publication.run(async () => {
+            let absolute = await confinePath(this.options.project.root, path);
+            // Recheck at publication: the name (and path) may have been taken since the writer prepared it.
+            let text = content;
+            let names = [...taskNames];
+            const document = parseBook(content);
+            if (document.kind === 'task' && document.name) {
+                const taken = await this.freshTakenNames();
+                if (taken.has(nameKey(document.name))) {
+                    const final = distinctName(document.name, taken);
+                    const lines = [...document.lines];
+                    lines[document.headerLine] = renderDeclaration('task', final);
+                    text = `${lines.join(document.newline)}`;
+                    names = names.map((name) => (nameKey(name) === nameKey(document.name) ? final : name));
+                    summary = summary.split(document.name).join(final);
+                }
+            }
+            for (let attempt = 2; await pathExists(absolute); attempt++) absolute = absolute.replace(/(-\d+)?\.(book|md)$/i, `-${attempt}.$2`);
+            this.authoredPaths.add(absolute);
+            await ensureDirectory(dirname(absolute));
+            await writeFile(absolute, text, { flag: 'wx' });
+            let sha: string | undefined;
+            if (commit) {
+                sha = await this.commitAuthoring([absolute], summary, { 'Task-Name': names });
+                // Committed sources are clean again; later edits (e.g. Manager routing) belong to the work that makes them.
+                this.authoredPaths.delete(absolute);
+            } else await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, absolute)]: null });
+            this.log(`Added ${toProjectRelative(this.options.project.root, absolute)}${sha ? ` (${sha.slice(0, 8)})` : ' (uncommitted)'}`);
+            this.wake();
+            return { path: absolute, commit: sha, names };
+        });
+    }
+
+    /** Serializes publication of new task/chat Books so two writers never publish the same normalized name. */
+    private readonly publication = new Mutex();
+
+    /** Normalized names of every Book and queued task right now (fresh, for checks at publication). */
+    private async freshTakenNames(): Promise<Set<string>> {
+        const index = await BookIndex.load(this.options.project.root, { agents: setting<string>(this.settings, 'paths.agents'), tasks: setting<string>(this.settings, 'paths.tasks') });
+        const names = index.names();
+        for (const task of (await this.readQueue()).tasks) names.add(task.key);
+        return names;
     }
 
     /** Commits authored paths under the Git lock (with name trailers such as `Task-Name`/`Chat-Name`). */
@@ -959,7 +1023,7 @@ export class Agenda {
         const since = health.scheduledAt ? Date.now() - Date.parse(health.scheduledAt) : Number.POSITIVE_INFINITY;
         if (since < HEALTH_MIN_INTERVAL_MS) return false;
         if (health.fingerprint === fingerprint && since < HEALTH_RECHECK_INTERVAL_MS) return false;
-        const title = distinctName(`Project health check (${formatIsoWithOffset(Date.now(), this.timeZone).slice(0, 10)})`, await this.takenNames());
+        const title = generatedName('Project health check', { taken: await this.takenNames(), timeZone: this.timeZone });
         const recentFailures = (await this.state.recentResults(50)).filter((result) => result.outcome === 'failed').slice(0, 5);
         const description = [
             'Promptbook found these problems in the project. Diagnose each one (source, impact, confidence) and fix the clear, low-risk ones within your authority; check the result.',
@@ -967,12 +1031,12 @@ export class Agenda {
             '',
             ...findings.slice(0, 60).map((finding) => `- ${finding}`),
             ...(findings.length > 60 ? [`- … ${findings.length - 60} more (run \`ptbk lint\`)`] : []),
-            ...(recentFailures.length ? ['', 'Recent failed tasks (context):', ...recentFailures.map((result) => `- {${result.title}}: ${result.summary.slice(0, 200)}`)] : []),
+            ...(recentFailures.length ? ['', 'Recent failed tasks (context):', ...recentFailures.map((result) => `- {{${result.title}}}: ${result.summary.slice(0, 200)}`)] : []),
         ].join('\n');
         const path = await newTaskPath(this.tasksDirectory, 'project health check', Date.now(), this.timeZone);
         await this.addTaskFile(path, renderTaskBook({ title, description, commitments: ['TASK AGENT @Fixer', `TASK ORIGIN ${HEALTH_ORIGIN}`] }), `Add task - ${title}`, this.commitMode, [title]);
         await this.state.writeHealth({ fingerprint, scheduledAt: new Date().toISOString(), task: title });
-        this.log(`Fixer will check ${findings.length} project health finding(s) in {${title}}.`);
+        this.log(`Fixer will check ${findings.length} project health finding(s) in {{${title}}}.`);
         return true;
     }
 
@@ -1197,7 +1261,7 @@ export class Agenda {
             };
         }
         if (kind === 'learning') {
-            const match = /\bby\s+(@\S+|\{[^}]+\})/.exec(task.origin ?? '');
+            const match = /\bby\s+(@\S+|\{\{[^}]+\}\}|\{[^}]+\})/.exec(task.origin ?? '');
             const learnerRef = match?.[1];
             const learner = learnerRef ? await resolveEffectiveAgent(this.catalog, learnerRef) : undefined;
             const teacher = await this.catalog.resolve('@Teacher');
@@ -1232,7 +1296,7 @@ export class Agenda {
                 ...base,
                 kind: 'discovery',
                 learning: (changed) => newTasks(changed).length > 0,
-                extraPrompt: discoveryPrompt({ agent: route.agent, tasksDirectory: tasksRelative, recentTitles: recent }),
+                extraPrompt: discoveryPrompt({ agent: route.agent, tasksDirectory: tasksRelative, recentTitles: recent, creationStamp: creationTimestamp(Date.now(), this.timeZone) }),
             };
         }
         return { ...base, kind: 'task', learning: true };
@@ -1253,13 +1317,13 @@ export class Agenda {
         const result = results.find((item) => item.taskRef === parent || (parent && item.taskRef === parent.replace(/^#/, '')));
         const tracePath = /Evidence:\s*(\S+)/.exec(task.notes.join('\n'))?.[1] ?? result?.trace;
         const parts: string[] = [];
-        const chatName = /^learning from chat\s+\{([^}]+)\}/i.exec(task.origin ?? '')?.[1];
+        const chatName = /^learning from chat\s+\{\{?([^}]+)\}\}?/i.exec(task.origin ?? '')?.[1];
         const chat = chatName ? await this.chats.find(chatName) : undefined;
         if (chatName) {
             parts.push(
                 chat
-                    ? `Chat {${chat.chat.name}} (${chat.relativePath}):\n${chat.chat.messages.map((message) => `${message.sender} (${message.at}):\n${message.text}`).join('\n\n').slice(-30_000)}`
-                    : `The chat {${chatName}} is no longer available.`,
+                    ? `Chat {{${chat.chat.name}}} (${chat.relativePath}):\n${chat.chat.messages.map((message) => `${message.sender} (${message.at}):\n${message.text}`).join('\n\n').slice(-30_000)}`
+                    : `The chat {{${chatName}}} is no longer available.`,
             );
         }
         if (result) parts.push(`Result: ${result.outcome} after ${result.attempts} attempt(s); summary: ${result.summary}; commit: ${result.commit ?? 'none'}`);
@@ -1278,7 +1342,13 @@ export class Agenda {
     private async assign(target: Task): Promise<void> {
         const manager = await this.catalog.resolve('@Manager');
         if (manager.kind !== 'agent') {
-            this.setBlocker({ kind: 'setup', title: 'Manager is missing', reason: 'The core agent Manager (agents/.core/manager.book) is not available, so missing routing cannot be assigned.', action: 'Run `ptbk init` to restore core agents.' });
+            const needsConversion = manager.kind === 'invalid' || Boolean(this.catalog.index.winnerOf('manager')?.document.legacy);
+            this.setBlocker({
+                kind: 'setup',
+                title: 'Manager is missing',
+                reason: needsConversion ? 'The core agent Manager uses former Book syntax, so missing routing cannot be assigned.' : 'The core agent Manager (agents/.core/manager.book) is not available, so missing routing cannot be assigned.',
+                action: needsConversion ? 'Run `ptbk migrate` to convert Books in former syntax.' : 'Run `ptbk init` to restore core agents.',
+            });
             await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason: 'Manager core agent is missing.', action: 'Run `ptbk init`.', skippable: false });
             return;
         }
@@ -1295,7 +1365,7 @@ export class Agenda {
         const model = harness === preferred ? setting<string | undefined>(this.settings, 'routing.model') : this.settings.harnesses[harness]?.model;
         const thinking = harness === preferred ? setting<ThinkingLevel | undefined>(this.settings, 'routing.thinkingLevel') : this.settings.harnesses[harness]?.thinkingLevel;
         const created = await createAssignmentTask({ target, tasksDirectory: this.tasksDirectory, bootstrap: { harness, model, thinkingLevel: thinking }, timeZone: this.timeZone, taken: await this.takenNames() });
-        this.log(`Missing routing for "${target.title}": Manager prerequisite {${created.name}} (${toProjectRelative(this.options.project.root, created.path)})`);
+        this.log(`Missing routing for "${target.title}": Manager prerequisite {{${created.name}}} (${toProjectRelative(this.options.project.root, created.path)})`);
         await (await TaskTrace.open(this.options.project, target.title)).event('assignment-requested', { managerTask: created.name, source: toProjectRelative(this.options.project.root, created.path) });
         const managerTask = readTaskBook({ source: await readFile(created.path, 'utf8'), path: created.path, relativePath: toProjectRelative(this.options.project.root, created.path), order: 0, timeZone: this.timeZone })!;
         const route = await this.route(managerTask);
@@ -1428,7 +1498,7 @@ export class Agenda {
                 break;
             }
             case 'awaiting-user': {
-                this.log(`"${item.task.title}" waits for your reply in the chat {${outcome.chat}} (ptbk chat --open "${outcome.chat}").`, 'warning');
+                this.log(`"${item.task.title}" waits for your reply in the chat {{${outcome.chat}}} (ptbk chat --open "${outcome.chat}").`, 'warning');
                 await this.refreshChats();
                 if (this.options.mode === 'run') this.executedInRun.add(item.task.key);
                 const record = await this.state.readActive();
@@ -1529,7 +1599,7 @@ export class Agenda {
                     attempt: record.attempt,
                     attemptBudget: setting<number>(this.settings, 'execution.repairAttempts'),
                     startedAt: record.startedAt,
-                    detail: `{${record.waitingChat}}`,
+                    detail: `{{${record.waitingChat}}}`,
                 };
                 this.phase = 'awaiting-user';
                 await this.evaluate();
@@ -1538,7 +1608,7 @@ export class Agenda {
                     this.finishRun([]);
                     return;
                 }
-                await this.wait(IDLE_RECHECK_MS, { kind: 'user', reason: `"${record.taskTitle}" waits for your reply in the chat {${record.waitingChat}} and holds uncommitted changes, so other work waits too.`, action: `ptbk answer "${record.waitingChat}"`, skippable: false });
+                await this.wait(IDLE_RECHECK_MS, { kind: 'user', reason: `"${record.taskTitle}" waits for your reply in the chat {{${record.waitingChat}}} and holds uncommitted changes, so other work waits too.`, action: `ptbk answer "${record.waitingChat}"`, skippable: false });
                 this.current = undefined;
                 return;
             }
@@ -1594,7 +1664,7 @@ export class Agenda {
             const agent = current.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
             const asked = await taskChats(this.chats, { name: current.taskTitle, key: current.taskKey || nameKey(current.taskTitle) }, { takenNames: () => this.catalog.index.names() }).askUser({
                 agent,
-                reason: `The task {${current.taskTitle}} failed: ${current.failure ?? 'unknown reason'}`,
+                reason: `The task {{${current.taskTitle}}} failed: ${current.failure ?? 'unknown reason'}`,
                 attempted: `${current.attempt} attempt(s) and ${current.technicalRetries} technical retr${current.technicalRetries === 1 ? 'y' : 'ies'} within the configured budgets. Evidence: ${traceDirectoryOf(current.taskTitle)}/.`,
                 question: 'How should I continue? Retrying runs the task again with a fresh attempt budget; acknowledging records the failure (TASK STATUS failed) and moves on. Partial changes stay in the working tree.',
                 choices: [...RECOVERY_CHOICES],
@@ -1611,7 +1681,7 @@ export class Agenda {
                 this.finishRun([]);
                 return;
             }
-            await this.wait(IDLE_RECHECK_MS, { kind: 'recovery', reason: `"${current.taskTitle}" failed; its agent asks how to continue in {${current.recoveryChat}}.`, action: `ptbk answer "${current.recoveryChat}"`, skippable: false });
+            await this.wait(IDLE_RECHECK_MS, { kind: 'recovery', reason: `"${current.taskTitle}" failed; its agent asks how to continue in {{${current.recoveryChat}}}.`, action: `ptbk answer "${current.recoveryChat}"`, skippable: false });
             return;
         }
         this.clearBlocker('recovery');
@@ -1717,9 +1787,9 @@ export class Agenda {
         await writeFile(
             path,
             renderTaskBook({
-                title: distinctName('Repair the failing project check', await this.takenNames()),
+                title: generatedName('Repair the failing project check', { taken: await this.takenNames(), timeZone: this.timeZone }),
                 description: `The project check \`${check}\` fails before work. Fix the underlying defects without weakening validation.\n\n\`\`\`\n${result.output.slice(-6000)}\n\`\`\``,
-                commitments: [`TASK AGENT {${agent}}`, 'TASK ORIGIN maintenance: failing project check'],
+                commitments: [`TASK AGENT {{${agent}}}`, 'TASK ORIGIN maintenance: failing project check'],
             }),
             { flag: 'wx' },
         );
@@ -1773,7 +1843,7 @@ export class Agenda {
         }
         await this.state.park(record);
         await (await TaskTrace.open(this.options.project, record.taskTitle)).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat });
-        this.log(`"${record.taskTitle}" is checkpointed until you reply in {${record.waitingChat ?? record.recoveryChat}}; independent work continues.`);
+        this.log(`"${record.taskTitle}" is checkpointed until you reply in {{${record.waitingChat ?? record.recoveryChat}}}; independent work continues.`);
         return true;
     }
 
@@ -1789,7 +1859,7 @@ export class Agenda {
             // The checkpoint held no changes; later commits by other tasks are the new baseline.
             const preSnapshot = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, this.authoredPaths);
             await this.state.unpark({ ...record, preSnapshot, instanceId: this.options.instanceId });
-            this.log(`Resuming "${record.taskTitle}" after your reply${chat ? ` in {${chat}}` : ''}.`);
+            this.log(`Resuming "${record.taskTitle}" after your reply${chat ? ` in {{${chat}}}` : ''}.`);
             return true;
         }
         return false;

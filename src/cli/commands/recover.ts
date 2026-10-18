@@ -41,7 +41,7 @@ export default async function recover(context: CommandContext): Promise<number> 
                 `Attempts: ${record.attempt} implementation/repair, ${record.technicalRetries} technical retries`,
                 `Routing: ${record.routing.agent} on ${record.routing.harness}${record.routing.model ? ` ${record.routing.model}` : ''}`,
                 `Commit mode: ${record.noCommit ? 'no-commit' : 'automatic'}${record.commitSha ? `; committed ${record.commitSha}` : ''}`,
-                `Waiting for your reply: ${record.waitingChat ?? record.recoveryChat ? `chat {${record.waitingChat ?? record.recoveryChat}} (ptbk answer "${record.waitingChat ?? record.recoveryChat}")` : 'no'}`,
+                `Waiting for your reply: ${record.waitingChat ?? record.recoveryChat ? `chat {{${record.waitingChat ?? record.recoveryChat}}} (ptbk answer "${record.waitingChat ?? record.recoveryChat}")` : 'no'}`,
                 `Engine-created files: ${record.createdPaths.join(', ') || 'none'}`,
                 ...record.history.map((attempt) => `  attempt ${attempt.attempt}: ${attempt.outcome} — ${attempt.diagnostic}${attempt.trace ? ` (${attempt.trace})` : ''}`),
                 '',

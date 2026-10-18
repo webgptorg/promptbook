@@ -129,7 +129,10 @@ export async function traceIgnoreRulesMatch(root: string, policy: TraceGitPolicy
  */
 export async function ensureCoreAgents(root: string, agentsDirectory: string): Promise<string[]> {
     const created: string[] = [];
+    // A role is present when any Book already uses its name (even one needing conversion): never create a twin.
+    const index = (await AgentCatalog.load(root, agentsDirectory)).index;
     for (const agent of CORE_AGENTS) {
+        if (index.winnerOf(nameKey(agent.name))) continue;
         const path = join(root, agentsDirectory, agent.file);
         if (await createIfMissing(path, agent.content)) created.push(path);
     }
@@ -143,7 +146,8 @@ export async function ensureCoreAgents(root: string, agentsDirectory: string): P
  */
 export async function ensureDefaultRoles(root: string, agentsDirectory: string): Promise<string[]> {
     const catalog = await AgentCatalog.load(root, agentsDirectory);
-    if (catalog.ordinary().length) return [];
+    // Any visible Book in the agents folder (valid or awaiting conversion) means the project has its own roles.
+    if (catalog.ordinary().length || catalog.index.all().some((entry) => entry.root === 'agents' && !entry.hidden && entry.tier !== 4)) return [];
     const created: string[] = [];
     for (const role of DEFAULT_ROLES) {
         const path = join(root, agentsDirectory, role.file);
@@ -185,13 +189,14 @@ export async function ensureProjectInstructions(root: string, name: string, chec
 export async function hasFirstTask(options: { root: string; tasksDirectory: string; timeZone: string; knownNames?: readonly string[] }): Promise<boolean> {
     const keys = new Set([...FIRST_TASK_NAMES, ...(options.knownNames ?? [])].map((name) => nameKey(name)));
     const queue = await readTaskQueue({ root: options.root, tasksDirectory: options.tasksDirectory, timeZone: options.timeZone });
-    if (queue.tasks.some((task) => keys.has(task.key) || task.legacyId === LEGACY_STARTER_TASK_ID)) return true;
+    // The bootstrap is recognized by its origin (its generated name carries its creation time) or a former name/ID.
+    if (queue.tasks.some((task) => task.origin === 'initialization' || keys.has(task.key) || task.legacyId === LEGACY_STARTER_TASK_ID)) return true;
     const archive = join(options.root, options.tasksDirectory, 'archive');
     for (const archived of await listDirectory(archive)) {
         const text = archived.isFile ? await readTextIfExists(join(archive, archived.name)) : undefined;
         if (!text) continue;
         const firstLine = text.split(/\r?\n/).find((line) => line.trim()) ?? '';
-        if (keys.has(nameKey(firstLine.replace(/^#+\s*/, ''))) || text.includes(`TASK ID ${LEGACY_STARTER_TASK_ID}`) || text.includes(`ptbk-task-id: ${LEGACY_STARTER_TASK_ID}`)) return true;
+        if (/^TASK ORIGIN initialization\s*$/m.test(text) || keys.has(nameKey(firstLine.replace(/^#+\s*/, '').replace(/^TASK\s+/, ''))) || text.includes(`TASK ID ${LEGACY_STARTER_TASK_ID}`) || text.includes(`ptbk-task-id: ${LEGACY_STARTER_TASK_ID}`)) return true;
     }
     return false;
 }

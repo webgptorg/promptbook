@@ -5,7 +5,9 @@ import { parseInterval } from '../../common/duration.js';
 import { ensureDirectory, listDirectory, pathExists, toProjectRelative } from '../../common/fs.js';
 import { parseDateTime } from '../../common/time.js';
 import { matchCommitmentKeyword } from '../../book/commitments.js';
-import { parseBook } from '../../book/parse.js';
+import { normalizeAgentName } from '../../book/references.js';
+import { renderCommitment } from '../../book/write.js';
+import { commitmentsOf, parseBook } from '../../book/parse.js';
 import { loadSettings, setting } from '../../project/config.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
 import { newTaskPath, renderTaskBook, splitTitle } from '../../tasks/authoring.js';
@@ -14,7 +16,8 @@ import { lookupService } from '../../service/control.js';
 import { acquireProjectLock } from '../../service/records.js';
 import { shortId } from '../../common/ids.js';
 import { CANCELLED, composeText, confirm, selectOne } from '../../ui/prompts.js';
-import { distinctTaskName, readStdin, selectedProject, writableTasksDirectory } from '../common.js';
+import { generatedTaskName, projectTakenNames, readStdin, selectedProject, writableTasksDirectory } from '../common.js';
+import { distinctName } from '../../tasks/identity.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -23,7 +26,7 @@ import { flag, option, type CommandContext } from '../context.js';
 function controlLines(context: CommandContext, timeZone: string): string[] {
     const lines: string[] = [];
     const agent = option<string>(context, 'agent');
-    if (agent) lines.push(`TASK AGENT ${agent.startsWith('@') || agent.startsWith('{') ? agent : /\s/.test(agent) ? `{${agent}}` : `@${agent}`}`);
+    if (agent) lines.push(`TASK AGENT ${agent.startsWith('@') || agent.startsWith('{') ? agent : /\s/.test(agent) ? `{{${agent}}}` : `@${agent}`}`);
     if (option<string>(context, 'harness')) lines.push(`TASK HARNESS ${option<string>(context, 'harness')}`);
     if (option<string>(context, 'model')) lines.push(`TASK MODEL ${option<string>(context, 'model')}`);
     if (option<string>(context, 'thinking-level')) lines.push(`TASK THINKING LEVEL ${option<string>(context, 'thinking-level')}`);
@@ -69,7 +72,7 @@ export default async function add(context: CommandContext): Promise<number> {
         templateSource = await readFile(templatePath, 'utf8');
     }
     if (!text && terminal.interactive) {
-        const initial = templateSource ? parseBook(templateSource).intro : '';
+        const initial = templateSource ? commitmentsOf(parseBook(templateSource), 'GOAL').map((goal) => goal.body).join('\n\n') : '';
         const value = await composeText(terminal, {
             frame: { title: 'ptbk add', step: 'Describe the task', summary: templateName ? [`Template: ${templateName}`] : [] },
             question: 'What should be done? (first line becomes the title)',
@@ -104,22 +107,24 @@ export default async function add(context: CommandContext): Promise<number> {
     }
     if (!text) throw new PtbkError('A task description is required.', { kind: 'usage', next: ['Pass it as an argument, use --stdin, or run interactively.'] });
     const split = splitTitle(text);
-    // A readable name distinct from every other Book: the name is the task's identity.
-    const title = await distinctTaskName(project, settings, option<string>(context, 'title') ?? split.title);
+    const baseTitle = option<string>(context, 'title') ?? split.title;
     const description = option<string>(context, 'title') ? text : split.description;
     const controls = controlLines(context, timeZone);
     if ((context.options as Record<string, unknown>).__notReady) controls.push('TASK STATUS not-ready');
+    let commitments = controls;
     if (templateSource) {
         const keywordOf = (line: string): string | undefined => matchCommitmentKeyword(line)?.definition.keyword;
-        // A template is copied as new work: it never passes on legacy identity metadata.
+        // A template is copied as new work under a new generated name: it never passes on legacy identity metadata.
         const fromTemplate = parseBook(templateSource)
             .commitments.filter((commitment) => (commitment.keyword.startsWith('TASK ') && commitment.keyword !== 'TASK ID') || commitment.keyword === 'RULE')
-            .map((commitment) => `${commitment.written} ${commitment.body}`.trim());
-        const merged = [...controls, ...fromTemplate.filter((line) => keywordOf(line) === 'RULE' || !controls.some((control) => keywordOf(control) === keywordOf(line)))];
-        content = renderTaskBook({ title, description: description || undefined, commitments: merged });
-    } else content = renderTaskBook({ title, description: description || undefined, commitments: controls });
+            .flatMap((commitment) => renderCommitment(commitment.keyword, commitment.body));
+        commitments = [...controls, ...fromTemplate.filter((line) => keywordOf(line) === 'RULE' || !keywordOf(line) || !controls.some((control) => keywordOf(control) === keywordOf(line)))];
+    }
+    // The name is the task's identity: the readable title plus its creation date/time, distinct from every Book.
+    let title = await generatedTaskName(project, settings, baseTitle);
+    content = renderTaskBook({ title, description: description || undefined, commitments });
     const parsed = parseBook(content);
-    if (parsed.kind !== 'task') throw new PtbkError('The task could not be rendered as a task Book.', { kind: 'internal' });
+    if (parsed.kind !== 'task') throw new PtbkError('The task could not be rendered as a task Book.', { kind: 'internal', reason: parsed.diagnostics.map((diagnostic) => diagnostic.message).join(' ') });
     if (terminal.interactive && flag(context, 'yes') !== true && !context.positionals.length && !flag(context, 'stdin')) {
         terminal.write(`\n${terminal.style.muted('─── preview ───')}\n${content}${terminal.style.muted('───────────────')}\n`);
         const ok = await confirm(terminal, { frame: { title: 'ptbk add', step: 'Confirm' }, question: `Save "${title}"${commit ? ' and commit it' : ' (uncommitted)'}?`, defaultYes: true });
@@ -129,24 +134,31 @@ export default async function add(context: CommandContext): Promise<number> {
         }
     }
     await ensureDirectory(tasksDirectory);
-    const path = await newTaskPath(tasksDirectory, title, Date.now(), timeZone);
+    const path = await newTaskPath(tasksDirectory, baseTitle, Date.now(), timeZone);
     const summary = `Add task - ${title}`;
     const lookup = await lookupService(project);
     if (lookup.state === 'running') {
         // The running service writes and commits at a safe boundary, never folding it into an active task.
-        const result = await lookup.client.request<{ path: string; commit?: string }>('add-task', { path, content, summary, commit, taskNames: [title] });
-        report(context, project.root, result.path, result.commit, commit, title);
+        // The service rechecks the name at publication and reports the final one.
+        const result = await lookup.client.request<{ path: string; commit?: string; names?: string[] }>('add-task', { path, content, summary, commit, taskNames: [title] });
+        report(context, project.root, result.path, result.commit, commit, result.names?.[0] ?? title);
         return EXIT.success;
     }
     const gitInfo = await inspectGit(project.root);
     if (commit && gitInfo.state !== 'repository') throw new PtbkError('The project is not in a Git working tree, so the task cannot be committed.', { kind: 'setup', next: ['Run `ptbk init`, or use --no-commit.'] });
     const release = await acquireProjectLock(project, `add-${shortId()}`, 'authoring');
     try {
+        // Recheck at publication: another writer may have taken the name since the preview.
+        const taken = await projectTakenNames(project, settings);
+        if (taken.has(normalizeAgentName(title))) {
+            title = distinctName(title, taken);
+            content = renderTaskBook({ title, description: description || undefined, commitments });
+        }
         await writeFile(path, content, { flag: 'wx' });
         let sha: string | undefined;
         if (commit && gitInfo.state === 'repository') {
             try {
-                const outcome = await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: [path], subject: summary, trailers: { 'Task-Name': title }, temporaryDirectory: project.runtime.temporary, env: context.env });
+                const outcome = await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: [path], subject: `Add task - ${title}`, trailers: { 'Task-Name': title }, temporaryDirectory: project.runtime.temporary, env: context.env });
                 sha = outcome.committed ? outcome.sha : undefined;
             } catch (error) {
                 throw new PtbkError('The task was written, but committing it failed.', {

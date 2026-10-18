@@ -12,7 +12,7 @@ import { HarnessPool } from '../engine/harnesses.js';
 import { StateStore } from '../engine/state.js';
 import { acquireProjectLock } from '../service/records.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
-import { distinctName } from '../tasks/identity.js';
+import { generatedName } from '../tasks/identity.js';
 import type { ChatSource } from '../ui/chat-client.js';
 import { replyInChat } from './conversation.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat } from './service.js';
@@ -44,6 +44,10 @@ export class LocalChats {
             persistence: commit
                 ? { commit: async (paths, subject, trailers) => await this.commit(paths, subject, trailers) }
                 : { uncommitted: async (path) => await this.state.addOwnedUncommitted({ [toProjectRelative(project.root, path)]: (await hashFileIfExists(path)) ?? null }) },
+            takenNames: async () => {
+                await this.reload();
+                return this.catalog.index.names();
+            },
         });
     }
 
@@ -101,12 +105,12 @@ export class LocalChats {
                 createTask: async (input) =>
                     await this.locked(async () => {
                         await this.reload();
-                        const title = distinctName(input.title, this.catalog.index.names());
+                        const title = generatedName(input.title, { taken: this.catalog.index.names(), timeZone: setting<string>(this.settings, 'timezone') });
                         const commitments: string[] = [];
                         if (input.agent) commitments.push(`TASK AGENT ${input.agent.startsWith('@') || input.agent.startsWith('{') ? input.agent : formatAgentReference(input.agent)}`);
                         if (input.priority !== undefined) commitments.push(`TASK PRIORITY ${input.priority}`);
-                        commitments.push(`TASK ORIGIN chat {${input.chat}}`, `LINK {${input.chat}}`);
-                        const path = await newTaskPath(this.catalog.index.rootPath('tasks'), title, Date.now(), setting<string>(this.settings, 'timezone'));
+                        commitments.push(`TASK ORIGIN chat {{${input.chat}}}`, `LINK {{${input.chat}}}`);
+                        const path = await newTaskPath(this.catalog.index.rootPath('tasks'), input.title, Date.now(), setting<string>(this.settings, 'timezone'));
                         await writeFile(path, renderTaskBook({ title, description: input.description || undefined, commitments }), { flag: 'wx' });
                         if (this.repositoryRoot && setting<boolean>(this.settings, 'execution.commit')) await this.commit([path], `Add task - ${title}`, { 'Task-Name': title, 'Chat-Name': input.chat });
                         else await this.state.addOwnedUncommitted({ [toProjectRelative(this.project.root, path)]: (await hashFileIfExists(path)) ?? null });

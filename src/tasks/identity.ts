@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
 import { normalizeAgentName } from '../book/references.js';
+import { declarationName } from '../book/write.js';
+import { creationTimestamp } from '../common/time.js';
 
 /**
  * File names Windows reserves regardless of extension.
@@ -46,17 +48,37 @@ export function traceDirectoryOf(taskName: string): string {
 export const MARKDOWN_LEGACY_ID_LINE = /^\s*<!--\s*ptbk-task-id:\s*(\S+?)\s*-->\s*$/;
 
 /**
+ * Normalized names reserved by the engine's built-ins (never given to a generated Book).
+ */
+const RESERVED_KEYS: readonly string[] = ['void', 'null', '0', 'user', 'expert'];
+
+/**
  * Picks a readable name that is distinct under normalization from the given taken keys (`Name`, `Name (2)`, …).
  *
- * New authoring uses this so a new task or chat does not silently shadow (or get shadowed by) an existing Book.
+ * The name is spelled so it can follow a declaration keyword; built-in names are never taken.
  *
  * @private task identity
  */
 export function distinctName(base: string, taken: ReadonlySet<string>): string {
-    const name = base.replace(/\s+/g, ' ').trim() || 'Untitled';
-    if (!taken.has(normalizeAgentName(name))) return name;
+    const name = declarationName(base) || 'Untitled';
+    const occupied = (candidate: string): boolean => taken.has(normalizeAgentName(candidate)) || RESERVED_KEYS.includes(normalizeAgentName(candidate));
+    if (!occupied(name)) return name;
     for (let counter = 2; ; counter++) {
         const candidate = `${name} (${counter})`;
-        if (!taken.has(normalizeAgentName(candidate))) return candidate;
+        if (!occupied(candidate)) return candidate;
     }
+}
+
+/**
+ * The name of a newly created task or chat: a readable title plus its creation date and time
+ * (`Improve CSV export — 2026-10-18 01:25:00`), made distinct from every taken normalized name.
+ *
+ * Allocate it once per new entity; reopening, replying, retrying or recurring keeps the saved name. The date is
+ * ordinary name text, never parsed back.
+ *
+ * @private task identity
+ */
+export function generatedName(title: string, options: { readonly taken: ReadonlySet<string>; readonly timeZone: string; readonly now?: number }): string {
+    const readable = title.replace(/\s+/g, ' ').trim() || 'Untitled';
+    return distinctName(`${readable} — ${creationTimestamp(options.now ?? Date.now(), options.timeZone)}`, options.taken);
 }

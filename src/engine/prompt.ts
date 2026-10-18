@@ -1,3 +1,4 @@
+import { creationTimestamp } from '../common/time.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import type { EffectiveAgent, EffectiveInstruction } from '../project/agents.js';
 import { teamReferences } from '../project/agents.js';
@@ -84,7 +85,24 @@ export type TaskPromptInput = {
     readonly extra?: string;
     /** Chats with the user that belong to this task (full transcripts, so replies are seen in context). */
     readonly conversations?: ReadonlyArray<{ readonly chat: string; readonly messages: ReadonlyArray<{ readonly sender: string; readonly text: string }> }>;
+    /** Current creation date/time text for names of new task Books (`YYYY-MM-DD HH:MM:SS`). */
+    readonly creationStamp?: string;
 };
+
+/**
+ * How an agent writes a new task Book: the canonical `TASK <name>` declaration with a generated name, the description
+ * under GOAL and optional metadata.
+ *
+ * @private prompt construction
+ */
+export function taskBookInstructions(tasksDirectory: string, creationStamp: string): string {
+    return [
+        `write each new task as its own Book at the top level of \`${tasksDirectory}/\`, named \`${creationStamp.slice(0, 10)}-<short-slug>.book\`.`,
+        `Start it with \`TASK <readable title> — ${creationStamp}\` (the creation date/time is part of the task's name; do not begin the title with an all-uppercase word),`,
+        'then `GOAL <intended result and constraints>` (more lines may follow), then optional `TASK AGENT @Name`, `TASK PRIORITY <n>`, `TASK AFTER <ISO date>` and `LINK {{Other Book name}}`.',
+        'Every name must differ from all existing agents, tasks and chats (ignoring case, accents and separators); never mark new tasks done.',
+    ].join(' ');
+}
 
 /**
  * Builds the complete instructions for one autonomous turn.
@@ -110,7 +128,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     if (input.conversations?.length) {
         parts.push(
             `## Conversation with the user\n\n${input.conversations
-                .map((conversation) => `Chat {${conversation.chat}}:\n${conversation.messages.map((message) => `- ${message.sender}: ${message.text.replace(/\n/g, '\n  ')}`).join('\n')}`)
+                .map((conversation) => `Chat {{${conversation.chat}}}:\n${conversation.messages.map((message) => `- ${message.sender}: ${message.text.replace(/\n/g, '\n  ')}`).join('\n')}`)
                 .join('\n\n')}\n\nThe latest @User messages are the user's reply; continue the task with it.`,
         );
     }
@@ -118,7 +136,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     const rules = [
         'Work only inside the project directory. Promptbook records the result: do not commit, amend, push, reset, stash or rewrite Git history.',
         'Do not add `TASK DONE` or change the completion state of this task; Promptbook stamps completion after verifying your result.',
-        `To create follow-up work, write new task Books at the top level of \`${input.tasksDirectory}/\` (first line: the task's name, second line \`ENTITY TASK\`, then a description; optional \`TASK AGENT @Name\`, \`TASK PRIORITY <n>\`, \`TASK AFTER <ISO date>\`). Give each a readable name distinct from existing tasks (the first line is its identity) and never mark them done.`,
+        `To create follow-up work, ${taskBookInstructions(input.tasksDirectory, input.creationStamp ?? creationTimestamp())}`,
         'Do not edit `traces/` (Promptbook-owned audit evidence) and never treat files there as task or agent definitions.',
         'You run unattended. Resolve ordinary choices yourself from the task, the project instructions, established rules and the permissions already granted; do not stop to confirm routine or already authorized actions (for example each post of an authorized recurring publication).',
         input.check

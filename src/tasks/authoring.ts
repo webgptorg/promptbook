@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { pathExists } from '../common/fs.js';
 import { slugify } from '../common/ids.js';
 import { fileTimestamp } from '../common/time.js';
+import { renderCommitment, renderDeclaration } from '../book/write.js';
 
 /**
  * Inputs of a new task Book.
@@ -9,24 +10,23 @@ import { fileTimestamp } from '../common/time.js';
  * @private task authoring
  */
 export type NewTaskBook = {
-    /** Task name: the first line and the task's identity (choose a distinct one with `distinctName`). */
+    /** Task name: the content of the opening `TASK` declaration and the task's identity (see `generatedName`). */
     readonly title: string;
-    /** Natural-language description. */
+    /** Bounded work and intended result (written under GOAL, losslessly escaped). */
     readonly description?: string;
     /** Additional commitment lines, e.g. `['TASK AGENT @Developer', 'TASK PRIORITY 2']`. */
     readonly commitments?: readonly string[];
 };
 
 /**
- * Renders a task Book in the canonical form: the name line, `ENTITY TASK`, the description, then commitments.
+ * Renders a task Book in the canonical form: `TASK <name>`, the description under GOAL, then commitments.
  *
  * @private task authoring
  */
 export function renderTaskBook(task: NewTaskBook): string {
-    const title = task.title.replace(/\s+/g, ' ').trim();
-    const lines = [title, 'ENTITY TASK'];
-    if (task.description?.trim()) lines.push('', task.description.trim());
-    if (task.commitments?.length) lines.push('', ...task.commitments);
+    const lines = [renderDeclaration('task', task.title)];
+    if (task.description?.trim()) lines.push(...renderCommitment('GOAL', task.description));
+    if (task.commitments?.length) lines.push(...task.commitments);
     return `${lines.join('\n')}\n`;
 }
 

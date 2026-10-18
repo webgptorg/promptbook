@@ -4,7 +4,6 @@ import { formatIsoWithOffset, parseDateTime } from '../common/time.js';
 import { appendCommitment, setControlCommitment } from '../book/edit.js';
 import { commitmentsOf, parseBook, singleValue, type BookDocument } from '../book/parse.js';
 import { THINKING_LEVELS, type ThinkingLevel } from '../project/config.js';
-import type { EntityKind } from '../book/parse.js';
 import { nameKey, nameReference, type DeclaredStatus, type Task, type TaskDiagnostic } from './model.js';
 import { parsePriority } from './priority.js';
 
@@ -12,7 +11,6 @@ import { parsePriority } from './priority.js';
  * Control commitments a task recognizes.
  */
 const TASK_CONTROLS = new Set([
-    'TASK',
     'TASK ID',
     'ENTITY',
     'LINK',
@@ -69,21 +67,23 @@ export type TaskBookOptions = {
     readonly relativePath: string;
     readonly order: number;
     readonly timeZone: string;
-    /** Kind implied by the location (`task` inside the task source directory). */
-    readonly defaultKind?: EntityKind;
 };
 
 /**
- * Reads a task Book file into a task (its first nonempty line is the task's name).
+ * Reads a task Book (`TASK <name>` declares the task and its name) into a task.
  *
- * Malformed control commitments are errors that keep the task from running.
+ * Malformed control commitments and syntax errors keep the task from running. A source in the task folder written in
+ * former syntax (a plain name line) is listed as a blocked task with a conversion hint, never dispatched; Books that
+ * declare (or formerly declared) an agent or chat are not tasks wherever they are stored.
  *
  * @private task Books
  */
 export function readTaskBook(options: TaskBookOptions): Task | undefined {
-    const document = parseBook(options.source, { defaultKind: options.defaultKind ?? 'task' });
-    if (document.kind !== 'task') return undefined;
-    return taskFromDocument(document, options);
+    const document = parseBook(options.source);
+    if (document.kind === 'task') return taskFromDocument(document, options);
+    const legacyTask = document.kind === 'invalid' && document.name && !document.declaredKind && document.legacy && document.legacy.entity !== 'agent' && document.legacy.entity !== 'chat';
+    const uppercaseTask = document.kind === 'invalid' && document.legacy?.uppercaseName && /^TASK /.test(document.lines[document.headerLine] ?? '');
+    return legacyTask || uppercaseTask ? taskFromDocument(document, options) : undefined;
 }
 
 /**
@@ -103,13 +103,9 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
         return result.value;
     };
     for (const commitment of document.commitments) {
-        if (commitment.keyword === 'TASK') {
-            diagnostics.push({
-                line: commitment.startLine + 1,
-                message: `Unsupported task control \`TASK ${commitment.value.split(/\s+/)[0] ?? ''}\`; it cannot be ignored, so the task is blocked.`,
-                severity: 'error',
-            });
-        } else if (commitment.definition.scope === 'task' && !TASK_CONTROLS.has(commitment.keyword)) {
+        if (commitment.definition.unknown && /^TASK /.test(commitment.keyword)) {
+            diagnostics.push({ line: commitment.startLine + 1, message: `Unsupported task control \`${commitment.written}\`; it cannot be ignored, so the task is blocked.`, severity: 'error' });
+        } else if (commitment.definition.scope === 'task' && commitment.definition.kind !== 'declaration' && !TASK_CONTROLS.has(commitment.keyword)) {
             diagnostics.push({ line: commitment.startLine + 1, message: `Unsupported task control \`${commitment.written}\`.`, severity: 'error' });
         }
     }
@@ -156,13 +152,16 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
     }
     if (status === 'todo' && doneStamps.length && repeatMs === undefined) status = 'done';
     const text = options.source;
-    const placeholder = /@@@/.test(document.name) || /@@@/.test(document.prose);
+    const description = commitmentsOf(document, 'GOAL')
+        .map((goal) => goal.body)
+        .join('\n\n');
+    const placeholder = /@@@/.test(document.name) || /@@@/.test(description) || /@@@/.test(document.legacy?.introduction?.text ?? '');
     return {
         ref: nameReference(document.name),
         key,
         legacyId,
         title: document.name,
-        description: document.prose,
+        description: description || (document.legacy?.introduction?.text ?? ''),
         rules: commitmentsOf(document, 'RULE').map((rule) => rule.body),
         source: { kind: 'book', path: options.path, relativePath: options.relativePath, fileHash: sha256(options.source), order: options.order },
         status,

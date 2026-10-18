@@ -215,7 +215,8 @@ export class BookIndex {
             return;
         }
         const common = this.roots.find((item) => isPathInside(item.path, absolute));
-        const document = parseBook(source, { defaultKind: common ? (common.root === 'agents' ? 'agent' : common.root === 'tasks' ? 'task' : 'chat') : undefined });
+        // The opening declaration supplies the kind; the location only ranks lookup.
+        const document = parseBook(source);
         if (document.kind === 'empty') return;
         const relativePath = toProjectRelative(this.projectRoot, absolute);
         const segments = toProjectRelative(common?.path ?? this.projectRoot, absolute).split('/').slice(0, -1);

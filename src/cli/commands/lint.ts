@@ -28,7 +28,7 @@ export default async function lint(context: CommandContext): Promise<number> {
     for (const entry of catalog.index.all()) {
         if (entry.tier === 4) continue;
         for (const commitment of entry.document.commitments.filter((item) => item.keyword === 'LINK' || item.keyword === 'CHAT MEMBER')) {
-            for (const reference of commitment.value.match(/\{[^}]+\}|@[^\s,]+/g) ?? []) {
+            for (const reference of commitment.value.match(/\{\{[^}]+\}\}|\{[^}]+\}|@[^\s,]+/g) ?? []) {
                 const resolution = await catalog.index.resolve(reference);
                 if (resolution.kind === 'missing' || resolution.kind === 'invalid') {
                     findings.push({ severity: commitment.keyword === 'LINK' ? 'warning' : 'error', location: `${entry.relativePath}:${commitment.startLine + 1}`, message: `${commitment.keyword} ${reference} does not resolve${resolution.kind === 'invalid' ? ` (${resolution.reason})` : ''}.` });

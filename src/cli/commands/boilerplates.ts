@@ -5,7 +5,10 @@ import { ensureDirectory, pathExists, toProjectRelative } from '../../common/fs.
 import { loadSettings, setting } from '../../project/config.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
 import { newTaskPath } from '../../tasks/authoring.js';
-import { selectedProject, writableTasksDirectory } from '../common.js';
+import { generatedName } from '../../tasks/identity.js';
+import { parseBook } from '../../book/parse.js';
+import { normalizeAgentName } from '../../book/references.js';
+import { projectTakenNames, selectedProject, writableTasksDirectory } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -23,7 +26,7 @@ export default async function generateBoilerplates(context: CommandContext): Pro
     const sections = Number(match[2] ?? 1);
     if (files < 1 || sections < 1 || files > 100 || sections > 50) throw usageError('--count must be between 1 and 100 files and 1 to 50 sections.', 'generate-boilerplates');
     const templateName = option<string>(context, 'template');
-    let template = 'TASK @@@\n\n@@@\n';
+    let template = 'TASK @@@\nGOAL @@@\n';
     if (templateName) {
         const path = join(tasksDirectory, 'templates', templateName.endsWith('.book') ? templateName : `${templateName}.book`);
         if (!(await pathExists(path))) throw new PtbkError(`Template ${templateName} does not exist.`, { kind: 'usage' });
@@ -32,10 +35,18 @@ export default async function generateBoilerplates(context: CommandContext): Pro
     await ensureDirectory(tasksDirectory);
     const created: string[] = [];
     const timeZone = setting<string>(settings, 'timezone');
+    const taken = await projectTakenNames(project, settings);
     for (let index = 0; index < files; index++) {
         if (sections === 1) {
             const path = await newTaskPath(tasksDirectory, `boilerplate ${index + 1}`, Date.now(), timeZone);
-            await writeFile(path, template.includes('@@@') ? template : `TASK @@@\n\n${template}`, { flag: 'wx' });
+            // Each placeholder gets its own generated name, so boilerplates never shadow each other.
+            const document = parseBook(template);
+            const base = document.kind === 'task' && document.name ? document.name : '@@@';
+            const name = generatedName(/@@@/.test(base) ? base : `@@@ ${base}`, { taken, timeZone });
+            taken.add(normalizeAgentName(name));
+            const lines = document.kind === 'task' ? [...document.lines] : ['', ...template.split(/\r?\n/)];
+            lines[document.kind === 'task' ? document.headerLine : 0] = `TASK ${name}`;
+            await writeFile(path, `${lines.join('\n').replace(/\n*$/, '')}\n`, { flag: 'wx' });
             created.push(path);
         } else {
             const path = await newTaskPath(tasksDirectory, `boilerplate ${index + 1}`, Date.now(), timeZone, '.md');

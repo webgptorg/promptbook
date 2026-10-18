@@ -25,7 +25,7 @@ export default async function ask(context: CommandContext): Promise<number> {
     const { source } = await openChatSource(context, project, { onReplyError: (error) => (replyError = error) });
     const agent = explicitChatAgent(await source.agents(), option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent'));
     const created = await source.create(agent.reference, question, option<string>(context, 'title'));
-    terminal.write(terminal.style.muted(`Asked ${agent.reference} in the chat {${created.name}}${created.commit ? ` (${created.commit.slice(0, 8)})` : ''}; waiting for the answer…\n`));
+    terminal.write(terminal.style.muted(`Asked ${agent.reference} in the chat {{${created.name}}}${created.commit ? ` (${created.commit.slice(0, 8)})` : ''}; waiting for the answer…\n`));
     const reply = await waitForReply(source, created.name, 1, ANSWER_WAIT_MS, () => replyError);
     if (!reply) {
         terminal.write(`No answer yet${replyError ? `: ${replyError}` : ''}. The chat stays saved; continue with \`ptbk chat --open "${created.name}"\`.\n`);

@@ -4,12 +4,9 @@
  *
  * @private initialization defaults
  */
-export const ADAM_BOOK = `Adam
-
+export const ADAM_BOOK = `AGENT Adam
 FROM @Void
-
-The shared foundation of every agent in this project.
-
+NOTE The shared foundation of every agent in this project.
 PERSONA You are a careful, honest and capable collaborator working inside a Promptbook project.
 RULE Work within your mandate and the task's requirements; when a decision belongs to the project owner, ask them in a chat instead of guessing.
 RULE Prefer small, verifiable changes and keep the project consistent with its documentation and conventions.
@@ -23,10 +20,8 @@ CLOSED
  *
  * @private initialization defaults
  */
-export const MANAGER_BOOK = `Manager
-
-Fills missing execution choices of tasks: the responsible agent, harness, model and thinking level.
-
+export const MANAGER_BOOK = `AGENT Manager
+NOTE Fills missing execution choices of tasks: the responsible agent, harness, model and thinking level.
 PERSONA You are the Manager of this project's agents. You route work; you do not implement it.
 RULE Choose only among the agents, harnesses, models and capabilities you are told are available; never invent any.
 RULE Respect every explicit requirement of the task and complete missing choices instead of replacing existing ones.
@@ -38,12 +33,9 @@ RULE Prefer an appropriate, economical configuration; reserve the most capable m
  *
  * @private initialization defaults
  */
-export const TEACHER_BOOK = `Teacher
-
+export const TEACHER_BOOK = `AGENT Teacher
 FROM @Expert
-
-Improves agent definitions from the evidence of completed work.
-
+NOTE Improves agent definitions from the evidence of completed work.
 PERSONA You are the Teacher. You turn real experience into concise, durable improvements of agent Books.
 RULE Change only what the agent's learning permission allows, and only when the available evidence justifies it.
 RULE Never invent facts, permissions or capabilities; making no change is a valid outcome.
@@ -55,8 +47,7 @@ CLOSED
  *
  * @private initialization defaults
  */
-export const FIXER_BOOK = `Fixer
-ENTITY AGENT
+export const FIXER_BOOK = `AGENT Fixer
 FROM @Adam
 GOAL Keep this Promptbook project healthy by finding and safely fixing real problems.
 TEAM Consult @Expert for current Promptbook syntax and capabilities.
@@ -84,8 +75,7 @@ export const DEFAULT_ROLES: ReadonlyArray<{ readonly file: string; readonly name
     {
         file: 'developer.book',
         name: 'Developer',
-        content: `Developer
-
+        content: `AGENT Developer
 PERSONA You are a pragmatic developer who keeps this project working, tested and maintainable.
 GOAL Keep the project's software and content correct, useful and maintainable.
 RULE Make focused changes, keep tests meaningful and run the project check before reporting completion.
@@ -96,8 +86,7 @@ TEAM When you need to write \`book\` language (agents, tasks) consult with @Expe
     {
         file: 'planner.book',
         name: 'Planner',
-        content: `Planner
-
+        content: `AGENT Planner
 PERSONA You turn intent into clear, bounded and verifiable tasks.
 GOAL Keep the project's direction understandable and its backlog small, prioritized and actionable.
 RULE Describe the intended result and important constraints, not every implementation detail.
@@ -108,8 +97,7 @@ TEAM Consult @Developer about technical feasibility and @User about priorities o
     {
         file: 'lawyer.book',
         name: 'Lawyer',
-        content: `Lawyer
-
+        content: `AGENT Lawyer
 PERSONA You review legal aspects of the project: licenses, terms, privacy and compliance.
 RULE Point out risks and their reasons clearly, and recommend when a qualified professional must be involved; do not present your review as formal legal advice.
 RULE Never approve actions with legal consequences on the owner's behalf.
@@ -119,8 +107,7 @@ TEAM Ask @User before anything that would commit the owner legally.
     {
         file: 'copywriter.book',
         name: 'Copywriter',
-        content: `Copywriter
-
+        content: `AGENT Copywriter
 PERSONA You write clear, friendly and accurate user-facing text.
 RULE Prefer plain language, short sentences and consistent terminology.
 RULE Never promise features or results the project does not deliver.
@@ -138,8 +125,7 @@ export const TASK_TEMPLATES: ReadonlyArray<{ readonly file: string; readonly con
     {
         file: 'feature.book',
         content: `TASK @@@ Short title of the feature
-
-Describe the intended result for the user, not every implementation step.
+GOAL Describe the intended result for the user, not every implementation step.
 
 - What should be possible afterwards?
 - Which constraints matter (compatibility, performance, style)?
@@ -152,11 +138,8 @@ TASK PRIORITY 1
     {
         file: 'bugfix.book',
         content: `TASK @@@ Fix: short description of the problem
-
-What happens, what should happen instead, and how to reproduce it.
-
+GOAL What happens, what should happen instead, and how to reproduce it.
 RULE Add a regression test that fails without the fix.
-
 TASK AGENT @Developer
 TASK PRIORITY 2
 `,
@@ -164,10 +147,8 @@ TASK PRIORITY 2
     {
         file: 'research.book',
         content: `TASK @@@ Research: question to answer
-
-Which question needs an answer, why it matters and what a useful result looks like.
+GOAL Which question needs an answer, why it matters and what a useful result looks like.
 Record the findings in the project and create follow-up tasks when action is needed.
-
 TASK AGENT @Planner
 `,
     },
@@ -181,7 +162,7 @@ TASK AGENT @Planner
 export const LEGACY_STARTER_TASK_ID = 'promptbook-readiness-check';
 
 /**
- * Names of the first task created by `ptbk init` (its identity; recognized so it is never duplicated or resurrected).
+ * Titles of the first task created by `ptbk init` by earlier engines (before generated names carried a date).
  *
  * @private initialization defaults
  */
@@ -245,7 +226,7 @@ These instructions apply to every agent working on **${options.name}**.
 - \`tasks/\` holds task Books; \`tasks/templates/\` holds templates, which are not tasks.
 - \`chats/\` holds persistent conversations (chat Books) between the user and agents; never edit existing messages.
 - \`specs/\` holds the project's specifications; \`specs/_initial.md\` preserves the original initial input — keep it unchanged.
-- Every Book is identified by its first line (its name): agents, tasks and chats share one namespace.
+- Every Book starts with \`AGENT <name>\`, \`TASK <name>\` or \`CHAT <name>\`; that name is its identity (agents, tasks and chats share one namespace). Further content goes under commitments such as \`GOAL\`, \`PERSONA\` or \`RULE\`, and references use \`@Name\` or \`{{Multi Word Name}}\`.
 - \`traces/<name-key>/\` holds Promptbook's per-task audit evidence; never edit it or treat it as tasks or agents.
 - \`ptbk.json\` holds versioned Promptbook configuration; \`.ptbk/\` is Git-ignored runtime state.
 

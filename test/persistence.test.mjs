@@ -97,8 +97,10 @@ test('chats: offered answers are validated; every human-facing message is one co
     assert.equal(answered.written.chat.status, 'open');
     assert.equal(Number((await git(root, ['rev-list', '--count', 'HEAD'])).trim()), Number(commitsBefore) + 1, 'the answer is exactly one commit');
     const message = await git(root, ['log', '-1', '--format=%B']);
-    assert.match(message, /^PTBK: Chat - Fixer asks: Retry\?$/m);
-    assert.match(message, /^Chat-Name: Fixer asks: Retry\?$/m);
+    assert.match(created.chat.name, /^Fixer asks: Retry\? — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/, 'a new chat gets its creation date/time in its name');
+    assert.ok(message.includes(`PTBK: Chat - ${created.chat.name}\n`), message);
+    assert.ok(message.includes(`Chat-Name: ${created.chat.name}\n`), message);
+    assert.equal(answered.written.chat.name, created.chat.name, 'appending never renames the chat');
     assert.match(message, /^Task-Name: Broken task$/m);
     await assert.rejects(appendUserMessage(store, state, created.chat.name, 'Acknowledge the failure', { expected: 1 }), /changed since it was displayed/, 'a stale second answer is never applied');
     await store.markRead(created.chat.name);

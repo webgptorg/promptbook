@@ -580,7 +580,7 @@ export function browserTools(browser: ProjectBrowser, chats: TaskChats | undefin
                         choices: ['Done', 'I cannot do it'],
                     });
                     onUserChat(chat);
-                    return `The request is in the chat {${chat.chat}}, waiting for the user. End your turn now with status waiting-for-user.`;
+                    return `The request is in the chat {{${chat.chat}}}, waiting for the user. End your turn now with status waiting-for-user.`;
                 }),
         },
     ];

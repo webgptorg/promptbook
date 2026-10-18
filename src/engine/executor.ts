@@ -3,12 +3,13 @@ import { join, resolve } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, hashFileIfExists, isPathInside, readTextIfExists, toProjectRelative } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
-import { formatIsoWithOffset } from '../common/time.js';
+import { creationTimestamp, formatIsoWithOffset } from '../common/time.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { appendCommitment } from '../book/edit.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
 import { runCheck } from '../project/checks.js';
 import type { AgentCatalog, EffectiveAgent } from '../project/agents.js';
+import { BookIndex } from '../project/books.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
 import { commitPaths, findCommitWithTrailer, gitStatus, readAtHead, stageableFiles } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
@@ -261,10 +262,38 @@ async function applyCompletion(environment: ExecutionEnvironment, item: WorkItem
 function declaredTaskNames(path: string, source: string): string[] {
     if (!source) return [];
     if (path.toLowerCase().endsWith('.book')) {
-        const document = parseBook(source, { defaultKind: 'task' });
+        const document = parseBook(source);
         return document.kind === 'task' && document.name ? [document.name] : [];
     }
     return [];
+}
+
+/**
+ * Problems of task Books newly written by the agent: each must be a canonical `TASK <name>` Book whose name no other
+ * Book of the project already uses (a new task must not shadow an existing definition or be born shadowed).
+ */
+async function newTaskBookProblems(environment: ExecutionEnvironment, changed: readonly string[]): Promise<string[]> {
+    const fresh = changed.filter((path) => /\.book$/i.test(path) && isPathInside(environment.tasksDirectory, resolve(environment.project.root, path)));
+    if (!fresh.length) return [];
+    const index = await BookIndex.load(environment.project.root, { agents: setting<string>(environment.settings, 'paths.agents'), tasks: setting<string>(environment.settings, 'paths.tasks') });
+    const problems: string[] = [];
+    for (const relativePath of fresh) {
+        const absolutePath = resolve(environment.project.root, relativePath);
+        if ((await readAtHead(environment.repositoryRoot, absolutePath)) !== undefined) continue;
+        const source = await readFile(absolutePath, 'utf8').catch(() => undefined);
+        if (source === undefined) continue;
+        const document = parseBook(source);
+        if (document.kind !== 'task') {
+            const errors = document.diagnostics.filter((diagnostic) => diagnostic.severity === 'error').map((diagnostic) => diagnostic.message);
+            if (document.kind !== 'agent' && document.kind !== 'chat') problems.push(`${relativePath} is not a valid task Book${errors.length ? `: ${errors.join(' ')}` : ''}. Start it with \`TASK <name>\` and put the description under GOAL.`);
+            continue;
+        }
+        const others = index.all().filter((entry) => entry.normalized === normalizeAgentName(document.name) && entry.path !== absolutePath);
+        if (others.length) problems.push(`The new task "${document.name}" in ${relativePath} has the same name as ${others.map((entry) => entry.relativePath).join(', ')}; give it a distinct name (include its creation date/time).`);
+        const errors = document.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
+        if (errors.length) problems.push(`${relativePath}: ${errors.map((diagnostic) => `line ${diagnostic.line}: ${diagnostic.message}`).join(' ')}`);
+    }
+    return problems;
 }
 
 /**
@@ -348,7 +377,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     if (trace.problem) hooks.emit({ type: 'activity', text: `Evidence limitation: ${trace.problem}`, level: 'warning' });
     const runLabel = `run ${record.runId}${occurrence ? ` · occurrence ${occurrence}` : ''}`;
     if (!item.resume) {
-        await trace.section(`Task {${task.title}} · ${runLabel}`, [traceHeader({ title: task.title, source: task.source.relativePath }), `Kind: ${item.kind}${task.origin ? ` · origin: ${task.origin}` : ''}${task.parent ? ` · parent: ${task.parent}` : ''}`]);
+        await trace.section(`Task {{${task.title}}} · ${runLabel}`, [traceHeader({ title: task.title, source: task.source.relativePath }), `Kind: ${item.kind}${task.origin ? ` · origin: ${task.origin}` : ''}${task.parent ? ` · parent: ${task.parent}` : ''}`]);
         await trace.event('started', { runId: record.runId, occurrence, kind: item.kind, title: task.title, source: task.source.relativePath, origin: task.origin, parent: task.parent, assignment: assignmentText(task), engineVersion: ENGINE_VERSION });
     } else {
         await trace.event('resumed', { runId: record.runId, occurrence: record.occurrence, phase: record.phase, attempt: record.attempt, engineVersion: ENGINE_VERSION });
@@ -477,6 +506,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 attempt,
                 extra: item.extraPrompt,
                 conversations,
+                creationStamp: creationTimestamp(Date.now(), environment.timeZone),
             });
             const bridge = tools.length ? await ToolBridge.start(tools) : undefined;
             const promptDirectory = await ensureDirectory(project.runtime.temporary);
@@ -573,9 +603,9 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const report = parseAgentReport(lastResult.messages);
             if (pending.chat && (!report || report.status === 'waiting-for-user')) {
                 await save({ phase: 'awaiting-user', waitingChat: pending.chat.chat, awaitedMessages: pending.chat.awaited, chats: [...new Set([...(record.chats ?? []), pending.chat.chat])], attempt: attempt - 1 });
-                hooks.emit({ type: 'phase', phase: 'awaiting-user', detail: `{${pending.chat.chat}}` });
+                hooks.emit({ type: 'phase', phase: 'awaiting-user', detail: `{{${pending.chat.chat}}}` });
                 await trace.event('awaiting-user', { runId: record.runId, chat: pending.chat.chat });
-                await finishResult('awaiting-user', `Waiting for the user's reply in the chat {${pending.chat.chat}}.`);
+                await finishResult('awaiting-user', `Waiting for the user's reply in the chat {{${pending.chat.chat}}}.`);
                 return { kind: 'awaiting-user', chat: pending.chat.chat };
             }
             if (lastResult.outcome !== 'completed') {
@@ -613,6 +643,13 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 }
                 const extra = (await validation.apply?.()) ?? [];
                 if (extra.length) await save({ createdPaths: [...new Set([...record.createdPaths, ...extra.map((path) => relativeKey(environment, path))])] });
+            }
+            const followUpProblems = await newTaskBookProblems(environment, await changed());
+            if (followUpProblems.length) {
+                const feedback = `Fix the new task Books before the result is accepted:\n${followUpProblems.map((problem) => `- ${problem}`).join('\n')}`;
+                await save({ feedback });
+                await trace.event('repair-needed', { attempt, reason: feedback });
+                continue;
             }
             const migrateCommand = setting<string | undefined>(settings, 'execution.migrateCommand');
             if (setting<boolean>(settings, 'execution.autoMigrate') && migrateCommand) {

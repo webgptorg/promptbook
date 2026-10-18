@@ -8,7 +8,8 @@
  *   FAIL_CHECK_ONCE → first attempt writes a file that fails the fixture check
  *   BLOCKED         → reports blocked
  *   NO_REPORT       → omits the completion line
- *   CREATE_FOLLOW_UP → also writes two follow-up task Books: one with a new name, one copying this task's name
+ *   CREATE_FOLLOW_UP → also writes two follow-up task Books; on the first attempt the second copies this task's
+ *                      name (Promptbook must reject it), on a repair attempt it gets its own dated name
  * Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool and one containing CORRECTION adds a `PTBK_LEARN` note.
  * Every executed turn is appended to $FAKE_CODEX_LOG (one JSON line) when set.
@@ -123,7 +124,8 @@ async function callTool(name, toolArguments) {
 
 async function main() {
     const prompt = readFileSync(0, 'utf8');
-    const reference = /- Reference: (\{[^}]+\}|\S+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
+    const reference = /- Reference: (\{\{[^}]+\}\}|\{[^}]+\}|\S+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
+    const stamp = /TASK <readable title> — ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:]{8})/.exec(prompt)?.[1] ?? '2026-01-01 00:00:00';
     const title = /- Name: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
     const chat = prompt.startsWith('# Conversation');
     const attempt = /## Feedback from attempt (\d+)/.exec(prompt) ? Number(/## Feedback from attempt (\d+)/.exec(prompt)[1]) + 1 : 1;
@@ -165,8 +167,9 @@ async function main() {
         }
         if (prompt.includes('CREATE_FOLLOW_UP')) {
             const tasksDirectory = /top level of `([^`]+)\/`/.exec(prompt)?.[1] ?? 'tasks';
-            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-one.book'), 'Follow-up one\nENTITY TASK\n\nMore work.\n\nTASK AGENT @Developer\n');
-            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-two.book'), `${title}\nENTITY TASK\n\nCopied definition under the same name.\n\nTASK AGENT @Developer\n`);
+            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-one.book'), `TASK Follow-up one — ${stamp}\nGOAL More work.\nTASK AGENT @Developer\n`);
+            const second = attempt === 1 ? title : `Follow-up two — ${stamp}`;
+            writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-two.book'), `TASK ${second}\nGOAL Copied definition.\nTASK AGENT @Developer\n`);
         }
         print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'add' }] } });
         done(`Wrote ${file}`);

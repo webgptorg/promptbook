@@ -8,7 +8,7 @@ import { normalizeAgentName, parseReferenceValue } from '../book/references.js';
 import { CHATS_DIRECTORY } from '../project/books.js';
 import type { Project } from '../project/workspace.js';
 import { newTaskPath } from '../tasks/authoring.js';
-import { distinctName } from '../tasks/identity.js';
+import { generatedName } from '../tasks/identity.js';
 import { appendChatMessage, chatAgent, isHumanFacing, parseChatBook, renderChatBook, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
 
 /**
@@ -71,7 +71,12 @@ export class ChatStore {
 
     public constructor(
         private readonly project: Project,
-        private readonly options: { readonly timeZone: string; readonly persistence?: ChatPersistence },
+        private readonly options: {
+            readonly timeZone: string;
+            readonly persistence?: ChatPersistence;
+            /** Fresh normalized names of every project Book, rechecked when a new chat is published. */
+            readonly takenNames?: () => Promise<ReadonlySet<string>>;
+        },
     ) {
         this.directory = join(project.root, CHATS_DIRECTORY);
     }
@@ -106,7 +111,8 @@ export class ChatStore {
     }
 
     /**
-     * Creates a chat with a readable name distinct under normalization; a human-facing chat is committed.
+     * Creates a chat named after its readable title plus creation date/time (distinct under normalization from every
+     * Book); a human-facing chat is committed. The final name is allocated once, under the store's lock.
      */
     public async create(options: {
         readonly name: string;
@@ -120,10 +126,12 @@ export class ChatStore {
         readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>>;
     }): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
-            const taken = new Set([...(options.taken ?? []), ...(await this.list()).map((stored) => stored.chat.key)]);
-            const name = distinctName(options.name.replace(/[\r\n]+/g, ' ').slice(0, 120), taken);
+            const fresh = (await this.options.takenNames?.().catch(() => undefined)) ?? [];
+            const taken = new Set([...(options.taken ?? []), ...fresh, ...(await this.list()).map((stored) => stored.chat.key)]);
+            const title = options.name.replace(/[\r\n]+/g, ' ').slice(0, 120);
+            const name = generatedName(title, { taken, timeZone: this.options.timeZone });
             await ensureDirectory(this.directory);
-            const path = await newTaskPath(this.directory, name, Date.now(), this.options.timeZone);
+            const path = await newTaskPath(this.directory, title, Date.now(), this.options.timeZone);
             const source = renderChatBook({ name, members: options.members, status: options.status, links: options.links, messages: (options.messages ?? []).map((message) => ({ ...message, at: message.at ?? this.now() })) });
             await writeFile(path, source, { flag: 'wx' });
             const chat = parseChatBook(source);

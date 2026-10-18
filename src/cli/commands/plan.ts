@@ -15,7 +15,7 @@ import { renderAgentInstructions } from '../../engine/prompt.js';
 import { teamTools } from '../../engine/team.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
 import { CANCELLED, composeText, confirm } from '../../ui/prompts.js';
-import { distinctTaskName, selectedProject, writableTasksDirectory } from '../common.js';
+import { generatedTaskName, selectedProject, writableTasksDirectory } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -83,7 +83,7 @@ export default async function plan(context: CommandContext): Promise<number> {
     if (!inspection.usable) throw new PtbkError(`${plugin.displayName} is not usable.`, { kind: 'setup', reason: inspection.summary, next: inspection.nextAction ? [inspection.nextAction] : [] });
     const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'));
     const requested = option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent');
-    const agent = await resolveEffectiveAgent(catalog, requested.startsWith('@') || requested.startsWith('{') ? requested : `{${requested}}`);
+    const agent = await resolveEffectiveAgent(catalog, requested.startsWith('@') || requested.startsWith('{') ? requested : `{{${requested}}}`);
     if (agent.diagnostics.some((diagnostic) => diagnostic.severity === 'error')) throw new PtbkError(`Agent ${requested} cannot plan.`, { kind: 'configuration', reason: agent.diagnostics.map((diagnostic) => diagnostic.message).join(' ') });
     const tasksDirectory = await writableTasksDirectory(context, project, settings);
     const agents = catalog.ordinary().map((definition) => formatAgentReference(definition.name));
@@ -165,7 +165,7 @@ export default async function plan(context: CommandContext): Promise<number> {
             commitments.push('TASK ORIGIN planning');
             let path = await newTaskPath(tasksDirectory, proposal.title, Date.now(), setting<string>(settings, 'timezone'));
             while (files.some((file) => file.path === path)) path = path.replace(/\.book$/, `-${shortId(3)}.book`);
-            const title = await distinctTaskName(project, settings, proposal.title, files.map((file) => file.title));
+            const title = await generatedTaskName(project, settings, proposal.title, files.map((file) => file.title));
             files.push({ path, title, content: renderTaskBook({ title, description: proposal.description, commitments }) });
         }
         for (const file of files) terminal.write(`\n${terminal.style.bold(toProjectRelative(project.root, file.path))}\n${file.content}`);

@@ -4,6 +4,8 @@ import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.j
 import { ensureDirectory, isDirectory, pathExists, toProjectRelative } from '../../common/fs.js';
 import { ENGINE_VERSION } from '../../common/version.js';
 import { describeBrowserProfile, userChromeProfile } from '../../browser/browser.js';
+import { BookIndex } from '../../project/books.js';
+import { generatedName } from '../../tasks/identity.js';
 import { checkCandidates, validateCheckCommand } from '../../project/checks.js';
 import { enabledHarnesses, getPath, loadSettings, readProjectConfigFile, setting, updateProjectConfig } from '../../project/config.js';
 import { INITIAL_ASSETS, INITIAL_SPECIFICATION, bootstrapTask, sampleReadme } from '../../project/defaults.js';
@@ -879,9 +881,11 @@ export async function initializeProject(context: CommandContext, options: { proj
         const draftPath = await newTaskPath(tasksRoot, blank ? 'review initialized project' : 'transform project', Date.now(), timeZone);
         const link = relative(dirname(draftPath), specification).split(sep).join('/');
         const content = bootstrapTask({ blank, specificationLink: link });
-        await writeFile(draftPath, renderTaskBook({ title: content.title, description: content.description, commitments: ['TASK AGENT @Expert', 'TASK ORIGIN initialization'] }), { flag: 'wx' });
+        // A generated name: the readable title plus creation date/time, distinct from every Book of the project.
+        const title = generatedName(content.title, { taken: (await BookIndex.load(root, { agents: agentsDirectory, tasks: tasksDirectory })).names(), timeZone });
+        await writeFile(draftPath, renderTaskBook({ title, description: content.description, commitments: ['TASK AGENT @Expert', 'TASK ORIGIN initialization'] }), { flag: 'wx' });
         createdPaths.push(draftPath);
-        firstTask = { title: content.title, path: draftPath };
+        firstTask = { title, path: draftPath };
     }
     const effectiveInstallation = installation === 'existing' ? (marker.installation ?? 'local') : installation;
     if (firstTask || !marker.engineVersion || marker.installation !== effectiveInstallation) {
@@ -1002,7 +1006,7 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
         : ready
           ? [['ptbk start', service?.kind === 'failed' ? 'start the service after fixing the problem above' : 'start the agenda in the background']]
           : [['ptbk init', 'resume setup after resolving the items above']];
-    const first = result.firstTask ? `{${result.firstTask.title}} → Expert (${toProjectRelative(root, result.firstTask.path)})` : undefined;
+    const first = result.firstTask ? `{{${result.firstTask.title}}} → Expert (${toProjectRelative(root, result.firstTask.path)})` : undefined;
     const headline = !ready ? 'Setup incomplete' : running ? 'Project ready · agenda running' : 'Setup complete · service not running';
     if (!terminal.pretty) {
         const lines = [`${headline}: ${root} (ptbk ${ENGINE_VERSION})`];

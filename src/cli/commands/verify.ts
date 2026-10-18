@@ -10,7 +10,7 @@ import { splitMarkdownSections } from '../../tasks/markdown.js';
 import { isRecurring, type Task } from '../../tasks/model.js';
 import { readTaskQueue } from '../../tasks/sources.js';
 import { CANCELLED, composeText, selectOne } from '../../ui/prompts.js';
-import { distinctTaskName, selectedProject, writableTasksDirectory } from '../common.js';
+import { generatedTaskName, selectedProject, writableTasksDirectory } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -83,9 +83,9 @@ export default async function verify(context: CommandContext): Promise<number> {
             const text = await composeText(terminal, { frame: { title: 'ptbk verify', step: 'Follow-up task' }, question: `What should follow "${task.title}"?`, required: true });
             if (text === CANCELLED) continue;
             const split = splitTitle(text);
-            const title = await distinctTaskName(project, settings, split.title);
+            const title = await generatedTaskName(project, settings, split.title);
             const description = split.description;
-            const path = await newTaskPath(tasksDirectory, title, Date.now(), timeZone);
+            const path = await newTaskPath(tasksDirectory, split.title, Date.now(), timeZone);
             await writeFile(path, renderTaskBook({ title, description, commitments: [`TASK PARENT ${task.ref}`, `TASK ORIGIN review of ${task.ref}`] }), { flag: 'wx' });
             if (commit && gitInfo.state === 'repository') {
                 await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: [path], subject: `Add task - ${title}`, trailers: { 'Task-Name': title, 'Related-Task-Name': task.title }, temporaryDirectory: project.runtime.temporary, env: context.env });

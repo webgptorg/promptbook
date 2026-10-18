@@ -8,7 +8,7 @@ import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../dist/project/s
 import { distinctName, nameKeyPath, traceDirectoryOf } from '../dist/tasks/identity.js';
 import { ChatStore } from '../dist/chats/store.js';
 import { taskChats } from '../dist/chats/task-chats.js';
-import { git, initializedProject, messages, ptbk, subjects, temporaryDirectory } from './helpers.mjs';
+import { findGenerated, generated, git, initializedProject, messages, ptbk, subjects, temporaryDirectory } from './helpers.mjs';
 
 /**
  * Fixture check accepting every output.
@@ -98,7 +98,7 @@ test('task chats: a repeated report of the same unanswered question keeps one wa
     assert.equal(listed.length, 1);
     const [stored] = listed;
     assert.equal(stored.chat.status, 'waiting-for-user');
-    assert.deepEqual(stored.chat.links, ['{Publish the post}']);
+    assert.deepEqual(stored.chat.links, ['{{Publish the post}}']);
     assert.equal(stored.chat.messages[0].sender, '@Developer', 'the request is authored by the asking agent, not the environment');
     assert.match(stored.chat.messages[0].text, /Already attempted: Reused the saved session\./);
     assert.deepEqual(stored.chat.messages[0].choices, ['Done']);
@@ -106,7 +106,7 @@ test('task chats: a repeated report of the same unanswered question keeps one wa
 
 test('same-name tasks: the first by resolver order runs; the copy is shadowed, reported and never renamed', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
-    for (const name of ['a.book', 'b.book']) await writeFile(join(project, 'tasks', name), 'TASK Same title\n\nDo it.\n\nTASK AGENT @Developer\n');
+    for (const name of ['a.book', 'b.book']) await writeFile(join(project, 'tasks', name), 'TASK Same title\nGOAL Do it.\nTASK AGENT @Developer\n');
     await git(project, ['add', 'tasks']);
     await git(project, ['commit', '-qm', 'manual tasks']);
     const listed = JSON.parse((await ptbk(['list', '--json'], { cwd: project, env })).stdout);
@@ -123,27 +123,27 @@ test('same-name tasks: the first by resolver order runs; the copy is shadowed, r
     assert.match(message, /^Task-Name: Same title$/m);
     assert.doesNotMatch(message, /Task-ID/);
     await readFile(join(project, traceDirectoryOf('Same title'), 'harness.log'), 'utf8');
-    assert.equal(await readFile(join(project, 'tasks', 'b.book'), 'utf8'), 'TASK Same title\n\nDo it.\n\nTASK AGENT @Developer\n', 'the shadowed copy is not renamed or merged');
+    assert.equal(await readFile(join(project, 'tasks', 'b.book'), 'utf8'), 'TASK Same title\nGOAL Do it.\nTASK AGENT @Developer\n', 'the shadowed copy is not renamed or merged');
     const lint = await ptbk(['lint', '--json'], { cwd: project, env });
     assert.ok(JSON.parse(lint.stdout).findings.some((finding) => /shadow/i.test(finding.message) && finding.location.includes('tasks/b.book')), lint.stdout);
 });
 
-test('follow-ups written by an agent are linked by name inside the result commit; a same-name copy stays shadowed', async (t) => {
-    const { project, env } = await initializedProject(t, { check: CHECK });
+test('follow-ups written by an agent: a copy under an existing name is refused; distinct dated names join the result commit', async (t) => {
+    const { project, env, log } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Plan more CREATE_FOLLOW_UP', '--agent', 'Developer', '--priority', '5', '--raw'], { cwd: project, env });
     const run = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(run.code, 0, run.output);
+    const turns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((entry) => /^Plan more/.test(entry.title));
+    assert.deepEqual(turns.map((turn) => turn.attempt), [1, 2], 'a follow-up born shadowed is sent back for repair');
     const [message] = await messages(project);
-    assert.match(message, /^Task-Name: Plan more CREATE_FOLLOW_UP$/m);
+    const taskName = /^Task-Name: (.+)$/m.exec(message)[1];
+    assert.match(taskName, generated('Plan more CREATE_FOLLOW_UP'));
     const created = [...message.matchAll(/^Created-Task-Name: (.+)$/gm)].map((match) => match[1]);
-    assert.ok(created.includes('Follow-up one'), message);
-    assert.ok(!created.includes('Plan more CREATE_FOLLOW_UP'), 'a copy under the same name is not new work');
+    assert.ok(findGenerated(created, 'Follow-up one') && findGenerated(created, 'Follow-up two'), message);
+    assert.ok(!created.includes(taskName), 'no copy under the same name');
     const files = await changedFiles(project);
     assert.ok(files.includes('tasks/zz-follow-up-one.book') && files.includes('tasks/zz-follow-up-two.book'));
-    const listed = JSON.parse((await ptbk(['list', '--json', '--all'], { cwd: project, env })).stdout);
-    const copy = listed.tasks.find((task) => task.source === 'tasks/zz-follow-up-two.book');
-    assert.equal(copy.readiness, 'blocked', JSON.stringify(copy));
-    assert.match(await readFile(join(project, 'tasks', 'zz-follow-up-two.book'), 'utf8'), /^Plan more CREATE_FOLLOW_UP$/m, 'never renamed automatically');
+    assert.match(await readFile(join(project, 'tasks', 'zz-follow-up-two.book'), 'utf8'), generated('Follow-up two', 'TASK '));
 });
 
 test('trace policy: committed traces share the result commit; videos and post-commit events stay out; the tree stays clean', async (t) => {
@@ -157,7 +157,7 @@ test('trace policy: committed traces share the result commit; videos and post-co
     const run = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(run.code, 0, run.output);
     const taskName = /^Task-Name: (.+)$/m.exec((await messages(project))[0])[1];
-    assert.equal(taskName, 'Write the welcome page');
+    assert.match(taskName, generated('Write the welcome page'), 'new tasks carry their creation date/time in the name');
     const trace = traceDirectoryOf(taskName);
     const files = await changedFiles(project);
     assert.ok(files.includes(`${trace}/harness.log`), files.join('\n'));
@@ -182,7 +182,8 @@ test('initial input: verbatim text and attachments with working relative links; 
     assert.equal(await readFile(join(project, 'specs', '_initial', 'notes.txt'), 'utf8'), 'notes');
     const task = (await readdir(join(project, 'tasks'))).find((name) => name.endsWith('.book'));
     const content = await readFile(join(project, 'tasks', task), 'utf8');
-    assert.match(content, /^Transform the project according to the initial specification\nENTITY TASK$/m);
+    assert.match(content.split('\n')[0], generated('Transform the project according to the initial specification', 'TASK '));
+    assert.match(content, /^GOAL Transform this project according to the initial specification/m, 'the assignment is under GOAL');
     assert.match(content, /\(\.\.\/specs\/_initial\.md\)/);
     assert.ok((await changedFiles(project)).includes('specs/_initial/image-1.png'), 'specification and assets are versioned with the task');
 });
@@ -194,14 +195,15 @@ test('a task waiting for the user is checkpointed so independent work continues;
     const first = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(first.code, 3, first.output);
     assert.match(first.stdout, /1 completed, 0 failed; 1 chat\(s\) waiting for you/);
-    assert.equal((await subjects(project))[0], 'PTBK: Independent work', 'independent work progressed while the question waits');
+    assert.match((await subjects(project))[0], generated('Independent work', 'PTBK: '), 'independent work progressed while the question waits');
     const inspect = await ptbk(['recover', '--raw'], { cwd: project, env });
     assert.match(inspect.stdout, /checkpointed/);
     const [chat] = JSON.parse((await ptbk(['answer', '--json'], { cwd: project, env })).stdout);
     assert.equal(chat.agent, '@Developer', 'the waiting chat is authored by the task agent');
     assert.match(chat.awaiting.text, /Already attempted: Checked the task and project instructions\./);
     assert.deepEqual(chat.awaiting.choices, ['red', 'blue']);
-    assert.deepEqual(chat.links, ['{Choose a color ASK_USER}']);
+    assert.equal(chat.links.length, 1);
+    assert.match(chat.links[0], generated('Choose a color ASK_USER', '{{', '}}'), 'the chat links the full saved task name');
     const invalid = await ptbk(['answer', chat.name, 'green', '--raw'], { cwd: project, env });
     assert.notEqual(invalid.code, 0, 'an offered decision accepts only its answers');
     const before = (await subjects(project)).length;
@@ -210,10 +212,10 @@ test('a task waiting for the user is checkpointed so independent work continues;
     assert.equal((await subjects(project)).length, before + 1, 'the answer is its own commit');
     assert.match(answerCommit, /^PTBK: Chat - /);
     assert.match(answerCommit, /^Chat-Name: /m);
-    assert.match(answerCommit, /^Task-Name: Choose a color ASK_USER$/m);
+    assert.match(answerCommit, generated('Choose a color ASK_USER', 'Task-Name: '));
     const second = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
     assert.equal(second.code, 0, second.output);
-    assert.equal((await subjects(project))[0], 'PTBK: Choose a color ASK_USER');
+    assert.match((await subjects(project))[0], generated('Choose a color ASK_USER', 'PTBK: '));
     const outputs = await readdir(join(project, 'output'));
     assert.match(await readFile(join(project, 'output', outputs.find((name) => name.includes('choose-a-color'))), 'utf8'), /\(blue\)/);
 });

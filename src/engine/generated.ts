@@ -7,9 +7,11 @@ import type { AgentCatalog, EffectiveAgent } from '../project/agents.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { setBookControls } from '../tasks/book-task.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
-import { distinctName } from '../tasks/identity.js';
+import { generatedName } from '../tasks/identity.js';
 import type { Task } from '../tasks/model.js';
 import type { HarnessPool } from './harnesses.js';
+import { taskBookInstructions } from './prompt.js';
+import { creationTimestamp } from '../common/time.js';
 
 /**
  * Marker of Manager assignment tasks in `TASK ORIGIN`.
@@ -52,7 +54,7 @@ export function workKindOf(task: Task): 'assignment' | 'learning' | 'discovery' 
  */
 export function originTarget(task: Task): string | undefined {
     const origin = task.origin ?? '';
-    const match = /^(?:assignment for|learning from(?: chat)?)\s+(\{[^}]+\}|@\S+|\S+)/i.exec(origin);
+    const match = /^(?:assignment for|learning from(?: chat)?)\s+(\{\{[^}]+\}\}|\{[^}]+\}|@\S+|\S+)/i.exec(origin);
     return match?.[1];
 }
 
@@ -78,7 +80,7 @@ export async function createAssignmentTask(options: {
 }): Promise<CreatedTask & { targetRef: string }> {
     if (!options.target.key) throw new PtbkError('The task needs a usable name before Manager assignment.', { kind: 'internal' });
     const ref = options.target.ref;
-    const name = distinctName(`Assign routing: ${options.target.title}`, options.taken);
+    const name = generatedName(`Assign routing: ${options.target.title}`, { taken: options.taken, timeZone: options.timeZone });
     const path = await newTaskPath(options.tasksDirectory, `assign ${options.target.title}`, Date.now(), options.timeZone);
     const commitments = [`TASK AGENT @Manager`, `TASK HARNESS ${options.bootstrap.harness}`];
     if (options.bootstrap.model) commitments.push(`TASK MODEL ${options.bootstrap.model}`);
@@ -165,7 +167,7 @@ export async function validateAssignment(
     if (!target.routing.agent) {
         const agent = typeof routing.agent === 'string' ? routing.agent.trim() : '';
         if (!agent) return { ok: false, feedback: 'Your completion line must include `routing.agent` (for example "@Developer").' };
-        const resolution = await options.catalog.resolve(agent.startsWith('@') || agent.startsWith('{') ? agent : `{${agent}}`);
+        const resolution = await options.catalog.resolve(agent.startsWith('@') || agent.startsWith('{') ? agent : `{{${agent}}}`);
         if (resolution.kind !== 'agent' || resolution.definition.hidden || resolution.definition.tier === 4) {
             return { ok: false, feedback: `Agent ${agent} is not one of the available project agents. Choose one from the list.` };
         }
@@ -231,7 +233,7 @@ export async function createLearningTask(options: {
     taken: ReadonlySet<string>;
 }): Promise<CreatedTask> {
     const path = await newTaskPath(options.tasksDirectory, `learn ${options.task.title}`, Date.now(), options.timeZone);
-    const name = distinctName(`Learn from: ${options.task.title}`, options.taken);
+    const name = generatedName(`Learn from: ${options.task.title}`, { taken: options.taken, timeZone: options.timeZone });
     const agentPath = options.agent.definition ? toProjectRelative(options.projectRoot, options.agent.definition.path) : '(engine)';
     const commitments = ['TASK AGENT @Teacher', `TASK PARENT ${options.taskRef}`, `TASK ORIGIN ${LEARNING_ORIGIN} ${options.taskRef} by ${formatAgentReference(options.agent.name)}`];
     if (options.trace) commitments.push(`TASK NOTE Evidence: ${options.trace}${options.occurrence ? ` (occurrence ${options.occurrence})` : ''}`);
@@ -254,13 +256,13 @@ export async function createLearningTask(options: {
  */
 export async function createChatLearningTask(options: { tasksDirectory: string; chat: string; agent: string; agentPath: string; note: string; timeZone: string; taken: ReadonlySet<string> }): Promise<CreatedTask> {
     const path = await newTaskPath(options.tasksDirectory, `learn chat ${options.chat}`, Date.now(), options.timeZone);
-    const name = distinctName(`Learn from chat: ${options.chat}`, options.taken);
+    const name = generatedName(`Learn from chat: ${options.chat}`, { taken: options.taken, timeZone: options.timeZone });
     await writeFile(
         path,
         renderTaskBook({
             title: name,
-            description: `In the chat {${options.chat}}, the user corrected ${options.agent} or stated a lasting project-specific preference: "${options.note.replace(/\s+/g, ' ').slice(0, 500)}". Review the chat and improve \`${options.agentPath}\` where the conversation justifies it and its learning permission allows. Making no change is a valid result.`,
-            commitments: ['TASK AGENT @Teacher', `TASK ORIGIN ${LEARNING_ORIGIN} chat {${options.chat}} by ${formatAgentReference(options.agent)}`, `LINK {${options.chat}}`],
+            description: `In the chat {{${options.chat}}}, the user corrected ${options.agent} or stated a lasting project-specific preference: "${options.note.replace(/\s+/g, ' ').slice(0, 500)}". Review the chat and improve \`${options.agentPath}\` where the conversation justifies it and its learning permission allows. Making no change is a valid result.`,
+            commitments: ['TASK AGENT @Teacher', `TASK ORIGIN ${LEARNING_ORIGIN} chat {{${options.chat}}} by ${formatAgentReference(options.agent)}`, `LINK {{${options.chat}}}`],
         }),
         { flag: 'wx' },
     );
@@ -293,7 +295,7 @@ export function learningPrompt(options: { learner: EffectiveAgent; agentPath: st
 export async function createDiscoveryTask(options: { tasksDirectory: string; agentName: string; timeZone: string; taken: ReadonlySet<string>; now?: number }): Promise<CreatedTask> {
     const at = options.now ?? Date.now();
     const path = await newTaskPath(options.tasksDirectory, `goals ${options.agentName}`, at, options.timeZone);
-    const name = distinctName(`Goal enquiry: ${options.agentName} (${new Date(at).toISOString().slice(0, 10)})`, options.taken);
+    const name = generatedName(`Goal enquiry: ${options.agentName}`, { taken: options.taken, timeZone: options.timeZone, now: at });
     await writeFile(
         path,
         renderTaskBook({
@@ -311,7 +313,7 @@ export async function createDiscoveryTask(options: { tasksDirectory: string; age
  *
  * @private generated work
  */
-export function discoveryPrompt(options: { agent: EffectiveAgent; tasksDirectory: string; recentTitles: readonly string[] }): string {
+export function discoveryPrompt(options: { agent: EffectiveAgent; tasksDirectory: string; recentTitles: readonly string[]; creationStamp?: string }): string {
     return [
         '## Goal enquiry',
         '',
@@ -319,7 +321,7 @@ export function discoveryPrompt(options: { agent: EffectiveAgent; tasksDirectory
         ...options.agent.goals.map((goal) => `- ${goal}`),
         '',
         options.recentTitles.length ? `Recently completed work: ${options.recentTitles.slice(0, 15).join('; ')}.` : '',
-        `If useful, authorized work follows from your goals, create one or more task Books at the top level of \`${options.tasksDirectory}/\` (immediate, or future-dated with \`TASK AFTER <ISO date>\`). Assign them with \`TASK AGENT\` when obvious.`,
+        `If useful, authorized work follows from your goals, create one or more tasks (immediate, or future-dated with \`TASK AFTER <ISO date>\`) and assign them with \`TASK AGENT\` when obvious: ${taskBookInstructions(options.tasksDirectory, options.creationStamp ?? creationTimestamp())}`,
         'Do not implement the work in this enquiry and do not manufacture busywork. If nothing useful is needed now, create nothing and report `done` with a summary explaining why.',
     ].join('\n');
 }

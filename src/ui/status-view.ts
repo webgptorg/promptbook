@@ -97,7 +97,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     lines.push(`NEEDS YOUR ATTENTION (${waiting.length})`);
     if (!waiting.length) lines.push('- nothing');
     for (const chat of waiting) {
-        lines.push(`- ${chat.awaiting?.sender ?? chat.agent ?? 'An agent'} waits for you in the chat {${chat.name}}`);
+        lines.push(`- ${chat.awaiting?.sender ?? chat.agent ?? 'An agent'} waits for you in the chat {{${chat.name}}}`);
         if (chat.awaiting) lines.push(`  ${chat.awaiting.text.replace(/\n/g, '\n  ')}`);
         if (chat.awaiting?.choices?.length) lines.push(`  Choices: ${chat.awaiting.choices.join(' | ')}`);
         if (chat.links.length) lines.push(`  Links: ${chat.links.join(', ')}`);
@@ -161,7 +161,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     waiting.forEach((chat, index) => {
         const focused = options.live && index === options.live.focusRequest;
         const marker = focused ? style.accent(marks.pointer) : style.warning(marks.warn);
-        attention.push(`${marker} ${style.bold(chat.awaiting?.sender ?? chat.agent ?? 'An agent')} ${style.muted('waits for you in')} ${style.bold(`{${chat.name}}`)}${chat.unread ? style.accent(` · ${chat.unread} unread`) : ''}`);
+        attention.push(`${marker} ${style.bold(chat.awaiting?.sender ?? chat.agent ?? 'An agent')} ${style.muted('waits for you in')} ${style.bold(`{{${chat.name}}}`)}${chat.unread ? style.accent(` · ${chat.unread} unread`) : ''}`);
         for (const line of wrap(chat.awaiting?.text ?? '', total - 8).slice(0, focused ? 8 : 2)) attention.push(`   ${line}`);
         if (chat.awaiting?.choices?.length) attention.push(`   ${style.muted('Choices:')} ${chat.awaiting.choices.map((choice, choiceIndex) => `${style.accent(`[${choiceIndex + 1}]`)} ${choice}`).join('  ')}`);
         attention.push(`   ${style.muted(options.live ? 'Press A to open the conversation' : `Answer: ptbk answer "${chat.name}"`)}${chat.links.length ? style.muted(` · ${chat.links.join(', ')}`) : ''}`);

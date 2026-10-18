@@ -300,7 +300,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         }
         if (chatMatch) {
             const via = who.kind === 'token' ? 'api' : 'browser';
-            if (!chatName) sendJson(response, 200, await applyChatAction(agenda, 'chat-create', { agent: body.agent, text: body.text, title: body.title }, via));
+            if (!chatName) sendJson(response, 200, await applyChatAction(agenda, 'chat-create', { agent: body.agent, text: body.text, title: body.title, requestKey: body.requestKey }, via));
             else if (chatMatch[2] === 'messages') sendJson(response, 200, await applyChatAction(agenda, 'chat-send', { name: chatName, text: body.text, expected: body.expected }, via));
             else if (chatMatch[2] === 'read') sendJson(response, 200, await applyChatAction(agenda, 'chat-read', { name: chatName }, via));
             else sendJson(response, 405, { error: 'Method not allowed.' });

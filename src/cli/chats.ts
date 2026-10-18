@@ -63,7 +63,7 @@ export async function pickChatAgent(terminal: TerminalProfile, agents: readonly 
  * @private CLI chats
  */
 export function explicitChatAgent(agents: readonly ChatAgentChoice[], value: string): ChatAgentChoice {
-    const key = parseReferenceValue(value.startsWith('@') || value.startsWith('{') ? value : `{${value}}`)?.normalized ?? normalizeAgentName(value);
+    const key = parseReferenceValue(value.startsWith('@') || value.startsWith('{') ? value : `{{${value}}}`)?.normalized ?? normalizeAgentName(value);
     const found = agents.find((agent) => normalizeAgentName(agent.name) === key);
     if (found) return found;
     if (['user', 'void', 'null'].includes(key)) throw new PtbkError(`You cannot chat with @${value.replace(/^@/, '')}; choose a project agent or @Expert.`, { kind: 'usage' });

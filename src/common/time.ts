@@ -160,6 +160,16 @@ export function fileTimestamp(epochMs: number = Date.now(), timeZone: string = s
 }
 
 /**
+ * Readable local creation date and time `YYYY-MM-DD HH:MM:SS` (used in generated task/chat names).
+ *
+ * @private shared parsing helper
+ */
+export function creationTimestamp(epochMs: number = Date.now(), timeZone: string = systemTimeZone()): string {
+    const [year, month, day, hour, minute, second] = wallClock(epochMs, timeZone);
+    return `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}:${pad(second)}`;
+}
+
+/**
  * Local wall-clock time `HH:MM:SS` for plain event lines.
  *
  * @private shared parsing helper

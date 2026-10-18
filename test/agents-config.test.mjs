@@ -23,15 +23,17 @@ test('agent lookup: non-agents, agents/ tier, other Books, then ignored node_mod
     await initRepository(root);
     await files(root, {
         '.gitignore': 'node_modules/\n',
-        'agents/.core/adam.book': 'Adam\nFROM Void\nRULE Base rule.\n',
-        'agents/front.book': 'Frontend Developer\nGOAL Pretty UI.\n',
-        'docs/agents/front-copy.book': 'Frontend Developer\nRULE lower tier copy\n',
-        'docs/helper.book': 'Helper\nRULE help\n',
-        'node_modules/pkg/vendor.book': 'Vendor Agent\nRULE from a dependency\n',
-        'agents/a/dup.book': 'Twin\n',
-        'agents/b/dup.book': 'Twin\n',
-        'agents/reserved.book': 'User\n',
+        'agents/.core/adam.book': 'AGENT Adam\nFROM Void\nRULE Base rule.\n',
+        'agents/front.book': 'AGENT Frontend Developer\nGOAL Pretty UI.\n',
+        'docs/agents/front-copy.book': 'AGENT Frontend Developer\nRULE lower tier copy\n',
+        'docs/helper.book': 'AGENT Helper\nRULE help\n',
+        'node_modules/pkg/vendor.book': 'AGENT Vendor Agent\nRULE from a dependency\n',
+        'agents/a/dup.book': 'AGENT Twin\n',
+        'agents/b/dup.book': 'AGENT Twin\n',
+        'agents/reserved.book': 'AGENT User\n',
+        'agents/old.book': 'Old Style\nPERSONA Former plain name line.\n',
         'tasks/task.book': 'TASK Not an agent\n',
+        'docs/misplaced.book': 'TASK Placed among docs\n',
     });
     const catalog = await AgentCatalog.load(root);
     assert.equal((await catalog.resolve('{Expert}')).kind, 'non-agent');
@@ -54,20 +56,26 @@ test('agent lookup: non-agents, agents/ tier, other Books, then ignored node_mod
     assert.equal(wrongKind.entry.relativePath, 'tasks/task.book');
     assert.ok(catalog.diagnostics.some((diagnostic) => /reserved/.test(diagnostic.message)));
     assert.equal((await catalog.resolve('@User')).kind, 'non-agent');
+    const old = await catalog.resolve('{{Old Style}}');
+    assert.equal(old.kind, 'invalid', 'a plain name line in agents/ is former syntax, not an implicit agent');
+    assert.ok(catalog.diagnostics.some((diagnostic) => diagnostic.path === 'agents/old.book' && /ptbk migrate/.test(diagnostic.message)));
+    const misplaced = await catalog.resolve('{{Placed among docs}}');
+    assert.equal(misplaced.kind, 'wrong-kind', 'the opening declaration supplies the kind wherever the file is stored');
+    assert.equal(misplaced.entry.kind, 'task');
 });
 
 test('inheritance: implicit Adam, FROM chains, Expert foundation, cycles and FROM User fail; Teacher must be CLOSED', async (t) => {
     const root = await temporaryDirectory(t);
     await initRepository(root);
     await files(root, {
-        'agents/.core/adam.book': 'Adam\nFROM Void\nRULE Be careful.\n',
-        'agents/.core/teacher.book': 'Teacher\nFROM Expert\nRULE Teach.\n',
-        'agents/dev.book': 'Developer\nRULE Write tests.\nTEAM Ask @Lawyer and {Missing One}.\n',
-        'agents/senior.book': 'Senior\nFROM @Developer\nRULE Review.\nDELETE RULE Write tests.\n',
-        'agents/loop-a.book': 'Loop A\nFROM {Loop B}\n',
-        'agents/loop-b.book': 'Loop B\nFROM {Loop A}\n',
-        'agents/bad.book': 'Bad\nFROM User\n',
-        'agents/expertish.book': 'Modified Expert\nFROM Expert\nRULE Local twist.\n',
+        'agents/.core/adam.book': 'AGENT Adam\nFROM Void\nRULE Be careful.\n',
+        'agents/.core/teacher.book': 'AGENT Teacher\nFROM Expert\nRULE Teach.\n',
+        'agents/dev.book': 'AGENT Developer\nRULE Write tests.\nTEAM Ask @Lawyer and {{Missing One}}.\n',
+        'agents/senior.book': 'AGENT Senior\nFROM @Developer\nRULE Review.\nDELETE RULE Write tests.\n',
+        'agents/loop-a.book': 'AGENT Loop Alpha\nFROM {{Loop Beta}}\n',
+        'agents/loop-b.book': 'AGENT Loop Beta\nFROM {{Loop Alpha}}\n',
+        'agents/bad.book': 'AGENT Bad\nFROM User\n',
+        'agents/expertish.book': 'AGENT Modified Expert\nFROM Expert\nRULE Local twist.\n',
     });
     const catalog = await AgentCatalog.load(root);
     const senior = await resolveEffectiveAgent(catalog, '@Senior');
@@ -76,7 +84,7 @@ test('inheritance: implicit Adam, FROM chains, Expert foundation, cycles and FRO
     assert.ok(texts.includes('Be careful.'));
     assert.ok(!texts.includes('Write tests.'), 'DELETE withdraws the inherited rule');
     assert.ok(senior.instructions.find((instruction) => instruction.text === 'Be careful.').agent === 'Adam');
-    assert.ok((await resolveEffectiveAgent(catalog, '{Loop A}')).diagnostics.some((diagnostic) => /cycle/i.test(diagnostic.message)));
+    assert.ok((await resolveEffectiveAgent(catalog, '{{Loop Alpha}}')).diagnostics.some((diagnostic) => /cycle/i.test(diagnostic.message)));
     assert.ok((await resolveEffectiveAgent(catalog, '@Bad')).diagnostics.some((diagnostic) => /User cannot be an inheritance parent/.test(diagnostic.message)));
     const modified = await resolveEffectiveAgent(catalog, '{Modified Expert}');
     assert.deepEqual(modified.chain, ['Modified Expert', 'Expert']);
@@ -90,19 +98,19 @@ test('reference examples: @ and brace forms everywhere, normalized names, built-
     await initRepository(root);
     await files(root, {
         '.gitignore': 'node_modules/\n',
-        'agents/.core/adam.book': 'Adam\n\nFROM @Void\n\nRULE Never claim work you did not verify, and report blockers honestly.\nRULE …\nCLOSED\n',
-        'agents/.core/teacher.book': 'Teacher\n\nFROM @Expert\n\nRULE …\nCLOSED\n',
-        'agents/developer.book': 'Developer\n\nNOTE This is not needed because its implicitly FROM @Adam\n\nTEAM When you need to write `book` language consult with @Expert\nRULE …\nCLOSED\n',
-        'agents/frontend-developer.book': 'Frontend Developer\n\nFROM @Developer\nKNOWLEDGE …\nCLOSED\n',
-        'agents/ux-designer.book': 'UX Designer\n\nTEAM When you need to write `book` language consult with @Expert, to do the frontend tasks consult with {Frontend Developer}\nKNOWLEDGE …\nCLOSED\n',
-        'docs/frontend-copy.book': 'Frontend Developer\nRULE shadowed by agents/\n',
-        'node_modules/pkg/frontend.book': 'Frontend Developer\nRULE shadowed twice\n',
-        'node_modules/pkg/designer.book': 'Design System Keeper\nRULE only in a dependency\n',
+        'agents/.core/adam.book': 'AGENT Adam\n\nFROM @Void\n\nRULE Never claim work you did not verify, and report blockers honestly.\nRULE …\nCLOSED\n',
+        'agents/.core/teacher.book': 'AGENT Teacher\n\nFROM @Expert\n\nRULE …\nCLOSED\n',
+        'agents/developer.book': 'AGENT Developer\n\nNOTE This is not needed because its implicitly FROM @Adam\n\nTEAM When you need to write `book` language consult with @Expert\nRULE …\nCLOSED\n',
+        'agents/frontend-developer.book': 'AGENT Frontend Developer\n\nFROM @Developer\nKNOWLEDGE …\nCLOSED\n',
+        'agents/ux-designer.book': 'AGENT Ux Designer\n\nTEAM When you need to write `book` language consult with @Expert, to do the frontend tasks consult with {{Frontend Developer}}\nKNOWLEDGE …\nCLOSED\n',
+        'docs/frontend-copy.book': 'AGENT Frontend Developer\nRULE shadowed by agents/\n',
+        'node_modules/pkg/frontend.book': 'AGENT Frontend Developer\nRULE shadowed twice\n',
+        'node_modules/pkg/designer.book': 'AGENT Design System Keeper\nRULE only in a dependency\n',
     });
     const catalog = await AgentCatalog.load(root);
-    for (const reference of ['@Void', '@Null', '{Void}', '{Null}', '@Expert', '{Expert}', '@User', '{User}']) assert.equal((await catalog.resolve(reference)).kind, 'non-agent', reference);
-    assert.equal((await catalog.resolve('@Adam')).definition.relativePath, (await catalog.resolve('{Adam}')).definition.relativePath, '@Adam and {Adam} are the same reference');
-    for (const reference of ['{Frontend Developer}', '{FrontendDeveloper}', '{frontend Developer}', '{Frontend_Developer}', '{-Fronténd Developer}', '@FrontendDeveloper']) {
+    for (const reference of ['@Void', '@Null', '{{Void}}', '{Null}', '@Expert', '{{Expert}}', '@User', '{{User}}']) assert.equal((await catalog.resolve(reference)).kind, 'non-agent', reference);
+    assert.equal((await catalog.resolve('@Adam')).definition.relativePath, (await catalog.resolve('{{Adam}}')).definition.relativePath, '@Adam and {{Adam}} are the same reference');
+    for (const reference of ['{{Frontend Developer}}', '{FrontendDeveloper}', '{{frontend Developer}}', '{{Frontend_Developer}}', '{{-Fronténd Developer}}', '@FrontendDeveloper']) {
         const resolved = await catalog.resolve(reference);
         assert.equal(resolved.kind, 'agent', reference);
         assert.equal(resolved.definition.relativePath, 'agents/frontend-developer.book', `${reference} resolves in agents/ before the project and node_modules copies`);
@@ -113,8 +121,8 @@ test('reference examples: @ and brace forms everywhere, normalized names, built-
     assert.deepEqual(developer.chain, ['Developer', 'Adam'], 'implicit Adam; the NOTE text is not a FROM');
     assert.deepEqual(teamReferences(developer), ['@Expert']);
     assert.deepEqual((await resolveEffectiveAgent(catalog, '{Frontend Developer}')).chain, ['Frontend Developer', 'Developer', 'Adam']);
-    const designer = await resolveEffectiveAgent(catalog, '{UX Designer}');
-    assert.deepEqual(teamReferences(designer), ['@Expert', '{Frontend Developer}']);
+    const designer = await resolveEffectiveAgent(catalog, '{{UX Designer}}');
+    assert.deepEqual(teamReferences(designer), ['@Expert', '{{Frontend Developer}}']);
     assert.equal(designer.learning.open, false);
     assert.equal((await catalog.resolve('{Design System Keeper}')).definition.tier, 4, 'Git-ignored content is the last tier');
     assert.deepEqual((await validateAgents(catalog)).filter((diagnostic) => diagnostic.severity === 'error'), []);

@@ -161,3 +161,23 @@ export async function messages(project) {
 export async function subjects(project) {
     return (await git(project, ['log', '--format=%s'])).trim().split('\n').filter(Boolean);
 }
+
+/**
+ * Creation date/time text that generated task/chat names carry (with an optional discriminator).
+ */
+const GENERATED_SUFFIX = String.raw` — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?: \(\d+\))?`;
+
+/**
+ * A regular expression matching a generated name (`<title> — <date time>`), optionally with a prefix/suffix.
+ */
+export function generated(title, prefix = '', suffix = '') {
+    const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`^${escape(prefix)}${escape(title)}${GENERATED_SUFFIX}${escape(suffix)}$`, 'm');
+}
+
+/**
+ * The first item matching a generated name (e.g. a commit subject `PTBK: <title> — <date time>`).
+ */
+export function findGenerated(items, title, prefix = '') {
+    return items.find((item) => generated(title, prefix).test(item));
+}

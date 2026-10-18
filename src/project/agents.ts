@@ -1,3 +1,4 @@
+import { withdrawnKeyword } from '../book/commitments.js';
 import { commitmentsOf, singleValue, type BookDocument } from '../book/parse.js';
 import { findAgentReferences, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
 import { BookIndex, type BookDiagnostic as BookIndexDiagnostic, type BookEntry, type BookTier } from './books.js';
@@ -93,6 +94,10 @@ export class AgentCatalog {
     public async resolve(reference: string): Promise<AgentResolution> {
         const resolution = await this.index.resolve(reference);
         if (resolution.kind !== 'book') return resolution;
+        if (resolution.entry.kind === 'invalid') {
+            const error = resolution.entry.document.diagnostics.find((diagnostic) => diagnostic.severity === 'error');
+            return { kind: 'invalid', reason: `${resolution.entry.relativePath} is not a valid Book${error ? `: ${error.message}` : '.'}` };
+        }
         if (resolution.entry.kind !== 'agent') return { kind: 'wrong-kind', entry: resolution.entry };
         return { kind: 'agent', definition: resolution.entry as AgentDefinition, shadowed: resolution.shadowed };
     }
@@ -131,6 +136,8 @@ export type EffectiveInstruction = {
     readonly agent: string;
     /** Project-relative path, or `engine` for Expert. */
     readonly source: string;
+    /** For DELETE: the kind of commitment it withdraws (from `DELETE RULE …`). */
+    readonly target?: string;
 };
 
 /**
@@ -293,7 +300,6 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
  */
 async function localInstructions(catalog: AgentCatalog, definition: AgentDefinition, diagnostics: AgentDiagnostic[], importing: Set<string>): Promise<EffectiveInstruction[]> {
     const result: EffectiveInstruction[] = [];
-    if (definition.document.intro) result.push({ keyword: 'PROSE', text: definition.document.intro, agent: definition.name, source: definition.relativePath });
     for (const commitment of definition.document.commitments) {
         if (commitment.keyword === 'IMPORT') {
             const imported = await catalog.resolve(commitment.value);
@@ -314,15 +320,10 @@ async function localInstructions(catalog: AgentCatalog, definition: AgentDefinit
             continue;
         }
         if (commitment.keyword === 'DELETE') {
-            result.push({ keyword: 'DELETE', text: commitment.body, agent: definition.name, source: definition.relativePath });
+            result.push({ keyword: 'DELETE', text: commitment.body, agent: definition.name, source: definition.relativePath, target: withdrawnKeyword(commitment.written) });
             continue;
         }
-        if (NON_INSTRUCTION_KEYWORDS.has(commitment.keyword) || commitment.definition.scope === 'task' || commitment.definition.scope === 'chat') {
-            if (commitment.definition.kind !== 'instruction' && commitment.continuation) {
-                result.push({ keyword: 'PROSE', text: commitment.continuation, agent: definition.name, source: definition.relativePath });
-            }
-            continue;
-        }
+        if (NON_INSTRUCTION_KEYWORDS.has(commitment.keyword) || commitment.definition.unknown || commitment.definition.scope === 'task' || commitment.definition.scope === 'chat') continue;
         if (commitment.body) result.push({ keyword: commitment.keyword, text: commitment.body, agent: definition.name, source: definition.relativePath });
     }
     return result;
@@ -345,9 +346,8 @@ function applyDeletions(instructions: EffectiveInstruction[], target: AgentDefin
             result.push(instruction);
             continue;
         }
-        const match = /^([A-Z][A-Z ]*?)\s+(.*)$/s.exec(instruction.text);
-        const keyword = match && /^[A-Z ]+$/.test(match[1]!) ? match[1]!.trim() : undefined;
-        const text = comparable(keyword ? match![2]! : instruction.text);
+        const keyword = instruction.target;
+        const text = comparable(instruction.text);
         const candidates = result
             .map((item, index) => ({ item, index }))
             .filter(({ item }) => (!keyword || item.keyword === keyword) && comparable(item.text) === text);
@@ -380,7 +380,7 @@ export async function validateAgents(catalog: AgentCatalog): Promise<AgentDiagno
     const diagnostics: AgentDiagnostic[] = [...catalog.diagnostics];
     for (const definition of catalog.all()) {
         if (definition.tier === 4) continue;
-        const effective = await resolveEffectiveAgent(catalog, `{${definition.name}}`);
+        const effective = await resolveEffectiveAgent(catalog, `{{${definition.name}}}`);
         if (effective.definition !== definition) continue;
         for (const diagnostic of effective.diagnostics) {
             if (!diagnostics.some((existing) => existing.message === diagnostic.message && existing.path === diagnostic.path)) diagnostics.push(diagnostic);

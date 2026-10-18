@@ -55,7 +55,7 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
     const previousWaiting = new Set(previous?.chats.waiting.map((chat) => `${chat.name}\u0000${chat.messages}`) ?? []);
     for (const chat of next.chats.waiting) {
         if (!previousWaiting.has(`${chat.name}\u0000${chat.messages}`)) {
-            lines.push(`ATTENTION ${chat.awaiting?.sender ?? chat.agent ?? 'An agent'} waits for you in {${chat.name}}: ${(chat.awaiting?.text ?? '').split('\n')[0]} (answer with: ptbk answer "${chat.name}" "<answer>")`);
+            lines.push(`ATTENTION ${chat.awaiting?.sender ?? chat.agent ?? 'An agent'} waits for you in {{${chat.name}}}: ${(chat.awaiting?.text ?? '').split('\n')[0]} (answer with: ptbk answer "${chat.name}" "<answer>")`);
         }
     }
     return lines;

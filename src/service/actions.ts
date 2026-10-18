@@ -58,7 +58,7 @@ export async function applyChatAction(agenda: Agenda, method: string, params: Re
             return { read: true };
         case 'chat-create': {
             if (!text('agent')) throw new PtbkError('Choose the agent of the new chat.', { kind: 'usage' });
-            const written = await agenda.chatCreate(text('agent'), text('text'), { name: text('title') || undefined });
+            const written = await agenda.chatCreate(text('agent'), text('text'), { name: text('title') || undefined, requestKey: text('requestKey') || undefined });
             return { name: written.chat.name, path: written.relativePath, commit: written.commit, messages: written.chat.messages.length };
         }
         case 'chat-send': {

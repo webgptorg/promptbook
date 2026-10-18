@@ -26,7 +26,7 @@ async function runSelection(context: CommandContext, settings: Awaited<ReturnTyp
     const isDefault = setting<string | undefined>(settings, 'routing.harness') === harness;
     const agentName = option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent');
     return {
-        agent: agentName.startsWith('@') || agentName.startsWith('{') ? agentName : `{${agentName}}`,
+        agent: agentName.startsWith('@') || agentName.startsWith('{') ? agentName : `{{${agentName}}}`,
         harness,
         model: option<string>(context, 'model') ?? settings.harnesses[harness]?.model ?? (isDefault ? setting<string | undefined>(settings, 'routing.model') : undefined),
         thinkingLevel: option<ThinkingLevel>(context, 'thinking-level') ?? settings.harnesses[harness]?.thinkingLevel ?? (isDefault ? setting<ThinkingLevel | undefined>(settings, 'routing.thinkingLevel') : undefined),

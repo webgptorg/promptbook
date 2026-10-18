@@ -156,9 +156,12 @@
         state.busy.add('new-chat');
         render(state.snapshot);
         try {
-            const result = await api('/api/chats', { method: 'POST', body: { agent, text } });
+            // One request key per draft: a retried request returns the chat it already created.
+            state.newChatKey = state.newChatKey || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+            const result = await api('/api/chats', { method: 'POST', body: { agent, text, requestKey: state.newChatKey } });
+            state.newChatKey = null;
             state.drafts.delete('chat:new');
-            toast(`Started {${result.name}}.`);
+            toast(`Started “${result.name}”.`);
             openChat(result.name);
         } catch (error) {
             toast(`Not started: ${error.message}`);

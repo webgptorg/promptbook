@@ -96,7 +96,9 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         const height = terminal.rows();
         const header = detail
             ? [
-                  `${style.bold(detail.summary.name)}  ${style.muted(detail.summary.members.join(', '))}`,
+                  // The full saved name stays visible (wrapped, never cut) for identification and copying.
+                  ...wrap(detail.summary.name, width - 4).map((line) => style.bold(line)),
+                  style.muted(detail.summary.members.join(', ')),
                   `${detail.summary.status === 'waiting-for-user' ? style.warning(`${marks.warn} ${detail.summary.awaiting?.sender ?? 'The agent'} waits for you`) : detail.summary.status === 'resolved' ? style.muted('resolved') : style.success('open')}${detail.summary.links.length ? style.muted(` · links ${detail.summary.links.join(', ')}`) : ''}${style.muted(` · ${detail.summary.path}`)}`,
               ]
             : [`${style.bold(`New chat with ${target.kind === 'new' ? target.agent.reference : name}`)}`, style.muted('Write the first message; the chat is saved (and committed) when you send it.')];

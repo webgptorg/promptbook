@@ -20,17 +20,17 @@ export type BookDiagnostic = {
  * @private Book language
  */
 export type BookCommitment = {
-    /** Canonical keyword of the commitment (alias resolved). */
+    /** Canonical keyword of the commitment (alias resolved; the complete written keyword when unknown). */
     readonly keyword: string;
     /** Keyword spelling written in the source. */
     readonly written: string;
-    /** Definition of the commitment. */
+    /** Definition of the commitment (`unknown` for undocumented keywords). */
     readonly definition: CommitmentDefinition;
     /** Content on the keyword's own line. */
     readonly value: string;
-    /** Full content including continuation lines (trimmed). */
+    /** Full content including continuation lines (trimmed; escaped literal lines unescaped). */
     readonly body: string;
-    /** Continuation lines only (trimmed). */
+    /** Continuation lines only (trimmed; escaped literal lines unescaped). */
     readonly continuation: string;
     /** 0-based index of the keyword line. */
     readonly startLine: number;
@@ -46,13 +46,20 @@ export type BookCommitment = {
 export type EntityKind = 'agent' | 'task' | 'chat';
 
 /**
- * Options of reading a Book.
+ * Details of a source written in a former syntax (plain name line, `ENTITY`, introduction text), recorded only to
+ * diagnose it and to prepare an explicitly requested conversion; it never makes the source a valid Book.
  *
  * @private Book language
  */
-export type ParseOptions = {
-    /** Kind supplied by a conventional location (`agents/`, `tasks/`, `chats/`) when the Book declares no ENTITY. */
-    readonly defaultKind?: EntityKind;
+export type LegacySource = {
+    /** The first line is a plain name instead of an `AGENT|TASK|CHAT <name>` declaration. */
+    readonly plainHeader: boolean;
+    /** Kind stated by historical `ENTITY` lines (`conflict` when they disagree, `unsupported` for another value). */
+    readonly entity?: EntityKind | 'conflict' | 'unsupported';
+    /** The name starts with an all-uppercase word, so it cannot follow a keyword without a spelling decision. */
+    readonly uppercaseName?: boolean;
+    /** Text between the opening line and the first commitment (a former introduction), as 0-based line range. */
+    readonly introduction?: { readonly start: number; readonly end: number; readonly text: string };
 };
 
 /**
@@ -61,21 +68,17 @@ export type ParseOptions = {
  * @private Book language
  */
 export type BookDocument = {
-    /** Entity kind (from ENTITY, the legacy `TASK` header or the location), or empty/unclassifiable. */
+    /** Entity kind declared by the opening commitment; `invalid` without a valid declaration, `empty` for no text. */
     readonly kind: EntityKind | 'empty' | 'invalid';
-    /** The entity's display name: the first nonempty line (legacy `TASK <title>` names the task <title>). */
+    /** The entity's display name: the content of the opening declaration (or a legacy plain name line). */
     readonly name: string;
-    /** The first line uses the legacy `TASK <title>` spelling. */
-    readonly legacyTaskHeader: boolean;
-    /** Kind declared by an explicit ENTITY commitment. */
+    /** Kind declared by the opening `AGENT`, `TASK` or `CHAT` commitment. */
     readonly declaredKind?: EntityKind;
-    /** 0-based index of the identifying first nonempty line. */
+    /** Former syntax found in the source (diagnosed; converted only by `ptbk migrate`). */
+    readonly legacy?: LegacySource;
+    /** 0-based index of the opening line. */
     readonly headerLine: number;
-    /** Natural text between the header and the first commitment (trimmed). */
-    readonly intro: string;
-    /** All natural prose: the intro plus text following one-line controls such as `ENTITY TASK` (trimmed). */
-    readonly prose: string;
-    /** Commitments in source order. */
+    /** Commitments after the opening declaration, in source order. */
     readonly commitments: readonly BookCommitment[];
     /** Problems found while reading. */
     readonly diagnostics: readonly BookDiagnostic[];
@@ -87,70 +90,65 @@ export type BookDocument = {
 
 /**
  * Detects a fence opener/closer (``` or ~~~).
+ *
+ * @private Book language
  */
-function fenceMarker(line: string): string | undefined {
+export function fenceMarker(line: string): string | undefined {
     const match = /^\s{0,3}(`{3,}|~{3,})/.exec(line);
     return match?.[1];
 }
 
 /**
- * Entity kinds by ENTITY value.
+ * Entity kinds by declaration keyword (and former ENTITY value).
  */
-const ENTITY_VALUES: Readonly<Record<string, EntityKind>> = { AGENT: 'agent', TASK: 'task', CHAT: 'chat' };
+const KIND_BY_KEYWORD: Readonly<Record<string, EntityKind>> = { AGENT: 'agent', TASK: 'task', CHAT: 'chat' };
 
 /**
- * Reads a Book source: its name (first nonempty line), entity kind and commitments.
+ * Removes the literal escape (one leading backslash) of a content line outside fenced blocks.
+ */
+function unescapeLine(line: string): string {
+    return line.startsWith('\\') ? line.slice(1) : line;
+}
+
+/**
+ * Human label of a commitment scope.
+ */
+function scopeLabel(scope: CommitmentDefinition['scope']): string {
+    return scope === 'agent' ? 'an agent' : scope === 'task' ? 'a task' : scope === 'chat' ? 'a chat' : 'an agent/task';
+}
+
+/**
+ * Reads a Book: the opening `AGENT <name>`, `TASK <name>` or `CHAT <name>` declaration and the commitments after it.
  *
- * The kind comes from an explicit `ENTITY AGENT|TASK|CHAT`, the legacy `TASK <title>` first line, the conventional
- * location (`options.defaultKind`) or, for a legacy agent Book elsewhere, the unprefixed name. Conflicting
- * declarations make the document unclassifiable instead of guessing. Fenced literal content is preserved as text and
- * never interpreted as commitments.
+ * One grammar for every kind: a commitment starts at column zero with a complete uppercase keyword (at least three
+ * letters); its content continues until the next commitment. The location of the file never supplies the kind. Fenced
+ * blocks and lines escaped with a leading backslash are literal content. Former syntax (a plain name line, `ENTITY`,
+ * an introduction under the name) is diagnosed and recorded for explicit conversion, never silently accepted.
  *
  * @private Book language
  */
-export function parseBook(source: string, options: ParseOptions = {}): BookDocument {
+export function parseBook(source: string): BookDocument {
     const newline = source.includes('\r\n') ? '\r\n' : '\n';
     const text = source.startsWith('﻿') ? source.slice(1) : source;
     const lines = text.split(/\r?\n/);
     const diagnostics: BookDiagnostic[] = [];
     const headerLine = lines.findIndex((line) => line.trim() !== '');
-    if (headerLine < 0) {
-        return { kind: 'empty', name: '', legacyTaskHeader: false, headerLine: -1, intro: '', prose: '', commitments: [], diagnostics, lines, newline };
-    }
-    const header = lines[headerLine]!.trim();
-    let invalid = false;
-    let legacyTaskHeader = false;
-    let name: string;
-    const headerMatch = matchCommitmentKeyword(header);
-    if (headerMatch && headerMatch.definition.keyword === 'TASK') {
-        legacyTaskHeader = true;
-        name = headerMatch.content;
-        if (!name) {
-            invalid = true;
-            diagnostics.push({ line: headerLine + 1, message: 'A task needs a nonempty name after the legacy `TASK` header.', severity: 'error' });
-        }
-    } else if (headerMatch) {
-        invalid = true;
-        name = '';
-        diagnostics.push({ line: headerLine + 1, message: `\`${headerMatch.written}\` cannot start a Book; the first nonempty line is the entity's name.`, severity: 'error' });
-    } else {
-        name = header;
-    }
+    if (headerLine < 0) return { kind: 'empty', name: '', headerLine: -1, commitments: [], diagnostics, lines, newline };
 
+    // Commitments after the opening line (fenced and escaped lines are content).
     const commitments: BookCommitment[] = [];
-    const introLines: string[] = [];
+    const introduction: number[] = [];
     let current: { match: NonNullable<ReturnType<typeof matchCommitmentKeyword>>; start: number; continuation: string[] } | undefined;
     let fence: string | undefined;
     const close = (end: number): void => {
         if (!current) return;
         const continuation = current.continuation.join('\n').trim();
-        const body = [current.match.content, ...current.continuation].join('\n').trim();
         commitments.push({
             keyword: current.match.definition.keyword,
             written: current.match.written,
             definition: current.match.definition,
             value: current.match.content,
-            body,
+            body: [current.match.content, ...current.continuation].join('\n').trim(),
             continuation,
             startLine: current.start,
             endLine: end,
@@ -160,6 +158,7 @@ export function parseBook(source: string, options: ParseOptions = {}): BookDocum
     for (let index = headerLine + 1; index < lines.length; index++) {
         const line = lines[index]!;
         const marker = fenceMarker(line);
+        let content = line;
         if (fence) {
             if (marker && marker[0] === fence[0] && marker.length >= fence.length && line.trim() === marker) fence = undefined;
         } else if (marker) {
@@ -169,57 +168,115 @@ export function parseBook(source: string, options: ParseOptions = {}): BookDocum
             if (match) {
                 close(index);
                 current = { match, start: index, continuation: [] };
-                if (match.definition.keyword === 'TASK') {
-                    diagnostics.push({
-                        line: index + 1,
-                        message: 'A later `TASK` line does not declare another task; only the first nonempty line identifies the document.',
-                        severity: 'warning',
-                    });
-                }
                 continue;
             }
+            content = unescapeLine(line);
         }
-        if (current) current.continuation.push(line);
-        else introLines.push(line);
+        if (current) current.continuation.push(content);
+        else introduction.push(index);
     }
     close(lines.length);
     if (fence) diagnostics.push({ line: lines.length, message: 'An unterminated fenced block runs to the end of the document.', severity: 'warning' });
 
-    // Entity kind: explicit ENTITY, legacy TASK header, conventional location, legacy agent Book.
-    const entities = commitments.filter((commitment) => commitment.keyword === 'ENTITY');
-    const declared = [...new Set(entities.map((commitment) => commitment.value.trim().toUpperCase()))];
+    // The opening declaration.
+    const header = lines[headerLine]!;
+    const opening = matchCommitmentKeyword(header);
     let declaredKind: EntityKind | undefined;
-    if (declared.length > 1) {
-        invalid = true;
-        diagnostics.push({ line: entities[1]!.startLine + 1, message: `Conflicting ENTITY declarations (${declared.join(', ')}).`, severity: 'error' });
-    } else if (declared.length === 1) {
-        declaredKind = ENTITY_VALUES[declared[0]!];
-        if (!declaredKind) {
-            invalid = true;
-            diagnostics.push({ line: entities[0]!.startLine + 1, message: `ENTITY must be AGENT, TASK or CHAT, not "${entities[0]!.value}".`, severity: 'error' });
+    let name = '';
+    let plainHeader = false;
+    let uppercaseName = false;
+    if (opening?.definition.kind === 'declaration') {
+        declaredKind = KIND_BY_KEYWORD[opening.definition.keyword];
+        name = opening.content;
+        if (!name) diagnostics.push({ line: headerLine + 1, message: `\`${opening.written}\` needs the entity's name on the same line, e.g. \`${opening.written} Improve CSV export\`.`, severity: 'error' });
+    } else if (opening?.definition.unknown && /^(AGENT|TASK|CHAT) /.test(opening.written)) {
+        // `TASK API cleanup`: the name's first word joins the keyword under the boundary rule.
+        const [keyword, ...rest] = opening.written.split(/\s+/);
+        name = [...rest, opening.content].filter(Boolean).join(' ');
+        uppercaseName = true;
+        diagnostics.push({
+            line: headerLine + 1,
+            message: `\`${opening.written}\` is not a declaration: the name's first word must not be all uppercase (for example \`${keyword} ${rest[0]![0]}${rest[0]!.slice(1).toLowerCase()}${name.slice(rest[0]!.length)}\`).`,
+            severity: 'error',
+        });
+    } else if (opening && !opening.definition.unknown) {
+        diagnostics.push({ line: headerLine + 1, message: `A Book must start with \`AGENT <name>\`, \`TASK <name>\` or \`CHAT <name>\`, not \`${opening.written}\`.`, severity: 'error' });
+    } else {
+        // A plain first line: the former unprefixed name header (an all-uppercase name reads as an unknown keyword).
+        plainHeader = true;
+        uppercaseName = Boolean(opening);
+        name = header.trim();
+    }
+    if (/^\s/.test(header) && !plainHeader) diagnostics.push({ line: headerLine + 1, message: 'The opening declaration must start at the beginning of the line.', severity: 'error' });
+
+    // Text under the opening line belongs to the name declaration, which is a single line.
+    const introductionLines = introduction.filter((index) => lines[index]!.trim() !== '');
+    const introductionText = introduction.length ? introduction.map((index) => unescapeLine(lines[index]!)).join('\n').trim() : '';
+    if (introductionLines.length && !plainHeader && declaredKind) {
+        diagnostics.push({
+            line: introductionLines[0]! + 1,
+            message: `The ${declaredKind} name is a single line; put this text under a commitment such as ${declaredKind === 'task' ? 'GOAL' : declaredKind === 'agent' ? 'PERSONA, GOAL or NOTE' : 'NOTE'} (\`ptbk migrate\` converts it).`,
+            severity: 'error',
+        });
+    }
+
+    // Historical ENTITY lines and further declarations.
+    const entities = commitments.filter((commitment) => commitment.keyword === 'ENTITY');
+    // `ENTITY TASK` reads as one complete keyword; its second word is the former kind.
+    const entityValues = [...new Set(entities.map((commitment) => (commitment.written.split(/\s+/)[1] ?? commitment.value).trim().toUpperCase()))];
+    const entity: LegacySource['entity'] = entityValues.length > 1 ? 'conflict' : entityValues.length ? (KIND_BY_KEYWORD[entityValues[0]!] ?? 'unsupported') : undefined;
+    if (entities.length && declaredKind) {
+        const contradicts = entity !== declaredKind;
+        diagnostics.push({
+            line: entities[0]!.startLine + 1,
+            message: contradicts ? `ENTITY ${entities[0]!.value} contradicts the opening \`${opening!.written}\` declaration and cannot override it.` : 'ENTITY is former syntax; the opening declaration already states the kind (remove this line).',
+            severity: contradicts ? 'error' : 'warning',
+        });
+    }
+    for (const commitment of commitments) {
+        if (commitment.definition.kind === 'declaration') {
+            diagnostics.push({ line: commitment.startLine + 1, message: `A Book defines exactly one entity; this second \`${commitment.written}\` declaration is invalid.`, severity: 'error' });
         }
     }
-    let kind: EntityKind | undefined = declaredKind ?? (legacyTaskHeader ? 'task' : undefined);
-    if (declaredKind && legacyTaskHeader && declaredKind !== 'task') {
-        invalid = true;
-        diagnostics.push({ line: headerLine + 1, message: `The legacy \`TASK\` header conflicts with ENTITY ${declaredKind.toUpperCase()}.`, severity: 'error' });
+
+    const legacyPresent = plainHeader || uppercaseName || entities.length > 0 || (introductionLines.length > 0 && Boolean(declaredKind));
+    const legacy: LegacySource | undefined = legacyPresent
+        ? {
+              plainHeader,
+              entity,
+              uppercaseName: uppercaseName || undefined,
+              introduction: introductionLines.length ? { start: introduction[0]!, end: introduction[introduction.length - 1]! + 1, text: introductionText } : undefined,
+          }
+        : undefined;
+    if (plainHeader) {
+        diagnostics.push({
+            line: headerLine + 1,
+            message: `"${name}" starts with a plain name line (former syntax). Canonical Books start with \`AGENT <name>\`, \`TASK <name>\` or \`CHAT <name>\`; convert it explicitly with \`ptbk migrate\`.`,
+            severity: 'error',
+        });
     }
-    if (kind && options.defaultKind && kind !== options.defaultKind) {
-        invalid = true;
-        diagnostics.push({ line: headerLine + 1, message: `This Book declares a ${kind}, but its location holds ${options.defaultKind}s; add the matching ENTITY or move the file.`, severity: 'error' });
-    }
-    kind ??= options.defaultKind ?? 'agent';
+
+    const kind = declaredKind && name ? declaredKind : undefined;
     for (const commitment of commitments) {
+        if (commitment.definition.kind === 'declaration' || commitment.keyword === 'ENTITY') continue;
+        const singleLine = commitment.definition.kind === 'control' || commitment.definition.kind === 'repeatable-control' || commitment.definition.kind === 'flag';
+        if (singleLine && commitment.continuation && kind) {
+            diagnostics.push({
+                line: commitment.startLine + 2,
+                message: `\`${commitment.written}\` takes single-line content; the text below it belongs to no instruction (put it under a commitment such as ${kind === 'task' ? 'GOAL' : kind === 'agent' ? 'PERSONA or NOTE' : 'NOTE'}).`,
+                severity: 'warning',
+            });
+        }
+        if (commitment.definition.unknown) {
+            diagnostics.push({ line: commitment.startLine + 1, message: `Unknown commitment \`${commitment.written}\`; it is preserved but has no effect.`, severity: 'warning' });
+            continue;
+        }
+        if (!kind) continue;
         const scope = commitment.definition.scope;
         if (scope === 'any' || scope === kind || (scope === 'both' && kind !== 'chat')) continue;
-        diagnostics.push({ line: commitment.startLine + 1, message: `\`${commitment.written}\` is a${scope === 'agent' ? 'n agent' : scope === 'task' ? ' task' : scope === 'chat' ? ' chat' : 'n agent/task'} commitment and has no meaning in a ${kind}.`, severity: 'warning' });
+        diagnostics.push({ line: commitment.startLine + 1, message: `\`${commitment.written}\` is ${scopeLabel(scope)} commitment and has no meaning in a ${kind}.`, severity: 'warning' });
     }
-    const intro = introLines.join('\n').trim();
-    // One-line controls end at their line: text below them is ordinary prose of the document.
-    const prose = [intro, ...commitments.filter((commitment) => commitment.definition.kind !== 'instruction' && commitment.continuation).map((commitment) => commitment.continuation)]
-        .filter(Boolean)
-        .join('\n\n');
-    return { kind: invalid ? 'invalid' : kind, name, legacyTaskHeader, declaredKind, headerLine, intro, prose, commitments, diagnostics, lines, newline };
+    return { kind: kind ?? 'invalid', name, declaredKind, legacy, headerLine, commitments, diagnostics, lines, newline };
 }
 
 /**

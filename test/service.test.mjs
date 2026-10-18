@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { BIN, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
+import { BIN, findGenerated, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
 
 /**
  * Fixture check accepting every output.
@@ -37,12 +37,14 @@ test('daemon lifecycle: one service, repeated start reports it, add is executed 
     assert.equal((await status(project, env)).service.pid, first.service.pid);
     const record = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     assert.equal(record.pid, first.service.pid);
-    await waitFor(async () => (await subjects(project)).includes('PTBK: Review the initialized project'), { message: 'the Expert bootstrap task to be committed' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Review the initialized project', 'PTBK: '), { message: 'the Expert bootstrap task to be committed' });
     const added = await ptbk(['add', 'Write the welcome page', '--raw'], { cwd: project, env });
     assert.match(added.stdout, /committed [0-9a-f]{8}/, added.output);
-    await waitFor(async () => (await subjects(project)).includes('PTBK: Write the welcome page'), { timeoutMs: 90_000, message: 'the added task to be executed after Manager assignment' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Write the welcome page', 'PTBK: '), { timeoutMs: 90_000, message: 'the added task to be executed after Manager assignment' });
     const history = await subjects(project);
-    assert.ok(history.indexOf('PTBK: Assign routing: Write the welcome page') > history.indexOf('PTBK: Write the welcome page'), 'assignment precedes its target');
+    const target = findGenerated(history, 'Write the welcome page', 'PTBK: ');
+    const assignment = history.find((subject) => subject.startsWith(`PTBK: Assign routing: ${target.slice('PTBK: '.length)}`));
+    assert.ok(assignment && history.indexOf(assignment) > history.indexOf(target), 'assignment precedes its target');
     assert.ok(history.filter((subject) => subject !== 'Fixture check').every((subject) => subject.startsWith('PTBK: ') && !subject.startsWith('PTBK: PTBK:')));
     const stopped = await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
     assert.equal(stopped.code, 0, stopped.output);
@@ -114,7 +116,7 @@ test('stop interrupts owned work recoverably; the next start resumes it without 
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
     await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
-    await waitFor(async () => (await subjects(project)).includes('PTBK: Write the welcome page'), { message: 'the added task' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Write the welcome page', 'PTBK: '), { message: 'the added task' });
     const stopped = await ptbk(['stop', '--raw'], { cwd: project, env });
     assert.equal(stopped.code, 0, stopped.output);
     const record = await readFile(join(project, '.ptbk', 'state', 'active.json'), 'utf8').then(JSON.parse, () => undefined);
@@ -136,7 +138,7 @@ test('init starts the agenda automatically, returns without waiting, and an expl
     assert.match(init.stdout, /Next: ptbk dashboard/);
     assert.doesNotMatch(init.stdout, /ptbk start \(/, 'a successful init never asks for another start');
     assert.equal((await status(project, env)).service.state === 'stopped', false, 'the service runs after init returned');
-    await waitFor(async () => (await subjects(project)).includes('PTBK: Review the initialized project'), { message: 'the Expert bootstrap task, executed by the service' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Review the initialized project', 'PTBK: '), { message: 'the Expert bootstrap task, executed by the service' });
     const repeated = await ptbk(['init', '--non-interactive', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(repeated.code, 0, repeated.output);
     assert.match(repeated.stdout, /already running \(reused\)/, 'repeating init reuses the service');

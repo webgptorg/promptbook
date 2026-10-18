@@ -7,7 +7,7 @@ import { loadSettings, setting } from '../../project/config.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
 import { lookupService } from '../../service/control.js';
 import { ServiceHost } from '../../service/host.js';
-import { distinctTaskName, selectedProject, settingOverrides, tasksOverride, writableTasksDirectory } from '../common.js';
+import { generatedTaskName, selectedProject, settingOverrides, tasksOverride, writableTasksDirectory } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
 /**
@@ -40,13 +40,13 @@ export default async function fix(context: CommandContext): Promise<number> {
     await ensureDirectory(tasksDirectory);
     const taskPath = await newTaskPath(tasksDirectory, 'repair failing project check', Date.now(), setting<string>(settings, 'timezone'));
     const agent = option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent');
-    const commitments = [`TASK AGENT ${agent.startsWith('@') || agent.startsWith('{') ? agent : `{${agent}}`}`, 'TASK ORIGIN maintenance: failing project check'];
+    const commitments = [`TASK AGENT ${agent.startsWith('@') || agent.startsWith('{') ? agent : `{{${agent}}}`}`, 'TASK ORIGIN maintenance: failing project check'];
     if (option<string>(context, 'harness')) commitments.push(`TASK HARNESS ${option<string>(context, 'harness')}`);
     if (option<string>(context, 'model')) commitments.push(`TASK MODEL ${option<string>(context, 'model')}`);
     await writeFile(
         taskPath,
         renderTaskBook({
-            title: await distinctTaskName(project, settings, 'Repair the failing project check'),
+            title: await generatedTaskName(project, settings, 'Repair the failing project check'),
             description: `The project check \`${check}\` fails (exit ${String(result.exitCode)}). Fix the underlying defects without weakening validation: do not delete assertions, disable rules, lower thresholds or skip checks.\n\nCheck output (tail):\n\n\`\`\`\n${result.output.slice(-6000)}\n\`\`\``,
             commitments,
         }),
@@ -62,7 +62,7 @@ export default async function fix(context: CommandContext): Promise<number> {
         tasksDirectory: tasksOverride(context),
         persistent: null,
         allowTunnelInstall: false,
-        run: { selection: { agent: agent.startsWith('@') || agent.startsWith('{') ? agent : `{${agent}}`, harness, model: option<string>(context, 'model') } },
+        run: { selection: { agent: agent.startsWith('@') || agent.startsWith('{') ? agent : `{{${agent}}}`, harness, model: option<string>(context, 'model') } },
         onEvent: (text, level) => terminal.write(`${clockTime()} ${level === 'info' ? '' : `${level.toUpperCase()}: `}${text}\n`),
     });
     await host.start();

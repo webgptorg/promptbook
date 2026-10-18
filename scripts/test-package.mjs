@@ -137,11 +137,11 @@ try {
         assert.match(init.stdout, /^Project ready · agenda running/m);
         assert.doesNotMatch(init.stdout, /\x1b|[╭╮╰╯]/);
         const deadline = Date.now() + 90_000;
-        while (!/^PTBK: Review the initialized project$/m.test((await git(fixture, ['log', '--format=%s'])).stdout)) {
+        while (!/^PTBK: Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m.test((await git(fixture, ['log', '--format=%s'])).stdout)) {
             if (Date.now() > deadline) throw new Error('The started service did not complete the Expert bootstrap task.');
             await new Promise((resolvePromise) => setTimeout(resolvePromise, 500));
         }
-        assert.match((await git(fixture, ['log', '-1', '--format=%B', '--grep', 'Review the initialized project'])).stdout, /^Task-Name: Review the initialized project$/m);
+        assert.match((await git(fixture, ['log', '-1', '--format=%B', '--grep', 'Review the initialized project'])).stdout, /^Task-Name: Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m);
         const snapshot = JSON.parse((await linked(global, ['status', '--json'], fixture, env)).stdout);
         assert.equal(snapshot.service.mode, 'daemon');
         assert.equal(snapshot.engine.version, release.version);

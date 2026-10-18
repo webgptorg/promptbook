@@ -40,7 +40,7 @@ export default async function chat(context: CommandContext): Promise<number> {
         }
         if (message) {
             const sent = await source.send(detail.summary.name, message, detail.messages.length);
-            terminal.write(`Sent to {${sent.name}}${sent.commit ? ` (${sent.commit.slice(0, 8)})` : ''}.\n`);
+            terminal.write(`Sent to {{${sent.name}}}${sent.commit ? ` (${sent.commit.slice(0, 8)})` : ''}.\n`);
             return EXIT.success;
         }
         await source.read(detail.summary.name);
@@ -68,7 +68,7 @@ export default async function chat(context: CommandContext): Promise<number> {
     }
     if (!message) throw new PtbkError('The first message is required without an interactive terminal.', { kind: 'usage', next: ['Pass it as an argument or use --stdin.'] });
     const created = await source.create(agent.reference, message, title);
-    terminal.write(`Started the chat {${created.name}}${created.commit ? ` (${created.commit.slice(0, 8)})` : ''}.\n`);
+    terminal.write(`Started the chat {{${created.name}}}${created.commit ? ` (${created.commit.slice(0, 8)})` : ''}.\n`);
     const reply = await waitForReply(source, created.name, 1, REPLY_WAIT_MS, () => replyError);
     if (reply) terminal.write(`\n${reply.sender}:\n${reply.text}\n`);
     else terminal.write(`No reply yet${replyError ? `: ${replyError}` : ''}. Continue with \`ptbk chat --open "${created.name}"\`.\n`);

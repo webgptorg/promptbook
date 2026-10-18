@@ -111,7 +111,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
                               chat: chat.name,
                           });
                           created.push(name);
-                          return { text: `Created the task {${name}} (linked to this chat). The agenda will execute it.` };
+                          return { text: `Created the task {{${name}}} (linked to this chat). The agenda will execute it.` };
                       } catch (error) {
                           return { text: `The task was not created: ${errorMessage(error)}`, isError: true };
                       }
@@ -120,7 +120,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
           ]
         : [];
     const prompt = [
-        `# Conversation\n\nYou are **${agent.name}**, talking with the user (the project owner) in the persistent chat {${chat.name}} of the project at \`${context.project.root}\`.`,
+        `# Conversation\n\nYou are **${agent.name}**, talking with the user (the project owner) in the persistent chat {{${chat.name}}} of the project at \`${context.project.root}\`.`,
         `## Your role\n\n${renderAgentInstructions(agent) || '_No additional instructions._'}`,
         projectInstructions ? `## Project instructions (${contextFile})\n\n${projectInstructions.slice(0, 16_000)}` : '',
         chat.links.length ? `## Linked Books\n\n${chat.links.join(', ')}` : '',
@@ -140,7 +140,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const directory = await ensureDirectory(context.project.runtime.temporary);
     const promptFile = join(directory, `chat-${shortId()}.md`);
     await writeFile(promptFile, prompt);
-    context.onActivity?.(`${agent.name} is replying in {${chat.name}}`);
+    context.onActivity?.(`${agent.name} is replying in {{${chat.name}}}`);
     let result;
     try {
         result = await runHarness(

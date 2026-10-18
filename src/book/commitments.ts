@@ -8,14 +8,16 @@ export type CommitmentScope = 'agent' | 'task' | 'both' | 'chat' | 'any';
 /**
  * How a commitment's content is interpreted.
  *
+ * - `declaration`: the opening type-and-name commitment (`AGENT`, `TASK`, `CHAT`); its content is the name
  * - `instruction`: repeatable multi-line natural-language content
  * - `control`: single-value control field (its value is the first line)
  * - `repeatable-control`: control field that may appear several times (e.g. `TASK DONE`, `TASK DEPENDS ON`)
  * - `flag`: marker without required content (e.g. `CLOSED`)
+ * - `historical`: former syntax kept only to diagnose and convert old sources (`ENTITY`)
  *
  * @private Book language
  */
-export type CommitmentKind = 'instruction' | 'control' | 'repeatable-control' | 'flag';
+export type CommitmentKind = 'declaration' | 'instruction' | 'control' | 'repeatable-control' | 'flag' | 'historical';
 
 /**
  * Definition of one canonical commitment with its aliases.
@@ -33,6 +35,8 @@ export type CommitmentDefinition = {
     readonly kind: CommitmentKind;
     /** Short description used by help, Expert and diagnostics. */
     readonly description: string;
+    /** Not a documented commitment: an unknown complete keyword preserved for round-tripping and diagnosed. */
+    readonly unknown?: boolean;
 };
 
 /**
@@ -41,13 +45,16 @@ export type CommitmentDefinition = {
  * @private Book language
  */
 export const COMMITMENTS: readonly CommitmentDefinition[] = [
-    { keyword: 'ENTITY', aliases: [], scope: 'any', kind: 'control', description: 'Kind of the Book: `AGENT`, `TASK` or `CHAT` (the first line is its name).' },
+    { keyword: 'AGENT', aliases: [], scope: 'agent', kind: 'declaration', description: 'Opening declaration of an agent: `AGENT <name>`.' },
+    { keyword: 'TASK', aliases: [], scope: 'task', kind: 'declaration', description: 'Opening declaration of a task: `TASK <name>`.' },
+    { keyword: 'CHAT', aliases: [], scope: 'chat', kind: 'declaration', description: 'Opening declaration of a chat: `CHAT <name>`.' },
+    { keyword: 'ENTITY', aliases: ['ENTITY AGENT', 'ENTITY TASK', 'ENTITY CHAT'], scope: 'any', kind: 'historical', description: 'Former kind declaration after a plain name line; convert with `ptbk migrate`.' },
     { keyword: 'LINK', aliases: ['LINKS'], scope: 'any', kind: 'repeatable-control', description: 'Directed reference to another agent, task or chat (no scheduling or authority).' },
     { keyword: 'CHAT MEMBER', aliases: [], scope: 'chat', kind: 'repeatable-control', description: 'Participant of a chat (`@User` and one agent, or two agents of a task).' },
     { keyword: 'CHAT MESSAGE', aliases: [], scope: 'chat', kind: 'instruction', description: 'One durable message: `CHAT MESSAGE <sender> <timestamp>` followed by its text.' },
     { keyword: 'CHAT STATUS', aliases: [], scope: 'chat', kind: 'control', description: '`open`, `waiting-for-user` or `resolved`.' },
     { keyword: 'PERSONA', aliases: ['PERSONAE'], scope: 'agent', kind: 'instruction', description: 'Role and identity of the agent.' },
-    { keyword: 'GOAL', aliases: ['GOALS'], scope: 'agent', kind: 'instruction', description: 'Lasting objective, also used for goal discovery.' },
+    { keyword: 'GOAL', aliases: ['GOALS'], scope: 'both', kind: 'instruction', description: "An agent's lasting objective (also used for goal discovery), or a task's bounded work and intended result." },
     { keyword: 'RULE', aliases: ['RULES'], scope: 'both', kind: 'instruction', description: 'Behavioral constraint (task rules apply only to that task).' },
     { keyword: 'KNOWLEDGE', aliases: [], scope: 'agent', kind: 'instruction', description: 'Inline knowledge or a reference to relevant material.' },
     { keyword: 'STYLE', aliases: ['STYLES'], scope: 'agent', kind: 'instruction', description: 'Style of communication or output.' },
@@ -67,7 +74,6 @@ export const COMMITMENTS: readonly CommitmentDefinition[] = [
     { keyword: 'NOTE', aliases: ['NOTES', 'COMMENT', 'NONCE', 'TODO'], scope: 'any', kind: 'instruction', description: 'Non-executable commentary.' },
     { keyword: 'DELETE', aliases: ['CANCEL', 'DISCARD', 'REMOVE'], scope: 'agent', kind: 'instruction', description: 'Withdraws an identified earlier commitment.' },
     { keyword: 'DICTIONARY', aliases: [], scope: 'agent', kind: 'instruction', description: 'Terminology for the role\'s work.' },
-    { keyword: 'TASK', aliases: [], scope: 'task', kind: 'control', description: 'Legacy task header: `TASK <title>` on the first line declares the task named <title>.' },
     { keyword: 'TASK ID', aliases: [], scope: 'task', kind: 'control', description: 'Legacy historical metadata; never identity (the task name is).' },
     { keyword: 'TASK AGENT', aliases: [], scope: 'task', kind: 'control', description: 'Responsible agent.' },
     { keyword: 'TASK HARNESS', aliases: [], scope: 'task', kind: 'control', description: 'Required execution harness.' },
@@ -89,29 +95,80 @@ export const COMMITMENTS: readonly CommitmentDefinition[] = [
 /**
  * Lookup from every accepted keyword spelling to its definition.
  */
-const KEYWORD_LOOKUP: ReadonlyMap<string, CommitmentDefinition> = new Map(
-    COMMITMENTS.flatMap((definition) => [definition.keyword, ...definition.aliases].map((keyword) => [keyword, definition] as const)),
-);
+const KEYWORD_LOOKUP: ReadonlyMap<string, CommitmentDefinition> = new Map([
+    ...COMMITMENTS.flatMap((definition) => [definition.keyword, ...definition.aliases].map((keyword) => [keyword, definition] as const)),
+    // `DELETE RULE …` is one complete keyword: the withdrawal names the kind of the commitment it withdraws.
+    ...COMMITMENTS.filter((definition) => definition.kind === 'instruction' && definition.keyword !== 'DELETE').flatMap((target) =>
+        ['DELETE', 'CANCEL', 'DISCARD', 'REMOVE'].flatMap((withdraw) => [target.keyword, ...target.aliases].map((keyword) => [`${withdraw} ${keyword}`, COMMITMENTS.find((definition) => definition.keyword === 'DELETE')!] as const)),
+    ),
+]);
 
 /**
- * All keyword spellings, longest first (so `TASK AGENT` wins over `TASK`).
- */
-const KEYWORDS_LONGEST_FIRST: readonly string[] = [...KEYWORD_LOOKUP.keys()].sort((a, b) => b.length - a.length);
-
-/**
- * Recognizes a commitment at the beginning of a line.
- *
- * The keyword must be uppercase and complete: it is followed by whitespace or the end of the line.
+ * The commitment kind a compound withdrawal names (`DELETE RULE` → `RULE`), if any.
  *
  * @private Book language
  */
-export function matchCommitmentKeyword(line: string): { definition: CommitmentDefinition; written: string; content: string } | undefined {
-    for (const keyword of KEYWORDS_LONGEST_FIRST) {
-        if (!line.startsWith(keyword)) continue;
-        const rest = line.slice(keyword.length);
-        if (rest !== '' && !/^\s/.test(rest)) continue;
-        return { definition: KEYWORD_LOOKUP.get(keyword)!, written: keyword, content: rest.trim() };
-    }
-    return undefined;
+export function withdrawnKeyword(written: string): string | undefined {
+    const [, ...rest] = written.trim().split(/\s+/);
+    if (!rest.length) return undefined;
+    const target = KEYWORD_LOOKUP.get(rest.join(' '));
+    return target && target.keyword !== 'DELETE' ? target.keyword : undefined;
 }
 
+/**
+ * One all-uppercase word of a commitment keyword (letters only; digits, punctuation or lowercase begin content).
+ */
+const KEYWORD_WORD = /^\p{Lu}[\p{Lu}\p{M}]*$/u;
+
+/**
+ * Fewest letters a complete keyword needs (so `A`, `I` or `AI` starting prose never begin a commitment).
+ */
+const MIN_KEYWORD_LETTERS = 3;
+
+/**
+ * A commitment keyword found at the beginning of a line.
+ *
+ * @private Book language
+ */
+export type KeywordMatch = {
+    /** Definition of the complete keyword (a synthetic `unknown` definition for undocumented keywords). */
+    readonly definition: CommitmentDefinition;
+    /** Keyword as written (complete uppercase word sequence). */
+    readonly written: string;
+    /** Content after the keyword on the same line (trimmed). */
+    readonly content: string;
+};
+
+/**
+ * Recognizes a commitment at the beginning of a line by the common boundary rule.
+ *
+ * The keyword is the maximal sequence of all-uppercase words at column zero, separated by spaces, with at least three
+ * letters in total. A word containing lowercase letters, digits, punctuation or a reference begins the content; once
+ * content begins, later uppercase words belong to it. The complete keyword is looked up as a whole: an unknown keyword
+ * is never shortened to a known prefix (`TASK SOMETHING` is not `TASK`).
+ *
+ * @private Book language
+ */
+export function matchCommitmentKeyword(line: string): KeywordMatch | undefined {
+    if (!/^\p{Lu}/u.test(line)) return undefined;
+    const words: string[] = [];
+    let offset = 0;
+    for (const word of line.matchAll(/\S+/g)) {
+        if (!KEYWORD_WORD.test(word[0])) break;
+        words.push(word[0]);
+        offset = word.index + word[0].length;
+    }
+    const keyword = words.join(' ');
+    if (keyword.replace(/\s/g, '').length < MIN_KEYWORD_LETTERS) return undefined;
+    const definition = KEYWORD_LOOKUP.get(keyword) ?? { keyword, aliases: [], scope: 'any', kind: 'instruction', description: 'Unknown commitment (preserved without effect).', unknown: true };
+    return { definition, written: line.slice(0, offset), content: line.slice(offset).trim() };
+}
+
+/**
+ * Whether a line would start a commitment (writers escape such lines in literal content).
+ *
+ * @private Book language
+ */
+export function startsCommitment(line: string): boolean {
+    return matchCommitmentKeyword(line) !== undefined;
+}
