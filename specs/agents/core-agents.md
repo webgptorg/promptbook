@@ -2,7 +2,7 @@
 
 [Agents](_index.md) · [Engine and project evolution](../concepts/engine-and-project.md)
 
-The engine expects four **editable** project roles: **Adam**, **Manager**, **Teacher** and **Fixer**, materialized if absent under `agents/.core/` as `adam.book`, `manager.book`, `teacher.book` and `fixer.book`. A core agent has exactly the normal Book, routing, TEAM, learning, Git and runtime behavior of any other agent. Its only special property is that the engine requires its role to be present.
+The engine expects four **editable** project roles: **Adam**, **Manager**, **Teacher** and **Fixer**, materialized if absent under `agents/.core/` as `adam.book`, `manager.book`, `teacher.book` and `fixer.book`. Their opening commitments are `AGENT Adam`, `AGENT Manager`, `AGENT Teacher` and `AGENT Fixer`; their role names do not acquire task/chat date-time decoration. A core agent has exactly the normal Book, routing, TEAM, learning, Git and runtime behavior of any other agent. Its only special property is that the engine requires its role to be present.
 
 Initialize each missing core definition individually with a **small, comprehensible boilerplate**, not a large embedded encyclopedia of Promptbook. Existing agent Books belong to the user/project: **never replace, reset or bulk-regenerate them on reinitialization or engine upgrade**, even when they have learned or diverged from new defaults. Introduce a newly required core agent without replacing the older three; diagnose existing invalid sources and use ordinary authorized repairs. Names are resolved through the shared name resolver; duplicates are maintenance diagnostics rather than an invitation to overwrite a user's file.
 

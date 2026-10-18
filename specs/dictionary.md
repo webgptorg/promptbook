@@ -10,7 +10,9 @@
 
 **Agent:** A lasting project-owned role and knowledge. **Core agent:** A normal editable required project Book (Adam, Manager, Teacher, Fixer), materialized only if missing. **Fixer:** OPEN core maintenance agent. **Non-agent:** An engine-defined Book-like reference without a project file: Void/Null, User or Expert. See [agents](agents/_index.md).
 
-**Book:** Human-readable named Agent, Task or Chat entity with commitments. **Name resolution:** Normalized first-line name and deterministic single-winner lookup; filename is not ID, and shadowed duplicates are diagnosed. **Commitment:** A recognized uppercase keyword at the beginning of a line, possibly with spaces, plus its content. See [language](book-language/_index.md).
+**Book:** One named Agent, Task or Chat entity expressed as an ordered series of commitments. **Type-and-name commitment:** The required opening AGENT, TASK or CHAT whose content declares the name. **Name resolution:** Normalize that name content only, then use deterministic single-winner lookup; neither type keywords nor filenames are IDs, and shadowed duplicates are diagnosed. **Commitment:** A line-initial uppercase keyword, possibly containing spaces, followed by its content. Keywords, content and embedded references share one syntax across all entity kinds; specific commitments constrain their content and meaning. See [language](book-language/_index.md).
+
+**Generated task/chat name:** A readable title plus creation date/time and, when needed, a normalized-distinct discriminator. This is preventive [authoring policy](cli/generated-names.md), not a mandatory timestamp syntax, separate identifier or rule for renaming existing Books.
 
 **FROM:** Inheritance. **IMPORT:** Instruction inclusion. **TEAM:** Natural-language consultation relationships, not inheritance or a reporting hierarchy.
 

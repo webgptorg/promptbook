@@ -2,11 +2,11 @@
 
 [Main specification](../_main.md) · [Name-based task identity](task-identity.md) · [Trace configuration](trace-configuration.md)
 
-Executed tasks have root-level `traces/<name-key>/` audit directories. The key is a deterministic safe encoding of the task's **normalized first-line Book name**, never a generated ID or filename. Source revisions, actual commit history and the declared name at each operation provide provenance. An intentional rename changes name-based identity; preserve prior evidence and explicitly reconcile its references rather than reassigning it to a same-name duplicate.
+Executed tasks have root-level `traces/<name-key>/` audit directories. The key is a deterministic safe encoding of the **full normalized name content of the opening TASK commitment**, excluding TASK itself, never a generated ID or filename. Ordinary date/time text in a generated name participates in normalization; do not strip it or use a filename timestamp as a substitute. Source revisions, actual commit history and the declared name at each operation provide provenance. An intentional rename changes name-based identity; preserve prior evidence and explicitly reconcile its references rather than reassigning it to a same-name duplicate.
 
 ## Evidence
 
-Retain success, failure, interruption, recovery and human-chat waiting records from the first attempt onward. Separate attempts, recurring occurrences, repairs and task-scoped TEAM consultations under the same task without inventing subtask IDs. New follow-ups have their own readable names and trace locations.
+Retain success, failure, interruption, recovery and human-chat waiting records from the first attempt onward. Separate attempts, recurring occurrences, repairs and task-scoped TEAM consultations under the same task without inventing subtask IDs or refreshing the task's name/date. New follow-ups have their own generated readable names and trace locations.
 
 Keep one consolidated readable stream of **available harness output**, including exposed tool observations, text, errors and diagnostic/reasoning material actually exposed. Preserve chronological harness/attempt/occurrence boundaries. Record source revision, selected agent/harness/model/effort and versions, actions, check/formatter outcomes, usage when known, external effects, linked chats, commits and sync/recovery results. Unknown, truncated or private reasoning is labeled unavailable, never fabricated; Teacher/Fixer can use only actual evidence.
 
@@ -22,4 +22,4 @@ Redact before storing/displaying. Never version browser profiles or credentials;
 
 ## Acceptance outcomes
 
-Run retry/recurrence, human wait and internal TEAM chat, then rename and reconcile a task. Preserve accurately attributed evidence and commit links by name and historical revisions without generated IDs. A shadowed duplicate cannot merge records. Recorded video is playable and redacted; optional capture failures report real evidence limitations without false files.
+Run retry/recurrence, human wait and internal TEAM chat, then rename and reconcile a task. Preserve accurately attributed evidence and commit links by the full name and historical revisions without generated IDs. Header-only migration does not move an existing task to a new identity. A shadowed duplicate cannot merge records. Recorded video is playable and redacted; optional capture failures report real evidence limitations without false files.

@@ -1,10 +1,10 @@
 # Promptbook (`ptbk`)
 
-Promptbook is one npm package, `ptbk`, providing the `ptbk` command-line utility. It operates a Git-backed project of three Book entities: **agents**, **tasks** and **chats**. Each entity's first nonempty name line, normalized by a shared deterministic resolver, is its identity: no separate generated IDs or filename-based keys. `chats/` holds conversations, versioned `ptbk.json` holds settings, ignored `.ptbk/` holds runtime state and `traces/<name-key>/` holds name-derived task evidence.
+Promptbook is one npm package, `ptbk`, providing the `ptbk` command-line utility. It operates a Git-backed project of three Book entities: **agents**, **tasks** and **chats**. Every canonical Book starts with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; all use one commitment syntax. The opening commitment's name content, normalized by a shared deterministic resolver, is its identity: no separate generated IDs or filename-based keys. New system-created task/chat names include readable date/time to prevent collisions, without making dates mandatory language syntax. `chats/` holds conversations, versioned `ptbk.json` holds settings, ignored `.ptbk/` holds runtime state and `traces/<name-key>/` holds name-derived task evidence.
 
 Initialization is finite, attended technical setup. Its first new-project input is the user's intent, preserved verbatim with linked assets in `specs/_initial.md`. Init creates an ordinary Expert task referring to that specification, prepares selected harnesses and real checks, commits setup by default, and automatically starts the agenda as a background service. Project-specific content is created by the normal first task, not by a separate implementation phase inside init. The wizard returns without waiting for task completion or opening a dashboard; `ptbk dashboard` is its primary next-action hint.
 
-Once started, the agenda is intended to run unattended for extended periods, progressing useful authorized work rather than remaining alive but silently waiting for routine approvals. It fills missing routing through Manager, executes one task at a time, creates and processes follow-ups, and discovers useful goal-driven work when the backlog is empty. Recoverable problems are handled automatically within bounds; human involvement is exceptional and explicit. Versioned changes from authoring and execution commit by default with `PTBK: ` subjects and applicable task IDs. Explicit `--no-commit` is the exception; `ptbk run` is the finite, explicitly configured queue workflow.
+Once started, the agenda is intended to run unattended for extended periods, progressing useful authorized work rather than remaining alive but silently waiting for routine approvals. It fills missing routing through Manager, executes one task at a time, creates and processes follow-ups, and discovers useful goal-driven work when the backlog is empty. Recoverable problems are handled automatically within bounds; human involvement is exceptional and explicit. Versioned changes from authoring and execution commit by default with `PTBK: ` subjects and applicable task-name correlation. Explicit `--no-commit` is the exception; `ptbk run` is the finite, explicitly configured queue workflow.
 
 Functional setup and its UX are separate specification aspects. Init/add use finite wizards; init has visible step progress, Expert as a procedural visual guide and a brief success celebration. `ptbk dashboard` attaches a continuous, paneled terminal control view with recognizable agents and no overall completion. Suitable terminals default to rich presentation, with raw output available throughout. Terminal, lightweight browser SPA and independently usable API control the same process. HTTP includes protected remote tunneling by default, so a phone can use the displayed pairing QR from another network; `--no-tunnel` keeps access local. Agent-authored chats waiting for the user remain the most prominent attention items without becoming routine prerequisites for progress.
 
@@ -65,9 +65,10 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Harness updates](cli/harness-updates.md): Selected setup updates and safe ongoing maintenance.
 - [TEAM consultations](cli/team.md): Cooperation within one task.
 - [Authoring and saving](cli/authoring.md): Commit add and other approved versioned changes before dispatch.
+- [Generated names](cli/generated-names.md): Preventive date/time naming for all task/chat generators, normalized collision checks and separate filename conventions.
 - [Task Books](cli/task-books.md): Readable bounded work and completion stamps.
 - [Markdown tasks](cli/task-markdown.md): Supported checkmark-based task sources.
-- [Task identity](cli/task-identity.md): First-line names, collision precedence, occurrences and name-derived audit history.
+- [Task identity](cli/task-identity.md): Opening TASK name, collision precedence, occurrences and name-derived audit history.
 - [Task origins](cli/task-origins.md): Explicit, derived and goal-driven work.
 - [Task relationships](cli/task-relationships.md): References, subtasks and prerequisites.
 - [Eligibility](cli/eligibility.md): Ready work, automatic assignment candidates and real constraints.
@@ -89,6 +90,6 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Task traces](cli/traces.md): Name-derived task harness output, event logs, browser replay, Git correlation and redaction.
 - [Trace configuration](cli/trace-configuration.md): Independent recording and Git/video-inclusion decisions saved during init.
 - [Planning](cli/planning.md): Read-only discussion and approved task saving.
-- [Migration](cli/migration.md): Lossless Markdown-to-Book conversion.
+- [Migration](cli/migration.md): Lossless Markdown-to-Book and legacy-header conversion.
 - [Operational quality](cli/operations.md): Cross-platform, bounded and observable operation.
 - [Acceptance scenarios](cli/acceptance.md): Representative verifiable product outcomes; topic-specific contracts add focused acceptance outcomes.

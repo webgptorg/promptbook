@@ -2,11 +2,18 @@
 
 [Book language](../_index.md)
 
-Each canonical commitment has one specification file. Listed aliases share its semantics and file; keywords containing spaces remain a single commitment.
+Each canonical commitment has one specification file. Listed aliases share its semantics and file; keywords containing spaces remain a single commitment. All kinds use the same [uppercase boundary and content rules](../syntax.md); semantic validation does not introduce another grammar.
 
-## Shared document and link commitments
+## Foundational type-and-name commitments
 
-- [ENTITY](entity.md)
+Exactly one of these starts a Book. Its content is the entity's name; subsequent commitments develop that same entity.
+
+- [AGENT](agent.md)
+- [TASK](task.md)
+- [CHAT](chat.md)
+
+## Shared links
+
 - [LINK](link.md)
 
 ## Chat commitments
@@ -41,7 +48,6 @@ Each canonical commitment has one specification file. Listed aliases share its s
 
 ## Task commitments
 
-- [TASK](task.md)
 - [TASK AGENT](task-agent.md)
 - [TASK HARNESS](task-harness.md)
 - [TASK MODEL](task-model.md)
@@ -57,3 +63,7 @@ Each canonical commitment has one specification file. Listed aliases share its s
 - [TASK RUNNER](task-runner.md)
 - [TASK NOTE](task-note.md)
 - [TASK ORIGIN](task-origin.md)
+
+## Historical syntax
+
+[Former ENTITY declaration](entity.md) documents conversion of existing sources only. It is not a canonical commitment or an alternative to the opening AGENT, TASK or CHAT.
