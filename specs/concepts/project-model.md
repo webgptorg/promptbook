@@ -4,26 +4,36 @@
 
 ## The three project entities
 
-A Promptbook project is a Git-backed collection of **agents**, **tasks** and **chats**. Each entity is represented by one readable `.book` document. Its first commitment is `AGENT <name>`, `TASK <name>` or `CHAT <name>`: the keyword declares kind and its content declares the human-readable **name**. Subsequent commitments develop that same entity. All kinds share the same syntax and parser; their engine semantics differ. The filename and directory are storage and lookup hints, **not identity or a substitute for the declared kind**. There is no separate generated entity ID: the normalized name content is the project's logical reference.
+A Promptbook project is a Git-backed collection of agents, tasks and chats. Each entity has one readable `.book` whose opening `AGENT <name>`, `TASK <name>` or `CHAT <name>` declares its kind and human-readable name. Subsequent commitments develop that entity. All kinds share syntax/parser, with different engine semantics. Filename/directory are storage and lookup hints, not identity or a substitute for kind. There is no separate generated entity ID; normalized name content is its logical reference.
 
-- **Agent — who:** a persistent, teachable role and its instructions. It may execute tasks and participate in chats.
-- **Task — what:** bounded work with an owner, conditions, result, checks and execution evidence. It is a concrete activity, possibly recurring, completed through the ordinary task lifecycle.
-- **Chat — the conversation and its record:** persistent participants and exchanges, not an executable task. It supports questions, decisions, status enquiries, consultation and initiating or requesting work. Its replies and history are recorded in the conversation itself; a chat can exist without any task.
+- **Agent — who:** a persistent teachable role/instructions that may execute tasks and participate in chats.
+- **Task — what:** bounded work with an owner, conditions, result/checks and evidence, possibly recurring, executed through the ordinary lifecycle.
+- **Chat — conversation and record:** persistent participants/exchanges for questions, decisions, status, consultation and requesting work. It is not executable and may exist without a task.
 
-The opening commitment establishes the entity; later commitments build its role, assignment or conversation rather than defining more entities inside it. This foundational relationship is distinct from the graph of references between Books. The language can acquire more commitments and entity kinds without giving each kind a different grammar.
+The opening commitment establishes the entity; later commitments build its role, assignment or conversation, not further entities inside it. This differs from the graph of references. Language extensions do not require separate grammars for every kind.
 
-Explicit references between any two entities, including entities of the same kind, form a **directed graph**. The graph is not a hierarchy: a chat may refer to several tasks, a task may refer to several chats, agents may refer to one another, and each entity can refer to either of the other kinds. References are resolved through one shared, deterministic policy; the existence of a link does not by itself schedule work, confer authority or require reciprocity. UIs may display both outgoing and incoming edges.
+References between any entities form a directed graph, not a hierarchy: chats/tasks can refer to many of one another, agents to agents, and each kind to either other kind. Shared deterministic resolution applies. A link alone neither schedules work nor grants authority/reciprocity. UIs can display outgoing/incoming edges.
 
-This is a *design invariant*, not permission to concatenate all Books into one definition. Every resolved name selects exactly one Book. A copied or conflicting definition is not merged into an interface or another Book. Collisions are visible maintenance issues but do not by themselves invalidate ordinary resolution. [Generated task/chat names](../cli/generated-names.md) proactively include date/time and are checked after normalization; this does not change language validity or introduce another identity field.
+Every resolved name selects exactly one Book. Conflicting/copied definitions are not merged; collisions are visible maintenance issues without automatically invalidating ordinary resolution. [Generated task/chat names](../cli/generated-names.md) proactively include creation date/time and normalized checks, without new identity fields or language validity restrictions. Task [trace directories](../cli/traces.md) separately copy the literal source filename without its extension; that storage convenience is not logical identity.
 
 ## Work and conversation
 
-A task and a chat solve different problems. An agent can converse with the user without creating work; a message may later create one or more tasks. Conversely, a task may involve several related conversations or bounded TEAM consultations. The relationship is optional and many-to-many. Direct user↔agent and task-scoped agent↔agent chats are supported now; additional participant topologies are a future extension, not required current behavior.
+Agents converse without necessarily creating tasks; a later message can create several. Tasks can involve many linked chats and bounded TEAM consultations. Direct User↔one agent and internal two-agent task- or conversation-scoped consultations are supported. Human multi-agent/group topologies remain a future extension.
 
-Every independently saved versioned change, including an ordinary chat message, follows [default Git persistence](../cli/git-persistence.md). Agent↔agent messages produced *inside one executing task* belong to that task's single result commit rather than a sequence of side commits. See [Chats](../cli/chats.md).
+[Chatter](../agents/chatter.md) is the default human-facing project entry when no specialist was explicitly selected. It clarifies intent, handles basic authorized actions and uses teammates for specialist advice/work. It is an ordinary required project agent, not the scheduler or a privileged replacement for specialist tasks.
+
+Every independently saved versioned operation follows [Git persistence](../cli/git-persistence.md). Human-facing messages commit individually. Agent messages inside one executing task join its result commit; conversation-scoped specialist advice without a task uses ordinary scoped authoring persistence. See [chats](../cli/chats.md).
+
+## Engine and clients
+
+Every active engine owns one concrete project directory, its scheduling and lifecycle state. [Exclusive locking](../cli/locking.md) prevents two engines from owning that project, even from different installations. There is no global project engine.
+
+A dashboard is a lightweight observer/controller of that engine, not the owner of its work. There may be zero or many simultaneous terminal/browser/API clients. Opening/closing them never starts/stops the engine; their explicit commands call the same engine operations, and state changes are visible everywhere. Client presentation choices are not engine state.
+
+The separate [global dashboard](../cli/global-dashboard.md) discovers all accessible running project engines across the local host, independently of CWD or package installation. It is a continuously refreshed table that remains open at zero entries and can attach to a selected project's view without starting it. A per-project dashboard still reports missing service actionably instead of starting one.
 
 ## Illustrative analogy (not product vocabulary)
 
-A company follows a general legal framework, needs some commonly recurring roles, and can also employ specialists such as an ice-cream taster. In this analogy only, engine **non-agents** resemble the framework, editable **core agents** resemble commonly required roles, and other **project agents** resemble specialists. These are *not* Promptbook legal entities, permissions or employment categories; the normative definitions are in [agent categories](../agents/_index.md).
+A company follows a general framework, requires some common roles and can employ specialists. Engine non-agents resemble that framework, editable core agents the required roles, and other project agents specialists. This illustrates ownership/evolution, not legal entities, permissions or employment categories; [agent definitions](../agents/_index.md) are normative.
 
-Similarly, an engine-provided Expert resembles a built-in runtime function, while a materialized core agent resembles a small extensible starter program. This illustrates **ownership and evolution**, not a required implementation language. See [engine and project evolution](engine-and-project.md).
+Likewise, Expert resembles a built-in runtime function while a core Book resembles a small extensible starter program. This does not prescribe an implementation language. See [engine/project evolution](engine-and-project.md).
