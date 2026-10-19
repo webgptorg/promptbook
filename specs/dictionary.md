@@ -2,34 +2,38 @@
 
 [Main specification](_main.md)
 
-**Promptbook / ptbk:** One npm package and CLI for operating agents over a project. **Engine version:** The version of the installation actually running, not the newest published version.
+**Promptbook / ptbk:** One npm package and CLI for operating agents over a project. **Engine version:** The version actually loaded by the service, not the latest release or the viewer's installed version.
 
-**APT:** Agent–Project–Task, a long-term context convention; the concrete project also has a first-class Chat entity. **Agenda:** The responsibility that this whole serves over time; not the expansion of A.
+**APT:** Agent–Project–Task, a long-term context convention; the concrete project also includes Chat. **Agenda:** Its continuing responsibility, not the expansion of A.
 
-**Project:** The selected workspace, its managed files and referenced context. The concrete CLI works over a directory in a Git working tree. See [workspace](cli/workspace.md).
+**Project:** The selected workspace, managed files and context, concretely a directory in a Git working tree. See [workspace](cli/workspace.md).
 
-**Agent:** A lasting project-owned role and knowledge. **Core agent:** A normal editable required project Book (Adam, Manager, Teacher, Fixer), materialized only if missing. **Fixer:** OPEN core maintenance agent. **Non-agent:** An engine-defined Book-like reference without a project file: Void/Null, User or Expert. See [agents](agents/_index.md).
+**Agent:** A persistent project-owned role and knowledge. **Core agent:** An ordinary editable required Book: Adam, Manager, Teacher, Fixer or Chatter, initialized only if missing. **Fixer:** OPEN maintenance agent. **Chatter:** Default human-facing entry, with TEAM access to other initialized roles and ordinary specialist consultation/task creation. **Non-agent:** Engine-defined Book-like reference without a project file: Void/Null, User or Expert. See [agents](agents/_index.md).
 
-**Book:** One named Agent, Task or Chat entity expressed as an ordered series of commitments. **Type-and-name commitment:** The required opening AGENT, TASK or CHAT whose content declares the name. **Name resolution:** Normalize that name content only, then use deterministic single-winner lookup; neither type keywords nor filenames are IDs, and shadowed duplicates are diagnosed. **Commitment:** A line-initial uppercase keyword, possibly containing spaces, followed by its content. Keywords, content and embedded references share one syntax across all entity kinds; specific commitments constrain their content and meaning. See [language](book-language/_index.md).
+**Book:** One named Agent, Task or Chat represented by ordered commitments. **Type-and-name commitment:** Opening AGENT/TASK/CHAT whose content names it. **Name resolution:** Normalize that content and apply deterministic single-winner lookup; keywords and filenames are not IDs, and shadowed duplicates are diagnosed. **Commitment:** A line-initial uppercase keyword, possibly multiword, with content using common syntax across entity kinds. See [language](book-language/_index.md).
 
-**Generated task/chat name:** A readable title plus creation date/time and, when needed, a normalized-distinct discriminator. This is preventive [authoring policy](cli/generated-names.md), not a mandatory timestamp syntax, separate identifier or rule for renaming existing Books.
+**Generated task/chat name:** Readable title plus creation date/time and a normalized-distinct discriminator when needed. Preventive [authoring policy](cli/generated-names.md), not mandatory timestamp grammar or a reason to rename existing Books.
 
-**FROM:** Inheritance. **IMPORT:** Instruction inclusion. **TEAM:** Natural-language consultation relationships, not inheritance or a reporting hierarchy.
+**FROM:** Inheritance. **IMPORT:** Instruction inclusion. **TEAM:** Natural-language consultation relationships, not inheritance/reporting hierarchy. Advice can be scoped to a task or linked to a human conversation without inventing a task.
 
-**Task:** Bounded named work with a result and completion record. **Chat:** Persistent named messages with agent/user or task-scoped agent/agent speakers and optional many-to-many task links. **Occurrence:** One execution instance of recurring work. **Attempt:** A try or repair within that work. **Task origin:** Provenance, not a separate execution type.
+**Task:** Bounded named work with result/completion. **Chat:** Persistent named messages with one user/agent pair or an internal agent/agent pair, with optional work/conversation links. **Occurrence:** One recurring execution. **Attempt:** A try/repair within work. **Task origin:** Provenance, not a separate execution mechanism.
 
-**Harness:** A globally installed execution tool enabled/configured per project, with native authentication and supported models/capabilities. **Harness plugin:** Its common setup/execution/update integration. **Featured:** Prominent in catalog presentation, not implicitly enabled or installed. **Model:** The selected inference model. **Thinking level:** Its supported reasoning/effort setting. These are distinct from agent identity and the project browser. See [harnesses](cli/harnesses.md).
+**Harness:** Globally installed execution tool enabled per project, with native authentication/models/capabilities. **Harness plugin:** Common setup/execution/update integration. **Featured:** Prominent in catalog UI, not implicitly enabled. **Model:** Selected inference model. **Thinking level:** Harness/model-supported reasoning/effort setting. Actual execution metadata is distinct from defaults and agent/browser identity.
 
-**Project browser:** One coordinated browser instance per project; dedicated reusable global Promptbook profile is default, with isolated project, personal Chrome and custom-path alternatives. Independent of harness authentication. See [browser](cli/browser.md).
+**Project browser:** Coordinated browser ownership per project, with a reusable global Promptbook profile by default and isolated, personal Chrome or custom alternatives. Independent of harness authentication. Engine-owned diagnosis/recovery has safe manual controls. See [browser](cli/browser.md).
 
-**Run:** Finite execution of existing work with a chosen configuration. **Start:** The indefinitely operating project supervisor. **Daemon:** Background process mode. **Persistence:** Automatic continuation after restart, separate from merely being in the background.
+**Engine / service:** Owner of scheduling, task/lifecycle state and execution for one concrete project. **Project lock:** Exclusive engine ownership, independent of installation and dashboard count. **Run:** Finite configured queue execution. **Start:** Ongoing supervisor. **Daemon:** Background placement. **Persistence:** Recovery/startup across restarts, distinct from background placement.
 
-**Interactive/noninteractive:** Whether the CLI provides terminal UI and input or uses advance configuration and plain output. **Wizard:** Finite setup flow. **Runtime dashboard:** Live execution state, shared by start and run despite their different lifetimes. See [CLI experience](cli/interactive-ui.md).
+**Service states:** `running` permits new eligible work; `pausing` drains to `pause`; `pause` stays alive without executing/claiming tasks; `stopping` drains to exit. Cancelling pending pause/stop returns to running. Force stop is immediate; hard pause does not exist. Stopped is an observed absence, not a fifth live state. See [lifecycle](cli/service-lifecycle.md).
 
-**Check:** A project-defined verification of required properties. **Accepted result:** Work that met its task and check requirements, with accurately recorded persistence. A successful check does not prove universal correctness.
+**Project dashboard:** Lightweight live observer/controller, not engine owner or scheduler. Zero or many clients may attach; leaving one does not stop the service. **Global dashboard:** `ptbk dashboard --global`, a CWD-independent live table of host engines, usable at zero entries, with project-view attachment. It is not a global engine. See [process modes](cli/process-modes.md).
 
-**Trace:** Observed execution evidence under a name-derived path, plus system diagnostics. **Human request:** An actionable message in an agent↔User chat, not a separate stored entity. **Channel:** Terminal, browser, CLI or API rendering the same chat/control state.
+**Interactive/noninteractive:** Whether terminal input/UI is available or choices are supplied in advance. **Wizard:** Finite setup. **Detail panel:** Collapsible execution/browser inspection, separate from visible main lifecycle controls. See [CLI experience](cli/interactive-ui.md).
 
-**ptbk.json:** Human-readable, versioned project defaults, overridden temporarily by explicit CLI flags. **.ptbk:** Git-ignored runtime storage, including logs, recovery records and local chat read markers and optional isolated-project browser profile; not all contents are disposable. See [configuration](cli/configuration.md).
+**Check:** Project-defined verification. **Accepted result:** Work satisfying task/check requirements with truthful persistence; not a guarantee of universal correctness.
 
-**Internal/external context:** Where an APT component resides, independently of its role. See the [whitepaper](whitepaper.md) for the conceptual model and its explicitly longer-term directions.
+**Trace:** Observed evidence under `traces/<task-file-basename>/`, copying the actual source filename literally without final `.book`/`.md`. Declared names and source revisions provide provenance, not the directory name. System diagnostics without a task remain separate. **Human request:** Actionable agent↔User chat message, not a separate stored entity. **Channel:** Terminal, browser, CLI or API over shared engine/chat state.
+
+**ptbk.json:** Versioned human-readable defaults with temporary CLI overrides. **.ptbk:** Ignored runtime/ownership records, logs, recovery, read markers and optional isolated browser profile; not wholly disposable. **Host discovery registry:** Protected local metadata connecting viewers to existing engines across installations, not a project lock, credential store or task queue.
+
+**Internal/external context:** Where APT components reside, independently of role. See the [whitepaper](whitepaper.md) for conceptual and explicitly longer-term directions.
