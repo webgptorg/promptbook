@@ -6,7 +6,7 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { engineModule } from '../common/version.js';
 import type { Agenda } from '../engine/agenda.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
-import { applyChatAction, applyControlAction, applySettings } from './actions.js';
+import { applyChatAction, applySettings, CONTROL_ACTIONS, type ControlOutcome } from './actions.js';
 import type { AuthStore, SessionRecord } from './auth.js';
 
 /**
@@ -71,6 +71,8 @@ const SECURITY_HEADERS: Readonly<Record<string, string>> = {
  */
 export type HttpServerOptions = {
     readonly agenda: Agenda;
+    /** The engine's shared control operations (lifecycle, waits, browser recovery). */
+    readonly control: (action: string, params: Readonly<Record<string, unknown>>) => Promise<ControlOutcome>;
     readonly auth: AuthStore;
     /** Requested port (exact) or undefined for automatic search from 3000. */
     readonly port?: number;
@@ -295,7 +297,9 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         assertSameOrigin(request, who);
         const body = await readJsonBody(request);
         if (url.pathname === '/api/control') {
-            sendJson(response, 200, applyControlAction(agenda, String(body.action ?? '')));
+            const action = String(body.action ?? '');
+            if (!CONTROL_ACTIONS.has(action)) throw new PtbkError(`Unknown control action "${action}".`, { kind: 'usage' });
+            sendJson(response, 200, await options.control(action, { replaceStop: body.replaceStop === true, revision: typeof body.revision === 'number' ? body.revision : undefined }));
             return;
         }
         if (chatMatch) {

@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { openSync } from 'node:fs';
 import { engineModule } from '../common/version.js';
 import { projectAt } from '../project/workspace.js';
-import { readLaunchMetadata, rotateServiceLog, servicePaths } from './records.js';
+import { readLaunchMetadata, RESTART_EXIT_CODE, rotateServiceLog, servicePaths } from './records.js';
 
 /**
  * Daemon supervisor entry: `node dist/service/supervisor.js <projectRoot>`.
@@ -56,6 +56,12 @@ async function supervise(): Promise<void> {
         const code = await new Promise<number | null>((resolve) => worker!.once('exit', (exitCode) => resolve(exitCode)));
         worker = undefined;
         if (terminating || code === 0) return;
+        if (code === RESTART_EXIT_CODE) {
+            // A requested restart: the old worker released ownership; start exactly one replacement now.
+            process.stdout.write(`${new Date().toISOString()} worker restarted on request\n`);
+            backoff = 1000;
+            continue;
+        }
         const launch = await readLaunchMetadata(project);
         if (!launch?.persistent || launch.intentionallyStopped) return;
         if (Date.now() - started > HEALTHY_RUN_MS) backoff = 1000;

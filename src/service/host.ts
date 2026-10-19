@@ -7,9 +7,10 @@ import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary, type RunOptions } from '../engine/agenda.js';
 import type { ConnectionView } from '../engine/snapshot.js';
 import { ProjectBrowser, browserTools } from '../browser/browser.js';
-import { applyChatAction, applyControlAction, applySettings } from './actions.js';
+import { applyChatAction, applyControlAction, applySettings, type BrowserControls } from './actions.js';
 import { AuthStore } from './auth.js';
 import { startControlServer } from './control.js';
+import { registerEngine, summaryOfSnapshot } from './discovery.js';
 import { startHttpServer, type RunningHttpServer } from './http.js';
 import { acquireProjectLock, engineIdentity, removeProcessRecord, writeProcessRecord } from './records.js';
 import { TunnelManager } from './tunnel.js';
@@ -60,6 +61,7 @@ export class ServiceHost {
     private http?: RunningHttpServer;
     private tunnel?: TunnelManager;
     private releaseLock?: () => Promise<void>;
+    private unregister?: () => Promise<void>;
     private connection: ConnectionView = { local: { state: 'disabled' }, remote: { state: 'disabled' } };
     private pairingRefresh?: NodeJS.Timeout;
     private readonly browser: ProjectBrowser;
@@ -84,11 +86,17 @@ export class ServiceHost {
             finalizeEvidence: async () => await this.browser.recorder.finish(),
             afterWork: async () => {
                 await this.browser.recorder.detach();
-                this.browser.releaseShared();
+                await this.browser.taskFinished();
             },
+            browserView: () => (this.agenda.effectiveSettings ? this.browser.inspect() : undefined),
         });
         this.auth = new AuthStore(options.project);
-        this.browser = new ProjectBrowser(options.project, () => this.agenda.effectiveSettings, options.env);
+        this.browser = new ProjectBrowser(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange());
+    }
+
+    /** Engine-owned project-browser diagnosis and recovery shared by every client. */
+    private get browserControls(): BrowserControls {
+        return { recheck: () => this.browser.recheck(), retry: () => this.browser.retry(), restart: () => this.browser.restart() };
     }
 
     /** Local HTTP address, when serving. */
@@ -124,6 +132,7 @@ export class ServiceHost {
                 try {
                     this.http = await startHttpServer({
                         agenda: this.agenda,
+                        control: (action, params) => applyControlAction(this.agenda, action, params, this.browserControls),
                         auth: this.auth,
                         port: setting<number | undefined>(settings, 'server.port'),
                         publicInstance: this.publicInstance,
@@ -137,6 +146,25 @@ export class ServiceHost {
                 }
             }
             await this.writeRecord();
+            // Host-wide discovery (independent of HTTP and of any open dashboard); not a project lock.
+            this.unregister = await registerEngine(
+                {
+                    version: 1,
+                    instanceId: this.instanceId,
+                    pid: process.pid,
+                    supervisorPid: this.options.supervisorPid,
+                    mode: this.options.mode,
+                    projectRoot: project.root,
+                    projectName: project.name,
+                    ...engineIdentity(),
+                    controlAddress: this.controlServer.address,
+                    startedAt: new Date().toISOString(),
+                },
+                this.options.env,
+            ).catch((error: unknown) => {
+                this.agenda.log(`This engine could not register for \`ptbk dashboard --global\`: ${errorMessage(error)}`, 'warning');
+                return undefined;
+            });
             if (this.http && setting<boolean>(settings, 'server.tunnel.enabled')) {
                 if (!(await this.auth.currentPairing())) await this.auth.renewPairing();
                 await this.refreshPairing();
@@ -195,19 +223,28 @@ export class ServiceHost {
         return await this.agenda.run();
     }
 
-    /** Releases every owned resource (tunnel, HTTP, control, record, lock). */
+    /**
+     * Releases every owned resource (browser, tunnel, HTTP, control, discovery entry, record and finally its own project
+     * lock). Each step is bounded so an internal force stop still cleans up promptly; only this owner's records are
+     * removed, never another process's lock or persistent project data.
+     */
     public async shutdown(): Promise<void> {
+        const bounded = async (step: () => Promise<unknown> | unknown): Promise<void> => {
+            await Promise.race([Promise.resolve().then(step).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 10_000).unref())]);
+        };
         clearInterval(this.pairingRefresh);
-        await this.browser.recorder.detach().catch(() => undefined);
+        await bounded(() => this.browser.recorder.detach());
         this.browser.close();
         this.tunnel?.stop();
         this.tunnel = undefined;
-        await this.http?.close().catch(() => undefined);
+        await bounded(() => this.http?.close());
         this.http = undefined;
-        await this.controlServer?.close().catch(() => undefined);
+        await bounded(() => this.controlServer?.close());
         this.controlServer = undefined;
-        await removeProcessRecord(this.options.project, this.instanceId).catch(() => undefined);
-        await this.releaseLock?.();
+        await bounded(() => this.unregister?.());
+        this.unregister = undefined;
+        await bounded(() => removeProcessRecord(this.options.project, this.instanceId));
+        await bounded(() => this.releaseLock?.());
         this.releaseLock = undefined;
     }
 
@@ -228,9 +265,11 @@ export class ServiceHost {
         const agenda = this.agenda;
         switch (method) {
             case 'identify':
-                return { instanceId: this.instanceId, projectRoot: this.options.project.root, pid: process.pid, mode: this.options.mode, version: ENGINE_VERSION };
+                return { instanceId: this.instanceId, projectRoot: this.options.project.root, pid: process.pid, mode: this.options.mode, version: ENGINE_VERSION, state: agenda.serviceState };
             case 'snapshot':
                 return agenda.snapshot();
+            case 'summary':
+                return summaryOfSnapshot(agenda.snapshot());
             case 'watch': {
                 const since = Number(params.since ?? -1);
                 await agenda.waitForChange(since, Math.min(Number(params.timeoutMs ?? 20_000), 25_000));
@@ -240,9 +279,14 @@ export class ServiceHost {
             case 'resume':
             case 'skip-wait':
             case 'stop':
+            case 'force-stop':
+            case 'restart':
             case 'stop-now':
             case 'cancel-stop':
-                return applyControlAction(agenda, method);
+            case 'browser-recheck':
+            case 'browser-retry':
+            case 'browser-restart':
+                return await applyControlAction(agenda, method, params, this.browserControls);
             case 'chat-list':
             case 'chat-agents':
             case 'chat-get':

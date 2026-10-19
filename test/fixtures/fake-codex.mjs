@@ -10,8 +10,10 @@
  *   NO_REPORT       → omits the completion line
  *   CREATE_FOLLOW_UP → also writes two follow-up task Books; on the first attempt the second copies this task's
  *                      name (Promptbook must reject it), on a repair attempt it gets its own dated name
+ *   SLOW_WORK       → works for $FAKE_CODEX_SLOW_MS (default 6 s) before finishing (lifecycle draining)
  * Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
- * through the `create_task` tool and one containing CORRECTION adds a `PTBK_LEARN` note.
+ * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
+ * containing CORRECTION adds a `PTBK_LEARN` note. Consultation turns (`# Consultation`) answer read-only.
  * Every executed turn is appended to $FAKE_CODEX_LOG (one JSON line) when set.
  */
 import { spawn } from 'node:child_process';
@@ -134,13 +136,19 @@ async function main() {
     print({ type: 'turn.started' });
     const message = (text) => print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text } });
     const done = (summary, extra = {}) => message(`${summary}\n\nPTBK_RESULT ${JSON.stringify({ status: 'done', summary, evidence: 'fixture', ...extra })}`);
-    if (chat) {
+    if (prompt.startsWith('# Consultation')) {
+        message('Fixture advice: keep it simple.');
+    } else if (chat) {
         const conversation = prompt.slice(prompt.indexOf('## Conversation so far'), prompt.indexOf('## How to answer'));
         const last = [...conversation.matchAll(/\*\*@User\*\* \([^)]*\):\n([^\n]*)/g)].pop()?.[1] ?? '';
         let text = `Fixture reply to: ${last}`;
         if (last.includes('CREATE_TASK')) {
             const created = await callTool('create_task', { title: 'Task from chat', description: `Requested in a chat: ${last}`, agent: '@Developer', priority: 4 });
             text += `\n${created}`;
+        }
+        if (last.includes('CONSULT_TEAM')) {
+            const advice = await callTool('consult', { agent: '@Developer', question: `How should we approach: ${last}` });
+            text += `\nDeveloper advises: ${advice}`;
         }
         if (last.includes('CORRECTION')) text += '\nPTBK_LEARN Prefer short answers in this project.';
         message(text);
@@ -156,6 +164,7 @@ async function main() {
         const text = await callTool('ask_user', { question: 'Which color should the fixture use?', choices: ['red', 'blue'], reason: 'The task does not say which color to use.', attempted: 'Checked the task and project instructions.' });
         message(`${text}\nPTBK_RESULT ${JSON.stringify({ status: 'waiting-for-user', summary: 'asked the user' })}`);
     } else {
+        if (prompt.includes('SLOW_WORK')) await new Promise((resolve) => setTimeout(resolve, Number(process.env.FAKE_CODEX_SLOW_MS ?? 6000)));
         const answer = [...prompt.slice(prompt.indexOf('## Conversation with the user')).matchAll(/^- @User: (.+)$/gm)].pop()?.[1];
         mkdirSync(join(process.cwd(), 'output'), { recursive: true });
         const file = join(process.cwd(), 'output', `${reference.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}.txt`);

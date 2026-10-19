@@ -17,6 +17,11 @@ import { discoveryEnvironment, readLaunchMetadata, readProcessRecord, rotateServ
 const LAUNCH_TIMEOUT_MS = 60_000;
 
 /**
+ * How long a restarted daemon's replacement may take to become controllable after the old worker ended.
+ */
+const REPLACEMENT_START_MS = 60_000;
+
+/**
  * A launch lock older than this is stale.
  */
 const LAUNCH_LOCK_STALE_MS = 120_000;
@@ -151,16 +156,33 @@ export async function launchDaemon(project: Project, request: LaunchRequest): Pr
 }
 
 /**
- * Stops the project's daemon (intentional stop: no automatic startup until the next explicit start).
- *
- * Succeeds only after the owner released the project.
+ * Outcome of a one-shot stop request: completed only after the verified owner ended and released the project.
  *
  * @private daemon launcher
  */
-export async function stopDaemon(project: Project, options: { cancelCurrent: boolean; intentional: boolean; timeoutMs?: number }): Promise<{ wasRunning: boolean; record?: ProcessRecord; stopped: boolean; message: string }> {
+export type StopResult = {
+    readonly wasRunning: boolean;
+    readonly record?: ProcessRecord;
+    /** The owner ended (confirmed by its process and record, not merely a lost endpoint). */
+    readonly stopped: boolean;
+    /** The engine's acknowledgement (e.g. `stopping` while the current task drains). */
+    readonly accepted?: { readonly state?: string; readonly outcome: string };
+    readonly message: string;
+};
+
+/**
+ * Requests the shared engine stop operation of the project's service (any placement) and waits, bounded, for the
+ * owner to end: graceful by default (the current task settles first), or an immediate force stop of owned work.
+ *
+ * An intentional completed stop is recorded by the engine itself, so cancelling a pending stop leaves no
+ * permanent-stop setting behind. A lost reply is reported as unconfirmed and never replayed.
+ *
+ * @private daemon launcher
+ */
+export async function stopService(project: Project, options: { readonly force: boolean; readonly timeoutMs?: number }): Promise<StopResult> {
     const lookup = await lookupService(project);
     if (lookup.state === 'stopped') {
-        if (options.intentional) await markStopped(project);
+        await markIntentionalStop(project);
         return { wasRunning: false, stopped: true, message: lookup.stale ? 'The service was not running (a stale record was found and ignored).' : 'The service was not running.' };
     }
     if (lookup.state === 'unreachable') {
@@ -172,30 +194,93 @@ export async function stopDaemon(project: Project, options: { cancelCurrent: boo
             next: ['Run `ptbk status` again; if the process is a stuck ptbk worker, terminate that PID manually.'],
         });
     }
-    if (lookup.record.mode !== 'daemon') {
-        throw new PtbkError(`The project is running in ${lookup.record.mode} mode, not as a daemon.`, {
-            kind: 'conflict',
-            project: project.root,
-            next: [lookup.record.mode === 'run' ? 'Wait for the finite run to finish, or interrupt it in its terminal.' : 'Use the controls of the foreground terminal (X or Ctrl+C) to stop it.'],
-        });
+    let accepted: { state?: string; outcome: string };
+    try {
+        accepted = await lookup.client.request<{ state?: string; outcome: string }>(options.force ? 'force-stop' : 'stop');
+    } catch (error) {
+        // Engines that predate the shared lifecycle know only `stop`/`stop-now`.
+        if (!(error instanceof PtbkError) || error.details.kind !== 'usage' || !/Unknown control method/.test(error.message)) throw error;
+        accepted = await lookup.client.request<{ state?: string; outcome: string }>(options.force ? 'stop-now' : 'stop');
     }
-    if (options.intentional) await markStopped(project);
-    await lookup.client.request(options.cancelCurrent ? 'stop-now' : 'stop');
     const deadline = Date.now() + (options.timeoutMs ?? 120_000);
     while (Date.now() < deadline) {
         const record = await readProcessRecord(project);
         if ((!record || record.instanceId !== lookup.record.instanceId) && !isProcessAlive(lookup.record.pid)) {
-            return { wasRunning: true, record: lookup.record, stopped: true, message: 'Stopped.' };
+            return { wasRunning: true, record: lookup.record, stopped: true, accepted, message: options.force ? 'Force-stopped.' : 'Stopped.' };
         }
         await new Promise((resolve) => setTimeout(resolve, 250));
     }
-    return { wasRunning: true, record: lookup.record, stopped: false, message: 'Stop was requested, but the service is still finishing its current work.' };
+    return { wasRunning: true, record: lookup.record, stopped: false, accepted, message: `Stop accepted (${accepted.state ?? 'stopping'}), but the service is still finishing its current work.` };
 }
 
 /**
- * Records an intentional stop and removes startup registration.
+ * Outcome of a restart request.
+ *
+ * @private daemon launcher
  */
-async function markStopped(project: Project): Promise<void> {
+export type RestartResult =
+    | { readonly kind: 'restarted'; readonly previous: ProcessRecord; readonly lookup: Extract<ServiceLookup, { state: 'running' }> }
+    | { readonly kind: 'pending'; readonly previous: ProcessRecord; readonly message: string }
+    | { readonly kind: 'unsupported'; readonly previous: ProcessRecord };
+
+/**
+ * Restarts the project's running engine through its shared lifecycle: it drains like a graceful stop (with visible
+ * restart intent), releases ownership and exactly one replacement starts with the same project, saved launch
+ * configuration and installation (a daemon's supervisor or the owning foreground invocation). Changed launch overrides
+ * of a daemon are saved first; an engine without the restart operation reports `unsupported`.
+ *
+ * @private daemon launcher
+ */
+export async function restartService(
+    project: Project,
+    lookup: Extract<ServiceLookup, { state: 'running' }>,
+    options: { readonly launch?: Partial<Pick<LaunchMetadata, 'cli' | 'cliHarnesses' | 'tasksDirectory' | 'persistent'>>; readonly timeoutMs?: number },
+): Promise<RestartResult> {
+    const previous = lookup.record;
+    if (previous.mode === 'run') throw new PtbkError('A finite run cannot be restarted.', { kind: 'usage', project: project.root, next: ['Wait for it to finish (or stop it), then run it again.'] });
+    if (options.launch && previous.mode === 'daemon') {
+        const launch = await readLaunchMetadata(project);
+        if (launch) await writeLaunchMetadata(project, { ...launch, ...options.launch, intentionallyStopped: false, savedAt: new Date().toISOString() });
+    }
+    try {
+        await lookup.client.request('restart');
+    } catch (error) {
+        if (error instanceof PtbkError && error.details.kind === 'usage' && /Unknown control method/.test(error.message)) return { kind: 'unsupported', previous };
+        throw error;
+    }
+    const deadline = Date.now() + (options.timeoutMs ?? 180_000);
+    let previousEndedAt: number | undefined;
+    while (Date.now() < deadline) {
+        const record = await readProcessRecord(project);
+        if (record && record.instanceId !== previous.instanceId) {
+            const fresh = await lookupService(project);
+            if (fresh.state === 'running' && fresh.record.instanceId !== previous.instanceId) return { kind: 'restarted', previous, lookup: fresh };
+        }
+        if (!isProcessAlive(previous.pid)) previousEndedAt ??= Date.now();
+        // The old owner ended without a working replacement: report the failed start, never a running service.
+        const supervisorGone = !previous.supervisorPid || !isProcessAlive(previous.supervisorPid);
+        if (previous.mode === 'daemon' && previousEndedAt !== undefined && !record && (supervisorGone || Date.now() - previousEndedAt > REPLACEMENT_START_MS)) {
+            const workerLog = await tail(servicePaths(project).workerLog);
+            throw new PtbkError('The service stopped, but its replacement did not start.', {
+                kind: 'technical',
+                project: project.root,
+                reason: workerLog.split('\n').slice(-3).join(' ') || 'No output was produced.',
+                trace: servicePaths(project).workerLog,
+                next: ['Fix the cause shown in the worker log, then run `ptbk start`.'],
+            });
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    return { kind: 'pending', previous, message: 'Restart accepted; the service is still finishing its current work before the replacement starts.' };
+}
+
+/**
+ * Records an intentional stop: no automatic startup until the next authorized start (launch metadata flag and
+ * startup registration).
+ *
+ * @private daemon launcher
+ */
+export async function markIntentionalStop(project: Project): Promise<void> {
     const launch = await readLaunchMetadata(project);
     if (launch) await writeLaunchMetadata(project, { ...launch, intentionallyStopped: true, savedAt: new Date().toISOString() });
     await unregisterPersistence(project);

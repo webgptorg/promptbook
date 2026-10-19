@@ -15,6 +15,7 @@ import { flag, option, type CommandContext } from '../context.js';
 import { renderServiceResult } from '../service-view.js';
 import { hostSource } from '../sources.js';
 import { initializeProject } from './init.js';
+import { ownerSignals } from '../lifecycle.js';
 
 /**
  * Explains readiness problems with concrete repair actions.
@@ -63,7 +64,7 @@ async function settledSnapshot(fetch: () => Promise<ServiceSnapshot>, boundMs = 
     const deadline = Date.now() + boundMs;
     const firstEvaluation = Date.now() + 10_000;
     let snapshot = await fetch();
-    while ((snapshot.connection.remote.state === 'connecting' || ((snapshot.phase === 'starting' || snapshot.phase === 'evaluating' || snapshot.service.state === 'starting') && Date.now() < firstEvaluation)) && Date.now() < deadline) {
+    while ((snapshot.connection.remote.state === 'connecting' || ((snapshot.phase === 'starting' || snapshot.phase === 'evaluating') && Date.now() < firstEvaluation)) && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 500));
         snapshot = await fetch();
     }
@@ -92,43 +93,45 @@ async function resumeService(context: CommandContext, project: Project): Promise
 }
 
 /**
- * Runs the agenda in this terminal (live dashboard when interactive, plain events otherwise).
+ * Runs the agenda in this terminal (live dashboard when interactive, plain events otherwise). This invocation owns
+ * the engine: termination drains gracefully, and a restart starts exactly one replacement here (never a daemon).
  */
 async function runForeground(context: CommandContext, project: Project, overrides: Record<string, unknown>, cliHarnesses: readonly string[] | undefined): Promise<number> {
     const { terminal } = context;
     const live = terminal.pretty && terminal.interactive;
-    const host = new ServiceHost({
-        project,
-        mode: 'foreground',
-        env: context.env,
-        cli: overrides,
-        cliHarnesses,
-        tasksDirectory: tasksOverride(context),
-        persistent: false,
-        persistenceNote: 'Foreground: stops with this terminal; no restart persistence.',
-        allowTunnelInstall: true,
-        onEvent: live ? undefined : (text, level) => terminal.write(`${clockTime()} ${level === 'info' ? '' : `${level.toUpperCase()}: `}${text}\n`),
-    });
-    await host.start();
-    const stop = (): void => {
-        host.agenda.requestStop({ cancelCurrent: true });
-    };
-    process.on('SIGINT', stop);
-    process.on('SIGTERM', stop);
-    try {
-        const agenda = host.runAgenda();
-        if (live) {
-            await runDashboard(terminal, hostSource(host), { noQr: flag(context, 'qr') === false });
-            host.agenda.requestStop({ cancelCurrent: true });
+    for (;;) {
+        const host = new ServiceHost({
+            project,
+            mode: 'foreground',
+            env: context.env,
+            cli: overrides,
+            cliHarnesses,
+            tasksDirectory: tasksOverride(context),
+            persistent: false,
+            persistenceNote: 'Foreground: stops with this terminal; no restart persistence.',
+            allowTunnelInstall: true,
+            onEvent: live ? undefined : (text, level) => terminal.write(`${clockTime()} ${level === 'info' ? '' : `${level.toUpperCase()}: `}${text}\n`),
+        });
+        await host.start();
+        const removeSignals = ownerSignals(host.agenda, (line) => terminal.write(line));
+        let outcome: string;
+        try {
+            const agenda = host.runAgenda();
+            if (live) {
+                // The owning view stays until the engine ends (Q/Ctrl+C request a graceful stop inside it).
+                await runDashboard(terminal, hostSource(host), { noQr: flag(context, 'qr') === false });
+                host.agenda.requestStop({});
+            }
+            const summary = await agenda;
+            outcome = summary.outcome;
+            terminal.write(`${summary.message}\n`);
+        } finally {
+            removeSignals();
+            await host.shutdown();
         }
-        const summary = await agenda;
-        terminal.write(`${summary.message}\n`);
-    } finally {
-        process.off('SIGINT', stop);
-        process.off('SIGTERM', stop);
-        await host.shutdown();
+        if (outcome !== 'restart') return EXIT.success;
+        terminal.write('Restarting the foreground service with the same configuration…\n');
     }
-    return EXIT.success;
 }
 
 /**

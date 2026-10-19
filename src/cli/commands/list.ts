@@ -9,7 +9,7 @@ import type { Project } from '../../project/workspace.js';
 import { previewQueue } from '../../engine/preview.js';
 import type { RecordingStatus } from '../../browser/recording.js';
 import { findTask } from '../../tasks/sources.js';
-import { traceDirectoryOf } from '../../tasks/identity.js';
+import { legacyTraceDirectoryOf, traceBasenameOf, traceDirectoryOf } from '../../tasks/identity.js';
 import type { Task } from '../../tasks/model.js';
 import { describePriority } from '../../tasks/priority.js';
 import { fit, stringWidth, truncate } from '../../ui/ansi.js';
@@ -21,8 +21,11 @@ import { flag, type CommandContext } from '../context.js';
  * Read-only inspection of one task: identity, audit trail, recording status and commits (resolved from Git).
  */
 async function inspectTask(context: CommandContext, project: Project, task: Task, readiness: { kind: string; reason: string }): Promise<number> {
-    const trace = traceDirectoryOf(task.title);
+    // Evidence lives under the literal source filename; an older engine's name-derived directory stays historical.
+    const trace = traceDirectoryOf(task.source.relativePath);
     const files = (await listDirectory(join(project.root, trace))).filter((entry) => entry.isFile).map((entry) => `${trace}/${entry.name}`);
+    const legacy = legacyTraceDirectoryOf(task.title);
+    const historical = legacy !== trace && (await pathExists(join(project.root, legacy))) ? `${legacy}/` : undefined;
     const video = (await pathExists(join(project.root, trace, 'video.json'))) ? (JSON.parse(await readFile(join(project.root, trace, 'video.json'), 'utf8')) as RecordingStatus) : undefined;
     const gitInfo = await inspectGit(project.root);
     const commits = gitInfo.state === 'repository' ? await commitsOfTask(gitInfo.root, task.title, task.legacyId) : [];
@@ -40,6 +43,7 @@ async function inspectTask(context: CommandContext, project: Project, task: Task
         reason: readiness.reason,
         trace: `${trace}/`,
         traceFiles: files,
+        historicalTrace: historical ?? null,
         video: video ?? null,
         commits,
     };
@@ -54,6 +58,7 @@ async function inspectTask(context: CommandContext, project: Project, task: Task
         `Source: ${task.source.relativePath}${task.source.section ? ` (section ${task.source.section})` : ''}`,
         `Readiness: ${readiness.kind} — ${readiness.reason}`,
         `Trace: ${trace}/${files.length ? ` (${files.map((file) => file.slice(trace.length + 1)).join(', ')})` : ' (no evidence yet)'}`,
+        ...(historical ? [`Historical trace: ${historical} (name-derived evidence of an older engine)`] : []),
         `Video: ${video ? `${video.state}${video.segments.length ? ` · ${video.segments.map((segment) => (segment.file ? `${trace}/${segment.file}` : `${segment.label}: ${segment.status}`)).join(', ')}` : ''}` : 'none recorded'}`,
         `Commits: ${commits.length ? '' : 'none yet'}`,
         ...commits.map((commit) => `  ${commit.sha.slice(0, 10)} ${commit.date.slice(0, 16)} ${commit.subject}${commit.role === 'task' ? '' : ` (${commit.role === 'created' ? 'created here' : 'related'})`}`),
@@ -94,6 +99,7 @@ export default async function list(context: CommandContext): Promise<number> {
                     title: task.title,
                     source: task.source.relativePath,
                     section: task.source.section,
+                    trace: traceBasenameOf(task.source.relativePath) ? `${traceDirectoryOf(task.source.relativePath)}/` : null,
                     status: task.status,
                     readiness: readiness.kind,
                     reason: readiness.reason,

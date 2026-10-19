@@ -32,6 +32,38 @@ function questionText(input: { question: string; reason?: string; attempted?: st
 }
 
 /**
+ * Chat operations of a consultation serving a human-facing conversation without an owning task (e.g. Chatter asking
+ * a specialist): each bounded two-agent exchange is its own chat Book linked to the conversation and persisted as an
+ * ordinary scoped authoring operation — never a fabricated task, a task result or a participant of the human chat.
+ *
+ * @private chats
+ */
+export function conversationChats(store: ChatStore, conversation: string, options: { readonly takenNames: () => ReadonlySet<string> }): TaskChats {
+    return {
+        askUser: async () => {
+            throw new Error('Advisors of a conversation cannot ask the user; the conversation agent replies to the user itself.');
+        },
+        recordConsultation: async (input) => {
+            const from = formatAgentReference(referenceName(input.from));
+            const to = formatAgentReference(referenceName(input.to));
+            const created = await store.create({
+                name: `Consultation: ${referenceName(input.from)} with ${referenceName(input.to)} for ${conversation}`.slice(0, 120),
+                members: [from, to],
+                status: 'resolved',
+                links: [`{{${conversation}}}`],
+                messages: [
+                    { sender: from, text: input.question },
+                    { sender: to, text: input.answer },
+                ],
+                taken: options.takenNames(),
+                commit: true,
+            });
+            return created.chat.name;
+        },
+    };
+}
+
+/**
  * Chat operations bound to one task.
  *
  * @private chats

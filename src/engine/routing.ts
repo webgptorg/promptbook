@@ -96,7 +96,9 @@ export async function resolveRoute(task: Task, context: RoutingContext): Promise
         return { kind: 'needs-assignment', reason: `TASK PRIORITY "${task.priority.raw}" needs interpretation; Manager will resolve it with the routing.` };
     }
     let agentReference = task.routing.agent;
+    let agentSource = 'task requirement (TASK AGENT)';
     if (run) {
+        agentSource = agentReference ? 'task requirement (TASK AGENT), matching this run' : 'run selection (--agent)';
         if (agentReference && normalizeAgentName(referenceName(agentReference)) !== normalizeAgentName(referenceName(run.agent))) {
             return { kind: 'incompatible', reason: `Requires agent ${agentReference}, but this run uses ${run.agent}.` };
         }
@@ -104,6 +106,7 @@ export async function resolveRoute(task: Task, context: RoutingContext): Promise
     } else if (!agentReference) {
         if (task.source.kind === 'book') return { kind: 'needs-assignment', reason: 'No TASK AGENT yet; Manager will assign routing first.' };
         agentReference = setting<string>(settings, 'routing.defaultAgent');
+        agentSource = `default agent (routing.defaultAgent from ${settings.sources['routing.defaultAgent'] ?? 'default'})`;
     }
     const agent = await resolveEffectiveAgent(context.catalog, agentReference.startsWith('@') || agentReference.startsWith('{') ? agentReference : `{{${agentReference}}}`);
     const agentErrors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
@@ -141,11 +144,21 @@ export async function resolveRoute(task: Task, context: RoutingContext): Promise
         const harnessSettings = settings.harnesses[harness];
         const isDefaultHarness = setting<string | undefined>(settings, 'routing.harness') === harness;
         let model = run?.model ?? task.routing.model ?? harnessSettings?.model ?? (isDefaultHarness ? setting<string | undefined>(settings, 'routing.model') : undefined);
+        let modelSource = run?.model
+            ? 'run selection (--model)'
+            : task.routing.model
+              ? 'task requirement (TASK MODEL)'
+              : harnessSettings?.model
+                ? `ptbk.json harnesses.${harness}.model`
+                : model
+                  ? `routing.model (${settings.sources['routing.model'] ?? 'default'})`
+                  : undefined;
         if (task.routing.runners.length && !selectorsMatch(task.routing.runners, agent.name, harness, model)) {
             if (run) return { kind: 'incompatible', reason: `Selectors ${task.routing.runners.map((selector) => `\`${selector}\``).join(' ')} do not match this run's configuration.` };
             const catalogModel = (await context.pool.models(harness)).find((candidate) => selectorsMatch(task.routing.runners, '', '', candidate));
             if (!catalogModel) continue;
             model = catalogModel;
+            modelSource = 'task selector (TASK RUNNER)';
         }
         const explicitModel = run?.model ?? task.routing.model;
         if (explicitModel) {
@@ -165,7 +178,18 @@ export async function resolveRoute(task: Task, context: RoutingContext): Promise
             }
             thinkingLevel = undefined;
         }
-        return { kind: 'routable', agent, selection: { agent: agent.name, harness, model, thinkingLevel }, plugin, inspection };
+        const thinkingSource = !thinkingLevel
+            ? undefined
+            : run?.thinkingLevel
+              ? 'run selection (--thinking-level)'
+              : task.routing.thinkingLevel
+                ? 'task requirement (TASK THINKING LEVEL)'
+                : harnessSettings?.thinkingLevel
+                  ? `ptbk.json harnesses.${harness}.thinkingLevel`
+                  : `routing.thinkingLevel (${settings.sources['routing.thinkingLevel'] ?? 'default'})`;
+        const harnessSource = run ? 'run selection (--harness)' : task.routing.harness ? 'task requirement (TASK HARNESS)' : isDefaultHarness ? `preferred harness (routing.harness from ${settings.sources['routing.harness'] ?? 'default'})` : 'automatic (first usable enabled harness)';
+        const sources = { agent: agentSource, harness: harnessSource, ...(modelSource ? { model: modelSource } : {}), ...(thinkingSource ? { thinkingLevel: thinkingSource } : {}) };
+        return { kind: 'routable', agent, selection: { agent: agent.name, harness, model, thinkingLevel, sources }, plugin, inspection };
     }
     return { kind: 'blocked', reason: `No usable harness/model matches selectors ${task.routing.runners.map((selector) => `\`${selector}\``).join(' ')}.` };
 }

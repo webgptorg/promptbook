@@ -2,6 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, listDirectory, pathExists, readTextIfExists } from '../common/fs.js';
+import { formatAgentReference } from '../book/references.js';
 import { nameKey } from '../tasks/model.js';
 import { readTaskQueue } from '../tasks/sources.js';
 import { AgentCatalog } from './agents.js';
@@ -125,16 +126,28 @@ export async function traceIgnoreRulesMatch(root: string, policy: TraceGitPolicy
 /**
  * Creates missing core agents individually (existing customized files are never overwritten).
  *
+ * A missing Chatter is created last, with TEAM access to every other agent present at that moment (core roles and
+ * specialists, never itself); an existing Chatter and its customized team are left alone.
+ *
  * @private project setup
  */
 export async function ensureCoreAgents(root: string, agentsDirectory: string): Promise<string[]> {
     const created: string[] = [];
-    // A role is present when any Book already uses its name (even one needing conversion): never create a twin.
-    const index = (await AgentCatalog.load(root, agentsDirectory)).index;
     for (const agent of CORE_AGENTS) {
-        if (index.winnerOf(nameKey(agent.name))) continue;
+        // A role is present when any Book already uses its name (even one needing conversion): never create a twin.
+        const catalog = await AgentCatalog.load(root, agentsDirectory);
+        if (catalog.index.winnerOf(nameKey(agent.name))) continue;
+        const content =
+            typeof agent.content === 'string'
+                ? agent.content
+                : agent.content(
+                      catalog.index
+                          .winners('agent')
+                          .filter((entry) => entry.kind === 'agent' && entry.tier !== 4 && entry.normalized !== nameKey(agent.name))
+                          .map((entry) => formatAgentReference(entry.name)),
+                  );
         const path = join(root, agentsDirectory, agent.file);
-        if (await createIfMissing(path, agent.content)) created.push(path);
+        if (await createIfMissing(path, content)) created.push(path);
     }
     return created;
 }

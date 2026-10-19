@@ -86,10 +86,12 @@ body {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     grid-template-areas:
         'attention attention'
+        'controls controls'
         'chats chats'
         'work queue'
+        'details details'
         'activity connection'
-        'controls connection';
+        'inventory connection';
     gap: 14px;
     max-width: 1280px;
     margin: 0 auto;
@@ -99,7 +101,7 @@ body {
 @media (max-width: 900px) {
     .app {
         grid-template-columns: minmax(0, 1fr);
-        grid-template-areas: 'attention' 'chats' 'work' 'controls' 'queue' 'activity' 'connection';
+        grid-template-areas: 'attention' 'controls' 'chats' 'work' 'details' 'queue' 'activity' 'connection' 'inventory';
     }
 }
 
@@ -159,6 +161,48 @@ body {
 
 .controls {
     grid-area: controls;
+}
+
+.controls .state {
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 14px;
+}
+
+.controls.pausing,
+.controls.pause {
+    border-left: 4px solid var(--warning);
+}
+
+.controls.stopping {
+    border-left: 4px solid var(--danger);
+}
+
+.details-panels {
+    grid-area: details;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 900px) {
+    .details-panels {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.details-panels details > summary {
+    font-weight: 600;
+    padding: 2px 0;
+}
+
+.details-panels details[open] > summary {
+    margin-bottom: 8px;
+}
+
+.inventory {
+    grid-area: inventory;
 }
 
 .request {

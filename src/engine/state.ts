@@ -32,6 +32,8 @@ export type RoutingSelection = {
     readonly model?: string;
     /** Requested thinking level. */
     readonly thinkingLevel?: ThinkingLevel;
+    /** Where each value came from (task requirement, run selection, CLI override, saved default, automatic choice). */
+    readonly sources?: Readonly<Partial<Record<'agent' | 'harness' | 'model' | 'thinkingLevel', string>>>;
 };
 
 /**
@@ -160,6 +162,10 @@ export type ResultRecord = {
     readonly harness?: string;
     /** Effective model when known. */
     readonly model?: string;
+    /** Whether `model` was reported by the harness (otherwise only requested). */
+    readonly modelReported?: boolean;
+    /** Project-relative task source. */
+    readonly source?: string;
     /** Thinking level. */
     readonly thinkingLevel?: string;
     /** Result commit. */
@@ -172,7 +178,7 @@ export type ResultRecord = {
     readonly startedAt: string;
     /** End (ISO). */
     readonly endedAt: string;
-    /** Trace path (`traces/<name-key>/harness.log`). */
+    /** Trace path (`traces/<task-file-basename>/harness.log`). */
     readonly trace?: string;
     /** Recurring occurrence (ISO). */
     readonly occurrence?: string;

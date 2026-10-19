@@ -2,7 +2,25 @@ import QRCode from 'qrcode';
 import { formatShortTime } from '../common/time.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import { stringWidth, truncate, wrap } from './ansi.js';
+
+/**
+ * Flows styled items into lines no wider than `width` (items are never cut).
+ */
+function flow(items: readonly string[], width: number, separator: string): string[] {
+    const lines: string[] = [];
+    let line = '';
+    for (const item of items) {
+        const candidate = line ? `${line}${separator}${item}` : item;
+        if (line && stringWidth(candidate) > width) {
+            lines.push(line);
+            line = item;
+        } else line = candidate;
+    }
+    if (line) lines.push(line);
+    return lines;
+}
 import { activityLabel, framedBadge } from './badges.js';
+import { browserDetailLines, executionDetailLines, executionOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary } from './details.js';
 import { renderPanel, sideBySide, type PanelTone } from './panels.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
@@ -57,6 +75,10 @@ export type StatusViewOptions = {
         readonly activityOffset: number;
         readonly focusRequest: number;
         readonly connectionLost?: string;
+        /** Expanded detail panels (viewer-local presentation state; initially collapsed). */
+        readonly details?: { readonly execution: boolean; readonly browser: boolean };
+        /** A pending confirmation or action feedback shown in the service-controls panel. */
+        readonly controlNote?: string;
     };
 };
 
@@ -91,6 +113,9 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     lines.push(
         `Service: ${snapshot.service.mode}, ${snapshot.service.state}${snapshot.service.state !== 'stopped' ? `, PID ${snapshot.service.pid}` : ''}, ${snapshot.service.commitMode === 'commit' ? 'automatic commits' : 'NO-COMMIT mode (results stay uncommitted)'}${snapshot.service.persistent === null ? '' : snapshot.service.persistent ? ', persistent' : ', not persistent'}`,
     );
+    lines.push(`Lifecycle: ${lifecycleSummary(snapshot)}`);
+    const actions = lifecycleActions(snapshot);
+    if (actions.length) lines.push(`Controls: ${actions.map((action) => `${action.command} (${action.label})`).join(' · ')}`);
     if (snapshot.service.persistenceNote) lines.push(`Persistence: ${snapshot.service.persistenceNote}`);
     lines.push(`Observed: ${snapshot.observedAt} (snapshot)`, '');
     const waiting = snapshot.chats.waiting;
@@ -108,7 +133,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     if (snapshot.current) {
         const current = snapshot.current;
         lines.push(`- ${current.agent.name} (${activityLabel(current.agent.activity)}) on "${current.taskTitle}" [${current.taskRef}]${current.kind !== 'task' ? ` (${current.kind})` : ''}`);
-        lines.push(`  Harness: ${current.harnessName}; model: ${current.model ?? 'harness default (unknown)'}${current.modelSource === 'requested' ? ' (requested)' : ''}; thinking: ${current.thinkingLevel ?? 'default'}`);
+        if (snapshot.execution) lines.push(`  ${executionOneLine(snapshot.execution)}`);
         lines.push(`  Phase: ${current.phase}${current.attempt ? ` (attempt ${current.attempt}/${current.attemptBudget})` : ''}${current.detail ? `; ${current.detail}` : ''}`);
         if (current.trace) lines.push(`  Trace: ${current.trace}`);
     } else lines.push(`- ${snapshot.phase}${snapshot.wait ? `: ${snapshot.wait.reason}` : ''}`);
@@ -123,6 +148,8 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     for (const result of snapshot.results.recent.slice(0, 5)) lines.push(`- ${result.outcome}: ${result.title}${result.commit ? ` (${result.commit.slice(0, 8)})` : ''}`);
     const error = snapshot.errors[snapshot.errors.length - 1];
     if (error) lines.push(`Last error: ${error.summary}${error.next ? ` Next: ${error.next}` : ''}${error.trace ? ` Diagnostics: ${error.trace}` : ''}`);
+    lines.push('', 'EXECUTION DETAILS', ...executionDetailLines(snapshot.execution).map((line) => `  ${line}`));
+    if (snapshot.browser) lines.push('', 'BROWSER DETAILS', ...browserDetailLines(snapshot.browser).map((line) => `  ${line}`));
     lines.push('', 'CONNECTION');
     const local = snapshot.connection.local;
     lines.push(`Local: ${local.state}${local.url ? ` ${local.url} (same computer only)` : ''}${local.error ? ` (${local.error})` : ''}`);
@@ -144,7 +171,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     const unicode = terminal.unicode;
     const frame = options.live?.frame ?? 0;
     const output: string[] = [];
-    const stateTone = (state: string): string => (state === 'running' ? style.success(state) : state === 'stopped' || state === 'finished' ? style.muted(state) : style.warning(state));
+    const stateTone = (state: string): string => (state === 'running' ? style.success(state) : state === 'stopped' || state === 'finished' ? style.muted(state) : state === 'stopping' ? style.error(state) : style.warning(state));
     const headerRight = `ptbk ${snapshot.engine.version} · ${snapshot.service.mode} · ${snapshot.service.state}`;
     const headerLines = [
         `${style.bold(snapshot.project.name)}  ${style.muted(snapshot.project.path)}`,
@@ -170,6 +197,22 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     if (attention.length) output.push(...renderPanel({ title: `${marks.warn} Needs your attention (${waiting.length})`, titleRight: `${snapshot.chats.total} chats · ${snapshot.chats.unread} unread`, lines: attention, width: total, tone: waiting.length ? 'attention' : 'accent', unicode, style }));
     else output.push(style.muted(`  ${marks.ok} Nothing needs your attention.${snapshot.chats.total ? ` ${snapshot.chats.total} chat(s)${snapshot.chats.unread ? `, ${snapshot.chats.unread} unread message(s)` : ''}.` : ''}`));
 
+    // Service controls: the engine's live state and its lifecycle actions are always visible (never inside details).
+    // A live view offers keys; a snapshot names the equivalent commands (a stopped service only offers `ptbk start`).
+    const controlActions = lifecycleActions(snapshot).filter((action) => !options.live || action.key);
+    const controls = [
+        ...wrap(`${snapshot.service.state} ${marks.dot} ${lifecycleExplanation(snapshot)}${snapshot.service.lifecycle?.since ? ` · since ${formatShortTime(Date.parse(snapshot.service.lifecycle.since))}` : ''}`, total - 4).map((line, index) =>
+            index === 0 ? `${stateTone(snapshot.service.state)}${line.slice(snapshot.service.state.length)}` : line,
+        ),
+        ...(controlActions.length
+            ? options.live
+                ? flow(controlActions.map((action) => `${style.accent(action.key)} ${action.label}`), total - 4, style.muted('  ·  '))
+                : flow(controlActions.map((action) => style.muted(`${action.command}${action.label && action.label !== action.command.replace(/^ptbk /, '') ? ` (${action.label})` : ''}`)), total - 4, style.muted('  ·  '))
+            : [style.muted('No lifecycle action applies now.')]),
+        ...(options.live?.controlNote ? [style.warning(options.live.controlNote)] : []),
+    ];
+    output.push(...renderPanel({ title: 'Service controls', titleRight: snapshot.service.mode, lines: controls, width: total, tone: snapshot.service.state === 'running' ? 'default' : 'attention', unicode, style }));
+
     // Current work.
     const work: string[] = [];
     const current = snapshot.current;
@@ -178,7 +221,9 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         const info = [
             `${style.bold(current.agent.name)} ${style.muted(activityLabel(current.agent.activity))}`,
             truncate(current.taskTitle, 200),
-            style.muted(`${current.harnessName} · ${current.model ? `${current.model}${current.modelSource === 'requested' ? ' (requested)' : ''}` : 'default model'}${current.thinkingLevel ? ` · ${current.thinkingLevel}` : ''}`),
+            options.live
+                ? style.muted(options.live.details?.execution ? 'Execution details below (E hides them)' : 'E: harness, model and thinking level of this run')
+                : style.muted(snapshot.execution ? executionOneLine(snapshot.execution) : current.harnessName),
         ];
         for (let row = 0; row < 3; row++) work.push(`${badgeLines[row]}  ${info[row]}`);
         work.push(`${style.muted('Phase')} ${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? style.muted(` · ${current.detail}`) : ''}`);
@@ -195,6 +240,11 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     }
     const lastError = snapshot.errors[snapshot.errors.length - 1];
     if (lastError) work.push(style.error(`Last error: ${lastError.summary}`), ...(lastError.next ? [style.muted(`  Next: ${lastError.next}`)] : []));
+    // A significant browser failure stays visible while the browser panel is collapsed.
+    const browser = snapshot.browser;
+    if (browser && (browser.state === 'failed' || browser.recovery?.state === 'blocked') && browser.lastFailure) {
+        work.push(`${style.error(marks.fail)} ${style.bold('Project browser')}: ${browser.lastFailure.summary}${browser.recovery?.state === 'retrying' ? style.muted(' · recovering automatically') : ''}${options.live ? style.muted(' · B details') : ''}`);
+    }
 
     // Queue.
     const queue: string[] = [];
@@ -246,6 +296,15 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         return lines;
     };
 
+    // Expandable detail panels (live dashboard only; initially collapsed, opened with E and B).
+    const detailPanels = (): string[] => {
+        const panels: string[] = [];
+        const details = options.live?.details;
+        if (details?.execution) panels.push(...renderPanel({ title: 'Execution details', titleRight: 'E hides', lines: executionDetailLines(snapshot.execution, style), width: total, unicode, style }));
+        if (details?.browser) panels.push(...renderPanel({ title: 'Browser details', titleRight: 'B hides', lines: browserDetailLines(snapshot.browser, style, { keys: true }), width: total, unicode, style }));
+        return panels;
+    };
+
     const twoColumns = total >= 100;
     if (twoColumns) {
         const qrWidth = options.qr ? Math.max(...options.qr.lines.map((line) => stringWidth(line))) + 4 : 0;
@@ -257,9 +316,11 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         ];
         const right = renderPanel({ title: 'Connection', lines: connectionLines(rightWidth - 4), width: rightWidth, unicode, style, minHeight: Math.max(0, left.length - 2) });
         output.push(...sideBySide([left, right], [leftWidth, rightWidth]));
+        output.push(...detailPanels());
         output.push(...renderPanel({ title: 'Results and activity', lines: results, width: total, unicode, style }));
     } else {
         output.push(...renderPanel({ title: 'Current work', lines: work, width: total, tone: current ? 'accent' : 'default', unicode, style }));
+        output.push(...detailPanels());
         output.push(...renderPanel({ title: `Queue (${snapshot.queueTotal})`, lines: queue, width: total, unicode, style }));
         output.push(...renderPanel({ title: 'Results and activity', lines: results, width: total, unicode, style }));
         const qrTooWide = options.qr && Math.max(...options.qr.lines.map((line) => stringWidth(line))) > total - 4;

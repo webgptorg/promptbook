@@ -4,7 +4,8 @@ import { errorMessage } from '../common/errors.js';
 import { projectAt } from '../project/workspace.js';
 import { recordDiagnostic } from '../engine/traces.js';
 import { ServiceHost } from './host.js';
-import { readLaunchMetadata, restoreDiscoveryEnvironment, rotateServiceLog } from './records.js';
+import { markIntentionalStop } from './launcher.js';
+import { readLaunchMetadata, restoreDiscoveryEnvironment, RESTART_EXIT_CODE, rotateServiceLog } from './records.js';
 
 /**
  * Number of appended event lines between rotation checks.
@@ -32,9 +33,10 @@ function appendServiceLog(path: string, line: string): void {
  * Daemon worker entry: `node dist/service/worker.js <projectRoot>`.
  *
  * Restores the launching terminal's discovery paths before any Git or harness inspection, hosts the agenda and
- * exits 0 only on a requested stop (a crash exit lets the supervisor restart it).
+ * exits 0 only on a requested stop (a crash exit lets the supervisor restart it; a restart request exits with
+ * {@link RESTART_EXIT_CODE} after releasing ownership so the supervisor starts one replacement).
  */
-async function main(): Promise<void> {
+async function main(): Promise<number> {
     const project = projectAt(process.argv[2] ?? '.');
     const launch = await readLaunchMetadata(project);
     if (!launch) throw new Error(`No launch metadata in ${project.runtime.service}; start the service with \`ptbk start\`.`);
@@ -56,22 +58,28 @@ async function main(): Promise<void> {
         allowTunnelInstall: true,
         onEvent: (text, level) => appendServiceLog(eventLog, `${new Date().toISOString()} ${level.toUpperCase()} ${text}\n`),
     });
+    // A catchable OS termination request drains gracefully (the host may still kill the process after its own grace period).
     const stop = (): void => {
-        host.agenda.requestStop({ cancelCurrent: true });
+        host.agenda.requestStop({ signal: true });
     };
     process.on('SIGTERM', stop);
     process.on('SIGINT', stop);
     process.on('SIGHUP', () => undefined);
     await host.start();
+    let outcome: string;
     try {
-        await host.runAgenda();
+        outcome = (await host.runAgenda()).outcome;
     } finally {
         await host.shutdown();
     }
+    // An intentional user stop suppresses automatic startup until the next authorized start; restart and OS
+    // termination do not.
+    if (host.agenda.intentionalStop) await markIntentionalStop(project).catch(() => undefined);
+    return outcome === 'restart' ? RESTART_EXIT_CODE : 0;
 }
 
 main().then(
-    () => process.exit(0),
+    (code) => process.exit(code),
     async (error: unknown) => {
         process.stderr.write(`${new Date().toISOString()} FATAL ${errorMessage(error)}\n${(error as Error)?.stack ?? ''}\n`);
         await recordDiagnostic(projectAt(process.argv[2] ?? '.'), { phase: 'daemon worker', message: errorMessage(error), details: { stack: (error as Error)?.stack } }).catch(() => undefined);

@@ -120,7 +120,7 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
         description: 'A harness producing no output for this long is treated as stalled and retried (0 disables).',
         application: 'next-task',
     },
-    { key: 'traces.commit', type: 'boolean', default: false, description: 'Include task traces (traces/<name-key>/) in result commits; false ignores the whole traces/ tree.', application: 'next-task' },
+    { key: 'traces.commit', type: 'boolean', default: false, description: 'Include task traces (traces/<task-file-basename>/) in result commits; false ignores the whole traces/ tree.', application: 'next-task' },
     { key: 'traces.ignoreVideos', type: 'boolean', default: true, description: 'Keep trace videos out of Git even when traces are committed.', application: 'next-task' },
     { key: 'traces.recordVideo', type: 'boolean', default: true, description: 'Record browser activity of tasks using the project browser.', application: 'next-task' },
     { key: 'browser.profile', type: 'string', default: 'global', description: '`global` (dedicated Promptbook profile shared by your projects), `isolated` (this project only, in .ptbk/), `user` (your Chrome profile) or a browser profile path.', application: 'next-task' },

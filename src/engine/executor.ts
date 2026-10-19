@@ -48,7 +48,8 @@ export type ExecutionEvent =
     | { readonly type: 'phase'; readonly phase: ActiveRecord['phase'] | 'repairing'; readonly detail?: string }
     | { readonly type: 'attempt'; readonly attempt: number; readonly budget: number }
     | { readonly type: 'activity'; readonly text: string; readonly level?: 'info' | 'warning' | 'error' }
-    | { readonly type: 'model'; readonly model: string };
+    | { readonly type: 'model'; readonly model: string }
+    | { readonly type: 'consultation'; readonly advisor: string; readonly by: string; readonly harness: string; readonly model?: string; readonly state: 'started' | 'finished' };
 
 /**
  * Waiting reported to the supervisor (skippable pacing/backoff waits only).
@@ -373,15 +374,17 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         await state.writeActive(record);
     };
     await save({});
-    const trace = await TaskTrace.open(project, task.title);
+    // Evidence lives under the literal source filename; the declared name and source revision are recorded inside.
+    const trace = await TaskTrace.open(project, { name: task.title, source: task.source.relativePath });
     if (trace.problem) hooks.emit({ type: 'activity', text: `Evidence limitation: ${trace.problem}`, level: 'warning' });
     const runLabel = `run ${record.runId}${occurrence ? ` · occurrence ${occurrence}` : ''}`;
     if (!item.resume) {
         await trace.section(`Task {{${task.title}}} · ${runLabel}`, [traceHeader({ title: task.title, source: task.source.relativePath }), `Kind: ${item.kind}${task.origin ? ` · origin: ${task.origin}` : ''}${task.parent ? ` · parent: ${task.parent}` : ''}`]);
-        await trace.event('started', { runId: record.runId, occurrence, kind: item.kind, title: task.title, source: task.source.relativePath, origin: task.origin, parent: task.parent, assignment: assignmentText(task), engineVersion: ENGINE_VERSION });
+        await trace.event('started', { runId: record.runId, occurrence, kind: item.kind, title: task.title, source: task.source.relativePath, section: task.source.section, origin: task.origin, parent: task.parent, assignment: assignmentText(task), engineVersion: ENGINE_VERSION });
     } else {
-        await trace.event('resumed', { runId: record.runId, occurrence: record.occurrence, phase: record.phase, attempt: record.attempt, engineVersion: ENGINE_VERSION });
+        await trace.event('resumed', { runId: record.runId, occurrence: record.occurrence, phase: record.phase, attempt: record.attempt, title: task.title, source: task.source.relativePath, engineVersion: ENGINE_VERSION });
     }
+    await trace.provenance({ runId: record.runId, occurrence: record.occurrence, section: task.source.section });
     const agent: EffectiveAgent = item.route.agent;
     const budget: ConsultationBudget = { calls: 0 };
     const pending: { chat?: { chat: string; awaited: number } } = {};
@@ -405,6 +408,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             agent: selection.agent,
             harness: selection.harness,
             model: lastResult?.model ?? selection.model,
+            modelReported: Boolean(lastResult?.model),
+            source: task.source.relativePath,
             thinkingLevel: selection.thinkingLevel,
             commit,
             attempts: record.attempt,
@@ -490,6 +495,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                             pending.chat = chat;
                         },
                         onActivity: (text) => hooks.emit({ type: 'activity', text }),
+                        onConsultation: (consultation) => hooks.emit({ type: 'consultation', ...consultation }),
                     }),
                     ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), trace, attempt: attemptLabel }) ?? []),
                 );

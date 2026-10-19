@@ -13,6 +13,7 @@ import { confirm } from '../../ui/prompts.js';
 import { printJson, selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 import { hostSource } from '../sources.js';
+import { ownerSignals } from '../lifecycle.js';
 
 /**
  * Resolves the one configuration of a finite run (flags, then project defaults, then legacy environment).
@@ -116,21 +117,17 @@ export default async function run(context: CommandContext): Promise<number> {
         onEvent: live ? undefined : (text, level) => terminal.write(`${clockTime()} ${level === 'info' ? '' : `${level.toUpperCase()}: `}${text}\n`),
     });
     await host.start();
-    const stop = (): void => {
-        host.agenda.requestStop({ cancelCurrent: true });
-    };
-    process.on('SIGINT', stop);
-    process.on('SIGTERM', stop);
+    // The run owns its engine: termination drains gracefully (a second Ctrl+C forces) and keeps recovery state.
+    const removeSignals = ownerSignals(host.agenda, (line) => terminal.write(line));
     let summary;
     try {
         const agenda = host.runAgenda();
         if (live && flag(context, 'auto') !== false) {
-            void runDashboard(terminal, hostSource(host), { noQr: flag(context, 'qr') === false }).then(() => host.agenda.requestStop({ cancelCurrent: true }));
+            void runDashboard(terminal, hostSource(host), { noQr: flag(context, 'qr') === false }).then(() => host.agenda.requestStop({}));
         }
         summary = await agenda;
     } finally {
-        process.off('SIGINT', stop);
-        process.off('SIGTERM', stop);
+        removeSignals();
         await host.shutdown();
     }
     if (live) process.stdout.write('\x1b[?25h\x1b[?1049l');

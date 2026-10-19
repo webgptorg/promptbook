@@ -1,7 +1,8 @@
 import { PtbkError } from '../common/errors.js';
 import { commitmentsOf } from '../book/parse.js';
-import { formatAgentReference } from '../book/references.js';
+import { formatAgentReference, normalizeAgentName } from '../book/references.js';
 import type { AgentCatalog } from '../project/agents.js';
+import { CHATTER_NAME } from '../project/defaults.js';
 import type { ActiveRecord, StateStore } from '../engine/state.js';
 import { isHumanFacing } from './chat-book.js';
 import type { ChatStore, ChatSummary, ChatWrite } from './store.js';
@@ -16,8 +17,11 @@ export type ChatAgentChoice = {
     readonly name: string;
     /** Reference to pass when creating the chat (`@Developer`, `{Frontend Developer}`). */
     readonly reference: string;
-    /** `ordinary` agents are offered first; `hidden` (core/hidden agents) and `expert` only behind an explicit More choice. */
-    readonly group: 'ordinary' | 'hidden' | 'expert';
+    /**
+     * `chatter` is the default partner of a new chat (offered first, chosen with Enter); `ordinary`, `hidden`
+     * (core/hidden agents) and `expert` are the alternatives behind "Choose another agent".
+     */
+    readonly group: 'chatter' | 'ordinary' | 'hidden' | 'expert';
     /** First goal of the agent, when declared. */
     readonly description?: string;
 };
@@ -33,27 +37,49 @@ export type ChatDetail = {
 };
 
 /**
- * Agents the user may chat with: visible ordinary agents first, then hidden/core agents and the engine-provided Expert.
- * User, Void and Null are never offered.
+ * Agents the user may chat with: Chatter first (the default partner of a new chat, when it is a valid agent), then
+ * every alternative: visible ordinary agents, hidden/core agents and the engine-provided Expert. User, Void and Null
+ * are never offered.
  *
  * @private chats
  */
 export function chatAgentChoices(catalog: AgentCatalog): ChatAgentChoice[] {
-    const ordinary = catalog.ordinary();
+    const chatterKey = normalizeAgentName(CHATTER_NAME);
+    const ordinary = catalog.ordinary().filter((entry) => entry.normalized !== chatterKey);
     const ordinaryKeys = new Set(ordinary.map((agent) => agent.normalized));
-    const hidden = catalog.index.winners('agent').filter((entry) => entry.kind === 'agent' && entry.tier !== 4 && !ordinaryKeys.has(entry.normalized));
-    const choice = (entry: (typeof hidden)[number], group: 'ordinary' | 'hidden'): ChatAgentChoice => ({
+    const winners = catalog.index.winners('agent').filter((entry) => entry.kind === 'agent' && entry.tier !== 4);
+    const chatter = winners.find((entry) => entry.normalized === chatterKey);
+    const hidden = winners.filter((entry) => !ordinaryKeys.has(entry.normalized) && entry.normalized !== chatterKey);
+    const choice = (entry: (typeof hidden)[number], group: ChatAgentChoice['group']): ChatAgentChoice => ({
         name: entry.name,
         reference: formatAgentReference(entry.name),
         group,
         description: commitmentsOf(entry.document, 'GOAL')[0]?.value.split('\n')[0]?.slice(0, 100),
     });
     return [
+        ...(chatter ? [choice(chatter, 'chatter')] : []),
         ...ordinary.map((entry) => choice(entry, 'ordinary')),
         ...hidden.map((entry) => choice(entry, 'hidden')),
         // The built-in Expert always wins its name, so it is always available.
         { name: 'Expert', reference: '@Expert', group: 'expert', description: 'Engine-provided Promptbook expert (current syntax and capabilities).' },
     ];
+}
+
+/**
+ * The default partner of a new chat (Chatter), or an actionable diagnostic when it is missing or invalid. Another
+ * agent is never substituted silently, and nothing is created or initialized here.
+ *
+ * @private chats
+ */
+export function defaultChatAgent(choices: readonly ChatAgentChoice[]): ChatAgentChoice {
+    const chatter = choices.find((choice) => choice.group === 'chatter');
+    if (chatter) return chatter;
+    throw new PtbkError(`${CHATTER_NAME}, the default partner of new chats, is missing or invalid in this project.`, {
+        kind: 'setup',
+        reason: `No valid \`AGENT ${CHATTER_NAME}\` Book was found (normally agents/.core/chatter.book).`,
+        effect: 'No chat was started; no other agent was chosen in its place.',
+        next: ['Run `ptbk init` (or `ptbk start`) to add the missing core agent, or fix its Book (`ptbk lint`).', 'Or choose an agent explicitly, e.g. `ptbk chat --agent Developer`.'],
+    });
 }
 
 /**

@@ -54,7 +54,7 @@ export type AgentView = {
  */
 export type CurrentWorkView = {
     readonly taskRef: string;
-    /** Project-relative audit directory (`traces/<name-key>/`). */
+    /** Project-relative audit directory (`traces/<task-file-basename>/`). */
     readonly trace?: string;
     readonly taskTitle: string;
     /** task, assignment, learning, discovery, ... */
@@ -132,6 +132,15 @@ export type ResultView = {
     readonly summary: string;
     readonly endedAt: string;
     readonly attempts: number;
+    /** Kind of work (task, assignment, learning, …). */
+    readonly kind?: string;
+    /** Project-relative task source. */
+    readonly source?: string;
+    readonly thinkingLevel?: string;
+    /** Whether `model` was reported by the harness (otherwise it was only requested). */
+    readonly modelReported?: boolean;
+    readonly harnessVersion?: string;
+    readonly startedAt?: string;
 };
 
 /**
@@ -238,6 +247,101 @@ export type ConnectionView = {
 };
 
 /**
+ * Pending lifecycle intent of the engine (shared by every client).
+ *
+ * @private shared status view model
+ */
+export type LifecycleView = {
+    /** What happens when the current task settles (or is happening: `force-stop`). */
+    readonly intent?: 'pause' | 'stop' | 'restart' | 'force-stop';
+    /** When the pending request was accepted (ISO). */
+    readonly since?: string;
+    /** Decision revision; a stop-to-pause confirmation must name the revision it was made against. */
+    readonly revision: number;
+    /** The current task is still settling before the intent applies. */
+    readonly draining: boolean;
+    /** Irreversible shutdown has begun (cancellation is too late). */
+    readonly shutdown: boolean;
+    /** The pending intent can still be cancelled (resume). */
+    readonly cancellable: boolean;
+    /** Restart is available (not for a finite run). */
+    readonly restartable: boolean;
+};
+
+/**
+ * One execution context: the task's own agent run or a task-/conversation-scoped consultation.
+ *
+ * @private shared status view model
+ */
+export type ExecutionContextView = {
+    /** `task`: the task's agent; `consultation`: an advisor consulted within it. */
+    readonly role: 'task' | 'consultation';
+    readonly agent: string;
+    /** Who consulted this advisor. */
+    readonly by?: string;
+    readonly harness: { readonly id: string; readonly name: string; readonly version?: string };
+    /**
+     * Model identifier: `reported` by the harness, `requested` (not yet confirmed), `automatic` (harness default whose
+     * concrete resolution is not reported yet) or `unknown`.
+     */
+    readonly model: { readonly value?: string; readonly status: 'reported' | 'requested' | 'automatic' | 'unknown'; readonly source?: string };
+    /**
+     * Thinking level in the harness's own terminology: `requested`, `automatic` (harness default), `not-applicable`
+     * (the harness has no such setting) or `unknown`.
+     */
+    readonly thinkingLevel: { readonly value?: string; readonly status: 'requested' | 'automatic' | 'not-applicable' | 'unknown'; readonly term?: string; readonly source?: string };
+    readonly state: 'active' | 'finished';
+};
+
+/**
+ * Detailed effective configuration of the current (or, labelled historical, the last) execution.
+ *
+ * @private shared status view model
+ */
+export type ExecutionDetailView = {
+    /** `active`: the running execution; `historical`: the last finished one, never shown as currently running. */
+    readonly status: 'active' | 'historical';
+    readonly task: { readonly ref: string; readonly title: string; readonly source?: string; readonly trace?: string; readonly kind: string };
+    readonly agent: { readonly name: string; readonly source?: string };
+    readonly phase?: string;
+    readonly attempt?: number;
+    readonly attemptBudget?: number;
+    readonly startedAt?: string;
+    readonly endedAt?: string;
+    readonly outcome?: string;
+    /** The task's own context first, then consultations (several harnesses/models stay distinguishable). */
+    readonly contexts: readonly ExecutionContextView[];
+};
+
+/**
+ * The project browser as the engine sees it: effective profile, health, ownership and recovery.
+ *
+ * @private shared status view model
+ */
+export type BrowserDetailView = {
+    /** Effective profile source of the active (or next) browser. */
+    readonly source: 'global' | 'isolated' | 'user' | 'custom';
+    readonly sourceLabel: string;
+    /** Resolved profile path (diagnostic data only; never its contents). */
+    readonly profilePath: string;
+    /** Saved default when it differs from the effective (overridden) value. */
+    readonly savedProfile?: string;
+    /** A changed setting applies at the next task boundary. */
+    readonly pending?: string;
+    readonly mode: { readonly requested: 'headless' | 'headful'; readonly actual?: 'headless' | 'headful'; readonly note?: string };
+    readonly executable?: string;
+    readonly state: 'not-started' | 'starting' | 'running' | 'failed' | 'recovering' | 'stopped';
+    readonly pid?: number;
+    /** Known ownership of a shared profile (another project or browser holds it). */
+    readonly ownership: { readonly state: 'owned' | 'free' | 'busy' | 'unknown'; readonly holder?: string };
+    readonly lastFailure?: { readonly at: string; readonly summary: string; readonly evidence?: string };
+    readonly recovery?: { readonly attempts: number; readonly nextRetryAt?: string; readonly state: 'idle' | 'retrying' | 'blocked'; readonly blocker?: string };
+    /** Last manual/automatic browser action and its observed outcome. */
+    readonly lastAction?: { readonly action: string; readonly at: string; readonly outcome: string; readonly state: 'accepted' | 'deferred' | 'succeeded' | 'failed' };
+    readonly checkedAt?: string;
+};
+
+/**
  * The shared project status, identical for terminal, browser and API.
  *
  * @private shared status view model
@@ -251,7 +355,11 @@ export type ServiceSnapshot = {
     readonly engine: { readonly version: string; readonly installation: string; readonly scope: string };
     readonly service: {
         readonly mode: 'daemon' | 'foreground' | 'run';
-        readonly state: 'starting' | 'running' | 'pausing' | 'paused' | 'stopping' | 'stopped' | 'finished';
+        /**
+         * Live states `running`, `pausing`, `pause` and `stopping`; `stopped`/`finished` are observed outcomes after the
+         * engine ended (never a fifth live state).
+         */
+        readonly state: 'running' | 'pausing' | 'pause' | 'stopping' | 'stopped' | 'finished';
         readonly pid: number;
         readonly instanceId: string;
         readonly startedAt: string;
@@ -259,9 +367,15 @@ export type ServiceSnapshot = {
         readonly persistenceNote?: string;
         readonly commitMode: 'commit' | 'no-commit';
         readonly stopRequested: boolean;
+        /** Pending lifecycle intent (absent for an observed stopped service). */
+        readonly lifecycle?: LifecycleView;
     };
     readonly phase: Phase;
     readonly current?: CurrentWorkView;
+    /** Effective execution configuration for the expandable execution panel. */
+    readonly execution?: ExecutionDetailView;
+    /** Project browser inspection for the expandable browser panel. */
+    readonly browser?: BrowserDetailView;
     readonly wait?: WaitView;
     readonly queue: readonly QueueItemView[];
     readonly queueTotal: number;

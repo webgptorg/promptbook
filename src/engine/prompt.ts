@@ -123,7 +123,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     }
     const taskSource = task.text.replace(/^TASK DONE .*$/gm, '').trim();
     parts.push(
-        `## Your task\n\n- Name: ${task.title}\n- Reference: ${task.ref} (the task's name is its identity; audit trail in \`${traceDirectoryOf(task.title)}/\`, written by Promptbook)\n- Source: \`${task.source.relativePath}\`${task.source.kind === 'markdown' ? ` (section ${task.source.section})` : ''}\n\n\`\`\`\`text\n${taskSource}\n\`\`\`\``,
+        `## Your task\n\n- Name: ${task.title}\n- Reference: ${task.ref} (the task's name is its identity; audit trail in \`${traceDirectoryOf(task.source.relativePath)}/\` (named after the source file), written by Promptbook)\n- Source: \`${task.source.relativePath}\`${task.source.kind === 'markdown' ? ` (section ${task.source.section})` : ''}\n\n\`\`\`\`text\n${taskSource}\n\`\`\`\``,
     );
     if (input.conversations?.length) {
         parts.push(

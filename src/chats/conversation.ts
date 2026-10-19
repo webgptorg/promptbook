@@ -12,8 +12,10 @@ import { runHarness } from '../harness/run.js';
 import { ToolBridge, type BridgeTool } from '../engine/bridge.js';
 import type { HarnessPool } from '../engine/harnesses.js';
 import { renderAgentInstructions } from '../engine/prompt.js';
+import { teamTools } from '../engine/team.js';
 import { chatAgent, isHumanFacing } from './chat-book.js';
 import type { ChatStore, ChatWrite } from './store.js';
+import { conversationChats } from './task-chats.js';
 
 /**
  * Time limit of one chat reply.
@@ -55,7 +57,7 @@ export type ConversationContext = {
  *
  * @private chats
  */
-export type ChatTurn = { readonly reply?: ChatWrite; readonly error?: string; readonly createdTasks: readonly string[]; readonly learning?: string };
+export type ChatTurn = { readonly reply?: ChatWrite; readonly error?: string; readonly createdTasks: readonly string[]; readonly learning?: string; readonly consultations?: readonly string[] };
 
 /**
  * Lets the chat's agent answer the user's latest message (read-only; tasks only through `create_task`).
@@ -119,6 +121,43 @@ export async function replyInChat(context: ConversationContext, chatName: string
               },
           ]
         : [];
+    // Conversation-scoped TEAM consultation: bounded read-only advice, recorded as linked two-agent chats with their own
+    // scoped commits; the chat's agent stays the user's speaker and specialists never join the human chat.
+    const consultations: string[] = [];
+    if (plugin.capabilities.mcp && agent.team.length) {
+        const recorder = conversationChats(context.chats, chat.name, { takenNames: () => context.catalog.index.names() });
+        const controller = new AbortController();
+        context.signal?.addEventListener('abort', () => controller.abort(), { once: true });
+        tools.push(
+            ...teamTools(
+                {
+                    project: context.project,
+                    catalog: context.catalog,
+                    pool: context.pool,
+                    settings: context.settings,
+                    chats: {
+                        askUser: recorder.askUser,
+                        recordConsultation: async (input) => {
+                            const name = await recorder.recordConsultation(input);
+                            if (name) consultations.push(name);
+                            return name;
+                        },
+                    },
+                    task: { ref: `{{${chat.name}}}`, title: chat.name },
+                    scope: 'conversation',
+                    agentName: agent.name,
+                    harness: harnessId,
+                    depth: 0,
+                    budget: { calls: 0 },
+                    questionsAllowed: false,
+                    signal: controller.signal,
+                    onUserChat: () => undefined,
+                    onActivity: (text) => context.onActivity?.(`${agent.name} in {{${chat.name}}}: ${text}`),
+                },
+                { includeUser: false },
+            ),
+        );
+    }
     const prompt = [
         `# Conversation\n\nYou are **${agent.name}**, talking with the user (the project owner) in the persistent chat {{${chat.name}}} of the project at \`${context.project.root}\`.`,
         `## Your role\n\n${renderAgentInstructions(agent) || '_No additional instructions._'}`,
@@ -130,7 +169,10 @@ export async function replyInChat(context: ConversationContext, chatName: string
             '',
             '- Reply to the user\'s latest message directly and helpfully; you may inspect project files and Git history to answer.',
             '- This conversation is read-only: never modify files or run write operations.',
-            tools.length ? '- To start work the user asked for or agreed to, call the `create_task` tool; the agenda executes it later with checks and commits. Do not claim work is done when you only created a task.' : '- You cannot create tasks here; describe what `ptbk add` should contain instead.',
+            tools.some((tool) => tool.name === 'create_task') ? '- To start work the user asked for or agreed to, call the `create_task` tool; the agenda executes it later with checks and commits. Do not claim work is done when you only created a task.' : '- You cannot create tasks here; describe what `ptbk add` should contain instead.',
+            ...(tools.some((tool) => tool.name === 'consult')
+                ? ['- For a specialist question, call the `consult` tool with a teammate from your TEAM (or @Expert for Promptbook itself) and tell the user whose advice you relay. Advice is not executed work: specialist work goes through `create_task`.']
+                : []),
             '- If the user corrected you or stated a lasting, project-specific preference relevant to your role, add a final line `PTBK_LEARN <one sentence>` (it is removed from your reply).',
         ].join('\n'),
     ]
@@ -173,5 +215,5 @@ export async function replyInChat(context: ConversationContext, chatName: string
     if (learning && agent.learning.open && agent.definition && parseReferenceValue(agentReference)?.normalized !== 'teacher' && setting<boolean>(context.settings, 'learning.enabled')) {
         await context.scheduleLearning?.({ chat: chat.name, agent: agent.name, note: learning }).catch(() => undefined);
     }
-    return { reply, createdTasks: created, learning };
+    return { reply, createdTasks: created, learning, consultations };
 }

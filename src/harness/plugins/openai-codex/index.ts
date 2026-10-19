@@ -184,6 +184,7 @@ export const plugin: HarnessPlugin = {
     npmPackage: '@openai/codex',
     homepage: 'https://developers.openai.com/codex/cli',
     thinkingLevels: ['low', 'medium', 'high', 'xhigh'],
+    thinkingLabel: 'reasoning effort (model_reasoning_effort)',
     capabilities: { mcp: true, readOnly: true },
     loginArgs: ['login'],
     loginHint: 'Run `codex login` and sign in with your ChatGPT account.',

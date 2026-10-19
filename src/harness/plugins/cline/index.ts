@@ -52,6 +52,7 @@ export const plugin: HarnessPlugin = {
     npmPackage: 'cline',
     homepage: 'https://docs.cline.bot/cline-cli/overview',
     thinkingLevels: ['low', 'medium', 'high', 'xhigh'],
+    thinkingLabel: 'thinking (--thinking)',
     capabilities: { mcp: false, readOnly: false },
     loginArgs: ['auth'],
     loginHint: 'Run `cline auth` to configure a provider.',

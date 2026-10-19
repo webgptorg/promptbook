@@ -92,7 +92,7 @@ test('HTTP API: no project data without pairing; single-use pairing; CSRF and or
     const accepted = await control({ 'X-PTBK-CSRF': csrf, Origin: base.replace(/\/$/, '') });
     assert.equal(accepted.status, 200);
     assert.equal((await accepted.json()).applied, true);
-    await waitFor(async () => (await status(project, env)).service.state === 'paused' || (await status(project, env)).service.state === 'pausing', { message: 'pause visible in the CLI snapshot' });
+    await waitFor(async () => ['pause', 'pausing'].includes((await status(project, env)).service.state), { message: 'pause visible in the CLI snapshot' });
     const token = /\n(ptbk_[A-Za-z0-9_-]+)\n/.exec((await ptbk(['access', 'token', 'ci', '--raw'], { cwd: project, env })).stdout)[1];
     const viaToken = await fetch(`${base}api/control`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resume' }) });
     assert.equal(viaToken.status, 200);
@@ -112,13 +112,15 @@ test('attached raw dashboard observes the running service and leaving it does no
     assert.equal((await status(project, env)).service.state, 'running');
 });
 
-test('stop interrupts owned work recoverably; the next start resumes it without repeating accepted work', async (t) => {
+test('force stop interrupts owned work recoverably; the next start resumes it without repeating accepted work', async (t) => {
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
     await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
     await waitFor(async () => findGenerated(await subjects(project), 'Write the welcome page', 'PTBK: '), { message: 'the added task' });
-    const stopped = await ptbk(['stop', '--raw'], { cwd: project, env });
+    const stopped = await ptbk(['stop', '-F', '--raw'], { cwd: project, env });
     assert.equal(stopped.code, 0, stopped.output);
+    assert.match(stopped.stdout, /^Force-stopped/, stopped.output);
+    await assert.rejects(readFile(join(project, '.ptbk', 'lock.json')), 'the owner cleans up its own lock on an internal force stop');
     const record = await readFile(join(project, '.ptbk', 'state', 'active.json'), 'utf8').then(JSON.parse, () => undefined);
     const dirty = (await git(project, ['status', '--porcelain'])).trim();
     if (dirty) assert.ok(record, `uncommitted changes after stop must belong to a recovery record:\n${dirty}`);

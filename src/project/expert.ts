@@ -33,7 +33,7 @@ export async function expertInstructions(): Promise<string> {
         '',
         'Key facts:',
         '- A project is a directory in a Git working tree. `ptbk.json` holds versioned configuration; `.ptbk/` is Git-ignored runtime state.',
-        '- Agents are Books under `agents/`. Core agents Adam, Manager, Teacher and Fixer live in `agents/.core/`; they are ordinary editable project agents the engine expects to exist.',
+        '- Agents are Books under `agents/`. Core agents Adam, Manager, Teacher, Fixer and Chatter live in `agents/.core/`; they are ordinary editable project agents the engine expects to exist. Chatter is the default partner of new human chats and consults its TEAM for specialist questions.',
         '- Agents, tasks and chats are Books with one grammar: every Book starts with exactly one `AGENT <name>`, `TASK <name>` or `CHAT <name>` declaration; its content is the name (the only identity; no IDs), and the keyword is the kind. The folder never supplies the kind. Executable tasks live at the top level of the task source (default `tasks/`).',
         '- A commitment is a line-initial complete uppercase keyword (at least three letters, e.g. `TASK DEPENDS ON`) followed by its content until the next commitment. A name or content must not start with an all-uppercase word right after the keyword (`AGENT Ceo`, not `AGENT CEO`). Descriptions go under commitments such as GOAL, PERSONA or NOTE; text directly under the declaration is invalid. Lines that would look like commitments can be kept literal with a leading backslash or a fenced block.',
         '- Plain name lines and `ENTITY …` are former syntax: such Books are diagnosed and not used until converted explicitly with `ptbk migrate`.',

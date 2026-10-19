@@ -55,15 +55,45 @@ OPEN Learn verified project-specific repair practices and preferences.
 `;
 
 /**
- * Core agent files (relative to the agents directory).
+ * Name of the core agent that is the default human-facing conversational entry of a project.
  *
  * @private initialization defaults
  */
-export const CORE_AGENTS: ReadonlyArray<{ readonly file: string; readonly name: string; readonly content: string }> = [
+export const CHATTER_NAME = 'Chatter';
+
+/**
+ * Default Book of the core agent Chatter: the default conversational entry, with TEAM access to the other agents that
+ * exist when it is created (never itself) and to Expert. Ordinary Adam inheritance and default OPEN learning.
+ *
+ * `teammates` are the references (`@Developer`, `{{Frontend Developer}}`) of every other agent of the project.
+ *
+ * @private initialization defaults
+ */
+export function chatterBook(teammates: readonly string[]): string {
+    const others = teammates.filter((reference) => !/^(@chatter|\{\{?\s*chatter\s*\}?\})$/i.test(reference.trim()));
+    const list = others.length > 1 ? `${others.slice(0, -1).join(', ')} and ${others[others.length - 1]}` : (others[0] ?? '');
+    return `AGENT Chatter
+GOAL Be the project owner's first point of contact: answer questions about the project, explain its status, clarify intent and turn agreed work into ordinary tasks.
+PERSONA You are Chatter, the friendly conversational entry to this project. You talk with the user directly and know whom to ask.
+RULE Consult the right teammate for specialist questions instead of pretending you did their work, and say whose advice you pass on.
+RULE Distinguish requested, queued, running and completed work; never report a proposal or a created task as implemented.
+RULE Answering a question never creates work by itself; create ordinary tasks only for work the user asked for or agreed to.
+${others.length ? `TEAM Consult ${list} about their specialties, and @Expert about Promptbook itself.` : 'TEAM Consult @Expert about Promptbook itself.'}
+`;
+}
+
+/**
+ * Core agent files (relative to the agents directory). Chatter is created last, after every other role exists, so its
+ * initial TEAM covers the completed role set.
+ *
+ * @private initialization defaults
+ */
+export const CORE_AGENTS: ReadonlyArray<{ readonly file: string; readonly name: string; readonly content: string | ((teammates: readonly string[]) => string) }> = [
     { file: '.core/adam.book', name: 'Adam', content: ADAM_BOOK },
     { file: '.core/manager.book', name: 'Manager', content: MANAGER_BOOK },
     { file: '.core/teacher.book', name: 'Teacher', content: TEACHER_BOOK },
     { file: '.core/fixer.book', name: 'Fixer', content: FIXER_BOOK },
+    { file: '.core/chatter.book', name: CHATTER_NAME, content: chatterBook },
 ];
 
 /**
@@ -222,12 +252,12 @@ These instructions apply to every agent working on **${options.name}**.
 
 ## Layout
 
-- \`agents/\` holds agent Books (supporting core agents live in \`agents/.core/\`).
+- \`agents/\` holds agent Books (core agents Adam, Manager, Teacher, Fixer and Chatter live in \`agents/.core/\`; Chatter is the default partner of new chats).
 - \`tasks/\` holds task Books; \`tasks/templates/\` holds templates, which are not tasks.
 - \`chats/\` holds persistent conversations (chat Books) between the user and agents; never edit existing messages.
 - \`specs/\` holds the project's specifications; \`specs/_initial.md\` preserves the original initial input — keep it unchanged.
 - Every Book starts with \`AGENT <name>\`, \`TASK <name>\` or \`CHAT <name>\`; that name is its identity (agents, tasks and chats share one namespace). Further content goes under commitments such as \`GOAL\`, \`PERSONA\` or \`RULE\`, and references use \`@Name\` or \`{{Multi Word Name}}\`.
-- \`traces/<name-key>/\` holds Promptbook's per-task audit evidence; never edit it or treat it as tasks or agents.
+- \`traces/<task-file-basename>/\` holds Promptbook's per-task audit evidence, named literally after each task's source file without \`.book\`; never edit it or treat it as tasks or agents.
 - \`ptbk.json\` holds versioned Promptbook configuration; \`.ptbk/\` is Git-ignored runtime state.
 
 ## Working rules
@@ -257,7 +287,7 @@ ptbk add "Describe the next piece of work"
 ptbk stop       # stop the background agenda (ptbk start resumes it)
 \`\`\`
 
-Each task is identified by its name (the first line of its Book). Its audit trail is in \`traces/<name-key>/\`; commits carry the name in a \`Task-Name\` trailer.
+Each task is identified by its name (the first line of its Book). Its audit trail is in \`traces/<task-file-basename>/\` (the task's source filename without \`.book\`); commits carry the name in a \`Task-Name\` trailer.
 `;
 }
 

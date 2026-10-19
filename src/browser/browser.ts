@@ -11,6 +11,10 @@ import type { Project } from '../project/workspace.js';
 import type { BridgeTool } from '../engine/bridge.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import type { TaskTrace } from '../engine/task-trace.js';
+import type { BrowserDetailView } from '../engine/snapshot.js';
+import type { ControlOutcome } from '../service/actions.js';
+import { createRedactor } from '../common/redact.js';
+import { promptbookAppData } from '../common/app-data.js';
 import { BrowserRecorder, cleanStaleRecordings, type ScreencastPort } from './recording.js';
 
 /**
@@ -22,6 +26,16 @@ const MAX_PAGE_TEXT = 20_000;
  * How long Chrome may take to expose its DevTools endpoint.
  */
 const STARTUP_TIMEOUT_MS = 30_000;
+
+/**
+ * Bounded automatic launch attempts before a failure becomes a visible blocker.
+ */
+const LAUNCH_ATTEMPTS = 3;
+
+/**
+ * Delay before an automatic relaunch attempt (doubles per attempt).
+ */
+const LAUNCH_RETRY_MS = 3000;
 
 /**
  * Candidate Chrome-compatible executables per platform.
@@ -70,17 +84,7 @@ export function browserProfileSource(value: string): BrowserProfileSource {
     return value === 'global' || value === 'isolated' || value === 'user' ? value : 'custom';
 }
 
-/**
- * The current OS user's Promptbook application-data directory (`PTBK_HOME` overrides it).
- *
- * @private project browser
- */
-export function promptbookAppData(env: NodeJS.ProcessEnv = process.env): string {
-    if (env.PTBK_HOME) return env.PTBK_HOME;
-    if (process.platform === 'darwin') return join(homedir(), 'Library', 'Application Support', 'Promptbook');
-    if (process.platform === 'win32') return join(env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'), 'Promptbook');
-    return join(env.XDG_DATA_HOME || join(homedir(), '.local', 'share'), 'promptbook');
-}
+export { promptbookAppData };
 
 /**
  * The dedicated Promptbook-managed browser profile shared by this user's projects (not the user's own Chrome profile).
@@ -195,6 +199,7 @@ class CdpConnection {
     private nextId = 1;
     private readonly pending = new Map<number, { resolve: (value: Record<string, unknown>) => void; reject: (error: Error) => void }>();
     private readonly listeners = new Set<(message: Record<string, unknown>) => void>();
+    private readonly closeListeners = new Set<() => void>();
 
     private constructor(private readonly socket: WebSocket) {
         socket.addEventListener('message', (event) => {
@@ -210,6 +215,7 @@ class CdpConnection {
         socket.addEventListener('close', () => {
             for (const entry of this.pending.values()) entry.reject(new Error('The browser connection closed.'));
             this.pending.clear();
+            for (const listener of [...this.closeListeners]) listener();
         });
     }
 
@@ -255,11 +261,35 @@ class CdpConnection {
         return () => this.listeners.delete(listener);
     }
 
-    /** Closes the socket. */
+    /** Notifies when the connection closes (browser exit or crash). */
+    public onClose(listener: () => void): void {
+        this.closeListeners.add(listener);
+    }
+
+    /** Closes the socket (an intentional close does not notify close listeners). */
     public close(): void {
+        this.closeListeners.clear();
         this.socket.close();
     }
 }
+
+/**
+ * Observed health of the project browser (engine-owned diagnosis and recovery; never inferred from configuration).
+ *
+ * @private project browser
+ */
+export type BrowserHealth = {
+    state: BrowserDetailView['state'];
+    checkedAt?: string;
+    pid?: number;
+    profilePath?: string;
+    actualMode?: 'headless' | 'headful';
+    executable?: string;
+    ownership: BrowserDetailView['ownership'];
+    lastFailure?: BrowserDetailView['lastFailure'];
+    recovery: NonNullable<BrowserDetailView['recovery']>;
+    lastAction?: BrowserDetailView['lastAction'];
+};
 
 /**
  * The project's single shared browser instance (one profile, one automation owner at a time).
@@ -273,16 +303,167 @@ export class ProjectBrowser {
     private connection?: CdpConnection;
     private sessionId?: string;
     private note?: string;
-    /** Task-linked recording of browser activity (`traces/<name-key>/video/`). */
+    /** A launch in progress (concurrent automatic/manual starts share it: never two owners). */
+    private launching?: Promise<{ connection: CdpConnection; sessionId: string }>;
+    /** The current task used the browser (a restart waits for the task boundary). */
+    private usedByTask = false;
+    /** A manual restart waits for the current task to release the browser. */
+    private pendingRestart = false;
+    /** Observed health, diagnostics and recovery. */
+    private health: BrowserHealth = { state: 'not-started', ownership: { state: 'unknown' }, recovery: { attempts: 0, state: 'idle' } };
+    /** Task-linked recording of browser activity (`traces/<task-file-basename>/video/`). */
     public readonly recorder: BrowserRecorder;
 
     public constructor(
         private readonly project: Project,
         private readonly settings: () => EffectiveSettings,
         private readonly env: NodeJS.ProcessEnv,
+        /** Publishes health changes to every view. */
+        private readonly onChange: () => void = () => undefined,
     ) {
         this.recorder = new BrowserRecorder(project, () => setting<boolean>(this.settings(), 'traces.recordVideo'), env);
         void cleanStaleRecordings(project);
+    }
+
+    /** Updates the observed health and notifies the views. */
+    private setHealth(changes: Partial<BrowserHealth>): void {
+        this.health = { ...this.health, ...changes, checkedAt: new Date().toISOString() };
+        this.onChange();
+    }
+
+    /** Records a real launch/connection failure with redacted evidence. */
+    private recordFailure(error: unknown): void {
+        const redact = createRedactor();
+        const details = error instanceof PtbkError ? error.details : undefined;
+        this.setHealth({ lastFailure: { at: new Date().toISOString(), summary: redact(errorMessage(error)), evidence: details?.reason ? redact(details.reason) : undefined } });
+    }
+
+    /**
+     * The browser as the engine sees it: effective profile source and resolved path, requested/actual mode, health,
+     * ownership, last failure and recovery. A profile path is diagnostic data, never permission to read its contents.
+     */
+    public inspect(): BrowserDetailView {
+        const settings = this.settings();
+        const profile = setting<string>(settings, 'browser.profile');
+        const profilePath = browserProfileDirectory(this.project, settings, this.env);
+        const source = browserProfileSource(profile);
+        const overridden = ['cli', 'runtime'].includes(settings.sources['browser.profile'] ?? 'default');
+        const active = this.health.profilePath && this.child && this.health.profilePath !== profilePath ? this.health.profilePath : undefined;
+        return {
+            source,
+            sourceLabel: describeBrowserProfile(profile),
+            profilePath: active ?? profilePath,
+            savedProfile: overridden ? `overridden for this process (${settings.sources['browser.profile']}); the saved default stays in ptbk.json` : undefined,
+            pending: active ? `The selected profile changes to ${profilePath} at the next task boundary (after the browser restarts).` : this.pendingRestart ? 'A browser restart waits for the current task to release the browser.' : undefined,
+            mode: { requested: setting<string>(settings, 'browser.mode') === 'headful' ? 'headful' : 'headless', actual: this.child ? this.health.actualMode : undefined, note: this.note },
+            executable: this.health.executable,
+            state: this.health.state,
+            pid: this.child?.pid,
+            ownership: this.health.ownership,
+            lastFailure: this.health.lastFailure,
+            recovery: this.health.recovery,
+            lastAction: this.health.lastAction,
+            checkedAt: this.health.checkedAt,
+        };
+    }
+
+    /** Records the outcome of a manual browser action. */
+    private acted(action: string, state: NonNullable<BrowserHealth['lastAction']>['state'], outcome: string): ControlOutcome {
+        this.setHealth({ lastAction: { action, at: new Date().toISOString(), outcome, state } });
+        return { action: `browser-${action}`, outcome, applied: state !== 'failed', completed: state === 'succeeded' };
+    }
+
+    /**
+     * Diagnostic recheck (no launch, no change): browser executable, profile existence and ownership, and the live
+     * connection when the browser runs.
+     */
+    public async recheck(): Promise<ControlOutcome> {
+        const settings = this.settings();
+        const findings: string[] = [];
+        const executable = await findBrowserExecutable(settings, this.env);
+        findings.push(executable ? `browser ${executable}` : 'no Chrome-compatible browser installed');
+        const profile = browserProfileDirectory(this.project, settings, this.env);
+        const source = browserProfileSource(setting<string>(settings, 'browser.profile'));
+        const exists = await pathExists(profile);
+        findings.push(exists ? `profile ${profile}` : source === 'user' || source === 'custom' ? `profile ${profile} does not exist` : `profile ${profile} is created on first use`);
+        const holder = this.child ? undefined : await profileOwner(profile);
+        const ownership: BrowserDetailView['ownership'] = this.child ? { state: 'owned' } : holder ? { state: 'busy', holder: `browser PID ${holder}` } : { state: 'free' };
+        if (holder) findings.push(`profile in use by browser PID ${holder}`);
+        let state = this.health.state;
+        if (this.connection) {
+            try {
+                await Promise.race([this.connection.send('Browser.getVersion'), new Promise((_, reject) => setTimeout(() => reject(new Error('no answer within 5 s')), 5000))]);
+                state = 'running';
+                findings.push('connection healthy');
+            } catch (error) {
+                this.connectionLost(`The browser stopped answering: ${errorMessage(error)}`);
+                state = 'failed';
+                findings.push('connection lost (the next use relaunches it)');
+            }
+        } else if (state === 'running') state = 'stopped';
+        this.setHealth({ state, executable: executable ?? undefined, ownership });
+        const healthy = Boolean(executable) && (exists || source === 'global' || source === 'isolated') && !holder && state !== 'failed';
+        return this.acted('recheck', healthy ? 'succeeded' : 'failed', `${healthy ? 'Browser diagnostics OK' : 'Browser problem found'}: ${findings.join('; ')}.`);
+    }
+
+    /** Retries browser startup now (sharing any launch already in progress); a shared profile is released again when idle. */
+    public async retry(): Promise<ControlOutcome> {
+        if (this.connection && this.sessionId) return this.acted('retry', 'succeeded', 'The project browser is already running.');
+        this.setHealth({ recovery: { ...this.health.recovery, attempts: 0, state: 'retrying' } });
+        try {
+            await this.ensure();
+        } catch (error) {
+            return this.acted('retry', 'failed', `Startup failed: ${errorMessage(error)}`);
+        }
+        if (!this.usedByTask) this.releaseShared();
+        return this.acted('retry', 'succeeded', this.child ? 'The project browser started.' : 'The project browser started successfully and was released again (shared profile, no task needs it now).');
+    }
+
+    /**
+     * Restarts only this project's own browser process, preserving the selected profile and its sessions. While a task
+     * uses the browser the restart waits for that task's boundary instead of breaking its work.
+     */
+    public async restart(): Promise<ControlOutcome> {
+        if (this.usedByTask) {
+            this.pendingRestart = true;
+            return this.acted('restart', 'deferred', 'The current task is using the browser; the restart happens when it finishes.');
+        }
+        return await this.restartNow();
+    }
+
+    /** Performs a restart at a safe boundary. */
+    private async restartNow(): Promise<ControlOutcome> {
+        this.pendingRestart = false;
+        const wasRunning = Boolean(this.child);
+        this.close();
+        const shared = browserProfileSource(setting<string>(this.settings(), 'browser.profile')) !== 'isolated';
+        if (shared) return this.acted('restart', 'succeeded', wasRunning ? 'Closed this project’s browser; the next use starts it again with the same profile.' : 'The browser was not running; the next use starts it with the same profile.');
+        try {
+            await this.ensure();
+            return this.acted('restart', 'succeeded', 'Restarted the project browser with the same profile.');
+        } catch (error) {
+            return this.acted('restart', 'failed', `The browser did not start again: ${errorMessage(error)}`);
+        }
+    }
+
+    /** After a task: performs a deferred restart and releases a shared profile. */
+    public async taskFinished(): Promise<void> {
+        this.usedByTask = false;
+        if (this.pendingRestart) await this.restartNow().catch(() => undefined);
+        this.releaseShared();
+    }
+
+    /** Handles a lost connection: stops only this project's browser process; the next use relaunches it. */
+    private connectionLost(reason: string): void {
+        this.navigationListener?.();
+        this.navigationListener = undefined;
+        this.connection = undefined;
+        this.sessionId = undefined;
+        if (this.child) terminateProcessTree(this.child);
+        this.child = undefined;
+        void this.releaseProfile();
+        this.recordFailure(new PtbkError('The connection to the project browser was lost.', { kind: 'technical', reason }));
+        this.setHealth({ state: 'failed', recovery: { ...this.health.recovery, state: 'retrying' } });
     }
 
     /** Associates subsequent browser use with a task attempt for recording. */
@@ -296,6 +477,7 @@ export class ProjectBrowser {
     /** Ensures the browser runs and recording of the attached task has begun. */
     private async active(): Promise<{ connection: CdpConnection; sessionId: string }> {
         const target = await this.ensure();
+        this.usedByTask = true;
         // Page transitions (including link clicks and redirects) are listed with the recording segment.
         this.navigationListener ??= target.connection.on((message) => {
             if (message.method !== 'Page.frameNavigated' || message.sessionId !== target.sessionId) return;
@@ -315,14 +497,48 @@ export class ProjectBrowser {
         return target;
     }
 
-    /** Launches (or reuses) the browser and attaches to one page. */
+    /**
+     * Launches (or reuses) the browser and attaches to one page. A technical launch failure is retried automatically
+     * within a bound; concurrent callers share one launch, so automatic and manual recovery never start two owners.
+     */
     private async ensure(): Promise<{ connection: CdpConnection; sessionId: string }> {
         if (this.connection && this.sessionId) return { connection: this.connection, sessionId: this.sessionId };
+        this.launching ??= this.launchWithRecovery().finally(() => {
+            this.launching = undefined;
+        });
+        return await this.launching;
+    }
+
+    /** Bounded automatic launch recovery with recorded attempts, causes and next retry. */
+    private async launchWithRecovery(): Promise<{ connection: CdpConnection; sessionId: string }> {
+        for (let attempt = 1; ; attempt++) {
+            this.setHealth({ state: this.health.lastFailure ? 'recovering' : 'starting', recovery: { ...this.health.recovery, attempts: attempt - 1 } });
+            try {
+                const target = await this.launchOnce();
+                this.setHealth({ state: 'running', ownership: { state: 'owned' }, recovery: { attempts: 0, state: 'idle' } });
+                return target;
+            } catch (error) {
+                this.recordFailure(error);
+                const kind = error instanceof PtbkError ? error.details.kind : 'technical';
+                if (kind !== 'technical' || attempt >= LAUNCH_ATTEMPTS) {
+                    this.setHealth({ state: 'failed', recovery: { attempts: attempt, state: 'blocked', blocker: kind === 'conflict' ? 'The profile is in use by another owner; ptbk retries when a task needs the browser.' : kind === 'technical' ? `Startup failed ${attempt} times; the next task use retries.` : 'Needs setup: see the last failure.' } });
+                    throw error;
+                }
+                const delay = LAUNCH_RETRY_MS * 2 ** (attempt - 1);
+                this.setHealth({ state: 'recovering', recovery: { attempts: attempt, state: 'retrying', nextRetryAt: new Date(Date.now() + delay).toISOString() } });
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+        }
+    }
+
+    /** One launch attempt of the configured browser and profile. */
+    private async launchOnce(): Promise<{ connection: CdpConnection; sessionId: string }> {
         const settings = this.settings();
         const executable = await findBrowserExecutable(settings, this.env);
         if (!executable) throw new PtbkError('No Chrome-compatible browser is installed.', { kind: 'setup', next: ['Install Google Chrome or Chromium, or set ptbk.json browser.executable.'] });
         const source = browserProfileSource(setting<string>(settings, 'browser.profile'));
         const profile = browserProfileDirectory(this.project, settings, this.env);
+        this.health = { ...this.health, executable, profilePath: profile };
         if (source === 'user' || source === 'custom') {
             // An existing profile is reused as it is; it is never created, copied or migrated implicitly.
             if (!(await pathExists(profile))) throw new PtbkError(`The selected browser profile ${profile} does not exist.`, { kind: 'configuration', next: ['Choose another profile in ptbk.json `browser.profile` (global, isolated, user or a path), or pass --browser-profile.'] });
@@ -334,6 +550,7 @@ export class ProjectBrowser {
                 claim = await claimProfile(profile, this.project, this.env);
             }
             if ('owner' in claim) {
+                this.setHealth({ ownership: { state: 'busy', holder: `${claim.project ? `project ${claim.project}, ` : ''}PID ${claim.owner}` } });
                 throw new PtbkError(`The shared browser profile is in use by another Promptbook project${claim.project ? ` (${claim.project})` : ''}.`, {
                     kind: 'conflict',
                     reason: `One project automates a shared profile at a time; PID ${claim.owner} holds ${profile}.`,
@@ -350,6 +567,7 @@ export class ProjectBrowser {
         }
         if (owner) {
             await this.releaseProfile();
+            this.setHealth({ ownership: { state: 'busy', holder: `browser PID ${owner}` } });
             throw new PtbkError(`The browser profile ${profile} is in use by another browser (PID ${owner}).`, {
                 kind: 'conflict',
                 next: ['Close that browser to hand the profile over, or choose another profile (ptbk.json browser.profile).'],
@@ -363,6 +581,7 @@ export class ProjectBrowser {
         const activePortFile = join(profile, 'DevToolsActivePort');
         await writeFile(activePortFile, '').catch(() => undefined);
         const args = [`--user-data-dir=${profile}`, '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', ...(headless ? ['--headless=new'] : []), 'about:blank'];
+        this.health = { ...this.health, actualMode: headless ? 'headless' : 'headful' };
         try {
             return await this.launch(executable, args, activePortFile, headless);
         } catch (error) {
@@ -387,6 +606,7 @@ export class ProjectBrowser {
         if (!port) throw new PtbkError('The browser did not start in time.', { kind: 'technical', reason: `No DevTools port appeared in ${activePortFile} within ${STARTUP_TIMEOUT_MS / 1000}s.` });
         const version = (await (await fetch(`http://127.0.0.1:${port}/json/version`)).json()) as { webSocketDebuggerUrl: string };
         const connection = await CdpConnection.open(version.webSocketDebuggerUrl);
+        connection.onClose(() => this.connectionLost('The browser process exited or closed its DevTools connection.'));
         const targets = (await connection.send('Target.getTargets')).targetInfos as Array<{ targetId: string; type: string }>;
         const page = targets.find((target) => target.type === 'page') ?? ({ targetId: String((await connection.send('Target.createTarget', { url: 'about:blank' })).targetId), type: 'page' } as const);
         const sessionId = String((await connection.send('Target.attachToTarget', { targetId: page.targetId, flatten: true })).sessionId);
@@ -497,9 +717,11 @@ export class ProjectBrowser {
         this.connection?.close();
         this.connection = undefined;
         this.sessionId = undefined;
+        const wasRunning = Boolean(this.child);
         if (this.child) terminateProcessTree(this.child);
         this.child = undefined;
         void this.releaseProfile();
+        if (wasRunning) this.setHealth({ state: 'stopped', ownership: { state: 'free' } });
     }
 
     /** Releases this project's claim of a shared profile. */

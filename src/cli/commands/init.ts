@@ -544,7 +544,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                 await toggleList(terminal, {
                     frame: frame('traces', 'every task keeps its own audit trail'),
                     question: 'Traces: how should task evidence be kept?',
-                    intro: 'Each task records its harness output, events and (when enabled) browser video in traces/<name-key>/, linked to its commits by the Task-Name trailer. Traces can contain project data and page content; sign-in steps are not recorded.',
+                    intro: 'Each task records its harness output, events and (when enabled) browser video in traces/<task-file-basename>/, linked to its commits by the Task-Name trailer. Traces can contain project data and page content; sign-in steps are not recorded.',
                     toggles: [
                         { key: 'commit', label: 'Commit traces to Git', description: 'include each task’s traces in its result commit (shared with everyone who can read the repository); otherwise traces stay local and the whole traces/ folder is ignored' },
                         { key: 'ignoreVideos', label: 'Ignore trace videos in Git', description: 'keep browser videos local even when traces are committed (videos are large and may show sensitive pages)' },
@@ -790,8 +790,9 @@ export async function initializeProject(context: CommandContext, options: { proj
     const savedPolicy = configBefore ? { commit: setting<boolean>(configBefore, 'traces.commit'), ignoreVideos: setting<boolean>(configBefore, 'traces.ignoreVideos') } : undefined;
     const traceIgnore = await ensureTraceIgnoreRules(root, savedPolicy && configBefore?.raw.traces ? savedPolicy : tracePolicy);
     if (traceIgnore) createdPaths.push(traceIgnore);
-    for (const path of await ensureCoreAgents(root, agentsDirectory)) createdPaths.push(path);
+    // Default roles first: a missing Chatter's initial TEAM covers the completed role set.
     for (const path of await ensureDefaultRoles(root, agentsDirectory)) createdPaths.push(path);
+    for (const path of await ensureCoreAgents(root, agentsDirectory)) createdPaths.push(path);
     for (const path of await ensureTemplates(root, tasksDirectory)) createdPaths.push(path);
     await ensureDirectory(join(root, tasksDirectory));
     await ensureDirectory(join(root, 'specs'));
@@ -965,7 +966,7 @@ async function startService(context: CommandContext, project: Project): Promise<
         const launched = await launchDaemon(project, { cli: overrides, tasksDirectory: tasksOverride(context), persistent, env: context.env });
         let snapshot = await launched.lookup.client.request<ServiceSnapshot>('snapshot');
         const deadline = Date.now() + 10_000;
-        while (snapshot.service.state === 'starting' && Date.now() < deadline) {
+        while (snapshot.phase === 'starting' && Date.now() < deadline) {
             await new Promise((resolvePromise) => setTimeout(resolvePromise, 300));
             snapshot = await launched.lookup.client.request<ServiceSnapshot>('snapshot');
         }

@@ -192,6 +192,8 @@ export type HarnessPlugin = {
     readonly homepage: string;
     /** Supported thinking levels. */
     readonly thinkingLevels: readonly ThinkingLevel[];
+    /** The harness's own name of the thinking-level setting (e.g. `reasoning effort`), shown instead of a generic label. */
+    readonly thinkingLabel?: string;
     /** Static capabilities (may be refined by inspection). */
     readonly capabilities: HarnessCapabilities;
     /** Native interactive login arguments (inherit the terminal). */

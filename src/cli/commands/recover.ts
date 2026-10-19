@@ -36,7 +36,7 @@ export default async function recover(context: CommandContext): Promise<number> 
         for (const record of records.filter(matches)) {
             const lines = [
                 `Task: ${record.taskTitle} (${record.taskRef}) — ${record.kind}${record === active ? '' : ' — checkpointed (independent work continues)'}`,
-                `Evidence: ${traceDirectoryOf(record.taskTitle)}/`,
+                `Evidence: ${traceDirectoryOf(record.sourcePath)}/ (declared name ${record.taskTitle}, source ${record.sourcePath})`,
                 `Phase: ${record.phase}${record.failure ? ` — ${record.failure}` : ''}`,
                 `Attempts: ${record.attempt} implementation/repair, ${record.technicalRetries} technical retries`,
                 `Routing: ${record.routing.agent} on ${record.routing.harness}${record.routing.model ? ` ${record.routing.model}` : ''}`,

@@ -56,16 +56,19 @@ import type {
     ActivityView,
     AgentView,
     BlockerView,
+    BrowserDetailView,
     ConnectionView,
     CurrentWorkView,
     ErrorView,
+    ExecutionContextView,
+    ExecutionDetailView,
     Phase,
     QueueItemView,
     ResultView,
     ServiceSnapshot,
     WaitView,
 } from './snapshot.js';
-import { StateStore, type ActiveRecord, type ResultRecord } from './state.js';
+import { StateStore, type ActiveRecord, type ResultRecord, type RoutingSelection } from './state.js';
 import { TaskTrace } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
 import { integrateWorktree, prepareWorktree } from './isolation.js';
@@ -128,6 +131,8 @@ export type AgendaOptions = {
     readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
     /** Releases per-task resources after every executed piece of work, whatever its outcome. */
     readonly afterWork?: () => Promise<void>;
+    /** Inspection of the project browser for the browser detail panel (owned by the service). */
+    readonly browserView?: () => BrowserDetailView | undefined;
 };
 
 /**
@@ -139,9 +144,32 @@ export type AgendaSummary = {
     readonly completed: number;
     readonly failed: number;
     readonly waitingChats: number;
-    readonly outcome: 'stopped' | 'finished' | 'incomplete' | 'failed';
+    /** `restart`: the owner shut down for a restart and starts exactly one replacement with the same configuration. */
+    readonly outcome: 'stopped' | 'restart' | 'finished' | 'incomplete' | 'failed';
     readonly message: string;
     readonly nextTime?: number;
+};
+
+/**
+ * A pending lifecycle request applied once the current task settles (draining).
+ *
+ * @private agenda supervisor
+ */
+export type LifecycleIntent = 'pause' | 'stop' | 'restart';
+
+/**
+ * Outcome of a lifecycle operation, shared by CLI, terminal, browser and API.
+ *
+ * `accepted` means the request is pending (draining) or applied; `completed` that its effect already holds.
+ *
+ * @private agenda supervisor
+ */
+export type LifecycleOutcome = {
+    readonly action: string;
+    readonly applied: boolean;
+    readonly completed: boolean;
+    readonly state: ServiceSnapshot['service']['state'];
+    readonly outcome: string;
 };
 
 /**
@@ -193,8 +221,11 @@ export class Agenda {
     private revision = 0;
     private readonly changeListeners = new Set<() => void>();
     private phase: Phase = 'starting';
-    private serviceState: ServiceSnapshot['service']['state'] = 'starting';
+    /** Observed outcome after the agenda ended (not a live state). */
+    private exitState?: 'stopped' | 'finished';
     private current?: CurrentWorkView;
+    /** Effective routing of the current execution and its consultation contexts (for the execution panel). */
+    private currentContext?: { readonly selection: RoutingSelection; readonly harnessVersion?: string; readonly source: string; consultations: ExecutionContextView[] };
     private waitView?: WaitView;
     private queueView: QueueItemView[] = [];
     private queueTotal = 0;
@@ -205,9 +236,20 @@ export class Agenda {
     private recentResults: ResultView[] = [];
     private completed = 0;
     private failed = 0;
+    /** Settled pause: alive and controllable, with no task executing and none claimed. */
     private paused = false;
-    private pauseRequested = false;
-    private stopRequested = false;
+    /** Pending lifecycle request applied once the current task settles. */
+    private intent?: LifecycleIntent;
+    /** When the pending request was accepted (ISO). */
+    private intentSince?: string;
+    /** Revision of the lifecycle decision; a confirmation made against an older revision is stale. */
+    private intentRevision = 0;
+    /** Irreversible shutdown has begun (cancellation is too late). */
+    private shutdown?: 'stop' | 'restart' | 'force';
+    /** Whether shutdown was requested by the operating system (not an intentional user stop). */
+    private shutdownBySignal = false;
+    /** A task owns execution right now (the claim boundary of pause/stop). */
+    private executing = false;
     private ownedWork = new AbortController();
     private waiter?: { readonly skippable: boolean; readonly resolve: (reason: 'elapsed' | 'skipped' | 'cancelled' | 'woken') => void };
     private readonly runtimeOverrides: Record<string, unknown> = {};
@@ -365,11 +407,10 @@ export class Agenda {
      * Runs until stopped (start) or until the finite queue is done (run).
      */
     public async run(): Promise<AgendaSummary> {
-        this.serviceState = 'running';
         this.touch();
         this.startWatching();
         try {
-            while (!this.stopRequested && !this.finishedSummary) {
+            while (!this.shutdown && !this.finishedSummary) {
                 try {
                     await this.iteration();
                 } catch (error) {
@@ -380,53 +421,150 @@ export class Agenda {
                     }
                     await this.wait(setting<number>(this.settings, 'execution.waitAfterError') || 60_000, { kind: 'error-backoff', reason: `Supervisor error: ${errorMessage(error)}`, skippable: true });
                 }
+                this.settle();
             }
         } finally {
             this.stopWatching();
         }
-        this.serviceState = this.options.mode === 'run' && !this.stopRequested ? 'finished' : 'stopped';
-        this.phase = this.options.mode === 'run' && !this.stopRequested ? 'finished' : 'stopped';
+        const finished = this.options.mode === 'run' && !this.shutdown;
+        this.exitState = finished ? 'finished' : 'stopped';
+        this.phase = finished ? 'finished' : 'stopped';
         this.current = undefined;
+        this.currentContext = undefined;
         this.waitView = undefined;
         this.touch();
+        if (this.shutdown === 'restart') {
+            return { completed: this.completed, failed: this.failed, waitingChats: this.waitingChats().length, outcome: 'restart', message: 'Shut down for a restart; unfinished work keeps its recovery record.' };
+        }
         return (
             this.finishedSummary ?? {
                 completed: this.completed,
                 failed: this.failed,
                 waitingChats: this.waitingChats().length,
                 outcome: 'stopped',
-                message: 'Stopped on request; unfinished work keeps its recovery record.',
+                message: this.shutdown === 'force' ? 'Force-stopped; interrupted work keeps its recovery record.' : 'Stopped on request; unfinished work keeps its recovery record.',
             }
         );
     }
 
-    // ── Controls (shared by terminal, browser and API) ───────────────────────
-
-    /** Pauses after the current task (immediately when idle). */
-    public pause(): { state: string } {
-        if (this.current) {
-            this.pauseRequested = true;
-            this.serviceState = 'pausing';
-            this.log('Pause requested; the current task finishes first.');
-        } else {
-            this.paused = true;
-            this.serviceState = 'paused';
-            this.log('Paused.');
-            this.waiter?.resolve('woken');
-        }
-        this.touch();
-        return { state: this.serviceState };
+    /** Whether the stop that ended the agenda was an intentional user request (not a restart or an OS signal). */
+    public get intentionalStop(): boolean {
+        return (this.shutdown === 'stop' || this.shutdown === 'force') && !this.shutdownBySignal;
     }
 
-    /** Resumes task starts. */
-    public resume(): { state: string } {
+    // ── Lifecycle controls (shared by CLI, terminal, browser and API) ────────
+
+    /**
+     * The live service state: `running`, `pausing` (draining into pause), `pause` or `stopping` (draining into exit,
+     * including a restart's shutdown phase). After the agenda ended, the observed `stopped`/`finished` outcome.
+     */
+    public get serviceState(): ServiceSnapshot['service']['state'] {
+        if (this.exitState) return this.exitState;
+        if (this.shutdown || this.intent === 'stop' || this.intent === 'restart') return 'stopping';
+        if (this.intent === 'pause') return 'pausing';
+        return this.paused ? 'pause' : 'running';
+    }
+
+    /** Whether a stop or restart is pending or under way (waits end early; no next task is claimed). */
+    private get stopRequested(): boolean {
+        return Boolean(this.shutdown) || this.intent === 'stop' || this.intent === 'restart';
+    }
+
+    /** Whether a new task may be claimed now: only while `running`. */
+    private get claimable(): boolean {
+        return this.serviceState === 'running';
+    }
+
+    /** Records a lifecycle decision (new revision) and notifies every client. */
+    private decide(intent: LifecycleIntent | undefined, message: string, level: ActivityView['level'] = 'info'): void {
+        this.intent = intent;
+        this.intentSince = intent ? new Date().toISOString() : undefined;
+        this.intentRevision++;
+        this.log(message, level);
+    }
+
+    /** Builds a lifecycle outcome. */
+    private outcome(action: string, applied: boolean, outcome: string): LifecycleOutcome {
+        const state = this.serviceState;
+        return { action, applied, completed: applied && (state === 'pause' || state === 'running') && !this.intent, state, outcome };
+    }
+
+    /**
+     * Applies a pending intent once no task executes: pause settles into `pause`; stop/restart begin the
+     * irreversible orderly shutdown (the run loop then exits and the owner cleans up).
+     */
+    private settle(): void {
+        if (this.executing || this.shutdown) return;
+        if (this.intent === 'pause') {
+            this.intent = undefined;
+            this.intentSince = undefined;
+            this.paused = true;
+            this.log('Paused: no task runs until you resume.');
+        } else if (this.intent === 'stop' || this.intent === 'restart') {
+            this.shutdown = this.intent;
+            this.log(this.intent === 'restart' ? 'Restarting: shutting down so one replacement can start.' : 'Stopping: shutting down.');
+            this.waiter?.resolve('cancelled');
+        }
+        this.touch();
+    }
+
+    /**
+     * Requests a graceful pause: no new task is claimed; the current task settles first (`pausing`), otherwise the
+     * service pauses immediately. Replacing a pending stop/restart requires explicit confirmation against the
+     * decision revision the caller saw (`replaceStop` + `revision`).
+     */
+    public pause(options: { readonly replaceStop?: boolean; readonly revision?: number } = {}): LifecycleOutcome {
+        if (this.shutdown) return this.outcome('pause', false, 'Too late: the service is already shutting down.');
+        if (this.paused) return this.outcome('pause', true, 'Already paused.');
+        if (this.intent === 'pause') return this.outcome('pause', true, 'Pause is already pending: the current task finishes first.');
+        if (this.intent === 'stop' || this.intent === 'restart') {
+            if (!options.replaceStop) {
+                throw new PtbkError(`A ${this.intent} is pending; pausing instead would cancel it.`, {
+                    kind: 'conflict',
+                    reason: `Decision revision ${this.intentRevision}: ${this.intent} after the current task.`,
+                    effect: 'Nothing was changed.',
+                    next: ['Confirm replacing the pending shutdown with pause, or run `ptbk resume` (cancels it) and then `ptbk pause`.'],
+                    data: { intent: this.intent, revision: this.intentRevision },
+                });
+            }
+            if (options.revision !== undefined && options.revision !== this.intentRevision) {
+                throw new PtbkError('The lifecycle decision changed since you confirmed; nothing was replaced.', { kind: 'conflict', next: ['Check the current state (`ptbk status`) and decide again.'] });
+            }
+            this.decide('pause', `The pending ${this.intent} was cancelled in favour of pause.`);
+        } else if (this.executing) this.decide('pause', 'Pause requested: the current task finishes first, then no task starts until you resume.');
+        else {
+            this.intentRevision++;
+            this.paused = true;
+            this.log('Paused: no task runs until you resume.');
+        }
+        this.settle();
+        // An idle wait (or a human wait outside task execution) re-evaluates so the pause holds immediately.
+        if (!this.executing) this.waiter?.resolve('woken');
+        this.touch();
+        return this.outcome('pause', true, this.serviceState === 'pause' ? 'Paused.' : 'Pause pending: the current task finishes first.');
+    }
+
+    /**
+     * Resumes a paused service, or cancels a pending pause/stop/restart (and a restart's planned replacement),
+     * returning to `running` without interrupting or replaying the current task.
+     */
+    public resume(): LifecycleOutcome {
+        if (this.shutdown) return this.outcome('resume', false, 'Too late: shutdown has already begun.');
+        if (this.intent) {
+            const cancelled = this.intent;
+            this.decide(undefined, `The pending ${cancelled} was cancelled; the service keeps running${this.executing ? ' (the current task continues)' : ''}.`);
+            this.paused = false;
+            this.waiter?.resolve('woken');
+            this.touch();
+            return this.outcome('resume', true, `Cancelled the pending ${cancelled}.`);
+        }
+        if (!this.paused) return this.outcome('resume', true, 'Already running.');
         this.paused = false;
-        this.pauseRequested = false;
-        this.serviceState = 'running';
+        this.intentRevision++;
         this.log('Resumed.');
         this.waiter?.resolve('woken');
         this.touch();
-        return { state: this.serviceState };
+        return this.outcome('resume', true, 'Resumed.');
     }
 
     /** Skips a pacing/backoff wait; setup, schedule and human waits cannot be skipped. */
@@ -439,30 +577,62 @@ export class Agenda {
     }
 
     /**
-     * Requests a graceful stop: after the current task, or immediately cancelling owned work (recoverable).
+     * Requests a graceful stop (`stopping`: the current task settles, then orderly shutdown), a graceful restart (the
+     * same drain, then exactly one replacement) or an immediate force stop of owned work. Repeating a request is
+     * idempotent; it never escalates to force.
      */
-    public requestStop(options: { cancelCurrent: boolean }): { state: string } {
-        this.stopRequested = true;
-        this.serviceState = 'stopping';
-        this.phase = 'stopping';
-        if (options.cancelCurrent) {
-            this.log('Stopping: cancelling owned work (recovery state is preserved).', 'warning');
+    public requestStop(options: { readonly force?: boolean; readonly restart?: boolean; readonly signal?: boolean } = {}): LifecycleOutcome {
+        const action = options.force ? 'force-stop' : options.restart ? 'restart' : 'stop';
+        // An OS termination request is not an intentional user stop (unless the user had already asked to stop).
+        if (options.signal && !this.intent && !this.shutdown) this.shutdownBySignal = true;
+        if (options.force) {
+            if (this.shutdown === 'force') return this.outcome(action, true, 'Already force-stopping.');
+            const busy = this.executing;
+            this.shutdown = 'force';
+            this.intent = 'stop';
+            this.intentRevision++;
+            this.log(busy ? 'Force stop: interrupting owned work now (its recovery record is kept; nothing is marked done).' : 'Force stop: no task is running; shutting down now.', 'warning');
             this.ownedWork.abort();
-        } else this.log(this.current ? 'Stopping after the current task.' : 'Stopping.');
+            this.waiter?.resolve('cancelled');
+            this.touch();
+            return this.outcome(action, true, busy ? 'Force-stopping: owned work is interrupted and recoverable.' : 'Stopping now.');
+        }
+        if (this.shutdown) return this.outcome(action, this.shutdown === (options.restart ? 'restart' : 'stop'), this.shutdown === 'restart' ? 'Already restarting.' : 'Already shutting down.');
+        const wanted: LifecycleIntent = options.restart ? 'restart' : 'stop';
+        if (this.intent === wanted) return this.outcome(action, true, `${options.restart ? 'Restart' : 'Stop'} is already pending: the current task finishes first.`);
+        if (options.restart && this.options.mode === 'run') throw new PtbkError('A finite run cannot be restarted.', { kind: 'usage', next: ['Stop it and run it again.'] });
+        const previous = this.intent;
+        this.paused = false;
+        this.decide(
+            wanted,
+            this.executing
+                ? `${options.restart ? 'Restart' : 'Stop'} requested${previous ? ` (instead of the pending ${previous})` : ''}: the current task finishes first, then the service ${options.restart ? 'restarts' : 'stops'}.`
+                : `${options.restart ? 'Restart' : 'Stop'} requested.`,
+        );
+        this.settle();
+        // Waits between tasks end now; a wait inside the current task ends with a recoverable checkpoint.
         this.waiter?.resolve('cancelled');
         this.touch();
-        return { state: this.serviceState };
+        return this.outcome(action, true, this.shutdown ? (options.restart ? 'Restarting now.' : 'Stopping now.') : `${options.restart ? 'Restart' : 'Stop'} pending: the current task finishes first.`);
     }
 
-    /** Cancels a pending stop that has not taken effect yet. */
-    public cancelStop(): { state: string } {
-        if (this.stopRequested && !this.ownedWork.signal.aborted) {
-            this.stopRequested = false;
-            this.serviceState = this.paused ? 'paused' : 'running';
-            this.log('Stop cancelled.');
-            this.touch();
-        }
-        return { state: this.serviceState };
+    /** Cancels a pending stop/restart that has not taken effect yet (compatibility alias of resume). */
+    public cancelStop(): LifecycleOutcome {
+        if (this.intent === 'pause' || (!this.intent && !this.shutdown)) return this.outcome('cancel-stop', false, 'No stop is pending.');
+        return this.resume();
+    }
+
+    /** Lifecycle details for every view: pending intent, its revision and whether work is still draining. */
+    private lifecycleView(): ServiceSnapshot['service']['lifecycle'] {
+        return {
+            intent: this.shutdown ? (this.shutdown === 'force' ? 'force-stop' : this.shutdown) : this.intent,
+            since: this.intentSince,
+            revision: this.intentRevision,
+            draining: Boolean(this.intent) && this.executing,
+            shutdown: Boolean(this.shutdown),
+            cancellable: Boolean(this.intent) && !this.shutdown,
+            restartable: this.options.mode !== 'run',
+        };
     }
 
     // ── Chats (shared by terminal, browser, API and `ptbk answer`) ─────────────
@@ -561,7 +731,13 @@ export class Agenda {
                     name,
                 );
                 if (turn.error) this.log(`No reply in {{${name}}}: ${turn.error}`, 'warning');
-                else if (turn.reply) this.log(`Reply in {{${turn.reply.chat.name}}}${turn.createdTasks.length ? ` (created ${turn.createdTasks.map((task) => `{{${task}}}`).join(', ')})` : ''}.`);
+                else if (turn.reply) {
+                    const notes = [
+                        ...(turn.consultations?.length ? [`consulted in ${turn.consultations.map((consultation) => `{{${consultation}}}`).join(', ')}`] : []),
+                        ...(turn.createdTasks.length ? [`created ${turn.createdTasks.map((task) => `{{${task}}}`).join(', ')}`] : []),
+                    ];
+                    this.log(`Reply in {{${turn.reply.chat.name}}}${notes.length ? ` (${notes.join('; ')})` : ''}.`);
+                }
                 await this.refreshChats();
             })
             .catch((error: unknown) => this.log(`The reply in {{${name}}} failed: ${errorMessage(error)}`, 'warning'));
@@ -686,10 +862,10 @@ export class Agenda {
         return outcome.committed ? outcome.sha : undefined;
     }
 
-    /** Policy-eligible trace files of a task for a task-related commit (never ignored evidence). */
-    private async traceFiles(taskName: string): Promise<string[]> {
+    /** Policy-eligible trace files of a task (by its source file) for a task-related commit (never ignored evidence). */
+    private async traceFiles(sourcePath: string): Promise<string[]> {
         if (!this.commitMode || !setting<boolean>(this.settings, 'traces.commit')) return [];
-        return await stageableFiles(this.options.project.root, traceDirectoryOf(taskName));
+        return await stageableFiles(this.options.project.root, traceDirectoryOf(sourcePath));
     }
 
     /** Updates connection information (owned by the service). */
@@ -712,6 +888,57 @@ export class Agenda {
     }
 
     // ── Snapshot ─────────────────────────────────────────────────────────────
+
+    /** Publishes a change of service-owned state (e.g. the project browser) to every view. */
+    public notifyChange(): void {
+        this.touch();
+    }
+
+    /**
+     * Effective execution configuration of the current execution, or of the last finished one labelled historical
+     * (never presented as currently running).
+     */
+    private executionView(): ExecutionDetailView | undefined {
+        const current = this.current;
+        const context = this.currentContext;
+        if (current && context) {
+            return {
+                status: 'active',
+                task: { ref: current.taskRef, title: current.taskTitle, source: context.source, trace: current.trace, kind: current.kind },
+                agent: { name: current.agent.name, source: context.selection.sources?.agent },
+                phase: current.phase,
+                attempt: current.attempt || undefined,
+                attemptBudget: current.attemptBudget,
+                startedAt: current.startedAt,
+                contexts: [
+                    executionContextView({
+                        role: 'task',
+                        agent: current.agent.name,
+                        harness: current.harness,
+                        harnessVersion: context.harnessVersion,
+                        model: current.model,
+                        modelReported: current.modelSource === 'reported',
+                        thinkingLevel: current.thinkingLevel,
+                        sources: context.selection.sources,
+                        state: 'active',
+                    }),
+                    ...context.consultations,
+                ],
+            };
+        }
+        const last = this.recentResults[0];
+        if (!last?.harness) return undefined;
+        return {
+            status: 'historical',
+            task: { ref: last.ref, title: last.title, source: last.source, trace: last.trace, kind: last.kind ?? 'task' },
+            agent: { name: last.agent ?? 'unknown' },
+            startedAt: last.startedAt,
+            endedAt: last.endedAt,
+            outcome: last.outcome,
+            attempt: last.attempts || undefined,
+            contexts: [executionContextView({ role: 'task', agent: last.agent ?? 'unknown', harness: last.harness, harnessVersion: last.harnessVersion, model: last.model, modelReported: last.modelReported, thinkingLevel: last.thinkingLevel, state: 'finished' })],
+        };
+    }
 
     /** Notifies listeners of a state change. */
     private touch(): void {
@@ -790,9 +1017,12 @@ export class Agenda {
                 persistenceNote: this.options.persistenceNote,
                 commitMode: this.settings && !this.commitMode ? 'no-commit' : 'commit',
                 stopRequested: this.stopRequested,
+                lifecycle: this.lifecycleView(),
             },
             phase: this.paused && !this.current ? 'paused' : this.phase,
             current: this.current,
+            execution: this.executionView(),
+            browser: this.options.browserView?.(),
             wait: this.waitView,
             queue: this.queueView,
             queueTotal: this.queueTotal,
@@ -909,8 +1139,10 @@ export class Agenda {
 
     /** One supervisor step: resume, execute, discover or wait. */
     private async iteration(): Promise<void> {
+        this.settle();
+        if (this.shutdown) return;
         if (this.paused) {
-            await this.wait(Infinity, { kind: 'paused', reason: 'Paused. Resume to continue starting tasks.', skippable: false });
+            await this.wait(Infinity, { kind: 'paused', reason: 'Paused: no task starts until you resume (ptbk resume).', skippable: false });
             return;
         }
         this.phase = 'evaluating';
@@ -959,13 +1191,9 @@ export class Agenda {
                 this.log(`Skipped ${next.task.title} (not confirmed).`);
                 return;
             }
+            // Lifecycle decisions are serialized with claims: after pause/stop is accepted, no next task starts.
+            if (!this.claimable) return;
             await this.startTask(next);
-            if (this.pauseRequested) {
-                this.pauseRequested = false;
-                this.paused = true;
-                this.serviceState = 'paused';
-                this.touch();
-            }
             return;
         }
         if (this.options.mode === 'run') {
@@ -1013,6 +1241,7 @@ export class Agenda {
      * Fixer's previous check is unfinished, or when Fixer is unavailable. Returns whether a task was created.
      */
     private async scheduleHealthCheck(evaluated: readonly EvaluatedTask[]): Promise<boolean> {
+        if (!this.claimable) return false;
         const fixer = await this.catalog.resolve('@Fixer');
         if (fixer.kind !== 'agent') return false;
         if (evaluated.some((item) => item.task.origin === HEALTH_ORIGIN && isUnfinished(item.readiness))) return false;
@@ -1198,6 +1427,16 @@ export class Agenda {
                     } else if (event.type === 'model' && this.current) {
                         this.current = { ...this.current, model: event.model, modelSource: 'reported' };
                         this.touch();
+                    } else if (event.type === 'consultation' && this.currentContext) {
+                        const consultations = this.currentContext.consultations;
+                        if (event.state === 'started') {
+                            consultations.push(executionContextView({ role: 'consultation', agent: event.advisor, by: event.by, harness: event.harness, model: event.model, state: 'active' }));
+                            if (consultations.length > 8) consultations.splice(0, consultations.length - 8);
+                        } else {
+                            const index = consultations.map((item) => item.agent === event.advisor && item.state === 'active').lastIndexOf(true);
+                            if (index >= 0) consultations[index] = { ...consultations[index]!, state: 'finished' };
+                        }
+                        this.touch();
                     }
                 },
                 wait: async (ms, info) => {
@@ -1340,6 +1579,7 @@ export class Agenda {
 
     /** Creates and executes the Manager prerequisite of a task with missing routing. */
     private async assign(target: Task): Promise<void> {
+        if (!this.claimable) return;
         const manager = await this.catalog.resolve('@Manager');
         if (manager.kind !== 'agent') {
             const needsConversion = manager.kind === 'invalid' || Boolean(this.catalog.index.winnerOf('manager')?.document.legacy);
@@ -1366,7 +1606,7 @@ export class Agenda {
         const thinking = harness === preferred ? setting<ThinkingLevel | undefined>(this.settings, 'routing.thinkingLevel') : this.settings.harnesses[harness]?.thinkingLevel;
         const created = await createAssignmentTask({ target, tasksDirectory: this.tasksDirectory, bootstrap: { harness, model, thinkingLevel: thinking }, timeZone: this.timeZone, taken: await this.takenNames() });
         this.log(`Missing routing for "${target.title}": Manager prerequisite {{${created.name}}} (${toProjectRelative(this.options.project.root, created.path)})`);
-        await (await TaskTrace.open(this.options.project, target.title)).event('assignment-requested', { managerTask: created.name, source: toProjectRelative(this.options.project.root, created.path) });
+        await (await TaskTrace.open(this.options.project, { name: target.title, source: target.source.relativePath })).event('assignment-requested', { managerTask: created.name, managerSource: toProjectRelative(this.options.project.root, created.path) });
         const managerTask = readTaskBook({ source: await readFile(created.path, 'utf8'), path: created.path, relativePath: toProjectRelative(this.options.project.root, created.path), order: 0, timeZone: this.timeZone })!;
         const route = await this.route(managerTask);
         if (route.kind !== 'routable') {
@@ -1379,6 +1619,7 @@ export class Agenda {
 
     /** Creates and executes a goal enquiry when one is due; returns false when none is due. */
     private async discover(): Promise<boolean> {
+        if (!this.claimable) return true;
         const candidates = this.catalog.ordinary().filter((definition) => definition.document.commitments.some((commitment) => commitment.keyword === 'GOAL' && commitment.body.trim()));
         if (!candidates.length) {
             this.idleReason = 'No unfinished work, and no ordinary agent has a GOAL for goal discovery. Add tasks or goals.';
@@ -1417,6 +1658,8 @@ export class Agenda {
         const item = await this.buildWorkItem(task, route, { createdPaths: [path] });
         if (!item) return false;
         const outcome = await this.execute(item);
+        // Not claimed (pause/stop accepted meanwhile) or interrupted by a force stop: no enquiry outcome to record.
+        if (outcome.kind === 'interrupted' && !this.claimable) return true;
         const tasksRelative = toProjectRelative(this.options.project.root, this.tasksDirectory);
         const created = outcome.kind === 'completed' ? outcome.changedPaths.filter((changed) => changed !== task.source.relativePath && changed.startsWith(`${tasksRelative}/`) && /\.(book|md)$/i.test(changed)) : [];
         const work = created.filter((changed) => !/learn-/.test(changed));
@@ -1441,20 +1684,44 @@ export class Agenda {
         const { stampBookCompletion } = await import('../tasks/book-task.js');
         const source = await readFile(task.source.path, 'utf8');
         await writeFile(task.source.path, stampBookCompletion(appendCommitment(source, 'TASK NOTE', note), Date.now(), this.timeZone));
-        await (await TaskTrace.open(this.options.project, task.title)).event('completed-without-model', { note });
-        const commit = this.commitMode ? await this.commitAuthoring([task.source.path, ...(await this.traceFiles(task.title))], task.title, { 'Task-Name': task.title }) : undefined;
+        await (await TaskTrace.open(this.options.project, { name: task.title, source: task.source.relativePath })).event('completed-without-model', { note });
+        const commit = this.commitMode ? await this.commitAuthoring([task.source.path, ...(await this.traceFiles(task.source.relativePath))], task.title, { 'Task-Name': task.title }) : undefined;
         this.log(`${task.title}: ${note}${commit ? ` (${commit.slice(0, 8)})` : ''}`);
     }
 
     // ── Executing ────────────────────────────────────────────────────────────
 
-    /** Runs one work item through the executor and handles its outcome. */
+    /**
+     * Runs one work item through the executor and handles its outcome. The claim boundary: once pause/stop is
+     * accepted, nothing new starts (the work stays queued with its record intact).
+     */
     private async execute(item: WorkItem): Promise<ExecutionOutcome> {
+        if (!this.claimable) {
+            this.log(`Not starting "${item.task.title}": the service is ${this.serviceState}.`);
+            // Engine-created Books prepared for this very claim (a Manager or discovery task) are withdrawn; they are
+            // created again when work resumes. A resumed record keeps everything.
+            if (!item.resume) {
+                const { rm } = await import('node:fs/promises');
+                for (const path of item.createdPaths) await rm(path, { force: true });
+            }
+            return { kind: 'interrupted' };
+        }
+        this.executing = true;
+        try {
+            return await this.executeClaimed(item);
+        } finally {
+            this.executing = false;
+            this.settle();
+        }
+    }
+
+    /** Executes claimed work (the service owns it until its outcome is handled). */
+    private async executeClaimed(item: WorkItem): Promise<ExecutionOutcome> {
         const selection = item.route.selection;
         const targetRef = item.kind === 'assignment' ? originTarget(item.task) : undefined;
         this.current = {
             taskRef: item.task.ref,
-            trace: `${traceDirectoryOf(item.task.title)}/`,
+            trace: `${traceDirectoryOf(item.task.source.relativePath)}/`,
             taskTitle: item.task.title,
             kind: item.kind,
             agent: agentView(selection.agent, 'working'),
@@ -1469,6 +1736,7 @@ export class Agenda {
             startedAt: new Date().toISOString(),
             target: targetRef ? { ref: targetRef, title: targetRef } : undefined,
         };
+        this.currentContext = { selection, harnessVersion: item.route.inspection.version, source: item.task.source.relativePath, consultations: [] };
         this.phase = item.kind === 'assignment' ? 'assigning' : item.kind === 'learning' ? 'learning' : item.kind === 'discovery' ? 'discovering' : 'executing';
         this.log(`${item.resume ? 'Resuming' : 'Starting'} ${item.kind === 'task' ? '' : `${item.kind} `}"${item.task.title}" with ${selection.agent} on ${harnessName(selection.harness)}${selection.model ? ` (${selection.model})` : ''}`);
         let outcome: ExecutionOutcome;
@@ -1484,6 +1752,7 @@ export class Agenda {
         }
         const finished = this.current;
         this.current = undefined;
+        this.currentContext = undefined;
         this.touch();
         switch (outcome.kind) {
             case 'completed': {
@@ -1492,9 +1761,9 @@ export class Agenda {
                 this.runSucceeded++;
                 await this.state.setBlocker(item.task.key, undefined);
                 this.recentResults = (await this.state.recentResults(20)).map(resultView);
-                if (setting<boolean>(this.settings, 'execution.autoPush') && outcome.commit) await this.push(item.task.title);
+                if (setting<boolean>(this.settings, 'execution.autoPush') && outcome.commit) await this.push({ name: item.task.title, source: item.task.source.relativePath });
                 const pacing = setting<number>(this.settings, 'execution.waitBetweenPrompts');
-                if (pacing > 0 && !this.stopRequested) await this.wait(pacing, { kind: 'pacing', reason: 'Pause between tasks (--wait-between-prompts).', skippable: true });
+                if (pacing > 0 && !this.stopRequested && !this.intent && !this.paused) await this.wait(pacing, { kind: 'pacing', reason: 'Pause between tasks (--wait-between-prompts).', skippable: true });
                 break;
             }
             case 'awaiting-user': {
@@ -1586,7 +1855,7 @@ export class Agenda {
             if (!reply.answered) {
                 this.current = {
                     taskRef: record.taskRef,
-                    trace: `${traceDirectoryOf(record.taskTitle)}/`,
+                    trace: `${traceDirectoryOf(record.sourcePath)}/`,
                     taskTitle: record.taskTitle,
                     kind: record.kind,
                     agent: agentView(record.routing.agent, 'waiting-user'),
@@ -1601,15 +1870,18 @@ export class Agenda {
                     startedAt: record.startedAt,
                     detail: `{{${record.waitingChat}}}`,
                 };
+                this.currentContext = { selection: record.routing, source: record.sourcePath, consultations: [] };
                 this.phase = 'awaiting-user';
                 await this.evaluate();
                 if (this.options.mode === 'run') {
                     this.current = undefined;
+                    this.currentContext = undefined;
                     this.finishRun([]);
                     return;
                 }
                 await this.wait(IDLE_RECHECK_MS, { kind: 'user', reason: `"${record.taskTitle}" waits for your reply in the chat {{${record.waitingChat}}} and holds uncommitted changes, so other work waits too.`, action: `ptbk answer "${record.waitingChat}"`, skippable: false });
                 this.current = undefined;
+                this.currentContext = undefined;
                 return;
             }
         }
@@ -1665,7 +1937,7 @@ export class Agenda {
             const asked = await taskChats(this.chats, { name: current.taskTitle, key: current.taskKey || nameKey(current.taskTitle) }, { takenNames: () => this.catalog.index.names() }).askUser({
                 agent,
                 reason: `The task {{${current.taskTitle}}} failed: ${current.failure ?? 'unknown reason'}`,
-                attempted: `${current.attempt} attempt(s) and ${current.technicalRetries} technical retr${current.technicalRetries === 1 ? 'y' : 'ies'} within the configured budgets. Evidence: ${traceDirectoryOf(current.taskTitle)}/.`,
+                attempted: `${current.attempt} attempt(s) and ${current.technicalRetries} technical retr${current.technicalRetries === 1 ? 'y' : 'ies'} within the configured budgets. Evidence: ${traceDirectoryOf(current.sourcePath)}/.`,
                 question: 'How should I continue? Retrying runs the task again with a fresh attempt budget; acknowledging records the failure (TASK STATUS failed) and moves on. Partial changes stay in the working tree.',
                 choices: [...RECOVERY_CHOICES],
             });
@@ -1724,8 +1996,8 @@ export class Agenda {
                 ? setControlCommitment(source, 'TASK STATUS', 'failed')
                 : setMarkdownControl(source, { hash: record.sectionHash }, '!', `failed ${formatIsoWithOffset(Date.now(), this.timeZone)}: ${(record.failure ?? '').slice(0, 160)}`);
             await writeFile(path, updated);
-            await (await TaskTrace.open(this.options.project, record.taskTitle)).event('failure-acknowledged', { runId: record.runId, failure: record.failure, chat: record.recoveryChat });
-            if (this.commitMode) await this.commitAuthoring([path, ...(await this.traceFiles(record.taskTitle))], `Mark failed - ${record.taskTitle}`, { 'Task-Name': record.taskTitle });
+            await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('failure-acknowledged', { runId: record.runId, failure: record.failure, chat: record.recoveryChat });
+            if (this.commitMode) await this.commitAuthoring([path, ...(await this.traceFiles(record.sourcePath))], `Mark failed - ${record.taskTitle}`, { 'Task-Name': record.taskTitle });
         } catch (error) {
             this.log(`Could not mark "${record.taskTitle}" as failed in its source: ${errorMessage(error)}`, 'warning');
         }
@@ -1782,6 +2054,7 @@ export class Agenda {
             await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason, skippable: false });
             return false;
         }
+        if (!this.claimable) return false;
         const path = await newTaskPath(this.tasksDirectory, 'repair failing project check', Date.now(), this.timeZone);
         const agent = setting<string>(this.settings, 'routing.defaultAgent');
         await writeFile(
@@ -1814,14 +2087,14 @@ export class Agenda {
     }
 
     /** Pushes completed work when automatic push is enabled (failures stay local and pending). */
-    private async push(taskName?: string): Promise<void> {
+    private async push(task?: { readonly name: string; readonly source: string }): Promise<void> {
         if (!this.repositoryRoot) return;
         this.phase = 'synchronizing';
         const result = await this.gitMutex.run(() => runGit(this.repositoryRoot!, ['push'], { timeoutMs: 120_000 }));
         if (result.exitCode === 0) this.log('Pushed completed work.');
         else this.log(`Push failed; the commit stays local and synchronization is pending: ${result.stderr.trim().split('\n').slice(-2).join(' ')}`, 'warning');
         // Synchronization happens after the result snapshot, so it is recorded as a local (post-commit) event.
-        if (taskName) await (await TaskTrace.open(this.options.project, taskName)).event('push', { ok: result.exitCode === 0, detail: result.exitCode === 0 ? undefined : result.stderr.trim().slice(-500) }, { local: true });
+        if (task) await (await TaskTrace.open(this.options.project, task)).event('push', { ok: result.exitCode === 0, detail: result.exitCode === 0 ? undefined : result.stderr.trim().slice(-500) }, { local: true });
     }
 
     /**
@@ -1842,7 +2115,7 @@ export class Agenda {
             return false;
         }
         await this.state.park(record);
-        await (await TaskTrace.open(this.options.project, record.taskTitle)).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat });
+        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat });
         this.log(`"${record.taskTitle}" is checkpointed until you reply in {{${record.waitingChat ?? record.recoveryChat}}}; independent work continues.`);
         return true;
     }
@@ -1983,6 +2256,54 @@ function resultView(result: ResultRecord): ResultView {
         summary: result.summary,
         endedAt: result.endedAt,
         attempts: result.attempts,
+        kind: result.kind,
+        source: result.source,
+        thinkingLevel: result.thinkingLevel,
+        modelReported: result.modelReported,
+        harnessVersion: result.harnessVersion,
+        startedAt: result.startedAt,
+    };
+}
+
+/**
+ * The execution context of one agent run: harness, model and thinking level with honest unknown/automatic/
+ * not-applicable distinctions in the harness's own terminology.
+ *
+ * @private agenda supervisor
+ */
+export function executionContextView(input: {
+    readonly role: ExecutionContextView['role'];
+    readonly agent: string;
+    readonly by?: string;
+    readonly harness: string;
+    readonly harnessVersion?: string;
+    readonly model?: string;
+    readonly modelReported?: boolean;
+    readonly thinkingLevel?: string;
+    readonly sources?: RoutingSelection['sources'];
+    readonly state: ExecutionContextView['state'];
+}): ExecutionContextView {
+    const plugin = HARNESS_PLUGINS.find((candidate) => candidate.id === input.harness);
+    const model: ExecutionContextView['model'] = input.model
+        ? { value: input.model, status: input.modelReported ? 'reported' : 'requested', source: input.sources?.model }
+        : plugin
+          ? { status: 'automatic' }
+          : { status: 'unknown' };
+    const thinkingLevel: ExecutionContextView['thinkingLevel'] = !plugin
+        ? { value: input.thinkingLevel, status: input.thinkingLevel ? 'requested' : 'unknown' }
+        : !plugin.thinkingLevels.length
+          ? { status: 'not-applicable', source: `${plugin.displayName} has no thinking-level setting` }
+          : input.thinkingLevel
+            ? { value: input.thinkingLevel, status: 'requested', term: plugin.thinkingLabel, source: input.sources?.thinkingLevel }
+            : { status: 'automatic', term: plugin.thinkingLabel };
+    return {
+        role: input.role,
+        agent: input.agent,
+        by: input.by,
+        harness: { id: input.harness, name: plugin?.displayName ?? input.harness, version: input.harnessVersion },
+        model,
+        thinkingLevel,
+        state: input.state,
     };
 }
 

@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { PtbkError } from '../common/errors.js';
 import { normalizeAgentName } from '../book/references.js';
 import { declarationName } from '../book/write.js';
 import { creationTimestamp } from '../common/time.js';
@@ -32,12 +33,62 @@ export function nameKeyPath(name: string): string {
 }
 
 /**
- * Project-relative POSIX directory of a task's audit evidence: `traces/<name-key>`.
+ * Literal trace-directory component of a task source: its actual filename without the final `.book` (or legacy
+ * `.md`) extension, never derived from the declared TASK name, normalized, slugified, hashed or allocated.
+ *
+ * Returns `undefined` for a basename that cannot safely name a directory (empty, `.`/`..`, path separators).
  *
  * @private task identity
  */
-export function traceDirectoryOf(taskName: string): string {
+export function traceBasenameOf(sourcePath: string): string | undefined {
+    const filename = sourcePath.replace(/\\/g, '/').split('/').pop() ?? '';
+    const basename = filename.replace(/\.(book|md)$/i, '');
+    if (!basename.trim() || basename === '.' || basename === '..' || /[\\/\0]/.test(basename)) return undefined;
+    return basename;
+}
+
+/**
+ * Project-relative POSIX directory of a task's audit evidence: `traces/<task-file-basename>`, copying the actual
+ * source filename literally without its final extension (a storage convention, not the task's logical identity).
+ *
+ * @private task identity
+ */
+export function traceDirectoryOf(sourcePath: string): string {
+    const basename = traceBasenameOf(sourcePath);
+    if (!basename) throw new PtbkError(`The task source ${sourcePath} has no usable filename for its trace directory.`, { kind: 'configuration', next: ['Rename the task source to a readable `.book` filename.'] });
+    return `traces/${basename}`;
+}
+
+/**
+ * Directory where engines before the source-filename convention stored a task's evidence (`traces/<name-key>`).
+ * It remains historical evidence and is only linked, never written to again.
+ *
+ * @private task identity
+ */
+export function legacyTraceDirectoryOf(taskName: string): string {
     return `traces/${nameKeyPath(taskName)}`;
+}
+
+/**
+ * Groups task sources whose trace directories would collide (different sources, same literal basename, e.g.
+ * `tasks/a.book` and `prompts/a.md`). Such evidence destinations are ambiguous and must be resolved explicitly.
+ *
+ * @private task identity
+ */
+export function traceDirectoryConflicts(sourcePaths: Iterable<string>): Map<string, string[]> {
+    const bySlot = new Map<string, Set<string>>();
+    for (const path of sourcePaths) {
+        const basename = traceBasenameOf(path);
+        if (!basename) continue;
+        // Case-insensitive file systems would merge directories differing only by case.
+        const slot = basename.toLowerCase();
+        const sources = bySlot.get(slot) ?? new Set<string>();
+        sources.add(path.replace(/\\/g, '/'));
+        bySlot.set(slot, sources);
+    }
+    const conflicts = new Map<string, string[]>();
+    for (const [slot, sources] of bySlot) if (sources.size > 1) conflicts.set(slot, [...sources].sort());
+    return conflicts;
 }
 
 /**

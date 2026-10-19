@@ -9,7 +9,7 @@ import { readProcessRecord, type ProcessRecord } from './records.js';
  *
  * @private service control
  */
-export const READ_ONLY_METHODS = new Set(['identify', 'snapshot', 'watch', 'requests', 'devices']);
+export const READ_ONLY_METHODS = new Set(['identify', 'snapshot', 'summary', 'watch', 'requests', 'devices', 'chat-list', 'chat-agents', 'chat-get']);
 
 /**
  * Handler of control methods.
@@ -66,8 +66,8 @@ export class ControlClient {
             } catch (error) {
                 if (!(error instanceof IpcError)) throw error;
                 if (error.stage === 'remote') {
-                    const details = error.details as { kind?: string; reason?: string; next?: string[] } | undefined;
-                    throw new PtbkError(error.message, { kind: (details?.kind as never) ?? 'technical', reason: details?.reason, next: details?.next });
+                    const details = error.details as { kind?: string; reason?: string; effect?: string; next?: string[]; data?: Record<string, unknown> } | undefined;
+                    throw new PtbkError(error.message, { kind: (details?.kind as never) ?? 'technical', reason: details?.reason, effect: details?.effect, next: details?.next, data: details?.data });
                 }
                 if (!readOnly) {
                     throw new PtbkError(error.stage === 'connect' ? 'The service did not accept the request.' : `The outcome of "${method}" is unconfirmed.`, {

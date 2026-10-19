@@ -1,4 +1,5 @@
 import { formatShortTime } from '../common/time.js';
+import { traceBasenameOf, traceDirectoryConflicts } from './identity.js';
 import { hasBlockingDiagnostics, isRecurring, type Task } from './model.js';
 import { recurrenceState } from './recurrence.js';
 import { findTask } from './sources.js';
@@ -60,6 +61,8 @@ export type EligibilityContext = {
     readonly route: (task: Task) => Promise<RouteCheck>;
     /** Unfinished Manager assignment task per target name key. */
     readonly assignmentFor: ReadonlyMap<string, string>;
+    /** Other task sources sharing a source's literal trace directory, per project-relative source path. */
+    readonly traceConflicts?: ReadonlyMap<string, readonly string[]>;
 };
 
 /**
@@ -111,6 +114,17 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
         };
     }
     if (task.placeholder) return { kind: 'placeholder', reason: 'Unwritten placeholder (@@@); write the task before it can run.' };
+    if (!traceBasenameOf(task.source.relativePath)) {
+        return { kind: 'blocked', reason: `The source filename ${task.source.relativePath} cannot name its trace directory.`, next: 'Rename the task source to a readable filename.' };
+    }
+    const sharing = context.traceConflicts?.get(task.source.relativePath);
+    if (sharing?.length) {
+        return {
+            kind: 'blocked',
+            reason: `Its evidence directory traces/${traceBasenameOf(task.source.relativePath)}/ would be shared with ${sharing.join(', ')} (same source basename).`,
+            next: 'Rename one of the task sources so each has its own trace directory.',
+        };
+    }
     if (task.status === 'not-ready') return { kind: 'not-ready', reason: 'Held as not ready.' };
     if (task.status === 'failed') return { kind: 'failed', reason: 'Marked as failed; use `ptbk recover` to retry or acknowledge.' };
     if (task.status === 'needs-recovery') return { kind: 'needs-recovery', reason: 'Interrupted work requires recovery (`ptbk recover`).' };
@@ -186,13 +200,27 @@ const KIND_RANK: Readonly<Record<Readiness['kind'], number>> = {
  */
 export async function evaluateQueue(tasks: readonly Task[], context: EligibilityContext): Promise<EvaluatedTask[]> {
     const evaluated: EvaluatedTask[] = [];
-    for (const task of tasks) evaluated.push({ task, readiness: await evaluateTask(task, tasks, context) });
+    const withConflicts: EligibilityContext = { ...context, traceConflicts: context.traceConflicts ?? sourceTraceConflicts(tasks) };
+    for (const task of tasks) evaluated.push({ task, readiness: await evaluateTask(task, tasks, withConflicts) });
     return evaluated.sort(
         (a, b) =>
             KIND_RANK[a.readiness.kind] - KIND_RANK[b.readiness.kind] ||
             b.task.priority.value - a.task.priority.value ||
             a.task.source.order - b.task.source.order,
     );
+}
+
+/**
+ * Task sources whose literal trace directories collide (different sources, same basename): each maps to the others.
+ *
+ * @private task eligibility
+ */
+export function sourceTraceConflicts(tasks: readonly Task[]): Map<string, string[]> {
+    const conflicts = new Map<string, string[]>();
+    for (const sources of traceDirectoryConflicts(tasks.map((task) => task.source.relativePath)).values()) {
+        for (const source of sources) conflicts.set(source, sources.filter((other) => other !== source));
+    }
+    return conflicts;
 }
 
 /**

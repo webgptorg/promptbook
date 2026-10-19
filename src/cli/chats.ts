@@ -1,7 +1,7 @@
 import { PtbkError } from '../common/errors.js';
 import { normalizeAgentName, parseReferenceValue } from '../book/references.js';
 import { LocalChats } from '../chats/local.js';
-import type { ChatAgentChoice } from '../chats/service.js';
+import { defaultChatAgent, type ChatAgentChoice } from '../chats/service.js';
 import { loadSettings } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { lookupService } from '../service/control.js';
@@ -32,29 +32,49 @@ export async function openChatSource(
 }
 
 /**
- * Lets the user choose the agent of a new chat: visible ordinary agents first, hidden/core agents and Expert under More.
+ * Lets the user choose the agent of a new chat: exactly two choices first — **Chat with Chatter** (focused default,
+ * Enter) and **Choose another agent**, which opens every valid alternative (ordinary, hidden/core agents and Expert).
+ *
+ * A missing or invalid Chatter is reported with its repair action; only an explicit choice selects another agent.
  *
  * @private CLI chats
  */
 export async function pickChatAgent(terminal: TerminalProfile, agents: readonly ChatAgentChoice[]): Promise<ChatAgentChoice | typeof CANCELLED> {
-    const ordinary = agents.filter((agent) => agent.group === 'ordinary');
-    const more = agents.filter((agent) => agent.group !== 'ordinary');
-    const MORE = '\u0000more';
-    const first = await selectOne<string>(terminal, {
-        frame: { title: 'ptbk chat', step: 'Choose the agent' },
-        question: 'Who do you want to talk to?',
-        choices: [...ordinary.map((agent) => ({ value: agent.reference, label: agent.name, description: agent.description })), ...(more.length ? [{ value: MORE, label: 'More…', description: 'hidden and core agents, Expert' }] : [])],
-        defaultValue: ordinary[0]?.reference ?? MORE,
-    });
-    if (first === CANCELLED) return CANCELLED;
-    if (first !== MORE) return agents.find((agent) => agent.reference === first)!;
-    const second = await selectOne<string>(terminal, {
-        frame: { title: 'ptbk chat', step: 'More agents' },
-        question: 'Hidden/core agents and the engine-provided Expert:',
-        choices: more.map((agent) => ({ value: agent.reference, label: agent.name, description: `${agent.group === 'expert' ? 'engine-provided' : 'hidden/core'}${agent.description ? ` · ${agent.description}` : ''}` })),
-        defaultValue: more[0]!.reference,
-    });
-    return second === CANCELLED ? CANCELLED : agents.find((agent) => agent.reference === second)!;
+    const chatter = agents.find((agent) => agent.group === 'chatter');
+    const others = agents.filter((agent) => agent.group !== 'chatter');
+    const OTHER = '\u0000other';
+    if (!chatter) {
+        try {
+            defaultChatAgent(agents);
+        } catch (error) {
+            const details = (error as { details?: { next?: string[] } }).details;
+            terminal.write(`${terminal.style.warning((error as Error).message)}\n${(details?.next ?? []).map((line) => terminal.style.muted(`  → ${line}`)).join('\n')}\n\n`);
+        }
+    }
+    for (;;) {
+        if (chatter) {
+            const first = await selectOne<string>(terminal, {
+                frame: { title: 'ptbk chat', step: 'New chat' },
+                question: 'Who do you want to talk to?',
+                choices: [
+                    { value: chatter.reference, label: `Chat with ${chatter.name}`, description: 'default project guide; consults specialists for you' },
+                    { value: OTHER, label: 'Choose another agent', description: 'project agents, hidden/core agents and Expert' },
+                ],
+                defaultValue: chatter.reference,
+            });
+            if (first === CANCELLED) return CANCELLED;
+            if (first === chatter.reference) return chatter;
+        }
+        const second = await selectOne<string>(terminal, {
+            frame: { title: 'ptbk chat', step: 'Choose another agent' },
+            question: chatter ? 'Every agent you can talk to (Esc goes back):' : 'Every agent you can talk to:',
+            choices: others.map((agent) => ({ value: agent.reference, label: agent.name, description: `${agent.group === 'expert' ? 'engine-provided' : agent.group === 'hidden' ? 'hidden/core' : 'project agent'}${agent.description ? ` · ${agent.description}` : ''}` })),
+            defaultValue: others[0]!.reference,
+        });
+        if (second !== CANCELLED) return others.find((agent) => agent.reference === second)!;
+        // Esc in the full list returns to the two-choice entry; without Chatter it cancels.
+        if (!chatter) return CANCELLED;
+    }
 }
 
 /**

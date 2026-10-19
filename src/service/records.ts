@@ -75,6 +75,14 @@ export type LaunchMetadata = {
 };
 
 /**
+ * Exit code of a daemon worker that shut down for a restart: its supervisor starts exactly one replacement with the
+ * saved launch configuration and installation (no backoff, independent of crash persistence).
+ *
+ * @private service records
+ */
+export const RESTART_EXIT_CODE = 75;
+
+/**
  * Paths of service records.
  *
  * @private service records
@@ -219,9 +227,12 @@ export function restoreDiscoveryEnvironment(saved: Readonly<Record<string, strin
 type LockContent = { readonly pid: number; readonly instanceId: string; readonly kind: string; readonly at: string };
 
 /**
- * Acquires the project ownership lock (only one process mutates/executes a project).
+ * Acquires the project ownership lock (only one process mutates/executes a project, whatever its installation,
+ * version or path spelling: the lock lives in the canonical project's `.ptbk/`).
  *
- * A stale lock (dead PID) is replaced; a live owner is reported, never terminated.
+ * A lock whose process no longer exists is replaced; a live holder is reported (with its known engine identity, or
+ * the uncertainty of a possibly reused PID) and never terminated or taken over. The returned release removes only
+ * this owner's own lock.
  *
  * @private service records
  */
@@ -250,12 +261,16 @@ export async function acquireProjectLock(project: Project, instanceId: string, k
                 holder = undefined;
             }
             if (holder && isProcessAlive(holder.pid) && holder.pid !== process.pid) {
+                const record = await readProcessRecord(project);
+                const known = record?.instanceId === holder.instanceId ? `the ${record.mode} engine ptbk ${record.engineVersion} (PID ${record.pid})` : undefined;
                 throw new PtbkError('Another ptbk process owns this project.', {
                     kind: 'conflict',
                     project: project.root,
-                    reason: `${holder.kind} process ${holder.pid} (instance ${holder.instanceId}) holds ${project.runtime.lock} since ${holder.at}.`,
-                    effect: 'Nothing was started.',
-                    next: ['Use `ptbk status` to inspect it, or `ptbk stop` to stop a daemon.'],
+                    reason: known
+                        ? `${known} holds ${project.runtime.lock} since ${holder.at}.`
+                        : `${holder.kind} process ${holder.pid} (instance ${holder.instanceId}) holds ${project.runtime.lock} since ${holder.at}; it could not be verified as a running engine (it may be finishing an operation, or the PID may have been reused).`,
+                    effect: 'Nothing was started; the other process was not touched.',
+                    next: ['Use `ptbk status` to inspect it, or `ptbk stop` to stop the running engine.'],
                 });
             }
             await rm(project.runtime.lock, { force: true });

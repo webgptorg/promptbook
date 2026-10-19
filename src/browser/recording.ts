@@ -17,7 +17,7 @@ const MAX_FRAME_HOLD_MS = 60_000;
 const MAX_SEGMENT_BYTES = 1024 * 1024 * 1024;
 
 /**
- * Status of one recorded segment as listed in `traces/<name-key>/video.json`.
+ * Status of one recorded segment as listed in `traces/<task-file-basename>/video.json`.
  *
  * @private browser recording
  */
@@ -204,7 +204,7 @@ export type ScreencastPort = {
 };
 
 /**
- * Records the project browser for the task that currently owns it, into `traces/<name-key>/video/`.
+ * Records the project browser for the task that currently owns it, into `traces/<task-file-basename>/video/`.
  *
  * Only the project browser's page is captured (never the desktop or other browsers); human sign-in and secret entry
  * are excluded and listed as gaps. Failures degrade to an honest status and never stop the task.

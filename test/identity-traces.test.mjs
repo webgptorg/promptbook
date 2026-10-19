@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { TextEditor } from '../dist/ui/composer.js';
 import { readableHarnessLine } from '../dist/engine/task-trace.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../dist/project/setup.js';
-import { distinctName, nameKeyPath, traceDirectoryOf } from '../dist/tasks/identity.js';
+import { distinctName, nameKeyPath, traceDirectoryConflicts, traceDirectoryOf } from '../dist/tasks/identity.js';
 import { ChatStore } from '../dist/chats/store.js';
 import { taskChats } from '../dist/chats/task-chats.js';
 import { findGenerated, generated, git, initializedProject, messages, ptbk, subjects, temporaryDirectory } from './helpers.mjs';
@@ -22,9 +22,13 @@ async function changedFiles(project, revision = 'HEAD') {
     return (await git(project, ['show', '--name-only', '--format=', revision])).trim().split('\n').filter(Boolean);
 }
 
-test('task names: trace paths derive deterministically and safely from the normalized name; new names are distinct', () => {
-    assert.equal(traceDirectoryOf('Improve CSV export'), traceDirectoryOf('  improve   csv-export '), 'equivalent names share one identity');
-    assert.notEqual(traceDirectoryOf('Improve CSV export'), traceDirectoryOf('Improve PDF export'));
+test('trace directories copy the literal source basename; collisions are detected; new names are distinct', () => {
+    assert.equal(traceDirectoryOf('tasks/2026-10-19-1205-browser-repair.book'), 'traces/2026-10-19-1205-browser-repair', 'only the final .book extension is removed');
+    assert.equal(traceDirectoryOf('custom/Ünïcode Task.Name.book'), 'traces/Ünïcode Task.Name', 'case, diacritics, spaces and inner dots are kept; the source folder does not matter');
+    assert.equal(traceDirectoryOf('prompts/legacy-tasks.md'), 'traces/legacy-tasks', 'legacy Markdown drops its final .md');
+    assert.throws(() => traceDirectoryOf('tasks/.book'), /no usable filename/);
+    const conflicts = traceDirectoryConflicts(['tasks/a.book', 'tasks/a.md', 'tasks/b.book', 'tasks/b.book']);
+    assert.deepEqual([...conflicts.values()], [['tasks/a.book', 'tasks/a.md']], 'different sources with one basename conflict; one source with several sections does not');
     for (const unsafe of ['../../etc/passwd', 'a/b\\c', 'CON', '...', 'name.']) {
         const path = nameKeyPath(unsafe);
         assert.ok(path && !path.includes('/') && !path.includes('\\') && !path.startsWith('.') && !/^con$/i.test(path), `${unsafe} → ${path}`);
@@ -122,7 +126,8 @@ test('same-name tasks: the first by resolver order runs; the copy is shadowed, r
     const [message] = (await messages(project)).filter((item) => item.startsWith('PTBK: Same title'));
     assert.match(message, /^Task-Name: Same title$/m);
     assert.doesNotMatch(message, /Task-ID/);
-    await readFile(join(project, traceDirectoryOf('Same title'), 'harness.log'), 'utf8');
+    const winner = same.find((task) => task.readiness === 'ready').source;
+    await readFile(join(project, traceDirectoryOf(winner), 'harness.log'), 'utf8');
     assert.equal(await readFile(join(project, 'tasks', 'b.book'), 'utf8'), 'TASK Same title\nGOAL Do it.\nTASK AGENT @Developer\n', 'the shadowed copy is not renamed or merged');
     const lint = await ptbk(['lint', '--json'], { cwd: project, env });
     assert.ok(JSON.parse(lint.stdout).findings.some((finding) => /shadow/i.test(finding.message) && finding.location.includes('tasks/b.book')), lint.stdout);
@@ -158,8 +163,10 @@ test('trace policy: committed traces share the result commit; videos and post-co
     assert.equal(run.code, 0, run.output);
     const taskName = /^Task-Name: (.+)$/m.exec((await messages(project))[0])[1];
     assert.match(taskName, generated('Write the welcome page'), 'new tasks carry their creation date/time in the name');
-    const trace = traceDirectoryOf(taskName);
     const files = await changedFiles(project);
+    const source = files.find((file) => file.startsWith('tasks/') && file.endsWith('.book') && !/learn-/.test(file));
+    const trace = traceDirectoryOf(source);
+    assert.equal(trace, `traces/${source.slice('tasks/'.length, -'.book'.length)}`, 'the trace directory is the literal source filename, not the task name');
     assert.ok(files.includes(`${trace}/harness.log`), files.join('\n'));
     assert.ok(files.includes(`${trace}/events.jsonl`));
     assert.ok(!files.some((file) => file.includes('/local/')), 'post-commit events are never in the snapshot');

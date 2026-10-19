@@ -1,6 +1,7 @@
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { renderChatList, runChatClient } from '../../ui/chat-client.js';
 import { CANCELLED } from '../../ui/prompts.js';
+import { defaultChatAgent } from '../../chats/service.js';
 import { explicitChatAgent, openChatSource, pickChatAgent, waitForReply } from '../chats.js';
 import { printJson, readStdin, selectedProject } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
@@ -59,7 +60,7 @@ export default async function chat(context: CommandContext): Promise<number> {
             return EXIT.incomplete;
         }
         agent = picked;
-    } else throw new PtbkError('Choose the agent of the new chat with --agent.', { kind: 'usage', next: ['Run `ptbk chat --agent Developer "your message"`.'] });
+    } else agent = defaultChatAgent(agents);
     const title = option<string>(context, 'title');
     if (terminal.interactive && !message) {
         await runChatClient(terminal, source, { kind: 'new', agent, title });

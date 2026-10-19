@@ -62,6 +62,8 @@ export type ErrorDetails = {
     readonly trace?: string;
     /** Exit code override. */
     readonly exitCode?: number;
+    /** Machine-readable facts for clients (e.g. the lifecycle decision revision a confirmation must match). */
+    readonly data?: Readonly<Record<string, unknown>>;
     /** Original cause. */
     readonly cause?: unknown;
 };

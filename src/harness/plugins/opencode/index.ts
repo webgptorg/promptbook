@@ -94,6 +94,7 @@ export const plugin: HarnessPlugin = {
     npmPackage: 'opencode-ai',
     homepage: 'https://opencode.ai/docs/cli/',
     thinkingLevels: ['low', 'medium', 'high', 'max'],
+    thinkingLabel: 'variant (--variant)',
     capabilities: { mcp: true, readOnly: false },
     loginArgs: ['auth', 'login'],
     loginHint: 'Run `opencode auth login` to store provider credentials.',

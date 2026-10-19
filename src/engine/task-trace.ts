@@ -1,11 +1,12 @@
-import { appendFile, stat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { appendFile, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { errorMessage } from '../common/errors.js';
-import { ensureDirectory, toProjectRelative } from '../common/fs.js';
+import { ensureDirectory, pathExists, toProjectRelative } from '../common/fs.js';
 import { createRedactor } from '../common/redact.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import type { Project } from '../project/workspace.js';
-import { traceDirectoryOf } from '../tasks/identity.js';
+import { legacyTraceDirectoryOf, traceDirectoryOf } from '../tasks/identity.js';
 
 /**
  * Largest consolidated harness log of one task; further output is omitted with a visible note.
@@ -23,7 +24,7 @@ const MAX_EVENT_LOG_BYTES = 16 * 1024 * 1024;
 const MAX_FIELD_CHARS = 200_000;
 
 /**
- * File names inside `traces/<name-key>/`.
+ * File names inside `traces/<task-file-basename>/`.
  *
  * @private task traces
  */
@@ -41,7 +42,25 @@ export const TRACE_FILES = {
 } as const;
 
 /**
- * Root-level audit trail of one task: `traces/<name-key>/`.
+ * The task a trace belongs to: its declared name (logical identity) and actual project-relative source path (which
+ * alone decides the evidence directory).
+ *
+ * @private task traces
+ */
+export type TraceSubject = { readonly name: string; readonly source: string };
+
+/**
+ * Git blob hash of a source's content: the exact source revision evidence refers to (no Git call needed).
+ *
+ * @private task traces
+ */
+export function sourceRevision(content: string | Buffer): string {
+    const bytes = typeof content === 'string' ? Buffer.from(content) : content;
+    return createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+}
+
+/**
+ * Root-level audit trail of one task: `traces/<task-file-basename>/`, named literally after the task's source file.
  *
  * Writing never throws; an unavailable trace is reported once through `problem` instead of inventing a saved path.
  *
@@ -50,7 +69,7 @@ export const TRACE_FILES = {
 export class TaskTrace {
     /** Absolute directory. */
     public readonly directory: string;
-    /** Project-relative POSIX directory (`traces/<name-key>`). */
+    /** Project-relative POSIX directory (`traces/<task-file-basename>`). */
     public readonly relativeDirectory: string;
     /** Why evidence could not be written (first failure). */
     public problem?: string;
@@ -61,31 +80,54 @@ export class TaskTrace {
 
     private constructor(
         private readonly project: Project,
-        /** Task name the trace belongs to (its directory is derived from the normalized name). */
-        public readonly taskName: string,
+        /** The task the trace belongs to (declared name and actual source). */
+        public readonly subject: TraceSubject,
         secrets: readonly string[],
     ) {
-        this.relativeDirectory = traceDirectoryOf(taskName);
+        this.relativeDirectory = traceDirectoryOf(subject.source);
         this.directory = join(project.root, this.relativeDirectory);
         this.redact = createRedactor(secrets);
     }
 
-    /** Normalized-name key of the trace (`traces/<key>/`). */
+    /** Declared task name the trace belongs to (recorded in its events; not its directory name). */
+    public get taskName(): string {
+        return this.subject.name;
+    }
+
+    /** Literal source basename naming the trace directory (`traces/<basename>/`). */
     public get key(): string {
         return this.relativeDirectory.slice('traces/'.length);
     }
 
     /**
-     * Opens (creating when needed) the trace directory of a task, named after its normalized name.
+     * Opens (creating when needed) the trace directory of a task, named literally after its source file.
+     *
+     * Evidence an older engine stored under the task's name-derived directory stays where it is; when it verifiably
+     * belongs to this task (same declared name or source), the new trace links it as historical evidence.
      */
-    public static async open(project: Project, taskName: string, secrets: readonly string[] = []): Promise<TaskTrace> {
-        const trace = new TaskTrace(project, taskName, secrets);
+    public static async open(project: Project, subject: TraceSubject, secrets: readonly string[] = []): Promise<TaskTrace> {
+        const trace = new TaskTrace(project, subject, secrets);
+        let fresh = false;
         try {
+            fresh = !(await pathExists(trace.directory));
             await ensureDirectory(trace.directory);
         } catch (error) {
             trace.problem = `Trace storage ${trace.relativeDirectory} is unavailable: ${errorMessage(error)}`;
         }
+        if (fresh && !trace.problem) {
+            const legacy = await historicalEvidence(project, subject);
+            if (legacy && legacy !== trace.relativeDirectory) await trace.event('historical-evidence', { directory: `${legacy}/`, name: subject.name, source: subject.source });
+        }
         return trace;
+    }
+
+    /**
+     * Records the declared name, actual source path and source revision of the evidence that follows (every run,
+     * retry, occurrence and consultation remains attributable after renames).
+     */
+    public async provenance(data: Readonly<Record<string, unknown>> = {}): Promise<void> {
+        const content = await readFile(join(this.project.root, this.subject.source)).catch(() => undefined);
+        await this.event('provenance', { name: this.subject.name, source: this.subject.source, sourceRevision: content ? sourceRevision(content) : null, ...data });
     }
 
     /** Project-relative path of the consolidated harness log. */
@@ -169,6 +211,25 @@ export class TaskTrace {
         this.queue = this.queue.then(write, write);
         await this.queue;
     }
+}
+
+/**
+ * The name-derived evidence directory of an older engine when it verifiably belongs to the task (its events name the
+ * same declared name or source); ambiguous directories are not attributed.
+ */
+async function historicalEvidence(project: Project, subject: TraceSubject): Promise<string | undefined> {
+    const legacy = legacyTraceDirectoryOf(subject.name);
+    const events = await readFile(join(project.root, legacy, TRACE_FILES.events), 'utf8').catch(() => undefined);
+    if (!events) return undefined;
+    for (const line of events.split('\n')) {
+        try {
+            const event = JSON.parse(line) as { title?: string; name?: string; source?: string };
+            if (event.source === subject.source || event.title === subject.name || event.name === subject.name) return legacy;
+        } catch {
+            // a torn line proves nothing
+        }
+    }
+    return undefined;
 }
 
 /**

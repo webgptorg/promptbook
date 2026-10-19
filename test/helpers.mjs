@@ -133,7 +133,7 @@ export async function initializedProject(t, options = {}) {
     const harness = await fakeHarness(t, directory);
     const project = join(directory, 'my project');
     // Owned background services are stopped before their fixture directory is removed.
-    beforeRemoval.push(() => ptbk(['stop', '--raw', '--path', project], { cwd: directory, env: harness.env }));
+    beforeRemoval.push(() => ptbk(['stop', '--force', '--raw', '--path', project], { cwd: directory, env: harness.env }));
     await initRepository(project);
     if (options.check) {
         await writeFile(join(project, 'check.mjs'), options.check);

@@ -124,6 +124,11 @@ export class ChatStore {
         readonly taken?: ReadonlySet<string>;
         /** Extra trailers (e.g. `Task-Name`). */
         readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>>;
+        /**
+         * Commit even an agent↔agent chat as its own scoped operation (a consultation serving a conversation without
+         * an owning task); task-scoped consultations instead join their task's result commit.
+         */
+        readonly commit?: boolean;
     }): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
             const fresh = (await this.options.takenNames?.().catch(() => undefined)) ?? [];
@@ -135,7 +140,7 @@ export class ChatStore {
             const source = renderChatBook({ name, members: options.members, status: options.status, links: options.links, messages: (options.messages ?? []).map((message) => ({ ...message, at: message.at ?? this.now() })) });
             await writeFile(path, source, { flag: 'wx' });
             const chat = parseChatBook(source);
-            const commit = isHumanFacing(chat) ? await this.persist(path, name, options.trailers) : undefined;
+            const commit = isHumanFacing(chat) || options.commit ? await this.persist(path, name, options.trailers) : undefined;
             return { path, relativePath: toProjectRelative(this.project.root, path), chat, commit };
         });
     }

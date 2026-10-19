@@ -46,7 +46,7 @@ export const COMMANDS: readonly CommandSpec[] = [
         aliases: ['initialize'],
         category: 'Start here',
         summary: 'Set up a project from your intent, then start its agenda in the background.',
-        description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (core agents Adam, Manager, Teacher and Fixer plus default roles), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified), the project browser, trace settings and a real project check, and saves one ordinary Expert task that transforms the project according to the initial specification. Setup is committed with a "PTBK: " subject and the task's Task-Name trailer.
+        description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (default roles plus the core agents Adam, Manager, Teacher, Fixer and Chatter — the default partner of new chats, with TEAM access to every other initialized role), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified), the project browser, trace settings and a real project check, and saves one ordinary Expert task that transforms the project according to the initial specification. Setup is committed with a "PTBK: " subject and the task's Task-Name trailer.
 
 After successful setup the agenda starts automatically as a background service (the same operation as \`ptbk start\`); init returns without waiting for the first task. Watch it with \`ptbk dashboard\`, stop it with \`ptbk stop\`. Repeating init with satisfied prerequisites changes nothing and reuses a running service.
 
@@ -79,7 +79,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                 options: [
                     { name: 'browser-profile', type: 'string', valueName: '<path|isolated>', description: 'Project browser profile.', defaultText: 'isolated profile in .ptbk/' },
                     { name: 'browser-mode', type: 'enum', values: ['headless', 'headful'], valueName: '<mode>', description: 'Browser visibility.', defaultText: 'headless' },
-                    { name: 'commit-traces', type: 'boolean', negatable: true, description: 'Include task traces (traces/<name-key>/) in result commits; --no-commit-traces ignores the whole traces/ folder.', defaultText: 'off' },
+                    { name: 'commit-traces', type: 'boolean', negatable: true, description: 'Include task traces (traces/<task-file-basename>/) in result commits; --no-commit-traces ignores the whole traces/ folder.', defaultText: 'off' },
                     { name: 'ignore-trace-videos', type: 'boolean', negatable: true, description: 'Keep trace videos out of Git even when traces are committed.', defaultText: 'on' },
                     { name: 'record-video', type: 'boolean', negatable: true, description: 'Record browser activity of tasks using the project browser.', defaultText: 'on' },
                     { name: 'check', type: 'string', valueName: '<command>', description: 'Project check to save when none is configured (otherwise a temporary override).' },
@@ -124,45 +124,77 @@ Missing setup is offered through the same initialization workflow when interacti
         run: lazy(() => import('./commands/start.js')),
     },
     {
+        name: 'pause',
+        category: 'Run the agenda',
+        summary: 'Stop claiming new tasks; the current task settles, then the service stays alive in pause.',
+        description: 'The shared engine pause (the same operation as P in the dashboards and the browser/API controls). While a task runs, the service is `pausing`: no next task, follow-up, Manager, Teacher, Fixer or discovery work starts, and the current task finishes (or is checkpointed) normally — the harness is not suspended. With no task running it pauses immediately. Inspection, chats and controls keep working. Replacing a pending stop/restart with pause asks for confirmation; without a terminal it reports the conflict (run `ptbk resume`, then `ptbk pause`). Runtime-only: no commit.',
+        optionGroups: [PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        examples: [
+            { command: 'ptbk pause', description: 'Pause after the current task.' },
+            { command: 'ptbk resume', description: 'Continue (or cancel the pending pause).' },
+        ],
+        run: lazy(() => import('./commands/pause.js')),
+    },
+    {
+        name: 'resume',
+        category: 'Run the agenda',
+        summary: 'Resume a paused service, or cancel a pending pause/stop/restart.',
+        description: 'Returns the service to `running`: resumes from `pause`, or cancels a pending pause, stop or restart (including its planned replacement) without interrupting or replaying the current task. Once shutdown has actually begun, cancellation is reported as too late. Cancelling a pending stop leaves no permanent-stop setting behind. Runtime-only: no commit.',
+        optionGroups: [PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        examples: [{ command: 'ptbk resume', description: 'Run again / cancel a pending stop.' }],
+        run: lazy(() => import('./commands/resume.js')),
+    },
+    {
         name: 'stop',
         category: 'Run the agenda',
-        summary: "Stop the project's daemon (it stays stopped after reboot).",
-        description: 'Stops the daemon safely: owned work is cancelled and keeps its recovery record (use --after-task to finish the current task first). An intentional stop also removes startup persistence until the next explicit `ptbk start` (or the start performed by a successful `ptbk init`).',
+        summary: "Gracefully stop the project's service (it stays stopped after reboot); --force/-F stops immediately.",
+        description: 'The shared engine stop for any placement (daemon or an owning foreground terminal). By default it is graceful: the service is `stopping`, no next task starts, the current task finishes its checks and result persistence (or is safely checkpointed, e.g. while waiting for a human), then the owner cleans up and exits. Repeating stop never escalates. `--force`/`-F` interrupts owned work immediately without marking it done, keeps its recovery record and attempts bounded cleanup of the owner\'s own lock and records. The result says whether the stop is still pending or completed (confirmed only after the owner ended); `ptbk resume` cancels a pending stop. A completed intentional stop disables automatic startup until the next explicit `ptbk start` (or the start performed by a successful `ptbk init`).',
         optionGroups: [
             {
                 title: 'Stop',
                 options: [
-                    { name: 'after-task', type: 'boolean', description: 'Finish the current task before stopping.' },
-                    { name: 'timeout', type: 'duration', valueName: '<duration>', description: 'How long to wait for the service to release the project.', defaultText: '2m' },
+                    { name: 'force', short: 'F', type: 'boolean', description: 'Stop immediately: interrupt owned work (recoverable) instead of letting the current task finish.' },
+                    { name: 'timeout', type: 'duration', valueName: '<duration>', description: 'How long to wait for the owner to end before reporting the stop as pending.', defaultText: '2m' },
+                    { name: 'after-task', type: 'boolean', hidden: true, description: 'Compatibility: graceful stop is now the default.' },
                 ],
             },
             PROJECT_OPTIONS,
             PRESENTATION_OPTIONS,
         ],
         examples: [
-            { command: 'ptbk stop', description: 'Stop now; interrupted work resumes on the next start.' },
-            { command: 'ptbk stop --after-task', description: 'Let the current task finish first.' },
+            { command: 'ptbk stop', description: 'Let the current task finish, then stop.' },
+            { command: 'ptbk stop -F', description: 'Stop now; interrupted work resumes on the next start.' },
+            { command: 'ptbk resume', description: 'Cancel a pending stop.' },
         ],
         run: lazy(() => import('./commands/stop.js')),
     },
     {
         name: 'restart',
         category: 'Run the agenda',
-        summary: 'Restart the daemon with its effective configuration.',
-        description: 'Stops the daemon (recoverably) and starts it again with the same invocation overrides it was started with; newly given flags replace them. Restart is not an intentional permanent stop.',
-        optionGroups: [START_OPTIONS, SERVER_OPTIONS, BROWSER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        summary: 'Gracefully restart the service: drain, release the project, start exactly one replacement.',
+        description: 'The shared engine restart: the service drains like a graceful stop (`stopping` with restart intent), releases ownership, and exactly one replacement starts for the same project with the same effective configuration and installation (a daemon\'s supervisor, or the owning foreground terminal — never turned into a daemon). Newly given flags replace a daemon\'s saved launch overrides. A failed replacement start is reported as a failure; `ptbk resume` cancels a pending restart. Restart is not an intentional permanent stop and never installs an engine update. With no service running it starts the daemon.',
+        optionGroups: [{ title: 'Restart', options: [{ name: 'timeout', type: 'duration', valueName: '<duration>', description: 'How long to wait for the current task to settle and the replacement to start.', defaultText: '3m' }] }, START_OPTIONS, SERVER_OPTIONS, BROWSER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [{ command: 'ptbk restart', description: 'Restart with the same settings.' }],
         run: lazy(() => import('./commands/restart.js')),
     },
     {
         name: 'dashboard',
         category: 'Observe and respond',
-        summary: 'Attach a live terminal view and controls to the running service.',
-        description: 'Continuously shows the shared project status (agents waiting for you first, current work, queue, results and connection) and offers controls: A opens the conversation of the agent waiting for you, C starts a new chat, L lists all chats, N focuses the next waiting chat, P pause/resume, S skip a pacing wait, X stop the service, R renew pairing, O plain presentation, Q leave. Leaving never stops the service. With --raw it streams plain state changes instead.',
-        optionGroups: [{ title: 'View', options: [SERVER_OPTIONS.options[4]!] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        summary: 'Attach a live view and controls to the running service (or --global: every running engine).',
+        description: `Continuously shows the shared project status (agents waiting for you first, service controls, current work, queue, results and connection). Any number of dashboards can attach; opening or leaving one never starts, stops or owns the service, and a project without a running service is reported (nothing is started).
+
+Keys: A opens the conversation of the agent waiting for you (its real author), C starts a new chat (Enter = Chatter, or Choose another agent), L lists all chats, N focuses the next waiting chat; P pause/resume (pause instead of a pending stop asks first), U cancel a pending pause/stop/restart, X graceful stop (never escalates), R restart, F force stop (confirmed), S skip a pacing wait; E and B open/close the execution details (agent, harness, model, thinking level) and the browser details (profile, health; 1 recheck, 2 retry startup, 3 restart the project browser); V renew pairing, O plain presentation, Q/Ctrl+C leave. With --raw it streams plain state changes instead.
+
+\`ptbk dashboard --global\` works from any directory (no project is selected or initialized): a continuously refreshed table of every running Promptbook engine of your OS user across installations and versions — project, path, version, PID, mode, live state and current work. It stays open with zero engines and shows engines started later; Enter attaches to the selected project's dashboard without \`cd\` (Q returns to the table), and closing it leaves every engine running.`,
+        optionGroups: [
+            { title: 'View', options: [{ name: 'global', type: 'boolean', description: 'Host-wide table of every running engine (independent of the current directory; conflicts with --path).' }, SERVER_OPTIONS.options[4]!] },
+            PROJECT_OPTIONS,
+            PRESENTATION_OPTIONS,
+        ],
         examples: [
             { command: 'ptbk dashboard', description: 'Live view of the current project.' },
             { command: 'ptbk dashboard --path ../site --raw', description: 'Plain continuous observation.' },
+            { command: 'ptbk dashboard --global', description: 'All running engines on this computer; Enter attaches to one.' },
         ],
         run: lazy(() => import('./commands/dashboard.js')),
     },
@@ -182,14 +214,14 @@ Missing setup is offered through the same initialization workflow when interacti
     {
         name: 'chat',
         category: 'Observe and respond',
-        summary: 'Start a persistent conversation with one agent, or reopen a chat by name.',
-        description: 'Directly opens a new chat in the selected project: choose one agent first (visible project agents; More shows hidden/core agents and Expert), then talk in a full-screen conversation. Every message is saved in chats/ and committed ("PTBK: Chat - <name>"); the agent replies read-only and may create ordinary tasks when you ask for work. Ctrl+C closes only the client: the service and the conversation stay. Works with or without a running service; no dashboard is needed.',
+        summary: 'Start a persistent conversation (with Chatter by default), or reopen a chat by name.',
+        description: 'Directly opens a new chat in the selected project. Without --agent it first offers exactly two choices: Chat with Chatter (the focused default — Enter) and Choose another agent (every valid target: project agents, hidden/core agents and Expert). Without a terminal, a new chat goes to Chatter. Chatter answers project questions, consults the right teammates (attributed, linked consultation chats) and creates ordinary tasks only for work you ask for. Every human-facing message is saved in chats/ and committed ("PTBK: Chat - <name>"). Reopening a chat keeps its real participants. Ctrl+C closes only the client: the service and the conversation stay. Works with or without a running service; no dashboard is needed.',
         arguments: [{ name: 'message', description: 'First message (noninteractive use; prints the reply when it arrives).', variadic: true }],
         optionGroups: [
             {
                 title: 'Chat',
                 options: [
-                    { name: 'agent', type: 'string', valueName: '<agent>', description: 'Agent of the new chat, e.g. Developer, @Developer or "{Frontend Developer}".' },
+                    { name: 'agent', type: 'string', valueName: '<agent>', description: 'Agent of the new chat, e.g. Developer, @Developer or "{Frontend Developer}" (default: Chatter).' },
                     { name: 'open', type: 'string', valueName: '<name>', description: 'Reopen an existing chat by its name (normalized).' },
                     { name: 'title', type: 'string', valueName: '<name>', description: 'Name of the new chat (default: derived from the agent and first message, made distinct).' },
                     { name: 'list', type: 'boolean', description: 'List all chats (waiting for you first) and exit.' },
@@ -202,8 +234,9 @@ Missing setup is offered through the same initialization workflow when interacti
             PRESENTATION_OPTIONS,
         ],
         examples: [
-            { command: 'ptbk chat', description: 'Choose an agent and start a new conversation.' },
-            { command: 'ptbk chat --agent Developer "How far is the CSV export?"', description: 'Start a chat noninteractively and print the reply.' },
+            { command: 'ptbk chat', description: 'New conversation: Enter talks to Chatter, or choose another agent.' },
+            { command: 'ptbk chat "What is the project working on?"', description: 'Ask Chatter noninteractively and print the reply.' },
+            { command: 'ptbk chat --agent Developer "How far is the CSV export?"', description: 'Start a chat with an explicit agent.' },
             { command: 'ptbk chat --open "Developer: How far is the CSV export?"', description: 'Reopen an existing chat.' },
             { command: 'ptbk chat --list', description: 'List all chats.' },
         ],
@@ -336,7 +369,7 @@ Missing setup is offered through the same initialization workflow when interacti
         name: 'list',
         category: 'Observe and respond',
         summary: 'List tasks with readiness explanations, or inspect one task (read-only).',
-        description: 'Shows the queue in execution order with the reason each task is ready, waiting or blocked, the same way start, run and the dashboards evaluate it. With a task reference ({Task name}, @Name, a bare name or a source path) it shows the task, any same-name copies it shadows, its audit trail in traces/<name-key>/, recording status and the commits carrying its Task-Name. Never edits sources, calls a model or creates Manager tasks.',
+        description: 'Shows the queue in execution order with the reason each task is ready, waiting or blocked, the same way start, run and the dashboards evaluate it. With a task reference ({Task name}, @Name, a bare name or a source path) it shows the task, any same-name copies it shadows, its audit trail in traces/<task-file-basename>/, recording status and the commits carrying its Task-Name. Never edits sources, calls a model or creates Manager tasks.',
         arguments: [{ name: 'task', description: 'Task to inspect: "{Task name}", a bare name or a source path.' }],
         optionGroups: [
             {

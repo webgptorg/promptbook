@@ -34,8 +34,10 @@ export type TeamContext = {
     readonly settings: EffectiveSettings;
     /** Chats of the executing task (absent where no human chat or recorded consultation is possible, e.g. planning). */
     readonly chats?: TaskChats;
-    /** Task reference, name and occurrence. */
+    /** Task reference, name and occurrence (for a conversation-scoped consultation: the originating chat). */
     readonly task: { readonly ref: string; readonly title: string; readonly occurrence?: string };
+    /** Whether the consultation serves an executing task (default) or a human-facing conversation without a task. */
+    readonly scope?: 'task' | 'conversation';
     /** The task's audit trail (consultations are recorded in its harness log). */
     readonly trace?: TaskTrace;
     /** Consulting agent. */
@@ -44,8 +46,10 @@ export type TeamContext = {
     readonly harness: string;
     /** Consultation depth of this turn (0 for the task's own agent). */
     readonly depth: number;
-    /** Task-wide budget. */
+    /** Budget of the task, or of the originating chat turn. */
     readonly budget: ConsultationBudget;
+    /** Reports an advisor's execution context (shown separately from the consulting agent's own run). */
+    readonly onConsultation?: (consultation: { readonly advisor: string; readonly by: string; readonly harness: string; readonly model?: string; readonly state: 'started' | 'finished' }) => void;
     /** Whether the user may be asked. */
     readonly questionsAllowed: boolean;
     /** Cancellation. */
@@ -80,7 +84,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
     const maxDepth = setting<number>(context.settings, 'team.maxDepth');
     const maxCalls = setting<number>(context.settings, 'team.maxCalls');
     if (context.depth + 1 > maxDepth) return { text: `Consultation depth limit (${maxDepth}) reached; answer without further consultation.`, isError: true };
-    if (context.budget.calls >= maxCalls) return { text: `Consultation limit (${maxCalls} per task) reached.`, isError: true };
+    if (context.budget.calls >= maxCalls) return { text: `Consultation limit (${maxCalls} per ${context.scope === 'conversation' ? 'chat turn' : 'task'}) reached.`, isError: true };
     const advisor = await resolveEffectiveAgent(context.catalog, reference);
     const errors = advisor.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { text: `Cannot consult ${reference}: ${errors.map((error) => error.message).join(' ')}`, isError: true };
@@ -94,14 +98,17 @@ async function consultAgent(context: TeamContext, reference: string, question: s
     const promptDirectory = await ensureDirectory(context.project.runtime.temporary);
     const promptFile = join(promptDirectory, `consultation-${shortId()}.md`);
     const prompt = [
-        `# Consultation\n\nYou are **${advisor.name}**, consulted by ${context.agentName} who is working on the task "${context.task.title}" in the project at \`${context.project.root}\`.`,
+        context.scope === 'conversation'
+            ? `# Consultation\n\nYou are **${advisor.name}**, consulted by ${context.agentName} who is answering the project owner in the chat "${context.task.title}" of the project at \`${context.project.root}\`. Your advice is relayed and attributed to you; you do not perform work here.`
+            : `# Consultation\n\nYou are **${advisor.name}**, consulted by ${context.agentName} who is working on the task "${context.task.title}" in the project at \`${context.project.root}\`.`,
         `## Your role\n\n${renderAgentInstructions(advisor)}`,
         `## Question\n\n${question}`,
         '## Rules\n\n- You are read-only: inspect files if useful, but never modify anything or run write operations.\n- Answer directly and concisely within your own role. You cannot grant permissions beyond the task.\n- No completion line is needed.',
     ].join('\n\n');
     await writeFile(promptFile, prompt);
     await context.trace?.section(`Consultation · ${context.agentName} asks ${advisor.name} (depth ${context.depth + 1})`, [`Harness: ${plugin.displayName} ${context.pool.inspection(harnessId)?.version ?? ''}`.trim(), `Question:\n${question}`]);
-    await context.trace?.event('consultation-started', { advisor: advisor.name, by: context.agentName, depth: context.depth + 1, harness: harnessId });
+    await context.trace?.event('consultation-started', { advisor: advisor.name, by: context.agentName, depth: context.depth + 1, harness: harnessId, model: context.settings.harnesses[harnessId]?.model ?? null });
+    context.onConsultation?.({ advisor: advisor.name, by: context.agentName, harness: harnessId, model: context.settings.harnesses[harnessId]?.model, state: 'started' });
     const controller = new AbortController();
     const abort = (): void => controller.abort();
     context.signal.addEventListener('abort', abort, { once: true });
@@ -128,7 +135,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
             },
             context.pool.inspection(harnessId)?.executablePath ?? plugin.executable,
         );
-        await context.trace?.event('consultation-finished', { advisor: advisor.name, outcome: result.outcome, diagnostic: result.diagnostic });
+        await context.trace?.event('consultation-finished', { advisor: advisor.name, outcome: result.outcome, diagnostic: result.diagnostic, model: result.model ?? null });
         if (result.outcome !== 'completed') return { text: `Consultation of ${advisor.name} ended without an answer: ${result.diagnostic}`, isError: true };
         const limit = setting<number>(context.settings, 'team.maxResponseChars');
         const answer = result.finalMessage.trim() || '(no answer)';
@@ -138,6 +145,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
         if (chat) await context.trace?.event('consultation-chat', { chat });
         return { text: bounded };
     } finally {
+        context.onConsultation?.({ advisor: advisor.name, by: context.agentName, harness: harnessId, state: 'finished' });
         context.signal.removeEventListener('abort', abort);
         await bridge.close();
         await rm(promptFile, { force: true });

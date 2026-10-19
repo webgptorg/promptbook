@@ -1,39 +1,71 @@
 import { PtbkError } from '../common/errors.js';
 import { parseSettingValue, SETTING_SPEC_BY_KEY } from '../project/config.js';
 import type { Agenda } from '../engine/agenda.js';
+import { defaultChatAgent } from '../chats/service.js';
 
 /**
- * Runtime actions shared by every channel (terminal, browser, API, CLI).
+ * Runtime actions shared by every channel (CLI, terminal, browser, API): the engine's lifecycle operations, wait
+ * skipping and coordinated project-browser recovery. `stop-now`/`cancel-stop` remain as compatibility aliases.
  *
  * @private shared runtime controls
  */
-export type ControlAction = 'pause' | 'resume' | 'skip-wait' | 'stop' | 'stop-now' | 'cancel-stop';
+export type ControlAction = 'pause' | 'resume' | 'skip-wait' | 'stop' | 'force-stop' | 'restart' | 'stop-now' | 'cancel-stop' | 'browser-recheck' | 'browser-retry' | 'browser-restart';
 
 /**
- * Applies one runtime control action and reports its actual outcome.
+ * Every control action name (for request validation).
  *
  * @private shared runtime controls
  */
-export function applyControlAction(agenda: Agenda, action: string): { action: string; outcome: string; applied: boolean } {
+export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>(['pause', 'resume', 'skip-wait', 'stop', 'force-stop', 'restart', 'stop-now', 'cancel-stop', 'browser-recheck', 'browser-retry', 'browser-restart']);
+
+/**
+ * Outcome of a control action as every client reports it.
+ *
+ * @private shared runtime controls
+ */
+export type ControlOutcome = { readonly action: string; readonly outcome: string; readonly applied: boolean; readonly completed?: boolean; readonly state?: string };
+
+/**
+ * Engine-owned browser recovery operations (the service owns the project browser).
+ *
+ * @private shared runtime controls
+ */
+export type BrowserControls = {
+    readonly recheck: () => Promise<ControlOutcome>;
+    readonly retry: () => Promise<ControlOutcome>;
+    readonly restart: () => Promise<ControlOutcome>;
+};
+
+/**
+ * Applies one runtime control action and reports its actual outcome (accepted/pending versus completed).
+ *
+ * @private shared runtime controls
+ */
+export async function applyControlAction(agenda: Agenda, action: string, params: Readonly<Record<string, unknown>> = {}, browser?: BrowserControls): Promise<ControlOutcome> {
     switch (action) {
         case 'pause':
-            return { action, outcome: agenda.pause().state === 'pausing' ? 'Pause pending: the current task finishes first.' : 'Paused.', applied: true };
+            return agenda.pause({ replaceStop: params.replaceStop === true, revision: typeof params.revision === 'number' ? params.revision : undefined });
         case 'resume':
-            agenda.resume();
-            return { action, outcome: 'Resumed.', applied: true };
+            return agenda.resume();
         case 'skip-wait': {
             const result = agenda.skipWait();
             return { action, outcome: result.applied ? 'Wait skipped.' : (result.reason ?? 'Nothing to skip.'), applied: result.applied };
         }
         case 'stop':
-            agenda.requestStop({ cancelCurrent: false });
-            return { action, outcome: 'Stopping after the current task.', applied: true };
+            return agenda.requestStop({});
+        case 'force-stop':
         case 'stop-now':
-            agenda.requestStop({ cancelCurrent: true });
-            return { action, outcome: 'Stopping now; owned work is cancelled and recoverable.', applied: true };
+            return agenda.requestStop({ force: true });
+        case 'restart':
+            return agenda.requestStop({ restart: true });
         case 'cancel-stop':
-            agenda.cancelStop();
-            return { action, outcome: 'Stop cancelled (if it had not taken effect).', applied: true };
+            return agenda.cancelStop();
+        case 'browser-recheck':
+        case 'browser-retry':
+        case 'browser-restart': {
+            if (!browser) return { action, outcome: 'This process does not own a project browser.', applied: false };
+            return action === 'browser-recheck' ? await browser.recheck() : action === 'browser-retry' ? await browser.retry() : await browser.restart();
+        }
         default:
             throw new PtbkError(`Unknown control action "${action}".`, { kind: 'usage' });
     }
@@ -57,8 +89,9 @@ export async function applyChatAction(agenda: Agenda, method: string, params: Re
             await agenda.chatRead(text('name'));
             return { read: true };
         case 'chat-create': {
-            if (!text('agent')) throw new PtbkError('Choose the agent of the new chat.', { kind: 'usage' });
-            const written = await agenda.chatCreate(text('agent'), text('text'), { name: text('title') || undefined, requestKey: text('requestKey') || undefined });
+            // A new human chat without an explicit target goes to Chatter (diagnosed, never silently replaced).
+            const agent = text('agent') || defaultChatAgent(agenda.chatAgents()).reference;
+            const written = await agenda.chatCreate(agent, text('text'), { name: text('title') || undefined, requestKey: text('requestKey') || undefined });
             return { name: written.chat.name, path: written.relativePath, commit: written.commit, messages: written.chat.messages.length };
         }
         case 'chat-send': {

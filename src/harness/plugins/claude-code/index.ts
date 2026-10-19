@@ -64,6 +64,7 @@ export const plugin: HarnessPlugin = {
     npmPackage: '@anthropic-ai/claude-code',
     homepage: 'https://code.claude.com/docs/en/cli-reference',
     thinkingLevels: ['low', 'medium', 'high', 'xhigh', 'max'],
+    thinkingLabel: 'effort (--effort)',
     capabilities: { mcp: true, readOnly: true },
     loginArgs: ['auth', 'login'],
     loginHint: 'Run `claude auth login` (or start `claude` once and use /login).',

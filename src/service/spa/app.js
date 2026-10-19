@@ -23,8 +23,11 @@
         chat: null,
         /** Agents offered for a new chat (loaded on demand). */
         agents: null,
+        /** New-chat entry: 'entry' (Chat with Chatter / Choose another agent) or 'all' (every valid alternative). */
         newChat: false,
         showAllChats: false,
+        /** Viewer-local detail panels (initially collapsed; never engine state). */
+        details: { execution: false, browser: false },
     };
 
     /** Creates a DOM element; text children are always inserted as text (never parsed as HTML). */
@@ -101,14 +104,66 @@
         return h('span', { className: `pill ${tone || ''}` }, text);
     }
 
-    /** Runs a control action through the API. */
-    async function control(action, confirmText) {
+    /** Runs one of the engine's shared control operations through the API and reports its real outcome. */
+    async function control(action, confirmText, extra) {
         if (confirmText && !window.confirm(confirmText)) return;
+        const key = `control:${action}`;
+        if (state.busy.has(key)) return;
+        state.busy.add(key);
         try {
-            const result = await api('/api/control', { method: 'POST', body: { action } });
+            const result = await api('/api/control', { method: 'POST', body: { action, ...(extra || {}) } });
             toast(result.outcome);
         } catch (error) {
-            toast(`Failed: ${error.message}`);
+            toast(`Not applied: ${error.message}`);
+        } finally {
+            state.busy.delete(key);
+        }
+    }
+
+    /** Lifecycle actions applicable to the live service state (the same operations as ptbk pause/resume/stop/restart). */
+    function lifecycleActions(snapshot) {
+        const service = snapshot.service;
+        const lifecycle = service.lifecycle || {};
+        const stateName = service.state === 'paused' ? 'pause' : service.state;
+        if (stateName === 'stopped' || stateName === 'finished') return [];
+        const actions = [];
+        const restartable = lifecycle.restartable !== false && service.mode !== 'run';
+        const pending = lifecycle.intent === 'restart' ? 'restart' : 'stop';
+        if (stateName === 'running') actions.push({ action: 'pause', label: 'Pause' });
+        if (stateName === 'pause') actions.push({ action: 'resume', label: 'Resume', primary: true });
+        if (stateName === 'pausing') actions.push({ action: 'resume', label: 'Cancel pause' });
+        if (stateName === 'stopping' && lifecycle.cancellable) {
+            actions.push({ action: 'resume', label: `Cancel ${pending}`, primary: true });
+            actions.push({ action: 'pause', label: 'Pause instead', confirm: `Cancel the pending ${pending} and pause instead?`, extra: { replaceStop: true, revision: lifecycle.revision } });
+        }
+        if (stateName !== 'stopping' || (lifecycle.intent === 'restart' && lifecycle.cancellable)) {
+            actions.push({ action: 'stop', label: stateName === 'pausing' ? 'Stop instead' : 'Stop (graceful)', confirm: 'Stop the service after the current task settles? Every viewer shares this engine; closing this page does not stop it.' });
+        }
+        if (restartable && stateName !== 'stopping') actions.push({ action: 'restart', label: 'Restart', confirm: 'Restart the service? The current task finishes first; then exactly one replacement starts with the same configuration.' });
+        if (lifecycle.intent !== 'force-stop') actions.push({ action: 'force-stop', label: 'Force stop', danger: true, confirm: 'Force stop now? Owned work is interrupted immediately (recoverable, never marked done).' });
+        return actions;
+    }
+
+    /** What the live service state means (never a fifth "stopped" live state). */
+    function lifecycleText(snapshot) {
+        const service = snapshot.service;
+        const lifecycle = service.lifecycle || {};
+        const task = snapshot.current ? `“${snapshot.current.taskTitle}”` : 'the current task';
+        switch (service.state === 'paused' ? 'pause' : service.state) {
+            case 'running':
+                return snapshot.current ? 'New tasks start when ready.' : 'Idle is normal; new tasks start when ready.';
+            case 'pausing':
+                return `${task} finishes first; then no task starts until you resume.`;
+            case 'pause':
+                return 'Alive and controllable; no task runs or starts.';
+            case 'stopping':
+                if (lifecycle.intent === 'force-stop') return 'Force stop: owned work is being interrupted (recoverable).';
+                if (lifecycle.shutdown) return lifecycle.intent === 'restart' ? 'Shutting down for a restart; one replacement starts next.' : 'Shutting down.';
+                return `${task} finishes first; then the service ${lifecycle.intent === 'restart' ? 'restarts (exactly one replacement)' : 'exits'}.`;
+            case 'stopped':
+                return 'No engine is running (an observation, not a live state). Start it with ptbk start.';
+            default:
+                return 'The finite run ended.';
         }
     }
 
@@ -158,7 +213,8 @@
         try {
             // One request key per draft: a retried request returns the chat it already created.
             state.newChatKey = state.newChatKey || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-            const result = await api('/api/chats', { method: 'POST', body: { agent, text, requestKey: state.newChatKey } });
+            // Without an explicit agent the service uses Chatter (diagnosed, never silently replaced).
+            const result = await api('/api/chats', { method: 'POST', body: { ...(agent ? { agent } : {}), text, requestKey: state.newChatKey } });
             state.newChatKey = null;
             state.drafts.delete('chat:new');
             toast(`Started “${result.name}”.`);
@@ -172,7 +228,8 @@
     }
 
     async function showNewChat() {
-        state.newChat = true;
+        state.newChat = 'entry';
+        state.focusChatter = true;
         state.chat = null;
         render(state.snapshot);
         if (!state.agents) {
@@ -268,22 +325,52 @@
         return card;
     }
 
+    /**
+     * New chat: first exactly two choices — Chat with Chatter (focused default) or Choose another agent — and only the
+     * second lists every valid alternative (project agents, hidden/core agents and Expert).
+     */
     function renderNewChat() {
         const card = h('section', { className: 'card chats', 'aria-label': 'New chat' });
-        card.append(h('h2', {}, h('span', {}, 'New chat'), h('button', { onclick: () => ((state.newChat = false), render(state.snapshot)) }, 'Cancel')));
+        const back = state.newChat === 'all' || state.newChat === 'chatter' ? h('button', { onclick: () => ((state.newChat = 'entry'), (state.focusChatter = true), render(state.snapshot)) }, 'Back') : null;
+        card.append(h('h2', {}, h('span', {}, 'New chat'), h('span', { className: 'row' }, back, h('button', { onclick: () => ((state.newChat = false), render(state.snapshot)) }, 'Cancel'))));
         if (!state.agents) {
             card.append(h('p', { className: 'muted' }, 'Loading agents…'));
             return card;
         }
-        const select = h('select', { 'aria-label': 'Agent', 'data-draft': 'chat:new-agent' });
-        const ordinary = state.agents.filter((agent) => agent.group === 'ordinary');
-        const more = state.agents.filter((agent) => agent.group !== 'ordinary');
-        if (ordinary.length) select.append(h('optgroup', { label: 'Project agents' }, ordinary.map((agent) => h('option', { value: agent.reference }, agent.name))));
-        if (more.length) select.append(h('optgroup', { label: 'More: hidden/core agents and Expert' }, more.map((agent) => h('option', { value: agent.reference }, agent.name))));
-        if (state.drafts.get('chat:new-agent')) select.value = state.drafts.get('chat:new-agent');
-        select.addEventListener('change', () => state.drafts.set('chat:new-agent', select.value));
-        card.append(h('div', { className: 'row' }, h('label', {}, 'Talk to ', select)));
-        card.append(composer('chat:new', 'First message', (text) => startChat(select.value, text), state.busy.has('new-chat')));
+        const chatter = state.agents.find((agent) => agent.group === 'chatter');
+        const others = state.agents.filter((agent) => agent.group !== 'chatter');
+        if (!chatter) {
+            card.append(h('div', { className: 'notice error' }, 'Chatter (agents/.core/chatter.book), the default partner of new chats, is missing or invalid. Run `ptbk init` or `ptbk start` to restore it, or choose another agent explicitly below.'));
+            if (state.newChat === 'entry') state.newChat = 'all';
+        }
+        if (state.newChat === 'entry' && chatter) {
+            const primary = h('button', { className: 'primary', 'data-focus': 'chatter', onclick: () => ((state.newChat = 'chatter'), render(state.snapshot)) }, `Chat with ${chatter.name}`);
+            card.append(
+                h('div', { className: 'choices', role: 'group', 'aria-label': 'Who do you want to talk to?' }, primary, h('button', { onclick: () => ((state.newChat = 'all'), render(state.snapshot)) }, 'Choose another agent')),
+                h('p', { className: 'muted' }, `${chatter.name} answers project questions, consults the right specialists for you and creates tasks only when you ask for work.`),
+            );
+            if (state.focusChatter) {
+                state.focusChatter = false;
+                requestAnimationFrame(() => primary.focus());
+            }
+            return card;
+        }
+        if (state.newChat === 'chatter' && chatter) {
+            card.append(h('p', {}, 'Talking to ', h('strong', {}, chatter.name)));
+            card.append(composer('chat:new', `First message to ${chatter.name}`, (text) => startChat(chatter.reference, text), state.busy.has('new-chat')));
+        } else {
+            const select = h('select', { 'aria-label': 'Agent', 'data-draft': 'chat:new-agent' });
+            const groups = [
+                ['Project agents', others.filter((agent) => agent.group === 'ordinary')],
+                ['Hidden/core agents', others.filter((agent) => agent.group === 'hidden')],
+                ['Engine-provided', others.filter((agent) => agent.group === 'expert')],
+            ];
+            for (const [label, members] of groups) if (members.length) select.append(h('optgroup', { label }, members.map((agent) => h('option', { value: agent.reference }, agent.name))));
+            if (state.drafts.get('chat:new-agent')) select.value = state.drafts.get('chat:new-agent');
+            select.addEventListener('change', () => state.drafts.set('chat:new-agent', select.value));
+            card.append(h('div', { className: 'row' }, h('label', {}, 'Talk to ', select)));
+            card.append(composer('chat:new', 'First message', (text) => startChat(select.value, text), state.busy.has('new-chat')));
+        }
         card.append(h('p', { className: 'muted' }, 'Every message is saved in chats/ and committed. Agents reply read-only and create ordinary tasks only when you ask for work.'));
         return card;
     }
@@ -322,7 +409,6 @@
         card.append(h('h2', {}, h('span', {}, 'Current work'), pill(snapshot.phase, snapshot.phase === 'blocked' ? 'bad' : snapshot.current ? 'ok' : '')));
         const current = snapshot.current;
         if (current) {
-            const model = current.model ? `${current.model}${current.modelSource === 'requested' ? ' (requested)' : ''}` : 'harness default (unknown model)';
             card.append(
                 h(
                     'div',
@@ -334,7 +420,6 @@
             const rows = [
                 ['Task', `${current.taskRef}${current.kind !== 'task' ? ` (${current.kind})` : ''}`],
                 ...(current.trace ? [['Trace', current.trace]] : []),
-                ['Harness', `${current.harnessName} · ${model}${current.thinkingLevel ? ` · ${current.thinkingLevel}` : ''}`],
                 ['Phase', `${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? ` · ${current.detail}` : ''}`],
                 ['Since', time(current.startedAt)],
             ];
@@ -361,27 +446,112 @@
         }
         const error = snapshot.errors[snapshot.errors.length - 1];
         if (error) card.append(h('details', {}, h('summary', {}, `Last error: ${error.summary}`), h('div', { className: 'muted' }, [error.phase && `Step: ${error.phase}`, error.next && `Next: ${error.next}`, error.trace && `Diagnostics: ${error.trace}`].filter(Boolean).join(' · '))));
+        // A significant browser failure stays visible while the browser details are collapsed.
+        const browser = snapshot.browser;
+        if (browser && (browser.state === 'failed' || (browser.recovery && browser.recovery.state === 'blocked')) && browser.lastFailure) {
+            card.append(h('div', { className: 'notice error' }, h('strong', {}, 'Project browser'), ` — ${browser.lastFailure.summary}`, browser.recovery && browser.recovery.state === 'retrying' ? h('div', { className: 'muted' }, 'Recovering automatically…') : null, h('div', { className: 'muted' }, 'Open “Browser details” to recheck, retry or restart it.')));
+        }
         return card;
     }
 
-    function renderControls(snapshot) {
-        const card = h('section', { className: 'card controls', 'aria-label': 'Controls' });
-        card.append(h('h2', {}, 'Controls'));
-        const running = !['stopped', 'finished'].includes(snapshot.service.state);
-        const paused = snapshot.service.state === 'paused' || snapshot.service.state === 'pausing';
-        card.append(
+    /** Labels of a model in one execution context (reported/requested/automatic/unknown stay distinct). */
+    function modelText(model) {
+        if (model.status === 'reported') return `${model.value} (reported by the harness)`;
+        if (model.status === 'requested') return `${model.value} (requested; not yet confirmed)`;
+        if (model.status === 'automatic') return 'automatic — harness default, concrete model not reported';
+        return 'unknown — not reported';
+    }
+
+    /** Labels of a thinking level, in the harness's own terminology. */
+    function thinkingText(thinking) {
+        const term = thinking.term ? ` — ${thinking.term}` : '';
+        if (thinking.status === 'requested') return `${thinking.value}${term}`;
+        if (thinking.status === 'automatic') return `automatic (harness default, level not reported)${term}`;
+        if (thinking.status === 'not-applicable') return 'not applicable — this harness has no thinking-level setting';
+        return thinking.value ? `${thinking.value} (unverified)` : 'unknown — not reported';
+    }
+
+    /** One collapsible detail panel whose open state is a viewer-local choice. */
+    function detailPanel(key, title, content) {
+        const element = h('details', { className: 'card', open: state.details[key] }, h('summary', {}, title), content);
+        element.addEventListener('toggle', () => {
+            state.details[key] = element.open;
+        });
+        return element;
+    }
+
+    function renderExecutionDetails(snapshot) {
+        const execution = snapshot.execution;
+        if (!execution) return h('p', { className: 'muted' }, 'No execution yet in this service.');
+        const rows = [
+            [execution.status === 'active' ? 'Current run' : 'Last run (historical)', execution.status === 'active' ? `${execution.task.kind} · phase ${execution.phase || 'unknown'}${execution.attempt ? ` · attempt ${execution.attempt}/${execution.attemptBudget}` : ''}` : `${execution.outcome || ''} ${execution.endedAt ? `at ${time(execution.endedAt)}` : ''} — not running now`],
+            ['Task', `${execution.task.title}${execution.task.source ? ` · ${execution.task.source}` : ''}`],
+            ['Agent', `${execution.agent.name}${execution.agent.source ? ` · ${execution.agent.source}` : ''}`],
+        ];
+        for (const context of execution.contexts) {
+            const prefix = context.role === 'consultation' ? `${context.by || '?'} → ${context.agent} (${context.state}): ` : '';
+            rows.push([context.role === 'consultation' ? 'Consultation' : 'Harness', `${prefix}${context.harness.name}${context.harness.version ? ` ${context.harness.version}` : ''}`]);
+            rows.push(['Model', `${prefix}${modelText(context.model)}${context.model.source ? ` · ${context.model.source}` : ''}`]);
+            rows.push(['Thinking', `${prefix}${thinkingText(context.thinkingLevel)}${context.thinkingLevel.source ? ` · ${context.thinkingLevel.source}` : ''}`]);
+        }
+        return h('dl', { className: 'kv' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)]));
+    }
+
+    function renderBrowserDetails(snapshot) {
+        const browser = snapshot.browser;
+        if (!browser) return h('p', { className: 'muted' }, 'Browser information is not available from this service.');
+        const rows = [
+            ['Profile', `${browser.sourceLabel} (${browser.source})`],
+            ['Path', browser.profilePath],
+            ['Mode', `${browser.mode.requested}${browser.mode.actual && browser.mode.actual !== browser.mode.requested ? ` (actually ${browser.mode.actual})` : ''}${browser.mode.note ? ` · ${browser.mode.note}` : ''}`],
+            ['State', `${browser.state}${browser.pid ? ` · PID ${browser.pid}` : ''}`],
+            ['Ownership', `${browser.ownership.state}${browser.ownership.holder ? ` — ${browser.ownership.holder}` : ''}`],
+        ];
+        if (browser.executable) rows.push(['Browser', browser.executable]);
+        if (browser.savedProfile) rows.push(['Saved', browser.savedProfile]);
+        if (browser.pending) rows.push(['Pending', browser.pending]);
+        if (browser.lastFailure) rows.push(['Last failure', `${time(browser.lastFailure.at)} ${browser.lastFailure.summary}${browser.lastFailure.evidence ? ` — ${browser.lastFailure.evidence}` : ''}`]);
+        if (browser.recovery && (browser.recovery.state !== 'idle' || browser.recovery.attempts)) rows.push(['Recovery', `${browser.recovery.state}${browser.recovery.attempts ? ` · ${browser.recovery.attempts} attempt(s)` : ''}${browser.recovery.nextRetryAt ? ` · next ${time(browser.recovery.nextRetryAt)}` : ''}${browser.recovery.blocker ? ` · ${browser.recovery.blocker}` : ''}`]);
+        if (browser.lastAction) rows.push(['Last action', `${browser.lastAction.action}: ${browser.lastAction.state} — ${browser.lastAction.outcome}`]);
+        return h(
+            'div',
+            {},
+            h('dl', { className: 'kv' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])),
             h(
                 'div',
-                { className: 'row' },
-                h('button', { disabled: !running, onclick: () => control(paused ? 'resume' : 'pause') }, paused ? 'Resume' : 'Pause'),
-                h('button', { disabled: !running || !(snapshot.wait && snapshot.wait.skippable), title: snapshot.wait && !snapshot.wait.skippable ? 'Only pacing/backoff waits can be skipped' : '', onclick: () => control('skip-wait') }, 'Skip wait'),
-                snapshot.service.stopRequested
-                    ? h('button', { onclick: () => control('cancel-stop') }, 'Cancel stop')
-                    : h('button', { disabled: !running, onclick: () => control('stop', 'Stop the service after the current task? Closing this page does not stop it.') }, 'Stop after task'),
-                h('button', { className: 'danger', disabled: !running, onclick: () => control('stop-now', 'Stop now? The current task is cancelled and resumes from its recovery record next time.') }, 'Stop now'),
+                { className: 'row', style: 'margin-top:8px', role: 'group', 'aria-label': 'Browser recovery' },
+                h('button', { onclick: () => control('browser-recheck') }, 'Recheck'),
+                h('button', { onclick: () => control('browser-retry') }, 'Retry startup'),
+                h('button', { onclick: () => control('browser-restart', 'Restart this project’s browser? Its profile and sessions are kept; the engine keeps running.') }, 'Restart browser'),
             ),
+            h('p', { className: 'muted' }, 'Recovery is automatic; these actions use the same engine-owned recovery and never restart the engine or other browsers.'),
         );
-        card.append(h('p', { className: 'muted' }, 'Leaving this page never stops the service.'));
+    }
+
+    function renderDetails(snapshot) {
+        return h('section', { className: 'details-panels', 'aria-label': 'Details' }, detailPanel('execution', 'Execution details — agent, harness, model, thinking level', renderExecutionDetails(snapshot)), detailPanel('browser', 'Browser details — profile, health, recovery', renderBrowserDetails(snapshot)));
+    }
+
+    /** The always-visible service-control panel: live state, pending intent and the shared lifecycle operations. */
+    function renderControls(snapshot) {
+        const stateName = snapshot.service.state === 'paused' ? 'pause' : snapshot.service.state;
+        const card = h('section', { className: `card controls ${stateName}`, 'aria-label': 'Service controls' });
+        const lifecycle = snapshot.service.lifecycle || {};
+        card.append(h('h2', {}, h('span', {}, 'Service controls'), h('span', { className: 'state' }, pill(stateName, stateName === 'running' ? 'ok' : stateName === 'stopping' ? 'bad' : 'warn'))));
+        card.append(h('p', {}, lifecycleText(snapshot), lifecycle.since ? h('span', { className: 'muted' }, ` Requested ${time(lifecycle.since)}.`) : null));
+        const buttons = lifecycleActions(snapshot).map((item) =>
+            h('button', { className: item.danger ? 'danger' : item.primary ? 'primary' : '', disabled: state.busy.has(`control:${item.action}`), onclick: () => control(item.action, item.confirm, item.extra) }, item.label),
+        );
+        buttons.push(h('button', { disabled: !(snapshot.wait && snapshot.wait.skippable), title: snapshot.wait && !snapshot.wait.skippable ? 'Only pacing/backoff waits can be skipped' : '', onclick: () => control('skip-wait') }, 'Skip wait'));
+        card.append(h('div', { className: 'row', role: 'group', 'aria-label': 'Lifecycle actions' }, buttons));
+        card.append(h('p', { className: 'muted' }, 'These are the same operations as ptbk pause, resume, stop, stop --force and restart; every connected viewer shares this engine. Leaving this page never stops it.'));
+        return card;
+    }
+
+    /** Agents, harnesses and settings (secondary inventory). */
+    function renderInventory(snapshot) {
+        const card = h('section', { className: 'card inventory', 'aria-label': 'Agents and settings' });
+        card.append(h('h2', {}, 'Agents and settings'));
         const agents = h('details', {}, h('summary', {}, `Agents (${snapshot.agents.length})`), h('ul', { className: 'list' }, snapshot.agents.map((agent) => h('li', {}, h('span', { className: 'row' }, badge(agent, true), agent.name), h('span', { className: 'muted' }, ACTIVITY_LABEL[agent.activity])))));
         card.append(agents);
         const featured = snapshot.harnesses.filter((harness) => harness.featured || harness.enabled);
@@ -503,7 +673,7 @@
         const focusDraft = active && active.getAttribute && active.getAttribute('data-draft');
         const selection = focusDraft ? [active.selectionStart, active.selectionEnd] : null;
         const scroll = window.scrollY;
-        app.replaceChildren(renderAttention(snapshot), renderChats(snapshot), renderWork(snapshot), renderControls(snapshot), renderQueue(snapshot), renderActivity(snapshot), renderConnection(snapshot));
+        app.replaceChildren(renderAttention(snapshot), renderControls(snapshot), renderChats(snapshot), renderWork(snapshot), renderDetails(snapshot), renderQueue(snapshot), renderActivity(snapshot), renderInventory(snapshot), renderConnection(snapshot));
         if (focusDraft) {
             const field = app.querySelector(`[data-draft="${CSS.escape(focusDraft)}"]`);
             if (field) {
@@ -552,6 +722,7 @@
                     if (summary && (summary.messages !== state.chat.detail.messages.length || summary.status !== state.chat.detail.summary.status)) loadChat(state.chat.name);
                 }
                 if (snapshot.service.state === 'stopped' || snapshot.service.state === 'finished') {
+                    // An exited engine is an observation; the page never starts or recreates a service.
                     await new Promise((resolve) => setTimeout(resolve, 5000));
                 }
             } catch (error) {
