@@ -1,11 +1,10 @@
 import { EXIT, PtbkError } from '../common/errors.js';
 import type { Agenda } from '../engine/agenda.js';
-import type { ServiceSnapshot } from '../engine/snapshot.js';
 import type { Project } from '../project/workspace.js';
 import { lookupService, type ServiceLookup } from '../service/control.js';
 import type { PanelTone } from '../ui/panels.js';
 import type { CommandContext } from './context.js';
-import { renderServiceResult } from './service-view.js';
+import { liveSnapshot, renderServiceResult } from './service-view.js';
 
 /**
  * The verified running service of the selected project, or an actionable error (a lifecycle command never starts one).
@@ -44,10 +43,13 @@ export type EngineOutcome = { readonly action: string; readonly applied: boolean
  *
  * @private CLI lifecycle
  */
-export async function renderLifecycleOutcome(context: CommandContext, lookup: Extract<ServiceLookup, { state: 'running' }>, title: string, outcome: EngineOutcome, next: string[]): Promise<number> {
-    const snapshot = await lookup.client.request<ServiceSnapshot>('snapshot');
+export async function renderLifecycleOutcome(context: CommandContext, project: Project, lookup: Extract<ServiceLookup, { state: 'running' }>, title: string, outcome: EngineOutcome, next: string[]): Promise<number> {
+    const snapshot = await liveSnapshot(project, lookup);
     const tone: PanelTone = !outcome.applied ? 'error' : outcome.completed ? 'success' : 'attention';
-    await renderServiceResult(context, snapshot, { client: lookup.client, outcome: { title, message: outcome.outcome, tone }, next });
+    // The engine's message may repeat the title ("Pause pending: …", "Paused.").
+    const repeated = outcome.outcome.startsWith(title) && /^([:.]|$)/.test(outcome.outcome.slice(title.length));
+    const message = repeated ? outcome.outcome.slice(title.length).replace(/^[:.]\s*/, '') : outcome.outcome;
+    await renderServiceResult(context, snapshot, { client: lookup.client, outcome: { title, message: message || undefined, tone }, next });
     return outcome.applied ? EXIT.success : EXIT.failure;
 }
 

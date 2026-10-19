@@ -5,7 +5,7 @@ import { ChatStore } from '../chats/store.js';
 import { setting } from '../project/config.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import { StateStore } from '../engine/state.js';
-import type { ControlClient } from '../service/control.js';
+import type { ControlClient, ServiceLookup } from '../service/control.js';
 import { publicSnapshot } from '../service/http.js';
 import type { PanelTone } from '../ui/panels.js';
 import { renderQr, renderStatus, type PreparedQr } from '../ui/status-view.js';
@@ -54,6 +54,42 @@ export async function stoppedSnapshot(project: Project): Promise<ServiceSnapshot
         harnesses: [],
         settings: [],
         connection: { local: { state: 'disabled' }, remote: { state: 'disabled' } },
+    };
+}
+
+/**
+ * Live lifecycle states an engine may report through `identify`.
+ */
+const LIVE_STATES: readonly string[] = ['running', 'pausing', 'pause', 'stopping'];
+
+/**
+ * Snapshot of a running service for one-shot results (status, lifecycle outcomes, start, restart, init).
+ *
+ * An engine of an incompatible ptbk version cannot be rendered from its own snapshot, so the project's local view is
+ * shown with that engine's actual version and process identity plus a blocker naming the difference; its live details
+ * are not guessed.
+ *
+ * @private service views
+ */
+export async function liveSnapshot(project: Project, lookup: Extract<ServiceLookup, { state: 'running' }>): Promise<ServiceSnapshot> {
+    if (lookup.engine.compatible) return await lookup.client.request<ServiceSnapshot>('snapshot');
+    const local = await stoppedSnapshot(project);
+    const reported = await lookup.client.request<{ state?: string }>('identify').catch(() => ({ state: undefined }));
+    const state = (LIVE_STATES.includes(reported.state ?? '') ? reported.state : 'running') as ServiceSnapshot['service']['state'];
+    const { record } = lookup;
+    return {
+        ...local,
+        engine: { version: lookup.engine.version, installation: record.installation, scope: local.engine.scope },
+        service: { ...local.service, mode: record.mode, state, pid: record.pid, instanceId: record.instanceId, startedAt: record.startedAt, persistent: record.persistent },
+        phase: 'unknown',
+        blockers: [
+            {
+                kind: 'setup',
+                title: `Service runs ptbk ${lookup.engine.version}`,
+                reason: `This ptbk ${ENGINE_VERSION} cannot read its live details (different control contract).`,
+                action: 'Use `ptbk dashboard` (it opens the service\'s own installation), or `ptbk stop` and `ptbk start` to switch versions.',
+            },
+        ],
     };
 }
 

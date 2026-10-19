@@ -25,7 +25,9 @@ export type Phase =
     | 'paused'
     | 'stopping'
     | 'stopped'
-    | 'finished';
+    | 'finished'
+    /** A live engine of another ptbk version whose details this client cannot read. */
+    | 'unknown';
 
 /**
  * Agent identity and observed activity (badge appearance derives from `key`).

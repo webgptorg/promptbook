@@ -15,7 +15,7 @@ npm install --save-dev ptbk
 npx ptbk --version
 ```
 
-Global and local installations are independent; every project keeps using the installation that started it, including after restarts.
+Global and local installations are independent; every project keeps using the installation that started it, including after restarts. A dashboard or status opened with another ptbk version shows the service through its own installation.
 
 ## Use
 

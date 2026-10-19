@@ -12,5 +12,5 @@ export default async function resume(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const lookup = await requireRunningService(project, 'resume');
     const result = await lookup.client.request<EngineOutcome>('resume');
-    return await renderLifecycleOutcome(context, lookup, result.applied ? (/Cancelled/.test(result.outcome) ? 'Cancelled' : 'Running') : 'Too late', result, ['ptbk dashboard', 'ptbk status']);
+    return await renderLifecycleOutcome(context, project, lookup, result.applied ? (/Cancelled/.test(result.outcome) ? 'Cancelled' : 'Running') : 'Too late', result, ['ptbk dashboard', 'ptbk status']);
 }

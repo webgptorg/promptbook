@@ -1,12 +1,11 @@
 import { EXIT, PtbkError } from '../../common/errors.js';
-import type { ServiceSnapshot } from '../../engine/snapshot.js';
-import { lookupService } from '../../service/control.js';
+import { lookupService, type ServiceLookup } from '../../service/control.js';
 import { launchDaemon, restartService, stopService } from '../../service/launcher.js';
 import { registerPersistence, unregisterPersistence } from '../../service/persistence.js';
 import { readLaunchMetadata } from '../../service/records.js';
 import { selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { option, type CommandContext } from '../context.js';
-import { renderServiceResult } from '../service-view.js';
+import { liveSnapshot, renderServiceResult } from '../service-view.js';
 
 /**
  * How long the result waits for the replacement's tunnel to report its first outcome.
@@ -40,7 +39,7 @@ export default async function restart(context: CommandContext): Promise<number> 
         throw new PtbkError('The recorded ptbk service does not answer, so it was not restarted.', { kind: 'conflict', project: project.root, reason: lookup.reason, effect: 'Nothing was stopped or started.', next: ['Run `ptbk status` again shortly.'] });
     }
     let message: string;
-    let client;
+    let replacement: Extract<ServiceLookup, { state: 'running' }>;
     if (lookup.state === 'running') {
         if (lookup.record.mode !== 'daemon' && launchChanges(context).length) {
             throw new PtbkError(`The ${lookup.record.mode} service keeps its own invocation options; new options cannot be applied by restarting it.`, {
@@ -52,7 +51,7 @@ export default async function restart(context: CommandContext): Promise<number> 
         const result = await restartService(project, lookup, { launch: { cli: overrides, cliHarnesses, tasksDirectory, persistent }, timeoutMs: option<number>(context, 'timeout') });
         if (result.kind === 'pending') {
             const current = await lookupService(project);
-            const view = current.state === 'running' ? await current.client.request<ServiceSnapshot>('snapshot') : undefined;
+            const view = current.state === 'running' ? await liveSnapshot(project, current) : undefined;
             if (view) await renderServiceResult(context, view, { client: current.state === 'running' ? current.client : undefined, outcome: { title: 'Restart pending', message: `${result.message} \`ptbk resume\` cancels it.`, tone: 'attention' }, next: ['ptbk status', 'ptbk resume'] });
             else context.terminal.write(`${result.message}\n`);
             return EXIT.incomplete;
@@ -65,10 +64,10 @@ export default async function restart(context: CommandContext): Promise<number> 
                 return EXIT.incomplete;
             }
             const launched = await launchDaemon(project, { cli: overrides, cliHarnesses, tasksDirectory, persistent, env: context.env });
-            client = launched.lookup.client;
+            replacement = launched.lookup;
             message = `The previous service (an older engine) stopped; one replacement runs in the background (PID ${launched.lookup.record.pid}).`;
         } else {
-            client = result.lookup.client;
+            replacement = result.lookup;
             if (result.lookup.record.mode === 'daemon') {
                 if (persistent) await registerPersistence(project, previous?.nodePath ?? process.execPath, previous?.env.PATH ?? previous?.env.Path ?? '').catch(() => undefined);
                 else await unregisterPersistence(project).catch(() => undefined);
@@ -77,15 +76,15 @@ export default async function restart(context: CommandContext): Promise<number> 
         }
     } else {
         const launched = await launchDaemon(project, { cli: overrides, cliHarnesses, tasksDirectory, persistent, env: context.env });
-        client = launched.lookup.client;
+        replacement = launched.lookup;
         message = `No service was running; the agenda runs in the background (PID ${launched.lookup.record.pid}).${launched.persistence ? ` ${launched.persistence.note}` : ''}`;
     }
-    let snapshot = await client.request<ServiceSnapshot>('snapshot');
+    let snapshot = await liveSnapshot(project, replacement);
     const deadline = Date.now() + TUNNEL_SETTLE_MS;
     while (snapshot.connection.remote.state === 'connecting' && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 500));
-        snapshot = await client.request<ServiceSnapshot>('snapshot');
+        snapshot = await liveSnapshot(project, replacement);
     }
-    await renderServiceResult(context, snapshot, { client, outcome: { title: 'Restarted', message, tone: 'success' }, next: ['ptbk dashboard', 'ptbk stop'] });
+    await renderServiceResult(context, snapshot, { client: replacement.client, outcome: { title: 'Restarted', message, tone: 'success' }, next: ['ptbk dashboard', 'ptbk stop'] });
     return EXIT.success;
 }

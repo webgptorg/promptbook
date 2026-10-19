@@ -2,11 +2,13 @@ import { EXIT } from '../../common/errors.js';
 import type { ServiceSnapshot } from '../../engine/snapshot.js';
 import { lookupService } from '../../service/control.js';
 import { selectedProject } from '../common.js';
+import { delegateToEngine } from '../engine-delegation.js';
 import type { CommandContext } from '../context.js';
 import { renderServiceResult, stoppedSnapshot } from '../service-view.js';
 
 /**
- * `ptbk status` / `ptbk show`: one snapshot of the existing service; never starts anything.
+ * `ptbk status` / `ptbk show`: one snapshot of the existing service; never starts anything. A service of an
+ * incompatible ptbk version is described by its own installation.
  *
  * @private command
  */
@@ -14,6 +16,7 @@ export default async function status(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const lookup = await lookupService(project);
     if (lookup.state === 'running') {
+        if (!lookup.engine.compatible) return await delegateToEngine(project, lookup, context.argv, context.cwd, context.env);
         const snapshot = await lookup.client.request<ServiceSnapshot>('snapshot');
         await renderServiceResult(context, snapshot, { client: lookup.client, next: snapshot.service.mode === 'daemon' ? ['ptbk dashboard', 'ptbk stop'] : ['ptbk dashboard'] });
         return EXIT.success;

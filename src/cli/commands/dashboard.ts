@@ -5,6 +5,7 @@ import { runDashboard } from '../../ui/dashboard.js';
 import { runGlobalDashboard } from '../../ui/global-dashboard.js';
 import { selectedProject } from '../common.js';
 import { flag, type CommandContext } from '../context.js';
+import { delegateToEngine } from '../engine-delegation.js';
 import { controlSource } from '../sources.js';
 
 /**
@@ -25,6 +26,11 @@ async function globalDashboard(context: CommandContext): Promise<number> {
             const lookup = await lookupService(project);
             if (lookup.state !== 'running') return `${row.entry.projectName} is no longer running${lookup.state === 'unreachable' ? ` (${lookup.reason})` : ''}; nothing was started.`;
             if (lookup.record.instanceId !== row.entry.instanceId) return `${row.entry.projectName} is now owned by another engine instance; select its new row to attach.`;
+            if (!lookup.engine.compatible) {
+                // Another engine version renders its own dashboard, so the view keeps that engine's version and shape.
+                await delegateToEngine(project, lookup, ['dashboard', '--path', project.root, ...(noQr ? ['--no-qr'] : [])], context.cwd, context.env);
+                return undefined;
+            }
             await runDashboard(context.terminal, controlSource(lookup.client), { noQr });
             return undefined;
         },
@@ -35,7 +41,8 @@ async function globalDashboard(context: CommandContext): Promise<number> {
 
 /**
  * `ptbk dashboard`: attach a live view to the existing service (never starts or initializes anything); with
- * `--global`, the host-wide overview of every running engine.
+ * `--global`, the host-wide overview of every running engine. A service of an incompatible ptbk version is shown by
+ * its own installation.
  *
  * @private command
  */
@@ -54,6 +61,7 @@ export default async function dashboard(context: CommandContext): Promise<number
     if (lookup.state === 'unreachable') {
         throw new PtbkError('The recorded ptbk service does not answer.', { kind: 'technical', project: project.root, reason: lookup.reason, next: ['Run `ptbk status` to inspect it, or `ptbk restart`.'] });
     }
+    if (!lookup.engine.compatible) return await delegateToEngine(project, lookup, context.argv, context.cwd, context.env);
     await runDashboard(context.terminal, controlSource(lookup.client), { noQr: flag(context, 'qr') === false });
     return EXIT.success;
 }

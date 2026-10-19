@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 import { browserProfileDirectory, browserProfileSource } from '../dist/browser/browser.js';
 import { parseChatBook } from '../dist/chats/chat-book.js';
@@ -160,6 +160,7 @@ test('browser profile sources: the managed global profile is the default; isolat
     assert.equal(browserProfileSource('/some/path'), 'custom');
     assert.equal(browserProfileDirectory(project, settings('global'), env), join('/home/me/ptbk', 'browser-profile'));
     assert.equal(browserProfileDirectory(project, settings('isolated'), env), '/work/site/.ptbk/browser/profile');
-    assert.equal(browserProfileDirectory(project, settings('profiles/shared'), env), join('/work/site', 'profiles', 'shared'));
+    // Relative custom paths resolve against the project root (on Windows that adds the current drive letter).
+    assert.equal(browserProfileDirectory(project, settings('profiles/shared'), env), resolve('/work/site', 'profiles', 'shared'));
     assert.notEqual(browserProfileDirectory(project, settings('user'), env), browserProfileDirectory(project, settings('global'), env), "the managed profile is never the user's Chrome profile");
 });

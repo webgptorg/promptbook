@@ -1,10 +1,9 @@
 import { EXIT } from '../../common/errors.js';
 import { lookupService } from '../../service/control.js';
 import { stopService } from '../../service/launcher.js';
-import type { ServiceSnapshot } from '../../engine/snapshot.js';
 import { selectedProject } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
-import { renderServiceResult, stoppedSnapshot } from '../service-view.js';
+import { liveSnapshot, renderServiceResult, stoppedSnapshot } from '../service-view.js';
 
 /**
  * `ptbk stop`: the engine's shared stop operation. Graceful by default (`stopping`: the current task settles, then
@@ -19,7 +18,7 @@ export default async function stop(context: CommandContext): Promise<number> {
     const result = await stopService(project, { force, timeoutMs: option<number>(context, 'timeout') });
     if (!result.stopped) {
         const lookup = await lookupService(project);
-        const snapshot = lookup.state === 'running' ? await lookup.client.request<ServiceSnapshot>('snapshot') : await stoppedSnapshot(project);
+        const snapshot = lookup.state === 'running' ? await liveSnapshot(project, lookup) : await stoppedSnapshot(project);
         await renderServiceResult(context, snapshot, {
             client: lookup.state === 'running' ? lookup.client : undefined,
             outcome: { title: 'Stopping', message: `${result.message} It exits once that work settles; \`ptbk resume\` cancels the stop, \`ptbk stop --force\` interrupts the work.`, tone: 'attention' },

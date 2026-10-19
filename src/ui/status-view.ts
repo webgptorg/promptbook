@@ -148,7 +148,8 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     for (const result of snapshot.results.recent.slice(0, 5)) lines.push(`- ${result.outcome}: ${result.title}${result.commit ? ` (${result.commit.slice(0, 8)})` : ''}`);
     const error = snapshot.errors[snapshot.errors.length - 1];
     if (error) lines.push(`Last error: ${error.summary}${error.next ? ` Next: ${error.next}` : ''}${error.trace ? ` Diagnostics: ${error.trace}` : ''}`);
-    lines.push('', 'EXECUTION DETAILS', ...executionDetailLines(snapshot.execution).map((line) => `  ${line}`));
+    const execution = snapshot.phase === 'unknown' ? ['Unavailable: the service runs another ptbk version.'] : executionDetailLines(snapshot.execution);
+    lines.push('', 'EXECUTION DETAILS', ...execution.map((line) => `  ${line}`));
     if (snapshot.browser) lines.push('', 'BROWSER DETAILS', ...browserDetailLines(snapshot.browser).map((line) => `  ${line}`));
     lines.push('', 'CONNECTION');
     const local = snapshot.connection.local;

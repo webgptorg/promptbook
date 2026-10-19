@@ -47,6 +47,7 @@ import { CANCELLED, composeRich, confirm, inputLine, selectMany, selectOne, togg
 import { symbols } from '../../ui/terminal.js';
 import { readStdin, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
+import { liveSnapshot } from '../service-view.js';
 
 /**
  * Outcome of initialization.
@@ -959,16 +960,16 @@ async function startService(context: CommandContext, project: Project): Promise<
         const overrides = settingOverrides(context);
         const existing = await lookupService(project);
         if (existing.state === 'running') {
-            return { kind: 'reused', snapshot: await existing.client.request<ServiceSnapshot>('snapshot'), note: `The ${existing.record.mode} service (PID ${existing.record.pid}) was already running and keeps its configuration.` };
+            return { kind: 'reused', snapshot: await liveSnapshot(project, existing), note: `The ${existing.record.mode} service (PID ${existing.record.pid}) was already running and keeps its configuration.` };
         }
         const settings = await loadSettings(project, { env: context.env, cli: overrides });
         const persistent = setting<boolean>(settings, 'service.persist');
         const launched = await launchDaemon(project, { cli: overrides, tasksDirectory: tasksOverride(context), persistent, env: context.env });
-        let snapshot = await launched.lookup.client.request<ServiceSnapshot>('snapshot');
+        let snapshot = await liveSnapshot(project, launched.lookup);
         const deadline = Date.now() + 10_000;
         while (snapshot.phase === 'starting' && Date.now() < deadline) {
             await new Promise((resolvePromise) => setTimeout(resolvePromise, 300));
-            snapshot = await launched.lookup.client.request<ServiceSnapshot>('snapshot');
+            snapshot = await liveSnapshot(project, launched.lookup);
         }
         return { kind: launched.started ? 'started' : 'reused', snapshot, note: launched.persistence?.note ?? (persistent ? undefined : 'Restart persistence is disabled (--no-persist).') };
     } catch (error) {

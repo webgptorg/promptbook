@@ -34,5 +34,5 @@ export default async function pause(context: CommandContext): Promise<number> {
         }
         result = await lookup.client.request<EngineOutcome>('pause', { replaceStop: true, revision: data.revision });
     }
-    return await renderLifecycleOutcome(context, lookup, result.state === 'pause' ? 'Paused' : result.applied ? 'Pause pending' : 'Not paused', result, result.state === 'pause' ? ['ptbk resume', 'ptbk dashboard'] : ['ptbk status', 'ptbk resume']);
+    return await renderLifecycleOutcome(context, project, lookup, result.state === 'pause' ? 'Paused' : result.applied ? 'Pause pending' : 'Not paused', result, result.state === 'pause' ? ['ptbk resume', 'ptbk dashboard'] : ['ptbk status', 'ptbk resume']);
 }

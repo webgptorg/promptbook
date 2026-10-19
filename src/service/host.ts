@@ -9,7 +9,7 @@ import type { ConnectionView } from '../engine/snapshot.js';
 import { ProjectBrowser, browserTools } from '../browser/browser.js';
 import { applyChatAction, applyControlAction, applySettings, type BrowserControls } from './actions.js';
 import { AuthStore } from './auth.js';
-import { startControlServer } from './control.js';
+import { CONTROL_CONTRACT, startControlServer } from './control.js';
 import { registerEngine, summaryOfSnapshot } from './discovery.js';
 import { startHttpServer, type RunningHttpServer } from './http.js';
 import { acquireProjectLock, engineIdentity, removeProcessRecord, writeProcessRecord } from './records.js';
@@ -265,7 +265,7 @@ export class ServiceHost {
         const agenda = this.agenda;
         switch (method) {
             case 'identify':
-                return { instanceId: this.instanceId, projectRoot: this.options.project.root, pid: process.pid, mode: this.options.mode, version: ENGINE_VERSION, state: agenda.serviceState };
+                return { instanceId: this.instanceId, projectRoot: this.options.project.root, pid: process.pid, mode: this.options.mode, version: ENGINE_VERSION, contract: CONTROL_CONTRACT, state: agenda.serviceState };
             case 'snapshot':
                 return agenda.snapshot();
             case 'summary':

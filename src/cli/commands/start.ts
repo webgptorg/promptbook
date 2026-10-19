@@ -12,7 +12,7 @@ import { runDashboard } from '../../ui/dashboard.js';
 import { confirm } from '../../ui/prompts.js';
 import { selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
-import { renderServiceResult } from '../service-view.js';
+import { liveSnapshot, renderServiceResult } from '../service-view.js';
 import { hostSource } from '../sources.js';
 import { initializeProject } from './init.js';
 import { ownerSignals } from '../lifecycle.js';
@@ -147,7 +147,7 @@ export default async function start(context: CommandContext): Promise<number> {
     const cliHarnesses = option<string[]>(context, 'harness');
     const existing = await lookupService(project);
     if (existing.state === 'running') {
-        const snapshot = await existing.client.request<ServiceSnapshot>('snapshot');
+        const snapshot = await liveSnapshot(project, existing);
         const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'qr', 'daemon'].includes(name));
         await renderServiceResult(context, snapshot, {
             client: existing.client,
@@ -171,7 +171,7 @@ export default async function start(context: CommandContext): Promise<number> {
     const settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses });
     const persistent = setting<boolean>(settings, 'service.persist');
     const result = await launchDaemon(project, { cli: overrides, cliHarnesses, tasksDirectory: tasksOverride(context), persistent, env: context.env });
-    const snapshot = await settledSnapshot(() => result.lookup.client.request<ServiceSnapshot>('snapshot'));
+    const snapshot = await settledSnapshot(() => liveSnapshot(project, result.lookup));
     const persistence = result.persistence ? ` ${result.persistence.note}` : persistent ? '' : ' Restart persistence is disabled (--no-persist).';
     await renderServiceResult(context, snapshot, {
         client: result.lookup.client,
