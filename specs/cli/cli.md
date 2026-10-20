@@ -2,74 +2,81 @@
 
 [Main specification](../_main.md)
 
-The command root is `ptbk`. Bare invocation displays [top-level help](help.md), in both interactive and noninteractive environments, without starting work or asking to start. Successful `ptbk init` prepares the project and automatically starts its background agenda; the optional next command is `ptbk dashboard`. An already initialized, cloned or stopped project can also be started explicitly with `ptbk start`.
+The root command is `ptbk`. Bare invocation shows [top-level help](help.md) without starting work or asking to start. Successful init performs finite setup and starts the background agenda; `ptbk dashboard` is the optional next view. An initialized/cloned/stopped project can be started explicitly.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `init`, `initialize` | Complete finite technical setup, preserve initial input, initialize missing core roles, create an ordinary Expert bootstrap task and start the background agenda. |
-| `start` | Start the ongoing agenda's daemon and report one status snapshot; explicit foreground operation is available. |
-| `pause` | Stop new task claims, drain current work and keep the engine alive in pause. |
-| `resume` | Resume pause or cancel a pending pause/stop/restart and return to running. |
-| `stop` | Gracefully drain and stop the selected service; `--force` or `-F` requests immediate owned-work termination. |
-| `restart` | Gracefully stop and start one replacement for the same project and effective configuration. |
-| `dashboard` | Continuously observe/control an existing project service without starting or owning it. |
-| `dashboard --global` | Continuously list host-wide project engines across installations, independently of CWD, and attach to a selected project view. |
-| `status`, `show` | One shared project-state snapshot, including chat attention and connection information, without lifecycle changes. |
-| `chat` | New persistent user conversation with Chatter by default, or explicitly reopen a named existing thread; no dashboard required. |
-| `ask` | Compatibility/quick task-submission or enquiry using the same chat/task model, not a separate request store. |
-| `answer` | Select a waiting chat and append a user answer. |
-| `run` | Execute a finite existing queue with one selected configuration. |
-| `help` | Top-level or command/subcommand-scoped help in pretty/raw presentation. |
-| `about` | Short product overview and running engine version. |
-| `add` | Create/commit a task through wizard, supplied description, stdin or template without a model call. |
-| `generate-boilerplates` | Create unfinished non-runnable task templates. |
-| `plan` | Discuss and save approved tasks without implementing them. |
+| `init`, `initialize` | Preserve intent, prepare missing support/core roles/simple tools, ask optional sync, save ordinary Expert bootstrap and start the agenda. No check-command question. |
+| `start` | Start ongoing daemon and report one snapshot; explicit foreground mode is available. |
+| `pause` | Stop new claims, drain current work and remain alive in pause. |
+| `resume` | Resume or cancel pending pause/stop/restart and return to running. |
+| `stop` | Graceful drain/stop; `--force` or `-F` immediately terminates owned execution. |
+| `restart` | Gracefully stop and start one replacement for the selected project. |
+| `dashboard` | Continuously observe/control an existing project, without owning or starting it. |
+| `dashboard --global` | Live host-wide engine table, independent of CWD, with project attachment and meaningful zero-entry state. |
+| `status`, `show` | One shared project-state snapshot, including tools and enabled synchronization, without lifecycle changes. |
+| `tool` | Named tool list/show/add/modify/move/enable/disable/remove using shared saved management. See [tool commands](tool-management.md). |
+| `chat` | New Chatter-first persistent conversation or explicit existing thread, without a dashboard requirement. |
+| `ask` | Compatibility/quick submission or enquiry using the same chat/task model. |
+| `answer` | Select a waiting chat and append a human reply. |
+| `run` | Execute a finite existing queue with selected configuration and live resource checks. |
+| `help` | Top-level or command/subcommand-scoped help in pretty/raw form. |
+| `about` | Product overview and actual running engine version. |
+| `add` | Create/commit a task through wizard, description, stdin or template, without a model call. |
+| `generate-boilerplates` | Create unfinished non-runnable templates. |
+| `plan` | Discuss and save approved tasks, not implement them. |
 | `list` | Read-only queue, filters and readiness explanations. |
 | `fix` | Project validation/repair, not ordinary queue execution. |
-| `verify` | Human review, follow-up and archiving; not a check run. |
-| `migrate` | Explicit local Markdown-to-Book conversion. |
-| `recover` | Inspect/explicitly resolve interrupted work; ordinary safe recovery remains automatic. |
+| `verify` | Human review, follow-up and archiving, not a check run. |
+| `migrate` | Explicit local Markdown-to-Book conversion, distinct from automatic configuration migrations. |
+| `recover` | Inspect/explicitly resolve interrupted work; routine safe recovery is automatic. |
 | `find-unwritten`, `find-refactor-candidates`, `find-fresh-emoji-tags` | Authoring helpers. |
 | `ping` | Explicit small harness/model call, optionally repeated with `--period`. |
 
 ## Project selection and lifecycle
 
-`--path` selects the project; `--tasks` selects its source. `dashboard --global` is the explicit exception: launch directory is irrelevant, no project is initialized, and the view stays open with zero services. An explicit conflicting project selector is diagnosed. [Global discovery](global-dashboard.md) spans installations/versions; there is no global engine or new stop-all operation.
+`--path` selects the project and `--tasks` its task source. Global dashboard is the explicit directory-independent exception and diagnoses conflicting project selection; it never initializes a project or creates a global engine. Discovery spans installations/versions, with no new stop-all command.
 
-Pause/resume/stop/restart invoke the same [engine lifecycle operations](service-lifecycle.md) as dashboards/API. Live states are running, pausing, pause and stopping. `ptbk stop --force` and `ptbk stop -F` are equivalent immediate actions, not another state. There is no hard pause. Resume cancels pending pause/stop without replaying active work. Stop-to-pause replacement requires confirmation; a noninteractive caller can explicitly resume/cancel before requesting pause. Repeating ordinary stop is not force escalation.
+Lifecycle commands use the [shared four-state machine](service-lifecycle.md): running, pausing, pause, stopping. `ptbk stop --force` and `-F` are equivalent immediate actions, not another state or a hard pause. Resume cancels pending pause/stop without replaying current work. Stop-to-pause replacement confirms intent; noninteractive callers can explicitly cancel/resume first. Repeated graceful stop does not escalate.
 
-One-shot results distinguish request acceptance/pending intent from completed, failed or unconfirmed outcomes, without attaching a live view. A lost endpoint is not proof of completed stop. Only the verified owner is controlled; [owner lock cleanup](locking.md) is attempted during controlled shutdown, including internal force, but is not guaranteed after an external hard kill.
+One-shot outcomes distinguish acceptance/draining, actual completion and failure/unconfirmed status. Lost connection alone does not prove termination. Only the verified owner is controlled; [lock cleanup](locking.md) is best-effort during handled force stop and not guaranteed after external hard kill. Opening/closing dashboards/chat leaves ownership alone. Per-project missing service is an error, not implicit startup; the global empty state remains usable.
 
-Opening/closing dashboard or chat leaves the engine alone. Multiple clients may attach to one service, but a second engine cannot own the same project. Missing per-project service is an actionable error, not startup; the global zero-entry case remains usable. See [process modes](process-modes.md).
+Resource availability is separate: an initialized service can start and remain running while waiting for tools. Recheck before every task and during waits, not just launch. A new/reenabled tool can help current work without restart. See [tool runtime](tool-runtime.md).
 
-## Shared configuration and presentation
+## Configuration and presentation
 
-[Configuration precedence](configuration.md) defines engine defaults, versioned `ptbk.json` and temporary CLI overrides, including legacy environment defaults. Task requirements cannot be silently overridden by an incompatible invocation choice.
+Use shared [precedence](configuration.md), [version migrations](configuration-migrations.md) and [naming](../coding-standards/naming.md). Saved keys are camelCase, booleans use `is`, user tool names are kebab-case and fixed enum values uppercase. CLI flags keep conventional dashed spellings; tolerant accepted CLI enums save canonically. Task requirements remain constraints.
 
-`--agent`, `--harness`, `--model`, `--thinking-level` and `--context` configure finite work. Agent, harness and model are separate. Agent selection uses the shared [resolver](../book-language/references.md). Run/fix/plan default to Developer when no agent is selected; explicit Planner is supported. Start discovers project roles/enabled harnesses and uses Manager subject to restrictions/preferences, not hidden fixed Developer routing.
+`--agent`, `--harness`, `--model`, `--thinking-level` and `--context` configure finite work. Agent, tool instance/variant and model are distinct. Agent references use the shared Book resolver. Run/fix/plan default to Developer unless selected otherwise; start uses Manager and enabled tools subject to requirements. When selecting a harness by variant, use that variant's eligible ordered instance fallback; a named-instance restriction must remain explicit rather than silently broadened.
 
-[Presentation and interaction](interactive-ui.md) defines pretty defaults, `--raw` and input policy via `--interactive`/`--non-interactive`. Init/add use finite wizards; project/global dashboards are continuous; lifecycle commands report once. Run/explicit foreground start share the live project view. Noninteractive init accepts destination/child strategy, intent/attachments, installation, harness, browser, trace and update choices in advance; help documents them without provider configuration dumps.
+Pretty/raw and interactive/noninteractive follow [CLI presentation](interactive-ui.md). Init/add are finite wizards; dashboards continuous; lifecycle/management commands report once. Noninteractive init accepts destination/nesting, intent/assets, installation, harness/browser, trace, update and synchronization choices. No required check-command choice is added; explicit `--check` is still supported. Help must not dump every provider's configuration into the initial view.
 
-New `ptbk chat` without an explicit target offers **Chat with Chatter** as focused default and **Choose another agent** second. Enter proceeds with Chatter; the latter opens the full valid target list including hidden/core roles and Expert. Explicit `--agent` bypasses the picker; noninteractive default is Chatter. Existing chats/answers retain their real participant. User/Void/Null are not speakers. Ctrl+C closes chat only. Replies can propose/create ordinary authorized tasks, but opening chat never creates work or starts an engine. See [chats](chats.md) and [chat UI](chat-ui.md).
+New chat without an explicit target offers Chatter (focused default/Enter) or Choose another agent; the latter opens all valid core/specialist/Expert targets. Explicit `--agent` bypasses selection; noninteractive default is Chatter. Existing threads retain participants; User/Void/Null are not speakers. Ctrl+C leaves chat only. Authorized execution requested in chat uses ordinary tasks and respects pause/ownership.
 
-Live/snapshot project views follow [status](status-view.md) and [layout](dashboard-layout.md). Lifecycle controls are directly visible; actual execution configuration and browser profile/diagnostics use [expandable detail panels](dashboard-details.md). `--no-qr` suppresses code in dashboard, status/show, start/restart and run without disabling HTTP/remote access. Waiting chats, status and connection are not mutually exclusive screens. Init's finite finish hints at dashboard without opening it.
+Start supports `--daemon` (default), `--foreground`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`. With several browsers, `--browser-tool <name>` disambiguates temporary browser overrides; never silently apply them to every instance. Saved per-tool changes instead use `ptbk tool modify`.
 
-Start supports `--daemon` (default), `--foreground`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`, alongside shared presentation/input options. [Remote access](remote-access.md) adds `--tunnel`, `--no-tunnel` and `--tunnel-provider <provider>` for HTTP-launching workflows, including finite run and init's start. Protected tunnelling defaults on with HTTP; no-server suppresses it and conflicts with explicit tunnel. Initial provider values remain cloudflare-quick (default) and configured cloudflare-named.
+HTTP workflows support `--tunnel`, `--no-tunnel`, `--tunnel-provider`; CLI provider spellings remain `cloudflare-quick`/`cloudflare-named` and saved enums are canonical uppercase. No-server suppresses implicit tunnelling and conflicts with explicit enablement. HTTP exposure is not Git autosync. Raw does not select foreground or change exposure. Dashboard/status do not apply launch-only options or create tunnels.
 
-Daemon/foreground conflict; raw never implicitly selects foreground or changes tunnelling. Init stays finite and hands off to the daemon. Dashboard/status/show do not create tunnels or apply launch-only settings. `--help`, trailing help and `ptbk help <command-path>` show only selected scope; no path means top-level. These and `--version` follow [help/version](help.md). Global-dashboard help documents directory independence and its continuous empty state.
+`--help`, trailing `help` and `ptbk help <command-path>` show only the selected scope, including `tool add`/`modify`/`disable` and global-dashboard help. No path means top-level. Help/version/read-only inspection require no service/setup and never run the selected command.
+
+## Saved tools and synchronization
+
+Tool subcommands, options, protected secret input, ordering and examples are specified once in [tool management](tool-management.md). Enable/disable are primary, permanent removal secondary. Every real saved change commits independently and promptly, even during active task work; read/no-op/cancel does not. API key values are `${{ env.NAME }}` references; actual secrets enter only protected local editing, not command arguments or Git.
+
+For an in-use modification/disable/remove, CLI refuses without writes and prints the same command with `--force`/`-F` (save while existing use finishes), plus the alternative standalone `ptbk stop --force`, followed after stop by the original command. There is **no tool `--force-stop` option**. Last-enabled-type confirmation is independent: explicit `--yes` accepts that warning noninteractively and does not imply in-use `--force` or vice versa.
+
+Root `isAutoSync` defaults false. `--auto-sync`/`--no-auto-sync` override the invocation. Legacy `--auto-pull`/`--auto-push` are documented compatibility opt-ins to the same combined policy, not independent persisted settings; explain both directions. Use the existing Git origin/current started branch, periodic and boundary attempts, immutable merges and nonblocking remote failure under [synchronization](git-synchronization.md). Manual dashboard synchronization uses that same coordinator.
 
 ## Persistence and finite-run options
 
-Mutating workflows commit their own versioned changes by default under [Git persistence](git-persistence.md), with `PTBK: ` subjects and Task-Name/Chat-Name correlation. Human-facing messages commit individually; task-internal consultations join their result; conversation-only consultation uses scoped authoring persistence. This includes init/add/other authoring and start/run work. `--no-commit` opts out for that workflow, including init's service; `--commit` explicitly states the default. Neither grants unrelated ownership. Runtime-only/read-only/no-op actions create no commits, and commit alone does not imply push.
+Normal mutating workflows commit scoped changes by default with `PTBK: ` and relevant Task-Name/Chat-Name correlation. Human messages commit individually, task consultations with their result, conversation-only advice as scoped authoring. `--no-commit` opts out for an ordinary workflow, including init's service, but cannot silently suppress required configuration-migration or explicit tool-management commits; incompatible requests fail before those writes. Runtime-only/read-only/no-op actions do not commit; a commit alone does not imply push.
 
-Preserve `--min-priority`, `--max-priority`, `--priority` lower-bound alias, successful-task `--limit`, `--git-changes fail|ignore|continue`, `--no-auto`, `--auto-pull`, `--auto-push`, `--check`, `--check-before`, `--isolate`, `--no-normalize-line-endings`, `--no-ui`, `--preserve-logs`, `--no-questions` and `--allow-credits`.
+Preserve `--min-priority`, `--max-priority`, `--priority` lower-bound alias, successful-task `--limit`, `--git-changes fail|ignore|continue`, `--no-auto`, `--check`, `--check-before`, `--isolate`, `--no-normalize-line-endings`, `--no-ui`, `--preserve-logs`, `--no-questions` and `--allow-credits`. Pacing options `--wait-between-prompts`, `--wait-after-prompt`, `--wait-after-error` accept durations such as `30m`/`1h30m`; defaults are zero between/after work and ten minutes after a technical error. Thinking selections low/medium/high/xhigh/max apply only where supported, not as invented provider equivalence.
 
-Pacing uses `--wait-between-prompts`, `--wait-after-prompt` and `--wait-after-error`, accepting `30m`/`1h30m` and equivalent durations. Defaults are zero between/after tasks and ten minutes after a technical error. Thinking levels low/medium/high/xhigh/max apply only where supported; unsupported settings are diagnosed, not falsely accepted.
+Validate incompatible priorities and flags before work. No-auto requires interactive input and conflicts with no-questions/noninteractive; start cannot become a finite limit run or require routine no-auto approval. Isolation requires commits and conflicts with continue; continue conflicts with pre-check repair. No-commit conflicts with isolation and autosync (including compatibility flags), not merely with owned dirty work. No option takes ownership of unrelated edits.
 
-Validate combinations before work: invalid priority bounds fail; no-auto requires interactive input and conflicts with no-questions/noninteractive; isolation requires commits and conflicts with continue; continue conflicts with pre-check repair. No-commit conflicts with isolation and auto-pull/push, but does not require ignore merely to allow its own writes. Pre-existing dirt follows ownership policy. Start cannot become a finite limit run or require routine no-auto approvals; diagnose incompatible attended-only options rather than silently stall.
+Authoring saves one approved operation; push requires a commit. Add keeps template/priority input; boilerplate count accepts N or N*M (default 5*1); verify retains review order/repeatable ignore filters. A configured project migration hook is distinct from Book conversion and mandatory engine-configuration evolution; its optional enablement must not disable the latter. Diagnose unsupported flags rather than ignoring them.
 
-Authoring saves/commits one approved operation; optional push requires a commit. Add retains template/priority input; boilerplate count supports N or N*M (default 5*1); verify supports review order/repeatable ignore filters. Optional auto-migrate is a configured project hook, distinct from task conversion; destructive permission requires its explicit enablement.
-
-List/help/about/version/dry-run must not install/update tools, initialize/authenticate, start tunnels, call models or modify Git. Never ignore unsupported flags silently. Inspection reports missing capabilities without repairing them. Ongoing operation follows [unattended service](autonomous-operation.md) and explicit lifecycle intent.
+List/help/about/version/dry-run never install/update/authenticate, start tunnels, call models, normalize/migrate files or modify Git. Report missing capabilities and needed repairs without performing them. See [Git persistence](git-persistence.md), [unattended operation](autonomous-operation.md) and [acceptance](acceptance.md).

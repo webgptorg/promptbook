@@ -1,17 +1,17 @@
 # Promptbook self-update
 
-[Main specification](../_main.md)
+[Main specification](../_main.md) · [Configuration compatibility](configuration-migrations.md)
 
-Self-update targets the Promptbook installation that is actually running, independently of the destination project and of [harness updates](harness-updates.md). Identify its current version and local/global installation scope accurately.
+Self-update targets the installation actually running, independently of the destination project and [harness updates](harness-updates.md). Identify current version and local/global scope correctly. Do not update another project's copy or every installation on the machine.
 
-Early in interactive init, check for a newer applicable released engine version. A new project's intent composer remains the first question under [initialization](initialization.md); update selection is an early technical step, not a replacement for that opening. When an update is available, offer it with **Yes** as the default, showing current/target versions and the installation affected. No continues with the running version.
+Early interactive init may check for a newer applicable release. New-project intent remains the first question; retain that draft through technical decisions. Offer an available optional update with Yes focused, showing current/target versions and affected installation. No may continue with the current engine **only when it is compatible with the project's configuration**.
 
-Yes updates that same installation: the originating project's dependency for a local invocation, or the active global installation for a global invocation. Preserve whether an existing local dependency is regular or development-only. Do not update some other project's copy or all installations on the machine.
+A saved `promptbookVersion` newer than the running engine is a separate required compatibility gate before project work/configuration writes. Explain both versions and offer this same update flow. Declining, unavailable updates or failure cannot downgrade the project or bypass the gate. Noninteractive use gives the actionable update/rerun requirement without silently accepting consent. Read-only inspection can still report incompatibility.
 
-After a successful update, stop this invocation before applying target-project setup. Report the installed version and ask the user to rerun. Preserve accepted intent and attachments as a recoverable setup draft for that rerun; do not make the user paste them again, publish them as project output prematurely or retain temporary copies beyond their purpose. Do not continue with the already-loaded old engine or claim that it changed in place. An update failure offers retry or continue-on-current in interactive mode; noninteractive failure is explicit.
+Yes updates the same installation: originating project dependency for local invocation, active global installation for global invocation. Preserve existing dependency versus devDependency placement. After success, end the invocation before target setup and ask for a rerun. Keep accepted intent/assets as a recoverable bounded draft without premature project publication; do not demand repasting or pretend the already-loaded engine changed in place.
 
-Noninteractive init never asks this question or silently accepts its interactive default. Its update/skip decision can be supplied in advance; absent explicit self-update authorization, it continues with the running version. A requested successful update still ends with a rerun instruction.
+Update failure can offer retry or continued current-version operation only where compatibility permits it. Noninteractive optional update/skip must be explicitly supplied; no hidden prompt or accepted interactive default. A requested successful update still ends with a rerun instruction.
 
-Checking is bounded and best-effort: offline or unavailable release information does not prevent ordinary initialization and is not reported as up-to-date. Unsupported installation/update methods are diagnosed without modifying a different installation. Read-only commands never perform these checks. An already running agenda does not silently replace its engine mid-task.
+Optional release lookup is bounded/best-effort: offline lookup is unknown, not up-to-date, and does not prevent compatible local initialization. The known project-version gate still applies offline. Unsupported update methods are diagnosed without mutating a different install. Read-only commands perform no update, and a live agenda never replaces its executing engine mid-task. Configuration migration after a compatible rerun preserves customized project Books.
 
 See [installation](installation.md), [initialization experience](initialization-ui.md) and [version display](help.md).
