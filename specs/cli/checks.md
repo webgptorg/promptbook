@@ -1,19 +1,27 @@
-# Project checks and repairs
+# Project checks, placeholders and repairs
 
-[Main specification](../_main.md)
+[Main specification](../_main.md) · [Initialization](initialization.md) · [Automatic repair](../concepts/automatic-repair.md)
 
-Every task accepted by start must satisfy the project's configured checks and its requested outcome. Run checks on the content intended for the result commit, including changes made by formatters and other checks. A successful process exit is not sufficient evidence of task completion.
+A task's requested outcome must be satisfied independently of its check command's exit status. Run configured real checks against the content intended for the result commit, including formatter/check-generated changes. A successful process or informational placeholder is not sufficient evidence of task completion.
 
-Checks are project-defined, not restricted to software builds. Missing or uninitialized validation is a setup problem, never an automatic pass. Preserve existing checks during initialization. Do not remove assertions, lower thresholds or disable validation merely to make a task pass.
+## Initialization without a validation question
 
-Initialization and interactive start share a finite check configuration step. Init completes it before reporting ready, saving a real project default with available prerequisites so that a subsequent plain start needs no check-setup request. Validate commands, referenced npm scripts and dependency availability without running project checks; empty commands, unresolved references, recursive script graphs and generated setup placeholders remain unresolved. A non-software project can save a direct validation command in `ptbk.json.execution.check` without replacing its npm scripts.
+Do not ask users to configure checking commands during init or make a check-setup wizard a prerequisite of plain start. Preserve real existing validation. When absent on initialization, save a harmless successful placeholder such as:
 
-Fresh sample projects include meaningful validation for their actual initial content. Neither an always-failing stub nor an unconditional successful exit qualifies. Existing projects retain their real validation; missing check dependencies or a deferred check make initialization incomplete. Configuration readiness does not mean tests have passed: the first runnable task must actually satisfy the configured checks before completion.
+```sh
+echo "Configure project checks in ptbk.json execution.check"
+```
 
-On failure, feed the actual check result into repair of the same active work, then recheck within the configured budget. Preserve attempts and diagnostics. If repair cannot proceed safely, keep the supervisor available with blocked work and an actionable request. Check-generated changes join the task's single result commit.
+The placeholder explicitly means **real automated project validation is not configured**. Show that state honestly instead of claiming tests passed. It does not block init, bootstrap or ordinary work. It must not be an always-failing stub or an invisible unconditional pass presented as meaningful validation. An explicit supplied check can still configure the project; no interactive decision is required.
 
-For finite run, `--check` selects a shell command and `--check-before` supports `no`, `yes-and-fail` and `yes-and-fix`. Optional checks that were not requested are visibly skipped, not passed. An enabled default software check uses `npm run check`; a non-software project can supply its own command.
+Expert's ordinary bootstrap or later authorized work may replace the placeholder with appropriate validation for the actual project. Checks can validate non-software projects too. Do not require a meaningless software build or invent a second onboarding gate. Existing invalid/failing real checks are genuine repair problems; never downgrade them to the placeholder, remove assertions, lower thresholds or disable validation merely to pass a task.
 
-`ptbk fix` checks and repairs only failing validation; it does not consume the ordinary queue. On a healthy unchanged project it needs no model and creates no repair task or empty commit. A check-only transformation is recorded as its own explicit maintenance task when there is no active task to own it.
+## Execution and repair
 
-See [execution](execution.md), [retries](retries.md) and [Git persistence](git-persistence.md).
+For an actual configured check, inspect command references/dependencies and retain the real result. A broken command is not silently treated as the informational placeholder. Feed failure into repair of the same active work and recheck within budget; use the normal Fixer/problem path when needed. Preserve attempts and diagnostics. Block only unsafe or unresolved affected work while the supervisor remains available. Check-generated edits join the task's result commit.
+
+For finite run, `--check` selects a command and `--check-before` accepts the documented CLI modes `no`, `yes-and-fail` and `yes-and-fix`; their stored enum values are canonical uppercase. An explicitly enabled software check can use `npm run check`; a non-software project may specify a direct command. Unrequested/skipped validation and the placeholder are labelled, never reported as real checks passed.
+
+`ptbk fix` addresses failing validation without consuming the ordinary queue. A healthy unchanged project requires no model, repair task or empty commit. A placeholder alone is not a failed check that should cause endless repair. A check-only transformation with no owning task is recorded as its own ordinary maintenance operation.
+
+See [execution](execution.md), [retries](retries.md), [first task](first-task.md) and [Git persistence](git-persistence.md).
