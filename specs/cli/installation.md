@@ -6,6 +6,12 @@ The repository publishes one npm package, `ptbk`, providing the `ptbk` command. 
 
 Install globally with `npm install -g ptbk`, then invoke `ptbk`. Alternatively, install locally in dependencies or devDependencies and use `npx ptbk` or an npm script; a local installation does not add the executable to the system PATH. Global and local Promptbook installations are independent of the always-global [harness installations](harnesses.md).
 
+## Windows installer entry point
+
+Each version also ships a thin [Windows installer](windows-installer.md) on its GitHub Release. It prepares missing Node.js/npm/Git prerequisites, installs the corresponding ordinary global `ptbk` package, proposes a home-based projects root and offers an empty first-project directory. The normal handoff opens a terminal in that project and automatically runs the existing interactive `ptbk init` with its destination selected.
+
+This is an additional distribution/onboarding path, not a replacement for npm or a separate engine/graphical initializer. Reuse compatible existing prerequisites, preserve unrelated installations and follow the installer's exact-version, permission, retry and safe-directory rules. Project-local installation remains a later ordinary init decision. Automatic artifact creation and publication are part of [releasing](releasing.md).
+
 ## Installation during init
 
 Inspect the selected destination, not merely the folder from which init was launched. If it already declares and has a usable local `ptbk` in dependencies or devDependencies, preserve it without asking to add a second copy or moving it between sections. Repair a declared but missing installation without silently replacing its version choice.

@@ -56,8 +56,11 @@ Keep specifications in English, concise and focused on observable behavior, impo
 
 ## Installation and operation
 
-- [Installation](cli/installation.md): Global/local package and destination-specific dependency setup.
-- [Checks and publication on GitHub Actions](cli/releasing.md): Required hosted validation and verified releases.
+The Windows installer is an additional release artifact, not a second engine or a replacement for npm. It prepares missing prerequisites, installs the corresponding `ptbk` version and hands an ordinary user-owned project to the existing interactive init.
+
+- [Installation](cli/installation.md): Global/local package, Windows entry point and destination-specific dependency setup.
+- [Windows installer](cli/windows-installer.md): Thin prerequisite bootstrap, home-based first project and automatic terminal/init handoff.
+- [Checks and publication on GitHub Actions](cli/releasing.md): Required hosted validation, npm publication and matching Windows release artifact.
 - [Engine updates](cli/updates.md): Invoked installation, compatibility gate, preserved setup input and rerun.
 - [Commands](cli/cli.md): Command surface/options, named tools, lifecycle and global dashboard.
 - [Workspace](cli/workspace.md): Source/specification/trace/runtime locations and external discovery metadata.

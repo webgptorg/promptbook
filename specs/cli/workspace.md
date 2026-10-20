@@ -4,6 +4,8 @@
 
 A project is an operating-system directory in a Git working tree. The default is the invocation's current working directory; `--path` selects another. Resolve relative CLI paths from the invocation directory and paths in `ptbk.json` from the selected project. Project, enclosing repository and installed package are distinct, including a project inside a repository subdirectory.
 
+The optional [Windows installer](windows-installer.md) proposes a projects root beneath the user's home and creates an empty child for an accepted first project. That parent is only a filesystem container, not a shared Git repository, configuration scope or global engine workspace. Each child is initialized independently through ordinary `ptbk init`. This convenience default does not restrict manually selected project locations or change CLI path resolution.
+
 Agents, tasks, chats, context, checks, traces and engine runtime state belong to that selected project. Promptbook uses files/Git, not a database. Project selection is consistent across interfaces. The versioned `ptbk.json` contains defaults, not runtime/evidence storage. Each project directory has at most one [engine owner](locking.md), independently of the number of attached dashboards or package installations.
 
 The explicit exception to project selection is **`ptbk dashboard --global`**: it observes the [host-wide service registry](global-dashboard.md) from any directory without treating the launch directory as a project. Every listed engine still belongs to its own concrete project. There is no global engine or global task workspace.
