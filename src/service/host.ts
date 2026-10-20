@@ -2,12 +2,14 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { secretToken, shortId } from '../common/ids.js';
 import { ipcAddress, type IpcServer } from '../common/ipc.js';
 import { ENGINE_VERSION } from '../common/version.js';
-import { setting } from '../project/config.js';
+import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary, type RunOptions } from '../engine/agenda.js';
 import type { ConnectionView } from '../engine/snapshot.js';
-import { ProjectBrowser, browserTools } from '../browser/browser.js';
-import { applyChatAction, applyControlAction, applySettings, type BrowserControls } from './actions.js';
+import { browserTools } from '../browser/browser.js';
+import { BrowserFleet } from '../browser/fleet.js';
+import { describeProfileSource } from '../tools/model.js';
+import { applyChatAction, applyControlAction, applySettings, applyToolAction, type BrowserControls } from './actions.js';
 import { AuthStore } from './auth.js';
 import { CONTROL_CONTRACT, startControlServer } from './control.js';
 import { registerEngine, summaryOfSnapshot } from './discovery.js';
@@ -28,6 +30,8 @@ export type HostOptions = {
     readonly cli: Readonly<Record<string, unknown>>;
     /** CLI harness restriction. */
     readonly cliHarnesses?: readonly string[];
+    /** Temporary browser overrides of one named browser tool. */
+    readonly cliBrowser?: BrowserOverrides;
     /** `--tasks` override (absolute). */
     readonly tasksDirectory?: string;
     /** Restart persistence state. */
@@ -64,7 +68,7 @@ export class ServiceHost {
     private unregister?: () => Promise<void>;
     private connection: ConnectionView = { local: { state: 'disabled' }, remote: { state: 'disabled' } };
     private pairingRefresh?: NodeJS.Timeout;
-    private readonly browser: ProjectBrowser;
+    private readonly browsers: BrowserFleet;
 
     public constructor(private readonly options: HostOptions) {
         this.agenda = new Agenda({
@@ -74,29 +78,36 @@ export class ServiceHost {
             env: options.env,
             cli: options.cli,
             cliHarnesses: options.cliHarnesses,
+            cliBrowser: options.cliBrowser,
             tasksDirectory: options.tasksDirectory,
             persistent: options.persistent,
             persistenceNote: options.persistenceNote,
             run: options.run,
             onEvent: options.onEvent,
             extraTools: (_task, context) => {
-                void this.browser.useFor(context.trace, context.attempt);
-                return browserTools(this.browser, context.chats, context.agent, context.onUserChat);
+                void this.browsers.useFor(context.trace, context.attempt);
+                return browserTools(this.browsers, context.chats, context.agent, context.onUserChat, () =>
+                    this.agenda.effectiveSettings.tools.flatMap((tool) => (tool.type === 'BROWSER' && tool.isEnabled ? [{ name: tool.name, description: tool.description, profile: describeProfileSource(tool.profile.source, tool.profile.path), isHeadless: tool.isHeadless }] : [])),
+                );
             },
-            finalizeEvidence: async () => await this.browser.recorder.finish(),
+            finalizeEvidence: async () => await this.browsers.finishEvidence(),
             afterWork: async () => {
-                await this.browser.recorder.detach();
-                await this.browser.taskFinished();
+                await this.browsers.detach();
+                await this.browsers.taskFinished();
             },
-            browserView: () => (this.agenda.effectiveSettings ? this.browser.inspect() : undefined),
+            browsers: {
+                primary: () => (this.agenda.effectiveSettings ? this.browsers.primary() : undefined),
+                all: () => (this.agenda.effectiveSettings ? this.browsers.inspectAll() : []),
+                inUse: () => this.browsers.inUse(),
+            },
         });
         this.auth = new AuthStore(options.project);
-        this.browser = new ProjectBrowser(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange());
+        this.browsers = new BrowserFleet(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange());
     }
 
-    /** Engine-owned project-browser diagnosis and recovery shared by every client. */
+    /** Engine-owned per-browser diagnosis and recovery shared by every client. */
     private get browserControls(): BrowserControls {
-        return { recheck: () => this.browser.recheck(), retry: () => this.browser.retry(), restart: () => this.browser.restart() };
+        return { recheck: (name) => this.browsers.control('recheck', name), retry: (name) => this.browsers.control('retry', name), restart: (name) => this.browsers.control('restart', name) };
     }
 
     /** Local HTTP address, when serving. */
@@ -126,7 +137,7 @@ export class ServiceHost {
             await this.agenda.initialize();
             this.controlServer = await startControlServer(ipcAddress(`control:${project.root}:${this.instanceId}`), this.token, (method, params) => this.handleControl(method, params));
             const settings = this.agenda.effectiveSettings;
-            const serverEnabled = setting<boolean>(settings, 'server.enabled');
+            const serverEnabled = setting<boolean>(settings, 'server.isEnabled');
             if (serverEnabled) {
                 this.publishConnection({ local: { state: 'starting' } });
                 try {
@@ -165,7 +176,7 @@ export class ServiceHost {
                 this.agenda.log(`This engine could not register for \`ptbk dashboard --global\`: ${errorMessage(error)}`, 'warning');
                 return undefined;
             });
-            if (this.http && setting<boolean>(settings, 'server.tunnel.enabled')) {
+            if (this.http && setting<boolean>(settings, 'server.tunnel.isEnabled')) {
                 if (!(await this.auth.currentPairing())) await this.auth.renewPairing();
                 await this.refreshPairing();
                 this.pairingRefresh = setInterval(() => void this.refreshPairing(), 30_000);
@@ -233,8 +244,8 @@ export class ServiceHost {
             await Promise.race([Promise.resolve().then(step).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 10_000).unref())]);
         };
         clearInterval(this.pairingRefresh);
-        await bounded(() => this.browser.recorder.detach());
-        this.browser.close();
+        await bounded(() => this.browsers.detach());
+        this.browsers.close();
         this.tunnel?.stop();
         this.tunnel = undefined;
         await bounded(() => this.http?.close());
@@ -286,7 +297,10 @@ export class ServiceHost {
             case 'browser-recheck':
             case 'browser-retry':
             case 'browser-restart':
+            case 'sync-now':
                 return await applyControlAction(agenda, method, params, this.browserControls);
+            case 'tool-operation':
+                return await applyToolAction(agenda, params, typeof params.via === 'string' ? params.via : 'cli');
             case 'chat-list':
             case 'chat-agents':
             case 'chat-get':

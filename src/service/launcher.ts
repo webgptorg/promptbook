@@ -34,6 +34,7 @@ const LAUNCH_LOCK_STALE_MS = 120_000;
 export type LaunchRequest = {
     readonly cli: Readonly<Record<string, unknown>>;
     readonly cliHarnesses?: readonly string[];
+    readonly cliBrowser?: LaunchMetadata['cliBrowser'];
     readonly tasksDirectory?: string;
     readonly persistent: boolean;
     readonly env: NodeJS.ProcessEnv;
@@ -116,6 +117,7 @@ export async function launchDaemon(project: Project, request: LaunchRequest): Pr
             engineVersion: ENGINE_VERSION,
             cli: request.cli,
             cliHarnesses: request.cliHarnesses,
+            cliBrowser: request.cliBrowser,
             tasksDirectory: request.tasksDirectory,
             env: discoveryEnvironment(request.env),
             persistent: request.persistent,
@@ -234,7 +236,7 @@ export type RestartResult =
 export async function restartService(
     project: Project,
     lookup: Extract<ServiceLookup, { state: 'running' }>,
-    options: { readonly launch?: Partial<Pick<LaunchMetadata, 'cli' | 'cliHarnesses' | 'tasksDirectory' | 'persistent'>>; readonly timeoutMs?: number },
+    options: { readonly launch?: Partial<Pick<LaunchMetadata, 'cli' | 'cliHarnesses' | 'cliBrowser' | 'tasksDirectory' | 'persistent'>>; readonly timeoutMs?: number },
 ): Promise<RestartResult> {
     const previous = lookup.record;
     if (previous.mode === 'run') throw new PtbkError('A finite run cannot be restarted.', { kind: 'usage', project: project.root, next: ['Wait for it to finish (or stop it), then run it again.'] });

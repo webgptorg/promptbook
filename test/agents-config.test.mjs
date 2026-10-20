@@ -6,6 +6,7 @@ import { AgentCatalog, resolveEffectiveAgent, teamReferences, validateAgents } f
 import { ADAM_BOOK, TEACHER_BOOK } from '../dist/project/defaults.js';
 import { loadSettings, resolveSettings, updateProjectConfig } from '../dist/project/config.js';
 import { projectAt } from '../dist/project/workspace.js';
+import { ENGINE_VERSION } from '../dist/common/version.js';
 import { git, initRepository, temporaryDirectory } from './helpers.mjs';
 
 /**
@@ -133,38 +134,40 @@ test('reference examples: @ and brace forms everywhere, normalized names, built-
 
 test('configuration precedence: defaults < legacy environment < ptbk.json < CLI < runtime; explicit false/null kept', () => {
     const resolved = resolveSettings({
-        file: { routing: { harness: 'claude-code' }, execution: { commit: false, check: null, waitAfterError: '5m' }, server: { port: 4100 }, unknownKey: true },
+        file: { routing: { harness: 'CLAUDE_CODE' }, execution: { isCommitEnabled: false, check: null, waitAfterError: '5m' }, server: { port: 4100 }, unknownKey: true },
         env: { PTBK_HARNESS: 'openai-codex', PTBK_MODEL: 'env-model' },
         cli: { 'server.port': 4200 },
         runtime: { 'execution.waitBetweenPrompts': 60_000 },
     });
-    assert.equal(resolved.values['routing.harness'], 'claude-code');
+    assert.equal(resolved.values['routing.harness'], 'claude-code', 'canonical enum values are read in any spelling');
     assert.equal(resolved.sources['routing.harness'], 'ptbk.json');
     assert.equal(resolved.values['routing.model'], 'env-model');
     assert.equal(resolved.sources['routing.model'], 'environment');
-    assert.equal(resolved.values['execution.commit'], false);
+    assert.equal(resolved.values['execution.isCommitEnabled'], false);
     assert.equal(resolved.values['execution.check'], null);
     assert.equal(resolved.values['execution.waitAfterError'], 300_000);
     assert.equal(resolved.values['server.port'], 4200);
     assert.equal(resolved.sources['server.port'], 'cli');
     assert.equal(resolved.values['execution.waitBetweenPrompts'], 60_000);
     assert.equal(resolved.values['execution.repairAttempts'], 3);
+    assert.equal(resolved.values.isAutoSync, false, 'automatic synchronization defaults off');
     assert.ok(resolved.diagnostics.some((diagnostic) => /unknownKey/.test(diagnostic.location) && diagnostic.severity === 'warning'));
-    const invalid = resolveSettings({ file: { execution: { gitChanges: 'sometimes' }, harnesses: { 'openai-codex': { apiKey: 'sk-secret' } } } });
+    const invalid = resolveSettings({ file: { execution: { gitChanges: 'sometimes' }, tools: [{ type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'company', authentication: 'API_KEY', apiKey: 'sk-secret' }] } });
     assert.ok(invalid.diagnostics.some((diagnostic) => diagnostic.location.includes('execution.gitChanges') && diagnostic.severity === 'error'));
-    assert.ok(invalid.diagnostics.some((diagnostic) => /credential references/.test(diagnostic.message)));
+    assert.ok(invalid.diagnostics.some((diagnostic) => /environment reference/.test(diagnostic.message) && !diagnostic.message.includes('sk-secret')), 'an inline key is invalid and never echoed');
+    assert.equal(invalid.tools.length, 0, 'an invalid tool is not usable');
 });
 
 test('saving settings preserves unknown keys and writes durations readably', async (t) => {
     const root = await temporaryDirectory(t);
     const project = projectAt(root);
-    await writeFile(project.configPath, JSON.stringify({ custom: { keep: true }, execution: { check: 'npm test' } }, null, 4));
-    assert.equal(await updateProjectConfig(project, { settings: { 'execution.waitAfterError': 90_000 }, harnesses: { 'claude-code': { enabled: true } } }), true);
+    await writeFile(project.configPath, JSON.stringify({ promptbookVersion: ENGINE_VERSION, custom: { keep: true }, execution: { check: 'npm test' } }, null, 4));
+    assert.equal(await updateProjectConfig(project, { settings: { 'execution.waitAfterError': 90_000, 'execution.checkBefore': 'yes-and-fix' } }), true);
     const saved = JSON.parse(await readFile(project.configPath, 'utf8'));
     assert.deepEqual(saved.custom, { keep: true });
     assert.equal(saved.execution.check, 'npm test');
     assert.equal(saved.execution.waitAfterError, '1m30s');
-    assert.equal(saved.harnesses['claude-code'].enabled, true);
+    assert.equal(saved.execution.checkBefore, 'YES_AND_FIX', 'fixed enum values are saved canonically');
     assert.equal(await updateProjectConfig(project, { settings: { 'execution.waitAfterError': 90_000 } }), false, 'unchanged content is not rewritten');
     const settings = await loadSettings(project);
     assert.equal(settings.values['execution.waitAfterError'], 90_000);

@@ -6,7 +6,9 @@ import { runChatClient, type ChatSource } from './chat-client.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { FullScreen } from './screen.js';
 import { renderQr, renderStatusPretty, type PreparedQr } from './status-view.js';
-import { lifecycleActions } from './details.js';
+import { lifecycleActions, toolDetailLines, toolRow } from './details.js';
+import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
+import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
 /**
@@ -25,6 +27,8 @@ export type DashboardSource = {
     readonly chats: ChatSource;
     /** Existing (or explicitly renewed) pairing link. */
     readonly pairing: (renew: boolean) => Promise<{ available: boolean; url?: string; remote?: boolean }>;
+    /** Saved tool management through the engine's shared operation (committed immediately). */
+    readonly tool: (request: ToolOperationRequest) => Promise<ToolOperationOutcome>;
     /** The invocation owns the service lifetime (foreground start / run). */
     readonly owning: boolean;
 };
@@ -59,6 +63,10 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
             const own = next.execution.contexts[0];
             if (own) lines.push(`Execution: ${next.execution.agent.name} on ${own.harness.name}, model ${own.model.value ?? own.model.status}, thinking ${own.thinkingLevel.value ?? own.thinkingLevel.status}`);
         }
+        if (previous.tools?.waiting?.reason !== next.tools?.waiting?.reason) lines.push(next.tools?.waiting ? `Tools: new work waits — ${next.tools.waiting.reason} (${next.tools.waiting.action})` : 'Tools: usable browser and harness available.');
+        const toolStates = (snapshot: ServiceSnapshot | undefined): string => (snapshot?.tools?.items ?? []).map((item) => `${item.name}:${item.state}:${item.isEnabled}`).join(',');
+        if (toolStates(previous) !== toolStates(next)) lines.push(`Tools: ${(next.tools?.items ?? []).map((item) => `${item.name} ${item.isEnabled ? item.state : 'disabled'}${item.inUse ? ' (in use)' : ''}`).join(', ') || 'none'}`);
+        if (next.sync && (previous.sync?.state !== next.sync.state || previous.sync?.reason !== next.sync.reason)) lines.push(`Synchronization ${next.sync.state}${next.sync.reason ? `: ${next.sync.reason}` : ''}`);
         if (previous.phase !== next.phase) lines.push(`Phase ${next.phase}${next.current ? `: ${next.current.agent.name} on "${next.current.taskTitle}"` : next.wait ? `: ${next.wait.reason}` : ''}`);
         if (previous.connection.remote.url !== next.connection.remote.url && next.connection.remote.url) lines.push(`Remote dashboard: ${next.connection.remote.url}`);
     }
@@ -84,6 +92,17 @@ type AgentPicker = { readonly kind: 'agents'; readonly agents: readonly ChatAgen
 type Confirmation = { readonly kind: 'confirm'; readonly question: string; readonly run: () => Promise<void> };
 
 /**
+ * The tool inventory in management mode (viewer-local focus; mutations go through the shared operation).
+ */
+type ToolsMode = { readonly kind: 'tools'; focus: number; detail: boolean };
+
+/**
+ * A tool change waiting for the shared in-use acknowledgement (save while current work finishes, or force-stop the
+ * whole engine and repeat the change afterwards).
+ */
+type ToolAcknowledgement = { readonly kind: 'tool-in-use'; readonly request: ToolOperationRequest; readonly message: string; readonly lastOfType?: string };
+
+/**
  * Runs the live terminal dashboard until the user leaves or the service ends.
  *
  * Leaving (Q, Ctrl+C) never stops an attached service. An owning view (foreground start, run) instead requests a
@@ -101,7 +120,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     let activityOffset = 0;
     let feedback = '';
     let feedbackTimer: NodeJS.Timeout | undefined;
-    let input: AgentPicker | { kind: 'chats'; focus: number } | Confirmation | undefined;
+    let input: AgentPicker | { kind: 'chats'; focus: number } | Confirmation | ToolsMode | ToolAcknowledgement | undefined;
     let nested = false;
     let qr: PreparedQr | undefined;
     let qrKey = '';
@@ -109,7 +128,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     let plain = false;
     let ownerStopRequested = false;
     // Viewer-local presentation state: detail panels start collapsed and never change the engine.
-    const details = { execution: false, browser: false };
+    const details = { execution: false, browser: false, sync: false };
     let connectionLost: string | undefined;
     let finished: ((reason: 'left' | 'ended') => void) | undefined;
     const done = new Promise<'left' | 'ended'>((resolve) => {
@@ -155,6 +174,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         if (input?.kind === 'agents') return input.stage === 'entry' ? '  ↑↓ choose · Enter confirm (Chatter is the default) · Esc cancel' : '  ↑↓ choose · Enter open a new chat · Esc back';
         if (input?.kind === 'chats') return '  ↑↓ choose · Enter open · Esc back';
         if (input?.kind === 'confirm') return '  Y confirm · N/Esc keep things as they are';
+        if (input?.kind === 'tool-in-use') return '  1 save now (current work finishes with the tool it acquired) · 2 force-stop the whole engine · Esc keep things as they are';
+        if (input?.kind === 'tools') return `  ↑↓ choose · Space enable/disable · Enter ${input.detail ? 'hide' : 'show'} details · [ ] move · N add · M modify · D remove · 1/2/3 browser recheck/retry/restart · Esc back${feedback ? `   ${marks.arrow} ${feedback}` : ''}`;
         const waiting = snapshot.chats.waiting.length;
         const parts = [
             waiting ? 'A answer' : '',
@@ -164,6 +185,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             'S skip wait',
             `E ${details.execution ? 'hide' : 'show'} execution`,
             `B ${details.browser ? 'hide' : 'show'} browser`,
+            'T tools',
+            ...(snapshot.sync ? [`Y ${details.sync ? 'hide' : 'show'} sync`, 'G sync now'] : []),
             'V renew pairing',
             'O plain',
             '↑↓/End activity',
@@ -184,6 +207,27 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         const { style } = terminal;
         const pointer = (focused: boolean): string => (focused ? style.accent(marks.pointer) : ' ');
         if (input.kind === 'confirm') return [style.bold(input.question), style.muted('Press Y to confirm or N/Esc to cancel.')];
+        if (input.kind === 'tool-in-use') {
+            return [
+                style.bold(input.message),
+                `${style.accent('1')} Save the change now — the work that already acquired the tool finishes with its original configuration (not a kill)`,
+                `${style.accent('2')} Force-stop the whole engine (ptbk stop --force); after it stopped, repeat this change`,
+                ...(input.lastOfType ? [style.warning(input.lastOfType)] : []),
+                style.muted('Esc keeps everything as it is.'),
+            ];
+        }
+        if (input.kind === 'tools') {
+            const mode = input;
+            const items = snapshot.tools?.items ?? [];
+            const rows = items.map((item, index) => `${pointer(index === mode.focus)} ${toolRow(item, style)}`);
+            const focused = items[mode.focus];
+            return [
+                style.bold(`Tools (${items.length}) — saved changes are committed immediately`),
+                ...(items.length ? rows : [style.muted('No tools are configured; press N to add one.')]),
+                ...(snapshot.tools?.waiting ? [style.warning(`New work waits for tools: ${snapshot.tools.waiting.reason}`)] : []),
+                ...(focused && mode.detail ? ['', ...toolDetailLines(focused, style)] : []),
+            ];
+        }
         if (input.kind === 'agents') {
             const picker = input;
             const chatter = picker.agents.some((agent) => agent.group === 'chatter');
@@ -282,6 +326,82 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         }
     };
 
+    /**
+     * Applies a saved tool change through the shared operation and handles its protections: an in-use tool offers the
+     * two shared alternatives; the last enabled tool of a type needs its own confirmation.
+     */
+    const runTool = async (request: ToolOperationRequest): Promise<void> => {
+        try {
+            const outcome = await source.tool({ ...request, via: 'dashboard' });
+            if (outcome.status !== 'needs-acknowledgement') {
+                notify(`${outcome.summary}${outcome.status === 'applied' && outcome.commit ? ` (committed ${outcome.commit.slice(0, 8)})` : ''}`);
+                return;
+            }
+            const inUse = outcome.requirements.find((requirement) => requirement.kind === 'in-use');
+            const lastOfType = outcome.requirements.find((requirement) => requirement.kind === 'last-of-type');
+            if (inUse) {
+                input = { kind: 'tool-in-use', request, message: inUse.message, lastOfType: lastOfType?.message };
+                draw();
+                return;
+            }
+            if (lastOfType) confirmThen(`${lastOfType.message} Continue?`, () => runTool({ ...request, acknowledgements: { ...request.acknowledgements, confirmLastOfType: true } }));
+        } catch (error) {
+            notify(`Not changed: ${errorMessage(error)}`);
+        }
+    };
+
+    /** Runs a form outside the live view (the dashboard returns afterwards; nothing changes when it is cancelled). */
+    const openForm = async (form: () => Promise<ToolForm | undefined>): Promise<void> => {
+        nested = true;
+        keyboard.stop();
+        screen.leave();
+        let result: ToolForm | undefined;
+        try {
+            result = await form();
+        } catch (error) {
+            feedback = `Form failed: ${errorMessage(error)}`;
+        } finally {
+            screen.enter();
+            screen.invalidate();
+            keyboard.start();
+            nested = false;
+            draw();
+        }
+        if (result) await runTool({ operation: result.operation, secret: result.secret });
+    };
+
+    /** Keys of the tools management mode. */
+    const toolsKey = (mode: ToolsMode, event: KeyEvent): void => {
+        const items = snapshot.tools?.items ?? [];
+        const focused = items[mode.focus];
+        if (event.type === 'key') {
+            if (event.name === 'escape') input = undefined;
+            else if (event.name === 'up' && items.length) mode.focus = (mode.focus - 1 + items.length) % items.length;
+            else if (event.name === 'down' && items.length) mode.focus = (mode.focus + 1) % items.length;
+            else if (event.name === 'enter') mode.detail = !mode.detail;
+            draw();
+            return;
+        }
+        if (event.type !== 'text') return;
+        const key = event.text;
+        if (key === ' ' && focused) void runTool({ operation: { kind: focused.isEnabled ? 'disable' : 'enable', name: focused.name } });
+        else if ((key === '[' || key === ']') && focused) {
+            const neighbour = items[mode.focus + (key === '[' ? -1 : 1)];
+            if (!neighbour) notify('It is already at that end of the list.');
+            else {
+                mode.focus += key === '[' ? -1 : 1;
+                void runTool({ operation: { kind: 'move', name: focused.name, ...(key === '[' ? { before: neighbour.name } : { after: neighbour.name }) } });
+            }
+        } else if (key.toLowerCase() === 'n') void openForm(() => addToolForm(terminal));
+        else if (key.toLowerCase() === 'm' && focused) void openForm(() => modifyToolForm(terminal, focused));
+        else if (key.toLowerCase() === 'd' && focused) confirmThen(`Permanently remove the configuration of "${focused.name}"? (Disable keeps it; profiles, native logins and .env history are never deleted.)`, () => runTool({ operation: { kind: 'remove', name: focused.name } }));
+        else if (['1', '2', '3'].includes(key) && focused) {
+            if (focused.type !== 'BROWSER') notify('Browser recovery applies to browser tools.');
+            else void runAction(key === '1' ? 'browser-recheck' : key === '2' ? 'browser-retry' : 'browser-restart', { name: focused.name });
+        }
+        draw();
+    };
+
     /** Asks for confirmation before a consequential action. */
     const confirmThen = (question: string, run: () => Promise<void>): void => {
         input = { kind: 'confirm', question, run };
@@ -313,6 +433,27 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     };
 
     const onKey = (event: KeyEvent): void => {
+        if (input?.kind === 'tools') {
+            toolsKey(input, event);
+            return;
+        }
+        if (input?.kind === 'tool-in-use') {
+            const pending = input;
+            if (event.type === 'key' && event.name === 'escape') {
+                input = undefined;
+                notify('Nothing changed.');
+            } else if (event.type === 'text' && event.text === '1') {
+                input = undefined;
+                const forced = { ...pending.request, acknowledgements: { ...pending.request.acknowledgements, force: true } };
+                if (pending.lastOfType) confirmThen(`${pending.lastOfType} Continue?`, () => runTool({ ...forced, acknowledgements: { ...forced.acknowledgements, confirmLastOfType: true } }));
+                else void runTool(forced);
+            } else if (event.type === 'text' && event.text === '2') {
+                input = undefined;
+                confirmThen('Force-stop the whole engine now? Owned work is interrupted (recoverable). The tool change is not applied: repeat it after the engine has stopped.', () => runAction('force-stop'));
+            }
+            draw();
+            return;
+        }
         if (input?.kind === 'confirm') {
             const pending = input;
             if (event.type === 'text' && event.text.toLowerCase() === 'y') {
@@ -393,6 +534,26 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             case 'b':
                 details.browser = !details.browser;
                 draw();
+                return;
+            case 't':
+                input = { kind: 'tools', focus: 0, detail: false };
+                draw();
+                return;
+            case 'y':
+                if (!snapshot.sync) {
+                    notify('Automatic synchronization is off (isAutoSync false).');
+                    return;
+                }
+                details.sync = !details.sync;
+                draw();
+                return;
+            case 'g':
+                if (!snapshot.sync) {
+                    notify('Automatic synchronization is off (isAutoSync false).');
+                    return;
+                }
+                notify('Synchronizing…');
+                void runAction('sync-now');
                 return;
             case '1':
             case '2':

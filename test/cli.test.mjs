@@ -63,7 +63,9 @@ test('contradictory options are diagnosed before any work', async (t) => {
         [['start', '--tunnel', '--no-server'], /conflicts with --no-server/],
         [['run', '--min-priority', '5', '--max-priority', '1'], /greater than/],
         [['run', '--isolate', '--no-commit'], /--isolate requires commits/],
-        [['run', '--no-commit', '--auto-push'], /conflicts with --auto-pull/],
+        [['run', '--no-commit', '--auto-push'], /conflicts with automatic synchronization/],
+        [['start', '--no-commit', '--auto-sync'], /conflicts with automatic synchronization/],
+        [['start', '--no-auto-sync', '--auto-pull'], /contradicts --auto-pull/],
         [['run', '--git-changes', 'continue', '--check-before', 'yes-and-fix'], /conflicts with --check-before/],
         [['start', '--raw', '--interactive'], /cannot be combined/],
     ];

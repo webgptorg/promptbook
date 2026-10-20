@@ -46,6 +46,7 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
  */
 export const plugin: HarnessPlugin = {
     id: 'cline',
+    variant: 'CLINE',
     displayName: 'Cline',
     featured: false,
     executable: 'cline',

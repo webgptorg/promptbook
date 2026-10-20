@@ -60,7 +60,8 @@ test('lifecycle: pause drains the current task without a next claim; resume cont
     assert.equal(active.execution.agent.name, 'Developer');
     assert.equal(active.execution.contexts[0].harness.id, 'openai-codex');
     assert.ok(['automatic', 'requested', 'reported'].includes(active.execution.contexts[0].model.status));
-    assert.equal(active.browser.source, 'global', 'the effective browser profile is inspectable');
+    assert.equal(active.browser.source, 'MANAGED_GLOBAL', 'the effective browser profile is inspectable');
+    assert.equal(active.browser.name, 'project-browser', 'the browser is a named tool');
     assert.equal(active.browser.state, 'not-started', 'an unused browser is not reported as running');
 
     const paused = await ptbk(['pause', '--raw'], { cwd: project, env });

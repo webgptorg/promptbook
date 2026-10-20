@@ -46,3 +46,48 @@ jobs:
         run: npm run release:publish -- --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  windows-installer:
+    # The matching Windows installer is an additional output of the same release; npm publication stays separate. A
+    # missing, corrupt or mismatched installer makes the release incomplete (this job fails) without republishing npm.
+    if: github.repository == 'webgptorg/promptbook'
+    needs: publish
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Validate the release version
+        shell: pwsh
+        run: |
+          node scripts/validate-release.mjs $env:RELEASE_TAG
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $numeric = ($version -replace '-.*$', '') + '.' + (($version -replace '^[^-]*-?', '') -replace '\D', '' | ForEach-Object { if ($_) { $_ } else { '0' } })
+          "PTBK_VERSION=$version" >> $env:GITHUB_ENV
+          "PTBK_NUMERIC_VERSION=$numeric" >> $env:GITHUB_ENV
+      - name: Build the installer from the release tag
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y | Out-Null
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$env:PTBK_NUMERIC_VERSION" installer\windows\promptbook.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }
+      - name: The bootstrap installs and reports the exact published ptbk version
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -ProjectsRoot (Join-Path $env:RUNNER_TEMP 'Promptbook Release') -ProjectName 'first project' -AllowPtbkReplacement -NoLaunch
+          if ($LASTEXITCODE -ne 0) { throw "bootstrap exited with $LASTEXITCODE" }
+          $reported = & (Join-Path (npm prefix --global).Trim() 'ptbk.cmd') --version
+          if ($reported -notmatch [regex]::Escape($env:PTBK_VERSION)) { throw "installed ptbk reports $reported" }
+      - name: Publish and verify the installer on the GitHub Release
+        shell: pwsh
+        run: node scripts/publish-windows-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"

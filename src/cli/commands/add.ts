@@ -57,7 +57,7 @@ export default async function add(context: CommandContext): Promise<number> {
     const timeZone = setting<string>(settings, 'timezone');
     const tasksDirectory = await writableTasksDirectory(context, project, settings);
     const { terminal } = context;
-    const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
+    const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.isCommitEnabled');
     let text = context.positionals.join(' ').trim();
     if (flag(context, 'stdin')) text = (await readStdin()).trim();
     let content: string;

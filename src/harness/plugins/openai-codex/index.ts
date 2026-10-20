@@ -55,7 +55,9 @@ async function listCodexModels(context: HarnessContext): Promise<string[]> {
 }
 
 /**
- * Inspects installation and native login (`codex login status`), never running inference.
+ * Inspects installation and the native login (`codex login status`) of a NATIVE instance, never running inference.
+ * Ambient API keys never turn a native instance into API billing; explicit `API_KEY` instances are inspected by the
+ * shared instance layer.
  */
 async function inspect(context: HarnessContext): Promise<HarnessInspection> {
     const { inspection, executablePath } = await baseInspection(plugin, context);
@@ -64,15 +66,13 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
     if (status.ok && /logged in using chatgpt/i.test(status.output)) {
         return withAuthentication(inspection, true, 'account', plugin.loginHint, `Ready (ChatGPT account login${inspection.version ? `, v${inspection.version}` : ''}).`);
     }
-    const apiOptIn = context.env.PTBK_OPENAI_CODEX_USE_API_KEY === '1';
-    const hasKey = Boolean(context.env.OPENAI_API_KEY || context.env.CODEX_API_KEY);
-    if (apiOptIn && (hasKey || (status.ok && /api key/i.test(status.output)))) {
-        return withAuthentication(inspection, true, 'api', plugin.loginHint, 'Ready (API key; explicit PTBK_OPENAI_CODEX_USE_API_KEY=1).');
+    if (status.ok && /api key/i.test(status.output)) {
+        return {
+            ...withAuthentication(inspection, false, 'none', plugin.loginHint, 'The native Codex login uses an API key; a NATIVE tool never switches to API billing.'),
+            nextAction: `Sign in with ChatGPT (\`codex login\`), or add an explicit API tool: ptbk tool add HARNESS --variant OPENAI_CODEX --name codex-api --authentication API_KEY --api-key-env OPENAI_API_KEY`,
+        };
     }
-    const detail = status.ok && /api key/i.test(status.output)
-        ? 'Logged in with an API key, but API billing requires PTBK_OPENAI_CODEX_USE_API_KEY=1.'
-        : 'Installed but not logged in.';
-    return withAuthentication(inspection, false, 'none', plugin.loginHint, detail);
+    return withAuthentication(inspection, false, 'none', plugin.loginHint, 'Installed but not logged in.');
 }
 
 /**
@@ -178,6 +178,10 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
  */
 export const plugin: HarnessPlugin = {
     id: 'openai-codex',
+    variant: 'OPENAI_CODEX',
+    apiKeyVariable: 'CODEX_API_KEY',
+    ambientApiKeyVariables: API_KEY_VARIABLES,
+    accountHomeVariable: 'CODEX_HOME',
     displayName: 'OpenAI Codex',
     featured: true,
     executable: 'codex',

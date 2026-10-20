@@ -20,7 +20,7 @@ function flow(items: readonly string[], width: number, separator: string): strin
     return lines;
 }
 import { activityLabel, framedBadge } from './badges.js';
-import { browserDetailLines, executionDetailLines, executionOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary } from './details.js';
+import { browserDetailLines, executionDetailLines, executionOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary, syncCompactLines, syncDetailLines, toolRow, toolsCompactLines } from './details.js';
 import { renderPanel, sideBySide, type PanelTone } from './panels.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
@@ -76,7 +76,7 @@ export type StatusViewOptions = {
         readonly focusRequest: number;
         readonly connectionLost?: string;
         /** Expanded detail panels (viewer-local presentation state; initially collapsed). */
-        readonly details?: { readonly execution: boolean; readonly browser: boolean };
+        readonly details?: { readonly execution: boolean; readonly browser: boolean; readonly sync?: boolean };
         /** A pending confirmation or action feedback shown in the service-controls panel. */
         readonly controlNote?: string;
     };
@@ -148,9 +148,19 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     for (const result of snapshot.results.recent.slice(0, 5)) lines.push(`- ${result.outcome}: ${result.title}${result.commit ? ` (${result.commit.slice(0, 8)})` : ''}`);
     const error = snapshot.errors[snapshot.errors.length - 1];
     if (error) lines.push(`Last error: ${error.summary}${error.next ? ` Next: ${error.next}` : ''}${error.trace ? ` Diagnostics: ${error.trace}` : ''}`);
+    if (snapshot.tools) {
+        lines.push('', `TOOLS (${snapshot.tools.items.length})`);
+        if (!snapshot.tools.items.length) lines.push('- none configured (ptbk tool add BROWSER … / ptbk tool add HARNESS …)');
+        for (const item of snapshot.tools.items) lines.push(`- ${toolRow(item)}`, `    ${item.summary}${item.nextAction && item.state !== 'usable' ? ` → ${item.nextAction}` : ''}`);
+        if (snapshot.tools.waiting) lines.push(`New work waits for tools: ${snapshot.tools.waiting.reason} Action: ${snapshot.tools.waiting.action}`);
+        for (const problem of snapshot.tools.problems) lines.push(`Problem: ${problem}`);
+    }
+    if (snapshot.sync) lines.push('', 'SYNCHRONIZATION', ...syncDetailLines(snapshot.sync).slice(0, -1).map((line) => `  ${line}`));
+    if (snapshot.configuration?.pending) lines.push('', `CONFIGURATION: ${snapshot.configuration.pending}`);
     const execution = snapshot.phase === 'unknown' ? ['Unavailable: the service runs another ptbk version.'] : executionDetailLines(snapshot.execution);
     lines.push('', 'EXECUTION DETAILS', ...execution.map((line) => `  ${line}`));
-    if (snapshot.browser) lines.push('', 'BROWSER DETAILS', ...browserDetailLines(snapshot.browser).map((line) => `  ${line}`));
+    const browsers = snapshot.browsers?.length ? snapshot.browsers : snapshot.browser ? [snapshot.browser] : [];
+    for (const browser of browsers) lines.push('', `BROWSER DETAILS${browsers.length > 1 ? ` · ${browser.name}` : ''}`, ...browserDetailLines(browser).map((line) => `  ${line}`));
     lines.push('', 'CONNECTION');
     const local = snapshot.connection.local;
     lines.push(`Local: ${local.state}${local.url ? ` ${local.url} (same computer only)` : ''}${local.error ? ` (${local.error})` : ''}`);
@@ -243,8 +253,8 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     if (lastError) work.push(style.error(`Last error: ${lastError.summary}`), ...(lastError.next ? [style.muted(`  Next: ${lastError.next}`)] : []));
     // A significant browser failure stays visible while the browser panel is collapsed.
     const browser = snapshot.browser;
-    if (browser && (browser.state === 'failed' || browser.recovery?.state === 'blocked') && browser.lastFailure) {
-        work.push(`${style.error(marks.fail)} ${style.bold('Project browser')}: ${browser.lastFailure.summary}${browser.recovery?.state === 'retrying' ? style.muted(' · recovering automatically') : ''}${options.live ? style.muted(' · B details') : ''}`);
+    for (const failing of (snapshot.browsers?.length ? snapshot.browsers : browser ? [browser] : []).filter((item) => (item.state === 'failed' || item.recovery?.state === 'blocked') && item.lastFailure)) {
+        work.push(`${style.error(marks.fail)} ${style.bold(`Browser ${failing.name}`)}: ${failing.lastFailure!.summary}${failing.recovery?.state === 'retrying' ? style.muted(' · recovering automatically') : ''}${options.live ? style.muted(' · B/T details') : ''}`);
     }
 
     // Queue.
@@ -297,12 +307,19 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         return lines;
     };
 
-    // Expandable detail panels (live dashboard only; initially collapsed, opened with E and B).
+    // Compact tools overview (always) and synchronization status (only while autosync is enabled).
+    const toolsPanel = (width: number): string[] =>
+        renderPanel({ title: 'Tools', titleRight: snapshot.tools ? `${snapshot.tools.items.filter((item) => item.state === 'usable').length} usable` : undefined, lines: toolsCompactLines(snapshot.tools, style, { live: Boolean(options.live) }), width, tone: snapshot.tools?.waiting ? 'attention' : 'default', unicode, style });
+    const syncPanel = (width: number): string[] =>
+        snapshot.sync ? renderPanel({ title: 'Synchronization', titleRight: 'Git', lines: syncCompactLines(snapshot.sync, style, { live: Boolean(options.live) }), width, tone: ['failed', 'conflict'].includes(snapshot.sync.state) ? 'attention' : 'default', unicode, style }) : [];
+
+    // Expandable detail panels (live dashboard only; initially collapsed, opened with E, B and Y).
     const detailPanels = (): string[] => {
         const panels: string[] = [];
         const details = options.live?.details;
         if (details?.execution) panels.push(...renderPanel({ title: 'Execution details', titleRight: 'E hides', lines: executionDetailLines(snapshot.execution, style), width: total, unicode, style }));
-        if (details?.browser) panels.push(...renderPanel({ title: 'Browser details', titleRight: 'B hides', lines: browserDetailLines(snapshot.browser, style, { keys: true }), width: total, unicode, style }));
+        if (details?.browser) panels.push(...renderPanel({ title: `Browser details${snapshot.browser ? ` · ${snapshot.browser.name}` : ''}`, titleRight: 'B hides', lines: browserDetailLines(snapshot.browser, style, { keys: true }), width: total, unicode, style }));
+        if (details?.sync && snapshot.sync) panels.push(...renderPanel({ title: 'Synchronization details', titleRight: 'Y hides', lines: syncDetailLines(snapshot.sync, style), width: total, unicode, style }));
         return panels;
     };
 
@@ -313,14 +330,18 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         const leftWidth = total - rightWidth - 1;
         const left = [
             ...renderPanel({ title: 'Current work', lines: work, width: leftWidth, tone: current ? 'accent' : 'default', unicode, style }),
+            ...toolsPanel(leftWidth),
             ...renderPanel({ title: `Queue (${snapshot.queueTotal})`, lines: queue, width: leftWidth, unicode, style }),
         ];
-        const right = renderPanel({ title: 'Connection', lines: connectionLines(rightWidth - 4), width: rightWidth, unicode, style, minHeight: Math.max(0, left.length - 2) });
+        const sync = syncPanel(rightWidth);
+        const right = [...sync, ...renderPanel({ title: 'Connection', lines: connectionLines(rightWidth - 4), width: rightWidth, unicode, style, minHeight: Math.max(0, left.length - 2 - sync.length) })];
         output.push(...sideBySide([left, right], [leftWidth, rightWidth]));
         output.push(...detailPanels());
         output.push(...renderPanel({ title: 'Results and activity', lines: results, width: total, unicode, style }));
     } else {
         output.push(...renderPanel({ title: 'Current work', lines: work, width: total, tone: current ? 'accent' : 'default', unicode, style }));
+        output.push(...toolsPanel(total));
+        output.push(...syncPanel(total));
         output.push(...detailPanels());
         output.push(...renderPanel({ title: `Queue (${snapshot.queueTotal})`, lines: queue, width: total, unicode, style }));
         output.push(...renderPanel({ title: 'Results and activity', lines: results, width: total, unicode, style }));

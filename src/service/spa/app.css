@@ -512,3 +512,42 @@ details summary {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
+
+/* Tools: compact inventory, primary enable/disable, secondary removal and the add/modify form. */
+.tools .list li {
+    align-items: flex-start;
+}
+.tools .list li > .row {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.tools button.secondary {
+    opacity: 0.8;
+}
+.tool-form {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+}
+.tool-form .fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 12px;
+    margin: 8px 0 12px;
+}
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.9em;
+}
+.field span {
+    color: var(--muted);
+}
+.browser-detail + .browser-detail {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}

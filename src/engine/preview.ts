@@ -40,7 +40,7 @@ export async function previewQueue(
     const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'), setting<string>(settings, 'paths.tasks'));
     const queue = await readTaskQueue({ root: project.root, tasksDirectory, explicit: Boolean(options.tasksDirectory), timeZone, index: catalog.index });
     const pool = new HarnessPool(project.root, settings, env);
-    await pool.refresh(options.runSelection ? [...new Set([...pool.enabled(), options.runSelection.harness])] : pool.enabled(), true);
+    await pool.refresh(undefined, true);
     const state = new StateStore(project.runtime.state);
     const blockers = await state.readBlockers().catch(() => ({}));
     const activations = await state.readActivations().catch(() => ({}) as Record<string, number>);
@@ -50,7 +50,7 @@ export async function previewQueue(
     const active = await state.readActive().catch(() => undefined);
     const uncommitted = new Set<string>();
     const gitInfo = await inspectGit(project.root);
-    if (gitInfo.state === 'repository' && setting<boolean>(settings, 'execution.commit')) {
+    if (gitInfo.state === 'repository' && setting<boolean>(settings, 'execution.isCommitEnabled')) {
         const dirty = await captureSnapshot({ project, repositoryRoot: gitInfo.root });
         for (const path of Object.keys(dirty)) uncommitted.add(resolve(project.root, path));
     }

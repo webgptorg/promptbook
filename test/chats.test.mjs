@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
-import { browserProfileDirectory, browserProfileSource } from '../dist/browser/browser.js';
+import { browserProfileDirectory } from '../dist/browser/browser.js';
 import { parseChatBook } from '../dist/chats/chat-book.js';
 import { generated, git, initializedProject, messages, ptbk, subjects, waitFor } from './helpers.mjs';
 
@@ -153,14 +153,13 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
 });
 
 test('browser profile sources: the managed global profile is the default; isolated, user and custom paths are explicit', () => {
-    const project = { root: '/work/site', runtime: { browserProfile: '/work/site/.ptbk/browser/profile' } };
-    const settings = (profile) => ({ values: { 'browser.profile': profile }, sources: {}, diagnostics: [], harnesses: {} });
+    const project = { root: '/work/site', runtime: { root: '/work/site/.ptbk', browserProfile: '/work/site/.ptbk/browser/profile' } };
+    const tool = (source, path, name = 'project-browser') => ({ type: 'BROWSER', variant: 'CHROME', name, isEnabled: true, isHeadless: true, profile: { source, ...(path ? { path } : {}) } });
     const env = { PTBK_HOME: '/home/me/ptbk' };
-    assert.equal(browserProfileSource('global'), 'global');
-    assert.equal(browserProfileSource('/some/path'), 'custom');
-    assert.equal(browserProfileDirectory(project, settings('global'), env), join('/home/me/ptbk', 'browser-profile'));
-    assert.equal(browserProfileDirectory(project, settings('isolated'), env), '/work/site/.ptbk/browser/profile');
+    assert.equal(browserProfileDirectory(project, tool('MANAGED_GLOBAL'), env), join('/home/me/ptbk', 'browser-profile'));
+    assert.equal(browserProfileDirectory(project, tool('PROJECT'), env), '/work/site/.ptbk/browser/profile', 'the migrated browser keeps its isolated profile location');
+    assert.equal(browserProfileDirectory(project, tool('PROJECT', undefined, 'linkedin'), env), join('/work/site/.ptbk', 'browser-profiles', 'linkedin'), 'separately configured isolated browsers get separate storage');
     // Relative custom paths resolve against the project root (on Windows that adds the current drive letter).
-    assert.equal(browserProfileDirectory(project, settings('profiles/shared'), env), resolve('/work/site', 'profiles', 'shared'));
-    assert.notEqual(browserProfileDirectory(project, settings('user'), env), browserProfileDirectory(project, settings('global'), env), "the managed profile is never the user's Chrome profile");
+    assert.equal(browserProfileDirectory(project, tool('CUSTOM', 'profiles/shared'), env), resolve('/work/site', 'profiles', 'shared'));
+    assert.notEqual(browserProfileDirectory(project, tool('USER_EXISTING'), env), browserProfileDirectory(project, tool('MANAGED_GLOBAL'), env), "the managed profile is never the user's Chrome profile");
 });

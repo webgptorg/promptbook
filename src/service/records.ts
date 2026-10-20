@@ -1,3 +1,4 @@
+import type { BrowserOverrides } from '../project/config.js';
 import { renameSync, statSync } from 'node:fs';
 import { open, readFile, rm } from 'node:fs/promises';
 import { delimiter, dirname, join } from 'node:path';
@@ -60,6 +61,8 @@ export type LaunchMetadata = {
     readonly cli: Readonly<Record<string, unknown>>;
     /** CLI harness restriction. */
     readonly cliHarnesses?: readonly string[];
+    /** Temporary browser overrides of one named browser tool. */
+    readonly cliBrowser?: BrowserOverrides;
     /** `--tasks` override. */
     readonly tasksDirectory?: string;
     /** Non-secret environment for discovery (PATH, native config/store locations). */
@@ -187,7 +190,7 @@ const PRESERVED_VARIABLES = [
     'CODING_AGENT_GIT_NAME',
     'CODING_AGENT_GIT_EMAIL',
     'PTBK_HOME',
-    'PTBK_OPENAI_CODEX_USE_API_KEY',
+    'CHROME_PATH',
 ];
 
 /**

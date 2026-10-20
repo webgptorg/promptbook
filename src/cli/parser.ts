@@ -1,5 +1,6 @@
 import { parseDuration } from '../common/duration.js';
 import { usageError } from '../common/errors.js';
+import { matchEnum } from '../common/naming.js';
 import { allOptions, type CommandSpec, type OptionSpec } from './spec.js';
 
 /**
@@ -102,9 +103,12 @@ function convertValue(option: OptionSpec, raw: string, commandPath: string): unk
             if (!parsed.ok) throw usageError(`--${option.name}: ${parsed.reason}`, commandPath);
             return parsed.ms;
         }
-        case 'enum':
-            if (!option.values!.includes(raw)) throw usageError(`--${option.name} must be one of ${option.values!.join(', ')} (got "${raw}").`, commandPath);
-            return raw;
+        case 'enum': {
+            // Tolerant input (case and separators, e.g. YES_AND_FAIL for yes-and-fail); the documented spelling is kept.
+            const value = matchEnum(raw, option.values!);
+            if (!value) throw usageError(`--${option.name} must be one of ${option.values!.join(', ')} (got "${raw}").`, commandPath);
+            return value;
+        }
         case 'boolean':
             if (raw === 'true' || raw === 'false') return raw === 'true';
             throw usageError(`--${option.name} does not take a value.`, commandPath);

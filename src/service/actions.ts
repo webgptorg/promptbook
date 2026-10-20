@@ -2,6 +2,7 @@ import { PtbkError } from '../common/errors.js';
 import { parseSettingValue, SETTING_SPEC_BY_KEY } from '../project/config.js';
 import type { Agenda } from '../engine/agenda.js';
 import { defaultChatAgent } from '../chats/service.js';
+import type { ToolOperation, ToolOperationOutcome } from '../tools/operations.js';
 
 /**
  * Runtime actions shared by every channel (CLI, terminal, browser, API): the engine's lifecycle operations, wait
@@ -9,14 +10,14 @@ import { defaultChatAgent } from '../chats/service.js';
  *
  * @private shared runtime controls
  */
-export type ControlAction = 'pause' | 'resume' | 'skip-wait' | 'stop' | 'force-stop' | 'restart' | 'stop-now' | 'cancel-stop' | 'browser-recheck' | 'browser-retry' | 'browser-restart';
+export type ControlAction = 'pause' | 'resume' | 'skip-wait' | 'stop' | 'force-stop' | 'restart' | 'stop-now' | 'cancel-stop' | 'browser-recheck' | 'browser-retry' | 'browser-restart' | 'sync-now';
 
 /**
  * Every control action name (for request validation).
  *
  * @private shared runtime controls
  */
-export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>(['pause', 'resume', 'skip-wait', 'stop', 'force-stop', 'restart', 'stop-now', 'cancel-stop', 'browser-recheck', 'browser-retry', 'browser-restart']);
+export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>(['pause', 'resume', 'skip-wait', 'stop', 'force-stop', 'restart', 'stop-now', 'cancel-stop', 'browser-recheck', 'browser-retry', 'browser-restart', 'sync-now']);
 
 /**
  * Outcome of a control action as every client reports it.
@@ -31,9 +32,9 @@ export type ControlOutcome = { readonly action: string; readonly outcome: string
  * @private shared runtime controls
  */
 export type BrowserControls = {
-    readonly recheck: () => Promise<ControlOutcome>;
-    readonly retry: () => Promise<ControlOutcome>;
-    readonly restart: () => Promise<ControlOutcome>;
+    readonly recheck: (name?: string) => Promise<ControlOutcome>;
+    readonly retry: (name?: string) => Promise<ControlOutcome>;
+    readonly restart: (name?: string) => Promise<ControlOutcome>;
 };
 
 /**
@@ -60,11 +61,17 @@ export async function applyControlAction(agenda: Agenda, action: string, params:
             return agenda.requestStop({ restart: true });
         case 'cancel-stop':
             return agenda.cancelStop();
+        case 'sync-now': {
+            // One cycle of the shared coordinator (never a second scheduler, never enabling a disabled policy).
+            const result = await agenda.synchronizeNow();
+            return { action, outcome: result.message, applied: result.outcome !== 'disabled', completed: result.outcome === 'synchronized' };
+        }
         case 'browser-recheck':
         case 'browser-retry':
         case 'browser-restart': {
             if (!browser) return { action, outcome: 'This process does not own a project browser.', applied: false };
-            return action === 'browser-recheck' ? await browser.recheck() : action === 'browser-retry' ? await browser.retry() : await browser.restart();
+            const name = typeof params.name === 'string' && params.name ? params.name : undefined;
+            return action === 'browser-recheck' ? await browser.recheck(name) : action === 'browser-retry' ? await browser.retry(name) : await browser.restart(name);
         }
         default:
             throw new PtbkError(`Unknown control action "${action}".`, { kind: 'usage' });
@@ -121,4 +128,26 @@ export async function applySettings(agenda: Agenda, params: Readonly<Record<stri
         parsed[key] = result.value;
     }
     return await agenda.updateSettings(parsed, params.save === true);
+}
+
+/**
+ * Validates a tool-management request from any channel and applies it through the engine's shared operation (the
+ * same implementation as a stopped project's CLI). A secret is write-only: it is never part of the reply.
+ *
+ * @private shared runtime controls
+ */
+export async function applyToolAction(agenda: Agenda, params: Readonly<Record<string, unknown>>, via: string): Promise<ToolOperationOutcome> {
+    const operation = params.operation as ToolOperation | undefined;
+    const kinds = ['add', 'modify', 'enable', 'disable', 'remove', 'move'];
+    if (!operation || typeof operation !== 'object' || !kinds.includes(String((operation as { kind?: unknown }).kind))) throw new PtbkError(`A tool operation needs a kind (${kinds.join(', ')}).`, { kind: 'usage' });
+    if (operation.kind === 'add' ? !operation.tool || typeof operation.tool !== 'object' : typeof (operation as { name?: unknown }).name !== 'string') throw new PtbkError('The tool operation is missing its tool (add) or name.', { kind: 'usage' });
+    const acknowledgements = (params.acknowledgements ?? {}) as Record<string, unknown>;
+    const secret = params.secret as { variable?: unknown; value?: unknown } | undefined;
+    if (secret !== undefined && (typeof secret.variable !== 'string' || typeof secret.value !== 'string' || !secret.value)) throw new PtbkError('A secret needs its variable name and a nonempty value.', { kind: 'usage' });
+    return await agenda.toolOperation({
+        operation,
+        acknowledgements: { force: acknowledgements.force === true, confirmLastOfType: acknowledgements.confirmLastOfType === true },
+        secret: secret ? { variable: String(secret.variable), value: String(secret.value) } : undefined,
+        via,
+    });
 }

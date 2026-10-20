@@ -1,13 +1,23 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
-import { ensureDirectory, isDirectory, pathExists, toProjectRelative } from '../../common/fs.js';
+import { ensureDirectory, isDirectory, pathExists, toProjectRelative, writeFileAtomic } from '../../common/fs.js';
+import { slugify } from '../../common/ids.js';
 import { ENGINE_VERSION } from '../../common/version.js';
-import { describeBrowserProfile, userChromeProfile } from '../../browser/browser.js';
+import { userChromeProfile } from '../../browser/browser.js';
 import { BookIndex } from '../../project/books.js';
 import { generatedName } from '../../tasks/identity.js';
-import { checkCandidates, validateCheckCommand } from '../../project/checks.js';
-import { enabledHarnesses, getPath, loadSettings, readProjectConfigFile, setting, updateProjectConfig } from '../../project/config.js';
+import { validateCheckCommand } from '../../project/checks.js';
+import { CHECK_PLACEHOLDER, SETTING_SPEC_BY_KEY, canonicalizeConfig, configText, enabledHarnesses, getPath, interpretConfig, isCheckPlaceholder, loadSettings, profileFromSpelling, readProjectConfigFile, serializeSettingValue, setPath, setting } from '../../project/config.js';
+import { maintainProjectConfiguration } from '../../project/configuration.js';
+import { MIGRATED_BROWSER_NAME, planConfigurationMigration } from '../../project/migrations.js';
+import { requireEngineUpdate } from '../compatibility.js';
+import { existingOrigin, githubLogin, publishProject, type PublicationChoice, type PublicationOutcome } from '../../project/publication.js';
+import { instanceEnvironment } from '../../engine/harnesses.js';
+import { redactUrl } from '../../engine/sync.js';
+import { applyToolOperationsToConfig, type ToolOperation } from '../../tools/operations.js';
+import { inspectBrowserTool } from '../../tools/readiness.js';
+import { describeProfileSource, harnessVariantOf, type BrowserToolRecord, type HarnessToolRecord } from '../../tools/model.js';
 import { INITIAL_ASSETS, INITIAL_SPECIFICATION, bootstrapTask, sampleReadme } from '../../project/defaults.js';
 import { clearSetupDraft, readSetupDraft, saveSetupDraft } from '../../project/draft.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
@@ -65,6 +75,10 @@ export type InitResult = {
     readonly commit?: string;
     /** The ordinary Expert bootstrap task created by this run. */
     readonly firstTask?: { readonly title: string; readonly path: string };
+    /** Outcome of the opt-in remote setup (separate from local setup). */
+    readonly publication?: PublicationOutcome;
+    /** Whether automatic synchronization is enabled. */
+    readonly synchronization?: boolean;
 };
 
 /**
@@ -93,7 +107,7 @@ function answered<T>(value: T | typeof CANCELLED): T {
 /**
  * User-facing wizard steps, in order.
  */
-type StepId = 'intent' | 'update' | 'destination' | 'installation' | 'harnesses' | 'browser' | 'traces' | 'validation' | 'finish';
+type StepId = 'intent' | 'update' | 'destination' | 'installation' | 'harnesses' | 'browser' | 'traces' | 'sync' | 'finish';
 
 /**
  * Titles of the user-facing steps.
@@ -106,7 +120,7 @@ const STEP_TITLES: Readonly<Record<StepId, string>> = {
     harnesses: 'Harnesses',
     browser: 'Project browser',
     traces: 'Traces',
-    validation: 'Validation',
+    sync: 'Automatic synchronization',
     finish: 'Set up and start',
 };
 
@@ -178,6 +192,20 @@ function blankIntent(segments: readonly ComposedSegment[]): boolean {
 }
 
 /**
+ * The destination's saved configuration as this engine interprets it (a pending migration applied in memory only).
+ */
+async function savedConfiguration(root: string): Promise<Record<string, unknown>> {
+    return interpretConfig(await readProjectConfigFile(projectAt(root))).interpreted;
+}
+
+/**
+ * Whether a configuration already has a browser tool (the browser question is then not asked again).
+ */
+function hasBrowserTool(raw: Readonly<Record<string, unknown>>): boolean {
+    return Array.isArray(raw.tools) && raw.tools.some((tool) => tool !== null && typeof tool === 'object' && String((tool as Record<string, unknown>).type).toUpperCase() === 'BROWSER');
+}
+
+/**
  * Whether a destination already records its purpose (initial specification or an earlier initialization).
  */
 async function recordedPurpose(root: string): Promise<boolean> {
@@ -207,8 +235,8 @@ export async function initializeProject(context: CommandContext, options: { proj
     const notes: string[] = [];
     const missingDecisions: string[] = [];
     const title = options.fromStart ? 'ptbk start · setup' : 'ptbk init';
-    const steps = new StepTracker(['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'validation', 'finish']);
-    const stepOrder: readonly StepId[] = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'validation', 'finish'];
+    const steps = new StepTracker(['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'sync', 'finish']);
+    const stepOrder: readonly StepId[] = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'sync', 'finish'];
     const frame = (id: StepId, note?: string, activity: BadgeActivity = 'working'): WizardFrame => ({
         title,
         step: steps.label(id),
@@ -239,7 +267,8 @@ export async function initializeProject(context: CommandContext, options: { proj
         browserProfile?: string;
         browserMode?: 'headless' | 'headful';
         traces?: { commit: boolean; ignoreVideos: boolean; recordVideo: boolean };
-        saveCheck?: string;
+        /** Automatic synchronization: the saved choice and, for a new opt-in, the explicit destination. */
+        sync?: { enabled: boolean; choice?: PublicationChoice; reused: boolean };
     } = { purposeRecorded: false, root: option<string>(context, 'subfolder') ? resolve(base, option<string>(context, 'subfolder')!) : base, inspections: new Map() };
     const shown = new Set<StepId>();
 
@@ -389,6 +418,8 @@ export async function initializeProject(context: CommandContext, options: { proj
                 break;
             }
             answers.set('destination', `Destination: ${state.root}${state.nested ? ` (${state.nested.strategy} child)` : ''}`);
+            const compatibility = planConfigurationMigration((await readProjectConfigFile(projectAt(state.root))).raw);
+            if (compatibility.kind === 'older-engine') await requireEngineUpdate(context, compatibility.saved);
             await predictPath();
             // A changed destination may already record its purpose.
             if (!state.purposeRecorded && (await recordedPurpose(state.root))) {
@@ -477,10 +508,10 @@ export async function initializeProject(context: CommandContext, options: { proj
         },
         // 6. Browser (independent of harness logins).
         browser: async () => {
-            const raw = (await readProjectConfigFile(projectAt(state.root))).raw;
+            const saved = await savedConfiguration(state.root);
             state.browserProfile = option<string>(context, 'browser-profile') ?? state.browserProfile;
             state.browserMode = option<'headless' | 'headful'>(context, 'browser-mode') ?? state.browserMode;
-            if (raw.browser || !interactive || option<string>(context, 'browser-profile')) {
+            if (hasBrowserTool(saved) || !interactive || option<string>(context, 'browser-profile')) {
                 steps.set('browser', false);
                 return;
             }
@@ -521,19 +552,20 @@ export async function initializeProject(context: CommandContext, options: { proj
                     defaultValue: state.browserMode ?? 'headless',
                 }),
             );
-            answers.set('browser', `Browser: ${describeBrowserProfile(state.browserProfile ?? 'global')}, ${state.browserMode}`);
+            const profile = profileFromSpelling(state.browserProfile ?? 'global');
+            answers.set('browser', `Browser: ${describeProfileSource(profile.source, profile.path)}, ${state.browserMode}`);
         },
         // 7. Trace recording and Git inclusion (three explicit project choices).
         traces: async () => {
-            const raw = (await readProjectConfigFile(projectAt(state.root))).raw;
+            const raw = await savedConfiguration(state.root);
             const saved = (key: string): boolean | undefined => (typeof getPath(raw, key) === 'boolean' ? (getPath(raw, key) as boolean) : undefined);
             const flagged = { commit: flag(context, 'commit-traces'), ignoreVideos: flag(context, 'ignore-trace-videos'), recordVideo: flag(context, 'record-video') };
             const current = {
-                commit: saved('traces.commit') ?? flagged.commit ?? state.traces?.commit ?? false,
-                ignoreVideos: saved('traces.ignoreVideos') ?? flagged.ignoreVideos ?? state.traces?.ignoreVideos ?? true,
-                recordVideo: saved('traces.recordVideo') ?? flagged.recordVideo ?? state.traces?.recordVideo ?? true,
+                commit: saved('traces.isCommitted') ?? flagged.commit ?? state.traces?.commit ?? false,
+                ignoreVideos: saved('traces.isVideoIgnored') ?? flagged.ignoreVideos ?? state.traces?.ignoreVideos ?? true,
+                recordVideo: saved('traces.isVideoRecordingEnabled') ?? flagged.recordVideo ?? state.traces?.recordVideo ?? true,
             };
-            const complete = saved('traces.commit') !== undefined && saved('traces.ignoreVideos') !== undefined && saved('traces.recordVideo') !== undefined;
+            const complete = saved('traces.isCommitted') !== undefined && saved('traces.isVideoIgnored') !== undefined && saved('traces.isVideoRecordingEnabled') !== undefined;
             const decided = Object.values(flagged).every((value) => value !== undefined);
             if (complete || decided || !interactive) {
                 state.traces = current;
@@ -561,47 +593,118 @@ export async function initializeProject(context: CommandContext, options: { proj
             );
             answers.set('traces', `Traces: ${state.traces.commit ? 'committed' : 'local only'}, videos ${state.traces.recordVideo ? `recorded${state.traces.commit && !state.traces.ignoreVideos ? ' and committed' : ' locally'}` : 'off'}`);
         },
-        // 8. Real project validation (never an unconditional pass).
-        validation: async () => {
-            const configBefore = (await pathExists(projectAt(state.root).configPath)) ? await loadSettings(projectAt(state.root), { env: context.env }) : undefined;
-            const check = configBefore ? (setting<string | null | undefined>(configBefore, 'execution.check') ?? undefined) : undefined;
-            const supplied = option<string>(context, 'check');
-            const existing = await validateCheckCommand(state.root, check === undefined ? undefined : check, context.env);
-            const fresh = !(await isDirectory(state.root)) || (await isFreshDirectory(state.root));
-            state.saveCheck = undefined;
-            if (existing.ok || supplied || fresh || !interactive) {
-                if (supplied && !existing.ok) state.saveCheck = supplied;
-                else if (!existing.ok && fresh) state.saveCheck = state.installation === 'global' ? 'ptbk lint' : 'npm run check';
-                steps.set('validation', false);
+        // 8. Automatic synchronization: one opt-in decision, default off; "no" asks nothing further.
+        sync: async () => {
+            const saved = await savedConfiguration(state.root);
+            const explicit = flag(context, 'auto-sync') ?? (flag(context, 'auto-pull') || flag(context, 'auto-push') ? true : undefined);
+            const savedChoice = typeof saved.isAutoSync === 'boolean' ? saved.isAutoSync : undefined;
+            const repositoryGit = await inspectGit(await nearestExisting(state.root));
+            const ownRepository = repositoryGit.state === 'repository' && canonicalPath(repositoryGit.root) === canonicalPath(state.root);
+            const origin = ownRepository ? await existingOrigin(repositoryGit.root) : undefined;
+            if (explicit === undefined && savedChoice !== undefined) {
+                state.sync = { enabled: savedChoice, reused: true };
+                steps.set('sync', false);
                 return;
             }
-            shown.add('validation');
-            const candidates = await checkCandidates(state.root, context.env);
-            for (;;) {
-                const choice = answered(
-                    await selectOne(terminal, {
-                        frame: frame('validation', 'every accepted task must pass this check'),
-                        question: check !== undefined ? `The configured check is not usable: ${existing.ok ? '' : existing.reason} Choose the project check:` : 'Which command validates this project? (it must pass before each task is accepted)',
-                        choices: [
-                            ...candidates.map((candidate) => ({ value: candidate.command, label: candidate.command, description: candidate.description })),
-                            { value: '__custom', label: 'Enter a custom command' },
-                            { value: '__defer', label: 'Defer (setup stays incomplete)' },
-                        ],
-                        defaultValue: candidates[0]?.command ?? '__custom',
-                    }),
-                );
-                if (choice === '__defer') return;
-                const command = choice === '__custom' ? answered(await inputLine(terminal, { frame: frame('validation'), question: 'Check command (runs in the project directory):' })) : choice;
-                const validation = await validateCheckCommand(state.root, command, context.env);
-                if (!validation.ok) {
-                    say(style.warning(`${marks.warn} ${validation.reason}`));
-                    continue;
-                }
-                if (answered(await confirm(terminal, { frame: frame('validation'), question: `Save \`${command}\` as ptbk.json execution.check?`, defaultYes: true }))) {
-                    state.saveCheck = command;
+            let enabled = explicit;
+            if (enabled === undefined) {
+                if (!interactive) {
+                    state.sync = { enabled: false, reused: false };
+                    steps.set('sync', false);
                     return;
                 }
+                shown.add('sync');
+                enabled = answered(
+                    await confirm(terminal, {
+                        frame: frame('sync', 'optional: keep a Git remote up to date'),
+                        question: 'Synchronize this project automatically with a Git remote? (pull every minute and before work, then push completed work)',
+                        defaultYes: false,
+                        yesLabel: 'Yes, set up automatic synchronization',
+                        noLabel: 'No, keep the project local (default)',
+                    }),
+                );
             }
+            if (!enabled) {
+                state.sync = { enabled: false, reused: false };
+                answers.set('sync', 'Synchronization: off');
+                return;
+            }
+            if (!commit) throw usageError('Automatic synchronization publishes commits, so it conflicts with --no-commit.', 'init');
+            const provider = option<'github' | 'origin' | 'existing'>(context, 'sync-provider');
+            const repositoryFlag = option<string>(context, 'github-repository');
+            const originUrl = option<string>(context, 'origin-url');
+            const visibility = option<'private' | 'public'>(context, 'github-visibility') ?? 'private';
+            const github = (value: string): PublicationChoice => {
+                const [owner, name] = value.includes('/') ? value.split('/', 2) : [undefined, value];
+                return { kind: 'github', owner: owner || undefined, name: name!, visibility };
+            };
+            let choice: PublicationChoice | undefined;
+            if (originUrl) choice = { kind: 'origin', url: originUrl };
+            else if (repositoryFlag || provider === 'github') choice = repositoryFlag ? github(repositoryFlag) : undefined;
+            else if (provider === 'existing' || provider === 'origin' || (savedChoice === true && origin)) choice = origin ? { kind: 'existing' } : undefined;
+            if (!choice && interactive) {
+                shown.add('sync');
+                if (origin) {
+                    // An existing remote is reused explicitly, never silently replaced or duplicated on GitHub.
+                    const reuse = answered(await confirm(terminal, { frame: frame('sync'), question: `This repository already has origin ${redactUrl(origin)}. Synchronize with it?`, defaultYes: true, yesLabel: 'Yes, use the existing origin', noLabel: 'No, keep synchronization off' }));
+                    if (!reuse) {
+                        state.sync = { enabled: false, reused: false };
+                        answers.set('sync', 'Synchronization: off');
+                        return;
+                    }
+                    choice = { kind: 'existing' };
+                } else {
+                    const kind = answered(
+                        await selectOne(terminal, {
+                            frame: frame('sync', 'where should the project be published?'),
+                            question: 'Where should the project be synchronized?',
+                            choices: [
+                                { value: 'github' as const, label: 'GitHub', description: 'create a new repository (private by default) with your GitHub CLI login and publish this project' },
+                                { value: 'origin' as const, label: 'Another Git origin', description: 'enter a remote URL (any Git host or server)' },
+                            ],
+                            defaultValue: 'github',
+                        }),
+                    );
+                    if (kind === 'origin') {
+                        const url = answered(await inputLine(terminal, { frame: frame('sync'), question: 'Remote URL of the Git origin:', validate: (value) => (!value.trim() ? 'Enter a Git remote URL.' : undefined) })).trim();
+                        choice = { kind: 'origin', url };
+                    } else {
+                        const login = await githubLogin(context.env);
+                        if (login.problem) say(style.warning(`${marks.warn} ${login.problem} Publication is attempted after the local setup and can be retried later.`));
+                        const name = slugify(basename(state.root)) || 'project';
+                        const repository = answered(
+                            await inputLine(terminal, {
+                                frame: frame('sync'),
+                                question: 'New GitHub repository (owner/name):',
+                                initial: `${login.login ?? ''}${login.login ? '/' : ''}${name}`,
+                                validate: (value) => (/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value.trim()) || (/^[A-Za-z0-9_.-]+$/.test(value.trim()) && login.login) ? undefined : 'Enter owner/name, e.g. my-company/newsletter.'),
+                            }),
+                        ).trim();
+                        const chosenVisibility = answered(
+                            await selectOne(terminal, {
+                                frame: frame('sync'),
+                                question: 'Visibility of the new repository:',
+                                choices: [
+                                    { value: 'private' as const, label: 'Private (recommended)', description: 'only people you invite can see it' },
+                                    { value: 'public' as const, label: 'Public', description: 'anyone can see the code and its whole history' },
+                                ],
+                                defaultValue: 'private' as const,
+                            }),
+                        );
+                        const target = github(repository) as Extract<PublicationChoice, { kind: 'github' }>;
+                        choice = { ...target, visibility: chosenVisibility };
+                        const shownName = `${target.owner ?? login.login ?? '<you>'}/${target.name}`;
+                        const ok = answered(await confirm(terminal, { frame: frame('sync'), question: `Create github.com/${shownName} (${chosenVisibility}) and publish this project after the local setup is committed?`, defaultYes: true }));
+                        if (!ok) throw new WizardBack('back');
+                    }
+                }
+            }
+            if (!choice) {
+                missingDecisions.push(origin ? '--sync-provider existing (reuse the existing origin)' : '--github-repository <owner>/<name> or --origin-url <url> (automatic synchronization was enabled)');
+                return;
+            }
+            state.sync = { enabled: true, choice, reused: false };
+            answers.set('sync', `Synchronization: ${choice.kind === 'existing' ? `existing origin ${redactUrl(origin ?? '')}` : choice.kind === 'origin' ? `origin ${redactUrl(choice.url)}` : `GitHub ${choice.owner ? `${choice.owner}/` : ''}${choice.name} (${choice.visibility})`}`);
         },
     };
 
@@ -612,28 +715,29 @@ export async function initializeProject(context: CommandContext, options: { proj
     const predictPath = async (): Promise<void> => {
         if (!interactive) return;
         const destination = projectAt(state.root);
-        const raw = (await readProjectConfigFile(destination)).raw;
+        const raw = await savedConfiguration(state.root);
         const local = await inspectLocalInstallation(state.root);
         const saved = await loadSettings(destination, { env: context.env }).catch(() => undefined);
         const remembered = ((raw.initialized ?? {}) as { installation?: string }).installation === 'global';
-        const fresh = !(await isDirectory(state.root)) || (await isFreshDirectory(state.root));
         steps.set('installation', !(local.usable || local.declaredIn || option<string>(context, 'installation') || remembered));
         steps.set('harnesses', !(option<string[]>(context, 'harness') || flag(context, 'no-harness') || (saved && enabledHarnesses(saved).length)));
-        steps.set('browser', !(raw.browser || option<string>(context, 'browser-profile')));
-        const tracesSaved = ['traces.commit', 'traces.ignoreVideos', 'traces.recordVideo'].every((key) => typeof getPath(raw, key) === 'boolean');
+        steps.set('browser', !(hasBrowserTool(raw) || option<string>(context, 'browser-profile')));
+        const tracesSaved = ['traces.isCommitted', 'traces.isVideoIgnored', 'traces.isVideoRecordingEnabled'].every((key) => typeof getPath(raw, key) === 'boolean');
         const tracesFlagged = flag(context, 'commit-traces') !== undefined && flag(context, 'ignore-trace-videos') !== undefined && flag(context, 'record-video') !== undefined;
         steps.set('traces', !(tracesSaved || tracesFlagged));
-        const check = saved ? (setting<string | null | undefined>(saved, 'execution.check') ?? undefined) : undefined;
-        steps.set('validation', !(fresh || option<string>(context, 'check') || (check !== undefined && (await validateCheckCommand(state.root, check, context.env)).ok)));
+        steps.set('sync', !(typeof raw.isAutoSync === 'boolean' || flag(context, 'auto-sync') !== undefined || flag(context, 'auto-pull') || flag(context, 'auto-push')));
     };
 
     /**
      * Installs, logs in and updates selected harnesses (interactive sub-steps of the Harnesses step).
      */
     const setUpHarnesses = async (selected: string[]): Promise<void> => {
-        const context2 = { projectRoot: await nearestExisting(state.root), env: context.env };
+        const projectRoot = await nearestExisting(state.root);
         for (const id of [...selected]) {
             const plugin = harnessPlugin(id)!;
+            // The simple init instance: the native account context of the global installation (never an ambient API key).
+            const nativeTool: HarnessToolRecord = { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
+            const context2 = { projectRoot, env: instanceEnvironment(plugin, nativeTool, undefined, context.env), tool: nativeTool };
             let inspection = await plugin.inspect(context2);
             if (!inspection.installed) {
                 let install = flag(context, 'install-harnesses') === true;
@@ -676,6 +780,7 @@ export async function initializeProject(context: CommandContext, options: { proj
             if (!selected.includes(id)) continue;
             state.inspections.set(id, inspection);
         }
+        const context2 = { projectRoot, env: context.env };
         const outdated: Array<{ plugin: HarnessPlugin; inspection: HarnessInspection; current?: string; latest?: string }> = [];
         const canDecideUpdates = interactive || option<string>(context, 'update-harnesses') === 'update';
         for (const id of canDecideUpdates ? selected : []) {
@@ -724,7 +829,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     };
 
     // Questions, with Esc going back to the previous screen.
-    const order: Array<Exclude<StepId, 'finish'>> = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'validation'];
+    const order: Array<Exclude<StepId, 'finish'>> = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'sync'];
     for (let index = 0; index < order.length; ) {
         const id = order[index]!;
         try {
@@ -766,8 +871,14 @@ export async function initializeProject(context: CommandContext, options: { proj
     let project = projectAt(root);
     if (repository.created) changed.push('Git repository initialized');
     else alreadyReady.push(`Git repository ${repository.repositoryRoot}`);
+    // Required configuration evolution of an existing project is its own committed pass, before any setup write.
+    if (await pathExists(project.configPath)) {
+        const maintenance = await maintainProjectConfiguration(project, { commit, env: context.env });
+        if (maintenance.migrated) changed.push(`Migrated ptbk.json from ${maintenance.migrated.from} to ${maintenance.migrated.to}${maintenance.migrated.commit ? ` (${maintenance.migrated.commit.slice(0, 8)})` : ''}`);
+        if (maintenance.normalized) changed.push(`Normalized ptbk.json spelling${maintenance.normalized.commit ? ` (${maintenance.normalized.commit.slice(0, 8)})` : ''}`);
+    }
     const configBefore = (await pathExists(project.configPath)) ? await loadSettings(project, { env: context.env }) : undefined;
-    let check: string | undefined = configBefore ? (setting<string | null | undefined>(configBefore, 'execution.check') ?? undefined) : undefined;
+    const savedCheck: string | undefined = configBefore ? (setting<string | null | undefined>(configBefore, 'execution.check') ?? undefined) : undefined;
     const installation = state.installation ?? 'existing';
     if (installation === 'existing') {
         const local = await inspectLocalInstallation(root);
@@ -780,16 +891,17 @@ export async function initializeProject(context: CommandContext, options: { proj
         if (inspection?.usable) alreadyReady.push(`${plugin.displayName}: ${inspection.summary}`);
         else unresolved.push(`${plugin.displayName}: ${inspection?.summary ?? 'not inspected'}${inspection?.nextAction ? ` → ${inspection.nextAction}` : ''}`);
     }
-    if (!selected.length) unresolved.push('No harness is selected → run `ptbk init --harness <id>`');
+    if (!selected.length && !(configBefore && enabledHarnesses(configBefore).length)) notes.push('No harness is selected: the agenda runs but waits for tools until one is added (`ptbk tool add HARNESS …`).');
 
     const tasksDirectory = configBefore ? setting<string>(configBefore, 'paths.tasks') : 'tasks';
     const agentsDirectory = configBefore ? setting<string>(configBefore, 'paths.agents') : 'agents';
     const tracePolicy = state.traces ?? { commit: false, ignoreVideos: true, recordVideo: true };
     const createdManifest = installation === 'local' && !(await pathExists(join(root, 'package.json')));
-    const ignore = await ensureRuntimeIgnore(root, createdManifest || (await pathExists(join(root, 'node_modules'))) ? ['node_modules/'] : []);
+    // Runtime state and local secrets stay ignored independently of every trace choice.
+    const ignore = await ensureRuntimeIgnore(root, [...(createdManifest || (await pathExists(join(root, 'node_modules'))) ? ['node_modules/'] : []), '.env']);
     if (ignore) createdPaths.push(ignore);
-    const savedPolicy = configBefore ? { commit: setting<boolean>(configBefore, 'traces.commit'), ignoreVideos: setting<boolean>(configBefore, 'traces.ignoreVideos') } : undefined;
-    const traceIgnore = await ensureTraceIgnoreRules(root, savedPolicy && configBefore?.raw.traces ? savedPolicy : tracePolicy);
+    const savedPolicy = configBefore ? { commit: setting<boolean>(configBefore, 'traces.isCommitted'), ignoreVideos: setting<boolean>(configBefore, 'traces.isVideoIgnored') } : undefined;
+    const traceIgnore = await ensureTraceIgnoreRules(root, savedPolicy && configBefore?.interpreted.traces ? savedPolicy : tracePolicy);
     if (traceIgnore) createdPaths.push(traceIgnore);
     // Default roles first: a missing Chatter's initial TEAM covers the completed role set.
     for (const path of await ensureDefaultRoles(root, agentsDirectory)) createdPaths.push(path);
@@ -814,7 +926,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     }
 
     if (installation === 'local' || createdManifest) {
-        if (await ensureManifest(root, project.name, state.saveCheck === 'npm run check' && fresh ? { check: 'ptbk lint' } : {})) createdPaths.push(join(root, 'package.json'));
+        if (await ensureManifest(root, project.name)) createdPaths.push(join(root, 'package.json'));
     }
     if (installation === 'local') {
         say(`Installing ptbk ${ENGINE_VERSION} into ${root}…`);
@@ -833,48 +945,38 @@ export async function initializeProject(context: CommandContext, options: { proj
         if (global.available) alreadyReady.push(global.note);
         else notes.push(global.note);
     }
-    const existingValidation = await validateCheckCommand(root, check === undefined ? undefined : check, context.env);
-    if (existingValidation.ok) {
-        alreadyReady.push(`Check: ${check}`);
-        const supplied = option<string>(context, 'check');
-        if (supplied && supplied !== check) notes.push(`Check override for this run only: ${supplied}`);
+    // No check question: a real existing check is kept (even a failing one: that is ordinary repair work); a supplied
+    // --check fills a missing one; otherwise the explicit informational placeholder records that validation is absent.
+    const suppliedCheck = option<string>(context, 'check');
+    let check = savedCheck;
+    let saveCheck: string | undefined;
+    if (savedCheck !== undefined) {
+        if (isCheckPlaceholder(savedCheck)) notes.push('Real automated validation is not configured yet (execution.check holds the informational placeholder).');
+        else {
+            const validation = await validateCheckCommand(root, savedCheck, context.env);
+            if (validation.ok) alreadyReady.push(`Check: ${savedCheck}`);
+            else notes.push(`The configured check \`${savedCheck}\` is kept but does not look runnable (${validation.reason}); it is repaired through ordinary work, never replaced by the placeholder.`);
+        }
+        if (suppliedCheck && suppliedCheck !== savedCheck) notes.push(`Check override for this run only: ${suppliedCheck}`);
+    } else if (suppliedCheck) {
+        saveCheck = suppliedCheck;
+        const validation = await validateCheckCommand(root, suppliedCheck, context.env);
+        if (!validation.ok) notes.push(`The supplied check \`${suppliedCheck}\` does not look runnable yet (${validation.reason}).`);
+        changed.push(`Check: ${suppliedCheck}`);
+    } else {
+        saveCheck = CHECK_PLACEHOLDER;
+        changed.push('Check: informational placeholder (real automated validation is not configured)');
     }
-    if (state.saveCheck !== undefined) {
-        const validation = await validateCheckCommand(root, state.saveCheck, context.env);
-        if (!validation.ok) unresolved.push(`Check \`${state.saveCheck}\`: ${validation.reason}`);
-        changed.push(`Check: ${state.saveCheck}`);
-        check = state.saveCheck;
-    } else if (!existingValidation.ok) {
-        unresolved.push(`Project check not configured${flag(context, 'defer-check') ? ' (deferred)' : ''} → \`ptbk init --check "<command>"\``);
-    }
+    if (flag(context, 'defer-check')) notes.push('--defer-check is no longer needed: init does not ask for a check.');
+    if (saveCheck !== undefined) check = saveCheck;
     const instructions = await ensureProjectInstructions(root, project.name, check);
     if (instructions) createdPaths.push(instructions);
 
-    // ptbk.json: selected harnesses, bootstrap routing, browser, check, traces, initialization marker.
-    const rawConfig = (await readProjectConfigFile(project)).raw;
-    const routingHarness = rawConfig.routing && typeof rawConfig.routing === 'object' ? (rawConfig.routing as Record<string, unknown>).harness : undefined;
-    const usableSelected = selected.filter((id) => state.inspections.get(id)?.usable);
-    const settingsChanges: Record<string, unknown> = {};
-    if (!routingHarness && (usableSelected[0] ?? selected[0])) settingsChanges['routing.harness'] = usableSelected[0] ?? selected[0];
-    if (state.saveCheck !== undefined) settingsChanges['execution.check'] = state.saveCheck;
-    if (!rawConfig.browser || option<string>(context, 'browser-profile') !== undefined) settingsChanges['browser.profile'] = state.browserProfile ?? 'global';
-    if (!rawConfig.browser || option<string>(context, 'browser-mode') !== undefined) settingsChanges['browser.mode'] = state.browserMode ?? 'headless';
-    for (const [key, value] of [
-        ['traces.commit', tracePolicy.commit],
-        ['traces.ignoreVideos', tracePolicy.ignoreVideos],
-        ['traces.recordVideo', tracePolicy.recordVideo],
-    ] as const) {
-        if (getPath(rawConfig, key) === undefined) settingsChanges[key] = value;
-    }
-    const harnessChanges: Record<string, { enabled: boolean }> = {};
-    const configured = configBefore ? enabledHarnesses(configBefore) : [];
-    for (const id of selected) harnessChanges[id] = { enabled: true };
-    for (const id of configured) if (!selected.includes(id)) harnessChanges[id] = { enabled: false };
-    if (await updateProjectConfig(project, { settings: settingsChanges, harnesses: harnessChanges })) createdPaths.push(project.configPath);
-
-    // The first task: one ordinary Expert task referring to the preserved specification, never duplicated.
+    // ptbk.json in one write: settings, the simple initial tools (through the shared tool operations), synchronization
+    // choice and the initialization marker. A new configuration records the running engine version.
+    const file = await readProjectConfigFile(project);
     const timeZone = setting<string>(await loadSettings(project, { env: context.env }), 'timezone');
-    const marker = ((await readProjectConfigFile(project)).raw.initialized ?? {}) as { starterTask?: string; installation?: string; engineVersion?: string };
+    const marker = (file.raw.initialized ?? {}) as { starterTask?: string; installation?: string; engineVersion?: string };
     let firstTask: InitResult['firstTask'];
     const tasksRoot = join(root, tasksDirectory);
     if (newPurpose && !marker.starterTask && !(await hasFirstTask({ root, tasksDirectory, timeZone }))) {
@@ -889,19 +991,56 @@ export async function initializeProject(context: CommandContext, options: { proj
         createdPaths.push(draftPath);
         firstTask = { title, path: draftPath };
     }
+    const raw = structuredClone(file.raw) as Record<string, unknown>;
+    if (!file.exists) raw.promptbookVersion = ENGINE_VERSION;
+    const set = (key: string, value: unknown): void => setPath(raw, key, serializeSettingValue(SETTING_SPEC_BY_KEY.get(key)!, value));
+    const routingHarness = getPath(raw, 'routing.harness');
+    const usableSelected = selected.filter((id) => state.inspections.get(id)?.usable);
+    if (routingHarness === undefined && (usableSelected[0] ?? selected[0])) set('routing.harness', usableSelected[0] ?? selected[0]);
+    if (saveCheck !== undefined) set('execution.check', saveCheck);
+    for (const [key, value] of [
+        ['traces.isCommitted', tracePolicy.commit],
+        ['traces.isVideoIgnored', tracePolicy.ignoreVideos],
+        ['traces.isVideoRecordingEnabled', tracePolicy.recordVideo],
+    ] as const) {
+        if (getPath(raw, key) === undefined) set(key, value);
+    }
+    if (state.sync && (!state.sync.reused || raw.isAutoSync === undefined)) raw.isAutoSync = state.sync.enabled;
+    const existingTools = Array.isArray(raw.tools) ? (raw.tools as unknown[]) : [];
+    const typedTools = interpretConfig({ raw, exists: true, diagnostics: [] }).tools;
+    const operations: ToolOperation[] = [];
+    // One simple browser from the familiar picker; advanced profiles/accounts are managed later.
+    const browserProfile = profileFromSpelling(state.browserProfile ?? 'global');
+    const firstBrowser = typedTools.find((tool): tool is BrowserToolRecord => tool.type === 'BROWSER');
+    if (!firstBrowser) {
+        operations.push({ kind: 'add', tool: { type: 'BROWSER', variant: 'CHROME', name: MIGRATED_BROWSER_NAME, profileSource: browserProfile.source, ...(browserProfile.path ? { profilePath: browserProfile.path } : {}), isHeadless: (state.browserMode ?? 'headless') !== 'headful' } });
+    } else if (option<string>(context, 'browser-profile') !== undefined || option<string>(context, 'browser-mode') !== undefined) {
+        operations.push({ kind: 'modify', name: firstBrowser.name, changes: { ...(option<string>(context, 'browser-profile') !== undefined ? { profileSource: browserProfile.source, profilePath: browserProfile.path ?? null } : {}), ...(option<string>(context, 'browser-mode') !== undefined ? { isHeadless: state.browserMode !== 'headful' } : {}) } });
+    }
+    // Each selected integration gets one native instance named after it (existing instances are kept as they are).
+    for (const id of selected) {
+        const variant = harnessVariantOf(id)!;
+        const instances = typedTools.filter((tool): tool is HarnessToolRecord => tool.type === 'HARNESS' && tool.variant === variant);
+        if (!instances.length) operations.push({ kind: 'add', tool: { type: 'HARNESS', variant, name: typedTools.some((tool) => tool.name === id) ? `${id}-native` : id, authentication: 'NATIVE' } });
+        else if (!instances.some((tool) => tool.isEnabled)) operations.push({ kind: 'enable', name: instances[0]!.name });
+    }
+    const configured = operations.length ? applyToolOperationsToConfig({ ...raw, tools: existingTools }, operations) : canonicalizeConfig(raw).raw;
     const effectiveInstallation = installation === 'existing' ? (marker.installation ?? 'local') : installation;
     if (firstTask || !marker.engineVersion || marker.installation !== effectiveInstallation) {
-        const raw = (await readProjectConfigFile(project)).raw;
-        raw.initialized = { ...(raw.initialized as object | undefined), engineVersion: marker.engineVersion ?? ENGINE_VERSION, ...(firstTask ? { starterTask: firstTask.title } : {}), installation: effectiveInstallation };
-        await writeFile(project.configPath, `${JSON.stringify(raw, null, 4)}\n`);
+        configured.initialized = { ...(configured.initialized as object | undefined), engineVersion: marker.engineVersion ?? ENGINE_VERSION, ...(firstTask ? { starterTask: firstTask.title } : {}), installation: effectiveInstallation };
+    }
+    const text = configText(configured);
+    if (text !== file.text) {
+        await writeFileAtomic(project.configPath, text);
         createdPaths.push(project.configPath);
     }
+    for (const operation of operations) changed.push(operation.kind === 'add' ? `Tool ${operation.tool.name} (${operation.tool.type} ${operation.tool.variant})` : `Tool ${operation.name}: ${operation.kind}`);
     for (const path of createdPaths) {
         const label = toProjectRelative(root, path);
         if (!changed.includes(label)) changed.push(label);
     }
 
-    // Commit authorized setup artifacts only (never unrelated changes), with the first task's ID.
+    // Commit authorized setup artifacts only (never unrelated changes), with the first task's name.
     let commitSha: string | undefined;
     const uniquePaths = [...new Set(createdPaths)];
     if (uniquePaths.length) {
@@ -935,12 +1074,31 @@ export async function initializeProject(context: CommandContext, options: { proj
     if (parentChanges.length) notes.push(`Parent repository changes left uncommitted: ${parentChanges.map((path) => toProjectRelative(state.nested!.parentRoot, path) || '.').join(', ')}`);
     if (!traceIgnore && !createdPaths.length) alreadyReady.push(`Trace policy: ${traceIgnoreLines(tracePolicy).join(' ')}`);
 
+    // The initial browser must actually be usable (inspected without launching it).
+    const browserTool = interpretConfig({ raw: configured, exists: true, diagnostics: [] }).tools.find((tool): tool is BrowserToolRecord => tool.type === 'BROWSER' && tool.isEnabled);
+    if (browserTool) {
+        const browserReadiness = await inspectBrowserTool(project, browserTool, context.env);
+        if (browserReadiness.usable) alreadyReady.push(`Browser ${browserTool.name}: ${browserReadiness.summary}`);
+        else unresolved.push(`Browser ${browserTool.name}: ${browserReadiness.summary}${browserReadiness.nextAction ? ` → ${browserReadiness.nextAction}` : ''}`);
+    }
+
+    // Remote publication is a separate, honestly reported outcome after the committed local setup.
+    let publication: PublicationOutcome | undefined;
+    if (state.sync?.enabled && state.sync.choice && commitSha !== undefined && !unresolved.length) {
+        say('Setting up automatic synchronization…');
+        publication = await publishProject(project, repository.repositoryRoot, state.sync.choice, context.env);
+        (publication.ok ? changed : notes).push(publication.ok ? publication.message : `Remote publication did not succeed: ${publication.message} Local setup is complete; synchronization stays enabled and retries in the background (or rerun \`ptbk init\`).`);
+    } else if (state.sync?.enabled && state.sync.choice && !commitSha && !unresolved.length && !uniquePaths.length) {
+        publication = await publishProject(project, repository.repositoryRoot, state.sync.choice, context.env);
+        (publication.ok ? alreadyReady : notes).push(publication.ok ? publication.message : `Remote publication did not succeed: ${publication.message}`);
+    }
+
     // Readiness from the saved settings the service will use.
     project = projectAt(root);
     const readiness = await assessReadiness(project, await loadSettings(project, { env: context.env }), context.env);
     for (const problem of readiness.problems) if (!unresolved.some((item) => item.startsWith(problem.message.slice(0, 30)))) unresolved.push(`${problem.message} → ${problem.action}`);
     const ready = readiness.ready && !unresolved.length;
-    return { outcome: ready ? 'ready' : 'incomplete', project, changed, alreadyReady, unresolved, notes, commit: commitSha, firstTask };
+    return { outcome: ready ? 'ready' : 'incomplete', project, changed, alreadyReady, unresolved, notes, commit: commitSha, firstTask, publication, synchronization: state.sync?.enabled ?? false };
 }
 
 /**
@@ -963,7 +1121,7 @@ async function startService(context: CommandContext, project: Project): Promise<
             return { kind: 'reused', snapshot: await liveSnapshot(project, existing), note: `The ${existing.record.mode} service (PID ${existing.record.pid}) was already running and keeps its configuration.` };
         }
         const settings = await loadSettings(project, { env: context.env, cli: overrides });
-        const persistent = setting<boolean>(settings, 'service.persist');
+        const persistent = setting<boolean>(settings, 'service.isPersistent');
         const launched = await launchDaemon(project, { cli: overrides, tasksDirectory: tasksOverride(context), persistent, env: context.env });
         let snapshot = await liveSnapshot(project, launched.lookup);
         const deadline = Date.now() + 10_000;

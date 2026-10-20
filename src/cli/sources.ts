@@ -3,6 +3,7 @@ import type { ControlClient } from '../service/control.js';
 import type { ServiceHost } from '../service/host.js';
 import { controlChatSource } from '../ui/chat-client.js';
 import type { DashboardSource } from '../ui/dashboard.js';
+import type { ToolOperationOutcome } from '../tools/operations.js';
 
 /**
  * Dashboard source attached to a running service through its control channel (does not own it).
@@ -16,6 +17,7 @@ export function controlSource(client: ControlClient): DashboardSource {
         action: (name, params) => client.request<{ outcome: string; applied?: boolean }>(name, { ...(params ?? {}) }),
         chats: controlChatSource((method, params) => client.request(method, params ?? {}), 'terminal'),
         pairing: (renew) => client.request('pairing', { renew }),
+        tool: (request) => client.request<ToolOperationOutcome>('tool-operation', request as unknown as Record<string, unknown>, 120_000),
         owning: false,
     };
 }
@@ -32,6 +34,7 @@ export function hostSource(host: ServiceHost): DashboardSource {
         action: (name, params) => host.control<{ outcome: string; applied?: boolean }>(name, params ?? {}),
         chats: controlChatSource((method, params) => host.control(method, params ?? {}), 'terminal'),
         pairing: (renew) => host.control('pairing', { renew }),
+        tool: (request) => host.control<ToolOperationOutcome>('tool-operation', request as unknown as Record<string, unknown>),
         owning: true,
     };
 }

@@ -16,7 +16,6 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
         }
         return withAuthentication(inspection, false, 'none', plugin.loginHint);
     } catch {
-        if (context.env.ANTHROPIC_API_KEY) return withAuthentication(inspection, true, 'api', plugin.loginHint);
         return withAuthentication(inspection, 'unknown', 'unknown', plugin.loginHint, 'Installed; login state could not be read (older Claude Code).');
     }
 }
@@ -58,6 +57,10 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
  */
 export const plugin: HarnessPlugin = {
     id: 'claude-code',
+    variant: 'CLAUDE_CODE',
+    apiKeyVariable: 'ANTHROPIC_API_KEY',
+    ambientApiKeyVariables: ['ANTHROPIC_API_KEY'],
+    accountHomeVariable: 'CLAUDE_CONFIG_DIR',
     displayName: 'Claude Code',
     featured: true,
     executable: 'claude',

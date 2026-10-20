@@ -11,6 +11,9 @@
  *   CREATE_FOLLOW_UP → also writes two follow-up task Books; on the first attempt the second copies this task's
  *                      name (Promptbook must reject it), on a repair attempt it gets its own dated name
  *   SLOW_WORK       → works for $FAKE_CODEX_SLOW_MS (default 6 s) before finishing (lifecycle draining)
+ *   QUOTA_NATIVE    → a native (ChatGPT) run fails with a usage limit; an API-key run (CODEX_API_KEY) succeeds
+ *   LIST_BROWSERS   → after the work (and any SLOW_WORK wait) lists the browser tools through the bridge into
+ *                     output/browsers.txt (a tool added meanwhile must be visible to this same task)
  * Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
  * containing CORRECTION adds a `PTBK_LEARN` note. Consultation turns (`# Consultation`) answer read-only.
@@ -131,9 +134,14 @@ async function main() {
     const title = /- Name: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
     const chat = prompt.startsWith('# Conversation');
     const attempt = /## Feedback from attempt (\d+)/.exec(prompt) ? Number(/## Feedback from attempt (\d+)/.exec(prompt)[1]) + 1 : 1;
-    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat })}\n`);
+    const api = Boolean(process.env.CODEX_API_KEY) && configOverrides().forced_login_method === '"api"';
+    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
     print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
     print({ type: 'turn.started' });
+    if (prompt.includes('QUOTA_NATIVE') && !api) {
+        print({ type: 'turn.failed', error: { message: "You've hit your usage limit. Try again later." } });
+        process.exit(1);
+    }
     const message = (text) => print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text } });
     const done = (summary, extra = {}) => message(`${summary}\n\nPTBK_RESULT ${JSON.stringify({ status: 'done', summary, evidence: 'fixture', ...extra })}`);
     if (prompt.startsWith('# Consultation')) {
@@ -180,6 +188,7 @@ async function main() {
             const second = attempt === 1 ? title : `Follow-up two — ${stamp}`;
             writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-two.book'), `TASK ${second}\nGOAL Copied definition.\nTASK AGENT @Developer\n`);
         }
+        if (prompt.includes('LIST_BROWSERS')) writeFileSync(join(process.cwd(), 'output', 'browsers.txt'), `${await callTool('browser_list', {})}\n`);
         print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'add' }] } });
         done(`Wrote ${file}`);
     }

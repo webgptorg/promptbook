@@ -9,9 +9,9 @@ import { creationTimestamp, formatIsoWithOffset, formatShortTime } from '../comm
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { setControlCommitment } from '../book/edit.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
-import { loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type EffectiveSettings, type ThinkingLevel } from '../project/config.js';
+import { loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type BrowserOverrides, type EffectiveSettings, type LoadedSettings, type ThinkingLevel } from '../project/config.js';
 import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent } from '../project/agents.js';
-import { commitPaths, inspectGit, stageableFiles, git as runGit } from '../project/git.js';
+import { commitPaths, inspectGit, stageableFiles } from '../project/git.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
@@ -50,6 +50,10 @@ import {
     workKindOf,
 } from './generated.js';
 import { HarnessPool } from './harnesses.js';
+import { SyncCoordinator, type SyncOutcome } from './sync.js';
+import { maintainProjectConfiguration } from '../project/configuration.js';
+import { applyToolOperation, type ToolOperationOutcome, type ToolOperationRequest } from '../tools/operations.js';
+import { inspectBrowserTool, toolInventory, type BrowserReadiness } from '../tools/readiness.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import { resolveRoute, type RouteResolution, type RunSelection } from './routing.js';
 import type {
@@ -66,6 +70,7 @@ import type {
     QueueItemView,
     ResultView,
     ServiceSnapshot,
+    ToolsView,
     WaitView,
 } from './snapshot.js';
 import { StateStore, type ActiveRecord, type ResultRecord, type RoutingSelection } from './state.js';
@@ -111,8 +116,10 @@ export type AgendaOptions = {
     readonly env: NodeJS.ProcessEnv;
     /** CLI setting overrides by key (parsed values). */
     readonly cli: Readonly<Record<string, unknown>>;
-    /** CLI harness restriction. */
+    /** CLI harness restriction (variants or named instances). */
     readonly cliHarnesses?: readonly string[];
+    /** Temporary browser overrides of one named browser tool. */
+    readonly cliBrowser?: BrowserOverrides;
     /** `--tasks` (absolute), overriding `paths.tasks`. */
     readonly tasksDirectory?: string;
     /** Persistence state for status views. */
@@ -131,8 +138,8 @@ export type AgendaOptions = {
     readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
     /** Releases per-task resources after every executed piece of work, whatever its outcome. */
     readonly afterWork?: () => Promise<void>;
-    /** Inspection of the project browser for the browser detail panel (owned by the service). */
-    readonly browserView?: () => BrowserDetailView | undefined;
+    /** Named browser tools owned by the service: inspections for the detail panels and the names held by work. */
+    readonly browsers?: { readonly primary: () => BrowserDetailView | undefined; readonly all: () => BrowserDetailView[]; readonly inUse: () => string[] };
 };
 
 /**
@@ -181,6 +188,11 @@ const MAX_ACTIVITY = 300;
  * Recheck interval of setup/workspace/recovery blockers.
  */
 const BLOCKER_RECHECK_MS = 5 * 60_000;
+
+/**
+ * Recheck interval while the running engine waits for usable tools (file changes and tool commands wake it sooner).
+ */
+const TOOLS_RECHECK_MS = 2 * 60_000;
 
 /**
  * Longest idle sleep before reevaluating sources and time.
@@ -253,7 +265,7 @@ export class Agenda {
     private ownedWork = new AbortController();
     private waiter?: { readonly skippable: boolean; readonly resolve: (reason: 'elapsed' | 'skipped' | 'cancelled' | 'woken') => void };
     private readonly runtimeOverrides: Record<string, unknown> = {};
-    private settings!: EffectiveSettings;
+    private settings!: LoadedSettings;
     private catalog!: AgentCatalog;
     private pool!: HarnessPool;
     private readonly state: StateStore;
@@ -269,12 +281,35 @@ export class Agenda {
     private lastHarnessMaintenance = 0;
     private readonly watchers: FSWatcher[] = [];
     private wakeTimer?: NodeJS.Timeout;
+    private configTimer?: NodeJS.Timeout;
     private lastPersistenceRetry = 0;
     private nextKnownTime?: number;
     private finishedSummary?: AgendaSummary;
+    /** Readiness of the enabled browser tools (inspected without launching them). */
+    private browserReadiness = new Map<string, BrowserReadiness>();
+    /** The shared tool inventory as of the last refresh. */
+    private tools: ToolsView = { items: [], problems: [] };
+    /** Required configuration work that could not be persisted yet (why no new work starts). */
+    private configurationPending?: string;
+    /** Opt-in Git synchronization (one coordinator for timer, boundaries and manual cycles). */
+    private readonly sync: SyncCoordinator;
 
     public constructor(private readonly options: AgendaOptions) {
         this.state = new StateStore(options.project.runtime.state);
+        this.sync = new SyncCoordinator({
+            repositoryRoot: () => this.repositoryRoot,
+            env: options.env,
+            gitLock: (action) => this.gitMutex.run(action),
+            enabled: () => Boolean(this.settings && setting<boolean>(this.settings, 'isAutoSync') && this.commitMode),
+            integrationBlocker: async (files) => await this.integrationBlocker(files),
+            onConflict: async (conflict) => await this.scheduleSyncConflict(conflict),
+            onIntegrated: async () => {
+                await this.refreshContext();
+                this.wake();
+            },
+            onChange: () => this.touch(),
+            log: (text, level) => this.log(text, level),
+        });
     }
 
     /** The project's chats (each human-facing message is its own commit unless explicitly uncommitted). */
@@ -308,7 +343,7 @@ export class Agenda {
 
     /** Effective commit mode. */
     public get commitMode(): boolean {
-        return setting<boolean>(this.settings, 'execution.commit');
+        return setting<boolean>(this.settings, 'execution.isCommitEnabled');
     }
 
     /** Effective settings (for the service). */
@@ -324,7 +359,9 @@ export class Agenda {
     public async initialize(): Promise<void> {
         const { project } = this.options;
         for (const directory of [project.runtime.state, project.runtime.logs, project.runtime.temporary]) await ensureDirectory(directory);
+        await this.maintainConfiguration();
         await this.refreshContext(true);
+        await this.sync.begin();
         await confinePath(project.root, this.tasksDirectory);
         const results = await this.state.recentResults(200);
         this.recentResults = results.slice(0, 20).map(resultView);
@@ -389,7 +426,7 @@ export class Agenda {
         if (!this.repositoryRoot) return;
         const { project } = this.options;
         const file = await loadSettings(project, { env: this.options.env });
-        const policy = { commit: setting<boolean>(file, 'traces.commit'), ignoreVideos: setting<boolean>(file, 'traces.ignoreVideos') };
+        const policy = { commit: setting<boolean>(file, 'traces.isCommitted'), ignoreVideos: setting<boolean>(file, 'traces.isVideoIgnored') };
         if (await traceIgnoreRulesMatch(project.root, policy)) return;
         const gitignore = resolve(project.root, '.gitignore');
         const dirty = await captureSnapshot({ project, repositoryRoot: this.repositoryRoot });
@@ -848,6 +885,8 @@ export class Agenda {
     /** Commits authored paths under the Git lock (with name trailers such as `Task-Name`/`Chat-Name`). */
     private async commitAuthoring(paths: readonly string[], summary: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}): Promise<string | undefined> {
         if (!this.repositoryRoot) throw new PtbkError('The project is not in a Git working tree.', { kind: 'setup', next: ['Run `ptbk init`.'] });
+        // Opt-in synchronization attempts around the operation's own commit (fetch before, publish after).
+        await this.sync.request('pre-commit');
         const outcome = await this.gitMutex.run(() =>
             commitPaths({
                 projectRoot: this.options.project.root,
@@ -859,12 +898,13 @@ export class Agenda {
                 env: this.options.env,
             }),
         );
+        if (outcome.committed) void this.sync.request('post-commit');
         return outcome.committed ? outcome.sha : undefined;
     }
 
     /** Policy-eligible trace files of a task (by its source file) for a task-related commit (never ignored evidence). */
     private async traceFiles(sourcePath: string): Promise<string[]> {
-        if (!this.commitMode || !setting<boolean>(this.settings, 'traces.commit')) return [];
+        if (!this.commitMode || !setting<boolean>(this.settings, 'traces.isCommitted')) return [];
         return await stageableFiles(this.options.project.root, traceDirectoryOf(sourcePath));
     }
 
@@ -915,6 +955,7 @@ export class Agenda {
                         role: 'task',
                         agent: current.agent.name,
                         harness: current.harness,
+                        tool: context.selection.tool,
                         harnessVersion: context.harnessVersion,
                         model: current.model,
                         modelReported: current.modelSource === 'reported',
@@ -989,7 +1030,7 @@ export class Agenda {
             : [];
         if (this.current && !agents.some((agent) => agent.key === this.current!.agent.key)) agents.unshift(this.current.agent);
         const harnesses = this.pool
-            ? HARNESS_PLUGINS.filter((plugin) => plugin.featured || this.pool.enabled().includes(plugin.id)).map((plugin) => {
+            ? HARNESS_PLUGINS.map((plugin) => {
                   const inspection = this.pool.inspection(plugin.id);
                   return {
                       id: plugin.id,
@@ -1022,7 +1063,11 @@ export class Agenda {
             phase: this.paused && !this.current ? 'paused' : this.phase,
             current: this.current,
             execution: this.executionView(),
-            browser: this.options.browserView?.(),
+            browser: this.options.browsers?.primary(),
+            browsers: this.options.browsers?.all(),
+            tools: this.settings && this.pool ? toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, inUse: this.toolsInUse(), retained: this.retainedTools() }) : undefined,
+            sync: this.sync.view(),
+            configuration: this.settings ? { promptbookVersion: typeof this.settings.interpreted.promptbookVersion === 'string' ? this.settings.interpreted.promptbookVersion : undefined, pending: this.configurationPending } : undefined,
             wait: this.waitView,
             queue: this.queueView,
             queueTotal: this.queueTotal,
@@ -1048,15 +1093,86 @@ export class Agenda {
 
     // ── Context ──────────────────────────────────────────────────────────────
 
-    /** Reloads settings, agents, repository facts and harness availability. */
+    /** Loads the effective settings of this engine (saved configuration plus invocation overrides). */
+    private async loadEffectiveSettings(): Promise<Awaited<ReturnType<typeof loadSettings>>> {
+        return await loadSettings(this.options.project, { env: this.options.env, cli: this.options.cli, runtime: this.runtimeOverrides, cliHarnesses: this.options.cliHarnesses, cliBrowser: this.options.cliBrowser });
+    }
+
+    /**
+     * Applies required configuration evolution through the shared coordinator: a committed migration pass when this
+     * engine is newer, and deterministic spelling corrections as their own commit. A pass that cannot be persisted
+     * (explicit no-commit, someone's uncommitted ptbk.json edits, an older engine, a failed commit) keeps the engine
+     * controllable and visibly stops new work instead of using an untracked configuration.
+     */
+    private async maintainConfiguration(): Promise<void> {
+        const commitMode = this.settings ? this.commitMode : this.options.cli['execution.isCommitEnabled'] !== false;
+        try {
+            const outcome = await maintainProjectConfiguration(this.options.project, { commit: commitMode, env: this.options.env, gitLock: (action) => this.gitMutex.run(action) });
+            this.configurationPending = undefined;
+            if (outcome.migrated) this.log(`Migrated ptbk.json from ${outcome.migrated.from} to ${outcome.migrated.to}${outcome.migrated.steps.length ? ` (${outcome.migrated.steps.join(', ')})` : ' (version only)'}${outcome.migrated.commit ? ` (${outcome.migrated.commit.slice(0, 8)})` : ''}.`);
+            if (outcome.normalized) this.log(`Normalized ptbk.json spelling: ${outcome.normalized.corrections.join('; ')}${outcome.normalized.commit ? ` (${outcome.normalized.commit.slice(0, 8)})` : ''}.`);
+            if (outcome.deferred) this.logOnce(outcome.deferred, 'info');
+        } catch (error) {
+            this.configurationPending = errorMessage(error);
+            const next = error instanceof PtbkError ? error.details.next?.[0] : undefined;
+            this.setBlocker({ kind: 'configuration', title: 'Configuration update required', reason: `${errorMessage(error)}${error instanceof PtbkError && error.details.reason ? ` ${error.details.reason}` : ''}`, action: next ?? 'Fix ptbk.json.', recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
+            this.logOnce(`Configuration update required: ${errorMessage(error)}`, 'warning');
+        }
+    }
+
+    /** Names of tools held by active work (the task's harness instance, active consultations, acquired browsers). */
+    private toolsInUse(): Set<string> {
+        const names = new Set<string>(this.options.browsers?.inUse() ?? []);
+        if (this.current && this.currentContext?.selection.tool) names.add(this.currentContext.selection.tool);
+        for (const consultation of this.currentContext?.consultations ?? []) if (consultation.state === 'active' && consultation.harness.tool) names.add(consultation.harness.tool);
+        return names;
+    }
+
+    /** Tools whose acquired old configuration active work still uses (changed, disabled or removed meanwhile). */
+    private retainedTools(): Set<string> {
+        const retained = new Set((this.options.browsers?.all() ?? []).filter((browser) => browser.retained && browser.inUse).map((browser) => browser.name));
+        const tool = this.current ? this.currentContext?.selection.tool : undefined;
+        if (tool && !this.settings.tools.some((record) => record.name === tool && record.isEnabled)) retained.add(tool);
+        return retained;
+    }
+
+    /**
+     * Re-reads the tool inventory and `.env`, reinspecting changed and new instances (no browser launch, no model
+     * call). Runs before every task, while idle or waiting, and when ptbk.json/.env change during active work: a
+     * new usable tool can serve the current task at its next selection.
+     */
+    private async refreshTools(force = false): Promise<void> {
+        if (!this.pool) this.pool = new HarnessPool(this.options.project.root, this.settings, this.options.env);
+        else this.pool.updateSettings(this.settings);
+        await this.pool.refresh(this.pool.instances().map((tool) => tool.name), force);
+        const browsers = new Map<string, BrowserReadiness>();
+        for (const tool of this.settings.tools) if (tool.type === 'BROWSER' && tool.isEnabled) browsers.set(tool.name, await inspectBrowserTool(this.options.project, tool, this.options.env));
+        this.browserReadiness = browsers;
+        this.tools = toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers, inUse: this.toolsInUse(), retained: this.retainedTools() });
+        if (!this.tools.waiting) this.clearBlocker('tools');
+        this.touch();
+    }
+
+    /** Live refresh after an external change of ptbk.json or .env (another terminal, manual edit, synchronization). */
+    private async refreshLive(): Promise<void> {
+        try {
+            this.settings = await this.loadEffectiveSettings();
+            await this.refreshTools();
+        } catch (error) {
+            this.logOnce(`Configuration reload failed: ${errorMessage(error)}`, 'warning');
+        }
+    }
+
+    /** Reloads settings, agents, repository facts, tool readiness and configuration compatibility. */
     private async refreshContext(initial = false): Promise<void> {
-        const loaded = await loadSettings(this.options.project, { env: this.options.env, cli: this.options.cli, runtime: this.runtimeOverrides, cliHarnesses: this.options.cliHarnesses });
+        let loaded = await this.loadEffectiveSettings();
+        if (!initial && (loaded.migration.kind === 'migrate' || (loaded.corrections.length && !this.configurationPending))) {
+            await this.maintainConfiguration();
+            loaded = await this.loadEffectiveSettings();
+        }
         this.settings = loaded;
         this.catalog = await AgentCatalog.load(this.options.project.root, setting<string>(loaded, 'paths.agents'), setting<string>(loaded, 'paths.tasks'));
-        if (!this.pool) this.pool = new HarnessPool(this.options.project.root, loaded, this.options.env);
-        else this.pool.updateSettings(loaded);
-        const runHarness = this.options.run?.selection.harness;
-        await this.pool.refresh(runHarness ? [...new Set([...this.pool.enabled(), runHarness])] : this.pool.enabled(), initial);
+        await this.refreshTools(initial || this.waitView?.kind === 'tools');
         const gitInfo = await inspectGit(this.options.project.root);
         this.repositoryRoot = gitInfo.state === 'repository' ? gitInfo.root : undefined;
         const blockers: BlockerView[] = [];
@@ -1068,9 +1184,12 @@ export class Agenda {
                 action: 'Run `ptbk init` in the project.',
             });
         }
-        const configErrors = loaded.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
+        // Tool records with problems only make those tools unusable (Fixer repairs them); other errors stop new work.
+        const configErrors = loaded.diagnostics.filter((diagnostic) => diagnostic.severity === 'error' && !diagnostic.location.includes('tools') && !diagnostic.location.startsWith('--'));
         if (configErrors.length) {
-            blockers.push({ kind: 'configuration', title: 'Invalid configuration', reason: configErrors.map((error) => `${error.location}: ${error.message}`).join('; '), action: 'Fix ptbk.json.' });
+            blockers.push({ kind: 'configuration', title: 'Invalid configuration', reason: configErrors.map((error) => `${error.location}: ${error.message}`).join('; '), action: loaded.migration.kind === 'older-engine' ? 'Update ptbk, then restart the service.' : 'Fix ptbk.json.' });
+        } else if (loaded.migration.kind === 'migrate' && this.configurationPending) {
+            blockers.push({ kind: 'configuration', title: 'Configuration migration pending', reason: this.configurationPending, action: 'See the reason; ptbk retries automatically.' });
         }
         this.blockers = [...blockers, ...this.blockers.filter((blocker) => !['workspace', 'configuration'].includes(blocker.kind))];
     }
@@ -1087,12 +1206,19 @@ export class Agenda {
         for (const target of targets) {
             try {
                 const watcher = watch(target, { recursive: target !== this.options.project.root }, (_event, file) => {
-                    if (target === this.options.project.root && file !== 'ptbk.json') return;
-                    clearTimeout(this.wakeTimer);
-                    this.wakeTimer = setTimeout(() => {
-                        void this.refreshChats();
-                        this.wake();
+                    const configuration = target === this.options.project.root;
+                    if (configuration && file !== 'ptbk.json' && file !== '.env') return;
+                    clearTimeout(configuration ? this.configTimer : this.wakeTimer);
+                    const timer = setTimeout(() => {
+                        // Tools and credentials apply live, also to the task running now (at its next selection).
+                        if (configuration) void this.refreshLive().then(() => this.wake());
+                        else {
+                            void this.refreshChats();
+                            this.wake();
+                        }
                     }, 750);
+                    if (configuration) this.configTimer = timer;
+                    else this.wakeTimer = timer;
                 });
                 watcher.on('error', () => undefined);
                 this.watchers.push(watcher);
@@ -1107,6 +1233,8 @@ export class Agenda {
         for (const watcher of this.watchers) watcher.close();
         this.watchers.length = 0;
         clearTimeout(this.wakeTimer);
+        clearTimeout(this.configTimer);
+        this.sync.end();
     }
 
     // ── Waiting ──────────────────────────────────────────────────────────────
@@ -1166,11 +1294,24 @@ export class Agenda {
         if (await this.resumeParked()) return;
         this.blockers = this.blockers.filter((blocker) => blocker.kind !== 'recovery' && blocker.kind !== 'persistence');
         if (!(await this.checkBeforeWork())) return;
-        if (setting<boolean>(this.settings, 'execution.autoPull') && this.commitMode) await this.pull();
+        // Opt-in synchronization before new work: an attempt, never a prerequisite of local progress.
+        await this.sync.request('boundary');
         const evaluated = await this.evaluate();
         if (this.options.mode !== 'run' && (await this.scheduleHealthCheck(evaluated))) return;
         const candidates = this.filterForRun(evaluated);
         const next = selectNext(candidates);
+        const waitingForTools = this.tools.waiting;
+        // Unfinished work that cannot be routed for lack of tools is a running resource wait (never a plain idle).
+        if (waitingForTools && (next || evaluated.some((item) => isUnfinished(item.readiness)))) {
+            // A running engine waiting for resources (not a pause or stop): controls, refresh and rechecks stay alive.
+            if (this.options.mode === 'run') {
+                this.finishedSummary = { completed: this.completed, failed: this.failed, waitingChats: this.waitingChats().length, outcome: 'incomplete', message: `${waitingForTools.reason} (${waitingForTools.action})` };
+                return;
+            }
+            this.setBlocker({ kind: 'tools', title: 'Waiting for tools', reason: waitingForTools.reason, action: waitingForTools.action, recheckAt: new Date(Date.now() + TOOLS_RECHECK_MS).toISOString() });
+            await this.wait(TOOLS_RECHECK_MS, { kind: 'tools', reason: `Waiting for tools: ${waitingForTools.reason}`, action: waitingForTools.action, skippable: false });
+            return;
+        }
         if (next) {
             const dirty = await this.unrelatedChanges();
             const policy = setting<string>(this.settings, 'execution.gitChanges');
@@ -1200,7 +1341,7 @@ export class Agenda {
             this.finishRun(evaluated);
             return;
         }
-        if (!evaluated.some((item) => isUnfinished(item.readiness)) && setting<boolean>(this.settings, 'discovery.enabled')) {
+        if (!evaluated.some((item) => isUnfinished(item.readiness)) && setting<boolean>(this.settings, 'discovery.isEnabled') && !waitingForTools) {
             const discovered = await this.discover();
             if (discovered) return;
         }
@@ -1212,7 +1353,9 @@ export class Agenda {
             ? `No eligible work now; next scheduled work at ${formatShortTime(nextTime, Date.now(), this.timeZone)}.`
             : blocked.length
               ? `No eligible work; ${blocked.length} task(s) blocked (${blocked[0]!.task.title}: ${blocked[0]!.readiness.reason}).`
-              : (this.idleReason ?? 'No unfinished work.');
+              : waitingForTools && !evaluated.some((item) => isUnfinished(item.readiness))
+                ? `No unfinished work. Waiting for tools: ${waitingForTools.reason}`
+                : (this.idleReason ?? 'No unfinished work.');
         this.phase = 'idle';
         await this.wait(nextTime ? Math.min(nextTime - Date.now(), IDLE_RECHECK_MS) : IDLE_RECHECK_MS, { kind: nextTime ? 'schedule' : 'idle', reason, skippable: false });
     }
@@ -1224,7 +1367,9 @@ export class Agenda {
     private async healthFindings(evaluated: readonly EvaluatedTask[]): Promise<string[]> {
         const findings = new Set<string>();
         for (const diagnostic of this.catalog.index.diagnostics) findings.add(`${diagnostic.severity}: ${diagnostic.path}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
-        for (const diagnostic of this.settings.diagnostics) findings.add(`${diagnostic.severity}: ${diagnostic.location} — ${diagnostic.message}`);
+        for (const diagnostic of this.settings.diagnostics.filter((item) => !item.location.startsWith('--') && !item.location.startsWith('environment ›') && !/migration .* is pending/.test(item.message))) {
+            findings.add(`${diagnostic.severity}: ${diagnostic.location} — ${diagnostic.message}`);
+        }
         for (const problem of (await this.readQueue()).problems) findings.add(`error: ${problem}`);
         for (const { task } of evaluated) {
             for (const diagnostic of task.diagnostics.filter((item) => item.severity === 'error')) findings.add(`error: ${task.source.relativePath}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
@@ -1408,7 +1553,7 @@ export class Agenda {
             repositoryRoot: this.repositoryRoot,
             instanceId: this.options.instanceId,
             commit: this.commitMode,
-            questionsAllowed: setting<boolean>(this.settings, 'execution.questions'),
+            questionsAllowed: setting<boolean>(this.settings, 'execution.isQuestionsEnabled'),
             timeZone: this.timeZone,
             tasksDirectory: this.tasksDirectory,
             signal: this.ownedWork.signal,
@@ -1430,7 +1575,7 @@ export class Agenda {
                     } else if (event.type === 'consultation' && this.currentContext) {
                         const consultations = this.currentContext.consultations;
                         if (event.state === 'started') {
-                            consultations.push(executionContextView({ role: 'consultation', agent: event.advisor, by: event.by, harness: event.harness, model: event.model, state: 'active' }));
+                            consultations.push(executionContextView({ role: 'consultation', agent: event.advisor, by: event.by, harness: event.harness, tool: event.tool, model: event.model, state: 'active' }));
                             if (consultations.length > 8) consultations.splice(0, consultations.length - 8);
                         } else {
                             const index = consultations.map((item) => item.agent === event.advisor && item.state === 'active').lastIndexOf(true);
@@ -1447,6 +1592,7 @@ export class Agenda {
                 excludedPaths: () => this.authoredPaths,
                 extraTools: this.options.extraTools ? (context) => this.options.extraTools!(task, context) : undefined,
                 finalizeEvidence: this.options.finalizeEvidence,
+                beforeCommit: async () => void (await this.sync.request('pre-commit')),
             },
         };
     }
@@ -1597,13 +1743,14 @@ export class Agenda {
         const harness = preferred && usable.includes(preferred) ? preferred : usable[0];
         if (!harness) {
             const reason = 'No enabled harness is usable for Manager assignment.';
-            this.setBlocker({ kind: 'harness', title: 'No usable harness', reason, action: 'Run `ptbk init` to set up a harness.' });
-            await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason, skippable: false });
+            this.setBlocker({ kind: 'tools', title: 'No usable harness', reason, action: 'Enable or add a harness tool (`ptbk tool list`).' });
+            await this.wait(BLOCKER_RECHECK_MS, { kind: 'tools', reason, action: 'ptbk tool list', skippable: false });
             return;
         }
         this.phase = 'assigning';
-        const model = harness === preferred ? setting<string | undefined>(this.settings, 'routing.model') : this.settings.harnesses[harness]?.model;
-        const thinking = harness === preferred ? setting<ThinkingLevel | undefined>(this.settings, 'routing.thinkingLevel') : this.settings.harnesses[harness]?.thinkingLevel;
+        const instance = this.pool.select(harness);
+        const model = instance?.model ?? (harness === preferred ? setting<string | undefined>(this.settings, 'routing.model') : undefined);
+        const thinking = instance?.thinkingLevel ?? (harness === preferred ? setting<ThinkingLevel | undefined>(this.settings, 'routing.thinkingLevel') : undefined);
         const created = await createAssignmentTask({ target, tasksDirectory: this.tasksDirectory, bootstrap: { harness, model, thinkingLevel: thinking }, timeZone: this.timeZone, taken: await this.takenNames() });
         this.log(`Missing routing for "${target.title}": Manager prerequisite {{${created.name}}} (${toProjectRelative(this.options.project.root, created.path)})`);
         await (await TaskTrace.open(this.options.project, { name: target.title, source: target.source.relativePath })).event('assignment-requested', { managerTask: created.name, managerSource: toProjectRelative(this.options.project.root, created.path) });
@@ -1727,6 +1874,7 @@ export class Agenda {
             agent: agentView(selection.agent, 'working'),
             harness: selection.harness,
             harnessName: harnessName(selection.harness),
+            tool: selection.tool,
             model: selection.model,
             modelSource: selection.model ? 'requested' : 'default',
             thinkingLevel: selection.thinkingLevel,
@@ -1738,7 +1886,7 @@ export class Agenda {
         };
         this.currentContext = { selection, harnessVersion: item.route.inspection.version, source: item.task.source.relativePath, consultations: [] };
         this.phase = item.kind === 'assignment' ? 'assigning' : item.kind === 'learning' ? 'learning' : item.kind === 'discovery' ? 'discovering' : 'executing';
-        this.log(`${item.resume ? 'Resuming' : 'Starting'} ${item.kind === 'task' ? '' : `${item.kind} `}"${item.task.title}" with ${selection.agent} on ${harnessName(selection.harness)}${selection.model ? ` (${selection.model})` : ''}`);
+        this.log(`${item.resume ? 'Resuming' : 'Starting'} ${item.kind === 'task' ? '' : `${item.kind} `}"${item.task.title}" with ${selection.agent} on ${harnessName(selection.harness)}${selection.tool ? ` [${selection.tool}]` : ''}${selection.model ? ` (${selection.model})` : ''}`);
         let outcome: ExecutionOutcome;
         try {
             outcome = await this.executeMaybeIsolated(item);
@@ -1761,7 +1909,7 @@ export class Agenda {
                 this.runSucceeded++;
                 await this.state.setBlocker(item.task.key, undefined);
                 this.recentResults = (await this.state.recentResults(20)).map(resultView);
-                if (setting<boolean>(this.settings, 'execution.autoPush') && outcome.commit) await this.push({ name: item.task.title, source: item.task.source.relativePath });
+                if (outcome.commit) void this.publish({ name: item.task.title, source: item.task.source.relativePath });
                 const pacing = setting<number>(this.settings, 'execution.waitBetweenPrompts');
                 if (pacing > 0 && !this.stopRequested && !this.intent && !this.paused) await this.wait(pacing, { kind: 'pacing', reason: 'Pause between tasks (--wait-between-prompts).', skippable: true });
                 break;
@@ -1781,10 +1929,19 @@ export class Agenda {
                 this.addError({ at: new Date().toISOString(), summary: `"${item.task.title}" failed: ${outcome.reason}`, phase: 'task execution', task: item.task.ref, trace: outcome.trace, next: `Reply in the recovery chat or run \`ptbk recover "${item.task.title}"\`.` });
                 break;
             case 'setup':
+                if (this.sameVariantFallback(item, outcome.tool)) {
+                    this.log(`${outcome.reason}; continuing with the next ${harnessName(selection.harness)} instance "${this.sameVariantFallback(item, outcome.tool)!.name}" (same-variant fallback).`, 'warning');
+                    break;
+                }
                 this.setBlocker({ kind: 'harness', title: `${harnessName(selection.harness)} needs setup`, reason: outcome.reason, action: outcome.next, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
                 if (this.options.mode === 'run') this.finishedSummary = { completed: this.completed, failed: this.failed + 1, waitingChats: this.waitingChats().length, outcome: 'failed', message: `${outcome.reason} ${outcome.next ?? ''}`.trim() };
                 break;
             case 'quota':
+                // An authorized later instance of the same variant serves the retry at once (no wait through this reset).
+                if (this.sameVariantFallback(item, outcome.tool)) {
+                    this.log(`${outcome.reason}; continuing with the next ${harnessName(selection.harness)} instance "${this.sameVariantFallback(item, outcome.tool)!.name}" (same-variant fallback).`, 'warning');
+                    break;
+                }
                 this.log(`${outcome.reason}; waiting ${formatDuration(outcome.retryAfterMs)} before rechecking.`, 'warning');
                 if (this.options.mode === 'run') this.finishedSummary = { completed: this.completed, failed: this.failed, waitingChats: this.waitingChats().length, outcome: 'incomplete', message: outcome.reason };
                 else await this.wait(outcome.retryAfterMs, { kind: 'quota', reason: outcome.reason, skippable: true });
@@ -1803,11 +1960,23 @@ export class Agenda {
     }
 
     /**
+     * The next usable instance of the failed instance's variant, unless the task explicitly requires one instance
+     * (an explicit restriction is never broadened to another account).
+     */
+    private sameVariantFallback(item: WorkItem, failed: string | undefined): ReturnType<HarnessPool['select']> {
+        if (!failed) return undefined;
+        const required = item.task.routing.harness;
+        if (required && this.pool.instance(required)) return undefined;
+        const fallback = this.pool.select(item.route.selection.harness);
+        return fallback && fallback.name !== failed ? fallback : undefined;
+    }
+
+    /**
      * Executes ordinary tasks in an isolated worktree when requested (generated work stays in the checkout).
      */
     private async executeMaybeIsolated(item: WorkItem): Promise<ExecutionOutcome> {
         const environment = this.environment(item.task);
-        const isolate = (setting<boolean>(this.settings, 'execution.isolate') && item.kind === 'task' && this.commitMode && !item.createdPaths.length) || Boolean(item.resume?.worktree);
+        const isolate = (setting<boolean>(this.settings, 'execution.isIsolated') && item.kind === 'task' && this.commitMode && !item.createdPaths.length) || Boolean(item.resume?.worktree);
         if (!isolate) return await executeWork(environment, item);
         const runId = item.resume?.runId ?? shortId(10);
         const worktree = await prepareWorktree(this.options.project, environment.repositoryRoot, runId);
@@ -1920,7 +2089,7 @@ export class Agenda {
                 return;
             }
             this.setBlocker({ kind: 'harness', title: 'Interrupted work cannot resume', reason, action: route.kind === 'blocked' ? route.next : undefined, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
-            await this.pool.refresh(this.pool.enabled(), true);
+            await this.pool.refresh(undefined, true);
             await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason, action: route.kind === 'blocked' ? route.next : undefined, skippable: false });
             return;
         }
@@ -2071,30 +2240,92 @@ export class Agenda {
         return this.checkedBefore;
     }
 
-    /** Pulls with rebase (no automatic stash) at a safe boundary; failures leave synchronization pending. */
-    private async pull(): Promise<void> {
-        if (!this.repositoryRoot) return;
-        if ((await this.unrelatedChanges()).length) {
-            this.logOnce('Automatic pull skipped: the working tree has uncommitted changes.', 'warning');
-            return;
-        }
-        this.phase = 'synchronizing';
-        const result = await this.gitMutex.run(() => runGit(this.repositoryRoot!, ['pull', '--rebase', '--no-autostash', '--quiet'], { timeoutMs: 120_000 }));
-        if (result.exitCode !== 0) {
-            await this.gitMutex.run(() => runGit(this.repositoryRoot!, ['rebase', '--abort']));
-            this.log(`Automatic pull failed (local work continues; synchronization pending): ${result.stderr.trim().split('\n').slice(-2).join(' ')}`, 'warning');
-        }
+    /** Publishes completed local work through the synchronization coordinator (failures stay pending, never rerun work). */
+    private async publish(task?: { readonly name: string; readonly source: string }): Promise<void> {
+        if (!this.sync.view()) return;
+        const outcome = await this.sync.request('post-commit');
+        // Synchronization happens after the result snapshot, so it is recorded as a local (post-commit) event.
+        if (task) await (await TaskTrace.open(this.options.project, task)).event('synchronization', { outcome: outcome.outcome, detail: outcome.message }, { local: true }).catch(() => undefined);
     }
 
-    /** Pushes completed work when automatic push is enabled (failures stay local and pending). */
-    private async push(task?: { readonly name: string; readonly source: string }): Promise<void> {
-        if (!this.repositoryRoot) return;
-        this.phase = 'synchronizing';
-        const result = await this.gitMutex.run(() => runGit(this.repositoryRoot!, ['push'], { timeoutMs: 120_000 }));
-        if (result.exitCode === 0) this.log('Pushed completed work.');
-        else this.log(`Push failed; the commit stays local and synchronization is pending: ${result.stderr.trim().split('\n').slice(-2).join(' ')}`, 'warning');
-        // Synchronization happens after the result snapshot, so it is recorded as a local (post-commit) event.
-        if (task) await (await TaskTrace.open(this.options.project, task)).event('push', { ok: result.exitCode === 0, detail: result.exitCode === 0 ? undefined : result.stderr.trim().slice(-500) }, { local: true });
+    /**
+     * Why integrating remote changes now would be unsafe: work in progress (integration waits for the task boundary)
+     * or uncommitted local edits of the same files (never overwritten, stashed or reset).
+     */
+    private async integrationBlocker(incomingFiles: readonly string[]): Promise<string | undefined> {
+        if (this.executing || this.current) return 'a task is in progress; integration happens at its boundary';
+        if (!this.repositoryRoot) return 'the project is not in a Git working tree';
+        const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot });
+        const base = toProjectRelative(this.repositoryRoot, this.options.project.root);
+        const overlap = incomingFiles.map((file) => (base && base !== '.' && file.startsWith(`${base}/`) ? file.slice(base.length + 1) : file)).filter((file) => dirty[file] !== undefined);
+        if (overlap.length) return `uncommitted local changes of incoming files (${overlap.slice(0, 5).join(', ')}) are preserved`;
+        return undefined;
+    }
+
+    /**
+     * Hands a merge needing judgment to the ordinary Fixer (one unfinished task per condition; no new channel). The
+     * local branch is unchanged: the merge was aborted, so local tasks continue meanwhile.
+     */
+    private async scheduleSyncConflict(conflict: { readonly upstream: string; readonly branch: string; readonly files: readonly string[]; readonly incoming: number }): Promise<void> {
+        const origin = 'maintenance: synchronization conflict';
+        const queue = await this.readQueue();
+        if (queue.tasks.some((task) => task.origin === origin && !task.doneStamps.length && task.status !== 'done' && task.status !== 'failed')) return;
+        const fixer = await this.catalog.resolve('@Fixer');
+        if (fixer.kind !== 'agent') {
+            this.logOnce(`Synchronization conflict with ${conflict.upstream} (${conflict.files.join(', ')}): Fixer is unavailable, so the conflict stays visible until it is resolved manually.`, 'warning');
+            return;
+        }
+        const path = await newTaskPath(this.tasksDirectory, 'resolve synchronization conflict', Date.now(), this.timeZone);
+        await writeFile(
+            path,
+            renderTaskBook({
+                title: generatedName(`Resolve the synchronization conflict with ${conflict.upstream}`, { taken: await this.takenNames(), timeZone: this.timeZone }),
+                description: [
+                    `Automatic Git synchronization could not merge \`${conflict.upstream}\` (${conflict.incoming} incoming commit(s)) into \`${conflict.branch}\`: both sides changed ${conflict.files.map((file) => `\`${file}\``).join(', ')}. The merge was aborted, so the local branch, history and working tree are unchanged.`,
+                    `Integrate the remote changes with a visible merge: run \`git merge --no-ff --no-commit ${conflict.upstream}\`, resolve each conflict so that both intents are kept (inspect \`git log ${conflict.branch}...${conflict.upstream}\`), consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m "PTBK: Merge ${conflict.upstream} into ${conflict.branch} (conflicts resolved by Fixer)"\`. This merge commit is the one exception to "do not commit yourself".`,
+                    'Never rebase, reset, amend, force-push or discard either side. If the conflict cannot be resolved safely, abort the merge (`git merge --abort`) and explain why.',
+                ].join('\n\n'),
+                commitments: ['TASK AGENT @Fixer', `TASK ORIGIN ${origin}`],
+            }),
+            { flag: 'wx' },
+        );
+        const commit = this.commitMode ? await this.commitAuthoring([path], `Ask Fixer to resolve the synchronization conflict with ${conflict.upstream}`).catch(() => undefined) : undefined;
+        this.log(`Synchronization conflict with ${conflict.upstream} handed to Fixer (${toProjectRelative(this.options.project.root, path)}${commit ? `, ${commit.slice(0, 8)}` : ''}).`, 'warning');
+        this.wake();
+    }
+
+    /** One manual synchronization cycle through the shared coordinator (never a second scheduler). */
+    public async synchronizeNow(): Promise<SyncOutcome> {
+        return await this.sync.request('manual');
+    }
+
+    /**
+     * Applies one saved tool-management operation under this engine's coordination: the same shared implementation as
+     * a stopped project's CLI, with the in-use set of active work, the Git lock and synchronization attempts. The new
+     * inventory is effective at once, also for the task running now.
+     */
+    public async toolOperation(request: ToolOperationRequest): Promise<ToolOperationOutcome> {
+        const configPath = this.options.project.configPath;
+        // Never attribute the configuration write to the active task while it is being committed separately.
+        const alreadyAuthored = this.authoredPaths.has(configPath);
+        this.authoredPaths.add(configPath);
+        try {
+            const outcome = await applyToolOperation(this.options.project, request, {
+                env: this.options.env,
+                inUse: this.toolsInUse(),
+                gitLock: (action) => this.gitMutex.run(action),
+                sync: { before: async () => void (await this.sync.request('pre-commit')), after: async () => void this.sync.request('post-commit') },
+                timeZone: this.timeZone,
+            });
+            if (outcome.status !== 'needs-acknowledgement') {
+                await this.refreshLive();
+                this.log(`${outcome.summary}${outcome.status === 'applied' && outcome.commit ? ` (${outcome.commit.slice(0, 8)})` : ''}${outcome.notes.length ? ` — ${outcome.notes.join(' ')}` : ''}`);
+                this.wake();
+            }
+            return outcome;
+        } finally {
+            if (!alreadyAuthored) this.authoredPaths.delete(configPath);
+        }
     }
 
     /**
@@ -2276,6 +2507,8 @@ export function executionContextView(input: {
     readonly agent: string;
     readonly by?: string;
     readonly harness: string;
+    /** Named tool instance actually used. */
+    readonly tool?: string;
     readonly harnessVersion?: string;
     readonly model?: string;
     readonly modelReported?: boolean;
@@ -2300,7 +2533,7 @@ export function executionContextView(input: {
         role: input.role,
         agent: input.agent,
         by: input.by,
-        harness: { id: input.harness, name: plugin?.displayName ?? input.harness, version: input.harnessVersion },
+        harness: { id: input.harness, name: plugin?.displayName ?? input.harness, version: input.harnessVersion, ...(input.tool ? { tool: input.tool } : {}) },
         model,
         thinkingLevel,
         state: input.state,

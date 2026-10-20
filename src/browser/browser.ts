@@ -6,16 +6,17 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, pathExists } from '../common/fs.js';
 import { shortHash, shortId } from '../common/ids.js';
 import { isProcessAlive, terminateProcessTree, which } from '../common/process.js';
-import { setting, type EffectiveSettings } from '../project/config.js';
+import { MIGRATED_BROWSER_NAME } from '../project/migrations.js';
+import { describeProfileSource, type BrowserToolRecord, type BrowserVariant, type ProfileSource } from '../tools/model.js';
 import type { Project } from '../project/workspace.js';
 import type { BridgeTool } from '../engine/bridge.js';
 import type { TaskChats } from '../chats/task-chats.js';
-import type { TaskTrace } from '../engine/task-trace.js';
 import type { BrowserDetailView } from '../engine/snapshot.js';
 import type { ControlOutcome } from '../service/actions.js';
 import { createRedactor } from '../common/redact.js';
 import { promptbookAppData } from '../common/app-data.js';
-import { BrowserRecorder, cleanStaleRecordings, type ScreencastPort } from './recording.js';
+import { BrowserRecorder, type ScreencastPort } from './recording.js';
+import type { BrowserFleet } from './fleet.js';
 
 /**
  * Maximal page text returned to an agent.
@@ -38,50 +39,35 @@ const LAUNCH_ATTEMPTS = 3;
 const LAUNCH_RETRY_MS = 3000;
 
 /**
- * Candidate Chrome-compatible executables per platform.
+ * Candidate executables of each browser adapter per platform (in preference order).
  */
-function chromeCandidates(): string[] {
-    if (process.platform === 'darwin') {
-        return ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/Applications/Chromium.app/Contents/MacOS/Chromium', '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge', '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'];
-    }
-    if (process.platform === 'win32') {
-        const roots = [process.env['PROGRAMFILES'], process.env['PROGRAMFILES(X86)'], process.env.LOCALAPPDATA].filter(Boolean) as string[];
-        return roots.flatMap((root) => [join(root, 'Google', 'Chrome', 'Application', 'chrome.exe'), join(root, 'Microsoft', 'Edge', 'Application', 'msedge.exe'), join(root, 'Chromium', 'Application', 'chrome.exe')]);
-    }
-    return [];
+function browserCandidates(variant: BrowserVariant): { paths: string[]; names: string[] } {
+    const chrome = { mac: ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'], win: [join('Google', 'Chrome', 'Application', 'chrome.exe')], names: ['google-chrome', 'google-chrome-stable', 'chrome'] };
+    const chromium = { mac: ['/Applications/Chromium.app/Contents/MacOS/Chromium'], win: [join('Chromium', 'Application', 'chrome.exe')], names: ['chromium', 'chromium-browser'] };
+    const edge = { mac: ['/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'], win: [join('Microsoft', 'Edge', 'Application', 'msedge.exe')], names: ['microsoft-edge', 'microsoft-edge-stable', 'msedge'] };
+    const brave = { mac: ['/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'], win: [] as string[], names: [] as string[] };
+    // CHROME prefers Google Chrome and accepts another installed Chrome-compatible browser when it is absent.
+    const groups = variant === 'CHROMIUM' ? [chromium] : variant === 'EDGE' ? [edge] : [chrome, chromium, edge, brave];
+    const roots = [process.env['PROGRAMFILES'], process.env['PROGRAMFILES(X86)'], process.env.LOCALAPPDATA].filter(Boolean) as string[];
+    const paths = groups.flatMap((group) => (process.platform === 'darwin' ? group.mac : process.platform === 'win32' ? roots.flatMap((root) => group.win.map((relative) => join(root, relative))) : []));
+    return { paths, names: groups.flatMap((group) => group.names) };
 }
 
 /**
- * Locates a Chrome-compatible browser (configuration, `CHROME_PATH`, standard locations, PATH).
+ * Locates the executable of a browser tool (its explicit executable, `CHROME_PATH`, standard locations, PATH).
  *
  * @private project browser
  */
-export async function findBrowserExecutable(settings: EffectiveSettings, env: NodeJS.ProcessEnv = process.env): Promise<string | undefined> {
-    const configured = setting<string | undefined>(settings, 'browser.executable') ?? env.CHROME_PATH;
+export async function findBrowserExecutable(tool: Pick<BrowserToolRecord, 'variant' | 'executable'>, env: NodeJS.ProcessEnv = process.env): Promise<string | undefined> {
+    const configured = tool.executable ?? env.CHROME_PATH;
     if (configured) return (await pathExists(configured)) ? configured : await which(configured, env);
-    for (const candidate of chromeCandidates()) if (await pathExists(candidate)) return candidate;
-    for (const name of ['google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser', 'chrome', 'msedge']) {
+    const candidates = browserCandidates(tool.variant);
+    for (const candidate of candidates.paths) if (await pathExists(candidate)) return candidate;
+    for (const name of candidates.names) {
         const found = await which(name, env);
         if (found) return found;
     }
     return undefined;
-}
-
-/**
- * Where the project's browser profile comes from (saved in ptbk.json as a portable kind, never a machine path for
- * the managed global profile).
- *
- * @private project browser
- */
-export type BrowserProfileSource = 'global' | 'isolated' | 'user' | 'custom';
-
-/**
- * Classifies a `browser.profile` value: `global`, `isolated`, `user`, or a custom profile path.
- *
- * @private project browser
- */
-export function browserProfileSource(value: string): BrowserProfileSource {
-    return value === 'global' || value === 'isolated' || value === 'user' ? value : 'custom';
 }
 
 export { promptbookAppData };
@@ -107,41 +93,31 @@ export function userChromeProfile(env: NodeJS.ProcessEnv = process.env): string 
 }
 
 /**
- * Resolves the profile directory of the selected source: the managed global profile, the isolated project profile in
- * `.ptbk/`, the user's Chrome profile, or a custom path (relative paths resolve against the project).
+ * Resolves the profile directory of a browser tool at runtime: the managed global profile (per OS user), an isolated
+ * project profile in `.ptbk/` (separate per instance), the user's Chrome profile, or a custom path (relative paths
+ * resolve against the project).
  *
  * @private project browser
  */
-export function browserProfileDirectory(project: Project, settings: EffectiveSettings, env: NodeJS.ProcessEnv = process.env): string {
-    const profile = setting<string>(settings, 'browser.profile');
-    switch (browserProfileSource(profile)) {
-        case 'global':
-            return globalBrowserProfile(env);
-        case 'isolated':
-            return project.runtime.browserProfile;
-        case 'user':
-            return userChromeProfile(env);
-        case 'custom':
-            return resolve(project.root, profile);
+export function browserProfileDirectory(project: Project, tool: Pick<BrowserToolRecord, 'name' | 'profile'>, env: NodeJS.ProcessEnv = process.env): string {
+    switch (tool.profile.source) {
+        case 'MANAGED_GLOBAL':
+            return tool.profile.path ? resolve(promptbookAppData(env), tool.profile.path) : globalBrowserProfile(env);
+        case 'PROJECT':
+            // The first (migrated) browser keeps the historical location so existing sessions survive.
+            return tool.profile.path ? resolve(project.root, tool.profile.path) : tool.name === MIGRATED_BROWSER_NAME ? project.runtime.browserProfile : join(project.runtime.root, 'browser-profiles', tool.name);
+        case 'USER_EXISTING':
+            return tool.profile.path ? resolve(tool.profile.path) : userChromeProfile(env);
+        case 'CUSTOM':
+            return resolve(project.root, tool.profile.path ?? '.');
     }
 }
 
 /**
- * Human description of a `browser.profile` value.
- *
- * @private project browser
+ * Whether a profile source is shared beyond this project (claimed per profile across projects, released after tasks).
  */
-export function describeBrowserProfile(value: string): string {
-    switch (browserProfileSource(value)) {
-        case 'global':
-            return 'dedicated Promptbook profile shared by your projects';
-        case 'isolated':
-            return 'isolated project profile';
-        case 'user':
-            return 'your Chrome profile';
-        case 'custom':
-            return `custom profile ${value}`;
-    }
+function isSharedSource(source: ProfileSource): boolean {
+    return source !== 'PROJECT';
 }
 
 /**
@@ -292,7 +268,21 @@ export type BrowserHealth = {
 };
 
 /**
- * The project's single shared browser instance (one profile, one automation owner at a time).
+ * The effective configuration of one browser tool as the service resolves it.
+ *
+ * @private project browser
+ */
+export type BrowserTarget = {
+    /** Effective record (the saved one with this invocation's temporary overrides). */
+    readonly tool: BrowserToolRecord;
+    /** Temporary invocation overrides change it (the saved record stays in ptbk.json). */
+    readonly overridden: boolean;
+};
+
+/**
+ * One named browser tool of the project: one profile and one automation owner at a time, shared by the project's
+ * agents. A launched process keeps the configuration it was acquired with (retained use) until the task that uses
+ * it releases it; later selections see the new saved configuration.
  *
  * @private project browser
  */
@@ -303,6 +293,8 @@ export class ProjectBrowser {
     private connection?: CdpConnection;
     private sessionId?: string;
     private note?: string;
+    /** Configuration the running process was launched with (retained while a task uses it). */
+    private launchedWith?: BrowserToolRecord;
     /** A launch in progress (concurrent automatic/manual starts share it: never two owners). */
     private launching?: Promise<{ connection: CdpConnection; sessionId: string }>;
     /** The current task used the browser (a restart waits for the task boundary). */
@@ -316,13 +308,33 @@ export class ProjectBrowser {
 
     public constructor(
         private readonly project: Project,
-        private readonly settings: () => EffectiveSettings,
+        /** Name of the browser tool this instance serves. */
+        public readonly name: string,
+        private readonly target: () => BrowserTarget | undefined,
         private readonly env: NodeJS.ProcessEnv,
         /** Publishes health changes to every view. */
         private readonly onChange: () => void = () => undefined,
+        recordingEnabled: () => boolean = () => true,
     ) {
-        this.recorder = new BrowserRecorder(project, () => setting<boolean>(this.settings(), 'traces.recordVideo'), env);
-        void cleanStaleRecordings(project);
+        this.recorder = new BrowserRecorder(project, recordingEnabled, env);
+    }
+
+    /** Configuration of the next use: the retained one while a task holds the process, otherwise the saved one. */
+    private config(): BrowserToolRecord | undefined {
+        if (this.child && this.usedByTask && this.launchedWith) return this.launchedWith;
+        return this.target()?.tool;
+    }
+
+    /** Whether a task currently holds this browser. */
+    public get inUse(): boolean {
+        return this.usedByTask && Boolean(this.child);
+    }
+
+    /** Whether the running process still uses a configuration that was changed, disabled or removed meanwhile. */
+    public get retained(): boolean {
+        if (!this.child || !this.launchedWith) return false;
+        const saved = this.target()?.tool;
+        return !saved || !saved.isEnabled || JSON.stringify(saved) !== JSON.stringify(this.launchedWith);
     }
 
     /** Updates the observed health and notifies the views. */
@@ -343,19 +355,30 @@ export class ProjectBrowser {
      * ownership, last failure and recovery. A profile path is diagnostic data, never permission to read its contents.
      */
     public inspect(): BrowserDetailView {
-        const settings = this.settings();
-        const profile = setting<string>(settings, 'browser.profile');
-        const profilePath = browserProfileDirectory(this.project, settings, this.env);
-        const source = browserProfileSource(profile);
-        const overridden = ['cli', 'runtime'].includes(settings.sources['browser.profile'] ?? 'default');
-        const active = this.health.profilePath && this.child && this.health.profilePath !== profilePath ? this.health.profilePath : undefined;
+        const target = this.target();
+        const saved = target?.tool;
+        const effective = this.config() ?? saved;
+        const profilePath = effective ? browserProfileDirectory(this.project, effective, this.env) : '';
+        const savedPath = saved ? browserProfileDirectory(this.project, saved, this.env) : undefined;
+        const retained = this.retained;
         return {
-            source,
-            sourceLabel: describeBrowserProfile(profile),
-            profilePath: active ?? profilePath,
-            savedProfile: overridden ? `overridden for this process (${settings.sources['browser.profile']}); the saved default stays in ptbk.json` : undefined,
-            pending: active ? `The selected profile changes to ${profilePath} at the next task boundary (after the browser restarts).` : this.pendingRestart ? 'A browser restart waits for the current task to release the browser.' : undefined,
-            mode: { requested: setting<string>(settings, 'browser.mode') === 'headful' ? 'headful' : 'headless', actual: this.child ? this.health.actualMode : undefined, note: this.note },
+            name: this.name,
+            variant: effective?.variant ?? 'CHROME',
+            isEnabled: saved?.isEnabled ?? false,
+            source: effective?.profile.source ?? 'MANAGED_GLOBAL',
+            sourceLabel: effective ? describeProfileSource(effective.profile.source, effective.profile.path) : 'not configured',
+            profilePath,
+            savedProfile: target?.overridden ? 'overridden for this process (command-line flags); the saved tool stays in ptbk.json' : undefined,
+            pending: retained
+                ? saved
+                    ? `The current task keeps using the configuration it acquired; the saved change${savedPath && savedPath !== profilePath ? ` (profile ${savedPath})` : ''} applies after it releases the browser.`
+                    : 'This tool was disabled or removed; the current task finishes with it, no new selection uses it.'
+                : this.pendingRestart
+                  ? 'A browser restart waits for the current task to release the browser.'
+                  : undefined,
+            retained: retained || undefined,
+            inUse: this.inUse || undefined,
+            mode: { requested: effective?.isHeadless === false ? 'headful' : 'headless', actual: this.child ? this.health.actualMode : undefined, note: this.note },
             executable: this.health.executable,
             state: this.health.state,
             pid: this.child?.pid,
@@ -378,14 +401,15 @@ export class ProjectBrowser {
      * connection when the browser runs.
      */
     public async recheck(): Promise<ControlOutcome> {
-        const settings = this.settings();
+        const tool = this.config();
+        if (!tool) return this.acted('recheck', 'failed', `The browser tool "${this.name}" is no longer configured.`);
         const findings: string[] = [];
-        const executable = await findBrowserExecutable(settings, this.env);
-        findings.push(executable ? `browser ${executable}` : 'no Chrome-compatible browser installed');
-        const profile = browserProfileDirectory(this.project, settings, this.env);
-        const source = browserProfileSource(setting<string>(settings, 'browser.profile'));
+        const executable = await findBrowserExecutable(tool, this.env);
+        findings.push(executable ? `browser ${executable}` : `no ${tool.variant === 'CHROME' ? 'Chrome-compatible' : tool.variant} browser installed`);
+        const profile = browserProfileDirectory(this.project, tool, this.env);
+        const source = tool.profile.source;
         const exists = await pathExists(profile);
-        findings.push(exists ? `profile ${profile}` : source === 'user' || source === 'custom' ? `profile ${profile} does not exist` : `profile ${profile} is created on first use`);
+        findings.push(exists ? `profile ${profile}` : source === 'USER_EXISTING' || source === 'CUSTOM' ? `profile ${profile} does not exist` : `profile ${profile} is created on first use`);
         const holder = this.child ? undefined : await profileOwner(profile);
         const ownership: BrowserDetailView['ownership'] = this.child ? { state: 'owned' } : holder ? { state: 'busy', holder: `browser PID ${holder}` } : { state: 'free' };
         if (holder) findings.push(`profile in use by browser PID ${holder}`);
@@ -402,13 +426,13 @@ export class ProjectBrowser {
             }
         } else if (state === 'running') state = 'stopped';
         this.setHealth({ state, executable: executable ?? undefined, ownership });
-        const healthy = Boolean(executable) && (exists || source === 'global' || source === 'isolated') && !holder && state !== 'failed';
+        const healthy = Boolean(executable) && (exists || source === 'MANAGED_GLOBAL' || source === 'PROJECT') && !holder && state !== 'failed';
         return this.acted('recheck', healthy ? 'succeeded' : 'failed', `${healthy ? 'Browser diagnostics OK' : 'Browser problem found'}: ${findings.join('; ')}.`);
     }
 
     /** Retries browser startup now (sharing any launch already in progress); a shared profile is released again when idle. */
     public async retry(): Promise<ControlOutcome> {
-        if (this.connection && this.sessionId) return this.acted('retry', 'succeeded', 'The project browser is already running.');
+        if (this.connection && this.sessionId) return this.acted('retry', 'succeeded', `The browser "${this.name}" is already running.`);
         this.setHealth({ recovery: { ...this.health.recovery, attempts: 0, state: 'retrying' } });
         try {
             await this.ensure();
@@ -416,7 +440,7 @@ export class ProjectBrowser {
             return this.acted('retry', 'failed', `Startup failed: ${errorMessage(error)}`);
         }
         if (!this.usedByTask) this.releaseShared();
-        return this.acted('retry', 'succeeded', this.child ? 'The project browser started.' : 'The project browser started successfully and was released again (shared profile, no task needs it now).');
+        return this.acted('retry', 'succeeded', this.child ? `The browser "${this.name}" started.` : `The browser "${this.name}" started successfully and was released again (shared profile, no task needs it now).`);
     }
 
     /**
@@ -436,20 +460,25 @@ export class ProjectBrowser {
         this.pendingRestart = false;
         const wasRunning = Boolean(this.child);
         this.close();
-        const shared = browserProfileSource(setting<string>(this.settings(), 'browser.profile')) !== 'isolated';
-        if (shared) return this.acted('restart', 'succeeded', wasRunning ? 'Closed this project’s browser; the next use starts it again with the same profile.' : 'The browser was not running; the next use starts it with the same profile.');
+        const shared = isSharedSource(this.config()?.profile.source ?? 'MANAGED_GLOBAL');
+        if (shared) return this.acted('restart', 'succeeded', wasRunning ? `Closed the browser "${this.name}"; the next use starts it again with the same profile.` : 'The browser was not running; the next use starts it with the same profile.');
         try {
             await this.ensure();
-            return this.acted('restart', 'succeeded', 'Restarted the project browser with the same profile.');
+            return this.acted('restart', 'succeeded', `Restarted the browser "${this.name}" with the same profile.`);
         } catch (error) {
             return this.acted('restart', 'failed', `The browser did not start again: ${errorMessage(error)}`);
         }
     }
 
-    /** After a task: performs a deferred restart and releases a shared profile. */
+    /**
+     * After a task: performs a deferred restart, ends a retained use of a changed/disabled/removed configuration and
+     * releases a shared profile.
+     */
     public async taskFinished(): Promise<void> {
+        const retained = this.retained;
         this.usedByTask = false;
         if (this.pendingRestart) await this.restartNow().catch(() => undefined);
+        if (retained) this.close();
         this.releaseShared();
     }
 
@@ -462,13 +491,8 @@ export class ProjectBrowser {
         if (this.child) terminateProcessTree(this.child);
         this.child = undefined;
         void this.releaseProfile();
-        this.recordFailure(new PtbkError('The connection to the project browser was lost.', { kind: 'technical', reason }));
+        this.recordFailure(new PtbkError(`The connection to the browser "${this.name}" was lost.`, { kind: 'technical', reason }));
         this.setHealth({ state: 'failed', recovery: { ...this.health.recovery, state: 'retrying' } });
-    }
-
-    /** Associates subsequent browser use with a task attempt for recording. */
-    public async useFor(trace: TaskTrace, attempt: string): Promise<void> {
-        await this.recorder.attach(trace, attempt);
     }
 
     /** Unsubscribes the page-transition listener of the current connection. */
@@ -533,17 +557,20 @@ export class ProjectBrowser {
 
     /** One launch attempt of the configured browser and profile. */
     private async launchOnce(): Promise<{ connection: CdpConnection; sessionId: string }> {
-        const settings = this.settings();
-        const executable = await findBrowserExecutable(settings, this.env);
-        if (!executable) throw new PtbkError('No Chrome-compatible browser is installed.', { kind: 'setup', next: ['Install Google Chrome or Chromium, or set ptbk.json browser.executable.'] });
-        const source = browserProfileSource(setting<string>(settings, 'browser.profile'));
-        const profile = browserProfileDirectory(this.project, settings, this.env);
+        const tool = this.target()?.tool;
+        if (!tool) throw new PtbkError(`The browser tool "${this.name}" is not configured.`, { kind: 'configuration', next: ['Add a browser with `ptbk tool add BROWSER …`.'] });
+        if (!tool.isEnabled) throw new PtbkError(`The browser tool "${this.name}" is disabled.`, { kind: 'configuration', next: [`Enable it: ptbk tool enable ${this.name}`] });
+        const executable = await findBrowserExecutable(tool, this.env);
+        if (!executable) throw new PtbkError(`No ${tool.variant === 'CHROME' ? 'Chrome-compatible' : tool.variant} browser is installed for "${this.name}".`, { kind: 'setup', next: [`Install Google Chrome or Chromium, or set its executable: ptbk tool modify ${this.name} --executable <path>`] });
+        const source = tool.profile.source;
+        const profile = browserProfileDirectory(this.project, tool, this.env);
         this.health = { ...this.health, executable, profilePath: profile };
-        if (source === 'user' || source === 'custom') {
+        if (source === 'USER_EXISTING' || source === 'CUSTOM') {
             // An existing profile is reused as it is; it is never created, copied or migrated implicitly.
-            if (!(await pathExists(profile))) throw new PtbkError(`The selected browser profile ${profile} does not exist.`, { kind: 'configuration', next: ['Choose another profile in ptbk.json `browser.profile` (global, isolated, user or a path), or pass --browser-profile.'] });
+            if (!(await pathExists(profile))) throw new PtbkError(`The selected browser profile ${profile} does not exist.`, { kind: 'configuration', next: [`Choose another profile: ptbk tool modify ${this.name} --profile-source MANAGED_GLOBAL|PROJECT|USER_EXISTING|CUSTOM [--profile-path <path>]`] });
         } else await ensureDirectory(profile);
-        if (source !== 'isolated') {
+        this.launchedWith = tool;
+        if (isSharedSource(source)) {
             let claim = await claimProfile(profile, this.project, this.env);
             for (let attempt = 0; 'owner' in claim && attempt < 10; attempt++) {
                 await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -570,10 +597,10 @@ export class ProjectBrowser {
             this.setHealth({ ownership: { state: 'busy', holder: `browser PID ${owner}` } });
             throw new PtbkError(`The browser profile ${profile} is in use by another browser (PID ${owner}).`, {
                 kind: 'conflict',
-                next: ['Close that browser to hand the profile over, or choose another profile (ptbk.json browser.profile).'],
+                next: [`Close that browser to hand the profile over, or choose another profile (ptbk tool modify ${this.name} --profile-source …).`],
             });
         }
-        let headless = setting<string>(settings, 'browser.mode') !== 'headful';
+        let headless = tool.isHeadless;
         if (!headless && !hasDisplay(this.env)) {
             headless = true;
             this.note = 'No display is available on this host, so the browser runs headless (no window was shown).';
@@ -737,17 +764,18 @@ export class ProjectBrowser {
      */
     public releaseShared(): void {
         if (!this.child && !this.releaseClaim) return;
-        if (browserProfileSource(setting<string>(this.settings(), 'browser.profile')) === 'isolated') return;
+        if (!isSharedSource(this.config()?.profile.source ?? 'MANAGED_GLOBAL')) return;
         this.close();
     }
 }
 
 /**
- * Browser tools exposed to agents through the ptbk MCP bridge.
+ * Browser tools exposed to agents through the ptbk MCP bridge. Every call resolves the live inventory: a browser
+ * added during the task is selectable at the next call; `browser` names a specific tool (account/profile).
  *
  * @private project browser
  */
-export function browserTools(browser: ProjectBrowser, chats: TaskChats | undefined, agent: string, onUserChat: (chat: { chat: string; awaited: number }) => void): BridgeTool[] {
+export function browserTools(fleet: BrowserFleet, chats: TaskChats | undefined, agent: string, onUserChat: (chat: { chat: string; awaited: number }) => void, describe: () => Array<{ name: string; description?: string; profile: string; isHeadless: boolean }>): BridgeTool[] {
     const run = async (action: () => Promise<string>): Promise<{ text: string; isError?: boolean }> => {
         try {
             return { text: await action() };
@@ -755,50 +783,64 @@ export function browserTools(browser: ProjectBrowser, chats: TaskChats | undefin
             return { text: errorMessage(error), isError: true };
         }
     };
+    const name = (input: Record<string, unknown>): string | undefined => (typeof input.browser === 'string' && input.browser.trim() ? input.browser.trim() : undefined);
+    const browserProperty = { browser: { type: 'string', description: 'Name of the browser tool to use (see browser_list); defaults to the browser this task already uses, else the first enabled one.' } };
     return [
         {
+            name: 'browser_list',
+            description: "List the project's enabled browser tools (names, descriptions, profile kinds). Choose the one whose account/profile fits the task; never act from a different account merely because it is logged in.",
+            inputSchema: { type: 'object', properties: {} },
+            handler: () =>
+                run(async () => {
+                    const browsers = describe();
+                    if (!browsers.length) return 'No browser tool is enabled for this project.';
+                    return browsers.map((browser) => `- ${browser.name}${browser.description ? `: ${browser.description}` : ''} (${browser.profile}, ${browser.isHeadless ? 'headless' : 'visible window'})`).join('\n');
+                }),
+        },
+        {
             name: 'browser_open',
-            description: "Open a URL in the project's shared browser (persistent logged-in sessions) and return the page text and interactive elements.",
-            inputSchema: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'] },
-            handler: (input) => run(() => browser.open(String(input.url ?? ''))),
+            description: 'Open a URL in a project browser (persistent logged-in sessions of its profile) and return the page text and interactive elements.',
+            inputSchema: { type: 'object', properties: { url: { type: 'string' }, ...browserProperty }, required: ['url'] },
+            handler: (input) => run(async () => (await fleet.acquire(name(input))).open(String(input.url ?? ''))),
         },
         {
             name: 'browser_read',
             description: 'Return the text and numbered interactive elements of the current page.',
-            inputSchema: { type: 'object', properties: {} },
-            handler: () => run(() => browser.read()),
+            inputSchema: { type: 'object', properties: { ...browserProperty } },
+            handler: (input) => run(async () => (await fleet.acquire(name(input))).read()),
         },
         {
             name: 'browser_click',
             description: 'Click an interactive element by its number from browser_read.',
-            inputSchema: { type: 'object', properties: { ref: { type: 'number' } }, required: ['ref'] },
-            handler: (input) => run(() => browser.click(Number(input.ref))),
+            inputSchema: { type: 'object', properties: { ref: { type: 'number' }, ...browserProperty }, required: ['ref'] },
+            handler: (input) => run(async () => (await fleet.acquire(name(input))).click(Number(input.ref))),
         },
         {
             name: 'browser_type',
             description: 'Type text into an input by its number from browser_read; optionally submit the form.',
-            inputSchema: { type: 'object', properties: { ref: { type: 'number' }, text: { type: 'string' }, submit: { type: 'boolean' } }, required: ['ref', 'text'] },
-            handler: (input) => run(() => browser.type(Number(input.ref), String(input.text ?? ''), input.submit === true)),
+            inputSchema: { type: 'object', properties: { ref: { type: 'number' }, text: { type: 'string' }, submit: { type: 'boolean' }, ...browserProperty }, required: ['ref', 'text'] },
+            handler: (input) => run(async () => (await fleet.acquire(name(input))).type(Number(input.ref), String(input.text ?? ''), input.submit === true)),
         },
         {
             name: 'browser_screenshot',
             description: 'Save a screenshot of the current page and return its file path.',
-            inputSchema: { type: 'object', properties: {} },
-            handler: () => run(() => browser.screenshot()),
+            inputSchema: { type: 'object', properties: { ...browserProperty } },
+            handler: (input) => run(async () => (await fleet.acquire(name(input))).screenshot()),
         },
         {
             name: 'browser_request_user_action',
-            description: 'Only when a website genuinely requires a human-only step (sign-in, two-factor authentication, consent) that the existing session cannot satisfy: ask the human to act in the shared browser. Then end your turn with status waiting-for-user.',
-            inputSchema: { type: 'object', properties: { reason: { type: 'string' } }, required: ['reason'] },
+            description: 'Only when a website genuinely requires a human-only step (sign-in, two-factor authentication, consent) that the existing session cannot satisfy: ask the human to act in the project browser. Then end your turn with status waiting-for-user.',
+            inputSchema: { type: 'object', properties: { reason: { type: 'string' }, ...browserProperty }, required: ['reason'] },
             handler: (input) =>
                 run(async () => {
                     if (!chats) throw new PtbkError('The user is not available in this run; report blocked with the reason instead.', { kind: 'unsupported' });
+                    const browser = await fleet.acquire(name(input));
                     const note = await browser.bringToFront();
                     const chat = await chats.askUser({
                         agent,
-                        reason: String(input.reason ?? 'A website needs your action in the project browser.'),
-                        attempted: 'I used the existing session of the shared project browser; the website still requires this human-only step.',
-                        question: `Please complete the action in the project browser${note ? ` (${note})` : ''}, then confirm here.`,
+                        reason: String(input.reason ?? `A website needs your action in the browser "${browser.name}".`),
+                        attempted: `I used the existing session of the project browser "${browser.name}"; the website still requires this human-only step.`,
+                        question: `Please complete the action in the browser "${browser.name}"${note ? ` (${note})` : ''}, then confirm here.`,
                         choices: ['Done', 'I cannot do it'],
                     });
                     onUserChat(chat);

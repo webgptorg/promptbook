@@ -69,7 +69,7 @@ export async function findRefactorCandidates(context: CommandContext): Promise<n
             names.push(title);
         }
         const gitInfo = await inspectGit(project.root);
-        const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
+        const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.isCommitEnabled');
         if (commit && gitInfo.state === 'repository') await commitPaths({ projectRoot: project.root, repositoryRoot: gitInfo.root, paths: created, subject: `Add ${created.length} refactoring task(s)`, trailers: { 'Task-Name': names }, temporaryDirectory: project.runtime.temporary, env: context.env });
         context.terminal.write(`Created ${created.length} refactoring task(s).\n`);
     }

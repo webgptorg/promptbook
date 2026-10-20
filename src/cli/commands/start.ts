@@ -1,4 +1,5 @@
 import { EXIT, PtbkError } from '../../common/errors.js';
+import { requireEngineUpdate } from '../compatibility.js';
 import { clockTime } from '../../common/time.js';
 import { loadSettings, setting } from '../../project/config.js';
 import { assessReadiness, type ReadinessProblem } from '../../project/readiness.js';
@@ -10,7 +11,7 @@ import { launchDaemon } from '../../service/launcher.js';
 import { readLaunchMetadata, restoreDiscoveryEnvironment } from '../../service/records.js';
 import { runDashboard } from '../../ui/dashboard.js';
 import { confirm } from '../../ui/prompts.js';
-import { selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
+import { browserOverrides, selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 import { liveSnapshot, renderServiceResult } from '../service-view.js';
 import { hostSource } from '../sources.js';
@@ -30,7 +31,8 @@ function describeProblems(problems: readonly ReadinessProblem[]): string {
  * Returns false when setup stays incomplete.
  */
 async function ensureReady(context: CommandContext, project: Project, overrides: Record<string, unknown>, cliHarnesses: readonly string[] | undefined): Promise<boolean> {
-    let settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses });
+    let settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context) });
+    if (settings.migration.kind === 'older-engine') await requireEngineUpdate(context, settings.migration.saved);
     let readiness = await assessReadiness(project, settings, context.env);
     if (readiness.ready) return true;
     const { terminal } = context;
@@ -51,7 +53,7 @@ async function ensureReady(context: CommandContext, project: Project, overrides:
     if (answer !== true) return false;
     const result = await initializeProject(context, { projectRoot: project.root, fromStart: true });
     if (result.outcome !== 'ready') return false;
-    settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses });
+    settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context) });
     readiness = await assessReadiness(project, settings, context.env);
     if (!readiness.ready) terminal.write(`${terminal.style.error('Setup is still incomplete:')}\n${describeProblems(readiness.problems)}\n`);
     return readiness.ready;
@@ -87,7 +89,7 @@ async function resumeService(context: CommandContext, project: Project): Promise
     const lookup = await lookupService(project);
     if (lookup.state === 'running') return EXIT.success;
     const env = restoreDiscoveryEnvironment(launch.env, launch.nodePath);
-    const result = await launchDaemon(project, { cli: launch.cli, cliHarnesses: launch.cliHarnesses, tasksDirectory: launch.tasksDirectory, persistent: true, env });
+    const result = await launchDaemon(project, { cli: launch.cli, cliHarnesses: launch.cliHarnesses, cliBrowser: launch.cliBrowser, tasksDirectory: launch.tasksDirectory, persistent: true, env });
     context.terminal.write(`Resumed ptbk service (PID ${result.lookup.record.pid}).\n`);
     return EXIT.success;
 }
@@ -106,6 +108,7 @@ async function runForeground(context: CommandContext, project: Project, override
             env: context.env,
             cli: overrides,
             cliHarnesses,
+            cliBrowser: browserOverrides(context),
             tasksDirectory: tasksOverride(context),
             persistent: false,
             persistenceNote: 'Foreground: stops with this terminal; no restart persistence.',
@@ -168,9 +171,9 @@ export default async function start(context: CommandContext): Promise<number> {
         return EXIT.incomplete;
     }
     if (flag(context, 'foreground')) return await runForeground(context, project, overrides, cliHarnesses);
-    const settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses });
-    const persistent = setting<boolean>(settings, 'service.persist');
-    const result = await launchDaemon(project, { cli: overrides, cliHarnesses, tasksDirectory: tasksOverride(context), persistent, env: context.env });
+    const settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context) });
+    const persistent = setting<boolean>(settings, 'service.isPersistent');
+    const result = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context), tasksDirectory: tasksOverride(context), persistent, env: context.env });
     const snapshot = await settledSnapshot(() => liveSnapshot(project, result.lookup));
     const persistence = result.persistence ? ` ${result.persistence.note}` : persistent ? '' : ' Restart persistence is disabled (--no-persist).';
     await renderServiceResult(context, snapshot, {

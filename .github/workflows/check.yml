@@ -32,3 +32,69 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+  windows-installer:
+    # The Windows installer's bootstrap is validated on every check: script syntax, prerequisite detection with an
+    # isolated PATH (no Node.js/npm/Git visible: everything planned, nothing installed), and a real run with the
+    # runner's compatible tools that installs the exact package candidate and prepares the init handoff.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Pack the exact package candidate
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          npm pack --silent | Out-Null
+          "PTBK_VERSION=$version" >> $env:GITHUB_ENV
+          "PTBK_TARBALL=$((Resolve-Path "ptbk-$version.tgz").Path)" >> $env:GITHUB_ENV
+      - name: Missing prerequisites are detected and planned (isolated PATH, nothing installed)
+        shell: powershell
+        run: |
+          $env:Path = "$env:SystemRoot\System32;$env:SystemRoot;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
+          $output = & .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -ProjectsRoot (Join-Path $env:RUNNER_TEMP 'Plan Projects') -ProjectName 'first project' -Plan -IsolatedPath 6>&1 | Out-String
+          Write-Output $output
+          if ($output -notmatch 'PLAN: Node.js is missing') { throw 'missing Node.js was not detected' }
+          if ($output -notmatch 'PLAN: Git is missing') { throw 'missing Git was not detected' }
+      - name: Compatible prerequisites are reused; the candidate installs and the handoff is prepared (spaces, Unicode, special characters)
+        shell: powershell
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'Promptbook Projekty ü & co'
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -PackageSpec $env:PTBK_TARBALL -ProjectsRoot $root -ProjectName "first & project's" -AllowPtbkReplacement -NoLaunch
+          if ($LASTEXITCODE -ne 0) { throw "bootstrap exited with $LASTEXITCODE" }
+          $target = Join-Path $root "first & project's"
+          if (-not (Test-Path -LiteralPath $target)) { throw 'the first-project folder was not created' }
+          if (Test-Path -LiteralPath (Join-Path $root '.git')) { throw 'the projects folder must not become a repository' }
+          # Repeating reuses everything and still refuses nothing for the empty folder.
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -PackageSpec $env:PTBK_TARBALL -ProjectsRoot $root -ProjectName "first & project's" -NoLaunch
+          if ($LASTEXITCODE -ne 0) { throw "repeated bootstrap exited with $LASTEXITCODE" }
+          # A nonempty folder is preserved and refused (exit 4), never initialized as a new project.
+          Set-Content -LiteralPath (Join-Path $target 'keep.txt') -Value 'user file'
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -PackageSpec $env:PTBK_TARBALL -ProjectsRoot $root -ProjectName "first & project's" -NoLaunch
+          if ($LASTEXITCODE -ne 4) { throw "a nonempty folder must be refused with exit 4 (got $LASTEXITCODE)" }
+          if ((Get-Content -LiteralPath (Join-Path $target 'keep.txt')) -ne 'user file') { throw 'user content changed' }
+      - name: The handed-off command initializes the prepared folder (non-interactive substitute of the terminal)
+        shell: powershell
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'Promptbook Handoff ü\first project'
+          New-Item -ItemType Directory -Force -Path $target | Out-Null
+          git config --global user.name 'Fixture Tester'
+          git config --global user.email 'fixture@example.test'
+          $ptbk = Join-Path (npm prefix --global).Trim() 'ptbk.cmd'
+          & $ptbk init --path $target --non-interactive --installation global --no-harness --no-start --raw
+          if ($LASTEXITCODE -notin 0, 3) { throw "ptbk init exited with $LASTEXITCODE" }
+          if (-not (Test-Path -LiteralPath (Join-Path $target 'ptbk.json'))) { throw 'init did not configure the handed-off folder' }
+      - name: Inno Setup script compiles
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y | Out-Null
+          $numeric = ($env:PTBK_VERSION -replace '-.*$', '') + '.' + (($env:PTBK_VERSION -replace '^[^-]*-?', '') -replace '\D', '' | ForEach-Object { if ($_) { $_ } else { '0' } })
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$numeric" installer\windows\promptbook.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }

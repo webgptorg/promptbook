@@ -50,6 +50,7 @@ async function main(): Promise<number> {
         env: process.env,
         cli: launch.cli,
         cliHarnesses: launch.cliHarnesses,
+        cliBrowser: launch.cliBrowser,
         tasksDirectory: launch.tasksDirectory,
         persistent: launch.persistent,
         persistenceNote: launch.persistent ? undefined : 'Persistence disabled (--no-persist).',

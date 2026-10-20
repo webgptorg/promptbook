@@ -1,4 +1,5 @@
 import type { ChatSummary } from '../chats/store.js';
+import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
 
 /**
@@ -64,6 +65,8 @@ export type CurrentWorkView = {
     readonly agent: AgentView;
     readonly harness: string;
     readonly harnessName: string;
+    /** Named harness tool instance serving the work. */
+    readonly tool?: string;
     /** Model actually reported, else requested; undefined = harness default (unknown). */
     readonly model?: string;
     /** Whether `model` was reported by the harness or only requested. */
@@ -85,7 +88,8 @@ export type CurrentWorkView = {
  * @private shared status view model
  */
 export type WaitView = {
-    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence';
+    /** `tools`: the running engine waits for a usable browser/harness (not a lifecycle state, technical pause or stop). */
+    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence' | 'tools';
     readonly reason: string;
     /** Next action/opportunity time (ISO). */
     readonly until?: string;
@@ -174,7 +178,7 @@ export type ChatsView = {
  * @private shared status view model
  */
 export type BlockerView = {
-    readonly kind: 'setup' | 'harness' | 'recovery' | 'persistence' | 'workspace' | 'configuration';
+    readonly kind: 'setup' | 'harness' | 'tools' | 'recovery' | 'persistence' | 'workspace' | 'configuration' | 'synchronization';
     readonly title: string;
     readonly reason: string;
     readonly action?: string;
@@ -281,7 +285,8 @@ export type ExecutionContextView = {
     readonly agent: string;
     /** Who consulted this advisor. */
     readonly by?: string;
-    readonly harness: { readonly id: string; readonly name: string; readonly version?: string };
+    /** Harness variant (`id`, display `name`) and the named tool instance actually used. */
+    readonly harness: { readonly id: string; readonly name: string; readonly version?: string; readonly tool?: string };
     /**
      * Model identifier: `reported` by the harness, `requested` (not yet confirmed), `automatic` (harness default whose
      * concrete resolution is not reported yet) or `unknown`.
@@ -316,20 +321,30 @@ export type ExecutionDetailView = {
 };
 
 /**
- * The project browser as the engine sees it: effective profile, health, ownership and recovery.
+ * One named browser tool as the engine sees it: effective profile, health, ownership, retained use and recovery.
  *
  * @private shared status view model
  */
 export type BrowserDetailView = {
-    /** Effective profile source of the active (or next) browser. */
-    readonly source: 'global' | 'isolated' | 'user' | 'custom';
+    /** Browser tool name. */
+    readonly name: string;
+    /** Browser adapter. */
+    readonly variant: string;
+    /** Saved enabled state (a disabled or removed tool may still serve the task that acquired it: `retained`). */
+    readonly isEnabled: boolean;
+    /** Effective profile source of the active (or next) process. */
+    readonly source: ProfileSource;
     readonly sourceLabel: string;
     /** Resolved profile path (diagnostic data only; never its contents). */
     readonly profilePath: string;
-    /** Saved default when it differs from the effective (overridden) value. */
+    /** The effective record differs from the saved one (temporary overrides). */
     readonly savedProfile?: string;
     /** A changed setting applies at the next task boundary. */
     readonly pending?: string;
+    /** The current task keeps its originally acquired configuration (draining/current-work-only). */
+    readonly retained?: boolean;
+    /** A task holds this browser now. */
+    readonly inUse?: boolean;
     readonly mode: { readonly requested: 'headless' | 'headful'; readonly actual?: 'headless' | 'headful'; readonly note?: string };
     readonly executable?: string;
     readonly state: 'not-started' | 'starting' | 'running' | 'failed' | 'recovering' | 'stopped';
@@ -341,6 +356,76 @@ export type BrowserDetailView = {
     /** Last manual/automatic browser action and its observed outcome. */
     readonly lastAction?: { readonly action: string; readonly at: string; readonly outcome: string; readonly state: 'accepted' | 'deferred' | 'succeeded' | 'failed' };
     readonly checkedAt?: string;
+};
+
+/**
+ * One named tool in the shared inventory: canonical saved record (secrets only as references) and actual state.
+ *
+ * @private shared status view model
+ */
+export type ToolView = {
+    readonly name: string;
+    readonly type: 'BROWSER' | 'HARNESS';
+    readonly variant: string;
+    /** Display name of the adapter (e.g. OpenAI Codex). */
+    readonly variantLabel: string;
+    readonly description?: string;
+    /** Position in the ordered array (1-based). */
+    readonly order: number;
+    readonly isEnabled: boolean;
+    /** `usable`: enabled and ready; `unavailable`: enabled but not usable now; `disabled`; `unknown`: not inspected yet. */
+    readonly state: 'usable' | 'unavailable' | 'disabled' | 'unknown';
+    readonly summary: string;
+    readonly nextAction?: string;
+    /** Held by active work right now. */
+    readonly inUse: boolean;
+    /** Active work keeps an acquired old configuration of this (changed/disabled/removed) tool. */
+    readonly retained?: boolean;
+    /** Changed only for this invocation (command-line overrides), not saved. */
+    readonly overridden?: boolean;
+    /** Non-secret configuration fields (an API key appears only as its `${{ env.NAME }}` reference and source). */
+    readonly fields: Readonly<Record<string, string>>;
+};
+
+/**
+ * The ordered tool inventory with the baseline readiness of new work.
+ *
+ * @private shared status view model
+ */
+export type ToolsView = {
+    readonly items: readonly ToolView[];
+    /** What new work waits for (no enabled usable browser/harness), with the concrete action. */
+    readonly waiting?: { readonly reason: string; readonly action: string };
+    /** Configuration problems of `tools` (collisions, unknown variants, inline secrets) awaiting repair. */
+    readonly problems: readonly string[];
+};
+
+/**
+ * Git synchronization state (present only while autosync is enabled).
+ *
+ * @private shared status view model
+ */
+export type SyncView = {
+    /** Redacted origin URL and the tracked destination of the started branch. */
+    readonly origin?: string;
+    readonly branch?: string;
+    readonly upstream?: string;
+    /** Current activity. */
+    readonly phase: 'idle' | 'fetching' | 'integrating' | 'publishing';
+    /** Outcome of the last cycle. */
+    readonly state: 'never' | 'synchronized' | 'pending' | 'deferred' | 'conflict' | 'failed' | 'unconfigured';
+    readonly lastAttemptAt?: string;
+    /** Last successful integration of remote changes (or confirmation that nothing was incoming). */
+    readonly lastIntegrationAt?: string;
+    readonly lastPublicationAt?: string;
+    /** Known commits to integrate / to publish (unknown when fetch failed). */
+    readonly incoming?: number;
+    readonly outgoing?: number;
+    /** Human explanation of a pending/deferred/failed/conflict state. */
+    readonly reason?: string;
+    readonly nextAttemptAt?: string;
+    /** Last manual cycle request and its observed outcome. */
+    readonly manual?: { readonly at: string; readonly outcome: string };
 };
 
 /**
@@ -376,8 +461,16 @@ export type ServiceSnapshot = {
     readonly current?: CurrentWorkView;
     /** Effective execution configuration for the expandable execution panel. */
     readonly execution?: ExecutionDetailView;
-    /** Project browser inspection for the expandable browser panel. */
+    /** The browser serving (or next serving) work, for the expandable browser panel. */
     readonly browser?: BrowserDetailView;
+    /** Every named browser tool. */
+    readonly browsers?: readonly BrowserDetailView[];
+    /** The shared named tool inventory. */
+    readonly tools?: ToolsView;
+    /** Git synchronization, present only while autosync is enabled. */
+    readonly sync?: SyncView;
+    /** Saved configuration version and pending configuration work. */
+    readonly configuration?: { readonly promptbookVersion?: string; readonly pending?: string };
     readonly wait?: WaitView;
     readonly queue: readonly QueueItemView[];
     readonly queueTotal: number;

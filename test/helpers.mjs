@@ -83,6 +83,8 @@ export async function fakeHarness(t, directory) {
             NO_COLOR: '1',
             PTBK_HOME: join(directory, 'ptbk home'),
             OPENAI_API_KEY: '',
+            // Browser readiness only checks that an executable exists (it is never launched by these fixtures).
+            CHROME_PATH: process.execPath,
         },
     };
 }

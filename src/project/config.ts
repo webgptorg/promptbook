@@ -1,22 +1,15 @@
 import { formatDuration, parseDuration } from '../common/duration.js';
 import { PtbkError } from '../common/errors.js';
 import { readTextIfExists, writeFileAtomic } from '../common/fs.js';
+import { canonicalEnumValue, matchEnum, matchProperty } from '../common/naming.js';
 import { systemTimeZone } from '../common/time.js';
+import { ENGINE_VERSION } from '../common/version.js';
+import { HARNESS_VARIANTS, THINKING_LEVELS, enabledToolsOf, harnessPluginId, harnessVariantOf, type BrowserToolRecord, type HarnessToolRecord, type ProfileSource, type ThinkingLevel, type ToolRecord } from '../tools/model.js';
+import { parseTools, type ConfigCorrection, type ConfigProblem } from '../tools/normalize.js';
+import { applyConfigurationMigration, planConfigurationMigration, type MigrationPlan } from './migrations.js';
 import type { Project } from './workspace.js';
 
-/**
- * Supported reasoning/effort settings (each harness supports a subset).
- *
- * @private project configuration
- */
-export const THINKING_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
-
-/**
- * One reasoning/effort setting.
- *
- * @private project configuration
- */
-export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
+export { THINKING_LEVELS, type ThinkingLevel };
 
 /**
  * Where an effective value came from, lowest to highest priority.
@@ -40,14 +33,17 @@ type SettingType = 'boolean' | 'string' | 'nullable-string' | 'integer' | 'durat
 /**
  * Specification of one scalar setting.
  *
+ * Enum `values` are the internal spellings (`yes-and-fail`); `ptbk.json` stores their canonical SCREAMING_SNAKE_CASE
+ * form (`YES_AND_FAIL`) and loading accepts any unambiguous case/separator variant.
+ *
  * @private project configuration
  */
 export type SettingSpec = {
-    /** Dot path in `ptbk.json` and in effective settings. */
+    /** Dot path in `ptbk.json` and in effective settings (lower camelCase segments; booleans start with `is`). */
     readonly key: string;
     /** Value type. */
     readonly type: SettingType;
-    /** Allowed values for enums. */
+    /** Allowed internal values for enums. */
     readonly values?: readonly string[];
     /** Engine default (durations in milliseconds). */
     readonly default: unknown;
@@ -60,16 +56,25 @@ export type SettingSpec = {
 };
 
 /**
- * Every scalar setting (the per-harness map is handled separately).
+ * Every scalar setting (named tools live in `tools`, see the shared tool contract).
  *
  * @private project configuration
  */
 export const SETTING_SPECS: readonly SettingSpec[] = [
+    { key: 'isAutoSync', type: 'boolean', default: false, description: 'Automatic Git synchronization with the existing origin and current branch (pull every 60 s and at operation boundaries, push completed work).', application: 'live' },
     { key: 'paths.agents', type: 'string', default: 'agents', description: 'Directory of agent Books.', application: 'restart' },
     { key: 'paths.tasks', type: 'string', default: 'tasks', description: 'Task source directory.', application: 'restart' },
     { key: 'paths.context', type: 'nullable-string', default: 'AGENTS.md', description: 'Additional project context file (null disables).', application: 'next-task' },
     { key: 'routing.defaultAgent', type: 'string', default: 'Developer', description: 'Agent used by run/fix/plan when none is selected.', application: 'next-task' },
-    { key: 'routing.harness', type: 'string', default: undefined, env: 'PTBK_HARNESS', description: 'Default/bootstrap harness (used directly by Manager).', application: 'next-task' },
+    {
+        key: 'routing.harness',
+        type: 'enum',
+        values: HARNESS_VARIANTS.map(harnessPluginId),
+        default: undefined,
+        env: 'PTBK_HARNESS',
+        description: 'Default/bootstrap harness variant (used directly by Manager).',
+        application: 'next-task',
+    },
     { key: 'routing.model', type: 'string', default: undefined, env: 'PTBK_MODEL', description: 'Default model of the default harness.', application: 'next-task' },
     {
         key: 'routing.thinkingLevel',
@@ -103,15 +108,13 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
         description: 'Policy for unrelated uncommitted changes.',
         application: 'next-task',
     },
-    { key: 'execution.commit', type: 'boolean', default: true, description: 'Commit versioned changes automatically.', application: 'restart' },
-    { key: 'execution.autoPull', type: 'boolean', default: false, description: 'Pull with rebase at task boundaries.', application: 'next-task' },
-    { key: 'execution.autoPush', type: 'boolean', default: false, description: 'Push completed work.', application: 'next-task' },
-    { key: 'execution.isolate', type: 'boolean', default: false, description: 'Execute tasks in a separate Git worktree.', application: 'next-task' },
-    { key: 'execution.normalizeLineEndings', type: 'boolean', default: true, description: 'Normalize CRLF in changed files of LF projects.', application: 'next-task' },
-    { key: 'execution.allowCredits', type: 'boolean', default: false, description: 'Authorize explicit paid-credit fallback where supported.', application: 'next-task' },
-    { key: 'execution.questions', type: 'boolean', default: true, description: 'Allow agents to ask the user.', application: 'next-task' },
-    { key: 'execution.preserveLogs', type: 'boolean', default: false, description: 'Keep all system logs in .ptbk/ without rotation (task traces are never rotated).', application: 'live' },
-    { key: 'execution.autoMigrate', type: 'boolean', default: false, description: 'Run the configured migration hook after agent work.', application: 'next-task' },
+    { key: 'execution.isCommitEnabled', type: 'boolean', default: true, description: 'Commit versioned changes automatically.', application: 'restart' },
+    { key: 'execution.isIsolated', type: 'boolean', default: false, description: 'Execute tasks in a separate Git worktree.', application: 'next-task' },
+    { key: 'execution.isLineEndingNormalizationEnabled', type: 'boolean', default: true, description: 'Normalize CRLF in changed files of LF projects.', application: 'next-task' },
+    { key: 'execution.isCreditFallbackAllowed', type: 'boolean', default: false, description: 'Authorize explicit paid-credit fallback where supported.', application: 'next-task' },
+    { key: 'execution.isQuestionsEnabled', type: 'boolean', default: true, description: 'Allow agents to ask the user.', application: 'next-task' },
+    { key: 'execution.isLogPreservationEnabled', type: 'boolean', default: false, description: 'Keep all system logs in .ptbk/ without rotation (task traces are never rotated).', application: 'live' },
+    { key: 'execution.isAutoMigrateEnabled', type: 'boolean', default: false, description: 'Run the configured migration hook after agent work.', application: 'next-task' },
     { key: 'execution.migrateCommand', type: 'string', default: undefined, description: 'Project migration hook command.', application: 'next-task' },
     {
         key: 'execution.stallTimeout',
@@ -120,15 +123,12 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
         description: 'A harness producing no output for this long is treated as stalled and retried (0 disables).',
         application: 'next-task',
     },
-    { key: 'traces.commit', type: 'boolean', default: false, description: 'Include task traces (traces/<task-file-basename>/) in result commits; false ignores the whole traces/ tree.', application: 'next-task' },
-    { key: 'traces.ignoreVideos', type: 'boolean', default: true, description: 'Keep trace videos out of Git even when traces are committed.', application: 'next-task' },
-    { key: 'traces.recordVideo', type: 'boolean', default: true, description: 'Record browser activity of tasks using the project browser.', application: 'next-task' },
-    { key: 'browser.profile', type: 'string', default: 'global', description: '`global` (dedicated Promptbook profile shared by your projects), `isolated` (this project only, in .ptbk/), `user` (your Chrome profile) or a browser profile path.', application: 'next-task' },
-    { key: 'browser.mode', type: 'enum', values: ['headless', 'headful'], default: 'headless', description: 'Browser visibility.', application: 'next-task' },
-    { key: 'browser.executable', type: 'string', default: undefined, description: 'Chrome-compatible browser executable.', application: 'next-task' },
-    { key: 'server.enabled', type: 'boolean', default: true, description: 'Serve the local HTTP API and browser dashboard.', application: 'restart' },
+    { key: 'traces.isCommitted', type: 'boolean', default: false, description: 'Include task traces (traces/<task-file-basename>/) in result commits; false ignores the whole traces/ tree.', application: 'next-task' },
+    { key: 'traces.isVideoIgnored', type: 'boolean', default: true, description: 'Keep trace videos out of Git even when traces are committed.', application: 'next-task' },
+    { key: 'traces.isVideoRecordingEnabled', type: 'boolean', default: true, description: 'Record attributable activity of browser tools used by tasks.', application: 'next-task' },
+    { key: 'server.isEnabled', type: 'boolean', default: true, description: 'Serve the local HTTP API and browser dashboard.', application: 'restart' },
     { key: 'server.port', type: 'port', default: undefined, description: 'Local HTTP port (automatic from 3000 when omitted).', application: 'restart' },
-    { key: 'server.tunnel.enabled', type: 'boolean', default: true, description: 'Protected remote tunnel when HTTP runs.', application: 'restart' },
+    { key: 'server.tunnel.isEnabled', type: 'boolean', default: true, description: 'Protected remote tunnel when HTTP runs.', application: 'restart' },
     {
         key: 'server.tunnel.provider',
         type: 'enum',
@@ -141,12 +141,12 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
     { key: 'server.tunnel.name', type: 'string', default: undefined, description: 'Named tunnel name or UUID.', application: 'restart' },
     { key: 'server.tunnel.credentialsFile', type: 'string', default: undefined, description: 'Path to named-tunnel credentials (reference, not content).', application: 'restart' },
     { key: 'server.tunnel.tokenEnv', type: 'string', default: undefined, description: 'Environment variable holding a named-tunnel token.', application: 'restart' },
-    { key: 'service.persist', type: 'boolean', default: true, description: 'Restart automatically after crashes and reboots.', application: 'restart' },
+    { key: 'service.isPersistent', type: 'boolean', default: true, description: 'Restart automatically after crashes and reboots.', application: 'restart' },
     { key: 'service.harnessUpdates', type: 'enum', values: ['auto', 'off'], default: 'auto', description: 'Automatic harness updates.', application: 'live' },
-    { key: 'service.qr', type: 'boolean', default: true, description: 'Show QR codes.', application: 'live' },
-    { key: 'discovery.enabled', type: 'boolean', default: true, description: 'Goal discovery when the backlog is empty.', application: 'live' },
+    { key: 'service.isQrShown', type: 'boolean', default: true, description: 'Show QR codes.', application: 'live' },
+    { key: 'discovery.isEnabled', type: 'boolean', default: true, description: 'Goal discovery when the backlog is empty.', application: 'live' },
     { key: 'discovery.cooldown', type: 'duration', default: 6 * 3_600_000, description: 'Wait after a no-work enquiry.', application: 'live' },
-    { key: 'learning.enabled', type: 'boolean', default: true, description: 'Teacher follow-ups for open agents.', application: 'next-task' },
+    { key: 'learning.isEnabled', type: 'boolean', default: true, description: 'Teacher follow-ups for open agents.', application: 'next-task' },
     { key: 'team.timeout', type: 'duration', default: 300_000, description: 'Consultation timeout.', application: 'next-task' },
     { key: 'team.maxDepth', type: 'integer', default: 4, description: 'Maximal consultation depth.', application: 'next-task' },
     { key: 'team.maxCalls', type: 'integer', default: 24, description: 'Consultations per task.', application: 'next-task' },
@@ -162,22 +162,21 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
 export const SETTING_SPEC_BY_KEY: ReadonlyMap<string, SettingSpec> = new Map(SETTING_SPECS.map((spec) => [spec.key, spec]));
 
 /**
- * Non-secret configuration of one harness.
+ * The explicit informational check saved when a project has no real validation. It always succeeds and means that
+ * real automated validation is **not** configured; it never counts as evidence of passing tests.
  *
  * @private project configuration
  */
-export type HarnessSettings = {
-    /** Enabled for this project. */
-    readonly enabled: boolean;
-    /** Preferred model. */
-    readonly model?: string;
-    /** Preferred thinking level. */
-    readonly thinkingLevel?: ThinkingLevel;
-    /** Explicitly known models (supplements the integration's catalog). */
-    readonly models?: readonly string[];
-    /** Name of an environment variable holding an API key (reference only). */
-    readonly apiKeyEnv?: string;
-};
+export const CHECK_PLACEHOLDER = 'echo "Configure project checks in ptbk.json execution.check"';
+
+/**
+ * Whether a check command is the informational placeholder rather than real validation.
+ *
+ * @private project configuration
+ */
+export function isCheckPlaceholder(check: string | null | undefined): boolean {
+    return typeof check === 'string' && check.trim() === CHECK_PLACEHOLDER;
+}
 
 /**
  * A configuration problem with its location.
@@ -194,17 +193,33 @@ export type ConfigDiagnostic = {
 };
 
 /**
+ * Temporary invocation overrides of one browser tool (`--browser-mode`, `--browser-profile`, `--browser-tool`).
+ *
+ * @private project configuration
+ */
+export type BrowserOverrides = {
+    /** Target browser tool (required when several browsers are enabled). */
+    readonly tool?: string;
+    /** `headless` or `headful`. */
+    readonly mode?: 'headless' | 'headful';
+    /** Legacy profile spelling (`global`, `isolated`, `user`, canonical source or a path). */
+    readonly profile?: string;
+};
+
+/**
  * Effective settings with their sources.
  *
  * @private project configuration
  */
 export type EffectiveSettings = {
-    /** Value per scalar key (durations in milliseconds). */
+    /** Value per scalar key (durations in milliseconds; enums in their internal spelling). */
     readonly values: Readonly<Record<string, unknown>>;
     /** Source per scalar key. */
     readonly sources: Readonly<Record<string, SettingSource>>;
-    /** Per-harness configuration. */
-    readonly harnesses: Readonly<Record<string, HarnessSettings>>;
+    /** Effective named tools in array order (saved records with this invocation's temporary overrides applied). */
+    readonly tools: readonly ToolRecord[];
+    /** Tools changed only for this invocation (`cli` overrides, never saved), by name. */
+    readonly overriddenTools: ReadonlySet<string>;
     /** Problems found while resolving. */
     readonly diagnostics: readonly ConfigDiagnostic[];
 };
@@ -242,7 +257,7 @@ export function setPath(object: Record<string, unknown>, path: string, value: un
 }
 
 /**
- * Parses a raw value according to a setting spec.
+ * Parses a raw value according to a setting spec (tolerant: `"true"`, canonical or kebab enum spellings).
  *
  * @private project configuration
  */
@@ -276,20 +291,48 @@ export function parseSettingValue(spec: SettingSpec, raw: unknown): { ok: true; 
             if (!parsed.ok) return { ok: false, message: parsed.reason };
             return { ok: true, value: parsed.ms };
         }
-        case 'enum':
-            if (typeof raw === 'string' && spec.values!.includes(raw)) return { ok: true, value: raw };
-            return { ok: false, message: `expected one of ${spec.values!.join(', ')}` };
+        case 'enum': {
+            const value = matchEnum(raw, spec.values!);
+            if (value) return { ok: true, value };
+            return { ok: false, message: `expected one of ${spec.values!.map(canonicalEnumValue).join(', ')}` };
+        }
     }
 }
 
 /**
- * Serializes an effective value back to its `ptbk.json` representation.
+ * Serializes an effective value back to its canonical `ptbk.json` representation.
  *
  * @private project configuration
  */
 export function serializeSettingValue(spec: SettingSpec, value: unknown): unknown {
     if (spec.type === 'duration' && typeof value === 'number') return value === 0 ? '0' : formatDuration(value).replace(/\s+/g, '');
+    if (spec.type === 'enum' && typeof value === 'string') return canonicalEnumValue(value);
     return value;
+}
+
+/**
+ * Raw content of `ptbk.json` with its parse diagnostics.
+ *
+ * @private project configuration
+ */
+export type ConfigFile = { raw: Record<string, unknown>; exists: boolean; text?: string; diagnostics: ConfigDiagnostic[] };
+
+/**
+ * Parses `ptbk.json` text.
+ *
+ * @private project configuration
+ */
+export function parseConfigText(text: string | undefined): ConfigFile {
+    if (text === undefined) return { raw: {}, exists: false, diagnostics: [] };
+    try {
+        const raw = JSON.parse(text) as unknown;
+        if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+            return { raw: {}, exists: true, text, diagnostics: [{ location: 'ptbk.json', message: 'The file must contain a JSON object.', severity: 'error' }] };
+        }
+        return { raw: raw as Record<string, unknown>, exists: true, text, diagnostics: [] };
+    } catch (error) {
+        return { raw: {}, exists: true, text, diagnostics: [{ location: 'ptbk.json', message: `Invalid JSON: ${(error as Error).message}`, severity: 'error' }] };
+    }
 }
 
 /**
@@ -297,66 +340,106 @@ export function serializeSettingValue(spec: SettingSpec, value: unknown): unknow
  *
  * @private project configuration
  */
-export async function readProjectConfigFile(project: Project): Promise<{ raw: Record<string, unknown>; exists: boolean; diagnostics: ConfigDiagnostic[] }> {
-    const text = await readTextIfExists(project.configPath);
-    if (text === undefined) return { raw: {}, exists: false, diagnostics: [] };
-    try {
-        const raw = JSON.parse(text) as unknown;
-        if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
-            return { raw: {}, exists: true, diagnostics: [{ location: 'ptbk.json', message: 'The file must contain a JSON object.', severity: 'error' }] };
-        }
-        return { raw: raw as Record<string, unknown>, exists: true, diagnostics: [] };
-    } catch (error) {
-        return { raw: {}, exists: true, diagnostics: [{ location: 'ptbk.json', message: `Invalid JSON: ${(error as Error).message}`, severity: 'error' }] };
-    }
+export async function readProjectConfigFile(project: Project): Promise<ConfigFile> {
+    return parseConfigText(await readTextIfExists(project.configPath));
 }
 
 /**
- * Known top-level keys of `ptbk.json`.
+ * Known top-level keys of `ptbk.json` (canonical spellings).
  */
-const KNOWN_TOP_LEVEL_KEYS = new Set(['$schema', 'version', 'paths', 'routing', 'execution', 'traces', 'browser', 'server', 'service', 'discovery', 'learning', 'team', 'timezone', 'harnesses', 'initialized']);
+const KNOWN_TOP_LEVEL_KEYS = ['$schema', 'promptbookVersion', 'isAutoSync', 'tools', 'paths', 'routing', 'execution', 'traces', 'server', 'service', 'discovery', 'learning', 'team', 'timezone', 'initialized'];
 
 /**
- * Parses the per-harness map of `ptbk.json`.
+ * Known property names per configuration object path (for tolerant key canonicalization).
  */
-function parseHarnessMap(raw: unknown, diagnostics: ConfigDiagnostic[]): Record<string, HarnessSettings> {
-    const result: Record<string, HarnessSettings> = {};
-    if (raw === undefined) return result;
-    if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
-        diagnostics.push({ location: 'ptbk.json › harnesses', message: 'expected an object keyed by harness identifier', severity: 'error' });
-        return result;
+function knownKeysByPath(): Map<string, string[]> {
+    const map = new Map<string, string[]>([['', [...KNOWN_TOP_LEVEL_KEYS]]]);
+    for (const spec of SETTING_SPECS) {
+        const parts = spec.key.split('.');
+        for (let index = 0; index < parts.length; index++) {
+            const parent = parts.slice(0, index).join('.');
+            const list = map.get(parent) ?? [];
+            if (!list.includes(parts[index]!)) list.push(parts[index]!);
+            map.set(parent, list);
+        }
     }
-    for (const [id, value] of Object.entries(raw as Record<string, unknown>)) {
-        const location = `ptbk.json › harnesses.${id}`;
-        if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-            diagnostics.push({ location, message: 'expected an object', severity: 'error' });
-            continue;
+    return map;
+}
+
+/**
+ * Result of canonicalizing a raw configuration.
+ *
+ * @private project configuration
+ */
+export type CanonicalConfig = {
+    /** The configuration with every deterministic correction applied (unknown fields preserved). */
+    readonly raw: Record<string, unknown>;
+    /** Deterministic corrections (keys, booleans, enum values, tool names); never secret values. */
+    readonly corrections: readonly ConfigCorrection[];
+    /** Problems needing repair (collisions, unknown variants, conflicting aliases). */
+    readonly problems: readonly ConfigProblem[];
+};
+
+/**
+ * Canonicalizes known Promptbook-owned configuration: lower camelCase keys, `is`-prefixed booleans, kebab-case tool
+ * names and SCREAMING_SNAKE_CASE enum values. Tolerant input (case/separator differences) is corrected; ambiguous or
+ * colliding input is reported as a problem and preserved unchanged. Canonical input is returned unchanged.
+ *
+ * @private project configuration
+ */
+export function canonicalizeConfig(input: Readonly<Record<string, unknown>>): CanonicalConfig {
+    const raw = structuredClone(input) as Record<string, unknown>;
+    const corrections: ConfigCorrection[] = [];
+    const problems: ConfigProblem[] = [];
+    const known = knownKeysByPath();
+    const walk = (object: Record<string, unknown>, path: string): void => {
+        const names = known.get(path);
+        if (!names) return;
+        const groups = new Map<string, string[]>();
+        for (const key of Object.keys(object)) {
+            const canonical = matchProperty(key, names) ?? key;
+            groups.set(canonical, [...(groups.get(canonical) ?? []), key]);
         }
-        const entry = value as Record<string, unknown>;
-        const enabled = entry.enabled === undefined ? true : entry.enabled;
-        if (typeof enabled !== 'boolean') diagnostics.push({ location: `${location}.enabled`, message: 'expected true or false', severity: 'error' });
-        const thinkingLevel = entry.thinkingLevel;
-        if (thinkingLevel !== undefined && !THINKING_LEVELS.includes(thinkingLevel as ThinkingLevel)) {
-            diagnostics.push({ location: `${location}.thinkingLevel`, message: `expected one of ${THINKING_LEVELS.join(', ')}`, severity: 'error' });
-        }
-        const models = entry.models;
-        if (models !== undefined && (!Array.isArray(models) || models.some((model) => typeof model !== 'string'))) {
-            diagnostics.push({ location: `${location}.models`, message: 'expected an array of model identifiers', severity: 'error' });
-        }
-        for (const key of Object.keys(entry)) {
-            if (/key|token|secret|password/i.test(key) && key !== 'apiKeyEnv') {
-                diagnostics.push({ location: `${location}.${key}`, message: 'store credential references (e.g. apiKeyEnv), never secret values', severity: 'error' });
+        const rebuilt: Record<string, unknown> = {};
+        for (const [canonical, spellings] of groups) {
+            if (spellings.length > 1) {
+                problems.push({ location: `ptbk.json › ${path ? `${path}.` : ''}${canonical}`, message: `conflicting spellings ${spellings.map((spelling) => `"${spelling}"`).join(', ')} of the same setting (repair needed)`, severity: 'error' });
+                for (const spelling of spellings) rebuilt[spelling] = object[spelling];
+                continue;
             }
+            const spelling = spellings[0]!;
+            if (spelling !== canonical) corrections.push({ location: `${path ? `${path}.` : ''}${spelling}`, from: spelling, to: canonical });
+            rebuilt[canonical] = object[spelling];
         }
-        result[id] = {
-            enabled: enabled === true,
-            model: typeof entry.model === 'string' ? entry.model : undefined,
-            thinkingLevel: THINKING_LEVELS.includes(thinkingLevel as ThinkingLevel) ? (thinkingLevel as ThinkingLevel) : undefined,
-            models: Array.isArray(models) ? (models.filter((model) => typeof model === 'string') as string[]) : undefined,
-            apiKeyEnv: typeof entry.apiKeyEnv === 'string' ? entry.apiKeyEnv : undefined,
-        };
+        for (const key of Object.keys(object)) delete object[key];
+        Object.assign(object, rebuilt);
+        for (const [key, value] of Object.entries(object)) {
+            const childPath = path ? `${path}.${key}` : key;
+            if (value !== null && typeof value === 'object' && !Array.isArray(value) && known.has(childPath)) walk(value as Record<string, unknown>, childPath);
+        }
+    };
+    walk(raw, '');
+    for (const spec of SETTING_SPECS) {
+        const value = getPath(raw, spec.key);
+        if (value === undefined) continue;
+        if (spec.type === 'enum') {
+            const parsed = matchEnum(value, spec.values!);
+            if (parsed && value !== canonicalEnumValue(parsed)) {
+                corrections.push({ location: spec.key, from: String(value), to: canonicalEnumValue(parsed) });
+                setPath(raw, spec.key, canonicalEnumValue(parsed));
+            }
+        } else if (spec.type === 'boolean' && (value === 'true' || value === 'false')) {
+            corrections.push({ location: spec.key, from: value, to: value });
+            setPath(raw, spec.key, value === 'true');
+        }
     }
-    return result;
+    if (raw.tools !== undefined) {
+        const parsed = parseTools(raw.tools);
+        corrections.push(...parsed.corrections.map((correction) => ({ ...correction, location: correction.location.replace(/^ptbk\.json › /, '') })));
+        problems.push(...parsed.problems);
+        if (parsed.corrections.length) raw.tools = parsed.canonical;
+    }
+    return { raw, corrections, problems };
 }
 
 /**
@@ -365,7 +448,7 @@ function parseHarnessMap(raw: unknown, diagnostics: ConfigDiagnostic[]): Record<
  * @private project configuration
  */
 export type SettingsLayers = {
-    /** Raw `ptbk.json` content. */
+    /** Raw `ptbk.json` content (already migrated and canonicalized for this engine). */
     readonly file: Record<string, unknown>;
     /** Environment for legacy defaults. */
     readonly env?: NodeJS.ProcessEnv;
@@ -373,9 +456,88 @@ export type SettingsLayers = {
     readonly cli?: Readonly<Record<string, unknown>>;
     /** Temporary live runtime changes by key. */
     readonly runtime?: Readonly<Record<string, unknown>>;
-    /** CLI override of enabled harnesses (restricts/enables for this invocation). */
+    /** CLI restriction to harness variants or named instances (`--harness`, repeatable; this invocation only). */
     readonly cliHarnesses?: readonly string[];
+    /** Temporary browser overrides of this invocation. */
+    readonly cliBrowser?: BrowserOverrides;
 };
+
+/**
+ * Maps a legacy/temporary profile spelling to a typed profile.
+ *
+ * @private project configuration
+ */
+export function profileFromSpelling(value: string): BrowserToolRecord['profile'] {
+    const legacy: Readonly<Record<string, ProfileSource>> = { global: 'MANAGED_GLOBAL', isolated: 'PROJECT', user: 'USER_EXISTING' };
+    if (legacy[value]) return { source: legacy[value]! };
+    const canonical = matchEnum(value, ['MANAGED_GLOBAL', 'PROJECT', 'USER_EXISTING'] as const);
+    if (canonical) return { source: canonical };
+    return { source: 'CUSTOM', path: value };
+}
+
+/**
+ * Applies `--harness` restrictions: variants keep their ordered same-variant instances; a named instance stays an
+ * explicit restriction; a selected variant without a configured instance gets a temporary native instance.
+ */
+function restrictHarnesses(tools: ToolRecord[], selectors: readonly string[], diagnostics: ConfigDiagnostic[], overridden: Set<string>): ToolRecord[] {
+    const variants = new Set<string>();
+    const names = new Set<string>();
+    for (const selector of selectors) {
+        const variant = matchEnum(selector, HARNESS_VARIANTS) ?? harnessVariantOf(selector);
+        if (variant) variants.add(variant);
+        else if (tools.some((tool) => tool.type === 'HARNESS' && tool.name === selector)) names.add(selector);
+        else diagnostics.push({ location: `--harness ${selector}`, message: 'not a harness variant or configured harness tool name', severity: 'error' });
+    }
+    const result = tools.map((tool) => {
+        if (tool.type !== 'HARNESS') return tool;
+        const selected = names.has(tool.name) || variants.has(tool.variant);
+        if (selected === tool.isEnabled) return tool;
+        overridden.add(tool.name);
+        return { ...tool, isEnabled: selected };
+    });
+    for (const variant of variants) {
+        if (result.some((tool) => tool.type === 'HARNESS' && tool.variant === variant)) continue;
+        const name = harnessPluginId(variant as HarnessToolRecord['variant']);
+        if (result.some((tool) => tool.name === name)) continue;
+        overridden.add(name);
+        result.push({ type: 'HARNESS', variant: variant as HarnessToolRecord['variant'], name, isEnabled: true, authentication: 'NATIVE' });
+    }
+    return result;
+}
+
+/**
+ * Applies temporary browser overrides to exactly one unambiguous browser tool.
+ */
+function overrideBrowser(tools: ToolRecord[], overrides: BrowserOverrides, diagnostics: ConfigDiagnostic[], overridden: Set<string>): ToolRecord[] {
+    if (!overrides.mode && !overrides.profile) return tools;
+    const browsers = tools.filter((tool): tool is BrowserToolRecord => tool.type === 'BROWSER');
+    let target: BrowserToolRecord | undefined;
+    if (overrides.tool) {
+        target = browsers.find((tool) => tool.name === overrides.tool);
+        if (!target) {
+            diagnostics.push({ location: `--browser-tool ${overrides.tool}`, message: 'no browser tool has this name', severity: 'error' });
+            return tools;
+        }
+    } else {
+        const enabled = browsers.filter((tool) => tool.isEnabled);
+        if (enabled.length > 1) {
+            diagnostics.push({ location: '--browser-mode/--browser-profile', message: `several browsers are enabled (${enabled.map((tool) => tool.name).join(', ')}); select one with --browser-tool <name>`, severity: 'error' });
+            return tools;
+        }
+        target = enabled[0] ?? browsers[0];
+    }
+    if (!target) {
+        diagnostics.push({ location: '--browser-mode/--browser-profile', message: 'no browser tool is configured (add one with `ptbk tool add BROWSER …`)', severity: 'error' });
+        return tools;
+    }
+    overridden.add(target.name);
+    const changed: BrowserToolRecord = {
+        ...target,
+        ...(overrides.mode ? { isHeadless: overrides.mode !== 'headful' } : {}),
+        ...(overrides.profile ? { profile: profileFromSpelling(overrides.profile) } : {}),
+    };
+    return tools.map((tool) => (tool === target ? changed : tool));
+}
 
 /**
  * Resolves effective settings: engine defaults < legacy environment < `ptbk.json` < CLI flags < live runtime changes.
@@ -390,7 +552,7 @@ export function resolveSettings(layers: SettingsLayers): EffectiveSettings {
     const sources: Record<string, SettingSource> = {};
     const env = layers.env ?? process.env;
     for (const key of Object.keys(layers.file)) {
-        if (!KNOWN_TOP_LEVEL_KEYS.has(key)) diagnostics.push({ location: `ptbk.json › ${key}`, message: 'unknown setting (preserved, ignored)', severity: 'warning' });
+        if (!KNOWN_TOP_LEVEL_KEYS.includes(key)) diagnostics.push({ location: `ptbk.json › ${key}`, message: 'unknown setting (preserved, ignored)', severity: 'warning' });
     }
     for (const spec of SETTING_SPECS) {
         let value = spec.default;
@@ -430,25 +592,78 @@ export function resolveSettings(layers: SettingsLayers): EffectiveSettings {
             values.timezone = systemTimeZone();
         }
     }
-    const harnesses = parseHarnessMap(layers.file.harnesses, diagnostics);
-    if (layers.cliHarnesses && layers.cliHarnesses.length) {
-        const selected = new Set(layers.cliHarnesses);
-        for (const id of Object.keys(harnesses)) harnesses[id] = { ...harnesses[id]!, enabled: selected.has(id) };
-        for (const id of selected) if (!harnesses[id]) harnesses[id] = { enabled: true };
-    }
-    if (values['server.enabled'] === false && sources['server.tunnel.enabled'] !== 'cli') values['server.tunnel.enabled'] = false;
-    return { values, sources, harnesses, diagnostics };
+    const parsedTools = parseTools(layers.file.tools);
+    diagnostics.push(...parsedTools.problems);
+    const overridden = new Set<string>();
+    let tools = [...parsedTools.tools];
+    if (layers.cliHarnesses?.length) tools = restrictHarnesses(tools, layers.cliHarnesses, diagnostics, overridden);
+    if (layers.cliBrowser) tools = overrideBrowser(tools, layers.cliBrowser, diagnostics, overridden);
+    if (values['server.isEnabled'] === false && sources['server.tunnel.isEnabled'] !== 'cli') values['server.tunnel.isEnabled'] = false;
+    return { values, sources, tools, overriddenTools: overridden, diagnostics };
 }
 
 /**
- * Loads and resolves the project's settings.
+ * Loaded settings with the configuration's version state and correction proposals.
  *
  * @private project configuration
  */
-export async function loadSettings(project: Project, layers: Omit<SettingsLayers, 'file'> = {}): Promise<EffectiveSettings & { fileExists: boolean; raw: Record<string, unknown> }> {
+export type LoadedSettings = EffectiveSettings & {
+    readonly fileExists: boolean;
+    /** The file content exactly as stored. */
+    readonly raw: Record<string, unknown>;
+    /** The content this engine interprets (migrated in memory and canonicalized; never written by loading). */
+    readonly interpreted: Record<string, unknown>;
+    /** Version compatibility and any pending migration. */
+    readonly migration: MigrationPlan;
+    /** Deterministic corrections a mutating load would save (read-only loads only report them). */
+    readonly corrections: readonly ConfigCorrection[];
+};
+
+/**
+ * Loads and resolves the project's settings without writing anything: a pending configuration migration and
+ * deterministic spelling corrections are applied in memory and reported; persisting them is the job of the mutating
+ * entry points (see the configuration coordinator).
+ *
+ * @private project configuration
+ */
+export async function loadSettings(project: Project, layers: Omit<SettingsLayers, 'file'> = {}): Promise<LoadedSettings> {
     const file = await readProjectConfigFile(project);
-    const resolved = resolveSettings({ ...layers, file: file.raw });
-    return { ...resolved, diagnostics: [...file.diagnostics, ...resolved.diagnostics], fileExists: file.exists, raw: file.raw };
+    return interpretConfig(file, layers);
+}
+
+/**
+ * Interprets a read configuration file for this engine (pure; see {@link loadSettings}).
+ *
+ * @private project configuration
+ */
+export function interpretConfig(file: ConfigFile, layers: Omit<SettingsLayers, 'file'> = {}, engineVersion: string = ENGINE_VERSION): LoadedSettings {
+    const diagnostics: ConfigDiagnostic[] = [...file.diagnostics];
+    const migration: MigrationPlan = file.exists && !file.diagnostics.length ? planConfigurationMigration(file.raw, engineVersion) : { kind: 'current', version: engineVersion };
+    let interpreted = file.raw;
+    if (migration.kind === 'migrate') {
+        const migrated = applyConfigurationMigration(file.raw, migration);
+        interpreted = migrated.raw;
+        diagnostics.push(...migrated.problems);
+        diagnostics.push({ location: 'ptbk.json › promptbookVersion', message: `configuration migration ${migration.from} → ${migration.to} is pending (it is applied and committed before new work)`, severity: 'warning' });
+    } else if (migration.kind === 'older-engine') {
+        diagnostics.push({
+            location: 'ptbk.json › promptbookVersion',
+            message: `this project was configured by ptbk ${migration.saved}, which is newer than the running ptbk ${migration.engine}; update ptbk (npm install -g ptbk@latest, or the project's local dependency) and rerun — the project is never downgraded`,
+            severity: 'error',
+        });
+    } else if (migration.kind === 'invalid') {
+        diagnostics.push({ location: 'ptbk.json › promptbookVersion', message: migration.reason, severity: 'error' });
+    }
+    const canonical = canonicalizeConfig(interpreted);
+    const resolved = resolveSettings({ ...layers, file: canonical.raw });
+    const seen = new Set<string>();
+    const merged = [...diagnostics, ...canonical.problems.filter((problem) => !problem.location.includes('tools')), ...resolved.diagnostics].filter((diagnostic) => {
+        const key = `${diagnostic.location}\u0000${diagnostic.message}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+    return { ...resolved, diagnostics: merged, fileExists: file.exists, raw: file.raw, interpreted: canonical.raw, migration, corrections: migration.kind === 'migrate' ? [] : canonical.corrections };
 }
 
 /**
@@ -479,27 +694,51 @@ export function setting<T>(settings: EffectiveSettings, key: string): T {
 }
 
 /**
- * Enabled harness identifiers in configuration order.
+ * Enabled harness instances in configuration order.
+ *
+ * @private project configuration
+ */
+export function enabledHarnessTools(settings: EffectiveSettings): HarnessToolRecord[] {
+    return enabledToolsOf(settings.tools, 'HARNESS');
+}
+
+/**
+ * Enabled browser instances in configuration order.
+ *
+ * @private project configuration
+ */
+export function enabledBrowserTools(settings: EffectiveSettings): BrowserToolRecord[] {
+    return enabledToolsOf(settings.tools, 'BROWSER');
+}
+
+/**
+ * Harness plugin identifiers that have at least one enabled instance, in first-instance order.
  *
  * @private project configuration
  */
 export function enabledHarnesses(settings: EffectiveSettings): string[] {
-    return Object.entries(settings.harnesses)
-        .filter(([, harness]) => harness.enabled)
-        .map(([id]) => id);
+    return [...new Set(enabledHarnessTools(settings).map((tool) => harnessPluginId(tool.variant)))];
 }
 
 /**
- * Applies changes to `ptbk.json`, preserving unknown keys, and returns whether the file content changed.
- *
- * Values are effective values (durations in ms); `undefined` removes a key.
+ * Serializes `ptbk.json` text (stable 4-space JSON).
  *
  * @private project configuration
  */
-export async function updateProjectConfig(
-    project: Project,
-    changes: { readonly settings?: Readonly<Record<string, unknown>>; readonly harnesses?: Readonly<Record<string, Partial<HarnessSettings> | undefined>> },
-): Promise<boolean> {
+export function configText(raw: Readonly<Record<string, unknown>>): string {
+    return `${JSON.stringify(raw, null, 4)}\n`;
+}
+
+/**
+ * Applies scalar setting changes to `ptbk.json`, preserving unknown keys, and returns whether the file content changed.
+ *
+ * Values are effective values (durations in ms, internal enum spellings); `undefined` removes a key. A new file is
+ * stamped with the running engine's `promptbookVersion`. An existing file must already be current for this engine
+ * (the configuration coordinator migrates it first).
+ *
+ * @private project configuration
+ */
+export async function updateProjectConfig(project: Project, changes: { readonly settings?: Readonly<Record<string, unknown>> }): Promise<boolean> {
     const file = await readProjectConfigFile(project);
     if (file.diagnostics.some((diagnostic) => diagnostic.severity === 'error')) {
         throw new PtbkError('ptbk.json cannot be updated because it is invalid.', {
@@ -510,29 +749,25 @@ export async function updateProjectConfig(
         });
     }
     const raw = structuredClone(file.raw);
-    if (raw.version === undefined) raw.version = 1;
+    if (!file.exists) raw.promptbookVersion = ENGINE_VERSION;
+    else {
+        const plan = planConfigurationMigration(raw);
+        if (plan.kind !== 'current') {
+            throw new PtbkError('ptbk.json must be migrated before it can be changed.', {
+                kind: 'configuration',
+                project: project.root,
+                reason: plan.kind === 'migrate' ? `The configuration is at ${plan.from}; this engine is ${plan.to}.` : plan.kind === 'older-engine' ? `The configuration was written by the newer ptbk ${plan.saved}.` : plan.reason,
+                next: ['Run `ptbk start` (or `ptbk init`) to apply the committed configuration migration first.'],
+            });
+        }
+    }
     for (const [key, value] of Object.entries(changes.settings ?? {})) {
         const spec = SETTING_SPEC_BY_KEY.get(key);
         if (!spec) throw new Error(`Unknown setting ${key}`);
         setPath(raw, key, value === undefined ? undefined : serializeSettingValue(spec, value));
     }
-    for (const [id, harness] of Object.entries(changes.harnesses ?? {})) {
-        const map = (raw.harnesses && typeof raw.harnesses === 'object' ? raw.harnesses : (raw.harnesses = {})) as Record<string, unknown>;
-        if (harness === undefined) {
-            delete map[id];
-            continue;
-        }
-        const current = (map[id] && typeof map[id] === 'object' ? map[id] : {}) as Record<string, unknown>;
-        const next: Record<string, unknown> = { ...current };
-        for (const [field, value] of Object.entries(harness)) {
-            if (value === undefined) delete next[field];
-            else next[field] = value;
-        }
-        map[id] = next;
-    }
-    const text = `${JSON.stringify(raw, null, 4)}\n`;
-    const before = await readTextIfExists(project.configPath);
-    if (before === text) return false;
+    const text = configText(raw);
+    if (file.text === text) return false;
     await writeFileAtomic(project.configPath, text);
     return true;
 }

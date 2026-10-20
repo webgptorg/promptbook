@@ -33,6 +33,8 @@ export async function ensureGitRepository(root: string): Promise<{ created: bool
     if (info.state === 'damaged') throw new PtbkError('The Git repository is damaged.', { kind: 'setup', reason: info.reason, next: ['Repair the repository (e.g. `git status`) and retry.'] });
     await ensureDirectory(root);
     await gitOrThrow(root, ['init', '--quiet'], { phase: 'git init' });
+    // A newly created repository explicitly starts on main (independent of the user's init.defaultBranch).
+    await gitOrThrow(root, ['symbolic-ref', 'HEAD', 'refs/heads/main'], { phase: 'git init' });
     return { created: true, repositoryRoot: resolve(root) };
 }
 

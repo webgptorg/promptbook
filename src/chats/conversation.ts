@@ -10,7 +10,7 @@ import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
 import type { Project } from '../project/workspace.js';
 import { runHarness } from '../harness/run.js';
 import { ToolBridge, type BridgeTool } from '../engine/bridge.js';
-import type { HarnessPool } from '../engine/harnesses.js';
+import { instanceEnvironment, type HarnessPool } from '../engine/harnesses.js';
 import { renderAgentInstructions } from '../engine/prompt.js';
 import { teamTools } from '../engine/team.js';
 import { chatAgent, isHumanFacing } from './chat-book.js';
@@ -79,10 +79,11 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { createdTasks: [], error: `${agentReference} cannot reply: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };
     const preferred = setting<string | undefined>(context.settings, 'routing.harness');
-    const harnessId = [preferred, ...context.pool.usable()].find((id): id is string => Boolean(id) && Boolean(context.pool.plugin(id!)?.capabilities.readOnly) && Boolean(context.pool.inspection(id!)?.usable));
+    const harnessId = [preferred, ...context.pool.usable()].find((id): id is string => Boolean(id) && Boolean(context.pool.plugin(id!)?.capabilities.readOnly) && Boolean(context.pool.select(id!)));
     if (!harnessId) return { createdTasks: [], error: 'No usable harness supports read-only chat replies.' };
     const plugin = context.pool.plugin(harnessId)!;
-    const inspection = context.pool.inspection(harnessId)!;
+    const instance = context.pool.select(harnessId)!;
+    const inspection = context.pool.inspectionOf(instance.name)!;
     const contextFile = setting<string | null>(context.settings, 'paths.context');
     const projectInstructions = contextFile ? await readTextIfExists(join(context.project.root, contextFile)) : undefined;
     let transcript = chat.messages.map((message) => `**${message.sender}** (${message.at}):\n${message.text}${message.choices?.length ? `\n(offered choices: ${message.choices.join(' | ')})` : ''}`).join('\n\n');
@@ -194,13 +195,13 @@ export async function replyInChat(context: ConversationContext, chatName: string
                 promptFile,
                 readOnly: true,
                 mcp: bridge?.launch(),
-                env: context.env,
+                env: instanceEnvironment(plugin, instance, context.pool.credential(instance), context.env),
                 timeoutMs: REPLY_TIMEOUT_MS,
                 signal: context.signal,
-                allowCredits: setting<boolean>(context.settings, 'execution.allowCredits'),
+                allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
                 authentication: inspection.authentication,
                 readableDirectories: agent.name === 'Expert' || agent.chain.includes('Expert') ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],
-                model: context.settings.harnesses[harnessId]?.model,
+                model: instance.model,
             },
             inspection.executablePath ?? plugin.executable,
         );
@@ -212,7 +213,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const learning = LEARN_MARKER.exec(result.finalMessage)?.[1]?.trim();
     const text = result.finalMessage.replace(LEARN_MARKER, '').replace(/^PTBK_RESULT .*$/m, '').trim();
     const reply = await context.chats.append(chat.name, { sender: formatAgentReference(agent.name), text: text || '(no reply text)' }, { trailers: created.length ? { 'Task-Name': created } : undefined });
-    if (learning && agent.learning.open && agent.definition && parseReferenceValue(agentReference)?.normalized !== 'teacher' && setting<boolean>(context.settings, 'learning.enabled')) {
+    if (learning && agent.learning.open && agent.definition && parseReferenceValue(agentReference)?.normalized !== 'teacher' && setting<boolean>(context.settings, 'learning.isEnabled')) {
         await context.scheduleLearning?.({ chat: chat.name, agent: agent.name, note: learning }).catch(() => undefined);
     }
     return { reply, createdTasks: created, learning, consultations };

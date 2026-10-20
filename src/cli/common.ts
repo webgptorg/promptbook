@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 import { usageError } from '../common/errors.js';
 import { confinePath } from '../common/fs.js';
 import { BookIndex } from '../project/books.js';
-import { setting, type EffectiveSettings } from '../project/config.js';
+import { setting, type BrowserOverrides, type EffectiveSettings } from '../project/config.js';
 import { normalizeAgentName } from '../book/references.js';
 import { generatedName } from '../tasks/identity.js';
 import type { Project } from '../project/workspace.js';
@@ -41,36 +41,51 @@ export function settingOverrides(context: CommandContext): Record<string, unknow
     set('execution.check', option<string>(context, 'check'));
     set('execution.checkBefore', option<string>(context, 'check-before'));
     set('execution.gitChanges', option<string>(context, 'git-changes'));
-    set('execution.autoPull', flag(context, 'auto-pull'));
-    set('execution.autoPush', flag(context, 'auto-push'));
-    set('execution.isolate', flag(context, 'isolate'));
-    set('execution.normalizeLineEndings', flag(context, 'normalize-line-endings'));
-    set('execution.questions', flag(context, 'questions'));
-    set('execution.allowCredits', flag(context, 'allow-credits'));
-    set('execution.preserveLogs', flag(context, 'preserve-logs'));
-    set('execution.autoMigrate', flag(context, 'auto-migrate'));
+    // --auto-pull/--auto-push are documented compatibility opt-ins to the one combined synchronization policy.
+    const autoSync = flag(context, 'auto-sync') ?? (flag(context, 'auto-pull') || flag(context, 'auto-push') ? true : undefined);
+    set('isAutoSync', autoSync);
+    set('execution.isIsolated', flag(context, 'isolate'));
+    set('execution.isLineEndingNormalizationEnabled', flag(context, 'normalize-line-endings'));
+    set('execution.isQuestionsEnabled', flag(context, 'questions'));
+    set('execution.isCreditFallbackAllowed', flag(context, 'allow-credits'));
+    set('execution.isLogPreservationEnabled', flag(context, 'preserve-logs'));
+    set('execution.isAutoMigrateEnabled', flag(context, 'auto-migrate'));
     set('execution.waitBetweenPrompts', option<number>(context, 'wait-between-prompts'));
     set('execution.waitAfterPrompt', option<number>(context, 'wait-after-prompt'));
     set('execution.waitAfterError', option<number>(context, 'wait-after-error'));
-    set('execution.commit', flag(context, 'commit'));
-    set('browser.mode', option<string>(context, 'browser-mode'));
-    set('browser.profile', option<string>(context, 'browser-profile'));
-    set('server.enabled', flag(context, 'server'));
+    set('execution.isCommitEnabled', flag(context, 'commit'));
+    set('server.isEnabled', flag(context, 'server'));
     set('server.port', option<number>(context, 'port'));
-    set('server.tunnel.enabled', flag(context, 'tunnel'));
+    set('server.tunnel.isEnabled', flag(context, 'tunnel'));
     set('server.tunnel.provider', option<string>(context, 'tunnel-provider'));
-    set('service.persist', flag(context, 'persist'));
+    set('service.isPersistent', flag(context, 'persist'));
     if (flag(context, 'harness-updates') === false) overrides['service.harnessUpdates'] = 'off';
-    set('service.qr', flag(context, 'qr'));
-    set('traces.commit', flag(context, 'commit-traces'));
-    set('traces.ignoreVideos', flag(context, 'ignore-trace-videos'));
-    set('traces.recordVideo', flag(context, 'record-video'));
+    set('service.isQrShown', flag(context, 'qr'));
+    set('traces.isCommitted', flag(context, 'commit-traces'));
+    set('traces.isVideoIgnored', flag(context, 'ignore-trace-videos'));
+    set('traces.isVideoRecordingEnabled', flag(context, 'record-video'));
     const contextFile = option<string>(context, 'context');
     if (contextFile !== undefined) overrides['paths.context'] = contextFile === '' ? null : contextFile;
     if (option<number>(context, 'port') !== undefined && (option<number>(context, 'port')! < 1 || option<number>(context, 'port')! > 65535)) {
         throw usageError('--port must be between 1 and 65535.', context.path.join(' '));
     }
     return overrides;
+}
+
+/**
+ * Temporary browser overrides of this invocation (`--browser-mode`, `--browser-profile`, targeted by `--browser-tool`).
+ *
+ * @private CLI helpers
+ */
+export function browserOverrides(context: CommandContext): BrowserOverrides | undefined {
+    const mode = option<'headless' | 'headful'>(context, 'browser-mode');
+    const profile = option<string>(context, 'browser-profile');
+    const tool = option<string>(context, 'browser-tool');
+    if (!mode && !profile) {
+        if (tool) throw usageError('--browser-tool selects the browser of --browser-mode/--browser-profile; give one of them too.', context.path.join(' '));
+        return undefined;
+    }
+    return { tool, mode, profile };
 }
 
 /**
@@ -97,7 +112,8 @@ export function validateCombinations(context: CommandContext): void {
         if (gitChanges === 'continue') throw usageError('--isolate conflicts with --git-changes continue.', path);
     }
     if (gitChanges === 'continue' && option<string>(context, 'check-before') === 'yes-and-fix') throw usageError('--git-changes continue conflicts with --check-before yes-and-fix.', path);
-    if (noCommit && (flag(context, 'auto-pull') || flag(context, 'auto-push'))) throw usageError('--no-commit conflicts with --auto-pull/--auto-push.', path);
+    if (flag(context, 'auto-sync') === false && (flag(context, 'auto-pull') || flag(context, 'auto-push'))) throw usageError('--no-auto-sync contradicts --auto-pull/--auto-push (compatibility aliases of --auto-sync).', path);
+    if (noCommit && (flag(context, 'auto-sync') || flag(context, 'auto-pull') || flag(context, 'auto-push'))) throw usageError('--no-commit conflicts with automatic synchronization (--auto-sync, --auto-pull, --auto-push): synchronization publishes commits.', path);
     if (flag(context, 'daemon') && flag(context, 'foreground')) throw usageError('--daemon and --foreground are mutually exclusive.', path);
     if (flag(context, 'tunnel') === true && flag(context, 'server') === false) throw usageError('--tunnel needs the HTTP server; it conflicts with --no-server.', path);
     if (option<number>(context, 'port') !== undefined && flag(context, 'server') === false) throw usageError('--port conflicts with --no-server.', path);

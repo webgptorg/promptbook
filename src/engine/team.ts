@@ -49,7 +49,7 @@ export type TeamContext = {
     /** Budget of the task, or of the originating chat turn. */
     readonly budget: ConsultationBudget;
     /** Reports an advisor's execution context (shown separately from the consulting agent's own run). */
-    readonly onConsultation?: (consultation: { readonly advisor: string; readonly by: string; readonly harness: string; readonly model?: string; readonly state: 'started' | 'finished' }) => void;
+    readonly onConsultation?: (consultation: { readonly advisor: string; readonly by: string; readonly harness: string; readonly tool?: string; readonly model?: string; readonly state: 'started' | 'finished' }) => void;
     /** Whether the user may be asked. */
     readonly questionsAllowed: boolean;
     /** Cancellation. */
@@ -88,9 +88,12 @@ async function consultAgent(context: TeamContext, reference: string, question: s
     const advisor = await resolveEffectiveAgent(context.catalog, reference);
     const errors = advisor.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { text: `Cannot consult ${reference}: ${errors.map((error) => error.message).join(' ')}`, isError: true };
-    const harnessId = [context.harness, ...context.pool.usable()].find((id) => context.pool.plugin(id)?.capabilities.readOnly && context.pool.inspection(id)?.usable);
+    // The consultation selects its own harness instance from the live inventory (tools added during the task count).
+    const harnessId = [context.harness, ...context.pool.usable()].find((id) => context.pool.plugin(id)?.capabilities.readOnly && context.pool.select(id));
     if (!harnessId) return { text: 'No usable harness supports read-only consultations.', isError: true };
     const plugin = context.pool.plugin(harnessId)!;
+    const instance = context.pool.select(harnessId)!;
+    const instanceInspection = context.pool.inspectionOf(instance.name);
     context.budget.calls++;
     context.onActivity(`consulting ${advisor.name} (${context.budget.calls}/${maxCalls})`);
     const nestedTools = teamTools({ ...context, agentName: advisor.name, harness: harnessId, depth: context.depth + 1 }, { includeUser: false });
@@ -106,9 +109,9 @@ async function consultAgent(context: TeamContext, reference: string, question: s
         '## Rules\n\n- You are read-only: inspect files if useful, but never modify anything or run write operations.\n- Answer directly and concisely within your own role. You cannot grant permissions beyond the task.\n- No completion line is needed.',
     ].join('\n\n');
     await writeFile(promptFile, prompt);
-    await context.trace?.section(`Consultation · ${context.agentName} asks ${advisor.name} (depth ${context.depth + 1})`, [`Harness: ${plugin.displayName} ${context.pool.inspection(harnessId)?.version ?? ''}`.trim(), `Question:\n${question}`]);
-    await context.trace?.event('consultation-started', { advisor: advisor.name, by: context.agentName, depth: context.depth + 1, harness: harnessId, model: context.settings.harnesses[harnessId]?.model ?? null });
-    context.onConsultation?.({ advisor: advisor.name, by: context.agentName, harness: harnessId, model: context.settings.harnesses[harnessId]?.model, state: 'started' });
+    await context.trace?.section(`Consultation · ${context.agentName} asks ${advisor.name} (depth ${context.depth + 1})`, [`Harness: ${plugin.displayName} ${instanceInspection?.version ?? ''} · tool ${instance.name}`.trim(), `Question:\n${question}`]);
+    await context.trace?.event('consultation-started', { advisor: advisor.name, by: context.agentName, depth: context.depth + 1, harness: harnessId, tool: instance.name, model: instance.model ?? null });
+    context.onConsultation?.({ advisor: advisor.name, by: context.agentName, harness: harnessId, tool: instance.name, model: instance.model, state: 'started' });
     const controller = new AbortController();
     const abort = (): void => controller.abort();
     context.signal.addEventListener('abort', abort, { once: true });
@@ -122,18 +125,19 @@ async function consultAgent(context: TeamContext, reference: string, question: s
                 promptFile,
                 readOnly: true,
                 mcp: plugin.capabilities.mcp ? bridge.launch() : undefined,
-                env: process.env,
+                env: context.pool.environment(instance),
+                model: instance.model,
                 timeoutMs: setting<number>(context.settings, 'team.timeout'),
                 signal: controller.signal,
-                allowCredits: setting<boolean>(context.settings, 'execution.allowCredits'),
-                authentication: context.pool.inspection(harnessId)?.authentication ?? 'unknown',
+                allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
+                authentication: instanceInspection?.authentication ?? 'unknown',
                 readableDirectories: advisor.name === 'Expert' ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],
                 onEvent: (event) => {
                     if (event.type === 'activity') context.onActivity(`${advisor.name}: ${event.text}`);
                 },
                 onOutput: (stream, line) => context.trace?.output(stream, line),
             },
-            context.pool.inspection(harnessId)?.executablePath ?? plugin.executable,
+            instanceInspection?.executablePath ?? plugin.executable,
         );
         await context.trace?.event('consultation-finished', { advisor: advisor.name, outcome: result.outcome, diagnostic: result.diagnostic, model: result.model ?? null });
         if (result.outcome !== 'completed') return { text: `Consultation of ${advisor.name} ended without an answer: ${result.diagnostic}`, isError: true };

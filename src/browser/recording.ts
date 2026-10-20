@@ -255,7 +255,7 @@ export class BrowserRecorder {
         if (url && this.pages[this.pages.length - 1] !== url) this.pages.push(url);
         if (this.recording || this.paused) return;
         if (!this.enabled()) {
-            await this.writeStatus({ state: 'disabled', segments: [], note: 'traces.recordVideo is false; no new browser video is recorded (text traces continue).' });
+            await this.writeStatus({ state: 'disabled', segments: [], note: 'traces.isVideoRecordingEnabled is false; no new browser video is recorded (text traces continue).' });
             return;
         }
         try {
@@ -376,7 +376,7 @@ export class BrowserRecorder {
     private async reportUnused(): Promise<void> {
         if (!this.trace || this.used || this.reported) return;
         this.reported = true;
-        await this.trace.event('recording', { state: this.enabled() ? 'not-applicable' : 'disabled', note: this.enabled() ? 'The task did not use the project browser in this run.' : 'traces.recordVideo is false.' });
+        await this.trace.event('recording', { state: this.enabled() ? 'not-applicable' : 'disabled', note: this.enabled() ? 'The task did not use this browser in this run.' : 'traces.isVideoRecordingEnabled is false.' });
     }
 
     /** Stores one frame on disk (bounded). */

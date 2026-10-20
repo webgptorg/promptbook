@@ -37,7 +37,7 @@ export class LocalChats {
         private readonly repositoryRoot: string | undefined,
         private catalog: AgentCatalog,
     ) {
-        const commit = setting<boolean>(settings, 'execution.commit') && Boolean(repositoryRoot);
+        const commit = setting<boolean>(settings, 'execution.isCommitEnabled') && Boolean(repositoryRoot);
         this.state = new StateStore(project.runtime.state);
         this.store = new ChatStore(project, {
             timeZone: setting<string>(settings, 'timezone'),
@@ -56,7 +56,7 @@ export class LocalChats {
      */
     public static async open(project: Project, settings: EffectiveSettings, env: NodeJS.ProcessEnv): Promise<LocalChats> {
         const git = await inspectGit(project.root);
-        if (setting<boolean>(settings, 'execution.commit') && git.state !== 'repository') {
+        if (setting<boolean>(settings, 'execution.isCommitEnabled') && git.state !== 'repository') {
             throw new PtbkError('The project is not in a Git working tree, so chat messages cannot be committed.', { kind: 'setup', next: ['Run `ptbk init`, or use --no-commit.'] });
         }
         const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'), setting<string>(settings, 'paths.tasks'));
@@ -91,7 +91,7 @@ export class LocalChats {
         await this.reload();
         if (!this.pool) {
             this.pool = new HarnessPool(this.project.root, this.settings, this.env);
-            await this.pool.refresh(this.pool.enabled(), true);
+            await this.pool.refresh(undefined, true);
         }
         const turn = await replyInChat(
             {
@@ -112,7 +112,7 @@ export class LocalChats {
                         commitments.push(`TASK ORIGIN chat {{${input.chat}}}`, `LINK {{${input.chat}}}`);
                         const path = await newTaskPath(this.catalog.index.rootPath('tasks'), input.title, Date.now(), setting<string>(this.settings, 'timezone'));
                         await writeFile(path, renderTaskBook({ title, description: input.description || undefined, commitments }), { flag: 'wx' });
-                        if (this.repositoryRoot && setting<boolean>(this.settings, 'execution.commit')) await this.commit([path], `Add task - ${title}`, { 'Task-Name': title, 'Chat-Name': input.chat });
+                        if (this.repositoryRoot && setting<boolean>(this.settings, 'execution.isCommitEnabled')) await this.commit([path], `Add task - ${title}`, { 'Task-Name': title, 'Chat-Name': input.chat });
                         else await this.state.addOwnedUncommitted({ [toProjectRelative(this.project.root, path)]: (await hashFileIfExists(path)) ?? null });
                         return title;
                     }),
@@ -130,7 +130,7 @@ export class LocalChats {
                             timeZone: setting<string>(this.settings, 'timezone'),
                             taken: this.catalog.index.names(),
                         });
-                        if (this.repositoryRoot && setting<boolean>(this.settings, 'execution.commit')) await this.commit([created.path], `Add task - ${created.name}`, { 'Task-Name': created.name, 'Chat-Name': input.chat });
+                        if (this.repositoryRoot && setting<boolean>(this.settings, 'execution.isCommitEnabled')) await this.commit([created.path], `Add task - ${created.name}`, { 'Task-Name': created.name, 'Chat-Name': input.chat });
                         else await this.state.addOwnedUncommitted({ [toProjectRelative(this.project.root, created.path)]: (await hashFileIfExists(created.path)) ?? null });
                         return created.name;
                     }),

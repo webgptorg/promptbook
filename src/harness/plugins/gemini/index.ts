@@ -33,6 +33,8 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
  */
 export const plugin: HarnessPlugin = {
     id: 'gemini',
+    variant: 'GEMINI',
+    apiKeyVariable: 'GEMINI_API_KEY',
     displayName: 'Gemini CLI',
     featured: false,
     executable: 'gemini',

@@ -154,7 +154,7 @@ test('follow-ups written by an agent: a copy under an existing name is refused; 
 test('trace policy: committed traces share the result commit; videos and post-commit events stay out; the tree stays clean', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK, initArgs: ['--commit-traces'] });
     const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
-    assert.deepEqual(config.traces, { commit: true, ignoreVideos: true, recordVideo: true });
+    assert.deepEqual(config.traces, { isCommitted: true, isVideoIgnored: true, isVideoRecordingEnabled: true });
     const ignore = await readFile(join(project, '.gitignore'), 'utf8');
     assert.match(ignore, /^\/traces\/\*\/video\/$/m);
     assert.doesNotMatch(ignore, /^\/traces\/$/m);

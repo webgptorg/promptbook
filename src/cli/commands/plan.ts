@@ -5,7 +5,8 @@ import { ensureDirectory, listDirectory, toProjectRelative } from '../../common/
 import { shortId, shortHash } from '../../common/ids.js';
 import { formatAgentReference } from '../../book/references.js';
 import { AgentCatalog, resolveEffectiveAgent } from '../../project/agents.js';
-import { loadSettings, setting } from '../../project/config.js';
+import { enabledHarnesses, loadSettings, setting } from '../../project/config.js';
+import { harnessRequirement } from '../../engine/routing.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
 import { harnessPlugin } from '../../harness/registry.js';
 import { runHarness } from '../../harness/run.js';
@@ -71,16 +72,24 @@ async function directoryFingerprint(directory: string): Promise<string> {
  */
 export default async function plan(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
-    const settings = await loadSettings(project, { env: context.env });
+    const saved = await loadSettings(project, { env: context.env });
     const { terminal } = context;
-    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(settings, 'routing.harness');
-    const plugin = harness ? harnessPlugin(harness) : undefined;
-    if (!plugin) throw new PtbkError('Select a harness for planning with --harness.', { kind: 'usage' });
+    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(saved, 'routing.harness') ?? enabledHarnesses(saved)[0];
+    if (!harness) throw new PtbkError('Select a harness for planning with --harness.', { kind: 'usage' });
+    // The same instance selection as every other run: a variant's first usable instance, or one named instance.
+    const settings = await loadSettings(project, { env: context.env, cliHarnesses: [harness] });
+    const pool = new HarnessPool(project.root, settings, context.env);
+    await pool.refresh(undefined, true);
+    const requirement = harnessRequirement(harness, pool);
+    const plugin = requirement ? harnessPlugin(requirement.variant) : undefined;
+    if (!plugin || !requirement) throw new PtbkError(`Unknown harness "${harness}".`, { kind: 'usage', next: ['Use a variant such as openai-codex or a harness tool name from `ptbk tool list`.'] });
     if (!plugin.capabilities.readOnly) {
         throw new PtbkError(`${plugin.displayName} cannot enforce read-only planning, so ptbk refuses to plan with it.`, { kind: 'unsupported', next: ['Use `--harness openai-codex` (the supported baseline) or `--harness claude-code`.'] });
     }
-    const inspection = await plugin.inspect({ projectRoot: project.root, env: context.env });
-    if (!inspection.usable) throw new PtbkError(`${plugin.displayName} is not usable.`, { kind: 'setup', reason: inspection.summary, next: inspection.nextAction ? [inspection.nextAction] : [] });
+    const instance = pool.select(requirement.variant, { tool: requirement.tool });
+    const instanceInspection = instance ? pool.inspectionOf(instance.name) : pool.inspection(requirement.variant);
+    if (!instance || !instanceInspection?.usable) throw new PtbkError(`${plugin.displayName} is not usable.`, { kind: 'setup', reason: instanceInspection?.summary ?? 'No enabled instance is configured.', next: instanceInspection?.nextAction ? [instanceInspection.nextAction] : ['Enable or add a harness tool (`ptbk tool list`).'] });
+    const inspection = instanceInspection;
     const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'));
     const requested = option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent');
     const agent = await resolveEffectiveAgent(catalog, requested.startsWith('@') || requested.startsWith('{') ? requested : `{{${requested}}}`);
@@ -89,8 +98,6 @@ export default async function plan(context: CommandContext): Promise<number> {
     const agents = catalog.ordinary().map((definition) => formatAgentReference(definition.name));
     const transcript: Array<{ role: 'You' | 'Planner'; text: string }> = [];
     let proposals: Proposal[] = [];
-    const pool = new HarnessPool(project.root, settings, context.env);
-    await pool.refresh([plugin.id], true);
     const turn = async (message: string): Promise<void> => {
         transcript.push({ role: 'You', text: message });
         const prompt = [
@@ -128,7 +135,7 @@ export default async function plan(context: CommandContext): Promise<number> {
         try {
             const result = await runHarness(
                 plugin,
-                { projectRoot: project.root, cwd: project.root, prompt, promptFile, readOnly: true, mcp: bridge?.launch(), env: context.env, timeoutMs: PLANNING_TIMEOUT_MS, allowCredits: false, authentication: inspection.authentication, readableDirectories: [] },
+                { projectRoot: project.root, cwd: project.root, prompt, promptFile, readOnly: true, mcp: bridge?.launch(), env: pool.environment(instance), model: instance.model, timeoutMs: PLANNING_TIMEOUT_MS, allowCredits: false, authentication: inspection.authentication, readableDirectories: [] },
                 inspection.executablePath ?? plugin.executable,
             );
             if (result.outcome !== 'completed') {
@@ -169,7 +176,7 @@ export default async function plan(context: CommandContext): Promise<number> {
             files.push({ path, title, content: renderTaskBook({ title, description: proposal.description, commitments }) });
         }
         for (const file of files) terminal.write(`\n${terminal.style.bold(toProjectRelative(project.root, file.path))}\n${file.content}`);
-        const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
+        const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.isCommitEnabled');
         if ((await confirm(terminal, { frame: { title: 'ptbk plan', step: 'Save' }, question: `Save these ${files.length} ${draft ? 'draft ' : ''}task(s)${commit ? ' and commit them' : ' without committing'}?`, defaultYes: true })) !== true) return;
         if ((await directoryFingerprint(tasksDirectory)) !== fingerprint) {
             terminal.write(terminal.style.warning('The task folder changed since the preview; run /save again to review the current state.\n'));

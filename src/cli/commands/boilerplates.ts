@@ -54,7 +54,7 @@ export default async function generateBoilerplates(context: CommandContext): Pro
             created.push(path);
         }
     }
-    const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
+    const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.isCommitEnabled');
     const gitInfo = await inspectGit(project.root);
     let sha: string | undefined;
     if (commit && gitInfo.state === 'repository') {

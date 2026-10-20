@@ -1,4 +1,4 @@
-import type { HarnessSettings, ThinkingLevel } from '../project/config.js';
+import type { HarnessToolRecord, HarnessVariant, ThinkingLevel } from '../tools/model.js';
 
 /**
  * How a harness is authenticated.
@@ -65,10 +65,13 @@ export type HarnessCapabilities = {
 export type HarnessContext = {
     /** Project directory. */
     readonly projectRoot: string;
-    /** Environment with the effective discovery PATH. */
+    /**
+     * Environment of the selected instance: the effective discovery PATH, its own credential/account context, and no
+     * ambient API keys for a native instance.
+     */
     readonly env: NodeJS.ProcessEnv;
-    /** Non-secret project configuration of the harness. */
-    readonly settings?: HarnessSettings;
+    /** The named instance being inspected or maintained (absent for catalog-level probes). */
+    readonly tool?: HarnessToolRecord;
     /** Cancellation. */
     readonly signal?: AbortSignal;
 };
@@ -178,8 +181,16 @@ export type ParserState = {
  * @private harness plugin contract
  */
 export type HarnessPlugin = {
-    /** Stable identifier used in ptbk.json and flags. */
+    /** Internal identifier (`openai-codex`); also the accepted CLI/Book spelling of the variant. */
     readonly id: string;
+    /** Canonical variant of `ptbk.json.tools` (`OPENAI_CODEX`). */
+    readonly variant: HarnessVariant;
+    /** Variable through which the CLI accepts an API key for an explicit `API_KEY` instance (absent: unsupported). */
+    readonly apiKeyVariable?: string;
+    /** Ambient variables that would silently switch a native instance to API billing (removed for `NATIVE`). */
+    readonly ambientApiKeyVariables?: readonly string[];
+    /** Variable selecting a separate native account/configuration home (`accountProfile`; absent: unsupported). */
+    readonly accountHomeVariable?: string;
     /** Display name. */
     readonly displayName: string;
     /** Shown in default catalog views. */

@@ -34,7 +34,7 @@ export async function stoppedSnapshot(project: Project): Promise<ServiceSnapshot
             instanceId: '',
             startedAt: '',
             persistent: null,
-            commitMode: settings && settings.values['execution.commit'] === false ? 'no-commit' : 'commit',
+            commitMode: settings && settings.values['execution.isCommitEnabled'] === false ? 'no-commit' : 'commit',
             stopRequested: false,
         },
         phase: 'stopped',

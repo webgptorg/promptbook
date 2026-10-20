@@ -50,6 +50,7 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
  */
 export const plugin: HarnessPlugin = {
     id: 'github-copilot',
+    variant: 'GITHUB_COPILOT',
     displayName: 'GitHub Copilot',
     featured: false,
     executable: 'copilot',

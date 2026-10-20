@@ -30,8 +30,72 @@ const START_OPTIONS: OptionGroup = {
         { name: 'foreground', type: 'boolean', description: 'Keep the service attached to this terminal (live dashboard, or plain events with --raw).' },
         { name: 'persist', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not restart automatically after crashes or reboots (state stays durable).' },
         { name: 'harness-updates', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not update enabled harnesses automatically for this run.' },
-        { name: 'harness', type: 'string', valueName: '<id>', repeatable: true, description: 'Restrict routing to these enabled harnesses for this run (repeatable).' },
+        { name: 'harness', type: 'string', valueName: '<variant|tool>', repeatable: true, description: 'Restrict routing to these harness variants or named harness tools for this run (repeatable; not saved).' },
         { name: 'resume-service', type: 'boolean', hidden: true, description: 'Internal: resume a persisted service at login/boot.' },
+    ],
+};
+
+/**
+ * Identity options of a tool.
+ */
+const TOOL_IDENTITY_OPTIONS: OptionGroup = {
+    title: 'Identity',
+    options: [
+        { name: 'variant', type: 'string', valueName: '<variant>', description: 'Adapter: CHROME, CHROMIUM, EDGE; or OPENAI_CODEX, CLAUDE_CODE, GITHUB_COPILOT, CLINE, OPENCODE, GEMINI, QWEN_CODE.' },
+        { name: 'name', type: 'string', valueName: '<name>', description: 'Unique kebab-case tool name, e.g. work-browser or codex-company.' },
+        { name: 'description', type: 'string', valueName: '<text>', description: 'Optional free text (helps agents choose the right browser/account).' },
+    ],
+};
+
+/**
+ * Browser fields.
+ */
+const TOOL_BROWSER_OPTIONS: OptionGroup = {
+    title: 'Browser fields',
+    options: [
+        { name: 'profile-source', type: 'string', valueName: '<source>', description: 'MANAGED_GLOBAL (dedicated Promptbook profile, default), PROJECT (isolated in .ptbk/), USER_EXISTING (your Chrome profile) or CUSTOM.' },
+        { name: 'profile-path', type: 'string', valueName: '<path>', description: 'Profile directory (required for CUSTOM).' },
+        { name: 'is-headless', type: 'string', valueName: '<true|false>', description: 'Run without a window.', defaultText: 'true' },
+        { name: 'executable', type: 'string', valueName: '<path>', description: 'Chrome-compatible executable.' },
+    ],
+};
+
+/**
+ * Harness fields.
+ */
+const TOOL_HARNESS_OPTIONS: OptionGroup = {
+    title: 'Harness fields',
+    options: [
+        { name: 'authentication', type: 'string', valueName: '<mode>', description: 'NATIVE (the installation’s own login/subscription, default) or API_KEY.' },
+        { name: 'api-key-env', type: 'string', valueName: '<NAME>', description: 'Environment variable holding the key; saved as ${{ env.NAME }} (never the key).' },
+        { name: 'api-key-stdin', type: 'boolean', description: 'Read a new key from standard input (hidden when typed) into the ignored .env, with a timestamped comment.' },
+        { name: 'account-profile', type: 'string', valueName: '<name>', description: 'Separate native login context (where the adapter supports it).' },
+        { name: 'model', type: 'string', valueName: '<model>', description: 'Preferred model.' },
+        { name: 'thinking-level', type: 'string', valueName: '<level>', description: 'LOW, MEDIUM, HIGH, XHIGH or MAX (where supported).' },
+        { name: 'models', type: 'string', valueName: '<a,b>', description: 'Explicitly known models (comma-separated).' },
+    ],
+};
+
+/**
+ * Ordering options.
+ */
+const TOOL_ORDER_OPTIONS: OptionGroup = {
+    title: 'Order',
+    options: [
+        { name: 'before', type: 'string', valueName: '<other>', description: 'Place it before this tool.' },
+        { name: 'after', type: 'string', valueName: '<other>', description: 'Place it after this tool.' },
+    ],
+};
+
+/**
+ * Acknowledgements of consequential tool changes.
+ */
+const TOOL_SAFETY_OPTIONS: OptionGroup = {
+    title: 'Confirmations',
+    options: [
+        { name: 'yes', type: 'boolean', description: 'Confirm disabling/removing the last enabled browser or harness (the engine keeps running but waits for tools).' },
+        { name: 'force', short: 'F', type: 'boolean', description: 'The tool is in use: save the change now while the work that acquired it finishes with its original configuration (not a kill; `ptbk stop --force` stops the whole engine).' },
+        JSON_OPTION,
     ],
 };
 
@@ -46,7 +110,7 @@ export const COMMANDS: readonly CommandSpec[] = [
         aliases: ['initialize'],
         category: 'Start here',
         summary: 'Set up a project from your intent, then start its agenda in the background.',
-        description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (default roles plus the core agents Adam, Manager, Teacher, Fixer and Chatter — the default partner of new chats, with TEAM access to every other initialized role), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified), the project browser, trace settings and a real project check, and saves one ordinary Expert task that transforms the project according to the initial specification. Setup is committed with a "PTBK: " subject and the task's Task-Name trailer.
+        description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (default roles plus the core agents Adam, Manager, Teacher, Fixer and Chatter — the default partner of new chats, with TEAM access to every other initialized role), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified) and one browser — saved as named tools in ptbk.json "tools" through the same operations as \`ptbk tool\` — trace settings and optional automatic Git synchronization, and saves one ordinary Expert task that transforms the project according to the initial specification. There is no check-command question: an existing real check is kept, otherwise an informational placeholder records that real validation is not configured yet (it never counts as passing tests). Setup is committed with a "PTBK: " subject and the task's Task-Name trailer; a new repository starts on main.
 
 After successful setup the agenda starts automatically as a background service (the same operation as \`ptbk start\`); init returns without waiting for the first task. Watch it with \`ptbk dashboard\`, stop it with \`ptbk stop\`. Repeating init with satisfied prerequisites changes nothing and reuses a running service.
 
@@ -68,8 +132,8 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                 title: 'Installation and harnesses',
                 options: [
                     { name: 'installation', type: 'enum', values: ['local', 'global'], valueName: '<scope>', description: "Install ptbk in the project's dependencies (exact running version) or use the global CLI.", defaultText: 'local (asked interactively)' },
-                    { name: 'harness', type: 'string', valueName: '<id>', repeatable: true, description: 'Select a harness (repeatable): openai-codex, claude-code, github-copilot, cline, opencode, gemini, qwen-code.' },
-                    { name: 'no-harness', type: 'boolean', description: 'Explicitly select no harness (setup stays incomplete).' },
+                    { name: 'harness', type: 'string', valueName: '<id>', repeatable: true, description: 'Select a harness (repeatable): openai-codex, claude-code, github-copilot, cline, opencode, gemini, qwen-code. Each becomes a native harness tool; more instances/accounts are added later with `ptbk tool add`.' },
+                    { name: 'no-harness', type: 'boolean', description: 'Explicitly select no harness (the agenda then waits for tools).' },
                     { name: 'install-harnesses', type: 'boolean', description: 'Authorize global installation of missing selected harness CLIs (unattended).' },
                     { name: 'update-harnesses', type: 'enum', values: ['keep', 'update'], valueName: '<decision>', description: 'Outdated selected harnesses: keep current versions or update them.', defaultText: 'asked interactively; keep when unattended' },
                 ],
@@ -77,13 +141,25 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
             {
                 title: 'Browser, traces and validation',
                 options: [
-                    { name: 'browser-profile', type: 'string', valueName: '<path|isolated>', description: 'Project browser profile.', defaultText: 'isolated profile in .ptbk/' },
+                    { name: 'browser-profile', type: 'string', valueName: '<source>', description: 'Profile of the initial browser tool: global (dedicated Promptbook profile), isolated (this project), user (your Chrome profile) or a path.', defaultText: 'global' },
                     { name: 'browser-mode', type: 'enum', values: ['headless', 'headful'], valueName: '<mode>', description: 'Browser visibility.', defaultText: 'headless' },
                     { name: 'commit-traces', type: 'boolean', negatable: true, description: 'Include task traces (traces/<task-file-basename>/) in result commits; --no-commit-traces ignores the whole traces/ folder.', defaultText: 'off' },
                     { name: 'ignore-trace-videos', type: 'boolean', negatable: true, description: 'Keep trace videos out of Git even when traces are committed.', defaultText: 'on' },
                     { name: 'record-video', type: 'boolean', negatable: true, description: 'Record browser activity of tasks using the project browser.', defaultText: 'on' },
-                    { name: 'check', type: 'string', valueName: '<command>', description: 'Project check to save when none is configured (otherwise a temporary override).' },
-                    { name: 'defer-check', type: 'boolean', description: 'Explicitly defer the check decision (setup stays incomplete).' },
+                    { name: 'check', type: 'string', valueName: '<command>', description: 'Real project check to save when none is configured (otherwise a temporary override). Without it, an informational placeholder is saved — no question is asked.' },
+                    { name: 'defer-check', type: 'boolean', hidden: true, description: 'Compatibility: init no longer asks for a check.' },
+                ],
+            },
+            {
+                title: 'Automatic synchronization',
+                options: [
+                    { name: 'auto-sync', type: 'boolean', negatable: true, description: 'Synchronize with a Git remote (pull every minute and before work, push completed work); --no-auto-sync keeps the project local.', defaultText: 'asked interactively; off when unattended' },
+                    { name: 'sync-provider', type: 'enum', values: ['github', 'origin', 'existing'], valueName: '<provider>', description: 'Where to synchronize: a new GitHub repository, another origin URL, or the existing origin.' },
+                    { name: 'github-repository', type: 'string', valueName: '<owner/name>', description: 'GitHub repository to create and publish (uses your GitHub CLI login).' },
+                    { name: 'github-visibility', type: 'enum', values: ['private', 'public'], valueName: '<visibility>', description: 'Visibility of the new GitHub repository.', defaultText: 'private' },
+                    { name: 'origin-url', type: 'string', valueName: '<url>', description: 'Another Git origin to publish to (ordinary Git transport/authentication).' },
+                    { name: 'auto-pull', type: 'boolean', hidden: true, description: 'Compatibility alias of --auto-sync.' },
+                    { name: 'auto-push', type: 'boolean', hidden: true, description: 'Compatibility alias of --auto-sync.' },
                 ],
             },
             COMMIT_OPTIONS,
@@ -102,6 +178,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
             { command: 'ptbk init', description: 'Describe your project, answer a few setup questions; the agenda then starts in the background.' },
             { command: 'ptbk init --subfolder my-agenda', description: 'Create and initialize a new folder.' },
             { command: 'ptbk init --non-interactive --installation local --harness openai-codex --check "npm test"', description: 'Unattended setup with a blank intent (readiness review).' },
+            { command: 'ptbk init --auto-sync --github-repository my-company/newsletter', description: 'Also publish to a new private GitHub repository and keep it synchronized.' },
             { command: 'ptbk init --intent-file brief.md --attach mockup.png --harness claude-code --installation local', description: 'Unattended setup from a written brief with an image.' },
             { command: 'ptbk dashboard', description: 'Afterwards: watch and control the running agenda.' },
         ],
@@ -210,6 +287,110 @@ Keys: A opens the conversation of the agent waiting for you (its real author), C
             { command: 'ptbk show --json', description: 'Machine-readable snapshot.' },
         ],
         run: lazy(() => import('./commands/status.js')),
+    },
+    {
+        name: 'tool',
+        category: 'Maintain',
+        summary: 'Manage the named browser and harness tools of the project (saved and committed immediately).',
+        description: `Tools are ordered named project resources in ptbk.json "tools": BROWSER profiles and HARNESS instances (each harness variant can have several instances: the first usable one serves work, later ones are fallbacks, e.g. a second subscription or a paid API account). Every change is saved and committed at once as its own "PTBK: " commit, also while a task runs (the running engine uses a newly added tool at the task's next selection). Enable/disable is the normal reversible change; remove deletes only the configuration record, never browser profiles, native logins or .env history.
+
+API keys are stored as references (\${{ env.NAME }}); a new key goes into the ignored .env through --api-key-stdin (hidden input), never as a command-line argument.`,
+        optionGroups: [PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        examples: [
+            { command: 'ptbk tool list', description: 'The ordered inventory with enabled, usable and in-use state.' },
+            { command: 'ptbk tool add BROWSER --variant CHROME --name work-browser --profile-source PROJECT --is-headless true', description: 'A second, isolated browser profile.' },
+            { command: 'ptbk tool add HARNESS --variant OPENAI_CODEX --name company-api --authentication API_KEY --api-key-env COMPANY_OPENAI_API_KEY', description: 'A paid API fallback after the native Codex subscription.' },
+            { command: 'ptbk tool disable company-api', description: 'Stop selecting it (configuration and key are kept).' },
+        ],
+        subcommands: [
+            {
+                name: 'list',
+                category: 'Maintain',
+                summary: 'List the ordered tool inventory (read-only).',
+                description: 'Shows every named tool with type, variant, enabled state, actual usability and whether active work uses it. Reads the running engine’s live view when one runs; otherwise inspects locally without launching a browser or calling a model.',
+                optionGroups: [{ title: 'Output', options: [JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+                examples: [{ command: 'ptbk tool list --json', description: 'Machine-readable inventory (secrets only as references).' }],
+                run: lazy(() => import('./commands/tool.js').then((module) => ({ default: module.list }))),
+            },
+            {
+                name: 'show',
+                category: 'Maintain',
+                summary: 'Show one tool’s non-secret configuration and diagnostics (read-only).',
+                description: 'Prints the canonical saved record, the resolved browser profile path or harness authentication context, readiness and the concrete next action. Never prints secret values.',
+                arguments: [{ name: 'name', description: 'Tool name.', required: true }],
+                optionGroups: [{ title: 'Output', options: [JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+                examples: [{ command: 'ptbk tool show project-browser', description: 'Profile source, path and health of the browser.' }],
+                run: lazy(() => import('./commands/tool.js').then((module) => ({ default: module.show }))),
+            },
+            {
+                name: 'add',
+                category: 'Maintain',
+                summary: 'Add a named BROWSER or HARNESS tool.',
+                description: 'Creates a typed named instance with its variant-specific options and commits it immediately. Enum values are accepted in any case/separator spelling and saved canonically (CHROME, OPENAI_CODEX, MANAGED_GLOBAL, API_KEY …).',
+                arguments: [{ name: 'type', description: 'BROWSER or HARNESS.', required: true }],
+                optionGroups: [TOOL_IDENTITY_OPTIONS, TOOL_BROWSER_OPTIONS, TOOL_HARNESS_OPTIONS, TOOL_ORDER_OPTIONS, TOOL_SAFETY_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+                examples: [
+                    { command: 'ptbk tool add BROWSER --variant CHROME --name personal-browser --profile-source USER_EXISTING --is-headless false', description: 'Your own Chrome profile as an explicitly authorized browser.' },
+                    { command: 'ptbk tool add HARNESS --variant CLAUDE_CODE --name claude-code', description: 'A native Claude Code instance.' },
+                    { command: 'printf %s "$KEY" | ptbk tool add HARNESS --variant OPENAI_CODEX --name company-api --authentication API_KEY --api-key-env COMPANY_OPENAI_API_KEY --api-key-stdin', description: 'Store a new key in .env without it entering the command line.' },
+                ],
+                run: lazy(() => import('./commands/tool.js')),
+            },
+            {
+                name: 'modify',
+                category: 'Maintain',
+                summary: 'Change fields of a tool (unspecified fields stay as they are).',
+                description: 'Updates only the given fields and commits immediately. --rename changes the instance name. If active work uses the tool, it is refused unless --force: the change is then saved while the work that acquired the tool finishes with its original configuration.',
+                arguments: [{ name: 'name', description: 'Tool name.', required: true }],
+                optionGroups: [
+                    { title: 'Identity', options: [{ name: 'rename', type: 'string', valueName: '<new-name>', description: 'New kebab-case name.' }, TOOL_IDENTITY_OPTIONS.options[0]!, TOOL_IDENTITY_OPTIONS.options[2]!, { name: 'clear-description', type: 'boolean', description: 'Remove the description.' }] },
+                    { ...TOOL_BROWSER_OPTIONS, options: [...TOOL_BROWSER_OPTIONS.options, { name: 'clear-executable', type: 'boolean', description: 'Use the default executable discovery again.' }] },
+                    { ...TOOL_HARNESS_OPTIONS, options: [...TOOL_HARNESS_OPTIONS.options, { name: 'clear-model', type: 'boolean', description: 'Use the harness default model again.' }] },
+                    TOOL_SAFETY_OPTIONS,
+                    PROJECT_OPTIONS,
+                    PRESENTATION_OPTIONS,
+                ],
+                examples: [
+                    { command: 'ptbk tool modify work-browser --is-headless false', description: 'Show the browser window.' },
+                    { command: 'ptbk tool modify company-api --api-key-stdin', description: 'Rotate the key (the old .env line stays, commented out with a timestamp).' },
+                ],
+                run: lazy(() => import('./commands/tool.js')),
+            },
+            ...(['enable', 'disable'] as const).map((name) => ({
+                name,
+                category: 'Maintain' as const,
+                summary: name === 'enable' ? 'Make a tool available for new selections again.' : 'Stop selecting a tool (configuration and credentials are kept).',
+                description:
+                    name === 'enable'
+                        ? 'Persists isEnabled: true and commits it; the running engine can use the tool at once, also in the current task.'
+                        : 'Persists isEnabled: false and commits it. Disabling the last enabled browser or harness needs --yes: the engine keeps running but waits for tools. If active work uses the tool, --force saves the change while that work finishes with it.',
+                arguments: [{ name: 'name', description: 'Tool name.', required: true }],
+                optionGroups: [TOOL_SAFETY_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+                examples: [{ command: `ptbk tool ${name} company-api`, description: name === 'enable' ? 'Use the API fallback again.' : 'Pause using the API fallback.' }],
+                run: lazy(() => import('./commands/tool.js')),
+            })),
+            {
+                name: 'remove',
+                aliases: ['delete'],
+                category: 'Maintain',
+                summary: 'Permanently remove a tool’s configuration record (secondary to disable).',
+                description: 'Deletes the record from ptbk.json and commits it. Browser profiles, native account stores and .env history are never deleted; an API-key line that ptbk added and nothing else uses is commented out with a timestamp, otherwise it stays active. Same --yes/--force protections as disable.',
+                arguments: [{ name: 'name', description: 'Tool name.', required: true }],
+                optionGroups: [TOOL_SAFETY_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+                examples: [{ command: 'ptbk tool remove old-browser', description: 'Remove a browser record (its profile stays).' }],
+                run: lazy(() => import('./commands/tool.js')),
+            },
+            {
+                name: 'move',
+                category: 'Maintain',
+                summary: 'Reorder a tool (order is the same-variant fallback priority).',
+                description: 'Moves the record before or after another one and commits it, without recreating credentials or changing its identity.',
+                arguments: [{ name: 'name', description: 'Tool name.', required: true }],
+                optionGroups: [TOOL_ORDER_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+                examples: [{ command: 'ptbk tool move codex-personal --after codex-company', description: 'Use the personal account only after the company one.' }],
+                run: lazy(() => import('./commands/tool.js')),
+            },
+        ],
     },
     {
         name: 'chat',

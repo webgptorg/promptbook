@@ -36,3 +36,4 @@ other/integration-tests/videos/*
 .opencode
 .gemini
 .qwen
+dist-installer/

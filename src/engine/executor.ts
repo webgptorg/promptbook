@@ -13,6 +13,7 @@ import { BookIndex } from '../project/books.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
 import { commitPaths, findCommitWithTrailer, gitStatus, readAtHead, stageableFiles } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
+import type { HarnessToolRecord } from '../tools/model.js';
 import { runHarness, type HarnessRunResult } from '../harness/run.js';
 import { readTaskBook, stampBookCompletion } from '../tasks/book-task.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
@@ -49,7 +50,7 @@ export type ExecutionEvent =
     | { readonly type: 'attempt'; readonly attempt: number; readonly budget: number }
     | { readonly type: 'activity'; readonly text: string; readonly level?: 'info' | 'warning' | 'error' }
     | { readonly type: 'model'; readonly model: string }
-    | { readonly type: 'consultation'; readonly advisor: string; readonly by: string; readonly harness: string; readonly model?: string; readonly state: 'started' | 'finished' };
+    | { readonly type: 'consultation'; readonly advisor: string; readonly by: string; readonly harness: string; readonly tool?: string; readonly model?: string; readonly state: 'started' | 'finished' };
 
 /**
  * Waiting reported to the supervisor (skippable pacing/backoff waits only).
@@ -76,6 +77,8 @@ export type ExecutionHooks = {
     readonly extraTools?: (context: { readonly chats: ReturnType<typeof taskChats>; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
     /** Finalizes evidence that belongs in the result commit (browser recordings of this task). */
     readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
+    /** Opt-in synchronization attempt before the result commit (fetch only; never a prerequisite). */
+    readonly beforeCommit?: () => Promise<void>;
 };
 
 /**
@@ -165,8 +168,8 @@ export type ExecutionOutcome =
     | { readonly kind: 'completed'; readonly commit?: string; readonly summary: string; readonly changedPaths: readonly string[]; readonly report?: AgentReport }
     | { readonly kind: 'awaiting-user'; readonly chat: string }
     | { readonly kind: 'failed'; readonly reason: string; readonly trace?: string }
-    | { readonly kind: 'setup'; readonly reason: string; readonly next?: string }
-    | { readonly kind: 'quota'; readonly reason: string; readonly retryAfterMs: number }
+    | { readonly kind: 'setup'; readonly reason: string; readonly next?: string; readonly tool?: string }
+    | { readonly kind: 'quota'; readonly reason: string; readonly retryAfterMs: number; readonly tool?: string }
     | { readonly kind: 'interrupted' }
     | { readonly kind: 'persistence-failed'; readonly reason: string };
 
@@ -323,7 +326,7 @@ async function commitTaskNames(environment: ExecutionEnvironment, task: Task, ow
  * Trace files eligible for the task's result commit under the saved trace policy (never ignored evidence).
  */
 async function traceCommitPaths(environment: ExecutionEnvironment, trace: TaskTrace): Promise<string[]> {
-    if (!environment.commit || !setting<boolean>(environment.settings, 'traces.commit')) return [];
+    if (!environment.commit || !setting<boolean>(environment.settings, 'traces.isCommitted')) return [];
     await trace.flush();
     return await stageableFiles(environment.project.root, trace.relativeDirectory);
 }
@@ -394,6 +397,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     const chats = taskChats(environment.chats, { name: task.title, key: task.key }, { takenNames: environment.takenNames });
     let lastResult: HarnessRunResult | undefined;
     let lastReport: AgentReport | undefined;
+    let retainedInstance: HarnessToolRecord | undefined;
     const contextFile = setting<string | null>(settings, 'paths.context');
     const context = contextFile ? await readTextIfExists(resolve(project.root, contextFile)) : undefined;
 
@@ -518,7 +522,10 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const promptDirectory = await ensureDirectory(project.runtime.temporary);
             const promptFile = join(promptDirectory, `prompt-${record.runId}-${attempt}.md`);
             await writeFile(promptFile, prompt);
-            const harnessLabel = `${plugin.displayName} ${item.route.inspection.version ?? ''}`.trim();
+            const harnessLabel = `${plugin.displayName} ${item.route.inspection.version ?? ''}${selection.tool ? ` · tool ${selection.tool}` : ''}`.trim();
+            // The acquired instance (retained for this attempt even if its saved configuration changes meanwhile).
+            const instance = selection.tool ? (environment.pool.instance(selection.tool) ?? retainedInstance) : undefined;
+            if (instance) retainedInstance = instance;
             await trace.section(`Attempt ${attempt}/${repairBudget}${record.technicalRetries ? ` (technical retry ${record.technicalRetries})` : ''} · ${runLabel}`, [
                 `Agent: ${agent.name} · Harness: ${harnessLabel} · Model: ${selection.model ?? '(harness default)'} · Thinking: ${selection.thinkingLevel ?? '(default)'}`,
                 `Started: ${new Date().toISOString()}`,
@@ -536,6 +543,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 technicalRetry: record.technicalRetries,
                 agent: agent.name,
                 harness: selection.harness,
+                tool: selection.tool ?? null,
                 harnessVersion: item.route.inspection.version,
                 model: selection.model ?? null,
                 thinkingLevel: selection.thinkingLevel ?? null,
@@ -554,11 +562,11 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         thinkingLevel: selection.thinkingLevel,
                         readOnly: false,
                         mcp: bridge?.launch(),
-                        env: environment.env,
+                        env: instance ? environment.pool.environment(instance) : environment.env,
                         timeoutMs: TURN_TIMEOUT_MS,
                         stallTimeoutMs: setting<number>(settings, 'execution.stallTimeout'),
                         signal: environment.signal,
-                        allowCredits: setting<boolean>(settings, 'execution.allowCredits'),
+                        allowCredits: setting<boolean>(settings, 'execution.isCreditFallbackAllowed'),
                         authentication: item.route.inspection.authentication,
                         readableDirectories: agent.name === 'Expert' || agent.chain.includes('Expert') ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],
                         onEvent: (event) => {
@@ -597,14 +605,18 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 return { kind: 'interrupted' };
             }
             if (lastResult.outcome === 'authentication') {
-                environment.pool.invalidate(selection.harness);
+                if (selection.tool) environment.pool.markUnavailable(selection.tool, 'authentication', `Authentication failed: ${lastResult.diagnostic}`, QUOTA_BACKOFF_MS);
+                environment.pool.invalidate(selection.tool ?? selection.harness);
                 await save({ attempt: attempt - 1 });
-                return { kind: 'setup', reason: lastResult.diagnostic, next: plugin.loginHint };
+                return { kind: 'setup', reason: lastResult.diagnostic, next: plugin.loginHint, tool: selection.tool };
             }
             if (lastResult.outcome === 'quota') {
+                // The exhausted instance is skipped by the next selection: an authorized same-variant fallback serves the
+                // retry promptly instead of waiting through this account's reset.
+                if (selection.tool) environment.pool.markUnavailable(selection.tool, 'quota', `Quota/rate limit: ${lastResult.diagnostic}`, QUOTA_BACKOFF_MS);
                 await save({ attempt: attempt - 1 });
-                await trace.event('waiting', { reason: 'provider quota', diagnostic: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS });
-                return { kind: 'quota', reason: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS };
+                await trace.event('waiting', { reason: 'provider quota', tool: selection.tool ?? null, diagnostic: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS });
+                return { kind: 'quota', reason: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS, tool: selection.tool };
             }
             const report = parseAgentReport(lastResult.messages);
             if (pending.chat && (!report || report.status === 'waiting-for-user')) {
@@ -658,7 +670,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 continue;
             }
             const migrateCommand = setting<string | undefined>(settings, 'execution.migrateCommand');
-            if (setting<boolean>(settings, 'execution.autoMigrate') && migrateCommand) {
+            if (setting<boolean>(settings, 'execution.isAutoMigrateEnabled') && migrateCommand) {
                 hooks.emit({ type: 'activity', text: `Running migration hook: ${migrateCommand}` });
                 const migration = await runCheck(project.root, migrateCommand, { env: environment.env, signal: environment.signal });
                 await trace.event('migration-hook', { command: migrateCommand, passed: migration.passed, exitCode: migration.exitCode });
@@ -667,7 +679,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     continue;
                 }
             }
-            if (setting<boolean>(settings, 'execution.normalizeLineEndings')) await normalizeLineEndings(environment, await changed());
+            if (setting<boolean>(settings, 'execution.isLineEndingNormalizationEnabled')) await normalizeLineEndings(environment, await changed());
         }
         skipAgent = false;
 
@@ -684,7 +696,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             }
             const created: string[] = [];
             const wantsLearning = typeof item.learning === 'function' ? item.learning(await changed()) : item.learning;
-            if (wantsLearning && setting<boolean>(settings, 'learning.enabled') && agent.definition && !isTeacher(agent.name) && agent.learning.open) {
+            if (wantsLearning && setting<boolean>(settings, 'learning.isEnabled') && agent.definition && !isTeacher(agent.name) && agent.learning.open) {
                 const learning = await createLearningTask({
                     projectRoot: project.root,
                     tasksDirectory: environment.tasksDirectory,
@@ -739,6 +751,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             let sha = existing;
             if (!sha) {
                 try {
+                    await hooks.beforeCommit?.().catch(() => undefined);
                     await hooks.finalizeEvidence?.(trace).catch((error: unknown) => hooks.emit({ type: 'activity', text: `Evidence limitation: ${errorMessage(error)}`, level: 'warning' }));
                     const names = await commitTaskNames(environment, task, owned, item.relatedTaskNames ?? []);
                     await trace.event('committing', { runId: record.runId, paths: owned, createdTasks: names.created, relatedTasks: names.related });

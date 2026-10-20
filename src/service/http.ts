@@ -6,7 +6,7 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { engineModule } from '../common/version.js';
 import type { Agenda } from '../engine/agenda.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
-import { applyChatAction, applySettings, CONTROL_ACTIONS, type ControlOutcome } from './actions.js';
+import { applyChatAction, applySettings, applyToolAction, CONTROL_ACTIONS, type ControlOutcome } from './actions.js';
 import type { AuthStore, SessionRecord } from './auth.js';
 
 /**
@@ -299,7 +299,12 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         if (url.pathname === '/api/control') {
             const action = String(body.action ?? '');
             if (!CONTROL_ACTIONS.has(action)) throw new PtbkError(`Unknown control action "${action}".`, { kind: 'usage' });
-            sendJson(response, 200, await options.control(action, { replaceStop: body.replaceStop === true, revision: typeof body.revision === 'number' ? body.revision : undefined }));
+            sendJson(response, 200, await options.control(action, { replaceStop: body.replaceStop === true, revision: typeof body.revision === 'number' ? body.revision : undefined, ...(typeof body.name === 'string' ? { name: body.name } : {}) }));
+            return;
+        }
+        if (url.pathname === '/api/tools') {
+            // Saved tool management through the shared operation; secrets are write-only and never echoed.
+            sendJson(response, 200, await applyToolAction(agenda, body, who.kind === 'token' ? 'api' : 'dashboard'));
             return;
         }
         if (chatMatch) {

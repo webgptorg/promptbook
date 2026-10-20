@@ -41,7 +41,7 @@ export default async function verify(context: CommandContext): Promise<number> {
     }
     const results = await new StateStore(project.runtime.state).recentResults(500).catch(() => []);
     const gitInfo = await inspectGit(project.root);
-    const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
+    const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.isCommitEnabled');
     if (commit && gitInfo.state !== 'repository') throw new PtbkError('Not a Git working tree.', { kind: 'setup', next: ['Run `ptbk init` or use --no-commit.'] });
     const archived = new Set<string>();
     const archive = async (task: Task): Promise<void> => {

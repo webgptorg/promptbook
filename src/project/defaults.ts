@@ -1,3 +1,5 @@
+import { isCheckPlaceholder } from './config.js';
+
 /**
  * Default Book of the core agent Adam (shared foundation; ends inheritance with `FROM @Void` and is closed to
  * automatic learning).
@@ -43,15 +45,19 @@ CLOSED
 `;
 
 /**
- * Default Book of the core agent Fixer (project self-maintenance; open to project-specific learning).
+ * Default Book of the core agent Fixer: an ordinary, editable OPEN problem solver that reduces the decisions the user
+ * needs to make, with User and Expert in its initial TEAM. Problems the engine cannot resolve deterministically are
+ * routed to it as ordinary work; its consultation policy is the project's to customize.
  *
  * @private initialization defaults
  */
 export const FIXER_BOOK = `AGENT Fixer
 FROM @Adam
-GOAL Keep this Promptbook project healthy by finding and safely fixing real problems.
+GOAL Solve problems and reduce the decisions the user needs to make.
+RULE Resolve routine authorized problems yourself; consult the team when you genuinely need help.
+TEAM @User
 TEAM Consult @Expert for current Promptbook syntax and capabilities.
-OPEN Learn verified project-specific repair practices and preferences.
+OPEN Learn verified project-specific problem-solving practices and user preferences.
 `;
 
 /**
@@ -258,12 +264,12 @@ These instructions apply to every agent working on **${options.name}**.
 - \`specs/\` holds the project's specifications; \`specs/_initial.md\` preserves the original initial input — keep it unchanged.
 - Every Book starts with \`AGENT <name>\`, \`TASK <name>\` or \`CHAT <name>\`; that name is its identity (agents, tasks and chats share one namespace). Further content goes under commitments such as \`GOAL\`, \`PERSONA\` or \`RULE\`, and references use \`@Name\` or \`{{Multi Word Name}}\`.
 - \`traces/<task-file-basename>/\` holds Promptbook's per-task audit evidence, named literally after each task's source file without \`.book\`; never edit it or treat it as tasks or agents.
-- \`ptbk.json\` holds versioned Promptbook configuration; \`.ptbk/\` is Git-ignored runtime state.
+- \`ptbk.json\` holds versioned Promptbook configuration (including the named browser/harness \`tools\`); \`.ptbk/\` is Git-ignored runtime state and \`.env\` holds local secrets (never committed).
 
 ## Working rules
 
 - Keep changes focused on the task and consistent with existing conventions.
-- ${options.check ? `Validation: \`${options.check}\` must pass before a task is accepted.` : 'Validation: configure a real project check in `ptbk.json` (`execution.check`).'}
+- ${options.check && !isCheckPlaceholder(options.check) ? `Validation: \`${options.check}\` must pass before a task is accepted.` : 'Validation: real automated checks are not configured yet — `ptbk.json` `execution.check` holds an informational placeholder that always succeeds and proves nothing. Replace it with the project\'s real check when there is one.'}
 - Promptbook commits each accepted task with its completion; do not commit, push or rewrite history yourself.
 `;
 }

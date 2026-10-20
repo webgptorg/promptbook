@@ -3,7 +3,7 @@ import { clockTime } from '../../common/time.js';
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { ensureDirectory } from '../../common/fs.js';
 import { runCheck, validateCheckCommand } from '../../project/checks.js';
-import { loadSettings, setting } from '../../project/config.js';
+import { enabledHarnesses, isCheckPlaceholder, loadSettings, setting } from '../../project/config.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
 import { lookupService } from '../../service/control.js';
 import { ServiceHost } from '../../service/host.js';
@@ -17,7 +17,7 @@ import { flag, option, type CommandContext } from '../context.js';
  */
 export default async function fix(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
-    const overrides = { ...settingOverrides(context), 'server.enabled': false };
+    const overrides = { ...settingOverrides(context), 'server.isEnabled': false };
     const settings = await loadSettings(project, { env: context.env, cli: overrides });
     const check = setting<string | null | undefined>(settings, 'execution.check');
     const { terminal } = context;
@@ -25,6 +25,10 @@ export default async function fix(context: CommandContext): Promise<number> {
     if (!validation.ok) throw new PtbkError('No usable project check is configured.', { kind: 'setup', project: project.root, reason: validation.reason, next: ['Configure it with `ptbk init --check "<command>"` or pass `--check`.'] });
     if (flag(context, 'dry-run')) {
         terminal.write(`Dry run: would run \`${check}\` and, only if it fails, create and execute a repair task.\n`);
+        return EXIT.success;
+    }
+    if (isCheckPlaceholder(check)) {
+        terminal.write('Real automated validation is not configured: execution.check holds the informational placeholder, so there is nothing to repair (and no model call or commit). Configure a real check in ptbk.json execution.check.\n');
         return EXIT.success;
     }
     terminal.write(`Running the project check: ${check}\n`);
@@ -52,13 +56,14 @@ export default async function fix(context: CommandContext): Promise<number> {
         }),
         { flag: 'wx' },
     );
-    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(settings, 'routing.harness') ?? Object.entries(settings.harnesses).find(([, value]) => value.enabled)?.[0];
-    if (!harness) throw new PtbkError('No harness is available to repair the check.', { kind: 'setup', next: ['Pass `--harness <id>` or run `ptbk init`.'] });
+    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(settings, 'routing.harness') ?? enabledHarnesses(settings)[0];
+    if (!harness) throw new PtbkError('No harness is available to repair the check.', { kind: 'setup', next: ['Pass `--harness <variant|tool>` or enable a harness tool (`ptbk tool list`).'] });
     const host = new ServiceHost({
         project,
         mode: 'run',
         env: context.env,
         cli: overrides,
+        cliHarnesses: [harness],
         tasksDirectory: tasksOverride(context),
         persistent: null,
         allowTunnelInstall: false,

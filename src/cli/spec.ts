@@ -164,7 +164,7 @@ export const EXECUTION_SELECTION_OPTIONS: OptionGroup = {
     title: 'Execution selection',
     options: [
         { name: 'agent', type: 'string', valueName: '<ref>', description: 'Responsible agent (@Name or {Full Name}).', defaultText: 'Developer' },
-        { name: 'harness', type: 'string', valueName: '<id>', description: 'Harness, e.g. openai-codex or claude-code.', defaultText: 'routing.harness' },
+        { name: 'harness', type: 'string', valueName: '<variant|tool>', description: 'Harness variant (e.g. openai-codex, claude-code; its ordered instances may serve it) or one harness tool name.', defaultText: 'routing.harness' },
         { name: 'model', type: 'string', valueName: '<model>', description: 'Model of the selected harness.', defaultText: 'harness default' },
         { name: 'thinking-level', type: 'enum', values: ['low', 'medium', 'high', 'xhigh', 'max'], valueName: '<level>', description: 'Reasoning effort (only where supported).' },
         { name: 'context', type: 'string', valueName: '<file>', description: 'Additional context file; an empty value disables it.', defaultText: 'AGENTS.md' },
@@ -182,8 +182,9 @@ export const EXECUTION_POLICY_OPTIONS: OptionGroup = {
         { name: 'check', type: 'string', valueName: '<command>', description: 'Project check command for this invocation (temporary override).' },
         { name: 'check-before', type: 'enum', values: ['no', 'yes-and-fail', 'yes-and-fix'], valueName: '<mode>', description: 'Run the check before work.', defaultText: 'no' },
         { name: 'git-changes', type: 'enum', values: ['fail', 'ignore', 'continue'], valueName: '<policy>', description: 'Unrelated uncommitted changes: refuse, keep aside, or resume one interrupted task.', defaultText: 'fail' },
-        { name: 'auto-pull', type: 'boolean', description: 'Pull with rebase at task boundaries.' },
-        { name: 'auto-push', type: 'boolean', description: 'Push completed work.' },
+        { name: 'auto-sync', type: 'boolean', negatable: true, description: 'Automatic Git synchronization for this invocation (existing origin and current branch: pull every 60 s and before work/commits with visible merges, push completed work).', defaultText: 'isAutoSync in ptbk.json (off)' },
+        { name: 'auto-pull', type: 'boolean', description: 'Compatibility alias of --auto-sync (enables both pull and push).' },
+        { name: 'auto-push', type: 'boolean', description: 'Compatibility alias of --auto-sync (enables both pull and push).' },
         { name: 'isolate', type: 'boolean', description: 'Execute each task in a separate Git worktree.' },
         { name: 'normalize-line-endings', type: 'boolean', negatable: true, negatedOnly: true, description: 'Keep CRLF line endings in changed files.' },
         { name: 'questions', type: 'boolean', negatable: true, negatedOnly: true, description: 'Agents may not ask the user questions.' },
@@ -218,10 +219,11 @@ export const SERVER_OPTIONS: OptionGroup = {
  * @private CLI specification
  */
 export const BROWSER_OPTIONS: OptionGroup = {
-    title: 'Project browser',
+    title: 'Browser tool overrides (this invocation only)',
     options: [
-        { name: 'browser-mode', type: 'enum', values: ['headless', 'headful'], valueName: '<mode>', description: 'Browser visibility for this invocation.', defaultText: 'browser.mode' },
-        { name: 'browser-profile', type: 'string', valueName: '<source>', description: 'Browser profile: `global` (dedicated Promptbook profile shared by your projects, default), `isolated` (this project only), `user` (your Chrome profile) or a profile path. Temporary unless saved by init.', defaultText: 'browser.profile' },
+        { name: 'browser-mode', type: 'enum', values: ['headless', 'headful'], valueName: '<mode>', description: 'Browser visibility for this invocation.', defaultText: 'the tool’s isHeadless' },
+        { name: 'browser-profile', type: 'string', valueName: '<source>', description: 'Profile for this invocation: MANAGED_GLOBAL (`global`), PROJECT (`isolated`), USER_EXISTING (`user`) or a profile path. Saved changes use `ptbk tool modify`.', defaultText: 'the tool’s profile' },
+        { name: 'browser-tool', type: 'string', valueName: '<name>', description: 'The browser tool the two overrides apply to (required when several browsers are enabled).' },
     ],
 };
 

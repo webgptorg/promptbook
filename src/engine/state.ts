@@ -26,14 +26,16 @@ export type WorkKind = 'task' | 'assignment' | 'learning' | 'discovery' | 'inten
 export type RoutingSelection = {
     /** Agent display name. */
     readonly agent: string;
-    /** Harness identifier. */
+    /** Harness variant (plugin identifier, e.g. `openai-codex`). */
     readonly harness: string;
+    /** Named harness tool instance actually serving the work (same-variant fallback picks it at selection). */
+    readonly tool?: string;
     /** Requested model (undefined = harness default). */
     readonly model?: string;
     /** Requested thinking level. */
     readonly thinkingLevel?: ThinkingLevel;
     /** Where each value came from (task requirement, run selection, CLI override, saved default, automatic choice). */
-    readonly sources?: Readonly<Partial<Record<'agent' | 'harness' | 'model' | 'thinkingLevel', string>>>;
+    readonly sources?: Readonly<Partial<Record<'agent' | 'harness' | 'tool' | 'model' | 'thinkingLevel', string>>>;
 };
 
 /**

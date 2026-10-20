@@ -27,7 +27,15 @@
         newChat: false,
         showAllChats: false,
         /** Viewer-local detail panels (initially collapsed; never engine state). */
-        details: { execution: false, browser: false },
+        details: { execution: false, browser: false, sync: false },
+        /** Tool names whose details are expanded (viewer-local). */
+        toolDetails: new Set(),
+        /** The open add/modify tool form: { mode, name?, values } (values survive re-renders; secrets stay in memory only). */
+        toolForm: null,
+        /** A tool change waiting for an explicit acknowledgement: { request, requirements }. */
+        toolAck: null,
+        /** Whether the add form lists every harness variant (featured first, then More). */
+        showAllVariants: false,
     };
 
     /** Creates a DOM element; text children are always inserted as text (never parsed as HTML). */
@@ -419,6 +427,7 @@
             );
             const rows = [
                 ['Task', `${current.taskRef}${current.kind !== 'task' ? ` (${current.kind})` : ''}`],
+                ...(current.tool ? [['Tool', `${current.harnessName} · ${current.tool}`]] : []),
                 ...(current.trace ? [['Trace', current.trace]] : []),
                 ['Phase', `${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? ` · ${current.detail}` : ''}`],
                 ['Since', time(current.startedAt)],
@@ -447,9 +456,9 @@
         const error = snapshot.errors[snapshot.errors.length - 1];
         if (error) card.append(h('details', {}, h('summary', {}, `Last error: ${error.summary}`), h('div', { className: 'muted' }, [error.phase && `Step: ${error.phase}`, error.next && `Next: ${error.next}`, error.trace && `Diagnostics: ${error.trace}`].filter(Boolean).join(' · '))));
         // A significant browser failure stays visible while the browser details are collapsed.
-        const browser = snapshot.browser;
-        if (browser && (browser.state === 'failed' || (browser.recovery && browser.recovery.state === 'blocked')) && browser.lastFailure) {
-            card.append(h('div', { className: 'notice error' }, h('strong', {}, 'Project browser'), ` — ${browser.lastFailure.summary}`, browser.recovery && browser.recovery.state === 'retrying' ? h('div', { className: 'muted' }, 'Recovering automatically…') : null, h('div', { className: 'muted' }, 'Open “Browser details” to recheck, retry or restart it.')));
+        for (const browser of browsersOf(snapshot)) {
+            if (!((browser.state === 'failed' || (browser.recovery && browser.recovery.state === 'blocked')) && browser.lastFailure)) continue;
+            card.append(h('div', { className: 'notice error' }, h('strong', {}, `Browser ${browser.name}`), ` — ${browser.lastFailure.summary}`, browser.recovery && browser.recovery.state === 'retrying' ? h('div', { className: 'muted' }, 'Recovering automatically…') : null, h('div', { className: 'muted' }, 'Open “Browser details” to recheck, retry or restart it.')));
         }
         return card;
     }
@@ -490,46 +499,249 @@
         ];
         for (const context of execution.contexts) {
             const prefix = context.role === 'consultation' ? `${context.by || '?'} → ${context.agent} (${context.state}): ` : '';
-            rows.push([context.role === 'consultation' ? 'Consultation' : 'Harness', `${prefix}${context.harness.name}${context.harness.version ? ` ${context.harness.version}` : ''}`]);
+            rows.push([context.role === 'consultation' ? 'Consultation' : 'Harness', `${prefix}${context.harness.name}${context.harness.version ? ` ${context.harness.version}` : ''}${context.harness.tool ? ` · tool ${context.harness.tool}` : ''}`]);
             rows.push(['Model', `${prefix}${modelText(context.model)}${context.model.source ? ` · ${context.model.source}` : ''}`]);
             rows.push(['Thinking', `${prefix}${thinkingText(context.thinkingLevel)}${context.thinkingLevel.source ? ` · ${context.thinkingLevel.source}` : ''}`]);
         }
         return h('dl', { className: 'kv' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)]));
     }
 
+    /** Every named browser tool the engine reports (older engines: the single project browser). */
+    function browsersOf(snapshot) {
+        return snapshot.browsers && snapshot.browsers.length ? snapshot.browsers : snapshot.browser ? [snapshot.browser] : [];
+    }
+
     function renderBrowserDetails(snapshot) {
-        const browser = snapshot.browser;
-        if (!browser) return h('p', { className: 'muted' }, 'Browser information is not available from this service.');
-        const rows = [
-            ['Profile', `${browser.sourceLabel} (${browser.source})`],
-            ['Path', browser.profilePath],
-            ['Mode', `${browser.mode.requested}${browser.mode.actual && browser.mode.actual !== browser.mode.requested ? ` (actually ${browser.mode.actual})` : ''}${browser.mode.note ? ` · ${browser.mode.note}` : ''}`],
-            ['State', `${browser.state}${browser.pid ? ` · PID ${browser.pid}` : ''}`],
-            ['Ownership', `${browser.ownership.state}${browser.ownership.holder ? ` — ${browser.ownership.holder}` : ''}`],
-        ];
-        if (browser.executable) rows.push(['Browser', browser.executable]);
-        if (browser.savedProfile) rows.push(['Saved', browser.savedProfile]);
-        if (browser.pending) rows.push(['Pending', browser.pending]);
-        if (browser.lastFailure) rows.push(['Last failure', `${time(browser.lastFailure.at)} ${browser.lastFailure.summary}${browser.lastFailure.evidence ? ` — ${browser.lastFailure.evidence}` : ''}`]);
-        if (browser.recovery && (browser.recovery.state !== 'idle' || browser.recovery.attempts)) rows.push(['Recovery', `${browser.recovery.state}${browser.recovery.attempts ? ` · ${browser.recovery.attempts} attempt(s)` : ''}${browser.recovery.nextRetryAt ? ` · next ${time(browser.recovery.nextRetryAt)}` : ''}${browser.recovery.blocker ? ` · ${browser.recovery.blocker}` : ''}`]);
-        if (browser.lastAction) rows.push(['Last action', `${browser.lastAction.action}: ${browser.lastAction.state} — ${browser.lastAction.outcome}`]);
+        const browsers = browsersOf(snapshot);
+        if (!browsers.length) return h('p', { className: 'muted' }, 'Browser information is not available from this service.');
         return h(
             'div',
             {},
-            h('dl', { className: 'kv' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])),
-            h(
-                'div',
-                { className: 'row', style: 'margin-top:8px', role: 'group', 'aria-label': 'Browser recovery' },
-                h('button', { onclick: () => control('browser-recheck') }, 'Recheck'),
-                h('button', { onclick: () => control('browser-retry') }, 'Retry startup'),
-                h('button', { onclick: () => control('browser-restart', 'Restart this project’s browser? Its profile and sessions are kept; the engine keeps running.') }, 'Restart browser'),
-            ),
-            h('p', { className: 'muted' }, 'Recovery is automatic; these actions use the same engine-owned recovery and never restart the engine or other browsers.'),
+            browsers.map((browser) => {
+                const rows = [
+                    ['Tool', `${browser.name} (${browser.variant}${browser.isEnabled ? '' : ', disabled'})${browser.inUse ? ' · in use' : ''}${browser.retained ? ' · current work keeps its acquired configuration' : ''}`],
+                    ['Profile', `${browser.sourceLabel} (${browser.source})`],
+                    ['Path', browser.profilePath],
+                    ['Mode', `${browser.mode.requested}${browser.mode.actual && browser.mode.actual !== browser.mode.requested ? ` (actually ${browser.mode.actual})` : ''}${browser.mode.note ? ` · ${browser.mode.note}` : ''}`],
+                    ['State', `${browser.state}${browser.pid ? ` · PID ${browser.pid}` : ''}`],
+                    ['Ownership', `${browser.ownership.state}${browser.ownership.holder ? ` — ${browser.ownership.holder}` : ''}`],
+                ];
+                if (browser.executable) rows.push(['Browser', browser.executable]);
+                if (browser.savedProfile) rows.push(['Saved', browser.savedProfile]);
+                if (browser.pending) rows.push(['Pending', browser.pending]);
+                if (browser.lastFailure) rows.push(['Last failure', `${time(browser.lastFailure.at)} ${browser.lastFailure.summary}${browser.lastFailure.evidence ? ` — ${browser.lastFailure.evidence}` : ''}`]);
+                if (browser.recovery && (browser.recovery.state !== 'idle' || browser.recovery.attempts)) rows.push(['Recovery', `${browser.recovery.state}${browser.recovery.attempts ? ` · ${browser.recovery.attempts} attempt(s)` : ''}${browser.recovery.nextRetryAt ? ` · next ${time(browser.recovery.nextRetryAt)}` : ''}${browser.recovery.blocker ? ` · ${browser.recovery.blocker}` : ''}`]);
+                if (browser.lastAction) rows.push(['Last action', `${browser.lastAction.action}: ${browser.lastAction.state} — ${browser.lastAction.outcome}`]);
+                return h(
+                    'div',
+                    { className: 'browser-detail' },
+                    h('h3', {}, browser.name),
+                    h('dl', { className: 'kv' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])),
+                    h(
+                        'div',
+                        { className: 'row', style: 'margin-top:8px', role: 'group', 'aria-label': `Recovery of ${browser.name}` },
+                        h('button', { onclick: () => control('browser-recheck', null, { name: browser.name }) }, 'Recheck'),
+                        h('button', { onclick: () => control('browser-retry', null, { name: browser.name }) }, 'Retry startup'),
+                        h('button', { onclick: () => control('browser-restart', `Restart the browser “${browser.name}”? Its profile and sessions are kept; the engine keeps running.`, { name: browser.name }) }, 'Restart browser'),
+                    ),
+                );
+            }),
+            h('p', { className: 'muted' }, 'Recovery is automatic; these actions use the same engine-owned recovery of one named browser and never restart the engine or other browsers.'),
         );
     }
 
+    /** Applies a saved tool change through the shared operation; protections become explicit choices here. */
+    async function toolOperation(request) {
+        const key = 'tool-operation';
+        if (state.busy.has(key)) return;
+        state.busy.add(key);
+        try {
+            const result = await api('/api/tools', { method: 'POST', body: request });
+            if (result.status === 'needs-acknowledgement') {
+                state.toolAck = { request, requirements: result.requirements };
+            } else {
+                state.toolAck = null;
+                state.toolForm = null;
+                toast(`${result.summary}${result.commit ? ` — committed ${result.commit.slice(0, 8)}` : ''}`);
+            }
+        } catch (error) {
+            toast(`Not changed: ${error.message}`);
+        } finally {
+            state.busy.delete(key);
+            render(state.snapshot);
+        }
+    }
+
+    /** Inline choices for an in-use tool or the last enabled tool of a type (the same meanings as the CLI). */
+    function renderToolAck() {
+        const ack = state.toolAck;
+        if (!ack) return null;
+        const inUse = ack.requirements.find((item) => item.kind === 'in-use');
+        const last = ack.requirements.find((item) => item.kind === 'last-of-type');
+        const withAck = (extra) => ({ ...ack.request, acknowledgements: { ...(ack.request.acknowledgements || {}), ...extra } });
+        const buttons = [];
+        if (inUse) {
+            buttons.push(h('button', { className: 'primary', onclick: () => toolOperation(withAck({ force: true })) }, 'Save now — current work finishes with the tool it acquired'));
+            buttons.push(h('button', { className: 'danger', onclick: () => ((state.toolAck = null), control('force-stop', 'Force-stop the whole engine now? Owned work is interrupted (recoverable). The tool change is not applied: repeat it after the engine has stopped.')) }, 'Force-stop the whole engine instead'));
+        } else if (last) {
+            buttons.push(h('button', { className: 'primary', onclick: () => toolOperation(withAck({ confirmLastOfType: true })) }, 'Confirm'));
+        }
+        buttons.push(h('button', { onclick: () => ((state.toolAck = null), render(state.snapshot)) }, 'Keep things as they are'));
+        return h('div', { className: 'notice error', role: 'alertdialog' }, ack.requirements.map((item) => h('p', {}, item.message)), inUse && last ? h('p', { className: 'muted' }, 'Both protections apply; each is confirmed separately (saving now does not confirm the last-tool warning).') : null, h('div', { className: 'row' }, buttons));
+    }
+
+    /** One form field whose value survives live re-renders. */
+    function formField(form, key, label, attributes) {
+        const input = h('input', { type: attributes && attributes.type ? attributes.type : 'text', 'data-draft': `tool:${key}`, 'aria-label': label, placeholder: (attributes && attributes.placeholder) || '', autocomplete: attributes && attributes.type === 'password' ? 'new-password' : 'off' });
+        input.value = form.values[key] || '';
+        input.addEventListener('input', () => (form.values[key] = input.value));
+        return h('label', { className: 'field' }, h('span', {}, label), input);
+    }
+
+    /** One select field whose value survives live re-renders. */
+    function formSelect(form, key, label, options) {
+        const select = h('select', { 'aria-label': label }, options.map((option) => (option.group ? h('optgroup', { label: option.group }, option.options.map((item) => h('option', { value: item.value }, item.label))) : h('option', { value: option.value }, option.label))));
+        select.value = form.values[key] || (options[0].options ? options[0].options[0].value : options[0].value);
+        form.values[key] = select.value;
+        select.addEventListener('change', () => {
+            form.values[key] = select.value;
+            render(state.snapshot);
+        });
+        return h('label', { className: 'field' }, h('span', {}, label), select);
+    }
+
+    /** The add/modify form (fields of the selected type; the API key value is write-only). */
+    function renderToolForm(snapshot) {
+        const form = state.toolForm;
+        if (!form) return null;
+        const values = form.values;
+        const type = values.type || 'HARNESS';
+        const featured = (snapshot.harnesses || []).filter((harness) => harness.featured);
+        const more = (snapshot.harnesses || []).filter((harness) => !harness.featured);
+        const variantOf = (harness) => ({ value: harness.id.toUpperCase().replace(/-/g, '_'), label: harness.name });
+        const fields = [];
+        if (form.mode === 'add') {
+            fields.push(formSelect(form, 'type', 'Type', [{ value: 'HARNESS', label: 'Harness' }, { value: 'BROWSER', label: 'Browser' }]));
+            fields.push(
+                type === 'BROWSER'
+                    ? formSelect(form, 'variant', 'Variant', [{ value: 'CHROME', label: 'Chrome (or another Chrome-compatible browser)' }, { value: 'CHROMIUM', label: 'Chromium' }, { value: 'EDGE', label: 'Microsoft Edge' }])
+                    : formSelect(form, 'variant', 'Variant', [{ group: 'Featured', options: featured.map(variantOf) }, ...(state.showAllVariants ? [{ group: 'More', options: more.map(variantOf) }] : [])]),
+            );
+            if (type !== 'BROWSER') fields.push(h('button', { type: 'button', onclick: () => ((state.showAllVariants = !state.showAllVariants), render(state.snapshot)) }, state.showAllVariants ? 'Featured only' : 'More…'));
+            fields.push(formField(form, 'name', 'Name (kebab-case)', { placeholder: type === 'BROWSER' ? 'work-browser' : 'codex-company' }));
+        } else fields.push(formField(form, 'rename', 'Name', {}));
+        fields.push(formField(form, 'description', 'Description (optional)', {}));
+        if (type === 'BROWSER') {
+            fields.push(formSelect(form, 'profileSource', 'Profile', [{ value: 'MANAGED_GLOBAL', label: 'Dedicated Promptbook profile (shared by your projects)' }, { value: 'PROJECT', label: 'Isolated project profile (.ptbk/)' }, { value: 'USER_EXISTING', label: 'Your existing Chrome profile' }, { value: 'CUSTOM', label: 'Custom path' }]));
+            if (values.profileSource === 'CUSTOM') fields.push(formField(form, 'profilePath', 'Profile path', {}));
+            fields.push(formSelect(form, 'isHeadless', 'Window', [{ value: 'true', label: 'Headless (no window)' }, { value: 'false', label: 'Visible window' }]));
+        } else {
+            fields.push(formSelect(form, 'authentication', 'Authentication', [{ value: 'NATIVE', label: 'Native login / subscription' }, { value: 'API_KEY', label: 'API key (explicit paid access)' }]));
+            if (values.authentication === 'API_KEY') {
+                fields.push(formField(form, 'apiKeyEnv', 'Key variable (stored as ${{ env.NAME }})', { placeholder: 'COMPANY_OPENAI_API_KEY' }));
+                fields.push(formField(form, 'apiKeyValue', 'New key value (optional; write-only, stored in the ignored .env)', { type: 'password' }));
+            }
+            fields.push(formField(form, 'model', 'Preferred model (optional)', {}));
+        }
+        const submit = () => {
+            const text = (key) => (values[key] || '').trim();
+            const common = { ...(text('description') ? { description: text('description') } : {}) };
+            const browserFields = { profileSource: values.profileSource || 'MANAGED_GLOBAL', ...(values.profileSource === 'CUSTOM' && text('profilePath') ? { profilePath: text('profilePath') } : {}), isHeadless: values.isHeadless !== 'false' };
+            const harnessFields = { authentication: values.authentication || 'NATIVE', ...(values.authentication === 'API_KEY' && text('apiKeyEnv') ? { apiKeyEnv: text('apiKeyEnv') } : {}), ...(text('model') ? { model: text('model') } : {}) };
+            const secret = values.authentication === 'API_KEY' && values.apiKeyValue ? { variable: text('apiKeyEnv'), value: values.apiKeyValue } : undefined;
+            const operation =
+                form.mode === 'add'
+                    ? { kind: 'add', tool: { type, variant: values.variant, name: text('name'), ...common, ...(type === 'BROWSER' ? browserFields : harnessFields) } }
+                    : { kind: 'modify', name: form.name, ...(text('rename') && text('rename') !== form.name ? { rename: text('rename') } : {}), changes: { description: text('description') || null, ...(type === 'BROWSER' ? { ...browserFields, ...(values.profileSource !== 'CUSTOM' ? { profilePath: null } : {}) } : { ...harnessFields, model: text('model') || null }) } };
+            toolOperation({ operation, ...(secret ? { secret } : {}) });
+        };
+        return h('div', { className: 'tool-form', role: 'form', 'aria-label': form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}` }, h('h3', {}, form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}`), h('div', { className: 'fields' }, fields), h('div', { className: 'row' }, h('button', { className: 'primary', disabled: state.busy.has('tool-operation'), onclick: submit }, 'Save (commits immediately)'), h('button', { onclick: () => ((state.toolForm = null), render(state.snapshot)) }, 'Cancel')));
+    }
+
+    /** Compact tool inventory with primary enable/disable, reordering and secondary removal (shared operations). */
+    function renderTools(snapshot) {
+        const card = h('section', { className: 'card tools', 'aria-label': 'Tools' });
+        const tools = snapshot.tools;
+        const usable = tools ? tools.items.filter((item) => item.state === 'usable').length : 0;
+        card.append(h('h2', {}, h('span', {}, 'Tools'), h('span', {}, tools ? `${usable} usable` : '')));
+        if (!tools) {
+            card.append(h('p', { className: 'muted' }, 'Tool information is not available from this service.'));
+            return card;
+        }
+        if (tools.waiting) card.append(h('div', { className: 'notice error' }, h('strong', {}, 'New work waits for tools'), ` — ${tools.waiting.reason}`, h('div', { className: 'muted' }, `Action: ${tools.waiting.action}`), h('div', { className: 'muted' }, 'The engine keeps running; work resumes as soon as a tool is usable.')));
+        for (const problem of tools.problems) card.append(h('div', { className: 'notice' }, problem));
+        const ack = renderToolAck();
+        if (ack) card.append(ack);
+        const tone = { usable: 'ok', unavailable: 'bad', disabled: '', unknown: 'warn' };
+        card.append(
+            h(
+                'ul',
+                { className: 'list' },
+                tools.items.map((item, index) =>
+                    h(
+                        'li',
+                        {},
+                        h(
+                            'span',
+                            { className: 'title' },
+                            `${item.name} `,
+                            h('span', { className: 'muted' }, `${item.variantLabel} · ${item.type}`),
+                            item.inUse ? pill(item.retained ? 'in use (retained)' : 'in use', 'warn') : null,
+                            h('span', { className: 'why' }, `${item.summary}${item.nextAction && item.state !== 'usable' ? ` → ${item.nextAction}` : ''}`),
+                            state.toolDetails.has(item.name) ? h('dl', { className: 'kv' }, [['Enabled', item.isEnabled ? 'yes' : 'no (configuration and credentials are kept)'], ...Object.entries(item.fields), ...(item.description ? [['Description', item.description]] : [])].map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])) : null,
+                        ),
+                        h(
+                            'span',
+                            { className: 'row', role: 'group', 'aria-label': `Actions of ${item.name}` },
+                            pill(item.isEnabled ? item.state : 'disabled', tone[item.isEnabled ? item.state : 'disabled']),
+                            h('button', { className: 'primary', disabled: state.busy.has('tool-operation'), onclick: () => toolOperation({ operation: { kind: item.isEnabled ? 'disable' : 'enable', name: item.name } }) }, item.isEnabled ? 'Disable' : 'Enable'),
+                            h('button', { title: 'Details', 'aria-expanded': state.toolDetails.has(item.name) ? 'true' : 'false', onclick: () => (state.toolDetails.has(item.name) ? state.toolDetails.delete(item.name) : state.toolDetails.add(item.name), render(state.snapshot)) }, 'Details'),
+                            h('button', { onclick: () => ((state.toolForm = { mode: 'modify', name: item.name, values: { type: item.type, rename: item.name, description: item.description || '', profileSource: (item.fields.profile || 'MANAGED_GLOBAL').split(' ')[0], profilePath: (item.fields.profile || '').split(' ').slice(1).join(' '), isHeadless: item.fields.isHeadless || 'true', authentication: item.fields.authentication || 'NATIVE', apiKeyEnv: ((item.fields.apiKey || '').match(/env\.([A-Za-z_][A-Za-z0-9_]*)/) || [])[1] || '', model: item.fields.model || '' } }), render(state.snapshot)) }, 'Modify'),
+                            h('button', { title: 'Move up', 'aria-label': `Move ${item.name} up`, disabled: index === 0, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, before: tools.items[index - 1].name } }) }, '▲'),
+                            h('button', { title: 'Move down', 'aria-label': `Move ${item.name} down`, disabled: index === tools.items.length - 1, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, after: tools.items[index + 1].name } }) }, '▼'),
+                            h('button', { className: 'secondary danger', onclick: () => window.confirm(`Permanently remove the configuration of “${item.name}”? Disable keeps it instead. Browser profiles, native logins and .env history are never deleted.`) && toolOperation({ operation: { kind: 'remove', name: item.name } }) }, 'Remove'),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        const form = renderToolForm(snapshot);
+        if (form) card.append(form);
+        else card.append(h('button', { onclick: () => ((state.toolForm = { mode: 'add', values: { type: 'HARNESS', authentication: 'NATIVE', profileSource: 'MANAGED_GLOBAL', isHeadless: 'true' } }), render(state.snapshot)) }, 'Add tool'));
+        card.append(h('p', { className: 'muted' }, 'Saved changes are committed immediately and used by the running engine at once, also by the current task. API keys are stored only as ${{ env.NAME }} references; key values go to the ignored .env and are never shown again.'));
+        return card;
+    }
+
+    /** Git synchronization, shown only while automatic synchronization is enabled. */
+    function renderSync(snapshot) {
+        const sync = snapshot.sync;
+        if (!sync) return null;
+        const card = h('section', { className: 'card sync', 'aria-label': 'Synchronization' });
+        const tone = sync.state === 'synchronized' ? 'ok' : sync.state === 'never' ? '' : ['failed', 'conflict'].includes(sync.state) ? 'bad' : 'warn';
+        card.append(h('h2', {}, h('span', {}, 'Synchronization'), pill(sync.phase === 'idle' ? sync.state : sync.phase, tone)));
+        card.append(h('p', {}, `${sync.branch || '?'} ↔ ${sync.upstream || 'no tracking destination'}${sync.incoming !== undefined || sync.outgoing !== undefined ? ` · ${sync.incoming ?? '?'} incoming / ${sync.outgoing ?? '?'} outgoing` : ''}`));
+        if (sync.reason) card.append(h('div', { className: 'notice' }, sync.reason));
+        card.append(
+            detailPanel(
+                'sync',
+                'Synchronization details',
+                h('dl', { className: 'kv' }, [
+                    ['Origin', sync.origin || 'not configured'],
+                    ['Last attempt', time(sync.lastAttemptAt) || 'never'],
+                    ['Integrated', time(sync.lastIntegrationAt) || 'unknown'],
+                    ['Published', time(sync.lastPublicationAt) || 'unknown'],
+                    ['Next attempt', time(sync.nextAttemptAt) || 'unknown'],
+                    ...(sync.manual ? [['Manual', `${time(sync.manual.at)}: ${sync.manual.outcome}`]] : []),
+                ].map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])),
+            ),
+        );
+        card.append(h('div', { className: 'row' }, h('button', { disabled: state.busy.has('control:sync-now'), onclick: () => control('sync-now') }, 'Synchronize now')));
+        card.append(h('p', { className: 'muted' }, 'One cycle of the engine’s own coordinator: fetch, visible merge when safe, then push. Failures never stop local work; history is never rewritten.'));
+        return card;
+    }
+
     function renderDetails(snapshot) {
-        return h('section', { className: 'details-panels', 'aria-label': 'Details' }, detailPanel('execution', 'Execution details — agent, harness, model, thinking level', renderExecutionDetails(snapshot)), detailPanel('browser', 'Browser details — profile, health, recovery', renderBrowserDetails(snapshot)));
+        return h('section', { className: 'details-panels', 'aria-label': 'Details' }, detailPanel('execution', 'Execution details — agent, harness tool, model, thinking level', renderExecutionDetails(snapshot)), detailPanel('browser', 'Browser details — named browsers, profiles, health, recovery', renderBrowserDetails(snapshot)));
     }
 
     /** The always-visible service-control panel: live state, pending intent and the shared lifecycle operations. */
@@ -554,15 +766,6 @@
         card.append(h('h2', {}, 'Agents and settings'));
         const agents = h('details', {}, h('summary', {}, `Agents (${snapshot.agents.length})`), h('ul', { className: 'list' }, snapshot.agents.map((agent) => h('li', {}, h('span', { className: 'row' }, badge(agent, true), agent.name), h('span', { className: 'muted' }, ACTIVITY_LABEL[agent.activity])))));
         card.append(agents);
-        const featured = snapshot.harnesses.filter((harness) => harness.featured || harness.enabled);
-        const harnessList = h(
-            'ul',
-            { className: 'list' },
-            (state.showMoreHarnesses ? snapshot.harnesses : featured).map((harness) =>
-                h('li', {}, h('span', {}, harness.name, harness.enabled ? '' : h('span', { className: 'muted' }, ' (not enabled)')), harness.enabled ? pill(harness.usable ? 'ready' : 'needs setup', harness.usable ? 'ok' : 'bad') : null),
-            ),
-        );
-        card.append(h('details', {}, h('summary', {}, 'Harnesses'), harnessList, h('button', { onclick: () => ((state.showMoreHarnesses = !state.showMoreHarnesses), render(state.snapshot)) }, state.showMoreHarnesses ? 'Fewer' : 'More…')));
         card.append(renderSettings(snapshot));
         return card;
     }
@@ -570,7 +773,7 @@
     function renderSettings(snapshot) {
         const editable = snapshot.settings.filter((setting) => setting.application !== 'restart');
         const keySelect = h('select', { 'aria-label': 'Setting' }, editable.map((setting) => h('option', { value: setting.key }, setting.key)));
-        const valueInput = h('input', { type: 'text', 'aria-label': 'Value', placeholder: 'value, e.g. 30m, true, headful' });
+        const valueInput = h('input', { type: 'text', 'aria-label': 'Value', placeholder: 'value, e.g. 30m, true, YES_AND_FIX' });
         const save = h('input', { type: 'checkbox', id: 'save-default' });
         const apply = async () => {
             try {
@@ -673,7 +876,7 @@
         const focusDraft = active && active.getAttribute && active.getAttribute('data-draft');
         const selection = focusDraft ? [active.selectionStart, active.selectionEnd] : null;
         const scroll = window.scrollY;
-        app.replaceChildren(renderAttention(snapshot), renderControls(snapshot), renderChats(snapshot), renderWork(snapshot), renderDetails(snapshot), renderQueue(snapshot), renderActivity(snapshot), renderInventory(snapshot), renderConnection(snapshot));
+        app.replaceChildren(...[renderAttention(snapshot), renderControls(snapshot), renderChats(snapshot), renderWork(snapshot), renderTools(snapshot), renderSync(snapshot), renderDetails(snapshot), renderQueue(snapshot), renderActivity(snapshot), renderInventory(snapshot), renderConnection(snapshot)].filter(Boolean));
         if (focusDraft) {
             const field = app.querySelector(`[data-draft="${CSS.escape(focusDraft)}"]`);
             if (field) {

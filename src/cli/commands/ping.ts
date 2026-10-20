@@ -4,7 +4,9 @@ import { join } from 'node:path';
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { ensureDirectory } from '../../common/fs.js';
 import { shortId } from '../../common/ids.js';
-import { loadSettings, setting, type ThinkingLevel } from '../../project/config.js';
+import { enabledHarnesses, loadSettings, setting, type ThinkingLevel } from '../../project/config.js';
+import { HarnessPool } from '../../engine/harnesses.js';
+import { harnessRequirement } from '../../engine/routing.js';
 import { harnessPlugin } from '../../harness/registry.js';
 import { runHarness } from '../../harness/run.js';
 import { selectedProject } from '../common.js';
@@ -17,17 +19,23 @@ import { option, type CommandContext } from '../context.js';
  */
 export default async function ping(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
-    const settings = await loadSettings(project, { env: context.env });
-    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(settings, 'routing.harness');
+    const saved = await loadSettings(project, { env: context.env });
+    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(saved, 'routing.harness') ?? enabledHarnesses(saved)[0];
     if (!harness) throw new PtbkError('Select a harness with --harness.', { kind: 'usage' });
-    const plugin = harnessPlugin(harness);
-    if (!plugin) throw new PtbkError(`Unknown harness "${harness}".`, { kind: 'usage' });
+    // The explicit call uses the same named instance selection (and credentials) as ordinary work.
+    const settings = await loadSettings(project, { env: context.env, cliHarnesses: [harness] });
+    const pool = new HarnessPool(project.root, settings, context.env);
+    const requirement = harnessRequirement(harness, pool);
+    const plugin = requirement ? harnessPlugin(requirement.variant) : undefined;
+    if (!plugin || !requirement) throw new PtbkError(`Unknown harness "${harness}".`, { kind: 'usage', next: ['Use a variant such as openai-codex or a harness tool name from `ptbk tool list`.'] });
     const period = option<number>(context, 'period');
     const { terminal } = context;
     let failures = 0;
     for (;;) {
-        const inspection = await plugin.inspect({ projectRoot: project.root, env: context.env });
-        if (!inspection.usable) throw new PtbkError(`${plugin.displayName} is not usable.`, { kind: 'setup', harness, reason: inspection.summary, next: inspection.nextAction ? [inspection.nextAction] : [] });
+        await pool.refresh(undefined, true);
+        const instance = pool.select(requirement.variant, { tool: requirement.tool });
+        const inspection = instance ? pool.inspectionOf(instance.name) : pool.inspection(requirement.variant);
+        if (!instance || !inspection?.usable) throw new PtbkError(`${plugin.displayName} is not usable.`, { kind: 'setup', harness, reason: inspection?.summary ?? 'No enabled instance is configured.', next: inspection?.nextAction ? [inspection.nextAction] : [] });
         const directory = await ensureDirectory(project.runtime.temporary);
         const promptFile = join(directory, `ping-${shortId()}.md`);
         const prompt = 'This is a connectivity check. Do not use any tools or read any files. Reply with exactly the word PONG.';
@@ -40,10 +48,10 @@ export default async function ping(context: CommandContext): Promise<number> {
                     cwd: project.root,
                     prompt,
                     promptFile,
-                    model: option<string>(context, 'model'),
+                    model: option<string>(context, 'model') ?? instance.model,
                     thinkingLevel: option<ThinkingLevel>(context, 'thinking-level'),
                     readOnly: plugin.capabilities.readOnly,
-                    env: context.env,
+                    env: pool.environment(instance),
                     timeoutMs: 180_000,
                     allowCredits: false,
                     authentication: inspection.authentication,
@@ -53,7 +61,7 @@ export default async function ping(context: CommandContext): Promise<number> {
             );
             const ok = result.outcome === 'completed' && /PONG/i.test(result.finalMessage);
             if (!ok) failures++;
-            terminal.write(`${clockTime()} ${plugin.displayName}${result.model ? ` (${result.model})` : ''}: ${ok ? 'PONG' : result.diagnostic} in ${(result.durationMs / 1000).toFixed(1)}s\n`);
+            terminal.write(`${clockTime()} ${plugin.displayName} [${instance.name}]${result.model ? ` (${result.model})` : ''}: ${ok ? 'PONG' : result.diagnostic} in ${(result.durationMs / 1000).toFixed(1)}s\n`);
         } finally {
             await rm(promptFile, { force: true });
         }

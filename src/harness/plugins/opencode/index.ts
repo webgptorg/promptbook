@@ -88,6 +88,7 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
  */
 export const plugin: HarnessPlugin = {
     id: 'opencode',
+    variant: 'OPENCODE',
     displayName: 'OpenCode',
     featured: false,
     executable: 'opencode',

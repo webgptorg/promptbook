@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { ENGINE_VERSION } from '../dist/common/version.js';
 import { traceDirectoryOf } from '../dist/tasks/identity.js';
 import { findGenerated, generated, git, initializedProject, messages, ptbk, subjects } from './helpers.mjs';
 
@@ -39,16 +40,28 @@ test('unattended init saves setup, a blank initial specification and one named E
     assert.match(await readFile(join(project, 'agents', '.core', 'teacher.book'), 'utf8'), /CLOSED\s*$/);
     const fixer = await readFile(join(project, 'agents', '.core', 'fixer.book'), 'utf8');
     assert.match(fixer, /^AGENT Fixer\nFROM @Adam\n/);
+    assert.match(fixer, /^GOAL Solve problems and reduce the decisions the user needs to make\.$/m, 'Fixer is a general problem solver');
+    assert.match(fixer, /^TEAM @User$/m, 'User is in Fixer\'s initial team');
     assert.match(fixer, /^TEAM Consult @Expert/m);
     assert.match(fixer, /^OPEN /m, 'Fixer is open to project-specific learning');
     const ignore = await readFile(join(project, '.gitignore'), 'utf8');
     assert.match(ignore, /\.ptbk\//);
     assert.match(ignore, /^\/traces\/$/m, 'traces stay local by default');
+    assert.match(ignore, /^\.env$/m, 'local secrets stay ignored');
     const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
-    assert.equal(config.harnesses['openai-codex'].enabled, true);
-    assert.equal(config.execution.check, 'ptbk lint');
-    assert.deepEqual(config.traces, { commit: false, ignoreVideos: true, recordVideo: true });
-    assert.equal(config.browser.profile, 'global', 'the dedicated Promptbook profile is the new default (a portable kind, no machine path)');
+    assert.equal(config.promptbookVersion, ENGINE_VERSION, 'a new configuration records the running engine version');
+    assert.equal(config.isAutoSync, false, 'automatic synchronization is off unless chosen');
+    assert.equal(config.harnesses, undefined, 'no separate harness map');
+    assert.equal(config.browser, undefined, 'no singleton browser setting');
+    assert.deepEqual(config.tools, [
+        { type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'MANAGED_GLOBAL' }, isHeadless: true },
+        { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'openai-codex', isEnabled: true, authentication: 'NATIVE' },
+    ], 'one simple browser (dedicated managed profile) and one native harness instance, as named tools');
+    assert.equal(config.routing.harness, 'OPENAI_CODEX', 'fixed enum values are saved canonically');
+    assert.equal(config.execution.check, 'echo "Configure project checks in ptbk.json execution.check"', 'no check question: the explicit informational placeholder');
+    assert.match(init.stdout, /informational placeholder/, 'the placeholder is labelled, never presented as passing tests');
+    assert.deepEqual(config.traces, { isCommitted: false, isVideoIgnored: true, isVideoRecordingEnabled: true });
+    assert.equal((await git(project, ['symbolic-ref', '--short', 'HEAD'])).trim(), 'main', 'a new repository starts on main');
     const tasks = (await readdir(join(project, 'tasks'))).filter((name) => name.endsWith('.book'));
     assert.equal(tasks.length, 1);
     const bootstrap = await readFile(join(project, 'tasks', tasks[0]), 'utf8');

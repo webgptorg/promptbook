@@ -3,7 +3,7 @@ import { lookupService, type ServiceLookup } from '../../service/control.js';
 import { launchDaemon, restartService, stopService } from '../../service/launcher.js';
 import { registerPersistence, unregisterPersistence } from '../../service/persistence.js';
 import { readLaunchMetadata } from '../../service/records.js';
-import { selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
+import { browserOverrides, selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { option, type CommandContext } from '../context.js';
 import { liveSnapshot, renderServiceResult } from '../service-view.js';
 
@@ -32,7 +32,8 @@ export default async function restart(context: CommandContext): Promise<number> 
     const previous = await readLaunchMetadata(project);
     const overrides = { ...(previous?.cli ?? {}), ...settingOverrides(context) };
     const cliHarnesses = option<string[]>(context, 'harness') ?? previous?.cliHarnesses;
-    const persistent = overrides['service.persist'] !== false;
+    const cliBrowser = browserOverrides(context) ?? previous?.cliBrowser;
+    const persistent = overrides['service.isPersistent'] !== false;
     const tasksDirectory = tasksOverride(context) ?? previous?.tasksDirectory;
     const lookup = await lookupService(project);
     if (lookup.state === 'unreachable') {
@@ -48,7 +49,7 @@ export default async function restart(context: CommandContext): Promise<number> 
                 next: ['Restart without options (`ptbk restart`), or stop it and start it again with the new options.'],
             });
         }
-        const result = await restartService(project, lookup, { launch: { cli: overrides, cliHarnesses, tasksDirectory, persistent }, timeoutMs: option<number>(context, 'timeout') });
+        const result = await restartService(project, lookup, { launch: { cli: overrides, cliHarnesses, cliBrowser, tasksDirectory, persistent }, timeoutMs: option<number>(context, 'timeout') });
         if (result.kind === 'pending') {
             const current = await lookupService(project);
             const view = current.state === 'running' ? await liveSnapshot(project, current) : undefined;
@@ -63,7 +64,7 @@ export default async function restart(context: CommandContext): Promise<number> 
                 context.terminal.write(`${stopped.message}\n`);
                 return EXIT.incomplete;
             }
-            const launched = await launchDaemon(project, { cli: overrides, cliHarnesses, tasksDirectory, persistent, env: context.env });
+            const launched = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser, tasksDirectory, persistent, env: context.env });
             replacement = launched.lookup;
             message = `The previous service (an older engine) stopped; one replacement runs in the background (PID ${launched.lookup.record.pid}).`;
         } else {
@@ -75,7 +76,7 @@ export default async function restart(context: CommandContext): Promise<number> 
             message = `The previous ${result.previous.mode} service (PID ${result.previous.pid}) finished its current work and released the project; one replacement runs (PID ${result.lookup.record.pid}).`;
         }
     } else {
-        const launched = await launchDaemon(project, { cli: overrides, cliHarnesses, tasksDirectory, persistent, env: context.env });
+        const launched = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser, tasksDirectory, persistent, env: context.env });
         replacement = launched.lookup;
         message = `No service was running; the agenda runs in the background (PID ${launched.lookup.record.pid}).${launched.persistence ? ` ${launched.persistence.note}` : ''}`;
     }

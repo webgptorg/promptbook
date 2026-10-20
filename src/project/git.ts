@@ -399,3 +399,92 @@ export async function findCommitWithTrailer(repositoryRoot: string, trailer: str
     }
     return undefined;
 }
+
+/**
+ * Repository-relative POSIX path of an absolute path.
+ */
+function repositoryRelative(repositoryRoot: string, absolutePath: string): string {
+    return absolutePath.slice(repositoryRoot.length + (repositoryRoot.endsWith(sep) ? 0 : 1)).split(sep).join('/');
+}
+
+/**
+ * Whether a file differs from HEAD in the working tree or index (untracked counts as dirty).
+ *
+ * @private Git persistence
+ */
+export async function isPathDirty(repositoryRoot: string, absolutePath: string): Promise<boolean> {
+    const result = await git(repositoryRoot, ['status', '--porcelain=v1', '--untracked-files=all', '--', repositoryRelative(repositoryRoot, absolutePath)], { literal: true });
+    return result.exitCode !== 0 || result.stdout.trim() !== '';
+}
+
+/**
+ * Commits explicit contents of the given files on top of HEAD without reading or touching their working-tree
+ * versions and without disturbing other index entries (scoped reconciliation of a same-file concurrent edit: the
+ * operation's own change is committed while someone else's uncommitted edit of the same file stays in the working
+ * tree). Hooks and signing apply as for any commit. Paths whose index entry still matched HEAD are updated to the
+ * committed blob; a different staged version is preserved.
+ *
+ * @private Git persistence
+ */
+export async function commitFileContents(options: {
+    readonly projectRoot: string;
+    readonly repositoryRoot: string;
+    readonly files: ReadonlyArray<{ readonly path: string; readonly content: string }>;
+    readonly subject: string;
+    readonly body?: string;
+    readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>>;
+    readonly temporaryDirectory: string;
+    readonly env?: NodeJS.ProcessEnv;
+}): Promise<CommitOutcome> {
+    const { repositoryRoot } = options;
+    const files = options.files.filter((file) => isPathInside(options.projectRoot, resolve(file.path)));
+    if (!files.length) return { committed: false, reason: 'no-changes' };
+    await ensureDirectory(options.temporaryDirectory);
+    const indexFile = join(options.temporaryDirectory, `index-${shortId()}`);
+    const messageFile = join(options.temporaryDirectory, `commit-message-${shortId()}.txt`);
+    const indexEnv = { ...options.env, GIT_INDEX_FILE: indexFile };
+    const head = (await git(repositoryRoot, ['rev-parse', '--verify', '--quiet', 'HEAD'])).stdout.trim() || undefined;
+    try {
+        if (head) await gitOrThrow(repositoryRoot, ['read-tree', 'HEAD'], { env: indexEnv, phase: 'staging' });
+        const updates: Array<{ relative: string; blob: string; previous?: string; mode: string }> = [];
+        for (const file of files) {
+            const relative = repositoryRelative(repositoryRoot, resolve(file.path));
+            const blob = (await gitOrThrow(repositoryRoot, ['hash-object', '-w', '--stdin'], { input: file.content, phase: 'staging' })).trim();
+            const tree = head ? (await git(repositoryRoot, ['ls-tree', 'HEAD', '--', relative], { literal: true })).stdout.trim() : '';
+            const [mode, , previous] = tree ? tree.split(/\s+/) : [];
+            updates.push({ relative, blob, previous, mode: mode ?? '100644' });
+            await gitOrThrow(repositoryRoot, ['update-index', '--add', '--cacheinfo', `${mode ?? '100644'},${blob},${relative}`], { env: indexEnv, phase: 'staging', literal: true });
+        }
+        if (updates.every((update) => update.previous === update.blob)) return { committed: false, reason: 'no-changes' };
+        const identity = await resolveCommitIdentity(repositoryRoot, options.env);
+        const trailers = Object.entries(options.trailers ?? {}).flatMap(([key, value]) => [...new Set(value === undefined ? [] : typeof value === 'string' ? [value] : value)].map((item) => `${key}: ${item.replace(/\s+/g, ' ')}`));
+        const message = [prefixedSubject(options.subject), options.body?.trim() ? `\n${options.body.trim()}` : '', trailers.length ? `\n${trailers.join('\n')}` : '']
+            .join('\n')
+            .replace(/\n{3,}/g, '\n\n')
+            .trimEnd();
+        await writeFileAtomic(messageFile, `${message}\n`);
+        const result = await git(repositoryRoot, [...identity.configArgs, 'commit', '--quiet', '--cleanup=verbatim', '-F', messageFile], { env: indexEnv });
+        if (result.exitCode !== 0) {
+            throw new PtbkError('The commit failed.', {
+                kind: 'persistence',
+                phase: 'commit',
+                project: options.projectRoot,
+                reason: [result.stderr.trim(), result.stdout.trim()].filter(Boolean).join('\n') || `git commit exited with ${String(result.exitCode)}`,
+                effect: 'Nothing was committed and no file was changed.',
+                next: ['Fix the hook/signing/identity problem, then retry.'],
+            });
+        }
+        // The real index follows HEAD only where it still matched the previous HEAD (a different staged version is kept).
+        for (const update of updates) {
+            const staged = (await git(repositoryRoot, ['ls-files', '--stage', '--', update.relative], { literal: true })).stdout.trim().split(/\s+/)[1];
+            if (staged === undefined || staged === update.previous) {
+                await git(repositoryRoot, ['update-index', '--add', '--cacheinfo', `${update.mode},${update.blob},${update.relative}`], { literal: true });
+            }
+        }
+    } finally {
+        await rm(indexFile, { force: true });
+        await rm(messageFile, { force: true });
+    }
+    const sha = (await gitOrThrow(repositoryRoot, ['rev-parse', 'HEAD'], { phase: 'commit' })).trim();
+    return { committed: true, sha, paths: files.map((file) => resolve(file.path)) };
+}

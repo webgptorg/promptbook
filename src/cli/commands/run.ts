@@ -1,6 +1,7 @@
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { clockTime, formatShortTime } from '../../common/time.js';
-import { assertValidSettings, loadSettings, setting, type ThinkingLevel } from '../../project/config.js';
+import { assertValidSettings, enabledHarnesses, loadSettings, setting, type ThinkingLevel } from '../../project/config.js';
+import { harnessPluginId, type HarnessToolRecord } from '../../tools/model.js';
 import { runCheck } from '../../project/checks.js';
 import { inspectGit } from '../../project/git.js';
 import { previewQueue } from '../../engine/preview.js';
@@ -10,27 +11,31 @@ import { lookupService } from '../../service/control.js';
 import { harnessPlugin } from '../../harness/registry.js';
 import { runDashboard } from '../../ui/dashboard.js';
 import { confirm } from '../../ui/prompts.js';
-import { printJson, selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
+import { browserOverrides, printJson, selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 import { hostSource } from '../sources.js';
 import { ownerSignals } from '../lifecycle.js';
 
 /**
- * Resolves the one configuration of a finite run (flags, then project defaults, then legacy environment).
+ * Resolves the one configuration of a finite run (flags, then project defaults, then legacy environment). The harness
+ * is a variant (its ordered same-variant instances may serve it) or one explicitly named instance.
  */
-async function runSelection(context: CommandContext, settings: Awaited<ReturnType<typeof loadSettings>>, poolUsable: () => string[]): Promise<RunSelection> {
-    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(settings, 'routing.harness') ?? poolUsable()[0];
+function runSelection(context: CommandContext, settings: Awaited<ReturnType<typeof loadSettings>>): RunSelection {
+    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(settings, 'routing.harness') ?? enabledHarnesses(settings)[0];
     if (!harness) {
-        throw new PtbkError('No harness is selected for this run.', { kind: 'setup', next: ['Pass `--harness <id>` or run `ptbk init` to select a project default.'] });
+        throw new PtbkError('No harness is selected for this run.', { kind: 'setup', next: ['Pass `--harness <variant|tool>` or enable a harness tool (`ptbk tool list`).'] });
     }
-    if (!harnessPlugin(harness)) throw new PtbkError(`Unknown harness "${harness}".`, { kind: 'usage', next: ['Run `ptbk run --help`.'] });
-    const isDefault = setting<string | undefined>(settings, 'routing.harness') === harness;
+    const instance = settings.tools.find((tool): tool is HarnessToolRecord => tool.type === 'HARNESS' && tool.name === harness);
+    if (!harnessPlugin(harness) && !instance) throw new PtbkError(`Unknown harness "${harness}".`, { kind: 'usage', next: ['Use a variant such as openai-codex or a harness tool name from `ptbk tool list`.'] });
+    const variant = instance ? harnessPluginId(instance.variant) : harness;
+    const preferred = instance ?? settings.tools.find((tool): tool is HarnessToolRecord => tool.type === 'HARNESS' && tool.isEnabled && harnessPluginId(tool.variant) === variant);
+    const isDefault = setting<string | undefined>(settings, 'routing.harness') === variant;
     const agentName = option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent');
     return {
         agent: agentName.startsWith('@') || agentName.startsWith('{') ? agentName : `{{${agentName}}}`,
         harness,
-        model: option<string>(context, 'model') ?? settings.harnesses[harness]?.model ?? (isDefault ? setting<string | undefined>(settings, 'routing.model') : undefined),
-        thinkingLevel: option<ThinkingLevel>(context, 'thinking-level') ?? settings.harnesses[harness]?.thinkingLevel ?? (isDefault ? setting<ThinkingLevel | undefined>(settings, 'routing.thinkingLevel') : undefined),
+        model: option<string>(context, 'model') ?? preferred?.model ?? (isDefault ? setting<string | undefined>(settings, 'routing.model') : undefined),
+        thinkingLevel: option<ThinkingLevel>(context, 'thinking-level') ?? preferred?.thinkingLevel ?? (isDefault ? setting<ThinkingLevel | undefined>(settings, 'routing.thinkingLevel') : undefined),
     };
 }
 
@@ -43,13 +48,17 @@ export default async function run(context: CommandContext): Promise<number> {
     validateCombinations(context);
     const project = await selectedProject(context);
     const overrides = settingOverrides(context);
-    if (flag(context, 'server') !== true) overrides['server.enabled'] = false;
-    const settings = await loadSettings(project, { env: context.env, cli: overrides });
+    if (flag(context, 'server') !== true) overrides['server.isEnabled'] = false;
+    const browser = browserOverrides(context);
+    const base = await loadSettings(project, { env: context.env, cli: overrides, cliBrowser: browser });
+    // The run uses one harness: a variant without a configured instance gets a temporary native one (never saved).
+    const chosen = option<string>(context, 'harness') ?? setting<string | undefined>(base, 'routing.harness') ?? enabledHarnesses(base)[0];
+    const cliHarnesses = chosen ? [chosen] : undefined;
+    const settings = cliHarnesses ? await loadSettings(project, { env: context.env, cli: overrides, cliBrowser: browser, cliHarnesses }) : base;
     assertValidSettings(settings, project);
     const { terminal } = context;
     const dryRun = flag(context, 'dry-run') === true;
-    const usableFromConfig = (): string[] => Object.entries(settings.harnesses).filter(([, value]) => value.enabled).map(([id]) => id);
-    const selection = await runSelection(context, settings, usableFromConfig);
+    const selection = runSelection(context, settings);
     const preview = await previewQueue(project, { settings, mode: 'run', runSelection: selection, tasksDirectory: tasksOverride(context), env: context.env });
     const minimum = option<number>(context, 'min-priority');
     const maximum = option<number>(context, 'max-priority');
@@ -104,6 +113,8 @@ export default async function run(context: CommandContext): Promise<number> {
         mode: 'run',
         env: context.env,
         cli: overrides,
+        cliHarnesses,
+        cliBrowser: browser,
         tasksDirectory: tasksOverride(context),
         persistent: null,
         allowTunnelInstall: true,

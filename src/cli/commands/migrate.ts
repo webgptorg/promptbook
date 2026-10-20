@@ -174,7 +174,7 @@ export default async function migrate(context: CommandContext): Promise<number> 
         await ensureDirectory(dirname(item.to));
         await rename(item.from, item.to);
     }
-    const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.commit');
+    const commit = flag(context, 'commit') ?? setting<boolean>(settings, 'execution.isCommitEnabled');
     const subject = planned.length && conversions.length ? 'Migrate Markdown tasks and former Book syntax' : planned.length ? 'Migrate Markdown tasks to Books' : 'Convert Books to canonical syntax';
     const gitInfo = await inspectGit(project.root);
     if (commit && gitInfo.state === 'repository') {

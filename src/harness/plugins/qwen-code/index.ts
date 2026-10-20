@@ -33,6 +33,7 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
  */
 export const plugin: HarnessPlugin = {
     id: 'qwen-code',
+    variant: 'QWEN_CODE',
     displayName: 'Qwen Code',
     featured: false,
     executable: 'qwen',

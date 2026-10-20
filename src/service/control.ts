@@ -22,7 +22,7 @@ export const READ_ONLY_METHODS = new Set(['identify', 'snapshot', 'summary', 'wa
  *
  * @private service control
  */
-export const CONTROL_CONTRACT = 2;
+export const CONTROL_CONTRACT = 3;
 
 /**
  * Control methods whose replies are rendered as a service snapshot; reading them from an engine of another
