@@ -36,6 +36,8 @@ Start may refuse unrelated dirty initial state; subsequently it manages its own 
 
 Publish task-source updates atomically. Transient Windows sharing failures allow bounded retry of the same prepared update with ownership, confinement and original revision rechecked. Never delete the destination to force replacement; exhaustion preserves work without rerunning agents or false completion.
 
+<a id="explicit-uncommitted-mode"></a>
+
 ## Explicit uncommitted workflows
 
 `--no-commit` disables automatic commits for an ordinary invoked task/authoring workflow and its spawned work, including init's service, not another owner or future invocation. `--commit` spells the default; contradictory flags fail before writes. Keep the uncommitted state visible and retain checks, names, source revisions, traces and recovery without inventing SHAs or rerunning accepted work.
