@@ -1,44 +1,44 @@
-# Shared project browser and profile selection
+# Browser tools and profile selection
 
-[Main specification](../_main.md) · [Initialization](initialization.md) · [Project configuration](configuration.md)
+[Main specification](../_main.md) · [Tools](tools.md) · [Live tool use](tool-runtime.md) · [Initialization](initialization.md)
 
-Each selected project has one browser configuration and, while active, one coordinated browser instance shared by its agents. Automation ownership is **per project**, not one process per agent/task/harness; underlying **profile storage may be shared across projects** when selected. Browser website sessions and harness/model authentication are independent.
+A project may configure **multiple named browser tools**. Each enabled/acquired instance has coordinated automation ownership shared by the project's agents, not a separate browser per agent/task/harness. Browser storage may also be shared across projects when explicitly selected. Browser website sessions and harness/model authentication remain independent.
+
+Normal init still configures one browser through its familiar simple choices. More profiles, accounts and browsers are added later through the common [tool management](tool-management.md). No advanced pooling wizard is required.
 
 ## Four explicit profile sources
 
-Offer all four choices during attended init and equivalent noninteractive configuration:
+Each browser tool stores `profile.source` and, where appropriate, `profile.path`:
 
-1. **Promptbook-managed global profile (DEFAULT):** create a dedicated persistent Chrome-compatible profile in the OS user's Promptbook application-data location on first use, and reuse that Promptbook-only profile for other projects on the same machine/account. It is not the regular Chrome profile, is not copied from it and does not live in a project directory.
-2. **Isolated project profile:** create/reuse an independent persistent profile under the project's ignored `.ptbk/`. No other project implicitly gets that profile.
-3. **User's existing Chrome profile:** explicitly reuse the ordinary Chrome-compatible profile and its authenticated sessions. Never select/copy it implicitly.
-4. **Custom existing profile path:** use a user-supplied path elsewhere on the permitted machine.
+1. **MANAGED_GLOBAL (default):** a dedicated persistent Chrome-compatible profile in the OS user's Promptbook app-data location, reused by that user's projects. It is not personal Chrome, is not copied from it and does not live in a versioned project directory.
+2. **PROJECT:** an isolated persistent profile under the project's ignored `.ptbk/`, with separate storage for separately configured instances unless sharing is explicit.
+3. **USER_EXISTING:** the user's explicitly selected ordinary Chrome-compatible profile and sessions, never selected/copied implicitly.
+4. **CUSTOM:** an explicit existing profile path on the permitted machine.
 
-Save the per-project selection as a portable source kind in `ptbk.json`; resolve the managed global path for the current OS user at runtime. Do not version machine-specific global absolute paths or session secrets. Isolated storage is project-relative. Explicit custom paths follow precedence and existence/ownership checks. Existing selections survive reinit; the new default applies only when no choice is saved. Do not silently migrate cookies/sessions while switching; explain sharing/privacy tradeoffs.
+Resolve portable sources at runtime. Preserve existing selections/sessions on reinit and migration; never silently copy cookies when switching. Explain sharing/privacy tradeoffs. Multiple records referencing the same underlying profile do not constitute separate logged-in identities and still obey exclusive safe ownership. Distinct Facebook accounts require distinct profile/session contexts.
 
-Headless/headful is independent of profile source. `--browser-profile <path>` and `--browser-mode headless|headful` are temporary overrides, not saved-default writes. Shared controls switch safely at a boundary. All four sources retain sessions across engine/system restarts, subject to site expiry.
+`isHeadless` is independent of profile source and defaults to the existing headless behavior. Temporary legacy `--browser-profile` and `--browser-mode headless|headful` overrides apply only when their target instance is unambiguous; with multiple browsers require an explicit named target rather than silently modifying all. Saved management uses per-tool fields. All sources retain sessions across engine/system restarts, subject to actual site expiry.
 
-## Shared profiles and safe ownership
+## Choosing and owning browsers
 
-A global Promptbook profile can be reused across projects, but sharing never authorizes competing processes to lock/corrupt it. Coordinate safe handover/serialization. Never seize/copy a busy profile or kill an unrelated user browser. Each project still has one automation owner at a time. Report known busy/conflicting ownership and retry or request genuinely necessary user action. Personal/custom shared profiles require the same checks.
+Use task purpose, tool names/descriptions, permissions and actual session state to choose the appropriate browser. A project can prefer its dedicated browser, then try an explicitly configured personal browser when the needed login is absent, or route Facebook and LinkedIn work to separate profiles. A fallback must still match the intended account and authorized action; a logged-in different account is not automatic permission to post/pay from it.
 
-Profile contents, cookies and tokens never enter Git, trace text, chat Books or model-visible context as credentials. Promptbook is not a password database. Attended setup resolves known logins when possible; later login/2FA needs become attributed [human chats](user-interactions.md), with a genuine browser action on a desktop. Headless hosts must not pretend a window appeared. Preserve authorization and unattended-work constraints.
+Coordinate use of each profile across instances/projects; never corrupt a busy profile, seize/copy it, kill an unrelated browser or bypass another owner. Keep actual in-use/draining state per named tool. Disabling/removal affects new selections; a previously acquired use may continue only under [in-use confirmation rules](tool-management.md). Removing a configuration record never deletes its profile.
 
-## Inspection, automatic diagnosis and recovery
+Cookies, tokens and profile contents never enter Git, text traces, chat Books or model-visible credentials. Promptbook is not a password database. Resolve known login needs during attended setup where possible; later login/2FA uses ordinary human interaction. Headless hosts must not pretend a desktop window appeared.
 
-The engine exposes its **effective** browser/profile source, resolved profile path, selected browser, headless/headful mode, known launch/connection health and ownership/busy state to authorized controls. Distinguish active configuration, saved defaults and pending changes. A profile path is diagnostic data, not permission to disclose its contents or credentials. Unknown/not-started state is labelled rather than inferred from a saved configuration.
+## Inspection and recovery
 
-Detect launch failures, lost connections and known ownership conflicts automatically. Retain the actual redacted cause/evidence, recovery actions and outcomes; use bounded safe retries/repair under ordinary [retry](retries.md) and [unattended-operation](autonomous-operation.md) rules. A healthy recovery must not depend on an open dashboard or routine human Restart clicks. Explain the remaining blocker and next retry/action when automatic repair cannot safely succeed.
+Expose each tool's saved and effective variant/profile source, resolved path for authorized inspection, headless mode, launch/connection health, ownership and current/retained uses. Distinguish configured, enabled, not-started, usable and actually active. A path is diagnostic information, not permission to expose its contents. Also identify which browser the current task actually uses, rather than displaying the first saved browser as active.
 
-Shared controls provide diagnostic recheck, retry startup and restart of the **project's owned browser**. Manual controls call the same engine-owned diagnosis/recovery operations, with visible accepted, deferred, successful or failed outcomes. Preserve selected profile and sessions; do not silently switch to a fresh profile, erase login data, kill all Chrome/Node processes or restart the engine as a substitute for browser repair.
+Automatically diagnose launch failures, lost connections and ownership conflicts. Preserve actual redacted evidence, recovery attempts and outcomes; use bounded retries and the shared [automatic repair principle](../concepts/automatic-repair.md). Recovery cannot depend on an open dashboard or routine Restart clicks. Explain a remaining blocker and next retry/action.
 
-If browser use or profile ownership makes an immediate restart unsafe, wait for a safe boundary or explain why it cannot proceed. Never terminate another project's/user's browser to satisfy a restart request. Preserve the active task's checkpoint/evidence and avoid replaying external effects after reconnect. Coordinate simultaneous automatic/manual repair so it cannot launch duplicate owners or restart the browser twice unknowingly.
+Manual recheck, retry-start and restart target one named **project-owned browser** and call the same engine-owned recovery operations. Preserve profile/session state, task checkpoints and effect evidence. Do not switch to an empty profile, erase data, kill all browsers or restart the whole engine as a substitute for one-browser repair. Defer an unsafe restart to a safe boundary and label it; never terminate another project's/user's browser. Coordinate automatic/manual recovery to avoid duplicate owners or duplicate effects.
 
-The [browser detail panel](dashboard-details.md) presents this information and controls separately from compact main status. A significant failure remains visible in main attention/activity while details are closed. Runtime-only diagnostics/restarts create no Git commits; explicitly saved configuration follows normal authoring rules.
+The [tools/browser detail view](dashboard-details.md) shows these controls with compact failure summaries in the main cockpit. Inspection and runtime repair create no commit; explicitly saved tool changes do. No enabled/usable browser is a running engine's resource wait, not evidence that the service is stopped.
 
-## Task evidence
+## Task evidence and acceptance
 
-When enabled, record only attributable task browser activity in headless/headful use, with separate attempts/occurrences under the task's [source-filename-based trace directory](traces.md). Mask authentication material and exclude unrelated desktop/other-project activity. Recording/video Git inclusion remain independent of profile choice. Unsupported/failed recording is explicit; optional capture failure does not unnecessarily block safe work. Neither stopping Promptbook nor restarting its browser deletes a persistent profile.
+Record only attributable activity from the browsers actually used by the task when [recording is enabled](trace-configuration.md). Separate tool/attempt attribution under the task's source-filename trace directory; exclude unrelated desktop and other-project activity and mask authentication data. Recording failure is explicit but need not block otherwise safe work. Stopping/restarting a tool or engine never deletes persistent profiles.
 
-## Acceptance outcomes
-
-Initialize two projects with defaults: both reuse the dedicated managed global profile without touching personal Chrome. Verify isolated, personal and custom sources, preserved choices on reinit, independent headless/headful/recording flags and safe concurrent ownership. Inspect the actual resolved profile in each mode. Inject launch/connection failure, observe automatic bounded recovery with no dashboard, then use recheck/retry/restart manually. Report true outcomes and deferred busy ownership; retain sessions and task provenance without unrelated kills, duplicate browser owners or secret disclosure.
+Verify default managed-profile reuse, isolated/personal/custom sources, multiple website/account profiles, preserved migration choices and safe shared-profile ownership. Add a new usable browser during a task and select it without restart. Test per-instance diagnostics, bounded automatic recovery, manual restart, retained in-use configuration and last-enabled-browser confirmation. No operation may silently change the target account, disclose secrets, duplicate effects or kill unrelated browsers.

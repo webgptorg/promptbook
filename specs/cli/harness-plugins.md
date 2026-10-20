@@ -1,23 +1,23 @@
-# Harness plugins and presentation
+# Harness adapters and tool presentation
 
-[Main specification](../_main.md)
+[Main specification](../_main.md) · [Tools](tools.md) · [Shared domain logic](../coding-standards/shared-logic.md)
 
-Harness integrations form an extensible internal plugin system. Each harness lives in its own folder and supplies the same contract to Promptbook. The wizard, runtime and update workflow use that contract rather than separate hard-coded flows for each provider. Adding a harness must not require redesigning those common experiences. The project browser is an internal shared capability, not a harness plugin.
+Harness integrations form an extensible internal plugin system. Each integration supplies the same harness contract to Promptbook, used by wizard, runtime and update workflows rather than provider-specific copies of business logic. Browsers are a different tool type, not pretend LLM harnesses; both categories participate in the same external named-tool configuration and management model. Adding an adapter must not require redesigning those common experiences.
 
-## Common contract
+## Common adapter contract
 
-Each integration exposes its stable identifier, display name and featured status; installation/authentication/configuration readiness; supported models and execution capabilities; and the operations needed to install globally, guide native setup/login, check its version and update that global installation. Unsupported environments or update mechanisms must return an explicit actionable result, not pretend success.
+Expose a stable canonical variant, display name and featured status; installation/authentication/configuration readiness; supported models/execution capabilities; and operations for global installation, guided native setup/login, version checks and updates. Distinguish shared executable state from the authentication/configuration of a particular named instance. Declare support or limitations for separate native account contexts rather than pretending two records isolate one shared login.
 
-The execution contract accepts the selected project directory and effective instructions, plus supported model/effort options, and runs the harness in noninteractive exec/autonomous (YOLO-style) mode. Promptbook does not need to reproduce every feature of the harness's own UI. Return actual activity, result, cancellation, failures and exposed diagnostics/usage. Tool-specific execution and setup details stay with the integration.
+Execution accepts the project directory, selected named tool and its scoped authentication context, effective instructions and supported model/effort options, and runs in supported noninteractive/autonomous mode. Never leak an API key or native account selection between simultaneous clients or retained uses. Promptbook need not reproduce every feature of a harness's own UI. Return actual activity, result, cancellation, failures and exposed diagnostics/usage; setup/execution details stay with the adapter.
 
-Expose the available full output/diagnostic stream for the owning task's consolidated [harness trace](traces.md), with attempt boundaries and actual harness identity. Include exposed reasoning where available; never promise hidden reasoning or replace the stream with only a final summary. Apply secret redaction before persistence. Missing capture capabilities and interrupted streams must be distinguishable from empty successful output.
+Expose available full output/diagnostics to the owning task's consolidated [harness trace](traces.md), with attempt boundaries, actual variant and instance attribution. Include reasoning only where actually exposed, never promise hidden reasoning or replace the available stream with only a final summary. Redact secrets before persistence and distinguish interrupted/missing capture from empty successful output.
 
-Follow [unattended operation](autonomous-operation.md): known execution permissions are resolved during attended setup, not by hidden per-tool prompts in a detached worker. Unexpected input waits must be detectable and recoverable or actionable. Autonomous execution does not bypass project boundaries, task constraints, paid-use authorization or genuine human-action requirements. Unsupported required capabilities block the affected work rather than being silently ignored.
+Follow [unattended operation](autonomous-operation.md): resolve known execution permissions during attended setup rather than hidden prompts in a daemon. Detect unexpected input waits and recover or explain them. Autonomous operation does not bypass task constraints, project authority, paid-use limits or genuine human actions. Unsupported capabilities are explicit, not silently ignored.
+
+Readiness and variant-specific parsing feed the shared tool domain layer. Init, commands and dashboard use those same types, validators and management operations; they must not independently implement provider branches or environment editing. See [DRY](../coding-standards/shared-logic.md).
 
 ## A catalog that can grow
 
-Distinguish featured and ordinary integrations. Default catalog views and pickers show only a small curated set of two or three featured names, initially OpenAI Codex and Claude Code, plus **More** for other supported integrations. A catalog of hundreds must remain usable through searchable or bounded navigation.
+Default integration catalogs show a small curated featured set, initially OpenAI Codex and Claude Code, plus **More**. All other supported variants remain reachable through bounded/searchable navigation even with hundreds of adapters. Default entries show names, not model/configuration dumps; reveal details on request and preserve selections.
 
-Default entries show names, not configuration or model dumps; details are revealed only on request. Selection markers are fine. Preserve access to every supported integration and existing selections. Featured status is presentation, not authorization, automatic selection or permission to install. Runtime views must still identify the active/selected harness even when it is not featured.
-
-See [harnesses](harnesses.md), [updates](harness-updates.md) and [help](help.md).
+Featured status is presentation, not installation, enablement or paid-use authorization. The configured-tool inventory is different from the adapter catalog: it must distinguish several named instances of the same variant, their order, enabled state, availability and current uses. An active nonfeatured variant remains visible. See [harnesses](harnesses.md), [updates](harness-updates.md), [tool management](tool-management.md) and [help](help.md).
