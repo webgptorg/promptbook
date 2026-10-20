@@ -1,24 +1,27 @@
-# Fixer: project self-maintenance
+# Fixer: ordinary core problem-solving agent
 
-[Agents](_index.md) · [Core agents](core-agents.md) · [Learning](learning.md)
+[Agents](_index.md) · [Core agents](core-agents.md) · [Automatic repair principle](../concepts/automatic-repair.md) · [Learning](learning.md)
 
-**Fixer is an ordinary editable, default-OPEN core agent**, initialized as a small `agents/.core/fixer.book`. Its job is to **introspect the particular running project** and improve its health over time: detect malformed Book syntax, normalized-name collisions and shadowing, unresolved references, problematic configuration, recurring failures, broken workflows or maintenance opportunities. It can inspect available logs, traces, actual diagnostics and project context, without inventing evidence or exposing secrets.
+**Fixer is an ordinary editable, default-OPEN core agent**, initialized as a small `agents/.core/fixer.book`. Its general purpose is to solve problems and offload decisions from the user. It is not restricted to Promptbook internals: project health, broken workflows, configuration, recurring failures and other authorized project problems are all within that general role.
 
-A deliberately minimal initial example (not a special runtime implementation):
+The engine expects Fixer in every project because it automatically routes certain problems, such as merge conflicts and crash/recovery failures, to this role. That required presence is why it is a core agent; it does not confer special inference, privileged execution or a separate communication mechanism. Other agents can consult Fixer, and Fixer can consult other agents through ordinary TEAM relationships.
+
+A deliberately minimal initial example:
 
 ```book
-Fixer
-ENTITY AGENT
+AGENT Fixer
 FROM @Adam
-GOAL Keep this Promptbook project healthy by finding and safely fixing real problems.
+GOAL Solve problems and reduce the decisions the user needs to make.
+RULE Resolve routine authorized problems yourself; consult the team when you genuinely need help.
+TEAM @User
 TEAM Consult @Expert for current Promptbook syntax and capabilities.
-OPEN Learn verified project-specific repair practices and preferences.
+OPEN Learn verified project-specific problem-solving practices and user preferences.
 ```
 
-Fixer has `TEAM` access to the built-in **Expert** for current Promptbook syntax, runtime capabilities and version-specific knowledge. Expert is general and engine-owned; Fixer applies that knowledge to the project's own state and retains learned project-specific practices. An engine upgrade refreshes Expert but does not reset Fixer's accumulated local Book.
+User is in the initial team, not hardwired into every future escalation. The Book and its TEAM are customizable: a user can require consultation on everything, define detailed thresholds, or remove User and request autonomous resolution. These are ordinary agent instructions subject to the project's authority and safety rules. Preserve existing and learned Books during reinit/upgrade; do not reinsert a deliberately removed team member. Expert remains general and engine-owned, while Fixer applies current engine knowledge to local context.
 
-Run Fixer's checks opportunistically and at a bounded, persisted cadence, including after relevant diagnostic changes; do not invent a continuous busy polling loop, new permanent privileged service or thousands of repetitive notifications. The work is ordinary scheduled/derived tasks in the project's **single-task** agenda. Diagnose issues with their source, impact and confidence; ordinary low-risk repairs within existing authority can be done and checked automatically. A risky, ambiguous or human-dependent correction is handled through a **chat initiated by Fixer to @User** with a specific explanation, options when useful and links to affected entities/tasks. Do not silently rewrite ambiguous definitions or unrelated project files.
+Fixer can inspect available logs, task traces, actual diagnostics and project sources without inventing evidence or disclosing secrets. Examples include malformed Books, normalized-name collisions, unresolved references, failed migrations, unavailable tools and difficult Git conflicts. Safe deterministic corrections/retries are part of the shared [automatic repair path](../concepts/automatic-repair.md); not every fault needs a model call or user question.
 
-Fixer is not an exceptional learning architecture: it uses precisely the same OPEN/CLOSED and Teacher mechanism as other agents. Corrections and user replies can become teaching evidence in an ordinary task, and authorized useful learning is committed to Fixer's own project Book. This can prevent recurrence of previously explained problems without promising perfect automatic deduplication. Suppress redundant still-unanswered conversations about the *same* condition; an already pending answer is not a reason to send it again.
+Run justified health enquiries at a bounded persisted cadence and after relevant diagnostic changes. They are ordinary scheduled/derived work in the project's single-task agenda, not an additional permanent privileged service. Diagnose source, impact and confidence; repair/check authorized work and ask the team only as needed under the current Book policy. The mechanism does not prescribe a special prompt, dashboard category or transport for those questions.
 
-No extra dashboard category is needed for Fixer. Its tasks, ordinary results, diagnostics and chats use the existing agenda and conversation presentation. If no work is justified, it may record or report a bounded no-op; it must not manufacture changes merely to justify its existence.
+Fixer uses precisely the same OPEN/CLOSED and Teacher mechanisms as other agents. Verified outcomes and user replies can teach useful repair preferences through ordinary work committed to its own Book. Suppress repeated unresolved requests for the same condition and avoid repair loops. If no work is justified, no model call or manufactured modification is needed. If execution resources are unavailable, retain the issue visibly until normal work can proceed; being core does not make Fixer runnable without a harness.
