@@ -66,7 +66,7 @@ Run `ptbk help` for all commands and `ptbk help <command>` for one command's opt
 -   **Remote access:** `ptbk start` serves a dashboard on `127.0.0.1` and publishes it through a Cloudflare quick tunnel; devices must pair with a single-use link shown in the local terminal (`ptbk access pair`). Use `--no-tunnel` for local-only access or `--no-server` for neither.
 -   **Presentation:** pretty terminal UI by default; `--raw` (or redirected output) gives plain text without prompts. `--non-interactive` never asks questions.
 -   **Commits:** every mutating workflow commits its own changes with a `PTBK: ` subject; `--no-commit` is the explicit exception (never for configuration migrations or tool management).
--   **Fixer:** an ordinary editable core agent whose goal is to solve problems and reduce the decisions you need to make; its initial TEAM includes you and Expert, so it asks only when it genuinely needs help — edit its Book to require more consultation or none.
+-   **Fixer:** an ordinary editable core agent whose goal is to solve problems and reduce the decisions you need to make; its initial TEAM includes you and Expert, so it asks only when it genuinely needs help — edit its Book to require more consultation or none. When a task's agent cannot finish it, the running agenda first hands the task to Fixer (one bounded round, same result commit); you are asked how to continue only if Fixer cannot resolve it either. Merge conflicts of Git synchronization and of isolated (`--isolate`) results also go to Fixer as ordinary work.
 
 The behavior is defined by [the specification](specs/_main.md).
 
