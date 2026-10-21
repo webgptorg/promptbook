@@ -238,7 +238,7 @@ async function historicalEvidence(project: Project, subject: TraceSubject): Prom
  * @private task traces
  */
 export function traceHeader(task: { readonly title: string; readonly source: string }): string {
-    return `ptbk ${ENGINE_VERSION} · task {{${task.title}}} · ${task.source}`;
+    return `ptbk ${ENGINE_VERSION} · task {${task.title}} · ${task.source}`;
 }
 
 /**

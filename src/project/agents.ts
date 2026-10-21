@@ -1,6 +1,6 @@
 import { withdrawnKeyword } from '../book/commitments.js';
 import { commitmentsOf, singleValue, type BookDocument } from '../book/parse.js';
-import { findAgentReferences, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
+import { findAgentReferences, invalidReferenceMessage, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
 import { BookIndex, type BookDiagnostic as BookIndexDiagnostic, type BookEntry, type BookTier } from './books.js';
 import { expertInstructions } from './expert.js';
 
@@ -256,7 +256,7 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
         const parentReference = from.value ?? 'Adam';
         const parentParsed = parseReferenceValue(parentReference);
         if (!parentParsed) {
-            diagnostics.push({ path: current.relativePath, line: (from.commitment?.startLine ?? 0) + 1, message: `FROM "${parentReference}" is not a valid reference.`, severity: 'error' });
+            diagnostics.push({ path: current.relativePath, line: (from.commitment?.startLine ?? 0) + 1, message: `FROM ${invalidReferenceMessage(parentReference)}`, severity: 'error' });
             break;
         }
         const parent = await catalog.resolve(parentReference);
@@ -380,7 +380,7 @@ export async function validateAgents(catalog: AgentCatalog): Promise<AgentDiagno
     const diagnostics: AgentDiagnostic[] = [...catalog.diagnostics];
     for (const definition of catalog.all()) {
         if (definition.tier === 4) continue;
-        const effective = await resolveEffectiveAgent(catalog, `{{${definition.name}}}`);
+        const effective = await resolveEffectiveAgent(catalog, `{${definition.name}}`);
         if (effective.definition !== definition) continue;
         for (const diagnostic of effective.diagnostics) {
             if (!diagnostics.some((existing) => existing.message === diagnostic.message && existing.path === diagnostic.path)) diagnostics.push(diagnostic);

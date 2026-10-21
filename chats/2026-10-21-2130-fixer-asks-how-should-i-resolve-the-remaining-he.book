@@ -2,7 +2,7 @@ CHAT Fixer asks: How should I resolve the remaining health-check errors, which c
 CHAT MEMBER @User
 CHAT MEMBER @Fixer
 CHAT STATUS waiting-for-user
-LINK {{Project health check — 2026-10-21 21:14:37}}
+LINK {Project health check — 2026-10-21 21:14:37}
 
 CHAT MESSAGE @Fixer 2026-10-21T21:30:04+02:00
 These are owner decisions that the specs and the task don't settle: whether the legacy sample agents join the active team, stay as reference or are removed, and whether your coder draft can be deleted. A wrong guess could start goal-discovery work in this repo, which autosync would push, or delete your draft.

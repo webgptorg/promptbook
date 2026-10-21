@@ -27,7 +27,7 @@ RULE Identify any README or presentation claims affected by implementation chang
 
 WRITING RULE Do not use long dashes (em-dashes); use a standard hyphen ("-") instead.
 
-TEAM Consult {{Spec-keeper}} about requirements, acceptance scenarios and conflicts between specs and implementation.
+TEAM Consult {Spec-keeper} about requirements, acceptance scenarios and conflicts between specs and implementation.
 TEAM Consult @Pavol about scope and priority tradeoffs, and @Community about user-facing wording, README examples and presentation changes.
 TEAM Consult @Expert when writing Book language or when current engine behavior is unclear.
 

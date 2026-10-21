@@ -1182,7 +1182,7 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
         : ready
           ? [['ptbk start', service?.kind === 'failed' ? 'start the service after fixing the problem above' : 'start the agenda in the background']]
           : [['ptbk init', 'resume setup after resolving the items above']];
-    const first = result.firstTask ? `{{${result.firstTask.title}}} → Expert (${toProjectRelative(root, result.firstTask.path)})` : undefined;
+    const first = result.firstTask ? `{${result.firstTask.title}} → Expert (${toProjectRelative(root, result.firstTask.path)})` : undefined;
     const headline = !ready ? 'Setup incomplete' : running ? 'Project ready · agenda running' : 'Setup complete · service not running';
     if (!terminal.pretty) {
         const lines = [`${headline}: ${root} (ptbk ${ENGINE_VERSION})`];

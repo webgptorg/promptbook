@@ -67,6 +67,6 @@ export default async function answer(context: CommandContext): Promise<number> {
         throw new PtbkError(`"${value}" is not one of the offered answers.`, { kind: 'usage', reason: `Choose one of: ${awaiting.choices.join(' | ')}`, effect: 'Nothing was saved.', next: [`Ask a clarifying question with \`ptbk chat --open "${detail.summary.name}"\`.`] });
     }
     const sent = await source.send(detail.summary.name, value, detail.messages.length);
-    terminal.write(`Answered in {{${sent.name}}}${sent.commit ? ` (${sent.commit.slice(0, 8)})` : ''}.${service ? ' The service continues the affected work.' : ' The affected work continues on the next `ptbk start` or `ptbk run`.'}\n`);
+    terminal.write(`Answered in {${sent.name}}${sent.commit ? ` (${sent.commit.slice(0, 8)})` : ''}.${service ? ' The service continues the affected work.' : ' The affected work continues on the next `ptbk start` or `ptbk run`.'}\n`);
     return EXIT.success;
 }

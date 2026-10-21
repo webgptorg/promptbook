@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { PtbkError } from '../common/errors.js';
 import { toProjectRelative } from '../common/fs.js';
-import { formatAgentReference, normalizeAgentName } from '../book/references.js';
+import { formatAgentReference, normalizeAgentName, toReference } from '../book/references.js';
 import { THINKING_LEVELS, type ThinkingLevel } from '../project/config.js';
 import type { AgentCatalog, EffectiveAgent } from '../project/agents.js';
 import { harnessPlugin } from '../harness/registry.js';
@@ -54,7 +54,7 @@ export function workKindOf(task: Task): 'assignment' | 'learning' | 'discovery' 
  */
 export function originTarget(task: Task): string | undefined {
     const origin = task.origin ?? '';
-    const match = /^(?:assignment for|learning from(?: chat)?)\s+(\{\{[^}]+\}\}|\{[^}]+\}|@\S+|\S+)/i.exec(origin);
+    const match = /^(?:assignment for|learning from(?: chat)?)\s+(\{[^{}]+\}|@\S+|\S+)/i.exec(origin);
     return match?.[1];
 }
 
@@ -167,7 +167,7 @@ export async function validateAssignment(
     if (!target.routing.agent) {
         const agent = typeof routing.agent === 'string' ? routing.agent.trim() : '';
         if (!agent) return { ok: false, feedback: 'Your completion line must include `routing.agent` (for example "@Developer").' };
-        const resolution = await options.catalog.resolve(agent.startsWith('@') || agent.startsWith('{') ? agent : `{{${agent}}}`);
+        const resolution = await options.catalog.resolve(toReference(agent));
         if (resolution.kind !== 'agent' || resolution.definition.hidden || resolution.definition.tier === 4) {
             return { ok: false, feedback: `Agent ${agent} is not one of the available project agents. Choose one from the list.` };
         }
@@ -261,8 +261,8 @@ export async function createChatLearningTask(options: { tasksDirectory: string; 
         path,
         renderTaskBook({
             title: name,
-            description: `In the chat {{${options.chat}}}, the user corrected ${options.agent} or stated a lasting project-specific preference: "${options.note.replace(/\s+/g, ' ').slice(0, 500)}". Review the chat and improve \`${options.agentPath}\` where the conversation justifies it and its learning permission allows. Making no change is a valid result.`,
-            commitments: ['TASK AGENT @Teacher', `TASK ORIGIN ${LEARNING_ORIGIN} chat {{${options.chat}}} by ${formatAgentReference(options.agent)}`, `LINK {{${options.chat}}}`],
+            description: `In the chat {${options.chat}}, the user corrected ${options.agent} or stated a lasting project-specific preference: "${options.note.replace(/\s+/g, ' ').slice(0, 500)}". Review the chat and improve \`${options.agentPath}\` where the conversation justifies it and its learning permission allows. Making no change is a valid result.`,
+            commitments: ['TASK AGENT @Teacher', `TASK ORIGIN ${LEARNING_ORIGIN} chat {${options.chat}} by ${formatAgentReference(options.agent)}`, `LINK {${options.chat}}`],
         }),
         { flag: 'wx' },
     );

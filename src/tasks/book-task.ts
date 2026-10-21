@@ -37,15 +37,13 @@ const TASK_CONTROLS = new Set([
 const STATUS_VALUES = new Set(['todo', 'not-ready', 'failed', 'retired']);
 
 /**
- * Splits a reference list (`#a, #b tasks/c.book`).
+ * Splits a reference list (`{Multi word task}, @other #a tasks/c.book`); a `{…}` reference keeps its spaces.
  *
  * @private task Books
  */
 export function splitTaskReferences(value: string): string[] {
-    return value
-        .split(/[,\s]+/)
-        .map((part) => part.trim())
-        .filter(Boolean);
+    // A mistaken `{{…}}` stays one token so it is reported whole instead of as two broken halves.
+    return value.match(/\{\{[^{}\n]*\}\}|\{[^{}\n]*\}|[^,\s]+/g) ?? [];
 }
 
 /**

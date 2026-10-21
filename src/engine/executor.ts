@@ -393,7 +393,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     if (trace.problem) hooks.emit({ type: 'activity', text: `Evidence limitation: ${trace.problem}`, level: 'warning' });
     const runLabel = `run ${record.runId}${occurrence ? ` · occurrence ${occurrence}` : ''}`;
     if (!item.resume) {
-        await trace.section(`Task {{${task.title}}} · ${runLabel}`, [traceHeader({ title: task.title, source: task.source.relativePath }), `Kind: ${item.kind}${task.origin ? ` · origin: ${task.origin}` : ''}${task.parent ? ` · parent: ${task.parent}` : ''}`]);
+        await trace.section(`Task {${task.title}} · ${runLabel}`, [traceHeader({ title: task.title, source: task.source.relativePath }), `Kind: ${item.kind}${task.origin ? ` · origin: ${task.origin}` : ''}${task.parent ? ` · parent: ${task.parent}` : ''}`]);
         await trace.event('started', { runId: record.runId, occurrence, kind: item.kind, title: task.title, source: task.source.relativePath, section: task.source.section, origin: task.origin, parent: task.parent, assignment: assignmentText(task), engineVersion: ENGINE_VERSION });
     } else {
         await trace.event('resumed', { runId: record.runId, occurrence: record.occurrence, phase: record.phase, attempt: record.attempt, title: task.title, source: task.source.relativePath, engineVersion: ENGINE_VERSION });
@@ -661,9 +661,9 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const report = parseAgentReport(lastResult.messages);
             if (pending.chat && (!report || report.status === 'waiting-for-user')) {
                 await save({ phase: 'awaiting-user', waitingChat: pending.chat.chat, awaitedMessages: pending.chat.awaited, chats: [...new Set([...(record.chats ?? []), pending.chat.chat])], attempt: attempt - 1 });
-                hooks.emit({ type: 'phase', phase: 'awaiting-user', detail: `{{${pending.chat.chat}}}` });
+                hooks.emit({ type: 'phase', phase: 'awaiting-user', detail: `{${pending.chat.chat}}` });
                 await trace.event('awaiting-user', { runId: record.runId, chat: pending.chat.chat });
-                await finishResult('awaiting-user', `Waiting for the user's reply in the chat {{${pending.chat.chat}}}.`);
+                await finishResult('awaiting-user', `Waiting for the user's reply in the chat {${pending.chat.chat}}.`);
                 return { kind: 'awaiting-user', chat: pending.chat.chat };
             }
             if (lastResult.outcome !== 'completed') {

@@ -114,7 +114,7 @@ test('task chats: a repeated report of the same unanswered question keeps one wa
     assert.equal(listed.length, 1);
     const [stored] = listed;
     assert.equal(stored.chat.status, 'waiting-for-user');
-    assert.deepEqual(stored.chat.links, ['{{Publish the post}}']);
+    assert.deepEqual(stored.chat.links, ['{Publish the post}']);
     assert.equal(stored.chat.messages[0].sender, '@Developer', 'the request is authored by the asking agent, not the environment');
     assert.match(stored.chat.messages[0].text, /Already attempted: Reused the saved session\./);
     assert.deepEqual(stored.chat.messages[0].choices, ['Done']);
@@ -222,7 +222,7 @@ test('a task waiting for the user is checkpointed so independent work continues;
     assert.match(chat.awaiting.text, /Already attempted: Checked the task and project instructions\./);
     assert.deepEqual(chat.awaiting.choices, ['red', 'blue']);
     assert.equal(chat.links.length, 1);
-    assert.match(chat.links[0], generated('Choose a color ASK_USER', '{{', '}}'), 'the chat links the full saved task name');
+    assert.match(chat.links[0], generated('Choose a color ASK_USER', '{', '}'), 'the chat links the full saved task name');
     const invalid = await ptbk(['answer', chat.name, 'green', '--raw'], { cwd: project, env });
     assert.notEqual(invalid.code, 0, 'an offered decision accepts only its answers');
     const before = (await subjects(project)).length;

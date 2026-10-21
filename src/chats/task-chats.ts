@@ -50,7 +50,7 @@ export function conversationChats(store: ChatStore, conversation: string, option
                 name: `Consultation: ${referenceName(input.from)} with ${referenceName(input.to)} for ${conversation}`.slice(0, 120),
                 members: [from, to],
                 status: 'resolved',
-                links: [`{{${conversation}}}`],
+                links: [`{${conversation}}`],
                 messages: [
                     { sender: from, text: input.question },
                     { sender: to, text: input.answer },
@@ -69,7 +69,7 @@ export function conversationChats(store: ChatStore, conversation: string, option
  * @private chats
  */
 export function taskChats(store: ChatStore, task: { readonly name: string; readonly key: string }, options: { readonly takenNames: () => ReadonlySet<string>; readonly onCreated?: (path: string) => void }): TaskChats {
-    const taskRef = `{{${task.name}}}`;
+    const taskRef = `{${task.name}}`;
     return {
         askUser: async (input) => {
             const agentRef = formatAgentReference(referenceName(input.agent));

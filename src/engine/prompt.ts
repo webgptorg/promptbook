@@ -100,7 +100,7 @@ export function taskBookInstructions(tasksDirectory: string, creationStamp: stri
     return [
         `write each new task as its own Book at the top level of \`${tasksDirectory}/\`, named \`${creationStamp.slice(0, 10)}-<short-slug>.book\`.`,
         `Start it with \`TASK <readable title> — ${creationStamp}\` (the creation date/time is part of the task's name; do not begin the title with an all-uppercase word),`,
-        'then `GOAL <intended result and constraints>` (more lines may follow), then optional `TASK AGENT @Name`, `TASK PRIORITY <n>`, `TASK AFTER <ISO date>` and `LINK {{Other Book name}}`.',
+        'then `GOAL <intended result and constraints>` (more lines may follow), then optional `TASK AGENT @Name`, `TASK PRIORITY <n>`, `TASK AFTER <ISO date>` and `LINK {Other Book name}`.',
         'Every name must differ from all existing agents, tasks and chats (ignoring case, accents and separators); never mark new tasks done.',
     ].join(' ');
 }
@@ -129,7 +129,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     if (input.conversations?.length) {
         parts.push(
             `## Conversation with the user\n\n${input.conversations
-                .map((conversation) => `Chat {{${conversation.chat}}}:\n${conversation.messages.map((message) => `- ${message.sender}: ${message.text.replace(/\n/g, '\n  ')}`).join('\n')}`)
+                .map((conversation) => `Chat {${conversation.chat}}:\n${conversation.messages.map((message) => `- ${message.sender}: ${message.text.replace(/\n/g, '\n  ')}`).join('\n')}`)
                 .join('\n\n')}\n\nThe latest @User messages are the user's reply; continue the task with it.`,
         );
     }

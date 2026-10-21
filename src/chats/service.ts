@@ -1,6 +1,6 @@
 import { PtbkError } from '../common/errors.js';
 import { commitmentsOf } from '../book/parse.js';
-import { formatAgentReference, normalizeAgentName } from '../book/references.js';
+import { formatAgentReference, normalizeAgentName, toReference } from '../book/references.js';
 import type { AgentCatalog } from '../project/agents.js';
 import { CHATTER_NAME } from '../project/defaults.js';
 import type { ActiveRecord, StateStore } from '../engine/state.js';
@@ -100,7 +100,7 @@ export async function chatDetail(store: ChatStore, name: string): Promise<ChatDe
  * @private chats
  */
 export async function createUserChat(store: ChatStore, catalog: AgentCatalog, agent: string, text: string, options: { readonly name?: string } = {}): Promise<ChatWrite> {
-    const reference = agent.startsWith('@') || agent.startsWith('{') ? agent : formatAgentReference(agent);
+    const reference = toReference(agent);
     const resolution = await catalog.resolve(reference);
     if (resolution.kind === 'non-agent' && resolution.name !== 'Expert') throw new PtbkError(`You cannot chat with ${resolution.name}; choose a project agent or @Expert.`, { kind: 'usage' });
     if (resolution.kind !== 'agent' && resolution.kind !== 'non-agent') {

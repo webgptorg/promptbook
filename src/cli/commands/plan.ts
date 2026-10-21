@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { ensureDirectory, listDirectory, toProjectRelative } from '../../common/fs.js';
 import { shortId, shortHash } from '../../common/ids.js';
-import { formatAgentReference } from '../../book/references.js';
+import { formatAgentReference, toReference } from '../../book/references.js';
 import { AgentCatalog, resolveEffectiveAgent } from '../../project/agents.js';
 import { enabledHarnesses, loadSettings, setting } from '../../project/config.js';
 import { harnessRequirement } from '../../engine/routing.js';
@@ -92,7 +92,7 @@ export default async function plan(context: CommandContext): Promise<number> {
     const inspection = instanceInspection;
     const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'));
     const requested = option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent');
-    const agent = await resolveEffectiveAgent(catalog, requested.startsWith('@') || requested.startsWith('{') ? requested : `{{${requested}}}`);
+    const agent = await resolveEffectiveAgent(catalog, toReference(requested));
     if (agent.diagnostics.some((diagnostic) => diagnostic.severity === 'error')) throw new PtbkError(`Agent ${requested} cannot plan.`, { kind: 'configuration', reason: agent.diagnostics.map((diagnostic) => diagnostic.message).join(' ') });
     const tasksDirectory = await writableTasksDirectory(context, project, settings);
     const agents = catalog.ordinary().map((definition) => formatAgentReference(definition.name));

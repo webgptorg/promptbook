@@ -3,7 +3,7 @@ import { join, resolve, sep } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { isDirectory, listDirectory, toProjectRelative } from '../common/fs.js';
 import { parseReferenceValue } from '../book/references.js';
-import type { BookIndex } from '../project/books.js';
+import { rootRank, type BookIndex } from '../project/books.js';
 import { readTaskBook } from './book-task.js';
 import { isIgnoredMarkdown, readMarkdownTasks } from './markdown.js';
 import type { Task } from './model.js';
@@ -98,11 +98,11 @@ export async function readTaskQueue(options: TaskSourceOptions): Promise<TaskQue
     }
     // A task's identity is its normalized name: same-name tasks are shadowed deterministically (never merged).
     const problems: string[] = [];
-    // Same ordering as the shared resolver: tier (task source 2, elsewhere 3), depth, root order, path, section.
+    // Same ordering as the shared resolver: tier (task sources are never in agents/, so 3), depth, root order, path, section.
     const rank = (task: Task): [number, number, number, string, number] => {
         const inTasks = task.source.path.startsWith(`${tasksDirectory}${sep}`);
         const depth = (inTasks ? task.source.path.slice(tasksDirectory.length + 1) : task.source.relativePath).split(/[\\/]/).length - 1;
-        return [inTasks ? 2 : 3, depth, inTasks ? 1 : 3, task.source.relativePath, task.source.section ?? 0];
+        return [3, depth, rootRank(inTasks ? 'tasks' : undefined), task.source.relativePath, task.source.section ?? 0];
     };
     const compare = (a: [number, number, number, string, number], b: [number, number, number, string, number]): number =>
         a[0] - b[0] || a[1] - b[1] || a[2] - b[2] || (a[3] < b[3] ? -1 : a[3] > b[3] ? 1 : 0) || a[4] - b[4];
@@ -121,7 +121,7 @@ export async function readTaskQueue(options: TaskSourceOptions): Promise<TaskQue
             return { ...task, shadowedBy: describe(winner) };
         }
         const other = options.index?.winnerOf(task.key);
-        const otherRank = other ? ([other.tier, other.depth, other.root === 'agents' ? 0 : other.root === 'tasks' ? 1 : other.root === 'chats' ? 2 : 3, other.relativePath, 0] as [number, number, number, string, number]) : undefined;
+        const otherRank = other ? ([other.tier, other.depth, rootRank(other.root), other.relativePath, 0] as [number, number, number, string, number]) : undefined;
         // A Book task is ranked by the index itself; a Markdown section is compared with the index winner explicitly.
         if (other && otherRank && other.path !== task.source.path && (task.source.kind === 'book' || compare(otherRank, rank(task)) < 0)) {
             problems.push(`Task name "${task.title}" is shadowed by the ${other.kind} ${other.relativePath}, which wins that name.`);

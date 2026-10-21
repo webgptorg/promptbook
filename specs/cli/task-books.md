@@ -11,7 +11,7 @@ Add regression tests.
 TASK AGENT @Developer
 TASK PRIORITY 2
 TASK AFTER 2026-10-30T09:00:00+01:00
-LINK {{Discuss CSV requirements — 2026-10-18 01:24:00}}
+LINK {Discuss CSV requirements — 2026-10-18 01:24:00}
 RULE Do not change the public interface.
 ```
 

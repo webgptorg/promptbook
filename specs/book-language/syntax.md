@@ -38,7 +38,7 @@ TASK Improve CSV export — 2026-10-18 01:25:00
 GOAL Preserve column names and correctly quote cells with commas or newlines.
 Add regression tests for multiline fields.
 TASK AGENT @Developer
-LINK {{Discuss CSV requirements — 2026-10-18 01:24:00}}
+LINK {Discuss CSV requirements — 2026-10-18 01:24:00}
 ```
 
 ```book
@@ -47,7 +47,7 @@ CHAT MEMBER @User
 CHAT MEMBER @Developer
 CHAT MESSAGE @User 2026-10-18T01:24:00+02:00
 Can the export support multiline fields?
-LINK {{Improve CSV export — 2026-10-18 01:25:00}}
+LINK {Improve CSV export — 2026-10-18 01:25:00}
 ```
 
 The dates in these names illustrate [generated-name policy](../cli/generated-names.md). They have no special syntactic role; a name without a date is equally valid. CHAT MESSAGE timestamps, task scheduling and completion timestamps retain their separate commitment-specific meanings.

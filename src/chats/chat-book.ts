@@ -1,5 +1,5 @@
 import { commitmentsOf, parseBook, singleValue, type BookDiagnostic } from '../book/parse.js';
-import { formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
+import { formatAgentReference, invalidReferenceMessage, normalizeAgentName, parseReferenceValue } from '../book/references.js';
 import { needsLiteralEscape, renderDeclaration } from '../book/write.js';
 
 /**
@@ -160,7 +160,7 @@ export function parseChatBook(source: string): ChatBook {
     const diagnostics: BookDiagnostic[] = [...document.diagnostics];
     if (document.kind !== 'chat' && document.kind !== 'empty' && !document.legacy?.plainHeader) diagnostics.push({ line: document.headerLine + 1, message: 'This Book is not a chat (it must start with `CHAT <name>`).', severity: 'error' });
     const members = commitmentsOf(document, 'CHAT MEMBER').map((commitment) => commitment.value.trim());
-    for (const member of members) if (!parseReferenceValue(member)) diagnostics.push({ line: 0, message: `CHAT MEMBER "${member}" is not a valid reference.`, severity: 'error' });
+    for (const member of members) if (!parseReferenceValue(member)) diagnostics.push({ line: 0, message: `CHAT MEMBER ${invalidReferenceMessage(member)}`, severity: 'error' });
     const statusValue = singleValue(document, 'CHAT STATUS');
     if (statusValue.conflict) diagnostics.push(statusValue.conflict);
     const status = (CHAT_STATUSES as readonly string[]).includes(statusValue.value ?? 'open') ? ((statusValue.value ?? 'open') as ChatStatus) : 'open';
@@ -168,7 +168,7 @@ export function parseChatBook(source: string): ChatBook {
     const messageCommitments = commitmentsOf(document, 'CHAT MESSAGE');
     const messages: ChatMessage[] = [];
     for (const commitment of messageCommitments) {
-        const header = /^(\{\{[^}]+\}\}|\{[^}]+\}|@\S+)\s+(\S+)$/.exec(commitment.value.trim());
+        const header = /^(\{[^{}]+\}|@\S+)\s+(\S+)$/.exec(commitment.value.trim());
         if (!header) {
             diagnostics.push({ line: commitment.startLine + 1, message: 'A CHAT MESSAGE needs `<sender> <timestamp>`.', severity: 'error' });
             continue;

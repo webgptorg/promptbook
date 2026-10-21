@@ -2,7 +2,7 @@ import { readFile, realpath } from 'node:fs/promises';
 import { join, resolve, sep } from 'node:path';
 import { isPathInside, listDirectory, sha256, toProjectRelative } from '../common/fs.js';
 import { parseBook, type BookDocument, type EntityKind } from '../book/parse.js';
-import { nonAgentOf, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
+import { invalidReferenceMessage, nonAgentOf, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
 import { inspectGit, listIgnoredEntries, listProjectFiles } from './git.js';
 import { RUNTIME_DIRECTORY_NAME } from './workspace.js';
 
@@ -26,8 +26,8 @@ const MAX_IGNORED_FILES = 60_000;
 /**
  * Lookup tier (tier 1 are the engine built-ins).
  *
- * - 2: non-ignored common locations (`agents/`, `tasks/`, `chats/`)
- * - 3: other non-ignored project Books
+ * - 2: every Book in the non-ignored `agents/` folder
+ * - 3: the rest of the non-ignored project (`tasks/`, `chats/` and other locations)
  * - 4: Git-ignored project content (e.g. `node_modules`)
  *
  * @private Book index
@@ -61,7 +61,7 @@ export type BookEntry = {
     readonly tier: BookTier;
     /** Common location, when inside one. */
     readonly root?: CommonRoot;
-    /** Nesting depth below its common root (tier 2) or the project root. */
+    /** Nesting depth below its common root (`agents/`, `tasks/`, `chats/`) or the project root. */
     readonly depth: number;
     /** Inside a hidden directory (supporting definitions such as `agents/.core/`). */
     readonly hidden: boolean;
@@ -102,12 +102,21 @@ export type NameResolution =
 const ROOT_ORDER: Readonly<Record<CommonRoot, number>> = { agents: 0, tasks: 1, chats: 2 };
 
 /**
+ * Rank of a Book's location within its tier: common roots in their order, then any other location.
+ *
+ * @private Book index
+ */
+export function rootRank(root: CommonRoot | undefined): number {
+    return root ? ROOT_ORDER[root] : 3;
+}
+
+/**
  * Deterministic resolution order: tier, shallow before deep, common-root order, then path.
  *
  * @private Book index
  */
 export function compareEntries(a: BookEntry, b: BookEntry): number {
-    return a.tier - b.tier || a.depth - b.depth || (a.root ? ROOT_ORDER[a.root] : 3) - (b.root ? ROOT_ORDER[b.root] : 3) || (a.relativePath < b.relativePath ? -1 : a.relativePath > b.relativePath ? 1 : 0);
+    return a.tier - b.tier || a.depth - b.depth || rootRank(a.root) - rootRank(b.root) || (a.relativePath < b.relativePath ? -1 : a.relativePath > b.relativePath ? 1 : 0);
 }
 
 /**
@@ -226,7 +235,7 @@ export class BookIndex {
             kind: document.kind,
             path: absolute,
             relativePath,
-            tier: ignored ? 4 : common ? 2 : 3,
+            tier: ignored ? 4 : common?.root === 'agents' ? 2 : 3,
             root: common?.root,
             depth: segments.length,
             hidden: common?.root === 'agents' && segments.some((segment) => segment.startsWith('.')),
@@ -309,7 +318,7 @@ export class BookIndex {
      */
     public async resolve(reference: string): Promise<NameResolution> {
         const parsed = parseReferenceValue(reference);
-        if (!parsed) return { kind: 'invalid', reason: `"${reference}" is not a valid name reference.` };
+        if (!parsed) return { kind: 'invalid', reason: invalidReferenceMessage(reference) };
         const nonAgent = nonAgentOf(parsed.normalized);
         if (nonAgent) return { kind: 'non-agent', name: nonAgent };
         let matches = this.entries.filter((entry) => entry.normalized === parsed.normalized);

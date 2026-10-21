@@ -159,7 +159,7 @@ export default async function migrate(context: CommandContext): Promise<number> 
         terminal.write('Nothing to migrate: no Markdown task files and no Books in former syntax.\n');
         return EXIT.success;
     }
-    for (const book of planned) terminal.write(`${dryRun ? 'Would create' : 'Create'} ${toProjectRelative(project.root, book.path)} (${book.task.status}, {{${book.task.title}}}) ← ${book.task.ref}\n`);
+    for (const book of planned) terminal.write(`${dryRun ? 'Would create' : 'Create'} ${toProjectRelative(project.root, book.path)} (${book.task.status}, {${book.task.title}}) ← ${book.task.ref}\n`);
     for (const item of conversions) terminal.write(`${dryRun ? 'Would convert' : 'Convert'} ${toProjectRelative(project.root, item.path)} → ${item.content.split('\n')[0]}${item.notes.length ? ` (${item.notes.join('; ')})` : ''}\n`);
     for (const item of archives) terminal.write(`${dryRun ? 'Would archive' : 'Archive'} ${toProjectRelative(project.root, item.from)} → ${toProjectRelative(project.root, item.to)}\n`);
     for (const problem of blocked) terminal.write(`Not converted: ${problem}\n`);

@@ -47,7 +47,7 @@ export function nonAgentOf(normalized: string): NonAgentName | undefined {
  * @private Book language
  */
 export type AgentReference = {
-    /** Exact source text, e.g. `@Developer`, `{{Frontend Developer}}` or the compatible `{Frontend Developer}`. */
+    /** Exact source text, e.g. `@Developer` or `{Frontend Developer}`. */
     readonly raw: string;
     /** Name without reference syntax, e.g. `Frontend Developer`. */
     readonly name: string;
@@ -63,10 +63,19 @@ export type AgentReference = {
 const TRAILING_PUNCTUATION = /[.,;:!?)\]}>"'`]+$/;
 
 /**
- * Parses a single dedicated reference field value (`@Name`, `{{Name}}`, the compatible `{Name}` or a bare name, as in
- * `FROM Adam`).
+ * Explains why a value is not a valid reference; a double-brace `{{Name}}` is pointed to the single-brace `{Name}`.
  *
- * Returns `undefined` for an empty or malformed value.
+ * @private Book language
+ */
+export function invalidReferenceMessage(value: string): string {
+    const doubleBraced = /^\{\{([^{}\n]*)\}\}$/.exec(value.trim());
+    return `"${value.trim()}" is not a valid reference.${doubleBraced ? ` References use single braces: {${doubleBraced[1]!.trim()}}.` : ''}`;
+}
+
+/**
+ * Parses a single dedicated reference field value (`@Name`, `{Name}` or a bare name, as in `FROM Adam`).
+ *
+ * Returns `undefined` for an empty or malformed value, including the double-brace `{{Name}}`.
  *
  * @private Book language
  */
@@ -74,16 +83,11 @@ export function parseReferenceValue(value: string): AgentReference | undefined {
     const text = value.trim();
     if (!text) return undefined;
     let name: string;
-    if (text.startsWith('{{')) {
-        const end = text.indexOf('}}');
-        if (end < 0) return undefined;
-        name = text.slice(2, end).trim();
-        if (text.slice(end + 2).trim()) return undefined;
-    } else if (text.startsWith('{')) {
+    if (text.startsWith('{')) {
         const end = text.indexOf('}');
         if (end < 0) return undefined;
         name = text.slice(1, end).trim();
-        if (text.slice(end + 1).trim()) return undefined;
+        if (/[{}]/.test(name) || text.slice(end + 1).trim()) return undefined;
     } else if (text.startsWith('@')) {
         name = text.slice(1).replace(TRAILING_PUNCTUATION, '');
         if (/\s/.test(name)) return undefined;
@@ -96,33 +100,29 @@ export function parseReferenceValue(value: string): AgentReference | undefined {
 }
 
 /**
- * Finds references (`@Token`, `{{Name}}` and the compatible `{Name}`) in natural text, skipping fenced/inline code and
- * email addresses.
+ * Finds references (`@Token` and `{Name}`) in natural text, skipping fenced/inline code, email addresses and
+ * double-brace `{{…}}` text.
  *
  * @private Book language
  */
 export function findAgentReferences(text: string): AgentReference[] {
     const references: AgentReference[] = [];
     const masked = maskCode(text);
-    const pattern = /\{\{([^{}\n]{1,240})\}\}|\{([^{}\n]{1,240})\}|@([^\s@{}()[\]<>,;:!?"'`]+)/g;
+    const pattern = /\{([^{}\n]{1,240})\}|@([^\s@{}()[\]<>,;:!?"'`]+)/g;
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(masked)) !== null) {
         const index = match.index;
-        if (match[1] !== undefined) {
-            const name = match[1].trim();
-            const normalized = normalizeAgentName(name);
-            if (normalized) references.push({ raw: match[0], name, normalized, index });
-            continue;
-        }
-        if (match[3] !== undefined) {
-            const previous = index > 0 ? masked[index - 1]! : '';
+        const previous = index > 0 ? masked[index - 1]! : '';
+        if (match[2] !== undefined) {
             if (/[A-Za-z0-9._%+-]/.test(previous)) continue; // e-mail address or similar
-            const name = match[3].replace(TRAILING_PUNCTUATION, '');
+            const name = match[2].replace(TRAILING_PUNCTUATION, '');
             const normalized = normalizeAgentName(name);
             if (!normalized) continue;
             references.push({ raw: `@${name}`, name, normalized, index });
         } else {
-            const name = match[2]!.trim();
+            const name = match[1]!.trim();
+            // Double braces (`{{…}}`, `${{ … }}`) are template text, not a reference.
+            if (previous === '{' || masked[index + match[0].length] === '}') continue;
             // Braces around code-like or template content are not references.
             if (!name || /[=$%#|\\/]/.test(name) || /^\d+(,\d*)?$/.test(name)) continue;
             const normalized = normalizeAgentName(name);
@@ -159,16 +159,25 @@ export function maskCode(text: string): string {
 }
 
 /**
- * Formats a name as a reference (`@Name` for a single word, `{{Name}}` otherwise).
+ * Formats a name as a reference (`@Name` for a single word, `{Name}` otherwise).
  *
  * @private Book language
  */
 export function formatAgentReference(name: string): string {
-    return /^[\p{L}\p{N}][\p{L}\p{N}_-]*$/u.test(name) && !/[-_]$/.test(name) ? `@${name}` : `{{${name}}}`;
+    return /^[\p{L}\p{N}][\p{L}\p{N}_-]*$/u.test(name) && !/[-_]$/.test(name) ? `@${name}` : `{${name}}`;
 }
 
 /**
- * The plain name of a reference (`@Developer`, `{{Frontend Developer}}`, `{Frontend Developer}` or a bare name).
+ * Keeps a written reference (`@Name`, `{Name}`) as it is and formats a bare name as one.
+ *
+ * @private Book language
+ */
+export function toReference(value: string): string {
+    return value.startsWith('@') || value.startsWith('{') ? value : formatAgentReference(value);
+}
+
+/**
+ * The plain name of a reference (`@Developer`, `{Frontend Developer}` or a bare name).
  *
  * @private Book language
  */

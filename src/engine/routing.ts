@@ -1,4 +1,4 @@
-import { normalizeAgentName, referenceName } from '../book/references.js';
+import { normalizeAgentName, referenceName, toReference } from '../book/references.js';
 import { setting, type EffectiveSettings, type ThinkingLevel } from '../project/config.js';
 import { resolveEffectiveAgent, type AgentCatalog, type EffectiveAgent } from '../project/agents.js';
 import { harnessName, harnessPlugin } from '../harness/registry.js';
@@ -136,7 +136,7 @@ export async function resolveRoute(task: Task, context: RoutingContext): Promise
         agentReference = setting<string>(settings, 'routing.defaultAgent');
         agentSource = `default agent (routing.defaultAgent from ${settings.sources['routing.defaultAgent'] ?? 'default'})`;
     }
-    const agent = await resolveEffectiveAgent(context.catalog, agentReference.startsWith('@') || agentReference.startsWith('{') ? agentReference : `{{${agentReference}}}`);
+    const agent = await resolveEffectiveAgent(context.catalog, toReference(agentReference));
     const agentErrors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (agentErrors.length) {
         return { kind: 'blocked', reason: agentErrors.map((diagnostic) => `${diagnostic.path ? `${diagnostic.path}: ` : ''}${diagnostic.message}`).join(' '), next: 'Fix the agent definition or the TASK AGENT reference.' };

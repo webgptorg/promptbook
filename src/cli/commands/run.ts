@@ -15,6 +15,7 @@ import { browserOverrides, printJson, selectedProject, settingOverrides, tasksOv
 import { flag, option, type CommandContext } from '../context.js';
 import { hostSource } from '../sources.js';
 import { ownerSignals } from '../lifecycle.js';
+import { toReference } from '../../book/references.js';
 
 /**
  * Describes the effective check honestly (the informational placeholder is not real validation).
@@ -40,7 +41,7 @@ function runSelection(context: CommandContext, settings: Awaited<ReturnType<type
     const isDefault = setting<string | undefined>(settings, 'routing.harness') === variant;
     const agentName = option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent');
     return {
-        agent: agentName.startsWith('@') || agentName.startsWith('{') ? agentName : `{{${agentName}}}`,
+        agent: toReference(agentName),
         harness,
         model: option<string>(context, 'model') ?? preferred?.model ?? (isDefault ? setting<string | undefined>(settings, 'routing.model') : undefined),
         thinkingLevel: option<ThinkingLevel>(context, 'thinking-level') ?? preferred?.thinkingLevel ?? (isDefault ? setting<ThinkingLevel | undefined>(settings, 'routing.thinkingLevel') : undefined),

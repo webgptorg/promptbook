@@ -131,7 +131,7 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
     const recovery = context.recovery.get(task.key);
     if (recovery) return { kind: 'needs-recovery', reason: recovery };
     const chat = context.awaitingUser.get(task.key);
-    if (chat) return { kind: 'awaiting-user', reason: `Waiting for your reply in the chat {{${chat}}}.`, chat };
+    if (chat) return { kind: 'awaiting-user', reason: `Waiting for your reply in the chat {${chat}}.`, chat };
     const waitingOn: string[] = [];
     for (const reference of task.dependsOn) {
         const found = findTask(tasks, reference);

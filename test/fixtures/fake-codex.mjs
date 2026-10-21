@@ -130,7 +130,7 @@ async function callTool(name, toolArguments) {
 
 async function main() {
     const prompt = readFileSync(0, 'utf8');
-    const reference = /- Reference: (\{\{[^}]+\}\}|\{[^}]+\}|\S+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
+    const reference = /- Reference: (\{[^{}]+\}|\S+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
     const stamp = /TASK <readable title> — ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:]{8})/.exec(prompt)?.[1] ?? '2026-01-01 00:00:00';
     const title = /- Name: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
     const agent = /You are \*\*([^*]+)\*\*/.exec(prompt)?.[1] ?? 'unknown';

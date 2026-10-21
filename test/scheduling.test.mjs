@@ -75,7 +75,7 @@ test('Markdown legacy ID comments are historical metadata only: the title is the
     assert.equal(tasks.length, 3);
     const second = tasks[1];
     assert.equal(second.legacyId, 'second-abc123');
-    assert.equal(second.ref, '{{Second task}}', 'referenced by name, never by the legacy ID');
+    assert.equal(second.ref, '{Second task}', 'referenced by name, never by the legacy ID');
     assert.equal(second.key, 'secondtask');
     assert.equal(second.status, 'not-ready', 'the control line after the comment still decides the state');
     assert.equal(second.title, 'Second task');

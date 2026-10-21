@@ -1,3 +1,4 @@
+import { parseReferenceValue } from '../book/references.js';
 import { isCheckPlaceholder } from './config.js';
 
 /**
@@ -71,12 +72,12 @@ export const CHATTER_NAME = 'Chatter';
  * Default Book of the core agent Chatter: the default conversational entry, with TEAM access to the other agents that
  * exist when it is created (never itself) and to Expert. Ordinary Adam inheritance and default OPEN learning.
  *
- * `teammates` are the references (`@Developer`, `{{Frontend Developer}}`) of every other agent of the project.
+ * `teammates` are the references (`@Developer`, `{Frontend Developer}`) of every other agent of the project.
  *
  * @private initialization defaults
  */
 export function chatterBook(teammates: readonly string[]): string {
-    const others = teammates.filter((reference) => !/^(@chatter|\{\{?\s*chatter\s*\}?\})$/i.test(reference.trim()));
+    const others = teammates.filter((reference) => parseReferenceValue(reference)?.normalized !== 'chatter');
     const list = others.length > 1 ? `${others.slice(0, -1).join(', ')} and ${others[others.length - 1]}` : (others[0] ?? '');
     return `AGENT Chatter
 GOAL Be the project owner's first point of contact: answer questions about the project, explain its status, clarify intent and turn agreed work into ordinary tasks.
@@ -262,7 +263,7 @@ These instructions apply to every agent working on **${options.name}**.
 - \`tasks/\` holds task Books; \`tasks/templates/\` holds templates, which are not tasks.
 - \`chats/\` holds persistent conversations (chat Books) between the user and agents; never edit existing messages.
 - \`specs/\` holds the project's specifications; \`specs/_initial.md\` preserves the original initial input — keep it unchanged.
-- Every Book starts with \`AGENT <name>\`, \`TASK <name>\` or \`CHAT <name>\`; that name is its identity (agents, tasks and chats share one namespace). Further content goes under commitments such as \`GOAL\`, \`PERSONA\` or \`RULE\`, and references use \`@Name\` or \`{{Multi Word Name}}\`.
+- Every Book starts with \`AGENT <name>\`, \`TASK <name>\` or \`CHAT <name>\`; that name is its identity (agents, tasks and chats share one namespace). Further content goes under commitments such as \`GOAL\`, \`PERSONA\` or \`RULE\`, and references use \`@Name\` or \`{Multi Word Name}\` (single braces).
 - \`traces/<task-file-basename>/\` holds Promptbook's per-task audit evidence, named literally after each task's source file without \`.book\`; never edit it or treat it as tasks or agents.
 - \`ptbk.json\` holds versioned Promptbook configuration (including the named browser/harness \`tools\`); \`.ptbk/\` is Git-ignored runtime state and \`.env\` holds local secrets (never committed).
 

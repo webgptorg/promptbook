@@ -5,7 +5,7 @@ import { parseInterval } from '../../common/duration.js';
 import { ensureDirectory, listDirectory, pathExists, toProjectRelative } from '../../common/fs.js';
 import { parseDateTime } from '../../common/time.js';
 import { matchCommitmentKeyword } from '../../book/commitments.js';
-import { normalizeAgentName } from '../../book/references.js';
+import { normalizeAgentName, toReference } from '../../book/references.js';
 import { renderCommitment } from '../../book/write.js';
 import { commitmentsOf, parseBook } from '../../book/parse.js';
 import { loadSettings, setting } from '../../project/config.js';
@@ -26,7 +26,7 @@ import { flag, option, type CommandContext } from '../context.js';
 function controlLines(context: CommandContext, timeZone: string): string[] {
     const lines: string[] = [];
     const agent = option<string>(context, 'agent');
-    if (agent) lines.push(`TASK AGENT ${agent.startsWith('@') || agent.startsWith('{') ? agent : /\s/.test(agent) ? `{{${agent}}}` : `@${agent}`}`);
+    if (agent) lines.push(`TASK AGENT ${toReference(agent)}`);
     if (option<string>(context, 'harness')) lines.push(`TASK HARNESS ${option<string>(context, 'harness')}`);
     if (option<string>(context, 'model')) lines.push(`TASK MODEL ${option<string>(context, 'model')}`);
     if (option<string>(context, 'thinking-level')) lines.push(`TASK THINKING LEVEL ${option<string>(context, 'thinking-level')}`);

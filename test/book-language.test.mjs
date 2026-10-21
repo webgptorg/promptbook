@@ -4,10 +4,10 @@ import { parseBook, singleValue } from '../dist/book/parse.js';
 import { appendCommitment, setControlCommitment } from '../dist/book/edit.js';
 import { convertLegacyBook } from '../dist/book/convert.js';
 import { matchCommitmentKeyword } from '../dist/book/commitments.js';
-import { findAgentReferences, formatAgentReference, normalizeAgentName, nonAgentOf, parseReferenceValue } from '../dist/book/references.js';
+import { findAgentReferences, formatAgentReference, invalidReferenceMessage, normalizeAgentName, nonAgentOf, parseReferenceValue, toReference } from '../dist/book/references.js';
 import { declarationName, renderCommitment, renderDeclaration } from '../dist/book/write.js';
 import { generatedName } from '../dist/tasks/identity.js';
-import { readTaskBook } from '../dist/tasks/book-task.js';
+import { readTaskBook, splitTaskReferences } from '../dist/tasks/book-task.js';
 
 test('typed declarations: AGENT, TASK and CHAT open a Book and give kind and name with one grammar, without location hints', () => {
     const agent = parseBook('\n\nAGENT Frontend Developer\nPERSONA You build interfaces.\nGOAL Ship it.');
@@ -43,7 +43,7 @@ test('commitment boundaries: maximal uppercase keywords of three or more letters
     assert.equal(matchCommitmentKeyword('TASK AGENT @Developer').definition.keyword, 'TASK AGENT');
     assert.equal(matchCommitmentKeyword('TASK PRIORITY 2').content, '2');
     assert.equal(matchCommitmentKeyword('WRITING SAMPLE This is an example.').definition.keyword, 'WRITING SAMPLE');
-    assert.equal(matchCommitmentKeyword('TASK DEPENDS ON {{Other}}').definition.keyword, 'TASK DEPENDS ON');
+    assert.equal(matchCommitmentKeyword('TASK DEPENDS ON {Other}').definition.keyword, 'TASK DEPENDS ON');
     assert.equal(matchCommitmentKeyword('AGENT Frontend Developer UI').content, 'Frontend Developer UI', 'later uppercase words stay content');
     for (const prose of ['A plan follows.', 'I think so.', 'AI agents help.', 'task agent is prose', ' RULE indented']) assert.equal(matchCommitmentKeyword(prose), undefined, prose);
     const unknown = matchCommitmentKeyword('RULE API keys must rotate.');
@@ -88,20 +88,28 @@ test('edits preserve content and append completion stamps', () => {
     assert.match(appendCommitment('TASK Only\n', 'TASK DONE', 'unknown'), /^TASK Only\n(\n)?TASK DONE unknown\n$/);
 });
 
-test('every documented Frontend Developer spelling normalizes identically; double and single braces agree', () => {
-    const spellings = ['{{Frontend Developer}}', '{{FrontendDeveloper}}', '{{frontend     Developer}}', '{{Frontend_Developer}}', '{{-Fronténd Developer}}', '{Frontend Developer}', '@FrontendDeveloper'];
+test('every documented Frontend Developer spelling normalizes identically; @ and single braces agree, double braces are not a reference', () => {
+    const spellings = ['{Frontend Developer}', '{FrontendDeveloper}', '{frontend     Developer}', '{Frontend_Developer}', '{-Fronténd Developer}', '@FrontendDeveloper'];
     const keys = spellings.map((spelling) => parseReferenceValue(spelling).normalized);
     assert.deepEqual(new Set(keys), new Set(['frontenddeveloper']));
-    assert.equal(parseReferenceValue('@Adam').normalized, parseReferenceValue('{{Adam}}').normalized);
-    assert.equal(parseReferenceValue('{{Čeněk}}').normalized, parseReferenceValue('@Cenek').normalized);
+    assert.equal(parseReferenceValue('@Adam').normalized, parseReferenceValue('{Adam}').normalized);
+    assert.equal(parseReferenceValue('{Čeněk}').normalized, parseReferenceValue('@Cenek').normalized);
     assert.equal(formatAgentReference('Developer'), '@Developer');
-    assert.equal(formatAgentReference('Frontend Developer'), '{{Frontend Developer}}', 'generated multiword references use double braces');
-    assert.equal(parseReferenceValue('{{Improve CSV export — 2026-10-18 01:25:00}}').name, 'Improve CSV export — 2026-10-18 01:25:00');
+    assert.equal(formatAgentReference('Frontend Developer'), '{Frontend Developer}', 'generated multiword references use single braces');
+    assert.equal(toReference('Frontend Developer'), '{Frontend Developer}');
+    assert.equal(toReference('{Frontend Developer}'), '{Frontend Developer}');
+    assert.equal(parseReferenceValue('{Improve CSV export — 2026-10-18 01:25:00}').name, 'Improve CSV export — 2026-10-18 01:25:00');
+    for (const doubled of ['{{Adam}}', '{{Frontend Developer}}', '{{Frontend Developer}', '{Frontend Developer}}']) assert.equal(parseReferenceValue(doubled), undefined, doubled);
+    assert.match(invalidReferenceMessage('{{Frontend Developer}}'), /single braces: \{Frontend Developer\}/);
 });
 
-test('references in content: double braces, compatible single braces and @tokens, but not e-mails or code', () => {
-    const found = findAgentReferences('Ask @Lawyer, {{Frontend Developer}}, {Copy Writer} or @User. Mail me@example.com. `@NotInCode`\n```\n@NotInFence\n```');
+test('references in content: single braces and @tokens, but not double braces, e-mails or code', () => {
+    const found = findAgentReferences('Ask @Lawyer, {Frontend Developer}, {Copy Writer} or @User. Not {{Template Value}} nor ${{ env.API_KEY }}. Mail me@example.com. `@NotInCode`\n```\n@NotInFence\n```');
     assert.deepEqual(found.map((reference) => reference.normalized), ['lawyer', 'frontenddeveloper', 'copywriter', 'user']);
+});
+
+test('TASK DEPENDS ON keeps a braced multiword name together', () => {
+    assert.deepEqual(splitTaskReferences('{Discuss CSV export}, @Deploy #legacy tasks/c.book {{Not A Reference}}'), ['{Discuss CSV export}', '@Deploy', '#legacy', 'tasks/c.book', '{{Not A Reference}}']);
 });
 
 test('non-agents: Void/Null/0, User and Expert are reserved', () => {

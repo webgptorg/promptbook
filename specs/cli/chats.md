@@ -21,7 +21,7 @@ CHAT MEMBER @User
 CHAT STATUS waiting-for-user
 CHAT MESSAGE @Fixer 2026-10-18T01:25:00+02:00
 The project browser session expired. Please log in using the opened browser window.
-LINK {{Restore access to publishing}}
+LINK {Restore access to publishing}
 ```
 
 CHAT MEMBER declares participants; repeat CHAT MESSAGE with sender/time, full text and attachments in source order. Extend the same Book using the common grammar, not another CHAT declaration/parser. Message timestamps are distinct from date text in its name. CHAT STATUS open/waiting-for-user/resolved records durable action state; waiting requires an actual question/decision/action, not merely the latest speaker. Local read/unread markers are separate, optionally in ignored `.ptbk/`; reading is not approval. Preserve full text, attachments, options and provenance while excluding secrets. Explain that versioned conversation content may be sensitive.

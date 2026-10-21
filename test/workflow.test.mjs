@@ -141,7 +141,7 @@ test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-Name tr
     assert.match(followUp, generated(`Learn from: ${taskName}`), 'the follow-up gets its own generated name');
     const learning = await readFile(join(project, files.find((file) => /learn-/.test(file))), 'utf8');
     assert.equal(learning.split('\n')[0], `TASK ${followUp}`);
-    assert.ok(learning.includes(`TASK ORIGIN learning from {{${taskName}}} by @Developer`), learning);
+    assert.ok(learning.includes(`TASK ORIGIN learning from {${taskName}} by @Developer`), learning);
     assert.doesNotMatch(learning, /TASK ID|ENTITY/);
     const task = (await readdir(join(project, 'tasks'))).find((name) => name.includes('welcome-page') && !name.includes('learn-'));
     assert.ok(learning.includes(`Evidence: ${traceDirectoryOf(`tasks/${task}`)}/harness.log`), learning);
@@ -175,7 +175,7 @@ test('a blocked agent leaves a recovery decision; acknowledging records the fail
     assert.equal(chats.length, 1);
     assert.equal(chats[0].agent, '@Developer', 'the task agent asks, not the environment');
     assert.deepEqual(chats[0].awaiting.choices, ['Retry the task', 'Acknowledge the failure']);
-    assert.match(chats[0].links[0], generated('Impossible BLOCKED work', '{{', '}}'));
+    assert.match(chats[0].links[0], generated('Impossible BLOCKED work', '{', '}'));
     const inspect = await ptbk(['recover', '--raw'], { cwd: project, env });
     assert.match(inspect.stdout, /Phase: failed/);
     const reference = /Task: .* \(([^)]+)\) —/.exec(inspect.stdout)[1];

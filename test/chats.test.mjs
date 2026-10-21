@@ -28,7 +28,7 @@ test('ptbk chat without a service: agent chosen first, every message its own com
 
     const first = await ptbk(['chat', '--agent', 'Developer', 'How is the project going?', '--raw'], { cwd: project, env });
     assert.equal(first.code, 0, first.output);
-    assert.match(first.stdout, /Started the chat \{\{Developer: How is the project going\? — /);
+    assert.match(first.stdout, /Started the chat \{Developer: How is the project going\? — /);
     assert.match(first.stdout, /Fixture reply to: How is the project going\?/);
     let [stored] = await chats(project);
     assert.match(stored.chat.name, generated('Developer: How is the project going?'), 'a new thread gets its creation date/time in its name');
@@ -57,12 +57,12 @@ test('ptbk chat without a service: agent chosen first, every message its own com
     assert.match(taskName, generated('Task from chat'));
     assert.match(task, /^GOAL Requested in a chat/m);
     assert.match(task, /^TASK AGENT @Developer$/m);
-    assert.ok(task.includes(`LINK {{${name}}}`), task);
+    assert.ok(task.includes(`LINK {${name}}`), task);
     const taskCommit = (await messages(project)).find((message) => message.startsWith(`PTBK: Add task - ${taskName}`));
     assert.ok(taskCommit, 'the task has its own authoring commit');
     assert.ok(taskCommit.includes(`Task-Name: ${taskName}`));
     [stored] = (await chats(project)).filter((item) => item.chat.name === name);
-    assert.ok(stored.chat.messages.at(-1).text.includes(`Created the task {{${taskName}}}`), 'the chat reports the final saved name');
+    assert.ok(stored.chat.messages.at(-1).text.includes(`Created the task {${taskName}}`), 'the chat reports the final saved name');
 
     const corrected = await ptbk(['chat', '--open', name, 'CORRECTION: answers here should be short.', '--raw'], { cwd: project, env });
     assert.equal(corrected.code, 0, corrected.output);
@@ -70,7 +70,7 @@ test('ptbk chat without a service: agent chosen first, every message its own com
     assert.ok(learningFile, 'a correction schedules an ordinary Teacher task');
     const learning = await readFile(join(project, 'tasks', learningFile), 'utf8');
     assert.match(learning, /^TASK AGENT @Teacher$/m);
-    assert.ok(learning.includes(`TASK ORIGIN learning from chat {{${name}}} by @Developer`), learning);
+    assert.ok(learning.includes(`TASK ORIGIN learning from chat {${name}} by @Developer`), learning);
     assert.doesNotMatch((await readFile(join(project, 'agents', 'developer.book'), 'utf8')), /short/, 'the chat never mutates the agent directly');
 
     const listed = JSON.parse((await ptbk(['chat', '--list', '--json'], { cwd: project, env })).stdout);
