@@ -1,0 +1,5 @@
+TASK @@@ Fix: short description of the problem
+GOAL What happens, what should happen instead, and how to reproduce it.
+RULE Add a regression test that fails without the fix.
+TASK AGENT @Developer
+TASK PRIORITY 2

@@ -37,3 +37,7 @@ other/integration-tests/videos/*
 .gemini
 .qwen
 dist-installer/
+
+# >>> ptbk traces (managed from ptbk.json "traces"; change those settings instead)
+/traces/
+# <<< ptbk traces

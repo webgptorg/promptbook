@@ -1,0 +1,46 @@
+{
+    "promptbookVersion": "0.119.0-29",
+    "routing": {
+        "harness": "OPENAI_CODEX"
+    },
+    "execution": {
+        "check": "echo \"Configure project checks in ptbk.json execution.check\""
+    },
+    "traces": {
+        "isCommitted": false,
+        "isVideoIgnored": true,
+        "isVideoRecordingEnabled": true
+    },
+    "isAutoSync": true,
+    "tools": [
+        {
+            "type": "BROWSER",
+            "variant": "CHROME",
+            "name": "project-browser",
+            "isEnabled": true,
+            "profile": {
+                "source": "MANAGED_GLOBAL"
+            },
+            "isHeadless": true
+        },
+        {
+            "type": "HARNESS",
+            "variant": "OPENAI_CODEX",
+            "name": "openai-codex",
+            "isEnabled": true,
+            "authentication": "NATIVE"
+        },
+        {
+            "type": "HARNESS",
+            "variant": "CLAUDE_CODE",
+            "name": "claude-code",
+            "isEnabled": true,
+            "authentication": "NATIVE"
+        }
+    ],
+    "initialized": {
+        "engineVersion": "0.119.0-29",
+        "starterTask": "Transform the project according to the initial specification — 2026-10-21 21:10:11",
+        "installation": "global"
+    }
+}

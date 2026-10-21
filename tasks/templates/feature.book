@@ -1,0 +1,9 @@
+TASK @@@ Short title of the feature
+GOAL Describe the intended result for the user, not every implementation step.
+
+- What should be possible afterwards?
+- Which constraints matter (compatibility, performance, style)?
+- How will we know it works (tests, acceptance criteria)?
+
+TASK AGENT @Developer
+TASK PRIORITY 1

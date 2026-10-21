@@ -1,0 +1,4 @@
+TASK @@@ Research: question to answer
+GOAL Which question needs an answer, why it matters and what a useful result looks like.
+Record the findings in the project and create follow-up tasks when action is needed.
+TASK AGENT @Planner
