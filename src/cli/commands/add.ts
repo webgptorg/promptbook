@@ -72,6 +72,7 @@ export default async function add(context: CommandContext): Promise<number> {
         templateSource = await readFile(templatePath, 'utf8');
     }
     if (!text && terminal.interactive) {
+        terminal.title.set({ project: project.name, mode: 'New task' });
         const initial = templateSource ? commitmentsOf(parseBook(templateSource), 'GOAL').map((goal) => goal.body).join('\n\n') : '';
         const value = await composeText(terminal, {
             frame: { title: 'ptbk add', step: 'Describe the task', summary: templateName ? [`Template: ${templateName}`] : [] },

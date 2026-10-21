@@ -151,7 +151,7 @@ export default async function start(context: CommandContext): Promise<number> {
     const existing = await lookupService(project);
     if (existing.state === 'running') {
         const snapshot = await liveSnapshot(project, existing);
-        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'qr', 'daemon'].includes(name));
+        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'daemon'].includes(name));
         await renderServiceResult(context, snapshot, {
             client: existing.client,
             outcome: {

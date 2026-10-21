@@ -11,6 +11,7 @@ import { lifecycleActions, toolDetailLines, toolRow } from './details.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
+import type { TerminalTitleContext } from './terminal-title.js';
 import { matchesFilter, windowAround } from './prompts.js';
 
 /**
@@ -81,6 +82,34 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
         }
     }
     return lines;
+}
+
+/**
+ * Title labels of the service states other than running.
+ */
+const STATE_TITLES: Readonly<Partial<Record<ServiceSnapshot['service']['state'], string>>> = {
+    pausing: 'Pausing',
+    pause: 'Paused',
+    stopping: 'Stopping',
+    stopped: 'Stopped',
+    finished: 'Finished',
+};
+
+/**
+ * The terminal title of a project view: project, view mode, then the meaningful context that changes rarely (state
+ * other than running, an agent waiting for the user, the current agent and task, or a blocker), never per-tick
+ * progress.
+ *
+ * @private terminal dashboard
+ */
+export function dashboardTitle(snapshot: ServiceSnapshot, owning: boolean): TerminalTitleContext {
+    const mode = !owning ? 'Dashboard' : snapshot.service.mode === 'run' ? 'Run' : 'Foreground';
+    const detail = [
+        STATE_TITLES[snapshot.service.state],
+        snapshot.chats.waiting.length ? 'Needs you' : undefined,
+        snapshot.current ? `${snapshot.current.agent.name}: ${snapshot.current.taskTitle}` : snapshot.phase === 'blocked' ? 'Blocked' : snapshot.tools?.waiting ? 'Waiting for tools' : undefined,
+    ].filter(Boolean);
+    return { project: snapshot.project.name, mode, detail: detail.length ? detail.join(' · ') : undefined };
 }
 
 /**
@@ -317,6 +346,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             nested = false;
             keyboard.start();
             screen.invalidate();
+            terminal.title.set(dashboardTitle(snapshot, source.owning));
             draw();
         }
     };
@@ -649,6 +679,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     screen.enter();
     keyboard.start();
     process.stdout.on('resize', onResize);
+    terminal.title.set(dashboardTitle(snapshot, source.owning));
     const animation = setInterval(() => {
         if (snapshot.current?.agent.activity === 'working' && !terminal.reducedMotion && !plain) {
             frame++;
@@ -668,6 +699,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 previous = next;
                 snapshot = next;
                 if (focusRequest >= snapshot.chats.waiting.length) focusRequest = 0;
+                // Written only when the title text changes (task start/switch, state, attention), not per update.
+                if (!nested) terminal.title.set(dashboardTitle(snapshot, source.owning));
                 draw();
                 void refreshQr();
                 if (['stopped', 'finished'].includes(snapshot.service.state)) {

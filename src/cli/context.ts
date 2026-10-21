@@ -69,7 +69,7 @@ export function createCommandContext(input: {
     const nonInteractive = input.options['non-interactive'] === true;
     if (interactive && nonInteractive) throw usageError('--interactive and --non-interactive contradict each other.', commandPath);
     if (raw && interactive) throw usageError('--raw output cannot be combined with --interactive input.', commandPath);
-    const terminal = createTerminalProfile({ raw, interactive, nonInteractive });
+    const terminal = createTerminalProfile({ raw, interactive, nonInteractive, terminalTitle: input.options['terminal-title'] !== false });
     if (interactive && !terminal.interactive) {
         throw usageError('--interactive was requested, but stdin/stdout is not an interactive terminal.', commandPath, 'Run in a terminal or supply decisions with flags.');
     }

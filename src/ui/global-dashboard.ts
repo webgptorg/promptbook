@@ -154,6 +154,8 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
     let feedback = '';
     let attached = false;
     let closed = false;
+    /** The host was observed at least once (the initial empty list is not an observation). */
+    let observed = false;
     let finish: (() => void) | undefined;
     const done = new Promise<void>((resolve) => {
         finish = resolve;
@@ -173,6 +175,8 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         const width = Math.min(terminal.columns(), MAX_WIDTH);
         const rows = visible();
         const live = rows.filter((row) => row.status === 'live').length;
+        // Written once observed and then only when the text changes (engines start or end), not per refresh.
+        if (observed) terminal.title.set({ mode: 'All engines', detail: observation.problem ? undefined : `${live} running` });
         const lines: string[] = [];
         lines.push(
             ...renderPanel({
@@ -244,6 +248,8 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         }
         attached = false;
         if (closed) return;
+        // An engine of another version renders its own view (and title) in a child process.
+        terminal.title.invalidate();
         feedback = outcome ?? `Back from ${row.entry.projectName}; it keeps running.`;
         screen.enter();
         screen.invalidate();
@@ -277,6 +283,7 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         while (!closed) {
             try {
                 observation = await observeHost(rows, env);
+                observed = true;
                 rows = new Map(observation.rows.map((row) => [row.entry.instanceId, row]));
                 // Keep the selected service selected; an ended target is never silently replaced by another row.
                 if (selected && !rows.has(selected)) {
@@ -288,6 +295,7 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
                     autoSelect = false;
                 }
             } catch (error) {
+                observed = true;
                 observation = { ...observation, problem: errorMessage(error), observedAt: new Date().toISOString() };
             }
             draw();

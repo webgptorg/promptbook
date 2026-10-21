@@ -35,6 +35,7 @@ export default async function chat(context: CommandContext): Promise<number> {
     if (open !== undefined) {
         const detail = await source.get(open);
         if (terminal.interactive && !message && flag(context, 'json') !== true) {
+            terminal.title.set({ project: project.name, mode: 'Chat' });
             await runChatClient(terminal, source, { kind: 'existing', name: detail.summary.name });
             if (!service && local?.pendingReplies) terminal.write(terminal.style.muted('Chat closed; saving the reply in progress before exiting (Ctrl+C abandons it, the service replies later).\n'));
             return EXIT.success;
@@ -54,6 +55,7 @@ export default async function chat(context: CommandContext): Promise<number> {
     let agent;
     if (agentOption) agent = explicitChatAgent(agents, agentOption);
     else if (terminal.interactive) {
+        terminal.title.set({ project: project.name, mode: 'Chat' });
         const picked = await pickChatAgent(terminal, agents);
         if (picked === CANCELLED) {
             terminal.write('No chat was started.\n');
@@ -63,6 +65,7 @@ export default async function chat(context: CommandContext): Promise<number> {
     } else agent = defaultChatAgent(agents);
     const title = option<string>(context, 'title');
     if (terminal.interactive && !message) {
+        terminal.title.set({ project: project.name, mode: 'Chat' });
         await runChatClient(terminal, source, { kind: 'new', agent, title });
         if (!service && local?.pendingReplies) terminal.write(terminal.style.muted('Chat closed; saving the reply in progress before exiting (Ctrl+C abandons it, the service replies later).\n'));
         return EXIT.success;

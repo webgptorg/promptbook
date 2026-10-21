@@ -1,4 +1,5 @@
 import { createStyle, type Style } from './ansi.js';
+import { isTerminalTitleDisabled, TerminalTitle } from './terminal-title.js';
 
 /**
  * Presentation and input policy of one invocation.
@@ -24,6 +25,8 @@ export type TerminalProfile = {
     readonly writeError: (text: string) => void;
     /** Reduced motion requested. */
     readonly reducedMotion: boolean;
+    /** Self-naming terminal title (inert outside interactive pretty terminals or when opted out). */
+    readonly title: TerminalTitle;
 };
 
 /**
@@ -38,6 +41,8 @@ export type TerminalOptions = {
     readonly interactive?: boolean;
     /** `--non-interactive`. */
     readonly nonInteractive?: boolean;
+    /** `--no-terminal-title` gives `false`. */
+    readonly terminalTitle?: boolean;
     /** Output stream (defaults to stdout). */
     readonly stdout?: NodeJS.WriteStream;
     /** Input stream (defaults to stdin). */
@@ -70,6 +75,9 @@ export function createTerminalProfile(options: TerminalOptions = {}): TerminalPr
     const canPrompt = Boolean(stdin.isTTY) && Boolean(stdout.isTTY);
     const interactive = !options.nonInteractive && !options.raw && canPrompt;
     const unicode = process.platform !== 'win32' || Boolean(env.WT_SESSION || env.TERM_PROGRAM || env.ConEmuANSI === 'ON' || env.TERMINAL_EMULATOR);
+    const write = (text: string): void => {
+        stdout.write(text);
+    };
     return {
         pretty,
         interactive,
@@ -77,13 +85,12 @@ export function createTerminalProfile(options: TerminalOptions = {}): TerminalPr
         unicode,
         columns: () => Math.max(20, stdout.columns || 80),
         rows: () => Math.max(10, stdout.rows || 24),
-        write: (text: string) => {
-            stdout.write(text);
-        },
+        write,
         writeError: (text: string) => {
             process.stderr.write(text);
         },
         reducedMotion: Boolean(env.PTBK_REDUCED_MOTION || env.NO_MOTION),
+        title: new TerminalTitle({ enabled: pretty && interactive && !isTerminalTitleDisabled(env, options.terminalTitle), unicode, write }),
     };
 }
 

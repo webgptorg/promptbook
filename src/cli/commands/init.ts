@@ -846,6 +846,8 @@ export async function initializeProject(context: CommandContext, options: { proj
     const order: Array<Exclude<StepId, 'finish'>> = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'sync'];
     for (let index = 0; index < order.length; ) {
         const id = order[index]!;
+        // Named after the destination folder, which the destination step may change.
+        context.terminal.title.set({ project: basename(state.root), mode: options.fromStart ? 'Setup' : 'Init' });
         try {
             await stepFunctions[id]();
             index++;

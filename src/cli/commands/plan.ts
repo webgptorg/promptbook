@@ -206,6 +206,7 @@ export default async function plan(context: CommandContext): Promise<number> {
         terminal.write('Proposals were not saved (run `ptbk plan` interactively to review and /save them).\n');
         return EXIT.success;
     }
+    terminal.title.set({ project: project.name, mode: 'Plan', detail: agent.name });
     terminal.write(terminal.style.muted(`Planning with ${agent.name} on ${plugin.displayName} (read-only). Commands: /save /draft /discard /exit\n`));
     for (;;) {
         let message = first;

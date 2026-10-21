@@ -133,6 +133,7 @@ export const PRESENTATION_OPTIONS: OptionGroup = {
         { name: 'no-ui', type: 'boolean', description: 'Same as --raw.', hidden: false },
         { name: 'interactive', type: 'boolean', description: 'Request terminal interaction appropriate to the command.' },
         { name: 'non-interactive', type: 'boolean', description: 'Forbid terminal questions; supply decisions with flags.' },
+        { name: 'terminal-title', type: 'boolean', negatable: true, negatedOnly: true, description: 'Keep the terminal tab/window title unchanged (also PTBK_TERMINAL_TITLE=off).' },
     ],
 };
 

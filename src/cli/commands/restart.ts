@@ -16,7 +16,7 @@ const TUNNEL_SETTLE_MS = 25_000;
  * Explicit options that change a restart's launch configuration (presentation/selection options do not).
  */
 function launchChanges(context: CommandContext): string[] {
-    return [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'qr', 'json', 'daemon', 'timeout'].includes(name));
+    return [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'json', 'daemon', 'timeout'].includes(name));
 }
 
 /**

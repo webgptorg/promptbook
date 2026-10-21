@@ -87,6 +87,7 @@ The Windows installer is an additional release artifact, not a second engine or 
 - [Dashboard layout](cli/dashboard-layout.md): Main regions and consistent drill-down hierarchy.
 - [Dashboard details](cli/dashboard-details.md): Execution, tool management, per-browser diagnostics and conditional synchronization.
 - [Terminal dashboard](cli/terminal.md): Independent attachment and keyboard controls.
+- [Terminal titles](cli/terminal-title.md): Self-naming tab/window titles, TTY gating, sanitization and opt-out.
 - [Global dashboard](cli/global-dashboard.md): Host-wide live discovery/table and project attachment.
 - [Service API](cli/api.md): Independent authenticated state/control and shared management operations.
 - [Browser dashboard](cli/dashboard.md): Lightweight JavaScript SPA using the same API.

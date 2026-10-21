@@ -149,7 +149,7 @@ export function parseInvocation(argv: readonly string[], commands: readonly Comm
     const resolved = resolvePath(commands, words);
     if (!resolved.spec) {
         if (head.includes('--version') && !words.length) return { kind: 'version' };
-        const globalOptions = ['--raw', '--no-ui', '--interactive', '--non-interactive', '--help', '-h'];
+        const globalOptions = ['--raw', '--no-ui', '--interactive', '--non-interactive', '--no-terminal-title', '--help', '-h'];
         const presentationOnly = head.every((token, index) => globalOptions.includes(token) || ['--path', '--tasks'].includes(token) || /^--(path|tasks)=/.test(token) || ['--path', '--tasks'].includes(head[index - 1] ?? ''));
         if ((wantsHelp || presentationOnly) && !words.length) return { kind: 'help', path: [], raw };
         const first = words[0] ?? head.find((token) => token.startsWith('-')) ?? '';
