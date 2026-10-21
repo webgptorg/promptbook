@@ -247,7 +247,8 @@ export async function confirm(terminal: TerminalProfile, options: { frame: Wizar
 }
 
 /**
- * Checkbox picker with featured items and a selectable "More…" action; Space toggles, Enter confirms.
+ * Checkbox picker with featured items and a selectable "More…" action; Space toggles, Enter confirms. Typing filters
+ * the whole catalog (featured or not), so large catalogs stay navigable; Backspace edits and Esc clears the filter.
  *
  * @private terminal prompts
  */
@@ -262,8 +263,10 @@ export async function selectMany<T>(
     let expanded = !hasFeatured || options.choices.some((choice) => !choice.featured && selected.has(choice.value));
     let focus = 0;
     let message = '';
+    let query = '';
     type Row = { kind: 'choice'; choice: Choice<T> } | { kind: 'more' } | { kind: 'fewer' };
     const rows = (): Row[] => {
+        if (query) return options.choices.filter((choice) => matchesFilter(`${choice.label} ${choice.description ?? ''}`, query)).map((choice) => ({ kind: 'choice' as const, choice }));
         if (!hasFeatured) return options.choices.map((choice) => ({ kind: 'choice' as const, choice }));
         if (!expanded) return [...options.choices.filter((choice) => choice.featured).map((choice) => ({ kind: 'choice' as const, choice })), { kind: 'more' as const }];
         return [...options.choices.map((choice) => ({ kind: 'choice' as const, choice })), { kind: 'fewer' as const }];
@@ -272,8 +275,10 @@ export async function selectMany<T>(
         () => {
             const width = terminal.columns();
             const list = rows();
-            focus = Math.min(focus, list.length - 1);
+            focus = Math.max(0, Math.min(focus, list.length - 1));
             const lines = [...header(terminal, options.frame), style.bold(`${style.accent('?')} ${options.question}`)];
+            if (query) lines.push(`  ${style.accent('Filter:')} ${query}${style.muted(` · ${list.length} of ${options.choices.length}`)}`);
+            if (!list.length) lines.push(style.muted('    No match — Backspace edits the filter, Esc clears it.'));
             const available = Math.max(3, terminal.rows() - lines.length - 5);
             const { start, end } = windowAround(list.length, focus, available);
             if (start > 0) lines.push(style.muted(`    ↑ ${start} more`));
@@ -295,20 +300,36 @@ export async function selectMany<T>(
             if (end < list.length) lines.push(style.muted(`    ↓ ${list.length - end} more`));
             const count = selected.size;
             lines.push('', `  ${count ? style.success(`${count} selected`) : style.muted(options.noneLabel ?? 'None selected')}${message ? `  ${style.warning(message)}` : ''}`);
-            lines.push(legend(terminal, ['↑↓ move', 'Space toggle', 'Enter confirm', 'Esc back']));
+            lines.push(legend(terminal, ['↑↓ move', 'Space toggle', 'Enter confirm', 'type to filter', query ? 'Esc clear filter' : 'Esc back']));
             return { lines: lines.map((line) => fit(line, Math.max(10, width - 1)).trimEnd()) };
         },
         (event) => {
-            const list = rows();
             if (event.type === 'text' && event.text === ' ') event = { type: 'key', name: 'space' };
-            if (event.type !== 'key') return undefined;
+            if (event.type === 'text' || event.type === 'paste') {
+                // Space toggles, so the filter takes the other printable characters.
+                const typed = event.text.replace(/\s+/g, '');
+                if (typed) {
+                    query += typed;
+                    focus = 0;
+                }
+                return undefined;
+            }
+            const list = rows();
             message = '';
-            if (event.name === 'up') focus = (focus - 1 + list.length) % list.length;
+            if (event.name === 'backspace' && query) {
+                query = query.slice(0, -1);
+                focus = 0;
+            } else if (event.name === 'escape' && query) {
+                query = '';
+                focus = 0;
+            } else if (!list.length && event.name !== 'enter' && event.name !== 'escape') return undefined;
+            else if (event.name === 'up') focus = (focus - 1 + list.length) % list.length;
             else if (event.name === 'down' || (event.name === 'tab' && !event.shift)) focus = (focus + 1) % list.length;
             else if (event.name === 'pageup') focus = Math.max(0, focus - 8);
             else if (event.name === 'pagedown') focus = Math.min(list.length - 1, focus + 8);
-            else if (event.name === 'space' || (event.name === 'enter' && list[focus]!.kind !== 'choice')) {
-                const row = list[focus]!;
+            else if (event.name === 'space' || (event.name === 'enter' && list[focus] && list[focus]!.kind !== 'choice')) {
+                const row = list[focus];
+                if (!row) return undefined;
                 if (row.kind === 'more') {
                     expanded = true;
                     focus = options.choices.filter((choice) => choice.featured).length;
