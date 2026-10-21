@@ -1,0 +1,67 @@
+TASK Project health check — 2026-10-21 21:14:37
+GOAL Promptbook found these problems in the project. Diagnose each one (source, impact, confidence) and fix the clear, low-risk ones within your authority; check the result.
+For a risky, ambiguous or owner-dependent correction, do not guess: consult your team as your own instructions direct, once and with a specific explanation and options, only when you genuinely need help. Do not rewrite ambiguous definitions or unrelated files. Making no change is valid when nothing is justified.
+
+- error: agents/coding/.core/adam.book:1 — "Adam" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/coding/developer.book:1 — "Promptbook Developer" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/coding/unslopper.book:1 — "Unslopper" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/.core/adam.book:1 — "Adam" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/.core/creator.book:1 — "Creator" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/.core/expert.book:1 — "Expert" is reserved for the engine-supplied Expert; this file cannot replace it.
+- error: agents/default/.core/expert.book:1 — "Expert" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/.core/teacher.book:1 — "Teacher" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/aktualizator-prezentaci.book:1 — "Aktualizátor prezentací" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/chat-na-webu.book:1 — "Chat na webu" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/chat-nad-firemnimi-dokumenty.book:1 — "Chat nad firemními dokumenty" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/chat-v-cestine.book:1 — "Oponent" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/copywriter.book:1 — "Copywriter" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/developer.book:1 — "Developer" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/firemni-pravnik.book:1 — "Firemní právník" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/generic-chatter.book:1 — "Generic chatter" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/lawyer.book:1 — "Lawyer" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/planner.book:1 — "Planner" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/product-manager.book:1 — "Product Manager" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/social-media-manager.book:1 — "Social Media Manager" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/spravce-kalendare.book:1 — "Správce kalendáře" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: agents/default/webmaster.book:1 — "Webmaster" starts with a plain name line (former syntax). Canonical Books start with `AGENT <name>`, `TASK <name>` or `CHAT <name>`; convert it explicitly with `ptbk migrate`.
+- error: tasks/2026-10-09-0000-coder.book:5 — A Book defines exactly one entity; this second `TASK` declaration is invalid.
+- warning: agents/coding/.core/adam.book — Name "Adam" is defined 3 times: agents/.core/adam.book (agent) wins; shadowed: agents/coding/.core/adam.book (invalid), agents/default/.core/adam.book (invalid).
+- warning: agents/coding/.core/adam.book:10 — Unknown commitment `META FONT`; it is preserved but has no effect.
+- warning: agents/coding/.core/adam.book:4 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/coding/.core/adam.book:9 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/coding/developer.book:3 — Unknown commitment `META VISUAL`; it is preserved but has no effect.
+- warning: agents/default/.core/adam.book:10 — Unknown commitment `META FONT`; it is preserved but has no effect.
+- warning: agents/default/.core/adam.book:4 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/default/.core/adam.book:9 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/default/.core/creator.book:2 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/default/.core/expert.book:10 — Unknown commitment `META FONT`; it is preserved but has no effect.
+- warning: agents/default/.core/expert.book:2 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/default/.core/expert.book:9 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/default/.core/teacher.book — Name "Teacher" is defined 2 times: agents/.core/teacher.book (agent) wins; shadowed: agents/default/.core/teacher.book (invalid).
+- warning: agents/default/.core/teacher.book:2 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/default/.core/teacher.book:32 — Unknown commitment `USER MESSAGE`; it is preserved but has no effect.
+- warning: agents/default/.core/teacher.book:35 — Unknown commitment `AGENT MESSAGE`; it is preserved but has no effect.
+- warning: agents/default/.core/teacher.book:49 — Unknown commitment `USER MESSAGE`; it is preserved but has no effect.
+- warning: agents/default/.core/teacher.book:52 — Unknown commitment `AGENT MESSAGE`; it is preserved but has no effect.
+- warning: agents/default/.core/teacher.book:66 — Unknown commitment `NOTE USER MESSAGE`; it is preserved but has no effect.
+- warning: agents/default/.core/teacher.book:69 — Unknown commitment `NOTE AGENT MESSAGE`; it is preserved but has no effect.
+- warning: agents/default/.core/teacher.book:7 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/default/.core/teacher.book:8 — Unknown commitment `META FONT`; it is preserved but has no effect.
+- warning: agents/default/aktualizator-prezentaci.book:27 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/default/aktualizator-prezentaci.book:28 — Unknown commitment `META DESCRIPTION`; it is preserved but has no effect.
+- warning: agents/default/aktualizator-prezentaci.book:29 — Unknown commitment `META INPUT PLACEHOLDER`; it is preserved but has no effect.
+- warning: agents/default/aktualizator-prezentaci.book:31 — Unknown commitment `INITIAL MESSAGE`; it is preserved but has no effect.
+- warning: agents/default/aktualizator-prezentaci.book:4 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/default/chat-na-webu.book:26 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/default/chat-na-webu.book:27 — Unknown commitment `META DESCRIPTION`; it is preserved but has no effect.
+- warning: agents/default/chat-na-webu.book:28 — Unknown commitment `META INPUT PLACEHOLDER`; it is preserved but has no effect.
+- warning: agents/default/chat-na-webu.book:3 — Unknown commitment `META VISUAL`; it is preserved but has no effect.
+- warning: agents/default/chat-na-webu.book:30 — Unknown commitment `INITIAL MESSAGE`; it is preserved but has no effect.
+- warning: agents/default/chat-na-webu.book:4 — Unknown commitment `META VISIBILITY UNLISTED`; it is preserved but has no effect.
+- warning: agents/default/chat-nad-firemnimi-dokumenty.book:24 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/default/chat-nad-firemnimi-dokumenty.book:25 — Unknown commitment `NOTE META IMAGE`; it is preserved but has no effect.
+- warning: agents/default/chat-nad-firemnimi-dokumenty.book:27 — Unknown commitment `META DESCRIPTION`; it is preserved but has no effect.
+- warning: agents/default/chat-nad-firemnimi-dokumenty.book:28 — Unknown commitment `META INPUT PLACEHOLDER`; it is preserved but has no effect.
+- … 51 more (run `ptbk lint`)
+TASK AGENT @Fixer
+TASK ORIGIN maintenance: project health
