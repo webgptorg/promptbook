@@ -8,7 +8,7 @@ import { Mutex } from '../common/mutex.js';
 import { creationTimestamp, formatIsoWithOffset, formatShortTime } from '../common/time.js';
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { setControlCommitment } from '../book/edit.js';
-import { formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
+import { formatAgentReference, normalizeAgentName, parseReferenceValue, referenceName } from '../book/references.js';
 import { isCheckPlaceholder, loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type BrowserOverrides, type EffectiveSettings, type LoadedSettings, type ThinkingLevel } from '../project/config.js';
 import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent } from '../project/agents.js';
 import { commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
@@ -36,7 +36,7 @@ import { describePriority } from '../tasks/priority.js';
 import { findTask, readTaskQueue } from '../tasks/sources.js';
 import { agentView, type BadgeActivity } from '../ui/badges.js';
 import type { BridgeTool } from './bridge.js';
-import { captureSnapshot, changedPaths, executeWork, type ExecutionEnvironment, type ExecutionOutcome, type WorkItem } from './executor.js';
+import { HANDOVER_ATTEMPTS, captureSnapshot, changedPaths, executeWork, type ExecutionEnvironment, type ExecutionOutcome, type WorkItem } from './executor.js';
 import {
     applyAssignment,
     assignmentPrompt,
@@ -1928,7 +1928,14 @@ export class Agenda {
                 this.failed++;
                 this.executedInRun.add(item.task.key);
                 this.recentResults = (await this.state.recentResults(20)).map(resultView);
-                this.addError({ at: new Date().toISOString(), summary: `"${item.task.title}" failed: ${outcome.reason}`, phase: 'task execution', task: item.task.ref, trace: outcome.trace, next: `Reply in the recovery chat or run \`ptbk recover "${item.task.title}"\`.` });
+                this.addError({
+                    at: new Date().toISOString(),
+                    summary: `"${item.task.title}" failed: ${outcome.reason}`,
+                    phase: 'task execution',
+                    task: item.task.ref,
+                    trace: outcome.trace,
+                    next: this.options.mode !== 'run' && !item.resume?.handover && HANDOVER_KINDS.has(item.kind) ? 'Fixer takes over automatically; a decision is asked in a chat only if it cannot resolve it.' : `Reply in the recovery chat or run \`ptbk recover "${item.task.title}"\`.`,
+                });
                 break;
             case 'setup':
                 if (this.sameVariantFallback(item, outcome.tool)) {
@@ -2101,7 +2108,9 @@ export class Agenda {
             await this.state.writeActive({ ...record, phase: 'failed', failure: `The task source ${record.sourcePath} moved or disappeared during execution.` });
             return;
         }
-        const route = await resolveRoute({ ...task, routing: { ...task.routing, agent: task.routing.agent ?? record.routing.agent, harness: task.routing.harness ?? record.routing.harness } }, {
+        // After a takeover, Fixer continues the task within the task's own harness/model constraints.
+        const agent = record.handover ? record.handover.agent : (task.routing.agent ?? record.routing.agent);
+        const route = await resolveRoute({ ...task, routing: { ...task.routing, agent, harness: task.routing.harness ?? record.routing.harness } }, {
             mode: this.options.mode === 'run' ? 'run' : 'start',
             catalog: this.catalog,
             pool: this.pool,
@@ -2121,18 +2130,55 @@ export class Agenda {
         }
         this.clearBlocker('harness');
         const item = await this.buildWorkItem(task, route, { resume: record, createdPaths: record.createdPaths.map((path) => resolve(this.options.project.root, path)), slot: record.occurrence ? Date.parse(record.occurrence) : undefined });
-        if (item) await this.execute(item);
+        if (item) await this.execute(record.handover ? { ...item, extraPrompt: [item.extraPrompt, handoverPrompt(record, record.handover)].filter(Boolean).join('\n\n') } : item);
     }
 
-    /** Keeps a failed task visible: its agent asks the user how to continue in a chat, then applies the chosen answer. */
+    /**
+     * Automatic repair before any human decision: a task that exhausted its budgets in the ongoing agenda is handed to
+     * the ordinary Fixer, which continues the same record (its partial changes, trace and eventual single result
+     * commit) for one bounded round and consults its team only as its own Book directs. Not repeated for Fixer's own
+     * failure, for work Fixer itself owns, without a usable Fixer, or in a finite run (whose agent was chosen
+     * explicitly). Returns whether the task was handed over.
+     */
+    private async handOverToFixer(record: ActiveRecord): Promise<boolean> {
+        if (this.options.mode === 'run' || record.handover || record.recoveryChat || !HANDOVER_KINDS.has(record.kind)) return false;
+        const fixer = await this.catalog.resolve('@Fixer');
+        if (fixer.kind !== 'agent') return false;
+        const from = record.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
+        const name = fixer.definition.name;
+        if (normalizeAgentName(referenceName(from)) === normalizeAgentName(name)) return false;
+        const failure = record.failure ?? 'unknown reason';
+        await this.state.writeActive({
+            ...record,
+            phase: 'executing',
+            attempt: 0,
+            technicalRetries: 0,
+            completionApplied: false,
+            failure: undefined,
+            handover: { agent: name, from, failure, at: new Date().toISOString() },
+            feedback: `${formatAgentReference(from)} could not complete this task: ${failure}`,
+        });
+        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('handed-over', { runId: record.runId, to: name, from, failure }).catch(() => undefined);
+        this.log(`"${record.taskTitle}" failed with ${from} (${failure}); ${name} takes over for at most ${Math.min(HANDOVER_ATTEMPTS, setting<number>(this.settings, 'execution.repairAttempts'))} attempt(s) before anyone is asked.`, 'warning');
+        this.wake();
+        return true;
+    }
+
+    /**
+     * Keeps a failed task visible after automatic repair: the agent that last handled it (Fixer after a takeover) asks
+     * the user how to continue in a chat, then applies the chosen answer.
+     */
     private async handleFailedRecord(record: ActiveRecord): Promise<void> {
+        if (await this.handOverToFixer(record)) return;
         let current = record;
         if (!current.recoveryChat || !(await this.chats.find(current.recoveryChat))) {
-            const agent = current.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
+            const agent = current.handover?.agent ?? current.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
             const asked = await taskChats(this.chats, { name: current.taskTitle, key: current.taskKey || nameKey(current.taskTitle) }, { takenNames: () => this.catalog.index.names() }).askUser({
                 agent,
-                reason: `The task {{${current.taskTitle}}} failed: ${current.failure ?? 'unknown reason'}`,
-                attempted: `${current.attempt} attempt(s) and ${current.technicalRetries} technical retr${current.technicalRetries === 1 ? 'y' : 'ies'} within the configured budgets. Evidence: ${traceDirectoryOf(current.sourcePath)}/.`,
+                reason: current.handover
+                    ? `The task {{${current.taskTitle}}} failed with ${current.handover.from} (${current.handover.failure}), and ${current.handover.agent} could not resolve it either: ${current.failure ?? 'unknown reason'}`
+                    : `The task {{${current.taskTitle}}} failed: ${current.failure ?? 'unknown reason'}`,
+                attempted: `${current.handover ? `${current.handover.from} used its budgets, then ${current.handover.agent} took over; ` : ''}${current.attempt} attempt(s) and ${current.technicalRetries} technical retr${current.technicalRetries === 1 ? 'y' : 'ies'}${current.handover ? ' in the last round' : ' within the configured budgets'}. Evidence: ${traceDirectoryOf(current.sourcePath)}/.`,
                 question: 'How should I continue? Retrying runs the task again with a fresh attempt budget; acknowledging records the failure (TASK STATUS failed) and moves on. Partial changes stay in the working tree.',
                 choices: [...RECOVERY_CHOICES],
             });
@@ -2177,7 +2223,8 @@ export class Agenda {
 
     /** Resets a failed record for a deliberate retry. */
     public async retryRecord(record: ActiveRecord): Promise<void> {
-        await this.state.writeActive({ ...record, phase: 'executing', attempt: 0, technicalRetries: 0, completionApplied: false, failure: undefined, recoveryChat: undefined, awaitedMessages: undefined, feedback: `A previous run failed: ${record.failure ?? 'unknown'}. Inspect the current state and complete the task.` });
+        // A deliberate retry starts a fresh chain with the task's own agent (Fixer may take over again if it fails).
+        await this.state.writeActive({ ...record, phase: 'executing', attempt: 0, technicalRetries: 0, completionApplied: false, failure: undefined, recoveryChat: undefined, awaitedMessages: undefined, handover: undefined, feedback: `A previous run failed: ${record.failure ?? 'unknown'}. Inspect the current state and complete the task.` });
         this.log(`Retrying "${record.taskTitle}".`);
         this.wake();
     }
@@ -2577,6 +2624,30 @@ export class Agenda {
         if (!record.recoveryChat) return;
         await this.chats.append(record.recoveryChat, { sender: '@User', text: choice }, { status: 'resolved', trailers: { 'Task-Name': record.taskTitle } }).catch(() => undefined);
     }
+}
+
+/**
+ * Work kinds whose failure is handed to Fixer before a decision is asked (generated routing, learning and discovery
+ * work have their own bounded handling).
+ */
+const HANDOVER_KINDS: ReadonlySet<ActiveRecord['kind']> = new Set(['task', 'maintenance', 'intent']);
+
+/**
+ * Briefing of Fixer taking over a failed task in the same record.
+ */
+function handoverPrompt(record: ActiveRecord, handover: NonNullable<ActiveRecord['handover']>): string {
+    return [
+        '## Taking over a failed task',
+        '',
+        `${formatAgentReference(handover.from)} could not complete this task: ${handover.failure}`,
+        '',
+        `Promptbook handed it to you before asking anyone (automatic repair). The working tree may contain the partial changes of the earlier attempts; their evidence is in \`${traceDirectoryOf(record.sourcePath)}/\` (harness.log, events.jsonl).`,
+        '',
+        '- Diagnose the cause from that evidence, the task and the project; do not repeat external actions without verifying their current state.',
+        `- Resolve what you can within the task's authority and complete the requested outcome; consult other agents (for example ${formatAgentReference(handover.from)}) when their expertise helps.`,
+        '- When a genuine decision or human-only action is needed, consult your team as your own instructions direct.',
+        '- If the task cannot be completed safely, report `blocked` with the concrete reason; nothing is retried automatically and the decision is then asked in a chat.',
+    ].join('\n');
 }
 
 /**

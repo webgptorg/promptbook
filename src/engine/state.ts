@@ -111,6 +111,11 @@ export type ActiveRecord = {
     readonly failure?: string;
     /** Chat in which the task's agent asks how to continue after a failure. */
     readonly recoveryChat?: string;
+    /**
+     * The failed task was handed to Fixer, which continues it in the same record (same ownership, trace and result
+     * commit) for one bounded round before anyone is asked how to continue.
+     */
+    readonly handover?: { readonly agent: string; readonly from: string; readonly failure: string; readonly at: string };
     /** Feedback for the next attempt. */
     readonly feedback?: string;
     /** Explicit no-commit mode. */

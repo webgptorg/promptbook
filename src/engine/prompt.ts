@@ -157,7 +157,11 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     } else rules.push('The user is not available for questions in this run; decide reasonably or report `blocked` with a reason.');
     if (input.tools.browser) rules.push('Use the `browser_*` tools of the `ptbk` MCP server for websites; they share the project browser and its logged-in sessions.');
     parts.push(`## How to work\n\n${rules.map((rule) => `- ${rule}`).join('\n')}`);
-    if (input.feedback) parts.push(`## Feedback from attempt ${input.attempt - 1}\n\nThe previous attempt was not accepted. Continue from the current state of the files and fix this:\n\n${input.feedback}`);
+    if (input.feedback) {
+        // A first attempt with feedback continues an earlier run (retry, recovery or Fixer's takeover).
+        const heading = input.attempt > 1 ? `## Feedback from attempt ${input.attempt - 1}` : '## Feedback from the previous run';
+        parts.push(`${heading}\n\nThe previous attempt was not accepted. Continue from the current state of the files and fix this:\n\n${input.feedback}`);
+    }
     parts.push(
         `## Completion report (required)\n\nEnd your final message with exactly one line:\n\n${RESULT_MARKER} {"status":"done","summary":"<one sentence>","evidence":"<how you verified the requested outcome>"}\n\nUse \`"status":"blocked"\` with a \`"reason"\` when you cannot complete the task safely, or \`"status":"waiting-for-user"\` after asking the user.`,
     );

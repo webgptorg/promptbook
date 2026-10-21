@@ -176,6 +176,13 @@ export type ExecutionOutcome =
     | { readonly kind: 'integration-pending'; readonly reason: string; readonly commit?: string };
 
 /**
+ * Implementation/repair attempts of Fixer's takeover of a failed task (at most the configured budget).
+ *
+ * @private task execution
+ */
+export const HANDOVER_ATTEMPTS = 2;
+
+/**
  * Initial quota backoff when the provider gives no reset time.
  */
 const QUOTA_BACKOFF_MS = 15 * 60_000;
@@ -345,7 +352,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     const task = item.task;
     if (!task.key) throw new PtbkError(`"${task.title}" has no usable name.`, { kind: 'internal', task: task.ref });
     const selection: RoutingSelection = item.route.selection;
-    const repairBudget = Math.max(1, setting<number>(settings, 'execution.repairAttempts'));
+    const configuredRepairBudget = Math.max(1, setting<number>(settings, 'execution.repairAttempts'));
     const technicalBudget = setting<number>(settings, 'execution.technicalRetries');
     const check = item.check !== undefined ? item.check : (setting<string | null | undefined>(settings, 'execution.check') ?? undefined);
     const occurrence = item.slot !== undefined ? formatIsoWithOffset(item.slot, environment.timeZone) : undefined;
@@ -378,6 +385,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         record = { ...record, ...changes, instanceId: environment.instanceId };
         await state.writeActive(record);
     };
+    // Fixer's takeover of a failed task is one bounded extra round, accounted separately from the original budget.
+    const repairBudget = record.handover ? Math.min(HANDOVER_ATTEMPTS, configuredRepairBudget) : configuredRepairBudget;
     await save({});
     // Evidence lives under the literal source filename; the declared name and source revision are recorded inside.
     const trace = await TaskTrace.open(project, { name: task.title, source: task.source.relativePath });
@@ -572,6 +581,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 occurrence: record.occurrence,
                 technicalRetry: record.technicalRetries,
                 agent: agent.name,
+                ...(record.handover ? { handoverFrom: record.handover.from } : {}),
                 harness: selection.harness,
                 tool: selection.tool ?? null,
                 harnessVersion: item.route.inspection.version,
@@ -797,7 +807,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                             repositoryRoot: environment.repositoryRoot,
                             paths: [...owned.map((path) => resolve(project.root, path)), ...evidence],
                             subject: task.title,
-                            body: assignmentText(task),
+                            body: [assignmentText(task), record.handover ? `Completed by ${record.handover.agent} after ${record.handover.from} could not: ${record.handover.failure}` : ''].filter(Boolean).join('\n\n'),
                             trailers: {
                                 'Task-Name': task.title,
                                 'Created-Task-Name': names.created,

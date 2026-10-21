@@ -7,6 +7,7 @@
  *   ASK_USER        → asks the user in a chat through the ptbk MCP bridge, then waits for the answer
  *   FAIL_CHECK_ONCE → first attempt writes a file that fails the fixture check
  *   BLOCKED         → reports blocked
+ *   NEEDS_FIXER     → reports blocked unless the acting agent is Fixer (which then completes the work)
  *   NO_REPORT       → omits the completion line
  *   CREATE_FOLLOW_UP → also writes two follow-up task Books; on the first attempt the second copies this task's
  *                      name (Promptbook must reject it), on a repair attempt it gets its own dated name
@@ -132,11 +133,12 @@ async function main() {
     const reference = /- Reference: (\{\{[^}]+\}\}|\{[^}]+\}|\S+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
     const stamp = /TASK <readable title> — ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:]{8})/.exec(prompt)?.[1] ?? '2026-01-01 00:00:00';
     const title = /- Name: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
+    const agent = /You are \*\*([^*]+)\*\*/.exec(prompt)?.[1] ?? 'unknown';
     const chat = prompt.startsWith('# Conversation');
     const attempt = /## Feedback from attempt (\d+)/.exec(prompt) ? Number(/## Feedback from attempt (\d+)/.exec(prompt)[1]) + 1 : 1;
     // ptbk removes API keys from a native run's environment, so a present key means an explicit API_KEY instance.
     const api = Boolean(process.env.CODEX_API_KEY);
-    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
+    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
     print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
     print({ type: 'turn.started' });
     if (prompt.includes('QUOTA_NATIVE') && !api) {
@@ -165,6 +167,8 @@ async function main() {
         done('Developer fits this task.', { routing: { agent: '@Developer', harness: null, model: null, thinkingLevel: null }, priority: 3 });
     } else if (prompt.includes('## Learning work') || prompt.includes('## Goal enquiry')) {
         done('Nothing to change.');
+    } else if (prompt.includes('NEEDS_FIXER') && agent !== 'Fixer') {
+        message(`Cannot do it within my role.\nPTBK_RESULT ${JSON.stringify({ status: 'blocked', summary: 'blocked', reason: 'fixture problem outside my role' })}`);
     } else if (prompt.includes('BLOCKED')) {
         message(`Cannot do it.\nPTBK_RESULT ${JSON.stringify({ status: 'blocked', summary: 'blocked', reason: 'fixture blocker' })}`);
     } else if (prompt.includes('NO_REPORT') && attempt === 1) {

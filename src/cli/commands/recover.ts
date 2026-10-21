@@ -1,6 +1,6 @@
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { Agenda } from '../../engine/agenda.js';
-import { StateStore } from '../../engine/state.js';
+import { StateStore, isolationBranch } from '../../engine/state.js';
 import { lookupService } from '../../service/control.js';
 import { acquireProjectLock } from '../../service/records.js';
 import { shortId } from '../../common/ids.js';
@@ -40,6 +40,8 @@ export default async function recover(context: CommandContext): Promise<number> 
                 `Phase: ${record.phase}${record.failure ? ` — ${record.failure}` : ''}`,
                 `Attempts: ${record.attempt} implementation/repair, ${record.technicalRetries} technical retries`,
                 `Routing: ${record.routing.agent} on ${record.routing.harness}${record.routing.model ? ` ${record.routing.model}` : ''}`,
+                ...(record.handover ? [`Taken over by: ${record.handover.agent} after ${record.handover.from} could not (${record.handover.failure})`] : []),
+                ...(record.phase === 'synchronizing' && record.worktree ? [`Integration: the committed result waits on ${isolationBranch(record.runId)} for a visible merge into the project branch`] : []),
                 `Commit mode: ${record.noCommit ? 'no-commit' : 'automatic'}${record.commitSha ? `; committed ${record.commitSha}` : ''}`,
                 `Waiting for your reply: ${record.waitingChat ?? record.recoveryChat ? `chat {{${record.waitingChat ?? record.recoveryChat}}} (ptbk answer "${record.waitingChat ?? record.recoveryChat}")` : 'no'}`,
                 `Engine-created files: ${record.createdPaths.join(', ') || 'none'}`,
