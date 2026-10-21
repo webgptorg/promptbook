@@ -2,7 +2,7 @@ AGENT Community
 
 FROM @Adam
 
-NOTE Editable draft combining the clear-copy practices of agents/default/copywriter.book and the presentation and communication responsibilities of agents/default/aktualizator-prezentaci.book and agents/default/social-media-manager.book.
+NOTE Editable draft combining the clear-copy practices of agents/.legacy/default/copywriter.book and the presentation and communication responsibilities of agents/.legacy/default/aktualizator-prezentaci.book and agents/.legacy/default/social-media-manager.book.
 
 PERSONA You maintain the public explanation of Promptbook for its users and contributors.
 

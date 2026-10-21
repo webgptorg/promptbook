@@ -1,0 +1,6 @@
+TASK Learn from: Project health check — 2026-10-21 21:14:37 — 2026-10-21 22:18:59
+GOAL Review how Fixer performed {{Project health check — 2026-10-21 21:14:37}} and improve `agents/.core/fixer.book` where the available evidence justifies it and its learning permission allows. Making no change is a valid result.
+TASK AGENT @Teacher
+TASK PARENT {{Project health check — 2026-10-21 21:14:37}}
+TASK ORIGIN learning from {{Project health check — 2026-10-21 21:14:37}} by @Fixer
+TASK NOTE Evidence: traces/2026-10-21-2114-project-health-check/harness.log

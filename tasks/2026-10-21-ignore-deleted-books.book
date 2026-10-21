@@ -1,0 +1,6 @@
+TASK Ignore uncommitted deletions when listing project Books — 2026-10-21 22:14:01
+GOAL Stop reporting tracked Books that were deleted or moved in the working tree, but not yet committed, as "Unreadable Book: ENOENT" warnings.
+`listProjectFiles` in src/project/git.ts runs `git ls-files --cached --others --exclude-standard`, which still lists tracked files missing from the working tree. `BookIndex.load` in src/project/books.ts then tries to read each one and adds a warning. The health-check task observed this when it moved the legacy Books into agents/.legacy/ before its result commit: `ptbk lint --json` reported 21 spurious warnings for the old paths. `ptbk find` uses the same listing.
+Exclude files that are missing from the working tree from the project file listing, for example by subtracting `git ls-files --deleted`. Keep reporting real read failures of existing Books. Add regression coverage: when a tracked Book is deleted or moved without a commit, lint reports no Unreadable Book warning for the old path and indexes the moved copy. Record the fix in changelog/_current-preversion.md.
+TASK AGENT @Developer
+LINK {Project health check — 2026-10-21 21:14:37}

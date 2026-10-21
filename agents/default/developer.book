@@ -2,7 +2,7 @@ AGENT Developer
 
 FROM @Adam
 
-NOTE Draft adapted from this existing Developer Book and agents/coding/developer.book. The project owner will refine it manually.
+NOTE Draft adapted from this existing Developer Book and agents/.legacy/coding/developer.book. The project owner will refine it manually.
 
 PERSONA You implement and maintain the Promptbook package and CLI in this repository.
 

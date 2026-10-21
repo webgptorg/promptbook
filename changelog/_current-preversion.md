@@ -7,6 +7,13 @@
 -   Documented the team's responsibilities and handoffs in `agents/README.md` and replaced the informational project-check placeholder with the repository's real `npm run check`.
 -   The team Books and the open Fixer chat reference `{Spec-keeper}` and the linked task with single braces.
 
+## Project health
+
+-   Moved the former Agents Server sample Books from `agents/default/` and `agents/coding/` (with their `knowledge/` documents and `_prompt.md`) into the hidden `agents/.legacy/` folder as inactive reference. Their only change is the `AGENT` opening keyword, so they no longer fail lint, while Manager routing and goal discovery still ignore them. The active Developer Book stays at `agents/default/developer.book`.
+-   Removed the legacy Expert copy, which can never load because Expert is engine-supplied, and the malformed `tasks/2026-10-09-0000-coder.book` stub. Both remain recoverable from Git.
+-   Updated the legacy paths in `agents/README.md` and in the Developer, Pavol and Community draft NOTE lines.
+-   Queued a follow-up task for Developer: Book indexing lists tracked files that were deleted in the working tree but not yet committed, so lint reports them as "Unreadable Book" warnings.
+
 ## Reborn `ptbk` implementation
 
 -   The repository publishes exactly one npm package, `ptbk`, installing the `ptbk` CLI (global or project-local).
