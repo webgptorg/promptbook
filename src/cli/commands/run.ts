@@ -1,6 +1,6 @@
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { clockTime, formatShortTime } from '../../common/time.js';
-import { assertValidSettings, enabledHarnesses, loadSettings, setting, type ThinkingLevel } from '../../project/config.js';
+import { assertValidSettings, enabledHarnesses, isCheckPlaceholder, loadSettings, setting, type ThinkingLevel } from '../../project/config.js';
 import { harnessPluginId, type HarnessToolRecord } from '../../tools/model.js';
 import { runCheck } from '../../project/checks.js';
 import { inspectGit } from '../../project/git.js';
@@ -15,6 +15,14 @@ import { browserOverrides, printJson, selectedProject, settingOverrides, tasksOv
 import { flag, option, type CommandContext } from '../context.js';
 import { hostSource } from '../sources.js';
 import { ownerSignals } from '../lifecycle.js';
+
+/**
+ * Describes the effective check honestly (the informational placeholder is not real validation).
+ */
+function describeCheck(check: string | null | undefined): string {
+    if (!check) return 'not configured';
+    return isCheckPlaceholder(check) ? 'real automated validation is not configured (informational placeholder)' : check;
+}
 
 /**
  * Resolves the one configuration of a finite run (flags, then project defaults, then legacy environment). The harness
@@ -71,6 +79,7 @@ export default async function run(context: CommandContext): Promise<number> {
                 selection,
                 harness: inspection ? { usable: inspection.usable, summary: inspection.summary, version: inspection.version } : undefined,
                 check: setting<string | null | undefined>(settings, 'execution.check') ?? null,
+                isCheckPlaceholder: isCheckPlaceholder(setting<string | null | undefined>(settings, 'execution.check')),
                 tasks: preview.evaluated
                     .filter((item) => !['done', 'retired'].includes(item.readiness.kind))
                     .map((item) => ({ ref: item.task.ref, title: item.task.title, kind: item.readiness.kind, reason: item.readiness.reason, priority: item.task.priority.value, selected: selected.includes(item) })),
@@ -80,7 +89,7 @@ export default async function run(context: CommandContext): Promise<number> {
         const lines = [
             `Dry run (nothing is executed): ${selected.length} task(s) would run with ${selection.agent} on ${selection.harness}${selection.model ? ` ${selection.model}` : ''}${selection.thinkingLevel ? ` (${selection.thinkingLevel})` : ''}.`,
             `Harness: ${inspection?.summary ?? 'not inspected'}`,
-            `Check: ${setting<string | null | undefined>(settings, 'execution.check') ?? 'not configured'}`,
+            `Check: ${describeCheck(setting<string | null | undefined>(settings, 'execution.check'))}`,
         ];
         for (const item of preview.evaluated.filter((candidate) => !['done', 'retired'].includes(candidate.readiness.kind))) {
             lines.push(`${selected.includes(item) ? (terminal.pretty ? terminal.style.success('▶') : '>') : ' '} [${item.readiness.kind}] ${item.task.title} (${item.task.ref}) — ${item.readiness.reason}`);
@@ -96,7 +105,9 @@ export default async function run(context: CommandContext): Promise<number> {
     if (gitInfo.state !== 'repository') throw new PtbkError('The project is not in a Git working tree.', { kind: 'setup', project: project.root, next: ['Run `ptbk init`.'] });
     const checkBefore = setting<string>(settings, 'execution.checkBefore');
     const check = setting<string | null | undefined>(settings, 'execution.check');
-    if (checkBefore !== 'no') {
+    if (checkBefore !== 'no' && isCheckPlaceholder(check)) {
+        terminal.write('Pre-run check skipped: real automated validation is not configured (execution.check holds the informational placeholder).\n');
+    } else if (checkBefore !== 'no') {
         if (!check) throw new PtbkError('--check-before needs a configured check.', { kind: 'setup', next: ['Pass `--check "<command>"`.'] });
         const result = await runCheck(project.root, check, { env: context.env });
         if (!result.passed) {

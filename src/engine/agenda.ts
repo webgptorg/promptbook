@@ -9,7 +9,7 @@ import { creationTimestamp, formatIsoWithOffset, formatShortTime } from '../comm
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { setControlCommitment } from '../book/edit.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
-import { loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type BrowserOverrides, type EffectiveSettings, type LoadedSettings, type ThinkingLevel } from '../project/config.js';
+import { isCheckPlaceholder, loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type BrowserOverrides, type EffectiveSettings, type LoadedSettings, type ThinkingLevel } from '../project/config.js';
 import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent } from '../project/agents.js';
 import { commitPaths, inspectGit, stageableFiles } from '../project/git.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
@@ -1401,7 +1401,7 @@ export class Agenda {
         const recentFailures = (await this.state.recentResults(50)).filter((result) => result.outcome === 'failed').slice(0, 5);
         const description = [
             'Promptbook found these problems in the project. Diagnose each one (source, impact, confidence) and fix the clear, low-risk ones within your authority; check the result.',
-            'For a risky, ambiguous or owner-dependent correction, ask @User once with a specific explanation and options instead of guessing. Do not rewrite ambiguous definitions or unrelated files. Making no change is valid when nothing is justified.',
+            'For a risky, ambiguous or owner-dependent correction, do not guess: consult your team as your own instructions direct, once and with a specific explanation and options, only when you genuinely need help. Do not rewrite ambiguous definitions or unrelated files. Making no change is valid when nothing is justified.',
             '',
             ...findings.slice(0, 60).map((finding) => `- ${finding}`),
             ...(findings.length > 60 ? [`- … ${findings.length - 60} more (run \`ptbk lint\`)`] : []),
@@ -2211,6 +2211,12 @@ export class Agenda {
         if (mode === 'no' || this.checkedBefore || this.options.mode === 'run') return true;
         const check = setting<string | null | undefined>(this.settings, 'execution.check');
         if (!check) return true;
+        if (isCheckPlaceholder(check)) {
+            // Nothing to validate: the placeholder records that real validation is not configured (never a pass).
+            this.logOnce('Pre-work check skipped: real automated validation is not configured (informational check placeholder).', 'info');
+            this.checkedBefore = true;
+            return true;
+        }
         this.log(`Running the pre-work check: ${check}`);
         const result = await runCheck(this.options.project.root, check, { env: this.options.env });
         if (result.passed) {

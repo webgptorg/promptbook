@@ -117,7 +117,11 @@ test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-Name tr
     assert.equal(provenance.name, bootstrapName, 'the declared name is recorded with the evidence');
     assert.equal(provenance.source, bootstrapSource);
     assert.match(provenance.sourceRevision, /^[0-9a-f]{40}$/, 'with the exact source revision');
-    assert.ok(events.some((event) => event.event === 'check' && event.passed));
+    const checkEvent = events.find((event) => event.event === 'check');
+    assert.equal(checkEvent.placeholder, true, 'the informational check placeholder is labelled as such');
+    assert.equal(checkEvent.passed, null, 'the placeholder is never reported as a passed check');
+    assert.match(bootstrap.stdout, /Real automated validation is not configured/);
+    assert.doesNotMatch(bootstrap.stdout, /Check passed/);
     const local = await readFile(join(project, bootstrapTrace, 'local', 'events.jsonl'), 'utf8');
     assert.match(local, /"event":"committed"/, 'the commit SHA is recorded after the snapshot, outside it');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');

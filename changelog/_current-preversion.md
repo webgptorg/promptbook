@@ -99,3 +99,8 @@
 ## Release fix: Windows installer build for 0.119.0-25
 
 -   The Inno Setup compiler rejected `VersionInfoProductVersion=0.119.0-25`: Windows version resources are numeric (`a.b.c.d`). The binary file and product versions now use the numeric form (`0.119.0.25`), while the release version text goes into `VersionInfoTextVersion` and `VersionInfoProductTextVersion`; a test guards both.
+
+## Specification alignment: honest checks, Fixer policy, isolation and installer handoff
+
+-   **Check placeholder is never a passed check.** The informational `execution.check` placeholder saved by init is no longer run as if it were validation: task execution, the pre-work check (`--check-before`) and `ptbk run` label it as "real automated validation is not configured" (trace event `check` with `placeholder: true`, `passed: null`), and agents are told that it proves nothing instead of "must pass". Real checks behave as before.
+-   **Fixer's own Book governs consultation.** The project health check handed to Fixer no longer instructs it to "ask @User"; it consults its team as its own instructions direct, so a customized Fixer (all, some or no User consultation) is respected.

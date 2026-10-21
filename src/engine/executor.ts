@@ -6,7 +6,7 @@ import { shortId } from '../common/ids.js';
 import { creationTimestamp, formatIsoWithOffset } from '../common/time.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { appendCommitment } from '../book/edit.js';
-import { setting, type EffectiveSettings } from '../project/config.js';
+import { isCheckPlaceholder, setting, type EffectiveSettings } from '../project/config.js';
 import { runCheck } from '../project/checks.js';
 import type { AgentCatalog, EffectiveAgent } from '../project/agents.js';
 import { BookIndex } from '../project/books.js';
@@ -721,7 +721,11 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             await save({ completionApplied: false, completionBackup: undefined, createdPaths: record.createdPaths.filter((path) => !backup?.created.includes(path)) });
         };
 
-        if (check) {
+        if (check && isCheckPlaceholder(check)) {
+            // The informational placeholder is not validation: it is never run or reported as a passed check.
+            hooks.emit({ type: 'activity', text: 'Real automated validation is not configured (informational check placeholder); the result rests on the agent’s own verification.' });
+            await trace.event('check', { command: check, placeholder: true, passed: null, note: 'real automated validation is not configured' });
+        } else if (check) {
             await save({ phase: 'checking' });
             hooks.emit({ type: 'phase', phase: 'checking', detail: check });
             hooks.emit({ type: 'activity', text: `Running check: ${check}` });
