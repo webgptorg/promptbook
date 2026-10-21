@@ -1,5 +1,17 @@
 TASK Transform the project according to the initial specification — 2026-10-21 21:10:11
-GOAL Transform this project according to the initial specification in [`specs/_initial.md`](../specs/_initial.md) and its linked assets. Preserve the original specification; create or adapt the project content, agents, checks and follow-up tasks needed to fulfill it.
+GOAL 
+
+Maintain the Promptbook project itself.
+You will be kinda bootstrapper - working on the Promptbook project by the Promptbook agents
+
+- For now just use opus-5.5 or newer to keep the inplementation up to date with specs in /specs
+- Also keep the README and other presentation files up to date via comunity agent
+
+Create a Pavol agent, Developer agent, Spec-keeper agent and community agent connected togenter in a structure and team
+
+Draft the basic structure and I will manually edit the drafted agents later
+Also there are alreasy some agents so use them as a base
+
 
 The linked specification is the source of the user's intent: read it in full, keep it unchanged, and write any additional specifications or other project files next to it instead of replacing it.
 TASK AGENT @Expert
