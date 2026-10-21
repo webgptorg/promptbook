@@ -1,0 +1,25 @@
+CHAT Fixer asks: How should I resolve the remaining health-check errors, which come fro — 2026-10-21 21:30:04
+CHAT MEMBER @User
+CHAT MEMBER @Fixer
+CHAT STATUS waiting-for-user
+LINK {{Project health check — 2026-10-21 21:14:37}}
+
+CHAT MESSAGE @Fixer 2026-10-21T21:30:04+02:00
+These are owner decisions that the specs and the task don't settle: whether the legacy sample agents join the active team, stay as reference or are removed, and whether your coder draft can be deleted. A wrong guess could start goal-discovery work in this repo, which autosync would push, or delete your draft.
+
+Already attempted: I ran `ptbk lint` (22 errors, all in these files) and `ptbk migrate --dry-run`. I checked the resolver, Manager routing and goal-discovery code: hidden folders are excluded from routing and discovery. In a scratch clone I tried both the in-place migrate and option 1, and verified the lint result and the ordinary-agent set. I have not changed the project.
+
+How should I resolve the remaining health-check errors, which come from the legacy Books in agents/default/ and agents/coding/ and from the stub tasks/2026-10-09-0000-coder.book?
+
+Background: these are old Agents Server sample Books in the former syntax: the Czech business demos, old copies of Adam, Teacher, Creator and Expert, Promptbook Developer and Unslopper. Right now they are inert. If I convert them in place with `ptbk migrate`, 13 of them become ordinary agents. Manager could then route work to them, and goal discovery would periodically ask them to create tasks in this repo. `ptbk migrate` would also turn their META, INITIAL MESSAGE and USE lines into escaped text inside the PERSONA or RULE above them. The Expert copy can never load because Expert is a reserved name. The coder stub is `TASK Implement ptbk coder` plus the placeholder `TASK @@@@`, with no GOAL. Removing just the placeholder would make it runnable work.
+
+Options:
+1 (recommended) Keep them as inactive reference: move the Books, plus knowledge/ and _prompt.md, into the hidden folder agents/.legacy/. Only add `AGENT ` to the start of each first line; the content stays the same. Delete the unusable Expert copy and the coder stub; both stay recoverable from Git. Update the paths in agents/README.md and the draft NOTE lines. I tested this in a scratch clone: 0 lint errors (83 warnings for no-effect legacy lines and shadowed duplicates), and the active team is unchanged: Pavol, Developer, Spec-keeper and Community.
+2 Activate them: convert in place with `ptbk migrate`, then delete the Expert copy and the coder stub.
+3 Delete all legacy Books and the coder stub (recoverable from Git), keeping agents/default/developer.book.
+4 Leave everything as it is.
+» 1 - Move to hidden agents/.legacy/ as inactive reference; delete Expert copy and coder stub (recommended)
+» 2 - Convert in place as active agents with ptbk migrate; delete Expert copy and coder stub
+» 3 - Delete all legacy Books and the coder stub (keep agents/default/developer.book)
+» 4 - Leave everything as is
+
