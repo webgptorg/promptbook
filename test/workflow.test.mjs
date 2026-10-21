@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { ENGINE_VERSION } from '../dist/common/version.js';
 import { traceDirectoryOf } from '../dist/tasks/identity.js';
-import { findGenerated, generated, git, initializedProject, messages, ptbk, subjects } from './helpers.mjs';
+import { fakeHarness, findGenerated, generated, git, initRepository, initializedProject, messages, ptbk, subjects, temporaryDirectory } from './helpers.mjs';
 
 /**
  * Fixture check: fails when any output file contains BROKEN.
@@ -61,7 +61,6 @@ test('unattended init saves setup, a blank initial specification and one named E
     assert.equal(config.execution.check, 'echo "Configure project checks in ptbk.json execution.check"', 'no check question: the explicit informational placeholder');
     assert.match(init.stdout, /informational placeholder/, 'the placeholder is labelled, never presented as passing tests');
     assert.deepEqual(config.traces, { isCommitted: false, isVideoIgnored: true, isVideoRecordingEnabled: true });
-    assert.equal((await git(project, ['symbolic-ref', '--short', 'HEAD'])).trim(), 'main', 'a new repository starts on main');
     const tasks = (await readdir(join(project, 'tasks'))).filter((name) => name.endsWith('.book'));
     assert.equal(tasks.length, 1);
     const bootstrap = await readFile(join(project, 'tasks', tasks[0]), 'utf8');
@@ -276,4 +275,22 @@ test('migrate converts Books in former syntax explicitly, keeping names and cont
     assert.equal(after.tasks.find((task) => task.source === 'tasks/old.book').name, 'Old task', 'conversion keeps the name; no creation date is added');
     const again = await ptbk(['migrate', '--raw'], { cwd: project, env });
     assert.doesNotMatch(again.stdout, /Convert /);
+});
+
+test('init creates a new repository on main even when Git defaults to another branch; an existing repository keeps its branch', async (t) => {
+    const directory = await temporaryDirectory(t);
+    const harness = await fakeHarness(t, directory);
+    // Like a clean CI runner: plain `git init` would create master here.
+    const env = { ...harness.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'init.defaultBranch', GIT_CONFIG_VALUE_0: 'master' };
+    const initArgs = ['--non-interactive', '--installation', 'global', '--harness', 'openai-codex', '--no-start', '--raw'];
+    const fresh = join(directory, 'fresh project');
+    const created = await ptbk(['init', '--path', fresh, ...initArgs], { cwd: directory, env });
+    assert.equal(created.code, 0, created.output);
+    assert.equal((await git(fresh, ['symbolic-ref', '--short', 'HEAD'])).trim(), 'main', 'a repository created by init starts on main');
+    const existing = join(directory, 'existing project');
+    await initRepository(existing);
+    await git(existing, ['symbolic-ref', 'HEAD', 'refs/heads/trunk']);
+    const kept = await ptbk(['init', '--path', existing, ...initArgs], { cwd: directory, env });
+    assert.equal(kept.code, 0, kept.output);
+    assert.equal((await git(existing, ['symbolic-ref', '--short', 'HEAD'])).trim(), 'trunk', 'an existing repository keeps its current branch');
 });

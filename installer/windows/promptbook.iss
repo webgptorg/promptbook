@@ -40,7 +40,7 @@ SetupLogging=yes
 UninstallDisplayName=Promptbook installer {#Version} (your projects and tools are kept)
 
 [Messages]
-WelcomeLabel2=This prepares your computer for Promptbook {#Version}:%n%n• installs Node.js, npm and Git only if they are missing,%n• installs the Promptbook command-line tool (ptbk {#Version}),%n• creates an empty folder for your first project and opens the setup assistant in a terminal.%n%nThe setup assistant then asks what you are working on. Nothing else on your computer is replaced.
+WelcomeLabel2=This prepares your computer for Promptbook {#Version}:%n%n- installs Node.js, npm and Git only if they are missing,%n- installs the Promptbook command-line tool (ptbk {#Version}),%n- creates an empty folder for your first project and opens the setup assistant in a terminal.%n%nThe setup assistant then asks what you are working on. Nothing else on your computer is replaced.
 
 [Files]
 Source: "bootstrap.ps1"; DestDir: "{app}"; Flags: ignoreversion
@@ -125,7 +125,7 @@ begin
   end;
 end;
 
-function Quote(Value: String): String;
+function Quoted(Value: String): String;
 begin
   Result := '"' + Value + '"';
 end;
@@ -134,10 +134,10 @@ function RunBootstrap(AllowReplacement: Boolean; var Code: Integer): Boolean;
 var
   Params: String;
 begin
-  Params := '-NoProfile -ExecutionPolicy Bypass -File ' + Quote(ExpandConstant('{app}\bootstrap.ps1')) +
-    ' -PromptbookVersion ' + Quote('{#Version}') + ' -ProjectsRoot ' + Quote(RootPage.Values[0]);
+  Params := '-NoProfile -ExecutionPolicy Bypass -File ' + Quoted(ExpandConstant('{app}\bootstrap.ps1')) +
+    ' -PromptbookVersion ' + Quoted('{#Version}') + ' -ProjectsRoot ' + Quoted(RootPage.Values[0]);
   if SkipBox.Checked then Params := Params + ' -SkipProject'
-  else Params := Params + ' -ProjectName ' + Quote(ProjectPage.Values[0]);
+  else Params := Params + ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
   if AllowReplacement then Params := Params + ' -AllowPtbkReplacement';
   { The process-scoped execution policy applies to this one bootstrap script only; no machine policy is changed. }
   Result := Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, '', SW_SHOW, ewWaitUntilTerminated, Code);
@@ -146,17 +146,17 @@ end;
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   Code: Integer;
-  Replace: Boolean;
+  AllowReplace: Boolean;
   Done: Boolean;
-  Log: String;
+  LogDirectory: String;
 begin
   if CurStep <> ssPostInstall then Exit;
-  Replace := False;
-  Log := ExpandConstant('{localappdata}\Promptbook\installer');
+  AllowReplace := False;
+  LogDirectory := ExpandConstant('{localappdata}\Promptbook\installer');
   Done := False;
   while not Done do
   begin
-    if not RunBootstrap(Replace, Code) then
+    if not RunBootstrap(AllowReplace, Code) then
     begin
       if MsgBox('Windows PowerShell could not be started to prepare Promptbook.', mbError, MB_RETRYCANCEL) = IDCANCEL then Done := True;
       Continue;
@@ -168,17 +168,17 @@ begin
            Done := True;
          end;
       3: begin
-           if (not Replace) and (MsgBox('A decision is needed (see the terminal window): an incompatible prerequisite or another installed ptbk version was found.' + #13#10#13#10 +
+           if (not AllowReplace) and (MsgBox('A decision is needed (see the terminal window): an incompatible prerequisite or another installed ptbk version was found.' + #13#10#13#10 +
                'If it is another ptbk version: replace the global ptbk with {#Version}? (Project-local installations are never touched.)', mbConfirmation, MB_YESNO) = IDYES) then
-             Replace := True
+             AllowReplace := True
            else
            begin
-             MsgBox('Nothing was replaced. Resolve the reported item and run this installer again. Diagnostics: ' + Log, mbInformation, MB_OK);
+             MsgBox('Nothing was replaced. Resolve the reported item and run this installer again. Diagnostics: ' + LogDirectory, mbInformation, MB_OK);
              Done := True;
            end;
          end;
     else
-      if MsgBox('Promptbook was not fully prepared (stage reported in the terminal window). Your files were kept.' + #13#10 + 'Diagnostics: ' + Log + #13#10#13#10 + 'Retry now?', mbError, MB_RETRYCANCEL) = IDCANCEL then
+      if MsgBox('Promptbook was not fully prepared (stage reported in the terminal window). Your files were kept.' + #13#10 + 'Diagnostics: ' + LogDirectory + #13#10#13#10 + 'Retry now?', mbError, MB_RETRYCANCEL) = IDCANCEL then
         Done := True;
     end;
   end;

@@ -66,7 +66,8 @@ jobs:
       - name: Compatible prerequisites are reused; the candidate installs and the handoff is prepared (spaces, Unicode, special characters)
         shell: powershell
         run: |
-          $root = Join-Path $env:RUNNER_TEMP 'Promptbook Projekty ü & co'
+          # Unicode is built at run time: the step script itself stays ASCII for Windows PowerShell 5.1.
+          $root = Join-Path $env:RUNNER_TEMP ('Promptbook Projekty ' + [char]0x00FC + ' & co')
           powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -PackageSpec $env:PTBK_TARBALL -ProjectsRoot $root -ProjectName "first & project's" -AllowPtbkReplacement -NoLaunch
           if ($LASTEXITCODE -ne 0) { throw "bootstrap exited with $LASTEXITCODE" }
           $target = Join-Path $root "first & project's"
@@ -83,7 +84,7 @@ jobs:
       - name: The handed-off command initializes the prepared folder (non-interactive substitute of the terminal)
         shell: powershell
         run: |
-          $target = Join-Path $env:RUNNER_TEMP 'Promptbook Handoff ü\first project'
+          $target = Join-Path $env:RUNNER_TEMP ('Promptbook Handoff ' + [char]0x00FC + '\first project')
           New-Item -ItemType Directory -Force -Path $target | Out-Null
           git config --global user.name 'Fixture Tester'
           git config --global user.email 'fixture@example.test'

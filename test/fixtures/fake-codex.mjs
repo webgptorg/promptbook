@@ -134,7 +134,8 @@ async function main() {
     const title = /- Name: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
     const chat = prompt.startsWith('# Conversation');
     const attempt = /## Feedback from attempt (\d+)/.exec(prompt) ? Number(/## Feedback from attempt (\d+)/.exec(prompt)[1]) + 1 : 1;
-    const api = Boolean(process.env.CODEX_API_KEY) && configOverrides().forced_login_method === '"api"';
+    // ptbk removes API keys from a native run's environment, so a present key means an explicit API_KEY instance.
+    const api = Boolean(process.env.CODEX_API_KEY);
     if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
     print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
     print({ type: 'turn.started' });

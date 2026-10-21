@@ -9,9 +9,9 @@
     official distributions. Nothing is silently replaced or downgraded. Re-running is safe: satisfied steps are reused,
     a nonempty folder is never treated as a new empty project, and PATH entries are not duplicated.
 
-    Exit codes: 0 handed off (or prepared with -NoLaunch) · 2 CLI installed, project skipped · 3 a decision is needed
-    (incompatible prerequisite or a different installed ptbk version) · 4 project folder problem · 5 download or
-    installation failure · 6 terminal handoff failure.
+    Exit codes: 0 handed off (or prepared with -NoLaunch); 2 CLI installed, project skipped; 3 a decision is needed
+    (incompatible prerequisite or a different installed ptbk version); 4 project folder problem; 5 download or
+    installation failure; 6 terminal handoff failure.
 #>
 [CmdletBinding()]
 param(
@@ -29,7 +29,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+# Windows PowerShell 5.1 reads this file as ANSI unless it has a BOM: it is kept pure ASCII on purpose.
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { Write-Verbose 'The console encoding cannot be changed (no console attached).' }
 
 $script:LogDirectory = Join-Path $env:LOCALAPPDATA 'Promptbook\installer'
 New-Item -ItemType Directory -Force -Path $script:LogDirectory | Out-Null
@@ -70,14 +71,15 @@ function Stop-Bootstrap([int] $Code, [string] $Stage, [string] $Message, [string
     exit $Code
 }
 
-# The executables a new terminal will see: machine and user PATH from the registry (fresh installs included), plus
-# npm's per-user global bin. Nothing is written to PATH here.
+# The executables this process can use: its current PATH first (tools the launching environment already selected),
+# then the machine and user PATH from the registry (prerequisites installed meanwhile), plus npm's per-user global bin.
+# Nothing is written to the persistent PATH here.
 function Update-SessionPath {
     if ($IsolatedPath) { return }
     $machine = [Environment]::GetEnvironmentVariable('Path', 'Machine')
     $user = [Environment]::GetEnvironmentVariable('Path', 'User')
     $entries = New-Object System.Collections.Generic.List[string]
-    foreach ($part in (@($machine, $user, (Join-Path $env:APPDATA 'npm')) -join ';').Split(';')) {
+    foreach ($part in (@($env:Path, $machine, $user, (Join-Path $env:APPDATA 'npm')) -join ';').Split(';')) {
         if ($part -and -not $entries.Contains($part)) { $entries.Add($part) }
     }
     $env:Path = $entries -join ';'
@@ -105,7 +107,7 @@ function Test-NodeCompatible([version] $Version) {
 function Install-WithWinget([string] $Id, [string] $Name) {
     $winget = Get-Command winget -ErrorAction SilentlyContinue
     if (-not $winget) { return $false }
-    Write-Detail "Installing $Name with winget (official package $Id)…"
+    Write-Detail "Installing $Name with winget (official package $Id)..."
     Invoke-Native { & $winget.Source install --id $Id --exact --silent --accept-package-agreements --accept-source-agreements 2>&1 } | ForEach-Object { Write-Log "winget: $_" }
     return ($LASTEXITCODE -eq 0)
 }
@@ -130,7 +132,7 @@ function Install-NodeFromNodejsOrg {
     if (-not $line) { throw 'The Node.js release index has no x64 MSI.' }
     $parts = $line.Trim() -split '\s+'
     $msi = Get-VerifiedDownload ($base + $parts[1]) $parts[0] $parts[1]
-    Write-Detail 'Installing Node.js (Windows asks for permission)…'
+    Write-Detail 'Installing Node.js (Windows asks for permission)...'
     $process = Start-Process -FilePath 'msiexec.exe' -ArgumentList @('/i', ('"{0}"' -f $msi), '/qn', '/norestart') -Verb RunAs -Wait -PassThru
     if ($process.ExitCode -ne 0) { throw "The Node.js installer exited with $($process.ExitCode)." }
 }
@@ -143,7 +145,7 @@ function Install-GitFromGitForWindows {
     $match = [regex]::Match([string] $release.body, [regex]::Escape($asset.name) + '\s*\|\s*([0-9a-fA-F]{64})')
     if (-not $match.Success) { throw 'The Git for Windows release does not publish a checksum for its installer.' }
     $installer = Get-VerifiedDownload $asset.browser_download_url $match.Groups[1].Value $asset.name
-    Write-Detail 'Installing Git (Windows may ask for permission)…'
+    Write-Detail 'Installing Git (Windows may ask for permission)...'
     $process = Start-Process -FilePath $installer -ArgumentList @('/VERYSILENT', '/NORESTART', '/SP-') -Wait -PassThru
     if ($process.ExitCode -ne 0) { throw "The Git installer exited with $($process.ExitCode)." }
 }
@@ -161,7 +163,7 @@ function ConvertTo-PowerShellLiteral([string] $Text) {
 }
 
 Write-Log "Promptbook bootstrap for ptbk $PromptbookVersion (plan: $Plan, skip project: $SkipProject)"
-Write-Host "Promptbook $PromptbookVersion — preparing your computer" -ForegroundColor White
+Write-Host "Promptbook $PromptbookVersion - preparing your computer" -ForegroundColor White
 Write-Host 'This installs what ptbk needs, then opens the setup assistant (ptbk init) in a terminal.'
 Write-Host ''
 

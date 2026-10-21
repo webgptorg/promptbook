@@ -129,10 +129,12 @@ test('synchronization setup: init publishes to the supplied origin with autosync
     const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
     assert.equal(config.isAutoSync, true);
     assert.equal(config.origin, undefined, 'the destination lives in Git, not in ptbk.json');
+    // The fixture created the repository, so it keeps Git's default branch (existing branches are never switched).
+    const branch = (await git(project, ['symbolic-ref', '--short', 'HEAD'])).trim();
     assert.equal((await git(project, ['remote', 'get-url', 'origin'])).trim(), bare);
-    assert.equal((await git(project, ['rev-parse', '--abbrev-ref', '@{u}'])).trim(), 'origin/main');
-    assert.equal((await git(bare, ['log', '-1', '--format=%s', 'main'])).trim(), 'PTBK: Initialize project', 'the committed local setup was published');
-    assert.match(init.stdout, /Published main to origin/);
+    assert.equal((await git(project, ['rev-parse', '--abbrev-ref', '@{u}'])).trim(), `origin/${branch}`);
+    assert.equal((await git(bare, ['log', '-1', '--format=%s', branch])).trim(), 'PTBK: Initialize project', 'the committed local setup was published');
+    assert.match(init.stdout, new RegExp(`Published ${branch} to origin`));
 
     const conflict = await ptbk(['init', '--non-interactive', '--no-commit', '--auto-sync', '--no-start', '--raw'], { cwd: project, env });
     assert.equal(conflict.code, 2, conflict.output);
@@ -154,28 +156,29 @@ test('engine synchronization: remote work is integrated at an operation boundary
     const started = await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
     const snapshot = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
+    const branch = (await git(project, ['symbolic-ref', '--short', 'HEAD'])).trim();
     assert.ok(snapshot.sync, 'the synchronization panel exists while autosync is enabled');
-    assert.equal(snapshot.sync.upstream, 'origin/main');
+    assert.equal(snapshot.sync.upstream, `origin/${branch}`);
 
     // Another machine adds a task to the shared repository.
     const machine = join(other, '..', 'machine');
-    await git(join(other, '..'), ['clone', '-q', bare, machine]);
+    await git(join(other, '..'), ['clone', '-q', '--branch', branch, bare, machine]);
     for (const [key, value] of [['user.name', 'Other'], ['user.email', 'other@example.test'], ['commit.gpgsign', 'false']]) await git(machine, ['config', key, value]);
     await writeFile(join(machine, 'tasks', 'remote-task.book'), 'TASK Remote task from another machine\nGOAL Write the remote output.\nTASK AGENT @Developer\n');
     await git(machine, ['add', '-A']);
     await git(machine, ['commit', '-q', '-m', 'Remote task']);
     // The engine publishes its own results meanwhile: like any clone, integrate before pushing (non-fast-forward).
     await waitFor(async () => {
-        await git(machine, ['pull', '-q', '--no-rebase', '--no-edit', 'origin', 'main']);
-        return await git(machine, ['push', '-q', 'origin', 'HEAD:main']).then(() => true, () => false);
+        await git(machine, ['pull', '-q', '--no-rebase', '--no-edit', 'origin', branch]);
+        return await git(machine, ['push', '-q', 'origin', `HEAD:${branch}`]).then(() => true, () => false);
     }, { message: 'the other machine to publish its task', timeoutMs: 60_000, intervalMs: 1000 });
 
     // A local authoring operation is a boundary: the engine fetches, then integrates after its own commit.
     assert.equal((await ptbk(['add', 'Local task', '--agent', 'Developer', '--raw'], { cwd: project, env })).code, 0);
     await waitFor(async () => (await subjects(project)).includes('PTBK: Remote task from another machine'), { message: 'the remote task to be executed', timeoutMs: 120_000 });
     const history = await subjects(project);
-    assert.ok(history.some((subject) => /^PTBK: Merge origin\/main into main/.test(subject)), 'remote work arrived with a visible merge');
-    await waitFor(async () => (await git(bare, ['log', '--format=%s', 'main'])).includes('PTBK: Remote task from another machine'), { message: 'the published result', timeoutMs: 120_000 });
+    assert.ok(history.includes(`PTBK: Merge origin/${branch} into ${branch}`), 'remote work arrived with a visible merge');
+    await waitFor(async () => (await git(bare, ['log', '--format=%s', branch])).includes('PTBK: Remote task from another machine'), { message: 'the published result', timeoutMs: 120_000 });
     assert.doesNotMatch(await git(project, ['log', '--format=%s']), /rebase/i);
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 });
