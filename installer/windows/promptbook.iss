@@ -58,7 +58,7 @@ var
 begin
   Result := (Length(Name) > 0) and (Trim(Name) = Name) and (Name[Length(Name)] <> '.') and (Name <> '.') and (Name <> '..');
   for I := 1 to Length(Name) do
-    if Pos(Name[I], '\/:*?"<>|') > 0 then Result := False;
+    if Pos(Copy(Name, I, 1), '\/:*?"<>|') > 0 then Result := False;
   Upper := Uppercase(Name);
   if (Upper = 'CON') or (Upper = 'PRN') or (Upper = 'AUX') or (Upper = 'NUL') then Result := False;
   if (Length(Upper) = 4) and ((Copy(Upper, 1, 3) = 'COM') or (Copy(Upper, 1, 3) = 'LPT')) and (Upper[4] >= '1') and (Upper[4] <= '9') then Result := False;

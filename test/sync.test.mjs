@@ -24,7 +24,8 @@ async function remoteFixture(t) {
     const clone = async (name) => {
         const path = join(root, name);
         await git(root, ['clone', '-q', origin, path]);
-        for (const [key, value] of [['user.name', 'Fixture Tester'], ['user.email', 'fixture@example.test'], ['commit.gpgsign', 'false']]) await git(path, ['config', key, value]);
+        // Like initRepository: the coordinator's own Git must see the same line endings as the fixture's (no runner autocrlf).
+        for (const [key, value] of [['user.name', 'Fixture Tester'], ['user.email', 'fixture@example.test'], ['commit.gpgsign', 'false'], ['core.autocrlf', 'false']]) await git(path, ['config', key, value]);
         return path;
     };
     return { root, origin, local: await clone('local'), other: await clone('other') };
@@ -80,7 +81,8 @@ test('synchronization coordinator: visible merges, publication, no empty merges,
     const parents = (await git(local, ['log', '-1', '--format=%P'])).trim().split(' ');
     assert.equal(parents.length, 2, 'a visible merge commit even though fast-forward was possible');
     assert.equal((await git(local, ['log', '-1', '--format=%s'])).trim(), 'PTBK: Merge origin/main into main');
-    assert.equal((await readFile(join(local, 'remote.md'), 'utf8')), 'from another machine\n');
+    // The committed content, not the checkout: Windows Git may check text files out with CRLF (core.autocrlf).
+    assert.equal(await git(local, ['show', 'HEAD:remote.md']), 'from another machine\n');
     assert.equal((await git(origin, ['rev-parse', 'main'])).trim(), (await git(local, ['rev-parse', 'HEAD'])).trim(), 'the merge was published');
 
     const before = (await git(local, ['rev-list', '--count', 'HEAD'])).trim();

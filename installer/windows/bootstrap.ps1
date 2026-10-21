@@ -88,14 +88,22 @@ function Update-SessionPath {
 function Get-Tool([string] $Command, [string[]] $Arguments) {
     $found = Get-Command $Command -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $found) { return $null }
+    $unusable = @{ Path = $found.Source; Version = $null; Usable = $false }
     try {
-        $output = Invoke-Native { & $found.Source @Arguments 2>$null } | Select-Object -First 1
+        # The whole output is collected first: stopping the pipeline early (Select-Object -First) would end the
+        # program before its exit code is recorded, and a working tool would look broken.
+        $global:LASTEXITCODE = 0
+        $lines = @(Invoke-Native { & $found.Source @Arguments 2>$null })
+        $code = $global:LASTEXITCODE
     } catch {
-        return @{ Path = $found.Source; Version = $null; Usable = $false }
+        Write-Log "PROBE $($found.Source) $Arguments failed: $($_.Exception.Message)"
+        return $unusable
     }
-    if ($LASTEXITCODE -ne 0 -or -not $output) { return @{ Path = $found.Source; Version = $null; Usable = $false } }
-    $match = [regex]::Match([string] $output, '(\d+)\.(\d+)\.(\d+)')
-    if (-not $match.Success) { return @{ Path = $found.Source; Version = $null; Usable = $false } }
+    $output = [string] ($lines | Where-Object { $_ } | Select-Object -First 1)
+    Write-Log "PROBE $($found.Source) $Arguments -> exit $code, '$output'"
+    if ($code -ne 0 -or -not $output) { return $unusable }
+    $match = [regex]::Match($output, '(\d+)\.(\d+)\.(\d+)')
+    if (-not $match.Success) { return $unusable }
     return @{ Path = $found.Source; Version = [version] ("{0}.{1}.{2}" -f $match.Groups[1].Value, $match.Groups[2].Value, $match.Groups[3].Value); Usable = $true }
 }
 
@@ -270,7 +278,9 @@ if ($SkipProject) {
 Write-Step 'First project folder'
 if (-not (Test-ValidFolderName $ProjectName)) { Stop-Bootstrap 4 'Project name' "'$ProjectName' is not a valid Windows folder name." 'Choose another name (no \ / : * ? " < > | and no reserved names).' }
 $target = Join-Path $root $ProjectName
-if ([System.IO.Path]::GetFullPath($target) -notlike ([System.IO.Path]::GetFullPath($root).TrimEnd('\') + '\*')) { Stop-Bootstrap 4 'Project name' "'$ProjectName' points outside $root." 'Choose a plain folder name.' }
+# A plain prefix comparison: -like would treat [ and ] in folder names as wildcards.
+$rootPrefix = $root.TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+if (-not [System.IO.Path]::GetFullPath($target).StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) { Stop-Bootstrap 4 'Project name' "'$ProjectName' points outside $root." 'Choose a plain folder name.' }
 if (Test-Path -LiteralPath $target) {
     if (Get-ChildItem -LiteralPath $target -Force | Select-Object -First 1) {
         Stop-Bootstrap 4 'Project folder' "$target already exists and is not empty; nothing in it was changed." 'Choose another project name. (To continue a started setup there, open a terminal in it and run ptbk init.)'

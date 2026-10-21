@@ -88,14 +88,23 @@ jobs:
           New-Item -ItemType Directory -Force -Path $target | Out-Null
           git config --global user.name 'Fixture Tester'
           git config --global user.email 'fixture@example.test'
-          $ptbk = Join-Path (npm prefix --global).Trim() 'ptbk.cmd'
+          # npm.cmd explicitly: plain `npm` may resolve to npm.ps1, which the execution policy can block.
+          $ptbk = Join-Path (npm.cmd prefix --global).Trim() 'ptbk.cmd'
           & $ptbk init --path $target --non-interactive --installation global --no-harness --no-start --raw
           if ($LASTEXITCODE -notin 0, 3) { throw "ptbk init exited with $LASTEXITCODE" }
           if (-not (Test-Path -LiteralPath (Join-Path $target 'ptbk.json'))) { throw 'init did not configure the handed-off folder' }
+      - name: Bootstrap diagnostics (on failure)
+        if: failure()
+        shell: pwsh
+        run: |
+          Get-ChildItem -LiteralPath (Join-Path $env:LOCALAPPDATA 'Promptbook\installer') -Filter 'bootstrap-*.log' -ErrorAction SilentlyContinue |
+            ForEach-Object { "== $($_.Name)"; Get-Content -LiteralPath $_.FullName }
       - name: Inno Setup script compiles
         shell: pwsh
         run: |
           choco install innosetup --no-progress -y | Out-Null
           $numeric = ($env:PTBK_VERSION -replace '-.*$', '') + '.' + (($env:PTBK_VERSION -replace '^[^-]*-?', '') -replace '\D', '' | ForEach-Object { if ($_) { $_ } else { '0' } })
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$numeric" installer\windows\promptbook.iss
+          $iscc = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) { throw 'The Inno Setup compiler (ISCC.exe) was not found after its installation.' }
+          & $iscc.FullName "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$numeric" installer\windows\promptbook.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }

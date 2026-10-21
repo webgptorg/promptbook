@@ -58,6 +58,7 @@ jobs:
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
       GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -79,15 +80,29 @@ jobs:
         shell: pwsh
         run: |
           choco install innosetup --no-progress -y | Out-Null
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$env:PTBK_NUMERIC_VERSION" installer\windows\promptbook.iss
+          $iscc = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) { throw 'The Inno Setup compiler (ISCC.exe) was not found after its installation.' }
+          & $iscc.FullName "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$env:PTBK_NUMERIC_VERSION" installer\windows\promptbook.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }
       - name: The bootstrap installs and reports the exact published ptbk version
         shell: powershell
         run: |
-          powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -ProjectsRoot (Join-Path $env:RUNNER_TEMP 'Promptbook Release') -ProjectName 'first project' -AllowPtbkReplacement -NoLaunch
+          # The version was published moments ago: an installation failure (exit 5) is retried while the registry propagates it.
+          foreach ($attempt in 1..6) {
+            powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -ProjectsRoot (Join-Path $env:RUNNER_TEMP 'Promptbook Release') -ProjectName 'first project' -AllowPtbkReplacement -NoLaunch
+            if ($LASTEXITCODE -ne 5) { break }
+            Start-Sleep -Seconds 20
+          }
           if ($LASTEXITCODE -ne 0) { throw "bootstrap exited with $LASTEXITCODE" }
-          $reported = & (Join-Path (npm prefix --global).Trim() 'ptbk.cmd') --version
+          # npm.cmd explicitly: plain `npm` may resolve to npm.ps1, which the execution policy can block.
+          $reported = & (Join-Path (npm.cmd prefix --global).Trim() 'ptbk.cmd') --version
           if ($reported -notmatch [regex]::Escape($env:PTBK_VERSION)) { throw "installed ptbk reports $reported" }
+      - name: Bootstrap diagnostics (on failure)
+        if: failure()
+        shell: pwsh
+        run: |
+          Get-ChildItem -LiteralPath (Join-Path $env:LOCALAPPDATA 'Promptbook\installer') -Filter 'bootstrap-*.log' -ErrorAction SilentlyContinue |
+            ForEach-Object { "== $($_.Name)"; Get-Content -LiteralPath $_.FullName }
       - name: Publish and verify the installer on the GitHub Release
         shell: pwsh
         run: node scripts/publish-windows-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
