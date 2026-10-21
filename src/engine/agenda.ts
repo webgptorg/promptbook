@@ -2153,7 +2153,6 @@ export class Agenda {
             phase: 'executing',
             attempt: 0,
             technicalRetries: 0,
-            completionApplied: false,
             failure: undefined,
             handover: { agent: name, from, failure, at: new Date().toISOString() },
             feedback: `${formatAgentReference(from)} could not complete this task: ${failure}`,
