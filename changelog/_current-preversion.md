@@ -117,3 +117,7 @@
 -   **Tabs and navigation.** `browser_tabs` (list, new, select, close), `browser_navigate` (back, forward, reload) and `browser_open` for any URL (a scheme-less address opens like in the address bar) and optionally in a new tab. A tab the website opens becomes the current tab; closing it continues in another one, and the recording follows the tab the agent works in.
 -   **Programmatic control.** `browser_upload` (file inputs and the file chooser a button opens), `browser_evaluate` (page JavaScript with top-level `await`; listed elements are `ptbkRef(n)`), `browser_cdp` (any DevTools protocol command for the page or the browser) and `browser_devtools_endpoint` (for the agent's own Playwright/Puppeteer scripts while its task holds the browser).
 -   `browser_screenshot` returns the image to the model (MCP image content) with coordinate guidance, optionally of the full page; image data stays out of the readable `harness.log`. Headless browsers get a desktop-sized window (1280×900), so websites show their desktop layout.
+
+## Self-naming terminal titles and safe terminal output
+
+-   **Safe terminal output.** The terminal screens render untrusted text without its control sequences: a task, chat or agent name (or message) with an embedded escape sequence can no longer retitle, clear, reset or move the cursor of the terminal through the dashboard, chat, wizard or panel views, nor reach plain dashboard events (the UI's own colors and emphasis are kept).

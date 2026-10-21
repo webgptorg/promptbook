@@ -1,4 +1,5 @@
 import { errorMessage } from '../common/errors.js';
+import { terminalSafe } from './ansi.js';
 import { clockTime, formatShortTime } from '../common/time.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import type { ChatAgentChoice } from '../chats/service.js';
@@ -38,7 +39,7 @@ export type DashboardSource = {
  * Formats a plain event line.
  */
 function plainLine(text: string): string {
-    return `${clockTime()} ${text}\n`;
+    return `${clockTime()} ${terminalSafe(text)}\n`;
 }
 
 /**

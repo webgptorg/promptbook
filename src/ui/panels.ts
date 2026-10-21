@@ -1,4 +1,4 @@
-import { fit, stringWidth, truncate, type Style } from './ansi.js';
+import { fit, stringWidth, terminalSafe, truncate, type Style } from './ansi.js';
 
 /**
  * Visual tone of a panel border.
@@ -82,14 +82,14 @@ export function renderPanel(options: PanelOptions): string[] {
     const width = Math.max(8, options.width);
     const inner = width - 4;
     const color = (text: string): string => toneColor(options.style, tone, text);
-    const titleText = ` ${truncate(options.title, Math.max(1, inner - 2))} `;
-    const rightText = options.titleRight ? ` ${truncate(options.titleRight, Math.max(0, inner - stringWidth(titleText) - 3))} ` : '';
+    const titleText = ` ${truncate(terminalSafe(options.title), Math.max(1, inner - 2))} `;
+    const rightText = options.titleRight ? ` ${truncate(terminalSafe(options.titleRight), Math.max(0, inner - stringWidth(titleText) - 3))} ` : '';
     const fill = Math.max(0, width - 3 - stringWidth(titleText) - stringWidth(rightText) - (rightText ? 1 : 0));
     const titleStyled = tone === 'attention' ? options.style.bold(options.style.warning(titleText)) : options.style.bold(titleText);
     const top = color(`${box.tl}${box.h}`) + titleStyled + color(box.h.repeat(fill)) + (rightText ? options.style.muted(rightText) + color(box.h) : '') + color(box.tr);
     const lines = [...options.lines];
     while (lines.length < (options.minHeight ?? 0)) lines.push('');
-    const body = lines.map((line) => `${color(box.v)} ${fit(line, inner)} ${color(box.v)}`);
+    const body = lines.map((line) => `${color(box.v)} ${fit(terminalSafe(line), inner)} ${color(box.v)}`);
     const bottom = color(`${box.bl}${box.h.repeat(width - 2)}${box.br}`);
     return [top, ...body, bottom];
 }

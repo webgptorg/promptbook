@@ -13,6 +13,25 @@ export function stripAnsi(text: string): string {
 }
 
 /**
+ * Matches the SGR styling the UI itself applies (kept, group 1), and every other escape sequence (7-bit and 8-bit
+ * CSI, short ESC sequences such as reset or cursor save), string control (OSC, DCS, PM, APC, SOS, terminated or not),
+ * lone ESC and C0/C1 control character (removed; tab is kept).
+ */
+// eslint-disable-next-line no-control-regex
+const UNSAFE_TERMINAL_PATTERN = /(\x1b\[[0-9;]*m)|\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?|\x1b[PX^_][^\x1b]*(?:\x1b\\)?|\x1b[ -/]*[0-~]|\x9b[0-?]*[ -/]*[@-~]|\x9d[^\x07\x9c]*[\x07\x9c]?|[\x00-\x08\x0a-\x1f\x7f-\x9f]/g;
+
+/**
+ * Makes one rendered line safe to write to a terminal: keeps color/emphasis styling but removes cursor movement,
+ * title/clipboard/hyperlink controls, resets and line breaks that untrusted text (task, chat or agent names, messages)
+ * could otherwise smuggle into the screen.
+ *
+ * @private terminal UI
+ */
+export function terminalSafe(text: string): string {
+    return text.replace(UNSAFE_TERMINAL_PATTERN, (_sequence, styling: string | undefined) => styling ?? '');
+}
+
+/**
  * Grapheme segmenter used for width computation.
  */
 const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });

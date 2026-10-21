@@ -1,9 +1,10 @@
-import { truncate } from './ansi.js';
+import { terminalSafe, truncate } from './ansi.js';
 
 /**
  * Renders a block of lines in place (wizard steps, pickers) without flooding scrollback.
  *
- * Lines are truncated to the terminal width so that the rendered line count stays exact.
+ * Lines are made terminal-safe (styling only) and truncated to the terminal width so that the rendered line count
+ * stays exact.
  *
  * @private terminal screen
  */
@@ -28,7 +29,7 @@ export class InlineRenderer {
      */
     public render(lines: readonly string[], cursor?: { row: number; column: number }): void {
         const width = this.width();
-        const fitted = lines.slice(0, Math.max(1, this.height() - 1)).map((line) => truncate(line, width - 1));
+        const fitted = lines.slice(0, Math.max(1, this.height() - 1)).map((line) => truncate(terminalSafe(line), width - 1));
         let output = '\x1b[?25l';
         if (this.renderedLines > 0) output += `${this.cursorRow > 0 ? `\x1b[${this.cursorRow}A` : ''}\r`;
         output += '\x1b[0J';
@@ -98,7 +99,7 @@ export class FullScreen {
         if (!this.active) return;
         const height = Math.max(5, this.output.rows || 24);
         const width = Math.max(20, this.output.columns || 80);
-        const frame = lines.slice(0, height).map((line) => truncate(line, width));
+        const frame = lines.slice(0, height).map((line) => truncate(terminalSafe(line), width));
         let output = '\x1b[?25l';
         for (let row = 0; row < height; row++) {
             const line = frame[row] ?? '';
