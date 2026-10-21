@@ -107,23 +107,32 @@ export class IpcError extends Error {
 /**
  * Sends one JSON request and awaits its JSON response.
  *
+ * An aborted `signal` closes the connection at once (a viewer that leaves never waits for its pending long poll).
+ *
  * @private local IPC
  */
-export async function ipcRequest<T>(address: string, request: unknown, timeoutMs = 30_000): Promise<T> {
+export async function ipcRequest<T>(address: string, request: unknown, timeoutMs = 30_000, signal?: AbortSignal): Promise<T> {
     return await new Promise<T>((resolve, reject) => {
         let connected = false;
         let buffer = '';
         let settled = false;
         const socket = createConnection(address);
+        const onAbort = (): void => finish(new IpcError('The request was cancelled.', connected ? 'lost' : 'connect'));
         const finish = (error?: IpcError, value?: T): void => {
             if (settled) return;
             settled = true;
             clearTimeout(timer);
+            signal?.removeEventListener('abort', onAbort);
             socket.destroy();
             if (error) reject(error);
             else resolve(value as T);
         };
         const timer = setTimeout(() => finish(new IpcError('The request timed out.', connected ? 'lost' : 'connect')), timeoutMs);
+        if (signal?.aborted) {
+            onAbort();
+            return;
+        }
+        signal?.addEventListener('abort', onAbort, { once: true });
         socket.setEncoding('utf8');
         socket.on('connect', () => {
             connected = true;

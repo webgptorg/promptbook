@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { ipcAddress, ipcRequest, startIpcServer } from '../dist/common/ipc.js';
 import { createStyle, terminalSafe } from '../dist/ui/ansi.js';
 import { renderPanel } from '../dist/ui/panels.js';
 import { FullScreen } from '../dist/ui/screen.js';
@@ -18,4 +19,19 @@ test('rendered lines keep styling but untrusted names cannot retitle, move, rese
     assert.doesNotMatch(output, /\x1b\]/, 'no OSC (title) control reaches the terminal');
     assert.doesNotMatch(output, /evil\x07/);
     assert.match(output, /Write the bird README/);
+});
+
+test('a viewer that leaves cancels its pending long poll instead of waiting for the next update', async () => {
+    const server = await startIpcServer(ipcAddress(`title-${process.pid}-${Date.now()}`), () => new Promise(() => undefined));
+    try {
+        const controller = new AbortController();
+        const started = Date.now();
+        const pending = ipcRequest(server.address, { method: 'watch' }, 20_000, controller.signal);
+        setTimeout(() => controller.abort(), 100);
+        await assert.rejects(pending, /cancelled/);
+        assert.ok(Date.now() - started < 5000, 'returned promptly');
+        await assert.rejects(ipcRequest(server.address, { method: 'watch' }, 20_000, AbortSignal.abort()), /cancelled/, 'an already cancelled request does not wait');
+    } finally {
+        await server.close();
+    }
 });

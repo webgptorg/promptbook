@@ -129,17 +129,18 @@ export class ControlClient {
 
     /**
      * Sends a control request. Read-only requests retry briefly (re-authenticating the current record); a lost
-     * reply to a mutating request is reported as unconfirmed and never replayed.
+     * reply to a mutating request is reported as unconfirmed and never replayed. A request cancelled through `signal`
+     * is not retried.
      */
-    public async request<T>(method: string, params: Record<string, unknown> = {}, timeoutMs = 30_000): Promise<T> {
+    public async request<T>(method: string, params: Record<string, unknown> = {}, timeoutMs = 30_000, signal?: AbortSignal): Promise<T> {
         if (this.engine && !this.engine.compatible && SNAPSHOT_METHODS.has(method)) throw incompatibleEngineError(this.project, this.record, this.engine);
         const readOnly = READ_ONLY_METHODS.has(method);
         let record = this.record;
         for (let attempt = 1; ; attempt++) {
             try {
-                return await ipcRequest<T>(record.controlAddress, { token: record.token, method, params }, timeoutMs);
+                return await ipcRequest<T>(record.controlAddress, { token: record.token, method, params }, timeoutMs, signal);
             } catch (error) {
-                if (!(error instanceof IpcError)) throw error;
+                if (!(error instanceof IpcError) || signal?.aborted) throw error;
                 if (error.stage === 'remote') {
                     const details = error.details as { kind?: string; reason?: string; effect?: string; next?: string[]; data?: Record<string, unknown> } | undefined;
                     throw new PtbkError(error.message, { kind: (details?.kind as never) ?? 'technical', reason: details?.reason, effect: details?.effect, next: details?.next, data: details?.data });

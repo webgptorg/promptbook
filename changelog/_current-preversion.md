@@ -121,3 +121,4 @@
 ## Self-naming terminal titles and safe terminal output
 
 -   **Safe terminal output.** The terminal screens render untrusted text without its control sequences: a task, chat or agent name (or message) with an embedded escape sequence can no longer retitle, clear, reset or move the cursor of the terminal through the dashboard, chat, wizard or panel views, nor reach plain dashboard events (the UI's own colors and emphasis are kept).
+-   **Leaving a dashboard is immediate.** Leaving an attached dashboard (`Q`, or Ctrl+C in raw mode) returns to the shell at once instead of waiting up to 20 seconds for the service's next update.

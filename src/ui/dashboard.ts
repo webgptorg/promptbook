@@ -21,8 +21,8 @@ import { matchesFilter, windowAround } from './prompts.js';
 export type DashboardSource = {
     /** Current snapshot. */
     readonly snapshot: () => Promise<ServiceSnapshot>;
-    /** Waits for a newer revision (long poll). */
-    readonly watch: (since: number) => Promise<ServiceSnapshot>;
+    /** Waits for a newer revision (long poll); an aborted `signal` ends the wait at once. */
+    readonly watch: (since: number, signal?: AbortSignal) => Promise<ServiceSnapshot>;
     /** The engine's shared runtime controls (lifecycle, waits, browser recovery). */
     readonly action: (name: string, params?: Readonly<Record<string, unknown>>) => Promise<{ outcome: string; applied?: boolean }>;
     /** Chats (the same committed operations as `ptbk chat`). */
@@ -137,6 +137,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     // Viewer-local presentation state: detail panels start collapsed and never change the engine.
     const details = { execution: false, browser: false, sync: false };
     let connectionLost: string | undefined;
+    /** Cancels the pending long poll when the viewer leaves, so closing never waits for the service's next update. */
+    const watching = new AbortController();
     let finished: ((reason: 'left' | 'ended') => void) | undefined;
     const done = new Promise<'left' | 'ended'>((resolve) => {
         finished = resolve;
@@ -293,6 +295,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     };
 
     const leave = (reason: 'left' | 'ended'): void => {
+        watching.abort();
         keyboard.stop();
         screen.leave();
         clearInterval(animation);
@@ -659,7 +662,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         let previous: ServiceSnapshot | undefined = snapshot;
         while (finished) {
             try {
-                const next = await source.watch(snapshot.revision);
+                const next = await source.watch(snapshot.revision, watching.signal);
                 connectionLost = undefined;
                 if (plain) process.stdout.write(plainDifference(previous, next).map(plainLine).join(''));
                 previous = next;
@@ -674,6 +677,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     return;
                 }
             } catch (error) {
+                if (watching.signal.aborted) return;
                 connectionLost = errorMessage(error);
                 draw();
                 if (!source.owning) {
@@ -698,8 +702,10 @@ async function runPlainDashboard(terminal: TerminalProfile, source: DashboardSou
     let previous: ServiceSnapshot | undefined;
     let snapshot = await source.snapshot();
     let stop = false;
+    const watching = new AbortController();
     const onSignal = (): void => {
         stop = true;
+        watching.abort();
     };
     process.once('SIGINT', onSignal);
     try {
@@ -709,8 +715,9 @@ async function runPlainDashboard(terminal: TerminalProfile, source: DashboardSou
             if (['stopped', 'finished'].includes(snapshot.service.state) && !source.owning) return 'ended';
             if (stop) return 'left';
             try {
-                snapshot = await source.watch(snapshot.revision);
+                snapshot = await source.watch(snapshot.revision, watching.signal);
             } catch (error) {
+                if (stop) return 'left';
                 terminal.write(plainLine(`Connection lost: ${errorMessage(error)}`));
                 return 'ended';
             }

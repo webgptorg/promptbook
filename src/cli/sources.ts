@@ -13,7 +13,7 @@ import type { ToolOperationOutcome } from '../tools/operations.js';
 export function controlSource(client: ControlClient): DashboardSource {
     return {
         snapshot: () => client.request<ServiceSnapshot>('snapshot'),
-        watch: (since) => client.request<ServiceSnapshot>('watch', { since, timeoutMs: 20_000 }, 35_000),
+        watch: (since, signal) => client.request<ServiceSnapshot>('watch', { since, timeoutMs: 20_000 }, 35_000, signal),
         action: (name, params) => client.request<{ outcome: string; applied?: boolean }>(name, { ...(params ?? {}) }),
         chats: controlChatSource((method, params) => client.request(method, params ?? {}), 'terminal'),
         pairing: (renew) => client.request('pairing', { renew }),
