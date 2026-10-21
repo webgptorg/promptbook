@@ -116,6 +116,11 @@ const PUSH_TITLE = '\x1b[22;0t';
 const POP_TITLE = '\x1b[23;0t';
 
 /**
+ * OSC 0 with an empty title: gives the label back to the terminal's own default (VS Code shows the process name again).
+ */
+const CLEAR_TITLE = titleSequence('');
+
+/**
  * Whether automatic title changes are switched off, by `--no-terminal-title`, `PTBK_TERMINAL_TITLE=off` or the common
  * `DISABLE_AUTO_TITLE=true` preference of users who manage their titles themselves (an explicit
  * `PTBK_TERMINAL_TITLE=on` wins over the latter).
@@ -140,9 +145,25 @@ export type TerminalTitleOptions = {
     readonly enabled: boolean;
     /** Unicode symbols are safe. */
     readonly unicode: boolean;
+    /**
+     * How the title is given back on exit: `stack` (default) saves the previous title on the terminal's title stack and
+     * restores it, leaving restoration to the shell or terminal where the stack is unsupported; `clear` empties this
+     * session's title for terminals known to ignore the stack (VS Code), so a finished session does not stay named.
+     */
+    readonly restoration?: 'stack' | 'clear';
     /** Writes control sequences to the terminal (stdout). */
     readonly write: (text: string) => void;
 };
+
+/**
+ * How a terminal gets its title back: VS Code's terminal (also its forks, which keep `TERM_PROGRAM=vscode`) leaves the
+ * title stack controls disabled, so the title is cleared there instead.
+ *
+ * @private terminal title
+ */
+export function titleRestoration(env: NodeJS.ProcessEnv): 'stack' | 'clear' {
+    return env.TERM_PROGRAM === 'vscode' ? 'clear' : 'stack';
+}
 
 /**
  * Self-naming terminal title of one interactive session.
@@ -150,14 +171,16 @@ export type TerminalTitleOptions = {
  * Inert unless enabled (interactive pretty TTY, not opted out), so redirected, raw, JSON and noninteractive use never
  * receives title controls. A title is written only when its text changes, never per render tick, so it does not fight
  * shell or terminal integrations. The previous title is saved on the terminal's title stack before the first change
- * and restored on exit where the terminal supports it; elsewhere the shell or terminal restores its own title.
+ * and restored on exit where the terminal supports it; elsewhere the shell or terminal restores its own title, except
+ * that terminals known to ignore the stack get an empty title so they show their own label again.
  *
  * @private terminal title
  */
 export class TerminalTitle {
     private context?: TerminalTitleContext;
     private shown?: string;
-    private saved = false;
+    /** This session changed the title and gives it back on exit. */
+    private owned = false;
     private readonly restoreOnExit = (): void => this.restore();
 
     public constructor(private readonly options: TerminalTitleOptions) {}
@@ -188,14 +211,17 @@ export class TerminalTitle {
         this.shown = undefined;
     }
 
-    /** Restores the title saved before this session's first change (where the terminal supports the title stack). */
+    /**
+     * Gives the title back: restores the one saved before this session's first change (where the terminal supports the
+     * title stack), or clears this session's title on terminals known to ignore the stack.
+     */
     public restore(): void {
-        if (!this.saved) return;
-        this.saved = false;
+        if (!this.owned) return;
+        this.owned = false;
         this.shown = undefined;
         process.off('exit', this.restoreOnExit);
         try {
-            this.options.write(POP_TITLE);
+            this.options.write(this.options.restoration === 'clear' ? CLEAR_TITLE : POP_TITLE);
         } catch {
             // The terminal is gone; its title no longer matters.
         }
@@ -207,9 +233,9 @@ export class TerminalTitle {
         const title = formatTerminalTitle(this.context, this.options.unicode);
         if (title === this.shown) return;
         let output = '';
-        if (!this.saved) {
-            this.saved = true;
-            output += PUSH_TITLE;
+        if (!this.owned) {
+            this.owned = true;
+            if (this.options.restoration !== 'clear') output += PUSH_TITLE;
             process.once('exit', this.restoreOnExit);
         }
         this.shown = title;

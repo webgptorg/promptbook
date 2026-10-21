@@ -1,5 +1,5 @@
 import { createStyle, type Style } from './ansi.js';
-import { isTerminalTitleDisabled, TerminalTitle } from './terminal-title.js';
+import { isTerminalTitleDisabled, TerminalTitle, titleRestoration } from './terminal-title.js';
 
 /**
  * Presentation and input policy of one invocation.
@@ -90,7 +90,7 @@ export function createTerminalProfile(options: TerminalOptions = {}): TerminalPr
             process.stderr.write(text);
         },
         reducedMotion: Boolean(env.PTBK_REDUCED_MOTION || env.NO_MOTION),
-        title: new TerminalTitle({ enabled: pretty && interactive && !isTerminalTitleDisabled(env, options.terminalTitle), unicode, write }),
+        title: new TerminalTitle({ enabled: pretty && interactive && !isTerminalTitleDisabled(env, options.terminalTitle), unicode, restoration: titleRestoration(env), write }),
     };
 }
 

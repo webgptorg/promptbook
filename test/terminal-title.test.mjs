@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { dashboardTitle } from '../dist/ui/dashboard.js';
 import { createTerminalProfile } from '../dist/ui/terminal.js';
-import { formatTerminalTitle, isTerminalTitleDisabled, sanitizeTitleText, TerminalTitle, titleSequence } from '../dist/ui/terminal-title.js';
+import { formatTerminalTitle, isTerminalTitleDisabled, sanitizeTitleText, TerminalTitle, titleRestoration, titleSequence } from '../dist/ui/terminal-title.js';
 import { ptbk, temporaryDirectory } from './helpers.mjs';
 
 /**
@@ -72,6 +72,18 @@ test('titles are written only on change, saved before the first change and resto
     assert.equal(writes.at(-1), '\x1b[23;0t', 'the saved title is popped');
     title.restore();
     assert.equal(writes.length, 4, 'restoring twice writes nothing');
+});
+
+test('terminals that ignore the title stack (VS Code) get an empty title on exit instead of a stale one', () => {
+    assert.equal(titleRestoration({ TERM_PROGRAM: 'vscode' }), 'clear');
+    assert.equal(titleRestoration({ TERM_PROGRAM: 'iTerm.app' }), 'stack');
+    assert.equal(titleRestoration({}), 'stack');
+    const writes = [];
+    const title = new TerminalTitle({ enabled: true, unicode: true, restoration: 'clear', write: (text) => writes.push(text) });
+    title.set({ project: 'birds', mode: 'Dashboard' });
+    assert.deepEqual(writes, ['\x1b]0;📖 Promptbook · birds · Dashboard\x07'], 'no stack push where the stack is ignored');
+    title.restore();
+    assert.equal(writes.at(-1), '\x1b]0;\x07', 'the label goes back to the terminal default');
 });
 
 test('a disabled controller never writes anything', () => {
