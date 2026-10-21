@@ -95,3 +95,7 @@
 ## Release fix: Windows installer check for 0.119.0-24
 
 -   The bootstrap now works on the hosted Windows runner (install, reuse and the refused nonempty folder all behaved as specified), but the step still failed: the GitHub runner ends every PowerShell step with `exit $LASTEXITCODE`, so the expected refusal (exit 4) became the step's own exit code. The steps that accept a nonzero exit code (the refusal, and an exit 3 from the handed-off `ptbk init`) now reset it after checking it. These steps were reproduced locally with the runner's exact wrapper before and after the fix.
+
+## Release fix: Windows installer build for 0.119.0-25
+
+-   The Inno Setup compiler rejected `VersionInfoProductVersion=0.119.0-25`: Windows version resources are numeric (`a.b.c.d`). The binary file and product versions now use the numeric form (`0.119.0.25`), while the release version text goes into `VersionInfoTextVersion` and `VersionInfoProductTextVersion`; a test guards both.

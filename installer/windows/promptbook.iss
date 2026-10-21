@@ -21,8 +21,11 @@ AppVerName=Promptbook {#Version}
 AppPublisher=Promptbook
 AppPublisherURL=https://ptbk.io/
 AppSupportURL=https://github.com/webgptorg/promptbook
+; Binary version resources must be numeric (a.b.c.d); the release version text goes into the *TextVersion fields.
 VersionInfoVersion={#NumericVersion}
-VersionInfoProductVersion={#Version}
+VersionInfoProductVersion={#NumericVersion}
+VersionInfoTextVersion={#Version}
+VersionInfoProductTextVersion={#Version}
 VersionInfoDescription=Promptbook {#Version} installer (prerequisites, ptbk CLI and first project)
 DefaultDirName={localappdata}\Promptbook\Installer
 DisableDirPage=yes

@@ -40,6 +40,9 @@ test('Windows installer bootstrap: exact version, explicit handoff through --pat
     for (const code of [2, 3, 4, 5, 6]) assert.match(script, new RegExp(`(Stop-Bootstrap|exit) ${code}\\b`), `exit code ${code} is used`);
     const setup = await readFile(join(ROOT, 'installer', 'windows', 'promptbook.iss'), 'utf8');
     assert.match(setup, /^PrivilegesRequired=lowest$/m, 'the installer itself runs per user');
+    // Inno Setup rejects a prerelease such as 0.119.0-25 in the binary (a.b.c.d) version resources.
+    for (const directive of ['VersionInfoVersion', 'VersionInfoProductVersion']) assert.match(setup, new RegExp(`^${directive}=\\{#NumericVersion\\}$`, 'm'), `${directive} is numeric`);
+    for (const directive of ['VersionInfoTextVersion', 'VersionInfoProductTextVersion']) assert.match(setup, new RegExp(`^${directive}=\\{#Version\\}$`, 'm'), `${directive} carries the release version`);
 });
 
 test('Windows installer bootstrap reuses the Node.js, npm and Git that are present (probed in plan mode with each available PowerShell)', async (t) => {
