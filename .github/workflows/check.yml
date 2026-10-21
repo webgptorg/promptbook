@@ -81,6 +81,8 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -PackageSpec $env:PTBK_TARBALL -ProjectsRoot $root -ProjectName "first & project's" -NoLaunch
           if ($LASTEXITCODE -ne 4) { throw "a nonempty folder must be refused with exit 4 (got $LASTEXITCODE)" }
           if ((Get-Content -LiteralPath (Join-Path $target 'keep.txt')) -ne 'user file') { throw 'user content changed' }
+          # The runner ends every PowerShell step with `exit $LASTEXITCODE`: the expected refusal must not fail the step.
+          $global:LASTEXITCODE = 0
       - name: The handed-off command initializes the prepared folder (non-interactive substitute of the terminal)
         shell: powershell
         run: |
@@ -93,6 +95,8 @@ jobs:
           & $ptbk init --path $target --non-interactive --installation global --no-harness --no-start --raw
           if ($LASTEXITCODE -notin 0, 3) { throw "ptbk init exited with $LASTEXITCODE" }
           if (-not (Test-Path -LiteralPath (Join-Path $target 'ptbk.json'))) { throw 'init did not configure the handed-off folder' }
+          # The runner ends every PowerShell step with `exit $LASTEXITCODE`: an accepted exit 3 must not fail the step.
+          $global:LASTEXITCODE = 0
       - name: Bootstrap diagnostics (on failure)
         if: failure()
         shell: pwsh
