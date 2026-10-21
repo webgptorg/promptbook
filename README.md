@@ -72,6 +72,8 @@ The behavior is defined by [the specification](specs/_main.md).
 
 ## Develop
 
+This repository also maintains itself through a draft [project agent team](agents/README.md): Pavol coordinates product scope, Developer implements changes, Spec-keeper maintains requirements, and Community keeps README and presentation material accurate. Manager routes ordinary tasks and Chatter connects the owner with the specialists. The project configuration uses Claude Opus 5.5 through native Claude Code and runs the checks below for task results.
+
 ```bash
 npm ci
 npm run check        # typecheck, tests with a fake harness, packed local/global installation checks

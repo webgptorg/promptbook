@@ -1,10 +1,12 @@
 {
     "promptbookVersion": "0.119.0-29",
     "routing": {
-        "harness": "OPENAI_CODEX"
+        "harness": "CLAUDE_CODE",
+        "model": "claude-opus-5-5",
+        "preferences": "Use only Claude Opus 5.5 or newer Opus through claude-code for all work, including coordination, maintenance and consultations. Do not substitute another model family or an older Opus. Route implementation to Developer, specifications to Spec-keeper, README and presentation maintenance to Community, and product scope and priorities to Pavol."
     },
     "execution": {
-        "check": "echo \"Configure project checks in ptbk.json execution.check\""
+        "check": "npm run check"
     },
     "traces": {
         "isCommitted": false,
@@ -27,7 +29,7 @@
             "type": "HARNESS",
             "variant": "OPENAI_CODEX",
             "name": "openai-codex",
-            "isEnabled": true,
+            "isEnabled": false,
             "authentication": "NATIVE"
         },
         {
@@ -35,7 +37,9 @@
             "variant": "CLAUDE_CODE",
             "name": "claude-code",
             "isEnabled": true,
-            "authentication": "NATIVE"
+            "authentication": "NATIVE",
+            "model": "claude-opus-5-5",
+            "models": ["claude-opus-5-5"]
         }
     ],
     "initialized": {

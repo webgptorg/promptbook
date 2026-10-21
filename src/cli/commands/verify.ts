@@ -64,6 +64,7 @@ export default async function verify(context: CommandContext): Promise<number> {
         return EXIT.success;
     }
     for (const task of done) {
+        terminal.title.set({ project: project.name, mode: 'Verify', detail: task.title });
         const result = results.find((item) => item.taskRef === task.ref && item.outcome.startsWith('completed'));
         terminal.write(`\n${terminal.style.bold(task.title)} ${terminal.style.muted(`(${task.ref}, done ${stamp(task)})`)}\n${result ? `${result.summary}${result.commit ? terminal.style.muted(` · ${result.commit.slice(0, 8)}`) : ''}\n` : ''}`);
         const choice = await selectOne(terminal, {

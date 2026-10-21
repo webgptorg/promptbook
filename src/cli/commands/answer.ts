@@ -34,6 +34,7 @@ export default async function answer(context: CommandContext): Promise<number> {
             }
             return EXIT.success;
         }
+        terminal.title.set({ project: project.name, mode: 'Answer' });
         const chosen = await selectOne(terminal, {
             frame: { title: 'ptbk answer', step: `${waiting.length} waiting chat(s)` },
             question: 'Which conversation do you want to answer?',
@@ -50,6 +51,7 @@ export default async function answer(context: CommandContext): Promise<number> {
     const { awaiting } = detail.summary;
     if (!value) {
         if (!terminal.interactive) throw new PtbkError('An answer is required.', { kind: 'usage', next: [`Run \`ptbk answer "${detail.summary.name}" "<answer>"\` or use --stdin.`] });
+        terminal.title.set({ project: project.name, mode: 'Answer', detail: detail.summary.name });
         terminal.write(`${terminal.style.bold(awaiting.sender)}\n${awaiting.text}\n\n`);
         const response = awaiting.choices?.length
             ? await selectOne(terminal, { frame: { title: 'ptbk answer', step: detail.summary.name }, question: 'Your answer:', choices: awaiting.choices.map((choice) => ({ value: choice, label: choice })) })
