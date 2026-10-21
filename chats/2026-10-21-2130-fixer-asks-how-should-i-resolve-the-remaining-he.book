@@ -1,7 +1,7 @@
 CHAT Fixer asks: How should I resolve the remaining health-check errors, which come fro — 2026-10-21 21:30:04
 CHAT MEMBER @User
 CHAT MEMBER @Fixer
-CHAT STATUS waiting-for-user
+CHAT STATUS open
 LINK {Project health check — 2026-10-21 21:14:37}
 
 CHAT MESSAGE @Fixer 2026-10-21T21:30:04+02:00
@@ -22,4 +22,7 @@ Options:
 » 2 - Convert in place as active agents with ptbk migrate; delete Expert copy and coder stub
 » 3 - Delete all legacy Books and the coder stub (keep agents/default/developer.book)
 » 4 - Leave everything as is
+
+CHAT MESSAGE @User 2026-10-21T22:14:00+02:00
+1 - Move to hidden agents/.legacy/ as inactive reference; delete Expert copy and coder stub (recommended)
 
