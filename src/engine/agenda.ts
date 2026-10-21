@@ -11,7 +11,7 @@ import { setControlCommitment } from '../book/edit.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
 import { isCheckPlaceholder, loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type BrowserOverrides, type EffectiveSettings, type LoadedSettings, type ThinkingLevel } from '../project/config.js';
 import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent } from '../project/agents.js';
-import { commitPaths, inspectGit, stageableFiles } from '../project/git.js';
+import { commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
@@ -73,10 +73,10 @@ import type {
     ToolsView,
     WaitView,
 } from './snapshot.js';
-import { StateStore, type ActiveRecord, type ResultRecord, type RoutingSelection } from './state.js';
+import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ResultRecord, type RoutingSelection } from './state.js';
 import { TaskTrace } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
-import { integrateWorktree, prepareWorktree } from './isolation.js';
+import { finishWorktree, integrateWorktree, isIntegrated, prepareWorktree } from './isolation.js';
 import { shortHash, shortId } from '../common/ids.js';
 
 /**
@@ -248,6 +248,8 @@ export class Agenda {
     private recentResults: ResultView[] = [];
     private completed = 0;
     private failed = 0;
+    /** Isolated results of this process waiting on their temporary branch for integration. */
+    private pendingIntegrations = 0;
     /** Settled pause: alive and controllable, with no task executing and none claimed. */
     private paused = false;
     /** Pending lifecycle request applied once the current task settles. */
@@ -1422,9 +1424,10 @@ export class Agenda {
         const future = evaluated.filter((item) => item.readiness.kind === 'waiting-until').map((item) => (item.readiness as { until: number }).until);
         const nextTime = future.length ? Math.min(...future) : undefined;
         const pending = this.waitingChats().length;
-        const outcome: AgendaSummary['outcome'] = this.failed ? 'failed' : pending ? 'incomplete' : 'finished';
+        const outcome: AgendaSummary['outcome'] = this.failed ? 'failed' : pending || this.pendingIntegrations ? 'incomplete' : 'finished';
         const parts = [`${this.completed} completed, ${this.failed} failed`];
         if (pending) parts.push(`${pending} chat(s) waiting for you (ptbk answer)`);
+        if (this.pendingIntegrations) parts.push(`${this.pendingIntegrations} isolated result(s) wait for integration into the project branch`);
         if (nextTime) parts.push(`next scheduled work at ${formatShortTime(nextTime, Date.now(), this.timeZone)}`);
         this.finishedSummary = { completed: this.completed, failed: this.failed, waitingChats: pending, outcome, message: parts.join('; '), nextTime };
     }
@@ -1446,8 +1449,7 @@ export class Agenda {
         for (const problem of queue.problems) this.logOnce(problem, 'warning');
         const blockers = await this.state.readBlockers();
         // Checkpointed tasks wait for their person (a chat) until resumed, even once answered (resumption restores them first).
-        const awaitingUser = new Map<string, string>();
-        for (const parked of await this.state.readParked()) awaitingUser.set(parked.taskKey ?? normalizeAgentName(parked.taskTitle), parked.waitingChat ?? parked.recoveryChat ?? 'checkpoint');
+        const { awaitingUser, integrations } = parkedReadiness(await this.state.readParked());
         const uncommitted = new Set<string>();
         if (this.commitMode && this.repositoryRoot) {
             const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, new Set());
@@ -1480,7 +1482,7 @@ export class Agenda {
             timeZone: this.timeZone,
             activeKey: active ? (active.taskKey ?? normalizeAgentName(active.taskTitle)) : undefined,
             awaitingUser,
-            recovery: new Map(Object.entries(blockers).map(([key, blocker]) => [key, blocker.reason])),
+            recovery: new Map([...Object.entries(blockers).map(([key, blocker]) => [key, blocker.reason] as const), ...integrations]),
             uncommittedSources: uncommitted,
             activation: (task) => activations[task.key] ?? Date.now(),
             route,
@@ -1954,6 +1956,18 @@ export class Agenda {
             case 'interrupted':
                 this.log(`"${item.task.title}" was interrupted; its recovery record is preserved.`, 'warning');
                 break;
+            case 'integration-pending': {
+                // The committed result waits on its temporary branch; execution is released so Fixer can integrate it.
+                this.executedInRun.add(item.task.key);
+                this.pendingIntegrations++;
+                const record = await this.state.readActive();
+                if (record) {
+                    await this.state.park(record);
+                    await this.scheduleIntegrationRepair(record, outcome.reason);
+                }
+                this.addError({ at: new Date().toISOString(), summary: `The isolated result of "${item.task.title}" is not integrated yet: ${outcome.reason}`, phase: 'integration', task: item.task.ref, next: `Fixer integrates it with a visible merge; or merge ${record ? isolationBranch(record.runId) : 'its branch'} yourself (ptbk completes the task once it is merged).` });
+                break;
+            }
         }
         void finished;
         return outcome;
@@ -1976,7 +1990,9 @@ export class Agenda {
      */
     private async executeMaybeIsolated(item: WorkItem): Promise<ExecutionOutcome> {
         const environment = this.environment(item.task);
-        const isolate = (setting<boolean>(this.settings, 'execution.isIsolated') && item.kind === 'task' && this.commitMode && !item.createdPaths.length) || Boolean(item.resume?.worktree);
+        // Maintenance work (e.g. Fixer integrating a result or resolving a merge) operates on the project branch itself.
+        const maintenance = /^maintenance:/i.test(item.task.origin ?? '');
+        const isolate = (setting<boolean>(this.settings, 'execution.isIsolated') && item.kind === 'task' && !maintenance && this.commitMode && !item.createdPaths.length) || Boolean(item.resume?.worktree);
         if (!isolate) return await executeWork(environment, item);
         const runId = item.resume?.runId ?? shortId(10);
         const worktree = await prepareWorktree(this.options.project, environment.repositoryRoot, runId);
@@ -1985,7 +2001,7 @@ export class Agenda {
         const isolatedProject = { ...project, root: worktree.projectRoot };
         const task = { ...item.task, source: { ...item.task.source, path: map(item.task.source.path) } };
         this.log(`Isolated in worktree ${toProjectRelative(project.root, worktree.root)} (branch ${worktree.branch}).`);
-        return await executeWork(
+        const outcome = await executeWork(
             { ...environment, project: isolatedProject, repositoryRoot: worktree.root, tasksDirectory: map(this.tasksDirectory) },
             {
                 ...item,
@@ -1993,12 +2009,22 @@ export class Agenda {
                 runId,
                 worktree: worktree.root,
                 integrate: async () => {
-                    const { sha } = await this.gitMutex.run(() => integrateWorktree(environment.repositoryRoot, worktree, item.check ?? setting<string | undefined>(this.settings, 'execution.check'), this.options.env));
-                    this.log(`Integrated the isolated result by fast-forward (${sha.slice(0, 8)}).`);
+                    const { sha } = await this.gitMutex.run(() =>
+                        integrateWorktree(environment.repositoryRoot, worktree, {
+                            check: item.check ?? setting<string | undefined>(this.settings, 'execution.check'),
+                            env: this.options.env,
+                            message: { taskName: item.task.title, runId },
+                            temporaryDirectory: project.runtime.temporary,
+                        }),
+                    );
+                    this.log(`Integrated the isolated result with a visible merge commit (${sha.slice(0, 8)}).`);
                     return sha;
                 },
             },
         );
+        // The worktree's local evidence moves to the project's traces/ before the temporary checkout is removed.
+        if (outcome.kind === 'completed') await this.gitMutex.run(() => finishWorktree(environment.repositoryRoot, worktree, project.root)).catch((error: unknown) => this.log(`Could not remove the worktree ${worktree.root}: ${errorMessage(error)}`, 'warning'));
+        return outcome;
     }
 
     /** Continues the task recorded in the active record. */
@@ -2300,6 +2326,75 @@ export class Agenda {
         this.wake();
     }
 
+    /**
+     * Hands an isolated result that could not be merged automatically to the ordinary Fixer (one task per run; no
+     * new channel). The result stays on its temporary branch and the project branch is unchanged meanwhile.
+     */
+    private async scheduleIntegrationRepair(record: ActiveRecord, reason: string): Promise<void> {
+        const branch = isolationBranch(record.runId);
+        const origin = `maintenance: integration of ${branch}`;
+        const queue = await this.readQueue();
+        if (queue.tasks.some((task) => task.origin === origin)) return;
+        const fixer = await this.catalog.resolve('@Fixer');
+        const target = this.repositoryRoot ? (await git(this.repositoryRoot, ['symbolic-ref', '--quiet', '--short', 'HEAD'])).stdout.trim() || 'the project branch' : 'the project branch';
+        if (fixer.kind !== 'agent') {
+            this.logOnce(`The isolated result of "${record.taskTitle}" waits on ${branch}: Fixer is unavailable, so it stays visible until it is merged manually (git merge --no-ff ${branch}).`, 'warning');
+            return;
+        }
+        const path = await newTaskPath(this.tasksDirectory, 'integrate isolated result', Date.now(), this.timeZone);
+        const title = generatedName(`Integrate the isolated result of ${record.taskTitle}`, { taken: await this.takenNames(), timeZone: this.timeZone });
+        await writeFile(
+            path,
+            renderTaskBook({
+                title,
+                description: [
+                    `The task {{${record.taskTitle}}} was executed in an isolated worktree and its verified result is committed on the branch \`${branch}\` (${record.commitSha ? `commit ${record.commitSha.slice(0, 12)}` : 'latest commit'}), but Promptbook could not merge it into \`${target}\` automatically: ${reason}`,
+                    `Integrate it with a visible merge that keeps both histories: run \`git merge --no-ff --no-commit ${branch}\`, resolve each conflict so that both intents are kept (inspect \`git log ${target}...${branch}\`), make the project check pass, consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m "PTBK: Merge the isolated result of ${record.taskTitle} into ${target} (conflicts resolved by Fixer)"\`. This merge commit is the one exception to "do not commit yourself"; Promptbook completes {{${record.taskTitle}}} once the branch is merged.`,
+                    'Never rebase, reset, amend, force-push or delete the branch or its worktree. If the result cannot be integrated safely, abort the merge (`git merge --abort`) and explain why.',
+                ].join('\n\n'),
+                commitments: ['TASK AGENT @Fixer', `TASK ORIGIN ${origin}`, `LINK {{${record.taskTitle}}}`],
+            }),
+            { flag: 'wx' },
+        );
+        const commit = this.commitMode ? await this.commitAuthoring([path], `Ask Fixer to integrate the isolated result of ${record.taskTitle}`, { 'Task-Name': title, 'Related-Task-Name': record.taskTitle }).catch(() => undefined) : undefined;
+        this.log(`The isolated result of "${record.taskTitle}" was handed to Fixer for integration (${toProjectRelative(this.options.project.root, path)}${commit ? `, ${commit.slice(0, 8)}` : ''}).`, 'warning');
+        this.wake();
+    }
+
+    /** Records a parked isolated result as completed once it was merged into the project branch (e.g. by Fixer). */
+    private async completeIntegratedRecord(record: ActiveRecord): Promise<void> {
+        const repositoryRoot = this.repositoryRoot!;
+        await this.state.dropParked(record.taskTitle);
+        const worktreeProject = resolve(record.worktree!, relative(repositoryRoot, this.options.project.root));
+        await this.gitMutex.run(() => finishWorktree(repositoryRoot, { root: record.worktree!, projectRoot: worktreeProject, branch: isolationBranch(record.runId) }, this.options.project.root)).catch((error: unknown) => this.log(`Could not remove the worktree ${record.worktree}: ${errorMessage(error)}`, 'warning'));
+        const integration = (await git(repositoryRoot, ['rev-parse', 'HEAD'])).stdout.trim() || undefined;
+        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('integrated', { runId: record.runId, result: record.commitSha ?? null, head: integration ?? null }, { local: true }).catch(() => undefined);
+        await this.state.appendResult({
+            taskRef: record.taskRef,
+            taskName: record.taskTitle,
+            title: record.taskTitle,
+            kind: record.kind,
+            outcome: 'completed',
+            agent: record.routing.agent,
+            harness: record.routing.harness,
+            model: record.routing.model,
+            source: record.sourcePath,
+            thinkingLevel: record.routing.thinkingLevel,
+            commit: record.commitSha,
+            attempts: record.attempt,
+            summary: `The isolated result was merged into the project branch${integration ? ` (now at ${integration.slice(0, 8)})` : ''}.`,
+            startedAt: record.startedAt,
+            endedAt: new Date().toISOString(),
+            trace: `${traceDirectoryOf(record.sourcePath)}/harness.log`,
+            occurrence: record.occurrence,
+            engineVersion: ENGINE_VERSION,
+        });
+        this.recentResults = (await this.state.recentResults(20)).map(resultView);
+        this.completed++;
+        this.log(`"${record.taskTitle}" is complete: its isolated result is merged into the project branch.`);
+        void this.publish({ name: record.taskTitle, source: record.sourcePath });
+    }
+
     /** One manual synchronization cycle through the shared coordinator (never a second scheduler). */
     public async synchronizeNow(): Promise<SyncOutcome> {
         return await this.sync.request('manual');
@@ -2364,6 +2459,14 @@ export class Agenda {
     private async resumeParked(): Promise<boolean> {
         if (!this.repositoryRoot) return false;
         for (const record of await this.state.readParked()) {
+            if (record.phase === 'synchronizing' && record.worktree) {
+                // An isolated result waits for integration: complete it once its commit is part of the project branch.
+                if (record.commitSha && (await isIntegrated(this.repositoryRoot, record.commitSha))) {
+                    await this.completeIntegratedRecord(record);
+                    return true;
+                }
+                continue;
+            }
             const chat = record.phase === 'awaiting-user' ? record.waitingChat : record.recoveryChat;
             if (chat && !(await this.chatReplyOf(chat, record.awaitedMessages, record.phase === 'failed' ? RECOVERY_CHOICES : undefined)).answered) continue;
             // The checkpoint held no changes; later commits by other tasks are the new baseline.

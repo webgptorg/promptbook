@@ -1,6 +1,7 @@
 import { appendFile, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ensureDirectory, listDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
+import { normalizeAgentName } from '../book/references.js';
 import { nameKeyPath } from '../tasks/identity.js';
 import type { ThinkingLevel } from '../project/config.js';
 
@@ -125,6 +126,32 @@ export type ActiveRecord = {
     /** Attempt history. */
     readonly history: readonly AttemptRecord[];
 };
+
+/**
+ * Temporary branch name of an isolated run.
+ *
+ * @private runtime state
+ */
+export function isolationBranch(runId: string): string {
+    return `ptbk/${runId}`;
+}
+
+/**
+ * Readiness contributions of checkpointed tasks, keyed by normalized task name: the chat each one waits on, or (for
+ * an isolated result waiting for its merge, which is no question for the user) a recovery explanation.
+ *
+ * @private runtime state
+ */
+export function parkedReadiness(records: readonly ActiveRecord[]): { readonly awaitingUser: Map<string, string>; readonly integrations: Map<string, string> } {
+    const awaitingUser = new Map<string, string>();
+    const integrations = new Map<string, string>();
+    for (const record of records) {
+        const key = record.taskKey || normalizeAgentName(record.taskTitle);
+        if (record.phase === 'synchronizing' && record.worktree) integrations.set(key, `Its isolated result waits on ${isolationBranch(record.runId)} for a visible merge into the project branch; the task completes once it is merged.`);
+        else awaitingUser.set(key, record.waitingChat ?? record.recoveryChat ?? 'checkpoint');
+    }
+    return { awaitingUser, integrations };
+}
 
 /**
  * A durable blocker attached to one task (needs explicit recovery).

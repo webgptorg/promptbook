@@ -10,7 +10,7 @@ import { captureSnapshot } from './executor.js';
 import { originTarget, workKindOf } from './generated.js';
 import { HarnessPool } from './harnesses.js';
 import { resolveRoute, type RouteResolution, type RunSelection } from './routing.js';
-import { StateStore } from './state.js';
+import { StateStore, parkedReadiness } from './state.js';
 
 /**
  * Read-only evaluation of a project's queue.
@@ -44,9 +44,8 @@ export async function previewQueue(
     const state = new StateStore(project.runtime.state);
     const blockers = await state.readBlockers().catch(() => ({}));
     const activations = await state.readActivations().catch(() => ({}) as Record<string, number>);
-    // Checkpointed tasks wait for the user's reply in their chat.
-    const awaitingUser = new Map<string, string>();
-    for (const parked of await state.readParked().catch(() => [])) awaitingUser.set(parked.taskKey || nameKey(parked.taskTitle), parked.waitingChat ?? parked.recoveryChat ?? 'checkpoint');
+    // Checkpointed tasks wait for the user's reply in their chat (or, isolated, for their merge).
+    const { awaitingUser, integrations } = parkedReadiness(await state.readParked().catch(() => []));
     const active = await state.readActive().catch(() => undefined);
     const uncommitted = new Set<string>();
     const gitInfo = await inspectGit(project.root);
@@ -68,7 +67,7 @@ export async function previewQueue(
         timeZone,
         activeKey: active ? active.taskKey || nameKey(active.taskTitle) : undefined,
         awaitingUser,
-        recovery: new Map(Object.entries(blockers).map(([ref, blocker]) => [ref, (blocker as { reason: string }).reason])),
+        recovery: new Map([...Object.entries(blockers).map(([ref, blocker]) => [ref, (blocker as { reason: string }).reason] as const), ...integrations]),
         uncommittedSources: uncommitted,
         activation: (task) => (isRecurring(task) ? (activations[task.key] ?? now) : now),
         route: async (task) => {

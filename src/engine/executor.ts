@@ -171,7 +171,9 @@ export type ExecutionOutcome =
     | { readonly kind: 'setup'; readonly reason: string; readonly next?: string; readonly tool?: string }
     | { readonly kind: 'quota'; readonly reason: string; readonly retryAfterMs: number; readonly tool?: string }
     | { readonly kind: 'interrupted' }
-    | { readonly kind: 'persistence-failed'; readonly reason: string };
+    | { readonly kind: 'persistence-failed'; readonly reason: string }
+    /** The isolated result is committed on its temporary branch but not yet merged into the project branch. */
+    | { readonly kind: 'integration-pending'; readonly reason: string; readonly commit?: string };
 
 /**
  * Initial quota backoff when the provider gives no reset time.
@@ -436,6 +438,24 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         hooks.emit({ type: 'activity', text: `Failed: ${reason}`, level: 'error' });
         return { kind: 'failed', reason, trace: trace.reference };
     };
+    /**
+     * Merges a committed isolated result into the project branch. A conflict, failing recheck or blocked merge keeps
+     * the result on its temporary branch as pending integration (never a model rerun or a deleted result).
+     */
+    const integrateIsolated = async (resultSha: string | undefined): Promise<{ readonly ok: true; readonly sha?: string } | { readonly ok: false; readonly outcome: ExecutionOutcome }> => {
+        hooks.emit({ type: 'phase', phase: 'synchronizing', detail: 'integrating the isolated result' });
+        try {
+            return { ok: true, sha: await item.integrate!(resultSha) };
+        } catch (error) {
+            const details = error instanceof PtbkError ? [error.details.reason, error.details.preserved].filter(Boolean).join(' ') : '';
+            const reason = `${errorMessage(error)}${details ? ` ${details}` : ''}`;
+            await save({ phase: 'synchronizing', commitSha: resultSha, failure: reason });
+            // After the result commit: a local event, never part of a committed snapshot.
+            await trace.event('integration-pending', { runId: record.runId, commit: resultSha ?? null, reason }, { local: true });
+            hooks.emit({ type: 'activity', text: `Integration pending: ${reason}`, level: 'warning' });
+            return { ok: false, outcome: { kind: 'integration-pending', reason, commit: resultSha } };
+        }
+    };
 
     // Resume an awaiting-user checkpoint only with a real reply in its chat.
     if (record.phase === 'awaiting-user' && record.waitingChat) {
@@ -450,6 +470,16 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     }
 
     if (record.phase === 'failed') return { kind: 'failed', reason: record.failure ?? 'The task needs recovery.', trace: trace.reference };
+    if (record.phase === 'synchronizing' && record.worktree && item.integrate) {
+        // A committed isolated result is complete only once it is merged into the project branch.
+        const integrated = await integrateIsolated(record.commitSha);
+        if (!integrated.ok) return integrated.outcome;
+        await save({ phase: 'committed', commitSha: integrated.sha, failure: undefined });
+        await trace.event('committed', { runId: record.runId, occurrence: record.occurrence, commit: integrated.sha ?? null }, { local: true });
+        await finishResult('completed', 'Integrated the isolated result.', integrated.sha);
+        await state.clearActive();
+        return { kind: 'completed', commit: integrated.sha, summary: 'Integrated the isolated result.', changedPaths: [] };
+    }
     if (record.phase === 'committed' || record.phase === 'synchronizing') {
         await state.clearActive();
         return { kind: 'completed', commit: record.commitSha, summary: 'Recovered a committed result.', changedPaths: [] };
@@ -698,7 +728,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const wantsLearning = typeof item.learning === 'function' ? item.learning(await changed()) : item.learning;
             if (wantsLearning && setting<boolean>(settings, 'learning.isEnabled') && agent.definition && !isTeacher(agent.name) && agent.learning.open) {
                 const learning = await createLearningTask({
-                    projectRoot: project.root,
+                    // Agent Books belong to the project itself (an isolated worktree is only where this run works).
+                    projectRoot: environment.catalog.root,
                     tasksDirectory: environment.tasksDirectory,
                     task,
                     taskRef: task.ref,
@@ -791,12 +822,9 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             }
             if (item.integrate) {
                 await save({ phase: 'synchronizing', commitSha: sha });
-                hooks.emit({ type: 'phase', phase: 'synchronizing', detail: 'integrating the isolated result' });
-                try {
-                    sha = await item.integrate(sha);
-                } catch (error) {
-                    return await fail(`Integration of the isolated result failed: ${errorMessage(error)}`);
-                }
+                const integrated = await integrateIsolated(sha);
+                if (!integrated.ok) return integrated.outcome;
+                sha = integrated.sha;
             }
             await save({ phase: 'committed', commitSha: sha });
             // Recorded after the snapshot: the commit cannot contain its own hash.
