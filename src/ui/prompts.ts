@@ -129,40 +129,67 @@ function legend(terminal: TerminalProfile, parts: readonly string[]): string {
 
 /**
  * Visible window of a long list around the focused index.
+ *
+ * @private terminal prompts
  */
-function windowAround(length: number, focus: number, size: number): { start: number; end: number } {
+export function windowAround(length: number, focus: number, size: number): { start: number; end: number } {
     if (length <= size) return { start: 0, end: length };
     const start = Math.min(Math.max(0, focus - Math.floor(size / 2)), length - size);
     return { start, end: start + size };
 }
 
 /**
- * Single-choice picker: arrows move focus, Enter confirms; the default is initially focused.
+ * Whether a text matches a typed filter: every word of the query appears, ignoring case and accents.
  *
  * @private terminal prompts
  */
-export async function selectOne<T>(terminal: TerminalProfile, options: { frame: WizardFrame; question: string; choices: readonly Choice<T>[]; defaultValue?: T; escapeLabel?: string }): Promise<T | typeof CANCELLED> {
+export function matchesFilter(text: string, query: string): boolean {
+    const fold = (value: string): string => value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const haystack = fold(text);
+    return fold(query)
+        .split(/\s+/)
+        .filter(Boolean)
+        .every((word) => haystack.includes(word));
+}
+
+/**
+ * Single-choice picker: arrows move focus, Enter confirms; the default is initially focused. A `searchable` picker
+ * (long lists such as every agent) also narrows its choices as the user types; Esc clears the filter first.
+ *
+ * @private terminal prompts
+ */
+export async function selectOne<T>(terminal: TerminalProfile, options: { frame: WizardFrame; question: string; choices: readonly Choice<T>[]; defaultValue?: T; escapeLabel?: string; searchable?: boolean }): Promise<T | typeof CANCELLED> {
     const { style } = terminal;
     const marks = symbols(terminal.unicode);
-    let focus = Math.max(0, options.choices.findIndex((choice) => choice.value === options.defaultValue));
+    let query = '';
+    let visible: readonly Choice<T>[] = options.choices;
+    let focus = Math.max(0, visible.findIndex((choice) => choice.value === options.defaultValue));
     const moveFocus = (delta: number): void => {
-        for (let step = 0; step < options.choices.length; step++) {
-            focus = (focus + delta + options.choices.length) % options.choices.length;
-            if (!options.choices[focus]!.disabled) return;
+        for (let step = 0; step < visible.length; step++) {
+            focus = (focus + delta + visible.length) % visible.length;
+            if (!visible[focus]!.disabled) return;
         }
     };
-    if (options.choices[focus]?.disabled) moveFocus(1);
+    const refilter = (): void => {
+        const focused = visible[focus]?.value;
+        visible = query ? options.choices.filter((choice) => matchesFilter(`${choice.label} ${choice.description ?? ''}`, query)) : options.choices;
+        focus = Math.max(0, visible.findIndex((choice) => choice.value === focused));
+        if (visible[focus]?.disabled) moveFocus(1);
+    };
+    if (visible[focus]?.disabled) moveFocus(1);
     return await interact<T>(
         () => {
             const width = terminal.columns();
             // Long questions (e.g. a project path) wrap instead of being clipped.
             const [first = '', ...more] = wrap(options.question, Math.max(10, width - 3));
             const lines = [...header(terminal, options.frame), style.bold(`${style.accent('?')} ${first}`), ...more.map((line) => style.bold(`  ${line}`))];
+            if (options.searchable) lines.push(query ? `  ${style.accent('Filter:')} ${query}${style.muted(` · ${visible.length} of ${options.choices.length}`)}` : style.muted('  Type to filter'));
+            if (!visible.length) lines.push(style.muted('    No match — Backspace edits the filter, Esc clears it.'));
             const available = Math.max(3, terminal.rows() - lines.length - 4);
-            const { start, end } = windowAround(options.choices.length, focus, available);
+            const { start, end } = windowAround(visible.length, focus, available);
             if (start > 0) lines.push(style.muted(`    ↑ ${start} more`));
             for (let index = start; index < end; index++) {
-                const choice = options.choices[index]!;
+                const choice = visible[index]!;
                 const focused = index === focus;
                 const pointer = focused ? style.accent(marks.pointer) : ' ';
                 const radio = focused ? style.accent(marks.radioOn) : style.muted(marks.radioOff);
@@ -172,19 +199,30 @@ export async function selectOne<T>(terminal: TerminalProfile, options: { frame: 
                 const description = choice.description ? style.muted(`  ${choice.description}`) : '';
                 lines.push(truncate(`${prefix}${label}${isDefault}${description}`, width - 1));
             }
-            if (end < options.choices.length) lines.push(style.muted(`    ↓ ${options.choices.length - end} more`));
-            lines.push('', legend(terminal, ['↑↓ move', 'Enter confirm', options.escapeLabel ?? 'Esc back']));
+            if (end < visible.length) lines.push(style.muted(`    ↓ ${visible.length - end} more`));
+            lines.push('', legend(terminal, ['↑↓ move', 'Enter confirm', ...(options.searchable ? ['type to filter'] : []), options.escapeLabel ?? 'Esc back']));
             return { lines };
         },
         (event) => {
+            if (options.searchable && (event.type === 'text' || event.type === 'paste')) {
+                query += event.text.replace(/[\r\n\t]+/g, ' ');
+                refilter();
+                return undefined;
+            }
             if (event.type !== 'key') return undefined;
-            if (event.name === 'up') moveFocus(-1);
+            if (options.searchable && event.name === 'backspace') {
+                query = query.slice(0, -1);
+                refilter();
+            } else if (options.searchable && event.name === 'escape' && query) {
+                query = '';
+                refilter();
+            } else if (event.name === 'up') moveFocus(-1);
             else if (event.name === 'down' || (event.name === 'tab' && !event.shift)) moveFocus(1);
             else if (event.name === 'pageup') focus = Math.max(0, focus - 8);
-            else if (event.name === 'pagedown') focus = Math.min(options.choices.length - 1, focus + 8);
+            else if (event.name === 'pagedown') focus = Math.max(0, Math.min(visible.length - 1, focus + 8));
             else if (event.name === 'home') focus = 0;
-            else if (event.name === 'end') focus = options.choices.length - 1;
-            else if (event.name === 'enter') return options.choices[focus]!.disabled ? undefined : options.choices[focus]!.value;
+            else if (event.name === 'end') focus = Math.max(0, visible.length - 1);
+            else if (event.name === 'enter') return !visible[focus] || visible[focus]!.disabled ? undefined : visible[focus]!.value;
             else if (event.name === 'escape') return CANCELLED as never;
             return undefined;
         },

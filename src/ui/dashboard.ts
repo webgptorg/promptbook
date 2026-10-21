@@ -10,6 +10,7 @@ import { lifecycleActions, toolDetailLines, toolRow } from './details.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
+import { matchesFilter, windowAround } from './prompts.js';
 
 /**
  * Where the dashboard reads state and sends controls (attached daemon or in-process owner).
@@ -84,7 +85,12 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
 /**
  * New-chat entry state: the Chatter-first choice, then (only on request) every valid alternative.
  */
-type AgentPicker = { readonly kind: 'agents'; readonly agents: readonly ChatAgentChoice[]; readonly stage: 'entry' | 'all'; focus: number };
+type AgentPicker = { readonly kind: 'agents'; readonly agents: readonly ChatAgentChoice[]; readonly stage: 'entry' | 'all'; focus: number; /** Typed filter of the full list. */ query?: string };
+
+/**
+ * Rows of the full agent list shown at once (the list scrolls around the focus).
+ */
+const AGENT_PICKER_ROWS = 10;
 
 /**
  * A pending yes/no confirmation of a consequential action.
@@ -199,7 +205,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     const pickerChoices = (picker: AgentPicker): Array<{ label: string; agent?: ChatAgentChoice; others?: true }> => {
         const chatter = picker.agents.find((agent) => agent.group === 'chatter');
         if (picker.stage === 'entry' && chatter) return [{ label: `Chat with ${chatter.name}`, agent: chatter }, { label: 'Choose another agent', others: true }];
-        return picker.agents.filter((agent) => agent.group !== 'chatter').map((agent) => ({ label: agent.name, agent }));
+        const query = picker.query ?? '';
+        return picker.agents
+            .filter((agent) => agent.group !== 'chatter' && (!query || matchesFilter(`${agent.name} ${agent.description ?? ''}`, query)))
+            .map((agent) => ({ label: agent.name, agent }));
     };
 
     const inputLines = (): string[] | undefined => {
@@ -231,12 +240,23 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         if (input.kind === 'agents') {
             const picker = input;
             const chatter = picker.agents.some((agent) => agent.group === 'chatter');
-            const rows = pickerChoices(picker).map(
-                (choice, index) =>
-                    `${pointer(index === picker.focus)} ${choice.label}${choice.agent && picker.stage === 'all' ? style.muted(choice.agent.group === 'expert' ? ' (engine-provided)' : choice.agent.group === 'hidden' ? ' (hidden/core)' : '') : ''}${choice.agent?.description && picker.stage === 'all' ? style.muted(` · ${choice.agent.description}`) : ''}${choice.others ? style.muted(' · project, hidden/core agents and Expert') : ''}`,
+            const choices = pickerChoices(picker);
+            // The full list scrolls around the focus and narrows as the user types (bounded, never pushing controls away).
+            const { start, end } = windowAround(choices.length, picker.focus, AGENT_PICKER_ROWS);
+            const rows = choices.slice(start, end).map(
+                (choice, offset) =>
+                    `${pointer(start + offset === picker.focus)} ${choice.label}${choice.agent && picker.stage === 'all' ? style.muted(choice.agent.group === 'expert' ? ' (engine-provided)' : choice.agent.group === 'hidden' ? ' (hidden/core)' : '') : ''}${choice.agent?.description && picker.stage === 'all' ? style.muted(` · ${choice.agent.description}`) : ''}${choice.others ? style.muted(' · project, hidden/core agents and Expert') : ''}`,
             );
             const problem = chatter ? [] : [style.warning('Chatter (agents/.core/chatter.book) is missing or invalid; run `ptbk init` or `ptbk start` to restore it. Choose another agent explicitly:')];
-            return [style.bold(picker.stage === 'entry' ? 'New chat — who do you want to talk to?' : 'New chat — every agent you can talk to'), ...problem, ...rows];
+            const filter = picker.stage === 'all' ? [picker.query ? `${style.accent('Filter:')} ${picker.query}${style.muted(` · ${choices.length} match${choices.length === 1 ? '' : 'es'} · Esc clears`)}` : style.muted('Type to filter · Esc goes back')] : [];
+            return [
+                style.bold(picker.stage === 'entry' ? 'New chat — who do you want to talk to?' : 'New chat — every agent you can talk to'),
+                ...problem,
+                ...filter,
+                ...(start > 0 ? [style.muted(`  ↑ ${start} more`)] : []),
+                ...(choices.length ? rows : [style.muted('  No agent matches the filter.')]),
+                ...(end < choices.length ? [style.muted(`  ↓ ${choices.length - end} more`)] : []),
+            ];
         }
         const chats = snapshot.chats.recent;
         if (!chats.length) return [style.muted('No chats yet; press C to start one.')];
@@ -467,9 +487,21 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             return;
         }
         if (input) {
+            if (input.kind === 'agents' && input.stage === 'all') {
+                // Typing narrows the full agent list; Backspace edits and Esc clears the filter before going back.
+                const picker = input;
+                const edit = (query: string): void => {
+                    picker.query = query;
+                    picker.focus = 0;
+                    draw();
+                };
+                if (event.type === 'text' || event.type === 'paste') return edit(`${picker.query ?? ''}${event.text.replace(/[\r\n\t]+/g, ' ')}`);
+                if (event.type === 'key' && event.name === 'backspace') return edit((picker.query ?? '').slice(0, -1));
+                if (event.type === 'key' && event.name === 'escape' && picker.query) return edit('');
+            }
             if (event.type === 'key' && event.name === 'escape') {
                 // Choose another agent → back to the two-choice entry; otherwise cancel.
-                input = input.kind === 'agents' && input.stage === 'all' && input.agents.some((agent) => agent.group === 'chatter') ? { ...input, stage: 'entry', focus: 1 } : undefined;
+                input = input.kind === 'agents' && input.stage === 'all' && input.agents.some((agent) => agent.group === 'chatter') ? { ...input, stage: 'entry', focus: 1, query: undefined } : undefined;
                 draw();
                 return;
             }
@@ -480,7 +512,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 if (input.kind === 'agents') {
                     const choice = pickerChoices(input)[input.focus];
                     if (choice?.agent) void openChat({ kind: 'new', agent: choice.agent });
-                    else if (choice?.others) input = { ...input, stage: 'all', focus: 0 };
+                    else if (choice?.others) input = { ...input, stage: 'all', focus: 0, query: undefined };
                 } else {
                     const chat = snapshot.chats.recent[input.focus];
                     if (chat) void openChat({ kind: 'existing', name: chat.name });

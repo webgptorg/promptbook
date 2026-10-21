@@ -3,6 +3,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { TextEditor } from '../dist/ui/composer.js';
+import { matchesFilter, windowAround } from '../dist/ui/prompts.js';
 import { readableHarnessLine } from '../dist/engine/task-trace.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../dist/project/setup.js';
 import { distinctName, nameKeyPath, traceDirectoryConflicts, traceDirectoryOf } from '../dist/tasks/identity.js';
@@ -37,6 +38,17 @@ test('trace directories copy the literal source basename; collisions are detecte
     const second = distinctName('Same title', new Set(['sametitle']));
     assert.notEqual(second.toLowerCase().replace(/[^a-z0-9]/g, ''), 'sametitle', 'a readable disambiguation, not an opaque ID');
     assert.match(second, /^Same title/);
+});
+
+test('picker filter and window: every typed word matches ignoring case and accents; long lists scroll around the focus', () => {
+    assert.ok(matchesFilter('Frontend Developer · project agent', 'dev'));
+    assert.ok(matchesFilter('Účetní asistent', 'ucetni ASIST'), 'accents and case are ignored');
+    assert.ok(!matchesFilter('Copywriter', 'dev'));
+    assert.ok(matchesFilter('Lawyer', ''), 'an empty filter keeps everything');
+    assert.deepEqual(windowAround(5, 4, 10), { start: 0, end: 5 });
+    assert.deepEqual(windowAround(40, 0, 10), { start: 0, end: 10 });
+    assert.deepEqual(windowAround(40, 39, 10), { start: 30, end: 40 });
+    assert.deepEqual(windowAround(40, 20, 10), { start: 15, end: 25 });
 });
 
 test('composer: long pastes become compact tokens with the full payload; expand, remove and attachments keep order', () => {

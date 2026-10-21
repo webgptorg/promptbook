@@ -70,6 +70,7 @@ export async function pickChatAgent(terminal: TerminalProfile, agents: readonly 
             question: chatter ? 'Every agent you can talk to (Esc goes back):' : 'Every agent you can talk to:',
             choices: others.map((agent) => ({ value: agent.reference, label: agent.name, description: `${agent.group === 'expert' ? 'engine-provided' : agent.group === 'hidden' ? 'hidden/core' : 'project agent'}${agent.description ? ` · ${agent.description}` : ''}` })),
             defaultValue: others[0]!.reference,
+            searchable: true,
         });
         if (second !== CANCELLED) return others.find((agent) => agent.reference === second)!;
         // Esc in the full list returns to the two-choice entry; without Chatter it cancels.
