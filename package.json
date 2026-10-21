@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.119.0-28",
+    "version": "0.119.0-29",
     "description": "Promptbook command-line utility for agent, project and task workflows.",
     "private": false,
     "sideEffects": false,
