@@ -4,11 +4,18 @@ import { engineModule } from '../common/version.js';
 import type { McpServerLaunch } from '../harness/types.js';
 
 /**
- * Result of a bridge tool call.
+ * An image returned to the model with a tool result (base64 data).
  *
  * @private tool bridge
  */
-export type ToolResult = { readonly text: string; readonly isError?: boolean };
+export type ToolImage = { readonly data: string; readonly mimeType: string };
+
+/**
+ * Result of a bridge tool call (text, optionally with images the model sees, such as browser screenshots).
+ *
+ * @private tool bridge
+ */
+export type ToolResult = { readonly text: string; readonly isError?: boolean; readonly images?: readonly ToolImage[] };
 
 /**
  * A tool exposed to harnesses through the ptbk MCP server.

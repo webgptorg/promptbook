@@ -155,7 +155,11 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
             `Only when you are genuinely blocked on something you cannot safely resolve (required login/2FA, missing authority, a consequential ambiguity the task does not settle), call the \`ask_user\` tool with the minimal question, the \`reason\` and what you \`attempted\` (optionally with \`choices\`), then end your turn with status \`waiting-for-user\`. Do not wait for the answer inside your turn; the task resumes automatically with the answer.`,
         );
     } else rules.push('The user is not available for questions in this run; decide reasonably or report `blocked` with a reason.');
-    if (input.tools.browser) rules.push('Use the `browser_*` tools of the `ptbk` MCP server for websites; they share the project browser and its logged-in sessions.');
+    if (input.tools.browser) {
+        rules.push(
+            'Use the `browser_*` tools of the `ptbk` MCP server for websites. You have full access to the project browser and its profile with its logged-in sessions: every tab, any URL, the complete page (`browser_read`, screenshots you can see), real mouse and keyboard input that also works in rich-text editors, file uploads, page JavaScript (`browser_evaluate`), any DevTools protocol command (`browser_cdp`) and the DevTools endpoint for your own scripts (`browser_devtools_endpoint`). Do in it whatever a person at that browser could, within the authority of this task. Never ask the user to enable, grant or widen browser control, and do not change the browser configuration to work around a tool; ask only for genuinely human-only steps (credentials you do not have, two-factor codes, CAPTCHAs) with `browser_request_user_action`.',
+        );
+    }
     parts.push(`## How to work\n\n${rules.map((rule) => `- ${rule}`).join('\n')}`);
     if (input.feedback) {
         // A first attempt with feedback continues an earlier run (retry, recovery or Fixer's takeover).

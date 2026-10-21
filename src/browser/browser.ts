@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { readFile, readlink, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { basename, isAbsolute, join, resolve } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, pathExists } from '../common/fs.js';
 import { shortHash, shortId } from '../common/ids.js';
@@ -9,19 +9,72 @@ import { isProcessAlive, terminateProcessTree, which } from '../common/process.j
 import { MIGRATED_BROWSER_NAME } from '../project/migrations.js';
 import { describeProfileSource, type BrowserToolRecord, type BrowserVariant, type ProfileSource } from '../tools/model.js';
 import type { Project } from '../project/workspace.js';
-import type { BridgeTool } from '../engine/bridge.js';
-import type { TaskChats } from '../chats/task-chats.js';
 import type { BrowserDetailView } from '../engine/snapshot.js';
 import type { ControlOutcome } from '../service/actions.js';
 import { createRedactor } from '../common/redact.js';
 import { promptbookAppData } from '../common/app-data.js';
 import { BrowserRecorder, type ScreencastPort } from './recording.js';
-import type { BrowserFleet } from './fleet.js';
+import { parseKeyPress, type KeyPress } from './input.js';
+import {
+    MAX_PAGE_TEXT,
+    elementObjectScript,
+    elementPointScript,
+    entryContentScript,
+    entryTargetScript,
+    focusForEntryScript,
+    isFileInputScript,
+    programmaticClickScript,
+    readPageScript,
+    setValueScript,
+    submitFormScript,
+    viewportScript,
+    type PageReading,
+} from './page-scripts.js';
 
 /**
- * Maximal page text returned to an agent.
+ * Window size of a headless browser (a desktop layout, as a person at a desktop sees websites).
  */
-const MAX_PAGE_TEXT = 20_000;
+const HEADLESS_WINDOW_SIZE = '1280,900';
+
+/**
+ * Pause after a click or upload for the page to react.
+ */
+const ACTION_SETTLE_MS = 1000;
+
+/**
+ * Pause after hovering, scrolling or pressing keys.
+ */
+const HOVER_SETTLE_MS = 500;
+
+/**
+ * Pause after typing.
+ */
+const TYPE_SETTLE_MS = 300;
+
+/**
+ * Pause after submitting (and around secret entry, so the recording gap covers it).
+ */
+const SUBMIT_SETTLE_MS = 1500;
+
+/**
+ * Upper bound of repeated key presses in one call.
+ */
+const MAX_KEY_REPEAT = 100;
+
+/**
+ * Upper bound of an agent's page script or raw DevTools command.
+ */
+const SCRIPT_TIMEOUT_MS = 60_000;
+
+/**
+ * Tallest full-page screenshot (taller pages are cut).
+ */
+const MAX_SCREENSHOT_HEIGHT = 16_000;
+
+/**
+ * Pressed-button bit of each mouse button in DevTools mouse events.
+ */
+const MOUSE_BUTTONS = { left: 1, right: 2, middle: 4 } as const;
 
 /**
  * How long Chrome may take to expose its DevTools endpoint.
@@ -169,6 +222,70 @@ function hasDisplay(env: NodeJS.ProcessEnv): boolean {
 }
 
 /**
+ * One open page (tab) of a browser.
+ *
+ * @private project browser
+ */
+export type BrowserTab = { readonly targetId: string; readonly title: string; readonly url: string };
+
+/**
+ * What a pointer action aims at: a numbered element from the last page reading or viewport coordinates.
+ *
+ * @private project browser
+ */
+export type PointerTarget = { readonly ref?: number; readonly x?: number; readonly y?: number; readonly force?: boolean };
+
+/**
+ * Mouse button and modifiers of a click.
+ *
+ * @private project browser
+ */
+export type ClickOptions = { readonly button?: keyof typeof MOUSE_BUTTONS; readonly clickCount?: number; readonly modifiers?: number };
+
+/**
+ * Viewport and document size in CSS pixels.
+ */
+type Viewport = { width: number; height: number; scale: number; pageWidth: number; pageHeight: number; scrollX: number; scrollY: number };
+
+/**
+ * Target of text entry as the page reports it.
+ */
+type EntryTarget = { missing?: boolean; kind: 'text' | 'value' | 'file'; secret: boolean; singleLine: boolean; focused?: boolean; description?: string; visible?: boolean; x?: number; y?: number; covered?: string };
+
+/**
+ * Waits for a while.
+ */
+function delay(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+/**
+ * Bounds an operation that a page or the agent's own command could otherwise keep pending.
+ */
+async function withTimeout<T>(operation: Promise<T>, milliseconds: number, label: string): Promise<T> {
+    let timer: NodeJS.Timeout | undefined;
+    try {
+        return await Promise.race([operation, new Promise<never>((_, reject) => (timer = setTimeout(() => reject(new PtbkError(`${label} did not finish within ${milliseconds / 1000}s.`, { kind: 'technical' })), milliseconds)))]);
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+/**
+ * Cuts long text for an agent with a visible note.
+ */
+function truncate(text: string, limit: number): string {
+    return text.length > limit ? `${text.slice(0, limit)}\n… (${text.length - limit} more characters)` : text;
+}
+
+/**
+ * The error of a ref that no longer points to an element of the current page.
+ */
+function staleReference(ref: number): PtbkError {
+    return new PtbkError(`No element with ref ${ref} on the current page; call browser_read again (refs change when the page changes).`, { kind: 'usage' });
+}
+
+/**
  * Minimal Chrome DevTools Protocol connection (Node's built-in WebSocket).
  */
 class CdpConnection {
@@ -214,18 +331,19 @@ class CdpConnection {
         });
     }
 
-    /** Waits for an event. */
-    public waitFor(method: string, timeoutMs: number, sessionId?: string): Promise<void> {
+    /** Waits for one of the events (bounded); resolves with its parameters, or `undefined` on timeout. */
+    public waitFor(method: string | readonly string[], timeoutMs: number, sessionId?: string): Promise<Record<string, unknown> | undefined> {
+        const methods = typeof method === 'string' ? [method] : method;
         return new Promise((resolve) => {
-            const timer = setTimeout(done, timeoutMs);
+            const timer = setTimeout(() => done(undefined), timeoutMs);
             const listener = (message: Record<string, unknown>): void => {
-                if (message.method === method && (!sessionId || message.sessionId === sessionId)) done();
+                if (typeof message.method === 'string' && methods.includes(message.method) && (!sessionId || message.sessionId === sessionId)) done((message.params ?? {}) as Record<string, unknown>);
             };
             const self = this;
-            function done(): void {
+            function done(params: Record<string, unknown> | undefined): void {
                 clearTimeout(timer);
                 self.listeners.delete(listener);
-                resolve();
+                resolve(params);
             }
             this.listeners.add(listener);
         });
@@ -291,7 +409,12 @@ export class ProjectBrowser {
     /** Release of the cross-project claim of a shared profile. */
     private releaseClaim?: () => Promise<void>;
     private connection?: CdpConnection;
+    /** Session of the page (tab) the agent currently works in. */
     private sessionId?: string;
+    /** Target of that page. */
+    private targetId?: string;
+    /** Local DevTools endpoint of the running browser (shared with the agent that holds it). */
+    private devtools?: { readonly port: number; readonly webSocket: string };
     private note?: string;
     /** Configuration the running process was launched with (retained while a task uses it). */
     private launchedWith?: BrowserToolRecord;
@@ -488,6 +611,8 @@ export class ProjectBrowser {
         this.navigationListener = undefined;
         this.connection = undefined;
         this.sessionId = undefined;
+        this.targetId = undefined;
+        this.devtools = undefined;
         if (this.child) terminateProcessTree(this.child);
         this.child = undefined;
         void this.releaseProfile();
@@ -503,16 +628,17 @@ export class ProjectBrowser {
         const target = await this.ensure();
         this.usedByTask = true;
         // Page transitions (including link clicks and redirects) are listed with the recording segment.
+        // Recording and page transitions follow the tab the agent currently works in.
         this.navigationListener ??= target.connection.on((message) => {
-            if (message.method !== 'Page.frameNavigated' || message.sessionId !== target.sessionId) return;
+            if (message.method !== 'Page.frameNavigated' || message.sessionId !== this.sessionId) return;
             const frame = (message.params as { frame?: { parentId?: string; url?: string } }).frame;
             if (frame && !frame.parentId && frame.url && frame.url !== 'about:blank') this.recorder.visited(frame.url);
         });
         const port: ScreencastPort = {
-            send: (method, params) => target.connection.send(method, params ?? {}, target.sessionId),
+            send: (method, params) => target.connection.send(method, params ?? {}, this.sessionId),
             onFrame: (listener) =>
                 target.connection.on((message) => {
-                    if (message.method !== 'Page.screencastFrame' || message.sessionId !== target.sessionId) return;
+                    if (message.method !== 'Page.screencastFrame' || message.sessionId !== this.sessionId) return;
                     const params = message.params as { data: string; sessionId: number; metadata?: { timestamp?: number } };
                     listener({ data: params.data, sessionId: params.sessionId, timestamp: params.metadata?.timestamp });
                 }),
@@ -527,10 +653,17 @@ export class ProjectBrowser {
      */
     private async ensure(): Promise<{ connection: CdpConnection; sessionId: string }> {
         if (this.connection && this.sessionId) return { connection: this.connection, sessionId: this.sessionId };
-        this.launching ??= this.launchWithRecovery().finally(() => {
+        // A running browser whose working tab was closed continues in another tab instead of relaunching.
+        const connection = this.connection;
+        this.launching ??= (connection ? this.reattach(connection) : this.launchWithRecovery()).finally(() => {
             this.launching = undefined;
         });
         return await this.launching;
+    }
+
+    /** Continues in some open tab of the running browser (a new blank one when none is left). */
+    private async reattach(connection: CdpConnection): Promise<{ connection: CdpConnection; sessionId: string }> {
+        return { connection, sessionId: await this.attachPage(connection, await this.anyPage(connection)) };
     }
 
     /** Bounded automatic launch recovery with recorded attempts, causes and next retry. */
@@ -607,7 +740,8 @@ export class ProjectBrowser {
         }
         const activePortFile = join(profile, 'DevToolsActivePort');
         await writeFile(activePortFile, '').catch(() => undefined);
-        const args = [`--user-data-dir=${profile}`, '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', ...(headless ? ['--headless=new'] : []), 'about:blank'];
+        // A headless browser gets a desktop-sized window, so websites show the layout a person at a desktop sees.
+        const args = [`--user-data-dir=${profile}`, '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', ...(headless ? ['--headless=new', `--window-size=${HEADLESS_WINDOW_SIZE}`] : []), 'about:blank'];
         this.health = { ...this.health, actualMode: headless ? 'headless' : 'headful' };
         try {
             return await this.launch(executable, args, activePortFile, headless);
@@ -634,17 +768,20 @@ export class ProjectBrowser {
         const version = (await (await fetch(`http://127.0.0.1:${port}/json/version`)).json()) as { webSocketDebuggerUrl: string };
         const connection = await CdpConnection.open(version.webSocketDebuggerUrl);
         connection.onClose(() => this.connectionLost('The browser process exited or closed its DevTools connection.'));
-        const targets = (await connection.send('Target.getTargets')).targetInfos as Array<{ targetId: string; type: string }>;
-        const page = targets.find((target) => target.type === 'page') ?? ({ targetId: String((await connection.send('Target.createTarget', { url: 'about:blank' })).targetId), type: 'page' } as const);
-        const sessionId = String((await connection.send('Target.attachToTarget', { targetId: page.targetId, flatten: true })).sessionId);
-        await connection.send('Page.enable', {}, sessionId);
-        await connection.send('Runtime.enable', {}, sessionId);
+        // The working tab may be closed by the website, the agent or a person; the next use continues in another tab.
+        connection.on((message) => {
+            if (message.method === 'Target.detachedFromTarget' && (message.params as { sessionId?: string }).sessionId === this.sessionId) {
+                this.sessionId = undefined;
+                this.targetId = undefined;
+            }
+        });
         this.connection = connection;
-        this.sessionId = sessionId;
+        this.devtools = { port, webSocket: version.webSocketDebuggerUrl };
+        const sessionId = await this.attachPage(connection, await this.anyPage(connection));
         return { connection, sessionId };
     }
 
-    /** Evaluates JavaScript in the page and returns its value. */
+    /** Evaluates JavaScript in the current page and returns its value. */
     private async evaluate<T>(expression: string): Promise<T> {
         const { connection, sessionId } = await this.active();
         const result = await connection.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }, sessionId);
@@ -652,81 +789,369 @@ export class ProjectBrowser {
         return (result.result as { value: T }).value;
     }
 
-    /** Text and interactive elements of the current page (elements get stable `ref` numbers). */
+    /** Open pages (tabs) of the browser. */
+    private async pages(connection: CdpConnection): Promise<BrowserTab[]> {
+        const targets = (await connection.send('Target.getTargets')).targetInfos as Array<BrowserTab & { type: string }>;
+        return targets.filter((target) => target.type === 'page' && !target.url.startsWith('devtools://')).map(({ targetId, title, url }) => ({ targetId, title, url }));
+    }
+
+    /** Some open tab to work in (a new blank tab when none is open). */
+    private async anyPage(connection: CdpConnection, except?: string): Promise<string> {
+        const page = (await this.pages(connection)).find((candidate) => candidate.targetId !== except);
+        return page?.targetId ?? String((await connection.send('Target.createTarget', { url: 'about:blank' })).targetId);
+    }
+
+    /** Moves control, and the recording, to one tab of the browser. */
+    private async attachPage(connection: CdpConnection, targetId: string): Promise<string> {
+        if (this.sessionId && this.targetId === targetId) return this.sessionId;
+        const previous = this.sessionId;
+        const sessionId = String((await connection.send('Target.attachToTarget', { targetId, flatten: true })).sessionId);
+        await connection.send('Page.enable', {}, sessionId);
+        await connection.send('Runtime.enable', {}, sessionId);
+        this.sessionId = sessionId;
+        this.targetId = targetId;
+        await connection.send('Target.activateTarget', { targetId }).catch(() => undefined);
+        if (previous) {
+            await connection.send('Page.stopScreencast', {}, previous).catch(() => undefined);
+            await connection.send('Target.detachFromTarget', { sessionId: previous }).catch(() => undefined);
+        }
+        await this.recorder.retarget();
+        return sessionId;
+    }
+
+    /** Resolves a tab id or a unique prefix of it. */
+    private async resolveTab(connection: CdpConnection, id: string): Promise<string> {
+        const wanted = id.trim().toUpperCase();
+        const matches = wanted ? (await this.pages(connection)).filter((page) => page.targetId.toUpperCase().startsWith(wanted)) : [];
+        if (matches.length !== 1) throw new PtbkError(matches.length ? `The tab id "${id}" matches several tabs; give more of it.` : `No open tab has the id "${id}"; browser_tabs lists them.`, { kind: 'usage' });
+        return matches[0]!.targetId;
+    }
+
+    /** Waits (bounded) until the current page finished loading. */
+    private async settle(timeoutMs: number): Promise<void> {
+        const deadline = Date.now() + timeoutMs;
+        while (Date.now() < deadline && (await this.evaluate<string>('document.readyState').catch(() => 'complete')) !== 'complete') await delay(250);
+    }
+
+    /** After an action: continues in a tab the action opened (a link to a new window, `window.open`), as a person would. */
+    private async followNewTab(connection: CdpConnection, before: ReadonlySet<string>): Promise<string> {
+        const opened = (await this.pages(connection)).filter((page) => !before.has(page.targetId));
+        const tab = opened[opened.length - 1];
+        if (!tab) return '';
+        await this.attachPage(connection, tab.targetId);
+        await this.settle(10_000);
+        return `The action opened a new tab (${tab.targetId}); you now work in it (browser_tabs switches back).\n`;
+    }
+
+    /** Ids of the open tabs (to notice tabs an action opens). */
+    private async tabIds(connection: CdpConnection): Promise<Set<string>> {
+        return new Set((await this.pages(connection)).map((page) => page.targetId));
+    }
+
+    /** Text and numbered interactive elements of the complete current page (dialogs, shadow DOM and same-origin frames included). */
     public async read(): Promise<string> {
-        const page = await this.evaluate<{ url: string; title: string; text: string; elements: string[] }>(`(() => {
-            const elements = [...document.querySelectorAll('a[href], button, input, textarea, select, [role=button]')].slice(0, 200);
-            elements.forEach((element, index) => element.setAttribute('data-ptbk-ref', String(index + 1)));
-            return {
-                url: location.href,
-                title: document.title,
-                text: (document.body ? document.body.innerText : '').slice(0, ${MAX_PAGE_TEXT}),
-                elements: elements.map((element, index) => '[' + (index + 1) + '] ' + element.tagName.toLowerCase() + (element.type ? ' ' + element.type : '') + ' ' + ((element.innerText || element.value || element.placeholder || element.getAttribute('aria-label') || element.getAttribute('href') || '').replace(/\\s+/g, ' ').trim().slice(0, 80))),
-            };
-        })()`);
-        return `${page.title}\n${page.url}\n\n${page.text}\n\nInteractive elements:\n${page.elements.join('\n')}${this.note ? `\n\nNote: ${this.note}` : ''}`;
+        const page = await this.evaluate<PageReading>(readPageScript());
+        const tabs = this.connection ? (await this.pages(this.connection)).length : 1;
+        const omitted = page.omitted ? `\n… ${page.omitted} more elements are not listed (scroll to them, or use browser_evaluate).` : '';
+        return `${page.title}\n${page.url}${tabs > 1 ? `\n(${tabs} tabs are open; browser_tabs lists and switches them)` : ''}\n\n${page.text}\n\nInteractive elements (their numbers are the ref of other browser tools):\n${page.elements.join('\n') || '(none)'}${omitted}${this.note ? `\n\nNote: ${this.note}` : ''}`;
     }
 
-    /** Navigates and waits for the load event (bounded). */
-    public async open(url: string): Promise<string> {
-        if (!/^https?:\/\//i.test(url)) throw new PtbkError('Only http(s) URLs can be opened.', { kind: 'usage' });
-        const { connection, sessionId } = await this.active();
+    /** Navigates the current tab (or a new one) to any URL and waits for it to load (bounded). */
+    public async open(url: string, newTab = false): Promise<string> {
+        const trimmed = url.trim();
+        if (!trimmed) throw new PtbkError('Name the URL to open.', { kind: 'usage' });
+        // An address without a scheme is a website, as in the address bar (plain HTTP for local addresses).
+        const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) || /^(about|blob|data|javascript|mailto|tel|view-source):/i.test(trimmed);
+        const address = hasScheme ? trimmed : `${/^(localhost|127\.|0\.0\.0\.0|\[::1\])/i.test(trimmed) ? 'http' : 'https'}://${trimmed}`;
+        const { connection } = await this.active();
+        if (newTab) await this.attachPage(connection, String((await connection.send('Target.createTarget', { url: 'about:blank' })).targetId));
+        const sessionId = this.sessionId!;
         const loaded = connection.waitFor('Page.loadEventFired', 30_000, sessionId);
-        await connection.send('Page.navigate', { url }, sessionId);
-        await loaded;
+        const result = await connection.send('Page.navigate', { url: address }, sessionId);
+        const failed = typeof result.errorText === 'string' && result.errorText ? `Navigation failed: ${result.errorText}.\n\n` : '';
+        const download = result.isDownload === true ? 'The URL started a download.\n\n' : '';
+        if (result.loaderId && !failed && !download) await loaded;
         const page = await this.read();
-        this.recorder.visited(page.split('\n')[1] ?? url);
-        return page;
+        this.recorder.visited(page.split('\n')[1] ?? address);
+        return `${failed}${download}${page}`;
     }
 
-    /** Clicks an element by ref. */
-    public async click(reference: number): Promise<string> {
-        const ok = await this.evaluate<boolean>(`(() => { const element = document.querySelector('[data-ptbk-ref="${Number(reference)}"]'); if (!element) return false; element.scrollIntoView({ block: 'center' }); element.click(); return true; })()`);
-        if (!ok) throw new PtbkError(`No element with ref ${reference}; call browser_read first.`, { kind: 'usage' });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+    /** Goes back or forward in the current tab's history, or reloads it. */
+    public async navigate(action: 'back' | 'forward' | 'reload'): Promise<string> {
+        const { connection, sessionId } = await this.active();
+        if (action === 'reload') {
+            const loaded = connection.waitFor('Page.loadEventFired', 30_000, sessionId);
+            await connection.send('Page.reload', {}, sessionId);
+            await loaded;
+        } else {
+            const history = (await connection.send('Page.getNavigationHistory', {}, sessionId)) as { currentIndex: number; entries: Array<{ id: number }> };
+            const entry = history.entries[history.currentIndex + (action === 'back' ? -1 : 1)];
+            if (!entry) throw new PtbkError(`This tab has no ${action === 'back' ? 'previous' : 'next'} page in its history.`, { kind: 'usage' });
+            // Pages restored from the back/forward cache report a navigation but no new load event.
+            const moved = connection.waitFor(['Page.loadEventFired', 'Page.frameNavigated', 'Page.navigatedWithinDocument'], 15_000, sessionId);
+            await connection.send('Page.navigateToHistoryEntry', { entryId: entry.id }, sessionId);
+            await moved;
+            await this.settle(15_000);
+        }
         return await this.read();
     }
 
-    /** Types into an element by ref (optionally submitting its form); secret fields are never recorded. */
-    public async type(reference: number, text: string, submit: boolean): Promise<string> {
-        const secret = await this.evaluate<boolean>(`(() => { const element = document.querySelector('[data-ptbk-ref="${Number(reference)}"]'); return Boolean(element && (element.type === 'password' || /otp|one-time|password|passcode/i.test(element.autocomplete || element.name || ''))); })()`);
-        if (secret) await this.recorder.pause('secret entry into a password/one-time-code field (not recorded)');
-        try {
-            return await this.typeInto(reference, text, submit);
-        } finally {
-            if (secret) {
-                await new Promise((resolve) => setTimeout(resolve, 1500));
-                await this.recorder.resume();
-            }
+    /** Lists the open tabs; the one the agent works in is marked with `*`. */
+    public async tabs(): Promise<string> {
+        const { connection } = await this.active();
+        const pages = await this.pages(connection);
+        return `Open tabs (* = the tab you work in; a unique prefix of an id is enough):\n${pages.map((page) => `${page.targetId === this.targetId ? '*' : '-'} ${page.targetId}  ${page.title || '(untitled)'}  ${page.url}`).join('\n')}`;
+    }
+
+    /** Opens a new tab (optionally at a URL), switches to a tab or closes one. */
+    public async tab(action: 'new' | 'select' | 'close', id?: string, url?: string): Promise<string> {
+        const { connection } = await this.active();
+        if (action === 'new') {
+            if (url?.trim()) return await this.open(url, true);
+            await this.attachPage(connection, String((await connection.send('Target.createTarget', { url: 'about:blank' })).targetId));
+            return await this.read();
+        }
+        const targetId = id?.trim() ? await this.resolveTab(connection, id) : this.targetId;
+        if (!targetId) throw new PtbkError('Name the tab id (browser_tabs lists them).', { kind: 'usage' });
+        if (action === 'select') {
+            await this.attachPage(connection, targetId);
+            return await this.read();
+        }
+        // The tab to continue in exists before the current one closes (closing the last window may end the browser).
+        const replacement = targetId === this.targetId ? await this.anyPage(connection, targetId) : undefined;
+        await connection.send('Target.closeTarget', { targetId });
+        if (replacement) {
+            this.sessionId = undefined;
+            this.targetId = undefined;
+            await this.attachPage(connection, replacement);
+        }
+        return `Closed the tab ${targetId}.\n\n${await this.read()}`;
+    }
+
+    /** Where a pointer action aims: the visible center of a numbered element, or explicit viewport coordinates. */
+    private async aim(target: PointerTarget): Promise<{ point?: { x: number; y: number }; label: string }> {
+        if (target.ref === undefined) {
+            if (!Number.isFinite(target.x) || !Number.isFinite(target.y)) throw new PtbkError('Give the ref of an element from browser_read, or viewport coordinates x and y in CSS pixels (as in browser_screenshot).', { kind: 'usage' });
+            return { point: { x: target.x!, y: target.y! }, label: `the point (${Math.round(target.x!)}, ${Math.round(target.y!)})` };
+        }
+        const aimed = await this.evaluate<{ missing?: boolean; visible?: boolean; x?: number; y?: number; covered?: string; description?: string }>(elementPointScript(target.ref));
+        if (aimed.missing) throw staleReference(target.ref);
+        const label = `[${target.ref}] ${aimed.description ?? ''}`.trim();
+        if (target.force || !aimed.visible) return { label };
+        if (aimed.covered) throw new PtbkError(`${label} is covered by ${aimed.covered} at its center, so a click would hit that instead. Close or scroll away the covering element, click it by coordinates, or pass force: true for a programmatic click.`, { kind: 'usage' });
+        return { point: { x: aimed.x!, y: aimed.y! }, label };
+    }
+
+    /** Dispatches trusted mouse events (as from a person) at viewport coordinates. */
+    private async mouse(point: { x: number; y: number }, options: ClickOptions): Promise<void> {
+        const { connection, sessionId } = await this.active();
+        const button = options.button ?? 'left';
+        const modifiers = options.modifiers ?? 0;
+        await connection.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: point.x, y: point.y, modifiers }, sessionId);
+        const clicks = Math.max(1, Math.min(3, Math.round(options.clickCount ?? 1)));
+        for (let count = 1; count <= clicks; count++) {
+            await connection.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: point.x, y: point.y, button, buttons: MOUSE_BUTTONS[button], clickCount: count, modifiers }, sessionId);
+            await connection.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: point.x, y: point.y, button, buttons: 0, clickCount: count, modifiers }, sessionId);
         }
     }
 
-    /** Sets an element's value and dispatches input events. */
-    private async typeInto(reference: number, text: string, submit: boolean): Promise<string> {
-        const ok = await this.evaluate<boolean>(`(() => {
-            const element = document.querySelector('[data-ptbk-ref="${Number(reference)}"]');
-            if (!element) return false;
-            element.focus();
-            const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value')?.set;
-            if (setter) setter.call(element, ${JSON.stringify(text)}); else element.value = ${JSON.stringify(text)};
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            element.dispatchEvent(new Event('change', { bubbles: true }));
-            if (${submit ? 'true' : 'false'}) { if (element.form && element.form.requestSubmit) element.form.requestSubmit(); else element.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); }
-            return true;
-        })()`);
-        if (!ok) throw new PtbkError(`No element with ref ${reference}; call browser_read first.`, { kind: 'usage' });
-        await new Promise((resolve) => setTimeout(resolve, submit ? 1500 : 200));
-        return await this.read();
+    /** Clicks an element or a point; elements without a visible box (or with `force`) are clicked programmatically. */
+    private async clickAt(target: PointerTarget, options: ClickOptions): Promise<string> {
+        const aimed = await this.aim(target);
+        if (aimed.point) {
+            await this.mouse(aimed.point, options);
+            return `Clicked ${aimed.label}.`;
+        }
+        if (!(await this.evaluate<boolean>(programmaticClickScript(target.ref!)))) throw staleReference(target.ref!);
+        return `Clicked ${aimed.label} programmatically (${target.force ? 'force' : 'it has no visible box on the screen'}).`;
     }
 
-    /** Saves a screenshot into ignored runtime storage and returns its path. */
-    public async screenshot(): Promise<string> {
+    /** Clicks like a person at an element from browser_read or at viewport coordinates, then reads the page. */
+    public async click(target: PointerTarget, options: ClickOptions = {}): Promise<string> {
+        const { connection } = await this.active();
+        const before = await this.tabIds(connection);
+        const done = await this.clickAt(target, options);
+        await delay(ACTION_SETTLE_MS);
+        const followed = await this.followNewTab(connection, before);
+        return `${done}\n${followed}\n${await this.read()}`;
+    }
+
+    /** Moves the mouse over an element or a point (menus and tooltips that open on hover). */
+    public async hover(target: PointerTarget): Promise<string> {
+        const aimed = await this.aim({ ...target, force: false });
+        if (!aimed.point) throw new PtbkError(`${aimed.label} has no visible box on the screen to move the mouse over.`, { kind: 'usage' });
         const { connection, sessionId } = await this.active();
-        const result = await connection.send('Page.captureScreenshot', { format: 'png' }, sessionId);
+        await connection.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: aimed.point.x, y: aimed.point.y }, sessionId);
+        await delay(HOVER_SETTLE_MS);
+        return `Moved the mouse over ${aimed.label}.\n\n${await this.read()}`;
+    }
+
+    /** Scrolls an element into view, or turns the mouse wheel at a point (the page or the scrollable area under it). */
+    public async scroll(input: { ref?: number; deltaX?: number; deltaY?: number; x?: number; y?: number }): Promise<string> {
+        if (input.ref !== undefined) {
+            const aimed = await this.evaluate<{ missing?: boolean; description?: string }>(elementPointScript(input.ref));
+            if (aimed.missing) throw staleReference(input.ref);
+            return `Scrolled [${input.ref}] ${aimed.description ?? ''} into view.\n\n${await this.read()}`;
+        }
+        const { connection, sessionId } = await this.active();
+        const view = await this.evaluate<Viewport>(viewportScript());
+        const deltaX = input.deltaX ?? 0;
+        const deltaY = input.deltaY ?? (input.deltaX === undefined ? Math.round(view.height * 0.8) : 0);
+        const x = input.x ?? view.width / 2;
+        const y = input.y ?? view.height / 2;
+        await connection.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x, y, deltaX, deltaY }, sessionId);
+        await delay(HOVER_SETTLE_MS);
+        const after = await this.evaluate<Viewport>(viewportScript());
+        return `Turned the mouse wheel by (${deltaX}, ${deltaY}) at (${Math.round(x)}, ${Math.round(y)}); the page is scrolled to (${Math.round(after.scrollX)}, ${Math.round(after.scrollY)}) of ${after.pageWidth}×${after.pageHeight}.\n\n${await this.read()}`;
+    }
+
+    /** Presses one key (trusted keyboard events, as from a person). */
+    private async key(press: KeyPress): Promise<void> {
+        const { connection, sessionId } = await this.active();
+        const base = { key: press.key, code: press.code, windowsVirtualKeyCode: press.keyCode, nativeVirtualKeyCode: press.keyCode, modifiers: press.modifiers };
+        await connection.send('Input.dispatchKeyEvent', { ...base, type: press.text ? 'keyDown' : 'rawKeyDown', ...(press.text ? { text: press.text, unmodifiedText: press.text } : {}), ...(press.commands ? { commands: press.commands } : {}) }, sessionId);
+        await connection.send('Input.dispatchKeyEvent', { ...base, type: 'keyUp' }, sessionId);
+    }
+
+    /** Presses a key or shortcut (optionally repeatedly), then reads the page. */
+    public async pressKeys(keys: string, times = 1): Promise<string> {
+        const press = parseKeyPress(keys);
+        const { connection } = await this.active();
+        const before = await this.tabIds(connection);
+        const count = Math.max(1, Math.min(MAX_KEY_REPEAT, Math.round(times)));
+        for (let index = 0; index < count; index++) await this.key(press);
+        await delay(HOVER_SETTLE_MS);
+        const followed = await this.followNewTab(connection, before);
+        return `Pressed ${keys}${count > 1 ? ` ${count} times` : ''}.\n${followed}\n${await this.read()}`;
+    }
+
+    /**
+     * Types text like a person: into a numbered element (its content is replaced unless `replace` is false) or, without
+     * a ref, at the caret of the focused element. Works in plain fields and rich-text editors (also in shadow DOM);
+     * selects, checkboxes and special inputs are set to the given value. Secret fields are never recorded.
+     */
+    public async type(input: { ref?: number; text: string; replace?: boolean; submit?: boolean }): Promise<string> {
+        const { connection, sessionId } = await this.active();
+        const { ref, text } = input;
+        const target = await this.evaluate<EntryTarget>(entryTargetScript(ref));
+        if (target.missing) throw staleReference(ref!);
+        if (target.kind === 'file') throw new PtbkError(`[${ref}] is a file input; attach files with browser_upload.`, { kind: 'usage' });
+        if (target.kind === 'value' && ref !== undefined) {
+            const set = await this.evaluate<{ error?: string; content?: string }>(setValueScript(ref, text));
+            if (set.error) throw set.error === 'missing' ? staleReference(ref) : new PtbkError(set.error, { kind: 'usage' });
+            if (input.submit && !(await this.evaluate<boolean>(submitFormScript(ref)))) await this.key(parseKeyPress('Enter'));
+            await delay(input.submit ? SUBMIT_SETTLE_MS : TYPE_SETTLE_MS);
+            return `Set [${ref}] ${target.description ?? ''} to ${JSON.stringify(set.content ?? text)}.\n\n${await this.read()}`;
+        }
+        const replace = input.replace ?? ref !== undefined;
+        if (ref !== undefined) {
+            // A person clicks into the field first (editors set up their state on it); then the caret is placed exactly.
+            if (!target.focused && target.visible && !target.covered && target.x !== undefined && target.y !== undefined) await this.mouse({ x: target.x, y: target.y }, {});
+            if (!(await this.evaluate<boolean>(focusForEntryScript(ref, replace)))) throw staleReference(ref);
+        } else if (replace) await this.evaluate<boolean>(focusForEntryScript(undefined, true));
+        if (target.secret) await this.recorder.pause('secret entry into a password/one-time-code field (not recorded)');
+        try {
+            if (replace && !text) await this.key(parseKeyPress('Backspace'));
+            const lines = target.singleLine ? [text] : text.split(/\r?\n/);
+            for (const [index, line] of lines.entries()) {
+                if (index > 0) await this.key(parseKeyPress('Enter'));
+                if (line) await connection.send('Input.insertText', { text: line }, sessionId);
+            }
+            if (input.submit && !(await this.evaluate<boolean>(submitFormScript(ref)))) await this.key(parseKeyPress('Enter'));
+        } finally {
+            if (target.secret) {
+                await delay(SUBMIT_SETTLE_MS);
+                await this.recorder.resume();
+            }
+        }
+        await delay(input.submit ? SUBMIT_SETTLE_MS : TYPE_SETTLE_MS);
+        const into = ref !== undefined ? `[${ref}] ` : '';
+        if (input.submit) return `Typed into ${into}${target.description ?? 'the focused element'} and submitted.\n\n${await this.read()}`;
+        const after = await this.evaluate<{ description: string; content: string } | undefined>(entryContentScript(ref));
+        return `Typed into ${into}${after?.description ?? target.description ?? 'the focused element'}. Its content is now:\n${after?.content ?? '(unknown)'}\n\n${await this.read()}`;
+    }
+
+    /** Attaches files to a file input, or to the file chooser that clicking an element opens. */
+    public async upload(ref: number, files: readonly string[]): Promise<string> {
+        if (!files.length) throw new PtbkError('Name at least one file to upload.', { kind: 'usage' });
+        const paths = files.map((file) => (isAbsolute(file) ? file : resolve(this.project.root, file)));
+        for (const path of paths) if (!(await pathExists(path))) throw new PtbkError(`The file ${path} does not exist (relative paths are relative to the project).`, { kind: 'usage' });
+        const { connection, sessionId } = await this.active();
+        const fileInput = await this.evaluate<boolean | null>(isFileInputScript(ref));
+        if (fileInput === null) throw staleReference(ref);
+        if (fileInput) {
+            const element = await connection.send('Runtime.evaluate', { expression: elementObjectScript(ref) }, sessionId);
+            const objectId = (element.result as { objectId?: string } | undefined)?.objectId;
+            if (!objectId) throw staleReference(ref);
+            await connection.send('DOM.setFileInputFiles', { files: paths, objectId }, sessionId);
+        } else {
+            await connection.send('Page.setInterceptFileChooserDialog', { enabled: true }, sessionId);
+            try {
+                const chooser = connection.waitFor('Page.fileChooserOpened', 10_000, sessionId);
+                await this.clickAt({ ref }, {});
+                const opened = await chooser;
+                if (typeof opened?.backendNodeId !== 'number') throw new PtbkError(`Clicking [${ref}] did not open a file chooser; give the file input or the button that opens the chooser.`, { kind: 'usage' });
+                await connection.send('DOM.setFileInputFiles', { files: paths, backendNodeId: opened.backendNodeId }, sessionId);
+            } finally {
+                await connection.send('Page.setInterceptFileChooserDialog', { enabled: false }, sessionId).catch(() => undefined);
+            }
+        }
+        await delay(ACTION_SETTLE_MS);
+        return `Attached ${paths.map((path) => basename(path)).join(', ')} to [${ref}].\n\n${await this.read()}`;
+    }
+
+    /** Runs JavaScript in the current page (top-level `await` allowed) and returns its JSON value or text. */
+    public async runScript(script: string): Promise<string> {
+        if (!script.trim()) throw new PtbkError('Give the JavaScript to run.', { kind: 'usage' });
+        const { connection, sessionId } = await this.active();
+        const result = await withTimeout(connection.send('Runtime.evaluate', { expression: script, returnByValue: true, awaitPromise: true, userGesture: true, replMode: true }, sessionId), SCRIPT_TIMEOUT_MS, 'The script');
+        const failure = result.exceptionDetails as { text?: string; exception?: { description?: string } } | undefined;
+        if (failure) throw new PtbkError(`The script failed: ${failure.exception?.description ?? failure.text ?? 'exception'}`, { kind: 'usage' });
+        const value = result.result as { type: string; value?: unknown; unserializableValue?: string; description?: string };
+        const text = value.type === 'undefined' ? 'undefined' : value.unserializableValue ?? ('value' in value ? (typeof value.value === 'string' ? value.value : JSON.stringify(value.value, null, 2)) : (value.description ?? value.type));
+        return truncate(String(text), MAX_PAGE_TEXT);
+    }
+
+    /** Sends any Chrome DevTools Protocol command to the current page or to the browser and returns its result. */
+    public async protocol(method: string, params: Readonly<Record<string, unknown>>, scope: 'page' | 'browser'): Promise<string> {
+        if (!/^[A-Z][A-Za-z]*\.[a-z][A-Za-z]*$/.test(method.trim())) throw new PtbkError('Name a DevTools protocol method such as Page.printToPDF or Emulation.setGeolocationOverride.', { kind: 'usage' });
+        const { connection, sessionId } = await this.active();
+        const result = await withTimeout(connection.send(method.trim(), { ...params }, scope === 'browser' ? undefined : sessionId), SCRIPT_TIMEOUT_MS, method);
+        return truncate(JSON.stringify(result, null, 2), MAX_PAGE_TEXT);
+    }
+
+    /** The local DevTools endpoint of the running browser for the agent's own automation scripts. */
+    public async devtoolsEndpoint(): Promise<string> {
+        await this.active();
+        const devtools = this.devtools;
+        if (!devtools) throw new PtbkError(`The browser "${this.name}" exposes no DevTools endpoint right now; try again.`, { kind: 'technical' });
+        const http = `http://127.0.0.1:${devtools.port}`;
+        return [
+            `HTTP endpoint: ${http}`,
+            `WebSocket endpoint: ${devtools.webSocket}`,
+            `Tab you work in: ${this.targetId ?? '(none)'}`,
+            '',
+            `Use it from your own scripts while this task holds the browser, for example Playwright \`chromium.connectOverCDP("${http}")\` (its existing context, browser.contexts()[0], carries the profile's sessions) or Puppeteer \`puppeteer.connect({ browserWSEndpoint: "${devtools.webSocket}" })\`. Disconnect when done; do not close the browser (Promptbook owns the process and releases the profile after the task). The endpoint changes when the browser restarts.`,
+        ].join('\n');
+    }
+
+    /** Captures the viewport (or the full page) as PNG into ignored runtime storage; the image is also returned. */
+    public async screenshot(fullPage = false): Promise<{ path: string; data: string; summary: string }> {
+        const { connection, sessionId } = await this.active();
+        const view = await this.evaluate<Viewport>(viewportScript());
+        const height = Math.min(view.pageHeight, MAX_SCREENSHOT_HEIGHT);
+        const result = await connection.send('Page.captureScreenshot', fullPage ? { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: 0, width: view.pageWidth, height, scale: 1 } } : { format: 'png' }, sessionId);
+        const data = String(result.data);
+        const image = Buffer.from(data, 'base64');
         const directory = await ensureDirectory(join(this.project.runtime.temporary, 'screenshots'));
         const path = join(directory, `${shortId()}.png`);
-        await writeFile(path, Buffer.from(String(result.data), 'base64'));
-        return path;
+        await writeFile(path, image);
+        const width = image.length > 24 ? image.readUInt32BE(16) : 0;
+        const scale = width && !fullPage ? width / view.width : 1;
+        const coordinates = fullPage
+            ? `the full page, ${view.pageWidth}×${height} CSS pixels${height < view.pageHeight ? ` (cut from ${view.pageHeight})` : ''}; positions are page positions, scroll before clicking`
+            : `the viewport, ${view.width}×${view.height} CSS pixels, scrolled to (${Math.round(view.scrollX)}, ${Math.round(view.scrollY)}); ${Math.abs(scale - 1) < 0.01 ? 'image pixels are the x/y of browser_click' : `divide image pixels by ${scale.toFixed(2)} for the x/y of browser_click`}`;
+        return { path, data, summary: `Screenshot of ${coordinates}.\nSaved as ${path}` };
     }
 
     /** Brings the window forward for a human action (only meaningful with a visible window); the human part is not recorded. */
@@ -744,6 +1169,8 @@ export class ProjectBrowser {
         this.connection?.close();
         this.connection = undefined;
         this.sessionId = undefined;
+        this.targetId = undefined;
+        this.devtools = undefined;
         const wasRunning = Boolean(this.child);
         if (this.child) terminateProcessTree(this.child);
         this.child = undefined;
@@ -767,85 +1194,4 @@ export class ProjectBrowser {
         if (!isSharedSource(this.config()?.profile.source ?? 'MANAGED_GLOBAL')) return;
         this.close();
     }
-}
-
-/**
- * Browser tools exposed to agents through the ptbk MCP bridge. Every call resolves the live inventory: a browser
- * added during the task is selectable at the next call; `browser` names a specific tool (account/profile).
- *
- * @private project browser
- */
-export function browserTools(fleet: BrowserFleet, chats: TaskChats | undefined, agent: string, onUserChat: (chat: { chat: string; awaited: number }) => void, describe: () => Array<{ name: string; description?: string; profile: string; isHeadless: boolean }>): BridgeTool[] {
-    const run = async (action: () => Promise<string>): Promise<{ text: string; isError?: boolean }> => {
-        try {
-            return { text: await action() };
-        } catch (error) {
-            return { text: errorMessage(error), isError: true };
-        }
-    };
-    const name = (input: Record<string, unknown>): string | undefined => (typeof input.browser === 'string' && input.browser.trim() ? input.browser.trim() : undefined);
-    const browserProperty = { browser: { type: 'string', description: 'Name of the browser tool to use (see browser_list); defaults to the browser this task already uses, else the first enabled one.' } };
-    return [
-        {
-            name: 'browser_list',
-            description: "List the project's enabled browser tools (names, descriptions, profile kinds). Choose the one whose account/profile fits the task; never act from a different account merely because it is logged in.",
-            inputSchema: { type: 'object', properties: {} },
-            handler: () =>
-                run(async () => {
-                    const browsers = describe();
-                    if (!browsers.length) return 'No browser tool is enabled for this project.';
-                    return browsers.map((browser) => `- ${browser.name}${browser.description ? `: ${browser.description}` : ''} (${browser.profile}, ${browser.isHeadless ? 'headless' : 'visible window'})`).join('\n');
-                }),
-        },
-        {
-            name: 'browser_open',
-            description: 'Open a URL in a project browser (persistent logged-in sessions of its profile) and return the page text and interactive elements.',
-            inputSchema: { type: 'object', properties: { url: { type: 'string' }, ...browserProperty }, required: ['url'] },
-            handler: (input) => run(async () => (await fleet.acquire(name(input))).open(String(input.url ?? ''))),
-        },
-        {
-            name: 'browser_read',
-            description: 'Return the text and numbered interactive elements of the current page.',
-            inputSchema: { type: 'object', properties: { ...browserProperty } },
-            handler: (input) => run(async () => (await fleet.acquire(name(input))).read()),
-        },
-        {
-            name: 'browser_click',
-            description: 'Click an interactive element by its number from browser_read.',
-            inputSchema: { type: 'object', properties: { ref: { type: 'number' }, ...browserProperty }, required: ['ref'] },
-            handler: (input) => run(async () => (await fleet.acquire(name(input))).click(Number(input.ref))),
-        },
-        {
-            name: 'browser_type',
-            description: 'Type text into an input by its number from browser_read; optionally submit the form.',
-            inputSchema: { type: 'object', properties: { ref: { type: 'number' }, text: { type: 'string' }, submit: { type: 'boolean' }, ...browserProperty }, required: ['ref', 'text'] },
-            handler: (input) => run(async () => (await fleet.acquire(name(input))).type(Number(input.ref), String(input.text ?? ''), input.submit === true)),
-        },
-        {
-            name: 'browser_screenshot',
-            description: 'Save a screenshot of the current page and return its file path.',
-            inputSchema: { type: 'object', properties: { ...browserProperty } },
-            handler: (input) => run(async () => (await fleet.acquire(name(input))).screenshot()),
-        },
-        {
-            name: 'browser_request_user_action',
-            description: 'Only when a website genuinely requires a human-only step (sign-in, two-factor authentication, consent) that the existing session cannot satisfy: ask the human to act in the project browser. Then end your turn with status waiting-for-user.',
-            inputSchema: { type: 'object', properties: { reason: { type: 'string' }, ...browserProperty }, required: ['reason'] },
-            handler: (input) =>
-                run(async () => {
-                    if (!chats) throw new PtbkError('The user is not available in this run; report blocked with the reason instead.', { kind: 'unsupported' });
-                    const browser = await fleet.acquire(name(input));
-                    const note = await browser.bringToFront();
-                    const chat = await chats.askUser({
-                        agent,
-                        reason: String(input.reason ?? `A website needs your action in the browser "${browser.name}".`),
-                        attempted: `I used the existing session of the project browser "${browser.name}"; the website still requires this human-only step.`,
-                        question: `Please complete the action in the browser "${browser.name}"${note ? ` (${note})` : ''}, then confirm here.`,
-                        choices: ['Done', 'I cannot do it'],
-                    });
-                    onUserChat(chat);
-                    return `The request is in the chat {{${chat.chat}}}, waiting for the user. End your turn now with status waiting-for-user.`;
-                }),
-        },
-    ];
 }

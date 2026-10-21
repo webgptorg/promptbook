@@ -58,8 +58,9 @@ async function handle(message: { id?: number | string; method?: string; params?:
                 return;
             }
             case 'tools/call': {
-                const result = await ipcRequest<{ text: string; isError?: boolean }>(address, { token, op: 'call', name: params?.name, arguments: params?.arguments ?? {} }, CALL_TIMEOUT_MS);
-                send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: result.text }], isError: Boolean(result.isError) } });
+                const result = await ipcRequest<{ text: string; isError?: boolean; images?: Array<{ data: string; mimeType: string }> }>(address, { token, op: 'call', name: params?.name, arguments: params?.arguments ?? {} }, CALL_TIMEOUT_MS);
+                const images = (result.images ?? []).map((image) => ({ type: 'image', data: image.data, mimeType: image.mimeType }));
+                send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: result.text }, ...images], isError: Boolean(result.isError) } });
                 return;
             }
             default:

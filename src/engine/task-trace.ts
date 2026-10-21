@@ -276,7 +276,9 @@ function readableValue(value: unknown, depth: number): string {
         if (!value.length) return '[]';
         return `\n${value.map((item) => `${indent}- ${readableValue(item, depth + 1).replace(/^\n\s*/, '')}`).join('\n')}`;
     }
-    const entries = Object.entries(value as Record<string, unknown>);
+    const record = value as Record<string, unknown>;
+    // Images returned to the model (browser screenshots) are evidence for the model, not readable log text.
+    const entries = Object.entries(record).map(([key, item]): [string, unknown] => (record.type === 'image' && key === 'data' && typeof item === 'string' ? [key, `[image data, ${item.length} base64 characters omitted]`] : [key, item]));
     if (!entries.length) return '{}';
     return `\n${entries.map(([key, item]) => `${indent}${key}: ${readableValue(item, depth + 1)}`).join('\n')}`;
 }

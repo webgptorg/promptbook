@@ -6,7 +6,7 @@ import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary, type RunOptions } from '../engine/agenda.js';
 import type { ConnectionView } from '../engine/snapshot.js';
-import { browserTools } from '../browser/browser.js';
+import { browserTools } from '../browser/agent-tools.js';
 import { BrowserFleet } from '../browser/fleet.js';
 import { describeProfileSource } from '../tools/model.js';
 import { applyChatAction, applyControlAction, applySettings, applyToolAction, type BrowserControls } from './actions.js';

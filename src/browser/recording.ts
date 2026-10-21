@@ -17,6 +17,11 @@ const MAX_FRAME_HOLD_MS = 60_000;
 const MAX_SEGMENT_BYTES = 1024 * 1024 * 1024;
 
 /**
+ * Screencast settings of browser recordings.
+ */
+const SCREENCAST = { format: 'jpeg', quality: 70, maxWidth: 1280, maxHeight: 900, everyNthFrame: 1 };
+
+/**
  * Status of one recorded segment as listed in `traces/<task-file-basename>/video.json`.
  *
  * @private browser recording
@@ -269,7 +274,7 @@ export class BrowserRecorder {
                 if (this.paused) return;
                 this.writeQueue = this.writeQueue.then(() => this.store(frame.data));
             });
-            await port.send('Page.startScreencast', { format: 'jpeg', quality: 70, maxWidth: 1280, maxHeight: 900, everyNthFrame: 1 });
+            await port.send('Page.startScreencast', SCREENCAST);
             this.recording = true;
             await this.trace.event('recording-started', { label: this.label, url });
         } catch (error) {
@@ -284,6 +289,12 @@ export class BrowserRecorder {
         if (url && this.pages[this.pages.length - 1] !== url) this.pages.push(url);
     }
 
+    /** Continues capture in the page the agent switched to (the port now addresses that tab). */
+    public async retarget(): Promise<void> {
+        if (!this.recording || this.paused) return;
+        await this.port?.send('Page.startScreencast', SCREENCAST).catch(() => undefined);
+    }
+
     /** Pauses capture around secret entry or human sign-in, recording an intentional gap. */
     public async pause(reason: string): Promise<void> {
         if (!this.recording || this.paused) return;
@@ -296,7 +307,7 @@ export class BrowserRecorder {
     public async resume(): Promise<void> {
         if (!this.recording || !this.paused) return;
         this.paused = false;
-        await this.port?.send('Page.startScreencast', { format: 'jpeg', quality: 70, maxWidth: 1280, maxHeight: 900, everyNthFrame: 1 }).catch(() => undefined);
+        await this.port?.send('Page.startScreencast', SCREENCAST).catch(() => undefined);
     }
 
     /**

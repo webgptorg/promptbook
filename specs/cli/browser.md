@@ -25,7 +25,22 @@ Use task purpose, tool names/descriptions, permissions and actual session state 
 
 Coordinate use of each profile across instances/projects; never corrupt a busy profile, seize/copy it, kill an unrelated browser or bypass another owner. Keep actual in-use/draining state per named tool. Disabling/removal affects new selections; a previously acquired use may continue only under [in-use confirmation rules](tool-management.md). Removing a configuration record never deletes its profile.
 
-Cookies, tokens and profile contents never enter Git, text traces, chat Books or model-visible credentials. Promptbook is not a password database. Resolve known login needs during attended setup where possible; later login/2FA uses ordinary human interaction. Headless hosts must not pretend a desktop window appeared.
+Promptbook never copies cookies, tokens or profile contents into Git, text traces, chat Books, prompts or configuration. Promptbook is not a password database. Resolve known login needs during attended setup where possible; later login/2FA uses ordinary human interaction. Headless hosts must not pretend a desktop window appeared.
+
+## Full access for agents
+
+**An agent that uses a browser tool has full access to that browser and its profile:** everything a person sitting at that browser could do with it. Configuring and enabling the tool (its name, description and profile) is the grant. There is no second per-task "computer control", "browser permission" or capability switch, and an agent never asks the user to enable, grant or widen control of a configured browser. An operation that is missing or does not work is a defect of the engine's browser tooling, diagnosed and fixed like any other defect, not a question for the user and not a reason to change the profile, its headless mode or the project.
+
+Full access includes at least:
+
+-   **Every tab and window of the profile:** list, open, switch and close tabs, including tabs the website opened itself; navigate to any URL (not only `http(s)`), back, forward and reload.
+-   **The complete page:** rendered text, the current values of form fields and rich-text editors, content inside open shadow roots and same-origin frames, numbered interactive elements (links, buttons, form fields, `contenteditable` editors and ARIA widgets), and screenshots the model itself can see.
+-   **Trusted input, as from a person:** mouse clicks (left/right/double), hover and scrolling at an element or at viewport coordinates; keyboard text entry that works in plain fields and rich-text editors alike; key presses and shortcuts; choosing options; uploading files (paths relative to the project) through file inputs and file choosers.
+-   **Programmatic control:** running JavaScript in the page, sending any Chrome DevTools Protocol command to the page or the browser, and the browser's local DevTools endpoint for the agent's own automation scripts (for example Playwright `connectOverCDP`) while its task holds the browser.
+
+Limits are limits of **authority, not of access**. The task and the agent's role decide which consequential actions (posting, paying, deleting, messaging) are authorized, and the account rule above still applies. Human-only steps stay human: credentials the agent does not have, two-factor codes, CAPTCHAs and consent only the account owner may give are requested through an ordinary chat that brings the browser to the front. Full access belongs to the task that currently owns the browser under the ownership rules above, ends when that task releases it, and never extends to other profiles, the user's other browsers or the desktop.
+
+Full access means using the signed-in sessions, not exporting them: agents do not copy cookies, tokens or stored passwords out of the profile into files, Git, chats or other services, and recognized secrets are redacted from text traces. Secret entry and human sign-in remain gaps in [recordings](trace-configuration.md).
 
 ## Inspection and recovery
 
@@ -41,4 +56,4 @@ The [tools/browser detail view](dashboard-details.md) shows these controls with 
 
 Record only attributable activity from the browsers actually used by the task when [recording is enabled](trace-configuration.md). Separate tool/attempt attribution under the task's source-filename trace directory; exclude unrelated desktop and other-project activity and mask authentication data. Recording failure is explicit but need not block otherwise safe work. Stopping/restarting a tool or engine never deletes persistent profiles.
 
-Verify default managed-profile reuse, isolated/personal/custom sources, multiple website/account profiles, preserved migration choices and safe shared-profile ownership. Add a new usable browser during a task and select it without restart. Test per-instance diagnostics, bounded automatic recovery, manual restart, retained in-use configuration and last-enabled-browser confirmation. No operation may silently change the target account, disclose secrets, duplicate effects or kill unrelated browsers.
+Verify default managed-profile reuse, isolated/personal/custom sources, multiple website/account profiles, preserved migration choices and safe shared-profile ownership. Add a new usable browser during a task and select it without restart. Verify full access headless and headful: type a multiline post into a `contenteditable` composer rendered inside an open shadow root, read the typed text back, see a screenshot, upload a file through a file chooser, and work across a tab the website opened — all without any question to the user. Test per-instance diagnostics, bounded automatic recovery, manual restart, retained in-use configuration and last-enabled-browser confirmation. No operation may silently change the target account, disclose secrets, duplicate effects or kill unrelated browsers.
