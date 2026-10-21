@@ -155,7 +155,9 @@ export async function selectOne<T>(terminal: TerminalProfile, options: { frame: 
     return await interact<T>(
         () => {
             const width = terminal.columns();
-            const lines = [...header(terminal, options.frame), style.bold(`${style.accent('?')} ${options.question}`)];
+            // Long questions (e.g. a project path) wrap instead of being clipped.
+            const [first = '', ...more] = wrap(options.question, Math.max(10, width - 3));
+            const lines = [...header(terminal, options.frame), style.bold(`${style.accent('?')} ${first}`), ...more.map((line) => style.bold(`  ${line}`))];
             const available = Math.max(3, terminal.rows() - lines.length - 4);
             const { start, end } = windowAround(options.choices.length, focus, available);
             if (start > 0) lines.push(style.muted(`    ↑ ${start} more`));

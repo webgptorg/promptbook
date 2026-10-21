@@ -377,6 +377,20 @@ export async function initializeProject(context: CommandContext, options: { proj
                         const name = answered(await inputLine(terminal, { frame: frame('destination'), question: 'Name (or relative path) of the new folder:', initial: state.root !== base ? relative(base, state.root) : undefined, validate: (value) => (!value ? 'Enter a folder name.' : undefined) }));
                         state.root = resolve(base, name);
                     } else state.root = base;
+                } else if (interactive && !options.fromStart) {
+                    // An explicit destination (e.g. the Windows installer's `--path` handoff) is reused rather than chosen
+                    // again, but still shown for confirmation before anything is written.
+                    shown.add('destination');
+                    const accepted = answered(
+                        await confirm(terminal, {
+                            frame: frame('destination'),
+                            question: `Set up the project in ${state.root}?`,
+                            defaultYes: true,
+                            yesLabel: 'Yes, set it up here',
+                            noLabel: 'No, cancel (nothing is changed)',
+                        }),
+                    );
+                    if (!accepted) throw new WizardCancelled('destination declined');
                 } else steps.set('destination', false);
                 state.nested = undefined;
                 const newFolder = state.root !== base || !(await isDirectory(state.root));
