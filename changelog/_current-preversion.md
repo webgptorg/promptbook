@@ -13,6 +13,7 @@
 -   Removed the legacy Expert copy, which can never load because Expert is engine-supplied, and the malformed `tasks/2026-10-09-0000-coder.book` stub. Both remain recoverable from Git.
 -   Updated the legacy paths in `agents/README.md` and in the Developer, Pavol and Community draft NOTE lines.
 -   Queued a follow-up task for Developer: Book indexing lists tracked files that were deleted in the working tree but not yet committed, so lint reports them as "Unreadable Book" warnings.
+-   Fixed: the project file listing behind Book indexing (`ptbk lint`, agent and task resolution) and the `ptbk find-*` commands leaves out tracked files deleted or moved in the working tree without a commit, so they no longer cause spurious "Unreadable Book: ENOENT" warnings. A moved copy is indexed at its new path, and read failures of Books that exist are still reported.
 
 ## Reborn `ptbk` implementation
 

@@ -4,3 +4,4 @@ GOAL Stop reporting tracked Books that were deleted or moved in the working tree
 Exclude files that are missing from the working tree from the project file listing, for example by subtracting `git ls-files --deleted`. Keep reporting real read failures of existing Books. Add regression coverage: when a tracked Book is deleted or moved without a commit, lint reports no Unreadable Book warning for the old path and indexes the moved copy. Record the fix in changelog/_current-preversion.md.
 TASK AGENT @Developer
 LINK {Project health check — 2026-10-21 21:14:37}
+TASK DONE 2026-10-22T09:52:58+02:00

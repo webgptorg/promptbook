@@ -310,13 +310,27 @@ export async function ignoredPaths(projectRoot: string, paths: readonly string[]
 }
 
 /**
- * Lists tracked and untracked non-ignored files under the project (absolute paths).
+ * Converts NUL-separated `git ls-files -z` output into unique absolute paths.
+ */
+function listedPaths(projectRoot: string, output: string): string[] {
+    return [...new Set(output.split('\0').filter(Boolean).map((path) => resolve(projectRoot, path)))];
+}
+
+/**
+ * Lists tracked and untracked non-ignored files present in the project's working tree (absolute paths).
+ *
+ * Tracked files deleted or moved away without a commit stay in the index; they are left out, while an untracked
+ * moved copy is listed at its new path.
  *
  * @private Git persistence
  */
 export async function listProjectFiles(projectRoot: string): Promise<string[]> {
-    const output = await gitOrThrow(projectRoot, ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', '.'], { phase: 'git ls-files' });
-    return [...new Set(output.split('\0').filter(Boolean).map((path) => resolve(projectRoot, path)))];
+    const [listed, deleted] = await Promise.all([
+        gitOrThrow(projectRoot, ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', '.'], { phase: 'git ls-files' }),
+        gitOrThrow(projectRoot, ['ls-files', '-z', '--deleted', '--', '.'], { phase: 'git ls-files' }),
+    ]);
+    const missing = new Set(listedPaths(projectRoot, deleted));
+    return listedPaths(projectRoot, listed).filter((path) => !missing.has(path));
 }
 
 /**
@@ -382,7 +396,7 @@ export async function commitsOfTask(repositoryRoot: string, taskName: string, le
 export async function stageableFiles(projectRoot: string, relativeDirectory: string): Promise<string[]> {
     const result = await git(projectRoot, ['ls-files', '-z', '--modified', '--others', '--exclude-standard', '--', relativeDirectory]);
     if (result.exitCode !== 0) return [];
-    return [...new Set(result.stdout.split('\0').filter(Boolean).map((path) => resolve(projectRoot, path)))];
+    return listedPaths(projectRoot, result.stdout);
 }
 
 /**

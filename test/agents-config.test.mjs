@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { AgentCatalog, resolveEffectiveAgent, teamReferences, validateAgents } from '../dist/project/agents.js';
@@ -7,7 +7,7 @@ import { ADAM_BOOK, TEACHER_BOOK } from '../dist/project/defaults.js';
 import { loadSettings, resolveSettings, updateProjectConfig } from '../dist/project/config.js';
 import { projectAt } from '../dist/project/workspace.js';
 import { ENGINE_VERSION } from '../dist/common/version.js';
-import { git, initRepository, temporaryDirectory } from './helpers.mjs';
+import { git, initRepository, ptbk, temporaryDirectory } from './helpers.mjs';
 
 /**
  * Writes files relative to a root.
@@ -71,6 +71,39 @@ test('agent lookup: non-agents, agents/ tier, other Books, then ignored node_mod
     assert.equal(reviewer.definition.tier, 2);
     assert.deepEqual(reviewer.shadowed.map((entry) => entry.relativePath), ['tasks/reviewer.book']);
     assert.equal((await catalog.resolve('{Not an agent}')).entry.tier, 3, 'tasks/ belongs to the rest of the project');
+});
+
+test('Book listing: tracked Books deleted or moved without a commit are not unreadable; the moved copy is indexed', async (t) => {
+    const directory = await temporaryDirectory(t);
+    const root = join(directory, 'project');
+    await initRepository(root);
+    await files(root, {
+        'agents/.core/adam.book': 'AGENT Adam\nFROM Void\nRULE Base rule.\n',
+        'agents/moved.book': 'AGENT Moved Agent\nRULE Keep working.\n',
+        'agents/deleted.book': 'AGENT Deleted Agent\nRULE Gone soon.\n',
+        'agents/locked.book': 'AGENT Locked Agent\nRULE Unreadable on purpose.\n',
+    });
+    await git(root, ['add', '.']);
+    await git(root, ['commit', '-qm', 'Books']);
+    await mkdir(join(root, 'agents', '.legacy'));
+    await rename(join(root, 'agents', 'moved.book'), join(root, 'agents', '.legacy', 'moved.book'));
+    await rm(join(root, 'agents', 'deleted.book'));
+    // A permission failure is a real read failure of an existing Book (not reproducible on Windows or as root).
+    const isLockable = process.platform !== 'win32' && process.getuid?.() !== 0;
+    if (isLockable) await chmod(join(root, 'agents', 'locked.book'), 0o000);
+    const catalog = await AgentCatalog.load(root);
+    const moved = await catalog.resolve('@MovedAgent');
+    assert.equal(moved.kind, 'agent');
+    assert.equal(moved.definition.relativePath, 'agents/.legacy/moved.book');
+    assert.equal((await catalog.resolve('@DeletedAgent')).kind, 'missing');
+    const lint = await ptbk(['lint', '--json'], { cwd: root, env: { ...process.env, NO_COLOR: '1', PTBK_HOME: join(directory, 'ptbk home') } });
+    const unreadable = JSON.parse(lint.stdout).findings.filter((finding) => /Unreadable Book/.test(finding.message));
+    assert.deepEqual(
+        unreadable.map((finding) => finding.location),
+        isLockable ? ['agents/locked.book'] : [],
+        lint.stdout,
+    );
+    assert.equal(lint.code, 0, lint.output);
 });
 
 test('inheritance: implicit Adam, FROM chains, Expert foundation, cycles and FROM User fail; Teacher must be CLOSED', async (t) => {
