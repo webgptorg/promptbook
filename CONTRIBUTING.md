@@ -7,7 +7,7 @@ Thank you for considering contributing to Promptbook! Here are some guidelines t
 1. **Fork the repository** and create your branch from `main`.
 2. **Write clear, concise commit messages**.
 3. **Add changes in [Changelog](/changelog/_current-preversion.md)**
-4. **Test your changes** to ensure they work as expected, use `npm test`
+4. **Test your changes** to ensure they work as expected, use `npm run check` _(typecheck, tests and package checks)_
 
 ## Reporting Issues
 
@@ -28,82 +28,17 @@ Thank you for contributing!
 
 If you're stuck or unsure how to contribute, [just ask!](https://github.com/webgptorg/promptbook/discussions) We welcome questions, ideas, and feedback from everyone-whether you're a developer, designer, writer, or user.
 
-## 🎯 Todos
+## 🎯 Planned work
 
-There are a lot of TODOs in the repository, in the future there will probably be some kind of agent system that can automatically go through the TODOs and implement them one by one according to priority and rules.
+Planned work is kept as tasks in [tasks/](./tasks/). The project is maintained with Promptbook itself; the agent team that works through these tasks is described in [agents/README.md](./agents/README.md).
 
-See [TODO.md](./TODO.md)
+## Markers
 
-## Emoji in `[brackets]`
-
--   `[any emoji]` Connects multiple places that are related to each other across the repository
--   `[number]` Connects multiple places that are related to each other across the file
--   `[🧠]` Marks a place where there is something to decide and think about.
--   `[🕕]` List of models _(that should be progresively updated)_
-    -   Prompt: Update available models and their prices, search online
--   `[🔼]` Marks an entity (function, class, type,...) in other project (like Promptbook.studio) which should be moved to this repository
--   `[🚉]` Marks an types / interfaces / structures fully serializable as JSON, not marking `string_` and `number_` prefixed aliases
--   `[🧹]` Need to implement garbage collection
--   `[🐣]` Easter eggs
--   `[💩]` Shitty code that needs refactoring
--   `$` When entity (function, class) starts by `$`, it means it is not pure and can have side effects.
--   3x `!` Marks a place that needs to be fixed before releasing a pre-release version.
+-   `@@@` Marks a place where text / documentation / ... must be written. A task that still contains `@@@` is an unwritten placeholder which `ptbk` never runs _(list them with `ptbk find-unwritten`)_.
+-   3x `!` Marks a place that needs to be fixed before releasing a pre-release version. _(In Markdown task files, exclamation marks set the task priority instead.)_
 -   4x (and more) `!` Marks a place that needs to be fixed as soon as possible.
--   `@@@` Marks a place where text / documentation / ... must be written.
--   [⚫] Code in this file should never be published in any package
--   [🟢] Code in this file should never be published into packages that could be imported into browser environment
--   [🔵] Code in this file should never be published outside of `@promptbook/browser`
--   [🟡] Code in this file should never be published outside of `@promptbook/cli`
--   [💞] Ignore a discrepancy between file name and entity name
+-   `[⚫]` Code in this file should never be published in the `ptbk` package
 
-<!--Import ./SECURITY.md-->
-<!--⚠️ WARNING: This section was imported, make changes in source; any manual changes here will be overwritten-->
+## 🔐 Security
 
-## 🔐 Security Policy
-
-### Introduction
-
-At Promptbook, we take security seriously. This document outlines our security policy, including how to report vulnerabilities and which versions we actively support with security updates.
-
-### Supported Versions
-
-We maintain security updates for the following Promptbook versions:
-
-| Version  | Supported          |
-| -------- | ------------------ |
-| Latest   | :white_check_mark: |
-| < Latest | :x:                |
-
-Security patches are applied to the most recent major version. We strongly recommend keeping your Promptbook installation updated to the latest version.
-
-### Reporting a Vulnerability
-
-If you discover a security vulnerability in Promptbook, please:
-
-1. **Report privately**: Email us at [security@ptbk.io](mailto:security@ptbk.io)
-2. **Include details**: Provide a clear description of the vulnerability and steps to reproduce
-3. **Wait for confirmation**: We'll acknowledge your report within 48 hours
-
-Please do not disclose security vulnerabilities publicly until we've had the opportunity to address them.
-
-### Response Timeline
-
--   **Acknowledgment**: Within 48 hours
--   **Initial Assessment**: Within 1 week
--   **Remediation Plan**: Within 2 weeks
--   **Security Patch**: Timeline varies based on complexity
-
-### Disclosure Policy
-
-Once a vulnerability is confirmed and addressed, we work with reporters to coordinate an appropriate disclosure timeline. We appreciate your collaboration in keeping our users secure.
-
-### Security Best Practices
-
-When using Promptbook:
-
--   Keep your installation up to date
--   Use strong authentication mechanisms
--   Follow the principle of least privilege when configuring access
--   Review our documentation for security recommendations
-
-<!--/Import ./SECURITY.md-->
+Please do not report security vulnerabilities in public issues. Email [security@ptbk.io](mailto:security@ptbk.io) and see the [Security Policy](./SECURITY.md) for supported versions and response times.

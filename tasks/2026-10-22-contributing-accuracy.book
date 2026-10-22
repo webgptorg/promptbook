@@ -4,3 +4,4 @@ Observed on 2026-10-22: it links to `./TODO.md`, which does not exist. Its marke
 Recheck each claim before editing. Keep conventions that current src/, scripts/ or test/ still use and correct or remove those that no longer apply. Prefer replacing the embedded security copy with a link to SECURITY.md; do not build new import tooling. Leave the owner's contact and community links (issues, discussions, Discord, security e-mail), the security policy itself and AGENTS.md unchanged. Record the change in changelog/_current-preversion.md.
 TASK AGENT @Community
 LINK {Goal enquiry: Community — 2026-10-22 12:51:46}
+TASK DONE 2026-10-22T13:11:00+02:00
