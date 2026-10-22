@@ -14,6 +14,7 @@
 -   Updated the legacy paths in `agents/README.md` and in the Developer, Pavol and Community draft NOTE lines.
 -   Queued a follow-up task for Developer: Book indexing lists tracked files that were deleted in the working tree but not yet committed, so lint reports them as "Unreadable Book" warnings.
 -   Fixed: the project file listing behind Book indexing (`ptbk lint`, agent and task resolution) and the `ptbk find-*` commands leaves out tracked files deleted or moved in the working tree without a commit, so they no longer cause spurious "Unreadable Book: ENOENT" warnings. A moved copy is indexed at its new path, and read failures of Books that exist are still reported.
+-   Community's goal enquiry queued two documentation tasks for itself: replacing the `TODO` placeholder README, which ships in the npm package, after asking the owner what the new one should cover; and correcting stale CONTRIBUTING.md guidance (a link to the missing TODO.md, markers for removed packages, `npm test` instead of `npm run check`, and an embedded SECURITY.md copy whose import script no longer exists).
 
 ## Reborn `ptbk` implementation
 
