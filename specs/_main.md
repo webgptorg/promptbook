@@ -8,7 +8,7 @@ Promptbook is one npm package, `ptbk`, providing the `ptbk` command-line utility
 
 Every engine owns one concrete project directory; exclusive locking prevents two local owners across installations. It runs with zero or many observing clients. Shared lifecycle states remain **running, pausing, pause and stopping**. Pause/ordinary stop drain without new claims; pending intent can be cancelled/changed. Force stop is immediate with best-effort owner cleanup; external hard kill has no cleanup guarantee. A dashboard is a lightweight cockpit/view/controller, never an independent scheduler: opening/closing one does not start/stop the engine. A running engine can legitimately wait for tasks or tools without being technically paused or stopped. Pause blocks automatic new background work; chat, its necessary routing/consultations and task authoring remain available, including beside other task execution. Tasks authored during pause wait for resume.
 
-**Configuration evolves explicitly.** `promptbookVersion` records the initializing/last-migrating engine version. Compare semantic versions, including numeric prereleases. An older engine offers its update without downgrading the project. A newer one applies applicable sparse steps in order, then sets its version and commits the entire migration pass once, even with no transformation steps. Missing version means one fixed pre-versioning baseline, without structural age analysis. The first migration converts separate browser/harness settings into named [tools](cli/tools.md). See [configuration migrations](cli/configuration-migrations.md) and [first conversion](cli/tools-migration.md).
+**Configuration and Books evolve through one deterministic project migration mechanism.** `promptbookVersion` records the initializing/last-migrating engine version. Compare semantic versions, including numeric prereleases. An older engine offers its update without downgrading the project. A newer one applies applicable sparse steps to configuration and affected Books in order, then sets its version and commits the entire migration pass once, even with no transformation steps. No per-Book age detection or migration agent is introduced, including for an older Book later imported into a current project. Missing version means one fixed pre-versioning baseline, without structural age analysis. The first migration converts separate browser/harness settings into named [tools](cli/tools.md). See [configuration migrations](cli/configuration-migrations.md) and [first conversion](cli/tools-migration.md).
 
 **Tools are pluggable named project resources, not additional Book entities.** Ordered `tools` records have `type`, `variant`, required `name`, optional `description` and `isEnabled` (default true). Initial types are BROWSER and HARNESS, with variant-specific typed settings. Multiple browser profiles/accounts and harness instances are supported. Different harness variants can be chosen for suitability; same-variant instances form an ordered availability/quota fallback chain. API keys are symbolic `${{ env.NAME }}` references, never committed values. Shared safe `.env` editing preserves historical assignments and adds timestamp/reason comments.
 
@@ -43,7 +43,8 @@ Keep specifications in English, concise and focused on observable behavior, impo
 ## Configuration and tools
 
 - [Configuration](cli/configuration.md): Versioned defaults, explicit overrides, live refresh and persistence boundaries.
-- [Configuration migrations](cli/configuration-migrations.md): Version comparison, fixed versionless baseline, sparse ordered steps and one committed pass.
+- [Project migrations](cli/configuration-migrations.md): One deterministic configuration/Book mechanism, fixed versionless baseline, sparse ordered steps and one committed pass.
+- [Routing/model conversion](cli/routing-migration.md): Preserve Manager customization and consolidate former execution controls into MODEL.
 - [First tools migration](cli/tools-migration.md): Preserve existing browser/harness choices, canonical spellings and autosync off.
 - [Tools](cli/tools.md): Named typed resources, multiple accounts/profiles and ordered same-variant fallback.
 - [Tool management](cli/tool-management.md): Shared CLI/init/dashboard operations, immediate commits and confirmations.
@@ -135,6 +136,6 @@ The Windows installer is an additional release artifact, not a second engine or 
 - [Task traces](cli/traces.md): Literal source basenames, provenance, available output, video and redaction.
 - [Trace configuration](cli/trace-configuration.md): Independent recording and Git/video choices.
 - [Planning](cli/planning.md): Read-only discussion and approved task saves.
-- [Book migration](cli/migration.md): Lossless Markdown/legacy-header conversion, distinct from configuration evolution.
+- [Book conversion](cli/migration.md): Lossless Markdown/legacy-header transformations through the shared project migration mechanism.
 - [Operational quality](cli/operations.md): Cross-platform, bounded, observable operation.
 - [Acceptance scenarios](cli/acceptance.md): Existing and new verifiable outcomes, supplemented by topic-specific acceptance.

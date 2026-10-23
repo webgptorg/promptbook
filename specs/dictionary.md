@@ -2,7 +2,7 @@
 
 [Main specification](_main.md)
 
-**Promptbook / ptbk:** One npm package and CLI for operating agents over a project. **Engine version:** The version actually loaded by the service, not latest or the viewer's installation. **promptbookVersion:** Saved initializing/last-migrating engine version in project configuration. **Configuration migration:** An ordered version-targeted transformation; one coordinator commits the complete applicable pass and version advance, including zero-step upgrades. See [migrations](cli/configuration-migrations.md).
+**Promptbook / ptbk:** One npm package and CLI for operating agents over a project. **Engine version:** The version actually loaded by the service, not latest or the viewer's installation. **promptbookVersion:** Saved initializing/last-migrating engine version in project configuration. **Project migration:** One deterministic mechanism for version-targeted configuration and Book transformations; one coordinator commits the complete applicable pass and version advance, including zero-step upgrades. See [migrations](cli/configuration-migrations.md).
 
 **APT:** Agent–Project–Task, a long-term context convention; the concrete project also includes Chat. **Agenda:** Its continuing responsibility, not the expansion of A. **Project:** Selected directory/workspace in a Git working tree, with managed files/context. See [workspace](cli/workspace.md).
 

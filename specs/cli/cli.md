@@ -30,7 +30,7 @@ The root command is `ptbk`. Bare invocation shows [top-level help](help.md) with
 | `list` | Read-only queue, filters and readiness explanations. |
 | `fix` | Project validation/repair, not ordinary queue execution. |
 | `verify` | Human review, follow-up and archiving, not a check run. |
-| `migrate` | Explicit local Markdown-to-Book conversion, distinct from automatic configuration migrations. |
+| `migrate` | Explicit local Book/Markdown conversion through the shared deterministic project migration operations. |
 | `recover` | Inspect/explicitly resolve interrupted work; routine safe recovery is automatic. |
 | `find-unwritten`, `find-refactor-candidates`, `find-fresh-emoji-tags` | Authoring helpers. |
 | `ping` | Explicit small harness/model call, optionally repeated with `--period`. |
@@ -77,6 +77,6 @@ Preserve `--min-priority`, `--max-priority`, `--priority` lower-bound alias, suc
 
 Validate incompatible priorities and flags before work. No-auto requires interactive input and conflicts with no-questions/noninteractive; start cannot become a finite limit run or require routine no-auto approval. Isolation requires commits and conflicts with continue; continue conflicts with pre-check repair. No-commit conflicts with isolation and autosync (including compatibility flags), not merely with owned dirty work. No option takes ownership of unrelated edits.
 
-Authoring saves one approved operation; push requires a commit. Add keeps template/priority input; boilerplate count accepts N or N*M (default 5*1); verify retains review order/repeatable ignore filters. A configured project migration hook is distinct from Book conversion and mandatory engine-configuration evolution; its optional enablement must not disable the latter. Diagnose unsupported flags rather than ignoring them.
+Authoring saves one approved operation; push requires a commit. Add keeps template/priority input; boilerplate count accepts N or N*M (default 5*1); verify retains review order/repeatable ignore filters. An optional project-specific hook cannot replace or disable the shared mandatory project-version migration mechanism for configuration and Books. Diagnose unsupported flags rather than ignoring them.
 
 List/help/about/version/dry-run never install/update/authenticate, start tunnels, call models, normalize/migrate files or modify Git. Report missing capabilities and needed repairs without performing them. See [Git persistence](git-persistence.md), [unattended operation](autonomous-operation.md) and [acceptance](acceptance.md).
