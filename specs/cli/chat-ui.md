@@ -30,3 +30,5 @@ Unread is not necessarily actionable and actionable is not necessarily unread. D
 ## Acceptance outcomes
 
 Run direct chat and press Enter: reach Chatter immediately. Repeat from dashboard/browser. Choose another agent and reach ordinary, hidden/core and Expert targets; explicit agent input bypasses the first picker. Verify excluded non-speakers and missing Chatter diagnostics. Ask status without creating a task, then create authorized linked work. Open two same-agent threads with repeated titles/same clock tick, preserve separate histories and reopen without renaming. A opens another agent's original waiting thread; replying resumes linked work once. Closing chat leaves the engine alive and messages, drafts/read markers and identity intact across refresh/reconnect.
+
+The separate Chats panel uses the same Chatter-first picker. The Tasks panel instead promotes a direct Tasker conversation for task creation/management. Chat uses the shared rich editor; its first-message MODEL chronology and availability during busy work/pause follow [chats](chats.md), without launching queued tasks under pause.

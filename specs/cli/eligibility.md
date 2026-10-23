@@ -11,3 +11,5 @@ Distinguish readiness to perform a task from readiness to arrange missing routin
 List, dry-run, terminal, dashboard, API and actual execution must agree on readiness and distinguish awaiting automatic assignment from waiting for user action or an unavailable explicit requirement. Read-only views explain the next action but neither call a model nor create Router tasks. Reevaluate readiness on relevant source, capability or time changes.
 
 See [task relationships](task-relationships.md), [not-before](not-before.md), [recurrence](recurrence.md) and [goal discovery](goal-discovery.md).
+
+Dashboard smart sorting is a presentation of the complete inventory, not another execution order or a reason to discard old/future tasks. See [task views](task-views.md).

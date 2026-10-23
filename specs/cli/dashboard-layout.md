@@ -13,7 +13,9 @@ Keep a compact project/version/service-state header and these functional regions
 | Service controls | Always-discoverable pause/resume, pending-intent cancellation/change, graceful stop, explicit whole-engine force stop and restart. |
 | Tools | Compact named browser/harness availability, enabled/in-use summaries and access to shared tool management and individual diagnostics. |
 | Synchronization | Compact Git synchronization state and drill-down/manual-cycle access, **only when autosync is enabled**. |
-| Queue | Upcoming work and readiness/dependency summaries with bounded detail access. |
+| Agents / team | All available agents, actual activity, per-agent queued work and drill-down into source/chat. |
+| Chats | Existing conversations, new Chatter-first entry and unread/actionable states. |
+| Tasks | Complete sortable task inventory, smart current-work view and Tasker-first authoring. |
 | Results and activity | Compact outcomes/statistics and a separately bounded diagnostic/activity area. |
 | Connection | Verified local/remote dashboard availability, URL/QR and access guidance, secondary to work and attention. |
 
@@ -24,6 +26,14 @@ Show engine lifecycle states `running`, `pausing`, `pause` and `stopping` indepe
 On wide terminals/screens, several panels remain simultaneously distinguishable with aligned edges. On narrow screens, stack/compact by priority while retaining attention, live state and lifecycle actions. Secondary detail can scroll/collapse in labelled regions. Never hide required actions under logs, shrink text to unreadability, clip QR codes or let agent artwork cover controls. Empty queues and resource waits have meaningful concise states.
 
 Update live regions without flicker, moved focus, lost drafts, reset scroll or repeated frames in scrollback. Background tool/sync updates must not steal the current editor. A snapshot renders once; raw output uses labelled plain sections. A viewer's focus and collapsed panes are local presentation state and do not change the engine or another viewer.
+
+## Spatial navigation and agent/task views
+
+Retain existing discoverable letter shortcuts as direct actions. At panel level, arrow keys move focus spatially between visible regions; highlight the focused panel without automatically enlarging it or rearranging the grid. Enter drills into that panel; Escape returns one level. Escape at the root exits only the dashboard, never the engine. Inside a list/editor, its arrows/Enter/Escape follow that local control until returning to the parent. Preserve selection, scroll and drafts across drill-down and refresh.
+
+Agents, Chats and Tasks are separate panels, not three labels for the active task. The team inventory includes all project/core agents and the engine Expert where referenceable, with an honest distinction between model-backed targets and non-speakers. Show each agent's actual current activity and assigned queue, not a fabricated permanent worker per agent. Detail provides its source, current/queued work, direct chat and [source editing](book-editor.md) for project-owned Books. Core hiding in automatic goal discovery does not hide roles from this explicit complete inventory.
+
+Tasks uses the [complete smart task view](task-views.md); Chats uses the [Chatter-first conversation flow](chat-ui.md). Promote Tasker for task creation/management. Agent/chat/task inventories support ordinary sorting by applicable displayed fields; preserve viewer choices without changing engine state. These are UI policies over the same service; navigation never changes scheduling or commits sources.
 
 ## Acceptance outcomes
 

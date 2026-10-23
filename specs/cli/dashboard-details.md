@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Panel layout](dashboard-layout.md) · [Shared controls](controls.md) · [Shared status](status-view.md)
 
-The project dashboard is the engine's **cockpit**: a compact overview of its important parts, with consistent drill-down into each. Keep attention, current work, service controls and compact tools status visible. Verbose execution, individual-tool and synchronization details are initially collapsed and reachable through labelled terminal shortcuts and equivalent accessible browser controls. Opening/closing a detail is inspection, not mutation. Keep focus and drafts stable; global shortcuts never intercept composers or pickers. Exact keys and grid placement remain presentation choices.
+The project dashboard is the engine's **cockpit**: a compact overview of its important parts, with consistent drill-down into each. Keep attention, current work, service controls and compact tools status visible. Verbose execution, individual-tool and synchronization details are initially collapsed and reachable through labelled terminal shortcuts and equivalent accessible browser controls. Opening/closing a detail is inspection, not mutation. Keep focus and drafts stable; global shortcuts never intercept composers or pickers. Panel navigation uses arrows to focus, Enter to drill in and Escape to return under [layout](dashboard-layout.md); exact grid placement remains a presentation choice.
 
 ## Execution detail
 
@@ -39,3 +39,7 @@ When autosync is off, omit this dedicated panel and its manual action rather tha
 ## Acceptance outcomes
 
 Open each applicable detail by its discoverable shortcut and return without mutation. Verify actual execution metadata with multiple instances/consultations and unknown model data. Add/enable a tool from another terminal during active work and observe immediate availability; save management changes with their own commits and the exact shared protections. Test every browser profile source and per-instance automatic/manual recovery without secret disclosure or unrelated kills. Toggle autosync: its panel appears only when enabled, reports real pending/failing state and triggers the shared cycle. Lifecycle controls and important waits remain visible in all layouts.
+
+## Agents, task sources and editor
+
+From the separate Agents/team panel, inspect every available agent, actual current work and its assigned task queue. Open a chat directly with the selected agent, inspect effective instructions and open the real project Book for editing. Task/chat details also expose their readable source and links. [Book editing](book-editor.md) defines Enter/newline, Ctrl+S/save, shared rich paste and nonblocking warnings; do not create another source editor per entity kind. Expert remains engine-owned/read-only.
