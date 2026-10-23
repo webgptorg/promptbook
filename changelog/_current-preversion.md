@@ -1,5 +1,11 @@
 # Unreleased
 
+## Branding: autonomous agendas, truly yours
+
+-   Rebuilt the README around ongoing agendas, self-hosting, readable and portable project files, model choice and Git history, with a developer example, APT explanation, actual installation commands and links to the application and partner offering.
+-   Aligned `ptbk about`, the help banner and package description with the same product promise. About retains the actual engine version and installation details, works offline and introduces the upcoming app separately from the current dashboard tunnel.
+-   Documented the shared product presentation and its audience-specific emphasis. BUSL-1.1 and runtime behavior are unchanged.
+
 ## Project maintenance team draft
 
 -   Drafted Pavol, Spec-keeper and Community agents and adapted the existing Developer Book to canonical syntax and specification-driven Promptbook maintenance. Connected the team through Manager and Chatter, with shared project rules inherited from Adam and closed drafts for the owner to edit manually.

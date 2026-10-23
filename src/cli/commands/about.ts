@@ -1,4 +1,5 @@
 import { EXIT } from '../../common/errors.js';
+import { PRODUCT_LINKS, PRODUCT_OVERVIEW } from '../../common/branding.js';
 import { ENGINE_VERSION, detectInstallation } from '../../common/version.js';
 import { wrap } from '../../ui/ansi.js';
 import { badgeFace, badgeIdentity } from '../../ui/badges.js';
@@ -12,16 +13,14 @@ import type { CommandContext } from '../context.js';
  */
 export default async function about(context: CommandContext): Promise<number> {
     const installation = detectInstallation();
-    const text = [
-        'Promptbook (ptbk) operates readable agents and tasks over a Git project. Agents carry lasting roles, goals and rules; tasks describe bounded work. The agenda executes one task at a time, routes missing assignments through Manager, verifies results with your project check and commits each accepted result together with its completion record.',
-        'Everything lives in files: Books in agents/ and tasks/, configuration in ptbk.json, runtime state in the Git-ignored .ptbk/ folder.',
-    ];
+    const text = PRODUCT_OVERVIEW;
     const facts: Array<[string, string]> = [
         ['Engine', `ptbk ${ENGINE_VERSION}`],
         ['Installation', `${installation.scope}${installation.ownerProject ? ` (project ${installation.ownerProject})` : ''}`],
         ['Location', installation.root],
         ['Node.js', process.version],
-        ['Website', 'https://ptbk.io/'],
+        ['Website', PRODUCT_LINKS.website],
+        ['GitHub', PRODUCT_LINKS.repository],
     ];
     const { terminal } = context;
     if (!terminal.pretty) {
@@ -34,7 +33,12 @@ export default async function about(context: CommandContext): Promise<number> {
         '',
         ...text.flatMap((paragraph, index) => [...wrap(paragraph, width - 4), ...(index < text.length - 1 ? [''] : [])]),
         '',
-        ...facts.map(([label, value]) => `${terminal.style.muted(label.padEnd(13))}${value}`),
+        ...facts.flatMap(([label, value]) => {
+            const labelWidth = 13;
+            const available = width - 4;
+            if (available < labelWidth + 20) return [terminal.style.muted(label), ...wrap(value, available)];
+            return wrap(value, available - labelWidth).map((line, index) => `${terminal.style.muted(index === 0 ? label.padEnd(labelWidth) : ' '.repeat(labelWidth))}${line}`);
+        }),
     ];
     terminal.write(`${renderPanel({ title: 'About', titleRight: `ptbk ${ENGINE_VERSION}`, lines, width, tone: 'accent', unicode: terminal.unicode, style: terminal.style }).join('\n')}\n`);
     return EXIT.success;
