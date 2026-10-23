@@ -6,9 +6,9 @@
 
 `ptbk dashboard` opens a live client for the selected project's existing engine; `--path` selects the project. Verify the owner. Opening/reopening does not initialize/start an engine, acquire its lock, claim work or change configuration. A missing/unreachable service gives an actionable error/start instruction, not an empty successful project view.
 
-Zero or many dashboards can attach, including terminals in the same project. They share state but not viewer focus/layout. The client has no wizard steps or completion countdown. Q, Ctrl+C and terminal disconnection close only this client; closing all clients leaves the daemon running. Service exit/loss is honest and never starts a replacement.
+Zero or many dashboards can attach, including terminals in the same project. They share state but not viewer focus/layout. The client has no wizard steps or completion countdown. Q, root-level Escape, Ctrl+C and terminal disconnection close only this client; closing all clients leaves the daemon running. Service exit/loss is honest and never starts a replacement.
 
-`dashboard --global` opens the independent host-wide live table from any CWD and stays open at zero entries. Selecting an engine attaches without `cd`, starting a process or acquiring its lock; returning leaves the engine untouched. Foreground start and finite run can show the same controls but own execution lifetime: their termination uses graceful engine lifecycle, not unrelated process kills. Run stays finite.
+`dashboard --global` opens the independent host-wide live table from any CWD and stays open at zero entries. Selecting an engine attaches without `cd`, starting a process or acquiring its lock; returning leaves the engine untouched. Foreground start can show the same controls but owns execution lifetime: its termination uses graceful engine lifecycle, not unrelated process kills. Init's successful countdown attaches this same independent dashboard, so leaving it does not terminate the daemon.
 
 ## Operational cockpit
 
@@ -28,7 +28,7 @@ Retain P for state-appropriate pause/resume and S for skipping an actual pacing/
 
 Provide labelled shortcuts to open/close execution, tools, individual-tool and enabled-sync details. Browser recheck/retry/restart targets the named owned instance through engine operations, not local kill commands. Synchronize now calls the one shared coordinator; it is absent while autosync is off. Both preserve underlying safety/revision rules and report pending/failed outcomes.
 
-O switches dashboard/plain presentation interactively, arrows/End scroll or follow activity, and resize preserves drafts/selection. A background tool/sync update does not steal focus or discard an edit. Equivalent browser/API controls need not copy terminal key choices.
+At panel level, arrows select a panel spatially without enlarging it; Enter drills in, Escape returns one level and root Escape closes the viewer. Inside focused lists/editors their own navigation takes precedence. O switches dashboard/plain presentation interactively; End can follow focused activity, and resize preserves drafts/selection. A background tool/sync update does not steal focus or discard an edit. Equivalent browser/API controls need not copy terminal key choices.
 
 ## Raw output
 

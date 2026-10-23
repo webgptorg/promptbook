@@ -2,13 +2,15 @@
 
 [Main specification](../_main.md) · [Initialization behavior](initialization.md) · [Shared CLI interaction](interactive-ui.md)
 
-Init is a short attended journey with a beginning, visible progress and an end. The dashboard is the optional ongoing cockpit, not the final wizard page or a prerequisite for unattended work. Functional saved choices are defined in [initialization](initialization.md).
+Init is a short attended journey with a beginning, visible progress and an end. After confirmed background start, interactive init offers a brief cancellable countdown into the same ordinary dashboard used by `ptbk dashboard`. This is a handoff from finite setup to an independent viewer, not a special initializer dashboard or a prerequisite for unattended work. Functional saved choices are defined in [initialization](initialization.md).
 
 ## Intent first, simple tool choices
 
 Open new initialization with one generous field asking what the user is working on. Accept prose, long pasted material and images/files through the shared [rich composer](rich-input.md), with inspectable compact tokens instead of terminal payload dumps. Retain supplied input and resumed drafts. Existing-project maintenance reuses recorded purpose and does not request a replacement brief. Do not ask for a separate first task.
 
 Keep the familiar selected-harness featured/More flow and one **Browser profile** picker: dedicated global Promptbook profile (default), isolated project profile, user's existing Chrome profile, or custom path. Explain the difference between dedicated and personal identities and safe sharing; preserve previous choices. Headless is independent. Unified tools are an internal/configuration improvement, not a requirement to ask about advanced instance naming, account pools, multiple browsers or fallback chains in the normal wizard. Those are managed later.
+
+Harness selection must visibly warn when the selected set is empty, explaining that no model work can run and Router cannot receive its concrete initial selection. Preserve the user's current selection and offer the normal navigation to choose a harness; do not silently select one, claim successful readiness or hide the empty selection behind a later cryptic failure.
 
 There is **no check-command question**, script picker or validation-deferral screen. Missing validation receives the explicit informational placeholder described in [checks](checks.md); the wizard does not claim real tests passed. Existing real validation is preserved.
 
@@ -22,11 +24,11 @@ Keep a dedicated **Traces** screen with three controls: commit traces, ignore vi
 
 Expert is the recognizable procedural visual guide, using the same [agent identity](../agents/visual-identity.md) as the dashboard. This is not a model call or evidence that bootstrap work is already executing. Restrained reactions can reflect actual progress, with decisions/errors above decoration. Preserve focus and drafts through resize and backward navigation.
 
-## Finish, celebrate and return
+## Finish, celebrate and hand off
 
-After successful local setup and confirmed service launch, show a brief tasteful Expert celebration without a dismissal, long delay, looping animation or scrollback flood. Never celebrate failed/cancelled local setup as success. Remote publication may still be pending; make that qualification explicit rather than claiming full synchronization success.
+After successful local setup and confirmed service launch, show a brief tasteful Expert celebration and short visible countdown to the ordinary project dashboard, without a long delay, looping animation or scrollback flood. Never celebrate failed/cancelled local setup as success. Remote publication may still be pending; make that qualification explicit rather than claiming full synchronization success.
 
-Leave a concise summary of project, actual engine version, local setup, confirmed service state and relevant pending synchronization. Make `ptbk dashboard` the primary next action and `ptbk stop` the stop action. Do not require another start, open/attach a dashboard or wait for the first task's result. Raw/noninteractive and reduced-motion modes remain finite and truthful, without hidden prompts or animation.
+Leave a concise summary of project, actual engine version, local setup, confirmed service state and relevant pending synchronization. Interactive countdown permits Enter to open the dashboard immediately and Escape/Ctrl+C to skip the viewer handoff and return; skipping or later closing the viewer leaves the engine running. On expiry, attach the existing shared dashboard without another start, initialization or worker. Never wait for the first task's result. Raw/noninteractive mode reports and returns without a countdown or automatic viewer; reduced motion removes animation without losing actions or truthful status. Always leave `ptbk dashboard` and `ptbk stop` available as ordinary commands.
 
 ## Acceptance outcomes
 

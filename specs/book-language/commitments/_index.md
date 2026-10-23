@@ -15,6 +15,7 @@ Exactly one of these starts a Book. Its content is the entity's name; subsequent
 ## Shared links
 
 - [LINK](link.md)
+- [MODEL](model.md): Shared execution constraints and resolved choice for agents, tasks and chats.
 
 ## Chat commitments
 
@@ -37,7 +38,6 @@ Exactly one of these starts a Book. Its content is the entity's name; subsequent
 - [TEMPLATE](template.md)
 - [FROM](from.md)
 - [IMPORT](import.md)
-- [MODEL](model.md)
 - [ACTION](action.md)
 - [TEAM](team.md)
 - [OPEN](open.md)
@@ -49,9 +49,6 @@ Exactly one of these starts a Book. Its content is the entity's name; subsequent
 ## Task commitments
 
 - [TASK AGENT](task-agent.md)
-- [TASK HARNESS](task-harness.md)
-- [TASK MODEL](task-model.md)
-- [TASK THINKING LEVEL](task-thinking-level.md)
 - [TASK PRIORITY](task-priority.md)
 - [TASK AFTER](task-after.md)
 - [TASK DUE DATE](task-due-date.md)

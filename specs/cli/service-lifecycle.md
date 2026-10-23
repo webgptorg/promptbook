@@ -9,13 +9,13 @@ The engine owns scheduling, state transitions and shutdown. CLI commands, termin
 | State | Meaning |
 | --- | --- |
 | `running` | New eligible tasks may start. The engine may be executing work or legitimately idle. |
-| `pausing` | No new task may start. The current task is draining; after it settles, remain alive in `pause`. |
-| `pause` | No task is executing and no new task starts. The service, inspection and controls remain available. |
-| `stopping` | No new task may start. Drain the current task, then clean up and exit. |
+| `pausing` | No new background task starts. The current task drains; after it settles, remain alive in `pause`. Chat remains usable. |
+| `pause` | No queued background task executes. Chat, required chat routing/consultations, authoring, inspection and controls remain available. |
+| `stopping` | No new work starts. Drain/checkpoint owned task and conversation work, then clean up and exit. |
 
-These are service states, not task phases or client-local flags. `stopped` is not a fifth live state: after exit there is no running service. A client may display that observed outcome or a disconnected diagnostic. Force stop is an immediate action, not another state; hard pause does not exist. Reasons such as an empty queue, backoff or a blocked prerequisite remain separate from the service state.
+These are service states, not task phases or client-local flags. `stopped` is not a fifth live state: after exit there is no running service. A client may display that observed outcome or a disconnected diagnostic. Force stop is an immediate action, not another state; a separate hard/soft pause mode is not introduced now. The current pause suspends automatic new background work, not conversation. Reasons such as an empty queue, backoff or a blocked prerequisite remain separate from the service state.
 
-Draining does not suspend or restart the harness. Let the current task finish its ordinary bounded execution, checks and result persistence, or safely checkpoint an interrupted, failed or human-waiting phase under [recovery](recovery.md). A human reply is not required merely to complete shutdown when ownership can safely be released. Never start a queued follow-up, Manager, Teacher, Fixer or discovery task while draining or paused. Do not silently escalate a slow graceful operation to force stop.
+Draining does not suspend or restart the harness. Let the current task finish its ordinary bounded execution, checks and result persistence, or safely checkpoint an interrupted, failed or human-waiting phase under [recovery](recovery.md). A human reply is not required merely to complete shutdown when ownership can safely be released. During pausing/pause, do not start queued background follow-ups, task-assignment Router work, Teacher, Fixer or discovery tasks. Conversation and everything necessary to serve it, including first-message routing and TEAM consultation, remain available even while another background task drains. Tasks authored in chat are saved but do not execute until scheduling resumes. This exception does not permit running queued work under a chat label; stopping still drains toward shutdown. Do not silently escalate a slow graceful operation to force stop.
 
 ## Transitions and cancellation
 
@@ -26,7 +26,7 @@ Draining does not suspend or restart the harness. Let the current task finish it
 
 Before replacing an already requested stop/restart with a pause, explicitly confirm that shutdown is being cancelled in favour of pause. In noninteractive use, report the conflict without an invisible prompt; the caller can explicitly cancel through resume and then request pause. Repeating the same pending request is idempotent, not implicit escalation. A stale confirmation cannot overwrite a newer user's decision unnoticed.
 
-The engine serializes control decisions with task claims: after pause/stop is accepted, no next task slips through that boundary. Cancellation is available while a request is pending, not after irreversible shutdown has begun. Report an already completed/too-late request honestly. State and pending intent changes propagate to every attached client.
+The engine serializes control decisions with task claims: after pause/stop is accepted, no next background task slips through that boundary. Chat handling under pause follows the explicit conversation exception above. Cancellation is available while a request is pending, not after irreversible shutdown has begun. Report an already completed/too-late request honestly. State and pending intent changes propagate to every attached client.
 
 ## Command and dashboard parity
 
@@ -46,7 +46,7 @@ One-shot commands distinguish request accepted/pending, cancellation and complet
 
 ## Force stop, signals and cleanup
 
-An internal force request stops the active owned execution without a graceful task-completion wait. Preserve whatever interruption evidence is available, never mark unfinished work done, and make a bounded best-effort cleanup through the owning service, including its own lock. Force stop while already in `pause` uses the same quick orderly shutdown as ordinary stop: there is no running task to kill.
+An internal force request stops the active owned execution without a graceful task-completion wait. Preserve whatever interruption evidence is available, never mark unfinished work done, and make a bounded best-effort cleanup through the owning service, including its own lock. Force stop while already in `pause` has no background task to drain, but still terminates any owned in-flight conversation work according to the force-stop contract before cleanup. A paused chat is not a separate engine or an exemption from explicit shutdown.
 
 A catchable graceful termination request delivered to the engine by the operating system follows graceful stopping where the host permits it. A signal delivered only to an attached dashboard closes that client; it is not forwarded as an engine stop request. An externally imposed uncatchable kill may prevent all cleanup, leaving lock records behind. This is the deliberate difference between internal force stop and an external hard kill; there is no promised cleanup or new next-start lock-removal requirement for that case. The owner-cleanup rules are in [locking](locking.md).
 

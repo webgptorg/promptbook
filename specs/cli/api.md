@@ -4,7 +4,7 @@
 
 The active engine exposes an independently usable authenticated HTTP API for project inspection/control. It requires neither browser app nor terminal dashboard. Zero, one or many clients use the same scheduling, lifecycle, management and recovery operations; neither clients nor page rendering create another worker.
 
-Start enables loopback HTTP in either process mode on a free or explicitly selected port and reports actual address/conflicts. Protected remote tunnelling follows its separate default policy. No-tunnel keeps local HTTP; no-server disables HTTP/SPA/tunnel but not local engine control/discovery. Finite run owns any enabled HTTP/tunnel only for its finite lifetime.
+Start enables loopback HTTP in either process mode on a free or explicitly selected port and reports actual address/conflicts. Protected remote tunnelling follows its separate default policy. No-tunnel keeps local HTTP; no-server disables HTTP/SPA/tunnel but not local engine control/discovery.
 
 ## Observed state and shared operations
 
@@ -30,7 +30,7 @@ Network/rejected-push failures do not stop safe local execution or create duplic
 
 ## Chat and creation
 
-Chats expose full names, participants/authors, status/timestamps, history and task/conversation links. Authenticated list/new/open/append/answer use durable Books and normalized names, not new chat IDs. A new human-chat request with no target selects [Chatter](../agents/chatter.md); existing-thread participants and explicit targets remain unchanged. Missing/invalid Chatter is diagnosed, not silently replaced. Human answers are committed messages.
+Chats expose full names, participants/authors, status/timestamps, history and task/conversation links. Authenticated list/new/open/append/answer use durable Books and normalized names, not new chat IDs. A new human-chat request with no target selects [Chatter](../agents/core-agents/chatter.md); existing-thread participants and explicit targets remain unchanged. Missing/invalid Chatter is diagnosed, not silently replaced. Human answers are committed messages.
 
 Use revision/idempotency checks against stale/reconnecting duplicate writes. Expose canonical agent identity/observed activity for [visual presentation](../agents/visual-identity.md). Distinguish actionable human waits from ordinary internal specialist consultations; Fixer uses these normal agent mechanisms, not a special transport.
 
@@ -43,3 +43,5 @@ Clients observe fresh changes from every channel. Inspection is read-only, inclu
 Authenticate inspection and mutation before tunnelling. Unauthenticated clients get only a minimal pairing/app shell. Use project-scoped session/direct-client authority, reject invalid/stale/cross-origin requests and access outside scope, and prevent public caching of private responses. Hostname opacity, forwarded headers and apparent localhost origin are not authorization. Never expose unredacted diagnostics, tokens or profile contents.
 
 Client/tunnel failure cannot stop a daemon, reset state or duplicate tasks. The lightweight [SPA](dashboard.md) is a consumer at `/`; host-wide [global discovery](global-dashboard.md) is a separate local inventory, not silently extended project API authority.
+
+Book-source inspection/editing is available through the shared operations, including source revision checks, nonblocking content warnings, scoped commits and ordinary repair task context. Chat and required first-message routing remain available alongside queued work and during scheduling pause; creating a task then saves it pending. Source edits cannot change engine-owned Expert definitions or overwrite another operation's changes.

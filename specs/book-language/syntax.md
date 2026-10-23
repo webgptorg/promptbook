@@ -63,3 +63,7 @@ Unprefixed name headers and name-plus-ENTITY sources are legacy material, not al
 ## Acceptance outcomes
 
 Parse standalone AGENT, TASK and CHAT examples with one grammar and no location hint; moving them preserves kind and normalized name. Verify multiline content, multiword keywords, numeric/reference values, short uppercase prose words and fenced control-looking text. Preserve an unknown complete keyword without prefix fallback. Reject an empty declaration, an unprefixed canonical header, a second entity declaration and a multiline name; do not confuse TASK AGENT or CHAT MESSAGE with root declarations. No test depends on a timestamp being present in a name.
+
+## Resilient authoring and repair
+
+The diagnostics above describe whether a source can be interpreted safely, not a prohibition on saving it. Preserve unknown commitment content and user mistakes. The Book editor **warns and permits saving**, including malformed constrained MODEL content; detected problems create an ordinary Fixer repair task. Isolate affected execution instead of fatally failing the engine. Do not guess a runnable task from an ambiguous declaration, silently correct uncertain intent or turn every unusual natural-language sentence into a fatal syntax error. See [Book editor](../cli/book-editor.md).

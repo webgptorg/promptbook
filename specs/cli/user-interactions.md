@@ -14,7 +14,7 @@ Status snapshots and raw output give a usable chat name/ref and `ptbk chat` / `p
 
 ## Waiting tasks and recovery
 
-When a task requires actual human assistance, store a task↔chat reference and its durable checkpoint, including the exact question, offered options, prior authorized effects and resume point. Return from the provider turn promptly; human waiting must not tie up an MCP call until timeout. The task remains unfinished without counting a failure or launching duplicate provider turns. Safe independent work may proceed only after releasing ownership; shared resource conflicts are explicitly reported. A finite run may return incomplete with the waiting chat.
+When a task requires actual human assistance, store a task↔chat reference and its durable checkpoint, including the exact question, offered options, prior authorized effects and resume point. Return from the provider turn promptly; human waiting must not tie up an MCP call until timeout. The task remains unfinished without counting a failure or launching duplicate provider turns. Safe independent work may proceed only after releasing ownership; shared resource conflicts are explicitly reported.
 
 Only a real applicable reply or completed human action permits continuation. Reject stale/double answers, distinguish reject/cancel/unavailable from approve, and validate the state of required external access after a claimed login. After restart, retain the same chat and checkpoint; answering through any channel is reflected in all channels, and the original task resumes automatically when safe. A task must still pass its normal checks before completion. Do not assume a message is an approval merely because it exists.
 

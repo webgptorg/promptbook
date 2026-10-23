@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Canonical syntax](../book-language/syntax.md)
 
-Migration is an explicit local maintenance operation. It performs no model call, harness installation, application implementation or browser action. `--dry-run` previews the plan without writing anything. Read-only discovery, reference lookup, list and status do not rewrite old sources merely because a header needs conversion.
+Book conversion uses the **same deterministic project migration mechanism** as configuration evolution, with one project version in `ptbk.json` and one coordinator. A registered version step may change configuration and Books together. An explicit local `ptbk migrate` request selects the stated conversion scope through these shared operations; it does not introduce a second migration engine. Conversion performs no model call, harness installation, application implementation or browser action. `--dry-run` previews the plan without writing anything. Read-only discovery, reference lookup, list and status do not rewrite sources. Do not detect the age of a Book or automatically migrate an older file inserted into a current project; only the project-version pass or explicit conversion scope authorizes these deterministic transformations.
 
 ## Markdown task conversion
 
@@ -22,7 +22,7 @@ Neither Markdown conversion nor Book-header conversion creates a new logical ent
 
 ## Persistence and recovery
 
-Interruption and rerunning must not produce two runnable copies of the same task or duplicate chat histories. Preserve migration provenance, resolve ambiguity before execution and refuse live tasks or conflicting active writes. A successful conversion uses one scoped maintenance commit unless `--no-commit` was explicitly selected; push is not implicit. Preserve related trace history and source revisions, and leave unconverted data recoverable when conversion cannot safely complete.
+Interruption and rerunning must not produce two runnable copies of the same task or duplicate chat histories. Preserve migration provenance, resolve ambiguity before execution and refuse live tasks or conflicting active writes. The shared coordinator commits all changes for a successful version migration once and stamps its version only after success; required version passes cannot use `--no-commit`. An explicitly requested standalone conversion uses the same scoped persistence, with an explicit ordinary `--no-commit` exception only when no mandatory project migration is required. Push is not implicit. Preserve related trace history and source revisions, and leave unconverted data recoverable when conversion cannot safely complete.
 
 Acceptance covers each entity kind, Markdown payloads, missing/conflicting legacy kind, already canonical headers, unknown metadata, literal examples, collisions, interrupted conversion and a second no-op conversion. Names and linked history survive; no automatic creation timestamp, anonymous ID or read-only rewrite appears.
 

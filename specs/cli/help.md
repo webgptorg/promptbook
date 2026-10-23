@@ -4,7 +4,9 @@
 
 ## Command-scoped help
 
-Bare `ptbk`, `ptbk help` and `ptbk --help` show the same top-level overview. It explains the tool, ordinary workflow, command groups and common options without expanding every command's full reference. `ptbk about` gives a short product/engine overview.
+Bare interactive `ptbk` is a small action picker for Initialize project, Start engine and Open dashboard, using the normal selectable controls. It displays version/project context and calls the existing chosen workflow without duplicating it; merely displaying or cancelling the picker has no side effects. Without interactive input, bare invocation shows technical top-level help.
+
+`ptbk help` and `ptbk --help` always show technical command reference: ordinary workflow, command groups, relevant flags/defaults and scoped usage. They do not enter the action menu. `ptbk about` gives a visually designed compact product box with Promptbook name, actual engine version, purpose and [ptbk.io](https://www.ptbk.io/), rather than another dump of command options. Raw about retains that information in plain text.
 
 For any supported command or nested subcommand path, `<path> --help`, `<path> help` and `ptbk help <path without ptbk>` show help only for that command path. For example, `ptbk init --help`, `ptbk init help` and `ptbk help init` are equivalent; `ptbk start --help` describes start, not the entire CLI. Apply the same rule to dashboard, chat, ask, answer, add and every other command, including aliases and supported nested subcommands.
 
@@ -24,4 +26,4 @@ Clearly distinguish presentation/input policy, daemon versus foreground operatio
 
 Show the actual running Promptbook engine version in bare/help/about output, at the beginning of every wizard and persistently in runtime dashboards. Obtain it from the invoked installation, never a hard-coded label, registry latest version or another local/global installation. `--version` provides the same version directly. An attached terminal or browser dashboard shows the inspected service's version, not a client's assumed version.
 
-Help/about/version work offline and without an initialized project or running daemon. They never initialize projects, check for updates, install tools, authenticate, call models, modify Git or change service state.
+Help/about/version and displaying the bare action menu work offline and without an initialized project or running daemon. They never initialize projects, check for updates, install tools, authenticate, call models, modify Git or change service state.

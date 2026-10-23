@@ -8,6 +8,6 @@ Accept `YYYY-MM-DD`, or a date plus time separated by a space or `T`, with optio
 
 Invalid, conflicting or unrecognized dates block the task; they never remove the restriction. A model identifier containing a date remains a model identifier. Pause/resume and skip-wait controls cannot bypass a task's earliest start.
 
-A finite run reports future work and exits when no eligible work remains. Start waits efficiently, reevaluating source changes and time. Resuming an already-started task follows recovery rules rather than claiming a new scheduled occurrence.
+Start waits efficiently for future work, reevaluating source changes and time. Router assignment may occur earlier according to target urgency/priority, but cannot execute the target before its boundary. Resuming an already-started task follows recovery rules rather than claiming a new scheduled occurrence.
 
 See [TASK AFTER](../book-language/commitments/task-after.md), [TASK DUE DATE](../book-language/commitments/task-due-date.md) and [recurrence](recurrence.md).

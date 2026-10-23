@@ -1,0 +1,13 @@
+# Deterministic Router, Tasker and MODEL conversion
+
+[Project migration coordinator](configuration-migrations.md) · [MODEL](../book-language/commitments/model.md) · [Core roles](../agents/core-agents.md)
+
+Register these transformations at the exact release introducing the new contract, using the same sparse ordered project-version chain as tools/configuration/Book conversion. This specification does not guess that release number or modify the package version. If several changes ship together they may belong to one deterministic step; the coordinator still commits the whole successful pass once.
+
+Preserve existing customized/learned Manager content while converting its role/name/source to Router and updating the corresponding unambiguous references. Do not overwrite an already existing Router, merge two normalized identities by guesswork or reset the Book to a new boilerplate. Missing Tasker/other required roles get their minimal defaults; unrelated agents and existing teams remain user-owned. Prepare a newly initialized Router's concrete MODEL from the first suitable enabled selected harness and coded plugin defaults. A conflicting or unusable existing setup is diagnosed through normal repair, without recursive self-routing.
+
+Consolidate known `TASK HARNESS`, `TASK MODEL` and `TASK THINKING LEVEL` controls into one MODEL with the same conjunctive/alternative meaning; TASK AGENT remains the separate responsible-agent reference. Convert unambiguous legacy agent MODEL values to the same shared syntax. Preserve exact model identifiers, supported effort values, runtime restrictions, source content and provenance. Do not mistake opaque legacy TASK RUNNER alternatives for strict model IDs.
+
+Remove superseded tool-instance model/thinking defaults and model allowlists only when their meaningful explicit requirements have been preserved in the applicable MODEL scope. Do not silently widen the user's choices, replace explicit requirements with today's plugin defaults or drop a value to make validation pass. Contradictory old/new values or an ambiguous mapping retain the original recoverable source and report the problem rather than stamp a successful migration. No intelligent routing or agent call runs inside a migration step.
+
+Rewriting syntax does not create new tasks/chats, refresh creation names/timestamps, complete work or reset recurring schedules, waiting messages and attachments. Protect active source revisions and unrelated changes. Repeating a completed pass is a no-op; interrupted recovery must not create duplicate cores, assignments or conversions. A problematic Book later imported into a current project does not trigger this pass by inferred age.

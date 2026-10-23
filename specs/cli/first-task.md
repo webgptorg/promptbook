@@ -18,7 +18,7 @@ For deliberately blank input, the same Expert task performs a small project-loca
 
 Save the task with the setup artifacts before the service may claim it. Successful init automatically starts the background agenda, which begins eligible work without an open dashboard or another command. Init itself does not call a model or execute the bootstrap inline; the daemon does not wait for the wizard to become a dashboard.
 
-Use normal routing constraints, selected harnesses, checks, repairs, completion stamps, [traces](traces.md) and result commits. Do not mark the task complete because initialization or daemon launch succeeded. The task's accepted changes, completion and generated follow-ups share its ordinary result commit. Follow-ups receive their own generated names and use normal scheduling; they do not need a second initialization or manual Run action.
+Use normal routing constraints, selected harnesses, checks, repairs, completion stamps, [traces](traces.md) and result commits. Do not mark the task complete because initialization or daemon launch succeeded. The task's accepted changes, completion and generated follow-ups share its ordinary result commit. Follow-ups receive their own generated names and use normal scheduling; they do not need a second initialization or separate work-launch action.
 
 Respect queue ordering and ownership in an existing project. Do not erase, complete or reorder user tasks merely to force a demonstration. The new empty project's bootstrap is its initial eligible work.
 

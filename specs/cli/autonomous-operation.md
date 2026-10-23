@@ -8,7 +8,7 @@
 
 Init is finite attended setup for intent, choices, known access and initially usable tools. It ends with background start, without needing an open launching terminal/dashboard. The cockpit observes and directs work; it is not an operator required to advance every task. The simple check placeholder is honest absent automated validation, not another setup question or readiness gate.
 
-Begin Expert bootstrap and continue eligible work/follow-ups, Manager assignment, recurrence and due discovery through the ordinary lifecycle. Respect schedules, cooldowns, explicit pause/stop, dependencies and legitimate idle. Autonomy does not mean pointless work or paid calls while waiting.
+Begin Expert bootstrap and continue eligible work/follow-ups, Router assignment, recurrence and due discovery through the ordinary lifecycle. Respect schedules, cooldowns, explicit pause/stop, dependencies and legitimate idle. Autonomy does not mean pointless work or paid calls while waiting.
 
 ## Ordinary recovery before human decisions
 

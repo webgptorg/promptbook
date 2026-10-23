@@ -1,6 +1,6 @@
 # Automatic repair is a core product principle
 
-[Main specification](../_main.md) · [Unattended operation](../cli/autonomous-operation.md) · [Fixer](../agents/fixer.md) · [Core agents](../agents/core-agents.md)
+[Main specification](../_main.md) · [Unattended operation](../cli/autonomous-operation.md) · [Fixer](../agents/core-agents/fixer.md) · [Core agents](../agents/core-agents.md)
 
 **A started project should solve ordinary problems itself and involve the user as little as necessary.** This is a central system contract across configuration, migrations, tool availability, execution, persistence and synchronization, not a footnote in the definition of a maintenance agent. An alive engine that repeatedly waits for routine decisions does not satisfy this principle.
 
@@ -31,3 +31,5 @@ Distinguish task-local problems from project-wide unsafe state. Continue indepen
 ## Acceptance outcomes
 
 Resolve unambiguous naming corrections without a human question and retain their scoped commit. Send a genuine ambiguity or difficult merge conflict to the normal Fixer; verify ordinary specialist/User consultations, learned preferences and no new communication mechanism. Exercise customized all/some/no-User consultation policies without resetting the Book. Recover from a transient fault without duplicate effects or repeated notifications. With no usable harness, keep the engine controllable and the repair pending; adding a usable tool enables recovery without a restart.
+
+Detected Book problems, including unknown/misspelled commitments and invalid MODEL content, warn without preventing the user from saving. Preserve source and isolate affected execution; use a separate ordinary Fixer task rather than a fatal engine error. Persistent Router/Tasker failure follows this same path. Fixer's default Book asks before changing explicit user intent, but that caution is editable agent policy, not a new hardcoded engine restriction.

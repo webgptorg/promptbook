@@ -2,7 +2,7 @@
 
 [Agents](_index.md) · [Project status view](../cli/status-view.md)
 
-Every agent has a recognizable visual identity without requiring the user to choose an image or add visual metadata before work can start. Provide it automatically for ordinary project agents, core agents such as Manager, Teacher and Fixer and the engine-supplied Expert. The default works locally and offline, without an image-generation/model call, external avatar service or extra setup.
+Every agent has a recognizable visual identity without requiring the user to choose an image or add visual metadata before work can start. Provide it automatically for ordinary project agents, core agents such as Router, Teacher and Fixer and the engine-supplied Expert. The default works locally and offline, without an image-generation/model call, external avatar service or extra setup.
 
 ## Visual direction: Promptbook Coder badges
 
@@ -22,10 +22,10 @@ Inheritance does not give every descendant Adam's appearance. Do not introduce a
 
 Show badges in agent/queue views, current-task status, attributed messages and results, including the live dashboard and status snapshot. The [current-work panel](../cli/dashboard-layout.md) makes it immediately clear who is doing what. Agent-authored user-facing chat messages identify the agent speaker, while the human speaker is User rather than another autonomous worker; Void/Null never appears to be doing work.
 
-Identity and observed activity are distinct. Use readable labels and restrained expressions for working, idle, waiting for the user/provider, paused, blocked/failed and completed work. Manager assignment and goal enquiries show their actual responsible agents. A quiet blink is decorative, not proof of progress; work gestures reflect actual work and cannot simulate tool calls, checks or completion. No hardcoded alternating coding/painting scenes may pretend the runtime is performing those actions.
+Identity and observed activity are distinct. Use readable labels and restrained expressions for working, idle, waiting for the user/provider, paused, blocked/failed and completed work. Router assignment and goal enquiries show their actual responsible agents. A quiet blink is decorative, not proof of progress; work gestures reflect actual work and cannot simulate tool calls, checks or completion. No hardcoded alternating coding/painting scenes may pretend the runtime is performing those actions.
 
 Working motion changes or stops while waiting; snapshots are still frames of the observed state. Respect reduced motion, keep layout stable and do not imply parallel independent tasks. A completed task is not a permanently completed agent. Avatars never obscure details, errors or controls, and chats awaiting human replies remain the highest visual priority. Repainting cannot steal input or change execution, routing or permissions.
 
 ## Acceptance outcomes
 
-Compare the current-agent area with the Coder reference: it is an expressive, polished terminal-style mascot badge, not merely a colored initial or random geometric icon. Several agents remain distinguishable without color. Reconnect, move a Book and edit its rules: appearance remains stable. Equivalent references show one identity. Switching from Manager to its selected agent changes the badge, name and actual activity together. Waiting cannot look like active execution; waiting-for-user chats remain more prominent. Raw, narrow and reduced-motion modes preserve names, state and controls.
+Compare the current-agent area with the Coder reference: it is an expressive, polished terminal-style mascot badge, not merely a colored initial or random geometric icon. Several agents remain distinguishable without color. Reconnect, move a Book and edit its rules: appearance remains stable. Equivalent references show one identity. Switching from Router to its selected agent changes the badge, name and actual activity together. Waiting cannot look like active execution; waiting-for-user chats remain more prominent. Raw, narrow and reduced-motion modes preserve names, state and controls.

@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md)
 
-One project executes one task at a time, including assignment, teaching, bootstrap, repair and goal-enquiry work. TEAM consultations remain within the owning task/conversation. Entry points share lifecycle/acceptance rules; the [engine owns execution](process-modes.md), while dashboards request controls.
+One project executes one queued background task at a time, including assignment, teaching, bootstrap, repair and goal-enquiry work. Chat, its necessary routing and bounded TEAM consultations remain available concurrently and during scheduling pause; they do not claim a second queued task or take over the active task's files. Coordinate source/Git writes through the same scoped ownership operations. TEAM consultations remain within the owning task/conversation. Entry points share lifecycle/acceptance rules; the [engine owns execution](process-modes.md), while dashboards request controls.
 
 Select eligible work only while lifecycle state is `running`. Before each claim, refresh configuration/version and `.env`, check current enabled/usable tools and actual task constraints, and perform the required opt-in synchronization attempt. A failed remote attempt does not itself block work. Missing resources leave the service running with an explicit tool wait. Establish current source, normalized [task name](task-identity.md) and actual execution context.
 
@@ -16,6 +16,6 @@ Failed real checks cause bounded repair/recheck, not false completion. Persisten
 
 After completion, claim further work only if lifecycle still permits it. Pausing/stopping drain or checkpoint current work without starting follow-ups. Cancelling/replacing pending intent does not restart the task. Force stop interrupts owned execution without false completion and retains available recovery evidence. See [service lifecycle](service-lifecycle.md).
 
-Checkpoint a blocked task and release ownership for independent work only when safe; no concurrent task mutations or mixing unresolved edits into another result. A human wait is not permission to discard work. Start keeps supervising empty queues and recoverable/resource waits; finite run may finish with an honest incomplete outcome. Shared unsafe ownership may block affected work, but a network synchronization failure alone does not.
+Checkpoint a blocked task and release ownership for independent work only when safe; no concurrent task mutations or mixing unresolved edits into another result. A human wait is not permission to discard work. Start keeps supervising empty queues and recoverable/resource waits. Shared unsafe ownership may block affected work, but a network synchronization failure alone does not.
 
 See [checks](checks.md), [Git persistence](git-persistence.md), [Git synchronization](git-synchronization.md), [recovery](recovery.md), [traces](traces.md) and [task origins](task-origins.md).
