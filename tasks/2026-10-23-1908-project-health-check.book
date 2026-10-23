@@ -1,0 +1,67 @@
+TASK Project health check — 2026-10-23 19:08:09
+GOAL Promptbook found these problems in the project. Diagnose each one (source, impact, confidence) and fix the clear, low-risk ones within your authority; check the result.
+For a risky, ambiguous or owner-dependent correction, do not guess: consult your team as your own instructions direct, once and with a specific explanation and options, only when you genuinely need help. Do not rewrite ambiguous definitions or unrelated files. Making no change is valid when nothing is justified.
+
+- warning: agents/.legacy/coding/.core/adam.book — Name "Adam" is defined 3 times: agents/.core/adam.book (agent) wins; shadowed: agents/.legacy/coding/.core/adam.book (agent), agents/.legacy/default/.core/adam.book (agent).
+- warning: agents/.legacy/coding/.core/adam.book:10 — Unknown commitment `META FONT`; it is preserved but has no effect.
+- warning: agents/.legacy/coding/.core/adam.book:4 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/coding/.core/adam.book:9 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/coding/developer.book:3 — Unknown commitment `META VISUAL`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/adam.book:10 — Unknown commitment `META FONT`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/adam.book:4 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/adam.book:9 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/creator.book:2 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/teacher.book — Name "Teacher" is defined 2 times: agents/.core/teacher.book (agent) wins; shadowed: agents/.legacy/default/.core/teacher.book (agent).
+- warning: agents/.legacy/default/.core/teacher.book:2 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/teacher.book:32 — Unknown commitment `USER MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/teacher.book:35 — Unknown commitment `AGENT MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/teacher.book:49 — Unknown commitment `USER MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/teacher.book:52 — Unknown commitment `AGENT MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/teacher.book:66 — Unknown commitment `NOTE USER MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/teacher.book:69 — Unknown commitment `NOTE AGENT MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/teacher.book:7 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/.core/teacher.book:8 — Unknown commitment `META FONT`; it is preserved but has no effect.
+- warning: agents/.legacy/default/aktualizator-prezentaci.book:27 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/aktualizator-prezentaci.book:28 — Unknown commitment `META DESCRIPTION`; it is preserved but has no effect.
+- warning: agents/.legacy/default/aktualizator-prezentaci.book:29 — Unknown commitment `META INPUT PLACEHOLDER`; it is preserved but has no effect.
+- warning: agents/.legacy/default/aktualizator-prezentaci.book:31 — Unknown commitment `INITIAL MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/aktualizator-prezentaci.book:4 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-na-webu.book:26 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-na-webu.book:27 — Unknown commitment `META DESCRIPTION`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-na-webu.book:28 — Unknown commitment `META INPUT PLACEHOLDER`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-na-webu.book:3 — Unknown commitment `META VISUAL`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-na-webu.book:30 — Unknown commitment `INITIAL MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-na-webu.book:4 — Unknown commitment `META VISIBILITY UNLISTED`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-nad-firemnimi-dokumenty.book:24 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-nad-firemnimi-dokumenty.book:25 — Unknown commitment `NOTE META IMAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-nad-firemnimi-dokumenty.book:27 — Unknown commitment `META DESCRIPTION`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-nad-firemnimi-dokumenty.book:28 — Unknown commitment `META INPUT PLACEHOLDER`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-nad-firemnimi-dokumenty.book:30 — Unknown commitment `INITIAL MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-nad-firemnimi-dokumenty.book:5 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-v-cestine.book:19 — Unknown commitment `INITIAL MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-v-cestine.book:4 — Unknown commitment `META VISUAL`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-v-cestine.book:5 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-v-cestine.book:7 — Unknown commitment `NOTE META IMAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/chat-v-cestine.book:8 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/copywriter.book:3 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/firemni-pravnik.book:25 — Unknown commitment `RULE U`; it is preserved but has no effect.
+- warning: agents/.legacy/default/firemni-pravnik.book:28 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/firemni-pravnik.book:29 — Unknown commitment `NOTE META IMAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/firemni-pravnik.book:30 — Unknown commitment `META DESCRIPTION`; it is preserved but has no effect.
+- warning: agents/.legacy/default/firemni-pravnik.book:31 — Unknown commitment `META INPUT PLACEHOLDER`; it is preserved but has no effect.
+- warning: agents/.legacy/default/firemni-pravnik.book:33 — Unknown commitment `INITIAL MESSAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/firemni-pravnik.book:44 — Unknown commitment `USE CALENDAR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/firemni-pravnik.book:6 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/generic-chatter.book:4 — Unknown commitment `META VISUAL`; it is preserved but has no effect.
+- warning: agents/.legacy/default/generic-chatter.book:5 — Unknown commitment `META VISIBILITY PUBLIC`; it is preserved but has no effect.
+- warning: agents/.legacy/default/generic-chatter.book:7 — Unknown commitment `NOTE META IMAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/generic-chatter.book:8 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/lawyer.book:3 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/planner.book:3 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/product-manager.book:26 — Unknown commitment `META COLOR`; it is preserved but has no effect.
+- warning: agents/.legacy/default/product-manager.book:27 — Unknown commitment `NOTE META IMAGE`; it is preserved but has no effect.
+- warning: agents/.legacy/default/product-manager.book:29 — Unknown commitment `META DESCRIPTION`; it is preserved but has no effect.
+- warning: agents/.legacy/default/product-manager.book:30 — Unknown commitment `META INPUT PLACEHOLDER`; it is preserved but has no effect.
+- … 23 more (run `ptbk lint`)
+TASK AGENT @Fixer
+TASK ORIGIN maintenance: project health
