@@ -1,5 +1,5 @@
 {
-    "promptbookVersion": "0.119.0-29",
+    "promptbookVersion": "0.119.0-30",
     "routing": {
         "harness": "CLAUDE_CODE",
         "model": "claude-opus-5-5",
@@ -39,7 +39,9 @@
             "isEnabled": true,
             "authentication": "NATIVE",
             "model": "claude-opus-5-5",
-            "models": ["claude-opus-5-5"]
+            "models": [
+                "claude-opus-5-5"
+            ]
         }
     ],
     "initialized": {
