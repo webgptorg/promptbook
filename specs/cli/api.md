@@ -30,7 +30,7 @@ Network/rejected-push failures do not stop safe local execution or create duplic
 
 ## Chat and creation
 
-Chats expose full names, participants/authors, status/timestamps, history and task/conversation links. Authenticated list/new/open/append/answer use durable Books and normalized names, not new chat IDs. A new human-chat request with no target selects [Chatter](../agents/chatter.md); existing-thread participants and explicit targets remain unchanged. Missing/invalid Chatter is diagnosed, not silently replaced. Human answers are committed messages.
+Chats expose full names, participants/authors, status/timestamps, history and task/conversation links. Authenticated list/new/open/append/answer use durable Books and normalized names, not new chat IDs. A new human-chat request with no target selects [Chatter](../agents/core-agents/chatter.md); existing-thread participants and explicit targets remain unchanged. Missing/invalid Chatter is diagnosed, not silently replaced. Human answers are committed messages.
 
 Use revision/idempotency checks against stale/reconnecting duplicate writes. Expose canonical agent identity/observed activity for [visual presentation](../agents/visual-identity.md). Distinguish actionable human waits from ordinary internal specialist consultations; Fixer uses these normal agent mechanisms, not a special transport.
 

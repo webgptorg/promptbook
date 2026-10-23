@@ -5,7 +5,7 @@
 Tasks have three useful origins, not three incompatible runtime types:
 
 - **Explicit work:** supplied by a person or another source as a project task.
-- **Derived work:** created because of another task, such as Manager assignment, Teacher learning, repair or further research.
+- **Derived work:** created because of another task, such as Router assignment, Teacher learning, repair or further research.
 - **Goal-driven work:** discovered by asking project agents what useful work follows from their goals when there is no outstanding work.
 
 The engine may materialize a task automatically; a model need not have authored the request. All these tasks have the same source, relationship, scheduling, check, completion and commit semantics. Their origin is traceable metadata, not an exemption from controls.

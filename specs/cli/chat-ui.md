@@ -1,6 +1,6 @@
 # Chat presentation and entry points
 
-[Chats](chats.md) · [Chatter](../agents/chatter.md) · [Terminal dashboard](terminal.md) · [Browser dashboard](dashboard.md)
+[Chats](chats.md) · [Chatter](../agents/core-agents/chatter.md) · [Terminal dashboard](terminal.md) · [Browser dashboard](dashboard.md)
 
 Chat is a real persistent conversation screen, not a one-off answer box. Show the full saved thread name, participants and actual message authors with stable identity, chronological messages, actionable questions, related work/conversations and a [rich composer](rich-input.md). Human-facing and internal two-agent histories share these presentation concepts while retaining their distinct participants and persistence scope.
 

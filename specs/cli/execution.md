@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md)
 
-One project executes one task at a time, including assignment, teaching, bootstrap, repair and goal-enquiry work. TEAM consultations remain within the owning task/conversation. Entry points share lifecycle/acceptance rules; the [engine owns execution](process-modes.md), while dashboards request controls.
+One project executes one queued background task at a time, including assignment, teaching, bootstrap, repair and goal-enquiry work. Chat, its necessary routing and bounded TEAM consultations remain available concurrently and during scheduling pause; they do not claim a second queued task or take over the active task's files. Coordinate source/Git writes through the same scoped ownership operations. TEAM consultations remain within the owning task/conversation. Entry points share lifecycle/acceptance rules; the [engine owns execution](process-modes.md), while dashboards request controls.
 
 Select eligible work only while lifecycle state is `running`. Before each claim, refresh configuration/version and `.env`, check current enabled/usable tools and actual task constraints, and perform the required opt-in synchronization attempt. A failed remote attempt does not itself block work. Missing resources leave the service running with an explicit tool wait. Establish current source, normalized [task name](task-identity.md) and actual execution context.
 

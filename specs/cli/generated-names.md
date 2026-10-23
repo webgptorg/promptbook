@@ -6,7 +6,7 @@
 
 Whenever Promptbook creates a **new task or chat**, form its declared name from a readable descriptive title plus creation **date and time**. Include it proactively on first creation, not only after a duplicate appears. Store the final name as the content of the opening TASK or CHAT commitment.
 
-This applies to automatic and user-triggered generation: add, chat entry across CLI/dashboard/browser/API, saved plans, conversation-created work including Chatter, bootstrap, Manager/Teacher/Fixer/discovery, follow-ups, human requests and internal consultations. It is independent of whether a model, engine or person supplied the title. A CLI writing a Book is system creation; there is no additional manual-authoring mode/workflow.
+This applies to automatic and user-triggered generation: add, chat entry across CLI/dashboard/browser/API, saved plans, conversation-created work including Chatter, bootstrap, Router/Teacher/Fixer/discovery, follow-ups, human requests and internal consultations. It is independent of whether a model, engine or person supplied the title. A CLI writing a Book is system creation; there is no additional manual-authoring mode/workflow.
 
 Use the project's effective time context. Naming must not add routine confirmation or a model call to model-free authoring. Agents, including Chatter, keep ordinary role names without task/chat date decoration.
 

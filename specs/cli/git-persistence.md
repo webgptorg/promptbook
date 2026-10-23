@@ -4,7 +4,7 @@
 
 ## Commit by default
 
-Every successful Promptbook operation changing versioned project content commits its own authorized changes by default: initialization, task/chat authoring, approved planning saves, templates, saved configuration, repair/recovery and task execution, including Manager, Teacher, Fixer, discovery and Chatter-requested work. CLI, terminal, browser and API share the rule; a separate `--commit` is not required.
+Every successful Promptbook operation changing versioned project content commits its own authorized changes by default: initialization, task/chat authoring, approved planning saves, templates, saved configuration, repair/recovery and task execution, including Router, Teacher, Fixer, discovery and Chatter-requested work. CLI, terminal, browser and API share the rule; a separate `--commit` is not required.
 
 A logical operation is the boundary, not each file write or UI step. Each accepted human-facing message and chat creation commits independently. Task-internal consultations join the task's single result commit; conversation-only consultations use ordinary scoped authoring persistence. See [chats](chats.md).
 

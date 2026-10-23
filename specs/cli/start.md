@@ -24,7 +24,7 @@ Connection information distinguishes a ready public HTTPS/pairing address from l
 
 ## Automatic progression and synchronization
 
-Evaluate the queue at startup, after work and after relevant source/tool changes. Execute eligible assigned tasks, including Expert bootstrap. Missing routing creates an ordinary checked [Manager](../agents/manager.md) prerequisite, then continues with its target, without manual assignment, recursion or duplicates. Explicit unavailable requirements remain real waits. All task claims require running lifecycle state and current usable tools.
+Evaluate the queue at startup, after work and after relevant source/tool changes. Execute eligible assigned tasks, including Expert bootstrap. Missing routing creates an ordinary checked [Router](../agents/core-agents/router.md) prerequisite, then continues with its target, without manual assignment, recursion or duplicates. Explicit unavailable requirements remain real waits. All background task claims require running lifecycle state and current usable tools. Future-task routing is separately eligible according to target priority/urgency, not delayed until the target date. Chat and its required routing remain available during other task execution and scheduling pause.
 
 Before new work and before its commit, attempt opt-in [Git synchronization](git-synchronization.md), in addition to the 60-second background cycle. Publish completed local operations when enabled. Failed pull/push leaves synchronization pending, not the task queue artificially stopped. Preserve owned dirty work and defer unsafe integration; newly fetched tasks/configuration become effective only after safe integration and validation.
 

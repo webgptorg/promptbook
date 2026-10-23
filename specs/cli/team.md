@@ -10,7 +10,7 @@ Record an agent↔agent consultation as a two-participant Chat Book linked to it
 
 ## Conversation-scoped consultation
 
-[Chatter](../agents/chatter.md), or another selected conversational agent, may consult a teammate to answer the user without inventing a queued task. Record a two-agent internal exchange linked to the originating human-facing chat. The user's selected agent remains their speaker; do not silently add specialists as participants in a human group chat or claim their advice as executed work.
+[Chatter](../agents/core-agents/chatter.md), or another selected conversational agent, may consult a teammate to answer the user without inventing a queued task. Record a two-agent internal exchange linked to the originating human-facing chat. The user's selected agent remains their speaker; do not silently add specialists as participants in a human group chat or claim their advice as executed work.
 
 When no executing task owns this consultation, persist the bounded exchange as an ordinary scoped authoring operation under [Git persistence](git-persistence.md), never attach it to an unrelated task's result. Human-facing messages still commit individually. Pending/failed persistence remains recoverable and is not reported saved. A request to perform actual specialist work creates ordinary authorized tasks instead of bypassing the queue, checks, pause or task ownership.
 

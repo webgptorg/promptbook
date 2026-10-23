@@ -20,7 +20,7 @@ A normal init creates one browser using the existing simple profile/mode choices
 
 ## Harness records
 
-Initial canonical variants cover the existing integrations: `OPENAI_CODEX`, `CLAUDE_CODE`, `GITHUB_COPILOT`, `CLINE`, `OPENCODE`, `GEMINI` and `QWEN_CODE`. Variant-specific model, thinking and setup fields remain supported.
+Initial canonical variants cover the existing integrations: `OPENAI_CODEX`, `CLAUDE_CODE`, `GITHUB_COPILOT`, `CLINE`, `OPENCODE`, `GEMINI` and `QWEN_CODE`. A configured harness grants its actual supported execution capabilities through that connection. Tool setup describes how to connect, authenticate and reach an endpoint; it does not define per-instance model/thinking defaults or model/effort allowlists. Model/thinking defaults belong to the plugin's code, and selection requirements belong to [MODEL](../book-language/commitments/model.md).
 
 `authentication` distinguishes `NATIVE` (reuse the chosen native/global installation's account/subscription context) from `API_KEY`. Native instances may specify a non-secret `accountProfile` reference to their distinct supported login context. API instances require `apiKey`, containing only an [environment reference](environment.md). A reference retained on a NATIVE record is inactive metadata; its presence does not trigger API billing. Global executable installation and authentication mode are separate concepts: using an API key does not require a project-local duplicate of the CLI.
 
@@ -61,6 +61,14 @@ An illustrative configuration fragment (other project settings omitted):
 ```
 
 An actual initialized configuration also contains its `promptbookVersion`; this fragment is not a versionless initialization template. Advanced account pooling, additional browsers and fallback chains are configured after init rather than added as mandatory wizard questions.
+
+## Harness endpoints
+
+A harness tool can set its supported `baseUrl` connection target. Accept `default`, `official`, `local` or an explicit base URL in setup; persist the resolved endpoint choice without secrets. `official` is fixed by the plugin/provider and cannot be redefined by a tool's custom URL. `default` uses this tool's configured endpoint, falling back to official when absent. `local` refers to model execution on the engine's host, not the device displaying a dashboard. The adapter declares whether local/custom endpoints are supported and how its local service is reached; do not invent a working endpoint for an unsupported variant.
+
+The engine itself always runs in one environment for one project. These choices identify model execution endpoints, not a fleet of engines called notebook/server. A remote dashboard does not relocate inference. [MODEL](../book-language/commitments/model.md) constrains the desired endpoint independently of connection details; only compatible tools can satisfy it. Resolve `default` to the actual official/local/explicit endpoint before recording a concrete Router decision.
+
+Same-variant fallback must also satisfy the resolved endpoint: two accounts aimed at different services are not interchangeable for `runtime=official`, `runtime=local` or an explicit URL. Show the actual endpoint category/URL with secrets redacted. There is no per-tool filter of allowed model IDs or thinking levels in this change.
 
 ## Selection and availability
 
