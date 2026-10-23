@@ -2,7 +2,7 @@ CHAT Community asks: How should the new README.md (currently just `TODO`, and sh
 CHAT MEMBER @User
 CHAT MEMBER @Community
 CHAT STATUS resolved
-LINK {{Replace the placeholder README with a concise accurate one — 2026-10-22 12:51:46}}
+LINK {Replace the placeholder README with a concise accurate one — 2026-10-22 12:51:46}
 
 CHAT MESSAGE @Community 2026-10-22T13:15:41+02:00
 On 2026-10-21 you removed the previous README (a93659cbbf, "Cleanup awful README") without recording what should replace it. The task says the shape of the replacement (audience, length, sections) is your decision. Until you decide, the tagged 0.119.0-30 and later releases would publish `TODO` as the npm README.
