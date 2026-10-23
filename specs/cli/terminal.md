@@ -8,7 +8,7 @@
 
 Zero or many dashboards can attach, including terminals in the same project. They share state but not viewer focus/layout. The client has no wizard steps or completion countdown. Q, root-level Escape, Ctrl+C and terminal disconnection close only this client; closing all clients leaves the daemon running. Service exit/loss is honest and never starts a replacement.
 
-`dashboard --global` opens the independent host-wide live table from any CWD and stays open at zero entries. Selecting an engine attaches without `cd`, starting a process or acquiring its lock; returning leaves the engine untouched. Foreground start and finite run can show the same controls but own execution lifetime: their termination uses graceful engine lifecycle, not unrelated process kills. Run stays finite.
+`dashboard --global` opens the independent host-wide live table from any CWD and stays open at zero entries. Selecting an engine attaches without `cd`, starting a process or acquiring its lock; returning leaves the engine untouched. Foreground start can show the same controls but owns execution lifetime: its termination uses graceful engine lifecycle, not unrelated process kills. Init's successful countdown attaches this same independent dashboard, so leaving it does not terminate the daemon.
 
 ## Operational cockpit
 

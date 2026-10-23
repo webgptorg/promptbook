@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md)
 
-Use one error experience across init, start, run and service commands. An error explains what failed, the affected project and task/step or harness, the known reason, the effect on current work, what was preserved and what the user can do next. Distinguish an observed cause from an unknown cause; a bare exception string or stack dump is not sufficient.
+Use one error experience across init, start, authoring and service commands. An error explains what failed, the affected project and task/step or harness, the known reason, the effect on current work, what was preserved and what the user can do next. Distinguish an observed cause from an unknown cause; a bare exception string or stack dump is not sufficient.
 
 Interactive UI presents a concise failure summary with suitable actions and an explicit route to technical details. Keep it visible while relevant, without letting repeated errors flood the dashboard or overwrite text input. Noninteractive output contains the same actionable facts in plain text and an accurate command outcome.
 

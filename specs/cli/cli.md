@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md)
 
-The root command is `ptbk`. Bare invocation shows [top-level help](help.md) without starting work or asking to start. Successful init performs finite setup and starts the background agenda; `ptbk dashboard` is the optional next view. An initialized/cloned/stopped project can be started explicitly.
+The root command is `ptbk`. Bare interactive invocation offers selectable **Initialize project**, **Start engine** and **Open dashboard** actions with the actual version and current-project context. Selecting an action invokes its existing workflow; showing/cancelling the menu does not start or initialize anything. Bare noninteractive/redirected invocation shows technical help without prompting. Successful interactive init starts the background agenda and hands off after a brief cancellable countdown to the ordinary dashboard. An initialized/cloned/stopped project can be started explicitly.
 
 ## Commands
 
@@ -21,7 +21,6 @@ The root command is `ptbk`. Bare invocation shows [top-level help](help.md) with
 | `chat` | New Chatter-first persistent conversation or explicit existing thread, without a dashboard requirement. |
 | `ask` | Compatibility/quick submission or enquiry using the same chat/task model. |
 | `answer` | Select a waiting chat and append a human reply. |
-| `run` | Execute a finite existing queue with selected configuration and live resource checks. |
 | `help` | Top-level or command/subcommand-scoped help in pretty/raw form. |
 | `about` | Product overview and actual running engine version. |
 | `add` | Create/commit a task through wizard, description, stdin or template, without a model call. |
@@ -49,7 +48,7 @@ Resource availability is separate: an initialized service can start and remain r
 
 Use shared [precedence](configuration.md), [version migrations](configuration-migrations.md) and [naming](../coding-standards/naming.md). Saved keys are camelCase, booleans use `is`, user tool names are kebab-case and fixed enum values uppercase. CLI flags keep conventional dashed spellings; tolerant accepted CLI enums save canonically. Task requirements remain constraints.
 
-`--agent`, `--harness`, `--model`, `--thinking-level` and `--context` configure finite work. Agent, tool instance/variant and model are distinct. Agent references use the shared Book resolver. Run/fix/plan default to Developer unless selected otherwise; start uses Router and enabled tools subject to requirements. When selecting a harness by variant, use that variant's eligible ordered instance fallback; a named-instance restriction must remain explicit rather than silently broadened.
+Where supported by authoring, planning or maintenance, explicit `--agent`, `--harness`, `--model`, `--thinking-level` and `--context` describe that operation's requirements/context. Preserve task constraints through the shared MODEL semantics rather than a second execution path. Agent, tool instance/variant and model are distinct. Agent references use the shared Book resolver. Fix/plan retain their documented default agent unless selected otherwise; start uses Router for unresolved choices. By variant, use eligible ordered instance fallback; an explicitly authorized named-instance restriction must not be silently broadened. MODEL itself does not name an account/instance.
 
 Pretty/raw and interactive/noninteractive follow [CLI presentation](interactive-ui.md). Init/add are finite wizards; dashboards continuous; lifecycle/management commands report once. Noninteractive init accepts destination/nesting, intent/assets, installation, harness/browser, trace, update and synchronization choices. No required check-command choice is added; explicit `--check` is still supported. Help must not dump every provider's configuration into the initial view.
 
@@ -69,14 +68,16 @@ For an in-use modification/disable/remove, CLI refuses without writes and prints
 
 Root `isAutoSync` defaults false. `--auto-sync`/`--no-auto-sync` override the invocation. Legacy `--auto-pull`/`--auto-push` are documented compatibility opt-ins to the same combined policy, not independent persisted settings; explain both directions. Use the existing Git origin/current started branch, periodic and boundary attempts, immutable merges and nonblocking remote failure under [synchronization](git-synchronization.md). Manual dashboard synchronization uses that same coordinator.
 
-## Persistence and finite-run options
+## Persistence and operation options
 
 Normal mutating workflows commit scoped changes by default with `PTBK: ` and relevant Task-Name/Chat-Name correlation. Human messages commit individually, task consultations with their result, conversation-only advice as scoped authoring. `--no-commit` opts out for an ordinary workflow, including init's service, but cannot silently suppress required configuration-migration or explicit tool-management commits; incompatible requests fail before those writes. Runtime-only/read-only/no-op actions do not commit; a commit alone does not imply push.
 
-Preserve `--min-priority`, `--max-priority`, `--priority` lower-bound alias, successful-task `--limit`, `--git-changes fail|ignore|continue`, `--no-auto`, `--check`, `--check-before`, `--isolate`, `--no-normalize-line-endings`, `--no-ui`, `--preserve-logs`, `--no-questions` and `--allow-credits`. Pacing options `--wait-between-prompts`, `--wait-after-prompt`, `--wait-after-error` accept durations such as `30m`/`1h30m`; defaults are zero between/after work and ten minutes after a technical error. Thinking selections low/medium/high/xhigh/max apply only where supported, not as invented provider equivalence.
+Document task-list priority filters and authoring priority separately from execution. Preserve applicable maintenance/start options such as `--git-changes fail|ignore|continue`, `--check`, `--check-before`, `--isolate`, `--no-normalize-line-endings`, `--no-ui`, `--preserve-logs`, `--no-questions` and `--allow-credits` only on the commands that actually support their behavior. Do not retain finite-queue `run`, `--limit` or per-task `--no-auto` approval as another work launcher. Pacing options `--wait-between-prompts`, `--wait-after-prompt`, `--wait-after-error` accept durations such as `30m`/`1h30m`; defaults are zero between/after work and ten minutes after a technical error. Thinking selections low/medium/high/xhigh/max apply only where supported, not as invented provider equivalence.
 
-Validate incompatible priorities and flags before work. No-auto requires interactive input and conflicts with no-questions/noninteractive; start cannot become a finite limit run or require routine no-auto approval. Isolation requires commits and conflicts with continue; continue conflicts with pre-check repair. No-commit conflicts with isolation and autosync (including compatibility flags), not merely with owned dirty work. No option takes ownership of unrelated edits.
+Validate incompatible priorities and flags before work. Start is the ongoing work launcher and does not require routine per-task approval. Isolation requires commits and conflicts with continue; continue conflicts with pre-check repair. No-commit conflicts with isolation and autosync (including compatibility flags), not merely with owned dirty work. No option takes ownership of unrelated edits.
 
 Authoring saves one approved operation; push requires a commit. Add keeps template/priority input; boilerplate count accepts N or N*M (default 5*1); verify retains review order/repeatable ignore filters. An optional project-specific hook cannot replace or disable the shared mandatory project-version migration mechanism for configuration and Books. Diagnose unsupported flags rather than ignoring them.
 
 List/help/about/version/dry-run never install/update/authenticate, start tunnels, call models, normalize/migrate files or modify Git. Report missing capabilities and needed repairs without performing them. See [Git persistence](git-persistence.md), [unattended operation](autonomous-operation.md) and [acceptance](acceptance.md).
+
+The command surface contains no `ptbk run`; use `ptbk start` for the ongoing engine and ordinary tasks for bounded work. Unknown/removed commands give an actionable diagnostic rather than silently invoking another workflow. Bare-command menu, technical help and the visual product/about box are distinct experiences under [help](help.md).

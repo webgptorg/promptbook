@@ -4,7 +4,7 @@
 
 The active engine exposes an independently usable authenticated HTTP API for project inspection/control. It requires neither browser app nor terminal dashboard. Zero, one or many clients use the same scheduling, lifecycle, management and recovery operations; neither clients nor page rendering create another worker.
 
-Start enables loopback HTTP in either process mode on a free or explicitly selected port and reports actual address/conflicts. Protected remote tunnelling follows its separate default policy. No-tunnel keeps local HTTP; no-server disables HTTP/SPA/tunnel but not local engine control/discovery. Finite run owns any enabled HTTP/tunnel only for its finite lifetime.
+Start enables loopback HTTP in either process mode on a free or explicitly selected port and reports actual address/conflicts. Protected remote tunnelling follows its separate default policy. No-tunnel keeps local HTTP; no-server disables HTTP/SPA/tunnel but not local engine control/discovery.
 
 ## Observed state and shared operations
 

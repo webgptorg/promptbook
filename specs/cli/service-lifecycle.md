@@ -11,7 +11,7 @@ The engine owns scheduling, state transitions and shutdown. CLI commands, termin
 | `running` | New eligible tasks may start. The engine may be executing work or legitimately idle. |
 | `pausing` | No new background task starts. The current task drains; after it settles, remain alive in `pause`. Chat remains usable. |
 | `pause` | No queued background task executes. Chat, required chat routing/consultations, authoring, inspection and controls remain available. |
-| `stopping` | No new task may start. Drain the current task, then clean up and exit. |
+| `stopping` | No new work starts. Drain/checkpoint owned task and conversation work, then clean up and exit. |
 
 These are service states, not task phases or client-local flags. `stopped` is not a fifth live state: after exit there is no running service. A client may display that observed outcome or a disconnected diagnostic. Force stop is an immediate action, not another state; a separate hard/soft pause mode is not introduced now. The current pause suspends automatic new background work, not conversation. Reasons such as an empty queue, backoff or a blocked prerequisite remain separate from the service state.
 
@@ -46,7 +46,7 @@ One-shot commands distinguish request accepted/pending, cancellation and complet
 
 ## Force stop, signals and cleanup
 
-An internal force request stops the active owned execution without a graceful task-completion wait. Preserve whatever interruption evidence is available, never mark unfinished work done, and make a bounded best-effort cleanup through the owning service, including its own lock. Force stop while already in `pause` uses the same quick orderly shutdown as ordinary stop: there is no running task to kill.
+An internal force request stops the active owned execution without a graceful task-completion wait. Preserve whatever interruption evidence is available, never mark unfinished work done, and make a bounded best-effort cleanup through the owning service, including its own lock. Force stop while already in `pause` has no background task to drain, but still terminates any owned in-flight conversation work according to the force-stop contract before cleanup. A paused chat is not a separate engine or an exemption from explicit shutdown.
 
 A catchable graceful termination request delivered to the engine by the operating system follows graceful stopping where the host permits it. A signal delivered only to an attached dashboard closes that client; it is not forwarded as an engine stop request. An externally imposed uncatchable kill may prevent all cleanup, leaving lock records behind. This is the deliberate difference between internal force stop and an external hard kill; there is no promised cleanup or new next-start lock-removal requirement for that case. The owner-cleanup rules are in [locking](locking.md).
 

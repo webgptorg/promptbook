@@ -16,6 +16,6 @@ Failed real checks cause bounded repair/recheck, not false completion. Persisten
 
 After completion, claim further work only if lifecycle still permits it. Pausing/stopping drain or checkpoint current work without starting follow-ups. Cancelling/replacing pending intent does not restart the task. Force stop interrupts owned execution without false completion and retains available recovery evidence. See [service lifecycle](service-lifecycle.md).
 
-Checkpoint a blocked task and release ownership for independent work only when safe; no concurrent task mutations or mixing unresolved edits into another result. A human wait is not permission to discard work. Start keeps supervising empty queues and recoverable/resource waits; finite run may finish with an honest incomplete outcome. Shared unsafe ownership may block affected work, but a network synchronization failure alone does not.
+Checkpoint a blocked task and release ownership for independent work only when safe; no concurrent task mutations or mixing unresolved edits into another result. A human wait is not permission to discard work. Start keeps supervising empty queues and recoverable/resource waits. Shared unsafe ownership may block affected work, but a network synchronization failure alone does not.
 
 See [checks](checks.md), [Git persistence](git-persistence.md), [Git synchronization](git-synchronization.md), [recovery](recovery.md), [traces](traces.md) and [task origins](task-origins.md).

@@ -20,7 +20,7 @@ Expert's ordinary bootstrap or later authorized work may replace the placeholder
 
 For an actual configured check, inspect command references/dependencies and retain the real result. A broken command is not silently treated as the informational placeholder. Feed failure into repair of the same active work and recheck within budget; use the normal Fixer/problem path when needed. Preserve attempts and diagnostics. Block only unsafe or unresolved affected work while the supervisor remains available. Check-generated edits join the task's result commit.
 
-For finite run, `--check` selects a command and `--check-before` accepts the documented CLI modes `no`, `yes-and-fail` and `yes-and-fix`; their stored enum values are canonical uppercase. An explicitly enabled software check can use `npm run check`; a non-software project may specify a direct command. Unrequested/skipped validation and the placeholder are labelled, never reported as real checks passed.
+For explicit checking/maintenance, `--check` selects a command and `--check-before` accepts the documented CLI modes `no`, `yes-and-fail` and `yes-and-fix`; their stored enum values are canonical uppercase. An explicitly enabled software check can use `npm run check`; a non-software project may specify a direct command. Unrequested/skipped validation and the placeholder are labelled, never reported as real checks passed.
 
 `ptbk fix` addresses failing validation without consuming the ordinary queue. A healthy unchanged project requires no model, repair task or empty commit. A placeholder alone is not a failed check that should cause endless repair. A check-only transformation with no owning task is recorded as its own ordinary maintenance operation.
 

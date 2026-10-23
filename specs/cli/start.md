@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Unattended operation](autonomous-operation.md) · [Automatic repair](../concepts/automatic-repair.md)
 
-`ptbk start` operates the project's agenda indefinitely without per-task agent/harness/model/thinking selection. Successful [init](initialization.md) calls the same background start. A ready project starts actual processing without another Run action, with one executing task at a time, not a concurrent worker per agent.
+`ptbk start` operates the project's agenda indefinitely without per-task agent/harness/model/thinking selection. Successful [init](initialization.md) calls the same background start. A ready project starts actual processing without another work-launch action, with one executing task at a time, not a concurrent worker per agent.
 
 ## Readiness is not service existence
 
@@ -34,4 +34,4 @@ Follow [automatic repair](../concepts/automatic-repair.md) as a core principle: 
 
 Survive ordinary task/check/provider/browser/tunnel/update/synchronization/persistence failures with bounded recovery, useful traces and controls. Empty queues or missing resources do not mean service exit. Deliberate pause/stop remains authoritative. The product targets extended unattended operation, not guaranteed work while a host sleeps or external accounts are unavailable.
 
-Repeated start reports the existing engine once without duplicate workers/tunnels, reinitialization, silent configuration replacement or pause cancellation. Use `ptbk dashboard` to observe it. See [controls](controls.md), [persistence](persistence.md), [process modes](process-modes.md) and [run](run.md).
+Repeated start reports the existing engine once without duplicate workers/tunnels, reinitialization, silent configuration replacement or pause cancellation. Use `ptbk dashboard` to observe it. See [controls](controls.md), [persistence](persistence.md), [process modes](process-modes.md) and [execution](execution.md).

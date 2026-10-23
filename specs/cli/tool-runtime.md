@@ -22,7 +22,7 @@ Manual/external file edits cannot display a pre-edit CLI confirmation. Diagnose 
 
 Before each new task, require the baseline enabled/usable browser and harness and the task's specific routing, model, profile and authorization requirements. Failed readiness prevents that new claim, not the engine's existence. An empty or unusable inventory is a normal observable **waiting for tools** reason alongside an empty queue or provider wait; it is not a fifth lifecycle state, technical pause or a failed start of an otherwise initialized service.
 
-Keep dashboard/API controls, configuration refresh, bounded readiness rechecks and authorized maintenance alive. Show which type/instance is missing, disabled, unavailable, signed out or quota-limited, and the concrete enable/add/repair action. Do not spin, make paid probes while idle or automatically re-enable deliberately disabled tools. Start may show this warning but still report the running service truthfully. Once usable resources appear, reevaluate and continue without a new Start/Run action, while respecting explicit pause/stop.
+Keep dashboard/API controls, configuration refresh, bounded readiness rechecks and authorized maintenance alive. Show which type/instance is missing, disabled, unavailable, signed out or quota-limited, and the concrete enable/add/repair action. Do not spin, make paid probes while idle or automatically re-enable deliberately disabled tools. Start may show this warning but still report the running service truthfully. Once usable resources appear, reevaluate and continue without another Start action, while respecting explicit pause/stop.
 
 ## Operation and Git ownership
 

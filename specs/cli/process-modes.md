@@ -7,9 +7,9 @@
 - **Daemon** (default, `--daemon`): runs in the background independently of the launching terminal and any dashboard.
 - **Foreground** (`--foreground`): the launching invocation hosts the ongoing engine until it stops. A suitable terminal presents the live controls; raw/noninteractive use emits plain events. This explicit engine-hosting invocation is not an attached `ptbk dashboard` client.
 
-Daemon and foreground are mutually exclusive. `--raw` changes output, not placement: `ptbk start --raw` still launches a daemon and returns once; `ptbk start --foreground --raw` stays foreground. `--interactive` enables appropriate interaction, not implicit foreground mode. Run remains finite foreground execution; init and add remain finite authoring/setup workflows.
+Daemon and foreground are mutually exclusive. `--raw` changes output, not placement: `ptbk start --raw` still launches a daemon and returns once; `ptbk start --foreground --raw` stays foreground. `--interactive` enables appropriate interaction, not implicit foreground mode. Init and add have finite setup/authoring phases; interactive init may then attach an independent dashboard through its documented countdown.
 
-Successful init performs the ordinary daemon start after technical setup and returns. It does not become foreground execution, attach a dashboard or wait for the first task. Reuse the same lifecycle operation when start first needs initialization; one request must not recursively create another worker. Reuse an existing service without changing its configuration or pause/draining intent. See [initialization](initialization.md).
+Successful init performs the ordinary daemon start after technical setup. Its interactive countdown can attach the shared independent dashboard; raw/noninteractive use or skipping the countdown returns directly. It never becomes foreground engine ownership or waits for the first task. Reuse the same lifecycle operation when start first needs initialization; one request must not recursively create another worker. Reuse an existing service without changing its configuration or pause/draining intent. See [initialization](initialization.md).
 
 ## Engine versus observing clients
 
@@ -25,7 +25,7 @@ Every start mode supports optional HTTP, automatic/selected port and the same pr
 
 Start, pause, resume, stop and restart are one-shot control operations, not implicit live-dashboard attachments. Start may first use shared setup when permitted; `--non-interactive` forbids it. A detached daemon never prompts on the launching terminal. Repeated start reports the existing process without replacing its configuration or cancelling a deliberate pause/stop.
 
-Use [the shared state machine](service-lifecycle.md) for `running`, `pausing`, `pause` and `stopping`, cancellation, graceful restart and `stop --force`/`-F`. Foreground ownership does not introduce different pause or stop semantics. Restart retains the selected installation, effective project configuration and applicable placement policy; it must not silently turn an explicitly foreground workflow into a persistent daemon. Finite run still has its finite completion contract.
+Use [the shared state machine](service-lifecycle.md) for `running`, `pausing`, `pause` and `stopping`, cancellation, graceful restart and `stop --force`/`-F`. Foreground ownership does not introduce different pause or stop semantics. Restart retains the selected installation, effective project configuration and applicable placement policy; it must not silently turn an explicitly foreground workflow into a persistent daemon.
 
 Locate the selected engine through verified runtime information. A stale record or reused PID must not control an unrelated process. Read-only inspection may retry an abruptly closed connection within a bounded budget, authenticating the owner again. Never blindly replay a mutating command after losing its reply; report an unconfirmed outcome. A completed stop is confirmed only after that owner ends and releases ownership, not merely because its endpoint becomes unavailable. A replacement owner remains untouched.
 
