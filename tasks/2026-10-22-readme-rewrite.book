@@ -5,3 +5,4 @@ The package checks only require README.md to exist, so `TODO` passes them, and t
 When writing, verify every command, option and example against the current implementation (`node bin/ptbk.js help` and the relevant `help <command>`), describe only shipped behavior and link to specs/ for detailed rules instead of copying them. Do not restore the removed text wholesale. Use no promotional claims, quotes or promises, and keep links to other repository files valid. Record the change in changelog/_current-preversion.md. Do not publish to npm or post anything externally.
 TASK AGENT @Community
 LINK {Goal enquiry: Community — 2026-10-22 12:51:46}
+TASK DONE 2026-10-23T19:16:47+02:00
