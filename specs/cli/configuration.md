@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Configuration migrations](configuration-migrations.md) · [Tools](tools.md) · [Naming](../coding-standards/naming.md)
 
-`ptbk.json` in the selected project directory is the human-readable, Git-versioned configuration for Promptbook. It describes project choices, not machine runtime state. There is no user-level Promptbook settings file shared across projects: references to global configuration mean this project-wide file. Shared executable/native login stores and reusable browser profiles are resources, not another Promptbook configuration layer. `.ptbk/` remains ignored runtime storage; task evidence lives separately in root-level `traces/`. The root includes `promptbookVersion`, ordered `tools` and `isAutoSync` (default false).
+`ptbk.json` in the selected project directory is the human-readable, Git-versioned configuration for Promptbook. It describes project choices, not machine runtime state. There is no user-level Promptbook settings file shared across projects: references to global configuration mean this project-wide file. Shared executable/native login stores and reusable browser profiles are resources, not another Promptbook configuration layer. `.ptbk/` remains ignored runtime storage; task evidence lives separately in root-level `traces/`. The root includes `promptbookVersion`, ordered `tools`, `isAutoSync` (default false) and the optional `limit` object for project-engine health thresholds.
 
 `promptbookVersion` records the initializing/last-migrating engine version. Apply the shared [version/migration contract](configuration-migrations.md), including the fixed baseline for absent versions, rather than treating a version as arbitrary metadata. All Promptbook-owned JSON keys are lower camelCase, all boolean properties begin with `is`, user tool identifiers are kebab-case and fixed enum values are SCREAMING_SNAKE_CASE. Known spelling errors are normalized and committed; ambiguous configuration uses [automatic repair](../concepts/automatic-repair.md).
 
@@ -21,6 +21,17 @@ Load/revalidate before every task and refresh promptly during work and waits. Fi
 Invocation-only CLI overrides and generic temporary runtime controls do not rewrite defaults. Explicit saves are scoped authoring operations. **Tool management is explicitly saved management**, not a temporary runtime-control variant: its changes commit immediately and publish their new revision to the engine. Configuration migrations and deterministic normalization also create their own scoped audit commits, excluding task work. A no-op/read-only load does not commit.
 
 Recovery may retain a particular active use's effective settings without restoring an obsolete whole-project snapshot. A new invocation resolves its own overrides. Init's automatic start preserves applicable explicit workflow overrides. Show effective values and their sources without secrets, and distinguish saved state, active retained use, pending changes and restart-only settings.
+
+## Health limits
+
+`limit` contains the project-specific preventive resource thresholds used by the [Health sub-engine](health-sub-engine.md):
+
+- `limit.disk`: minimum preferred free disk capacity, in MiB; default 500.
+- `limit.memory`: minimum preferred available memory, in MiB; default 512. Available memory is usable available RAM plus usable available swap.
+
+Omitted values inherit the engine defaults. Zero is a valid explicit value and disables only that preventive soft threshold. Negative/invalid values are rejected. RAM and swap are still reported separately.
+
+These settings define **soft** health boundaries only. There is no configurable hard disk/memory limit: actual resource exhaustion is a hard health condition determined from the operating system. Health uses bounded hysteresis/debounce when deciding that a below-limit incident has recovered; those runtime incident details are not persisted configuration.
 
 ## Traces, synchronization and access
 

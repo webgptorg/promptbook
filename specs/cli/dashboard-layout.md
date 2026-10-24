@@ -23,7 +23,7 @@ Keep the top identity/status extremely concise: use **PTBK**, the project name a
 
 The home screen contains compact tiles for operational domains. A tile shows only the smallest useful summary: healthy/idle/busy counts, current work, actionable problem summary or another bounded state. It is a navigation/control surface, not the complete content of that domain. The detailed inventory, diagnostics, lists and long explanations live on the corresponding page.
 
-At minimum preserve the existing domains: current work, service/system controls, tools, Agents, Chats, Tasks, results/activity, connection, and synchronization only when autosync is enabled. [Health and system ownership](health-sub-engine.md) add their dedicated home/page behavior. The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
+At minimum preserve the existing domains as compact tiles/pages: Current work, **System**, **Health**, Tools, Agents, Chats, Tasks, Results/Activity, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
 
 ## Focus and attention are independent
 
@@ -57,7 +57,7 @@ The home screen favors:
 4. compact state of the major domains;
 5. navigation and lifecycle discoverability.
 
-Technical details are not deleted; they move to pages. The System page owns engine/process/configuration/lifecycle detail. The Health page owns host-resource health. Tool pages own provider/profile readiness and configuration. Connection owns URLs/QR/access. Execution owns harness/model/thinking details. Activity/log pages own verbose history.
+Technical details are not deleted; they move to pages. The **System page** owns engine/process/configuration/lifecycle detail, generic manual pause/resume and the complete active pause-reason list. The **Health page** owns host-resource measurements, health incidents, allowed soft-incident override and remediation from the [Health sub-engine](health-sub-engine.md); it does not own generic manual pause controls. Tool pages own provider/profile readiness and configuration. Connection owns URLs/QR/access. Execution owns harness/model/thinking details. Activity/log pages own verbose history.
 
 A concrete blocker may be summarized on the related home tile so the operator knows *where* attention is required. The complete cause, evidence and remediation can live on its page. Long errors, paths, URLs, model names, version strings and QR codes must not inflate the root layout.
 

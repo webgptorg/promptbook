@@ -6,11 +6,19 @@ One engine-owned control model serves any number of terminal dashboards, foregro
 
 ## Lifecycle, work and conversation
 
-Expose actual engine version, four live service states, pause/resume, cancellation/replacement of pending pause/stop, graceful stop, explicit force stop and restart. These are precisely the operations behind `ptbk pause`, `ptbk resume`, `ptbk stop`, `ptbk stop --force`/`-F` and `ptbk restart`. Keep lifecycle controls visible in the main cockpit, distinguishing accepted/draining/completed/failed/unconfirmed outcomes.
+Expose actual engine version, four live service states, composable pause reasons, manual pause/resume, cancellation/replacement of pending pause/stop, graceful stop, explicit force stop and restart. These are precisely the shared operations behind `ptbk pause`, `ptbk resume`, `ptbk stop`, `ptbk stop --force`/`-F` and `ptbk restart`. The home screen keeps lifecycle state obvious; the System page owns full lifecycle controls/reasons, distinguishing accepted/draining/completed/failed/unconfirmed outcomes.
 
-Also expose real pacing/backoff wait skipping, current agent/task, ordered queue, outcomes, waits, errors, actionable/unread chat counts and effective routing. Missing tools mean running with a resource wait, not technical pause or stop. Skip wait cannot bypass readiness, authority or task conditions. Explicit pause/stop prevents new background claims and is not undone by automatic repair or a new tool. Pause still permits chat and all work necessary to serve it, including first-message Router selection; tasks authored there remain pending. Stopping retains its shutdown boundary.
+Also expose real pacing/backoff wait skipping, current agent/task, ordered queue, outcomes, waits, errors, actionable/unread chat counts and effective routing. Missing tools mean running with a resource wait, not technical pause or stop. Skip wait cannot bypass readiness, authority or task conditions. Any active pause reason prevents new background claims and is not erased by unrelated repair/tool changes. Manual and Health reasons compose under [service lifecycle](service-lifecycle.md). Pause still permits chat and all work necessary to serve it, including first-message Router selection; tasks authored there remain pending. Stopping retains its shutdown boundary.
 
 New/open/list/append/reply chat operations use the same durable chat model. New human chat uses the [Chatter-first picker](chat-ui.md); an existing request retains its author. Read-only browsing creates no message/commit. Every accepted human-facing message commits independently; task-internal exchanges join their result and conversation-only consultations use ordinary scoped persistence. Fixer questions use ordinary agent/TEAM communication, not another control channel.
+
+## System and Health controls
+
+The **System page** is the operator's lifecycle/engine page. It shows concise engine/process/project technical metadata that does not belong on the home screen (including actual engine version and project/runtime location), current lifecycle/pending intent, and every active pause reason. It provides generic manual Pause/Resume plus stop/restart/force controls through the shared operations.
+
+The **Health page** is the UI/controller for the per-engine [Health sub-engine](health-sub-engine.md). It shows resource measurements, configured `limit.disk`/`limit.memory`, incidents, health pause reasons and allowed remediation/soft-incident override. It does **not** duplicate generic manual Pause/Resume. Health monitoring and pause creation/removal occur in the sub-engine with zero clients.
+
+Viewer attention/focus remains presentation-only. Dismissing the transient blink of a Health/System warning does not resolve the underlying pause reason or incident.
 
 ## Tools, settings and diagnostics
 

@@ -60,9 +60,19 @@ When autosync is off, omit this dedicated tile/page rather than showing a perman
 
 Keep connection information secondary on the home screen. The Connection page owns verified local/remote addresses, provider/tunnel state, pairing guidance, QR code and link detail. Long URLs/QR art must not force the dashboard home screen to scroll.
 
-## System and Health pages
+## System page
 
-Engine/process/lifecycle detail belongs on the **System page**. Host-resource monitoring and health incidents belong on the separate **Health page**. Their ownership and actions are defined in [shared controls](controls.md), [service lifecycle](service-lifecycle.md) and the [Health sub-engine](health-sub-engine.md). In particular, the Health page is not a second implementation of manual pause/resume.
+The System page owns the Promptbook Engine's operational identity and lifecycle: project/runtime location, actual engine version/installation/process data, lifecycle/pending intent, manual Pause/Resume, stop/restart/force actions and the **complete set of active pause reasons**.
+
+When only the ordinary manual pause reason exists, keep the presentation simple. When health or multiple reasons coexist, show each reason with its owner/severity and explain why generic Resume may not return the engine to running. System invokes shared lifecycle operations; it never edits Health's measurements to fake recovery.
+
+## Health page
+
+The Health page is a controller/view over the exactly-one-per-engine [Health sub-engine](health-sub-engine.md). Show disk, RAM, swap, combined available memory, CPU/load, connectivity, configured preventive limits, incident freshness/severity and scheduling impact.
+
+Expose Promptbook-project cache cleanup and supported Linux swap remediation through Health sub-engine operations. Allow incident-scoped override only for a soft health pause and show a strong warning. Hard health pauses have no override.
+
+Do **not** put generic manual Pause/Resume or a "Pause all" control on Health. Manual pause belongs to System. Merely viewing/acknowledging the tile/page does not resolve a health incident.
 
 ## Acceptance outcomes
 

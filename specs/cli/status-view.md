@@ -2,13 +2,15 @@
 
 [Main specification](../_main.md) · [Terminal dashboard](terminal.md) · [Browser dashboard](dashboard.md)
 
-One coherent engine-owned view is presented live or as a snapshot, not unrelated launch/QR and status screens. Use the [cockpit panel hierarchy](dashboard-layout.md): attention, current work, main lifecycle controls, tools, enabled synchronization, queue, bounded activity/results and connection. Verbose information uses the existing [detail pattern](dashboard-details.md). Host-wide global overview is a separate table, not a project view backed by a global engine.
+One coherent engine-owned status model is presented live or as a snapshot. Interactive dashboards render it as the [bounded home screen and full pages](dashboard-layout.md), while snapshots/raw output use the same facts without pretending to have tile navigation. Host-wide global overview is a separate table, not a project view backed by a global engine.
 
 ## Live and snapshot state
 
 Dashboard, explicit foreground presentation and browser view update continuously; clients do not own state. Status/show render once and return. Start/restart use the same categories with an honest operation outcome; pause/resume/stop distinguish pending acceptance from completion. No lifecycle command automatically attaches a viewer.
 
-Identify the project, actual engine version, observation freshness, connection and live state (`running`, `pausing`, `pause`, `stopping`), task/agent/phase, queue, outcomes and waits/blockers. Empty queue, missing tools or failed synchronization can coexist with running. They are not additional lifecycle states or evidence of process failure. An exited service may be labelled stopped as an observation, never advertised with a dead ready endpoint.
+Identify the project, actual engine version, observation freshness, connection and live state (`running`, `pausing`, `pause`, `stopping`), active pause reasons, task/agent/phase, queue, outcomes and waits/blockers. Empty queue, missing tools or failed synchronization can coexist with running. They are not additional lifecycle states or evidence of process failure. An exited service may be labelled stopped as an observation, never advertised with a dead ready endpoint.
+
+Interactive home state also contains a compact Health summary from the [Health sub-engine](health-sub-engine.md). Healthy state is terse; low disk/memory, connectivity or other actionable health incidents mark Health for attention and their full measurements/remediation live on its page. Health-generated pause reasons remain distinct from manual pause reasons shown on System.
 
 Show a compact tools overview even when no usable tools exist, explaining exactly what to enable, add or repair. Details distinguish configured/enabled/usable/in-use instances and old retained uses from newly saved state. New tools and `.env`/configuration changes appear without restart. Show actual task harness instance/variant/model/thinking context, not the first configured provider or stale last-run data. Individual browser detail includes effective profile/path, health and recovery state with no credentials.
 
