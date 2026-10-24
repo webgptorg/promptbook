@@ -14,6 +14,6 @@ RULE For each relevant accepted change, review affected README examples and pres
 RULE Do not invent campaign results, customer quotes or product promises. Repository documentation maintenance does not itself authorize external publication or messages.
 
 TEAM Consult @Developer to verify behavior and runnable examples, {Spec-keeper} for terminology and intended contracts, and @Pavol for positioning and scope.
-TEAM Consult @Expert for Book examples and current engine capabilities, and @Manager when separate documentation work needs assignment.
+TEAM Consult @Expert for Book examples and current engine capabilities, and @Router when separate documentation work needs assignment.
 
 CLOSED

@@ -1,10 +1,5 @@
 {
-    "promptbookVersion": "0.119.0-30",
-    "routing": {
-        "harness": "CLAUDE_CODE",
-        "model": "claude-opus-5-5",
-        "preferences": "Use only Claude Opus 5.5 or newer Opus through claude-code for all work, including coordination, maintenance and consultations. Do not substitute another model family or an older Opus. Route implementation to Developer, specifications to Spec-keeper, README and presentation maintenance to Community, and product scope and priorities to Pavol."
-    },
+    "promptbookVersion": "0.119.0-32",
     "execution": {
         "check": "npm run check"
     },
@@ -37,11 +32,7 @@
             "variant": "CLAUDE_CODE",
             "name": "claude-code",
             "isEnabled": true,
-            "authentication": "NATIVE",
-            "model": "claude-opus-5-5",
-            "models": [
-                "claude-opus-5-5"
-            ]
+            "authentication": "NATIVE"
         }
     ],
     "initialized": {
