@@ -6,7 +6,7 @@ One coherent engine-owned status model is presented live or as a snapshot. Inter
 
 ## Live and snapshot state
 
-Dashboard, explicit foreground presentation and browser view update continuously; clients do not own state. Status/show render once and return. Start/restart use the same categories with an honest operation outcome; pause/resume/stop distinguish pending acceptance from completion. No lifecycle command automatically attaches a viewer.
+Dashboard, explicit foreground presentation and browser view update continuously; clients do not own state. Status/show render once and return. Start/restart use the same categories with an honest operation outcome and ordinary interactive daemon use then automatically attaches the independent project dashboard unless suppressed. Pause/resume/stop distinguish pending acceptance from completion and remain one-shot controls.
 
 Identify the project, actual engine version, observation freshness, connection and live state (`running`, `pausing`, `pause`, `stopping`), active pause reasons, task/agent/phase, queue, outcomes and waits/blockers. Empty queue, missing tools or failed synchronization can coexist with running. They are not additional lifecycle states or evidence of process failure. An exited service may be labelled stopped as an observation, never advertised with a dead ready endpoint.
 
