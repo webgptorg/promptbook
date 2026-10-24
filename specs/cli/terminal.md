@@ -4,7 +4,7 @@
 
 ## Attaching and lifetime
 
-`ptbk dashboard` opens a live client for the selected project's existing engine; `--path` selects the project. Verify the owner. Opening/reopening does not initialize/start an engine, acquire its lock, claim work or change configuration. A missing/unreachable service gives an actionable error/start instruction.
+`ptbk dashboard` opens a live client for the selected project's existing engine; `--path` selects the project. On a suitable TTY it is **pretty and interactive by default** with no extra flag; raw/no-UI/noninteractive/redirected use opts out of that live terminal interaction. Verify the owner. Opening/reopening does not initialize/start an engine, acquire its lock, claim work or change configuration. A missing/unreachable service gives an actionable error/start instruction.
 
 Zero or many dashboards can attach. They share engine state but not viewer focus, current dashboard page, scroll position or acknowledged visual attention. Q, root-level Escape, Ctrl+C and terminal disconnection close only this client; closing all clients leaves the daemon running. Service exit/loss is honest and never starts a replacement.
 

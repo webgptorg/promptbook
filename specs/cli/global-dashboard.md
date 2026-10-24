@@ -4,7 +4,7 @@
 
 `ptbk dashboard --global` is a separate, continuously refreshed service overview for the local operating system, resembling a live process table rather than the dashboard of one project. It works from any current working directory, including outside Git and outside a Promptbook project. It neither selects nor initializes that directory. A conflicting explicit project selector such as `--path` is diagnosed rather than silently limiting a supposedly global view.
 
-There is no global project engine. Every discovered engine belongs to one concrete project directory and owns that project's runtime state. The global dashboard is a lightweight monitoring/navigation client; its lifetime is independent of every service it observes.
+There is no global project engine. Every discovered engine belongs to one concrete project directory and owns that project's runtime state. The global dashboard is a lightweight monitoring/navigation client; its lifetime is independent of every service it observes. Its terminal tab title follows [terminal-title](terminal-title.md): `PTBK <animated default agent visual> Global`.
 
 ## Discovery contract
 

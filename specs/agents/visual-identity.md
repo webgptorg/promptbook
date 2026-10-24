@@ -16,7 +16,7 @@ Create a coherent family of small mascot badges with distinct faces/silhouettes 
 
 Derive the default consistently from the canonical normalized agent identity, not randomly on each render or from a hash of the entire Book. Equivalent `@`/brace references select the same appearance. The same agent remains recognizable across terminal/browser views, snapshots, sessions and project copies. Moving its source file or editing rules, knowledge or whitespace does not unexpectedly change its face. A genuine identity rename may change the default.
 
-Inheritance does not give every descendant Adam's appearance. Do not introduce a mandatory Book commitment or another readiness step for visual identity. Browser and terminal render the same character family without requiring pixel-identical output. Limited terminals retain a legible text/symbol fallback; raw output uses agent names and textual states without decorative portraits or animation.
+Inheritance does not give every descendant Adam's appearance. Do not introduce a mandatory Book commitment or another readiness step for visual identity. Browser and terminal render the same character family without requiring pixel-identical output. Provide a reusable **single-line terminal visual** with the same identity/activity character language as the framed badge; this exact renderer/animation is also reused by [terminal titles](../cli/terminal-title.md), not reimplemented as a separate spinner. Limited terminals retain a legible text/symbol fallback; raw output uses agent names and textual states without decorative portraits or animation.
 
 ## Placement and activity
 
