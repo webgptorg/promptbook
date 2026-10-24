@@ -1,5 +1,11 @@
 # Unreleased
 
+## Compact visual README
+
+-   Shortened the README around the product promise, ownership, first use and essential documentation links; replaced long explanations with a compact benefits table and a self-contained engine diagram.
+-   Added the original logo with the black/navy wordmark and removed sentence-ending dots from the visual headline. Kept setup and remote-access behavior, upcoming-app boundaries and BUSL-1.1 explicit.
+-   Updated the product-presentation specification to keep this concise visual structure consistent with the website. Runtime behavior and license files are unchanged.
+
 ## Branding: autonomous agendas, truly yours
 
 -   Rebuilt the README around ongoing agendas, self-hosting, readable and portable project files, model choice and Git history, with a developer example, APT explanation, actual installation commands and links to the application and partner offering.
