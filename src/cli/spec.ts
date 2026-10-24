@@ -157,23 +157,24 @@ export const COMMIT_OPTIONS: OptionGroup = {
 };
 
 /**
- * Finite-work configuration: agent, harness, model, thinking level, context.
+ * Explicit operation requirements: agent, harness, model, thinking level, context. They become the operation's MODEL
+ * requirement and never relax an agent's or task's MODEL.
  *
  * @private CLI specification
  */
 export const EXECUTION_SELECTION_OPTIONS: OptionGroup = {
-    title: 'Execution selection',
+    title: 'Execution requirements',
     options: [
         { name: 'agent', type: 'string', valueName: '<ref>', description: 'Responsible agent (@Name or {Full Name}).', defaultText: 'Developer' },
-        { name: 'harness', type: 'string', valueName: '<variant|tool>', description: 'Harness variant (e.g. openai-codex, claude-code; its ordered instances may serve it) or one harness tool name.', defaultText: 'routing.harness' },
-        { name: 'model', type: 'string', valueName: '<model>', description: 'Model of the selected harness.', defaultText: 'harness default' },
+        { name: 'harness', type: 'string', valueName: '<variant|tool>', description: 'Harness variant (e.g. openai-codex, claude-code; its ordered instances may serve it) or one harness tool name.', defaultText: "the agent's MODEL, else the first usable tool" },
+        { name: 'model', type: 'string', valueName: '<model>', description: 'Model of the selected harness.', defaultText: 'the plugin default' },
         { name: 'thinking-level', type: 'enum', values: ['low', 'medium', 'high', 'xhigh', 'max'], valueName: '<level>', description: 'Reasoning effort (only where supported).' },
         { name: 'context', type: 'string', valueName: '<file>', description: 'Additional context file; an empty value disables it.', defaultText: 'AGENTS.md' },
     ],
 };
 
 /**
- * Options shared by finite run and ongoing start execution.
+ * Execution policy options of start/restart and explicit maintenance.
  *
  * @private CLI specification
  */
@@ -229,21 +230,11 @@ export const BROWSER_OPTIONS: OptionGroup = {
 };
 
 /**
- * Finite queue filters.
+ * `--dry-run` of maintenance commands (preview without writing).
  *
  * @private CLI specification
  */
-export const QUEUE_FILTER_OPTIONS: OptionGroup = {
-    title: 'Queue selection',
-    options: [
-        { name: 'min-priority', type: 'integer', valueName: '<n>', description: 'Only tasks with at least this priority.' },
-        { name: 'priority', type: 'integer', valueName: '<n>', description: 'Alias of --min-priority.' },
-        { name: 'max-priority', type: 'integer', valueName: '<n>', description: 'Only tasks with at most this priority.' },
-        { name: 'limit', type: 'integer', valueName: '<n>', description: 'Stop after this many successful tasks.' },
-        { name: 'auto', type: 'boolean', negatable: true, negatedOnly: true, description: 'Confirm each task before it starts (interactive only).' },
-        { name: 'dry-run', type: 'boolean', description: 'Preview the queue and selected configuration without executing.' },
-    ],
-};
+export const DRY_RUN_OPTION: OptionSpec = { name: 'dry-run', type: 'boolean', description: 'Preview what would happen without writing anything.' };
 
 /**
  * Every option group a command accepts, flattened.

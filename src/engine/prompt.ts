@@ -82,7 +82,7 @@ export type TaskPromptInput = {
     readonly feedback?: string;
     /** Attempt number. */
     readonly attempt: number;
-    /** Extra instructions for engine-generated work (Manager, Teacher, discovery). */
+    /** Extra instructions for engine-generated work (Router, Teacher, discovery). */
     readonly extra?: string;
     /** Chats with the user that belong to this task (full transcripts, so replies are seen in context). */
     readonly conversations?: ReadonlyArray<{ readonly chat: string; readonly messages: ReadonlyArray<{ readonly sender: string; readonly text: string }> }>;

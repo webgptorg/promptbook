@@ -126,7 +126,6 @@ test('project views name the mode and change the title on task start, task switc
     assert.equal(dashboardTitle(snapshot({ chats: { waiting: [{ name: 'Question' }] } }), false).detail, 'Needs you');
     assert.equal(dashboardTitle(snapshot({ tools: { waiting: { reason: 'no harness' } } }), false).detail, 'Waiting for tools');
     assert.equal(dashboardTitle(snapshot({ service: { mode: 'foreground', state: 'running' } }), true).mode, 'Foreground');
-    assert.equal(dashboardTitle(snapshot({ service: { mode: 'run', state: 'running' } }), true).mode, 'Run');
 
     const { title, writes } = recorder();
     for (const view of [snapshot(), snapshot(), snapshot(current('Expert', 'Write the README')), snapshot(current('Expert', 'Write the README')), snapshot(current('Developer', 'Fix the feed'))]) title.set(dashboardTitle(view, false));

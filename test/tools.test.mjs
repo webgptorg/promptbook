@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
+import { drive, findGenerated, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
 
 /**
  * Fixture check accepting every output.
@@ -85,15 +85,15 @@ test('tool management (stopped project): canonical records, scoped commits, prot
 test('tool management keeps someone else’s uncommitted edit of ptbk.json out of its commit', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
-    config.routing.preferences = 'Prefer the cheapest model.';
+    config.execution.waitAfterError = '15m';
     await writeFile(join(project, 'ptbk.json'), `${JSON.stringify(config, null, 4)}\n`);
     const add = await ptbk(['tool', 'add', 'BROWSER', '--variant', 'CHROME', '--name', 'second-browser', '--raw'], { cwd: project, env });
     assert.equal(add.code, 0, add.output);
     const committed = JSON.parse(await git(project, ['show', 'HEAD:ptbk.json']));
-    assert.equal(committed.routing.preferences, undefined, 'the unrelated edit is not swept into the tool commit');
+    assert.equal(committed.execution.waitAfterError, undefined, 'the unrelated edit is not swept into the tool commit');
     assert.equal(committed.tools.at(-1).name, 'second-browser');
     const working = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
-    assert.equal(working.routing.preferences, 'Prefer the cheapest model.', 'the edit stays in the working tree');
+    assert.equal(working.execution.waitAfterError, '15m', 'the edit stays in the working tree');
     assert.equal(working.tools.at(-1).name, 'second-browser');
     assert.match(await git(project, ['status', '--porcelain']), /M ptbk\.json/);
 });
@@ -166,7 +166,7 @@ test('same-variant fallback: a quota failure of the first instance moves the wor
     assert.equal(api.code, 0, api.output);
     await ptbk(['add', 'Summarize the news QUOTA_NATIVE', '--agent', 'Developer', '--raw'], { cwd: project, env });
     const started = Date.now();
-    const run = await ptbk(['run', '--raw', '--limit', '1', '--harness', 'openai-codex'], { cwd: project, env });
+    const run = await drive(project, env, async () => findGenerated(await subjects(project), 'Summarize the news QUOTA_NATIVE', 'PTBK: '), { args: ['--harness', 'openai-codex'], message: 'the result through the fallback' });
     assert.equal(run.code, 0, run.output);
     assert.ok(Date.now() - started < 120_000, 'no wait through the exhausted account’s reset');
     assert.match(run.output, /same-variant fallback/);

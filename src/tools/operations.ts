@@ -12,7 +12,6 @@ import {
     BROWSER_VARIANTS,
     HARNESS_VARIANTS,
     PROFILE_SOURCES,
-    THINKING_LEVELS,
     TOOL_TYPES,
     toolTypeLabel,
     type HarnessToolRecord,
@@ -41,9 +40,8 @@ export type ToolDraft = {
     /** Environment-variable name of the API key (stored as `${{ env.NAME }}`). */
     readonly apiKeyEnv?: string;
     readonly accountProfile?: string;
-    readonly model?: string;
-    readonly thinkingLevel?: string;
-    readonly models?: readonly string[];
+    /** `OFFICIAL`, `LOCAL` or an explicit base URL (`default` or omitted: the official endpoint). */
+    readonly baseUrl?: string;
 };
 
 /**
@@ -61,9 +59,8 @@ export type ToolChanges = {
     readonly authentication?: string;
     readonly apiKeyEnv?: string | null;
     readonly accountProfile?: string | null;
-    readonly model?: string | null;
-    readonly thinkingLevel?: string | null;
-    readonly models?: readonly string[] | null;
+    /** New endpoint; `null` (or `default`) returns to the official endpoint. */
+    readonly baseUrl?: string | null;
 };
 
 /**
@@ -157,7 +154,7 @@ export function recordFromDraft(draft: ToolDraft): ToolRecord {
     if (!name) throw invalid(`"${draft.name}" cannot be a tool name.`, 'Use a kebab-case name such as work-browser or codex-company.');
     const raw: Record<string, unknown> = { type, variant, name, ...(draft.description !== undefined ? { description: draft.description } : {}), isEnabled: draft.isEnabled ?? true };
     if (type === 'BROWSER') {
-        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'model', 'thinkingLevel', 'models'] as const) if (draft[field] !== undefined) throw invalid(`--${field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} does not apply to a BROWSER tool.`);
+        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl'] as const) if (draft[field] !== undefined) throw invalid(`--${field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} does not apply to a BROWSER tool.`);
         const source = draft.profileSource === undefined ? 'MANAGED_GLOBAL' : matchEnum(draft.profileSource, PROFILE_SOURCES);
         if (!source) throw invalid(`Unknown profile source "${draft.profileSource}".`, `Use one of ${PROFILE_SOURCES.join(', ')}.`);
         raw.profile = { source, ...(draft.profilePath !== undefined ? { path: draft.profilePath } : {}) };
@@ -173,12 +170,8 @@ export function recordFromDraft(draft: ToolDraft): ToolRecord {
             raw.apiKey = environmentReference(draft.apiKeyEnv);
         }
         if (draft.accountProfile !== undefined) raw.accountProfile = draft.accountProfile;
-        if (draft.model !== undefined) raw.model = draft.model;
-        if (draft.thinkingLevel !== undefined) {
-            if (!matchEnum(draft.thinkingLevel, THINKING_LEVELS)) throw invalid(`Unknown thinking level "${draft.thinkingLevel}".`, 'Use LOW, MEDIUM, HIGH, XHIGH or MAX.');
-            raw.thinkingLevel = draft.thinkingLevel;
-        }
-        if (draft.models !== undefined) raw.models = [...draft.models];
+        // The default choice is the official endpoint, which needs no saved value.
+        if (draft.baseUrl !== undefined && !/^(default|official)$/i.test(draft.baseUrl.trim())) raw.baseUrl = draft.baseUrl;
     }
     const parsed = parseTools([raw]);
     const errors = parsed.problems.filter((problem) => problem.severity === 'error');
@@ -197,7 +190,7 @@ function modifiedRecord(record: ToolRecord, changes: ToolChanges, rename?: strin
     };
     optional('description', changes.description, record.description);
     if (record.type === 'BROWSER') {
-        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'model', 'thinkingLevel', 'models'] as const) if (changes[field] !== undefined) throw invalid(`--${field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} does not apply to a BROWSER tool.`);
+        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl'] as const) if (changes[field] !== undefined) throw invalid(`--${field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} does not apply to a BROWSER tool.`);
         const source = changes.profileSource ?? record.profile.source;
         draft.profileSource = source;
         // Switching the source drops a path that belonged to the previous source, unless one is supplied.
@@ -210,9 +203,7 @@ function modifiedRecord(record: ToolRecord, changes: ToolChanges, rename?: strin
         draft.authentication = changes.authentication ?? record.authentication;
         optional('apiKeyEnv', changes.apiKeyEnv, parseEnvironmentReference(record.apiKey));
         optional('accountProfile', changes.accountProfile, record.accountProfile);
-        optional('model', changes.model, record.model);
-        optional('thinkingLevel', changes.thinkingLevel, record.thinkingLevel);
-        optional('models', changes.models, record.models);
+        optional('baseUrl', changes.baseUrl, record.baseUrl);
     }
     return recordFromDraft(draft as ToolDraft);
 }

@@ -1,3 +1,6 @@
+import type { BookSaveOutcome } from '../engine/agenda.js';
+import type { BookSource } from '../project/book-sources.js';
+import type { TaskInventoryItem } from '../tasks/views.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import type { ControlClient } from '../service/control.js';
 import type { ServiceHost } from '../service/host.js';
@@ -18,6 +21,11 @@ export function controlSource(client: ControlClient): DashboardSource {
         chats: controlChatSource((method, params) => client.request(method, params ?? {}), 'terminal'),
         pairing: (renew) => client.request('pairing', { renew }),
         tool: (request) => client.request<ToolOperationOutcome>('tool-operation', request as unknown as Record<string, unknown>, 120_000),
+        inventory: () => client.request<TaskInventoryItem[]>('task-inventory'),
+        books: {
+            read: (input) => client.request<BookSource>('book-source', { ...input }),
+            save: (input) => client.request<BookSaveOutcome>('book-save', { ...input }, 120_000),
+        },
         owning: false,
     };
 }
@@ -35,6 +43,11 @@ export function hostSource(host: ServiceHost): DashboardSource {
         chats: controlChatSource((method, params) => host.control(method, params ?? {}), 'terminal'),
         pairing: (renew) => host.control('pairing', { renew }),
         tool: (request) => host.control<ToolOperationOutcome>('tool-operation', request as unknown as Record<string, unknown>),
+        inventory: () => host.control<TaskInventoryItem[]>('task-inventory'),
+        books: {
+            read: (input) => host.control<BookSource>('book-source', { ...input }),
+            save: (input) => host.control<BookSaveOutcome>('book-save', { ...input }),
+        },
         owning: true,
     };
 }

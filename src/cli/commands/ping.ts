@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { ensureDirectory } from '../../common/fs.js';
 import { shortId } from '../../common/ids.js';
-import { enabledHarnesses, loadSettings, setting, type ThinkingLevel } from '../../project/config.js';
+import { enabledHarnesses, loadSettings, type ThinkingLevel } from '../../project/config.js';
 import { HarnessPool } from '../../engine/harnesses.js';
 import { harnessRequirement } from '../../engine/routing.js';
 import { harnessPlugin } from '../../harness/registry.js';
@@ -20,7 +20,7 @@ import { option, type CommandContext } from '../context.js';
 export default async function ping(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const saved = await loadSettings(project, { env: context.env });
-    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(saved, 'routing.harness') ?? enabledHarnesses(saved)[0];
+    const harness = option<string>(context, 'harness') ?? enabledHarnesses(saved)[0];
     if (!harness) throw new PtbkError('Select a harness with --harness.', { kind: 'usage' });
     // The explicit call uses the same named instance selection (and credentials) as ordinary work.
     const settings = await loadSettings(project, { env: context.env, cliHarnesses: [harness] });
@@ -48,8 +48,10 @@ export default async function ping(context: CommandContext): Promise<number> {
                     cwd: project.root,
                     prompt,
                     promptFile,
-                    model: option<string>(context, 'model') ?? instance.model,
-                    thinkingLevel: option<ThinkingLevel>(context, 'thinking-level'),
+                    // Unspecified choices use the plugin's coded defaults (tool settings never define them).
+                    model: option<string>(context, 'model') ?? (await pool.defaults(requirement.variant)).model,
+                    thinkingLevel: option<ThinkingLevel>(context, 'thinking-level') ?? (await pool.defaults(requirement.variant)).thinkingLevel,
+                    baseUrl: pool.baseUrl(instance),
                     readOnly: plugin.capabilities.readOnly,
                     env: pool.environment(instance),
                     timeoutMs: 180_000,

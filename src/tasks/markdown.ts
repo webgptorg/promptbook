@@ -1,3 +1,4 @@
+import { UNCONSTRAINED } from '../book/model.js';
 import { sha256 } from '../common/fs.js';
 import { parseDateTime } from '../common/time.js';
 import { PtbkError } from '../common/errors.js';
@@ -215,7 +216,7 @@ export function readMarkdownTasks(options: { source: string; path: string; relat
             after: 'after' in metadata ? metadata.after : undefined,
             afterRaw: 'afterRaw' in metadata ? metadata.afterRaw : undefined,
             dependsOn: [],
-            routing: { runners: metadata.selectors },
+            routing: { model: UNCONSTRAINED, runners: metadata.selectors },
             notes: [],
             placeholder,
             diagnostics,

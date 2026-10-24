@@ -38,6 +38,7 @@ export type KeyName =
     | 'w'
     | 'l'
     | 'o'
+    | 's'
     | 't'
     | 'v'
     | 'x';
@@ -70,6 +71,9 @@ const SEQUENCES: ReadonlyArray<[string, KeyEvent]> = [
     ['\x1b[Z', { type: 'key', name: 'tab', shift: true }],
     ['\x1b\r', { type: 'key', name: 'newline', alt: true }],
     ['\x1b\n', { type: 'key', name: 'newline', alt: true }],
+    // Shift+Enter where the terminal distinguishes it (kitty keyboard protocol, xterm modifyOtherKeys).
+    ['\x1b[13;2u', { type: 'key', name: 'newline', shift: true }],
+    ['\x1b[27;2;13~', { type: 'key', name: 'newline', shift: true }],
 ];
 
 /**
@@ -91,6 +95,7 @@ const CONTROL: Readonly<Record<string, KeyEvent>> = {
     '\x17': { type: 'key', name: 'w', ctrl: true },
     '\x0c': { type: 'key', name: 'l', ctrl: true },
     '\x0f': { type: 'key', name: 'o', ctrl: true },
+    '\x13': { type: 'key', name: 's', ctrl: true },
     '\x14': { type: 'key', name: 't', ctrl: true },
     '\x16': { type: 'key', name: 'v', ctrl: true },
     '\x18': { type: 'key', name: 'x', ctrl: true },

@@ -16,7 +16,7 @@ export { THINKING_LEVELS, type ThinkingLevel };
  *
  * @private project configuration
  */
-export type SettingSource = 'default' | 'environment' | 'ptbk.json' | 'cli' | 'runtime';
+export type SettingSource = 'default' | 'ptbk.json' | 'cli' | 'runtime';
 
 /**
  * When a changed setting takes effect in a running service.
@@ -47,8 +47,6 @@ export type SettingSpec = {
     readonly values?: readonly string[];
     /** Engine default (durations in milliseconds). */
     readonly default: unknown;
-    /** Legacy environment variable filling an unspecified default. */
-    readonly env?: string;
     /** Human description for help/inspection. */
     readonly description: string;
     /** When a runtime change applies. */
@@ -65,27 +63,7 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
     { key: 'paths.agents', type: 'string', default: 'agents', description: 'Directory of agent Books.', application: 'restart' },
     { key: 'paths.tasks', type: 'string', default: 'tasks', description: 'Task source directory.', application: 'restart' },
     { key: 'paths.context', type: 'nullable-string', default: 'AGENTS.md', description: 'Additional project context file (null disables).', application: 'next-task' },
-    { key: 'routing.defaultAgent', type: 'string', default: 'Developer', description: 'Agent used by run/fix/plan when none is selected.', application: 'next-task' },
-    {
-        key: 'routing.harness',
-        type: 'enum',
-        values: HARNESS_VARIANTS.map(harnessPluginId),
-        default: undefined,
-        env: 'PTBK_HARNESS',
-        description: 'Default/bootstrap harness variant (used directly by Manager).',
-        application: 'next-task',
-    },
-    { key: 'routing.model', type: 'string', default: undefined, env: 'PTBK_MODEL', description: 'Default model of the default harness.', application: 'next-task' },
-    {
-        key: 'routing.thinkingLevel',
-        type: 'enum',
-        values: THINKING_LEVELS,
-        default: undefined,
-        env: 'PTBK_THINKING_LEVEL',
-        description: 'Default thinking level.',
-        application: 'next-task',
-    },
-    { key: 'routing.preferences', type: 'string', default: undefined, description: 'Natural-language routing preferences for Manager.', application: 'next-task' },
+    { key: 'routing.defaultAgent', type: 'string', default: 'Developer', description: 'Agent of fix/plan/ask and Markdown tasks when none is selected.', application: 'next-task' },
     { key: 'execution.check', type: 'nullable-string', default: undefined, description: 'Project validation command.', application: 'next-task' },
     {
         key: 'execution.checkBefore',
@@ -345,6 +323,14 @@ export async function readProjectConfigFile(project: Project): Promise<ConfigFil
 }
 
 /**
+ * Former routing settings, superseded by plugin-owned defaults, Router's concrete MODEL and its Book (the project
+ * migration converts them; until then they are diagnosed and ignored, never a competing live source).
+ *
+ * @private project configuration
+ */
+export const SUPERSEDED_ROUTING_KEYS = ['harness', 'model', 'thinkingLevel', 'preferences'] as const;
+
+/**
  * Known top-level keys of `ptbk.json` (canonical spellings).
  */
 const KNOWN_TOP_LEVEL_KEYS = ['$schema', 'promptbookVersion', 'isAutoSync', 'tools', 'paths', 'routing', 'execution', 'traces', 'server', 'service', 'discovery', 'learning', 'team', 'timezone', 'initialized'];
@@ -450,7 +436,7 @@ export function canonicalizeConfig(input: Readonly<Record<string, unknown>>): Ca
 export type SettingsLayers = {
     /** Raw `ptbk.json` content (already migrated and canonicalized for this engine). */
     readonly file: Record<string, unknown>;
-    /** Environment for legacy defaults. */
+    /** Process environment (credentials are resolved elsewhere; no setting falls back to it). */
     readonly env?: NodeJS.ProcessEnv;
     /** Explicit CLI overrides by key (already parsed values). */
     readonly cli?: Readonly<Record<string, unknown>>;
@@ -540,7 +526,7 @@ function overrideBrowser(tools: ToolRecord[], overrides: BrowserOverrides, diagn
 }
 
 /**
- * Resolves effective settings: engine defaults < legacy environment < `ptbk.json` < CLI flags < live runtime changes.
+ * Resolves effective settings: engine defaults < `ptbk.json` < CLI flags < live runtime changes.
  *
  * Omitted values inherit; explicit `false`, empty or `null` values are kept.
  *
@@ -550,20 +536,20 @@ export function resolveSettings(layers: SettingsLayers): EffectiveSettings {
     const diagnostics: ConfigDiagnostic[] = [];
     const values: Record<string, unknown> = {};
     const sources: Record<string, SettingSource> = {};
-    const env = layers.env ?? process.env;
     for (const key of Object.keys(layers.file)) {
         if (!KNOWN_TOP_LEVEL_KEYS.includes(key)) diagnostics.push({ location: `ptbk.json › ${key}`, message: 'unknown setting (preserved, ignored)', severity: 'warning' });
+    }
+    const routing = layers.file.routing;
+    if (routing !== null && typeof routing === 'object' && !Array.isArray(routing)) {
+        for (const key of SUPERSEDED_ROUTING_KEYS) {
+            if ((routing as Record<string, unknown>)[key] !== undefined) {
+                diagnostics.push({ location: `ptbk.json › routing.${key}`, message: 'superseded routing setting (preserved, ignored): plugins own model/thinking defaults and Router\'s MODEL/Book state routing; the project migration converts it', severity: 'warning' });
+            }
+        }
     }
     for (const spec of SETTING_SPECS) {
         let value = spec.default;
         let source: SettingSource = 'default';
-        if (spec.env && env[spec.env] !== undefined && env[spec.env] !== '') {
-            const parsed = parseSettingValue(spec, env[spec.env]);
-            if (parsed.ok) {
-                value = parsed.value;
-                source = 'environment';
-            } else diagnostics.push({ location: `environment › ${spec.env}`, message: parsed.message, severity: 'error' });
-        }
         const fileValue = getPath(layers.file, spec.key);
         if (fileValue !== undefined) {
             const parsed = parseSettingValue(spec, fileValue);

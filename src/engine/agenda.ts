@@ -1,6 +1,6 @@
 import { watch, type FSWatcher } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
-import { dirname, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { formatDuration } from '../common/duration.js';
 import { confinePath, ensureDirectory, pathExists, toProjectRelative } from '../common/fs.js';
@@ -9,8 +9,12 @@ import { creationTimestamp, formatIsoWithOffset, formatShortTime } from '../comm
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { setControlCommitment } from '../book/edit.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue, referenceName, toReference } from '../book/references.js';
-import { isCheckPlaceholder, loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type BrowserOverrides, type EffectiveSettings, type LoadedSettings, type ThinkingLevel } from '../project/config.js';
-import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent } from '../project/agents.js';
+import { isCheckPlaceholder, loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type BrowserOverrides, type EffectiveSettings, type LoadedSettings } from '../project/config.js';
+import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent, validateAgents } from '../project/agents.js';
+import { readBookSource, type BookSource } from '../project/book-sources.js';
+import { validateAttachments } from '../chats/store.js';
+import { materializeAttachments } from '../ui/attachments.js';
+import type { TaskInventoryItem } from '../tasks/views.js';
 import { commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
@@ -43,6 +47,8 @@ import {
     createAssignmentTask,
     createChatLearningTask,
     createDiscoveryTask,
+    createRepairTask,
+    routerAgent,
     discoveryPrompt,
     learningPrompt,
     originTarget,
@@ -55,7 +61,10 @@ import { maintainProjectConfiguration } from '../project/configuration.js';
 import { applyToolOperation, type ToolOperationOutcome, type ToolOperationRequest } from '../tools/operations.js';
 import { inspectBrowserTool, toolInventory, type BrowserReadiness } from '../tools/readiness.js';
 import type { TaskChats } from '../chats/task-chats.js';
-import { resolveRoute, type RouteResolution, type RunSelection } from './routing.js';
+import type { ComposedSegment } from '../ui/composer.js';
+import { completeWithDefaults, resolveRoute, routeWithDefaults, type RouteResolution, type RoutingContext } from './routing.js';
+import { describeModel, formatModelContent, formatModelRow, intersectModels, UNCONSTRAINED } from '../book/model.js';
+import { harnessVariantOf } from '../tools/model.js';
 import type {
     ActivityView,
     AgentView,
@@ -80,29 +89,12 @@ import { finishWorktree, integrateWorktree, isIntegrated, prepareWorktree } from
 import { shortHash, shortId } from '../common/ids.js';
 
 /**
- * Process placement of the agenda.
+ * Process placement of the agenda: the ongoing engine as a daemon or in a foreground terminal, or an in-process
+ * host of one explicit finite maintenance operation (`ptbk fix`, `ptbk recover`), never a queue workflow.
  *
  * @private agenda supervisor
  */
-export type AgendaMode = 'daemon' | 'foreground' | 'run';
-
-/**
- * Finite-run options.
- *
- * @private agenda supervisor
- */
-export type RunOptions = {
-    /** The one configuration of the run. */
-    readonly selection: RunSelection;
-    /** Lower priority bound. */
-    readonly minPriority?: number;
-    /** Upper priority bound. */
-    readonly maxPriority?: number;
-    /** Successful-task limit. */
-    readonly limit?: number;
-    /** Confirmation before each task (`--no-auto`). */
-    readonly confirm?: (task: Task) => Promise<boolean>;
-};
+export type AgendaMode = 'daemon' | 'foreground' | 'maintenance';
 
 /**
  * Construction options of the agenda.
@@ -126,8 +118,6 @@ export type AgendaOptions = {
     readonly persistent: boolean | null;
     /** Explanation of persistence state. */
     readonly persistenceNote?: string;
-    /** Finite-run options (mode `run`). */
-    readonly run?: RunOptions;
     /** Plain event stream (raw/noninteractive output). */
     readonly onEvent?: (text: string, level: 'info' | 'warning' | 'error') => void;
     /** Additional tools for agents (project browser); `trace`/`attempt` identify the evidence they belong to. */
@@ -143,6 +133,25 @@ export type AgendaOptions = {
 };
 
 /**
+ * Outcome of saving an edited Book source.
+ *
+ * @private agenda supervisor
+ */
+export type BookSaveOutcome = {
+    readonly path: string;
+    /** The file was written (an unchanged source creates no commit). */
+    readonly saved: boolean;
+    readonly unchanged?: boolean;
+    readonly commit?: string;
+    /** Revision of the saved source (the base of the next save). */
+    readonly revision: string;
+    /** Detected problems (warnings; saving is never refused for them). */
+    readonly diagnostics: BookSource['diagnostics'];
+    /** Whether an ordinary Fixer repair task was created for the problems. */
+    readonly repair?: boolean;
+};
+
+/**
  * Summary returned when the agenda ends.
  *
  * @private agenda supervisor
@@ -152,7 +161,7 @@ export type AgendaSummary = {
     readonly failed: number;
     readonly waitingChats: number;
     /** `restart`: the owner shut down for a restart and starts exactly one replacement with the same configuration. */
-    readonly outcome: 'stopped' | 'restart' | 'finished' | 'incomplete' | 'failed';
+    readonly outcome: 'stopped' | 'restart';
     readonly message: string;
     readonly nextTime?: number;
 };
@@ -234,7 +243,7 @@ export class Agenda {
     private readonly changeListeners = new Set<() => void>();
     private phase: Phase = 'starting';
     /** Observed outcome after the agenda ended (not a live state). */
-    private exitState?: 'stopped' | 'finished';
+    private exitState?: 'stopped';
     private current?: CurrentWorkView;
     /** Effective routing of the current execution and its consultation contexts (for the execution panel). */
     private currentContext?: { readonly selection: RoutingSelection; readonly harnessVersion?: string; readonly source: string; consultations: ExecutionContextView[] };
@@ -277,16 +286,12 @@ export class Agenda {
     private repositoryRoot?: string;
     private connection: ConnectionView = { local: { state: 'disabled' }, remote: { state: 'disabled' } };
     private readonly startedAt = new Date().toISOString();
-    private readonly executedInRun = new Set<string>();
-    private runInitial?: Set<string>;
-    private runSucceeded = 0;
     private lastHarnessMaintenance = 0;
     private readonly watchers: FSWatcher[] = [];
     private wakeTimer?: NodeJS.Timeout;
     private configTimer?: NodeJS.Timeout;
     private lastPersistenceRetry = 0;
     private nextKnownTime?: number;
-    private finishedSummary?: AgendaSummary;
     /** Readiness of the enabled browser tools (inspected without launching them). */
     private browserReadiness = new Map<string, BrowserReadiness>();
     /** The shared tool inventory as of the last refresh. */
@@ -367,7 +372,7 @@ export class Agenda {
         await confinePath(project.root, this.tasksDirectory);
         const results = await this.state.recentResults(200);
         this.recentResults = results.slice(0, 20).map(resultView);
-        this.log(`ptbk ${ENGINE_VERSION} ${this.options.mode === 'run' ? 'run' : 'agenda'} started for ${project.root}${this.commitMode ? '' : ' (explicit no-commit mode)'}`);
+        this.log(`ptbk ${ENGINE_VERSION} ${this.options.mode === 'maintenance' ? 'maintenance host' : 'agenda'} started for ${project.root}${this.commitMode ? '' : ' (explicit no-commit mode)'}`);
         await this.applyTraceIgnoreRules();
         await this.ensureCoreAgents();
         const migrated = await migrateLegacyRequests(project, this.chats, this.state, () => this.catalog.index.names()).catch((error: unknown) => {
@@ -376,7 +381,7 @@ export class Agenda {
         });
         if (migrated) this.log(`Migrated ${migrated} pending request(s) of an older engine into chats waiting for you.`);
         await this.refreshChats();
-        if (this.options.mode !== 'run') {
+        if (this.options.mode !== 'maintenance') {
             // User messages written while no service ran (or interrupted replies) still get their agent's reply, once.
             for (const stored of await this.chats.list().catch(() => [])) {
                 const last = stored.chat.messages[stored.chat.messages.length - 1];
@@ -401,7 +406,13 @@ export class Agenda {
     private async ensureCoreAgents(): Promise<void> {
         if (!this.repositoryRoot) return;
         const { ensureCoreAgents } = await import('../project/setup.js');
-        const created = await ensureCoreAgents(this.options.project.root, setting<string>(this.settings, 'paths.agents'));
+        // A missing Router is created directly runnable: the first suitable enabled harness and its plugin defaults.
+        const created = await ensureCoreAgents(this.options.project.root, setting<string>(this.settings, 'paths.agents'), {
+            routerModel: async () => {
+                const completed = await completeWithDefaults(UNCONSTRAINED, this.routing, { includeUnusable: true });
+                return completed.row ? formatModelRow(completed.row) : undefined;
+            },
+        });
         // Sources in former syntax are never rewritten automatically: they wait for an explicit `ptbk migrate`.
         const legacy = (this.catalog?.index.all() ?? []).filter((entry) => entry.tier !== 4 && entry.document.legacy && entry.kind === 'invalid');
         if (legacy.length) {
@@ -449,15 +460,11 @@ export class Agenda {
         this.touch();
         this.startWatching();
         try {
-            while (!this.shutdown && !this.finishedSummary) {
+            while (!this.shutdown) {
                 try {
                     await this.iteration();
                 } catch (error) {
                     await this.reportError('supervisor', error);
-                    if (this.options.mode === 'run') {
-                        this.finishedSummary = { completed: this.completed, failed: this.failed + 1, waitingChats: this.waitingChats().length, outcome: 'failed', message: errorMessage(error) };
-                        break;
-                    }
                     await this.wait(setting<number>(this.settings, 'execution.waitAfterError') || 60_000, { kind: 'error-backoff', reason: `Supervisor error: ${errorMessage(error)}`, skippable: true });
                 }
                 this.settle();
@@ -465,9 +472,8 @@ export class Agenda {
         } finally {
             this.stopWatching();
         }
-        const finished = this.options.mode === 'run' && !this.shutdown;
-        this.exitState = finished ? 'finished' : 'stopped';
-        this.phase = finished ? 'finished' : 'stopped';
+        this.exitState = 'stopped';
+        this.phase = 'stopped';
         this.current = undefined;
         this.currentContext = undefined;
         this.waitView = undefined;
@@ -475,15 +481,13 @@ export class Agenda {
         if (this.shutdown === 'restart') {
             return { completed: this.completed, failed: this.failed, waitingChats: this.waitingChats().length, outcome: 'restart', message: 'Shut down for a restart; unfinished work keeps its recovery record.' };
         }
-        return (
-            this.finishedSummary ?? {
-                completed: this.completed,
-                failed: this.failed,
-                waitingChats: this.waitingChats().length,
-                outcome: 'stopped',
-                message: this.shutdown === 'force' ? 'Force-stopped; interrupted work keeps its recovery record.' : 'Stopped on request; unfinished work keeps its recovery record.',
-            }
-        );
+        return {
+            completed: this.completed,
+            failed: this.failed,
+            waitingChats: this.waitingChats().length,
+            outcome: 'stopped',
+            message: this.shutdown === 'force' ? 'Force-stopped; interrupted work keeps its recovery record.' : 'Stopped on request; unfinished work keeps its recovery record.',
+        };
     }
 
     /** Whether the stop that ended the agenda was an intentional user request (not a restart or an OS signal). */
@@ -639,7 +643,7 @@ export class Agenda {
         if (this.shutdown) return this.outcome(action, this.shutdown === (options.restart ? 'restart' : 'stop'), this.shutdown === 'restart' ? 'Already restarting.' : 'Already shutting down.');
         const wanted: LifecycleIntent = options.restart ? 'restart' : 'stop';
         if (this.intent === wanted) return this.outcome(action, true, `${options.restart ? 'Restart' : 'Stop'} is already pending: the current task finishes first.`);
-        if (options.restart && this.options.mode === 'run') throw new PtbkError('A finite run cannot be restarted.', { kind: 'usage', next: ['Stop it and run it again.'] });
+        if (options.restart && this.options.mode === 'maintenance') throw new PtbkError('A finite maintenance operation cannot be restarted.', { kind: 'usage', next: ['Run it again when it has finished.'] });
         const previous = this.intent;
         this.paused = false;
         this.decide(
@@ -670,7 +674,7 @@ export class Agenda {
             draining: Boolean(this.intent) && this.executing,
             shutdown: Boolean(this.shutdown),
             cancellable: Boolean(this.intent) && !this.shutdown,
-            restartable: this.options.mode !== 'run',
+            restartable: this.options.mode !== 'maintenance',
         };
     }
 
@@ -706,7 +710,7 @@ export class Agenda {
     /**
      * Starts a new user-led chat with one agent (its first message is committed), then lets the agent reply.
      */
-    public async chatCreate(agent: string, text: string, options: { readonly name?: string; readonly requestKey?: string } = {}): Promise<ChatWrite> {
+    public async chatCreate(agent: string, text: string, options: { readonly name?: string; readonly requestKey?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
         // A retried creation (same client request key) returns the chat already prepared, never a second name.
         const previous = options.requestKey ? this.createdChats.get(options.requestKey) : undefined;
         const existing = previous ? await this.chats.find(previous) : undefined;
@@ -732,8 +736,8 @@ export class Agenda {
      * Appends the user's message to a chat (one commit). A valid answer lets the waiting task resume; any other
      * message is a conversation turn the chat's agent replies to.
      */
-    public async chatSend(name: string, text: string, options: { readonly expected?: number; readonly via?: string } = {}): Promise<ChatWrite> {
-        const { written, needsReply } = await appendUserMessage(this.chats, this.state, name, text, { expected: options.expected });
+    public async chatSend(name: string, text: string, options: { readonly expected?: number; readonly via?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
+        const { written, needsReply } = await appendUserMessage(this.chats, this.state, name, text, { expected: options.expected, segments: options.segments });
         this.log(`Message in {${written.chat.name}}${options.via ? ` via ${options.via}` : ''}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
         await this.refreshChats();
         if (needsReply) this.queueChatReply(written.chat.name);
@@ -765,6 +769,10 @@ export class Agenda {
                         env: this.options.env,
                         createTask: async (input) => await this.createChatTask(input),
                         scheduleLearning: async (input) => await this.scheduleChatLearning(input),
+                        establishedExecution: async (chat) => {
+                            const active = await this.state.readActive();
+                            return [...(active ? [active] : []), ...(await this.state.readParked())].find((record) => record.waitingChat === chat || record.recoveryChat === chat)?.routing;
+                        },
                         onActivity: (text) => this.log(text),
                     },
                     name,
@@ -864,7 +872,7 @@ export class Agenda {
             let sha: string | undefined;
             if (commit) {
                 sha = await this.commitAuthoring([absolute], summary, { 'Task-Name': names });
-                // Committed sources are clean again; later edits (e.g. Manager routing) belong to the work that makes them.
+                // Committed sources are clean again; later edits (e.g. Router routing) belong to the work that makes them.
                 this.authoredPaths.delete(absolute);
             } else await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, absolute)]: null });
             this.log(`Added ${toProjectRelative(this.options.project.root, absolute)}${sha ? ` (${sha.slice(0, 8)})` : ' (uncommitted)'}`);
@@ -1025,10 +1033,15 @@ export class Agenda {
             if (!this.current || normalizeAgentName(this.current.agent.name) !== normalizeAgentName(name)) return 'idle';
             return this.current.agent.activity;
         };
+        // The complete team inventory: ordinary agents, core roles and the engine-provided Expert.
         const agents: AgentView[] = this.catalog
-            ? [...new Map([...this.catalog.ordinary(), ...this.catalog.all().filter((definition) => definition.core)].map((definition) => [definition.normalized, definition])).values()].map(
-                  (definition) => agentView(definition.name, activityOf(definition.name)),
-              )
+            ? [
+                  ...[...new Map([...this.catalog.ordinary(), ...this.catalog.all().filter((definition) => definition.core)].map((definition) => [definition.normalized, definition])).values()].map((definition) => ({
+                      ...agentView(definition.name, activityOf(definition.name)),
+                      ...(definition.core ? { role: 'core' as const } : {}),
+                  })),
+                  { ...agentView('Expert', activityOf('Expert')), role: 'engine' as const },
+              ]
             : [];
         if (this.current && !agents.some((agent) => agent.key === this.current!.agent.key)) agents.unshift(this.current.agent);
         const harnesses = this.pool
@@ -1280,14 +1293,10 @@ export class Agenda {
         await this.refreshChats();
         if (this.blockers.some((blocker) => blocker.kind === 'workspace' || blocker.kind === 'configuration')) {
             const blocker = this.blockers.find((item) => item.kind === 'workspace' || item.kind === 'configuration')!;
-            if (this.options.mode === 'run') {
-                this.finishedSummary = { completed: this.completed, failed: this.failed, waitingChats: this.waitingChats().length, outcome: 'failed', message: `${blocker.title}: ${blocker.reason}` };
-                return;
-            }
             await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason: `${blocker.title}: ${blocker.reason}`, action: blocker.action, skippable: false });
             return;
         }
-        if (this.options.mode !== 'run') await this.maintainHarnesses();
+        await this.maintainHarnesses();
         const active = await this.state.readActive();
         if (active) {
             await this.continueActive(active);
@@ -1299,17 +1308,15 @@ export class Agenda {
         // Opt-in synchronization before new work: an attempt, never a prerequisite of local progress.
         await this.sync.request('boundary');
         const evaluated = await this.evaluate();
-        if (this.options.mode !== 'run' && (await this.scheduleHealthCheck(evaluated))) return;
-        const candidates = this.filterForRun(evaluated);
-        const next = selectNext(candidates);
+        if (await this.scheduleHealthCheck(evaluated)) return;
+        if (await this.scheduleRoutingRepairs(evaluated)) return;
+        // While Router cannot run, routing waits (bounded) and its repair or other ready work proceeds.
+        const routerProblem = evaluated.some((item) => item.readiness.kind === 'needs-assignment') ? await this.routerProblem() : undefined;
+        const next = selectNext(evaluated, Date.now(), { assignable: !routerProblem });
         const waitingForTools = this.tools.waiting;
         // Unfinished work that cannot be routed for lack of tools is a running resource wait (never a plain idle).
         if (waitingForTools && (next || evaluated.some((item) => isUnfinished(item.readiness)))) {
             // A running engine waiting for resources (not a pause or stop): controls, refresh and rechecks stay alive.
-            if (this.options.mode === 'run') {
-                this.finishedSummary = { completed: this.completed, failed: this.failed, waitingChats: this.waitingChats().length, outcome: 'incomplete', message: `${waitingForTools.reason} (${waitingForTools.action})` };
-                return;
-            }
             this.setBlocker({ kind: 'tools', title: 'Waiting for tools', reason: waitingForTools.reason, action: waitingForTools.action, recheckAt: new Date(Date.now() + TOOLS_RECHECK_MS).toISOString() });
             await this.wait(TOOLS_RECHECK_MS, { kind: 'tools', reason: `Waiting for tools: ${waitingForTools.reason}`, action: waitingForTools.action, skippable: false });
             return;
@@ -1320,27 +1327,15 @@ export class Agenda {
             if (dirty.length && policy !== 'ignore') {
                 const reason = `Uncommitted changes not owned by ptbk: ${dirty.slice(0, 5).join(', ')}${dirty.length > 5 ? ` and ${dirty.length - 5} more` : ''}.`;
                 const action = 'Commit or discard them, or restart with `--git-changes ignore` to leave them aside.';
-                if (this.options.mode === 'run') {
-                    this.finishedSummary = { completed: this.completed, failed: this.failed, waitingChats: this.waitingChats().length, outcome: 'failed', message: `${reason} ${action}` };
-                    return;
-                }
+                this.logOnce(`${reason} ${action}`, 'warning');
                 this.setBlocker({ kind: 'workspace', title: 'Unrelated uncommitted changes', reason, action, recheckAt: new Date(Date.now() + 60_000).toISOString() });
                 await this.wait(60_000, { kind: 'workspace', reason, action, skippable: false });
                 return;
             }
             this.clearBlocker('workspace');
-            if (this.options.run?.confirm && !(await this.options.run.confirm(next.task))) {
-                this.executedInRun.add(next.task.key);
-                this.log(`Skipped ${next.task.title} (not confirmed).`);
-                return;
-            }
             // Lifecycle decisions are serialized with claims: after pause/stop is accepted, no next task starts.
             if (!this.claimable) return;
             await this.startTask(next);
-            return;
-        }
-        if (this.options.mode === 'run') {
-            this.finishRun(evaluated);
             return;
         }
         if (!evaluated.some((item) => isUnfinished(item.readiness)) && setting<boolean>(this.settings, 'discovery.isEnabled') && !waitingForTools) {
@@ -1369,6 +1364,8 @@ export class Agenda {
     private async healthFindings(evaluated: readonly EvaluatedTask[]): Promise<string[]> {
         const findings = new Set<string>();
         for (const diagnostic of this.catalog.index.diagnostics) findings.add(`${diagnostic.severity}: ${diagnostic.path}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
+        // Problems of effective agents (inheritance, references, MODEL) and of every project Book's own content.
+        for (const diagnostic of await validateAgents(this.catalog)) findings.add(`${diagnostic.severity}: ${diagnostic.path}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
         for (const diagnostic of this.settings.diagnostics.filter((item) => !item.location.startsWith('--') && !item.location.startsWith('environment ›') && !/migration .* is pending/.test(item.message))) {
             findings.add(`${diagnostic.severity}: ${diagnostic.location} — ${diagnostic.message}`);
         }
@@ -1387,8 +1384,9 @@ export class Agenda {
      * hourly) or when they stay unresolved for a day. Nothing is scheduled (and no model runs) without findings, while
      * Fixer's previous check is unfinished, or when Fixer is unavailable. Returns whether a task was created.
      */
-    private async scheduleHealthCheck(evaluated: readonly EvaluatedTask[]): Promise<boolean> {
-        if (!this.claimable) return false;
+    private async scheduleHealthCheck(evaluated: readonly EvaluatedTask[], options: { readonly explicit?: boolean } = {}): Promise<boolean> {
+        // An explicit save with detected problems schedules the repair at once, also while paused (it then waits).
+        if (!this.claimable && !options.explicit) return false;
         const fixer = await this.catalog.resolve('@Fixer');
         if (fixer.kind !== 'agent') return false;
         if (evaluated.some((item) => item.task.origin === HEALTH_ORIGIN && isUnfinished(item.readiness))) return false;
@@ -1397,8 +1395,8 @@ export class Agenda {
         const fingerprint = shortHash(findings.join('\n'), 16);
         const health = await this.state.readHealth();
         const since = health.scheduledAt ? Date.now() - Date.parse(health.scheduledAt) : Number.POSITIVE_INFINITY;
-        if (since < HEALTH_MIN_INTERVAL_MS) return false;
-        if (health.fingerprint === fingerprint && since < HEALTH_RECHECK_INTERVAL_MS) return false;
+        if (health.fingerprint === fingerprint && (options.explicit || since < HEALTH_RECHECK_INTERVAL_MS)) return false;
+        if (since < HEALTH_MIN_INTERVAL_MS && !options.explicit) return false;
         const title = generatedName('Project health check', { taken: await this.takenNames(), timeZone: this.timeZone });
         const recentFailures = (await this.state.recentResults(50)).filter((result) => result.outcome === 'failed').slice(0, 5);
         const description = [
@@ -1416,32 +1414,21 @@ export class Agenda {
         return true;
     }
 
+    /**
+     * Why Router cannot take assignment work now (its bootstrap problem is reported and repaired), or undefined when
+     * it can.
+     */
+    private async routerProblem(): Promise<string | undefined> {
+        const router = await routerAgent(this.catalog);
+        if (!router) return 'Router is missing';
+        const route = await this.route(readTaskBook({ source: `TASK Routing probe\nTASK AGENT ${formatAgentReference(router.name)}\n`, path: resolve(this.tasksDirectory, '.routing-probe.book'), relativePath: '.routing-probe.book', order: 0, timeZone: this.timeZone })!);
+        if (route.kind === 'routable') return undefined;
+        await this.routerBootstrapProblem(router.name, route);
+        return route.reason;
+    }
+
     /** Explanation of the most recent idle reason (discovery). */
     private idleReason?: string;
-
-    /** Finishes a finite run with a truthful summary. */
-    private finishRun(evaluated: EvaluatedTask[]): void {
-        const future = evaluated.filter((item) => item.readiness.kind === 'waiting-until').map((item) => (item.readiness as { until: number }).until);
-        const nextTime = future.length ? Math.min(...future) : undefined;
-        const pending = this.waitingChats().length;
-        const outcome: AgendaSummary['outcome'] = this.failed ? 'failed' : pending || this.pendingIntegrations ? 'incomplete' : 'finished';
-        const parts = [`${this.completed} completed, ${this.failed} failed`];
-        if (pending) parts.push(`${pending} chat(s) waiting for you (ptbk answer)`);
-        if (this.pendingIntegrations) parts.push(`${this.pendingIntegrations} isolated result(s) wait for integration into the project branch`);
-        if (nextTime) parts.push(`next scheduled work at ${formatShortTime(nextTime, Date.now(), this.timeZone)}`);
-        this.finishedSummary = { completed: this.completed, failed: this.failed, waitingChats: pending, outcome, message: parts.join('; '), nextTime };
-    }
-
-    /** Restricts candidates for a finite run: initial snapshot, priority bounds, one occurrence per definition. */
-    private filterForRun(evaluated: EvaluatedTask[]): EvaluatedTask[] {
-        if (this.options.mode !== 'run') return evaluated;
-        const run = this.options.run!;
-        if (run.limit !== undefined && this.runSucceeded >= run.limit) return [];
-        const inBounds = (item: EvaluatedTask): boolean =>
-            (run.minPriority === undefined || item.task.priority.value >= run.minPriority) && (run.maxPriority === undefined || item.task.priority.value <= run.maxPriority);
-        if (!this.runInitial) this.runInitial = new Set(evaluated.filter((item) => item.readiness.kind === 'ready').map((item) => item.task.key));
-        return evaluated.filter((item) => item.readiness.kind === 'ready' && this.runInitial!.has(item.task.key) && !this.executedInRun.has(item.task.key) && inBounds(item));
-    }
 
     /** Evaluates readiness of every task and updates the queue view. */
     private async evaluate(): Promise<EvaluatedTask[]> {
@@ -1465,6 +1452,7 @@ export class Agenda {
                 }
             }
         }
+        const routingBlocks = new Map(Object.entries(await this.state.readRoutingBlocks()));
         const activations = await this.state.readActivations();
         for (const task of queue.tasks) {
             if (isRecurring(task) && activations[task.key] === undefined) activations[task.key] = await this.state.ensureActivation(task.key, Date.now());
@@ -1487,6 +1475,26 @@ export class Agenda {
             activation: (task) => activations[task.key] ?? Date.now(),
             route,
             assignmentFor,
+            routingBlocks,
+        });
+        this.inventory = evaluated.map(({ task, readiness }) => {
+            const resolution = routeCache.get(task.ref);
+            return {
+                ref: task.ref,
+                title: task.title,
+                readiness: readiness.kind,
+                reason: readiness.reason,
+                priority: task.priority.value,
+                priorityText: task.priority.raw ? describePriority(task.priority) : undefined,
+                agent: resolution?.kind === 'routable' ? resolution.selection.agent : task.routing.agent,
+                model: task.routing.model.explicit ? formatModelContent(task.routing.model) : undefined,
+                until: readiness.kind === 'waiting-until' ? new Date(readiness.until).toISOString() : readiness.kind === 'needs-assignment' && readiness.ahead?.until ? new Date(readiness.ahead.until).toISOString() : undefined,
+                repeat: task.repeatRaw,
+                lastDone: task.doneStamps.filter((stamp) => !stamp.startsWith('unknown')).at(-1)?.split(/\s+/)[0],
+                doneCount: task.doneStamps.length,
+                source: task.source.relativePath,
+                origin: task.origin,
+            } satisfies TaskInventoryItem;
         });
         this.queueTotal = evaluated.filter((item) => item.readiness.kind !== 'done' && item.readiness.kind !== 'retired').length;
         this.queueView = evaluated
@@ -1502,7 +1510,8 @@ export class Agenda {
                     priority: item.task.priority.value,
                     priorityText: item.task.priority.raw ? describePriority(item.task.priority) : undefined,
                     agent: resolution?.kind === 'routable' ? resolution.selection.agent : item.task.routing.agent,
-                    harness: resolution?.kind === 'routable' ? resolution.selection.harness : item.task.routing.harness,
+                    harness: resolution?.kind === 'routable' ? resolution.selection.harness : undefined,
+                    model: resolution?.kind === 'routable' ? resolution.selection.model : undefined,
                     source: item.task.source.relativePath,
                     until: item.readiness.kind === 'waiting-until' ? new Date(item.readiness.until).toISOString() : undefined,
                     origin: item.task.origin,
@@ -1510,6 +1519,61 @@ export class Agenda {
             });
         this.touch();
         return evaluated;
+    }
+
+    /** The complete task inventory of the last evaluation (every state; views sort it, execution never does). */
+    private inventory: TaskInventoryItem[] = [];
+
+    /** The complete task inventory (refreshed when stale, e.g. while the loop waits). */
+    public async taskInventory(): Promise<TaskInventoryItem[]> {
+        if (!this.inventory.length && this.catalog) await this.evaluate();
+        return this.inventory;
+    }
+
+    /** A Book's source with its revision and detected problems (read-only). */
+    public async bookSource(input: { readonly reference?: string; readonly path?: string }): Promise<BookSource> {
+        return await readBookSource(this.options.project.root, this.catalog, input);
+    }
+
+    /**
+     * Saves an edited Book source: the exact text (attachments become project assets next to it), checked against the
+     * revision the editor started from, never over an executing task's source, committed as its own scoped operation.
+     * Problematic content is saved with its warnings and handed to ordinary Fixer repair (pending under pause).
+     */
+    public async bookSave(input: { readonly path: string; readonly text: string; readonly revision: string; readonly segments?: readonly ComposedSegment[] }): Promise<BookSaveOutcome> {
+        return await this.publication.run(async () => {
+            const current = await readBookSource(this.options.project.root, this.catalog, { path: input.path });
+            if (!current.editable) throw new PtbkError(`${current.path} cannot be edited here.`, { kind: 'usage', reason: current.reason });
+            if (current.revision !== input.revision) {
+                throw new PtbkError(`${current.path} changed since you opened it.`, { kind: 'conflict', effect: 'Nothing was saved; your draft is kept.', next: ['Reload the source, reconcile your draft and save again.'] });
+            }
+            const active = await this.state.readActive();
+            if (active && (active.sourcePath === current.path || active.createdPaths.includes(current.path))) {
+                throw new PtbkError(`${current.path} belongs to the executing task "${active.taskTitle}".`, { kind: 'conflict', effect: 'Nothing was saved; your draft is kept.', next: ['Save again after the task has finished.'] });
+            }
+            const absolute = resolve(this.options.project.root, current.path);
+            let text = input.text;
+            let assets: string[] = [];
+            if (input.segments?.some((segment) => segment.type === 'attachment')) {
+                await validateAttachments(input.segments);
+                const directory = join(dirname(absolute), 'assets', basename(absolute).replace(/\.book$/i, ''));
+                const materialized = await materializeAttachments(input.segments, { directory, link: (name) => relative(dirname(absolute), join(directory, name)).split(sep).join('/') });
+                text = materialized.text;
+                assets = materialized.files;
+            }
+            if (text === current.text) return { path: current.path, saved: false, unchanged: true, revision: current.revision, diagnostics: current.diagnostics };
+            await writeFile(absolute, text);
+            await this.refreshContext();
+            const saved = await readBookSource(this.options.project.root, this.catalog, { path: current.path });
+            let commit: string | undefined;
+            if (this.commitMode) commit = await this.commitAuthoring([absolute, ...assets], `Edit ${saved.kind === 'invalid' ? 'Book' : saved.kind} - ${saved.name || current.path}`, saved.kind === 'task' ? { 'Task-Name': saved.name } : saved.kind === 'chat' ? { 'Chat-Name': saved.name } : {});
+            else for (const path of [absolute, ...assets]) await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, path)]: null });
+            this.log(`Saved ${current.path}${commit ? ` (${commit.slice(0, 8)})` : ' (uncommitted)'}${saved.diagnostics.length ? ` with ${saved.diagnostics.length} warning(s)` : ''}.`, saved.diagnostics.length ? 'warning' : 'info');
+            // Detected problems go to the ordinary, deduplicated Fixer repair (created now, executed when work may run).
+            const repair = saved.diagnostics.length ? await this.scheduleHealthCheck(await this.evaluate(), { explicit: true }) : false;
+            this.wake();
+            return { path: current.path, saved: true, commit, revision: saved.revision, diagnostics: saved.diagnostics, repair };
+        });
     }
 
     /** Normalized names of every Book plus queued tasks (new generated tasks and chats get distinct names). */
@@ -1524,9 +1588,14 @@ export class Agenda {
         return await readTaskQueue({ root: this.options.project.root, tasksDirectory: this.tasksDirectory, explicit: Boolean(this.options.tasksDirectory), timeZone: this.timeZone, index: this.catalog?.index });
     }
 
-    /** Routes a task in the agenda's mode. */
+    /** The shared routing context of this engine's live catalog, tools and settings. */
+    private get routing(): RoutingContext {
+        return { catalog: this.catalog, pool: this.pool, settings: this.settings };
+    }
+
+    /** Routes a task (no model call). */
     private async route(task: Task): Promise<RouteResolution> {
-        return await resolveRoute(task, { mode: this.options.mode === 'run' ? 'run' : 'start', catalog: this.catalog, pool: this.pool, settings: this.settings, runSelection: this.options.run?.selection });
+        return await resolveRoute(task, this.routing);
     }
 
     /** Uncommitted project paths not owned by ptbk (relative). */
@@ -1601,11 +1670,11 @@ export class Agenda {
 
     // ── Starting work ────────────────────────────────────────────────────────
 
-    /** Starts the selected task (or its Manager prerequisite). */
-    private async startTask(next: EvaluatedTask): Promise<void> {
+    /** Starts the selected task (or its Router prerequisite). */
+    private async startTask(next: ReturnType<typeof selectNext> & object): Promise<void> {
         const task = next.task;
         if (next.readiness.kind === 'needs-assignment') {
-            await this.assign(task);
+            await this.assign(task, next.rank);
             return;
         }
         const route = await this.route(task);
@@ -1626,7 +1695,8 @@ export class Agenda {
             return {
                 ...base,
                 kind: 'assignment',
-                learning: true,
+                // Routing decisions never spawn learning work: it would need routing itself (an unbounded loop).
+                learning: false,
                 extraPrompt: await this.assignmentInstructions(targetRef),
                 validateReport: async (report, changed) => {
                     const queue = await this.readQueue();
@@ -1634,13 +1704,18 @@ export class Agenda {
                     if (!target) return { ok: true };
                     const unexpected = changed.filter((path) => path !== task.source.relativePath && path !== target.source.relativePath && !base.createdPaths.some((created) => toProjectRelative(this.options.project.root, created) === path));
                     if (unexpected.length) return { ok: false, feedback: `Assignment work must not edit files, but these changed: ${unexpected.join(', ')}. Revert them and report only the routing decision.` };
-                    const validation = await validateAssignment(report.data, { target, catalog: this.catalog, pool: this.pool });
+                    const validation = await validateAssignment(report.data, { target, context: this.routing });
                     if (!validation.ok) return validation;
+                    const decision = validation.decision;
+                    if (decision.kind === 'impossible') {
+                        // The target stays unfinished and blocked; Fixer gets a separate ordinary repair task.
+                        return { ok: true, apply: async () => await this.recordImpossibleRouting(target, `Router found no compatible agent/combination: ${decision.reason}`) };
+                    }
                     return {
                         ok: true,
                         apply: async () => {
-                            await applyAssignment(target, validation.decision);
-                            this.log(`Manager routed "${target.title}": ${Object.entries(validation.decision.controls).map(([key, value]) => `${key} ${value}`).join(', ')}`);
+                            await applyAssignment(target, decision);
+                            this.log(`Router routed "${target.title}": ${decision.agent ? `TASK AGENT ${decision.agent}, ` : ''}MODEL ${formatModelRow(decision.model)}`);
                             return [target.source.path];
                         },
                     };
@@ -1689,12 +1764,12 @@ export class Agenda {
         return { ...base, kind: 'task', learning: true };
     }
 
-    /** Manager instructions for a target. */
+    /** Router instructions for a target. */
     private async assignmentInstructions(targetRef: string | undefined): Promise<string> {
         const queue = await this.readQueue();
         const target = targetRef ? findTask(queue.tasks, targetRef).task : undefined;
         if (!target) return `## Assignment work\n\nThe target ${targetRef ?? '(unknown)'} no longer exists. Report done with a summary saying so; change nothing.`;
-        return await assignmentPrompt({ target, catalog: this.catalog, pool: this.pool, preferences: setting<string | undefined>(this.settings, 'routing.preferences') });
+        return await assignmentPrompt({ target, context: this.routing });
     }
 
     /** Evidence for a learning task: the trace and summary of the parent result. */
@@ -1725,45 +1800,133 @@ export class Agenda {
         return parts.length ? parts.join('\n\n') : undefined;
     }
 
-    /** Creates and executes the Manager prerequisite of a task with missing routing. */
-    private async assign(target: Task): Promise<void> {
+    /**
+     * Creates and executes Router's prerequisite of a task whose agent or concrete execution is not determined.
+     * Router must be directly runnable; an incomplete bootstrap is a bounded setup problem, never a Router chain.
+     */
+    private async assign(target: Task, priority: number, options: { readonly createdPaths?: readonly string[] } = {}): Promise<void> {
         if (!this.claimable) return;
-        const manager = await this.catalog.resolve('@Manager');
-        if (manager.kind !== 'agent') {
-            const needsConversion = manager.kind === 'invalid' || Boolean(this.catalog.index.winnerOf('manager')?.document.legacy);
+        const router = await routerAgent(this.catalog);
+        if (!router) {
+            const needsConversion = Boolean(this.catalog.index.winnerOf('router')?.document.legacy || this.catalog.index.winnerOf('manager')?.document.legacy);
             this.setBlocker({
                 kind: 'setup',
-                title: 'Manager is missing',
-                reason: needsConversion ? 'The core agent Manager uses former Book syntax, so missing routing cannot be assigned.' : 'The core agent Manager (agents/.core/manager.book) is not available, so missing routing cannot be assigned.',
-                action: needsConversion ? 'Run `ptbk migrate` to convert Books in former syntax.' : 'Run `ptbk init` to restore core agents.',
+                title: 'Router is missing',
+                reason: needsConversion ? 'The core agent Router uses former Book syntax, so missing routing cannot be assigned.' : 'The core agent Router (agents/.core/router.book) is not available, so missing routing cannot be assigned.',
+                action: needsConversion ? 'Run `ptbk migrate` to convert Books in former syntax.' : 'Restart the service or run `ptbk init` to restore core agents.',
             });
-            await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason: 'Manager core agent is missing.', action: 'Run `ptbk init`.', skippable: false });
+            await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason: 'Router core agent is missing.', action: 'Run `ptbk init`.', skippable: false });
             return;
         }
-        const usable = this.pool.usable();
-        const preferred = setting<string | undefined>(this.settings, 'routing.harness');
-        const harness = preferred && usable.includes(preferred) ? preferred : usable[0];
-        if (!harness) {
-            const reason = 'No enabled harness is usable for Manager assignment.';
-            this.setBlocker({ kind: 'tools', title: 'No usable harness', reason, action: 'Enable or add a harness tool (`ptbk tool list`).' });
-            await this.wait(BLOCKER_RECHECK_MS, { kind: 'tools', reason, action: 'ptbk tool list', skippable: false });
-            return;
-        }
+        if (router.legacy) this.logOnce('Manager is the former name of Router: it routes until the project migration converts agents/.core/manager.book into router.book.', 'info');
         this.phase = 'assigning';
-        const instance = this.pool.select(harness);
-        const model = instance?.model ?? (harness === preferred ? setting<string | undefined>(this.settings, 'routing.model') : undefined);
-        const thinking = instance?.thinkingLevel ?? (harness === preferred ? setting<ThinkingLevel | undefined>(this.settings, 'routing.thinkingLevel') : undefined);
-        const created = await createAssignmentTask({ target, tasksDirectory: this.tasksDirectory, bootstrap: { harness, model, thinkingLevel: thinking }, timeZone: this.timeZone, taken: await this.takenNames() });
-        this.log(`Missing routing for "${target.title}": Manager prerequisite {${created.name}} (${toProjectRelative(this.options.project.root, created.path)})`);
-        await (await TaskTrace.open(this.options.project, { name: target.title, source: target.source.relativePath })).event('assignment-requested', { managerTask: created.name, managerSource: toProjectRelative(this.options.project.root, created.path) });
-        const managerTask = readTaskBook({ source: await readFile(created.path, 'utf8'), path: created.path, relativePath: toProjectRelative(this.options.project.root, created.path), order: 0, timeZone: this.timeZone })!;
-        const route = await this.route(managerTask);
+        const created = await createAssignmentTask({ target, tasksDirectory: this.tasksDirectory, router: router.name, priority, timeZone: this.timeZone, taken: await this.takenNames() });
+        const routerTask = readTaskBook({ source: await readFile(created.path, 'utf8'), path: created.path, relativePath: toProjectRelative(this.options.project.root, created.path), order: 0, timeZone: this.timeZone })!;
+        const route = await this.route(routerTask);
         if (route.kind !== 'routable') {
-            this.log(`Manager prerequisite is not routable: ${route.reason}`, 'error');
+            const { rm } = await import('node:fs/promises');
+            await rm(created.path, { force: true });
+            await this.routerBootstrapProblem(router.name, route);
             return;
         }
-        const item = await this.buildWorkItem(managerTask, route, { createdPaths: [created.path] });
+        this.clearBlocker('setup');
+        this.log(`Routing "${target.title}": ${router.name} prerequisite {${created.name}} (${toProjectRelative(this.options.project.root, created.path)})`);
+        // Local evidence of the target (its own versioned trace is written when the target itself executes).
+        await (await TaskTrace.open(this.options.project, { name: target.title, source: target.source.relativePath })).event('assignment-requested', { routerTask: created.name, routerSource: toProjectRelative(this.options.project.root, created.path) }, { local: true });
+        const item = await this.buildWorkItem(routerTask, route, { createdPaths: [created.path, ...(options.createdPaths ?? [])] });
         if (item) await this.execute({ ...item, relatedTaskNames: [target.title] });
+    }
+
+    /**
+     * Router cannot run itself (no concrete MODEL, or no tool serves it): a visible setup problem and one ordinary
+     * Fixer repair task that carries a concrete MODEL from plugin defaults, so the repair never needs the routing it
+     * repairs. Assignment work waits meanwhile (bounded).
+     */
+    private async routerBootstrapProblem(router: string, route: Exclude<RouteResolution, { kind: 'routable' }>): Promise<void> {
+        const reason = route.kind === 'needs-assignment' ? `${router} has no concrete MODEL, so it would have to route itself (${route.reason})` : `${router} cannot run: ${route.reason}`;
+        const bootstrap = await completeWithDefaults(UNCONSTRAINED, this.routing);
+        const example = bootstrap.row ? `MODEL ${formatModelRow(bootstrap.row)}` : 'a concrete MODEL';
+        this.setBlocker({ kind: 'setup', title: `${router} cannot route`, reason, action: `Give agents/.core/${router.toLowerCase()}.book ${example}; Fixer repairs it automatically.`, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
+        this.logOnce(`${reason}. Routing waits for repair (no Router chain is created).`, 'warning');
+        await this.scheduleRepair({
+            key: `router-bootstrap`,
+            origin: 'maintenance: router bootstrap',
+            title: `Repair ${router}'s execution setup`,
+            description: [
+                `${reason}. Router must be directly runnable with an already concrete MODEL (harness, model, thinking level where the harness has one, and endpoint) from the usable tools, so it never needs to route itself.`,
+                `Edit only the MODEL of ${router}'s Book (agents/.core/${router.toLowerCase()}.book), keeping its customized instructions, for example \`${example}\`. If the user explicitly restricted the execution, keep that restriction and consult your team as your instructions direct.`,
+            ].join('\n\n'),
+            links: [],
+            model: bootstrap.row,
+            fingerprint: reason,
+        });
+    }
+
+    /**
+     * Records a judged or deterministic impossibility for a task (blocked until its source changes) and creates one
+     * separate Fixer repair task; returns the created paths for the current result commit.
+     */
+    private async recordImpossibleRouting(target: Task, reason: string): Promise<string[]> {
+        await this.state.setRoutingBlock(target.key, { reason, sourceHash: target.source.fileHash, at: new Date().toISOString() });
+        const created = await this.scheduleRepair({ key: `routing ${target.key}`, origin: `maintenance: impossible execution of ${target.ref}`, title: `Repair the execution requirements of ${target.title}`, description: impossibleDescription(target, reason), links: [target.ref], fingerprint: `${target.source.fileHash} ${reason}`, commit: false });
+        this.log(`"${target.title}" stays blocked: ${reason}${created ? ` Fixer repairs it in {${created.name}}.` : ''}`, 'warning');
+        return created ? [created.path] : [];
+    }
+
+    /**
+     * Schedules one ordinary Fixer repair task per condition (deduplicated by its fingerprint across retries and
+     * restarts). Returns the created task, or undefined when an equivalent repair exists or Fixer is unavailable.
+     */
+    private async scheduleRepair(input: { readonly key: string; readonly origin: string; readonly title: string; readonly description: string; readonly links: readonly string[]; readonly fingerprint: string; readonly model?: import('../book/model.js').ModelRow; readonly commit?: boolean }): Promise<{ path: string; name: string } | undefined> {
+        const fixer = await this.catalog.resolve('@Fixer');
+        if (fixer.kind !== 'agent') {
+            this.logOnce(`Fixer is unavailable, so "${input.title}" stays visible until it is repaired manually.`, 'warning');
+            return undefined;
+        }
+        const repairs = await this.state.readRepairs();
+        const fingerprint = shortHash(input.fingerprint, 16);
+        const queue = await this.readQueue();
+        const unfinished = queue.tasks.some((task) => task.origin === input.origin && !['done', 'failed', 'retired'].includes(task.status));
+        if (unfinished || repairs[input.key]?.fingerprint === fingerprint) return undefined;
+        const created = await createRepairTask({ tasksDirectory: this.tasksDirectory, title: input.title, description: input.description, origin: input.origin, links: input.links, model: input.model, timeZone: this.timeZone, taken: await this.takenNames() });
+        await this.state.writeRepairs({ ...repairs, [input.key]: { fingerprint, task: created.name, at: new Date().toISOString() } });
+        if (input.commit !== false) {
+            if (this.commitMode) await this.commitAuthoring([created.path], `Add task - ${created.name}`, { 'Task-Name': created.name }).catch(() => undefined);
+            else await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, created.path)]: null });
+            this.log(`Fixer will repair: {${created.name}}.`, 'warning');
+            this.wake();
+        }
+        return created;
+    }
+
+    /**
+     * Creates Fixer repair tasks for tasks with no compatible execution (their source and evidence linked); returns
+     * whether one was created (the agenda reevaluates before claiming).
+     */
+    private async scheduleRoutingRepairs(evaluated: readonly EvaluatedTask[]): Promise<boolean> {
+        // Only a stable, valid configuration with usable tools can prove an impossibility (never a transient read).
+        if (!this.claimable || this.tools.waiting || this.settings.diagnostics.some((diagnostic) => diagnostic.severity === 'error' && !diagnostic.location.startsWith('--'))) return false;
+        let created = false;
+        for (const { task, readiness } of evaluated) {
+            if (readiness.kind !== 'incompatible' || task.source.kind !== 'book' || task.shadowedBy || /^maintenance:/i.test(task.origin ?? '')) continue;
+            const repair = await this.scheduleRepair({ key: `routing ${task.key}`, origin: `maintenance: impossible execution of ${task.ref}`, title: `Repair the execution requirements of ${task.title}`, description: impossibleDescription(task, readiness.reason), links: [task.ref], fingerprint: `${task.source.fileHash} ${readiness.reason}` });
+            created ||= Boolean(repair);
+        }
+        return created;
+    }
+
+    /**
+     * Routing of resumed work: its current source, or the execution it was already using when the source has not been
+     * refined to a concrete MODEL (no rerouting in the middle of work).
+     */
+    private async resumeRoute(task: Task, agent: string | undefined, record: ActiveRecord): Promise<RouteResolution> {
+        const route = await resolveRoute({ ...task, routing: { ...task.routing, agent } }, this.routing);
+        if (route.kind !== 'needs-assignment' || !agent) return route;
+        const effective = await resolveEffectiveAgent(this.catalog, toReference(agent));
+        const variant = harnessVariantOf(record.routing.harness);
+        if (!variant) return route;
+        const established = { rows: [{ harness: variant, ...(record.routing.model ? { model: record.routing.model } : {}), ...(record.routing.thinkingLevel ? { thinking: record.routing.thinkingLevel } : {}), ...(record.routing.runtime ? { runtime: record.routing.runtime } : {}) }], explicit: true };
+        return await routeWithDefaults(effective, intersectModels(task.routing.model, established), this.routing, { sources: { agent: 'established execution of the interrupted work' } });
     }
 
     /** Creates and executes a goal enquiry when one is due; returns false when none is due. */
@@ -1795,8 +1958,20 @@ export class Agenda {
         this.phase = 'discovering';
         const { path } = await createDiscoveryTask({ tasksDirectory: this.tasksDirectory, agentName: chosen.name, timeZone: this.timeZone, taken: await this.takenNames() });
         this.log(`Goal discovery: asking ${chosen.name} whether its goals justify new work.`);
-        const task = readTaskBook({ source: await readFile(path, 'utf8'), path, relativePath: toProjectRelative(this.options.project.root, path), order: 0, timeZone: this.timeZone })!;
-        const route = await this.route(task);
+        let task = readTaskBook({ source: await readFile(path, 'utf8'), path, relativePath: toProjectRelative(this.options.project.root, path), order: 0, timeZone: this.timeZone })!;
+        let route = await this.route(task);
+        // Files this claim still owns (withdrawn when the claim does not happen).
+        let createdPaths = [path];
+        if (route.kind === 'needs-assignment') {
+            // The enquiry is ordinary work: Router specializes its MODEL first (one prerequisite, then the enquiry).
+            await this.assign(task, task.priority.value, { createdPaths: [path] });
+            if (!(await pathExists(path))) return true;
+            task = readTaskBook({ source: await readFile(path, 'utf8'), path, relativePath: toProjectRelative(this.options.project.root, path), order: 0, timeZone: this.timeZone })!;
+            route = await this.route(task);
+            // Router's result committed the enquiry: from now on it is an ordinary queued task, never withdrawn.
+            createdPaths = this.commitMode ? [] : [path];
+            if (route.kind === 'routable' && !this.claimable) return true;
+        }
         if (route.kind !== 'routable') {
             this.log(`Goal enquiry cannot run: ${route.reason}`, 'warning');
             const { rm } = await import('node:fs/promises');
@@ -1804,7 +1979,7 @@ export class Agenda {
             await this.recordDiscovery(chosen.normalized, 'failed');
             return false;
         }
-        const item = await this.buildWorkItem(task, route, { createdPaths: [path] });
+        const item = await this.buildWorkItem(task, route, { createdPaths });
         if (!item) return false;
         const outcome = await this.execute(item);
         // Not claimed (pause/stop accepted meanwhile) or interrupted by a force stop: no enquiry outcome to record.
@@ -1847,7 +2022,7 @@ export class Agenda {
     private async execute(item: WorkItem): Promise<ExecutionOutcome> {
         if (!this.claimable) {
             this.log(`Not starting "${item.task.title}": the service is ${this.serviceState}.`);
-            // Engine-created Books prepared for this very claim (a Manager or discovery task) are withdrawn; they are
+            // Engine-created Books prepared for this very claim (a Router or discovery task) are withdrawn; they are
             // created again when work resumes. A resumed record keeps everything.
             if (!item.resume) {
                 const { rm } = await import('node:fs/promises');
@@ -1907,8 +2082,6 @@ export class Agenda {
         switch (outcome.kind) {
             case 'completed': {
                 this.completed++;
-                this.executedInRun.add(item.task.key);
-                this.runSucceeded++;
                 await this.state.setBlocker(item.task.key, undefined);
                 this.recentResults = (await this.state.recentResults(20)).map(resultView);
                 if (outcome.commit) void this.publish({ name: item.task.title, source: item.task.source.relativePath });
@@ -1919,14 +2092,12 @@ export class Agenda {
             case 'awaiting-user': {
                 this.log(`"${item.task.title}" waits for your reply in the chat {${outcome.chat}} (ptbk chat --open "${outcome.chat}").`, 'warning');
                 await this.refreshChats();
-                if (this.options.mode === 'run') this.executedInRun.add(item.task.key);
                 const record = await this.state.readActive();
                 if (record) await this.checkpoint(record);
                 break;
             }
             case 'failed':
                 this.failed++;
-                this.executedInRun.add(item.task.key);
                 this.recentResults = (await this.state.recentResults(20)).map(resultView);
                 this.addError({
                     at: new Date().toISOString(),
@@ -1934,7 +2105,7 @@ export class Agenda {
                     phase: 'task execution',
                     task: item.task.ref,
                     trace: outcome.trace,
-                    next: this.options.mode !== 'run' && !item.resume?.handover && HANDOVER_KINDS.has(item.kind) ? 'Fixer takes over automatically; a decision is asked in a chat only if it cannot resolve it.' : `Reply in the recovery chat or run \`ptbk recover "${item.task.title}"\`.`,
+                    next: this.options.mode !== 'maintenance' && !item.resume?.handover && HANDOVER_KINDS.has(item.kind) ? 'Fixer takes over automatically; a decision is asked in a chat only if it cannot resolve it.' : `Reply in the recovery chat or run \`ptbk recover "${item.task.title}"\`.`,
                 });
                 break;
             case 'setup':
@@ -1943,7 +2114,6 @@ export class Agenda {
                     break;
                 }
                 this.setBlocker({ kind: 'harness', title: `${harnessName(selection.harness)} needs setup`, reason: outcome.reason, action: outcome.next, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
-                if (this.options.mode === 'run') this.finishedSummary = { completed: this.completed, failed: this.failed + 1, waitingChats: this.waitingChats().length, outcome: 'failed', message: `${outcome.reason} ${outcome.next ?? ''}`.trim() };
                 break;
             case 'quota':
                 // An authorized later instance of the same variant serves the retry at once (no wait through this reset).
@@ -1952,20 +2122,17 @@ export class Agenda {
                     break;
                 }
                 this.log(`${outcome.reason}; waiting ${formatDuration(outcome.retryAfterMs)} before rechecking.`, 'warning');
-                if (this.options.mode === 'run') this.finishedSummary = { completed: this.completed, failed: this.failed, waitingChats: this.waitingChats().length, outcome: 'incomplete', message: outcome.reason };
-                else await this.wait(outcome.retryAfterMs, { kind: 'quota', reason: outcome.reason, skippable: true });
+                await this.wait(outcome.retryAfterMs, { kind: 'quota', reason: outcome.reason, skippable: true });
                 break;
             case 'persistence-failed':
                 this.setBlocker({ kind: 'persistence', title: 'Commit failed', reason: outcome.reason, action: 'Fix the Git hook/signing/identity problem; ptbk retries persistence without rerunning the agent.' });
                 this.addError({ at: new Date().toISOString(), summary: `Commit of "${item.task.title}" failed: ${outcome.reason}`, phase: 'commit', task: item.task.ref, next: 'Fix the cause; persistence resumes automatically.' });
-                if (this.options.mode === 'run') this.finishedSummary = { completed: this.completed, failed: this.failed + 1, waitingChats: this.waitingChats().length, outcome: 'failed', message: `Commit failed: ${outcome.reason}` };
                 break;
             case 'interrupted':
                 this.log(`"${item.task.title}" was interrupted; its recovery record is preserved.`, 'warning');
                 break;
             case 'integration-pending': {
                 // The committed result waits on its temporary branch; execution is released so Fixer can integrate it.
-                this.executedInRun.add(item.task.key);
                 this.pendingIntegrations++;
                 const record = await this.state.readActive();
                 if (record) {
@@ -1981,15 +2148,12 @@ export class Agenda {
     }
 
     /**
-     * The next usable instance of the failed instance's variant, unless the task explicitly requires one instance
-     * (an explicit restriction is never broadened to another account).
+     * The next usable instance of the failed instance's variant aimed at the same endpoint (MODEL never binds an
+     * account, but accounts aimed at different services are not interchangeable).
      */
     private sameVariantFallback(item: WorkItem, failed: string | undefined): ReturnType<HarnessPool['select']> {
         if (!failed) return undefined;
-        const required = item.task.routing.harness;
-        if (required && this.pool.instance(required)) return undefined;
-        const fallback = this.pool.select(item.route.selection.harness);
-        return fallback && fallback.name !== failed ? fallback : undefined;
+        return this.pool.select(item.route.selection.harness, { runtime: item.route.selection.runtime, except: failed });
     }
 
     /**
@@ -2037,16 +2201,6 @@ export class Agenda {
     /** Continues the task recorded in the active record. */
     private async continueActive(initialRecord: ActiveRecord): Promise<void> {
         let record = initialRecord;
-        if (this.options.mode === 'run' && record.instanceId !== this.options.instanceId && setting<string>(this.settings, 'execution.gitChanges') !== 'continue' && record.phase !== 'awaiting-user') {
-            this.finishedSummary = {
-                completed: this.completed,
-                failed: this.failed,
-                waitingChats: this.waitingChats().length,
-                outcome: 'failed',
-                message: `Interrupted work exists for "${record.taskTitle}" (${record.phase}). Resume it with \`ptbk run --git-changes continue\`, \`ptbk start\`, or resolve it with \`ptbk recover ${record.taskRef}\`.`,
-            };
-            return;
-        }
         if (record.phase === 'failed') {
             await this.handleFailedRecord(record);
             return;
@@ -2075,12 +2229,6 @@ export class Agenda {
                 this.currentContext = { selection: record.routing, source: record.sourcePath, consultations: [] };
                 this.phase = 'awaiting-user';
                 await this.evaluate();
-                if (this.options.mode === 'run') {
-                    this.current = undefined;
-                    this.currentContext = undefined;
-                    this.finishRun([]);
-                    return;
-                }
                 await this.wait(IDLE_RECHECK_MS, { kind: 'user', reason: `"${record.taskTitle}" waits for your reply in the chat {${record.waitingChat}} and holds uncommitted changes, so other work waits too.`, action: `ptbk answer "${record.waitingChat}"`, skippable: false });
                 this.current = undefined;
                 this.currentContext = undefined;
@@ -2108,21 +2256,11 @@ export class Agenda {
             await this.state.writeActive({ ...record, phase: 'failed', failure: `The task source ${record.sourcePath} moved or disappeared during execution.` });
             return;
         }
-        // After a takeover, Fixer continues the task within the task's own harness/model constraints.
+        // After a takeover, Fixer continues the task within the task's own MODEL constraints.
         const agent = record.handover ? record.handover.agent : (task.routing.agent ?? record.routing.agent);
-        const route = await resolveRoute({ ...task, routing: { ...task.routing, agent, harness: task.routing.harness ?? record.routing.harness } }, {
-            mode: this.options.mode === 'run' ? 'run' : 'start',
-            catalog: this.catalog,
-            pool: this.pool,
-            settings: this.settings,
-            runSelection: this.options.run?.selection,
-        });
+        const route = await this.resumeRoute(task, agent, record);
         if (route.kind !== 'routable') {
             const reason = `"${record.taskTitle}" cannot resume: ${route.reason}`;
-            if (this.options.mode === 'run') {
-                this.finishedSummary = { completed: this.completed, failed: this.failed + 1, waitingChats: this.waitingChats().length, outcome: 'failed', message: reason };
-                return;
-            }
             this.setBlocker({ kind: 'harness', title: 'Interrupted work cannot resume', reason, action: route.kind === 'blocked' ? route.next : undefined, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
             await this.pool.refresh(undefined, true);
             await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason, action: route.kind === 'blocked' ? route.next : undefined, skippable: false });
@@ -2141,7 +2279,7 @@ export class Agenda {
      * explicitly). Returns whether the task was handed over.
      */
     private async handOverToFixer(record: ActiveRecord): Promise<boolean> {
-        if (this.options.mode === 'run' || record.handover || record.recoveryChat || !HANDOVER_KINDS.has(record.kind)) return false;
+        if (this.options.mode === 'maintenance' || record.handover || record.recoveryChat || !HANDOVER_KINDS.has(record.kind)) return false;
         const fixer = await this.catalog.resolve('@Fixer');
         if (fixer.kind !== 'agent') return false;
         const from = record.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
@@ -2189,10 +2327,6 @@ export class Agenda {
         if (!reply.answered) {
             if (await this.checkpoint(current)) return;
             this.setBlocker({ kind: 'recovery', title: `"${current.taskTitle}" needs a decision`, reason: current.failure ?? 'The task failed.', action: `ptbk answer "${current.recoveryChat}"` });
-            if (this.options.mode === 'run') {
-                this.finishRun([]);
-                return;
-            }
             await this.wait(IDLE_RECHECK_MS, { kind: 'recovery', reason: `"${current.taskTitle}" failed; its agent asks how to continue in {${current.recoveryChat}}.`, action: `ptbk answer "${current.recoveryChat}"`, skippable: false });
             return;
         }
@@ -2280,7 +2414,7 @@ export class Agenda {
      */
     private async checkBeforeWork(): Promise<boolean> {
         const mode = setting<string>(this.settings, 'execution.checkBefore');
-        if (mode === 'no' || this.checkedBefore || this.options.mode === 'run') return true;
+        if (mode === 'no' || this.checkedBefore || this.options.mode === 'maintenance') return true;
         const check = setting<string | null | undefined>(this.settings, 'execution.check');
         if (!check) return true;
         if (isCheckPlaceholder(check)) {
@@ -2572,12 +2706,16 @@ export class Agenda {
     /**
      * Executes one engine-created maintenance task (e.g. `ptbk fix`) through the common lifecycle.
      */
-    public async executeMaintenance(taskPath: string, check: string): Promise<ExecutionOutcome> {
+    public async executeMaintenance(taskPath: string, check: string, options: { readonly tool?: string } = {}): Promise<ExecutionOutcome> {
         await this.refreshContext();
         const source = await readFile(taskPath, 'utf8');
         const task = readTaskBook({ source, path: taskPath, relativePath: toProjectRelative(this.options.project.root, taskPath), order: 0, timeZone: this.timeZone });
         if (!task) throw new PtbkError('The maintenance task could not be read.', { kind: 'internal' });
-        const route = await this.route(task);
+        let route = await this.route(task);
+        // Explicit maintenance completes unresolved choices with plugin defaults within the agent's and task's MODEL.
+        if ((route.kind === 'needs-assignment' || options.tool) && task.routing.agent) {
+            route = await routeWithDefaults(await resolveEffectiveAgent(this.catalog, toReference(task.routing.agent)), task.routing.model, this.routing, { tool: options.tool, sources: { agent: 'maintenance (TASK AGENT)' } });
+        }
         if (route.kind !== 'routable') throw new PtbkError(`The maintenance task cannot run: ${route.reason}`, { kind: 'setup', next: route.kind === 'blocked' && route.next ? [route.next] : [] });
         return await this.execute({ task, route, kind: 'maintenance', createdPaths: [taskPath], learning: false, check });
     }
@@ -2647,6 +2785,17 @@ function handoverPrompt(record: ActiveRecord, handover: NonNullable<ActiveRecord
         '- When a genuine decision or human-only action is needed, consult your team as your own instructions direct.',
         '- If the task cannot be completed safely, report `blocked` with the concrete reason; nothing is retried automatically and the decision is then asked in a chat.',
     ].join('\n');
+}
+
+/**
+ * Repair briefing of a task no configured agent/combination can execute (its own source and requirements stay).
+ */
+function impossibleDescription(task: Task, reason: string): string {
+    return [
+        `The task {${task.title}} (\`${task.source.relativePath}\`) cannot be executed: ${reason}`,
+        `Its MODEL requirement is ${describeModel(task.routing.model)}${task.routing.agent ? ` and its responsible agent is ${task.routing.agent}` : ''}. Promptbook keeps the task unfinished and blocked; it is reevaluated automatically once its source or the project's tools/agents change.`,
+        'Diagnose why no compatible combination exists (contradictory agent/task MODEL, a harness, model, endpoint or origin that no enabled tool offers) and repair it within your authority, for example by correcting a mistaken MODEL or TASK AGENT. Ask User before changing an explicit requirement when the repair would alter their intent; do not mark the task done or delete it.',
+    ].join('\n\n');
 }
 
 /**

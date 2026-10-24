@@ -47,3 +47,42 @@ export function setControlCommitment(source: string, keyword: string, value: str
     return joinLines(lines, document.newline);
 }
 
+
+/**
+ * Replaces every commitment with one of the keywords (including continuation lines) by new lines, written where the
+ * first of them stood, otherwise after the first `after` commitment, otherwise at the end. Everything else is kept.
+ *
+ * @private Book language
+ */
+export function replaceCommitments(source: string, keywords: readonly string[], replacement: readonly string[], options: { readonly after?: string } = {}): string {
+    const document = parseBook(source);
+    const removed = document.commitments.filter((commitment) => keywords.includes(commitment.keyword));
+    const lines = [...document.lines];
+    if (!removed.length) {
+        const anchor = options.after ? document.commitments.find((commitment) => commitment.keyword === options.after) : undefined;
+        if (!anchor) return replacement.reduce((text, line) => appendLine(text, line), source);
+        // Directly after the anchor's own lines (its trailing blank lines stay after the insertion).
+        let end = anchor.endLine;
+        while (end > anchor.startLine + 1 && lines[end - 1]!.trim() === '') end--;
+        lines.splice(end, 0, ...replacement);
+        return joinLines(lines, document.newline);
+    }
+    const insertAt = removed[0]!.startLine;
+    // Remove from the end so earlier indexes stay valid; trailing blank lines of a removed block are kept.
+    for (const commitment of [...removed].reverse()) {
+        let end = commitment.endLine;
+        while (end > commitment.startLine + 1 && lines[end - 1]!.trim() === '') end--;
+        lines.splice(commitment.startLine, end - commitment.startLine);
+    }
+    const shift = removed.filter((commitment) => commitment.startLine < insertAt).length;
+    lines.splice(insertAt - shift, 0, ...replacement);
+    return joinLines(lines, document.newline);
+}
+
+/**
+ * Appends one raw line as a commitment line at the end of a Book.
+ */
+function appendLine(source: string, line: string): string {
+    const [keyword, ...rest] = line.split(' ');
+    return appendCommitment(source, keyword!, rest.join(' '));
+}

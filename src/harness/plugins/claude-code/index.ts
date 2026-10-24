@@ -47,7 +47,7 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
         const configuration = { mcpServers: { ptbk: { type: 'stdio', command: request.mcp.command, args: request.mcp.args, env: request.mcp.env } } };
         args.push('--mcp-config', JSON.stringify(configuration));
     }
-    return { args, input: request.prompt, env: request.env };
+    return { args, input: request.prompt, env: request.baseUrl ? { ...request.env, ANTHROPIC_BASE_URL: request.baseUrl } : request.env };
 }
 
 /**
@@ -68,6 +68,10 @@ export const plugin: HarnessPlugin = {
     homepage: 'https://code.claude.com/docs/en/cli-reference',
     thinkingLevels: ['low', 'medium', 'high', 'xhigh', 'max'],
     thinkingLabel: 'effort (--effort)',
+    defaultModel: 'sonnet',
+    defaultThinkingLevel: 'medium',
+    modelCatalog: 'partial',
+    endpoints: { official: 'https://api.anthropic.com', custom: true },
     capabilities: { mcp: true, readOnly: true },
     loginArgs: ['auth', 'login'],
     loginHint: 'Run `claude auth login` (or start `claude` once and use /login).',

@@ -117,7 +117,7 @@ export async function modifyToolForm(terminal: TerminalProfile, item: ToolView):
                 choices: [
                     { value: 'description', label: 'Description' },
                     { value: 'rename', label: 'Name' },
-                    ...(item.type === 'BROWSER' ? [{ value: 'browser', label: 'Profile and window mode' }] : [{ value: 'authentication', label: 'Authentication / API key' }, { value: 'model', label: 'Preferred model' }]),
+                    ...(item.type === 'BROWSER' ? [{ value: 'browser', label: 'Profile and window mode' }] : [{ value: 'authentication', label: 'Authentication / API key' }, { value: 'endpoint', label: 'Endpoint (official, local or base URL)' }]),
                 ],
                 defaultValue: item.type === 'BROWSER' ? 'browser' : 'authentication',
             }),
@@ -130,9 +130,9 @@ export async function modifyToolForm(terminal: TerminalProfile, item: ToolView):
             const description = answer(await inputLine(terminal, { frame, question: 'Description ("-" removes it):', initial: item.description ?? '-' }));
             return { operation: { kind: 'modify', name: item.name, changes: { description: description === '-' ? null : description } } };
         }
-        if (field === 'model') {
-            const model = answer(await inputLine(terminal, { frame, question: 'Preferred model ("-" uses the harness default):', initial: item.fields.model ?? '-' }));
-            return { operation: { kind: 'modify', name: item.name, changes: { model: model === '-' ? null : model } } };
+        if (field === 'endpoint') {
+            const endpoint = answer(await inputLine(terminal, { frame, question: 'Endpoint: default (official), local (on the engine\'s host) or a base URL:', initial: 'default' }));
+            return { operation: { kind: 'modify', name: item.name, changes: { baseUrl: /^(default|official)$/i.test(endpoint) ? null : endpoint } } };
         }
         if (field === 'browser') {
             const [source, ...path] = (item.fields.profile ?? 'MANAGED_GLOBAL').split(' ');

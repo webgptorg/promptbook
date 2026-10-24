@@ -14,6 +14,8 @@ import { MIGRATED_BROWSER_NAME, planConfigurationMigration } from '../../project
 import { requireEngineUpdate } from '../compatibility.js';
 import { existingOrigin, githubLogin, publishProject, type PublicationChoice, type PublicationOutcome } from '../../project/publication.js';
 import { instanceEnvironment } from '../../engine/harnesses.js';
+import { pluginDefaultRow } from '../../engine/routing.js';
+import { formatModelRow } from '../../book/model.js';
 import { redactUrl } from '../../engine/sync.js';
 import { applyToolOperationsToConfig, type ToolOperation } from '../../tools/operations.js';
 import { inspectBrowserTool } from '../../tools/readiness.js';
@@ -51,12 +53,15 @@ import { wrap } from '../../ui/ansi.js';
 import { materializeAttachments, isImagePath } from '../../ui/attachments.js';
 import type { BadgeActivity } from '../../ui/badges.js';
 import { celebrate } from '../../ui/celebration.js';
+import { countdownHandoff } from '../../ui/countdown.js';
+import { runDashboard } from '../../ui/dashboard.js';
 import type { ComposedSegment } from '../../ui/composer.js';
 import { renderPanel } from '../../ui/panels.js';
 import { CANCELLED, composeRich, confirm, inputLine, selectMany, selectOne, toggleList, wasInterrupted, type WizardFrame } from '../../ui/prompts.js';
 import { symbols } from '../../ui/terminal.js';
 import { readStdin, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
+import { controlSource } from '../sources.js';
 import { liveSnapshot } from '../service-view.js';
 
 /**
@@ -505,6 +510,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                             choices: HARNESS_PLUGINS.map((plugin) => ({ value: plugin.id, label: plugin.displayName, featured: plugin.featured, description: plugin.featured ? undefined : plugin.npmPackage })),
                             initial: state.selected ?? [],
                             noneLabel: 'None selected (setup stays incomplete)',
+                            emptyWarning: 'No harness is selected: no model work can run, and Router cannot receive its concrete initial MODEL. Nothing is selected for you; choose one with Space, or continue and add one later (ptbk tool add HARNESS …).',
                         }),
                     );
                 }
@@ -921,7 +927,15 @@ export async function initializeProject(context: CommandContext, options: { proj
     if (traceIgnore) createdPaths.push(traceIgnore);
     // Default roles first: a missing Chatter's initial TEAM covers the completed role set.
     for (const path of await ensureDefaultRoles(root, agentsDirectory)) createdPaths.push(path);
-    for (const path of await ensureCoreAgents(root, agentsDirectory)) createdPaths.push(path);
+    // Router starts directly runnable: the first suitable selected harness with its plugin's coded defaults.
+    const routerModel = async (): Promise<string | undefined> => {
+        const id = selected.find((candidate) => state.inspections.get(candidate)?.usable) ?? selected[0] ?? (configBefore ? enabledHarnesses(configBefore)[0] : undefined);
+        const plugin = id ? harnessPlugin(id) : undefined;
+        if (!plugin) return undefined;
+        const catalog = plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env: context.env }).catch(() => []) : [];
+        return formatModelRow(pluginDefaultRow(plugin, catalog));
+    };
+    for (const path of await ensureCoreAgents(root, agentsDirectory, { routerModel })) createdPaths.push(path);
     for (const path of await ensureTemplates(root, tasksDirectory)) createdPaths.push(path);
     await ensureDirectory(join(root, tasksDirectory));
     await ensureDirectory(join(root, 'specs'));
@@ -1010,9 +1024,6 @@ export async function initializeProject(context: CommandContext, options: { proj
     const raw = structuredClone(file.raw) as Record<string, unknown>;
     if (!file.exists) raw.promptbookVersion = ENGINE_VERSION;
     const set = (key: string, value: unknown): void => setPath(raw, key, serializeSettingValue(SETTING_SPEC_BY_KEY.get(key)!, value));
-    const routingHarness = getPath(raw, 'routing.harness');
-    const usableSelected = selected.filter((id) => state.inspections.get(id)?.usable);
-    if (routingHarness === undefined && (usableSelected[0] ?? selected[0])) set('routing.harness', usableSelected[0] ?? selected[0]);
     if (saveCheck !== undefined) set('execution.check', saveCheck);
     for (const [key, value] of [
         ['traces.isCommitted', tracePolicy.commit],
@@ -1248,5 +1259,24 @@ export default async function init(context: CommandContext): Promise<number> {
     if (success) await celebrate(context.terminal, result.firstTask ? 'All set — Expert starts on your project in the background.' : 'All set — your agenda is running in the background.');
     renderInitSummary(context, { result, service });
     if (result.outcome !== 'ready') return EXIT.incomplete;
-    return service?.kind === 'failed' ? EXIT.incomplete : EXIT.success;
+    if (service?.kind === 'failed') return EXIT.incomplete;
+    if (success && result.project) await handOffToDashboard(context, result.project);
+    return EXIT.success;
+}
+
+/**
+ * Interactive init's handoff: a brief cancellable countdown, then the ordinary independent dashboard attached to the
+ * service that was just started or reused (never another start, initialization or worker). Skipping it or later
+ * closing the viewer leaves the engine running; raw/noninteractive use returns without it.
+ */
+async function handOffToDashboard(context: CommandContext, project: Project): Promise<void> {
+    const { terminal } = context;
+    if (!terminal.interactive || !terminal.pretty) return;
+    if ((await countdownHandoff(terminal, { label: 'Opening the dashboard' })) === 'skip') return;
+    const lookup = await lookupService(project);
+    if (lookup.state !== 'running' || !lookup.engine.compatible) {
+        terminal.write(`${terminal.style.warning('The dashboard cannot attach right now')}${lookup.state === 'running' ? ' (the service runs another ptbk version)' : ''}; run \`ptbk status\` or \`ptbk dashboard\`.\n`);
+        return;
+    }
+    await runDashboard(terminal, controlSource(lookup.client), { noQr: flag(context, 'qr') === false });
 }

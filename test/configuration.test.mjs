@@ -81,7 +81,7 @@ test('first migration: browser and harness map become named tools; canonical boo
     assert.deepEqual(result.server, { isEnabled: true, tunnel: { isEnabled: false, provider: 'CLOUDFLARE_NAMED' } });
     assert.deepEqual(result.service, { isPersistent: false, isQrShown: false, harnessUpdates: 'OFF' });
     assert.deepEqual(result.discovery, { isEnabled: false });
-    assert.equal(result.routing.harness, 'OPENAI_CODEX');
+    assert.equal(result.routing.harness, 'openai-codex', 'the former routing default stays for the 0.119.0-32 step');
     assert.equal(result.routing.model, 'gpt-x', 'provider model identifiers are not enums');
     assert.deepEqual(result.custom, { keep: true });
     // Recovery of an interrupted pass never duplicates tools.
@@ -154,14 +154,20 @@ test('configuration coordinator: one migration commit; repeated loads are no-ops
 
     const outcome = await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.121.0', env: { ...process.env, CODING_AGENT_GIT_NAME: 'Fixture', CODING_AGENT_GIT_EMAIL: 'f@example.test' } });
     assert.equal(outcome.migrated.from, PRE_VERSIONING_BASELINE);
-    assert.deepEqual(outcome.migrated.steps, ['0.119.0-22']);
-    assert.deepEqual(await subjects(root), [`PTBK: Migrate configuration from ${PRE_VERSIONING_BASELINE} to 0.121.0`, 'Legacy project']);
+    assert.deepEqual(outcome.migrated.steps, ['0.119.0-22', '0.119.0-32'], 'every applicable sparse step, in order, in one pass');
+    assert.deepEqual(await subjects(root), [`PTBK: Migrate project from ${PRE_VERSIONING_BASELINE} to 0.121.0`, 'Legacy project']);
     const body = (await git(root, ['log', '-1', '--format=%B'])).trim();
     assert.match(body, /harnesses\.openai-codex → tools "openai-codex"/);
     assert.match(body, /PTBK-Configuration-Migration: 0\.119\.0-21 -> 0\.121\.0/);
-    assert.deepEqual((await git(root, ['show', '--name-only', '--format=', 'HEAD'])).trim().split('\n'), ['ptbk.json'], 'only the configuration is in the pass');
+    assert.deepEqual((await git(root, ['show', '--name-only', '--format=', 'HEAD'])).trim().split('\n'), ['agents/.core/router.book', 'agents/.core/tasker.book', 'ptbk.json'], 'configuration and Books in one commit');
     assert.equal((await git(root, ['status', '--porcelain'])).trim(), 'M notes.md', 'unrelated work stays uncommitted');
-    assert.equal(JSON.parse(await readFile(project.configPath, 'utf8')).promptbookVersion, '0.121.0');
+    const migratedConfig = JSON.parse(await readFile(project.configPath, 'utf8'));
+    assert.equal(migratedConfig.promptbookVersion, '0.121.0');
+    assert.equal(migratedConfig.routing, undefined, 'former routing defaults leave ptbk.json once Router carries them');
+    assert.ok(migratedConfig.tools.every((tool) => tool.model === undefined && tool.thinkingLevel === undefined && tool.models === undefined), 'no per-tool model settings remain');
+    const router = await readFile(join(root, 'agents', '.core', 'router.book'), 'utf8');
+    assert.match(router, /^MODEL harness=OPENAI_CODEX model=gpt-x thinking=high runtime=official$/m, 'Router is directly runnable from the former defaults');
+    assert.match(router, /RULE Former ptbk\.json preference of the harness tool "openai-codex" \(OpenAI Codex\): prefer model gpt-5-codex; thinking high\./);
 
     assert.deepEqual(await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.121.0' }), {}, 'a repeated start creates no commit');
     await assert.rejects(maintainProjectConfiguration(project, { commit: true, engineVersion: '0.120.0' }), /older/);
@@ -205,4 +211,65 @@ test('environment references and .env: bounded notation, process precedence, non
     assert.equal(resolveVariable('DUP', {}, await readDotEnv(root)).source, 'ambiguous');
     await assert.rejects(editDotEnv(root, [{ kind: 'set', name: 'DUP', value: 'c' }], { reason: 'x', operation: 'y' }), /several times/);
     assert.equal(await readFile(join(root, '.env'), 'utf8'), 'DUP=a\nDUP=b\n', 'an ambiguous file is left untouched');
+});
+
+test('project migration 0.119.0-32: Manager becomes Router, references follow, task controls become one MODEL, dirty Books are protected', async (t) => {
+    const root = await temporaryDirectory(t);
+    await initRepository(root);
+    const project = projectAt(root);
+    const write = async (path, text) => {
+        const { mkdir } = await import('node:fs/promises');
+        await mkdir(join(root, path, '..'), { recursive: true });
+        await writeFile(join(root, path), text);
+    };
+    const config = {
+        promptbookVersion: '0.119.0-30',
+        routing: { defaultAgent: 'Developer', preferences: 'Use the cheapest capable model.' },
+        tools: [{ type: 'HARNESS', variant: 'CLAUDE_CODE', name: 'claude-code', isEnabled: true, authentication: 'NATIVE', model: 'opus' }],
+    };
+    await writeFile(project.configPath, `${JSON.stringify(config, null, 4)}\n`);
+    const manager = 'AGENT Manager\nNOTE Fills missing execution choices of tasks: the responsible agent, harness, model and thinking level.\nPERSONA You are the Manager of this project\'s agents. You route work; you do not implement it.\nRULE Learned: route documentation to Copywriter.\n';
+    await write('agents/.core/manager.book', manager);
+    await write('agents/.core/chatter.book', 'AGENT Chatter\nTEAM Consult @Developer and {Manager} about routing.\n');
+    await write('agents/developer.book', 'AGENT Developer\nMODEL gpt-5\n');
+    await write('tasks/a.book', 'TASK Old routed work\nGOAL Keep it.\nTASK AGENT @Manager\nTASK HARNESS claude-code\nTASK MODEL sonnet\nTASK THINKING LEVEL high\nTASK PRIORITY 2\n');
+    await write('tasks/b.book', 'TASK Account bound work\nTASK HARNESS some-tool-name\n');
+    await write('chats/c.book', 'CHAT Old chat\nCHAT MEMBER @User\nCHAT MEMBER @Manager\nCHAT STATUS open\n\nCHAT MESSAGE @Manager 2026-01-01T00:00:00+00:00\nI am @Manager.\n\n');
+    await git(root, ['add', '-A']);
+    await git(root, ['commit', '-q', '-m', 'Project at 0.119.0-30']);
+    const env = { ...process.env, CODING_AGENT_GIT_NAME: 'Fixture', CODING_AGENT_GIT_EMAIL: 'f@example.test' };
+
+    // A Book with uncommitted edits is never rewritten (nothing is written, the pass waits).
+    await writeFile(join(root, 'tasks', 'a.book'), `${await readFile(join(root, 'tasks', 'a.book'), 'utf8')}TASK NOTE editing\n`);
+    await assert.rejects(maintainProjectConfiguration(project, { commit: true, engineVersion: '0.119.0-32', env }), /uncommitted edits/);
+    assert.equal(JSON.parse(await readFile(project.configPath, 'utf8')).promptbookVersion, '0.119.0-30', 'no false version advance');
+    await git(root, ['checkout', '--', 'tasks/a.book']);
+
+    const outcome = await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.119.0-32', env });
+    assert.deepEqual(outcome.migrated.steps, ['0.119.0-32']);
+    assert.equal((await subjects(root)).length, 2, 'exactly one commit for the whole pass');
+    const changed = (await git(root, ['show', '--name-status', '--format=', 'HEAD'])).trim().split('\n').map((line) => line.split('\t').filter(Boolean).join(' '));
+    for (const expected of ['M agents/.core/chatter.book', 'A agents/.core/tasker.book', 'M agents/developer.book', 'M chats/c.book', 'M ptbk.json', 'M tasks/a.book']) assert.ok(changed.includes(expected), `${expected} in ${changed.join(', ')}`);
+    assert.ok(changed.some((line) => /^R\d* agents\/\.core\/manager\.book agents\/\.core\/router\.book$/.test(line) || line === 'A agents/.core/router.book'), 'manager.book became router.book');
+    const router = await readFile(join(root, 'agents', '.core', 'router.book'), 'utf8');
+    assert.match(router, /^AGENT Router$/m);
+    assert.match(router, /RULE Learned: route documentation to Copywriter\./, 'customized and learned content is kept');
+    assert.match(router, /PERSONA You are the Router of this project's agents/);
+    assert.match(router, /^RULE Use the cheapest capable model\.$/m, 'routing.preferences became an instruction');
+    assert.match(router, /^MODEL harness=CLAUDE_CODE model=opus thinking=medium runtime=official$/m, 'concrete bootstrap from the first enabled tool and plugin defaults');
+    assert.match(await readFile(join(root, 'agents', '.core', 'chatter.book'), 'utf8'), /Consult @Developer and @Router about routing/);
+    assert.match(await readFile(join(root, 'agents', 'developer.book'), 'utf8'), /^MODEL model=gpt-5$/m, 'an unambiguous legacy agent MODEL gets the shared syntax');
+    const task = await readFile(join(root, 'tasks', 'a.book'), 'utf8');
+    assert.match(task, /^TASK AGENT @Router$/m);
+    assert.match(task, /^MODEL harness=CLAUDE_CODE model=sonnet thinking=high$/m, 'one MODEL with the same conjunctive meaning');
+    assert.doesNotMatch(task, /TASK HARNESS|TASK MODEL|TASK THINKING LEVEL/);
+    assert.match(await readFile(join(root, 'tasks', 'b.book'), 'utf8'), /TASK HARNESS some-tool-name/, 'an account-bound former control is kept for repair');
+    const chat = await readFile(join(root, 'chats', 'c.book'), 'utf8');
+    assert.match(chat, /^CHAT MEMBER @Router$/m);
+    assert.match(chat, /CHAT MESSAGE @Manager 2026-01-01T00:00:00\+00:00\nI am @Manager\./, 'chat history is never rewritten');
+    const migratedConfig = JSON.parse(await readFile(project.configPath, 'utf8'));
+    assert.deepEqual(migratedConfig.routing, { defaultAgent: 'Developer' });
+    assert.equal(migratedConfig.tools[0].model, undefined);
+    assert.match((await git(root, ['log', '-1', '--format=%B'])).trim(), /Kept for repair:[\s\S]*tasks\/b\.book/);
+    assert.deepEqual(await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.119.0-32', env }), {}, 'a repeated pass is a no-op');
 });

@@ -48,7 +48,6 @@ function booleanOption(context: CommandContext, name: string): boolean | undefin
  * Field options shared by add and modify (tolerant enum input; canonical values are saved).
  */
 function fieldOptions(context: CommandContext): Omit<ToolDraft, 'type' | 'variant' | 'name'> & { variant?: string } {
-    const models = option<string>(context, 'models');
     return {
         ...(option<string>(context, 'variant') !== undefined ? { variant: option<string>(context, 'variant') } : {}),
         ...(option<string>(context, 'description') !== undefined ? { description: option<string>(context, 'description') } : {}),
@@ -59,9 +58,7 @@ function fieldOptions(context: CommandContext): Omit<ToolDraft, 'type' | 'varian
         ...(option<string>(context, 'authentication') !== undefined ? { authentication: option<string>(context, 'authentication') } : {}),
         ...(option<string>(context, 'api-key-env') !== undefined ? { apiKeyEnv: option<string>(context, 'api-key-env') } : {}),
         ...(option<string>(context, 'account-profile') !== undefined ? { accountProfile: option<string>(context, 'account-profile') } : {}),
-        ...(option<string>(context, 'model') !== undefined ? { model: option<string>(context, 'model') } : {}),
-        ...(option<string>(context, 'thinking-level') !== undefined ? { thinkingLevel: option<string>(context, 'thinking-level') } : {}),
-        ...(models !== undefined ? { models: models.split(',').map((model) => model.trim()).filter(Boolean) } : {}),
+        ...(option<string>(context, 'base-url') !== undefined ? { baseUrl: option<string>(context, 'base-url') } : {}),
     };
 }
 
@@ -91,7 +88,7 @@ function operationOf(context: CommandContext): ToolOperation {
             const changes: ToolChanges = {
                 ...fields,
                 ...(flag(context, 'clear-description') ? { description: null } : {}),
-                ...(flag(context, 'clear-model') ? { model: null } : {}),
+                ...(/^(default|official)$/i.test(option<string>(context, 'base-url') ?? '') ? { baseUrl: null } : {}),
                 ...(flag(context, 'clear-executable') ? { executable: null } : {}),
             };
             const rename = option<string>(context, 'rename');

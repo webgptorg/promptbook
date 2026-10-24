@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { clockTime } from '../../common/time.js';
-import { EXIT, PtbkError } from '../../common/errors.js';
+import { EXIT, PtbkError, usageError } from '../../common/errors.js';
+import { harnessPlugin } from '../../harness/registry.js';
 import { ensureDirectory } from '../../common/fs.js';
 import { runCheck, validateCheckCommand } from '../../project/checks.js';
 import { enabledHarnesses, isCheckPlaceholder, loadSettings, setting } from '../../project/config.js';
@@ -45,9 +46,13 @@ export default async function fix(context: CommandContext): Promise<number> {
     await ensureDirectory(tasksDirectory);
     const taskPath = await newTaskPath(tasksDirectory, 'repair failing project check', Date.now(), setting<string>(settings, 'timezone'));
     const agent = option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent');
-    const commitments = [`TASK AGENT ${toReference(agent)}`, 'TASK ORIGIN maintenance: failing project check'];
-    if (option<string>(context, 'harness')) commitments.push(`TASK HARNESS ${option<string>(context, 'harness')}`);
-    if (option<string>(context, 'model')) commitments.push(`TASK MODEL ${option<string>(context, 'model')}`);
+    // Explicit --harness/--model/--thinking-level are this operation's MODEL requirement (a tool name restricts the instance).
+    const harnessOption = option<string>(context, 'harness');
+    const tool = harnessOption && !harnessPlugin(harnessOption) ? settings.tools.find((candidate) => candidate.type === 'HARNESS' && candidate.name === harnessOption) : undefined;
+    if (harnessOption && !harnessPlugin(harnessOption) && !tool) throw usageError(`--harness ${harnessOption} is neither a harness variant nor a configured harness tool.`, 'fix');
+    const variant = tool?.variant ?? (harnessOption ? harnessPlugin(harnessOption)!.variant : undefined);
+    const requirement = [variant ? `harness=${variant}` : '', option<string>(context, 'model') ? `model=${option<string>(context, 'model')}` : '', option<string>(context, 'thinking-level') ? `thinking=${option<string>(context, 'thinking-level')}` : ''].filter(Boolean).join(' ');
+    const commitments = [`TASK AGENT ${toReference(agent)}`, ...(requirement ? [`MODEL ${requirement}`] : []), 'TASK ORIGIN maintenance: failing project check'];
     await writeFile(
         taskPath,
         renderTaskBook({
@@ -57,23 +62,21 @@ export default async function fix(context: CommandContext): Promise<number> {
         }),
         { flag: 'wx' },
     );
-    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(settings, 'routing.harness') ?? enabledHarnesses(settings)[0];
-    if (!harness) throw new PtbkError('No harness is available to repair the check.', { kind: 'setup', next: ['Pass `--harness <variant|tool>` or enable a harness tool (`ptbk tool list`).'] });
+    if (!enabledHarnesses(settings).length && !harnessOption) throw new PtbkError('No harness is available to repair the check.', { kind: 'setup', next: ['Pass `--harness <variant|tool>` or enable a harness tool (`ptbk tool list`).'] });
     const host = new ServiceHost({
         project,
-        mode: 'run',
+        mode: 'maintenance',
         env: context.env,
         cli: overrides,
-        cliHarnesses: [harness],
+        cliHarnesses: harnessOption ? [harnessOption] : undefined,
         tasksDirectory: tasksOverride(context),
         persistent: null,
         allowTunnelInstall: false,
-        run: { selection: { agent: toReference(agent), harness, model: option<string>(context, 'model') } },
         onEvent: (text, level) => terminal.write(`${clockTime()} ${level === 'info' ? '' : `${level.toUpperCase()}: `}${text}\n`),
     });
     await host.start();
     try {
-        const outcome = await host.agenda.executeMaintenance(taskPath, check!);
+        const outcome = await host.agenda.executeMaintenance(taskPath, check!, { tool: tool?.name });
         if (outcome.kind === 'completed') {
             terminal.write(`Repaired; the check passes${outcome.commit ? ` (committed ${outcome.commit.slice(0, 8)})` : ''}.\n`);
             return EXIT.success;

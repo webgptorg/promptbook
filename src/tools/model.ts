@@ -91,6 +91,22 @@ export const AUTHENTICATION_MODES = ['NATIVE', 'API_KEY'] as const;
 export type AuthenticationMode = (typeof AUTHENTICATION_MODES)[number];
 
 /**
+ * Endpoint keywords of a harness tool's `baseUrl` (an explicit http(s) base URL is the third form; an omitted
+ * `baseUrl` means the plugin's official endpoint).
+ *
+ * @private shared tool contract
+ */
+export const ENDPOINT_KEYWORDS = ['OFFICIAL', 'LOCAL'] as const;
+
+/**
+ * Former per-instance harness fields, superseded by plugin-owned defaults and the shared MODEL commitment (kept and
+ * diagnosed until the project migration converts them; never a live configuration source).
+ *
+ * @private shared tool contract
+ */
+export const SUPERSEDED_HARNESS_FIELDS = ['model', 'thinkingLevel', 'models'] as const;
+
+/**
  * Fields every tool record shares.
  *
  * @private shared tool contract
@@ -133,12 +149,11 @@ export type HarnessToolRecord = ToolCommon & {
     readonly apiKey?: string;
     /** Non-secret reference to a distinct adapter-supported native login context. */
     readonly accountProfile?: string;
-    /** Preferred model (provider identifier). */
-    readonly model?: string;
-    /** Preferred thinking level. */
-    readonly thinkingLevel?: ThinkingLevel;
-    /** Explicitly known models (supplements the integration's catalog). */
-    readonly models?: readonly string[];
+    /**
+     * Model execution endpoint: `OFFICIAL`, `LOCAL` (inference on the engine's host) or an explicit base URL without
+     * secrets. Omitted: the plugin's official endpoint.
+     */
+    readonly baseUrl?: string;
 };
 
 /**
@@ -155,8 +170,19 @@ export type ToolRecord = BrowserToolRecord | HarnessToolRecord;
  */
 export const TOOL_FIELDS: Readonly<Record<ToolType, readonly string[]>> = {
     BROWSER: ['type', 'variant', 'name', 'description', 'isEnabled', 'profile', 'isHeadless', 'executable'],
-    HARNESS: ['type', 'variant', 'name', 'description', 'isEnabled', 'authentication', 'apiKey', 'accountProfile', 'model', 'thinkingLevel', 'models'],
+    HARNESS: ['type', 'variant', 'name', 'description', 'isEnabled', 'authentication', 'apiKey', 'accountProfile', 'baseUrl'],
 };
+
+/**
+ * Endpoint of a harness tool as a MODEL `runtime` value: `official`, `local` or the base URL.
+ *
+ * @private shared tool contract
+ */
+export function toolRuntime(tool: Pick<HarnessToolRecord, 'baseUrl'>): string {
+    if (!tool.baseUrl || tool.baseUrl === 'OFFICIAL') return 'official';
+    if (tool.baseUrl === 'LOCAL') return 'local';
+    return tool.baseUrl.replace(/\/+$/, '');
+}
 
 /**
  * Variants of one tool type.

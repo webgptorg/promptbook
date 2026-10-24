@@ -4,15 +4,19 @@ import { clockTime, formatShortTime } from '../common/time.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import type { ChatAgentChoice } from '../chats/service.js';
 import { runChatClient, type ChatSource } from './chat-client.js';
+import { activityLabel, inlineBadge, type BadgeActivity } from './badges.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { FullScreen } from './screen.js';
-import { renderQr, renderStatusPretty, type PreparedQr } from './status-view.js';
+import { dashboardPanels, renderQr, renderStatusPretty, type DashboardPanel, type PreparedQr } from './status-view.js';
 import { lifecycleActions, toolDetailLines, toolRow } from './details.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { TerminalTitleContext } from './terminal-title.js';
 import { matchesFilter, windowAround } from './prompts.js';
+import { runBookEditor, type BookDraft, type BookSourceClient } from './book-editor.js';
+import { TASK_SORT_FIELDS, sortTasks, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
+import { formatAgentReference } from '../book/references.js';
 
 /**
  * Where the dashboard reads state and sends controls (attached daemon or in-process owner).
@@ -32,6 +36,10 @@ export type DashboardSource = {
     readonly pairing: (renew: boolean) => Promise<{ available: boolean; url?: string; remote?: boolean }>;
     /** Saved tool management through the engine's shared operation (committed immediately). */
     readonly tool: (request: ToolOperationRequest) => Promise<ToolOperationOutcome>;
+    /** The complete task inventory (every state). */
+    readonly inventory: () => Promise<TaskInventoryItem[]>;
+    /** Book sources through the engine's shared read/save operations. */
+    readonly books: BookSourceClient;
     /** The invocation owns the service lifetime (foreground start / run). */
     readonly owning: boolean;
 };
@@ -103,7 +111,7 @@ const STATE_TITLES: Readonly<Partial<Record<ServiceSnapshot['service']['state'],
  * @private terminal dashboard
  */
 export function dashboardTitle(snapshot: ServiceSnapshot, owning: boolean): TerminalTitleContext {
-    const mode = !owning ? 'Dashboard' : snapshot.service.mode === 'run' ? 'Run' : 'Foreground';
+    const mode = !owning ? 'Dashboard' : 'Foreground';
     const detail = [
         STATE_TITLES[snapshot.service.state],
         snapshot.chats.waiting.length ? 'Needs you' : undefined,
@@ -133,6 +141,36 @@ type Confirmation = { readonly kind: 'confirm'; readonly question: string; reado
 type ToolsMode = { readonly kind: 'tools'; focus: number; detail: boolean };
 
 /**
+ * Fields the agent inventory can be sorted by (`activity` keeps working and waiting agents first).
+ */
+const TEAM_SORT_FIELDS = ['activity', 'queue', 'name', 'role'] as const;
+
+/**
+ * Prominence of an agent's observed activity in the default team order.
+ */
+const ACTIVITY_RANK: Readonly<Record<BadgeActivity, number>> = { working: 0, 'waiting-user': 1, 'waiting-provider': 2, blocked: 3, failed: 4, paused: 5, idle: 6, completed: 7 };
+
+/**
+ * The complete agent inventory drilled into from the Agents panel (viewer-local focus and sort).
+ */
+type TeamView = { readonly kind: 'team'; focus: number; detail: boolean; sort: (typeof TEAM_SORT_FIELDS)[number] };
+
+/**
+ * The complete task inventory drilled into from the Tasks panel: viewer-local sort and focus (never scheduling).
+ */
+type TasksView = { readonly kind: 'tasks'; focus: number; sort: TaskSortField; descending: boolean; detail: boolean };
+
+/**
+ * Activity drilled into from the results panel: arrows scroll, End follows.
+ */
+type ActivityView = { readonly kind: 'activity' };
+
+/**
+ * Rows of a drilled list shown at once (the list scrolls around its focus).
+ */
+const LIST_ROWS = 12;
+
+/**
  * A tool change waiting for the shared in-use acknowledgement (save while current work finishes, or force-stop the
  * whole engine and repeat the change afterwards).
  */
@@ -156,7 +194,12 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     let activityOffset = 0;
     let feedback = '';
     let feedbackTimer: NodeJS.Timeout | undefined;
-    let input: AgentPicker | { kind: 'chats'; focus: number } | Confirmation | ToolsMode | ToolAcknowledgement | undefined;
+    let input: AgentPicker | { kind: 'chats'; focus: number } | Confirmation | ToolsMode | ToolAcknowledgement | TeamView | TasksView | ActivityView | undefined;
+    // Viewer-local navigation: the focused panel (arrows), the complete task inventory and unsaved Book drafts.
+    let focus: DashboardPanel = snapshot.chats.waiting.length ? 'attention' : 'work';
+    let inventory: TaskInventoryItem[] | undefined;
+    let inventoryRevision = -1;
+    const drafts = new Map<string, BookDraft>();
     let nested = false;
     let qr: PreparedQr | undefined;
     let qrKey = '';
@@ -210,7 +253,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
 
     const legend = (): string => {
         if (input?.kind === 'agents') return input.stage === 'entry' ? '  ↑↓ choose · Enter confirm (Chatter is the default) · Esc cancel' : '  ↑↓ choose · Enter open a new chat · Esc back';
-        if (input?.kind === 'chats') return '  ↑↓ choose · Enter open · Esc back';
+        if (input?.kind === 'chats') return `  ↑↓ choose · Enter open · N new chat (Chatter first) · Esc back${feedback ? `   ${marks.arrow} ${feedback}` : ''}`;
+        if (input?.kind === 'team') return `  ↑↓ choose (wraps) · Enter ${input.detail ? 'hide' : 'show'} details · C chat with this agent · E ${teamItems()[input.focus]?.role === 'engine' ? 'view' : 'edit'} its Book · S sort (${input.sort}) · Esc back${feedback ? `   ${marks.arrow} ${feedback}` : ''}`;
+        if (input?.kind === 'tasks') return `  ↑↓ choose (wraps) · Enter ${input.detail ? 'hide' : 'show'} details · E edit source · S sort (${input.sort}) · D ${input.descending ? 'ascending' : 'descending'} · T talk to Tasker · Esc back${feedback ? `   ${marks.arrow} ${feedback}` : ''}`;
+        if (input?.kind === 'activity') return '  ↑↓ scroll · End follow · Esc back';
         if (input?.kind === 'confirm') return '  Y confirm · N/Esc keep things as they are';
         if (input?.kind === 'tool-in-use') return '  1 save now (current work finishes with the tool it acquired) · 2 force-stop the whole engine · Esc keep things as they are';
         if (input?.kind === 'tools') return `  ↑↓ choose · Space enable/disable · Enter ${input.detail ? 'hide' : 'show'} details · [ ] move · N add · M modify · D remove · 1/2/3 browser recheck/retry/restart · Esc back${feedback ? `   ${marks.arrow} ${feedback}` : ''}`;
@@ -227,8 +273,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             ...(snapshot.sync ? [`Y ${details.sync ? 'hide' : 'show'} sync`, 'G sync now'] : []),
             'V renew pairing',
             'O plain',
-            '↑↓/End activity',
-            source.owning ? (ownerStopRequested ? 'Ctrl+C force stop' : 'Q/Ctrl+C stop gracefully & quit') : 'Q leave (service keeps running)',
+            '←↑↓→ panels · Enter open',
+            source.owning ? (ownerStopRequested ? 'Ctrl+C force stop' : 'Q/Esc/Ctrl+C stop gracefully & quit') : 'Q/Esc leave (service keeps running)',
         ].filter(Boolean);
         return `  ${parts.join(' · ')}${feedback ? `   ${marks.arrow} ${feedback}` : ''}`;
     };
@@ -290,8 +336,49 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 ...(end < choices.length ? [style.muted(`  ↓ ${choices.length - end} more`)] : []),
             ];
         }
+        if (input.kind === 'activity') return [style.bold('Activity — ↑↓ scroll the log in the results panel below')];
+        if (input.kind === 'team') {
+            const view = input;
+            const items = teamItems();
+            const { start, end } = windowAround(items.length, view.focus, LIST_ROWS);
+            const rows = items.slice(start, end).map((agent, offset) => {
+                const queued = queueOf(agent.name);
+                return `${pointer(start + offset === view.focus)} ${inlineBadge(agent.name, agent.activity, style)} ${style.muted(`${activityLabel(agent.activity)}${queued.length ? ` · ${queued.length} queued` : ''}${agent.role === 'engine' ? ' · engine-provided' : agent.role === 'core' ? ' · core' : ''}`)}`;
+            });
+            const focusedAgent = items[view.focus];
+            const detail = focusedAgent && view.detail
+                ? [
+                      '',
+                      style.bold(`${focusedAgent.name} — current and queued work`),
+                      ...(snapshot.current && snapshot.current.agent.name === focusedAgent.name ? [`${style.success('now')} ${snapshot.current.taskTitle} ${style.muted(`(${snapshot.current.phase})`)}`] : [style.muted('Not working on a task now.')]),
+                      ...queueOf(focusedAgent.name).slice(0, 6).map((item) => `${style.muted(item.readiness.padEnd(16))} ${item.title}`),
+                  ]
+                : [];
+            return [style.bold(`Agents (${items.length}) — the complete team; core roles and Expert included · sorted by ${view.sort}`), ...(start > 0 ? [style.muted(`  ↑ ${start} more`)] : []), ...rows, ...(end < items.length ? [style.muted(`  ↓ ${items.length - end} more`)] : []), ...detail];
+        }
+        if (input.kind === 'tasks') {
+            const view = input;
+            const items = sortedTasks(view);
+            if (!inventory) return [style.muted('Loading the task inventory…')];
+            const { start, end } = windowAround(items.length, view.focus, LIST_ROWS);
+            const rows = items.slice(start, end).map((item, offset) => {
+                const when = item.until ? `next ${formatShortTime(Date.parse(item.until))}` : item.lastDone ? `done ${formatShortTime(Date.parse(item.lastDone))}` : '';
+                return `${pointer(start + offset === view.focus)} ${style.muted(item.readiness.padEnd(16).slice(0, 16))} ${item.title}${style.muted(`${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · P${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${when ? ` · ${when}` : ''}`)}`;
+            });
+            const focusedTask = items[view.focus];
+            const detail = focusedTask && view.detail
+                ? ['', style.bold(focusedTask.title), `${style.muted('Status')} ${focusedTask.readiness} — ${focusedTask.reason}`, `${style.muted('Source')} ${focusedTask.source}${focusedTask.origin ? style.muted(` · origin ${focusedTask.origin}`) : ''}`, ...(focusedTask.model ? [`${style.muted('MODEL ')} ${focusedTask.model.replace(/\n/g, ' | ')}`] : []), style.muted('E opens the source in the Book editor')]
+                : [];
+            return [
+                style.bold(`All tasks (${items.length}) — ${view.sort === 'smart' ? 'smart order: current, coming up, recent, distant, history' : `sorted by ${view.sort}`}${view.descending ? ' (reversed)' : ''}`),
+                ...(start > 0 ? [style.muted(`  ↑ ${start} more`)] : []),
+                ...(items.length ? rows : [style.muted('No tasks yet; press T to talk to Tasker.')]),
+                ...(end < items.length ? [style.muted(`  ↓ ${items.length - end} more`)] : []),
+                ...detail,
+            ];
+        }
         const chats = snapshot.chats.recent;
-        if (!chats.length) return [style.muted('No chats yet; press C to start one.')];
+        if (!chats.length) return [style.muted('No chats yet; press C (or N here) to start one.')];
         const list = input;
         return [
             style.bold(`All chats (${snapshot.chats.total}${snapshot.chats.total > chats.length ? `, latest ${chats.length}` : ''})`),
@@ -300,6 +387,35 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     `${pointer(index === list.focus)} ${chat.status === 'waiting-for-user' ? style.warning(`${marks.warn} `) : ''}${chat.name}${chat.unread ? style.accent(` · ${chat.unread} unread`) : ''}${style.muted(` · ${chat.members.join(', ')}${chat.links.length ? ` · ${chat.links.join(', ')}` : ''}`)}`,
             ),
         ];
+    };
+
+    /** Every available agent (project, core and the engine Expert), as the snapshot reports them. */
+    /** The team in the viewer's chosen order (project agents before core roles and Expert within equal keys). */
+    const teamItems = (): ServiceSnapshot['agents'] => {
+        const sort = input?.kind === 'team' ? input.sort : 'activity';
+        const roleRank = (agent: ServiceSnapshot['agents'][number]): number => (agent.role === 'engine' ? 2 : agent.role === 'core' ? 1 : 0);
+        const byName = (a: ServiceSnapshot['agents'][number], b: ServiceSnapshot['agents'][number]): number => a.name.localeCompare(b.name);
+        return [...snapshot.agents].sort((a, b) => {
+            if (sort === 'name') return byName(a, b);
+            if (sort === 'role') return roleRank(a) - roleRank(b) || byName(a, b);
+            if (sort === 'queue') return queueOf(b.name).length - queueOf(a.name).length || byName(a, b);
+            return ACTIVITY_RANK[a.activity] - ACTIVITY_RANK[b.activity] || roleRank(a) - roleRank(b) || byName(a, b);
+        });
+    };
+    /** Unfinished tasks of one agent from the complete inventory. */
+    const queueOf = (name: string): TaskInventoryItem[] => (inventory ?? []).filter((item) => item.agent?.replace(/^@|^\{|\}$/g, '').toLowerCase() === name.toLowerCase() && !['done', 'retired'].includes(item.readiness));
+    /** The viewer's current task order. */
+    const sortedTasks = (view: TasksView): TaskInventoryItem[] => sortTasks(inventory ?? [], view.sort, view.descending, Date.parse(snapshot.observedAt));
+    /** Reloads the complete task inventory when the service state changed (bounded: once per revision). */
+    const refreshInventory = async (): Promise<void> => {
+        if (inventoryRevision === snapshot.revision) return;
+        inventoryRevision = snapshot.revision;
+        try {
+            inventory = await source.inventory();
+            draw();
+        } catch {
+            // An engine of another version may not offer the inventory: the panel falls back to the queue.
+        }
     };
 
     const draw = (): void => {
@@ -318,6 +434,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 connectionLost,
                 details,
                 controlNote: source.owning && ownerStopRequested && snapshot.service.state === 'stopping' ? 'This view closes when the engine has stopped.' : undefined,
+                focus: input ? undefined : focus,
+                inventory,
             },
         });
         screen.draw(lines);
@@ -349,6 +467,135 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             terminal.title.set(dashboardTitle(snapshot, source.owning));
             draw();
         }
+    };
+
+    /** Opens a real Book source in the shared editor (Enter newline, Ctrl+S save); Esc returns here, drafts kept. */
+    const openBook = async (target: { readonly reference?: string; readonly path?: string }): Promise<void> => {
+        nested = true;
+        keyboard.stop();
+        try {
+            await runBookEditor(terminal, source.books, target, { screen, drafts });
+            if (drafts.size) feedback = `${drafts.size} unsaved Book draft(s) kept; reopen to continue.`;
+        } catch (error) {
+            feedback = `Editor failed: ${errorMessage(error)}`;
+        } finally {
+            nested = false;
+            keyboard.start();
+            screen.invalidate();
+            terminal.title.set(dashboardTitle(snapshot, source.owning));
+            inventoryRevision = -1;
+            void refreshInventory();
+            draw();
+        }
+    };
+
+    /** A new chat with a named agent (Tasker for task authoring, or an agent of the team view). */
+    const chatWith = async (name: string): Promise<void> => {
+        try {
+            const agent = (await source.chats.agents()).find((choice) => choice.name.toLowerCase() === name.toLowerCase());
+            if (!agent) {
+                notify(`${name} is not available for chats.`);
+                return;
+            }
+            await openChat({ kind: 'new', agent });
+        } catch (error) {
+            notify(`Chats unavailable: ${errorMessage(error)}`);
+        }
+    };
+
+    /** Enter on a focused panel: drills into it (detail, list or management view). */
+    const drillIn = (panel: DashboardPanel): void => {
+        switch (panel) {
+            case 'attention':
+                openWaiting();
+                return;
+            case 'work':
+                details.execution = !details.execution;
+                break;
+            case 'tools':
+                input = { kind: 'tools', focus: 0, detail: false };
+                break;
+            case 'sync':
+                details.sync = !details.sync;
+                break;
+            case 'agents':
+                input = { kind: 'team', focus: 0, detail: false, sort: 'activity' };
+                break;
+            case 'chats':
+                input = { kind: 'chats', focus: 0 };
+                break;
+            case 'tasks':
+                input = { kind: 'tasks', focus: 0, sort: 'smart', descending: false, detail: false };
+                inventoryRevision = -1;
+                void refreshInventory();
+                break;
+            case 'results':
+                input = { kind: 'activity' };
+                break;
+            case 'controls':
+                notify('Service controls: P pause/resume · U cancel · X stop · R restart · F force stop.');
+                return;
+            case 'connection':
+                notify('V renews the pairing link; the QR code and links are shown in this panel.');
+                return;
+        }
+        draw();
+    };
+
+    /** Arrow keys at the top level: spatial focus between visible panels (highlighted, never enlarged). */
+    const moveFocus = (direction: 'up' | 'down' | 'left' | 'right'): void => {
+        const rows = dashboardPanels(snapshot, terminal.columns());
+        let row = rows.findIndex((candidates) => candidates.includes(focus));
+        if (row < 0) row = 0;
+        let column = Math.max(0, rows[row]!.indexOf(focus));
+        if (direction === 'up' || direction === 'down') {
+            const next = Math.max(0, Math.min(rows.length - 1, row + (direction === 'up' ? -1 : 1)));
+            column = Math.min(column, rows[next]!.length - 1);
+            row = next;
+        } else column = Math.max(0, Math.min(rows[row]!.length - 1, column + (direction === 'left' ? -1 : 1)));
+        focus = rows[row]![column]!;
+        draw();
+    };
+
+    /** Keys of the drilled agent, task and activity views (their own arrows/Enter/Escape). */
+    const viewKey = (view: TeamView | TasksView | ActivityView, event: KeyEvent): void => {
+        if (event.type === 'key' && event.name === 'escape') {
+            input = undefined;
+            draw();
+            return;
+        }
+        if (view.kind === 'activity') {
+            if (event.type === 'key' && event.name === 'up') activityOffset = Math.min(activityOffset + 1, Math.max(0, snapshot.activity.length - 3));
+            else if (event.type === 'key' && event.name === 'down') activityOffset = Math.max(0, activityOffset - 1);
+            else if (event.type === 'key' && event.name === 'end') activityOffset = 0;
+            draw();
+            return;
+        }
+        const count = view.kind === 'team' ? teamItems().length : sortedTasks(view).length;
+        if (event.type === 'key' && event.name === 'up' && count) view.focus = (view.focus - 1 + count) % count;
+        else if (event.type === 'key' && event.name === 'down' && count) view.focus = (view.focus + 1) % count;
+        else if (event.type === 'key' && event.name === 'enter') view.detail = !view.detail;
+        else if (event.type === 'text') {
+            const key = event.text.toLowerCase();
+            if (view.kind === 'team') {
+                const agent = teamItems()[view.focus];
+                if (key === 'c' && agent) void chatWith(agent.name);
+                else if (key === 'e' && agent) void openBook({ reference: formatAgentReference(agent.name) });
+                else if (key === 's') {
+                    view.sort = TEAM_SORT_FIELDS[(TEAM_SORT_FIELDS.indexOf(view.sort) + 1) % TEAM_SORT_FIELDS.length]!;
+                    view.focus = 0;
+                }
+            } else {
+                const task = sortedTasks(view)[view.focus];
+                if (key === 's') {
+                    view.sort = TASK_SORT_FIELDS[(TASK_SORT_FIELDS.indexOf(view.sort) + 1) % TASK_SORT_FIELDS.length]!;
+                    view.focus = 0;
+                } else if (key === 'd') view.descending = !view.descending;
+                else if (key === 't') void chatWith('Tasker');
+                else if (key === 'e' && task) void openBook({ path: task.source });
+            }
+        }
+        draw();
     };
 
     /** A: the conversation of the most urgent (focused) agent waiting for the user, with its real author. */
@@ -520,6 +767,14 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             draw();
             return;
         }
+        if (input?.kind === 'team' || input?.kind === 'tasks' || input?.kind === 'activity') {
+            viewKey(input, event);
+            return;
+        }
+        if (input?.kind === 'chats' && event.type === 'text' && event.text.toLowerCase() === 'n') {
+            void startNewChat();
+            return;
+        }
         if (input) {
             if (input.kind === 'agents' && input.stage === 'all') {
                 // Typing narrows the full agent list; Backspace edits and Esc clears the filter before going back.
@@ -561,10 +816,18 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             return;
         }
         if (event.type === 'key') {
-            if (event.name === 'up') activityOffset = Math.min(activityOffset + 1, Math.max(0, snapshot.activity.length - 3));
-            else if (event.name === 'down') activityOffset = Math.max(0, activityOffset - 1);
-            else if (event.name === 'end') activityOffset = 0;
-            else if (event.name === 'enter' && snapshot.chats.waiting.length) openWaiting();
+            if (event.name === 'up' || event.name === 'down' || event.name === 'left' || event.name === 'right') {
+                moveFocus(event.name);
+                return;
+            }
+            if (event.name === 'escape') {
+                // Escape at the top level closes only this viewer (an owning view stops its engine gracefully).
+                if (source.owning) ownerQuit(false);
+                else leave('left');
+                return;
+            }
+            if (event.name === 'end') activityOffset = 0;
+            else if (event.name === 'enter') drillIn(focus);
             draw();
             return;
         }
@@ -688,6 +951,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     }, 700);
     draw();
     void refreshQr();
+    void refreshInventory();
 
     void (async () => {
         let previous: ServiceSnapshot | undefined = snapshot;
@@ -701,8 +965,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 if (focusRequest >= snapshot.chats.waiting.length) focusRequest = 0;
                 // Written only when the title text changes (task start/switch, state, attention), not per update.
                 if (!nested) terminal.title.set(dashboardTitle(snapshot, source.owning));
+                if (!dashboardPanels(snapshot, terminal.columns()).some((row) => row.includes(focus))) focus = 'work';
                 draw();
                 void refreshQr();
+                void refreshInventory();
                 if (['stopped', 'finished'].includes(snapshot.service.state)) {
                     // The engine ended (observed): show it briefly, never start a replacement.
                     await new Promise((resolve) => setTimeout(resolve, 1500));

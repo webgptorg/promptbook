@@ -1,18 +1,18 @@
-import { KEBAB_IDENTIFIER, canonicalEnumValue, kebabIdentifier, matchEnum, matchProperty } from '../common/naming.js';
+import { KEBAB_IDENTIFIER, kebabIdentifier, matchEnum, matchProperty } from '../common/naming.js';
 import { parseEnvironmentReference } from './environment.js';
 import {
     AUTHENTICATION_MODES,
     BROWSER_VARIANTS,
+    ENDPOINT_KEYWORDS,
     HARNESS_VARIANTS,
     PROFILE_SOURCES,
-    THINKING_LEVELS,
+    SUPERSEDED_HARNESS_FIELDS,
     TOOL_FIELDS,
     TOOL_TYPES,
     type AuthenticationMode,
     type BrowserToolRecord,
     type HarnessToolRecord,
     type ProfileSource,
-    type ThinkingLevel,
     type ToolRecord,
     type ToolType,
 } from './model.js';
@@ -170,6 +170,12 @@ export function parseTools(raw: unknown): ParsedTools {
             const otherType = resolvedType && TOOL_FIELDS[resolvedType === 'BROWSER' ? 'HARNESS' : 'BROWSER'].includes(key);
             if (SECRET_FIELD.test(key) && parseEnvironmentReference(entry[key]) === undefined) {
                 problems.push({ location: `${location}.${key}`, message: 'store credential references (${{ env.NAME }}), never secret values', severity: 'error' });
+            } else if (resolvedType === 'HARNESS' && (SUPERSEDED_HARNESS_FIELDS as readonly string[]).includes(key)) {
+                problems.push({
+                    location: `${location}.${key}`,
+                    message: 'superseded per-tool model setting (preserved, ignored): harness plugins own model/thinking defaults and MODEL in agent/task Books states requirements; the project migration converts it',
+                    severity: 'warning',
+                });
             } else {
                 problems.push({ location: `${location}.${key}`, message: otherType ? `"${key}" does not apply to a ${resolvedType} tool` : 'unknown tool field (preserved, ignored)', severity: otherType ? 'error' : 'warning' });
             }
@@ -276,11 +282,9 @@ function parseHarnessFields(entry: Record<string, unknown>, location: string, co
         problems.push({ location: `${location}.apiKey`, message: 'an API_KEY tool requires apiKey: "${{ env.NAME }}"', severity: 'error' });
         valid = false;
     }
-    for (const field of ['accountProfile', 'model'] as const) {
-        if (entry[field] !== undefined && (typeof entry[field] !== 'string' || !(entry[field] as string).trim())) {
-            problems.push({ location: `${location}.${field}`, message: 'expected a nonempty string', severity: 'error' });
-            valid = false;
-        }
+    if (entry.accountProfile !== undefined && (typeof entry.accountProfile !== 'string' || !entry.accountProfile.trim())) {
+        problems.push({ location: `${location}.accountProfile`, message: 'expected a nonempty string', severity: 'error' });
+        valid = false;
     }
     if (typeof entry.accountProfile === 'string' && !KEBAB_IDENTIFIER.test(entry.accountProfile)) {
         const fixed = kebabIdentifier(entry.accountProfile);
@@ -289,22 +293,8 @@ function parseHarnessFields(entry: Record<string, unknown>, location: string, co
             entry.accountProfile = fixed;
         }
     }
-    let thinkingLevel: ThinkingLevel | undefined;
-    if (entry.thinkingLevel !== undefined) {
-        thinkingLevel = matchEnum(entry.thinkingLevel, THINKING_LEVELS);
-        if (!thinkingLevel) {
-            problems.push({ location: `${location}.thinkingLevel`, message: `expected one of ${THINKING_LEVELS.map(canonicalEnumValue).join(', ')}`, severity: 'error' });
-            valid = false;
-        } else if (entry.thinkingLevel !== canonicalEnumValue(thinkingLevel)) {
-            corrections.push({ location: `${location}.thinkingLevel`, from: String(entry.thinkingLevel), to: canonicalEnumValue(thinkingLevel) });
-            entry.thinkingLevel = canonicalEnumValue(thinkingLevel);
-        }
-    }
-    const models = entry.models;
-    if (models !== undefined && (!Array.isArray(models) || models.some((model) => typeof model !== 'string'))) {
-        problems.push({ location: `${location}.models`, message: 'expected an array of model identifiers', severity: 'error' });
-        valid = false;
-    }
+    const baseUrl = parseBaseUrl(entry, location, corrections, problems);
+    if (baseUrl === null) valid = false;
     if (!common.name || !valid || !authentication) return undefined;
     return {
         type: 'HARNESS',
@@ -315,10 +305,48 @@ function parseHarnessFields(entry: Record<string, unknown>, location: string, co
         authentication,
         ...(typeof apiKey === 'string' ? { apiKey } : {}),
         ...(typeof entry.accountProfile === 'string' ? { accountProfile: entry.accountProfile } : {}),
-        ...(typeof entry.model === 'string' ? { model: entry.model } : {}),
-        ...(thinkingLevel ? { thinkingLevel } : {}),
-        ...(Array.isArray(models) ? { models: models as string[] } : {}),
+        ...(baseUrl ? { baseUrl } : {}),
     };
+}
+
+/**
+ * Reads a harness endpoint: `OFFICIAL`, `LOCAL` (any case, saved canonically) or an http(s) base URL without
+ * credentials. Returns `null` for an invalid value.
+ *
+ * @private tool normalization
+ */
+export function parseBaseUrl(entry: Record<string, unknown>, location: string, corrections: ConfigCorrection[], problems: ConfigProblem[]): string | undefined | null {
+    const raw = entry.baseUrl;
+    if (raw === undefined) return undefined;
+    if (typeof raw !== 'string' || !raw.trim()) {
+        problems.push({ location: `${location}.baseUrl`, message: 'expected OFFICIAL, LOCAL or an http(s) base URL', severity: 'error' });
+        return null;
+    }
+    const keyword = matchEnum(raw, ENDPOINT_KEYWORDS);
+    if (keyword) {
+        if (keyword !== raw) {
+            corrections.push({ location: `${location}.baseUrl`, from: raw, to: keyword });
+            entry.baseUrl = keyword;
+        }
+        return keyword;
+    }
+    if (/^default$/i.test(raw.trim())) {
+        problems.push({ location: `${location}.baseUrl`, message: 'baseUrl is the concrete endpoint; omit it for the default (official) endpoint — `runtime=default` belongs to MODEL', severity: 'error' });
+        return null;
+    }
+    try {
+        const url = new URL(raw.trim());
+        if (!/^https?:$/.test(url.protocol)) throw new Error('not http(s)');
+        if (url.username || url.password) {
+            // The credential is never echoed: only its location is reported.
+            problems.push({ location: `${location}.baseUrl`, message: 'the base URL must not contain credentials; keep secrets in .env', severity: 'error' });
+            return null;
+        }
+    } catch {
+        problems.push({ location: `${location}.baseUrl`, message: `expected OFFICIAL, LOCAL or an http(s) base URL (got ${JSON.stringify(raw)})`, severity: 'error' });
+        return null;
+    }
+    return raw.trim();
 }
 
 /**
@@ -339,9 +367,7 @@ export function serializeTool(record: ToolRecord, previous?: Readonly<Record<str
         result.authentication = record.authentication;
         if (record.apiKey !== undefined) result.apiKey = record.apiKey;
         if (record.accountProfile !== undefined) result.accountProfile = record.accountProfile;
-        if (record.model !== undefined) result.model = record.model;
-        if (record.thinkingLevel !== undefined) result.thinkingLevel = canonicalEnumValue(record.thinkingLevel);
-        if (record.models !== undefined) result.models = [...record.models];
+        if (record.baseUrl !== undefined) result.baseUrl = record.baseUrl;
     }
     for (const [key, value] of Object.entries(previous ?? {})) {
         if (!known.includes(key) && !matchProperty(key, known)) result[key] = value;

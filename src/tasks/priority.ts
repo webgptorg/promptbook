@@ -14,7 +14,7 @@ const TEXTUAL_PRIORITIES: ReadonlyArray<[RegExp, number]> = [
 /**
  * Interprets `TASK PRIORITY`: a nonnegative number, or a recognized textual importance.
  *
- * Unrecognized wording stays unresolved (rank 0) so that Manager can interpret it; read-only views report it.
+ * Unrecognized wording stays unresolved (rank 0) so that Router can interpret it; read-only views report it.
  *
  * @private task priority
  */
@@ -38,6 +38,6 @@ export function parsePriority(raw: string | undefined): TaskPriority & { error?:
  */
 export function describePriority(priority: TaskPriority): string {
     if (!priority.raw) return String(priority.value);
-    if (!priority.resolved) return `"${priority.raw}" (unresolved, ranked 0 until Manager interprets it)`;
+    if (!priority.resolved) return `"${priority.raw}" (unresolved, ranked 0 until Router interprets it)`;
     return /^\d/.test(priority.raw) ? String(priority.value) : `${priority.raw} (${priority.value})`;
 }

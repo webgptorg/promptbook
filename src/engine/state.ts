@@ -20,6 +20,20 @@ export type ActivePhase = 'claimed' | 'executing' | 'awaiting-user' | 'checking'
 export type WorkKind = 'task' | 'assignment' | 'learning' | 'discovery' | 'intent' | 'maintenance';
 
 /**
+ * A task Router judged impossible to execute: blocked until its source changes.
+ *
+ * @private runtime state
+ */
+export type RoutingBlock = { readonly reason: string; readonly sourceHash: string; readonly at: string };
+
+/**
+ * One created repair task for a problem condition (no duplicate repair for the same unchanged problem).
+ *
+ * @private runtime state
+ */
+export type RepairRecord = { readonly fingerprint: string; readonly task: string; readonly at: string };
+
+/**
  * Selected execution configuration.
  *
  * @private runtime state
@@ -35,8 +49,12 @@ export type RoutingSelection = {
     readonly model?: string;
     /** Requested thinking level. */
     readonly thinkingLevel?: ThinkingLevel;
-    /** Where each value came from (task requirement, run selection, CLI override, saved default, automatic choice). */
-    readonly sources?: Readonly<Partial<Record<'agent' | 'harness' | 'tool' | 'model' | 'thinkingLevel', string>>>;
+    /** Resolved endpoint of the serving tool: `official`, `local` or a base URL. */
+    readonly runtime?: string;
+    /** Base URL the harness is pointed at (local/custom endpoints only). */
+    readonly baseUrl?: string;
+    /** Where each value came from (task/agent/chat MODEL, CLI requirement, plugin default, tool order). */
+    readonly sources?: Readonly<Partial<Record<'agent' | 'harness' | 'tool' | 'model' | 'thinkingLevel' | 'runtime', string>>>;
 };
 
 /**
@@ -362,6 +380,31 @@ export class StateStore {
     public async writeHealth(state: HealthState): Promise<void> {
         await ensureDirectory(this.directory);
         await writeJsonAtomic(this.file('health.json'), state);
+    }
+
+    /** Reads tasks judged to have no compatible execution (task key → reason and the source revision it applies to). */
+    public async readRoutingBlocks(): Promise<Record<string, RoutingBlock>> {
+        return (await readJsonIfExists<Record<string, RoutingBlock>>(this.file('routing-blocks.json')).catch(() => undefined)) ?? {};
+    }
+
+    /** Records (or clears) a judged routing impossibility of one task. */
+    public async setRoutingBlock(key: string, block: RoutingBlock | undefined): Promise<void> {
+        const blocks = await this.readRoutingBlocks();
+        if (block) blocks[key] = block;
+        else delete blocks[key];
+        await ensureDirectory(this.directory);
+        await writeJsonAtomic(this.file('routing-blocks.json'), blocks);
+    }
+
+    /** Reads repair-task bookkeeping (condition key → fingerprint of the problem a repair task was created for). */
+    public async readRepairs(): Promise<Record<string, RepairRecord>> {
+        return (await readJsonIfExists<Record<string, RepairRecord>>(this.file('repairs.json')).catch(() => undefined)) ?? {};
+    }
+
+    /** Persists repair-task bookkeeping. */
+    public async writeRepairs(repairs: Readonly<Record<string, RepairRecord>>): Promise<void> {
+        await ensureDirectory(this.directory);
+        await writeJsonAtomic(this.file('repairs.json'), repairs);
     }
 
     /** Appends a result to the history log. */

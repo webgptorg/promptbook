@@ -10,6 +10,7 @@ import type { Project } from '../project/workspace.js';
 import { runHarness } from '../harness/run.js';
 import { ToolBridge, type BridgeTool, type ToolResult } from './bridge.js';
 import type { HarnessPool } from './harnesses.js';
+import { readOnlyRoute } from './routing.js';
 import { renderAgentInstructions } from './prompt.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import { validateChoices } from '../chats/chat-book.js';
@@ -88,11 +89,13 @@ async function consultAgent(context: TeamContext, reference: string, question: s
     const advisor = await resolveEffectiveAgent(context.catalog, reference);
     const errors = advisor.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { text: `Cannot consult ${reference}: ${errors.map((error) => error.message).join(' ')}`, isError: true };
-    // The consultation selects its own harness instance from the live inventory (tools added during the task count).
-    const harnessId = [context.harness, ...context.pool.usable()].find((id) => context.pool.plugin(id)?.capabilities.readOnly && context.pool.select(id));
-    if (!harnessId) return { text: 'No usable harness supports read-only consultations.', isError: true };
-    const plugin = context.pool.plugin(harnessId)!;
-    const instance = context.pool.select(harnessId)!;
+    // The consultation selects its own execution within the advisor's MODEL from the live inventory (tools added
+    // during the task count), preferring the consulting agent's harness.
+    const route = await readOnlyRoute(advisor, context.harness, { catalog: context.catalog, pool: context.pool, settings: context.settings });
+    if (route.kind !== 'routable') return { text: `Cannot consult ${advisor.name}: ${route.reason}`, isError: true };
+    const harnessId = route.selection.harness;
+    const plugin = route.plugin;
+    const instance = context.pool.instance(route.selection.tool!)!;
     const instanceInspection = context.pool.inspectionOf(instance.name);
     context.budget.calls++;
     context.onActivity(`consulting ${advisor.name} (${context.budget.calls}/${maxCalls})`);
@@ -110,8 +113,8 @@ async function consultAgent(context: TeamContext, reference: string, question: s
     ].join('\n\n');
     await writeFile(promptFile, prompt);
     await context.trace?.section(`Consultation · ${context.agentName} asks ${advisor.name} (depth ${context.depth + 1})`, [`Harness: ${plugin.displayName} ${instanceInspection?.version ?? ''} · tool ${instance.name}`.trim(), `Question:\n${question}`]);
-    await context.trace?.event('consultation-started', { advisor: advisor.name, by: context.agentName, depth: context.depth + 1, harness: harnessId, tool: instance.name, model: instance.model ?? null });
-    context.onConsultation?.({ advisor: advisor.name, by: context.agentName, harness: harnessId, tool: instance.name, model: instance.model, state: 'started' });
+    await context.trace?.event('consultation-started', { advisor: advisor.name, by: context.agentName, depth: context.depth + 1, harness: harnessId, tool: instance.name, model: route.selection.model ?? null, thinking: route.selection.thinkingLevel ?? null });
+    context.onConsultation?.({ advisor: advisor.name, by: context.agentName, harness: harnessId, tool: instance.name, model: route.selection.model, state: 'started' });
     const controller = new AbortController();
     const abort = (): void => controller.abort();
     context.signal.addEventListener('abort', abort, { once: true });
@@ -126,7 +129,9 @@ async function consultAgent(context: TeamContext, reference: string, question: s
                 readOnly: true,
                 mcp: plugin.capabilities.mcp ? bridge.launch() : undefined,
                 env: context.pool.environment(instance),
-                model: instance.model,
+                model: route.selection.model,
+                thinkingLevel: route.selection.thinkingLevel,
+                baseUrl: route.selection.baseUrl,
                 timeoutMs: setting<number>(context.settings, 'team.timeout'),
                 signal: controller.signal,
                 allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),

@@ -11,7 +11,8 @@ import { findTask } from './sources.js';
  */
 export type Readiness =
     | { readonly kind: 'ready'; readonly slot?: number; readonly reason: string }
-    | { readonly kind: 'needs-assignment'; readonly reason: string }
+    /** Router must choose; `ahead` marks routing before the task's own start (future, recurring or dependent work). */
+    | { readonly kind: 'needs-assignment'; readonly reason: string; readonly ahead?: { readonly until?: number } }
     | { readonly kind: 'assigning'; readonly reason: string; readonly via: string }
     | { readonly kind: 'active'; readonly reason: string }
     | { readonly kind: 'waiting-until'; readonly until: number; readonly reason: string }
@@ -59,8 +60,10 @@ export type EligibilityContext = {
     readonly activation: (task: Task) => number;
     /** Routing check. */
     readonly route: (task: Task) => Promise<RouteCheck>;
-    /** Unfinished Manager assignment task per target name key. */
+    /** Unfinished Router assignment task per target name key. */
     readonly assignmentFor: ReadonlyMap<string, string>;
+    /** Judged routing impossibilities per task name key (they apply while the source is unchanged). */
+    readonly routingBlocks?: ReadonlyMap<string, { readonly reason: string; readonly sourceHash: string }>;
     /** Other task sources sharing a source's literal trace directory, per project-relative source path. */
     readonly traceConflicts?: ReadonlyMap<string, readonly string[]>;
 };
@@ -139,29 +142,39 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
         if (!isComplete(found.task)) waitingOn.push(found.task.ref);
     }
     if (task.dependsOn.length && inDependencyCycle(task, tasks)) return { kind: 'blocked', reason: 'The task is part of a dependency cycle.', next: 'Remove one TASK DEPENDS ON in the cycle.' };
-    if (waitingOn.length) return { kind: 'waiting-dependency', reason: `Waiting for ${waitingOn.join(', ')}.`, on: waitingOn };
+    // A task that cannot run yet may still be routed ahead of its own start (it keeps its date and dependencies).
+    let waiting: Extract<Readiness, { kind: 'waiting-until' | 'waiting-dependency' }> | undefined;
     let slot: number | undefined;
-    if (isRecurring(task)) {
+    if (waitingOn.length) waiting = { kind: 'waiting-dependency', reason: `Waiting for ${waitingOn.join(', ')}.`, on: waitingOn };
+    else if (isRecurring(task)) {
         const state = recurrenceState(task, context.now, context.activation(task), context.timeZone);
         if (state.kind === 'retired') return { kind: 'retired', reason: 'Recurring work retired.' };
-        if (state.kind === 'waiting') return { kind: 'waiting-until', until: state.until, reason: `Next occurrence at ${formatShortTime(state.until, context.now, context.timeZone)}.` };
-        slot = state.slot;
+        if (state.kind === 'waiting') waiting = { kind: 'waiting-until', until: state.until, reason: `Next occurrence at ${formatShortTime(state.until, context.now, context.timeZone)}.` };
+        else slot = state.slot;
     } else if (task.after !== undefined && task.after > context.now) {
-        return { kind: 'waiting-until', until: task.after, reason: `Earliest start ${formatShortTime(task.after, context.now, context.timeZone)}.` };
+        waiting = { kind: 'waiting-until', until: task.after, reason: `Earliest start ${formatShortTime(task.after, context.now, context.timeZone)}.` };
     }
     if (context.uncommittedSources.has(task.source.path)) {
-        return {
-            kind: 'blocked',
-            reason: `The task source ${task.source.relativePath} is not committed.`,
-            next: 'Commit it (or create tasks with `ptbk add`, which commits automatically).',
-        };
+        return (
+            waiting ?? {
+                kind: 'blocked',
+                reason: `The task source ${task.source.relativePath} is not committed.`,
+                next: 'Commit it (or create tasks with `ptbk add`, which commits automatically).',
+            }
+        );
     }
+    const block = context.routingBlocks?.get(task.key);
+    if (block && block.sourceHash === task.source.fileHash) return { kind: 'blocked', reason: block.reason, next: 'Fixer has a repair task; it is reevaluated when the task source changes.' };
     const assignment = context.assignmentFor.get(task.key);
-    if (assignment) return { kind: 'assigning', reason: `Manager is assigning routing (${assignment}).`, via: assignment };
+    if (assignment) return waiting ?? { kind: 'assigning', reason: `Router is assigning routing (${assignment}).`, via: assignment };
     const route = await context.route(task);
-    if (route.kind === 'needs-assignment') return { kind: 'needs-assignment', reason: route.reason };
-    if (route.kind === 'blocked') return { kind: 'blocked', reason: route.reason, next: route.next };
+    if (route.kind === 'needs-assignment') {
+        if (!waiting) return { kind: 'needs-assignment', reason: route.reason };
+        return { kind: 'needs-assignment', reason: `${route.reason} Routing ahead of its start (${waiting.reason.replace(/\.$/, '')}).`, ahead: { until: waiting.kind === 'waiting-until' ? waiting.until : undefined } };
+    }
     if (route.kind === 'incompatible') return { kind: 'incompatible', reason: route.reason };
+    if (waiting) return waiting;
+    if (route.kind === 'blocked') return { kind: 'blocked', reason: route.reason, next: route.next };
     return { kind: 'ready', slot, reason: slot !== undefined ? 'Occurrence due.' : 'Ready.' };
 }
 
@@ -233,11 +246,32 @@ export function isUnfinished(readiness: Readiness): boolean {
 }
 
 /**
- * Selects the next task to work on: the highest-priority ready or assignable task.
+ * A selectable task with the priority its work runs at: a ready task its own; routing work the target's effective
+ * priority, one numeric step higher when the target could run now.
  *
  * @private task eligibility
  */
-export function selectNext(evaluated: readonly EvaluatedTask[]): EvaluatedTask | undefined {
-    const candidates = evaluated.filter((item) => item.readiness.kind === 'ready' || item.readiness.kind === 'needs-assignment');
-    return candidates.sort((a, b) => b.task.priority.value - a.task.priority.value || a.task.source.order - b.task.source.order)[0];
+export type SelectedTask = EvaluatedTask & { readonly rank: number };
+
+/**
+ * Selects the next work: the highest-ranked ready task or Router assignment. Routing ahead of a task's own start
+ * waits behind ready work of the same rank and nearer targets come first, so distant routing never delays urgent
+ * executable work. Execution order never depends on how a viewer sorts its task list.
+ *
+ * @private task eligibility
+ */
+export function selectNext(evaluated: readonly EvaluatedTask[], now: number = Date.now(), options: { readonly assignable?: boolean } = {}): SelectedTask | undefined {
+    const candidates = evaluated
+        .filter((item) => item.readiness.kind === 'ready' || (item.readiness.kind === 'needs-assignment' && options.assignable !== false))
+        .map((item) => {
+            const ahead = item.readiness.kind === 'needs-assignment' ? item.readiness.ahead : undefined;
+            const rank = item.readiness.kind === 'needs-assignment' && !ahead ? item.task.priority.value + 1 : item.task.priority.value;
+            // Ready work first among equals, then routing of the nearest future work (unknown times last).
+            const tier = ahead ? 1 : 0;
+            const distance = ahead ? (ahead.until ?? Number.MAX_SAFE_INTEGER) - now : 0;
+            return { item, rank, tier, distance };
+        });
+    candidates.sort((a, b) => b.rank - a.rank || a.tier - b.tier || a.distance - b.distance || a.item.task.source.order - b.item.task.source.order);
+    const first = candidates[0];
+    return first ? { ...first.item, rank: first.rank } : undefined;
 }

@@ -2,7 +2,8 @@ import { errorMessage } from '../common/errors.js';
 import type { ChatAgentChoice, ChatDetail } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
 import { fit, truncate, wrap } from './ansi.js';
-import { TextEditor } from './composer.js';
+import type { ComposedSegment } from './composer.js';
+import { RichInput } from './rich-input.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { renderPanel } from './panels.js';
 import { FullScreen } from './screen.js';
@@ -22,10 +23,10 @@ export type ChatSource = {
     readonly agents: () => Promise<ChatAgentChoice[]>;
     /** One chat with its messages. */
     readonly get: (name: string) => Promise<ChatDetail>;
-    /** Starts a new chat with one agent; returns its name. */
-    readonly create: (agent: string, text: string, title?: string) => Promise<{ readonly name: string; readonly commit?: string }>;
+    /** Starts a new chat with one agent; returns its name. `segments` carries attachments (become project assets). */
+    readonly create: (agent: string, text: string, title?: string, segments?: readonly ComposedSegment[]) => Promise<{ readonly name: string; readonly commit?: string }>;
     /** Appends the user's message; `expected` is the message count the user saw (stale clients are rejected). */
-    readonly send: (name: string, text: string, expected?: number) => Promise<{ readonly name: string; readonly commit?: string }>;
+    readonly send: (name: string, text: string, expected?: number, segments?: readonly ComposedSegment[]) => Promise<{ readonly name: string; readonly commit?: string }>;
     /** Marks a chat as read by this viewer (never an answer). */
     readonly read: (name: string) => Promise<void>;
     /** Whether agent replies are produced (a running service or this client); otherwise they wait for the service. */
@@ -42,8 +43,8 @@ export function controlChatSource(request: (method: string, params?: Readonly<Re
         list: async () => (await request('chat-list')) as ChatSummary[],
         agents: async () => (await request('chat-agents')) as ChatAgentChoice[],
         get: async (name) => (await request('chat-get', { name })) as ChatDetail,
-        create: async (agent, text, title) => (await request('chat-create', { agent, text, title, via })) as { name: string; commit?: string },
-        send: async (name, text, expected) => (await request('chat-send', { name, text, expected, via })) as { name: string; commit?: string },
+        create: async (agent, text, title, segments) => (await request('chat-create', { agent, text, title, via, ...(segments ? { segments } : {}) })) as { name: string; commit?: string },
+        send: async (name, text, expected, segments) => (await request('chat-send', { name, text, expected, via, ...(segments ? { segments } : {}) })) as { name: string; commit?: string },
         read: async (name) => {
             await request('chat-read', { name });
         },
@@ -76,7 +77,9 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     const ownsScreen = !options.screen;
     const marks = symbols(terminal.unicode);
     const { style } = terminal;
-    const editor = new TextEditor();
+    // The shared rich input in its forward policy: Enter sends, Shift+Enter/Ctrl+J newline, Ctrl+V rich paste.
+    const input = new RichInput({ mode: 'flow', attachments: true, refresh: () => draw() });
+    const editor = input.editor;
     let name = target.kind === 'existing' ? target.name : undefined;
     let detail: ChatDetail | undefined;
     let scroll = 0;
@@ -108,17 +111,22 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         const question = awaited();
         const choiceLines = question?.choices?.length ? [style.muted('Offered answers (press the number with an empty composer):'), ...question.choices.map((choice, index) => `  ${style.accent(`[${index + 1}]`)} ${choice}`)] : [];
         const layout = editor.layout(width - 6, 5);
+        const attaching = input.attaching;
+        const status = input.status(width - 6);
         const composer = renderPanel({
             title: busy || (question ? 'Your answer or question' : 'Message'),
-            lines: [...choiceLines, ...(editor.empty ? [style.muted('Type a message… (Enter sends, Ctrl+J newline)')] : layout.lines)],
+            lines: [
+                ...choiceLines,
+                ...(attaching ? [`${style.bold('Attach file:')} ${attaching.layout(width - 22, 1).lines[0] ?? ''}`] : editor.empty ? [style.muted('Type a message… (Enter sends, Shift+Enter/Ctrl+J newline, Ctrl+V pastes text/images/files)')] : layout.lines),
+                ...(status ? [status.tone === 'warning' ? style.warning(status.text) : style.muted(status.text)] : []),
+            ],
             width,
             tone: 'default',
             unicode: terminal.unicode,
             style,
         });
-        const legend = style.muted(
-            fit(`  Enter send · Ctrl+J newline · PgUp/PgDn scroll${question?.choices?.length ? ' · 1-9 answer' : ''} · ${options.embedded ? 'Esc back' : 'Ctrl+C close (the service keeps running)'}${notice ? `   ${marks.arrow} ${notice}` : ''}`, width),
-        );
+        const keys = input.keys().map((key) => key.replace(/^Enter submit$/, 'Enter send').replace(/^Esc cancel$/, options.embedded ? 'Esc back' : 'Ctrl+C close (the service keeps running)'));
+        const legend = style.muted(fit(`  ${[...keys, 'PgUp/PgDn scroll', ...(question?.choices?.length ? ['1-9 answer'] : [])].join(' · ')}${notice ? `   ${marks.arrow} ${notice}` : ''}`, width));
         const available = Math.max(3, height - top.length - composer.length - 1);
         const body: string[] = [];
         for (const message of detail?.messages ?? []) {
@@ -152,20 +160,21 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         draw();
     };
 
-    const submit = async (text: string): Promise<void> => {
-        if (!text.trim() || busy) return;
+    const submit = async (text: string, segments?: readonly ComposedSegment[]): Promise<void> => {
+        const attached = segments?.some((segment) => segment.type === 'attachment') ? segments : undefined;
+        if ((!text.trim() && !attached) || busy) return;
         busy = 'Saving…';
         draw();
         try {
             if (!name && target.kind === 'new') {
-                const created = await source.create(target.agent.reference, text, target.title);
+                const created = await source.create(target.agent.reference, text, target.title, attached);
                 name = created.name;
                 notice = created.commit ? `Saved (${created.commit.slice(0, 8)}).` : 'Saved.';
             } else if (name) {
-                const sent = await source.send(name, text, detail?.messages.length);
+                const sent = await source.send(name, text, detail?.messages.length, attached);
                 notice = sent.commit ? `Saved (${sent.commit.slice(0, 8)}).` : 'Saved.';
             }
-            editor.value = '';
+            input.clear();
             scroll = 0;
         } catch (error) {
             // The draft stays in the composer; nothing is lost on a rejected or failed write.
@@ -188,7 +197,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
 
     const onKey = (event: KeyEvent): void => {
         if (event.type === 'key' && event.name === 'c' && event.ctrl) return close();
-        if (event.type === 'key' && event.name === 'escape' && options.embedded) return close();
+        if (event.type === 'key' && event.name === 'escape' && options.embedded && !input.attaching) return close();
         if (event.type === 'key' && event.name === 'pageup') {
             scroll += Math.max(1, terminal.rows() - 12);
             return draw();
@@ -202,8 +211,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             void submit(question.choices[Number(event.text) - 1]!);
             return;
         }
-        const action = editor.handle(event);
-        if (action === 'submit') void submit(editor.value);
+        const action = input.handle(event);
+        if (action === 'submit') void submit(editor.value, input.segments());
         draw();
     };
 

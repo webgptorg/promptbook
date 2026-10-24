@@ -1,5 +1,5 @@
+import { UNCONSTRAINED, type ModelConstraint } from '../book/model.js';
 import { formatAgentReference, normalizeAgentName } from '../book/references.js';
-import type { ThinkingLevel } from '../project/config.js';
 
 /**
  * Format of the file that defines a task.
@@ -61,7 +61,7 @@ export type TaskPriority = {
     readonly value: number;
     /** Original wording, when given. */
     readonly raw?: string;
-    /** Whether the wording was interpreted without Manager. */
+    /** Whether the wording was interpreted without Router. */
     readonly resolved: boolean;
 };
 
@@ -73,15 +73,20 @@ export type TaskPriority = {
 export type TaskRouting = {
     /** Responsible agent reference. */
     readonly agent?: string;
-    /** Required harness identifier. */
-    readonly harness?: string;
-    /** Required model. */
-    readonly model?: string;
-    /** Required thinking level. */
-    readonly thinkingLevel?: ThinkingLevel;
-    /** Opaque any-of selectors (Markdown backtick tokens / TASK RUNNER). */
+    /** The task's single current MODEL (unconstrained when absent); Router specializes it in place. */
+    readonly model: ModelConstraint;
+    /** The requirement comes from former `TASK HARNESS`/`TASK MODEL`/`TASK THINKING LEVEL` controls (honored, diagnosed). */
+    readonly legacyControls?: boolean;
+    /** Opaque any-of selectors (Markdown backtick tokens / TASK RUNNER), never strict model IDs. */
     readonly runners: readonly string[];
 };
+
+/**
+ * Routing of a task without any explicit requirement.
+ *
+ * @private task model
+ */
+export const NO_ROUTING: TaskRouting = { model: UNCONSTRAINED, runners: [] };
 
 /**
  * A bounded unit of work read from a task source.

@@ -1,3 +1,4 @@
+import type { ComposedSegment } from '../ui/composer.js';
 import { PtbkError } from '../common/errors.js';
 import { commitmentsOf } from '../book/parse.js';
 import { formatAgentReference, normalizeAgentName, toReference } from '../book/references.js';
@@ -99,7 +100,7 @@ export async function chatDetail(store: ChatStore, name: string): Promise<ChatDe
  *
  * @private chats
  */
-export async function createUserChat(store: ChatStore, catalog: AgentCatalog, agent: string, text: string, options: { readonly name?: string } = {}): Promise<ChatWrite> {
+export async function createUserChat(store: ChatStore, catalog: AgentCatalog, agent: string, text: string, options: { readonly name?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
     const reference = toReference(agent);
     const resolution = await catalog.resolve(reference);
     if (resolution.kind === 'non-agent' && resolution.name !== 'Expert') throw new PtbkError(`You cannot chat with ${resolution.name}; choose a project agent or @Expert.`, { kind: 'usage' });
@@ -107,7 +108,8 @@ export async function createUserChat(store: ChatStore, catalog: AgentCatalog, ag
         throw new PtbkError(`Cannot chat with ${agent}: ${resolution.kind === 'wrong-kind' ? `${resolution.entry.relativePath} is a ${resolution.entry.kind}, not an agent` : `no such agent (${resolution.kind})`}.`, { kind: 'usage', next: ['Run `ptbk chat` without --agent to choose one.'] });
     }
     const name = resolution.kind === 'agent' ? resolution.definition.name : 'Expert';
-    const first = text.split('\n').find((line) => line.trim())?.trim();
+    const attachment = options.segments?.find((segment) => segment.type === 'attachment');
+    const first = text.split('\n').find((line) => line.trim())?.trim() ?? (attachment?.type === 'attachment' ? attachment.name : undefined);
     if (!first) throw new PtbkError('The first message of a chat cannot be empty.', { kind: 'usage' });
     return await store.create({
         name: options.name?.trim() || `${name}: ${first.slice(0, 60)}`,
@@ -115,6 +117,7 @@ export async function createUserChat(store: ChatStore, catalog: AgentCatalog, ag
         status: 'open',
         messages: [{ sender: '@User', text }],
         taken: catalog.index.names(),
+        segments: options.segments,
     });
 }
 
@@ -132,7 +135,7 @@ export async function appendUserMessage(
     state: StateStore,
     name: string,
     text: string,
-    options: { readonly expected?: number } = {},
+    options: { readonly expected?: number; readonly segments?: readonly ComposedSegment[] } = {},
 ): Promise<{ readonly written: ChatWrite; readonly waitingTask?: ActiveRecord; readonly answered: boolean; readonly needsReply: boolean }> {
     const stored = await store.find(name);
     if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found', next: ['List chats with `ptbk chat --list`.'] });
@@ -152,6 +155,7 @@ export async function appendUserMessage(
         status: answered || stored.chat.status === 'resolved' ? 'open' : undefined,
         expectedMessages: options.expected,
         trailers: waitingTask ? { 'Task-Name': waitingTask.taskTitle } : undefined,
+        segments: options.segments,
     });
     await store.markRead(written.chat.name);
     return { written, waitingTask, answered, needsReply: !(waitingTask && answered) };

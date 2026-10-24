@@ -6,9 +6,8 @@ import { shortId, shortHash } from '../../common/ids.js';
 import { formatAgentReference, toReference } from '../../book/references.js';
 import { AgentCatalog, resolveEffectiveAgent } from '../../project/agents.js';
 import { enabledHarnesses, loadSettings, setting } from '../../project/config.js';
-import { harnessRequirement } from '../../engine/routing.js';
+import { invocationRequirement, readOnlyRoute } from '../../engine/routing.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
-import { harnessPlugin } from '../../harness/registry.js';
 import { runHarness } from '../../harness/run.js';
 import { ToolBridge } from '../../engine/bridge.js';
 import { HarnessPool } from '../../engine/harnesses.js';
@@ -74,26 +73,26 @@ export default async function plan(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const saved = await loadSettings(project, { env: context.env });
     const { terminal } = context;
-    const harness = option<string>(context, 'harness') ?? setting<string | undefined>(saved, 'routing.harness') ?? enabledHarnesses(saved)[0];
-    if (!harness) throw new PtbkError('Select a harness for planning with --harness.', { kind: 'usage' });
+    const harness = option<string>(context, 'harness');
+    if (!harness && !enabledHarnesses(saved).length) throw new PtbkError('Select a harness for planning with --harness.', { kind: 'usage' });
     // The same instance selection as every other run: a variant's first usable instance, or one named instance.
-    const settings = await loadSettings(project, { env: context.env, cliHarnesses: [harness] });
+    const settings = await loadSettings(project, { env: context.env, cliHarnesses: harness ? [harness] : undefined });
     const pool = new HarnessPool(project.root, settings, context.env);
     await pool.refresh(undefined, true);
-    const requirement = harnessRequirement(harness, pool);
-    const plugin = requirement ? harnessPlugin(requirement.variant) : undefined;
-    if (!plugin || !requirement) throw new PtbkError(`Unknown harness "${harness}".`, { kind: 'usage', next: ['Use a variant such as openai-codex or a harness tool name from `ptbk tool list`.'] });
-    if (!plugin.capabilities.readOnly) {
-        throw new PtbkError(`${plugin.displayName} cannot enforce read-only planning, so ptbk refuses to plan with it.`, { kind: 'unsupported', next: ['Use `--harness openai-codex` (the supported baseline) or `--harness claude-code`.'] });
-    }
-    const instance = pool.select(requirement.variant, { tool: requirement.tool });
-    const instanceInspection = instance ? pool.inspectionOf(instance.name) : pool.inspection(requirement.variant);
-    if (!instance || !instanceInspection?.usable) throw new PtbkError(`${plugin.displayName} is not usable.`, { kind: 'setup', reason: instanceInspection?.summary ?? 'No enabled instance is configured.', next: instanceInspection?.nextAction ? [instanceInspection.nextAction] : ['Enable or add a harness tool (`ptbk tool list`).'] });
-    const inspection = instanceInspection;
     const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'));
     const requested = option<string>(context, 'agent') ?? setting<string>(settings, 'routing.defaultAgent');
     const agent = await resolveEffectiveAgent(catalog, toReference(requested));
     if (agent.diagnostics.some((diagnostic) => diagnostic.severity === 'error')) throw new PtbkError(`Agent ${requested} cannot plan.`, { kind: 'configuration', reason: agent.diagnostics.map((diagnostic) => diagnostic.message).join(' ') });
+    // Explicit choices are this operation's requirement within the planning agent's MODEL (never relaxing it).
+    const requirement = invocationRequirement({ harness, model: option<string>(context, 'model'), thinkingLevel: option<string>(context, 'thinking-level') }, pool);
+    if (requirement.problem) throw new PtbkError(requirement.problem, { kind: 'usage', next: ['Use a variant such as openai-codex or a harness tool name from `ptbk tool list`.'] });
+    const route = await readOnlyRoute(agent, requirement.tool ? pool.plugin(requirement.tool)?.id : undefined, { catalog, pool, settings }, requirement.constraint);
+    if (route.kind !== 'routable') {
+        throw new PtbkError(`Planning cannot run: ${route.reason}`, { kind: route.kind === 'blocked' ? 'setup' : 'unsupported', next: [('next' in route ? route.next : undefined) ?? 'Planning needs a harness with enforceable read-only mode, e.g. `--harness openai-codex` (the supported baseline) or `--harness claude-code`.'] });
+    }
+    const plugin = route.plugin;
+    const instance = pool.instance(route.selection.tool!)!;
+    const inspection = route.inspection;
     const tasksDirectory = await writableTasksDirectory(context, project, settings);
     const agents = catalog.ordinary().map((definition) => formatAgentReference(definition.name));
     const transcript: Array<{ role: 'You' | 'Planner'; text: string }> = [];
@@ -135,7 +134,22 @@ export default async function plan(context: CommandContext): Promise<number> {
         try {
             const result = await runHarness(
                 plugin,
-                { projectRoot: project.root, cwd: project.root, prompt, promptFile, readOnly: true, mcp: bridge?.launch(), env: pool.environment(instance), model: instance.model, timeoutMs: PLANNING_TIMEOUT_MS, allowCredits: false, authentication: inspection.authentication, readableDirectories: [] },
+                {
+                    projectRoot: project.root,
+                    cwd: project.root,
+                    prompt,
+                    promptFile,
+                    readOnly: true,
+                    mcp: bridge?.launch(),
+                    env: pool.environment(instance),
+                    model: route.selection.model,
+                    thinkingLevel: route.selection.thinkingLevel,
+                    baseUrl: route.selection.baseUrl,
+                    timeoutMs: PLANNING_TIMEOUT_MS,
+                    allowCredits: false,
+                    authentication: inspection.authentication,
+                    readableDirectories: [],
+                },
                 inspection.executablePath ?? plugin.executable,
             );
             if (result.outcome !== 'completed') {

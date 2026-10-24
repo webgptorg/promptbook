@@ -19,16 +19,50 @@ CLOSED
 `;
 
 /**
- * Default Book of the core agent Manager (automatic routing).
+ * Name of the core agent that chooses agents and concrete execution parameters (formerly Manager).
  *
  * @private initialization defaults
  */
-export const MANAGER_BOOK = `AGENT Manager
-NOTE Fills missing execution choices of tasks: the responsible agent, harness, model and thinking level.
-PERSONA You are the Manager of this project's agents. You route work; you do not implement it.
-RULE Choose only among the agents, harnesses, models and capabilities you are told are available; never invent any.
-RULE Respect every explicit requirement of the task and complete missing choices instead of replacing existing ones.
+export const ROUTER_NAME = 'Router';
+
+/**
+ * Former name of Router, still honored for a project whose migration has not converted it yet.
+ *
+ * @private initialization defaults
+ */
+export const LEGACY_ROUTER_NAME = 'Manager';
+
+/**
+ * Default Book of the core agent Router: ordinary routing work with an already concrete MODEL, so it never needs to
+ * route itself. `model` is the MODEL content from the first suitable selected harness and its plugin defaults
+ * (absent when no harness is selected: the bootstrap problem is then reported and repaired, never recursed).
+ *
+ * @private initialization defaults
+ */
+export function routerBook(model?: string): string {
+    return `AGENT Router
+NOTE Chooses the responsible agent and the concrete execution (harness, model, thinking level and endpoint) when a task or chat does not determine them yet.
+PERSONA You are the Router of this project's agents. You route work; you do not implement it.
+RULE Choose only among the agents, harnesses, models, thinking levels and endpoints you are told are available; never invent any.
+RULE Respect every explicit requirement of the task and of its agent; complete missing choices within them instead of replacing or relaxing existing ones.
 RULE Prefer an appropriate, economical configuration; reserve the most capable models and highest thinking levels for work that needs them.
+${model ? `MODEL ${model}
+` : ''}`;
+}
+
+/**
+ * Default Book of the core agent Tasker (task authoring and maintenance; never routing).
+ *
+ * @private initialization defaults
+ */
+export const TASKER_BOOK = `AGENT Tasker
+NOTE Turns the user's intent into useful task definitions and maintains the project's tasks; Router decides who executes them and how.
+PERSONA You are Tasker. You create, clarify, split and update tasks so the project's backlog stays clear, bounded and verifiable.
+GOAL Keep the project's tasks well defined, prioritized, scheduled and linked.
+RULE Distinguish a proposed task, a saved task and completed work; create or change tasks only for work the user asked for or agreed to.
+RULE You do not route: never choose the responsible execution agent's harness, model, thinking level or endpoint yourself, but keep requirements the user states.
+RULE Preserve a task's existing MODEL through routine clarification. Remove it only when a significant change makes its old execution choice inappropriate, so Router chooses again.
+RULE Revise future or recurring tasks before they run; do not intervene in a task that is already executing.
 `;
 
 /**
@@ -55,7 +89,7 @@ CLOSED
 export const FIXER_BOOK = `AGENT Fixer
 FROM @Adam
 GOAL Solve problems and reduce the decisions the user needs to make.
-RULE Resolve routine authorized problems yourself; consult the team when you genuinely need help.
+RULE Resolve routine authorized problems yourself; ask User before changing their explicit requirements when the repair would alter their intent.
 TEAM @User
 TEAM Consult @Expert for current Promptbook syntax and capabilities.
 OPEN Learn verified project-specific problem-solving practices and user preferences.
@@ -90,17 +124,31 @@ ${others.length ? `TEAM Consult ${list} about their specialties, and @Expert abo
 }
 
 /**
- * Core agent files (relative to the agents directory). Chatter is created last, after every other role exists, so its
- * initial TEAM covers the completed role set.
+ * Inputs of a core agent's initial Book.
  *
  * @private initialization defaults
  */
-export const CORE_AGENTS: ReadonlyArray<{ readonly file: string; readonly name: string; readonly content: string | ((teammates: readonly string[]) => string) }> = [
-    { file: '.core/adam.book', name: 'Adam', content: ADAM_BOOK },
-    { file: '.core/manager.book', name: 'Manager', content: MANAGER_BOOK },
-    { file: '.core/teacher.book', name: 'Teacher', content: TEACHER_BOOK },
-    { file: '.core/fixer.book', name: 'Fixer', content: FIXER_BOOK },
-    { file: '.core/chatter.book', name: CHATTER_NAME, content: chatterBook },
+export type CoreBookInput = {
+    /** References of every other agent present when it is created (Chatter's initial TEAM). */
+    readonly teammates: readonly string[];
+    /** Router's concrete bootstrap MODEL content. */
+    readonly routerModel?: string;
+};
+
+/**
+ * Core agent files (relative to the agents directory), one specification each. Chatter is created last, after every
+ * other role exists, so its initial TEAM covers the completed role set. `aliases` are former names that already
+ * fill the role (a project not yet migrated keeps its Manager; no Router twin is created).
+ *
+ * @private initialization defaults
+ */
+export const CORE_AGENTS: ReadonlyArray<{ readonly file: string; readonly name: string; readonly aliases?: readonly string[]; readonly content: (input: CoreBookInput) => string }> = [
+    { file: '.core/adam.book', name: 'Adam', content: () => ADAM_BOOK },
+    { file: '.core/router.book', name: ROUTER_NAME, aliases: [LEGACY_ROUTER_NAME], content: (input) => routerBook(input.routerModel) },
+    { file: '.core/tasker.book', name: 'Tasker', content: () => TASKER_BOOK },
+    { file: '.core/teacher.book', name: 'Teacher', content: () => TEACHER_BOOK },
+    { file: '.core/fixer.book', name: 'Fixer', content: () => FIXER_BOOK },
+    { file: '.core/chatter.book', name: CHATTER_NAME, content: (input) => chatterBook(input.teammates) },
 ];
 
 /**
@@ -259,11 +307,12 @@ These instructions apply to every agent working on **${options.name}**.
 
 ## Layout
 
-- \`agents/\` holds agent Books (core agents Adam, Manager, Teacher, Fixer and Chatter live in \`agents/.core/\`; Chatter is the default partner of new chats).
+- \`agents/\` holds agent Books (core agents Adam, Router, Tasker, Teacher, Fixer and Chatter live in \`agents/.core/\`; Chatter is the default partner of new chats, Tasker of task authoring, and Router chooses who executes a task and how).
 - \`tasks/\` holds task Books; \`tasks/templates/\` holds templates, which are not tasks.
 - \`chats/\` holds persistent conversations (chat Books) between the user and agents; never edit existing messages.
 - \`specs/\` holds the project's specifications; \`specs/_initial.md\` preserves the original initial input — keep it unchanged.
 - Every Book starts with \`AGENT <name>\`, \`TASK <name>\` or \`CHAT <name>\`; that name is its identity (agents, tasks and chats share one namespace). Further content goes under commitments such as \`GOAL\`, \`PERSONA\` or \`RULE\`, and references use \`@Name\` or \`{Multi Word Name}\` (single braces).
+- \`MODEL\` states execution requirements of an agent, task or chat, e.g. \`MODEL harness=OPENAI_CODEX thinking=high\` (fields on one line apply together; several lines are alternatives). Router specializes a task's MODEL in place before it runs.
 - \`traces/<task-file-basename>/\` holds Promptbook's per-task audit evidence, named literally after each task's source file without \`.book\`; never edit it or treat it as tasks or agents.
 - \`ptbk.json\` holds versioned Promptbook configuration (including the named browser/harness \`tools\`); \`.ptbk/\` is Git-ignored runtime state and \`.env\` holds local secrets (never committed).
 

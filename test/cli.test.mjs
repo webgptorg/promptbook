@@ -6,7 +6,7 @@ import { ROOT, ptbk, temporaryDirectory } from './helpers.mjs';
 
 const version = JSON.parse(await readFile(join(ROOT, 'package.json'), 'utf8')).version;
 
-test('bare ptbk, ptbk help and ptbk --help show the same top-level overview with the running version', async () => {
+test('without a terminal, bare ptbk shows the same technical overview as ptbk help and ptbk --help, with the running version', async () => {
     const bare = await ptbk(['--raw']);
     const help = await ptbk(['help', '--raw']);
     const flag = await ptbk(['--help', '--raw']);
@@ -16,6 +16,20 @@ test('bare ptbk, ptbk help and ptbk --help show the same top-level overview with
     assert.match(bare.stdout, new RegExp(`ptbk ${version.replace(/\./g, '\\.')}`));
     assert.match(bare.stdout, /ptbk init/);
     assert.doesNotMatch(bare.stdout, /\x1b\[/, 'raw output has no escape sequences');
+    assert.doesNotMatch(bare.stdout, /^\s*run\s/m, 'there is no finite run command');
+    const redirected = await ptbk([]);
+    assert.equal(redirected.code, 0);
+    assert.match(redirected.stdout, /Ordinary workflow/, 'bare invocation without a terminal never prompts');
+});
+
+test('about is a compact product box (name, version, purpose, website), not a command reference', async () => {
+    const about = await ptbk(['about', '--raw']);
+    assert.equal(about.code, 0);
+    assert.match(about.stdout, /^Promptbook$/m);
+    assert.match(about.stdout, new RegExp(`^Version: ptbk ${version.replace(/\./g, '\\.')}$`, 'm'));
+    assert.match(about.stdout, /^Website: https:\/\/www\.ptbk\.io\/$/m);
+    assert.doesNotMatch(about.stdout, /--path|--raw|Usage/, 'no dump of command options');
+    assert.ok(about.stdout.trim().split('\n').length <= 6, about.stdout);
 });
 
 test('--version prints exactly the installed engine version', async () => {
@@ -61,12 +75,13 @@ test('contradictory options are diagnosed before any work', async (t) => {
     const cases = [
         [['start', '--daemon', '--foreground'], /mutually exclusive/],
         [['start', '--tunnel', '--no-server'], /conflicts with --no-server/],
-        [['run', '--min-priority', '5', '--max-priority', '1'], /greater than/],
-        [['run', '--isolate', '--no-commit'], /--isolate requires commits/],
-        [['run', '--no-commit', '--auto-push'], /conflicts with automatic synchronization/],
+        [['start', '--isolate', '--no-commit'], /--isolate requires commits/],
+        [['start', '--no-commit', '--auto-push'], /conflicts with automatic synchronization/],
         [['start', '--no-commit', '--auto-sync'], /conflicts with automatic synchronization/],
         [['start', '--no-auto-sync', '--auto-pull'], /contradicts --auto-pull/],
-        [['run', '--git-changes', 'continue', '--check-before', 'yes-and-fix'], /conflicts with --check-before/],
+        [['start', '--git-changes', 'continue', '--check-before', 'yes-and-fix'], /conflicts with --check-before/],
+        [['run'], /ptbk run was removed[\s\S]*ptbk start/],
+        [['start', '--limit', '1'], /Unknown option --limit/],
         [['start', '--raw', '--interactive'], /cannot be combined/],
     ];
     for (const [args, pattern] of cases) {

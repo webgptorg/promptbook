@@ -3,7 +3,7 @@ import { appendFile, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { traceDirectoryOf } from '../dist/tasks/identity.js';
-import { generated, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
+import { committed, drive, generated, git, initializedProject, ptbk, subjects } from './helpers.mjs';
 
 /**
  * Fixture check: fails when any output file contains BROKEN.
@@ -43,29 +43,39 @@ async function addTask(project, env, title) {
 }
 
 /**
- * Starts an isolated finite run and resolves once its worktree exists (the task is executing in it); `finished`
- * resolves with the run's result (wrapped, so awaiting the start does not wait for the whole run).
+ * Drives the ongoing engine with isolation: `meanwhile` runs once while the task executes in its worktree, then the
+ * engine runs until `until` holds.
  */
-async function startIsolatedRun(project, env) {
-    const finished = ptbk(['run', '--isolate', '--raw', '--limit', '1'], { cwd: project, env: { ...env, FAKE_CODEX_SLOW_MS: '5000' } });
-    await waitFor(async () => (await readdir(join(project, '.ptbk', 'worktrees')).catch(() => [])).length > 0, { message: 'the isolated worktree' });
-    return { finished };
+async function driveIsolated(project, env, { meanwhile, until, message }) {
+    let done = false;
+    return await drive(
+        project,
+        { ...env, FAKE_CODEX_SLOW_MS: '5000' },
+        async (state) => {
+            if (!done && (await readdir(join(project, '.ptbk', 'worktrees')).catch(() => [])).length > 0) {
+                done = true;
+                await meanwhile();
+            }
+            return done && (await until(state));
+        },
+        { args: ['--isolate'], message },
+    );
 }
 
 test('isolation: the result reaches the branch through a visible merge commit even when a fast-forward was possible', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     const source = await addTask(project, env, 'Write the isolated page');
-    const before = (await git(project, ['rev-parse', 'HEAD'])).trim();
-    const run = await ptbk(['run', '--isolate', '--raw', '--limit', '1'], { cwd: project, env });
+    const run = await drive(project, env, async () => (await subjects(project)).some((subject) => generated('Write the isolated page', 'PTBK: Merge the isolated result of ', ' into main').test(subject)), { args: ['--isolate'], message: 'the visible merge' });
     assert.equal(run.code, 0, run.output);
     assert.match(run.stdout, /visible merge commit/);
-    const merge = await parents(project);
+    const mergeCommit = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t')).find(([, subject]) => generated('Write the isolated page', 'PTBK: Merge the isolated result of ', ' into main').test(subject))[0];
+    const merge = await parents(project, mergeCommit);
     assert.equal(merge.length, 2, 'the integration is a merge commit, not a fast-forward');
-    assert.equal(merge[0], before, 'its first parent is the previous branch tip');
-    assert.match(await subjectOf(project, 'HEAD'), generated('Write the isolated page', 'PTBK: Merge the isolated result of ', ' into main'));
-    assert.match(await subjectOf(project, 'HEAD^2'), generated('Write the isolated page', 'PTBK: '), 'the original result commit is preserved as the second parent');
+    assert.match(await subjectOf(project, merge[0]), /^PTBK: Assign routing: Write the isolated page — /, 'its first parent is the previous branch tip (Router’s assignment commit)');
+    assert.match(await subjectOf(project, `${mergeCommit}^2`), generated('Write the isolated page', 'PTBK: '), 'the original result commit is preserved as the second parent');
     assert.match(await readFile(join(project, source), 'utf8'), /TASK DONE /);
-    const learning = (await readdir(join(project, 'tasks'))).find((name) => name.includes('-learn-'));
+    // Router's assignment Books (`…-assign-<routed task>`) mention the routed task in their file names.
+    const learning = (await readdir(join(project, 'tasks'))).find((name) => name.includes('-learn-') && !name.includes('-assign-'));
     assert.match(await readFile(join(project, 'tasks', learning), 'utf8'), /improve `agents\/developer\.book`/, 'the follow-up names the agent Book of the project, not a path relative to the worktree');
     assert.deepEqual(await isolationBranches(project), [], 'the merged temporary branch is removed');
     assert.equal((await git(project, ['worktree', 'list', '--porcelain'])).match(/^worktree /gm).length, 1, 'the temporary worktree is removed');
@@ -77,17 +87,24 @@ test('isolation: the result reaches the branch through a visible merge commit ev
 test('isolation: intervening project commits are kept and the merged content is checked again', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     await addTask(project, env, 'Slow isolated page SLOW_WORK');
-    const running = await startIsolatedRun(project, env);
-    await writeFile(join(project, 'notes.md'), 'Written on the project branch meanwhile.\n');
-    await git(project, ['add', 'notes.md']);
-    await git(project, ['commit', '--quiet', '-m', 'Notes written meanwhile']);
-    const intervening = (await git(project, ['rev-parse', 'HEAD'])).trim();
-    const run = await running.finished;
+    let intervening;
+    const mergeSubject = generated('Slow isolated page SLOW_WORK', 'PTBK: Merge the isolated result of ', ' into main');
+    const run = await driveIsolated(project, env, {
+        meanwhile: async () => {
+            await writeFile(join(project, 'notes.md'), 'Written on the project branch meanwhile.\n');
+            await git(project, ['add', 'notes.md']);
+            await git(project, ['commit', '--quiet', '-m', 'Notes written meanwhile']);
+            intervening = (await git(project, ['rev-parse', 'HEAD'])).trim();
+        },
+        until: async () => (await subjects(project)).some((subject) => mergeSubject.test(subject)),
+        message: 'the visible merge after the intervening commit',
+    });
     assert.equal(run.code, 0, run.output);
-    const merge = await parents(project);
+    const mergeCommit = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t')).find(([, subject]) => mergeSubject.test(subject))[0];
+    const merge = await parents(project, mergeCommit);
     assert.deepEqual(merge[0], intervening, 'the intervening commit stays in the history (no rebase)');
-    assert.match(await subjectOf(project, 'HEAD^2'), generated('Slow isolated page SLOW_WORK', 'PTBK: '));
-    assert.equal((await git(project, ['merge-base', 'HEAD^2', intervening])).trim() !== intervening, true, 'the result commit was not rewritten onto the newer tip');
+    assert.match(await subjectOf(project, `${mergeCommit}^2`), generated('Slow isolated page SLOW_WORK', 'PTBK: '));
+    assert.equal((await git(project, ['merge-base', `${mergeCommit}^2`, intervening])).trim() !== intervening, true, 'the result commit was not rewritten onto the newer tip');
     assert.ok((await subjects(project)).includes('Notes written meanwhile'));
     await readFile(join(project, 'notes.md'), 'utf8');
 });
@@ -95,18 +112,21 @@ test('isolation: intervening project commits are kept and the merged content is 
 test('isolation: a conflicting result stays on its branch, goes to Fixer and completes once merged', async (t) => {
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     const source = await addTask(project, env, 'Conflicting page SLOW_WORK');
-    const running = await startIsolatedRun(project, env);
-    // The project branch changes the same lines the result changes (the end of the task Book).
-    await appendFile(join(project, source), 'NOTE Edited on the project branch meanwhile.\n');
-    await git(project, ['add', source]);
-    await git(project, ['commit', '--quiet', '-m', 'Edit the task meanwhile']);
-    const run = await running.finished;
-    assert.equal(run.code, 3, run.output);
-    assert.match(run.stdout, /wait for integration/);
+    const run = await driveIsolated(project, env, {
+        // The project branch changes the same lines the result changes (the end of the task Book).
+        meanwhile: async () => {
+            await appendFile(join(project, source), 'NOTE Edited on the project branch meanwhile.\n');
+            await git(project, ['add', source]);
+            await git(project, ['commit', '--quiet', '-m', 'Edit the task meanwhile']);
+        },
+        until: async () => committed(project, 'Conflicting page SLOW_WORK', 'PTBK: Ask Fixer to integrate the isolated result of '),
+        message: 'the integration handed to Fixer',
+    });
+    assert.equal(run.code, 0, run.output);
+    assert.match(run.stdout, /not integrated yet|handed to Fixer for integration/);
     const [branch] = await isolationBranches(project);
     assert.ok(branch, 'the unintegrated result is never deleted');
-    assert.match((await subjects(project))[0], generated('Conflicting page SLOW_WORK', 'PTBK: Ask Fixer to integrate the isolated result of '));
-    const fixerTask = (await readdir(join(project, 'tasks'))).find((name) => name.includes('integrate-isolated-result'));
+    const fixerTask = (await readdir(join(project, 'tasks'))).find((name) => name.includes('integrate-isolated-result') && !name.includes('-assign-'));
     const fixerBook = await readFile(join(project, 'tasks', fixerTask), 'utf8');
     assert.match(fixerBook, /^TASK AGENT @Fixer$/m);
     assert.ok(fixerBook.includes(`TASK ORIGIN maintenance: integration of ${branch}`));
@@ -117,11 +137,11 @@ test('isolation: a conflicting result stays on its branch, goes to Fixer and com
 
     // Someone (Fixer or a person) merges the branch visibly; the next pass completes the task without rerunning it.
     await git(project, ['merge', '--no-ff', '--quiet', '-X', 'theirs', '-m', 'PTBK: Merge the isolated result (resolved)', branch]);
-    const turnsBefore = (await readFile(log, 'utf8')).trim().split('\n').length;
-    const resumed = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
+    const original = (text) => text.trim().split('\n').map((line) => JSON.parse(line)).filter((turn) => generated('Conflicting page SLOW_WORK').test(turn.title)).length;
+    const turnsBefore = original(await readFile(log, 'utf8'));
+    const resumed = await drive(project, env, async ({ output }) => /is complete: its isolated result is merged/.test(output), { message: 'the completion after the merge' });
     assert.equal(resumed.code, 0, resumed.output);
-    assert.match(resumed.stdout, /is complete: its isolated result is merged/);
-    assert.equal((await readFile(log, 'utf8')).trim().split('\n').length, turnsBefore, 'no model work is repeated');
+    assert.equal(original(await readFile(log, 'utf8')), turnsBefore, 'the task’s model work is not repeated');
     assert.deepEqual(await isolationBranches(project), []);
     assert.equal((await git(project, ['worktree', 'list', '--porcelain'])).match(/^worktree /gm).length, 1);
 });

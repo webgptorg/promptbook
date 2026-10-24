@@ -6,7 +6,7 @@ import { formatAgentReference } from '../book/references.js';
 import { nameKey } from '../tasks/model.js';
 import { readTaskQueue } from '../tasks/sources.js';
 import { AgentCatalog } from './agents.js';
-import { CORE_AGENTS, DEFAULT_ROLES, FIRST_TASK_NAMES, LEGACY_STARTER_TASK_ID, RUNTIME_IGNORE_LINE, TASK_TEMPLATES, projectInstructions } from './defaults.js';
+import { CORE_AGENTS, DEFAULT_ROLES, ROUTER_NAME, FIRST_TASK_NAMES, LEGACY_STARTER_TASK_ID, RUNTIME_IGNORE_LINE, TASK_TEMPLATES, projectInstructions } from './defaults.js';
 import { git, gitOrThrow, inspectGit } from './git.js';
 
 /**
@@ -128,28 +128,25 @@ export async function traceIgnoreRulesMatch(root: string, policy: TraceGitPolicy
 /**
  * Creates missing core agents individually (existing customized files are never overwritten).
  *
- * A missing Chatter is created last, with TEAM access to every other agent present at that moment (core roles and
- * specialists, never itself); an existing Chatter and its customized team are left alone.
+ * A missing Router receives the concrete bootstrap MODEL from `routerModel` (the first suitable selected harness and
+ * its plugin defaults). A missing Chatter is created last, with TEAM access to every other agent present at that
+ * moment (core roles and specialists, never itself); an existing Chatter and its customized team are left alone.
  *
  * @private project setup
  */
-export async function ensureCoreAgents(root: string, agentsDirectory: string): Promise<string[]> {
+export async function ensureCoreAgents(root: string, agentsDirectory: string, options: { readonly routerModel?: () => Promise<string | undefined> } = {}): Promise<string[]> {
     const created: string[] = [];
     for (const agent of CORE_AGENTS) {
-        // A role is present when any Book already uses its name (even one needing conversion): never create a twin.
+        // A role is present when any Book already uses its name or a former name (even one needing conversion).
         const catalog = await AgentCatalog.load(root, agentsDirectory);
-        if (catalog.index.winnerOf(nameKey(agent.name))) continue;
-        const content =
-            typeof agent.content === 'string'
-                ? agent.content
-                : agent.content(
-                      catalog.index
-                          .winners('agent')
-                          .filter((entry) => entry.kind === 'agent' && entry.tier !== 4 && entry.normalized !== nameKey(agent.name))
-                          .map((entry) => formatAgentReference(entry.name)),
-                  );
+        if ([agent.name, ...(agent.aliases ?? [])].some((name) => catalog.index.winnerOf(nameKey(name)))) continue;
+        const teammates = catalog.index
+            .winners('agent')
+            .filter((entry) => entry.kind === 'agent' && entry.tier !== 4 && entry.normalized !== nameKey(agent.name))
+            .map((entry) => formatAgentReference(entry.name));
+        const routerModel = agent.name === ROUTER_NAME ? await options.routerModel?.() : undefined;
         const path = join(root, agentsDirectory, agent.file);
-        if (await createIfMissing(path, content)) created.push(path);
+        if (await createIfMissing(path, agent.content({ teammates, routerModel }))) created.push(path);
     }
     return created;
 }

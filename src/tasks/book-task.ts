@@ -2,8 +2,8 @@ import { parseInterval } from '../common/duration.js';
 import { sha256 } from '../common/fs.js';
 import { formatIsoWithOffset, parseDateTime } from '../common/time.js';
 import { appendCommitment, setControlCommitment } from '../book/edit.js';
+import { formatModelRow, modelOfDocument, parseModelRow, type ModelConstraint } from '../book/model.js';
 import { commitmentsOf, parseBook, singleValue, type BookDocument } from '../book/parse.js';
-import { THINKING_LEVELS, type ThinkingLevel } from '../project/config.js';
 import { nameKey, nameReference, type DeclaredStatus, type Task, type TaskDiagnostic } from './model.js';
 import { parsePriority } from './priority.js';
 
@@ -18,6 +18,7 @@ const TASK_CONTROLS = new Set([
     'TASK HARNESS',
     'TASK MODEL',
     'TASK THINKING LEVEL',
+    'MODEL',
     'TASK PRIORITY',
     'TASK AFTER',
     'TASK DUE DATE',
@@ -110,10 +111,7 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
     const legacyId = commitmentsOf(document, 'TASK ID')[0]?.value || undefined;
     const key = nameKey(document.name);
     if (!key) diagnostics.push({ line: document.headerLine + 1, message: 'The task name is empty after normalization.', severity: 'error' });
-    const thinking = single('TASK THINKING LEVEL');
-    if (thinking !== undefined && !THINKING_LEVELS.includes(thinking as ThinkingLevel)) {
-        diagnostics.push({ line: 0, message: `TASK THINKING LEVEL "${thinking}" is not one of ${THINKING_LEVELS.join(', ')}.`, severity: 'error' });
-    }
+    const model = taskModel(document, single, diagnostics);
     const priorityRaw = single('TASK PRIORITY');
     const priority = parsePriority(priorityRaw);
     if (priority.error) diagnostics.push({ line: 0, message: priority.error, severity: 'error' });
@@ -174,9 +172,8 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
         parent: single('TASK PARENT'),
         routing: {
             agent: single('TASK AGENT'),
-            harness: single('TASK HARNESS'),
-            model: single('TASK MODEL'),
-            thinkingLevel: THINKING_LEVELS.includes(thinking as ThinkingLevel) ? (thinking as ThinkingLevel) : undefined,
+            model: model.constraint,
+            ...(model.legacy ? { legacyControls: true } : {}),
             runners: commitmentsOf(document, 'TASK RUNNER').flatMap((commitment) => runnerSelectors(commitment.value)),
         },
         origin: single('TASK ORIGIN'),
@@ -185,6 +182,55 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
         diagnostics,
         text,
     };
+}
+
+/**
+ * Former execution controls consolidated into the shared MODEL.
+ *
+ * @private task Books
+ */
+export const LEGACY_EXECUTION_CONTROLS = ['TASK HARNESS', 'TASK MODEL', 'TASK THINKING LEVEL'] as const;
+
+/**
+ * The MODEL row with the same conjunctive meaning as former `TASK HARNESS`/`TASK MODEL`/`TASK THINKING LEVEL`
+ * values, or the reason it cannot be represented (a harness tool-instance name binds an account, which MODEL never
+ * does).
+ *
+ * @private task Books
+ */
+export function legacyControlsRow(values: { readonly harness?: string; readonly model?: string; readonly thinking?: string }): { row?: string; problem?: string } {
+    const parts: string[] = [];
+    if (values.harness !== undefined) parts.push(`harness=${values.harness}`);
+    if (values.model !== undefined) parts.push(`model=${values.model}`);
+    if (values.thinking !== undefined) parts.push(`thinking=${values.thinking}`);
+    const parsed = parseModelRow(parts.join(' '));
+    if (!parsed.row) {
+        const harness = parsed.problems.find((problem) => problem.startsWith('harness='));
+        return { problem: harness ? `TASK HARNESS ${values.harness} is not a harness variant (a tool-instance name would bind one account, which MODEL never does)` : parsed.problems.join('; ') };
+    }
+    return { row: parts.length ? formatModelRow(parsed.row) : undefined };
+}
+
+/**
+ * The task's single MODEL, honoring former separate execution controls (diagnosed, never combined with MODEL).
+ */
+function taskModel(document: BookDocument, single: (keyword: string) => string | undefined, diagnostics: TaskDiagnostic[]): { constraint: ModelConstraint; legacy?: boolean } {
+    const parsed = modelOfDocument(document);
+    for (const diagnostic of parsed.diagnostics) diagnostics.push({ line: diagnostic.line, message: diagnostic.message, severity: diagnostic.severity });
+    const legacy = LEGACY_EXECUTION_CONTROLS.filter((keyword) => commitmentsOf(document, keyword).length);
+    if (!legacy.length) return { constraint: parsed.constraint };
+    const line = commitmentsOf(document, legacy[0]!)[0]!.startLine + 1;
+    if (parsed.commitment) {
+        diagnostics.push({ line, message: `${legacy.join(', ')} compete with MODEL: one task has one set of execution requirements (move them into MODEL).`, severity: 'error' });
+        return { constraint: parsed.constraint };
+    }
+    const row = legacyControlsRow({ harness: single('TASK HARNESS'), model: single('TASK MODEL'), thinking: single('TASK THINKING LEVEL') });
+    if (!row.row) {
+        diagnostics.push({ line, message: `${row.problem}.`, severity: 'error' });
+        return { constraint: parsed.constraint };
+    }
+    diagnostics.push({ line, message: `${legacy.join(', ')} are former controls; \`MODEL ${row.row}\` replaces them (the project migration converts them).`, severity: 'warning' });
+    return { constraint: { rows: [parseModelRow(row.row).row!], explicit: true }, legacy: true };
 }
 
 /**

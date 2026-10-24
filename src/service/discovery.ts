@@ -43,7 +43,8 @@ export type DiscoveryEntry = {
     /** PID of the daemon supervisor, when any. */
     readonly supervisorPid?: number;
     /** Placement of the engine. */
-    readonly mode: 'daemon' | 'foreground' | 'run';
+    /** Placement (`run` is reported only by older engines that still had a finite run). */
+    readonly mode: 'daemon' | 'foreground' | 'maintenance' | 'run';
     /** Canonical project directory the engine owns. */
     readonly projectRoot: string;
     /** Display name of the project. */

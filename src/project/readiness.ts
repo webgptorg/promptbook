@@ -62,8 +62,9 @@ export async function assessReadiness(project: Project, settings: EffectiveSetti
         target.push({ area: 'configuration', message: `${diagnostic.location}: ${diagnostic.message}`, action: diagnostic.location.includes('promptbookVersion') ? 'Update ptbk, then rerun.' : 'Fix ptbk.json (Fixer repairs what it can).' });
     }
     const agentsDirectory = setting<string>(settings, 'paths.agents');
-    for (const core of ['adam', 'manager', 'teacher']) {
-        if (!(await pathExists(join(project.root, agentsDirectory, '.core', `${core}.book`)))) {
+    // Router may still be the former Manager in a project the migration has not converted yet.
+    for (const core of ['adam', 'router', 'teacher']) {
+        if (!(await pathExists(join(project.root, agentsDirectory, '.core', `${core}.book`))) && !(core === 'router' && (await pathExists(join(project.root, agentsDirectory, '.core', 'manager.book'))))) {
             problems.push({ area: 'agents', message: `The core agent ${agentsDirectory}/.core/${core}.book is missing.`, action: 'Run `ptbk init` to restore missing core agents.' });
         }
     }

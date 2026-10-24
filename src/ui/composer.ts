@@ -64,14 +64,14 @@ function isToken(grapheme: string): boolean {
 }
 
 /**
- * Label of an item token, e.g. `[Pasted text #1, 120 lines]`, `[Image #2]` or `[File: brief.md]`.
+ * Label of an item token, e.g. `[Pasted text #1, 12,400 characters, 120 lines]`, `[Image #2]` or `[File: brief.md]`.
  *
  * @private text composer
  */
 export function itemLabel(item: ComposerItem): string {
     if (item.kind === 'paste') {
         const lines = item.text.split('\n').length;
-        return `[Pasted text #${item.number}, ${lines > 1 ? `${lines} lines` : `${item.text.length} chars`}]`;
+        return `[Pasted text #${item.number}, ${item.text.length.toLocaleString('en-US')} characters${lines > 1 ? `, ${lines.toLocaleString('en-US')} lines` : ''}]`;
     }
     return item.kind === 'image' ? `[Image #${item.number}]` : `[File: ${item.name}]`;
 }
@@ -90,9 +90,13 @@ export class TextEditor {
     /** Long pastes become compact tokens (multiline fields); single-line fields insert them verbatim. */
     public tokenizePastes = true;
 
-    public constructor(initial: string | readonly ComposedSegment[] = '') {
+    /** Keeps tabs of inserted text literally (full-source editing preserves the source exactly). */
+    private readonly literal: boolean;
+
+    public constructor(initial: string | readonly ComposedSegment[] = '', options: { readonly literal?: boolean } = {}) {
         this.characters = [];
         this.cursor = 0;
+        this.literal = options.literal === true;
         if (typeof initial === 'string') this.insert(initial);
         else
             for (const segment of initial) {
@@ -150,12 +154,8 @@ export class TextEditor {
 
     /** Inserts typed text at the cursor (token code points are never accepted from input). */
     private insert(text: string): void {
-        const inserted = graphemes(
-            text
-                .replace(/\r\n?/g, '\n')
-                .replace(/\t/g, '    ')
-                .replace(/[\u{F0000}-\u{FFFFD}]/gu, ''),
-        );
+        const normalized = text.replace(/\r\n?/g, '\n').replace(/[\u{F0000}-\u{FFFFD}]/gu, '');
+        const inserted = graphemes(this.literal ? normalized : normalized.replace(/\t/g, '    '));
         this.characters.splice(this.cursor, 0, ...inserted);
         this.cursor += inserted.length;
     }

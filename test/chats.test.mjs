@@ -36,9 +36,12 @@ test('ptbk chat without a service: agent chosen first, every message its own com
     assert.deepEqual(stored.chat.messages.map((message) => message.sender), ['@User', '@Developer'], 'the actual author of every message is kept');
     assert.equal((await readFile(join(project, stored.file), 'utf8')).split('\n')[0], `CHAT ${stored.chat.name}`, 'the Book opens with its CHAT declaration');
     const history = await subjects(project);
-    assert.equal(history.length, before + 2, 'the user message and the agent reply are one commit each');
-    assert.deepEqual(history.slice(0, 2), [`PTBK: Chat - ${stored.chat.name}`, `PTBK: Chat - ${stored.chat.name}`]);
+    assert.equal(history.length, before + 3, 'the user message, the resolved MODEL and the agent reply are one commit each');
+    assert.deepEqual(history.slice(0, 3), [`PTBK: Chat - ${stored.chat.name}`, `PTBK: Chat routing - ${stored.chat.name}`, `PTBK: Chat - ${stored.chat.name}`], 'newest first: reply, MODEL, first User message');
     assert.ok((await messages(project))[0].includes(`Chat-Name: ${stored.chat.name}`));
+    assert.match((await messages(project))[1], /^Chat-Model: harness=OPENAI_CODEX model=fake-model-1 thinking=medium runtime=official$/m, 'Router chose the conversation’s execution once');
+    const source = await readFile(join(project, stored.file), 'utf8');
+    assert.ok(source.indexOf('CHAT MESSAGE @User') < source.indexOf('MODEL harness=') && source.indexOf('MODEL harness=') < source.indexOf('CHAT MESSAGE @Developer'), `chronology: first User message, MODEL, first agent reply\n${source}`);
     assert.equal((await readdir(join(project, 'tasks'))).filter((name) => name.endsWith('.book')).length, 1, 'opening a chat never creates a task');
 
     const second = await ptbk(['chat', '--agent', '@Developer', 'How is the project going?', '--raw'], { cwd: project, env });
@@ -50,7 +53,7 @@ test('ptbk chat without a service: agent chosen first, every message its own com
     const name = stored.chat.name;
     const asked = await ptbk(['chat', '--open', name, 'Please plan it. CREATE_TASK', '--raw'], { cwd: project, env });
     assert.equal(asked.code, 0, asked.output);
-    const taskFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('task-from-chat'));
+    const taskFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('task-from-chat') && !file.includes('-assign-'));
     assert.ok(taskFile, 'the agent created an ordinary task through create_task');
     const task = await readFile(join(project, 'tasks', taskFile), 'utf8');
     const taskName = task.split('\n')[0].replace(/^TASK /, '');
@@ -66,7 +69,7 @@ test('ptbk chat without a service: agent chosen first, every message its own com
 
     const corrected = await ptbk(['chat', '--open', name, 'CORRECTION: answers here should be short.', '--raw'], { cwd: project, env });
     assert.equal(corrected.code, 0, corrected.output);
-    const learningFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('learn-chat'));
+    const learningFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('learn-chat') && !file.includes('-assign-'));
     assert.ok(learningFile, 'a correction schedules an ordinary Teacher task');
     const learning = await readFile(join(project, 'tasks', learningFile), 'utf8');
     assert.match(learning, /^TASK AGENT @Teacher$/m);
@@ -105,7 +108,7 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
     const started = await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
     const healthCommit = await waitFor(async () => (await subjects(project)).find((subject) => subject.startsWith('PTBK: Add task - Project health check')), { timeoutMs: 90_000, message: 'Fixer health check task' });
-    const healthFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('project-health-check') && !file.includes('learn'));
+    const healthFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('project-health-check') && !file.includes('learn') && !file.includes('assign'));
     const health = await readFile(join(project, 'tasks', healthFile), 'utf8');
     assert.match(health, /^TASK AGENT @Fixer$/m);
     assert.match(health, /agents\/twins\/two\.book/, 'the finding names the shadowed source');

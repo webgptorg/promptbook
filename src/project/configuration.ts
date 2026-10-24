@@ -3,15 +3,26 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, readJsonIfExists, readTextIfExists, writeFileAtomic, writeJsonAtomic } from '../common/fs.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { rm } from 'node:fs/promises';
-import { canonicalizeConfig, configText, parseConfigText } from './config.js';
+import { canonicalizeConfig, configText, getPath, parseConfigText } from './config.js';
 import { commitPaths, inspectGit, isPathDirty, readAtHead } from './git.js';
-import { applyConfigurationMigration, planConfigurationMigration } from './migrations.js';
+import { BOOK_MIGRATIONS, BookWorkspace, prepareMigrationPass, preparedDirectory, preparedPath, type PreparedFile } from './book-migrations.js';
+import { planConfigurationMigration } from './migrations.js';
 import type { Project } from './workspace.js';
 
 /**
  * Recovery record of a configuration pass in progress (crash between writing and committing).
  */
-type PendingPass = { readonly version: 1; readonly kind: 'migration' | 'normalization'; readonly from?: string; readonly to?: string; readonly original: string; readonly prepared: string; readonly startedAt: string };
+type PendingPass = {
+    readonly version: 1;
+    readonly kind: 'migration' | 'normalization';
+    readonly from?: string;
+    readonly to?: string;
+    readonly original: string;
+    readonly prepared: string;
+    /** Book sources changed by the same pass (restored together with ptbk.json when its commit did not land). */
+    readonly files?: readonly PreparedFile[];
+    readonly startedAt: string;
+};
 
 /**
  * Outcome of configuration maintenance.
@@ -43,26 +54,61 @@ async function recoverInterruptedPass(project: Project, repositoryRoot: string):
     if (!pending) return;
     const committed = await readAtHead(repositoryRoot, project.configPath);
     const working = await readTextIfExists(project.configPath);
-    if (committed !== pending.prepared && working === pending.prepared) await writeFileAtomic(project.configPath, pending.original);
+    if (committed !== pending.prepared && working === pending.prepared) {
+        await writeFileAtomic(project.configPath, pending.original);
+        await restoreFiles(project, pending.files ?? []);
+    }
     await rm(pendingPath(project), { force: true });
+}
+
+/**
+ * Writes the prepared content of every changed Book (creating, replacing and removing files).
+ */
+async function writePreparedFiles(project: Project, files: readonly PreparedFile[]): Promise<void> {
+    for (const file of files) {
+        if (file.prepared === undefined) await rm(preparedPath(project.root, file), { force: true });
+        else {
+            await ensureDirectory(preparedDirectory(project.root, file));
+            await writeFileAtomic(preparedPath(project.root, file), file.prepared);
+        }
+    }
+}
+
+/**
+ * Restores the original content of changed Books (a failed pass never leaves a partial migration visible).
+ */
+async function restoreFiles(project: Project, files: readonly PreparedFile[]): Promise<void> {
+    for (const file of files) {
+        const path = preparedPath(project.root, file);
+        if ((await readTextIfExists(path)) !== file.prepared) continue;
+        if (file.original === undefined) await rm(path, { force: true });
+        else await writeFileAtomic(path, file.original);
+    }
 }
 
 /**
  * Writes and commits one prepared configuration pass (its own commit, nothing else included).
  */
-async function persistPass(project: Project, repositoryRoot: string, input: { kind: PendingPass['kind']; from?: string; to?: string; original: string; prepared: string; subject: string; body: string; trailers: Readonly<Record<string, string>>; env: NodeJS.ProcessEnv; gitLock: <T>(action: () => Promise<T>) => Promise<T> }): Promise<string | undefined> {
+async function persistPass(
+    project: Project,
+    repositoryRoot: string,
+    input: { kind: PendingPass['kind']; from?: string; to?: string; original: string; prepared: string; files?: readonly PreparedFile[]; subject: string; body: string; trailers: Readonly<Record<string, string>>; env: NodeJS.ProcessEnv; gitLock: <T>(action: () => Promise<T>) => Promise<T> },
+): Promise<string | undefined> {
+    const files = input.files ?? [];
     await ensureDirectory(project.runtime.state);
-    await writeJsonAtomic(pendingPath(project), { version: 1, kind: input.kind, from: input.from, to: input.to, original: input.original, prepared: input.prepared, startedAt: new Date().toISOString() } satisfies PendingPass);
+    await writeJsonAtomic(pendingPath(project), { version: 1, kind: input.kind, from: input.from, to: input.to, original: input.original, prepared: input.prepared, files, startedAt: new Date().toISOString() } satisfies PendingPass);
     try {
         const outcome = await input.gitLock(async () => {
             await writeFileAtomic(project.configPath, input.prepared);
-            return await commitPaths({ projectRoot: project.root, repositoryRoot, paths: [project.configPath], subject: input.subject, body: input.body, trailers: input.trailers, temporaryDirectory: project.runtime.temporary, env: input.env });
+            await writePreparedFiles(project, files);
+            return await commitPaths({ projectRoot: project.root, repositoryRoot, paths: [project.configPath, ...files.map((file) => preparedPath(project.root, file))], subject: input.subject, body: input.body, trailers: input.trailers, temporaryDirectory: project.runtime.temporary, env: input.env });
         });
         await rm(pendingPath(project), { force: true });
         return outcome.committed ? outcome.sha : undefined;
     } catch (error) {
-        // Never leave a partially persisted pass: restore the original and keep the work pending for a retry.
+        // Never leave a partially persisted pass: restore the originals and keep the work pending for a retry.
         await writeFileAtomic(project.configPath, input.original).catch(() => undefined);
+        await restoreFiles(project, files).catch(() => undefined);
         await rm(pendingPath(project), { force: true });
         throw new PtbkError(`The configuration ${input.kind} could not be committed.`, {
             kind: 'persistence',
@@ -133,11 +179,26 @@ export async function maintainProjectConfiguration(
                 next: ['Commit or discard the ptbk.json edits; ptbk then migrates automatically.'],
             });
         }
-        const migrated = applyConfigurationMigration(file.raw, plan);
+        // One coordinator for configuration and Books: every step is prepared in memory, then committed once.
+        const locations = { agents: String(getPath(file.raw, 'paths.agents') ?? 'agents'), tasks: String(getPath(file.raw, 'paths.tasks') ?? 'tasks') };
+        const workspace = plan.steps.some((step) => BOOK_MIGRATIONS[step.target]) ? await BookWorkspace.load(project.root, locations) : BookWorkspace.empty(project.root);
+        const migrated = prepareMigrationPass(file.raw, plan, workspace);
         const canonical = canonicalizeConfig(migrated.raw);
         const prepared = configText(canonical.raw);
+        // Active source revisions are protected: a Book with uncommitted edits is never rewritten by the pass.
+        const dirty: string[] = [];
+        for (const changed of migrated.files) if (await isPathDirty(gitInfo.root, preparedPath(project.root, changed))) dirty.push(changed.path);
+        if (dirty.length) {
+            throw new PtbkError(`The project migration ${plan.from} → ${plan.to} would rewrite Books with uncommitted edits (${dirty.slice(0, 5).join(', ')}).`, {
+                kind: 'conflict',
+                project: project.root,
+                reason: 'The migration commit must contain only the migration, never someone else’s uncommitted edits.',
+                effect: 'Nothing was changed.',
+                next: ['Commit or discard those edits; ptbk then migrates automatically.'],
+            });
+        }
         const lines = [
-            `Migrates ptbk.json from ${plan.from}${plan.fromBaseline ? ' (no promptbookVersion: the fixed pre-versioning baseline)' : ''} to ptbk ${plan.to}.`,
+            `Migrates the project (ptbk.json${migrated.files.length ? ` and ${migrated.files.length} Book file(s)` : ''}) from ${plan.from}${plan.fromBaseline ? ' (no promptbookVersion: the fixed pre-versioning baseline)' : ''} to ptbk ${plan.to}.`,
             '',
             ...(plan.steps.length ? plan.steps.map((step) => `Applied ${step.target}: ${step.title}`) : ['No registered migration steps apply; only promptbookVersion advances.']),
             ...migrated.notes.flatMap((note) => note.notes.map((text) => `- ${text}`)),
@@ -150,7 +211,8 @@ export async function maintainProjectConfiguration(
             to: plan.to,
             original,
             prepared,
-            subject: `Migrate configuration from ${plan.from} to ${plan.to}`,
+            files: migrated.files,
+            subject: `Migrate ${migrated.files.length ? 'project' : 'configuration'} from ${plan.from} to ${plan.to}`,
             body: lines.join('\n'),
             trailers: { 'PTBK-Configuration-Migration': `${plan.from} -> ${plan.to}` },
             env,

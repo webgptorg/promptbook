@@ -1,5 +1,5 @@
-import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readFile, stat, writeFile } from 'node:fs/promises';
+import { basename, dirname, join, relative, sep } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, listDirectory, readJsonIfExists, toProjectRelative, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
@@ -9,7 +9,10 @@ import { CHATS_DIRECTORY } from '../project/books.js';
 import type { Project } from '../project/workspace.js';
 import { newTaskPath } from '../tasks/authoring.js';
 import { generatedName } from '../tasks/identity.js';
-import { appendChatMessage, chatAgent, isHumanFacing, parseChatBook, renderChatBook, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
+import { formatModelRow, type ModelRow } from '../book/model.js';
+import { MAX_ATTACHMENT_BYTES, materializeAttachments } from '../ui/attachments.js';
+import type { ComposedSegment } from '../ui/composer.js';
+import { appendChatMessage, appendChatModel, chatAgent, isHumanFacing, parseChatBook, renderChatBook, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
 
 /**
  * How chat operations are versioned: each human-facing operation is its own commit unless explicitly uncommitted.
@@ -58,6 +61,27 @@ export type ChatSummary = {
  * @private chats
  */
 export type ChatWrite = StoredChat & { readonly commit?: string };
+
+/**
+ * Folder (inside `chats/`, never scanned for chat Books) holding the attachments of chat messages.
+ *
+ * @private chats
+ */
+export const CHAT_ASSETS_DIRECTORY = '_assets';
+
+/**
+ * Validates attachment segments supplied by a local client (existing readable files within the size limit).
+ *
+ * @private chats
+ */
+export async function validateAttachments(segments: readonly ComposedSegment[]): Promise<void> {
+    for (const segment of segments) {
+        if (segment.type !== 'attachment') continue;
+        const stats = await stat(segment.path).catch(() => undefined);
+        if (!stats?.isFile()) throw new PtbkError(`The attachment ${segment.name} is not a readable file.`, { kind: 'usage', effect: 'Nothing was saved.' });
+        if (stats.size > MAX_ATTACHMENT_BYTES) throw new PtbkError(`The attachment ${segment.name} is larger than ${MAX_ATTACHMENT_BYTES / 1024 / 1024} MB.`, { kind: 'usage', effect: 'Nothing was saved.' });
+    }
+}
 
 /**
  * Durable chat Books in root-level `chats/`, with per-message persistence and local read markers.
@@ -111,8 +135,21 @@ export class ChatStore {
     }
 
     /**
+     * The message text with its attachments copied into the project (`chats/_assets/<chat>/<message>/`) and linked
+     * relative to the chat Book: the same readable serialization as every rich input. Returns the copied files.
+     */
+    private async materialize(chatPath: string, messageNumber: number, segments: readonly ComposedSegment[] | undefined, text: string): Promise<{ text: string; files: string[] }> {
+        if (!segments?.some((segment) => segment.type === 'attachment')) return { text, files: [] };
+        await validateAttachments(segments);
+        const directory = join(this.directory, CHAT_ASSETS_DIRECTORY, basename(chatPath).replace(/\.book$/i, ''), String(messageNumber));
+        const link = (name: string): string => relative(dirname(chatPath), join(directory, name)).split(sep).join('/');
+        return await materializeAttachments(segments, { directory, link });
+    }
+
+    /**
      * Creates a chat named after its readable title plus creation date/time (distinct under normalization from every
-     * Book); a human-facing chat is committed. The final name is allocated once, under the store's lock.
+     * Book); a human-facing chat is committed. The final name is allocated once, under the store's lock. Attachments of
+     * the first message (`segments`) are copied into the project and committed with it.
      */
     public async create(options: {
         readonly name: string;
@@ -129,6 +166,8 @@ export class ChatStore {
          * an owning task); task-scoped consultations instead join their task's result commit.
          */
         readonly commit?: boolean;
+        /** The first message's complete composed payload (attachments become project assets). */
+        readonly segments?: readonly ComposedSegment[];
     }): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
             const fresh = (await this.options.takenNames?.().catch(() => undefined)) ?? [];
@@ -137,10 +176,13 @@ export class ChatStore {
             const name = generatedName(title, { taken, timeZone: this.options.timeZone });
             await ensureDirectory(this.directory);
             const path = await newTaskPath(this.directory, title, Date.now(), this.options.timeZone);
-            const source = renderChatBook({ name, members: options.members, status: options.status, links: options.links, messages: (options.messages ?? []).map((message) => ({ ...message, at: message.at ?? this.now() })) });
+            const messages = [...(options.messages ?? [])];
+            const assets = messages[0] ? await this.materialize(path, 1, options.segments, messages[0].text) : { text: '', files: [] };
+            if (messages[0]) messages[0] = { ...messages[0], text: assets.text };
+            const source = renderChatBook({ name, members: options.members, status: options.status, links: options.links, messages: messages.map((message) => ({ ...message, at: message.at ?? this.now() })) });
             await writeFile(path, source, { flag: 'wx' });
             const chat = parseChatBook(source);
-            const commit = isHumanFacing(chat) || options.commit ? await this.persist(path, name, options.trailers) : undefined;
+            const commit = isHumanFacing(chat) || options.commit ? await this.persist(path, name, options.trailers, undefined, assets.files) : undefined;
             return { path, relativePath: toProjectRelative(this.project.root, path), chat, commit };
         });
     }
@@ -153,7 +195,7 @@ export class ChatStore {
     public async append(
         name: string,
         message: Pick<ChatMessage, 'sender' | 'text' | 'choices'>,
-        options: { readonly status?: ChatStatus; readonly expectedMessages?: number; readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>> } = {},
+        options: { readonly status?: ChatStatus; readonly expectedMessages?: number; readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>>; readonly segments?: readonly ComposedSegment[] } = {},
     ): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
             const stored = await this.find(name);
@@ -165,12 +207,29 @@ export class ChatStore {
                     next: ['Reload the chat and reply again if still needed.'],
                 });
             }
-            if (!message.text.trim()) throw new PtbkError('A chat message cannot be empty.', { kind: 'usage' });
+            if (!message.text.trim() && !options.segments?.some((segment) => segment.type === 'attachment')) throw new PtbkError('A chat message cannot be empty.', { kind: 'usage' });
+            const assets = await this.materialize(stored.path, stored.chat.messages.length + 1, options.segments, message.text);
             const source = await readFile(stored.path, 'utf8');
-            const updated = appendChatMessage(source, { ...message, at: this.now() }, options.status);
+            const updated = appendChatMessage(source, { ...message, text: assets.text, at: this.now() }, options.status);
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
-            const commit = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers) : undefined;
+            const commit = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers, undefined, assets.files) : undefined;
+            return { ...stored, chat, commit };
+        });
+    }
+
+    /**
+     * Records the conversation's resolved MODEL after the messages so far, as its own scoped commit (between the
+     * committed User message and the later agent reply).
+     */
+    public async recordModel(name: string, row: ModelRow, options: { readonly by?: string } = {}): Promise<ChatWrite> {
+        return await this.mutex.run(async () => {
+            const stored = await this.find(name);
+            if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found' });
+            const updated = appendChatModel(await readFile(stored.path, 'utf8'), { rows: [row], explicit: true });
+            await writeFile(stored.path, updated);
+            const chat = parseChatBook(updated);
+            const commit = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, { 'Chat-Model': formatModelRow(row), ...(options.by ? { 'Routed-By': options.by } : {}) }, `Chat routing - ${chat.name}`) : undefined;
             return { ...stored, chat, commit };
         });
     }
@@ -190,15 +249,15 @@ export class ChatStore {
     }
 
     /** Commits (or records as uncommitted) one chat operation. */
-    private async persist(path: string, name: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}): Promise<string | undefined> {
+    private async persist(path: string, name: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}, subject = `Chat - ${name}`, assets: readonly string[] = []): Promise<string | undefined> {
         const persistence = this.options.persistence;
         if (!persistence) return undefined;
         if (!persistence.commit) {
-            await persistence.uncommitted?.(path);
+            for (const file of [path, ...assets]) await persistence.uncommitted?.(file);
             return undefined;
         }
         try {
-            return await persistence.commit([path], `Chat - ${name}`, { 'Chat-Name': name, ...trailers });
+            return await persistence.commit([path, ...assets], subject, { 'Chat-Name': name, ...trailers });
         } catch (error) {
             throw new PtbkError(`The chat message was written but could not be committed.`, {
                 kind: 'persistence',

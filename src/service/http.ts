@@ -283,6 +283,17 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             sendJson(response, 200, { agents: await applyChatAction(agenda, 'chat-agents', {}, 'api') });
             return;
         }
+        if (url.pathname === '/api/tasks' && method === 'GET') {
+            // The complete inventory in every state; clients sort and filter it without changing scheduling.
+            sendJson(response, 200, { tasks: await agenda.taskInventory() });
+            return;
+        }
+        if (url.pathname === '/api/books' && method === 'GET') {
+            const reference = url.searchParams.get('ref') ?? undefined;
+            const path = url.searchParams.get('path') ?? undefined;
+            sendJson(response, 200, await agenda.bookSource({ reference, path }));
+            return;
+        }
         // Chats are selected by their normalized name (URL-encoded), never by a generated ID.
         const chatMatch = /^\/api\/chats(?:\/([^/]+)(?:\/(messages|read))?)?$/.exec(url.pathname);
         const chatName = chatMatch?.[1] ? decodeURIComponent(chatMatch[1]) : undefined;
@@ -313,6 +324,11 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             else if (chatMatch[2] === 'messages') sendJson(response, 200, await applyChatAction(agenda, 'chat-send', { name: chatName, text: body.text, expected: body.expected }, via));
             else if (chatMatch[2] === 'read') sendJson(response, 200, await applyChatAction(agenda, 'chat-read', { name: chatName }, via));
             else sendJson(response, 405, { error: 'Method not allowed.' });
+            return;
+        }
+        if (url.pathname === '/api/books') {
+            // Text only: a remote client never makes the engine copy host files into the project.
+            sendJson(response, 200, await agenda.bookSave({ path: String(body.path ?? ''), text: String(body.text ?? ''), revision: String(body.revision ?? '') }));
             return;
         }
         if (url.pathname === '/api/settings') {

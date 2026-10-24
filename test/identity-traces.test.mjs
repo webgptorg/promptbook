@@ -9,7 +9,22 @@ import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../dist/project/s
 import { distinctName, nameKeyPath, traceDirectoryConflicts, traceDirectoryOf } from '../dist/tasks/identity.js';
 import { ChatStore } from '../dist/chats/store.js';
 import { taskChats } from '../dist/chats/task-chats.js';
-import { findGenerated, generated, git, initializedProject, messages, ptbk, subjects, temporaryDirectory } from './helpers.mjs';
+import { committed, drive, findGenerated, generated, git, initializedProject, messages, ptbk, subjects, temporaryDirectory } from './helpers.mjs';
+
+/**
+ * The full message of the newest commit whose subject matches a generated name.
+ */
+async function commitMessage(project, title, prefix = 'PTBK: ') {
+    return (await messages(project)).find((message) => generated(title, prefix).test(message.split('\n')[0]));
+}
+
+/**
+ * Files changed by the newest commit whose subject matches a generated name.
+ */
+async function changedFilesOf(project, title, prefix = 'PTBK: ') {
+    const sha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t')).find(([, subject]) => generated(title, prefix).test(subject))?.[0];
+    return sha ? changedFiles(project, sha) : [];
+}
 
 /**
  * Fixture check accepting every output.
@@ -58,7 +73,7 @@ test('composer: long pastes become compact tokens with the full payload; expand,
     editor.attach({ kind: 'image', path: '/tmp/a.png', name: 'a.png', bytes: 10 });
     editor.handle({ type: 'text', text: ' outro' });
     const layout = editor.layout(80, 10);
-    assert.ok(layout.lines.join('\n').includes('[Pasted text #1, 120 lines]'), layout.lines.join('\n'));
+    assert.ok(layout.lines.join('\n').includes(`[Pasted text #1, ${block.length.toLocaleString('en-US')} characters, 120 lines]`), layout.lines.join('\n'));
     assert.ok(layout.lines.join('\n').includes('[Image #2]'));
     const segments = editor.segments();
     assert.equal(segments.map((segment) => (segment.type === 'text' ? segment.text : '')).join(''), `Intro ${block} outro`, 'the token refers to the complete payload, never a summary');
@@ -128,17 +143,17 @@ test('same-name tasks: the first by resolver order runs; the copy is shadowed, r
     const listed = JSON.parse((await ptbk(['list', '--json'], { cwd: project, env })).stdout);
     const same = listed.tasks.filter((task) => task.title === 'Same title');
     assert.equal(same.length, 2);
-    assert.deepEqual(same.map((task) => task.readiness).sort(), ['blocked', 'ready'], JSON.stringify(same));
+    assert.deepEqual(same.map((task) => task.readiness).sort(), ['blocked', 'needs-assignment'], JSON.stringify(same));
     assert.match(same.find((task) => task.readiness === 'blocked').reason, /tasks\/a\.book/);
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'list never writes');
-    const run = await ptbk(['run', '--raw', '--limit', '2'], { cwd: project, env });
+    const run = await drive(project, env, async () => (await subjects(project)).includes('PTBK: Same title'), { message: 'the winning copy' });
     assert.equal(run.code, 0, run.output);
     const history = await subjects(project);
     assert.equal(history.filter((subject) => subject === 'PTBK: Same title').length, 1, 'only the winning copy is addressable');
     const [message] = (await messages(project)).filter((item) => item.startsWith('PTBK: Same title'));
     assert.match(message, /^Task-Name: Same title$/m);
     assert.doesNotMatch(message, /Task-ID/);
-    const winner = same.find((task) => task.readiness === 'ready').source;
+    const winner = same.find((task) => task.readiness === 'needs-assignment').source;
     await readFile(join(project, traceDirectoryOf(winner), 'harness.log'), 'utf8');
     assert.equal(await readFile(join(project, 'tasks', 'b.book'), 'utf8'), 'TASK Same title\nGOAL Do it.\nTASK AGENT @Developer\n', 'the shadowed copy is not renamed or merged');
     const lint = await ptbk(['lint', '--json'], { cwd: project, env });
@@ -148,17 +163,17 @@ test('same-name tasks: the first by resolver order runs; the copy is shadowed, r
 test('follow-ups written by an agent: a copy under an existing name is refused; distinct dated names join the result commit', async (t) => {
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Plan more CREATE_FOLLOW_UP', '--agent', 'Developer', '--priority', '5', '--raw'], { cwd: project, env });
-    const run = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
+    const run = await drive(project, env, async () => committed(project, 'Plan more CREATE_FOLLOW_UP'), { message: 'the result with follow-ups' });
     assert.equal(run.code, 0, run.output);
     const turns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((entry) => /^Plan more/.test(entry.title));
     assert.deepEqual(turns.map((turn) => turn.attempt), [1, 2], 'a follow-up born shadowed is sent back for repair');
-    const [message] = await messages(project);
+    const message = await commitMessage(project, 'Plan more CREATE_FOLLOW_UP');
     const taskName = /^Task-Name: (.+)$/m.exec(message)[1];
     assert.match(taskName, generated('Plan more CREATE_FOLLOW_UP'));
     const created = [...message.matchAll(/^Created-Task-Name: (.+)$/gm)].map((match) => match[1]);
     assert.ok(findGenerated(created, 'Follow-up one') && findGenerated(created, 'Follow-up two'), message);
     assert.ok(!created.includes(taskName), 'no copy under the same name');
-    const files = await changedFiles(project);
+    const files = await changedFilesOf(project, 'Plan more CREATE_FOLLOW_UP');
     assert.ok(files.includes('tasks/zz-follow-up-one.book') && files.includes('tasks/zz-follow-up-two.book'));
     assert.match(await readFile(join(project, 'tasks', 'zz-follow-up-two.book'), 'utf8'), generated('Follow-up two', 'TASK '));
 });
@@ -171,11 +186,11 @@ test('trace policy: committed traces share the result commit; videos and post-co
     assert.match(ignore, /^\/traces\/\*\/video\/$/m);
     assert.doesNotMatch(ignore, /^\/traces\/$/m);
     await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
-    const run = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
+    const run = await drive(project, env, async () => committed(project, 'Write the welcome page'), { message: 'the result commit' });
     assert.equal(run.code, 0, run.output);
-    const taskName = /^Task-Name: (.+)$/m.exec((await messages(project))[0])[1];
+    const taskName = /^Task-Name: (.+)$/m.exec(await commitMessage(project, 'Write the welcome page'))[1];
     assert.match(taskName, generated('Write the welcome page'), 'new tasks carry their creation date/time in the name');
-    const files = await changedFiles(project);
+    const files = await changedFilesOf(project, 'Write the welcome page');
     const source = files.find((file) => file.startsWith('tasks/') && file.endsWith('.book') && !/learn-/.test(file));
     const trace = traceDirectoryOf(source);
     assert.equal(trace, `traces/${source.slice('tasks/'.length, -'.book'.length)}`, 'the trace directory is the literal source filename, not the task name');
@@ -184,6 +199,9 @@ test('trace policy: committed traces share the result commit; videos and post-co
     assert.ok(!files.some((file) => file.includes('/local/')), 'post-commit events are never in the snapshot');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'events after the commit do not dirty the tree');
     await readFile(join(project, trace, 'local', 'events.jsonl'), 'utf8');
+    const assignmentSha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t')).find(([, subject]) => subject.startsWith('PTBK: Assign routing: Write the welcome page — '))[0];
+    const assignment = await changedFiles(project, assignmentSha);
+    assert.ok(assignment.includes(source), 'Router’s refinement of the task MODEL is its own scoped commit');
 });
 
 test('initial input: verbatim text and attachments with working relative links; the Expert task links it', async (t) => {
@@ -211,10 +229,10 @@ test('a task waiting for the user is checkpointed so independent work continues;
     const { project, env } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Choose a color ASK_USER', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
     await ptbk(['add', 'Independent work', '--agent', 'Developer', '--priority', '1', '--raw'], { cwd: project, env });
-    const first = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
-    assert.equal(first.code, 3, first.output);
-    assert.match(first.stdout, /1 completed, 0 failed; 1 chat\(s\) waiting for you/);
-    assert.match((await subjects(project))[0], generated('Independent work', 'PTBK: '), 'independent work progressed while the question waits');
+    const first = await drive(project, env, async () => committed(project, 'Independent work'), { message: 'the independent work beside the waiting question' });
+    assert.equal(first.code, 0, first.output);
+    assert.ok(await committed(project, 'Independent work'), 'independent work progressed while the question waits');
+    assert.ok(!(await committed(project, 'Choose a color ASK_USER')), 'the waiting task is not complete');
     const inspect = await ptbk(['recover', '--raw'], { cwd: project, env });
     assert.match(inspect.stdout, /checkpointed/);
     const [chat] = JSON.parse((await ptbk(['answer', '--json'], { cwd: project, env })).stdout);
@@ -232,9 +250,8 @@ test('a task waiting for the user is checkpointed so independent work continues;
     assert.match(answerCommit, /^PTBK: Chat - /);
     assert.match(answerCommit, /^Chat-Name: /m);
     assert.match(answerCommit, generated('Choose a color ASK_USER', 'Task-Name: '));
-    const second = await ptbk(['run', '--raw', '--limit', '1'], { cwd: project, env });
+    const second = await drive(project, env, async () => committed(project, 'Choose a color ASK_USER'), { message: 'the resumed task' });
     assert.equal(second.code, 0, second.output);
-    assert.match((await subjects(project))[0], generated('Choose a color ASK_USER', 'PTBK: '));
     const outputs = await readdir(join(project, 'output'));
     assert.match(await readFile(join(project, 'output', outputs.find((name) => name.includes('choose-a-color'))), 'utf8'), /\(blue\)/);
 });

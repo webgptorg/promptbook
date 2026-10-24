@@ -18,6 +18,8 @@ export type ParsedOptions = Readonly<Record<string, unknown>>;
 export type ParsedInvocation =
     | { readonly kind: 'version' }
     | { readonly kind: 'help'; readonly path: readonly string[]; readonly raw: boolean }
+    /** Bare `ptbk`: the action picker when interactive, technical help otherwise. */
+    | { readonly kind: 'bare'; readonly raw: boolean; readonly interactive?: boolean; readonly nonInteractive: boolean }
     | {
           readonly kind: 'command';
           /** Resolved command path, e.g. `['access', 'pair']`. */
@@ -118,6 +120,13 @@ function convertValue(option: OptionSpec, raw: string, commandPath: string): unk
 }
 
 /**
+ * Removed commands with the actionable replacement (never silently another workflow).
+ */
+const REMOVED_COMMANDS: Readonly<Record<string, string>> = {
+    run: '`ptbk start` operates the ongoing engine: it executes eligible tasks one at a time, routes unassigned work through Router and keeps running (stop it with `ptbk stop`). Describe bounded work as ordinary tasks (`ptbk add`).',
+};
+
+/**
  * Parses `argv` (without the node executable and script) against the command registry.
  *
  * Help requests (`--help`, `-h`, a trailing `help`, `ptbk help <path>`) are resolved before anything else.
@@ -133,7 +142,7 @@ export function parseInvocation(argv: readonly string[], commands: readonly Comm
     const words = positionalWords(head, commands);
     const wantsHelp = head.includes('--help') || head.includes('-h');
 
-    if (!head.length && !tail.length) return { kind: 'help', path: [], raw };
+    if (!head.length && !tail.length) return { kind: 'bare', raw, nonInteractive: false };
     if (words[0] === 'help') {
         const target = resolvePath(commands, words.slice(1));
         if (words.length > 1 && target.consumed < words.length - 1) {
@@ -151,9 +160,12 @@ export function parseInvocation(argv: readonly string[], commands: readonly Comm
         if (head.includes('--version') && !words.length) return { kind: 'version' };
         const globalOptions = ['--raw', '--no-ui', '--interactive', '--non-interactive', '--no-terminal-title', '--help', '-h'];
         const presentationOnly = head.every((token, index) => globalOptions.includes(token) || ['--path', '--tasks'].includes(token) || /^--(path|tasks)=/.test(token) || ['--path', '--tasks'].includes(head[index - 1] ?? ''));
-        if ((wantsHelp || presentationOnly) && !words.length) return { kind: 'help', path: [], raw };
+        if (wantsHelp && !words.length) return { kind: 'help', path: [], raw };
+        if (presentationOnly && !words.length) return { kind: 'bare', raw, interactive: head.includes('--interactive') || undefined, nonInteractive: head.includes('--non-interactive') };
         const first = words[0] ?? head.find((token) => token.startsWith('-')) ?? '';
         if (!words.length) throw usageError(`Unknown option ${first}.`, '', 'Options must follow a command, e.g. `ptbk start --no-tunnel`.');
+        const removed = REMOVED_COMMANDS[first];
+        if (removed) throw usageError(`ptbk ${first} was removed.`, '', removed);
         throw usageError(`Unknown command "${first}".`, '', suggestionText(first, commands));
     }
     if (wantsHelp || words[resolved.consumed] === 'help') return { kind: 'help', path: resolved.path, raw };
@@ -286,11 +298,6 @@ function parseCommandArguments(spec: CommandSpec, path: string[], head: readonly
     if (values['no-ui'] === true) {
         values.raw = true;
         explicit.add('raw');
-    }
-    if (values.priority !== undefined && byName.has('min-priority')) {
-        if (values['min-priority'] !== undefined && values['min-priority'] !== values.priority) throw usageError('--priority is an alias of --min-priority; give only one.', commandPath);
-        values['min-priority'] = values.priority;
-        explicit.add('min-priority');
     }
     return { kind: 'command', path, spec, options: values, explicit, positionals };
 }

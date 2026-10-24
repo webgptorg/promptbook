@@ -48,6 +48,8 @@ export type AgentView = {
     readonly gesture: string;
     /** Identity hue for the browser. */
     readonly hue: number;
+    /** A core role (`agents/.core/`) or the engine-provided Expert, listed in the complete team inventory. */
+    readonly role?: 'core' | 'engine';
 };
 
 /**
@@ -441,7 +443,8 @@ export type ServiceSnapshot = {
     readonly project: { readonly name: string; readonly path: string };
     readonly engine: { readonly version: string; readonly installation: string; readonly scope: string };
     readonly service: {
-        readonly mode: 'daemon' | 'foreground' | 'run';
+        /** Placement (`run` is reported only by older engines that still had a finite run). */
+    readonly mode: 'daemon' | 'foreground' | 'maintenance' | 'run';
         /**
          * Live states `running`, `pausing`, `pause` and `stopping`; `stopped`/`finished` are observed outcomes after the
          * engine ended (never a fifth live state).

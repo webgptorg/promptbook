@@ -180,17 +180,19 @@ test('reference examples: @ and brace forms everywhere, normalized names, built-
     assert.match(TEACHER_BOOK, /^FROM @Expert$/m);
 });
 
-test('configuration precedence: defaults < legacy environment < ptbk.json < CLI < runtime; explicit false/null kept', () => {
+test('configuration precedence: plugin/engine defaults < ptbk.json < CLI < runtime; explicit false/null kept; no legacy environment fallback', () => {
     const resolved = resolveSettings({
-        file: { routing: { harness: 'CLAUDE_CODE' }, execution: { isCommitEnabled: false, check: null, waitAfterError: '5m' }, server: { port: 4100 }, unknownKey: true },
-        env: { PTBK_HARNESS: 'openai-codex', PTBK_MODEL: 'env-model' },
+        file: { routing: { harness: 'CLAUDE_CODE', defaultAgent: 'Planner' }, execution: { isCommitEnabled: false, check: null, waitAfterError: '5m', checkBefore: 'yes and fail' }, server: { port: 4100 }, unknownKey: true },
+        env: { PTBK_HARNESS: 'openai-codex', PTBK_MODEL: 'env-model', PTBK_THINKING_LEVEL: 'high' },
         cli: { 'server.port': 4200 },
         runtime: { 'execution.waitBetweenPrompts': 60_000 },
     });
-    assert.equal(resolved.values['routing.harness'], 'claude-code', 'canonical enum values are read in any spelling');
-    assert.equal(resolved.sources['routing.harness'], 'ptbk.json');
-    assert.equal(resolved.values['routing.model'], 'env-model');
-    assert.equal(resolved.sources['routing.model'], 'environment');
+    assert.equal(resolved.values['execution.checkBefore'], 'yes-and-fail', 'canonical enum values are read in any spelling');
+    assert.equal(resolved.sources['execution.checkBefore'], 'ptbk.json');
+    assert.equal(resolved.values['routing.defaultAgent'], 'Planner');
+    assert.ok(!Object.hasOwn(resolved.values, 'routing.harness') && !Object.hasOwn(resolved.values, 'routing.model'), 'model/harness defaults are plugin-owned, not settings');
+    assert.ok(Object.values(resolved.sources).every((source) => source !== 'environment'), 'PTBK_HARNESS/PTBK_MODEL/PTBK_THINKING_LEVEL no longer fill defaults');
+    assert.ok(resolved.diagnostics.some((diagnostic) => diagnostic.location === 'ptbk.json › routing.harness' && diagnostic.severity === 'warning' && /superseded/.test(diagnostic.message)), 'an unmigrated routing default is diagnosed, not used');
     assert.equal(resolved.values['execution.isCommitEnabled'], false);
     assert.equal(resolved.values['execution.check'], null);
     assert.equal(resolved.values['execution.waitAfterError'], 300_000);

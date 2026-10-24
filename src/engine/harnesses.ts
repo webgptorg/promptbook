@@ -1,12 +1,12 @@
 import { join } from 'node:path';
 import { promptbookAppData } from '../common/app-data.js';
 import { formatShortTime } from '../common/time.js';
-import { enabledHarnessTools, setting, type EffectiveSettings } from '../project/config.js';
+import { enabledHarnessTools, type EffectiveSettings } from '../project/config.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { baseInspection } from '../harness/shared.js';
 import type { HarnessContext, HarnessInspection, HarnessPlugin } from '../harness/types.js';
 import { describeCredentialSource, parseEnvironmentReference, readDotEnv, resolveVariable, type DotEnv, type ResolvedReference } from '../tools/environment.js';
-import { harnessPluginId, type HarnessToolRecord } from '../tools/model.js';
+import { harnessPluginId, toolRuntime, type HarnessToolRecord, type ThinkingLevel } from '../tools/model.js';
 
 /**
  * How long an inspection stays fresh before an automatic recheck.
@@ -126,6 +126,18 @@ export class HarnessPool {
     private async inspectInstance(tool: HarnessToolRecord): Promise<HarnessInspection> {
         const plugin = harnessPlugin(harnessPluginId(tool.variant))!;
         const context: HarnessContext = { projectRoot: this.projectRoot, env: this.environment(tool), tool };
+        // An endpoint the adapter cannot reach is never invented: the instance stays visibly unusable.
+        const runtime = toolRuntime(tool);
+        if ((runtime === 'local' && !plugin.endpoints.local) || (runtime !== 'local' && runtime !== 'official' && !plugin.endpoints.custom)) {
+            const { inspection } = await baseInspection(plugin, context);
+            return {
+                ...inspection,
+                usable: false,
+                summary: `${plugin.displayName} does not support ${runtime === 'local' ? 'local inference on the engine host' : 'a custom base URL'} (baseUrl ${tool.baseUrl}).`,
+                problem: 'unsupported',
+                nextAction: `Remove baseUrl from the tool (ptbk tool modify ${tool.name} --base-url default), or use a harness that supports this endpoint.`,
+            };
+        }
         if (tool.accountProfile && tool.authentication === 'NATIVE' && !plugin.accountHomeVariable) {
             const { inspection } = await baseInspection(plugin, context);
             return { ...inspection, usable: false, authenticated: false, summary: `${plugin.displayName} does not support separate native account contexts (accountProfile "${tool.accountProfile}").`, problem: 'unsupported', nextAction: 'Remove accountProfile, or use an API_KEY instance for a second billing account.' };
@@ -194,14 +206,28 @@ export class HarnessPool {
 
     /**
      * The instance serving a variant: an explicitly named instance when given (never broadened), otherwise the first
-     * usable enabled instance of that variant in array order.
+     * usable enabled instance of that variant in array order. A `runtime` (`official`, `local` or a base URL) keeps
+     * same-variant fallback within that endpoint: accounts aimed at different services are not interchangeable.
      */
-    public select(variant: string, options: { readonly tool?: string } = {}): HarnessToolRecord | undefined {
+    public select(variant: string, options: { readonly tool?: string; readonly runtime?: string; readonly except?: string } = {}): HarnessToolRecord | undefined {
         if (options.tool) {
             const tool = this.instance(options.tool);
             return tool && tool.isEnabled && this.inspectionOf(tool.name)?.usable ? tool : undefined;
         }
-        return this.instances(variant).find((tool) => this.inspectionOf(tool.name)?.usable);
+        return this.instances(variant).find((tool) => tool.name !== options.except && (!options.runtime || options.runtime === 'default' || toolRuntime(tool) === options.runtime.replace(/\/+$/, '')) && this.inspectionOf(tool.name)?.usable);
+    }
+
+    /** Enabled instances of a variant aimed at an endpoint (`default`/undefined: any), usable or not. */
+    public instancesFor(variant: string, runtime?: string): HarnessToolRecord[] {
+        return this.instances(variant).filter((tool) => !runtime || runtime === 'default' || toolRuntime(tool) === runtime.replace(/\/+$/, ''));
+    }
+
+    /** The base URL an instance's endpoint needs at execution (undefined for the official endpoint). */
+    public baseUrl(tool: HarnessToolRecord): string | undefined {
+        const runtime = toolRuntime(tool);
+        if (runtime === 'official') return undefined;
+        if (runtime === 'local') return this.plugin(tool.name)?.endpoints.local;
+        return runtime;
     }
 
     /** Inspection of the instance currently serving a variant (or of its first instance when none is usable). */
@@ -215,11 +241,9 @@ export class HarnessPool {
         return this.allInstances().map((tool) => ({ tool, inspection: this.inspectionOf(tool.name) }));
     }
 
-    /** Variants with at least one usable enabled instance, default variant first. */
+    /** Variants with at least one usable enabled instance, in `tools` order. */
     public usable(): string[] {
-        const preferred = setting<string | undefined>(this.settings, 'routing.harness');
-        const ids = this.enabled().filter((id) => this.select(id));
-        return preferred && ids.includes(preferred) ? [preferred, ...ids.filter((id) => id !== preferred)] : ids;
+        return this.enabled().filter((id) => this.select(id));
     }
 
     /** Plugin of a variant or instance name. */
@@ -228,22 +252,42 @@ export class HarnessPool {
         return harnessPlugin(tool ? harnessPluginId(tool.variant) : nameOrVariant);
     }
 
-    /** Preferred model of the instance serving a variant. */
-    public modelOf(variant: string): string | undefined {
-        return (this.select(variant) ?? this.instances(variant)[0])?.model;
-    }
-
-    /** Known models of a variant: configured ones of its instances plus the integration's catalog (cached, bounded). */
+    /** The integration's model catalog of a variant (cached, bounded; empty when unknown). */
     public async models(variant: string): Promise<string[]> {
-        const configured = this.instances(variant).flatMap((tool) => [...(tool.models ?? [])]);
         const plugin = this.plugin(variant);
-        if (!plugin?.listModels) return [...new Set(configured)];
+        if (!plugin?.listModels) return [];
         let cached = this.modelCache.get(plugin.id);
         if (!cached) {
             cached = plugin.listModels(this.context(variant)).catch(() => []);
             this.modelCache.set(plugin.id, cached);
         }
-        return [...new Set([...configured, ...(await cached)])];
+        return [...(await cached)];
+    }
+
+    /**
+     * Whether a model ID is known to be unsupported: only an authoritative (complete) catalog can say so; partial
+     * catalogs and unknown catalogs never reject an identifier.
+     */
+    public async rejectsModel(variant: string, model: string): Promise<boolean> {
+        const plugin = this.plugin(variant);
+        if (plugin?.modelCatalog !== 'complete') return false;
+        const known = await this.models(variant);
+        return known.length > 0 && !known.includes(model);
+    }
+
+    /**
+     * The plugin's coded defaults for a variant: its default model (or, when a complete catalog lacks it, the
+     * catalog's first model) and default thinking level. Tool settings never supply defaults.
+     */
+    public async defaults(variant: string): Promise<{ readonly model?: string; readonly thinkingLevel?: ThinkingLevel }> {
+        const plugin = this.plugin(variant);
+        if (!plugin) return {};
+        let model: string | undefined = plugin.defaultModel;
+        if (plugin.modelCatalog === 'complete') {
+            const known = await this.models(variant);
+            if (known.length && !known.includes(model)) model = known[0];
+        }
+        return { model, thinkingLevel: plugin.thinkingLevels.length ? (plugin.defaultThinkingLevel ?? plugin.thinkingLevels[0]) : undefined };
     }
 
     /**

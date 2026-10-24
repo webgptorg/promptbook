@@ -22,6 +22,17 @@ export async function main(argv: readonly string[] = process.argv.slice(2)): Pro
             process.stdout.write(`${ENGINE_VERSION}\n`);
             return;
         }
+        if (invocation.kind === 'bare') {
+            // Interactive: the action picker; redirected/noninteractive/raw: the technical help, without prompting.
+            const terminal = createTerminalProfile({ raw: invocation.raw, interactive: invocation.interactive, nonInteractive: invocation.nonInteractive || invocation.raw });
+            if (terminal.interactive && terminal.pretty) {
+                const { runActionPicker } = await import('./cli/action-picker.js');
+                process.exitCode = await runActionPicker(COMMANDS, { argv: argv.filter((token) => token === '--interactive' || token === '--no-terminal-title') });
+                return;
+            }
+            process.stdout.write(renderTopLevelHelp(COMMANDS, createTerminalProfile({ raw: invocation.raw, nonInteractive: true })));
+            return;
+        }
         if (invocation.kind === 'help') {
             const terminal = createTerminalProfile({ raw: invocation.raw, nonInteractive: true });
             process.stdout.write(invocation.path.length ? renderCommandHelp(COMMANDS, invocation.path, terminal) : renderTopLevelHelp(COMMANDS, terminal));

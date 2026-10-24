@@ -1,3 +1,4 @@
+import type { ComposedSegment } from '../ui/composer.js';
 import { PtbkError } from '../common/errors.js';
 import { parseSettingValue, SETTING_SPEC_BY_KEY } from '../project/config.js';
 import type { Agenda } from '../engine/agenda.js';
@@ -79,12 +80,32 @@ export async function applyControlAction(agenda: Agenda, action: string, params:
 }
 
 /**
+ * Composed message segments of a request. Attachments name local files, which only the engine host's own trusted
+ * control channel may submit: a remote client can never make the engine copy host files into the project.
+ */
+function requestSegments(params: Readonly<Record<string, unknown>>, trusted: boolean): ComposedSegment[] | undefined {
+    if (!Array.isArray(params.segments)) return undefined;
+    const segments: ComposedSegment[] = [];
+    for (const raw of params.segments as unknown[]) {
+        const segment = (raw ?? {}) as Record<string, unknown>;
+        if (segment.type === 'text' && typeof segment.text === 'string') segments.push({ type: 'text', text: segment.text, ...(segment.pasted === true ? { pasted: true } : {}) });
+        else if (segment.type === 'attachment' && (segment.kind === 'image' || segment.kind === 'file') && typeof segment.path === 'string' && typeof segment.name === 'string') {
+            if (!trusted) throw new PtbkError('Attachments by local file path are accepted only from a terminal on the engine’s computer.', { kind: 'usage', effect: 'Nothing was saved.' });
+            segments.push({ type: 'attachment', kind: segment.kind, path: segment.path, name: segment.name });
+        } else throw new PtbkError('Invalid message segments.', { kind: 'usage', effect: 'Nothing was saved.' });
+    }
+    return segments;
+}
+
+/**
  * Chat operations shared by every channel (terminal, browser, API, CLI); writes go through the agenda's chat store.
+ * `trusted` marks the engine host's local control channel (the only one allowed to attach local files).
  *
  * @private shared runtime controls
  */
-export async function applyChatAction(agenda: Agenda, method: string, params: Readonly<Record<string, unknown>>, via: string): Promise<unknown> {
+export async function applyChatAction(agenda: Agenda, method: string, params: Readonly<Record<string, unknown>>, via: string, options: { readonly trusted?: boolean } = {}): Promise<unknown> {
     const text = (key: string): string => (typeof params[key] === 'string' ? (params[key] as string) : '');
+    const segments = requestSegments(params, options.trusted === true);
     switch (method) {
         case 'chat-list':
             return await agenda.chatList();
@@ -98,12 +119,12 @@ export async function applyChatAction(agenda: Agenda, method: string, params: Re
         case 'chat-create': {
             // A new human chat without an explicit target goes to Chatter (diagnosed, never silently replaced).
             const agent = text('agent') || defaultChatAgent(agenda.chatAgents()).reference;
-            const written = await agenda.chatCreate(agent, text('text'), { name: text('title') || undefined, requestKey: text('requestKey') || undefined });
+            const written = await agenda.chatCreate(agent, text('text'), { name: text('title') || undefined, requestKey: text('requestKey') || undefined, segments });
             return { name: written.chat.name, path: written.relativePath, commit: written.commit, messages: written.chat.messages.length };
         }
         case 'chat-send': {
             const expected = typeof params.expected === 'number' ? params.expected : undefined;
-            const written = await agenda.chatSend(text('name'), text('text'), { expected, via });
+            const written = await agenda.chatSend(text('name'), text('text'), { expected, via, segments });
             return { name: written.chat.name, path: written.relativePath, commit: written.commit, messages: written.chat.messages.length, status: written.chat.status };
         }
         default:

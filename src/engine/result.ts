@@ -19,7 +19,7 @@ export type AgentReport = {
     readonly evidence?: string;
     /** Reason for `blocked`. */
     readonly reason?: string;
-    /** Additional structured fields (e.g. Manager routing). */
+    /** Additional structured fields (e.g. Router routing). */
     readonly data: Readonly<Record<string, unknown>>;
 };
 

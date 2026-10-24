@@ -87,6 +87,40 @@ export async function clipboardImage(env: NodeJS.ProcessEnv = process.env): Prom
 }
 
 /**
+ * Reads text from the system clipboard where the platform exposes it.
+ *
+ * @private composer attachments
+ */
+export async function clipboardText(env: NodeJS.ProcessEnv = process.env): Promise<{ text: string } | { problem: string }> {
+    let result;
+    if (process.platform === 'darwin') result = await runProcess('pbpaste', [], { cwd: tmpdir(), env, timeoutMs: 10_000 });
+    else if (process.platform === 'win32') result = await runProcess('powershell', ['-NoProfile', '-Command', 'Get-Clipboard -Raw'], { cwd: tmpdir(), env, timeoutMs: 15_000 });
+    else if (env.WAYLAND_DISPLAY) result = await runProcess('wl-paste', ['--no-newline'], { cwd: tmpdir(), env, timeoutMs: 10_000 });
+    else if (env.DISPLAY) result = await runProcess('xclip', ['-selection', 'clipboard', '-o'], { cwd: tmpdir(), env, timeoutMs: 10_000 });
+    else return { problem: 'This terminal session has no clipboard access (no display). Paste with the terminal, or attach a file with Ctrl+O.' };
+    if (result.exitCode !== 0) return { problem: 'The clipboard cannot be read here. Paste with the terminal, or attach a file with Ctrl+O.' };
+    return { text: result.stdout };
+}
+
+/**
+ * The one rich-paste acquisition behind Ctrl+V in every composer: an image when the clipboard holds one, otherwise
+ * its text — or the copied file when that text is the path of an existing file (images and documents alike). Never
+ * pretends clipboard access exists where the platform or a remote session does not expose it.
+ *
+ * @private composer attachments
+ */
+export async function richClipboard(env: NodeJS.ProcessEnv = process.env): Promise<{ kind: 'image' | 'file'; path: string; bytes: number } | { kind: 'text'; text: string } | { problem: string }> {
+    const image = await clipboardImage(env);
+    if (!('problem' in image)) return { kind: 'image', ...image };
+    const text = await clipboardText(env);
+    if ('problem' in text) return { problem: image.problem.startsWith('This terminal session') ? image.problem : text.problem };
+    const file = await droppedFile(text.text);
+    if (file) return { kind: isImagePath(file.path) ? 'image' : 'file', ...file };
+    if (!text.text) return { problem: 'The clipboard is empty.' };
+    return { kind: 'text', text: text.text };
+}
+
+/**
  * Copies attachments next to a document and renders the complete text with relative links at their positions.
  *
  * Pasted text stays verbatim; nothing is summarized. Returns the written files (absolute).

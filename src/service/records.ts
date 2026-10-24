@@ -18,7 +18,8 @@ export type ProcessRecord = {
     /** Unique instance of the owning process. */
     readonly instanceId: string;
     /** Placement. */
-    readonly mode: 'daemon' | 'foreground' | 'run';
+    /** Placement (`run` is reported only by older engines that still had a finite run). */
+    readonly mode: 'daemon' | 'foreground' | 'maintenance' | 'run';
     /** PID of the process hosting the agenda. */
     readonly pid: number;
     /** PID of the daemon supervisor (restarts the worker). */

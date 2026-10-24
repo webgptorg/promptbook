@@ -1,8 +1,9 @@
 import { ENGINE_VERSION } from '../common/version.js';
 import { fit, stringWidth, truncate, wrap } from './ansi.js';
-import { clipboardImage, droppedFile, inlineSegments, isImagePath, MAX_ATTACHMENT_BYTES } from './attachments.js';
+import { inlineSegments } from './attachments.js';
 import { inlineBadge, type BadgeActivity } from './badges.js';
-import { itemLabel, TextEditor, type ComposedSegment } from './composer.js';
+import type { ComposedSegment } from './composer.js';
+import { RichInput } from './rich-input.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { InlineRenderer } from './screen.js';
 import { symbols, type TerminalProfile } from './terminal.js';
@@ -254,11 +255,13 @@ export async function confirm(terminal: TerminalProfile, options: { frame: Wizar
  */
 export async function selectMany<T>(
     terminal: TerminalProfile,
-    options: { frame: WizardFrame; question: string; choices: readonly Choice<T>[]; initial: readonly T[]; minimum?: number; noneLabel?: string },
+    options: { frame: WizardFrame; question: string; choices: readonly Choice<T>[]; initial: readonly T[]; minimum?: number; noneLabel?: string; emptyWarning?: string },
 ): Promise<T[] | typeof CANCELLED> {
     const { style } = terminal;
     const marks = symbols(terminal.unicode);
     const selected = new Set<T>(options.initial);
+    // An empty selection with consequences is confirmed by a second Enter after its visible warning.
+    let emptyConfirmed = false;
     const hasFeatured = options.choices.some((choice) => choice.featured) && options.choices.some((choice) => !choice.featured);
     let expanded = !hasFeatured || options.choices.some((choice) => !choice.featured && selected.has(choice.value));
     let focus = 0;
@@ -300,6 +303,7 @@ export async function selectMany<T>(
             if (end < list.length) lines.push(style.muted(`    ↓ ${list.length - end} more`));
             const count = selected.size;
             lines.push('', `  ${count ? style.success(`${count} selected`) : style.muted(options.noneLabel ?? 'None selected')}${message ? `  ${style.warning(message)}` : ''}`);
+            if (!count && options.emptyWarning) for (const line of wrap(`${marks.warn} ${options.emptyWarning}`, Math.max(20, width - 4))) lines.push(`  ${style.warning(line)}`);
             lines.push(legend(terminal, ['↑↓ move', 'Space toggle', 'Enter confirm', 'type to filter', query ? 'Esc clear filter' : 'Esc back']));
             return { lines: lines.map((line) => fit(line, Math.max(10, width - 1)).trimEnd()) };
         },
@@ -343,6 +347,11 @@ export async function selectMany<T>(
             } else if (event.name === 'enter') {
                 if (options.minimum && selected.size < options.minimum) {
                     message = `Select at least ${options.minimum}.`;
+                    return undefined;
+                }
+                if (!selected.size && options.emptyWarning && !emptyConfirmed) {
+                    emptyConfirmed = true;
+                    message = 'Press Enter again to continue without any, or Space to select one.';
                     return undefined;
                 }
                 return options.choices.filter((choice) => selected.has(choice.value)).map((choice) => choice.value);
@@ -415,13 +424,8 @@ export async function toggleList<K extends string>(
 export type ComposedInput = { readonly segments: readonly ComposedSegment[]; readonly text: string };
 
 /**
- * Largest pasted block accepted in one paste.
- */
-const MAX_PASTE_CHARACTERS = 10 * 1024 * 1024;
-
-/**
- * The shared rich composer: bounded multiline field with visible cursor, safe paste, compact tokens for long pasted
- * blocks and attached images/files (inspectable, expandable and removable), and discoverable keys.
+ * The rich composer of wizard steps (intent, task descriptions, planning): the shared rich input in its forward
+ * `flow` policy (Enter submits), drawn as a bounded field with the shared status and key legend.
  *
  * @private terminal prompts
  */
@@ -430,37 +434,10 @@ export async function composeRich(
     options: { frame: WizardFrame; question: string; initial?: string | readonly ComposedSegment[]; placeholder?: string; required?: boolean; hint?: string; attachments?: boolean; singleLine?: boolean; aside?: () => readonly string[] },
 ): Promise<ComposedInput | typeof CANCELLED> {
     const { style } = terminal;
-    const editor = new TextEditor(options.initial ?? '');
-    editor.tokenizePastes = !options.singleLine;
-    const attachmentsAllowed = options.attachments === true;
-    let message = '';
-    let attachPath: TextEditor | undefined;
-    let busy = '';
     let refresh: () => void = () => undefined;
+    const input = new RichInput({ mode: 'flow', initial: options.initial, attachments: options.attachments, singleLine: options.singleLine, required: options.required, refresh: () => refresh() });
+    const editor = input.editor;
     const box = terminal.unicode ? { tl: '╭', tr: '╮', bl: '╰', br: '╯', h: '─', v: '│' } : { tl: '+', tr: '+', bl: '+', br: '+', h: '-', v: '|' };
-    const attachFile = async (raw: string): Promise<boolean> => {
-        const found = await droppedFile(raw);
-        if (!found) {
-            message = `No readable file at ${raw.trim() || '(empty path)'}.`;
-            return false;
-        }
-        if (found.bytes > MAX_ATTACHMENT_BYTES) {
-            message = `That file is larger than ${MAX_ATTACHMENT_BYTES / 1024 / 1024} MB and was not attached.`;
-            return false;
-        }
-        const name = found.path.split(/[\\/]/).pop() ?? 'file';
-        editor.attach({ kind: isImagePath(found.path) ? 'image' : 'file', path: found.path, name, bytes: found.bytes });
-        return true;
-    };
-    const inspection = (): string | undefined => {
-        const item = editor.itemAtCursor();
-        if (!item) return undefined;
-        if (item.kind === 'paste') {
-            const first = item.text.split('\n').find((line) => line.trim()) ?? '';
-            return `${itemLabel(item)} “${truncate(first.trim(), 50)}” · Ctrl+T expand to edit · Backspace remove`;
-        }
-        return `${itemLabel(item)} ${item.path}${item.bytes ? ` (${Math.max(1, Math.round(item.bytes / 1024))} KB)` : ''} · Backspace remove`;
-    };
     const result = await interact<ComposedInput>(
         () => {
             const width = Math.min(terminal.columns() - 1, 110);
@@ -478,95 +455,23 @@ export async function composeRich(
             for (let row = 0; row < minimum; row++) lines.push(`${style.accent(box.v)} ${fit(content[row] ?? '', inner)} ${style.accent(box.v)}`);
             const scroll = layout.hiddenAbove || layout.hiddenBelow ? ` ${layout.hiddenAbove ? `↑${layout.hiddenAbove}` : ''}${layout.hiddenBelow ? ` ↓${layout.hiddenBelow}` : ''} ` : '';
             lines.push(style.accent(`${box.bl}${box.h.repeat(Math.max(0, width - 2 - stringWidth(scroll)))}${scroll}${box.br}`));
-            if (attachPath) {
-                const pathLayout = attachPath.layout(width - 18, 1);
+            const attaching = input.attaching;
+            if (attaching) {
+                const pathLayout = attaching.layout(width - 18, 1);
                 lines.push(`  ${style.bold('Attach file:')} ${pathLayout.lines[0] ?? ''}`);
-                lines.push(message ? `  ${style.warning(message)}` : legend(terminal, ['Enter attach', 'Esc back', 'paste or drop a path']));
+                const status = input.status(width - 2);
+                lines.push(status ? `  ${style.warning(status.text)}` : legend(terminal, input.keys()));
                 return { lines, cursor: { row: lines.length - 2, column: 15 + pathLayout.cursor.column } };
             }
-            const inspected = inspection();
-            if (busy) lines.push(`  ${style.muted(busy)}`);
-            else if (message) lines.push(`  ${style.warning(message)}`);
-            else if (inspected) lines.push(`  ${style.muted(truncate(inspected, width - 2))}`);
-            const items = editor.insertedItems;
-            const keys = options.singleLine
-                ? ['Enter submit', 'Esc cancel']
-                : ['Enter submit', 'Ctrl+J newline', ...(attachmentsAllowed ? ['Ctrl+O attach file', 'Ctrl+V paste image'] : []), 'Esc cancel', 'paste never submits'];
-            lines.push(legend(terminal, items.length ? [`${items.length} item${items.length === 1 ? '' : 's'} attached/pasted`, ...keys] : keys));
+            const status = input.status(width - 2);
+            if (status) lines.push(`  ${status.tone === 'warning' ? style.warning(status.text) : style.muted(status.text)}`);
+            lines.push(legend(terminal, input.keys()));
             return { lines, cursor: { row: top + (!editor.empty || editor.value ? layout.cursor.row : 0), column: 2 + (!editor.empty || editor.value ? layout.cursor.column : 0) } };
         },
         (event) => {
-            if (busy) return undefined;
-            if (attachPath) {
-                if (event.type === 'key' && event.name === 'escape') {
-                    attachPath = undefined;
-                    message = '';
-                    return undefined;
-                }
-                if (event.type === 'key' && event.name === 'enter') {
-                    const raw = attachPath.value;
-                    busy = 'Checking the file…';
-                    void attachFile(raw).then((ok) => {
-                        busy = '';
-                        if (ok) {
-                            attachPath = undefined;
-                            message = '';
-                        }
-                        refresh();
-                    });
-                    return undefined;
-                }
-                message = '';
-                attachPath.handle(event);
-                return undefined;
-            }
-            message = '';
-            if (event.type === 'paste') {
-                if (event.text.length > MAX_PASTE_CHARACTERS) {
-                    message = `The pasted text is larger than ${MAX_PASTE_CHARACTERS / 1024 / 1024} MB and was not inserted.`;
-                    return undefined;
-                }
-                if (attachmentsAllowed && !options.singleLine && /^\s*['"]?(file:\/\/|[/~]|[A-Za-z]:[\\/])/.test(event.text) && !event.text.trim().includes('\n')) {
-                    busy = 'Checking the pasted path…';
-                    void droppedFile(event.text).then((found) => {
-                        busy = '';
-                        if (found && found.bytes <= MAX_ATTACHMENT_BYTES) editor.attach({ kind: isImagePath(found.path) ? 'image' : 'file', path: found.path, name: found.path.split(/[\\/]/).pop() ?? 'file', bytes: found.bytes });
-                        else editor.paste(event.text);
-                        refresh();
-                    });
-                    return undefined;
-                }
-                editor.paste(event.text);
-                return undefined;
-            }
-            if (event.type === 'key' && event.ctrl && attachmentsAllowed && !options.singleLine && event.name === 'o') {
-                attachPath = new TextEditor('');
-                attachPath.tokenizePastes = false;
-                return undefined;
-            }
-            if (event.type === 'key' && event.ctrl && attachmentsAllowed && !options.singleLine && event.name === 'v') {
-                busy = 'Reading an image from the clipboard…';
-                void clipboardImage().then((image) => {
-                    busy = '';
-                    if ('problem' in image) message = image.problem;
-                    else if (image.bytes > MAX_ATTACHMENT_BYTES) message = 'The clipboard image is too large to attach.';
-                    else editor.attach({ kind: 'image', path: image.path, name: image.path.split(/[\\/]/).pop() ?? 'clipboard.png', bytes: image.bytes });
-                    refresh();
-                });
-                return undefined;
-            }
-            if (event.type === 'key' && event.ctrl && event.name === 't') {
-                if (!editor.expandAtCursor()) message = 'Move the cursor next to a [Pasted text] item to expand it for editing.';
-                return undefined;
-            }
-            if (options.singleLine && event.type === 'key' && event.name === 'newline') return undefined;
-            const action = editor.handle(event);
+            const action = input.handle(event);
             if (action === 'submit') {
-                if (options.required && editor.empty) {
-                    message = 'A value is required.';
-                    return undefined;
-                }
-                const segments = editor.segments();
+                const segments = input.segments();
                 return { segments, text: inlineSegments(segments) };
             }
             if (action === 'cancel') return CANCELLED as never;

@@ -73,7 +73,7 @@ function renderSections(title: string, sections: readonly HelpSection[], termina
 }
 
 /**
- * Renders the top-level overview (bare `ptbk`, `ptbk help`, `ptbk --help`).
+ * Renders the technical top-level overview (`ptbk help`, `ptbk --help`, and bare `ptbk` without a terminal).
  *
  * @private CLI help
  */
@@ -88,9 +88,10 @@ export function renderTopLevelHelp(commands: readonly CommandSpec[], terminal: T
         {
             heading: 'Ordinary workflow',
             rows: [
-                ['1. ptbk init', 'Describe your project and set it up; the agenda then starts in the background.'],
+                ['1. ptbk init', 'Describe your project and set it up; the agenda then starts in the background and a short countdown opens the dashboard.'],
                 ['2. ptbk dashboard', 'Attach a live terminal view and controls (leaving it keeps the service running).'],
-                ['   ptbk start', 'Start an already initialized, cloned or stopped project; ptbk stop stops it.'],
+                ['   ptbk start', 'The ongoing work launcher for an initialized, cloned or stopped project; ptbk stop stops it.'],
+                ['   ptbk', 'Without arguments in a terminal: pick Initialize project, Start engine or Open dashboard.'],
             ],
         },
     ];

@@ -1,5 +1,5 @@
 import { execFile, spawn } from 'node:child_process';
-import { chmod, copyFile, mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { chmod, copyFile, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -147,6 +147,15 @@ export async function initializedProject(t, options = {}) {
     args.push(...(options.start ? ['--no-tunnel', '--no-persist'] : ['--no-start']), ...(options.initArgs ?? []));
     const result = await ptbk(args, { cwd: directory, env: harness.env });
     if (![0, 3].includes(result.code)) throw new Error(`init failed (${result.code}):\n${result.output}`);
+    // Fixtures drive the ongoing engine until their work is done; goal discovery would add unrelated enquiries.
+    // A published project's history is never rewritten (autosync fixtures keep discovery as configured).
+    if (options.discovery !== true && !options.start && !(await git(project, ['remote'])).trim()) {
+        const path = join(project, 'ptbk.json');
+        const config = JSON.parse(await readFile(path, 'utf8'));
+        config.discovery = { ...config.discovery, isEnabled: false };
+        await writeFile(path, `${JSON.stringify(config, null, 4)}\n`);
+        await git(project, ['commit', '-q', '--amend', '--no-edit', '--', 'ptbk.json']);
+    }
     return { directory, project, env: harness.env, log: harness.log, init: result };
 }
 
@@ -182,4 +191,36 @@ export function generated(title, prefix = '', suffix = '') {
  */
 export function findGenerated(items, title, prefix = '') {
     return items.find((item) => generated(title, prefix).test(item));
+}
+
+/**
+ * Runs the ongoing engine in the foreground with plain events until `until({ output })` holds, then stops it
+ * gracefully and returns its whole event stream (fixtures drive bounded work this way; there is no finite run).
+ */
+export async function drive(project, env, until, { args = [], timeoutMs = 90_000, message = 'the expected work' } = {}) {
+    const child = spawn(process.execPath, [BIN, 'start', '--foreground', '--raw', '--no-server', '--no-persist', ...args], { cwd: project, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8').on('data', (chunk) => (stdout += chunk));
+    child.stderr.setEncoding('utf8').on('data', (chunk) => (stderr += chunk));
+    const exited = new Promise((resolve) => child.on('close', (code) => resolve(code)));
+    let failure;
+    try {
+        await waitFor(async () => (await until({ output: `${stdout}\n${stderr}` })) || undefined, { timeoutMs, message });
+    } catch (error) {
+        failure = error;
+    }
+    await ptbk(['stop', '--raw', '--timeout', '2m'], { cwd: project, env });
+    let timer;
+    const code = await Promise.race([exited, new Promise((resolve) => (timer = setTimeout(() => (child.kill(), resolve(null)), 120_000)))]);
+    clearTimeout(timer);
+    if (failure) throw new Error(`${failure.message}\n--- engine output ---\n${stdout}\n${stderr}`);
+    return { code, stdout, stderr, output: `${stdout}\n${stderr}` };
+}
+
+/**
+ * Whether a commit with a generated-name subject exists (newest first search).
+ */
+export async function committed(project, title, prefix = 'PTBK: ') {
+    return findGenerated(await subjects(project), title, prefix);
 }

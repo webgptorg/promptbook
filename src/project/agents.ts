@@ -1,4 +1,5 @@
 import { withdrawnKeyword } from '../book/commitments.js';
+import { UNCONSTRAINED, intersectModels, modelOfDocument, type ModelConstraint } from '../book/model.js';
 import { commitmentsOf, singleValue, type BookDocument } from '../book/parse.js';
 import { findAgentReferences, invalidReferenceMessage, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
 import { BookIndex, type BookDiagnostic as BookIndexDiagnostic, type BookEntry, type BookTier } from './books.js';
@@ -81,7 +82,7 @@ export class AgentCatalog {
     }
 
     /**
-     * Ordinary project roles: winning, non-hidden agents outside ignored content — candidates for Manager assignment,
+     * Ordinary project roles: winning, non-hidden agents outside ignored content — candidates for Router assignment,
      * goal discovery and the default chat picker.
      */
     public ordinary(): AgentDefinition[] {
@@ -169,8 +170,11 @@ export type EffectiveAgent = {
     readonly team: readonly string[];
     /** Agent's own learning permission. */
     readonly learning: LearningPolicy;
-    /** MODEL preferences (local first). */
-    readonly modelPreferences: readonly string[];
+    /**
+     * Effective MODEL: the durable execution requirement, intersecting the MODEL of every Book in the inheritance
+     * chain (a descendant cannot silently relax its foundation's explicit restriction).
+     */
+    readonly model: ModelConstraint;
     /** Problems; any error makes the agent unusable. */
     readonly diagnostics: readonly AgentDiagnostic[];
 };
@@ -178,7 +182,7 @@ export type EffectiveAgent = {
 /**
  * Keywords that are not instructions for the model.
  */
-const NON_INSTRUCTION_KEYWORDS = new Set(['FROM', 'IMPORT', 'OPEN', 'CLOSED', 'NOTE', 'DELETE', 'ENTITY', 'LINK']);
+const NON_INSTRUCTION_KEYWORDS = new Set(['FROM', 'IMPORT', 'OPEN', 'CLOSED', 'NOTE', 'DELETE', 'ENTITY', 'LINK', 'MODEL']);
 
 /**
  * Determines the learning permission declared by an agent's own Book.
@@ -209,12 +213,12 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
                 goals: [],
                 team: [],
                 learning: { open: false },
-                modelPreferences: [],
+                model: UNCONSTRAINED,
                 diagnostics,
             };
         }
         diagnostics.push({ path: '', line: 0, message: `${resolution.name} is an engine non-agent and cannot perform tasks.`, severity: 'error' });
-        return { name: resolution.name, normalized: normalizeAgentName(resolution.name), chain: [], instructions: [], goals: [], team: [], learning: { open: false }, modelPreferences: [], diagnostics };
+        return { name: resolution.name, normalized: normalizeAgentName(resolution.name), chain: [], instructions: [], goals: [], team: [], learning: { open: false }, model: UNCONSTRAINED, diagnostics };
     }
     if (resolution.kind !== 'agent') {
         diagnostics.push({ path: '', line: 0, message: describeResolution(reference, resolution)!, severity: 'error' });
@@ -227,11 +231,12 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
             goals: [],
             team: [],
             learning: { open: false },
-            modelPreferences: [],
+            model: UNCONSTRAINED,
             diagnostics,
         };
     }
     const target = resolution.definition;
+    let model: ModelConstraint = UNCONSTRAINED;
     const chain: string[] = [];
     const layers: EffectiveInstruction[][] = [];
     const teams: string[] = [];
@@ -251,6 +256,9 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
         chain.push(current.name);
         layers.push(await localInstructions(catalog, current, diagnostics, new Set([current.normalized])));
         for (const team of commitmentsOf(current.document, 'TEAM')) teams.push(team.body);
+        const own = modelOfDocument(current.document);
+        for (const diagnostic of own.diagnostics) diagnostics.push({ path: current.relativePath, line: diagnostic.line, message: diagnostic.message, severity: diagnostic.severity });
+        model = intersectModels(model, own.constraint);
         const from = singleValue(current.document, 'FROM');
         if (from.conflict) diagnostics.push({ path: current.relativePath, line: from.conflict.line, message: from.conflict.message, severity: 'error' });
         const parentReference = from.value ?? 'Adam';
@@ -290,7 +298,7 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
         goals: commitmentsOf(target.document, 'GOAL').map((goal) => goal.body),
         team: teams,
         learning: learningPolicyOf(target.document),
-        modelPreferences: commitmentsOf(target.document, 'MODEL').map((model) => model.body),
+        model,
         diagnostics,
     };
 }

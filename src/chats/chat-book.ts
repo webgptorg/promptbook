@@ -1,3 +1,4 @@
+import { modelOfDocument, renderModelLines, type ModelConstraint } from '../book/model.js';
 import { commitmentsOf, parseBook, singleValue, type BookDiagnostic } from '../book/parse.js';
 import { formatAgentReference, invalidReferenceMessage, normalizeAgentName, parseReferenceValue } from '../book/references.js';
 import { needsLiteralEscape, renderDeclaration } from '../book/write.js';
@@ -50,6 +51,11 @@ export type ChatBook = {
     readonly links: readonly string[];
     /** Messages in source order. */
     readonly messages: readonly ChatMessage[];
+    /**
+     * The conversation's resolved execution (its last MODEL, recorded after the first User message and before the
+     * first agent reply); unconstrained until routed.
+     */
+    readonly model: ModelConstraint;
     /** Problems of the source. */
     readonly diagnostics: readonly BookDiagnostic[];
 };
@@ -165,6 +171,8 @@ export function parseChatBook(source: string): ChatBook {
     if (statusValue.conflict) diagnostics.push(statusValue.conflict);
     const status = (CHAT_STATUSES as readonly string[]).includes(statusValue.value ?? 'open') ? ((statusValue.value ?? 'open') as ChatStatus) : 'open';
     if (statusValue.value && !(CHAT_STATUSES as readonly string[]).includes(statusValue.value)) diagnostics.push({ line: 0, message: `CHAT STATUS must be open, waiting-for-user or resolved, not "${statusValue.value}".`, severity: 'error' });
+    const modelResult = modelOfDocument(document, { multiple: 'last' });
+    diagnostics.push(...modelResult.diagnostics);
     const messageCommitments = commitmentsOf(document, 'CHAT MESSAGE');
     const messages: ChatMessage[] = [];
     for (const commitment of messageCommitments) {
@@ -190,8 +198,20 @@ export function parseChatBook(source: string): ChatBook {
         status,
         links: commitmentsOf(document, 'LINK').map((commitment) => commitment.value.trim()),
         messages,
+        model: modelResult.constraint,
         diagnostics,
     };
+}
+
+/**
+ * Appends the conversation's resolved MODEL at its chronological position (after the messages so far), without
+ * touching earlier content.
+ *
+ * @private chats
+ */
+export function appendChatModel(source: string, model: ModelConstraint): string {
+    const base = source.endsWith('\n') ? source : `${source}\n`;
+    return `${base}${renderModelLines(model).join('\n')}\n\n`;
 }
 
 /**

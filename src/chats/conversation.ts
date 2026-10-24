@@ -3,8 +3,9 @@ import { join } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, readTextIfExists } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
+import { describeModel, determinedRow, formatModelRow, intersectModels, isImpossible, type ModelRow } from '../book/model.js';
 import { formatAgentReference, parseReferenceValue } from '../book/references.js';
-import { resolveEffectiveAgent, type AgentCatalog } from '../project/agents.js';
+import { resolveEffectiveAgent, type AgentCatalog, type EffectiveAgent } from '../project/agents.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
 import type { Project } from '../project/workspace.js';
@@ -12,9 +13,15 @@ import { runHarness } from '../harness/run.js';
 import { ToolBridge, type BridgeTool } from '../engine/bridge.js';
 import { instanceEnvironment, type HarnessPool } from '../engine/harnesses.js';
 import { renderAgentInstructions } from '../engine/prompt.js';
+import { chatRoutingPrompt, routerAgent, validateAssignment } from '../engine/generated.js';
+import { parseAgentReport } from '../engine/result.js';
+import { hasThinking, readOnlyRoute, routeConcrete, type RouteResolution, type RoutingContext } from '../engine/routing.js';
+import type { RoutingSelection } from '../engine/state.js';
+import { harnessPlugin } from '../harness/registry.js';
+import { harnessPluginId, harnessVariantOf } from '../tools/model.js';
 import { teamTools } from '../engine/team.js';
 import { chatAgent, isHumanFacing } from './chat-book.js';
-import type { ChatStore, ChatWrite } from './store.js';
+import type { ChatStore, ChatWrite, StoredChat } from './store.js';
 import { conversationChats } from './task-chats.js';
 
 /**
@@ -49,8 +56,127 @@ export type ConversationContext = {
     readonly createTask: (input: { readonly title: string; readonly description: string; readonly agent?: string; readonly priority?: number; readonly chat: string }) => Promise<string>;
     /** Schedules an ordinary Teacher task from a chat correction (deduplicated by the host). */
     readonly scheduleLearning?: (input: { readonly chat: string; readonly agent: string; readonly note: string }) => Promise<string | undefined>;
+    /** The established execution of a task whose agent asked in this chat (its question needs no new routing). */
+    readonly establishedExecution?: (chat: string) => Promise<RoutingSelection | undefined>;
     readonly onActivity?: (text: string) => void;
 };
+
+/**
+ * Time limit of Router's conversation-scoped routing turn.
+ */
+const ROUTING_TIMEOUT_MS = 5 * 60_000;
+
+/**
+ * Routable outcome of chat routing.
+ */
+type RoutableChat = Extract<RouteResolution, { kind: 'routable' }>;
+
+/**
+ * Resolves the conversation's execution before the agent's reply. A recorded or fully determined MODEL is reused
+ * without Router; otherwise Router chooses once, through a bounded read-only consultation (never a queued background
+ * task, so it also works while another task runs or scheduling is paused). A human-led chat records the effective
+ * MODEL right after the User message that caused it, as its own commit; an agent's question from an executing task
+ * keeps that task's established execution.
+ */
+async function chatExecution(context: ConversationContext, stored: StoredChat, agent: EffectiveAgent): Promise<{ readonly route: RoutableChat } | { readonly error: string }> {
+    const { chat } = stored;
+    const routing: RoutingContext = { catalog: context.catalog, pool: context.pool, settings: context.settings };
+    // A conversation is read-only: only read-only-capable harnesses can serve it.
+    const readOnlyVariants = context.pool
+        .enabled()
+        .filter((id) => harnessPlugin(id)?.capabilities.readOnly)
+        .map((id) => harnessPlugin(id)!.variant);
+    if (!readOnlyVariants.length) return { error: 'No enabled harness supports read-only chat replies.' };
+    const constraint = intersectModels(intersectModels(agent.model, chat.model), { rows: readOnlyVariants.map((harness) => ({ harness })), explicit: true });
+    if (isImpossible(constraint)) return { error: `${agent.name}'s MODEL (${describeModel(agent.model)}) and the chat's MODEL (${describeModel(chat.model)}) leave no read-only-capable combination.` };
+    const humanLed = chat.messages[0]?.senderKey === 'user';
+    if (!humanLed) {
+        const established = await context.establishedExecution?.(chat.name);
+        const variant = established ? harnessVariantOf(established.harness) : undefined;
+        if (established && variant && readOnlyVariants.includes(variant) && established.model) {
+            const route = await routeConcrete(agent, { harness: variant, model: established.model, ...(established.thinkingLevel ? { thinking: established.thinkingLevel } : {}), runtime: established.runtime ?? 'official' }, routing);
+            if (route.kind === 'routable') return { route };
+        }
+        const route = await readOnlyRoute(agent, established?.harness, routing, chat.model);
+        return route.kind === 'routable' ? { route } : { error: route.reason };
+    }
+    const determined = determinedRow(constraint, hasThinking);
+    let row: ModelRow | undefined = determined;
+    let by: string | undefined;
+    if (!row) {
+        const decided = await routeWithRouter(context, stored, agent, readOnlyVariants);
+        if ('error' in decided) return decided;
+        row = decided.row;
+        by = decided.by;
+    }
+    const route = await routeConcrete(agent, row, routing);
+    if (route.kind !== 'routable') return { error: route.reason };
+    if (!chat.model.explicit || formatModelRow(chat.model.rows[0] ?? {}) !== formatModelRow(row)) {
+        const recorded = await context.chats.recordModel(chat.name, row, { by });
+        context.onActivity?.(`Recorded MODEL ${formatModelRow(row)} in {${chat.name}}${by ? ` (chosen by ${by})` : ''}${recorded.commit ? ` (${recorded.commit.slice(0, 8)})` : ''}`);
+    }
+    return { route };
+}
+
+/**
+ * Asks Router (with its own concrete MODEL) to choose a chat's execution: one bounded read-only turn, validated like
+ * task assignment.
+ */
+async function routeWithRouter(context: ConversationContext, stored: StoredChat, agent: EffectiveAgent, readOnlyVariants: readonly ReturnType<typeof harnessVariantOf>[]): Promise<{ readonly row: ModelRow; readonly by: string } | { readonly error: string }> {
+    const routing: RoutingContext = { catalog: context.catalog, pool: context.pool, settings: context.settings };
+    const router = await routerAgent(context.catalog);
+    if (!router) return { error: 'Router (agents/.core/router.book) is missing, so the chat cannot be routed.' };
+    const routerAgentDefinition = await resolveEffectiveAgent(context.catalog, formatAgentReference(router.name));
+    const routerRow = determinedRow(routerAgentDefinition.model, hasThinking);
+    if (!routerRow) return { error: `${router.name} has no concrete MODEL, so it cannot route without routing itself (a setup problem Fixer repairs).` };
+    const routerRoute = await routeConcrete(routerAgentDefinition, routerRow, routing);
+    if (routerRoute.kind !== 'routable') return { error: `${router.name} cannot run: ${routerRoute.reason}` };
+    const target = { routing: { agent: formatAgentReference(agent.name), model: stored.chat.model, runners: [] }, priority: { value: 0, resolved: true } };
+    const prompt = [
+        `# Routing\n\nYou are **${routerAgentDefinition.name}**, choosing how the agent of a conversation of the project at \`${context.project.root}\` replies.`,
+        `## Your role\n\n${renderAgentInstructions(routerAgentDefinition) || '_No additional instructions._'}`,
+        await chatRoutingPrompt({ chat: stored.chat.name, target, context: routing, readOnlyVariants: readOnlyVariants.filter((variant): variant is NonNullable<typeof variant> => Boolean(variant)) }),
+    ].join('\n\n');
+    const directory = await ensureDirectory(context.project.runtime.temporary);
+    const promptFile = join(directory, `chat-routing-${shortId()}.md`);
+    await writeFile(promptFile, prompt);
+    context.onActivity?.(`${routerAgentDefinition.name} is routing {${stored.chat.name}}`);
+    const instance = context.pool.instance(routerRoute.selection.tool!)!;
+    let result;
+    try {
+        result = await runHarness(
+            routerRoute.plugin,
+            {
+                projectRoot: context.project.root,
+                cwd: context.project.root,
+                prompt,
+                promptFile,
+                readOnly: true,
+                env: instanceEnvironment(routerRoute.plugin, instance, context.pool.credential(instance), context.env),
+                timeoutMs: ROUTING_TIMEOUT_MS,
+                signal: context.signal,
+                allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
+                authentication: routerRoute.inspection.authentication,
+                readableDirectories: [],
+                model: routerRoute.selection.model,
+                thinkingLevel: routerRoute.selection.thinkingLevel,
+                baseUrl: routerRoute.selection.baseUrl,
+            },
+            routerRoute.inspection.executablePath ?? routerRoute.plugin.executable,
+        );
+    } finally {
+        await rm(promptFile, { force: true });
+    }
+    if (result.outcome !== 'completed') return { error: `${routerAgentDefinition.name} could not route the chat: ${result.diagnostic}` };
+    const report = parseAgentReport(result.messages);
+    if (!report || report.status !== 'done') return { error: `${routerAgentDefinition.name} gave no usable routing${report?.reason ? `: ${report.reason}` : ''}.` };
+    const validation = await validateAssignment(report.data, { target, context: routing });
+    if (!validation.ok) return { error: `${routerAgentDefinition.name}'s routing was not usable: ${validation.feedback}` };
+    if (validation.decision.kind === 'impossible') return { error: `No compatible execution exists for this chat: ${validation.decision.reason}` };
+    const variant = validation.decision.model.harness;
+    if (!variant || !readOnlyVariants.includes(variant)) return { error: `${routerAgentDefinition.name} chose ${harnessPlugin(harnessPluginId(variant ?? 'OPENAI_CODEX'))?.displayName ?? 'a harness'} without read-only support.` };
+    return { row: validation.decision.model, by: routerAgentDefinition.name };
+}
 
 /**
  * Outcome of an agent's chat turn.
@@ -78,12 +204,13 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const agent = await resolveEffectiveAgent(context.catalog, agentReference);
     const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { createdTasks: [], error: `${agentReference} cannot reply: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };
-    const preferred = setting<string | undefined>(context.settings, 'routing.harness');
-    const harnessId = [preferred, ...context.pool.usable()].find((id): id is string => Boolean(id) && Boolean(context.pool.plugin(id!)?.capabilities.readOnly) && Boolean(context.pool.select(id!)));
-    if (!harnessId) return { createdTasks: [], error: 'No usable harness supports read-only chat replies.' };
-    const plugin = context.pool.plugin(harnessId)!;
-    const instance = context.pool.select(harnessId)!;
-    const inspection = context.pool.inspectionOf(instance.name)!;
+    const execution = await chatExecution(context, stored, agent);
+    if ('error' in execution) return { createdTasks: [], error: execution.error };
+    const { route } = execution;
+    const harnessId = route.selection.harness;
+    const plugin = route.plugin;
+    const instance = context.pool.instance(route.selection.tool!)!;
+    const inspection = route.inspection;
     const contextFile = setting<string | null>(context.settings, 'paths.context');
     const projectInstructions = contextFile ? await readTextIfExists(join(context.project.root, contextFile)) : undefined;
     let transcript = chat.messages.map((message) => `**${message.sender}** (${message.at}):\n${message.text}${message.choices?.length ? `\n(offered choices: ${message.choices.join(' | ')})` : ''}`).join('\n\n');
@@ -201,7 +328,9 @@ export async function replyInChat(context: ConversationContext, chatName: string
                 allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
                 authentication: inspection.authentication,
                 readableDirectories: agent.name === 'Expert' || agent.chain.includes('Expert') ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],
-                model: instance.model,
+                model: route.selection.model,
+                thinkingLevel: route.selection.thinkingLevel,
+                baseUrl: route.selection.baseUrl,
             },
             inspection.executablePath ?? plugin.executable,
         );

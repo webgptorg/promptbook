@@ -1,4 +1,4 @@
-import { matchEnum } from '../common/naming.js';
+import { canonicalEnumValue, matchEnum } from '../common/naming.js';
 import { compareVersions } from '../common/semver.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { environmentReference } from '../tools/environment.js';
@@ -150,7 +150,8 @@ const UNIFIED_TOOLS_MIGRATION: ConfigurationMigration = {
         const existing = parseTools(raw.tools);
         const tools: unknown[] = Array.isArray(raw.tools) ? [...(raw.tools as unknown[])] : [];
         const taken = new Map(existing.tools.map((tool) => [tool.name, tool] as const));
-        const add = (record: ToolRecord): boolean => {
+        // `legacy` carries this release's per-tool model preferences as raw fields; a later step converts them.
+        const add = (record: ToolRecord, legacy: Readonly<Record<string, unknown>> = {}): boolean => {
             const present = taken.get(record.name);
             if (present) {
                 if (sameInstance(present, record)) return true;
@@ -158,7 +159,7 @@ const UNIFIED_TOOLS_MIGRATION: ConfigurationMigration = {
                 return false;
             }
             taken.set(record.name, record);
-            tools.push(serializeTool(record));
+            tools.push({ ...serializeTool(record), ...legacy });
             return true;
         };
 
@@ -231,8 +232,10 @@ const UNIFIED_TOOLS_MIGRATION: ConfigurationMigration = {
                         // No durable API-mode authorization existed: native stays native; a reference is inactive metadata.
                         authentication: 'NATIVE',
                         ...(apiKey ? { apiKey } : {}),
+                    };
+                    const legacyPreferences = {
                         ...(typeof entry.model === 'string' && entry.model ? { model: entry.model } : {}),
-                        ...(thinking ? { thinkingLevel: thinking } : {}),
+                        ...(thinking ? { thinkingLevel: canonicalEnumValue(thinking) } : {}),
                         ...(models ? { models } : {}),
                     };
                     const unknown = Object.keys(entry).filter((key) => !['enabled', 'model', 'thinkingLevel', 'models', 'apiKeyEnv'].includes(key));
@@ -241,7 +244,7 @@ const UNIFIED_TOOLS_MIGRATION: ConfigurationMigration = {
                         remaining[id] = value;
                         continue;
                     }
-                    if (!add(record)) {
+                    if (!add(record, legacyPreferences)) {
                         remaining[id] = value;
                         continue;
                     }
@@ -276,11 +279,44 @@ const UNIFIED_TOOLS_MIGRATION: ConfigurationMigration = {
 };
 
 /**
+ * The configuration side of the Router/Tasker/MODEL contract: former routing defaults and per-tool model settings
+ * leave `ptbk.json` (harness plugins own model/thinking defaults; MODEL in Books states requirements). The Book side
+ * of the same step moves their meaning into Router's MODEL and instructions, restoring them when it cannot.
+ */
+const ROUTER_MODEL_MIGRATION: ConfigurationMigration = {
+    target: '0.119.0-32',
+    title: 'Router and Tasker core roles, shared MODEL requirements and plugin-owned model defaults',
+    migrate: (raw) => {
+        const notes: string[] = [];
+        const problems: ConfigProblem[] = [];
+        const routing = raw.routing !== null && typeof raw.routing === 'object' && !Array.isArray(raw.routing) ? (raw.routing as Record<string, unknown>) : undefined;
+        for (const key of ['harness', 'model', 'thinkingLevel', 'preferences']) {
+            if (routing?.[key] === undefined) continue;
+            notes.push(`routing.${key} (${JSON.stringify(routing[key])}) → Router's MODEL/instructions`);
+            delete routing[key];
+        }
+        if (routing && !Object.keys(routing).length) delete raw.routing;
+        if (Array.isArray(raw.tools)) {
+            for (const entry of raw.tools) {
+                if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) continue;
+                const tool = entry as Record<string, unknown>;
+                for (const key of ['model', 'thinkingLevel', 'models']) {
+                    if (tool[key] === undefined) continue;
+                    notes.push(`tools "${String(tool.name)}".${key} (${JSON.stringify(tool[key])}) → Router's instructions (plugins own the defaults)`);
+                    delete tool[key];
+                }
+            }
+        }
+        return { notes, problems };
+    },
+};
+
+/**
  * Every registered configuration migration (sparse: most releases have none).
  *
  * @private configuration migrations
  */
-export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION];
+export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION];
 
 /**
  * Compares the saved configuration version with the running engine and selects the applicable ordered steps

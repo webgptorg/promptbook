@@ -1,3 +1,4 @@
+import { formatModelContent } from '../../book/model.js';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { EXIT, PtbkError } from '../../common/errors.js';
@@ -75,7 +76,7 @@ async function inspectTask(context: CommandContext, project: Project, task: Task
 export default async function list(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const settings = await loadSettings(project, { env: context.env });
-    const preview = await previewQueue(project, { settings, mode: 'start', tasksDirectory: tasksOverride(context), env: context.env });
+    const preview = await previewQueue(project, { settings, tasksDirectory: tasksOverride(context), env: context.env });
     const [reference] = context.positionals;
     if (reference) {
         const found = findTask(preview.evaluated.map((item) => item.task), reference);
@@ -107,8 +108,9 @@ export default async function list(context: CommandContext): Promise<number> {
                     priority: task.priority.value,
                     priorityText: task.priority.raw,
                     agent: route?.kind === 'routable' ? route.selection.agent : task.routing.agent,
-                    harness: route?.kind === 'routable' ? route.selection.harness : task.routing.harness,
-                    model: route?.kind === 'routable' ? route.selection.model : task.routing.model,
+                    harness: route?.kind === 'routable' ? route.selection.harness : undefined,
+                    model: route?.kind === 'routable' ? route.selection.model : undefined,
+                    modelRequirement: task.routing.model.explicit ? formatModelContent(task.routing.model) : undefined,
                     origin: task.origin,
                     done: task.doneStamps,
                 };

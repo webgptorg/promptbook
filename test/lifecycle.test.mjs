@@ -133,7 +133,7 @@ test('Chatter: initialized with every other role as TEAM, default partner of new
     const chatter = await readFile(join(project, 'agents', '.core', 'chatter.book'), 'utf8');
     assert.match(chatter, /^AGENT Chatter\n/);
     const team = /^TEAM (.*)$/m.exec(chatter)[1];
-    for (const role of ['@Developer', '@Planner', '@Lawyer', '@Copywriter', '@Adam', '@Manager', '@Teacher', '@Fixer', '@Expert']) assert.ok(team.includes(role), `${role} is a teammate: ${team}`);
+    for (const role of ['@Developer', '@Planner', '@Lawyer', '@Copywriter', '@Adam', '@Router', '@Tasker', '@Teacher', '@Fixer', '@Expert']) assert.ok(team.includes(role), `${role} is a teammate: ${team}`);
     assert.doesNotMatch(team, /@Chatter/, 'Chatter never consults itself');
     const before = (await subjects(project)).length;
     const asked = await ptbk(['chat', 'How should we start? CONSULT_TEAM', '--raw'], { cwd: project, env });
@@ -148,7 +148,7 @@ test('Chatter: initialized with every other role as TEAM, default partner of new
     assert.ok(consultation.links.some((link) => link.includes(human.name)), 'linked to the originating conversation');
     const history = await subjects(project);
     assert.ok(history.includes(`PTBK: Chat - ${consultation.name}`), 'a conversation-scoped consultation has its own scoped commit');
-    assert.ok(!history.slice(0, history.length - before).some((subject) => /^PTBK: (?!Chat - )/.test(subject)), 'no task was created or executed');
+    assert.ok(!history.slice(0, history.length - before).some((subject) => /^PTBK: (?!Chat - |Chat routing - )/.test(subject)), 'no task was created or executed (only chat messages and the chat routing)');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
     await writeFile(join(project, 'agents', '.core', 'chatter.book'), `${chatter}RULE Answer in one paragraph.\n`);
     await git(project, ['commit', '-qam', 'Customize Chatter']);

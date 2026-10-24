@@ -6,8 +6,7 @@ import type { HarnessPool } from '../engine/harnesses.js';
 import type { ToolsView, ToolView } from '../engine/snapshot.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { describeCredentialSource } from './environment.js';
-import { canonicalEnumValue } from '../common/naming.js';
-import { describeProfileSource, harnessPluginId, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from './model.js';
+import { describeProfileSource, harnessPluginId, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from './model.js';
 
 /**
  * Observed readiness of one browser tool (never launches it).
@@ -53,10 +52,22 @@ export function toolFields(project: Project, tool: ToolRecord, env: NodeJS.Proce
         authentication: tool.authentication,
         ...(tool.apiKey ? { apiKey: `${tool.apiKey}${tool.authentication === 'API_KEY' ? (credential ? ` (${describeCredentialSource(credential)})` : '') : ' (inactive metadata: NATIVE authentication)'}` } : {}),
         ...(tool.accountProfile ? { accountProfile: tool.accountProfile } : {}),
-        ...(tool.model ? { model: tool.model } : {}),
-        ...(tool.thinkingLevel ? { thinkingLevel: canonicalEnumValue(tool.thinkingLevel) } : {}),
-        ...(tool.models?.length ? { models: tool.models.join(', ') } : {}),
+        endpoint: describeEndpoint(tool),
     };
+}
+
+/**
+ * Human description of a harness tool's endpoint (the plugin's fixed official endpoint, local inference on the
+ * engine's host or an explicit base URL; never secrets).
+ *
+ * @private tool readiness
+ */
+export function describeEndpoint(tool: HarnessToolRecord): string {
+    const plugin = harnessPlugin(harnessPluginId(tool.variant));
+    const runtime = toolRuntime(tool);
+    if (runtime === 'official') return `official${plugin ? ` (${plugin.endpoints.official})` : ''}`;
+    if (runtime === 'local') return `local on the engine's host${plugin?.endpoints.local ? ` (${plugin.endpoints.local})` : ' (unsupported by this harness)'}`;
+    return `custom ${runtime}`;
 }
 
 /**

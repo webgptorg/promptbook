@@ -108,6 +108,8 @@ export type HarnessRunRequest = {
     readonly model?: string;
     /** Thinking level to request. */
     readonly thinkingLevel?: ThinkingLevel;
+    /** Base URL of a local or custom endpoint selected through the tool (undefined = the official endpoint). */
+    readonly baseUrl?: string;
     /** Enforce read-only execution. */
     readonly readOnly: boolean;
     /** ptbk MCP bridge to load. */
@@ -176,6 +178,21 @@ export type ParserState = {
 };
 
 /**
+ * Model execution endpoints an adapter can reach. `official` is fixed by the plugin and cannot be redefined by a
+ * tool's custom URL.
+ *
+ * @private harness plugin contract
+ */
+export type HarnessEndpoints = {
+    /** The provider's fixed official endpoint (reached when the tool selects no other one). */
+    readonly official: string;
+    /** How inference local to the engine's host is reached (absent: local execution is unsupported). */
+    readonly local?: string;
+    /** Whether an explicit custom base URL is supported. */
+    readonly custom: boolean;
+};
+
+/**
  * The common integration contract implemented by every harness folder.
  *
  * @private harness plugin contract
@@ -205,6 +222,17 @@ export type HarnessPlugin = {
     readonly thinkingLevels: readonly ThinkingLevel[];
     /** The harness's own name of the thinking-level setting (e.g. `reasoning effort`), shown instead of a generic label. */
     readonly thinkingLabel?: string;
+    /**
+     * Default model of the plugin (owned by plugin code, never by a tool's settings). With a complete catalog that
+     * lacks it, the catalog's first model is the default instead.
+     */
+    readonly defaultModel: string;
+    /** Default thinking level (absent when the harness has no thinking control). */
+    readonly defaultThinkingLevel?: ThinkingLevel;
+    /** Whether `listModels` reports every accepted model (`complete`) or only examples/aliases (`partial`). */
+    readonly modelCatalog: 'complete' | 'partial';
+    /** Reachable model execution endpoints. */
+    readonly endpoints: HarnessEndpoints;
     /** Static capabilities (may be refined by inspection). */
     readonly capabilities: HarnessCapabilities;
     /** Native interactive login arguments (inherit the terminal). */

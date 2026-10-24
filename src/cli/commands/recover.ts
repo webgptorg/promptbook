@@ -69,7 +69,7 @@ export default async function recover(context: CommandContext): Promise<number> 
     const instanceId = shortId(12);
     const release = await acquireProjectLock(project, instanceId, 'recovery');
     try {
-        const agenda = new Agenda({ project, mode: 'run', instanceId, env: context.env, cli: { 'server.isEnabled': false }, persistent: null });
+        const agenda = new Agenda({ project, mode: 'maintenance', instanceId, env: context.env, cli: { 'server.isEnabled': false }, persistent: null });
         await agenda.initialize();
         const message = await agenda.recover(reference, action);
         terminal.write(`${message}${action === 'resume' || action === 'retry' ? ' The work continues on the next `ptbk start` (or `ptbk run --git-changes continue`).' : ''}\n`);

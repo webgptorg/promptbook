@@ -23,7 +23,7 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
     if (request.model) args.push('--model', request.model);
     for (const directory of request.readableDirectories) args.push('--include-directories', directory);
     args.push(`Read the complete task instructions in the file ${request.promptFile} and follow them exactly.`);
-    return { args, env: request.env };
+    return { args, env: request.baseUrl ? { ...request.env, OPENAI_BASE_URL: request.baseUrl } : request.env };
 }
 
 /**
@@ -40,6 +40,9 @@ export const plugin: HarnessPlugin = {
     npmPackage: '@qwen-code/qwen-code',
     homepage: 'https://qwenlm.github.io/qwen-code-docs/',
     thinkingLevels: [],
+    defaultModel: 'qwen3-coder-plus',
+    modelCatalog: 'partial',
+    endpoints: { official: 'https://dashscope.aliyuncs.com/compatible-mode/v1', local: 'http://localhost:11434/v1', custom: true },
     capabilities: { mcp: false, readOnly: true },
     loginHint: 'Start `qwen` once and complete its login, or set DASHSCOPE_API_KEY.',
     inspect,

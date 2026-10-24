@@ -7,7 +7,7 @@ import {
     JSON_OPTION,
     PRESENTATION_OPTIONS,
     PROJECT_OPTIONS,
-    QUEUE_FILTER_OPTIONS,
+    DRY_RUN_OPTION,
     SERVER_OPTIONS,
     type CommandSpec,
     type OptionGroup,
@@ -70,9 +70,13 @@ const TOOL_HARNESS_OPTIONS: OptionGroup = {
         { name: 'api-key-env', type: 'string', valueName: '<NAME>', description: 'Environment variable holding the key; saved as ${{ env.NAME }} (never the key).' },
         { name: 'api-key-stdin', type: 'boolean', description: 'Read a new key from standard input (hidden when typed) into the ignored .env, with a timestamped comment.' },
         { name: 'account-profile', type: 'string', valueName: '<name>', description: 'Separate native login context (where the adapter supports it).' },
-        { name: 'model', type: 'string', valueName: '<model>', description: 'Preferred model.' },
-        { name: 'thinking-level', type: 'string', valueName: '<level>', description: 'LOW, MEDIUM, HIGH, XHIGH or MAX (where supported).' },
-        { name: 'models', type: 'string', valueName: '<a,b>', description: 'Explicitly known models (comma-separated).' },
+        {
+            name: 'base-url',
+            type: 'string',
+            valueName: '<endpoint>',
+            description: 'Model execution endpoint: default (the official one), official, local (inference on the engine\'s host) or an explicit base URL, where the adapter supports it. Models and thinking levels are not tool settings: plugins own the defaults and MODEL in Books states requirements.',
+            defaultText: 'default',
+        },
     ],
 };
 
@@ -110,9 +114,9 @@ export const COMMANDS: readonly CommandSpec[] = [
         aliases: ['initialize'],
         category: 'Start here',
         summary: 'Set up a project from your intent, then start its agenda in the background.',
-        description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (default roles plus the core agents Adam, Manager, Teacher, Fixer and Chatter — the default partner of new chats, with TEAM access to every other initialized role), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified) and one browser — saved as named tools in ptbk.json "tools" through the same operations as \`ptbk tool\` — trace settings and optional automatic Git synchronization, and saves one ordinary Expert task that transforms the project according to the initial specification. There is no check-command question: an existing real check is kept, otherwise an informational placeholder records that real validation is not configured yet (it never counts as passing tests). Setup is committed with a "PTBK: " subject and the task's Task-Name trailer; a new repository starts on main.
+        description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (default roles plus the core agents Adam, Router — initialized with a concrete MODEL from the first suitable selected harness and its plugin defaults —, Tasker, Teacher, Fixer and Chatter — the default partner of new chats, with TEAM access to every other initialized role), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified) and one browser — saved as named tools in ptbk.json "tools" through the same operations as \`ptbk tool\` — trace settings and optional automatic Git synchronization, and saves one ordinary Expert task that transforms the project according to the initial specification. There is no check-command question: an existing real check is kept, otherwise an informational placeholder records that real validation is not configured yet (it never counts as passing tests). Setup is committed with a "PTBK: " subject and the task's Task-Name trailer; a new repository starts on main.
 
-After successful setup the agenda starts automatically as a background service (the same operation as \`ptbk start\`); init returns without waiting for the first task. Watch it with \`ptbk dashboard\`, stop it with \`ptbk stop\`. Repeating init with satisfied prerequisites changes nothing and reuses a running service.
+After successful setup the agenda starts automatically as a background service (the same operation as \`ptbk start\`); init never waits for the first task. In an interactive terminal a short countdown then opens the ordinary dashboard (Enter opens it at once, Esc/Ctrl+C skips it — the service keeps running either way); raw/noninteractive init returns directly. Stop the service with \`ptbk stop\`. Repeating init with satisfied prerequisites changes nothing and reuses a running service.
 
 Without a terminal (or with --non-interactive), supply decisions with flags: missing decisions fail before any change, and blank intent creates a skeleton whose first task is a readiness review.`,
         optionGroups: [
@@ -133,7 +137,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                 options: [
                     { name: 'installation', type: 'enum', values: ['local', 'global'], valueName: '<scope>', description: "Install ptbk in the project's dependencies (exact running version) or use the global CLI.", defaultText: 'local (asked interactively)' },
                     { name: 'harness', type: 'string', valueName: '<id>', repeatable: true, description: 'Select a harness (repeatable): openai-codex, claude-code, github-copilot, cline, opencode, gemini, qwen-code. Each becomes a native harness tool; more instances/accounts are added later with `ptbk tool add`.' },
-                    { name: 'no-harness', type: 'boolean', description: 'Explicitly select no harness (the agenda then waits for tools).' },
+                    { name: 'no-harness', type: 'boolean', description: 'Explicitly select no harness (no model work can run and Router gets no initial MODEL; the agenda waits for tools).' },
                     { name: 'install-harnesses', type: 'boolean', description: 'Authorize global installation of missing selected harness CLIs (unattended).' },
                     { name: 'update-harnesses', type: 'enum', values: ['keep', 'update'], valueName: '<decision>', description: 'Outdated selected harnesses: keep current versions or update them.', defaultText: 'asked interactively; keep when unattended' },
                 ],
@@ -180,7 +184,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
             { command: 'ptbk init --non-interactive --installation local --harness openai-codex --check "npm test"', description: 'Unattended setup with a blank intent (readiness review).' },
             { command: 'ptbk init --auto-sync --github-repository my-company/newsletter', description: 'Also publish to a new private GitHub repository and keep it synchronized.' },
             { command: 'ptbk init --intent-file brief.md --attach mockup.png --harness claude-code --installation local', description: 'Unattended setup from a written brief with an image.' },
-            { command: 'ptbk dashboard', description: 'Afterwards: watch and control the running agenda.' },
+            { command: 'ptbk dashboard', description: 'Afterwards (or after skipping the countdown): watch and control the running agenda.' },
         ],
         run: lazy(() => import('./commands/init.js')),
     },
@@ -188,7 +192,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
         name: 'start',
         category: 'Run the agenda',
         summary: 'Start (or resume) the ongoing agenda as a background service and report once.',
-        description: `Successful \`ptbk init\` already starts the agenda; use start for an initialized, cloned or intentionally stopped project. Starts actual work: executes eligible tasks one at a time, routes unassigned tasks through Manager, checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon, serves the local dashboard/API on a free loopback port (from 3000) with protected remote access through a managed tunnel, renders one status snapshot and returns the terminal.
+        description: `Successful \`ptbk init\` already starts the agenda; use start for an initialized, cloned or intentionally stopped project. It is the ongoing work launcher (there is no separate finite run): it executes eligible tasks one at a time, lets Router choose the agent and concrete MODEL of tasks that do not determine them (also ahead of future tasks), checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon, serves the local dashboard/API on a free loopback port (from 3000) with protected remote access through a managed tunnel, renders one status snapshot and returns the terminal.
 
 Missing setup is offered through the same initialization workflow when interactive; unattended starts report what is missing. Repeated start reports the existing service without starting another one. Use \`ptbk dashboard\` to watch it live.`,
         optionGroups: [START_OPTIONS, SERVER_OPTIONS, BROWSER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, { title: 'Context', options: [EXECUTION_SELECTION_OPTIONS.options[4]!] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
@@ -204,7 +208,7 @@ Missing setup is offered through the same initialization workflow when interacti
         name: 'pause',
         category: 'Run the agenda',
         summary: 'Stop claiming new tasks; the current task settles, then the service stays alive in pause.',
-        description: 'The shared engine pause (the same operation as P in the dashboards and the browser/API controls). While a task runs, the service is `pausing`: no next task, follow-up, Manager, Teacher, Fixer or discovery work starts, and the current task finishes (or is checkpointed) normally — the harness is not suspended. With no task running it pauses immediately. Inspection, chats and controls keep working. Replacing a pending stop/restart with pause asks for confirmation; without a terminal it reports the conflict (run `ptbk resume`, then `ptbk pause`). Runtime-only: no commit.',
+        description: 'The shared engine pause (the same operation as P in the dashboards and the browser/API controls). While a task runs, the service is `pausing`: no next background task, follow-up, Router assignment, Teacher, Fixer or discovery work starts, and the current task finishes (or is checkpointed) normally — the harness is not suspended. With no task running it pauses immediately. Chat (including its first-message routing and TEAM consultations), task authoring, inspection and controls keep working; tasks created meanwhile stay pending until resume. Replacing a pending stop/restart with pause asks for confirmation; without a terminal it reports the conflict (run `ptbk resume`, then `ptbk pause`). Runtime-only: no commit.',
         optionGroups: [PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
             { command: 'ptbk pause', description: 'Pause after the current task.' },
@@ -258,9 +262,9 @@ Missing setup is offered through the same initialization workflow when interacti
         name: 'dashboard',
         category: 'Observe and respond',
         summary: 'Attach a live view and controls to the running service (or --global: every running engine).',
-        description: `Continuously shows the shared project status (agents waiting for you first, service controls, current work, queue, results and connection). Any number of dashboards can attach; opening or leaving one never starts, stops or owns the service, and a project without a running service is reported (nothing is started).
+        description: `Continuously shows the shared project status (agents waiting for you first, service controls, current work, separate Agents, Chats and Tasks panels, results and connection). Any number of dashboards can attach; opening or leaving one never starts, stops or owns the service, and a project without a running service is reported (nothing is started).
 
-Keys: A opens the conversation of the agent waiting for you (its real author), C starts a new chat (Enter = Chatter, or Choose another agent), L lists all chats, N focuses the next waiting chat; P pause/resume (pause instead of a pending stop asks first), U cancel a pending pause/stop/restart, X graceful stop (never escalates), R restart, F force stop (confirmed), S skip a pacing wait; E and B open/close the execution details (agent, harness, model, thinking level) and the browser details (profile, health; 1 recheck, 2 retry startup, 3 restart the project browser); V renew pairing, O plain presentation, Q/Ctrl+C leave. With --raw it streams plain state changes instead.
+Arrows move between panels without enlarging them, Enter drills into the focused panel and Escape returns (at the top level Escape leaves the viewer). Agents lists every agent with its activity and queue (Enter: details, C chat with it, E edit its Book); Chats lists conversations (N new chat, Chatter first); Tasks lists all tasks with a smart current-work order and selectable sorting (S sort field, D direction, T talk to Tasker, Enter source/edit). The Book editor inserts a line with Enter and saves with Ctrl+S without closing; problematic content is saved with a warning and Fixer gets a repair task. Keys: A opens the conversation of the agent waiting for you (its real author), C starts a new chat (Enter = Chatter, or Choose another agent), L lists all chats, N focuses the next waiting chat; P pause/resume (pause instead of a pending stop asks first), U cancel a pending pause/stop/restart, X graceful stop (never escalates), R restart, F force stop (confirmed), S skip a pacing wait; E and B open/close the execution details (agent, harness, model, thinking level) and the browser details (profile, health; 1 recheck, 2 retry startup, 3 restart the project browser); V renew pairing, O plain presentation, Q/Ctrl+C (or Escape at the top level) leave. With --raw it streams plain state changes instead.
 
 \`ptbk dashboard --global\` works from any directory (no project is selected or initialized): a continuously refreshed table of every running Promptbook engine of your OS user across installations and versions — project, path, version, PID, mode, live state and current work. It stays open with zero engines and shows engines started later; Enter attaches to the selected project's dashboard without \`cd\` (Q returns to the table), and closing it leaves every engine running.`,
         optionGroups: [
@@ -345,7 +349,7 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
                 optionGroups: [
                     { title: 'Identity', options: [{ name: 'rename', type: 'string', valueName: '<new-name>', description: 'New kebab-case name.' }, TOOL_IDENTITY_OPTIONS.options[0]!, TOOL_IDENTITY_OPTIONS.options[2]!, { name: 'clear-description', type: 'boolean', description: 'Remove the description.' }] },
                     { ...TOOL_BROWSER_OPTIONS, options: [...TOOL_BROWSER_OPTIONS.options, { name: 'clear-executable', type: 'boolean', description: 'Use the default executable discovery again.' }] },
-                    { ...TOOL_HARNESS_OPTIONS, options: [...TOOL_HARNESS_OPTIONS.options, { name: 'clear-model', type: 'boolean', description: 'Use the harness default model again.' }] },
+                    TOOL_HARNESS_OPTIONS,
                     TOOL_SAFETY_OPTIONS,
                     PROJECT_OPTIONS,
                     PRESENTATION_OPTIONS,
@@ -427,7 +431,7 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
         name: 'ask',
         category: 'Observe and respond',
         summary: 'Ask one agent a quick question (saved as an ordinary chat) and print the answer.',
-        description: 'Creates a new chat with the agent (default: routing.defaultAgent), waits for its read-only answer and prints it. The question and answer stay in chats/ and can be continued with `ptbk chat --open`. Use `ptbk add` for explicit work.',
+        description: 'Creates a new chat with the agent (default: routing.defaultAgent), waits for its read-only answer and prints it (its MODEL is resolved once, before the first reply). The question and answer stay in chats/ and can be continued with `ptbk chat --open`. Use `ptbk add` for explicit work.',
         arguments: [{ name: 'question', description: 'Your question.', variadic: true }],
         optionGroups: [
             {
@@ -470,23 +474,10 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
         run: lazy(() => import('./commands/answer.js')),
     },
     {
-        name: 'run',
-        category: 'Run the agenda',
-        summary: 'Execute the existing eligible queue once with one configuration, then exit.',
-        description: 'Finite execution: one agent, harness, model and thinking level for every task; tasks with incompatible explicit requirements are skipped with an explanation. New follow-up work does not extend the run, future tasks stay pending and recurring definitions run at most once. Uses the same checks, completion, commits and recovery as start.',
-        optionGroups: [EXECUTION_SELECTION_OPTIONS, QUEUE_FILTER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, { title: 'Live view', options: [{ ...SERVER_OPTIONS.options[0]!, negatable: true, description: 'Serve the dashboard/API during this run (--server enables; off by default).', defaultText: 'off' }, ...SERVER_OPTIONS.options.slice(1)] }, BROWSER_OPTIONS, { title: 'Output', options: [JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
-        examples: [
-            { command: 'ptbk run --harness openai-codex --limit 1', description: 'Run one task with Codex.' },
-            { command: 'ptbk run --dry-run', description: 'Preview the queue and configuration.' },
-            { command: 'ptbk run --agent @Planner --check "npm test"', description: 'Explicit agent and check.' },
-        ],
-        run: lazy(() => import('./commands/run.js')),
-    },
-    {
         name: 'add',
         category: 'Author work',
         summary: 'Create and commit a task (wizard, text, stdin or template) without a model call.',
-        description: 'Creates an unfinished task Book in the task source and commits it ("PTBK: Add task - <title>") so the agenda can pick it up immediately; Manager assigns missing routing. Interactive add guides the description, template and priority and confirms before saving; cancelling creates nothing.',
+        description: 'Creates an unfinished task Book in the task source and commits it ("PTBK: Add task - <title>") so the agenda can pick it up immediately; Router assigns a missing agent and specializes its MODEL before execution. Interactive add guides the description, template and priority and confirms before saving; cancelling creates nothing.',
         arguments: [{ name: 'description', description: 'Task description; the first line becomes the title.', variadic: true }],
         optionGroups: [
             {
@@ -496,10 +487,10 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
                     { name: 'stdin', type: 'boolean', description: 'Read the description from standard input.' },
                     { name: 'template', type: 'string', valueName: '<name>', description: 'Start from tasks/templates/<name>.book.' },
                     { name: 'priority', type: 'string', valueName: '<priority>', description: 'TASK PRIORITY (number or words like high).' },
-                    { name: 'agent', type: 'string', valueName: '<ref>', description: 'TASK AGENT (omit to let Manager assign).' },
-                    { name: 'harness', type: 'string', valueName: '<id>', description: 'TASK HARNESS requirement.' },
-                    { name: 'model', type: 'string', valueName: '<model>', description: 'TASK MODEL requirement.' },
-                    { name: 'thinking-level', type: 'enum', values: ['low', 'medium', 'high', 'xhigh', 'max'], valueName: '<level>', description: 'TASK THINKING LEVEL requirement.' },
+                    { name: 'agent', type: 'string', valueName: '<ref>', description: 'TASK AGENT (omit to let Router assign).' },
+                    { name: 'harness', type: 'string', valueName: '<variant>', description: 'Harness requirement, saved as MODEL harness=… (a variant; MODEL never binds an account).' },
+                    { name: 'model', type: 'string', valueName: '<model>', description: 'Model requirement, saved as MODEL model=….' },
+                    { name: 'thinking-level', type: 'enum', values: ['low', 'medium', 'high', 'xhigh', 'max'], valueName: '<level>', description: 'Thinking requirement, saved as MODEL thinking=….' },
                     { name: 'after', type: 'string', valueName: '<date>', description: 'TASK AFTER earliest start (YYYY-MM-DD[THH:mm][offset]).' },
                     { name: 'repeat', type: 'string', valueName: '<interval>', description: 'TASK REPEAT interval, e.g. 7d.' },
                     { name: 'yes', type: 'boolean', description: 'Save without the interactive confirmation.' },
@@ -550,7 +541,7 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
         name: 'list',
         category: 'Observe and respond',
         summary: 'List tasks with readiness explanations, or inspect one task (read-only).',
-        description: 'Shows the queue in execution order with the reason each task is ready, waiting or blocked, the same way start, run and the dashboards evaluate it. With a task reference ({Task name}, @Name, a bare name or a source path) it shows the task, any same-name copies it shadows, its audit trail in traces/<task-file-basename>/, recording status and the commits carrying its Task-Name. Never edits sources, calls a model or creates Manager tasks.',
+        description: 'Shows the queue in execution order with the reason each task is ready, waiting or blocked, the same way start, run and the dashboards evaluate it. With a task reference ({Task name}, @Name, a bare name or a source path) it shows the task, any same-name copies it shadows, its audit trail in traces/<task-file-basename>/, recording status and the commits carrying its Task-Name. Never edits sources, calls a model or creates Router tasks.',
         arguments: [{ name: 'task', description: 'Task to inspect: "{Task name}", a bare name or a source path.' }],
         optionGroups: [
             {
@@ -576,7 +567,7 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
         category: 'Maintain',
         summary: 'Run the project check and repair it when it fails (not the task queue).',
         description: 'Runs the configured check. A healthy project needs no model and creates no commit. A failing check becomes an explicit maintenance task executed by the selected agent (default Developer) and committed when the check passes.',
-        optionGroups: [EXECUTION_SELECTION_OPTIONS, { title: 'Check', options: [EXECUTION_POLICY_OPTIONS.options[0]!, QUEUE_FILTER_OPTIONS.options[5]!] }, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        optionGroups: [EXECUTION_SELECTION_OPTIONS, { title: 'Check', options: [EXECUTION_POLICY_OPTIONS.options[0]!, DRY_RUN_OPTION] }, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [{ command: 'ptbk fix', description: 'Check, and repair if needed.' }],
         run: lazy(() => import('./commands/fix.js')),
     },
@@ -607,7 +598,7 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
         summary: 'Convert Markdown tasks and Books in former syntax into canonical Books (no model call).',
         description: 'Creates one `TASK <name>` Book per Markdown section (the payload under GOAL), preserving title, state, priority, selectors (as TASK RUNNER), time restrictions and known completion history, verifies the meaning and moves the original file into tasks/archive/. Books in former syntax (a plain name line, ENTITY, text directly under the name) become `AGENT|TASK|CHAT <name>` Books with the same name and content; descriptive text moves under GOAL, PERSONA or NOTE. Ambiguous kinds and names that cannot follow a keyword are reported, not guessed. Read-only commands never convert anything. One maintenance commit.',
         arguments: [{ name: 'file', description: 'Markdown or Book files to convert (default: all task sources and project Books).', variadic: true }],
-        optionGroups: [{ title: 'Migration', options: [QUEUE_FILTER_OPTIONS.options[5]!] }, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        optionGroups: [{ title: 'Migration', options: [DRY_RUN_OPTION] }, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
             { command: 'ptbk migrate --dry-run', description: 'Preview the conversion.' },
             { command: 'ptbk migrate', description: 'Convert and commit.' },
@@ -626,7 +617,7 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
                 options: [
                     { name: 'action', type: 'enum', values: ['resume', 'retry', 'acknowledge'], valueName: '<action>', description: 'Recovery action.' },
                     { name: 'occurrence', type: 'string', valueName: '<time>', description: 'Occurrence of recurring work.' },
-                    QUEUE_FILTER_OPTIONS.options[5]!,
+                    DRY_RUN_OPTION,
                 ],
             },
             PROJECT_OPTIONS,
@@ -754,8 +745,8 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
     {
         name: 'help',
         category: 'Information',
-        summary: 'Show help for ptbk or one command path.',
-        description: 'Equivalent to `<command> --help`. Without a command, shows the overview.',
+        summary: 'Show the technical command reference for ptbk or one command path.',
+        description: 'Equivalent to `<command> --help`. Without a command, shows the technical overview of commands and options (bare interactive `ptbk` offers the Initialize/Start/Dashboard picker instead).',
         arguments: [{ name: 'command', description: 'Command path, e.g. `init` or `access pair`.', variadic: true }],
         optionGroups: [PRESENTATION_OPTIONS],
         examples: [{ command: 'ptbk help start', description: 'Help for start.' }],
@@ -763,8 +754,8 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
     {
         name: 'about',
         category: 'Information',
-        summary: 'Short product overview and the running engine version.',
-        description: 'Explains what Promptbook is and which installation is running.',
+        summary: 'A compact product box: Promptbook, the running engine version, its purpose and website.',
+        description: 'A short visual product box (Promptbook name, actual engine version, purpose and ptbk.io) — not a command reference; use `ptbk help` for that. Raw output keeps the same information as plain text.',
         optionGroups: [PRESENTATION_OPTIONS],
         examples: [{ command: 'ptbk about', description: 'About this installation.' }],
         run: lazy(() => import('./commands/about.js')),

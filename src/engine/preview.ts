@@ -9,7 +9,7 @@ import { findTask, readTaskQueue } from '../tasks/sources.js';
 import { captureSnapshot } from './executor.js';
 import { originTarget, workKindOf } from './generated.js';
 import { HarnessPool } from './harnesses.js';
-import { resolveRoute, type RouteResolution, type RunSelection } from './routing.js';
+import { resolveRoute, type RouteResolution } from './routing.js';
 import { StateStore, parkedReadiness } from './state.js';
 
 /**
@@ -31,7 +31,7 @@ export type QueuePreview = {
  */
 export async function previewQueue(
     project: Project,
-    options: { settings: EffectiveSettings; mode: 'start' | 'run'; runSelection?: RunSelection; tasksDirectory?: string; env?: NodeJS.ProcessEnv },
+    options: { settings: EffectiveSettings; tasksDirectory?: string; env?: NodeJS.ProcessEnv },
 ): Promise<QueuePreview> {
     const { settings } = options;
     const env = options.env ?? process.env;
@@ -71,7 +71,7 @@ export async function previewQueue(
         uncommittedSources: uncommitted,
         activation: (task) => (isRecurring(task) ? (activations[task.key] ?? now) : now),
         route: async (task) => {
-            const resolution = await resolveRoute(task, { mode: options.mode, catalog, pool, settings, runSelection: options.runSelection });
+            const resolution = await resolveRoute(task, { catalog, pool, settings });
             routes.set(task.ref, resolution);
             return resolution.kind === 'routable' ? { kind: 'routable' } : resolution;
         },

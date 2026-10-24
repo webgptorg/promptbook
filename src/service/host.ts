@@ -1,10 +1,11 @@
 import { PtbkError, errorMessage } from '../common/errors.js';
+import type { ComposedSegment } from '../ui/composer.js';
 import { secretToken, shortId } from '../common/ids.js';
 import { ipcAddress, type IpcServer } from '../common/ipc.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
-import { Agenda, type AgendaMode, type AgendaSummary, type RunOptions } from '../engine/agenda.js';
+import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js';
 import type { ConnectionView } from '../engine/snapshot.js';
 import { browserTools } from '../browser/agent-tools.js';
 import { BrowserFleet } from '../browser/fleet.js';
@@ -44,8 +45,6 @@ export type HostOptions = {
     readonly launchNonce?: string;
     /** Allows installing cloudflared when missing. */
     readonly allowTunnelInstall: boolean;
-    /** Finite-run options. */
-    readonly run?: RunOptions;
     /** Plain event stream. */
     readonly onEvent?: (text: string, level: 'info' | 'warning' | 'error') => void;
 };
@@ -82,7 +81,6 @@ export class ServiceHost {
             tasksDirectory: options.tasksDirectory,
             persistent: options.persistent,
             persistenceNote: options.persistenceNote,
-            run: options.run,
             onEvent: options.onEvent,
             extraTools: (_task, context) => {
                 void this.browsers.useFor(context.trace, context.attempt);
@@ -307,7 +305,15 @@ export class ServiceHost {
             case 'chat-read':
             case 'chat-create':
             case 'chat-send':
-                return await applyChatAction(agenda, method, params, typeof params.via === 'string' ? params.via : 'cli');
+                // The authenticated local control channel of the engine host may attach local files.
+                return await applyChatAction(agenda, method, params, typeof params.via === 'string' ? params.via : 'cli', { trusted: true });
+            case 'task-inventory':
+                return await agenda.taskInventory();
+            case 'book-source':
+                return await agenda.bookSource({ reference: typeof params.reference === 'string' ? params.reference : undefined, path: typeof params.path === 'string' ? params.path : undefined });
+            case 'book-save':
+                // Attachments by local path are accepted on this trusted local channel only (as for chats).
+                return await agenda.bookSave({ path: String(params.path), text: String(params.text ?? ''), revision: String(params.revision ?? ''), segments: Array.isArray(params.segments) ? (params.segments as ComposedSegment[]) : undefined });
             case 'settings':
                 return await applySettings(agenda, params);
             case 'add-task':

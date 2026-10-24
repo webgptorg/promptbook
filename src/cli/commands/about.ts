@@ -1,41 +1,37 @@
 import { EXIT } from '../../common/errors.js';
-import { ENGINE_VERSION, detectInstallation } from '../../common/version.js';
+import { ENGINE_VERSION } from '../../common/version.js';
 import { wrap } from '../../ui/ansi.js';
 import { badgeFace, badgeIdentity } from '../../ui/badges.js';
 import { renderPanel } from '../../ui/panels.js';
 import type { CommandContext } from '../context.js';
 
 /**
- * `ptbk about`: product overview and the running engine (offline, no side effects).
+ * Website of the product.
+ */
+const WEBSITE = 'https://www.ptbk.io/';
+
+/**
+ * One-line purpose of the product.
+ */
+const PURPOSE = 'Readable agents, tasks and chats that keep working on your Git project.';
+
+/**
+ * `ptbk about`: a compact visual product box — name, actual engine version, purpose and website — never another
+ * command reference (offline, no side effects; raw output keeps the same information as plain text).
  *
  * @private command
  */
 export default async function about(context: CommandContext): Promise<number> {
-    const installation = detectInstallation();
-    const text = [
-        'Promptbook (ptbk) operates readable agents and tasks over a Git project. Agents carry lasting roles, goals and rules; tasks describe bounded work. The agenda executes one task at a time, routes missing assignments through Manager, verifies results with your project check and commits each accepted result together with its completion record.',
-        'Everything lives in files: Books in agents/ and tasks/, configuration in ptbk.json, runtime state in the Git-ignored .ptbk/ folder.',
-    ];
-    const facts: Array<[string, string]> = [
-        ['Engine', `ptbk ${ENGINE_VERSION}`],
-        ['Installation', `${installation.scope}${installation.ownerProject ? ` (project ${installation.ownerProject})` : ''}`],
-        ['Location', installation.root],
-        ['Node.js', process.version],
-        ['Website', 'https://ptbk.io/'],
-    ];
     const { terminal } = context;
     if (!terminal.pretty) {
-        terminal.write(`${text.join('\n\n')}\n\n${facts.map(([label, value]) => `${label}: ${value}`).join('\n')}\n`);
+        terminal.write(`Promptbook\nVersion: ptbk ${ENGINE_VERSION}\nPurpose: ${PURPOSE}\nWebsite: ${WEBSITE}\n`);
         return EXIT.success;
     }
-    const width = Math.min(terminal.columns(), 96);
-    const lines = [
-        `${terminal.style.color256(75, badgeFace(badgeIdentity('Expert'), 'working'))}  ${terminal.style.bold('Promptbook')}`,
-        '',
-        ...text.flatMap((paragraph, index) => [...wrap(paragraph, width - 4), ...(index < text.length - 1 ? [''] : [])]),
-        '',
-        ...facts.map(([label, value]) => `${terminal.style.muted(label.padEnd(13))}${value}`),
-    ];
-    terminal.write(`${renderPanel({ title: 'About', titleRight: `ptbk ${ENGINE_VERSION}`, lines, width, tone: 'accent', unicode: terminal.unicode, style: terminal.style }).join('\n')}\n`);
+    const { style } = terminal;
+    const mascot = style.color256(75, badgeFace(badgeIdentity('Expert'), 'working'));
+    const width = Math.min(terminal.columns(), 72);
+    // The purpose wraps inside the box (panel borders and padding take four columns).
+    const lines = [`${mascot}  ${style.bold('Promptbook')}  ${style.muted(`ptbk ${ENGINE_VERSION}`)}`, '', ...wrap(PURPOSE, Math.max(20, width - 4)), '', `${style.muted('Website')}  ${style.accent(WEBSITE)}`, style.muted('Commands: ptbk help')];
+    terminal.write(`${renderPanel({ title: 'About', lines, width, tone: 'accent', unicode: terminal.unicode, style }).join('\n')}\n`);
     return EXIT.success;
 }

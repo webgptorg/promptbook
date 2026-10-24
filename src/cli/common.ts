@@ -95,16 +95,6 @@ export function browserOverrides(context: CommandContext): BrowserOverrides | un
  */
 export function validateCombinations(context: CommandContext): void {
     const path = context.path.join(' ');
-    const minimum = option<number>(context, 'min-priority');
-    const maximum = option<number>(context, 'max-priority');
-    if (minimum !== undefined && maximum !== undefined && minimum > maximum) throw usageError(`--min-priority ${minimum} is greater than --max-priority ${maximum}.`, path);
-    if (minimum !== undefined && minimum < 0) throw usageError('Priority bounds must be nonnegative.', path);
-    const limit = option<number>(context, 'limit');
-    if (limit !== undefined && limit < 1) throw usageError('--limit must be at least 1.', path);
-    if (flag(context, 'auto') === false) {
-        if (!context.terminal.interactive) throw usageError('--no-auto needs an interactive terminal to confirm each task.', path);
-        if (flag(context, 'questions') === false) throw usageError('--no-auto conflicts with --no-questions.', path);
-    }
     const noCommit = flag(context, 'commit') === false;
     const gitChanges = option<string>(context, 'git-changes');
     if (flag(context, 'isolate')) {

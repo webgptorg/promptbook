@@ -117,7 +117,7 @@ export type ExecutionEnvironment = {
 };
 
 /**
- * Report validation hook of generated work (Manager decision, Teacher scope, ...).
+ * Report validation hook of generated work (Router decision, Teacher scope, ...).
  *
  * @private task execution
  */

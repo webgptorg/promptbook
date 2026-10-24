@@ -15,7 +15,8 @@
  *   QUOTA_NATIVE    → a native (ChatGPT) run fails with a usage limit; an API-key run (CODEX_API_KEY) succeeds
  *   LIST_BROWSERS   → after the work (and any SLOW_WORK wait) lists the browser tools through the bridge into
  *                     output/browsers.txt (a tool added meanwhile must be visible to this same task)
- * Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
+ * Router turns (`## Assignment work`, tasks and chat routing) choose the first listed agent's example combination
+ * (ROUTE_IMPOSSIBLE in the target reports no compatible combination). Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
  * containing CORRECTION adds a `PTBK_LEARN` note. Consultation turns (`# Consultation`) answer read-only.
  * Every executed turn is appended to $FAKE_CODEX_LOG (one JSON line) when set.
@@ -141,7 +142,8 @@ async function main() {
     if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
     print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
     print({ type: 'turn.started' });
-    if (prompt.includes('QUOTA_NATIVE') && !api) {
+    // Routing work only names the target: its markers apply to the target's own execution.
+    if (prompt.includes('QUOTA_NATIVE') && !api && !prompt.includes('## Assignment work')) {
         print({ type: 'turn.failed', error: { message: "You've hit your usage limit. Try again later." } });
         process.exit(1);
     }
@@ -164,7 +166,13 @@ async function main() {
         if (last.includes('CORRECTION')) text += '\nPTBK_LEARN Prefer short answers in this project.';
         message(text);
     } else if (prompt.includes('## Assignment work')) {
-        done('Developer fits this task.', { routing: { agent: '@Developer', harness: null, model: null, thinkingLevel: null }, priority: 3 });
+        // Router: the first listed agent with an example combination (plugin defaults within its MODEL), or impossible.
+        const choice = /^- (@\S+|\{[^}]+\})[^\n]*?for example `([^`]+)`/m.exec(prompt);
+        if (!choice || prompt.includes('ROUTE_IMPOSSIBLE')) done('No compatible combination.', { routing: { impossible: 'fixture: no agent and combination fit' } });
+        else {
+            const fields = Object.fromEntries(choice[2].split(/\s+/).map((token) => token.split('=')));
+            done(`${choice[1]} fits this task.`, { routing: { agent: choice[1], harness: fields.harness, model: fields.model, thinking: fields.thinking ?? null, runtime: fields.runtime }, priority: 3 });
+        }
     } else if (prompt.includes('## Learning work') || prompt.includes('## Goal enquiry')) {
         done('Nothing to change.');
     } else if (prompt.includes('NEEDS_FIXER') && agent !== 'Fixer') {

@@ -590,6 +590,14 @@
         return h('div', { className: 'notice error', role: 'alertdialog' }, ack.requirements.map((item) => h('p', {}, item.message)), inUse && last ? h('p', { className: 'muted' }, 'Both protections apply; each is confirmed separately (saving now does not confirm the last-tool warning).') : null, h('div', { className: 'row' }, buttons));
     }
 
+    /** The editable endpoint value of a tool's displayed endpoint (`official …` → empty, `local …` → LOCAL, `custom URL` → URL). */
+    function endpointValue(endpoint) {
+        const text = String(endpoint || '');
+        if (text.startsWith('local')) return 'LOCAL';
+        if (text.startsWith('custom ')) return text.slice('custom '.length);
+        return '';
+    }
+
     /** One form field whose value survives live re-renders. */
     function formField(form, key, label, attributes) {
         const input = h('input', { type: attributes && attributes.type ? attributes.type : 'text', 'data-draft': `tool:${key}`, 'aria-label': label, placeholder: (attributes && attributes.placeholder) || '', autocomplete: attributes && attributes.type === 'password' ? 'new-password' : 'off' });
@@ -641,18 +649,19 @@
                 fields.push(formField(form, 'apiKeyEnv', 'Key variable (stored as ${{ env.NAME }})', { placeholder: 'COMPANY_OPENAI_API_KEY' }));
                 fields.push(formField(form, 'apiKeyValue', 'New key value (optional; write-only, stored in the ignored .env)', { type: 'password' }));
             }
-            fields.push(formField(form, 'model', 'Preferred model (optional)', {}));
+            // Model and thinking defaults belong to the harness plugin and Book MODEL; the tool only names its endpoint.
+            fields.push(formField(form, 'baseUrl', 'Endpoint (empty = official; LOCAL or a base URL)', { placeholder: 'https://proxy.example/v1' }));
         }
         const submit = () => {
             const text = (key) => (values[key] || '').trim();
             const common = { ...(text('description') ? { description: text('description') } : {}) };
             const browserFields = { profileSource: values.profileSource || 'MANAGED_GLOBAL', ...(values.profileSource === 'CUSTOM' && text('profilePath') ? { profilePath: text('profilePath') } : {}), isHeadless: values.isHeadless !== 'false' };
-            const harnessFields = { authentication: values.authentication || 'NATIVE', ...(values.authentication === 'API_KEY' && text('apiKeyEnv') ? { apiKeyEnv: text('apiKeyEnv') } : {}), ...(text('model') ? { model: text('model') } : {}) };
+            const harnessFields = { authentication: values.authentication || 'NATIVE', ...(values.authentication === 'API_KEY' && text('apiKeyEnv') ? { apiKeyEnv: text('apiKeyEnv') } : {}), ...(text('baseUrl') ? { baseUrl: text('baseUrl') } : {}) };
             const secret = values.authentication === 'API_KEY' && values.apiKeyValue ? { variable: text('apiKeyEnv'), value: values.apiKeyValue } : undefined;
             const operation =
                 form.mode === 'add'
                     ? { kind: 'add', tool: { type, variant: values.variant, name: text('name'), ...common, ...(type === 'BROWSER' ? browserFields : harnessFields) } }
-                    : { kind: 'modify', name: form.name, ...(text('rename') && text('rename') !== form.name ? { rename: text('rename') } : {}), changes: { description: text('description') || null, ...(type === 'BROWSER' ? { ...browserFields, ...(values.profileSource !== 'CUSTOM' ? { profilePath: null } : {}) } : { ...harnessFields, model: text('model') || null }) } };
+                    : { kind: 'modify', name: form.name, ...(text('rename') && text('rename') !== form.name ? { rename: text('rename') } : {}), changes: { description: text('description') || null, ...(type === 'BROWSER' ? { ...browserFields, ...(values.profileSource !== 'CUSTOM' ? { profilePath: null } : {}) } : { ...harnessFields, baseUrl: text('baseUrl') || null }) } };
             toolOperation({ operation, ...(secret ? { secret } : {}) });
         };
         return h('div', { className: 'tool-form', role: 'form', 'aria-label': form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}` }, h('h3', {}, form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}`), h('div', { className: 'fields' }, fields), h('div', { className: 'row' }, h('button', { className: 'primary', disabled: state.busy.has('tool-operation'), onclick: submit }, 'Save (commits immediately)'), h('button', { onclick: () => ((state.toolForm = null), render(state.snapshot)) }, 'Cancel')));
@@ -696,7 +705,7 @@
                             pill(item.isEnabled ? item.state : 'disabled', tone[item.isEnabled ? item.state : 'disabled']),
                             h('button', { className: 'primary', disabled: state.busy.has('tool-operation'), onclick: () => toolOperation({ operation: { kind: item.isEnabled ? 'disable' : 'enable', name: item.name } }) }, item.isEnabled ? 'Disable' : 'Enable'),
                             h('button', { title: 'Details', 'aria-expanded': state.toolDetails.has(item.name) ? 'true' : 'false', onclick: () => (state.toolDetails.has(item.name) ? state.toolDetails.delete(item.name) : state.toolDetails.add(item.name), render(state.snapshot)) }, 'Details'),
-                            h('button', { onclick: () => ((state.toolForm = { mode: 'modify', name: item.name, values: { type: item.type, rename: item.name, description: item.description || '', profileSource: (item.fields.profile || 'MANAGED_GLOBAL').split(' ')[0], profilePath: (item.fields.profile || '').split(' ').slice(1).join(' '), isHeadless: item.fields.isHeadless || 'true', authentication: item.fields.authentication || 'NATIVE', apiKeyEnv: ((item.fields.apiKey || '').match(/env\.([A-Za-z_][A-Za-z0-9_]*)/) || [])[1] || '', model: item.fields.model || '' } }), render(state.snapshot)) }, 'Modify'),
+                            h('button', { onclick: () => ((state.toolForm = { mode: 'modify', name: item.name, values: { type: item.type, rename: item.name, description: item.description || '', profileSource: (item.fields.profile || 'MANAGED_GLOBAL').split(' ')[0], profilePath: (item.fields.profile || '').split(' ').slice(1).join(' '), isHeadless: item.fields.isHeadless || 'true', authentication: item.fields.authentication || 'NATIVE', apiKeyEnv: ((item.fields.apiKey || '').match(/env\.([A-Za-z_][A-Za-z0-9_]*)/) || [])[1] || '', baseUrl: endpointValue(item.fields.endpoint) } }), render(state.snapshot)) }, 'Modify'),
                             h('button', { title: 'Move up', 'aria-label': `Move ${item.name} up`, disabled: index === 0, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, before: tools.items[index - 1].name } }) }, '▲'),
                             h('button', { title: 'Move down', 'aria-label': `Move ${item.name} down`, disabled: index === tools.items.length - 1, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, after: tools.items[index + 1].name } }) }, '▼'),
                             h('button', { className: 'secondary danger', onclick: () => window.confirm(`Permanently remove the configuration of “${item.name}”? Disable keeps it instead. Browser profiles, native logins and .env history are never deleted.`) && toolOperation({ operation: { kind: 'remove', name: item.name } }) }, 'Remove'),

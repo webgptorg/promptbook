@@ -167,17 +167,17 @@ export class LocalChats {
                 return chatAgentChoices(this.catalog);
             },
             get: async (name) => await chatDetail(this.store, name),
-            create: async (agent, text, title) => {
+            create: async (agent, text, title, segments) => {
                 const written = await this.locked(async () => {
                     await this.reload();
-                    return await createUserChat(this.store, this.catalog, agent, text, { name: title });
+                    return await createUserChat(this.store, this.catalog, agent, text, { name: title, segments });
                 });
                 await this.store.markRead(written.chat.name);
                 respond(written.chat.name);
                 return { name: written.chat.name, commit: written.commit };
             },
-            send: async (name, text, expected) => {
-                const result = await this.locked(async () => await appendUserMessage(this.store, this.state, name, text, { expected }));
+            send: async (name, text, expected, segments) => {
+                const result = await this.locked(async () => await appendUserMessage(this.store, this.state, name, text, { expected, segments }));
                 if (result.needsReply) respond(result.written.chat.name);
                 return { name: result.written.chat.name, commit: result.written.commit };
             },

@@ -82,7 +82,9 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
     const context = { projectRoot: request.projectRoot, env: request.env };
     const execHelp = await helpText(context, 'codex', ['exec', '--help']);
     const api = request.authentication === 'api';
-    const env = api ? { ...request.env, CODEX_API_KEY: request.env.CODEX_API_KEY ?? request.env.OPENAI_API_KEY } : withoutApiKeys(request.env);
+    const env: NodeJS.ProcessEnv = api ? { ...request.env, CODEX_API_KEY: request.env.CODEX_API_KEY ?? request.env.OPENAI_API_KEY } : withoutApiKeys(request.env);
+    // A local or custom endpoint selected through the tool (the official endpoint needs no override).
+    if (request.baseUrl) env.OPENAI_BASE_URL = request.baseUrl;
     const args = ['exec', '--json', '--color', 'never', '--skip-git-repo-check', '--sandbox', request.readOnly ? 'read-only' : 'workspace-write'];
     args.push('-c', 'approval_policy="never"', '-c', `forced_login_method=${toml(api ? 'api' : 'chatgpt')}`);
     if (!request.readOnly) args.push('-c', 'sandbox_workspace_write.network_access=true');
@@ -189,6 +191,10 @@ export const plugin: HarnessPlugin = {
     homepage: 'https://developers.openai.com/codex/cli',
     thinkingLevels: ['low', 'medium', 'high', 'xhigh'],
     thinkingLabel: 'reasoning effort (model_reasoning_effort)',
+    defaultModel: 'gpt-5-codex',
+    defaultThinkingLevel: 'medium',
+    modelCatalog: 'complete',
+    endpoints: { official: 'https://api.openai.com/v1', local: 'http://localhost:11434/v1', custom: true },
     capabilities: { mcp: true, readOnly: true },
     loginArgs: ['login'],
     loginHint: 'Run `codex login` and sign in with your ChatGPT account.',

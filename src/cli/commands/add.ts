@@ -19,6 +19,7 @@ import { CANCELLED, composeText, confirm, selectOne } from '../../ui/prompts.js'
 import { generatedTaskName, projectTakenNames, readStdin, selectedProject, writableTasksDirectory } from '../common.js';
 import { distinctName } from '../../tasks/identity.js';
 import { flag, option, type CommandContext } from '../context.js';
+import { legacyControlsRow } from '../../tasks/book-task.js';
 
 /**
  * Builds the commitment lines requested through flags.
@@ -27,9 +28,10 @@ function controlLines(context: CommandContext, timeZone: string): string[] {
     const lines: string[] = [];
     const agent = option<string>(context, 'agent');
     if (agent) lines.push(`TASK AGENT ${toReference(agent)}`);
-    if (option<string>(context, 'harness')) lines.push(`TASK HARNESS ${option<string>(context, 'harness')}`);
-    if (option<string>(context, 'model')) lines.push(`TASK MODEL ${option<string>(context, 'model')}`);
-    if (option<string>(context, 'thinking-level')) lines.push(`TASK THINKING LEVEL ${option<string>(context, 'thinking-level')}`);
+    // Explicit execution choices become the task's single MODEL requirement (Router specializes the rest later).
+    const requirement = legacyControlsRow({ harness: option<string>(context, 'harness'), model: option<string>(context, 'model'), thinking: option<string>(context, 'thinking-level') });
+    if (requirement.problem) throw new PtbkError(`--harness/--model/--thinking-level: ${requirement.problem}.`, { kind: 'usage', next: ['Use a harness variant such as openai-codex or claude-code.'] });
+    if (requirement.row) lines.push(`MODEL ${requirement.row}`);
     if (option<string>(context, 'priority')) lines.push(`TASK PRIORITY ${option<string>(context, 'priority')}`);
     const after = option<string>(context, 'after');
     if (after) {
