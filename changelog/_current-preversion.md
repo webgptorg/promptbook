@@ -1,5 +1,11 @@
 # Unreleased
 
+## Branding: autonomous agendas, truly yours
+
+-   Rebuilt the README around ongoing agendas, self-hosting, readable and portable project files, model choice and Git history, with a developer example, APT explanation, actual installation commands and links to the application and partner offering.
+-   Aligned `ptbk about`, the help banner and package description with the same product promise. About retains the actual engine version and installation details, works offline and introduces the upcoming app separately from the current dashboard tunnel.
+-   Documented the shared product presentation and its audience-specific emphasis. BUSL-1.1 and runtime behavior are unchanged.
+
 ## Project maintenance team draft
 
 -   Drafted Pavol, Spec-keeper and Community agents and adapted the existing Developer Book to canonical syntax and specification-driven Promptbook maintenance. Connected the team through Manager and Chatter, with shared project rules inherited from Adam and closed drafts for the owner to edit manually.
@@ -166,5 +172,5 @@
 
 -   **`ptbk run` was removed**, together with `--limit` and `--no-auto`; `ptbk run` now explains that `ptbk start` operates the ongoing engine. Bounded work is described as ordinary tasks.
 -   **Bare `ptbk` offers actions.** In an interactive terminal it shows **Initialize project**, **Start engine** and **Open dashboard** with the version and current project; choosing one runs that command, and cancelling starts nothing. Redirected or noninteractive invocation still prints technical help.
--   **`ptbk about`** is a compact product box with the version, purpose and https://www.ptbk.io/.
+-   **`ptbk about`** is a compact product box rather than a command reference: the shared product introduction, the actual engine version and installation, the website and GitHub. Raw output keeps the same copy and facts as plain text.
 -   **Init hands off to the dashboard.** After a confirmed background start, interactive init shows a short countdown (Enter opens now, Esc or Ctrl+C skips) and then attaches the ordinary dashboard to the service that was just started, without another start or worker; leaving it keeps the engine running. Raw and noninteractive init return directly. An empty harness selection is warned about visibly (no model work can run and Router gets no concrete initial MODEL) and needs a second Enter to confirm.

@@ -22,14 +22,16 @@ test('without a terminal, bare ptbk shows the same technical overview as ptbk he
     assert.match(redirected.stdout, /Ordinary workflow/, 'bare invocation without a terminal never prompts');
 });
 
-test('about is a compact product box (name, version, purpose, website), not a command reference', async () => {
+test('about is a compact product box (name, purpose, version, website, GitHub), not a command reference', async () => {
     const about = await ptbk(['about', '--raw']);
     assert.equal(about.code, 0);
     assert.match(about.stdout, /^Promptbook$/m);
-    assert.match(about.stdout, new RegExp(`^Version: ptbk ${version.replace(/\./g, '\\.')}$`, 'm'));
-    assert.match(about.stdout, /^Website: https:\/\/www\.ptbk\.io\/$/m);
+    assert.match(about.stdout, /^You used to give AI tasks\. Now it works for you\.$/m, 'raw output keeps the shared authored product copy');
+    assert.match(about.stdout, new RegExp(`^Engine: ptbk ${version.replace(/\./g, '\\.')}$`, 'm'));
+    assert.match(about.stdout, /^Website: https:\/\/www\.ptbk\.io\/en$/m);
+    assert.match(about.stdout, /^GitHub: https:\/\/github\.com\/webgptorg\/promptbook$/m);
     assert.doesNotMatch(about.stdout, /--path|--raw|Usage/, 'no dump of command options');
-    assert.ok(about.stdout.trim().split('\n').length <= 6, about.stdout);
+    assert.ok(about.stdout.trim().split('\n').length <= 20, about.stdout);
 });
 
 test('--version prints exactly the installed engine version', async () => {

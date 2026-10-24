@@ -36,7 +36,7 @@ These files define target behavior, **not a claim that implementation or tests a
 
 Keep specifications in English, concise and focused on observable behavior, important contracts and invariants. Internal representations/algorithms/module layout remain implementation choices unless explicitly necessary, such as the shared typed tool contract and prohibition of duplicated domain logic. Separate functional behavior from presentation and cross-link rather than copying full rules.
 
-[Project model](concepts/project-model.md) · [Engine/project evolution](concepts/engine-and-project.md) · [Automatic repair](concepts/automatic-repair.md) · [Coding standards](coding-standards/_index.md) · [Naming](coding-standards/naming.md) · [Shared logic and DRY](coding-standards/shared-logic.md) · [Dictionary](dictionary.md)
+[Product presentation](concepts/product-presentation.md) · [Project model](concepts/project-model.md) · [Engine/project evolution](concepts/engine-and-project.md) · [Automatic repair](concepts/automatic-repair.md) · [Coding standards](coding-standards/_index.md) · [Naming](coding-standards/naming.md) · [Shared logic and DRY](coding-standards/shared-logic.md) · [Dictionary](dictionary.md)
 
 [Agents](agents/_index.md) · [Book language](book-language/_index.md) · [References and lookup](book-language/references.md) · [Commitment index](book-language/commitments/_index.md)
 

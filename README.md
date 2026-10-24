@@ -1,62 +1,153 @@
-# Promptbook (`ptbk`)
+# Promptbook
 
-Promptbook is a command-line utility that runs AI coding agents over a Git project. Agents, tasks and chats are plain-text files called Books. A background service works on one task at a time through a coding-agent CLI you choose, runs the project's check on each result and commits every accepted result to Git. When an agent needs a decision from you, it asks in a chat.
+## You used to give AI tasks. Now it works for you.
 
-This repository publishes one npm package, [`ptbk`](https://www.npmjs.com/package/ptbk), which installs the `ptbk` command.
+**Your AI. On your machine. Under your control.**
 
-## Requirements
+Give Promptbook an ongoing responsibility, a goal and your rules. Its agents identify useful work, turn it into tasks and carry it through. They keep the context, follow up and come back to you when a decision needs you. You can close the dashboard while your agenda keeps running.
 
--   Node.js `^22.13.0` or `>=24`, npm 10 or newer, and Git.
--   An account for at least one supported coding-agent CLI (a _harness_): OpenAI Codex, Claude Code, GitHub Copilot, Cline, OpenCode, Gemini CLI or Qwen Code. `ptbk init` can install a missing one and start its login.
--   Google Chrome, Chromium or Microsoft Edge for the project browser.
+Maintain a product. Keep customer conversations moving. Turn each new podcast episode into published content. The work continues beyond the first result.
 
-## Installation
+[Explore Promptbook](https://www.ptbk.io/en) · [Run the engine yourself](#run-the-engine-yourself) · [Deploy for your clients](https://www.ptbk.io/en/partnership)
 
-```bash
+## An agenda that keeps going
+
+Imagine a message arriving late at night: a customer has found a broken checkout. Your development agent picks it up, finds the cause, writes a fix and runs the project's checks. It records the result in Git, deploys when your rules permit it, and follows up. In the morning, you can review what happened and exactly what changed.
+
+The lasting instruction is to take care of the product. Individual tasks are the steps toward that goal. Promptbook can work from an existing backlog, handle recurring work and identify useful next steps from its agents' goals. When there is nothing to do, it waits.
+
+The same approach extends beyond development:
+
+| Agenda | What continued work looks like |
+| --- | --- |
+| **Podcast and content** | A new AI ta Krajta episode is published. An agent processes it, prepares channel-specific posts, credits the people involved and handles the agreed promotion. |
+| **Customer relationships** | A customer's new branch gives an agent a reason to reconnect. It reviews past conversations, prepares a personal email and follows up in the CRM. |
+| **Software maintenance** | An issue arrives overnight. An agent investigates, repairs, checks and records the result, then follows the project's release rules. |
+
+These are illustrative agendas, configured around your tools, access and permissions. You decide what agents may do themselves, what needs review and how a result is checked.
+
+## Truly yours
+
+**Run it where you choose.** The engine works on your computer, a machine in your office or a VPS under your control. It owns the work; opening or closing an interface does not own its lifetime. The machine running the engine must remain available.
+
+**Choose the AI that does the work.** Agent roles, rules and knowledge are separate from their execution tools. Promptbook uses supported coding-agent CLIs, called *harnesses*, to perform work with files, browsers and other tools. Codex and Claude Code are the featured starting points; other adapters are available. Local models can be used where the selected harness supports them. Suitability depends on the model, hardware and task.
+
+**Open the folder and understand it.** Your agents, tasks, conversations and working materials live in readable files. You can inspect them in your editor, change them, copy them and hand them to another person or tool. The value you build up stays accessible when you change a model or execution environment.
+
+**See what changed.** Git records versioned changes to your project, instructions and work. Task traces preserve the execution evidence exposed by the tools. You can review a diff and its associated task instead of relying on a final message saying “done.” Git history covers files; reverting it does not undo an email or another action in an external service.
+
+## The engine and the app
+
+This repository contains the **self-hosted Promptbook engine**, published as the `ptbk` npm package. You can install and operate it directly through its CLI and dashboards.
+
+We are also building the **Promptbook app**: convenient control of your own engine from a laptop or phone, as part of the commercial offering with support and partner deployment. Its planned end-to-end encrypted connection passes through a relay that is not trusted to decrypt your working content. The files and ongoing work remain with your engine.
+
+That application connection is separate from the engine's current paired browser dashboard and Cloudflare tunnel. The current tunnel is not a claim of end-to-end confidentiality from its provider.
+
+Your choice of AI is another boundary: an external model receives the inputs the engine sends to it. A local model can keep model processing on your infrastructure; connected external tools still receive the data you authorize them to use.
+
+[Register interest in the app or get deployment help](https://www.ptbk.io/en) · [Partner with us](https://www.ptbk.io/en/partnership)
+
+## A simple foundation: Agent–Project–Task
+
+Promptbook follows the **APT Framework**:
+
+- **Agent:** who works, with which goals, knowledge and rules.
+- **Project:** the materials and context the work belongs to.
+- **Task:** a concrete piece of work, its result and its history.
+
+Agents and tasks are written in the readable **Book** format. Conversations live alongside them, so decisions stay connected to the project. The engine coordinates their work, while Git preserves the versioned history.
+
+For example, a lasting responsibility can be expressed as ordinary text:
+
+```book
+AGENT Product caretaker
+
+GOAL Keep the product useful, reliable and easy to maintain.
+RULE Use the project's checks to verify changes.
+RULE Ask before changing product direction or publishing outside the agreed release policy.
+```
+
+The definition is editable source. It is not tied to the weights of a particular model, and it does not itself grant access to accounts or services.
+
+[Read the APT whitepaper](specs/whitepaper.md) · [Explore the Book language](specs/book-language/_index.md)
+
+## Run the engine yourself
+
+### Requirements
+
+- Node.js **22.13 or newer in the 22.x line, or 24+**, npm **10+**, and Git.
+- Access to a supported harness. `ptbk init` can install a missing CLI and guide you through its login. Featured choices are OpenAI Codex and Claude Code.
+- Google Chrome, Chromium or Microsoft Edge for the project browser.
+
+### Install with npm
+
+```sh
 npm install --global ptbk
 ptbk --version
 ```
 
-On Windows, each [GitHub release](https://github.com/webgptorg/promptbook/releases) also includes `Promptbook-Setup-<version>-windows-x64.exe`. It installs any missing Node.js, npm and Git, installs `ptbk` and runs `ptbk init` in a new project folder.
+### Windows installer
 
-## Quick start
+Download `Promptbook-Setup-<version>-windows-x64.exe` from the matching [GitHub Release](https://github.com/webgptorg/promptbook/releases). It prepares missing Node.js, npm and Git, installs that release of `ptbk`, offers a first project folder and opens the ordinary `ptbk init` setup in a terminal.
 
-```bash
-mkdir my-project && cd my-project
-ptbk init                         # describe what you are working on, then answer a few setup questions
-ptbk dashboard                    # watch and control the service; Q leaves the dashboard, the service keeps running
-ptbk chat                         # talk with the project's agents
-ptbk answer                       # answer an agent that is waiting for you
-ptbk add "Export reports as CSV"  # create and commit a new task
-ptbk stop                         # let the current task finish, then stop
-ptbk start                        # start again, also in a cloned project
+[Installation guide and help with deployment](https://www.ptbk.io/en/open-source)
+
+### Start your first agenda
+
+Create a folder for the work, then describe what it should achieve:
+
+```sh
+mkdir my-agenda
+cd my-agenda
+ptbk init
 ```
 
-`ptbk init` saves your description verbatim in `specs/_initial.md`. It then sets up Git, `ptbk.json`, the agents and your chosen harness and browser. It commits the setup, saves a first task that develops the project from your description and starts the service in the background. If the project has no check command, init saves a placeholder that validates nothing; pass a real one to init with `--check <command>`. By default, init also adds `ptbk` to the project's dependencies.
+The initializer prepares Git, the project files, your selected harness and browser, then starts the agenda in the background. You choose the tools and sign in to the accounts it should use. The initial description is kept in `specs/_initial.md`.
 
-Until you run `ptbk stop`, the service restarts after a crash and when you sign in after a reboot. By default it also serves a browser dashboard on a local port and publishes it through a protected tunnel for phone access. A device can see or control the project only after you pair it from your terminal (`ptbk access pair`). Start with `--no-tunnel` to keep the dashboard local.
+Open the controls and talk to your agents:
 
-`ptbk help` lists all commands, and `ptbk help <command>` shows a command's options, defaults and examples.
+```sh
+ptbk dashboard
+ptbk chat
+```
 
-## Project files
+The dashboard and chat are separate commands; close one before running the next in the same terminal, or use another terminal. Leaving the dashboard keeps the engine running.
 
-| Path        | Content                                                          |
-| ----------- | ---------------------------------------------------------------- |
-| `agents/`   | Agent Books: lasting roles, goals and rules                      |
-| `tasks/`    | Task Books: bounded pieces of work                               |
-| `chats/`    | Conversations between you and the agents                         |
-| `ptbk.json` | Configuration, including the named browser and harness tools     |
-| `traces/`   | Evidence for each task; Git-ignored unless you choose otherwise  |
-| `.ptbk/`    | Git-ignored runtime state                                        |
+```sh
+ptbk stop           # finish the current task, then stop
+ptbk start          # resume this project's ongoing agenda
+ptbk help           # command reference
+ptbk about          # product information and your installed engine version
+```
 
-## Documentation
+Configure a real project check for work that needs automated validation. If none is supplied, init leaves an explicitly informational placeholder; it does not prove a result correct. For an existing project with a check script, you can provide it during initialization with `ptbk init --check "npm run check"`.
 
-The [specification](specs/_main.md) describes intended behavior, and some of it may not be implemented yet. `ptbk help` describes the version you have installed.
+By default, the engine can recover after a crash and resume when you sign in after a reboot. Its browser dashboard is also published through a protected tunnel; a device must be paired from the trusted terminal before it can access the project. Use `ptbk init --no-tunnel` or `ptbk start --no-tunnel` for local-only dashboard access. See [remote access](specs/cli/remote-access.md) for pairing and revocation.
 
--   [Dictionary of terms](specs/dictionary.md)
--   [Book language](specs/book-language/_index.md)
--   [Commands](specs/cli/cli.md)
--   [Changelog](CHANGELOG.md), [contributing](CONTRIBUTING.md) and [security policy](SECURITY.md)
+### Your project, in ordinary files
+
+| Path | What you keep there |
+| --- | --- |
+| `agents/` | Lasting roles, goals, knowledge and rules in agent Books |
+| `tasks/` | Concrete work and completion records in task Books |
+| `chats/` | Conversations, questions and decisions |
+| `specs/` | Project intent and specifications |
+| `ptbk.json` | Project configuration and named tools |
+| `traces/` | Task execution evidence; committed only if you choose |
+| `.ptbk/` | Git-ignored runtime state |
+
+Credentials and browser sessions stay outside versioned project content. Keep appropriate backups and access controls for the machine and any external services you connect.
+
+## Build with us
+
+If this is how you want AI to work, **[give Promptbook a star on GitHub](https://github.com/webgptorg/promptbook)**. Share a reproducible issue, contribute an improvement or build an agenda of your own.
+
+Agencies, freelancers and integrators can [deploy Promptbook for their clients](https://www.ptbk.io/en/partnership), combining the application and engine with their own expertise and services. If you want help getting started, [tell us about your agenda](https://www.ptbk.io/en).
+
+- [Specification](specs/_main.md) — intended behavior, including work not yet implemented
+- [CLI reference](specs/cli/cli.md) — use `ptbk help` for the version you have installed
+- [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md)
 
 ## License
 

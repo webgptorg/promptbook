@@ -1,4 +1,5 @@
 import { ENGINE_VERSION } from '../common/version.js';
+import { OWNERSHIP_TAGLINE, PRODUCT_TAGLINE } from '../common/branding.js';
 import { fit, stringWidth, wrap } from '../ui/ansi.js';
 import { badgeFace, badgeIdentity } from '../ui/badges.js';
 import { renderPanel } from '../ui/panels.js';
@@ -80,9 +81,9 @@ function renderSections(title: string, sections: readonly HelpSection[], termina
 export function renderTopLevelHelp(commands: readonly CommandSpec[], terminal: TerminalProfile): string {
     const mascot = badgeFace(badgeIdentity('Expert'), 'working');
     const banner = [
-        `${terminal.pretty ? terminal.style.color256(75, mascot) : mascot}  Operate agents over a Git project.`,
-        'Readable agents and tasks; one task at a time; every accepted result is checked and committed.',
-    ];
+        `${terminal.pretty ? terminal.style.color256(75, mascot) : mascot}  ${PRODUCT_TAGLINE}`,
+        OWNERSHIP_TAGLINE,
+    ].flatMap((line) => wrap(line, Math.min(terminal.columns(), 100) - 4));
     const sections: HelpSection[] = [
         { heading: 'Usage', code: ['ptbk <command> [options]'] },
         {
