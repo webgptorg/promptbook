@@ -4,32 +4,44 @@
 
 ## Attaching and lifetime
 
-`ptbk dashboard` opens a live client for the selected project's existing engine; `--path` selects the project. Verify the owner. Opening/reopening does not initialize/start an engine, acquire its lock, claim work or change configuration. A missing/unreachable service gives an actionable error/start instruction, not an empty successful project view.
+`ptbk dashboard` opens a live client for the selected project's existing engine; `--path` selects the project. Verify the owner. Opening/reopening does not initialize/start an engine, acquire its lock, claim work or change configuration. A missing/unreachable service gives an actionable error/start instruction.
 
-Zero or many dashboards can attach, including terminals in the same project. They share state but not viewer focus/layout. The client has no wizard steps or completion countdown. Q, root-level Escape, Ctrl+C and terminal disconnection close only this client; closing all clients leaves the daemon running. Service exit/loss is honest and never starts a replacement.
+Zero or many dashboards can attach. They share engine state but not viewer focus, current dashboard page, scroll position or acknowledged visual attention. Q, root-level Escape, Ctrl+C and terminal disconnection close only this client; closing all clients leaves the daemon running. Service exit/loss is honest and never starts a replacement.
 
-`dashboard --global` opens the independent host-wide live table from any CWD and stays open at zero entries. Selecting an engine attaches without `cd`, starting a process or acquiring its lock; returning leaves the engine untouched. Foreground start can show the same controls but owns execution lifetime: its termination uses graceful engine lifecycle, not unrelated process kills. Init's successful countdown attaches this same independent dashboard, so leaving it does not terminate the daemon.
+`dashboard --global` opens the independent host-wide live table from any CWD. Selecting an engine attaches without `cd`, starting a process or acquiring its lock; returning leaves the engine untouched. Foreground start can show equivalent controls but owns execution lifetime. Automatic viewer handoff from start/init/restart is defined by [process modes](process-modes.md).
 
-## Operational cockpit
+## Home screen
 
-Use [shared status](status-view.md) and [panel layout](dashboard-layout.md): project/version/connection and four live states, current agent/task/phase, attention, queue, tools, results/activity and enabled synchronization. Resource waits are running states with a reason, not a stopped process. An enabled sync failure is distinct from active local work.
+Use the [dashboard home-screen contract](dashboard-layout.md). The root is a compact responsive tile cockpit, not a vertically scrollable report. In normal terminal sizes the complete root is visible at once, including PTBK/project/service state, current work, operator attention and entries to the major pages.
 
-[Detail panels](dashboard-details.md) show actual execution metadata, the ordered named-tool inventory, individual browser diagnostics and conditional synchronization details. Keep compact tool/resource summaries visible; management supports add/modify/reorder, primary enable/disable and secondary removal through the same shared operations as CLI. Saved changes commit immediately and new tools may be used by current work. Show shared in-use/last-enabled-type confirmations, not terminal-specific rules.
+Width and **height** both affect layout. A narrower/shorter terminal reduces columns and secondary copy before it removes important state. A larger terminal may use more whitespace/richer bounded previews. Handle `resize` live without losing tile focus, page selection, list scroll or drafts.
 
-Chats awaiting a human answer have highest attention priority: actual author, affected work and direct thread entry. Unread/all-chats remain distinct. Assignment/discovery/repair are labelled automatic work unless an agent genuinely asks User. Idle/wait states explain reality; do not invent progress or inference.
+Arrow keys move a clear focused tile. Focus is independent from attention. A newly actionable tile may blink/pulse or otherwise stand out without moving focus. If the operator is clearly active in this viewer and continues working elsewhere, the transient animation settles while the unresolved tile remains statically marked. Do not age out unseen attention merely because the dashboard sat unattended. Reduced motion preserves the distinction without animation.
 
-Keep aligned bounded panels, separate messages/checks/errors and show actionable redacted causes with next actions. Important browser/tool failures remain visible with detail closed. Catalogs use featured/More; configured instances and actual execution remain inspectable regardless of featured status. URL/QR obey raw/no-QR/pairing rules.
+Chats awaiting a human, health/resource failures, tool/provider problems and future actionable domains use this common attention presentation. The operator may ignore or address them in any order.
+
+## Dashboard pages
+
+Enter opens the focused tile as a full **dashboard page**; the root tile grid is no longer rendered around it. Escape returns one level and restores the prior root focus. Root Escape exits only the viewer.
+
+Pages can scroll. Prefer a stable header/context and shortcut/footer area with a scrollable body for long task/chat/agent/tool/activity content. Inside a focused list/editor/composer, its own arrows/Enter/Escape take precedence until returning to the page.
+
+Use [dashboard pages](dashboard-details.md) for execution, System, Health, tools/browser, Agents, Chats, Tasks, activity/results, Connection and enabled Synchronization. Technical metadata such as engine version, installation/path/location, URLs/QR and provider/model detail belongs on pages instead of bloating the home screen.
+
+Live updates never steal focus, reset scroll, discard drafts or flood scrollback.
 
 ## Keyboard and shared actions
 
-Provide a discoverable legend and fully keyboard-operable main lifecycle panel. Retain C for new Chatter-first chat, A for the highest-priority existing waiting thread, and access to all chats. Enter chooses Chatter; alternatives open the full valid list. Existing threads retain authors. Rich-composer/picker keys are not captured by global shortcuts; Ctrl+C in chat closes that view/client, not the service.
+Keep a discoverable legend and fully keyboard-operable lifecycle/navigation controls. Retain useful direct letter shortcuts, but each shortcut must open/call the same page/domain operation as ordinary navigation rather than an alternate implementation.
 
-Retain P for state-appropriate pause/resume and S for skipping an actual pacing/backoff wait without bypassing readiness. X requests graceful stop and a repeat is not force escalation. Expose restart, explicit whole-engine force stop, pending-intent cancellation/change and required confirmations through [shared lifecycle](service-lifecycle.md), including the meaning of `ptbk stop -F`. Leaving the viewer and stopping the engine are visibly different.
+Retain C for new Chatter-first chat, A for an existing waiting thread, and access to all chats. Rich-composer/picker keys are not captured by global shortcuts; Ctrl+C in chat closes that view/client, not the service.
 
-Provide labelled shortcuts to open/close execution, tools, individual-tool and enabled-sync details. Browser recheck/retry/restart targets the named owned instance through engine operations, not local kill commands. Synchronize now calls the one shared coordinator; it is absent while autosync is off. Both preserve underlying safety/revision rules and report pending/failed outcomes.
+Retain state-appropriate pause/resume controls, wait skipping and explicit graceful/force stop/restart under [shared lifecycle](service-lifecycle.md). Manual pause management and the full pause-reason list live on System. Health-generated pause reasons are surfaced through Health/System according to [Health](health-sub-engine.md); Health does not become another manual pause controller.
 
-At panel level, arrows select a panel spatially without enlarging it; Enter drills in, Escape returns one level and root Escape closes the viewer. Inside focused lists/editors their own navigation takes precedence. O switches dashboard/plain presentation interactively; End can follow focused activity, and resize preserves drafts/selection. A background tool/sync update does not steal focus or discard an edit. Equivalent browser/API controls need not copy terminal key choices.
+Browser recheck/retry/restart targets the named owned instance through engine operations. Synchronize now calls the one shared coordinator and is absent while autosync is off.
+
+O may switch dashboard/plain presentation interactively; End can follow focused activity where applicable. Background tool/sync/health updates do not steal focus or discard an edit.
 
 ## Raw output
 
-Raw/noninteractive dashboard streams bounded plain state/events without colour, cursor control or hidden prompts. Keep tool/diagnostic information and enabled-sync outcomes, redacted addresses and attributed waiting-chat notices, without QR art. Status/show are one-shot alternatives. Presentation never resubmits work or changes authority. Lifecycle commands render once without attaching this viewer. See [process modes](process-modes.md), [channels](channels.md) and [traces](traces.md).
+Raw/noninteractive dashboard streams bounded plain state/events without colour, cursor control, animation or hidden prompts. Keep equivalent state/diagnostic meaning, redacted addresses and attributed waiting-chat notices without QR art. Status/show are one-shot alternatives. Presentation never resubmits work or changes authority. See [process modes](process-modes.md), [channels](channels.md) and [traces](traces.md).
