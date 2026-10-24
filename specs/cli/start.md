@@ -12,7 +12,7 @@ An initialized project whose tools are missing, disabled, signed out, quota-limi
 
 There is no check-command setup question at start. Preserve real checks; the explicit initialization placeholder is nonblocking and visibly not real automated validation. A broken real validator uses ordinary repair rather than a new wizard or a replacement fake pass. Successful unchanged init needs no repeated login, check selection or task creation.
 
-## Launch and one-shot result
+## Launch result and dashboard handoff
 
 Default start launches a background daemon with restart persistence and a lightweight loopback HTTP service on a free port searched from 3000. Establish the usual protected [remote dashboard access](remote-access.md), with `--no-tunnel` for local only and `--no-server` for neither. This tunnel is distinct from Git autosync. Tunnel/network failures are visibly degraded and retried without unnecessarily preventing safe local work. Starting/serving the service and attaching a viewer remain separate operations internally, but ordinary interactive `ptbk start` performs both in sequence.
 
