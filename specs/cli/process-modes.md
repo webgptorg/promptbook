@@ -7,9 +7,9 @@
 - **Daemon** (default, `--daemon`): runs in the background independently of the launching terminal and any dashboard.
 - **Foreground** (`--foreground`): the launching invocation hosts the ongoing engine until it stops. A suitable terminal presents the live controls; raw/noninteractive use emits plain events. This explicit engine-hosting invocation is not an attached `ptbk dashboard` client.
 
-Daemon and foreground are mutually exclusive. `--raw` changes output, not placement: `ptbk start --raw` still launches a daemon and returns once; `ptbk start --foreground --raw` stays foreground. `--interactive` enables appropriate interaction, not implicit foreground mode. Init and add have finite setup/authoring phases; interactive init may then attach an independent dashboard through its documented countdown.
+Daemon and foreground are mutually exclusive. `--raw` changes output, not placement: `ptbk start --raw` still launches a daemon and returns once; `ptbk start --foreground --raw` stays foreground. `--interactive` enables appropriate interaction, not implicit foreground mode. In a suitable interactive terminal, successful daemon `start`, `restart` and `init` automatically attach the independent project dashboard afterwards; `--no-dashboard`, raw/no-UI/noninteractive or redirected use suppresses that attachment. Foreground already owns its live view and never opens a second attached dashboard.
 
-Successful init performs the ordinary daemon start after technical setup. Its interactive countdown can attach the shared independent dashboard; raw/noninteractive use or skipping the countdown returns directly. It never becomes foreground engine ownership or waits for the first task. Reuse the same lifecycle operation when start first needs initialization; one request must not recursively create another worker. Reuse an existing service without changing its configuration or pause/draining intent. See [initialization](initialization.md).
+Successful init performs the ordinary daemon start after technical setup. Its ordinary interactive finish automatically attaches the shared independent dashboard unless explicitly suppressed/skipped; raw/no-UI/noninteractive use returns directly. It never becomes foreground engine ownership or waits for the first task. Reuse the same lifecycle operation when start first needs initialization; one request must not recursively create another worker. Reuse an existing service without changing its configuration or pause/draining intent. See [initialization](initialization.md).
 
 ## Engine versus observing clients
 
@@ -21,9 +21,16 @@ Every engine belongs to one concrete selected project directory. There is no glo
 
 Every start mode supports optional HTTP, automatic/selected port and the same project/runtime state. `--no-server` disables HTTP; `--port` selects its port. Local lifecycle controls and terminal discovery must still work without HTTP. Diagnose conflicting or invalid options rather than ignoring them.
 
-## Lifecycle operations
+## Lifecycle operations and viewer handoff
 
-Start, pause, resume, stop and restart are one-shot control operations, not implicit live-dashboard attachments. Start may first use shared setup when permitted; `--non-interactive` forbids it. A detached daemon never prompts on the launching terminal. Repeated start reports the existing process without replacing its configuration or cancelling a deliberate pause/stop.
+Engine lifecycle mutation and dashboard attachment remain distinct operations, but the ordinary interactive command UX chains them where useful:
+
+- successful daemon `ptbk start` attaches the project dashboard by default, including when the engine was already running;
+- successful `ptbk restart` attaches the replacement project's dashboard by default;
+- successful interactive init attaches after its finite finish;
+- `--no-dashboard`, raw/no-UI/noninteractive or redirected use performs/reports the operation and returns without a viewer.
+
+Pause, resume and stop remain one-shot controls and do not automatically attach a dashboard. Start may first use shared setup when permitted; `--non-interactive` forbids hidden setup prompts. Repeated start never replaces configuration or pause/draining intent.
 
 Use [the shared state machine](service-lifecycle.md) for `running`, `pausing`, `pause` and `stopping`, cancellation, graceful restart and `stop --force`/`-F`. Foreground ownership does not introduce different pause or stop semantics. Restart retains the selected installation, effective project configuration and applicable placement policy; it must not silently turn an explicitly foreground workflow into a persistent daemon.
 
