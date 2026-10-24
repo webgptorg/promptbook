@@ -13,15 +13,34 @@ The engine owns scheduling, state transitions and shutdown. CLI commands, termin
 | `pause` | No queued background task executes. Chat, required chat routing/consultations, authoring, inspection and controls remain available. |
 | `stopping` | No new work starts. Drain/checkpoint owned task and conversation work, then clean up and exit. |
 
-These are service states, not task phases or client-local flags. `stopped` is not a fifth live state: after exit there is no running service. A client may display that observed outcome or a disconnected diagnostic. Force stop is an immediate action, not another state; a separate hard/soft pause mode is not introduced now. The current pause suspends automatic new background work, not conversation. Reasons such as an empty queue, backoff or a blocked prerequisite remain separate from the service state.
+These are service states, not task phases or client-local flags. `stopped` is not a fifth live state: after exit there is no running service. A client may display that observed outcome or a disconnected diagnostic. Force stop is an immediate action, not another state.
+
+Pause is **reason-composed** rather than one boolean. Soft/hard health are pause-reason properties, not additional lifecycle states. The current pause suspends automatic new background work, not conversation. Empty queue, backoff or a blocked prerequisite are waits/phases rather than pause reasons unless a domain explicitly creates one.
 
 Draining does not suspend or restart the harness. Let the current task finish its ordinary bounded execution, checks and result persistence, or safely checkpoint an interrupted, failed or human-waiting phase under [recovery](recovery.md). A human reply is not required merely to complete shutdown when ownership can safely be released. During pausing/pause, do not start queued background follow-ups, task-assignment Router work, Teacher, Fixer or discovery tasks. Conversation and everything necessary to serve it, including first-message routing and TEAM consultation, remain available even while another background task drains. Tasks authored in chat are saved but do not execute until scheduling resumes. This exception does not permit running queued work under a chat label; stopping still drains toward shutdown. Do not silently escalate a slow graceful operation to force stop.
+
+## Pause reasons and composition
+
+The engine maintains an ordered/set-like collection of active **pause reasons**. Background scheduling is permitted only when there is no active pause reason and lifecycle intent otherwise allows it. Adding the first reason to a running engine requests ordinary graceful pause: stop new claims, drain current background work, then remain in `pause`. Additional reasons compose without restarting the drain.
+
+Initial reason kinds are:
+
+- **manual** — created by the operator's normal Pause control/command and removed by manual Resume/cancellation;
+- **health** — created/removed by the per-engine [Health sub-engine](health-sub-engine.md). A health reason is soft (preventive/configured limit, incident-scoped override allowed) or hard (actual resource exhaustion, no manual override).
+
+The model is intentionally extensible: future domains may contribute reasons such as provider/quota safety without redesigning lifecycle state. Do not implement those future examples until separately specified.
+
+Manual and automatic reasons are independent. If Health clears while a manual reason remains, stay paused. If the operator resumes/removes the manual reason while Health remains, stay paused. If all reasons disappear while `pausing` is still draining, the engine may return to `running` once the current transition safely reconciles instead of entering a pointless stable pause.
+
+A normal manual Resume removes/cancels the manual reason/intent it owns; it does not erase unrelated health/future reasons. Health reasons resolve automatically from Health state, except that the operator may incident-scope override a soft Health reason through Health. Hard Health reasons are never removed by generic Resume.
+
+The System dashboard page is the authoritative control/inspection surface for manual pause and the complete list of active pause reasons. If the only active reason is one ordinary manual pause, the compact UI may simply say **Paused**. When health/multiple reasons exist, System exposes each reason and its owner/severity. The Health page owns health incident details/allowed override and must not duplicate generic manual pause controls.
 
 ## Transitions and cancellation
 
 - Pause from `running` enters `pausing` while a task is active, otherwise `pause` immediately. Once draining settles, `pausing` becomes `pause`.
 - Ordinary stop from any live state enters `stopping` while work must drain; when there is no active work, perform orderly cleanup and exit immediately. Stopping an already paused service does not wait for a nonexistent task.
-- Resume from `pause`, or cancellation of pending `pausing` or `stopping`, returns to `running`. It does not interrupt, replay or duplicate the active task. Cancelling a pending restart also cancels its planned replacement start.
+- Resume from `pause`, or cancellation of pending `pausing`/`stopping`, removes the applicable manual lifecycle intent. The engine returns to `running` only if no other active pause reason remains. It does not interrupt, replay or duplicate the active task. Cancelling a pending restart also cancels its planned replacement start.
 - Changing `pausing` to `stopping`, or `stopping` to `pausing`, only changes what happens after the same current task settles. It does not stop and relaunch that task. If nothing remains active, apply the destination immediately.
 
 Before replacing an already requested stop/restart with a pause, explicitly confirm that shutdown is being cancelled in favour of pause. In noninteractive use, report the conflict without an invisible prompt; the caller can explicitly cancel through resume and then request pause. Repeating the same pending request is idempotent, not implicit escalation. A stale confirmation cannot overwrite a newer user's decision unnoticed.
@@ -32,13 +51,13 @@ The engine serializes control decisions with task claims: after pause/stop is ac
 
 | Entry point | Shared operation |
 | --- | --- |
-| `ptbk pause` | Request graceful pause. |
-| `ptbk resume` | Resume paused scheduling or cancel a pending pause/stop/restart and return to `running`. |
+| `ptbk pause` | Add/request the ordinary manual pause reason and gracefully stop new background scheduling. |
+| `ptbk resume` | Remove/cancel the ordinary manual pause/stop/restart intent. Return to `running` only when no independent pause reason remains. |
 | `ptbk stop` | Request graceful shutdown after current work settles. |
 | `ptbk stop --force`, `ptbk stop -F` | Stop owned work immediately, without waiting for task completion, then exit with best-effort owned cleanup. |
 | `ptbk restart` | Gracefully stop the selected service, then start exactly one replacement for the same project and effective configuration. |
 
-The main dashboard service-control panel exposes these same operations, including cancellation, changing a pending intent and an explicitly labelled force-stop action. Stop and restart are not substitutes for closing a client. A second press of Stop must not silently mean force stop. Inspection and controls remain usable during `pausing`, `pause` and `stopping`.
+The dashboard System page exposes these same manual lifecycle operations, complete active pause reasons, cancellation/changing pending intent and an explicitly labelled force-stop action. Health-specific details/soft override live on Health. Stop and restart are not substitutes for closing a client. A second press of Stop must not silently mean force stop. Inspection and controls remain usable during `pausing`, `pause` and `stopping`.
 
 Restart uses the ordinary stop/start lifecycle. Its drain phase is `stopping`, with visible restart intent rather than another runtime state. Do not start the replacement until the old owner has finished and released ownership. Restart from `pause` needs only immediate orderly shutdown before starting the replacement in `running`. Failure to start the replacement is reported as such, not as a successful running service. Restart preserves effective project configuration and the selected installation, and does not install an engine update implicitly.
 
@@ -54,4 +73,4 @@ An intentional completed stop, including internal force stop, follows [intention
 
 ## Acceptance outcomes
 
-Exercise all four states through commands, two terminal clients, browser and API. Pause/stop an active task and verify it drains exactly once with no next claim. Cancel both pending states and switch their intent without restarting the task; confirm stop-to-pause replacement and reject stale conflicting requests. Pause an idle engine immediately, then resume, stop or restart it. Force stop has no waiting state and paused force stop still performs orderly cleanup. Verify internal forced cleanup, graceful OS termination, external hard kill without a cleanup guarantee, lost replies and replacement-owner protection. Closing any observing client never invokes these operations.
+Exercise all four states through commands, two terminal clients, browser and API. Pause/stop an active task and verify it drains exactly once with no next claim. Compose manual + soft Health + hard Health reasons and verify scheduling resumes only after all applicable reasons are removed/resolved. Generic Resume never clears Health. Soft Health override affects only its incident; hard Health cannot be overridden. Cancel pending states and switch intent without restarting the task; confirm stop-to-pause replacement and reject stale conflicting requests. Pause an idle engine immediately, then resume, stop or restart it. Force stop has no waiting state and paused force stop still performs orderly cleanup. Closing any observing client never invokes these operations.

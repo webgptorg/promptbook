@@ -12,13 +12,19 @@ An initialized project whose tools are missing, disabled, signed out, quota-limi
 
 There is no check-command setup question at start. Preserve real checks; the explicit initialization placeholder is nonblocking and visibly not real automated validation. A broken real validator uses ordinary repair rather than a new wizard or a replacement fake pass. Successful unchanged init needs no repeated login, check selection or task creation.
 
-## Launch and one-shot result
+## Launch result and dashboard handoff
 
-Default start launches a background daemon with restart persistence and a lightweight loopback HTTP service on a free port searched from 3000. Establish the usual protected [remote dashboard access](remote-access.md), with `--no-tunnel` for local only and `--no-server` for neither. This tunnel is distinct from Git autosync. Tunnel/network failures are visibly degraded and retried without unnecessarily preventing safe local work. Serving a dashboard does not open it.
+Default start launches a background daemon with restart persistence and a lightweight loopback HTTP service on a free port searched from 3000. Establish the usual protected [remote dashboard access](remote-access.md), with `--no-tunnel` for local only and `--no-server` for neither. This tunnel is distinct from Git autosync. Tunnel/network failures are visibly degraded and retried without unnecessarily preventing safe local work. Starting/serving the service and attaching a viewer remain separate operations internally, but ordinary interactive `ptbk start` performs both in sequence.
 
 Discover agents with the shared resolver and enabled named tools with the shared registry. Reuse global harness setup and apply [update policy](harness-updates.md) safely across shared executables. Installed unselected harnesses are not implicit choices. Referenceable hidden/dependency agents are not automatically goal-discovery candidates. The launching terminal may complete genuinely missing attended initialization before detaching, not hide runtime decisions on stdin.
 
-After a bounded launch outcome, render one [status snapshot](status-view.md) and release the terminal. Do not attach/open a dashboard automatically. `--raw` changes output, not daemon lifetime/tunneling. Explicit `--foreground` owns the live execution view or plain events. Report the actual running version, project, phase/wait, queue, attributed user chats, tools and enabled synchronization summary.
+After a bounded successful daemon launch, an ordinary suitable interactive terminal **automatically attaches the ordinary project dashboard** and keeps that viewer open. This is the same independent viewer as `ptbk dashboard`; leaving it keeps the daemon running.
+
+This automatic attachment also happens when `ptbk start` discovers that the selected engine is already running. Repeated start therefore remains idempotent for engine state while still being a convenient "start-or-open" command.
+
+`--no-dashboard` suppresses the automatic viewer and returns after the bounded start/existing-service result. Raw/`--no-ui`, `--non-interactive`, redirected or otherwise unsuitable terminal use also returns without attaching. These presentation choices do not change daemon lifetime/tunneling.
+
+Explicit `--foreground` already owns its live foreground view and does not open a second attached dashboard; raw foreground emits plain events. Report truthful launch state before/within the handoff and never wait for the first task result.
 
 Connection information distinguishes a ready public HTTPS/pairing address from local-only or connecting/degraded remote access. Do not show a localhost mobile QR as if it worked from another network. Respect no-QR/raw/authentication controls; hint `ptbk dashboard`, `ptbk show` and `ptbk stop`. Do not wait for the first task. Init's finite finish uses its separate [UX](initialization-ui.md).
 
@@ -34,4 +40,4 @@ Follow [automatic repair](../concepts/automatic-repair.md) as a core principle: 
 
 Survive ordinary task/check/provider/browser/tunnel/update/synchronization/persistence failures with bounded recovery, useful traces and controls. Empty queues or missing resources do not mean service exit. Deliberate pause/stop remains authoritative. The product targets extended unattended operation, not guaranteed work while a host sleeps or external accounts are unavailable.
 
-Repeated start reports the existing engine once without duplicate workers/tunnels, reinitialization, silent configuration replacement or pause cancellation. Use `ptbk dashboard` to observe it. See [controls](controls.md), [persistence](persistence.md), [process modes](process-modes.md) and [execution](execution.md).
+Repeated start never creates duplicate workers/tunnels, reinitializes, silently replaces configuration or cancels pause reasons. In ordinary interactive daemon mode it attaches the existing engine's dashboard; with `--no-dashboard`/raw/noninteractive presentation it reports once and returns. `ptbk dashboard` remains the explicit manual attachment command. See [controls](controls.md), [persistence](persistence.md), [process modes](process-modes.md) and [execution](execution.md).

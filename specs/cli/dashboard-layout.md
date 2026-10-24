@@ -1,40 +1,78 @@
-# Dashboard panel layout
+# Dashboard home screen and pages
 
-[Main specification](../_main.md) · [Shared status view](status-view.md) · [Expandable details](dashboard-details.md)
+[Main specification](../_main.md) · [Shared status view](status-view.md) · [Dashboard pages](dashboard-details.md)
 
-Terminal and browser project dashboards are a coherent **operational cockpit** with separated labelled panels, not one rectangle of logs. Use consistent padding, spacing, alignment and boundaries. The hierarchy also applies to pretty one-shot snapshots; exact grid/rendering technology is not prescribed. The [global dashboard](global-dashboard.md) remains a separate host-wide table, not this project panel grid or another engine.
+Terminal and browser project dashboards are a coherent **operational cockpit**. The root is the **dashboard home screen**: a bounded set of compact labelled tiles that summarizes the engine and routes the operator into full dashboard pages. It is not a long status document and it must not require ordinary scrolling.
 
-Keep a compact project/version/service-state header and these functional regions:
+The [global dashboard](global-dashboard.md) remains a separate host-wide table, not another project home screen or another engine.
 
-| Region | Content and priority |
-| --- | --- |
-| Needs your attention | Actual agent-authored chats awaiting User, linked work and direct thread actions. Unread and all-chats access are distinct. Highest priority. |
-| Current work | Agent identity, task, phase and truthful wait/blocker, with execution-detail access. |
-| Service controls | Always-discoverable pause/resume, pending-intent cancellation/change, graceful stop, explicit whole-engine force stop and restart. |
-| Tools | Compact named browser/harness availability, enabled/in-use summaries and access to shared tool management and individual diagnostics. |
-| Synchronization | Compact Git synchronization state and drill-down/manual-cycle access, **only when autosync is enabled**. |
-| Agents / team | All available agents, actual activity, per-agent queued work and drill-down into source/chat. |
-| Chats | Existing conversations, new Chatter-first entry and unread/actionable states. |
-| Tasks | Complete sortable task inventory, smart current-work view and Tasker-first authoring. |
-| Results and activity | Compact outcomes/statistics and a separately bounded diagnostic/activity area. |
-| Connection | Verified local/remote dashboard availability, URL/QR and access guidance, secondary to work and attention. |
+## Home screen contract
 
-Verbose execution, tool configuration/individual browser diagnostics and synchronization status use the same **initially collapsed detail pattern**, keyboard-accessible with labelled controls. Follow [detail contracts](dashboard-details.md); never dump every model/credential field into the main view. A concise actionable failure remains visible while details are closed. Enabling/disabling is the primary tool-management path; permanent removal is secondary, not an easy accidental primary action.
+The home screen must fit completely inside a normally usable terminal/window. A standard terminal, a moderately narrowed VS Code terminal and a fullscreen terminal must all present the complete home screen without vertical scrolling. Extremely tiny terminals may fall back to a minimal/limited message, but ordinary use must not require the operator to scroll past tiles to discover state or actions.
 
-Show engine lifecycle states `running`, `pausing`, `pause` and `stopping` independently of task/resource/synchronization phases. Waiting for a missing browser/harness is compatible with running, not a new lifecycle state or a technical pause. Failed pull/push can coexist with active local work. Lifecycle controls are not hidden in tools or synchronization details. Shared confirmations and outcomes come from [service lifecycle](service-lifecycle.md), not UI-specific semantics; an observed exited service is not a fifth live state.
+Use the available width and height responsively:
 
-On wide terminals/screens, several panels remain simultaneously distinguishable with aligned edges. On narrow screens, stack/compact by priority while retaining attention, live state and lifecycle actions. Secondary detail can scroll/collapse in labelled regions. Never hide required actions under logs, shrink text to unreadability, clip QR codes or let agent artwork cover controls. Empty queues and resource waits have meaningful concise states.
+- wider surfaces may place several tiles side by side and use additional whitespace or slightly richer summaries;
+- narrower surfaces reduce columns, shorten secondary copy and stack compact tiles;
+- shorter surfaces reduce nonessential lines before dropping an important tile;
+- larger surfaces may expand spacing and bounded previews, but must not turn the home screen into a verbose diagnostic dump.
 
-Update live regions without flicker, moved focus, lost drafts, reset scroll or repeated frames in scrollback. Background tool/sync updates must not steal the current editor. A snapshot renders once; raw output uses labelled plain sections. A viewer's focus and collapsed panes are local presentation state and do not change the engine or another viewer.
+The renderer reacts to terminal resize and repaints the layout without losing selection, drafts or page state. Responsive behavior applies to **height as well as width**. The home screen should utilize the available surface, not assume one fixed terminal geometry.
 
-## Spatial navigation and agent/task views
+Keep the top identity/status extremely concise: use **PTBK**, the project name and the actual engine lifecycle state. Version, installation scope, process/path/location, connection URLs, detailed execution/provider data and other technical metadata belong on the appropriate dashboard page rather than permanently consuming home-screen space.
 
-Retain existing discoverable letter shortcuts as direct actions. At panel level, arrow keys move focus spatially between visible regions; highlight the focused panel without automatically enlarging it or rearranging the grid. Enter drills into that panel; Escape returns one level. Escape at the root exits only the dashboard, never the engine. Inside a list/editor, its arrows/Enter/Escape follow that local control until returning to the parent. Preserve selection, scroll and drafts across drill-down and refresh.
+The home screen contains compact tiles for operational domains. A tile shows only the smallest useful summary: healthy/idle/busy counts, current work, actionable problem summary or another bounded state. It is a navigation/control surface, not the complete content of that domain. The detailed inventory, diagnostics, lists and long explanations live on the corresponding page.
 
-Agents, Chats and Tasks are separate panels, not three labels for the active task. The team inventory includes all project/core agents and the engine Expert where referenceable, with an honest distinction between model-backed targets and non-speakers. Show each agent's actual current activity and assigned queue, not a fabricated permanent worker per agent. Detail provides its source, current/queued work, direct chat and [source editing](book-editor.md) for project-owned Books. Core hiding in automatic goal discovery does not hide roles from this explicit complete inventory.
+At minimum preserve the existing domains as compact tiles/pages: Current work, **System**, **Health**, Tools, Agents, Chats, Tasks, Results/Activity, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
 
-Tasks uses the [complete smart task view](task-views.md); Chats uses the [Chatter-first conversation flow](chat-ui.md). Promote Tasker for task creation/management. Agent/chat/task inventories support ordinary sorting by applicable displayed fields; preserve viewer choices without changing engine state. These are UI policies over the same service; navigation never changes scheduling or commits sources.
+## Focus and attention are independent
+
+The home screen has a **focus** used for navigation. Arrow keys move focus between tiles and the focused tile has a clear visual selection state. Focus is solely the operator's cursor. It must never be stolen merely because a different tile becomes important.
+
+Separately, any tile may have **attention** because its underlying domain has a new actionable event, failure, warning or human request. Multiple tiles may require attention simultaneously. Attention does not move focus, open a page, block another action or force the operator to resolve items in system-chosen order. The operator may inspect another tile, solve issues in any order or intentionally ignore an attention item.
+
+New/unseen attention should be visually conspicuous, for example by a restrained blink/pulse in addition to its warning tone. The animation exists to make it difficult to overlook a new issue, not to punish intentional ignoring. Do **not** expire the conspicuous state simply because wall-clock time passed: an unattended dashboard may sit open for hours before an operator looks at it.
+
+Once the viewer has clear evidence that the operator is actively using that dashboard while leaving the attention item unresolved, the transient blink/pulse should settle into a persistent static warning. This acknowledgement is viewer-local presentation state; it may be derived from a short period or several meaningful navigation/actions after the operator becomes active. The exact debounce/count is an implementation choice. The underlying incident/request remains unresolved and the tile remains visibly marked until the domain reports it resolved. Focus and attention must still be distinguishable when both apply to the same tile.
+
+Reduced-motion mode removes blinking/motion but retains equally clear unseen-versus-active warning semantics without relying on animation or color alone.
+
+## Pages, not expanded panels
+
+Enter on a focused tile opens that domain as a **dashboard page**. Do not keep rendering the whole home-screen grid behind or around an enlarged "subpanel". The page replaces the home screen as the primary content of the dashboard until the operator returns.
+
+Escape returns one level to the previous dashboard page/home screen. Escape at the home screen exits only that dashboard viewer, never the engine. Direct letter shortcuts may jump to the same pages/actions, but must not create alternate business logic.
+
+A dashboard page may use the full terminal/window and may scroll when its content is larger than the viewport. Prefer a stable page frame: keep a concise page title/context and discoverable controls/footer fixed where practical, while the list/log/detail body scrolls. Lists such as tasks, chats, agents and activity preserve selection and scroll across live updates and resize. Editing/composer controls retain drafts and local navigation.
+
+Opening a page is inspection/navigation, not mutation. Actions on that page use the shared engine/domain operations. Returning to the home screen preserves the operator's tile focus and reasonable local page state.
+
+## Information hierarchy
+
+The home screen favors:
+
+1. project identity and service state;
+2. new/actionable operator attention;
+3. what is currently working/waiting;
+4. compact state of the major domains;
+5. navigation and lifecycle discoverability.
+
+Technical details are not deleted; they move to pages. The **System page** owns engine/process/configuration/lifecycle detail, generic manual pause/resume and the complete active pause-reason list. The **Health page** owns host-resource measurements, health incidents, allowed soft-incident override and remediation from the [Health sub-engine](health-sub-engine.md); it does not own generic manual pause controls. Tool pages own provider/profile readiness and configuration. Connection owns URLs/QR/access. Execution owns harness/model/thinking details. Activity/log pages own verbose history.
+
+A concrete blocker may be summarized on the related home tile so the operator knows *where* attention is required. The complete cause, evidence and remediation can live on its page. Long errors, paths, URLs, model names, version strings and QR codes must not inflate the root layout.
+
+## Responsive and live behavior
+
+Live updates must not flicker, move focus, reset page scroll, discard drafts or flood scrollback. A viewer's focus, page, scroll position and acknowledged visual attention are local presentation state and do not modify the engine or another viewer.
+
+Pretty one-shot snapshots may reuse the same information hierarchy without pretending to be navigable. Raw output remains labelled plain sections and need not imitate the tile geometry.
+
+When an enabled synchronization domain, tool, chat, health monitor or other subsystem produces an actionable issue, it marks its own tile/page through the shared attention presentation rather than inventing a modal global alarm. Severe engine state may also be summarized in the top status. The operator remains in control of navigation.
 
 ## Acceptance outcomes
 
-Exercise wide/narrow terminal/browser layouts, zero tools, busy work, empty queues, long identifiers/URLs, multiple waiting chats and resizing during replies/tool edits. Main lifecycle actions and concrete resource waits stay visible. Drill into execution, tools, a browser and enabled synchronization with keyboard-only navigation. Disabled sync has no dedicated panel. Two clients show the same shared state and accepted changes while preserving their independent focus/panel choices. No log, avatar or connection box obscures required controls.
+Exercise the dashboard at standard Windows terminal size, a moderately reduced VS Code terminal, wide/fullscreen sizes and live resize. The complete home screen remains visible without scrolling in all normal cases and uses the available space sensibly. Long paths/versions/URLs do not force the root taller.
+
+Create simultaneous attention in several domains. New items are conspicuous without moving focus; an operator can continue navigating elsewhere, after clear interaction the transient animation settles while unresolved warnings remain. Reduced motion preserves the meaning.
+
+Open every tile with Enter. The home grid disappears and a full page is shown; long pages scroll inside their content while stable controls/context remain usable. Escape returns to the same home focus. No page, avatar, log, QR or background refresh obscures required controls or mutates engine state merely by being viewed.

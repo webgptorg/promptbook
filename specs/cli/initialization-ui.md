@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Initialization behavior](initialization.md) · [Shared CLI interaction](interactive-ui.md)
 
-Init is a short attended journey with a beginning, visible progress and an end. After confirmed background start, interactive init offers a brief cancellable countdown into the same ordinary dashboard used by `ptbk dashboard`. This is a handoff from finite setup to an independent viewer, not a special initializer dashboard or a prerequisite for unattended work. Functional saved choices are defined in [initialization](initialization.md).
+Init is a short attended journey with a beginning, visible progress and an end. After confirmed background start, ordinary interactive init automatically hands off (optionally through the brief visible cancellable countdown) into the same dashboard used by `ptbk dashboard`. `--no-dashboard` suppresses that viewer handoff. This is a handoff from finite setup to an independent viewer, not a special initializer dashboard or a prerequisite for unattended work. Functional saved choices are defined in [initialization](initialization.md).
 
 ## Intent first, simple tool choices
 
@@ -28,7 +28,7 @@ Expert is the recognizable procedural visual guide, using the same [agent identi
 
 After successful local setup and confirmed service launch, show a brief tasteful Expert celebration and short visible countdown to the ordinary project dashboard, without a long delay, looping animation or scrollback flood. Never celebrate failed/cancelled local setup as success. Remote publication may still be pending; make that qualification explicit rather than claiming full synchronization success.
 
-Leave a concise summary of project, actual engine version, local setup, confirmed service state and relevant pending synchronization. Interactive countdown permits Enter to open the dashboard immediately and Escape/Ctrl+C to skip the viewer handoff and return; skipping or later closing the viewer leaves the engine running. On expiry, attach the existing shared dashboard without another start, initialization or worker. Never wait for the first task's result. Raw/noninteractive mode reports and returns without a countdown or automatic viewer; reduced motion removes animation without losing actions or truthful status. Always leave `ptbk dashboard` and `ptbk stop` available as ordinary commands.
+Leave a concise summary of project, actual engine version, local setup, confirmed service state and relevant pending synchronization. Unless `--no-dashboard` is set, interactive countdown permits Enter to open the dashboard immediately and Escape/Ctrl+C to skip the viewer handoff and return; skipping or later closing the viewer leaves the engine running. On expiry, attach the existing shared dashboard without another start, initialization or worker. With `--no-dashboard`, raw/no-UI/noninteractive mode reports and returns without a countdown or automatic viewer. Never wait for the first task's result; reduced motion removes animation without losing actions or truthful status. Always leave `ptbk dashboard` and `ptbk stop` available as ordinary commands.
 
 ## Acceptance outcomes
 

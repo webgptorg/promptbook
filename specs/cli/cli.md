@@ -9,11 +9,11 @@ The root command is `ptbk`. Bare interactive invocation offers selectable **Init
 | Command | Purpose |
 | --- | --- |
 | `init`, `initialize` | Preserve intent, prepare missing support/core roles/simple tools, ask optional sync, save ordinary Expert bootstrap and start the agenda. No check-command question. |
-| `start` | Start ongoing daemon and report one snapshot; explicit foreground mode is available. |
+| `start` | Start/reuse the ongoing daemon and, in ordinary interactive use, automatically open its project dashboard; explicit foreground and `--no-dashboard` modes are available. |
 | `pause` | Stop new claims, drain current work and remain alive in pause. |
 | `resume` | Resume or cancel pending pause/stop/restart and return to running. |
 | `stop` | Graceful drain/stop; `--force` or `-F` immediately terminates owned execution. |
-| `restart` | Gracefully stop and start one replacement for the selected project. |
+| `restart` | Gracefully stop/start one replacement and, in ordinary interactive use, automatically open its dashboard. |
 | `dashboard` | Continuously observe/control an existing project, without owning or starting it. |
 | `dashboard --global` | Live host-wide engine table, independent of CWD, with project attachment and meaningful zero-entry state. |
 | `status`, `show` | One shared project-state snapshot, including tools and enabled synchronization, without lifecycle changes. |
@@ -54,7 +54,7 @@ Pretty/raw and interactive/noninteractive follow [CLI presentation](interactive-
 
 New chat without an explicit target offers Chatter (focused default/Enter) or Choose another agent; the latter opens all valid core/specialist/Expert targets. Explicit `--agent` bypasses selection; noninteractive default is Chatter. Existing threads retain participants; User/Void/Null are not speakers. Ctrl+C leaves chat only. Authorized execution requested in chat uses ordinary tasks and respects pause/ownership.
 
-Start supports `--daemon` (default), `--foreground`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`. With several browsers, `--browser-tool <name>` disambiguates temporary browser overrides; never silently apply them to every instance. Saved per-tool changes instead use `ptbk tool modify`.
+Start supports `--daemon` (default), `--foreground`, `--no-dashboard`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`. `init` and `restart` also accept `--no-dashboard` to suppress their automatic interactive viewer handoff. With several browsers, `--browser-tool <name>` disambiguates temporary browser overrides; never silently apply them to every instance. Saved per-tool changes instead use `ptbk tool modify`.
 
 HTTP workflows support `--tunnel`, `--no-tunnel`, `--tunnel-provider`; CLI provider spellings remain `cloudflare-quick`/`cloudflare-named` and saved enums are canonical uppercase. No-server suppresses implicit tunnelling and conflicts with explicit enablement. HTTP exposure is not Git autosync. Raw does not select foreground or change exposure. Dashboard/status do not apply launch-only options or create tunnels.
 
