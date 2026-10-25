@@ -19,7 +19,9 @@ Use the available width and height responsively:
 
 The renderer reacts to terminal resize and repaints the layout without losing selection, drafts or page state. Responsive behavior applies to **height as well as width**. The home screen should utilize the available surface, not assume one fixed terminal geometry.
 
-Keep the top identity/status extremely concise: use **PTBK**, the project name and the actual engine lifecycle state. Version, installation scope, process/path/location, connection URLs, detailed execution/provider data and other technical metadata belong on the appropriate dashboard page rather than permanently consuming home-screen space.
+Render a clearly recognizable **shared application header above the entire tile grid**, identifying **Promptbook / PTBK**, the project name and actual engine lifecycle state. It visually unifies the home screen so the tiles read as domains of one application, not unrelated boxes. The header is separate from the tiles, not another focusable tile, and must remain prominent without becoming tall or verbose. Version, installation scope, process/path/location, connection URLs, detailed execution/provider data and other technical metadata belong on the appropriate dashboard page rather than permanently consuming home-screen space.
+
+Reserve the shared header in responsive height/width calculations; shorten secondary content before sacrificing identity or forcing normal-size scrolling. The terminal window/tab title does not replace this in-application header.
 
 The home screen contains compact tiles for operational domains. A tile shows only the smallest useful summary: healthy/idle/busy counts, current work, actionable problem summary or another bounded state. It is a navigation/control surface, not the complete content of that domain. The detailed inventory, diagnostics, lists and long explanations live on the corresponding page.
 
@@ -71,7 +73,7 @@ When an enabled synchronization domain, tool, chat, health monitor or other subs
 
 ## Acceptance outcomes
 
-Exercise the dashboard at standard Windows terminal size, a moderately reduced VS Code terminal, wide/fullscreen sizes and live resize. The complete home screen remains visible without scrolling in all normal cases and uses the available space sensibly. Long paths/versions/URLs do not force the root taller.
+Exercise the dashboard at standard Windows terminal size, a moderately reduced VS Code terminal, wide/fullscreen sizes and live resize. The complete home screen, including the prominent shared Promptbook/project/state header above the grid, remains visible without scrolling in all normal cases and uses the available space sensibly. The header cannot be mistaken for an independent tile and remains recognizable through live updates/resize. Long paths/versions/URLs do not force the root taller.
 
 Create simultaneous attention in several domains. New items are conspicuous without moving focus; an operator can continue navigating elsewhere, after clear interaction the transient animation settles while unresolved warnings remain. Reduced motion preserves the meaning.
 

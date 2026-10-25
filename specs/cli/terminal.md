@@ -12,7 +12,7 @@ Zero or many dashboards can attach. They share engine state but not viewer focus
 
 ## Home screen
 
-Use the [dashboard home-screen contract](dashboard-layout.md). The root is a compact responsive tile cockpit, not a vertically scrollable report. In normal terminal sizes the complete root is visible at once, including PTBK/project/service state, current work, operator attention and entries to the major pages.
+Use the [dashboard home-screen contract](dashboard-layout.md). The root has a prominent shared **Promptbook / PTBK, project and lifecycle-state header above the tile grid**, visually identifying one application. It is separate from focusable tiles and from the terminal tab title. The complete header/grid form a compact responsive cockpit, not a vertically scrollable report. In normal terminal sizes the complete root is visible at once, including PTBK/project/service state, current work, operator attention and entries to the major pages.
 
 Width and **height** both affect layout. A narrower/shorter terminal reduces columns and secondary copy before it removes important state. A larger terminal may use more whitespace/richer bounded previews. Handle `resize` live without losing tile focus, page selection, list scroll or drafts.
 
