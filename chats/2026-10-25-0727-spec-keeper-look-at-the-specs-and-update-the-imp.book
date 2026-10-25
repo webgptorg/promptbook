@@ -8,3 +8,8 @@ Look at the specs and update the implementation
 
 MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 
+CHAT MESSAGE @Spec-keeper 2026-10-25T17:18:44+01:00
+Created an agenda task for @Developer to compare specs with code and tests, fix verified gaps, add regression coverage, and update the changelog.
+
+The task is linked to this chat and awaits agenda execution. No implementation changes have been made here.
+
