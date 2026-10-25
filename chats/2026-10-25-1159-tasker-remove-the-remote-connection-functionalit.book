@@ -6,3 +6,5 @@ CHAT STATUS open
 CHAT MESSAGE @User 2026-10-25T11:59:14+01:00
 Remove the remote connection functionality from both specs and implementation
 
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
+
