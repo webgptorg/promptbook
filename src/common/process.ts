@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess, type SpawnOptions } from 'node:child_process';
 import { constants } from 'node:fs';
-import { access, stat } from 'node:fs/promises';
+import { access, readFile, stat } from 'node:fs/promises';
 import { delimiter, extname, isAbsolute, join, resolve } from 'node:path';
 
 /**
@@ -202,6 +202,132 @@ class OutputBuffer {
 }
 
 /**
+ * Receives every child process started through the shared helpers, so the engine can record it as owned execution.
+ *
+ * @private shared process helper
+ */
+export type SpawnObserver = (child: ChildProcess, info: { readonly group: boolean; readonly label: string }) => void;
+
+/**
+ * The installed observer (only an engine host installs one).
+ */
+let spawnObserver: SpawnObserver | undefined;
+
+/**
+ * Installs (or removes) the observer of spawned child processes.
+ *
+ * @private shared process helper
+ */
+export function observeSpawnedProcesses(observer: SpawnObserver | undefined): void {
+    spawnObserver = observer;
+}
+
+/**
+ * Reports a spawned child (`group`: it leads its own process group, so terminating the group reaches its descendants).
+ * An observer failure never affects the spawn.
+ *
+ * @private shared process helper
+ */
+export function reportSpawnedProcess(child: ChildProcess, info: { readonly group: boolean; readonly label: string }): void {
+    if (child.pid === undefined) return;
+    try {
+        spawnObserver?.(child, info);
+    } catch {
+        // Recording owned processes is best-effort.
+    }
+}
+
+/**
+ * When a process started (epoch ms), from the operating system; undefined when it is gone or the time is unavailable.
+ * It identifies a PID across reuse: a reused PID belongs to a process started after the original was recorded.
+ *
+ * @private shared process helper
+ */
+export async function processStartedAt(pid: number): Promise<number | undefined> {
+    if (!isProcessAlive(pid)) return undefined;
+    if (process.platform === 'win32') {
+        const result = await runProcess('powershell', ['-NoProfile', '-NonInteractive', '-Command', `(Get-Process -Id ${pid}).StartTime.ToUniversalTime().ToString('o')`], { cwd: process.cwd(), timeoutMs: 15_000 });
+        const time = Date.parse(result.stdout.trim());
+        return result.exitCode === 0 && Number.isFinite(time) ? time : undefined;
+    }
+    if (process.platform === 'linux') {
+        // /proc works without `ps` (minimal containers): start ticks after boot plus the boot time.
+        try {
+            const stat = await readFile(`/proc/${pid}/stat`, 'utf8');
+            const fields = stat.slice(stat.lastIndexOf(')') + 2).split(' ');
+            const ticks = Number(fields[19]);
+            const boot = Number(/^btime (\d+)$/m.exec(await readFile('/proc/stat', 'utf8'))?.[1]);
+            if (Number.isFinite(ticks) && Number.isFinite(boot)) return boot * 1000 + (ticks / 100) * 1000;
+        } catch {
+            // fall back to ps
+        }
+    }
+    const result = await runProcess('ps', ['-o', 'lstart=', '-p', String(pid)], { cwd: process.cwd(), env: { ...process.env, LC_ALL: 'C', LANG: 'C' }, timeoutMs: 10_000 });
+    const time = Date.parse(result.stdout.trim().replace(/\s+/g, ' '));
+    return result.exitCode === 0 && Number.isFinite(time) ? time : undefined;
+}
+
+/**
+ * Tolerance between a process's OS start time (whole seconds on some systems) and the time it was recorded.
+ */
+const START_TIME_TOLERANCE_MS = 2000;
+
+/**
+ * Verifies that a live PID is still the process recorded at `recordedAt` (it started no later than that), so a stale
+ * record or a reused PID never authorizes terminating an unrelated process.
+ *
+ * @private shared process helper
+ */
+export async function verifyRecordedProcess(pid: number, recordedAt: string): Promise<'verified' | 'gone' | 'reused' | 'unknown'> {
+    if (!isProcessAlive(pid)) return 'gone';
+    const started = await processStartedAt(pid);
+    if (started === undefined) return isProcessAlive(pid) ? 'unknown' : 'gone';
+    return started <= Date.parse(recordedAt) + START_TIME_TOLERANCE_MS ? 'verified' : 'reused';
+}
+
+/**
+ * Immediately kills a verified process by PID: with `group` its whole process group (POSIX), on Windows its tree.
+ * Only call it for a process whose identity was verified; nothing is matched by name.
+ *
+ * @private shared process helper
+ */
+export async function killVerifiedProcess(pid: number, options: { readonly group?: boolean } = {}): Promise<void> {
+    if (process.platform === 'win32') {
+        await runProcess('taskkill', ['/pid', String(pid), '/T', '/F'], { cwd: process.cwd(), timeoutMs: 15_000 });
+        return;
+    }
+    if (options.group) {
+        try {
+            process.kill(-pid, 'SIGKILL');
+            return;
+        } catch {
+            // not a group leader (any more): the process itself
+        }
+    }
+    try {
+        process.kill(pid, 'SIGKILL');
+    } catch {
+        // already gone
+    }
+}
+
+/**
+ * Whether a POSIX process group still has members (its leader may have exited). While a group exists, its ID cannot be
+ * reused by a new process, so remaining members are still the recorded group's descendants.
+ *
+ * @private shared process helper
+ */
+export function processGroupAlive(pgid: number): boolean {
+    if (process.platform === 'win32' || !Number.isInteger(pgid) || pgid <= 0) return false;
+    try {
+        process.kill(-pgid, 0);
+        return true;
+    } catch (error) {
+        return (error as NodeJS.ErrnoException).code === 'EPERM';
+    }
+}
+
+/**
  * Terminates a child and, where possible, its whole process tree.
  *
  * @private shared process helper
@@ -270,6 +396,7 @@ export async function runProcess(command: string, args: readonly string[], optio
         let child: ChildProcess;
         try {
             child = spawn(invocation.file, invocation.args, spawnOptions);
+            reportSpawnedProcess(child, { group: spawnOptions.detached === true, label: command });
         } catch (error) {
             resolvePromise({
                 exitCode: null,

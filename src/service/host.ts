@@ -15,6 +15,7 @@ import { AuthStore } from './auth.js';
 import { CONTROL_CONTRACT, startControlServer } from './control.js';
 import { registerEngine, summaryOfSnapshot } from './discovery.js';
 import { startHttpServer, type RunningHttpServer } from './http.js';
+import { OwnedProcessRecorder } from './owned-processes.js';
 import { acquireProjectLock, engineIdentity, removeProcessRecord, writeProcessRecord } from './records.js';
 import { TunnelManager } from './tunnel.js';
 
@@ -68,8 +69,11 @@ export class ServiceHost {
     private connection: ConnectionView = { local: { state: 'disabled' }, remote: { state: 'disabled' } };
     private pairingRefresh?: NodeJS.Timeout;
     private readonly browsers: BrowserFleet;
+    /** Every execution process this engine starts, so a force stop (also from outside) ends all of them. */
+    private readonly owned: OwnedProcessRecorder;
 
     public constructor(private readonly options: HostOptions) {
+        this.owned = new OwnedProcessRecorder(options.project, this.instanceId);
         this.agenda = new Agenda({
             project: options.project,
             mode: options.mode,
@@ -131,6 +135,7 @@ export class ServiceHost {
     public async start(): Promise<void> {
         const { project } = this.options;
         this.releaseLock = await acquireProjectLock(project, this.instanceId, this.options.mode);
+        this.owned.start();
         try {
             await this.agenda.initialize();
             this.controlServer = await startControlServer(ipcAddress(`control:${project.root}:${this.instanceId}`), this.token, (method, params) => this.handleControl(method, params));
@@ -234,18 +239,22 @@ export class ServiceHost {
 
     /**
      * Releases every owned resource (browser, tunnel, HTTP, control, discovery entry, record and finally its own project
-     * lock). Each step is bounded so an internal force stop still cleans up promptly; only this owner's records are
-     * removed, never another process's lock or persistent project data.
+     * lock). Each step is bounded so an internal force stop still cleans up promptly; after a force stop every owned
+     * process still running is killed, so no owned worker outlives the engine. Only this owner's records are removed,
+     * never another process's lock or persistent project data.
      */
     public async shutdown(): Promise<void> {
         const bounded = async (step: () => Promise<unknown> | unknown): Promise<void> => {
             await Promise.race([Promise.resolve().then(step).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 10_000).unref())]);
         };
         clearInterval(this.pairingRefresh);
+        const forced = this.agenda.forceStopped;
+        // Recording evidence is finalized even on force stop (bounded).
         await bounded(() => this.browsers.detach());
         this.browsers.close();
         this.tunnel?.stop();
         this.tunnel = undefined;
+        if (forced) await bounded(() => this.owned.terminateRemaining(1000));
         await bounded(() => this.http?.close());
         this.http = undefined;
         await bounded(() => this.controlServer?.close());
@@ -253,6 +262,7 @@ export class ServiceHost {
         await bounded(() => this.unregister?.());
         this.unregister = undefined;
         await bounded(() => removeProcessRecord(this.options.project, this.instanceId));
+        this.owned.stop();
         await bounded(() => this.releaseLock?.());
         this.releaseLock = undefined;
     }

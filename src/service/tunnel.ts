@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { errorMessage } from '../common/errors.js';
-import { terminateProcessTree } from '../common/process.js';
+import { reportSpawnedProcess, terminateProcessTree } from '../common/process.js';
 import type { ConnectionView } from '../engine/snapshot.js';
 import { findCloudflared, installCloudflared } from './cloudflared.js';
 
@@ -117,6 +117,7 @@ export class TunnelManager {
             args.push('--url', this.localUrl);
         }
         const child = spawn(executable, args, { env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true, detached: process.platform !== 'win32' });
+        reportSpawnedProcess(child, { group: process.platform !== 'win32', label: 'tunnel' });
         this.child = child;
         let announced: string | undefined = this.configuration.provider === 'cloudflare-named' ? `https://${this.configuration.hostname}` : undefined;
         const found = new Promise<string | undefined>((resolve) => {

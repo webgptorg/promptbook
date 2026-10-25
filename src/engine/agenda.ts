@@ -526,6 +526,11 @@ export class Agenda {
         };
     }
 
+    /** Whether shutdown is a force stop (owned execution is interrupted, and killed if it does not end promptly). */
+    public get forceStopped(): boolean {
+        return this.shutdown === 'force';
+    }
+
     /** Whether the stop that ended the agenda was an intentional user request (not a restart or an OS signal). */
     public get intentionalStop(): boolean {
         return (this.shutdown === 'stop' || this.shutdown === 'force') && !this.shutdownBySignal;

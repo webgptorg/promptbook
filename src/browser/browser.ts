@@ -5,7 +5,7 @@ import { basename, isAbsolute, join, resolve } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, pathExists } from '../common/fs.js';
 import { shortHash, shortId } from '../common/ids.js';
-import { isProcessAlive, terminateProcessTree, which } from '../common/process.js';
+import { isProcessAlive, reportSpawnedProcess, terminateProcessTree, which } from '../common/process.js';
 import { MIGRATED_BROWSER_NAME } from '../project/migrations.js';
 import { describeProfileSource, type BrowserToolRecord, type BrowserVariant, type ProfileSource } from '../tools/model.js';
 import type { Project } from '../project/workspace.js';
@@ -755,6 +755,7 @@ export class ProjectBrowser {
     /** Starts the browser process and attaches to one page. */
     private async launch(executable: string, args: readonly string[], activePortFile: string, headless: boolean): Promise<{ connection: CdpConnection; sessionId: string }> {
         this.child = spawn(executable, args, { stdio: 'ignore', windowsHide: headless, detached: process.platform !== 'win32' });
+        reportSpawnedProcess(this.child, { group: process.platform !== 'win32', label: 'browser' });
         this.child.unref();
         const deadline = Date.now() + STARTUP_TIMEOUT_MS;
         let port: number | undefined;

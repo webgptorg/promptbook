@@ -166,3 +166,47 @@ test('init starts the agenda automatically, returns without waiting, and an expl
     await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
 });
+
+/**
+ * Whether a PID still exists.
+ */
+function alive(pid) {
+    try {
+        process.kill(pid, 0);
+        return true;
+    } catch (error) {
+        return error.code === 'EPERM';
+    }
+}
+
+test('force stop ends an unresponsive engine and every execution process it owns, and records the deliberate stop', { skip: process.platform === 'win32' && 'SIGSTOP simulates an unresponsive engine on POSIX only' }, async (t) => {
+    const { project, env: baseEnv } = await initializedProject(t, { check: CHECK });
+    const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '60000' };
+    await ptbk(['add', 'Slow work SLOW_WORK', '--agent', 'Developer', '--raw'], { cwd: project, env });
+    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const running = await waitFor(async () => {
+        const snapshot = await status(project, env);
+        return snapshot.current?.taskTitle.startsWith('Slow work') && snapshot.current.phase === 'executing' ? snapshot : undefined;
+    }, { message: 'the slow task to execute' });
+    const harness = await waitFor(async () => {
+        const ledger = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'owned.json'), 'utf8').catch(() => '{"processes":[]}'));
+        return ledger.processes.find((owned) => /codex/.test(owned.label));
+    }, { message: 'the harness to be recorded as owned' });
+    assert.ok(alive(harness.pid));
+    // The engine stops answering (its process is frozen), while its harness keeps working.
+    process.kill(running.service.pid, 'SIGSTOP');
+    t.after(() => {
+        if (alive(running.service.pid)) process.kill(running.service.pid, 'SIGKILL');
+    });
+    const forced = await ptbk(['stop', '-F', '--raw'], { cwd: project, env, timeoutMs: 60_000 });
+    assert.equal(forced.code, 0, forced.output);
+    assert.match(forced.stdout, /^Force-stopped/, forced.output);
+    assert.match(forced.stdout, /terminated; its cleanup is not guaranteed/, 'an engine that had to be killed is reported truthfully');
+    assert.equal(alive(running.service.pid), false, 'the unresponsive engine was terminated');
+    await waitFor(() => !alive(harness.pid), { timeoutMs: 5000, message: 'the owned harness to end' });
+    assert.equal(JSON.parse(await readFile(join(project, '.ptbk', 'service', 'launch.json'), 'utf8')).intentionallyStopped, true, 'the deliberate stop suppresses automatic startup');
+    assert.equal((await status(project, env)).service.state, 'stopped');
+    const restarted = await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    assert.equal(restarted.code, 0, `an explicit start works after an uncatchable kill:\n${restarted.output}`);
+    await ptbk(['stop', '-F', '--raw'], { cwd: project, env });
+});
