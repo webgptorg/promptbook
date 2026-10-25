@@ -1342,13 +1342,13 @@
         const live = state.connected ? 'live' : 'disconnected — showing last known state';
         const attention = state.attention.size;
         const stateName = snapshot.service.state;
+        // The shared application header: Promptbook / PTBK (brand), the project and its actual lifecycle state, with
+        // attention and freshness as secondary details; it is never a tile.
         headerStatus.replaceChildren(
-            h('strong', {}, snapshot.project.name),
-            ' · ',
-            h('span', { className: stateName === 'running' ? 'ok' : stateName === 'stopping' ? 'bad' : 'warn' }, stateName),
-            snapshot.service.commitMode === 'no-commit' ? ' · NO-COMMIT' : '',
-            attention ? h('span', { className: 'warn' }, ` · ▲ ${attention} need${attention === 1 ? 's' : ''} attention`) : '',
-            ` · ${live}`,
+            h('strong', { className: 'header-project' }, snapshot.project.name),
+            h('span', { className: `pill header-state ${stateName === 'running' ? 'ok' : stateName === 'stopping' ? 'bad' : 'warn'}` }, stateName),
+            snapshot.service.commitMode === 'no-commit' ? h('span', { className: 'pill warn' }, 'NO-COMMIT') : '',
+            h('span', { className: 'header-details' }, attention ? h('span', { className: 'warn' }, `▲ ${attention} need${attention === 1 ? 's' : ''} attention · `) : '', live),
         );
         document.title = `${snapshot.chats.waiting.length ? `(${snapshot.chats.waiting.length}) ` : ''}PTBK · ${snapshot.project.name}`;
     }

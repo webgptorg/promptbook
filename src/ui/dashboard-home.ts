@@ -68,7 +68,7 @@ const PREFERRED_TILE_WIDTH = 36;
 const MAX_TILE_HEIGHT = 12;
 
 /**
- * Rows of the fixed home chrome: the identity/status line and the legend.
+ * Rows of the fixed home chrome: the shared application header and the legend (reserved before tiles get room).
  */
 const HOME_CHROME_ROWS = 2;
 
@@ -263,21 +263,37 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
 }
 
 /**
- * The concise top identity/status line: PTBK, project and actual lifecycle state, with attention and freshness.
+ * The shared application header above the tile grid (and every page): one full-width band identifying Promptbook /
+ * PTBK, the project and its actual lifecycle state, with attention and freshness on the right. Its heavy rule (and,
+ * with colors, the inverse identity badge) sets it apart from the bordered focusable tiles; it is never a tile and
+ * stays a single row. The identity is shortened only after the right-hand details, never the project and state.
  *
  * @private terminal dashboard home
  */
 export function homeStatusLine(snapshot: ServiceSnapshot, terminal: TerminalProfile, width: number, options: { readonly attention: number; readonly connectionLost?: string; readonly context?: string }): string {
     const { style } = terminal;
     const marks = symbols(terminal.unicode);
+    const rule = terminal.unicode ? '━' : '=';
     const state = snapshot.service.state;
     const tone = state === 'running' ? style.success : state === 'stopped' || state === 'finished' ? style.muted : state === 'stopping' ? style.error : style.warning;
-    const right = options.connectionLost
-        ? style.error(`disconnected: ${options.connectionLost}`)
-        : `${options.attention ? style.warning(`${marks.warn} ${options.attention} need${options.attention === 1 ? 's' : ''} attention  `) : ''}${style.muted(`live ${formatShortTime(Date.parse(snapshot.observedAt))}`)}`;
-    const leftRoom = Math.max(10, width - stringWidth(right) - 2);
-    const left = truncate(` ${style.bold(style.accent('PTBK'))} ${style.muted(marks.dot)} ${style.bold(snapshot.project.name)} ${style.muted(marks.dot)} ${tone(state)}${snapshot.service.commitMode === 'no-commit' ? style.warning(' · NO-COMMIT') : ''}${options.context ? `  ${style.muted('›')} ${style.bold(options.context)}` : ''}`, leftRoom);
-    return `${fit(left, width - stringWidth(right) - 1)} ${right}`;
+    const separator = style.accent(` ${rule}${rule} `);
+    const attention = options.attention ? style.warning(`${marks.warn} ${options.attention} need${options.attention === 1 ? 's' : ''} attention`) : '';
+    const freshness = options.connectionLost ? style.error(`disconnected: ${options.connectionLost}`) : style.muted(`live ${formatShortTime(Date.parse(snapshot.observedAt))}`);
+    const identity = (label: string): string => style.bold(style.inverse(style.accent(` ${label} `)));
+    const left = (label: string): string =>
+        `${style.accent(`${rule}${rule}`)} ${identity(label)}${separator}${style.bold(snapshot.project.name)}${separator}${tone(`${terminal.unicode ? '● ' : ''}${state}`)}${snapshot.service.commitMode === 'no-commit' ? style.warning(' · NO-COMMIT') : ''}${options.context ? `${separator}${style.bold(`› ${options.context}`)}` : ''} `;
+    const right = (parts: readonly string[]): string => (parts.length ? ` ${parts.join(style.muted(` ${marks.dot} `))} ${style.accent(`${rule}${rule}`)}` : style.accent(`${rule}${rule}`));
+    // Narrow terminals drop freshness, then attention (the tiles keep their marks), then the long brand, before the
+    // project and state are cut.
+    const candidates: Array<[string, string]> = [
+        [left(`Promptbook ${marks.dot} PTBK`), right([attention, freshness].filter(Boolean))],
+        [left(`Promptbook ${marks.dot} PTBK`), right([attention].filter(Boolean))],
+        [left(`Promptbook ${marks.dot} PTBK`), right([])],
+        [left('PTBK'), right([])],
+    ];
+    const [head, tail] = candidates.find(([head, tail]) => stringWidth(head) + stringWidth(tail) + 1 <= width) ?? candidates.at(-1)!;
+    const fill = Math.max(0, width - stringWidth(head) - stringWidth(tail));
+    return truncate(`${head}${style.accent(rule.repeat(fill))}${tail}`, width);
 }
 
 /**

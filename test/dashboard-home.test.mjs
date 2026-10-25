@@ -52,7 +52,10 @@ test('the home screen fits standard, narrowed and fullscreen terminals completel
         for (const line of lines) assert.ok(stringWidth(line) <= columns, `${columns}x${rows}: no line wider than the terminal`);
         const text = lines.map(stripAnsi).join('\n');
         for (const title of ['Current work', 'System', 'Health', 'Chats', 'Tasks', 'Agents', 'Tools', 'Results', 'Connection']) assert.match(text, new RegExp(title), `${columns}x${rows}: ${title} is visible`);
-        assert.match(lines[0], /PTBK · birds · running/, 'concise identity and live state');
+        assert.match(stripAnsi(lines[0]), /^━━ {2}Promptbook · PTBK {2}━━ birds ━━ ● running .*━━$/, `${columns}x${rows}: the shared Promptbook/PTBK, project and state header spans the top`);
+        assert.equal(stringWidth(lines[0]), columns, `${columns}x${rows}: the header band fills the width`);
+        assert.doesNotMatch(stripAnsi(lines[0]), /[╭╮│]/, `${columns}x${rows}: the header is not another bordered tile`);
+        if (homeLayout(homeTiles(snapshot()), columns, rows).kind === 'grid') assert.match(stripAnsi(lines[1]), /^╭/, `${columns}x${rows}: the tile grid starts right below the header`);
         assert.doesNotMatch(text, /0\.119\.0-33|very-long-directory|trycloudflare/, 'version, path and URLs live on pages, not on the root');
     }
     assert.equal(homeLayout(homeTiles(snapshot()), 120, 30).kind, 'grid');
@@ -92,7 +95,7 @@ test('pages replace the home grid, keep context and legend fixed and scroll thei
     const rendered = renderPage(context.snapshot, context.terminal, { ...built, scroll: page.scroll, attention: 0 });
     assert.equal(rendered.lines.length, 24);
     const text = rendered.lines.map(stripAnsi);
-    assert.match(text[0], /PTBK · birds · running {2}› Results and activity/);
+    assert.match(text[0], /Promptbook · PTBK {2}━━ birds ━━ ● running ━━ › Results and activity/, 'pages keep the shared header with their title');
     assert.doesNotMatch(text.join('\n'), /Current work|╭─ System/, 'the root grid is not rendered around the page');
     assert.match(text[2], /↑ \d+ more/, 'a long page shows what is above');
     assert.match(text.at(-3), /activity line 79/, 'following the activity keeps the newest line visible');

@@ -57,13 +57,26 @@ body {
     justify-content: space-between;
     padding: 10px 18px;
     background: var(--surface);
-    border-bottom: 1px solid var(--border);
+    /* The accent rule sets the shared application header apart from the bordered tiles below it. */
+    border-bottom: 2px solid var(--accent);
 }
 
 .brand {
     display: flex;
     gap: 10px;
     align-items: center;
+    font-size: 17px;
+}
+
+.brand-short {
+    padding: 1px 7px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
 }
 
 .brand-mascot {
@@ -73,16 +86,45 @@ body {
 }
 
 .header-status {
+    display: flex;
+    gap: 10px;
+    align-items: center;
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
     color: var(--muted);
     font-size: 13px;
 }
 
-.header-status strong {
+.header-project {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: var(--text);
+    font-size: 16px;
+}
+
+.header-state {
+    flex: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.header-details {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Narrow screens keep the brand, project and state; the secondary details go first. */
+@media (max-width: 560px) {
+    .brand strong {
+        display: none;
+    }
+
+    .header-details {
+        display: none;
+    }
 }
 
 .app {
