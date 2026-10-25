@@ -9,5 +9,6 @@ Preserve the original brief, any linked initial specification and user-provided 
 
 Acceptance: verified discrepancies have specification-to-code-to-regression-test traceability; implemented behavior meets the cited acceptance outcomes; unrelated behavior and existing source material remain preserved; the changelog records changes; remaining gaps and blockers are stated concretely. Report implemented, tested and still-unverified behavior distinctly.
 TASK AGENT @Developer
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=high runtime=official
 TASK ORIGIN chat {Spec-keeper: Look at the specs and update the implementation — 2026-10-25 07:27:20}
 LINK {Spec-keeper: Look at the specs and update the implementation — 2026-10-25 07:27:20}
