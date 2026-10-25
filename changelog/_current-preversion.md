@@ -1,5 +1,13 @@
 # Unreleased
 
+## Browser dashboard: home screen and pages
+
+-   The browser dashboard now opens on a responsive home screen of tiles (the same domains as the terminal) that fills the window without scrolling. Columns and the number of summary lines per tile follow the window's width and height, with balanced rows; phones get two columns. The top bar shows only `PTBK`, the project and the live state. Version, paths, URLs and provider details moved to pages.
+-   Clicking a tile, or Enter on the focused one, opens a full page (`#/system`, `#/health`, …) that replaces the grid. Back (the button, Escape or browser history) returns home. Arrow keys move a visible focus between tiles. New pages: **System** (lifecycle with pause reasons, manual controls, engine/process details, settings), **Health** (measurements, incidents with a confirmed soft-incident override, project-cache cleanup with preview, Linux swap plan), **Tasks** (the complete inventory with smart and selectable order, sorted by the engine), and **Agents** (activity, queue and a direct chat with each agent).
+-   Attention is independent of focus. A tile whose domain needs you pulses, labelled `new`, until you have interacted with the page a few times; it then stays statically marked until resolved. Reduced motion keeps the label without animation. The engine now computes which domains need attention once, for every viewer (optional `attention` in snapshots); terminal and browser keep only their own seen/new state.
+-   `GET /api/tasks` accepts `sort` (`smart`, `priority`, `time`, `status`, `agent`, `name`) and `descending=1` and applies the shared task-view order. `POST /api/control` passes `incident`, `confirm` and `apply` to the Health operations.
+-   Fixed: the dashboard's inline styles (agent badge colours) were blocked by its own Content-Security-Policy and are now applied through CSSOM. Key/value lists (execution, browser and sync details) no longer render as `[object HTMLElement]`.
+
 ## Terminal dashboard: home screen and pages
 
 -   `ptbk dashboard` (and the live view of `--foreground`) opens on a **home screen** of compact tiles that always fits the terminal without scrolling: Current work, System, Health, Chats, Tasks, Agents, Tools, Results, Connection and, only with autosync, Synchronization. Its geometry follows width and height and is redrawn live on resize. Narrower or shorter terminals get fewer columns, then one line per tile, then a short "too small" note. The top line says only `PTBK · <project> · <state>`; version, paths, URLs/QR and provider details moved to pages.

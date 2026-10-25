@@ -3,6 +3,7 @@
 /*
  * Promptbook browser dashboard: a small framework-free client of the project service API.
  * All live data comes from /api/state (long polling); all controls go through the API.
+ * The root is a no-scroll home screen of tiles; each tile opens a full page (#/<page>, Back returns).
  */
 (() => {
     const app = document.getElementById('app');
@@ -14,7 +15,6 @@
         csrf: null,
         connected: false,
         drafts: new Map(),
-        showAllQueue: false,
         showMoreHarnesses: false,
         busy: new Set(),
         qrFor: null,
@@ -26,8 +26,23 @@
         /** New-chat entry: 'entry' (Chat with Chatter / Choose another agent) or 'all' (every valid alternative). */
         newChat: false,
         showAllChats: false,
-        /** Viewer-local detail panels (initially collapsed; never engine state). */
-        details: { execution: false, browser: false, sync: false },
+        /** Viewer-local detail panels (open state is a viewer choice; never engine state). */
+        details: { execution: true, browser: false, sync: true },
+        /** The open dashboard page (null: the home screen); mirrored in the URL fragment for Back. */
+        page: null,
+        /** The home tile holding the operator's focus (never moved by attention). */
+        focus: 'work',
+        /** Viewer-local attention: domain → { key, tone, since, seen } (seen once the operator was clearly active). */
+        attention: new Map(),
+        /** Meaningful interactions with this page (keys, clicks) since it opened. */
+        interactions: 0,
+        /** The complete task inventory in the viewer's chosen order (loaded on the Tasks page). */
+        tasks: { items: null, sort: 'smart', descending: false, revision: -1 },
+        /** Health remediation preview and swap plan shown on the Health page. */
+        healthCache: null,
+        healthSwap: null,
+        /** Agent preselected for a new chat from the Agents page (by name). */
+        newChatAgent: null,
         /** Tool names whose details are expanded (viewer-local). */
         toolDetails: new Set(),
         /** The open add/modify tool form: { mode, name?, values } (values survive re-renders; secrets stay in memory only). */
@@ -45,10 +60,16 @@
             if (value === undefined || value === null || value === false) continue;
             if (key.startsWith('on') && typeof value === 'function') element.addEventListener(key.slice(2), value);
             else if (key === 'className') element.className = value;
-            else if (key === 'style') element.setAttribute('style', value);
-            else element.setAttribute(key, value === true ? '' : String(value));
+            else if (key === 'style') {
+                // Through CSSOM: the page's Content-Security-Policy blocks inline style attributes.
+                for (const declaration of String(value).split(';')) {
+                    const colon = declaration.indexOf(':');
+                    if (colon > 0) element.style.setProperty(declaration.slice(0, colon).trim(), declaration.slice(colon + 1).trim());
+                }
+            } else element.setAttribute(key, value === true ? '' : String(value));
         }
-        for (const child of children.flat()) {
+        // Nested child lists (e.g. [dt, dd] pairs of a definition list) are flattened completely.
+        for (const child of children.flat(Infinity)) {
             if (child === undefined || child === null || child === false) continue;
             element.append(child instanceof Node ? child : document.createTextNode(String(child)));
         }
@@ -137,9 +158,12 @@
         const actions = [];
         const restartable = lifecycle.restartable !== false && service.mode !== 'run';
         const pending = lifecycle.intent === 'restart' ? 'restart' : 'stop';
-        if (stateName === 'running') actions.push({ action: 'pause', label: 'Pause' });
-        if (stateName === 'pause') actions.push({ action: 'resume', label: 'Resume', primary: true });
-        if (stateName === 'pausing') actions.push({ action: 'resume', label: 'Cancel pause' });
+        // Pause/Resume manage only the manual reason; Health reasons resolve (or are overridden) on the Health page.
+        const manual = manualPause(snapshot);
+        const health = healthReasons(snapshot).length;
+        if (stateName === 'running' || ((stateName === 'pause' || stateName === 'pausing') && !manual)) actions.push({ action: 'pause', label: stateName === 'running' ? 'Pause' : 'Pause manually too' });
+        if (stateName === 'pause' && manual) actions.push({ action: 'resume', label: health ? 'Remove manual pause' : 'Resume', primary: true });
+        if (stateName === 'pausing' && manual) actions.push({ action: 'resume', label: 'Cancel pause' });
         if (stateName === 'stopping' && lifecycle.cancellable) {
             actions.push({ action: 'resume', label: `Cancel ${pending}`, primary: true });
             actions.push({ action: 'pause', label: 'Pause instead', confirm: `Cancel the pending ${pending} and pause instead?`, extra: { replaceStop: true, revision: lifecycle.revision } });
@@ -152,18 +176,32 @@
         return actions;
     }
 
+    /** Whether the ordinary manual pause reason is active (older engines report only the state). */
+    function manualPause(snapshot) {
+        const reasons = snapshot.service.pauseReasons;
+        if (!reasons) return snapshot.service.state === 'pause' || snapshot.service.state === 'pausing';
+        return reasons.some((reason) => reason.kind === 'manual');
+    }
+
+    /** Active pause reasons of the Health sub-engine. */
+    function healthReasons(snapshot) {
+        return (snapshot.service.pauseReasons || []).filter((reason) => reason.kind === 'health');
+    }
+
     /** What the live service state means (never a fifth "stopped" live state). */
     function lifecycleText(snapshot) {
         const service = snapshot.service;
         const lifecycle = service.lifecycle || {};
         const task = snapshot.current ? `“${snapshot.current.taskTitle}”` : 'the current task';
+        const health = healthReasons(snapshot);
+        const byHealth = health.length ? `Paused by Health (${health.map((reason) => `${reason.severity}: ${reason.summary}`).join('; ')})${manualPause(snapshot) ? ' and manually' : ''}` : '';
         switch (service.state === 'paused' ? 'pause' : service.state) {
             case 'running':
                 return snapshot.current ? 'New tasks start when ready.' : 'Idle is normal; new tasks start when ready.';
             case 'pausing':
-                return `${task} finishes first; then no task starts until you resume.`;
+                return health.length ? `${task} finishes first. ${byHealth}.` : `${task} finishes first; then no task starts until you resume.`;
             case 'pause':
-                return 'Alive and controllable; no task runs or starts.';
+                return health.length ? `${byHealth}; scheduling resumes once every reason is gone.` : 'Alive and controllable; no task runs or starts.';
             case 'stopping':
                 if (lifecycle.intent === 'force-stop') return 'Force stop: owned work is being interrupted (recoverable).';
                 if (lifecycle.shutdown) return lifecycle.intent === 'restart' ? 'Shutting down for a restart; one replacement starts next.' : 'Shutting down.';
@@ -364,10 +402,15 @@
             return card;
         }
         if (state.newChat === 'chatter' && chatter) {
+            state.newChatAgent = null;
             card.append(h('p', {}, 'Talking to ', h('strong', {}, chatter.name)));
             card.append(composer('chat:new', `First message to ${chatter.name}`, (text) => startChat(chatter.reference, text), state.busy.has('new-chat')));
         } else {
             const select = h('select', { 'aria-label': 'Agent', 'data-draft': 'chat:new-agent' });
+            // An agent chosen on the Agents page is preselected once.
+            const preselected = state.newChatAgent && others.find((agent) => agent.name.toLowerCase() === state.newChatAgent.toLowerCase());
+            if (preselected) state.drafts.set('chat:new-agent', preselected.reference);
+            state.newChatAgent = null;
             const groups = [
                 ['Project agents', others.filter((agent) => agent.group === 'ordinary')],
                 ['Hidden/core agents', others.filter((agent) => agent.group === 'hidden')],
@@ -458,7 +501,7 @@
         // A significant browser failure stays visible while the browser details are collapsed.
         for (const browser of browsersOf(snapshot)) {
             if (!((browser.state === 'failed' || (browser.recovery && browser.recovery.state === 'blocked')) && browser.lastFailure)) continue;
-            card.append(h('div', { className: 'notice error' }, h('strong', {}, `Browser ${browser.name}`), ` — ${browser.lastFailure.summary}`, browser.recovery && browser.recovery.state === 'retrying' ? h('div', { className: 'muted' }, 'Recovering automatically…') : null, h('div', { className: 'muted' }, 'Open “Browser details” to recheck, retry or restart it.')));
+            card.append(h('div', { className: 'notice error' }, h('strong', {}, `Browser ${browser.name}`), ` — ${browser.lastFailure.summary}`, browser.recovery && browser.recovery.state === 'retrying' ? h('div', { className: 'muted' }, 'Recovering automatically…') : null, h('div', { className: 'muted' }, 'Open the Tools page (browser details) to recheck, retry or restart it.')));
         }
         return card;
     }
@@ -749,36 +792,6 @@
         return card;
     }
 
-    function renderDetails(snapshot) {
-        return h('section', { className: 'details-panels', 'aria-label': 'Details' }, detailPanel('execution', 'Execution details — agent, harness tool, model, thinking level', renderExecutionDetails(snapshot)), detailPanel('browser', 'Browser details — named browsers, profiles, health, recovery', renderBrowserDetails(snapshot)));
-    }
-
-    /** The always-visible service-control panel: live state, pending intent and the shared lifecycle operations. */
-    function renderControls(snapshot) {
-        const stateName = snapshot.service.state === 'paused' ? 'pause' : snapshot.service.state;
-        const card = h('section', { className: `card controls ${stateName}`, 'aria-label': 'Service controls' });
-        const lifecycle = snapshot.service.lifecycle || {};
-        card.append(h('h2', {}, h('span', {}, 'Service controls'), h('span', { className: 'state' }, pill(stateName, stateName === 'running' ? 'ok' : stateName === 'stopping' ? 'bad' : 'warn'))));
-        card.append(h('p', {}, lifecycleText(snapshot), lifecycle.since ? h('span', { className: 'muted' }, ` Requested ${time(lifecycle.since)}.`) : null));
-        const buttons = lifecycleActions(snapshot).map((item) =>
-            h('button', { className: item.danger ? 'danger' : item.primary ? 'primary' : '', disabled: state.busy.has(`control:${item.action}`), onclick: () => control(item.action, item.confirm, item.extra) }, item.label),
-        );
-        buttons.push(h('button', { disabled: !(snapshot.wait && snapshot.wait.skippable), title: snapshot.wait && !snapshot.wait.skippable ? 'Only pacing/backoff waits can be skipped' : '', onclick: () => control('skip-wait') }, 'Skip wait'));
-        card.append(h('div', { className: 'row', role: 'group', 'aria-label': 'Lifecycle actions' }, buttons));
-        card.append(h('p', { className: 'muted' }, 'These are the same operations as ptbk pause, resume, stop, stop --force and restart; every connected viewer shares this engine. Leaving this page never stops it.'));
-        return card;
-    }
-
-    /** Agents, harnesses and settings (secondary inventory). */
-    function renderInventory(snapshot) {
-        const card = h('section', { className: 'card inventory', 'aria-label': 'Agents and settings' });
-        card.append(h('h2', {}, 'Agents and settings'));
-        const agents = h('details', {}, h('summary', {}, `Agents (${snapshot.agents.length})`), h('ul', { className: 'list' }, snapshot.agents.map((agent) => h('li', {}, h('span', { className: 'row' }, badge(agent, true), agent.name), h('span', { className: 'muted' }, ACTIVITY_LABEL[agent.activity])))));
-        card.append(agents);
-        card.append(renderSettings(snapshot));
-        return card;
-    }
-
     function renderSettings(snapshot) {
         const editable = snapshot.settings.filter((setting) => setting.application !== 'restart');
         const keySelect = h('select', { 'aria-label': 'Setting' }, editable.map((setting) => h('option', { value: setting.key }, setting.key)));
@@ -799,33 +812,6 @@
             h('dl', { className: 'kv' }, snapshot.settings.map((setting) => [h('dt', {}, setting.key), h('dd', {}, `${setting.value} `, h('span', { className: 'muted' }, `(${setting.source}; ${setting.application === 'live' ? 'live' : setting.application === 'next-task' ? 'next task' : 'restart'})`))])),
             h('div', { className: 'row', style: 'margin-top:8px' }, keySelect, valueInput, h('label', { for: 'save-default' }, save, ' save as project default'), h('button', { onclick: apply }, 'Apply')),
         );
-    }
-
-    function renderQueue(snapshot) {
-        const card = h('section', { className: 'card queue', 'aria-label': 'Queue' });
-        card.append(h('h2', {}, h('span', {}, `Queue (${snapshot.queueTotal})`)));
-        if (!snapshot.queue.length) {
-            card.append(h('p', { className: 'muted' }, 'No unfinished tasks.'));
-            return card;
-        }
-        const items = state.showAllQueue ? snapshot.queue : snapshot.queue.slice(0, 12);
-        const tone = { ready: 'ok', active: 'ok', 'needs-assignment': 'warn', assigning: 'warn', blocked: 'bad', failed: 'bad', 'needs-recovery': 'bad', 'awaiting-user': 'warn' };
-        card.append(
-            h(
-                'ul',
-                { className: 'list' },
-                items.map((item) =>
-                    h(
-                        'li',
-                        {},
-                        h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.harness ? ` · ${item.harness}` : ''}${item.priority ? ` · priority ${item.priority}` : ''}`)),
-                        pill(item.readiness, tone[item.readiness]),
-                    ),
-                ),
-            ),
-        );
-        if (snapshot.queue.length > 12) card.append(h('button', { onclick: () => ((state.showAllQueue = !state.showAllQueue), render(state.snapshot)) }, state.showAllQueue ? 'Show fewer' : `Show all ${snapshot.queue.length}`));
-        return card;
     }
 
     function renderActivity(snapshot) {
@@ -878,28 +864,493 @@
         return card;
     }
 
-    /** Renders the whole view, preserving focus, drafts and scroll. */
+    /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
+    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'results', 'connection', 'sync'];
+
+    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', results: 'Results and activity', connection: 'Connection', sync: 'Synchronization' };
+
+    /** Interactions after a new attention item appeared that show the operator is active here (it then settles). */
+    const ATTENTION_SETTLE_INTERACTIONS = 3;
+
+    /** The tiles of a snapshot. */
+    function homeTiles(snapshot) {
+        return DOMAINS.filter((domain) => domain !== 'sync' || snapshot.sync);
+    }
+
+    /** The page named by the URL fragment (`#/health`), or null for the home screen. */
+    function routeFromHash() {
+        const match = /^#\/([a-z]+)$/.exec(location.hash);
+        return match && DOMAINS.includes(match[1]) ? match[1] : null;
+    }
+
+    /** Opens a domain page (a history entry, so browser Back returns home); viewing never changes the engine. */
+    function openPage(domain) {
+        const item = state.attention.get(domain);
+        if (item) item.seen = true;
+        state.focus = domain;
+        state.page = domain;
+        history.pushState({ page: domain }, '', `#/${domain}`);
+        if (domain === 'tasks') loadTasks(true);
+        render(state.snapshot);
+        window.scrollTo(0, 0);
+    }
+
+    /** Returns to the home screen (Back control, Escape or browser history). */
+    function goHome() {
+        if (history.state && history.state.page) history.back();
+        else {
+            state.page = null;
+            history.replaceState(null, '', location.pathname + location.search);
+            render(state.snapshot);
+        }
+    }
+
+    /** Re-derives viewer-local attention from the engine's shared per-domain attention. */
+    function updateAttention(snapshot) {
+        const current = snapshot.attention || {};
+        for (const domain of [...state.attention.keys()]) if (!current[domain]) state.attention.delete(domain);
+        for (const [domain, item] of Object.entries(current)) {
+            const previous = state.attention.get(domain);
+            if (!previous || previous.key !== item.key) state.attention.set(domain, { key: item.key, tone: item.tone, since: state.interactions, seen: false });
+            else previous.tone = item.tone;
+        }
+    }
+
+    /** A meaningful interaction: unseen attention settles once the operator is clearly active (never by time alone). */
+    function interacted() {
+        state.interactions++;
+        let changed = false;
+        for (const item of state.attention.values()) {
+            if (!item.seen && state.interactions - item.since >= ATTENTION_SETTLE_INTERACTIONS) {
+                item.seen = true;
+                changed = true;
+            }
+        }
+        if (changed && !state.page) render(state.snapshot);
+    }
+
+    /** Formats MiB for health values. */
+    function mib(value) {
+        if (value === undefined || value === null) return 'unknown';
+        if (value >= 10240) return `${(value / 1024).toFixed(0)} GiB`;
+        if (value >= 1024) return `${(value / 1024).toFixed(1)} GiB`;
+        return `${Math.round(value)} MiB`;
+    }
+
+    /** The smallest useful summary of a tile (never the complete domain). */
+    function tileSummary(snapshot, domain) {
+        const current = snapshot.current;
+        switch (domain) {
+            case 'work':
+                if (current) return [h('span', { className: 'row' }, badge(current.agent, true), h('strong', {}, current.agent.name), h('span', { className: 'muted' }, ACTIVITY_LABEL[current.agent.activity] || current.agent.activity)), current.taskTitle, h('span', { className: 'muted' }, `${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}`)];
+                if (snapshot.blockers.length) return [h('strong', { className: 'bad' }, snapshot.blockers[0].title), h('span', { className: 'muted' }, snapshot.blockers[0].action || snapshot.blockers[0].reason)];
+                return [h('strong', {}, snapshot.phase), snapshot.wait ? h('span', { className: 'muted' }, snapshot.wait.reason) : null];
+            case 'system': {
+                const stateName = snapshot.service.state;
+                const health = healthReasons(snapshot);
+                return [
+                    pill(stateName, stateName === 'running' ? 'ok' : stateName === 'stopping' ? 'bad' : 'warn'),
+                    health.length ? `Paused by Health (${health.map((reason) => reason.severity).join(', ')})${manualPause(snapshot) ? ' + manual' : ''}` : manualPause(snapshot) && stateName !== 'running' ? 'Paused manually' : null,
+                    snapshot.service.lifecycle && snapshot.service.lifecycle.intent && snapshot.service.lifecycle.intent !== 'pause' ? h('span', { className: 'warn' }, `${snapshot.service.lifecycle.intent} pending`) : null,
+                    h('span', { className: 'muted' }, 'Pause, resume, stop, restart'),
+                ];
+            }
+            case 'health': {
+                const health = snapshot.health;
+                if (!health) return [h('span', { className: 'muted' }, 'Not reported by this engine.')];
+                return [h('strong', { className: health.status === 'ok' ? 'ok' : health.status === 'hard' ? 'bad' : health.status === 'unknown' ? '' : 'warn' }, health.summary), h('span', { className: 'muted' }, `disk ${mib(health.disk.freeMiB)} · memory ${mib(health.memory.availableMiB)}`), healthReasons(snapshot).length ? h('span', { className: 'warn' }, 'new background work is paused') : null];
+            }
+            case 'chats': {
+                const waiting = snapshot.chats.waiting;
+                const first = waiting[0];
+                return [waiting.length ? h('strong', { className: 'warn' }, `${waiting.length} waiting for you`) : h('span', { className: 'muted' }, 'Nobody waits for you'), first ? `${first.awaiting ? first.awaiting.sender : first.agent || 'An agent'}: ${(first.awaiting ? first.awaiting.text : first.name).split('\n')[0]}` : null, h('span', { className: 'muted' }, `${snapshot.chats.total} chats${snapshot.chats.unread ? ` · ${snapshot.chats.unread} unread` : ''}`)];
+            }
+            case 'tasks': {
+                const next = snapshot.queue.find((item) => item.readiness === 'ready') || snapshot.queue[0];
+                return [h('strong', {}, `${snapshot.queueTotal} unfinished`), next ? h('span', {}, h('span', { className: 'muted' }, 'next '), next.title) : h('span', { className: 'muted' }, 'No unfinished tasks.')];
+            }
+            case 'agents': {
+                const active = snapshot.agents.filter((agent) => agent.activity !== 'idle');
+                return [h('span', { className: 'muted' }, `${snapshot.agents.length} agents${active.length ? ` · ${active.length} active` : ''}`), ...[...active, ...snapshot.agents.filter((agent) => agent.activity === 'idle')].slice(0, 3).map((agent) => h('span', { className: 'row' }, badge(agent, true), agent.name))];
+            }
+            case 'tools': {
+                const tools = snapshot.tools;
+                if (!tools) return [h('span', { className: 'muted' }, 'Not reported by this engine.')];
+                const count = (type) => `${tools.items.filter((item) => item.type === type && item.state === 'usable').length}/${tools.items.filter((item) => item.type === type).length}`;
+                return [`Harnesses ${count('HARNESS')} · Browsers ${count('BROWSER')}`, tools.waiting ? h('span', { className: 'warn' }, `New work waits: ${tools.waiting.reason}`) : null];
+            }
+            case 'results': {
+                const last = snapshot.results.recent[0];
+                const error = snapshot.errors[snapshot.errors.length - 1];
+                return [`✔ ${snapshot.results.completed} completed · ✖ ${snapshot.results.failed} failed`, last ? h('span', { className: 'muted' }, last.title) : null, error ? h('span', { className: 'warn' }, `Last error: ${error.summary}`) : null];
+            }
+            case 'connection': {
+                const { local, remote } = snapshot.connection;
+                return [remote.state === 'ready' ? h('strong', { className: 'ok' }, 'Remote ready') : remote.state === 'disabled' ? 'Local only' : h('strong', { className: 'warn' }, `Remote ${remote.state}`), local.url ? h('span', { className: 'muted' }, local.url.replace(/^https?:\/\//, '').replace(/\/$/, '')) : null];
+            }
+            case 'sync': {
+                const sync = snapshot.sync;
+                return sync ? [pill(sync.phase === 'idle' ? sync.state : sync.phase, sync.state === 'synchronized' ? 'ok' : ['failed', 'conflict'].includes(sync.state) ? 'bad' : 'warn'), sync.reason ? h('span', { className: 'warn' }, sync.reason) : h('span', { className: 'muted' }, `${sync.incoming ?? '?'} in / ${sync.outgoing ?? '?'} out`)] : [];
+            }
+            default:
+                return [];
+        }
+    }
+
+    /** Room of the home grid: the viewport below the top bar. */
+    function homeRoom() {
+        const topbar = document.querySelector('.topbar');
+        return { width: window.innerWidth, height: window.innerHeight - (topbar ? topbar.offsetHeight : 52) - 24 };
+    }
+
+    /**
+     * Columns of the home grid: roomy tiles on wide windows, more columns on short ones (the home never scrolls), then
+     * balanced so that the last row is not left nearly empty.
+     */
+    function homeColumns(count) {
+        const { width, height } = homeRoom();
+        const maxColumns = Math.max(1, Math.min(5, count, Math.floor(width / 160)));
+        let columns = Math.max(1, Math.min(maxColumns, Math.floor(width / 280)));
+        while (columns < maxColumns && Math.ceil(count / columns) * 110 > height) columns++;
+        return Math.ceil(count / Math.ceil(count / columns));
+    }
+
+    /** Summary lines that fit one tile of the current grid (the title always stays). */
+    function tileLineBudget(count) {
+        const rows = Math.ceil(count / homeColumns(count));
+        const tileHeight = (homeRoom().height - (rows - 1) * 10) / rows;
+        return Math.max(1, Math.floor((tileHeight - 44) / 22));
+    }
+
+    /** The no-scroll home screen: compact tiles, a focused tile (operator's cursor) and independent attention. */
+    function renderHome(snapshot) {
+        const tiles = homeTiles(snapshot);
+        if (!tiles.includes(state.focus)) state.focus = 'work';
+        const columns = homeColumns(tiles.length);
+        const lines = tileLineBudget(tiles.length);
+        const grid = h('section', { className: 'home', role: 'grid', 'aria-label': 'Dashboard home', style: `--columns:${columns};--rows:${Math.ceil(tiles.length / columns)}` });
+        for (const domain of tiles) {
+            const attention = state.attention.get(domain);
+            const classes = ['tile', attention ? `attention ${attention.tone === 'error' ? 'error' : ''} ${attention.seen ? 'seen' : 'new'}` : '', state.focus === domain ? 'focused' : ''].filter(Boolean).join(' ');
+            grid.append(
+                h(
+                    'button',
+                    {
+                        className: classes,
+                        'data-tile': domain,
+                        tabindex: state.focus === domain ? '0' : '-1',
+                        'aria-label': `${TITLES[domain]}${attention ? ` — needs attention${attention.seen ? '' : ' (new)'}` : ''}`,
+                        onclick: () => openPage(domain),
+                        onfocus: () => (state.focus = domain),
+                    },
+                    h('span', { className: 'tile-title' }, attention ? h('span', { className: 'mark', 'aria-hidden': 'true' }, '▲') : null, TITLES[domain] === 'Results and activity' ? 'Results' : TITLES[domain], attention && !attention.seen ? h('span', { className: 'new-label' }, 'new') : null),
+                    ...tileSummary(snapshot, domain)
+                        .filter(Boolean)
+                        .slice(0, lines)
+                        .map((line) => h('span', { className: 'tile-line' }, line)),
+                ),
+            );
+        }
+        return grid;
+    }
+
+    /** Arrow-key navigation between tiles, following the rendered grid (focus only; Enter/click opens). */
+    function moveTileFocus(key) {
+        const tiles = homeTiles(state.snapshot);
+        const columns = homeColumns(tiles.length);
+        const index = Math.max(0, tiles.indexOf(state.focus));
+        const delta = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -columns, ArrowDown: columns }[key];
+        const next = index + delta;
+        if (next < 0 || next >= tiles.length || (Math.abs(delta) === 1 && Math.floor(next / columns) !== Math.floor(index / columns))) return;
+        state.focus = tiles[next];
+        render(state.snapshot);
+        const element = app.querySelector(`[data-tile="${state.focus}"]`);
+        if (element) element.focus();
+    }
+
+    /** A page frame: Back, title and context stay at the top while the body scrolls. */
+    function pageFrame(domain, context, ...content) {
+        return h(
+            'section',
+            { className: 'page', 'aria-label': TITLES[domain] },
+            h('header', { className: 'page-header' }, h('button', { onclick: goHome, 'aria-label': 'Back to the home screen' }, '← Back'), h('h1', {}, TITLES[domain]), h('span', { className: 'muted' }, context)),
+            h('div', { className: 'page-body' }, ...content.flat().filter(Boolean)),
+        );
+    }
+
+    /** The System page: engine identity, lifecycle, every pause reason and the manual controls. */
+    function renderSystemPage(snapshot) {
+        const service = snapshot.service;
+        const lifecycle = service.lifecycle || {};
+        const stateName = service.state === 'paused' ? 'pause' : service.state;
+        const reasons = service.pauseReasons || [];
+        const controls = h('section', { className: `card controls ${stateName}`, 'aria-label': 'Lifecycle' });
+        controls.append(h('h2', {}, h('span', {}, 'Lifecycle'), pill(stateName, stateName === 'running' ? 'ok' : stateName === 'stopping' ? 'bad' : 'warn')));
+        controls.append(h('p', {}, lifecycleText(snapshot), lifecycle.since ? h('span', { className: 'muted' }, ` Requested ${time(lifecycle.since)}.`) : null));
+        const buttons = lifecycleActions(snapshot).map((item) => h('button', { className: item.danger ? 'danger' : item.primary ? 'primary' : '', disabled: state.busy.has(`control:${item.action}`), onclick: () => control(item.action, item.confirm, item.extra) }, item.label));
+        buttons.push(h('button', { disabled: !(snapshot.wait && snapshot.wait.skippable), title: snapshot.wait && !snapshot.wait.skippable ? 'Only pacing/backoff waits can be skipped' : '', onclick: () => control('skip-wait') }, 'Skip wait'));
+        controls.append(h('div', { className: 'row', role: 'group', 'aria-label': 'Lifecycle actions' }, buttons));
+        controls.append(h('p', { className: 'muted' }, 'The same operations as ptbk pause, resume, stop, stop --force and restart; every connected viewer shares this engine. Leaving this page never stops it.'));
+        const pause = h('section', { className: 'card', 'aria-label': 'Pause reasons' }, h('h2', {}, h('span', {}, `Pause reasons (${reasons.length})`)));
+        if (!reasons.length) pause.append(h('p', { className: 'muted' }, 'No pause reason is active; background work may start.'));
+        else {
+            pause.append(
+                h(
+                    'ul',
+                    { className: 'list' },
+                    reasons.map((reason) =>
+                        h(
+                            'li',
+                            {},
+                            h('span', { className: 'title' }, reason.kind === 'manual' ? 'Manual pause' : `Health (${reason.severity})`, h('span', { className: 'why' }, `${reason.summary} · owner ${reason.owner} · since ${time(reason.since)}`)),
+                            pill(reason.kind === 'manual' ? 'removed by Resume' : reason.severity === 'hard' ? 'no override' : 'resolves automatically', reason.severity === 'hard' ? 'bad' : 'warn'),
+                        ),
+                    ),
+                ),
+            );
+            if (healthReasons(snapshot).length) pause.append(h('p', { className: 'muted' }, 'Resume removes only the manual reason; scheduling continues once every reason is gone. Health reasons are handled on the Health page.'));
+        }
+        const engine = h(
+            'section',
+            { className: 'card', 'aria-label': 'Engine and process' },
+            h('h2', {}, 'Engine and process'),
+            h(
+                'dl',
+                { className: 'kv' },
+                [
+                    ['Engine', `ptbk ${snapshot.engine.version} (${snapshot.engine.scope} installation)`],
+                    ['Installation', snapshot.engine.installation],
+                    ['Process', `${service.mode}${service.pid ? ` · PID ${service.pid}` : ''}${service.startedAt ? ` · started ${time(service.startedAt)}` : ''}`],
+                    ['Project', snapshot.project.path],
+                    ['Commits', service.commitMode === 'commit' ? 'automatic' : 'NO-COMMIT mode (results stay uncommitted)'],
+                    ['Persistent', service.persistent === null ? 'n/a' : service.persistent ? 'yes' : `no${service.persistenceNote ? ` — ${service.persistenceNote}` : ''}`],
+                    ['Configuration', `promptbookVersion ${(snapshot.configuration && snapshot.configuration.promptbookVersion) || 'unknown'}${snapshot.configuration && snapshot.configuration.pending ? ` · pending: ${snapshot.configuration.pending}` : ''}`],
+                ].map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)]),
+            ),
+            renderSettings(snapshot),
+        );
+        return pageFrame('system', 'Engine identity, lifecycle, every active pause reason and manual controls', controls, pause, engine);
+    }
+
+    /** The Health page: UI over the per-engine Health sub-engine (no generic manual Pause/Resume here). */
+    function renderHealthPage(snapshot) {
+        const health = snapshot.health;
+        if (!health) return pageFrame('health', 'Host resources of this engine', h('p', { className: 'muted' }, 'This engine does not report health.'));
+        const status = h('section', { className: 'card', 'aria-label': 'Measurements' });
+        status.append(h('h2', {}, h('span', {}, 'Host resources'), pill(health.summary, health.status === 'ok' ? 'ok' : health.status === 'hard' ? 'bad' : 'warn')));
+        status.append(
+            h(
+                'dl',
+                { className: 'kv' },
+                [
+                    ['Measured', `${time(health.observedAt) || 'not yet'} · every ${Math.round(health.intervalMs / 1000)} s, with or without viewers`],
+                    ['Limits', `disk ${health.limits.disk ? mib(health.limits.disk) : 'off'} · memory ${health.limits.memory ? mib(health.limits.memory) : 'off'} (${health.limits.source}; ptbk.json limit.disk / limit.memory, soft only)`],
+                    ['Disk', `${mib(health.disk.freeMiB)} free${health.disk.totalMiB ? ` of ${mib(health.disk.totalMiB)}` : ''}${health.disk.error ? ` · ${health.disk.error}` : ''}`],
+                    ['Memory', `${mib(health.memory.availableMiB)} available for new work (RAM + swap)`],
+                    ['RAM', `${mib(health.memory.ramAvailableMiB)} available${health.memory.ramTotalMiB ? ` of ${mib(health.memory.ramTotalMiB)}` : ''}`],
+                    ['Swap', health.memory.swapTotalMiB === undefined ? 'not measured' : `${mib(health.memory.swapFreeMiB)} free of ${mib(health.memory.swapTotalMiB)}`],
+                    ['CPU', health.cpu.state === 'unknown' ? 'load not reported on this platform' : `load ${health.cpu.load1.toFixed(2)} / ${health.cpu.load5.toFixed(2)} / ${health.cpu.load15.toFixed(2)} on ${health.cpu.cores} cores${health.cpu.state === 'high' ? ' · high' : ''}`],
+                    ['Network', `${health.network.state}${health.network.target ? ` · ${health.network.target}` : ''}${health.network.checkedAt ? ` · checked ${time(health.network.checkedAt)}` : ''}${health.network.error && health.network.state !== 'reachable' ? ` · ${health.network.error}` : ''}`],
+                ].map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)]),
+            ),
+            h('div', { className: 'row' }, h('button', { onclick: () => control('health-recheck') }, 'Measure now')),
+        );
+        const incidents = h('section', { className: 'card', 'aria-label': 'Incidents' }, h('h2', {}, `Incidents (${health.incidents.length})`));
+        if (!health.incidents.length) incidents.append(h('p', { className: 'muted' }, 'No health incident; new background work is not limited by Health.'));
+        for (const incident of health.incidents) {
+            const impact = incident.pauses ? 'pauses new background work' : incident.overriddenAt ? `overridden ${time(incident.overriddenAt)} — work continues below the limit` : 'attention only (no pause)';
+            incidents.append(
+                h(
+                    'div',
+                    { className: `notice ${incident.severity === 'hard' ? 'error' : ''}` },
+                    h('strong', {}, `${incident.severity.toUpperCase()} · ${incident.summary}`),
+                    h('div', { className: 'muted' }, `since ${time(incident.openedAt)} · ${impact}${incident.severity === 'hard' ? ' · cannot be overridden; it clears once the condition is gone' : ''}`),
+                    incident.severity === 'soft' && incident.pauses
+                        ? h('button', { className: 'danger', onclick: () => control('health-override', `Continue below the recommended limit?\n\n${incident.summary}\n\nNew background work will start although this resource is below its configured preventive limit. The override applies only to this incident and does not change ptbk.json; after recovery a new drop pauses again.`, { incident: incident.id }) }, 'Override this incident')
+                        : null,
+                ),
+            );
+        }
+        const remediation = h('section', { className: 'card', 'aria-label': 'Remediation' }, h('h2', {}, 'Remediation'));
+        remediation.append(h('p', {}, `Clean the Promptbook-owned project cache (${health.remediation.cache.path}/). A preview comes first; entries changed in the last minutes are kept.`));
+        if (state.healthCache) {
+            const removable = state.healthCache.entries.filter((entry) => !entry.kept);
+            remediation.append(h('ul', { className: 'list' }, state.healthCache.entries.slice(0, 10).map((entry) => h('li', {}, h('span', { className: 'title' }, entry.name, h('span', { className: 'why' }, entry.kept || 'will be removed')), pill(mib(entry.bytes / 1048576), entry.kept ? '' : 'warn')))));
+            remediation.append(
+                h(
+                    'div',
+                    { className: 'row' },
+                    removable.length
+                        ? h('button', { className: 'danger', onclick: async () => (await healthAction('health-clean-cache', { confirm: true }, `Remove ${removable.length} cache entries (${mib(state.healthCache.removableBytes / 1048576)})?`)) && ((state.healthCache = null), render(state.snapshot)) }, `Clean ${mib(state.healthCache.removableBytes / 1048576)}`)
+                        : h('span', { className: 'muted' }, 'Nothing to clean.'),
+                    h('button', { onclick: () => ((state.healthCache = null), render(state.snapshot)) }, 'Close preview'),
+                ),
+            );
+        } else remediation.append(h('div', { className: 'row' }, h('button', { onclick: async () => ((state.healthCache = (await healthAction('health-clean-cache')) || null), render(state.snapshot)) }, 'Preview cleanup')));
+        remediation.append(h('p', {}, `Swap: ${health.remediation.swap.note}`));
+        if (state.healthSwap) {
+            const plan = state.healthSwap;
+            remediation.append(h('p', { className: 'muted' }, plan.note));
+            if (plan.proposal) {
+                remediation.append(h('pre', { className: 'log' }, [...plan.proposal.commands, `# keep after reboot (/etc/fstab): ${plan.proposal.persistLine}`].join('\n')));
+                if (plan.proposal.privilege === 'missing') remediation.append(h('div', { className: 'notice' }, 'This engine has no administrator rights and never waits for a password: run the commands above as an administrator.'));
+                else remediation.append(h('button', { className: 'danger', onclick: () => healthAction('health-swap', { apply: true }, `Create and enable a ${mib(plan.proposal.sizeMiB)} swap file at ${plan.proposal.path} (as ${plan.proposal.privilege})?`) }, `Create ${mib(plan.proposal.sizeMiB)} swap`));
+            }
+        } else if (health.remediation.swap.supported) remediation.append(h('button', { onclick: async () => ((state.healthSwap = (await healthAction('health-swap')) || null), render(state.snapshot)) }, 'Plan swap'));
+        remediation.append(h('p', { className: 'muted' }, 'Manual Pause/Resume lives on the System page. Viewing this page never resolves an incident.'));
+        return pageFrame('health', 'Disk, RAM, swap, CPU and connectivity observed by this engine’s Health sub-engine', status, incidents, remediation);
+    }
+
+    /** Runs a Health operation (optionally confirmed) and returns its preview/plan data. */
+    async function healthAction(action, extra, confirmText) {
+        if (confirmText && !window.confirm(confirmText)) return undefined;
+        try {
+            const result = await api('/api/control', { method: 'POST', body: { action, ...(extra || {}) } });
+            toast(result.outcome);
+            return result.data || result.applied;
+        } catch (error) {
+            toast(`Not applied: ${error.message}`);
+            return undefined;
+        }
+    }
+
+    /** Loads the complete task inventory in the viewer's order (the engine applies the shared sort). */
+    async function loadTasks(force) {
+        if (!force && state.tasks.revision === state.revision) return;
+        state.tasks.revision = state.revision;
+        try {
+            const result = await api(`/api/tasks?sort=${encodeURIComponent(state.tasks.sort)}${state.tasks.descending ? '&descending=1' : ''}`);
+            state.tasks.items = result.tasks;
+        } catch (error) {
+            toast(`Tasks unavailable: ${error.message}`);
+        }
+        if (state.page === 'tasks') render(state.snapshot);
+    }
+
+    /** The Tasks page: the complete inventory with smart default order and user-selected sorting. */
+    function renderTasksPage() {
+        const card = h('section', { className: 'card queue', 'aria-label': 'Tasks' });
+        const sort = h('select', { 'aria-label': 'Sort by' }, ['smart', 'priority', 'time', 'status', 'agent', 'name'].map((field) => h('option', { value: field }, field === 'smart' ? 'smart (current, coming up, recent, history)' : field)));
+        sort.value = state.tasks.sort;
+        sort.addEventListener('change', () => ((state.tasks.sort = sort.value), loadTasks(true)));
+        const direction = h('button', { onclick: () => ((state.tasks.descending = !state.tasks.descending), loadTasks(true)) }, state.tasks.descending ? 'Descending' : 'Ascending');
+        card.append(h('h2', {}, h('span', {}, `All tasks (${state.tasks.items ? state.tasks.items.length : '…'})`), h('span', { className: 'row' }, h('label', {}, 'Sort ', sort), direction)));
+        if (!state.tasks.items) {
+            card.append(h('p', { className: 'muted' }, 'Loading the task inventory…'));
+            return pageFrame('tasks', 'Every task in every state', card);
+        }
+        const tone = { ready: 'ok', active: 'ok', 'needs-assignment': 'warn', assigning: 'warn', blocked: 'bad', failed: 'bad', 'needs-recovery': 'bad', 'awaiting-user': 'warn' };
+        card.append(
+            h(
+                'ul',
+                { className: 'list' },
+                state.tasks.items.map((item) =>
+                    h('li', {}, h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}`)), pill(item.readiness, tone[item.readiness])),
+                ),
+            ),
+        );
+        if (!state.tasks.items.length) card.append(h('p', { className: 'muted' }, 'No tasks yet. Ask Tasker in a new chat to create one.'));
+        return pageFrame('tasks', 'Viewer order only — sorting never changes engine scheduling', card);
+    }
+
+    /** The Agents page: every agent with its actual activity, queue and a direct chat. */
+    function renderAgentsPage(snapshot) {
+        const card = h('section', { className: 'card inventory', 'aria-label': 'Agents' });
+        card.append(h('h2', {}, `Agents (${snapshot.agents.length})`));
+        const queued = (agent) => snapshot.queue.filter((item) => item.agent && item.agent.replace(/^@|^\{|\}$/g, '').toLowerCase() === agent.name.toLowerCase()).length;
+        card.append(
+            h(
+                'ul',
+                { className: 'list' },
+                snapshot.agents.map((agent) =>
+                    h(
+                        'li',
+                        {},
+                        h('span', { className: 'title row' }, badge(agent, true), agent.name, h('span', { className: 'why' }, `${ACTIVITY_LABEL[agent.activity] || agent.activity}${queued(agent) ? ` · ${queued(agent)} queued` : ''}${agent.role === 'engine' ? ' · engine-provided' : agent.role === 'core' ? ' · core' : ''}`)),
+                        h('button', { onclick: () => ((state.newChatAgent = agent.name), (state.newChat = agent.name.toLowerCase() === 'chatter' ? 'chatter' : 'all'), (state.chat = null), openPage('chats'), showNewChatAgents()) }, 'Chat'),
+                    ),
+                ),
+            ),
+        );
+        return pageFrame('agents', 'The complete team, core roles and Expert included; actual activity, never a fabricated worker', card);
+    }
+
+    /** Loads the chat agents for the full new-chat list without resetting its stage. */
+    async function showNewChatAgents() {
+        if (state.agents) return render(state.snapshot);
+        try {
+            state.agents = (await api('/api/chat-agents')).agents;
+        } catch (error) {
+            toast(`Agents unavailable: ${error.message}`);
+        }
+        render(state.snapshot);
+    }
+
+    /** One domain page. */
+    function renderPage(snapshot, domain) {
+        switch (domain) {
+            case 'work':
+                return pageFrame('work', 'Agent, task, phase, waits and the actual harness/model/thinking of this run', renderWork(snapshot), detailPanel('execution', 'Execution details — agent, harness tool, model, thinking level', renderExecutionDetails(snapshot)));
+            case 'system':
+                return renderSystemPage(snapshot);
+            case 'health':
+                return renderHealthPage(snapshot);
+            case 'chats':
+                return pageFrame('chats', `${snapshot.chats.total} chats · ${snapshot.chats.unread} unread · ${snapshot.chats.waiting.length} waiting for you`, snapshot.chats.waiting.length && !state.chat && !state.newChat ? renderAttention(snapshot) : null, renderChats(snapshot));
+            case 'tasks':
+                return renderTasksPage();
+            case 'agents':
+                return renderAgentsPage(snapshot);
+            case 'tools':
+                return pageFrame('tools', 'Named tools · saved changes are committed immediately and apply to new work at once', renderTools(snapshot), detailPanel('browser', 'Browser details — named browsers, profiles, health, recovery', renderBrowserDetails(snapshot)));
+            case 'results':
+                return pageFrame('results', 'Outcomes of this session and the bounded runtime activity log', renderActivity(snapshot));
+            case 'connection':
+                return pageFrame('connection', 'Verified local and remote dashboard access', renderConnection(snapshot));
+            case 'sync':
+                return pageFrame('sync', 'Git autosync through the engine’s one coordinator', renderSync(snapshot));
+            default:
+                return renderHome(snapshot);
+        }
+    }
+
+    /** Renders the home screen or the open page, preserving focus, drafts and scroll. */
     function render(snapshot) {
         if (!snapshot) return;
+        if (state.page && !homeTiles(snapshot).includes(state.page)) state.page = null;
         const active = document.activeElement;
         const focusDraft = active && active.getAttribute && active.getAttribute('data-draft');
+        const focusTile = active && active.getAttribute && active.getAttribute('data-tile');
         const selection = focusDraft ? [active.selectionStart, active.selectionEnd] : null;
         const scroll = window.scrollY;
-        app.replaceChildren(...[renderAttention(snapshot), renderControls(snapshot), renderChats(snapshot), renderWork(snapshot), renderTools(snapshot), renderSync(snapshot), renderDetails(snapshot), renderQueue(snapshot), renderActivity(snapshot), renderInventory(snapshot), renderConnection(snapshot)].filter(Boolean));
+        document.body.classList.toggle('home-view', !state.page);
+        app.replaceChildren(state.page ? renderPage(snapshot, state.page) : renderHome(snapshot));
         if (focusDraft) {
             const field = app.querySelector(`[data-draft="${CSS.escape(focusDraft)}"]`);
             if (field) {
                 field.focus();
                 if (selection) field.setSelectionRange(selection[0], selection[1]);
             }
+        } else if (focusTile && !state.page) {
+            const tile = app.querySelector(`[data-tile="${CSS.escape(state.focus)}"]`);
+            if (tile) tile.focus();
         }
-        window.scrollTo(0, scroll);
+        if (state.page) window.scrollTo(0, scroll);
+        // The sticky page header sits right below the (possibly wrapped) top bar.
+        const topbar = document.querySelector('.topbar');
+        if (topbar) document.documentElement.style.setProperty('--topbar-height', `${topbar.offsetHeight}px`);
         const live = state.connected ? 'live' : 'disconnected — showing last known state';
+        const attention = state.attention.size;
+        const stateName = snapshot.service.state;
         headerStatus.replaceChildren(
             h('strong', {}, snapshot.project.name),
-            ` · ptbk ${snapshot.engine.version} · ${snapshot.service.mode} · ${snapshot.service.state}${snapshot.service.commitMode === 'no-commit' ? ' · NO-COMMIT' : ''}${snapshot.chats.waiting.length ? ` · ${snapshot.chats.waiting.length} waiting for you` : ''} · ${live} · observed ${time(snapshot.observedAt)}`,
+            ' · ',
+            h('span', { className: stateName === 'running' ? 'ok' : stateName === 'stopping' ? 'bad' : 'warn' }, stateName),
+            snapshot.service.commitMode === 'no-commit' ? ' · NO-COMMIT' : '',
+            attention ? h('span', { className: 'warn' }, ` · ▲ ${attention} need${attention === 1 ? 's' : ''} attention`) : '',
+            ` · ${live}`,
         );
-        document.title = `${snapshot.chats.waiting.length ? `(${snapshot.chats.waiting.length}) ` : ''}${snapshot.project.name} · Promptbook`;
+        document.title = `${snapshot.chats.waiting.length ? `(${snapshot.chats.waiting.length}) ` : ''}PTBK · ${snapshot.project.name}`;
     }
 
     /** Pairing screen for unauthenticated visitors (no project data). */
@@ -927,6 +1378,8 @@
                 backoff = 1000;
                 state.snapshot = snapshot;
                 state.revision = snapshot.revision;
+                updateAttention(snapshot);
+                if (state.page === 'tasks') loadTasks(false);
                 render(snapshot);
                 // New messages in the open chat arrive without stealing focus or drafts.
                 if (state.chat && state.chat.detail) {
@@ -976,6 +1429,40 @@
             showPairing(error.message);
             return;
         }
+        // Viewer-local navigation: the URL fragment names the open page, so browser Back returns home.
+        state.page = routeFromHash();
+        if (state.page) history.replaceState({ page: state.page }, '', `#/${state.page}`);
+        window.addEventListener('popstate', () => {
+            state.page = routeFromHash();
+            render(state.snapshot);
+        });
+        // The home grid follows the viewport (also when only its height changes).
+        let layout = '';
+        new ResizeObserver(() => {
+            const tiles = state.snapshot ? homeTiles(state.snapshot).length : 0;
+            const next = `${homeColumns(tiles)}:${tileLineBudget(tiles)}`;
+            if (!state.page && state.snapshot && next !== layout) render(state.snapshot);
+            layout = next;
+        }).observe(document.documentElement);
+        document.addEventListener('pointerdown', interacted);
+        document.addEventListener('keydown', (event) => {
+            interacted();
+            const typing = event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName);
+            if (event.key === 'Escape' && state.page && !typing) {
+                event.preventDefault();
+                goHome();
+            } else if (!state.page && !typing && (event.key.startsWith('Arrow') || event.key === 'Enter')) {
+                const onTile = event.target && event.target.getAttribute && event.target.getAttribute('data-tile');
+                if (onTile && event.key === 'Enter') return;
+                event.preventDefault();
+                // From the page body the first key brings the cursor tile into keyboard focus.
+                if (!onTile) {
+                    const tile = app.querySelector(`[data-tile="${CSS.escape(state.focus)}"]`);
+                    if (event.key === 'Enter') openPage(state.focus);
+                    else if (tile) tile.focus();
+                } else moveTileFocus(event.key);
+            }
+        });
         poll();
         if (!reducedMotion) {
             setInterval(() => {

@@ -86,6 +86,13 @@ test('HTTP API: no project data without pairing; single-use pairing; CSRF and or
     assert.equal(state.headers.get('cache-control'), 'no-store, private');
     const snapshot = await state.json();
     assert.equal(snapshot.project.name, 'my project');
+    assert.equal(typeof snapshot.attention, 'object', 'the engine shares per-domain attention with every viewer');
+    assert.equal(snapshot.health.status === 'unknown' || typeof snapshot.health.disk.freeMiB === 'number', true, 'Health reports measured disk');
+    assert.deepEqual(snapshot.service.pauseReasons, []);
+    const sorted = await (await fetch(`${base}api/tasks?sort=name&descending=1`, { headers: { cookie } })).json();
+    assert.ok(Array.isArray(sorted.tasks));
+    assert.deepEqual(sorted.tasks.map((task) => task.title), [...sorted.tasks.map((task) => task.title)].sort((a, b) => b.localeCompare(a)), 'the shared viewer sort is applied by the engine');
+    assert.equal((await fetch(`${base}api/tasks?sort=bogus`, { headers: { cookie } })).status, 400);
     const control = (headers) => fetch(`${base}api/control`, { method: 'POST', headers: { cookie, 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ action: 'pause' }) });
     assert.equal((await control({})).status, 409, 'missing CSRF token');
     assert.equal((await control({ 'X-PTBK-CSRF': csrf, Origin: 'https://evil.example' })).status, 409, 'cross-origin');
@@ -96,6 +103,12 @@ test('HTTP API: no project data without pairing; single-use pairing; CSRF and or
     const token = /\n(ptbk_[A-Za-z0-9_-]+)\n/.exec((await ptbk(['access', 'token', 'ci', '--raw'], { cwd: project, env })).stdout)[1];
     const viaToken = await fetch(`${base}api/control`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resume' }) });
     assert.equal(viaToken.status, 200);
+    const healthControl = (body) => fetch(`${base}api/control`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then((response) => response.json());
+    const preview = await healthControl({ action: 'health-clean-cache' });
+    assert.equal(preview.applied, false, 'cache cleanup without confirmation only previews');
+    assert.equal(preview.data.path, '.ptbk/tmp');
+    assert.equal((await healthControl({ action: 'health-recheck' })).applied, true);
+    assert.equal((await healthControl({ action: 'health-override' })).applied, false, 'nothing to override while healthy');
     assert.equal((await ptbk(['access', 'revoke', '--all', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await fetch(`${base}api/state`, { headers: { cookie } })).status, 401, 'revoked device loses access');
 });

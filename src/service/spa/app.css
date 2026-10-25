@@ -73,6 +73,10 @@ body {
 }
 
 .header-status {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     color: var(--muted);
     font-size: 13px;
 }
@@ -82,26 +86,173 @@ body {
 }
 
 .app {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    grid-template-areas:
-        'attention attention'
-        'controls controls'
-        'chats chats'
-        'work queue'
-        'details details'
-        'activity connection'
-        'inventory connection';
-    gap: 14px;
     max-width: 1280px;
     margin: 0 auto;
     padding: 16px;
 }
 
-@media (max-width: 900px) {
-    .app {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-areas: 'attention' 'controls' 'chats' 'work' 'details' 'queue' 'activity' 'connection' 'inventory';
+/* The home screen never scrolls: tiles share the remaining height and clip their bounded summaries. */
+body.home-view {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+body.home-view .topbar {
+    flex-wrap: nowrap;
+}
+
+body.home-view .app {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    max-width: none;
+    padding: 12px;
+}
+
+.home {
+    display: grid;
+    grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--rows, 4), minmax(0, 1fr));
+    gap: 10px;
+    height: 100%;
+}
+
+.tile {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding: 10px 12px;
+    text-align: left;
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.tile:hover {
+    border-color: var(--accent);
+}
+
+.tile-title {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.tile-line {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 14px;
+}
+
+.tile-line .row {
+    flex-wrap: nowrap;
+}
+
+/* Focus is the operator's cursor; attention is a separate mark, so both stay distinguishable on one tile. */
+.tile.focused,
+.tile:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.tile.attention {
+    border: 2px solid var(--attention-border);
+    background: var(--attention-bg);
+}
+
+.tile.attention.error {
+    border-color: var(--danger);
+}
+
+.tile.attention .tile-title {
+    color: var(--warning);
+}
+
+.tile.attention.error .tile-title {
+    color: var(--danger);
+}
+
+.tile.attention.new {
+    animation: attention-pulse 1.2s ease-in-out infinite;
+}
+
+.new-label {
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--warning);
+    color: var(--bg);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+}
+
+@keyframes attention-pulse {
+    50% {
+        box-shadow: 0 0 0 4px var(--attention-border);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tile.attention.new {
+        animation: none;
+    }
+}
+
+.ok {
+    color: var(--success);
+}
+
+.warn {
+    color: var(--warning);
+}
+
+.bad {
+    color: var(--danger);
+}
+
+/* A page replaces the home grid; its header stays visible while the body scrolls. */
+.page-header {
+    position: sticky;
+    top: var(--topbar-height, 52px);
+    z-index: 4;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    align-items: baseline;
+    padding: 10px 0;
+    background: var(--bg);
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.page-body {
+    display: grid;
+    gap: 14px;
+}
+
+@media (max-width: 600px) {
+    .tile {
+        padding: 6px 8px;
+    }
+
+    .tile-line {
+        font-size: 13px;
     }
 }
 
@@ -125,7 +276,6 @@ body {
 }
 
 .attention {
-    grid-area: attention;
     border: 2px solid var(--attention-border);
     background: var(--attention-bg);
 }
@@ -141,26 +291,6 @@ body {
 
 .attention.empty > h2 {
     color: var(--muted);
-}
-
-.work {
-    grid-area: work;
-}
-
-.queue {
-    grid-area: queue;
-}
-
-.activity {
-    grid-area: activity;
-}
-
-.connection {
-    grid-area: connection;
-}
-
-.controls {
-    grid-area: controls;
 }
 
 .controls .state {
@@ -180,7 +310,6 @@ body {
 }
 
 .details-panels {
-    grid-area: details;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 14px;
@@ -199,10 +328,6 @@ body {
 
 .details-panels details[open] > summary {
     margin-bottom: 8px;
-}
-
-.inventory {
-    grid-area: inventory;
 }
 
 .request {
@@ -475,10 +600,6 @@ details summary {
 .pairing {
     max-width: 560px;
     margin: 12vh auto;
-}
-
-.chats {
-    grid-area: chats;
 }
 
 .chats .messages {

@@ -512,6 +512,21 @@ export type SyncView = {
 };
 
 /**
+ * Operational domains of the dashboards (home tiles and their pages).
+ *
+ * @private shared status view model
+ */
+export type DashboardDomain = 'work' | 'system' | 'health' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'connection' | 'sync';
+
+/**
+ * Why a domain needs the operator's attention: `key` identifies the current actionable items (a changed key is a new
+ * event) and `tone` their severity.
+ *
+ * @private shared status view model
+ */
+export type DomainAttention = { readonly key: string; readonly tone: 'warning' | 'error' };
+
+/**
  * The shared project status, identical for terminal, browser and API.
  *
  * @private shared status view model
@@ -572,4 +587,6 @@ export type ServiceSnapshot = {
     readonly harnesses: readonly HarnessView[];
     readonly settings: readonly SettingView[];
     readonly connection: ConnectionView;
+    /** Domains with an actionable event (absent from older engines; viewers then derive it the same way). */
+    readonly attention?: Partial<Record<DashboardDomain, DomainAttention>>;
 };

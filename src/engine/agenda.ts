@@ -56,6 +56,7 @@ import {
     workKindOf,
 } from './generated.js';
 import { HarnessPool } from './harnesses.js';
+import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
 import { SyncCoordinator, type SyncOutcome } from './sync.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
@@ -1166,7 +1167,7 @@ export class Agenda {
                   };
               })
             : [];
-        return {
+        const snapshot: ServiceSnapshot = {
             revision: this.revision,
             observedAt: new Date().toISOString(),
             project: { name: this.options.project.name, path: this.options.project.root },
@@ -1214,6 +1215,7 @@ export class Agenda {
                 : [],
             connection: this.connection,
         };
+        return { ...snapshot, attention: domainAttention(snapshot) };
     }
 
     // ── Context ──────────────────────────────────────────────────────────────

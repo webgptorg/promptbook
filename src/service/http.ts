@@ -8,6 +8,7 @@ import type { Agenda } from '../engine/agenda.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import { applyChatAction, applySettings, applyToolAction, CONTROL_ACTIONS, type ControlOutcome } from './actions.js';
 import type { AuthStore, SessionRecord } from './auth.js';
+import { TASK_SORT_FIELDS, sortTasks, type TaskSortField } from '../tasks/views.js';
 
 /**
  * First port tried when none is configured.
@@ -284,8 +285,11 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             return;
         }
         if (url.pathname === '/api/tasks' && method === 'GET') {
-            // The complete inventory in every state; clients sort and filter it without changing scheduling.
-            sendJson(response, 200, { tasks: await agenda.taskInventory() });
+            // The complete inventory in every state; `sort` applies the shared viewer orders (never scheduling).
+            const sort = url.searchParams.get('sort');
+            const tasks = await agenda.taskInventory();
+            if (sort && !(TASK_SORT_FIELDS as readonly string[]).includes(sort)) throw new PtbkError(`Unknown task sort "${sort}".`, { kind: 'usage', next: [`Use one of ${TASK_SORT_FIELDS.join(', ')}.`] });
+            sendJson(response, 200, { tasks: sort ? sortTasks(tasks, sort as TaskSortField, url.searchParams.get('descending') === '1') : tasks });
             return;
         }
         if (url.pathname === '/api/books' && method === 'GET') {

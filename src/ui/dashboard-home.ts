@@ -1,6 +1,7 @@
 import { formatShortTime } from '../common/time.js';
 import { formatMiB } from '../engine/health.js';
-import type { ServiceSnapshot } from '../engine/snapshot.js';
+import { domainAttention } from '../engine/attention.js';
+import type { DashboardDomain, DomainAttention, ServiceSnapshot } from '../engine/snapshot.js';
 import { fit, stringWidth, truncate, wrap } from './ansi.js';
 import { activityLabel, inlineBadge } from './badges.js';
 import { hasManualPause, healthPauseReasons, lifecycleActions } from './details.js';
@@ -12,7 +13,7 @@ import { symbols, type TerminalProfile } from './terminal.js';
  *
  * @private terminal dashboard home
  */
-export type HomeTile = 'work' | 'system' | 'health' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'connection' | 'sync';
+export type HomeTile = DashboardDomain;
 
 /**
  * Title of each tile (and of its page).
@@ -42,53 +43,13 @@ export function homeTiles(snapshot: ServiceSnapshot): HomeTile[] {
 }
 
 /**
- * Why a tile needs the operator's attention: `key` identifies the current actionable items (a changed key is a new
- * event), `tone` its severity.
+ * Attention of one tile: the engine's shared per-domain attention (an older engine's snapshot is derived locally with
+ * the same function).
  *
  * @private terminal dashboard home
  */
-export type TileAttention = { readonly key: string; readonly tone: 'warning' | 'error' };
-
-/**
- * Attention of one tile, derived from its own domain (never a modal global alarm and never moving focus).
- *
- * @private terminal dashboard home
- */
-export function tileAttention(snapshot: ServiceSnapshot, tile: HomeTile): TileAttention | undefined {
-    switch (tile) {
-        case 'work':
-            return snapshot.blockers.length ? { key: snapshot.blockers.map((blocker) => `${blocker.kind}:${blocker.title}`).join('|'), tone: 'error' } : undefined;
-        case 'system':
-            return snapshot.configuration?.pending ? { key: `configuration:${snapshot.configuration.pending}`, tone: 'warning' } : undefined;
-        case 'health': {
-            const incidents = snapshot.health?.incidents ?? [];
-            if (!incidents.length) return undefined;
-            return { key: incidents.map((incident) => incident.id).join('|'), tone: incidents.some((incident) => incident.severity === 'hard') ? 'error' : 'warning' };
-        }
-        case 'chats':
-            return snapshot.chats.waiting.length ? { key: snapshot.chats.waiting.map((chat) => `${chat.name}:${chat.messages}`).join('|'), tone: 'warning' } : undefined;
-        case 'tasks': {
-            const stuck = snapshot.queue.filter((item) => ['needs-recovery', 'failed'].includes(item.readiness));
-            return stuck.length ? { key: stuck.map((item) => `${item.ref}:${item.readiness}`).join('|'), tone: 'warning' } : undefined;
-        }
-        case 'tools': {
-            const failing = [...(snapshot.browsers ?? []), ...(snapshot.browser && !snapshot.browsers?.length ? [snapshot.browser] : [])].filter((browser) => browser.state === 'failed' || browser.recovery?.state === 'blocked');
-            const problems = [...(snapshot.tools?.waiting ? [`waiting:${snapshot.tools.waiting.reason}`] : []), ...(snapshot.tools?.problems ?? []), ...failing.map((browser) => `browser:${browser.name}:${browser.lastFailure?.at ?? ''}`)];
-            return problems.length ? { key: problems.join('|'), tone: failing.length ? 'error' : 'warning' } : undefined;
-        }
-        case 'results': {
-            const error = snapshot.errors[snapshot.errors.length - 1];
-            return error ? { key: `${error.at}:${error.summary}`, tone: 'warning' } : undefined;
-        }
-        case 'connection': {
-            const remote = snapshot.connection.remote;
-            return remote.state === 'failed' || remote.state === 'degraded' ? { key: `${remote.state}:${remote.error ?? ''}`, tone: 'warning' } : undefined;
-        }
-        case 'sync':
-            return snapshot.sync && ['failed', 'conflict'].includes(snapshot.sync.state) ? { key: `${snapshot.sync.state}:${snapshot.sync.reason ?? ''}`, tone: snapshot.sync.state === 'conflict' ? 'error' : 'warning' } : undefined;
-        default:
-            return undefined;
-    }
+export function tileAttention(snapshot: ServiceSnapshot, tile: HomeTile): DomainAttention | undefined {
+    return (snapshot.attention ?? domainAttention(snapshot))[tile];
 }
 
 /**
