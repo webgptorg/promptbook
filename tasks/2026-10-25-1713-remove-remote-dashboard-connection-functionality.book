@@ -8,3 +8,5 @@ Inspect the full feature surface before changing it. Remove remote-access requir
 Handle existing saved remote-access settings through the project's established configuration/migration conventions so prior projects can still start locally; do not contact providers or install tunnel software as part of startup. Remove or update affected tests, help text and documentation, and add focused regression coverage for local startup and dashboard/API operation without a tunnel. Verify no active remote feature entry points or dangling spec links remain, run appropriate checks, and record the changes in changelog/_current-preversion.md. Do not manually commit or add task completion stamps; leave those to the engine.
 TASK ORIGIN chat {Tasker: Remove the remote connection functionality from both specs a — 2026-10-25 11:59:14}
 LINK {Tasker: Remove the remote connection functionality from both specs a — 2026-10-25 11:59:14}
+TASK AGENT @Developer
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=high runtime=official

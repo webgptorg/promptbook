@@ -1,0 +1,7 @@
+TASK Assign routing: Remove remote dashboard connection functionality from specifications and implementation — 2026-10-25 17:13:06 — 2026-10-25 17:17:12
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Remove remote dashboard connection functionality from specifications and implementation — 2026-10-25 17:13:06}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PARENT {Remove remote dashboard connection functionality from specifications and implementation — 2026-10-25 17:13:06}
+TASK ORIGIN assignment for {Remove remote dashboard connection functionality from specifications and implementation — 2026-10-25 17:13:06}
+TASK DONE 2026-10-25T17:22:49+01:00
