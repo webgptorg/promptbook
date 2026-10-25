@@ -1959,7 +1959,12 @@ export class Agenda {
         const reason = route.kind === 'needs-assignment' ? `${router} has no concrete MODEL, so it would have to route itself (${route.reason})` : `${router} cannot run: ${route.reason}`;
         const bootstrap = await completeWithDefaults(UNCONSTRAINED, this.routing);
         const example = bootstrap.row ? `MODEL ${formatModelRow(bootstrap.row)}` : 'a concrete MODEL';
-        this.setBlocker({ kind: 'setup', title: `${router} cannot route`, reason, action: `Give agents/.core/${router.toLowerCase()}.book ${example}; Fixer repairs it automatically.`, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
+        // Problems in Router's definition chain (often an inherited Book such as Adam) are repaired where they are.
+        const definition = await resolveEffectiveAgent(this.catalog, toReference(router));
+        const broken = [...new Set(definition.diagnostics.filter((diagnostic) => diagnostic.severity === 'error' && diagnostic.path).map((diagnostic) => diagnostic.path))];
+        const books = broken.join(', ');
+        const action = broken.length ? `Fix the problems in ${books} (${router} inherits them); Fixer repairs them automatically.` : `Give agents/.core/${router.toLowerCase()}.book ${example}; Fixer repairs it automatically.`;
+        this.setBlocker({ kind: 'setup', title: `${router} cannot route`, reason, action, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
         this.logOnce(`${reason}. Routing waits for repair (no Router chain is created).`, 'warning');
         await this.scheduleRepair({
             key: `router-bootstrap`,
@@ -1967,7 +1972,9 @@ export class Agenda {
             title: `Repair ${router}'s execution setup`,
             description: [
                 `${reason}. Router must be directly runnable with an already concrete MODEL (harness, model, thinking level where the harness has one, and endpoint) from the usable tools, so it never needs to route itself.`,
-                `Edit only the MODEL of ${router}'s Book (agents/.core/${router.toLowerCase()}.book), keeping its customized instructions, for example \`${example}\`. If the user explicitly restricted the execution, keep that restriction and consult your team as your instructions direct.`,
+                broken.length
+                    ? `The cause is in ${books}: every agent inherits the Books of its FROM chain (Adam by default), so these problems stop ${router} and the agents sharing them. Fix them where they are, keeping each Book's intent; for example, rewrite a prose MODEL as field=value alternatives and keep any further preference as a RULE. Do not change ${router}'s own MODEL to work around them. If the user explicitly restricted the execution, keep that restriction and consult your team as your instructions direct.`
+                    : `Edit only the MODEL of ${router}'s Book (agents/.core/${router.toLowerCase()}.book), keeping its customized instructions, for example \`${example}\`. If the user explicitly restricted the execution, keep that restriction and consult your team as your instructions direct.`,
             ].join('\n\n'),
             links: [],
             model: bootstrap.row,

@@ -24,7 +24,10 @@ export type AgentDefinition = BookEntry & { readonly kind: 'agent' };
  *
  * @private agent resolution
  */
-export type AgentDiagnostic = BookIndexDiagnostic;
+export type AgentDiagnostic = BookIndexDiagnostic & {
+    /** `MODEL` when the problem is in MODEL content (it reads as no constraint; the instructions stay intact). */
+    readonly commitment?: 'MODEL';
+};
 
 /**
  * Result of resolving an agent reference.
@@ -257,7 +260,7 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
         layers.push(await localInstructions(catalog, current, diagnostics, new Set([current.normalized])));
         for (const team of commitmentsOf(current.document, 'TEAM')) teams.push(team.body);
         const own = modelOfDocument(current.document);
-        for (const diagnostic of own.diagnostics) diagnostics.push({ path: current.relativePath, line: diagnostic.line, message: diagnostic.message, severity: diagnostic.severity });
+        for (const diagnostic of own.diagnostics) diagnostics.push({ path: current.relativePath, line: diagnostic.line, message: diagnostic.message, severity: diagnostic.severity, commitment: 'MODEL' });
         model = intersectModels(model, own.constraint);
         const from = singleValue(current.document, 'FROM');
         if (from.conflict) diagnostics.push({ path: current.relativePath, line: from.conflict.line, message: from.conflict.message, severity: 'error' });

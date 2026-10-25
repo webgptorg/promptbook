@@ -131,15 +131,21 @@ export function normalizeUrl(url: string): string {
 export function parseModelRow(line: string): { row?: ModelRow; problems: string[] } {
     const tokens = line.trim().split(/\s+/).filter(Boolean);
     if (tokens.length === 1 && tokens[0] === '*') return { row: {}, problems: [] };
+    // Words without `=` are one problem per line: a sentence is prose (a RULE), never a word-by-word list of errors.
+    const loose = tokens.filter((token) => token.indexOf('=') <= 0);
+    if (loose.length > 1 && loose.length === tokens.length) {
+        const text = line.trim();
+        const preview = text.length > 60 ? `${text.slice(0, 59)}…` : text;
+        return { problems: [`"${preview}" is prose, not field=value pairs (for example harness=OPENAI_CODEX model=gpt-5 thinking=high; write a preference as a RULE)`] };
+    }
     const row: Partial<Record<ModelField, string>> = {};
     const seen = new Set<string>();
     const problems: string[] = [];
+    if (loose.length === 1 && tokens.length === 1) problems.push(`"${loose[0]}" is not a field=value pair (for example model=${loose[0]})`);
+    else if (loose.length) problems.push(`${loose.map((token) => `"${token}"`).join(', ')} ${loose.length === 1 ? 'is not a field=value pair' : 'are not field=value pairs'}`);
     for (const token of tokens) {
         const separator = token.indexOf('=');
-        if (separator <= 0) {
-            problems.push(tokens.length === 1 ? `"${token}" is not a field=value pair (for example model=${token})` : `"${token}" is not a field=value pair`);
-            continue;
-        }
+        if (separator <= 0) continue;
         const key = token.slice(0, separator).toLowerCase();
         const raw = token.slice(separator + 1);
         if (!(MODEL_FIELDS as readonly string[]).includes(key)) {

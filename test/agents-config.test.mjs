@@ -6,6 +6,8 @@ import { AgentCatalog, resolveEffectiveAgent, teamReferences, validateAgents } f
 import { ADAM_BOOK, TEACHER_BOOK } from '../dist/project/defaults.js';
 import { loadSettings, resolveSettings, updateProjectConfig } from '../dist/project/config.js';
 import { projectAt } from '../dist/project/workspace.js';
+import { resolveRoute } from '../dist/engine/routing.js';
+import { readTaskBook } from '../dist/tasks/book-task.js';
 import { ENGINE_VERSION } from '../dist/common/version.js';
 import { git, initRepository, ptbk, temporaryDirectory } from './helpers.mjs';
 
@@ -136,6 +138,52 @@ test('inheritance: implicit Adam, FROM chains, Expert foundation, cycles and FRO
     const diagnostics = await validateAgents(catalog);
     assert.ok(diagnostics.some((diagnostic) => /Teacher must end with CLOSED/.test(diagnostic.message)));
     assert.equal((await resolveEffectiveAgent(catalog, '@Developer')).learning.open, true);
+});
+
+test('repair deadlock: Fixer repair work runs despite a problematic MODEL inherited from Adam; other work stays blocked', async (t) => {
+    const root = await temporaryDirectory(t);
+    await initRepository(root);
+    await files(root, {
+        'agents/.core/adam.book': 'AGENT Adam\nFROM @Void\nMODEL Use Claude Opus 5.5 or a newer Opus model.\nRULE Be careful.\n',
+        'agents/.core/fixer.book': 'AGENT Fixer\nFROM @Adam\nGOAL Solve problems.\n',
+        'agents/dev.book': 'AGENT Developer\nRULE Write tests.\n',
+    });
+    const catalog = await AgentCatalog.load(root);
+    const fixer = await resolveEffectiveAgent(catalog, '@Fixer');
+    assert.deepEqual(
+        fixer.diagnostics.map((diagnostic) => [diagnostic.path, diagnostic.commitment, diagnostic.severity]),
+        [['agents/.core/adam.book', 'MODEL', 'error']],
+        'the inherited prose MODEL is one error, tagged as MODEL content',
+    );
+    const codex = { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'openai-codex', isEnabled: true };
+    // A stand-in pool with one usable Codex instance at the official endpoint.
+    const pool = {
+        rejectsModel: async () => false,
+        models: async () => ['gpt-x'],
+        instance: () => codex,
+        instancesFor: () => [codex],
+        enabled: () => ['openai-codex'],
+        select: () => codex,
+        inspectionOf: () => ({ usable: true, summary: 'Ready.' }),
+        inspection: () => ({ usable: true, summary: 'Ready.' }),
+        baseUrl: () => undefined,
+    };
+    const context = { catalog, pool, settings: {} };
+    const task = (agent, origin) =>
+        readTaskBook({
+            source: `TASK Work\nTASK AGENT @${agent}\nMODEL harness=OPENAI_CODEX model=gpt-x thinking=medium runtime=official\n${origin ? `TASK ORIGIN ${origin}\n` : ''}`,
+            path: join(root, 'tasks', 'work.book'),
+            relativePath: 'tasks/work.book',
+            order: 0,
+            timeZone: 'UTC',
+        });
+    const repair = await resolveRoute(task('Fixer', 'maintenance: router bootstrap'), context);
+    assert.equal(repair.kind, 'routable', `the repair is not blocked by what it repairs: ${repair.reason ?? ''}`);
+    assert.equal(repair.selection.model, 'gpt-x', 'the repair runs with its own MODEL');
+    const ordinary = await resolveRoute(task('Developer'), context);
+    assert.equal(ordinary.kind, 'blocked');
+    assert.match(ordinary.reason, /adam\.book: MODEL: "Use Claude Opus .*" is prose/);
+    assert.equal((await resolveRoute(task('Fixer'), context)).kind, 'blocked', "Fixer's ordinary work still waits for the repair");
 });
 
 test('reference examples: @ and brace forms everywhere, normalized names, built-ins first, then agents/, project, ignored content', async (t) => {

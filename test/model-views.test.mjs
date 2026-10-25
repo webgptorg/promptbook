@@ -17,6 +17,11 @@ test('MODEL: one line is one conjunctive alternative, lines are alternatives, an
     for (const invalid of ['gpt-5', 'colour=red', 'harness=nonsense', 'thinking=extreme', 'runtime=ftp://x', 'runtime=https://user:secret@host/v1', 'model=a model=b']) {
         assert.ok(parseModelRow(invalid).problems.length, invalid);
     }
+    const prose = parseModelRow('Use Claude Opus 5.5 or a newer Opus model through the configured Claude Code tool.');
+    assert.equal(prose.problems.length, 1, 'a sentence is one problem, not one per word');
+    assert.match(prose.problems[0], /^"Use Claude Opus 5\.5 .*…" is prose, not field=value pairs \(.*RULE\)$/);
+    assert.deepEqual(parseModelRow('harness=OPENAI_CODEX and newer').problems, ['"and", "newer" are not field=value pairs'], 'stray words of one line are one problem');
+    assert.deepEqual(parseModelRow('gpt-5').problems, ['"gpt-5" is not a field=value pair (for example model=gpt-5)']);
     const broken = modelOfDocument(parseBook('AGENT Developer\nPERSONA Builds.\nMODEL harness=OPENAI_CODEX colour=red'));
     assert.equal(broken.diagnostics[0].line, 3, 'the problem names its Book line');
     assert.equal(broken.constraint, UNCONSTRAINED, 'problematic content never becomes a guessed selection');

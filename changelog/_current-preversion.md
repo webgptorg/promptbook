@@ -1,5 +1,12 @@
 # Unreleased
 
+## Repair of a problematic inherited MODEL
+
+-   Fixed a repair deadlock. A problematic MODEL in Adam (or elsewhere in an agent's FROM chain) blocked every agent inheriting it, including Fixer, so the repair tasks created for it waited forever and Router could not route. Fixer's repair work (`TASK ORIGIN maintenance: …`) is no longer blocked by problematic MODEL content in its own chain. That content reads as no constraint and the repair's own MODEL decides. Instruction problems still block, and Fixer's ordinary work still waits.
+-   When Router cannot run because of problems in a Book it inherits, the "Router cannot route" action and Router's repair task now name that Book (for example `agents/.core/adam.book`). They used to tell you to give Router's own Book a concrete MODEL, which could not help.
+-   A prose MODEL line (a sentence instead of `field=value` pairs) is now one diagnostic that suggests a RULE for preferences, instead of one error per word. Stray words in an otherwise structured line are also reported once per line.
+-   This repository's own agents now run on OpenAI `gpt-6.1-sol` through native Codex. Adam requires it with `MODEL harness=OPENAI_CODEX model=gpt-6.1-sol runtime=official`, which replaces the prose Opus policy left over for repair. Router runs it at `thinking=medium`. `openai-codex` is enabled and `claude-code` disabled in `ptbk.json`.
+
 ## Browser dashboard: home screen and pages
 
 -   The browser dashboard now opens on a responsive home screen of tiles (the same domains as the terminal) that fills the window without scrolling. Columns and the number of summary lines per tile follow the window's width and height, with balanced rows; phones get two columns. The top bar shows only `PTBK`, the project and the live state. Version, paths, URLs and provider details moved to pages.

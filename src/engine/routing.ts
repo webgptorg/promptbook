@@ -272,7 +272,10 @@ export async function resolveRoute(task: Task, context: RoutingContext): Promise
         agentSource = `default agent (routing.defaultAgent from ${context.settings.sources['routing.defaultAgent'] ?? 'default'})`;
     }
     const agent = await resolveEffectiveAgent(context.catalog, toReference(agentReference));
-    const agentErrors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
+    // Fixer's repair work is never blocked by problematic MODEL content in its own chain (typically Adam's): that is
+    // what it repairs, the content reads as no constraint and the repair's own MODEL decides (no repair deadlock).
+    const repair = /^maintenance:/i.test(task.origin ?? '') && agent.normalized === normalizeAgentName('Fixer');
+    const agentErrors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error' && !(repair && diagnostic.commitment === 'MODEL'));
     if (agentErrors.length) {
         return { kind: 'blocked', reason: agentErrors.map((diagnostic) => `${diagnostic.path ? `${diagnostic.path}: ` : ''}${diagnostic.message}`).join(' '), next: 'Fix the agent definition or the TASK AGENT reference.' };
     }
