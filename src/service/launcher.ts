@@ -6,6 +6,7 @@ import { ensureDirectory } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
 import { isProcessAlive } from '../common/process.js';
 import { ENGINE_ROOT, ENGINE_VERSION, engineModule } from '../common/version.js';
+import { clearOperatorIntent } from '../engine/operator-intent.js';
 import type { Project } from '../project/workspace.js';
 import { lookupService, type ServiceLookup } from './control.js';
 import { registerPersistence, unregisterPersistence, type PersistenceOutcome } from './persistence.js';
@@ -277,13 +278,15 @@ export async function restartService(
 }
 
 /**
- * Records an intentional stop: no automatic startup until the next authorized start (launch metadata flag and
- * startup registration).
+ * Records an intentional stop (graceful, force stop or panic): no automatic startup, supervisor respawn or pending
+ * replacement until the next authorized start (launch metadata flag and startup registration). A deliberate stop
+ * replaces the manual pause, so the next explicit start runs again.
  *
  * @private daemon launcher
  */
 export async function markIntentionalStop(project: Project): Promise<void> {
     const launch = await readLaunchMetadata(project);
     if (launch) await writeLaunchMetadata(project, { ...launch, intentionallyStopped: true, savedAt: new Date().toISOString() });
+    clearOperatorIntent(project);
     await unregisterPersistence(project);
 }

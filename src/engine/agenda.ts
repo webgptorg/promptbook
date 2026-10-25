@@ -58,6 +58,7 @@ import {
 import { HarnessPool } from './harnesses.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
+import { readOperatorIntent, saveOperatorIntent } from './operator-intent.js';
 import { SyncCoordinator, type SyncOutcome } from './sync.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
 import { applyToolOperation, type ToolOperationOutcome, type ToolOperationRequest } from '../tools/operations.js';
@@ -391,6 +392,13 @@ export class Agenda {
     public async initialize(): Promise<void> {
         const { project } = this.options;
         for (const directory of [project.runtime.state, project.runtime.logs, project.runtime.temporary]) await ensureDirectory(directory);
+        // The operator's accepted manual pause (also one still draining) survives crashes and reboots: it holds before
+        // any background claim. Health reasons are re-evaluated by the fresh Health sub-engine instead.
+        const restored = this.options.mode === 'maintenance' ? undefined : readOperatorIntent(project)?.manualPause;
+        if (restored) {
+            this.manualPauseSince = restored.since;
+            this.log(`Restored the manual pause of ${restored.since}: no background task starts until you resume (ptbk resume).`);
+        }
         await this.maintainConfiguration();
         await this.refreshContext(true);
         await this.sync.begin();
@@ -568,6 +576,20 @@ export class Agenda {
         this.touch();
     }
 
+    /**
+     * Sets or removes the ordinary manual pause reason and saves it as durable operator intent (a maintenance host keeps
+     * it in memory only). A failed save is reported, never hidden: recovery would then miss the latest intent.
+     */
+    private setManualPause(since: string | undefined): void {
+        this.manualPauseSince = since;
+        if (this.options.mode === 'maintenance') return;
+        try {
+            saveOperatorIntent(this.options.project, since);
+        } catch (error) {
+            this.log(`The ${since ? 'pause' : 'resume'} applies now, but it could not be saved for crash/reboot recovery: ${errorMessage(error)}`, 'warning');
+        }
+    }
+
     /** Whether a stop or restart is pending or under way (waits end early; no next task is claimed). */
     private get stopRequested(): boolean {
         return Boolean(this.shutdown) || Boolean(this.intent);
@@ -635,7 +657,7 @@ export class Agenda {
             this.intentRevision++;
             this.log(this.executing ? 'Pause requested: the current task finishes first, then no task starts until you resume.' : 'Paused: no task runs until you resume.');
         }
-        this.manualPauseSince = new Date().toISOString();
+        this.setManualPause(new Date().toISOString());
         if (this.executing) this.pauseDraining = true;
         this.settle();
         // An idle wait (or a human wait outside task execution) re-evaluates so the pause holds immediately.
@@ -658,7 +680,7 @@ export class Agenda {
         if (this.intent) {
             const cancelled = this.intent;
             this.decide(undefined, `The pending ${cancelled} was cancelled; the service keeps running${this.executing ? ' (the current task continues)' : ''}.`);
-            this.manualPauseSince = undefined;
+            this.setManualPause(undefined);
             this.waiter?.resolve('woken');
             this.touch();
             return this.outcome('resume', true, `Cancelled the pending ${cancelled}.${remaining()}`);
@@ -668,7 +690,7 @@ export class Agenda {
             return this.outcome('resume', true, 'Already running.');
         }
         const pending = this.executing;
-        this.manualPauseSince = undefined;
+        this.setManualPause(undefined);
         this.intentRevision++;
         if (!this.pauseActive) this.pauseDraining = false;
         this.log(this.pauseActive ? `Manual pause removed.${remaining()}` : pending ? 'The pending pause was cancelled; the current task continues.' : 'Resumed.');
@@ -699,6 +721,7 @@ export class Agenda {
         if (options.force) {
             if (this.shutdown === 'force') return this.outcome(action, true, 'Already force-stopping.');
             const busy = this.executing;
+            if (!this.shutdownBySignal) this.setManualPause(undefined);
             this.shutdown = 'force';
             this.intent = 'stop';
             this.intentRevision++;
@@ -713,8 +736,9 @@ export class Agenda {
         if (this.intent === wanted) return this.outcome(action, true, `${options.restart ? 'Restart' : 'Stop'} is already pending: the current task finishes first.`);
         if (options.restart && this.options.mode === 'maintenance') throw new PtbkError('A finite maintenance operation cannot be restarted.', { kind: 'usage', next: ['Run it again when it has finished.'] });
         const previous = this.intent ?? (this.manualPauseSince && this.executing ? 'pause' : undefined);
-        // The stop replaces the manual pause (resume cancels the stop and returns to running, as before).
-        this.manualPauseSince = undefined;
+        // An intentional stop replaces the manual pause (resume cancels the stop and returns to running, as before). An
+        // OS termination request (e.g. a reboot) keeps it, so recovery restores the operator's pause.
+        if (!this.shutdownBySignal) this.setManualPause(undefined);
         this.pauseDraining = false;
         this.decide(
             wanted,

@@ -57,7 +57,9 @@ async function supervise(): Promise<void> {
         worker = undefined;
         if (terminating || code === 0) return;
         if (code === RESTART_EXIT_CODE) {
-            // A requested restart: the old worker released ownership; start exactly one replacement now.
+            // A requested restart: the old worker released ownership; start exactly one replacement now, unless a
+            // deliberate stop (force stop, panic) arrived meanwhile and cancelled the pending replacement.
+            if ((await readLaunchMetadata(project))?.intentionallyStopped) return;
             process.stdout.write(`${new Date().toISOString()} worker restarted on request\n`);
             backoff = 1000;
             continue;
@@ -68,6 +70,9 @@ async function supervise(): Promise<void> {
         process.stdout.write(`${new Date().toISOString()} worker exited with ${String(code)}; restarting in ${Math.round(backoff / 1000)}s\n`);
         await new Promise((resolve) => setTimeout(resolve, backoff));
         backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
+        // A deliberate stop recorded during the backoff (e.g. `ptbk panic` of the crashed worker) is never undone.
+        const current = await readLaunchMetadata(project);
+        if (terminating || !current?.persistent || current.intentionallyStopped) return;
     }
 }
 

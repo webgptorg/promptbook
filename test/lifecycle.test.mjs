@@ -178,3 +178,32 @@ test('global dashboard: works outside any project with zero engines, notices a l
     const single = await ptbk(['dashboard', '--raw'], { cwd: project, env });
     assert.notEqual(single.code, 0, 'a per-project dashboard still reports a missing service');
 });
+
+test('lifecycle: an accepted manual pause survives an engine crash; a deliberate stop replaces it', async (t) => {
+    const { project, env } = await initializedProject(t, { check: CHECK });
+    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const paused = await ptbk(['pause', '--raw'], { cwd: project, env });
+    assert.equal(paused.code, 0, paused.output);
+    await waitFor(async () => (await status(project, env)).service.state === 'pause', { message: 'the pause to settle' });
+    await ptbk(['add', 'Queued work', '--agent', 'Developer', '--raw'], { cwd: project, env });
+    const before = await status(project, env);
+    // An uncatchable kill is what a crash looks like: no cleanup and no chance to record anything.
+    process.kill(before.service.pid, 'SIGKILL');
+    await waitFor(async () => (await status(project, env)).service.state === 'stopped', { message: 'the killed engine to be observed as stopped' });
+    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const restored = await status(project, env);
+    assert.notEqual(restored.service.instanceId, before.service.instanceId);
+    assert.equal(restored.service.state, 'pause', 'the operator’s manual pause is restored before any background claim');
+    assert.deepEqual(restored.service.pauseReasons.map((reason) => reason.kind), ['manual']);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    assert.equal(findGenerated(await subjects(project), 'Queued work', 'PTBK: '), undefined, 'queued work waits for an explicit resume');
+    const resumed = await ptbk(['resume', '--raw'], { cwd: project, env });
+    assert.equal(resumed.code, 0, resumed.output);
+    await waitFor(async () => findGenerated(await subjects(project), 'Queued work', 'PTBK: '), { message: 'the queued work after resume' });
+    assert.equal((await ptbk(['pause', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await status(project, env)).service.state, 'running', 'an explicit start after a deliberate stop runs again');
+    await ptbk(['stop', '--raw'], { cwd: project, env });
+    assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'operator intent is runtime-only and never committed');
+});

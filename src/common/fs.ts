@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { constants } from 'node:fs';
+import { constants, mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { access, chmod, lstat, mkdir, readFile, readdir, realpath, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -107,6 +107,31 @@ export async function writeFileAtomic(path: string, content: string | Uint8Array
                 throw error;
             }
             await sleep(25 * attempt);
+        }
+    }
+}
+
+/**
+ * Synchronous {@link writeFileAtomic} for small runtime records that must be durable before a synchronous operation
+ * returns (e.g. an accepted pause, or a just-spawned owned process). Transient Windows sharing failures are retried a
+ * few times without waiting.
+ *
+ * @private shared filesystem helper
+ */
+export function writeFileAtomicSync(path: string, content: string, options: { mode?: number } = {}): void {
+    mkdirSync(dirname(path), { recursive: true });
+    const temporary = `${path}.${randomBytes(6).toString('hex')}.tmp`;
+    writeFileSync(temporary, content, options.mode === undefined ? undefined : { mode: options.mode });
+    for (let attempt = 1; ; attempt++) {
+        try {
+            renameSync(temporary, path);
+            return;
+        } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code ?? '';
+            if (!TRANSIENT_FILE_ERRORS.has(code) || attempt >= ATOMIC_RENAME_ATTEMPTS) {
+                rmSync(temporary, { force: true });
+                throw error;
+            }
         }
     }
 }
