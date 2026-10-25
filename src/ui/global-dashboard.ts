@@ -1,10 +1,16 @@
 import { userInfo } from 'node:os';
+import { basename } from 'node:path';
 import { errorMessage } from '../common/errors.js';
+import { isDirectory } from '../common/fs.js';
 import { clockTime, formatShortTime } from '../common/time.js';
-import { discoveryDirectory, readRegistry, verifyEngine, type DiscoveredEngine, type DiscoveryEntry } from '../service/discovery.js';
-import type { ControlClient } from '../service/control.js';
-import { truncate } from './ansi.js';
+import { projectAt } from '../project/workspace.js';
+import { lookupService, type ControlClient } from '../service/control.js';
+import { discoveryDirectory, readRegistry, verifyEngine, type DiscoveredEngine, type EngineSummary } from '../service/discovery.js';
+import { applyGlobalAction, summarizeOutcomes, type GlobalAction, type GlobalTarget, type ProjectActionOutcome } from '../service/global-controls.js';
+import { knownProjectsDirectory, readKnownProjects, registerKnownProject, type KnownProject } from '../service/known-projects.js';
+import { stringWidth, truncate } from './ansi.js';
 import { singleLineVisual } from './badges.js';
+import { fitLegend } from './dashboard-home.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { renderPanel } from './panels.js';
 import { FullScreen } from './screen.js';
@@ -17,11 +23,6 @@ import { TitleAnimation } from './terminal-title.js';
 const REFRESH_MS = 2000;
 
 /**
- * How long an ended engine stays visible (labelled ended) before it disappears.
- */
-const ENDED_VISIBLE_MS = 8000;
-
-/**
  * Widest table rendering.
  */
 const MAX_WIDTH = 160;
@@ -32,13 +33,30 @@ const MAX_WIDTH = 160;
 const MAX_NAME_WIDTH = 28;
 
 /**
- * One row of the global table.
+ * At most this many projects are started/stopped at once by a bulk action (each is independent).
+ */
+const BULK_CONCURRENCY = 4;
+
+/**
+ * Verified identity of a project's live (or unverifiable) owner.
+ *
+ * @private global dashboard
+ */
+export type EngineIdentity = Required<Pick<GlobalTarget, 'engine'>>['engine'] & { readonly engineVersion: string; readonly installation: string };
+
+/**
+ * One row of the global table: one canonical known project.
  *
  * @private global dashboard
  */
 export type GlobalRow = {
-    readonly entry: DiscoveryEntry;
-    readonly status: DiscoveredEngine['status'];
+    /** Canonical project root (stable selection key across engine instances). */
+    readonly key: string;
+    readonly projectRoot: string;
+    readonly projectName: string;
+    /** `live`: verified owner; `unreachable`: an owner is recorded but cannot be verified; `stopped`: verified absence; `missing`: the directory is gone. */
+    readonly status: 'live' | 'unreachable' | 'stopped' | 'missing';
+    readonly engine?: EngineIdentity;
     readonly state?: string;
     readonly work?: string;
     readonly intent?: string;
@@ -46,50 +64,85 @@ export type GlobalRow = {
     readonly reason?: string;
     readonly observedAt: string;
     readonly client?: ControlClient;
-    /** When the row was first seen as ended (it disappears shortly after). */
-    readonly endedAt?: number;
+    /** Durable registration, with the historical last run. */
+    readonly known?: KnownProject;
 };
 
 /**
- * Observation of the whole host: rows by instance, or why discovery failed.
+ * Observation of the whole host: one row per known project, or why discovery failed.
  *
  * @private global dashboard
  */
 export type HostObservation = { readonly rows: readonly GlobalRow[]; readonly problem?: string; readonly observedAt: string };
 
 /**
- * Observes every registered engine of this OS user, verifying each before it is shown as live. Rows of engines that
- * ended stay briefly labelled `ended` instead of disappearing or being retained as live.
+ * Identity of an owner from its discovery entry or process record.
+ */
+function identityOf(owner: EngineIdentity): EngineIdentity {
+    return { instanceId: owner.instanceId, pid: owner.pid, supervisorPid: owner.supervisorPid, startedAt: owner.startedAt, controlAddress: owner.controlAddress, mode: owner.mode, engineVersion: owner.engineVersion, installation: owner.installation };
+}
+
+/**
+ * Observes every known project of this OS user together with the verified live engines (also those launched by other
+ * clients, installations and versions, which become known projects). Stopped projects stay as `stopped` rows; nothing
+ * is started, killed, unlocked or scanned beyond the registries and the projects' own records.
  *
  * @private global dashboard
  */
-export async function observeHost(previous: ReadonlyMap<string, GlobalRow>, env: NodeJS.ProcessEnv = process.env): Promise<HostObservation> {
-    const registry = await readRegistry(env);
+export async function observeHost(env: NodeJS.ProcessEnv = process.env): Promise<HostObservation> {
+    const [registry, known] = await Promise.all([readRegistry(env), readKnownProjects(env)]);
     const observedAt = new Date().toISOString();
     const verified = await Promise.all(registry.entries.map((entry) => verifyEngine(entry, env).catch((error: unknown): DiscoveredEngine => ({ status: 'unreachable', entry, reason: errorMessage(error) }))));
-    const rows = new Map<string, GlobalRow>();
+    // One row per canonical project: a verified live owner wins over an unverifiable registration.
+    const owners = new Map<string, Exclude<DiscoveredEngine, { status: 'ended' }>>();
     for (const engine of verified) {
-        rows.set(engine.entry.instanceId, {
-            entry: engine.entry,
-            status: engine.status,
-            state: engine.status === 'live' ? engine.summary.state : undefined,
-            work: engine.status === 'live' ? engine.summary.work : undefined,
-            intent: engine.status === 'live' ? engine.summary.intent : undefined,
-            waitingChats: engine.status === 'live' ? engine.summary.waitingChats : undefined,
-            reason: engine.status === 'live' ? undefined : engine.reason,
-            observedAt: engine.status === 'live' ? engine.summary.observedAt : observedAt,
-            client: engine.status === 'live' ? engine.client : undefined,
-            endedAt: engine.status === 'ended' ? Date.now() : undefined,
-        });
+        if (engine.status === 'ended') continue;
+        const current = owners.get(engine.entry.projectRoot);
+        if (!current || (current.status !== 'live' && engine.status === 'live')) owners.set(engine.entry.projectRoot, engine);
     }
-    // Engines whose registration vanished (orderly shutdown) are shown as ended for a moment.
-    for (const [instance, row] of previous) {
-        if (rows.has(instance)) continue;
-        const endedAt = row.endedAt ?? Date.now();
-        if (Date.now() - endedAt < ENDED_VISIBLE_MS) rows.set(instance, { ...row, status: 'ended', client: undefined, reason: row.reason ?? 'The engine has stopped.', endedAt });
+    const knownByRoot = new Map(known.entries.map((entry) => [entry.projectRoot, entry]));
+    for (const [root, engine] of owners) {
+        if (engine.status !== 'live' || knownByRoot.has(root)) continue;
+        // An engine started by another client or installation is a known project of this host from now on.
+        const { entry } = engine;
+        const adopted = await registerKnownProject(projectAt(root), { lastRun: { instanceId: entry.instanceId, pid: entry.pid, mode: entry.mode, engineVersion: entry.engineVersion, installation: entry.installation, startedAt: entry.startedAt } }, env).catch(() => undefined);
+        if (adopted) knownByRoot.set(root, adopted);
     }
-    for (const [instance, row] of rows) if (row.status === 'ended' && row.endedAt && Date.now() - row.endedAt >= ENDED_VISIBLE_MS) rows.delete(instance);
-    return { rows: [...rows.values()].sort((a, b) => a.entry.projectRoot.localeCompare(b.entry.projectRoot) || a.entry.startedAt.localeCompare(b.entry.startedAt)), problem: registry.problem, observedAt };
+    const roots = [...new Set([...knownByRoot.keys(), ...owners.keys()])];
+    const rows = await Promise.all(
+        roots.map(async (root): Promise<GlobalRow> => {
+            const knownEntry = knownByRoot.get(root);
+            const engine = owners.get(root);
+            const base = { key: root, projectRoot: root, projectName: engine?.entry.projectName ?? knownEntry?.projectName ?? basename(root), known: knownEntry, observedAt };
+            const live = (owner: EngineIdentity, client: ControlClient, summary: EngineSummary): GlobalRow => ({ ...base, status: 'live', engine: identityOf(owner), client, state: summary.state, work: summary.work, intent: summary.intent, waitingChats: summary.waitingChats, observedAt: summary.observedAt });
+            if (engine?.status === 'live') return live(engine.entry, engine.client, engine.summary);
+            if (engine?.status === 'unreachable') return { ...base, status: 'unreachable', engine: identityOf(engine.entry), reason: engine.reason };
+            if (!(await isDirectory(root))) return { ...base, status: 'missing', reason: 'The project directory no longer exists.' };
+            // Without a discovery entry the project's own record decides (an engine whose registration failed).
+            const lookup = await lookupService(projectAt(root)).catch(() => undefined);
+            if (lookup?.state === 'running') {
+                const summary = await lookup.client.request<EngineSummary>('summary', {}, 5000).catch(() => undefined);
+                if (summary) return live(lookup.record, lookup.client, summary);
+                return { ...base, status: 'unreachable', engine: identityOf(lookup.record), reason: 'The engine does not report its state.' };
+            }
+            if (lookup?.state === 'unreachable') return { ...base, status: 'unreachable', engine: identityOf(lookup.record), reason: lookup.reason };
+            return { ...base, status: 'stopped' };
+        }),
+    );
+    rows.sort((a, b) => a.projectName.localeCompare(b.projectName) || a.projectRoot.localeCompare(b.projectRoot));
+    return { rows, problem: [registry.problem, known.problem].filter(Boolean).join(' ') || undefined, observedAt };
+}
+
+/**
+ * Historical description of a project's last run (never presented as live).
+ *
+ * @private global dashboard
+ */
+export function lastRunText(known: KnownProject | undefined): string | undefined {
+    const run = known?.lastRun;
+    if (!run) return undefined;
+    const ended = run.endedAt ? `ended ${formatShortTime(Date.parse(run.endedAt))}${run.outcome && run.outcome !== 'ended' ? ` (${run.outcome})` : ''}` : 'ended without cleanup';
+    return `last run (historical): ptbk ${run.engineVersion} ${run.mode}, ${ended}`;
 }
 
 /**
@@ -98,46 +151,140 @@ export async function observeHost(previous: ReadonlyMap<string, GlobalRow>, env:
  * @private global dashboard
  */
 export function plainRow(row: GlobalRow): string {
-    const state = row.status === 'live' ? `${row.state}${row.intent ? ` (${row.intent})` : ''}` : row.status;
-    return `${row.entry.projectName} [${state}] ptbk ${row.entry.engineVersion} · ${row.entry.mode} · PID ${row.entry.pid} · ${row.entry.projectRoot}${row.work ? ` · ${row.work}` : ''}${row.reason ? ` · ${row.reason}` : ''}`;
+    if (row.status === 'live' && row.engine) {
+        return `${row.projectName} [${row.state}${row.intent ? ` (${row.intent})` : ''}] ptbk ${row.engine.engineVersion} · ${row.engine.mode} · PID ${row.engine.pid} · ${row.projectRoot}${row.work ? ` · ${row.work}` : ''}`;
+    }
+    if (row.status === 'unreachable') return `${row.projectName} [unknown] PID ${row.engine?.pid ?? '?'} · ${row.projectRoot}${row.reason ? ` · ${row.reason}` : ''}`;
+    const history = lastRunText(row.known);
+    return `${row.projectName} [${row.status}] · ${row.projectRoot}${row.reason ? ` · ${row.reason}` : ''}${history ? ` · ${history}` : ''}`;
 }
 
 /**
- * Plain events between two observations: started, changed and ended engines.
+ * Live engines of an observation.
+ */
+function activeCount(observation: HostObservation): number {
+    return observation.rows.filter((row) => row.status === 'live' || row.status === 'unreachable').length;
+}
+
+/**
+ * The comparable state of a row (changes are reported as events).
+ */
+function rowState(row: GlobalRow): string {
+    return `${row.status}|${row.state ?? ''}|${row.intent ?? ''}|${row.engine?.instanceId ?? ''}`;
+}
+
+/**
+ * Plain events between two observations: new, changed (including engines that ended and became stopped) and
+ * forgotten projects.
  *
  * @private global dashboard
  */
 export function plainHostDifference(previous: HostObservation | undefined, next: HostObservation): string[] {
     const lines: string[] = [];
     if (!previous) {
-        lines.push(`Watching running Promptbook engines of this OS user (${next.rows.filter((row) => row.status !== 'ended').length} found; registry ${discoveryDirectoryLabel()}).`);
+        lines.push(`Watching the Promptbook projects of this OS user: ${next.rows.length} known, ${activeCount(next)} active engine${activeCount(next) === 1 ? '' : 's'} (registries ${knownProjectsDirectory()} and ${discoveryDirectory()}).`);
         if (next.problem) lines.push(`DISCOVERY PROBLEM: ${next.problem}`);
         for (const row of next.rows) lines.push(`  ${plainRow(row)}`);
-        if (!next.rows.length) lines.push('  No running engines; still watching for new ones.');
+        if (!next.rows.length) lines.push('  No known projects yet; still watching (`ptbk init` or `ptbk start` registers one).');
         return lines;
     }
-    const before = new Map(previous.rows.map((row) => [row.entry.instanceId, row]));
+    const before = new Map(previous.rows.map((row) => [row.key, row]));
+    const after = new Set(next.rows.map((row) => row.key));
     for (const row of next.rows) {
-        const old = before.get(row.entry.instanceId);
+        const old = before.get(row.key);
         if (!old) lines.push(`+ ${plainRow(row)}`);
-        else if (old.status !== row.status || old.state !== row.state || old.intent !== row.intent) lines.push(`${row.status === 'ended' ? '-' : '~'} ${plainRow(row)}`);
+        else if (rowState(old) !== rowState(row)) lines.push(`~ ${plainRow(row)}`);
     }
+    for (const row of previous.rows) if (!after.has(row.key)) lines.push(`- ${row.projectName} [forgotten] · ${row.projectRoot}`);
     if (next.problem && next.problem !== previous.problem) lines.push(`DISCOVERY PROBLEM: ${next.problem}`);
     return lines;
 }
 
 /**
- * The registry location shown to the user.
+ * Whether an action applies to a row (bulk actions skip the others; individual ones explain why).
+ *
+ * @private global dashboard
  */
-function discoveryDirectoryLabel(): string {
-    return discoveryDirectory();
+export function actionApplies(action: GlobalAction, row: GlobalRow): boolean {
+    switch (action) {
+        case 'start':
+            return row.status === 'stopped';
+        case 'force-stop':
+            return row.status === 'live' || row.status === 'unreachable';
+        case 'remove':
+            return row.status === 'stopped' || row.status === 'missing';
+        default:
+            return row.status === 'live';
+    }
 }
 
 /**
- * Runs `ptbk dashboard --global`: a continuously refreshed, keyboard-navigable table of running project engines of
- * this OS user, from any directory and across installations/versions. It stays open with zero entries, attaches to a
- * selected project's ordinary dashboard without `cd`, a new worker or a lock, and returns to the table afterwards.
- * Leaving closes only this viewer.
+ * Why an individual action does not apply to a row.
+ */
+function notApplicable(action: GlobalAction, row: GlobalRow): string {
+    const state = row.status === 'live' ? (row.state ?? 'running') : row.status === 'unreachable' ? 'not verifiable' : row.status;
+    if (action === 'start') return `${row.projectName} is ${state}; Start only starts a stopped project (it never resumes or replaces an engine).`;
+    if (action === 'remove') return `${row.projectName} is ${state}; only a stopped project can be removed. Stop it first (X, or F to force).`;
+    if (action === 'force-stop') return `${row.projectName} has no engine to force-stop.`;
+    return `${row.projectName} has no running engine; ${action === 'resume' ? 'Resume never starts a project (S starts it).' : 'nothing was changed.'}`;
+}
+
+/**
+ * Labels of actions.
+ */
+const ACTION_LABELS: Readonly<Record<GlobalAction, string>> = { start: 'Start', stop: 'Stop', 'force-stop': 'Force stop', pause: 'Pause', resume: 'Resume', remove: 'Remove' };
+
+/**
+ * Labels of bulk actions.
+ */
+const BULK_LABELS: Readonly<Record<GlobalAction, string>> = { start: 'Start all', stop: 'Stop all', 'force-stop': 'Force stop all', pause: 'Pause all', resume: 'Resume all', remove: 'Remove all stopped' };
+
+/**
+ * Keys of the actions (lowercase; with A first they apply to every applicable project).
+ */
+const ACTION_KEYS: Readonly<Record<string, GlobalAction>> = { s: 'start', x: 'stop', f: 'force-stop', p: 'pause', r: 'resume', d: 'remove' };
+
+/**
+ * Actions confirmed before they run (individually and in bulk), and bulk-only confirmations.
+ */
+const CONFIRMED = new Set<GlobalAction>(['force-stop', 'remove']);
+const CONFIRMED_BULK = new Set<GlobalAction>(['force-stop', 'remove', 'stop']);
+
+/**
+ * Shortens a long path from the left, so the distinguishing project folder stays visible.
+ *
+ * @private global dashboard
+ */
+export function shortenPath(path: string, width: number): string {
+    if (stringWidth(path) <= width) return path;
+    let tail = path;
+    while (tail && stringWidth(tail) > width - 1) tail = tail.slice(1);
+    return `…${tail}`;
+}
+
+/**
+ * Runs tasks with bounded concurrency, keeping their order.
+ */
+async function mapBounded<T, R>(items: readonly T[], limit: number, run: (item: T) => Promise<R>): Promise<R[]> {
+    const results: R[] = new Array<R>(items.length);
+    let next = 0;
+    await Promise.all(
+        Array.from({ length: Math.min(limit, items.length) }, async () => {
+            while (next < items.length) {
+                const index = next++;
+                results[index] = await run(items[index]!);
+            }
+        }),
+    );
+    return results;
+}
+
+/**
+ * Runs `ptbk dashboard --global`: a continuously refreshed, keyboard-navigable table of every known project of this OS
+ * user, including stopped ones, across installations and versions, from any directory. It stays open with zero
+ * projects, attaches to a live project's ordinary dashboard without `cd`, a new worker or a lock and returns to the
+ * table, and offers individual and bulk Start/Stop/Force stop/Pause/Resume and stopped-entry removal through the shared
+ * operations (never a viewer per project). Leaving closes only this viewer.
  *
  * @private global dashboard
  */
@@ -150,12 +297,20 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
     const marks = symbols(terminal.unicode);
     const { style } = terminal;
     let observation: HostObservation = { rows: [], observedAt: new Date().toISOString() };
+    let observed = false;
     let selected: string | undefined;
-    /** The first engine is preselected once; after that the selection only changes by the user. */
+    /** The first project is preselected once; after that the selection only changes by the user. */
     let autoSelect = true;
     let feedback = '';
+    /** `bulk`: the next action key applies to every applicable project; `confirm`: Y runs the pending action. */
+    let modal: { readonly kind: 'bulk' } | { readonly kind: 'confirm'; readonly prompt: string; readonly run: () => void } | undefined;
+    /** Latest per-project outcome, shown under its row. */
+    const outcomes = new Map<string, ProjectActionOutcome>();
+    /** Projects with an action in progress (no second action is started for them meanwhile). */
+    const busy = new Set<string>();
     let attached = false;
     let closed = false;
+    let wake: (() => void) | undefined;
     let finish: (() => void) | undefined;
     const done = new Promise<void>((resolve) => {
         finish = resolve;
@@ -170,17 +325,33 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
 
     const visible = (): readonly GlobalRow[] => observation.rows;
 
+    const rowLines = (row: GlobalRow, width: number): string[] => {
+        const focused = row.key === selected;
+        const live = row.status === 'live';
+        const stateText = busy.has(row.key) ? `${live ? row.state : row.status} ${marks.ellipsis}` : live ? `${row.state ?? '?'}${row.intent ? ` → ${row.intent}` : ''}` : row.status === 'unreachable' ? 'unknown' : row.status;
+        const tone = !live ? (row.status === 'stopped' ? style.muted : style.error) : row.state === 'running' ? style.success : row.state === 'stopping' ? style.error : style.warning;
+        const details = live && row.engine ? style.muted(`${row.engine.mode} · PID ${row.engine.pid} · ptbk ${row.engine.engineVersion}`) : row.status === 'unreachable' && row.engine ? style.muted(`PID ${row.engine.pid} · ptbk ${row.engine.engineVersion}`) : style.muted(lastRunText(row.known) ?? 'never started on this host');
+        const lines = [`${focused ? style.accent(marks.pointer) : ' '} ${style.bold(truncate(row.projectName, MAX_NAME_WIDTH))}  ${tone(stateText)}  ${details}${row.waitingChats ? style.warning(`  ${marks.warn} ${row.waitingChats} waiting for you`) : ''}`, style.muted(`    ${shortenPath(row.projectRoot, width - 8)}`)];
+        const detail = live ? row.work : row.reason;
+        if (detail) lines.push(`    ${truncate(detail, width - 8)}`);
+        const result = outcomes.get(row.key);
+        if (result) lines.push(`    ${(result.status === 'failed' || result.status === 'unconfirmed' ? style.error : result.status === 'completed' ? style.success : style.warning)(truncate(`${ACTION_LABELS[result.action]} ${result.status.replace('-', ' ')}: ${result.message}`, width - 8))}`);
+        return lines;
+    };
+
     const draw = (): void => {
         if (closed || attached) return;
         const width = Math.min(terminal.columns(), MAX_WIDTH);
+        const height = Math.max(8, terminal.rows());
         const rows = visible();
-        const live = rows.filter((row) => row.status === 'live').length;
+        const active = activeCount(observation);
         const lines: string[] = [];
+        const known = `${style.bold(String(rows.length))} known project${rows.length === 1 ? '' : 's'} · ${style.bold(String(active))} active engine${active === 1 ? '' : 's'}`;
         lines.push(
             ...renderPanel({
-                title: `${marks.bullet} Promptbook · all running engines`,
+                title: `${marks.bullet} Promptbook ${marks.dot} PTBK ${marks.dot} all projects on this computer`,
                 titleRight: `updated ${formatShortTime(Date.parse(observation.observedAt))}`,
-                lines: [`${style.bold(String(live))} live engine${live === 1 ? '' : 's'} on this computer${rows.length !== live ? style.muted(` · ${rows.length - live} other row(s)`) : ''}`, style.muted(`Engines of ${user} only (other OS users are not visible) · registry ${discoveryDirectoryLabel()}`)],
+                lines: [known, style.muted(`Projects of ${user} only (other OS users are not visible) · registry ${knownProjectsDirectory(env)}`)],
                 width,
                 tone: 'accent',
                 unicode: terminal.unicode,
@@ -189,29 +360,115 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         );
         if (observation.problem) lines.push(...renderPanel({ title: 'Discovery problem', lines: [style.error(observation.problem), style.muted('The list below may be incomplete; this is not an empty system.')], width, tone: 'error', unicode: terminal.unicode, style }));
         const table: string[] = [];
-        if (!rows.length) table.push(style.muted('No running Promptbook engines. Still watching — a project started later (ptbk start) appears here.'));
+        let anchor = 0;
+        if (!observed) table.push(style.muted('Looking for projects…'));
+        else if (!rows.length) table.push(style.muted('No known projects yet. Still watching — a project initialized or started later (ptbk init, ptbk start) appears here.'));
+        else if (!active) table.push(style.muted('No active engines. Stopped projects stay listed; S starts the selected one.'));
         for (const row of rows) {
-            const focused = row.entry.instanceId === selected;
-            const stateText = row.status === 'live' ? `${row.state ?? '?'}${row.intent ? ` → ${row.intent}` : ''}` : row.status;
-            const tone = row.status !== 'live' ? style.muted : row.state === 'running' ? style.success : row.state === 'stopping' ? style.error : style.warning;
-            table.push(
-                `${focused ? style.accent(marks.pointer) : ' '} ${style.bold(truncate(row.entry.projectName, MAX_NAME_WIDTH))}  ${tone(stateText)}  ${style.muted(`${row.entry.mode} · PID ${row.entry.pid} · ptbk ${row.entry.engineVersion}`)}${row.waitingChats ? style.warning(`  ${marks.warn} ${row.waitingChats} waiting for you`) : ''}`,
-            );
-            table.push(style.muted(`    ${truncate(row.entry.projectRoot, width - 8)}`));
-            const detail = row.status === 'live' ? row.work : row.reason;
-            if (detail) table.push(`    ${truncate(detail, width - 8)}`);
+            if (row.key === selected) anchor = table.length;
+            table.push(...rowLines(row, width));
         }
-        lines.push(...renderPanel({ title: 'Engines', titleRight: 'Enter opens the project dashboard', lines: table, width, unicode: terminal.unicode, style }));
-        lines.push(style.muted(`  ↑↓ select · Enter attach (returns here when you leave) · Q/Ctrl+C close this viewer (engines keep running)${feedback ? `   ${marks.arrow} ${feedback}` : ''}`));
+        // A bounded table: the window follows the selected project.
+        const room = Math.max(3, height - lines.length - 3);
+        let start = 0;
+        if (table.length > room) {
+            start = Math.max(0, Math.min(anchor - 1, table.length - room));
+            const above = start;
+            const window = table.slice(start, start + room);
+            const below = table.length - start - window.length;
+            if (above) window[0] = style.muted(`  ↑ ${above} more line${above === 1 ? '' : 's'}`);
+            if (below) window[window.length - 1] = style.muted(`  ↓ ${below} more line${below === 1 ? '' : 's'}`);
+            table.length = 0;
+            table.push(...window);
+        }
+        lines.push(...renderPanel({ title: 'Projects', titleRight: 'Enter opens a running project', lines: table, width, unicode: terminal.unicode, style }));
+        const legend =
+            modal?.kind === 'bulk'
+                ? style.accent(fitLegend(['All projects:', 'S start stopped', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove stopped', 'Esc cancel'], width, '  '))
+                : modal?.kind === 'confirm'
+                  ? style.warning(` ${truncate(modal.prompt, width - 2)}`)
+                  : style.muted(fitLegend(['↑↓ select', 'Enter attach', 'S start', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove', 'A all projects…', 'Q close (engines keep running)'], width));
+        lines.push(legend);
+        if (feedback && !modal) lines.push(` ${style.accent(marks.arrow)} ${truncate(feedback, width - 4)}`);
         screen.draw(lines);
+    };
+
+    const refreshSoon = (): void => wake?.();
+
+    const run = (label: string, action: GlobalAction, targets: readonly GlobalRow[]): void => {
+        const ready = targets.filter((row) => !busy.has(row.key));
+        if (!ready.length) {
+            feedback = `${label}: ${targets.length ? 'already in progress' : 'no applicable projects'}.`;
+            draw();
+            return;
+        }
+        for (const row of ready) busy.add(row.key);
+        feedback = `${label}: ${ready.length} project${ready.length === 1 ? '' : 's'}${marks.ellipsis}`;
+        draw();
+        void (async () => {
+            const results = await mapBounded(ready, BULK_CONCURRENCY, async (row) => {
+                const result = await applyGlobalAction(action, { projectRoot: row.projectRoot, projectName: row.projectName, known: row.known, engine: row.engine, client: row.client }, env);
+                busy.delete(row.key);
+                outcomes.set(row.key, result);
+                draw();
+                return result;
+            });
+            // A removed selected project hands the selection to its neighbour (no other row is ever picked silently).
+            const removed = new Set(results.filter((result) => result.action === 'remove' && result.status === 'completed').map((result) => result.projectRoot));
+            if (selected && removed.has(selected)) {
+                const rows = visible();
+                const index = rows.findIndex((row) => row.key === selected);
+                selected = [...rows.slice(index + 1), ...rows.slice(0, index).reverse()].find((row) => !removed.has(row.key))?.key;
+                observation = { ...observation, rows: rows.filter((row) => !removed.has(row.key)) };
+            }
+            feedback = ready.length === 1 ? `${results[0]!.projectName}: ${ACTION_LABELS[action]} ${results[0]!.status.replace('-', ' ')}. ${results[0]!.message}` : summarizeOutcomes(label, results);
+            refreshSoon();
+            draw();
+        })();
+    };
+
+    const individual = (action: GlobalAction): void => {
+        const row = visible().find((candidate) => candidate.key === selected);
+        if (!row) {
+            feedback = 'Select a project first.';
+            draw();
+            return;
+        }
+        if (!actionApplies(action, row)) {
+            feedback = notApplicable(action, row);
+            draw();
+            return;
+        }
+        const go = (): void => run(`${ACTION_LABELS[action]} ${row.projectName}`, action, [row]);
+        if (CONFIRMED.has(action)) {
+            modal = {
+                kind: 'confirm',
+                prompt: action === 'force-stop' ? `Force-stop ${row.projectName} now? Owned work is interrupted (recoverable). Y confirm · any other key cancels` : `Remove ${row.projectName} from this host's list? Its files stay untouched. Y confirm · any other key cancels`,
+                run: go,
+            };
+            draw();
+            return;
+        }
+        go();
+    };
+
+    const bulk = (action: GlobalAction): void => {
+        const targets = visible().filter((row) => actionApplies(action, row));
+        const go = (): void => run(BULK_LABELS[action], action, targets);
+        if (targets.length && CONFIRMED_BULK.has(action)) {
+            modal = { kind: 'confirm', prompt: `${BULK_LABELS[action]}: ${targets.length} project${targets.length === 1 ? '' : 's'} (${targets.map((row) => row.projectName).join(', ')})? Y confirm · any other key cancels`, run: go };
+            draw();
+            return;
+        }
+        go();
     };
 
     const move = (delta: number): void => {
         const rows = visible();
         autoSelect = false;
         if (!rows.length) return;
-        const index = Math.max(0, rows.findIndex((row) => row.entry.instanceId === selected));
-        selected = rows[(index + delta + rows.length) % rows.length]!.entry.instanceId;
+        const index = Math.max(0, rows.findIndex((row) => row.key === selected));
+        selected = rows[(index + delta + rows.length) % rows.length]!.key;
         draw();
     };
 
@@ -221,18 +478,20 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         keyboard.stop();
         screen.leave();
         process.stdout.off('resize', onResize);
+        wake?.();
         finish?.();
     };
 
     const open = async (): Promise<void> => {
-        const row = visible().find((candidate) => candidate.entry.instanceId === selected);
+        const row = visible().find((candidate) => candidate.key === selected);
         if (!row) {
-            feedback = 'Select an engine first.';
+            feedback = 'Select a project first.';
             draw();
             return;
         }
         if (row.status !== 'live') {
-            feedback = `${row.entry.projectName} cannot be opened: ${row.reason ?? row.status}.`;
+            // Inspecting or selecting a stopped project never starts it.
+            feedback = row.status === 'stopped' ? `${row.projectName} is stopped; S starts it explicitly.` : `${row.projectName} cannot be opened: ${row.reason ?? row.status}.`;
             draw();
             return;
         }
@@ -252,23 +511,56 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         // An engine of another version renders its own view (and title) in a child process.
         terminal.title.invalidate();
         title.start();
-        feedback = outcome ?? `Back from ${row.entry.projectName}; it keeps running.`;
+        feedback = outcome ?? `Back from ${row.projectName}; its engine was left as it was.`;
         screen.enter();
         screen.invalidate();
         keyboard.start();
+        refreshSoon();
         draw();
     };
 
     const onKey = (event: KeyEvent): void => {
         if (attached) return;
-        if (event.type === 'key') {
-            if (event.name === 'c' && event.ctrl) close();
-            else if (event.name === 'up') move(-1);
-            else if (event.name === 'down') move(1);
-            else if (event.name === 'enter') void open();
+        if (event.type === 'key' && event.name === 'c' && event.ctrl) {
+            close();
             return;
         }
-        if (event.type === 'text' && event.text.toLowerCase() === 'q') close();
+        if (modal?.kind === 'confirm') {
+            const confirmed = event.type === 'text' && event.text.toLowerCase() === 'y';
+            const pending = modal;
+            modal = undefined;
+            if (confirmed) pending.run();
+            else {
+                feedback = 'Cancelled; nothing was changed.';
+                draw();
+            }
+            return;
+        }
+        if (modal?.kind === 'bulk') {
+            modal = undefined;
+            const action = event.type === 'text' ? ACTION_KEYS[event.text.toLowerCase()] : undefined;
+            if (action) bulk(action);
+            else {
+                feedback = 'Cancelled; nothing was changed.';
+                draw();
+            }
+            return;
+        }
+        if (event.type === 'key') {
+            if (event.name === 'up') move(-1);
+            else if (event.name === 'down') move(1);
+            else if (event.name === 'enter') void open();
+            else if (event.name === 'delete') individual('remove');
+            else if (event.name === 'escape') close();
+            return;
+        }
+        if (event.type !== 'text') return;
+        const key = event.text.toLowerCase();
+        if (key === 'q') close();
+        else if (key === 'a') {
+            modal = { kind: 'bulk' };
+            draw();
+        } else if (ACTION_KEYS[key]) individual(ACTION_KEYS[key]);
     };
 
     const keyboard = new KeyboardSession(onKey);
@@ -284,29 +576,37 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
     title.start();
     draw();
     void (async () => {
-        let rows = new Map<string, GlobalRow>();
         while (!closed) {
             try {
-                observation = await observeHost(rows, env);
-                rows = new Map(observation.rows.map((row) => [row.entry.instanceId, row]));
-                // Keep the selected service selected; an ended target is never silently replaced by another row.
-                if (selected && !rows.has(selected)) {
+                observation = await observeHost(env);
+                observed = true;
+                const keys = new Set(observation.rows.map((row) => row.key));
+                // The selected project stays selected through exits and starts; a forgotten one is never replaced silently.
+                if (selected && !keys.has(selected)) {
                     selected = undefined;
                     autoSelect = false;
-                    feedback = 'The selected engine has ended; choose another with ↑↓.';
+                    feedback = 'The selected project is no longer listed; choose another with ↑↓.';
                 } else if (!selected && autoSelect && observation.rows[0]) {
-                    selected = observation.rows[0].entry.instanceId;
+                    selected = observation.rows[0].key;
                     autoSelect = false;
                 }
+                for (const key of outcomes.keys()) if (!keys.has(key)) outcomes.delete(key);
             } catch (error) {
                 observation = { ...observation, problem: errorMessage(error), observedAt: new Date().toISOString() };
             }
             draw();
-            await new Promise((resolve) => setTimeout(resolve, REFRESH_MS));
+            await new Promise<void>((resolve) => {
+                const timer = setTimeout(resolve, REFRESH_MS);
+                wake = () => {
+                    clearTimeout(timer);
+                    resolve();
+                };
+            });
+            wake = undefined;
         }
     })();
     await done;
-    process.stdout.write(`${style.muted(`Closed the global dashboard at ${clockTime()}; every engine keeps running.`)}\n`);
+    process.stdout.write(`${style.muted(`Closed the global dashboard at ${clockTime()}; every engine was left as it was.`)}\n`);
 }
 
 /**
@@ -320,11 +620,9 @@ async function runPlainGlobalDashboard(terminal: TerminalProfile, env: NodeJS.Pr
     process.once('SIGINT', onSignal);
     process.once('SIGTERM', onSignal);
     let previous: HostObservation | undefined;
-    let rows = new Map<string, GlobalRow>();
     try {
         while (!stop) {
-            const next = await observeHost(rows, env);
-            rows = new Map(next.rows.map((row) => [row.entry.instanceId, row]));
+            const next = await observeHost(env);
             for (const line of plainHostDifference(previous, next)) terminal.write(`${clockTime()} ${line}\n`);
             previous = next;
             for (let waited = 0; waited < REFRESH_MS && !stop; waited += 200) await new Promise((resolve) => setTimeout(resolve, 200));

@@ -526,6 +526,11 @@ export class Agenda {
         };
     }
 
+    /** How the agenda is shutting down: an intentional stop or force stop, a restart, or an OS termination request. */
+    public get shutdownReason(): 'stop' | 'force' | 'restart' | 'signal' | undefined {
+        return this.shutdownBySignal ? 'signal' : this.shutdown;
+    }
+
     /** Whether shutdown is a force stop (owned execution is interrupted, and killed if it does not end promptly). */
     public get forceStopped(): boolean {
         return this.shutdown === 'force';

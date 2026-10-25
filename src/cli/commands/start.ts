@@ -31,8 +31,8 @@ function describeProblems(problems: readonly ReadinessProblem[]): string {
  *
  * Returns false when setup stays incomplete.
  */
-async function ensureReady(context: CommandContext, project: Project, overrides: Record<string, unknown>, cliHarnesses: readonly string[] | undefined): Promise<boolean> {
-    let settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context) });
+async function ensureReady(context: CommandContext, project: Project, overrides: Record<string, unknown>, cliHarnesses: readonly string[] | undefined, cliBrowser = browserOverrides(context)): Promise<boolean> {
+    let settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser });
     if (settings.migration.kind === 'older-engine') await requireEngineUpdate(context, settings.migration.saved);
     let readiness = await assessReadiness(project, settings, context.env);
     if (readiness.ready) return true;
@@ -54,7 +54,7 @@ async function ensureReady(context: CommandContext, project: Project, overrides:
     if (answer !== true) return false;
     const result = await initializeProject(context, { projectRoot: project.root, fromStart: true });
     if (result.outcome !== 'ready') return false;
-    settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context) });
+    settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser });
     readiness = await assessReadiness(project, settings, context.env);
     if (!readiness.ready) terminal.write(`${terminal.style.error('Setup is still incomplete:')}\n${describeProblems(readiness.problems)}\n`);
     return readiness.ready;
@@ -156,11 +156,15 @@ export default async function start(context: CommandContext): Promise<number> {
     validateCombinations(context);
     const project = await selectedProject(context);
     if (flag(context, 'resume-service')) return await resumeService(context, project);
-    const overrides = settingOverrides(context);
-    const cliHarnesses = option<string[]>(context, 'harness');
+    // An explicit start from the global dashboard keeps the project's recorded launch overrides (e.g. --no-tunnel).
+    const saved = flag(context, 'saved-launch') ? await readLaunchMetadata(project) : undefined;
+    const overrides = saved ? { ...saved.cli } : settingOverrides(context);
+    const cliHarnesses = saved ? saved.cliHarnesses : option<string[]>(context, 'harness');
+    const cliBrowser = saved ? saved.cliBrowser : browserOverrides(context);
+    const tasksDirectory = saved ? saved.tasksDirectory : tasksOverride(context);
     const existing = await lookupService(project);
     if (existing.state === 'running') {
-        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'daemon', 'dashboard'].includes(name));
+        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'daemon', 'dashboard', 'saved-launch'].includes(name));
         if (wantsDashboardHandoff(context)) {
             // Start-or-open: the running engine keeps its state and configuration; only a viewer attaches.
             handoffLine(context, 'Already running.', `PID ${existing.record.pid}${ignored.length ? `; the new options (${ignored.map((name) => `--${name}`).join(', ')}) were not applied — use \`ptbk restart\`` : ''}.`);
@@ -181,14 +185,14 @@ export default async function start(context: CommandContext): Promise<number> {
     if (existing.state === 'unreachable') {
         throw new PtbkError('A ptbk process is recorded for this project but does not answer.', { kind: 'conflict', project: project.root, reason: existing.reason, effect: 'No second service was started.', next: ['Run `ptbk status` again shortly.'] });
     }
-    if (!(await ensureReady(context, project, overrides, cliHarnesses))) {
+    if (!(await ensureReady(context, project, overrides, cliHarnesses, cliBrowser))) {
         context.terminal.write(`${context.terminal.style.warning('Not started:')} setup is incomplete. Resume with \`ptbk init\` or \`ptbk start\`.\n`);
         return EXIT.incomplete;
     }
     if (flag(context, 'foreground')) return await runForeground(context, project, overrides, cliHarnesses);
-    const settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context) });
+    const settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser });
     const persistent = setting<boolean>(settings, 'service.isPersistent');
-    const result = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context), tasksDirectory: tasksOverride(context), persistent, env: context.env });
+    const result = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser, tasksDirectory, persistent, env: context.env });
     const persistence = result.persistence ? ` ${result.persistence.note}` : persistent ? '' : ' Restart persistence is disabled (--no-persist).';
     if (wantsDashboardHandoff(context)) {
         handoffLine(context, result.started ? 'Started.' : 'Already running.', `The agenda runs in the background (PID ${result.lookup.record.pid}).${persistence}`);

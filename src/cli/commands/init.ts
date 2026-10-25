@@ -47,6 +47,7 @@ import { checkHarnessVersion, installHarness, loginHarness, updateHarness } from
 import type { HarnessInspection, HarnessPlugin } from '../../harness/types.js';
 import type { ServiceSnapshot } from '../../engine/snapshot.js';
 import { lookupService } from '../../service/control.js';
+import { registerKnownProject } from '../../service/known-projects.js';
 import { launchDaemon } from '../../service/launcher.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
 import { wrap } from '../../ui/ansi.js';
@@ -1252,6 +1253,8 @@ export default async function init(context: CommandContext): Promise<number> {
     if (result.outcome === 'updated-engine') return EXIT.success;
     let service: StartOutcome | undefined;
     if (result.outcome === 'ready' && result.project) {
+        // A successfully initialized project is known to this host (the global dashboard lists it even while stopped).
+        await registerKnownProject(result.project, {}, context.env).catch((error: unknown) => context.terminal.write(`${context.terminal.style.warning('Note:')} the project could not be registered for \`ptbk dashboard --global\`: ${errorMessage(error)}\n`));
         service = flag(context, 'start') === false ? { kind: 'skipped', reason: 'not started (--no-start)' } : await startService(context, result.project);
     }
     const success = result.outcome === 'ready' && (service?.kind === 'started' || service?.kind === 'reused');

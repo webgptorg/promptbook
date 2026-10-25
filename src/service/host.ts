@@ -14,6 +14,7 @@ import { applyChatAction, applyControlAction, applySettings, applyToolAction, ty
 import { AuthStore } from './auth.js';
 import { CONTROL_CONTRACT, startControlServer } from './control.js';
 import { registerEngine, summaryOfSnapshot } from './discovery.js';
+import { recordRunEnded, registerKnownProject } from './known-projects.js';
 import { startHttpServer, type RunningHttpServer } from './http.js';
 import { OwnedProcessRecorder } from './owned-processes.js';
 import { acquireProjectLock, engineIdentity, removeProcessRecord, writeProcessRecord } from './records.js';
@@ -66,6 +67,8 @@ export class ServiceHost {
     private tunnel?: TunnelManager;
     private releaseLock?: () => Promise<void>;
     private unregister?: () => Promise<void>;
+    /** This instance is the known project's last run (its end is recorded on shutdown). */
+    private knownRun = false;
     private connection: ConnectionView = { local: { state: 'disabled' }, remote: { state: 'disabled' } };
     private pairingRefresh?: NodeJS.Timeout;
     private readonly browsers: BrowserFleet;
@@ -179,6 +182,17 @@ export class ServiceHost {
                 this.agenda.log(`This engine could not register for \`ptbk dashboard --global\`: ${errorMessage(error)}`, 'warning');
                 return undefined;
             });
+            // The durable known-project entry outlives this instance (stopped projects stay listed globally).
+            if (this.options.mode !== 'maintenance') {
+                await registerKnownProject(
+                    project,
+                    { nodePath: process.execPath, lastRun: { instanceId: this.instanceId, pid: process.pid, mode: this.options.mode, ...engineIdentity(), startedAt: new Date().toISOString() } },
+                    this.options.env,
+                ).then(
+                    () => (this.knownRun = true),
+                    (error: unknown) => this.agenda.log(`This project could not be registered as known for \`ptbk dashboard --global\`: ${errorMessage(error)}`, 'warning'),
+                );
+            }
             if (this.http && setting<boolean>(settings, 'server.tunnel.isEnabled')) {
                 if (!(await this.auth.currentPairing())) await this.auth.renewPairing();
                 await this.refreshPairing();
@@ -261,6 +275,11 @@ export class ServiceHost {
         this.controlServer = undefined;
         await bounded(() => this.unregister?.());
         this.unregister = undefined;
+        if (this.knownRun) {
+            const reason = this.agenda.shutdownReason;
+            await bounded(() => recordRunEnded(this.options.project, this.instanceId, reason === 'force' ? 'force-stopped' : reason === 'stop' ? 'stopped' : reason === 'restart' ? 'restarted' : 'ended', this.options.env));
+            this.knownRun = false;
+        }
         await bounded(() => removeProcessRecord(this.options.project, this.instanceId));
         this.owned.stop();
         await bounded(() => this.releaseLock?.());

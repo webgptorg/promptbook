@@ -157,24 +157,58 @@ test('Chatter: initialized with every other role as TEAM, default partner of new
     assert.match(await readFile(join(project, 'agents', '.core', 'chatter.book'), 'utf8'), /RULE Answer in one paragraph\./, 'reinit preserves a customized Chatter');
 });
 
-test('global dashboard: works outside any project with zero engines, notices a later start, and --path conflicts', async (t) => {
+test('global dashboard: works outside any project, keeps stopped known projects, notices later starts, and --path conflicts', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     const elsewhere = await temporaryDirectory(t, 'ptbk elsewhere');
     const conflict = await ptbk(['dashboard', '--global', '--path', project, '--raw'], { cwd: elsewhere, env });
     assert.equal(conflict.code, 2, conflict.output);
-    const child = spawn(process.execPath, [BIN, 'dashboard', '--global', '--raw'], { cwd: elsewhere, env, stdio: ['ignore', 'pipe', 'pipe'] });
-    t.after(() => child.kill('SIGKILL'));
-    let output = '';
-    child.stdout.setEncoding('utf8').on('data', (chunk) => (output += chunk));
-    child.stderr.setEncoding('utf8').on('data', (chunk) => (output += chunk));
-    await waitFor(() => /0 found/.test(output) && /No running engines; still watching/.test(output), { message: 'the empty global view' });
-    assert.equal(child.exitCode, null, 'zero engines is a usable, continuous view');
+    const watch = (watchEnv) => {
+        const child = spawn(process.execPath, [BIN, 'dashboard', '--global', '--raw'], { cwd: elsewhere, env: watchEnv, stdio: ['ignore', 'pipe', 'pipe'] });
+        t.after(() => child.kill('SIGKILL'));
+        const view = { child, output: '' };
+        child.stdout.setEncoding('utf8').on('data', (chunk) => (view.output += chunk));
+        child.stderr.setEncoding('utf8').on('data', (chunk) => (view.output += chunk));
+        return view;
+    };
+    const empty = watch({ ...env, PTBK_HOME: join(elsewhere, 'empty home') });
+    await waitFor(() => /0 known, 0 active engines/.test(empty.output) && /No known projects yet; still watching/.test(empty.output), { message: 'the empty global view' });
+    assert.equal(empty.child.exitCode, null, 'zero projects is a usable, continuous view');
+    empty.child.kill('SIGINT');
+
+    const view = watch(env);
+    await waitFor(() => /1 known, 0 active engines/.test(view.output) && /my project \[stopped\] · /.test(view.output), { message: 'the initialized project as a stopped known row' });
     await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
-    await waitFor(() => /\+ my project \[running\] ptbk .* · daemon · PID \d+/.test(output), { message: 'the started engine to appear' });
+    await waitFor(() => /~ my project \[running\] ptbk .* · daemon · PID \d+/.test(view.output), { message: 'the started engine to appear' });
+    const { removeStoppedProject, startKnownProject } = await import('../dist/service/global-controls.js');
+    const { readKnownProjects } = await import('../dist/service/known-projects.js');
+    const target = { projectRoot: project, projectName: 'my project' };
+    const refused = await removeStoppedProject(target, env);
+    assert.equal(refused.status, 'not-applicable', 'a live project cannot be removed');
+    assert.match(refused.message, /Stop it first/);
+    assert.equal((await status(project, env)).service.state, 'running', 'removal never stops an engine');
     await ptbk(['stop', '-F', '--raw'], { cwd: project, env });
-    await waitFor(() => /- my project \[ended\]/.test(output), { message: 'the stopped engine to be labelled ended' });
-    child.kill('SIGINT');
-    await new Promise((resolve) => child.once('close', resolve));
+    await waitFor(() => /~ my project \[stopped\] · .*last run \(historical\): ptbk \S+ daemon, ended .*\(force-stopped\)/.test(view.output), { message: 'the stopped engine to stay as a stopped row with historical data' });
+    assert.doesNotMatch(view.output.split('[stopped]').pop(), /PID \d+/, 'a stopped row shows no live PID');
+
+    const started = await startKnownProject(target, env);
+    assert.equal(started.status, 'completed', started.message);
+    const relaunched = await status(project, env);
+    assert.equal(relaunched.service.state, 'running', 'an explicit Start uses the ordinary launcher');
+    assert.equal(relaunched.connection.remote.state, 'disabled', 'it keeps the recorded launch overrides (--no-tunnel)');
+    assert.equal((await startKnownProject(target, env)).status, 'unchanged', 'Start leaves a live engine unchanged');
+    await ptbk(['stop', '--raw'], { cwd: project, env });
+
+    const removed = await removeStoppedProject(target, env);
+    assert.equal(removed.status, 'completed', removed.message);
+    await waitFor(() => /- my project \[forgotten\]/.test(view.output), { message: 'the removed entry to disappear' });
+    assert.equal((await readKnownProjects(env)).entries.length, 0);
+    assert.ok(JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8')), 'removal keeps the project files');
+    assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'registry changes create no project commits');
+    await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    assert.deepEqual((await readKnownProjects(env)).entries.map((entry) => entry.projectRoot), [project], 'a later explicit start registers it again');
+    await ptbk(['stop', '-F', '--raw'], { cwd: project, env });
+    view.child.kill('SIGINT');
+    await new Promise((resolve) => view.child.once('close', resolve));
     const single = await ptbk(['dashboard', '--raw'], { cwd: project, env });
     assert.notEqual(single.code, 0, 'a per-project dashboard still reports a missing service');
 });

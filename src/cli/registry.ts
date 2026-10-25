@@ -33,6 +33,7 @@ const START_OPTIONS: OptionGroup = {
         { name: 'harness-updates', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not update enabled harnesses automatically for this run.' },
         { name: 'harness', type: 'string', valueName: '<variant|tool>', repeatable: true, description: 'Restrict routing to these harness variants or named harness tools for this run (repeatable; not saved).' },
         { name: 'resume-service', type: 'boolean', hidden: true, description: 'Internal: resume a persisted service at login/boot.' },
+        { name: 'saved-launch', type: 'boolean', hidden: true, description: 'Internal: an explicit start that reuses the saved launch overrides (Start in the global dashboard).' },
     ],
 };
 
@@ -264,23 +265,23 @@ Missing setup is offered through the same initialization workflow when interacti
     {
         name: 'dashboard',
         category: 'Observe and respond',
-        summary: 'Attach the live home screen and pages to the running service (or --global: every running engine).',
+        summary: 'Attach the live home screen and pages to the running service (or --global: every known project).',
         description: `Continuously shows and controls the running project engine. Any number of dashboards can attach; opening or leaving one never starts, stops or owns the service, and a project without a running service is reported (nothing is started). Its terminal tab is titled \`PTBK <current agent> <project>\`.
 
 The root is a home screen of compact tiles that always fits the terminal without scrolling (it adapts to width and height): Current work, System, Health, Chats, Tasks, Agents, Tools, Results, Connection and — only with autosync — Synchronization. Arrows move the focus between tiles; a tile that needs you (a waiting chat, a health incident, a failing tool…) is marked and blinks until you are working in the viewer, without ever moving your focus. Enter opens the focused tile as a full page (Escape returns; Escape on the home screen leaves the viewer). Pages scroll: System has the engine/process details, every active pause reason and the lifecycle controls; Health shows disk, RAM, swap, CPU and connectivity with the soft-incident override (O), project-cache cleanup (K) and Linux swap (W); Tools manages named tools (Space enable/disable, N add, M modify, [ ] move, D remove, Enter one tool's details with browser recovery 1/2/3); Agents (C chat, E edit its Book, S sort), Chats (N new chat, Chatter first), Tasks (smart order, S sort, D reverse, E edit source, T Tasker), Results (activity log), Connection (links, QR, V renew pairing) and Synchronization (G synchronize now).
 
 Shortcuts on the home screen open the same pages or call the same operations: A answer the agent waiting for you (its real author), N next waiting chat, C new chat (Enter = Chatter, or Choose another agent), L chats, E current work, I system, H health, T tools, B the browser, Y synchronization, G synchronize now; P pause/resume (manual pause only; Health pauses resolve on Health), U cancel a pending pause/stop/restart, X graceful stop (never escalates), R restart, F force stop (confirmed), S skip a pacing wait; V renew pairing, O plain presentation, Q/Ctrl+C leave. The Book editor inserts a line with Enter and saves with Ctrl+S without closing. With --raw it streams plain state changes instead.
 
-\`ptbk dashboard --global\` works from any directory (no project is selected or initialized): a continuously refreshed table of every running Promptbook engine of your OS user across installations and versions — project, path, version, PID, mode, live state and current work. It stays open with zero engines and shows engines started later; Enter attaches to the selected project's dashboard without \`cd\` (Q returns to the table), and closing it leaves every engine running.`,
+\`ptbk dashboard --global\` works from any directory (no project is selected or initialized): a continuously refreshed table of every project known to your OS user — registered by a successful init or start, and kept after stop, force stop, panic and reboot until you remove it — across installations and versions. Live rows show path, version, PID, mode, live state and current work; stopped rows say \`stopped\` with the last run labelled historical. It stays open with zero projects and shows projects registered or started later. Enter attaches to a running project's dashboard without \`cd\` (Q returns to the table). S start (a stopped project, with its recorded installation and launch options), X graceful stop, F force stop (confirmed), P pause, R resume (never starts or clears Health) and D remove (a verified stopped entry only; its files stay) act on the selected project; A followed by the same key acts on every applicable project, with per-project outcomes. Closing it leaves every engine as it was.`,
         optionGroups: [
-            { title: 'View', options: [{ name: 'global', type: 'boolean', description: 'Host-wide table of every running engine (independent of the current directory; conflicts with --path).' }, SERVER_OPTIONS.options[4]!] },
+            { title: 'View', options: [{ name: 'global', type: 'boolean', description: 'Host-wide table of every known project and its engine, with individual and bulk controls (independent of the current directory; conflicts with --path).' }, SERVER_OPTIONS.options[4]!] },
             PROJECT_OPTIONS,
             PRESENTATION_OPTIONS,
         ],
         examples: [
             { command: 'ptbk dashboard', description: 'Live view of the current project.' },
             { command: 'ptbk dashboard --path ../site --raw', description: 'Plain continuous observation.' },
-            { command: 'ptbk dashboard --global', description: 'All running engines on this computer; Enter attaches to one.' },
+            { command: 'ptbk dashboard --global', description: 'All known projects on this computer; Enter attaches, S/X/F/P/R/D control, A for all.' },
         ],
         run: lazy(() => import('./commands/dashboard.js')),
     },

@@ -10,9 +10,10 @@ import { delegateToEngine } from '../engine-delegation.js';
 import { controlSource } from '../sources.js';
 
 /**
- * `ptbk dashboard --global`: the host-wide live table of running engines, independent of the current directory. It
- * never initializes or selects that directory, never starts a worker and never acquires a project lock; attaching
- * opens the selected project's ordinary dashboard and returns to the table.
+ * `ptbk dashboard --global`: the host-wide table of known projects (stopped ones included) and their live engines,
+ * independent of the current directory. It never initializes or selects that directory and never acquires a project
+ * lock; attaching opens the selected project's ordinary dashboard and returns to the table, and its explicit
+ * individual/bulk lifecycle controls and stopped-entry removal use the shared operations.
  */
 async function globalDashboard(context: CommandContext): Promise<number> {
     for (const name of ['path', 'tasks']) {
@@ -23,10 +24,10 @@ async function globalDashboard(context: CommandContext): Promise<number> {
         context.terminal,
         async (row) => {
             // Resolve the target from verified discovery information, never from the launch directory.
-            const project = projectAt(row.entry.projectRoot);
+            const project = projectAt(row.projectRoot);
             const lookup = await lookupService(project);
-            if (lookup.state !== 'running') return `${row.entry.projectName} is no longer running${lookup.state === 'unreachable' ? ` (${lookup.reason})` : ''}; nothing was started.`;
-            if (lookup.record.instanceId !== row.entry.instanceId) return `${row.entry.projectName} is now owned by another engine instance; select its new row to attach.`;
+            if (lookup.state !== 'running') return `${row.projectName} is no longer running${lookup.state === 'unreachable' ? ` (${lookup.reason})` : ''}; nothing was started.`;
+            if (lookup.record.instanceId !== row.engine?.instanceId) return `${row.projectName} is now owned by another engine instance; press Enter again to attach to it.`;
             if (!lookup.engine.compatible) {
                 // Another engine version renders its own dashboard, so the view keeps that engine's version and shape.
                 await delegateToEngine(project, lookup, ['dashboard', '--path', project.root, ...(noQr ? ['--no-qr'] : [])], context.cwd, context.env);
@@ -42,7 +43,7 @@ async function globalDashboard(context: CommandContext): Promise<number> {
 
 /**
  * `ptbk dashboard`: attach a live view to the existing service (never starts or initializes anything); with
- * `--global`, the host-wide overview of every running engine. A service of an incompatible ptbk version is shown by
+ * `--global`, the host-wide overview of every known project. A service of an incompatible ptbk version is shown by
  * its own installation.
  *
  * @private command
@@ -56,7 +57,7 @@ export default async function dashboard(context: CommandContext): Promise<number
             kind: 'not-found',
             project: project.root,
             effect: 'Nothing was started; the dashboard only attaches to an existing service.',
-            next: ['Start the agenda with `ptbk start`, then run `ptbk dashboard` again.', 'See every running project with `ptbk dashboard --global`.'],
+            next: ['Start the agenda with `ptbk start`, then run `ptbk dashboard` again.', 'See every known project with `ptbk dashboard --global`.'],
         });
     }
     if (lookup.state === 'unreachable') {

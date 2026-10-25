@@ -5,7 +5,7 @@ import { join } from 'node:path';
  * The current OS user's Promptbook application-data directory (`PTBK_HOME` overrides it).
  *
  * It holds machine-local, per-user data outside any project: the managed global browser profile, cross-project
- * profile claims and the host-wide service discovery registry.
+ * profile claims, the host-wide service discovery registry and the durable known-project registry.
  *
  * @private application data
  */

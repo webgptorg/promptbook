@@ -10,6 +10,7 @@ import { ENGINE_ROOT, ENGINE_VERSION, engineModule } from '../common/version.js'
 import { clearOperatorIntent } from '../engine/operator-intent.js';
 import type { Project } from '../project/workspace.js';
 import { lookupService, type ServiceLookup } from './control.js';
+import { recordRunEnded } from './known-projects.js';
 import { terminateOwnedProcesses } from './owned-processes.js';
 import { registerPersistence, unregisterPersistence, type PersistenceOutcome } from './persistence.js';
 import { discoveryEnvironment, readLaunchMetadata, readProcessRecord, rotateServiceLog, servicePaths, writeLaunchMetadata, type LaunchMetadata, type ProcessRecord } from './records.js';
@@ -409,6 +410,8 @@ export async function forceStopEngine(project: Project, options: { readonly expe
     }
     if (reused) return { status: 'not-running', record, owner, killed, warnings, message: `The engine had already ended (PID ${owner.pid} now belongs to an unrelated process, which was not touched).` };
     if (isProcessAlive(owner.pid)) return { status: 'failed', record, owner, killed, warnings, message: `PID ${owner.pid} is still running after termination was attempted.` };
+    // A killed engine could not record its own end; the project stays known as stopped.
+    if (killed) await recordRunEnded(project, owner.instanceId, 'force-stopped').catch(() => undefined);
     return { status: 'terminated', record, owner, killed, warnings, message: killed ? 'Force-stopped (the engine did not end by itself and was terminated; its cleanup is not guaranteed).' : 'Force-stopped.' };
 }
 
