@@ -2,9 +2,23 @@
 
 [Main specification](../_main.md)
 
-## Command-scoped help
+## Bare-command picker
 
-Bare interactive `ptbk` is a small action picker for Initialize project, Start engine and Open dashboard, using the normal selectable controls. It displays version/project context and calls the existing chosen workflow without duplicating it; merely displaying or cancelling the picker has no side effects. Without interactive input, bare invocation shows technical top-level help.
+Bare interactive `ptbk` detects the selected working directory's initialization and verified engine ownership before presenting **exactly two choices**. The first choice is focused by default; **Open help is always second**.
+
+| Selected directory | First choice (default) | Second choice |
+| --- | --- | --- |
+| Not initialized as a Promptbook project | Initialize project (`ptbk init`) | Open help (`ptbk help`) |
+| Initialized, with no active engine | Start project (`ptbk start`) | Open help (`ptbk help`) |
+| Initialized, with an active engine | Open dashboard (`ptbk dashboard`) | Open help (`ptbk help`) |
+
+Use the ordinary [project selection](workspace.md), defaulting to the invocation's CWD and honoring an explicit `--path`. A nonempty directory may still be uninitialized; missing/disabled tools alone do not make an initialized project uninitialized. Verify the actual owner across installations and equivalent paths. An engine in `pausing`, `pause` or `stopping` still exists and receives the dashboard choice, not another start/restart. Unknown/unreachable ownership is diagnosed rather than assumed stopped.
+
+Never show all three lifecycle choices together, offer restart as another picker item or make Help the initial selection. Show version/project context without starting, initializing, migrating or otherwise changing anything. Enter invokes only the focused choice through its existing workflow; cancellation has no side effects. Revalidate relevant state before acting so a concurrent start cannot create a duplicate engine. Successful interactive start opens the dashboard by default whether selected here or invoked directly, using the same [handoff and opt-outs](process-modes.md).
+
+Without interactive input, bare invocation shows technical top-level help without a prompt.
+
+## Command-scoped help
 
 `ptbk help` and `ptbk --help` always show technical command reference: ordinary workflow, command groups, relevant flags/defaults and scoped usage. They do not enter the action menu. `ptbk about` gives a visually designed compact product box with Promptbook name, actual engine version, purpose and [ptbk.io](https://www.ptbk.io/), rather than another dump of command options. Raw about retains that information in plain text.
 
