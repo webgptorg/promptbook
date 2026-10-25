@@ -36,6 +36,8 @@ When effective autosync is enabled, expose its compact dashboard status, redacte
 
 With autosync off, omit its dedicated dashboard panel/manual-cycle action. General settings can still show the disabled choice. Failed remote synchronization is distinct from local work and never implicitly pauses/stops the engine. All configuration, environment and Git mutations obey shared ownership/revision checks; a tool commit during task execution must remain scoped.
 
+The [global dashboard](global-dashboard.md) invokes these same operations individually and in bulk over applicable known projects, including stopped entries. Start/Resume stay distinct, Health reasons compose and each target reports its outcome. Registry removal is separate, requires verified stop and preserves project data. [Panic](panic.md) is the confirmed host-wide force-stop shortcut and suppresses automatic restart like deliberate per-project stop.
+
 Leaving a dashboard/chat is not a service stop. Force stop is explicit, never an ambiguous second Stop press. Only the owner performs its [lock cleanup](locking.md) when possible; external hard kill has no cleanup guarantee. Inspection/navigation and runtime-only actions create no commits, and no saved operation is reported complete before required persistence succeeds.
 
 See [channels](channels.md), [dashboard](dashboard.md), [terminal](terminal.md), [status](status-view.md), [global overview](global-dashboard.md) and [Git persistence](git-persistence.md).

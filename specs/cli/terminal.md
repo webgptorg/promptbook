@@ -8,11 +8,11 @@
 
 Zero or many dashboards can attach. They share engine state but not viewer focus, current dashboard page, scroll position or acknowledged visual attention. Q, root-level Escape, Ctrl+C and terminal disconnection close only this client; closing all clients leaves the daemon running. Service exit/loss is honest and never starts a replacement.
 
-`dashboard --global` opens the independent host-wide live table from any CWD. Selecting an engine attaches without `cd`, starting a process or acquiring its lock; returning leaves the engine untouched. Foreground start can show equivalent controls but owns execution lifetime. Automatic viewer handoff from start/init/restart is defined by [process modes](process-modes.md).
+`dashboard --global` opens the independent host-wide table of known projects, including stopped ones, from any CWD. Selecting a live engine attaches without `cd`, startup or lock acquisition; returning leaves it untouched. Explicit individual/bulk controls and stopped-entry removal follow [the global contract](global-dashboard.md); selecting a stopped row alone never starts it. Foreground start can show equivalent controls but owns execution lifetime. Automatic viewer handoff from start/init/restart is defined by [process modes](process-modes.md).
 
 ## Home screen
 
-Use the [dashboard home-screen contract](dashboard-layout.md). The root is a compact responsive tile cockpit, not a vertically scrollable report. In normal terminal sizes the complete root is visible at once, including PTBK/project/service state, current work, operator attention and entries to the major pages.
+Use the [dashboard home-screen contract](dashboard-layout.md). The root has a prominent shared **Promptbook / PTBK, project and lifecycle-state header above the tile grid**, visually identifying one application. It is separate from focusable tiles and from the terminal tab title. The complete header/grid form a compact responsive cockpit, not a vertically scrollable report. In normal terminal sizes the complete root is visible at once, including PTBK/project/service state, current work, operator attention and entries to the major pages.
 
 Width and **height** both affect layout. A narrower/shorter terminal reduces columns and secondary copy before it removes important state. A larger terminal may use more whitespace/richer bounded previews. Handle `resize` live without losing tile focus, page selection, list scroll or drafts.
 

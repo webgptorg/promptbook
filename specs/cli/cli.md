@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md)
 
-The root command is `ptbk`. Bare interactive invocation offers selectable **Initialize project**, **Start engine** and **Open dashboard** actions with the actual version and current-project context. Selecting an action invokes its existing workflow; showing/cancelling the menu does not start or initialize anything. Bare noninteractive/redirected invocation shows technical help without prompting. Successful interactive init starts the background agenda and hands off after a brief cancellable countdown to the ordinary dashboard. An initialized/cloned/stopped project can be started explicitly.
+The root command is `ptbk`. Bare interactive invocation offers exactly two context-dependent choices under [the bare-command picker](help.md#bare-command-picker): the focused default is **Initialize project**, **Start project** or **Open dashboard** according to the selected directory and verified engine state; **Open help** is always second. Selecting an action invokes its existing workflow; showing/cancelling the menu does not start or initialize anything. Bare noninteractive/redirected invocation shows technical help without prompting. Successful interactive init starts the background agenda and hands off after a brief cancellable countdown to the ordinary dashboard. An initialized/cloned/stopped project can be started explicitly.
 
 ## Commands
 
@@ -15,7 +15,8 @@ The root command is `ptbk`. Bare interactive invocation offers selectable **Init
 | `stop` | Graceful drain/stop; `--force` or `-F` immediately terminates owned execution. |
 | `restart` | Gracefully stop/start one replacement and, in ordinary interactive use, automatically open its dashboard. |
 | `dashboard` | Continuously observe/control an existing project, without owning or starting it. |
-| `dashboard --global` | Live host-wide engine table, independent of CWD, with project attachment and meaningful zero-entry state. |
+| `dashboard --global` | Host-wide known-project table including stopped entries, individual/bulk lifecycle controls and stopped-entry removal. |
+| `panic` | Confirmed host-wide force stop of accessible active engines and owned execution; `--yes` skips confirmation. No soft/pause variants. |
 | `status`, `show` | One shared project-state snapshot, including tools and enabled synchronization, without lifecycle changes. |
 | `tool` | Named tool list/show/add/modify/move/enable/disable/remove using shared saved management. See [tool commands](tool-management.md). |
 | `chat` | New Chatter-first persistent conversation or explicit existing thread, without a dashboard requirement. |
@@ -36,9 +37,9 @@ The root command is `ptbk`. Bare interactive invocation offers selectable **Init
 
 ## Project selection and lifecycle
 
-`--path` selects the project and `--tasks` its task source. Global dashboard is the explicit directory-independent exception and diagnoses conflicting project selection; it never initializes a project or creates a global engine. Discovery spans installations/versions, with no new stop-all command.
+`--path` selects the project and `--tasks` its task source. Global dashboard and [panic](panic.md) are explicit directory-independent operations and diagnose conflicting project selection; neither initializes the launch directory or creates a global engine. Discovery spans installations/versions. The [global dashboard](global-dashboard.md) retains stopped projects, offers individual/bulk lifecycle controls and removes only stopped registry entries. Panic is the confirmed emergency force-stop shortcut.
 
-Lifecycle commands use the [shared four-state machine](service-lifecycle.md): running, pausing, pause, stopping. `ptbk stop --force` and `-F` are equivalent immediate actions, not another state or a hard pause. Resume cancels pending pause/stop without replaying current work. Stop-to-pause replacement confirms intent; noninteractive callers can explicitly cancel/resume first. Repeated graceful stop does not escalate.
+Lifecycle commands use the [shared four-state machine](service-lifecycle.md): running, pausing, pause, stopping. `ptbk stop --force` and `-F` immediately terminate all execution owned by the selected engine, not another state or a hard pause. `ptbk panic` applies the same contract across accessible local engines, with confirmation or explicit `--yes`; it rejects `--soft` and `--pause`. Resume cancels pending pause/stop without replaying current work. Stop-to-pause replacement confirms intent; noninteractive callers can explicitly cancel/resume first. Repeated graceful stop does not escalate.
 
 One-shot outcomes distinguish acceptance/draining, actual completion and failure/unconfirmed status. Lost connection alone does not prove termination. Only the verified owner is controlled; [lock cleanup](locking.md) is best-effort during handled force stop and not guaranteed after external hard kill. Opening/closing dashboards/chat leaves ownership alone. Per-project missing service is an error, not implicit startup; the global empty state remains usable.
 
