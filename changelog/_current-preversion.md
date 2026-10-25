@@ -1,5 +1,10 @@
 # Unreleased
 
+## Context-aware bare `ptbk`
+
+-   Bare interactive `ptbk` now offers exactly two choices for the selected directory (`--path`, else the current one). The first is focused: **Initialize project** in a directory that has no `ptbk.json` (even a nonempty one), **Start project** in an initialized project with no engine, or **Open dashboard** when a verified engine exists, including one that is `pausing`, paused or `stopping`. **Open help** is always second and prints `ptbk help`. Restart is never offered, and the three lifecycle actions never appear together.
+-   The menu reads the state only. It starts, initializes and migrates nothing, and Esc changes nothing. Before acting it checks the state again. If another terminal initialized or started the project meanwhile, nothing runs and the menu shows the new state. A recorded engine that does not answer is reported (with `ptbk status` and `ptbk stop --force` as next steps) instead of being taken for stopped. Start chosen here opens the dashboard just like a direct `ptbk start`.
+
 ## Repair of a problematic inherited MODEL
 
 -   Fixed a repair deadlock. A problematic MODEL in Adam (or elsewhere in an agent's FROM chain) blocked every agent inheriting it, including Fixer, so the repair tasks created for it waited forever and Router could not route. Fixer's repair work (`TASK ORIGIN maintenance: …`) is no longer blocked by problematic MODEL content in its own chain. That content reads as no constraint and the repair's own MODEL decides. Instruction problems still block, and Fixer's ordinary work still waits.

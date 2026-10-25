@@ -92,7 +92,7 @@ export function renderTopLevelHelp(commands: readonly CommandSpec[], terminal: T
                 ['1. ptbk init', 'Describe your project and set it up; the agenda then starts in the background and a short countdown opens the dashboard.'],
                 ['2. ptbk dashboard', 'Attach a live terminal view and controls (leaving it keeps the service running).'],
                 ['   ptbk start', 'The ongoing work launcher for an initialized, cloned or stopped project; ptbk stop stops it.'],
-                ['   ptbk', 'Without arguments in a terminal: pick Initialize project, Start engine or Open dashboard.'],
+                ['   ptbk', 'Without arguments in a terminal: two choices for this directory: Initialize project, Start project or Open dashboard (whichever fits), then Open help.'],
             ],
         },
     ];

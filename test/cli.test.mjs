@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { ROOT, ptbk, temporaryDirectory } from './helpers.mjs';
@@ -111,4 +111,23 @@ test('help, about and version never initialize or touch a project', async (t) =>
         assert.equal(result.code, 0, result.output);
     }
     assert.deepEqual(await readdir(directory), []);
+});
+
+test('bare picker: exactly two choices — the focused action of the directory state, then Help — and no side effects', async (t) => {
+    const { bareChoices, bareContext } = await import('../dist/cli/action-picker.js');
+    const { projectAt } = await import('../dist/project/workspace.js');
+    const directory = await temporaryDirectory(t);
+    await writeFile(join(directory, 'notes.txt'), 'a nonempty directory is not a project\n');
+    const empty = await bareContext(projectAt(directory));
+    assert.equal(empty.kind, 'uninitialized');
+    await writeFile(join(directory, 'ptbk.json'), '{}\n');
+    const stopped = await bareContext(projectAt(directory));
+    assert.equal(stopped.kind, 'stopped', 'an initialized project without an owner offers Start');
+    const labels = (context) => bareChoices(context).map((choice) => choice.label);
+    assert.deepEqual(labels(empty), ['Initialize project', 'Open help']);
+    assert.deepEqual(labels(stopped), ['Start project', 'Open help']);
+    for (const state of ['running', 'pausing', 'pause', 'stopping']) {
+        assert.deepEqual(labels({ kind: 'live', project: stopped.project, version: version, state }), ['Open dashboard', 'Open help'], `${state} is a live engine: dashboard, never another start or restart`);
+    }
+    assert.deepEqual((await readdir(directory)).sort(), ['notes.txt', 'ptbk.json'], 'inspecting the directory changes nothing');
 });

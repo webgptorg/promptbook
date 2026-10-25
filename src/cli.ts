@@ -23,11 +23,12 @@ export async function main(argv: readonly string[] = process.argv.slice(2)): Pro
             return;
         }
         if (invocation.kind === 'bare') {
-            // Interactive: the action picker; redirected/noninteractive/raw: the technical help, without prompting.
+            // Interactive: the two-choice picker of the selected directory; redirected/noninteractive/raw: the technical
+            // help, without prompting.
             const terminal = createTerminalProfile({ raw: invocation.raw, interactive: invocation.interactive, nonInteractive: invocation.nonInteractive || invocation.raw });
             if (terminal.interactive && terminal.pretty) {
                 const { runActionPicker } = await import('./cli/action-picker.js');
-                process.exitCode = await runActionPicker(COMMANDS, { argv: argv.filter((token) => token === '--interactive' || token === '--no-terminal-title') });
+                process.exitCode = await runActionPicker(COMMANDS, { argv });
                 return;
             }
             process.stdout.write(renderTopLevelHelp(COMMANDS, createTerminalProfile({ raw: invocation.raw, nonInteractive: true })));
