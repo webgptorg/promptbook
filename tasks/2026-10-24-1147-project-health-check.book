@@ -64,4 +64,5 @@ For a risky, ambiguous or owner-dependent correction, do not guess: consult your
 - warning: agents/.legacy/default/chat-v-cestine.book:5 — Unknown commitment `META VISIBILITY PRIVATE`; it is preserved but has no effect.
 - … 44 more (run `ptbk lint`)
 TASK AGENT @Fixer
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK ORIGIN maintenance: project health

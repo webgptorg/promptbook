@@ -1,0 +1,7 @@
+TASK Assign routing: Project health check — 2026-10-24 11:47:37 — 2026-10-25 17:11:10
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Project health check — 2026-10-24 11:47:37}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PARENT {Project health check — 2026-10-24 11:47:37}
+TASK ORIGIN assignment for {Project health check — 2026-10-24 11:47:37}
+TASK DONE 2026-10-25T17:15:07+01:00
