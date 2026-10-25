@@ -1,5 +1,10 @@
 # Unreleased
 
+## Animated PTBK terminal titles
+
+-   The project dashboard's tab title is now exactly `PTBK <agent visual> <project>`, and the global dashboard's is `PTBK <visual> Global`. The book symbol, the word Promptbook, mode, task, path and version are gone from it; they live inside the dashboard. The visual is the current worker's single-line badge (the same renderer as the terminal badges, now shared as `singleLineVisual`). With no current worker it is the default Promptbook mascot, never a stale previous worker. The global dashboard always shows the default.
+-   While a dashboard is open, the title animates at a bounded cadence and is reasserted every few seconds, so VS Code and similar terminals that restore a generic `node` label do not keep it. Reduced motion keeps one still frame that is still reasserted. Embedded chats and the Book editor keep the dashboard's title. Raw, redirected, noninteractive and `--no-terminal-title` use still writes no title controls.
+
 ## Automatic dashboard handoff
 
 -   In an ordinary interactive terminal, a successful daemon `ptbk start` now opens the project dashboard right after a one-line launch outcome. This also happens when the engine is already running, which makes repeated start a start-or-open that never changes the running engine's configuration or pause. `ptbk restart` opens the replacement's dashboard the same way. It is the same independent viewer as `ptbk dashboard`; leaving it keeps the daemon running.

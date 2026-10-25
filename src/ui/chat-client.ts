@@ -95,8 +95,9 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
 
     const draw = (): void => {
         if (closed) return;
-        // The chat's saved name once it exists (written only when it changes, not per redraw).
-        terminal.title.update({ mode: 'Chat', detail: detail?.summary.name ?? (target.kind === 'new' ? `New with ${target.agent.name}` : name) });
+        // The chat's saved name once it exists (written only when it changes, not per redraw); inside the dashboard its
+        // PTBK title stays.
+        if (!options.embedded) terminal.title.update({ mode: 'Chat', detail: detail?.summary.name ?? (target.kind === 'new' ? `New with ${target.agent.name}` : name) });
         const width = Math.min(terminal.columns(), 140);
         const height = terminal.rows();
         const header = detail

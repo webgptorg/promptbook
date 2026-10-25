@@ -15,9 +15,29 @@ export type TerminalTitleContext = {
 };
 
 /**
+ * The minimal title of a dashboard: `PTBK <single-line agent visual> <project name>` (or `Global`).
+ *
+ * @private terminal title
+ */
+export type DashboardTitleContext = {
+    readonly kind: 'dashboard';
+    /** Project name, or `Global` for the host-wide dashboard. */
+    readonly label: string;
+    /** The single-line agent visual of the current frame (the same renderer as the terminal badges). */
+    readonly visual: string;
+    /** Project kept by nested views that change only their mode (absent for the global dashboard). */
+    readonly project?: string;
+};
+
+/**
  * Recognizable symbol leading every title (text in the title, not the terminal's own icon).
  */
 const TITLE_SYMBOL = '📖';
+
+/**
+ * Prefix of the minimal dashboard titles.
+ */
+const DASHBOARD_PREFIX = 'PTBK';
 
 /**
  * Longest project name kept in a title (graphemes).
@@ -94,6 +114,18 @@ export function formatTerminalTitle(context: TerminalTitleContext, unicode = tru
     ].filter(Boolean);
     const title = [unicode ? `${TITLE_SYMBOL} Promptbook` : 'Promptbook', ...parts].join(unicode ? ' · ' : ' - ');
     return sanitizeTitleText(title, TITLE_MAX_LENGTH, ellipsis);
+}
+
+/**
+ * Formats the exact dashboard title `PTBK <visual> <label>`, e.g. `PTBK ~<@@/>- birds` or `PTBK ~<@@/>/ Global`,
+ * without the book symbol, the word Promptbook, version, path, mode or task (those live inside the dashboard).
+ *
+ * @private terminal title
+ */
+export function formatDashboardTitle(context: Omit<DashboardTitleContext, 'kind'>, unicode = true): string {
+    const ellipsis = unicode ? '…' : '...';
+    const visual = sanitizeTitleText(context.visual, 16, ellipsis);
+    return sanitizeTitleText([DASHBOARD_PREFIX, visual, sanitizeTitleText(context.label, PROJECT_MAX_LENGTH, ellipsis)].filter(Boolean).join(' '), TITLE_MAX_LENGTH, ellipsis);
 }
 
 /**
@@ -177,7 +209,7 @@ export function titleRestoration(env: NodeJS.ProcessEnv): 'stack' | 'clear' {
  * @private terminal title
  */
 export class TerminalTitle {
-    private context?: TerminalTitleContext;
+    private context?: TerminalTitleContext | DashboardTitleContext;
     private shown?: string;
     /** This session changed the title and gives it back on exit. */
     private owned = false;
@@ -195,8 +227,8 @@ export class TerminalTitle {
         return this.shown;
     }
 
-    /** Shows a new context (project, mode and detail). */
-    public set(context: TerminalTitleContext): void {
+    /** Shows a new context (project, mode and detail), or the exact dashboard title. */
+    public set(context: TerminalTitleContext | DashboardTitleContext): void {
         this.context = context;
         this.show();
     }
@@ -204,6 +236,15 @@ export class TerminalTitle {
     /** Changes the mode/detail while keeping the project of the current context. */
     public update(change: Omit<TerminalTitleContext, 'project'>): void {
         this.set({ project: this.context?.project, ...change });
+    }
+
+    /**
+     * Writes the current title again even when it did not change: a shell or terminal integration (notably VS Code)
+     * may have replaced it with a generic label such as `node`. Never moves focus or writes anything else.
+     */
+    public reassert(): void {
+        this.shown = undefined;
+        this.show();
     }
 
     /** Forgets which title is shown, because another process (a delegated engine's view) may have changed it. */
@@ -230,7 +271,7 @@ export class TerminalTitle {
     /** Writes the title when it differs from what is shown. */
     private show(): void {
         if (!this.options.enabled || !this.context) return;
-        const title = formatTerminalTitle(this.context, this.options.unicode);
+        const title = 'kind' in this.context ? formatDashboardTitle(this.context, this.options.unicode) : formatTerminalTitle(this.context, this.options.unicode);
         if (title === this.shown) return;
         let output = '';
         if (!this.owned) {
@@ -240,5 +281,62 @@ export class TerminalTitle {
         }
         this.shown = title;
         this.options.write(`${output}${titleSequence(title)}`);
+    }
+}
+
+/**
+ * Cadence of the animated dashboard title (the badge's working gesture alternates at this pace).
+ *
+ * @private terminal title
+ */
+export const TITLE_FRAME_MS = 700;
+
+/**
+ * Interval of periodic title reassertion while the dashboard is open (also with reduced motion).
+ */
+const TITLE_REASSERT_MS = 3_000;
+
+/**
+ * Keeps an animated title alive while a dashboard is open: advances the single-line agent visual at a bounded cadence
+ * (a still frame with reduced motion) and periodically reasserts the title so terminal integrations that restore a
+ * generic label do not win. Title writes never touch focus, input or the engine.
+ *
+ * @private terminal title
+ */
+export class TitleAnimation {
+    private frame = 0;
+    private timer?: NodeJS.Timeout;
+    private lastWrite = 0;
+
+    public constructor(
+        private readonly title: TerminalTitle,
+        private readonly render: (frame: number) => TerminalTitleContext | DashboardTitleContext,
+        private readonly reducedMotion: boolean,
+    ) {}
+
+    /** Shows the title now and keeps it animated/reasserted until stopped. */
+    public start(): void {
+        if (!this.title.enabled || this.timer) return;
+        this.refresh(true);
+        this.timer = setInterval(() => {
+            if (!this.reducedMotion) this.frame++;
+            this.refresh(Date.now() - this.lastWrite >= TITLE_REASSERT_MS);
+        }, this.reducedMotion ? TITLE_REASSERT_MS : TITLE_FRAME_MS);
+        this.timer.unref();
+    }
+
+    /** Re-renders the current frame (after the observed worker changed); `force` rewrites an unchanged title. */
+    public refresh(force = false): void {
+        if (!this.title.enabled) return;
+        const before = this.title.current;
+        this.title.set(this.render(this.reducedMotion ? 0 : this.frame));
+        if (force && this.title.current === before) this.title.reassert();
+        if (force || this.title.current !== before) this.lastWrite = Date.now();
+    }
+
+    /** Stops animating (the title itself is restored by the terminal profile on exit). */
+    public stop(): void {
+        clearInterval(this.timer);
+        this.timer = undefined;
     }
 }

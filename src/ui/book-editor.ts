@@ -34,7 +34,7 @@ export type BookDraft = { readonly segments: readonly ComposedSegment[]; readonl
  *
  * @private Book editor
  */
-export async function runBookEditor(terminal: TerminalProfile, books: BookSourceClient, target: { readonly reference?: string; readonly path?: string }, options: { readonly screen?: FullScreen; readonly drafts?: Map<string, BookDraft> } = {}): Promise<void> {
+export async function runBookEditor(terminal: TerminalProfile, books: BookSourceClient, target: { readonly reference?: string; readonly path?: string }, options: { readonly screen?: FullScreen; readonly drafts?: Map<string, BookDraft>; /** Inside the dashboard, which keeps its PTBK title. */ readonly embedded?: boolean } = {}): Promise<void> {
     const screen = options.screen ?? new FullScreen();
     const ownsScreen = !options.screen;
     const { style } = terminal;
@@ -68,7 +68,7 @@ export async function runBookEditor(terminal: TerminalProfile, books: BookSource
     });
     const draw = (): void => {
         if (closed) return;
-        terminal.title.update({ mode: 'Book', detail: source.name || source.path });
+        if (!options.embedded) terminal.title.update({ mode: 'Book', detail: source.name || source.path });
         const width = Math.min(terminal.columns(), 160);
         const height = terminal.rows();
         const header = renderPanel({

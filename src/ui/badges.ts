@@ -162,13 +162,32 @@ export function activityLabel(activity: BadgeActivity): string {
 }
 
 /**
- * Inline badge: colored face followed by the readable name.
+ * The stable default Promptbook visual identity (the reference mascot), shown when no agent is working and by
+ * host-wide views that represent several engines.
+ *
+ * @private agent visual identity
+ */
+export const DEFAULT_VISUAL_AGENT = 'Expert';
+
+/**
+ * The reusable single-line terminal visual of an agent: its face in the same identity/activity character language as
+ * the framed badge, animated by `frame` (0 when motion is reduced). Without an agent it is the default Promptbook
+ * mascot in its animated present pose. Terminal titles reuse exactly this renderer.
+ *
+ * @private agent visual identity
+ */
+export function singleLineVisual(agentName: string | undefined, activity: BadgeActivity, frame = 0): string {
+    if (agentName === undefined) return badgeFace(badgeIdentity(DEFAULT_VISUAL_AGENT), 'working', frame);
+    return badgeFace(badgeIdentity(agentName), activity, frame);
+}
+
+/**
+ * Inline badge: colored single-line visual followed by the readable name.
  *
  * @private agent visual identity
  */
 export function inlineBadge(agentName: string, activity: BadgeActivity, style: Style, frame = 0): string {
-    const identity = badgeIdentity(agentName);
-    return `${style.color256(identity.terminalColor, badgeFace(identity, activity, frame))} ${style.bold(agentName)}`;
+    return `${style.color256(badgeIdentity(agentName).terminalColor, singleLineVisual(agentName, activity, frame))} ${style.bold(agentName)}`;
 }
 
 /**

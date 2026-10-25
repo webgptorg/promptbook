@@ -4,10 +4,12 @@ import { clockTime, formatShortTime } from '../common/time.js';
 import { discoveryDirectory, readRegistry, verifyEngine, type DiscoveredEngine, type DiscoveryEntry } from '../service/discovery.js';
 import type { ControlClient } from '../service/control.js';
 import { truncate } from './ansi.js';
+import { singleLineVisual } from './badges.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { renderPanel } from './panels.js';
 import { FullScreen } from './screen.js';
 import { symbols, type TerminalProfile } from './terminal.js';
+import { TitleAnimation } from './terminal-title.js';
 
 /**
  * How often the host-wide table refreshes.
@@ -154,8 +156,6 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
     let feedback = '';
     let attached = false;
     let closed = false;
-    /** The host was observed at least once (the initial empty list is not an observation). */
-    let observed = false;
     let finish: (() => void) | undefined;
     const done = new Promise<void>((resolve) => {
         finish = resolve;
@@ -175,8 +175,6 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         const width = Math.min(terminal.columns(), MAX_WIDTH);
         const rows = visible();
         const live = rows.filter((row) => row.status === 'live').length;
-        // Written once observed and then only when the text changes (engines start or end), not per refresh.
-        if (observed) terminal.title.set({ mode: 'All engines', detail: observation.problem ? undefined : `${live} running` });
         const lines: string[] = [];
         lines.push(
             ...renderPanel({
@@ -219,6 +217,7 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
 
     const close = (): void => {
         closed = true;
+        title.stop();
         keyboard.stop();
         screen.leave();
         process.stdout.off('resize', onResize);
@@ -238,6 +237,8 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
             return;
         }
         attached = true;
+        // The attached project dashboard shows its own PTBK title meanwhile.
+        title.stop();
         keyboard.stop();
         screen.leave();
         let outcome: string | undefined;
@@ -250,6 +251,7 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         if (closed) return;
         // An engine of another version renders its own view (and title) in a child process.
         terminal.title.invalidate();
+        title.start();
         feedback = outcome ?? `Back from ${row.entry.projectName}; it keeps running.`;
         screen.enter();
         screen.invalidate();
@@ -274,16 +276,18 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         screen.invalidate();
         draw();
     };
+    // `PTBK <animated default visual> Global`: it represents several engines, never one current agent.
+    const title = new TitleAnimation(terminal.title, (frame) => ({ kind: 'dashboard', label: 'Global', visual: singleLineVisual(undefined, 'working', frame) }), terminal.reducedMotion);
     screen.enter();
     keyboard.start();
     process.stdout.on('resize', onResize);
+    title.start();
     draw();
     void (async () => {
         let rows = new Map<string, GlobalRow>();
         while (!closed) {
             try {
                 observation = await observeHost(rows, env);
-                observed = true;
                 rows = new Map(observation.rows.map((row) => [row.entry.instanceId, row]));
                 // Keep the selected service selected; an ended target is never silently replaced by another row.
                 if (selected && !rows.has(selected)) {
@@ -295,7 +299,6 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
                     autoSelect = false;
                 }
             } catch (error) {
-                observed = true;
                 observation = { ...observation, problem: errorMessage(error), observedAt: new Date().toISOString() };
             }
             draw();

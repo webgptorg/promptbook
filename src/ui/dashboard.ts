@@ -4,7 +4,7 @@ import { clockTime, formatShortTime } from '../common/time.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import type { ChatAgentChoice } from '../chats/service.js';
 import { runChatClient, type ChatSource } from './chat-client.js';
-import { activityLabel, inlineBadge, type BadgeActivity } from './badges.js';
+import { activityLabel, inlineBadge, singleLineVisual, type BadgeActivity } from './badges.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { FullScreen } from './screen.js';
 import { dashboardPanels, renderQr, renderStatusPretty, type DashboardPanel, type PreparedQr } from './status-view.js';
@@ -12,7 +12,7 @@ import { lifecycleActions, toolDetailLines, toolRow } from './details.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
-import type { TerminalTitleContext } from './terminal-title.js';
+import { TitleAnimation, type DashboardTitleContext } from './terminal-title.js';
 import { matchesFilter, windowAround } from './prompts.js';
 import { runBookEditor, type BookDraft, type BookSourceClient } from './book-editor.js';
 import { TASK_SORT_FIELDS, sortTasks, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
@@ -93,31 +93,15 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
 }
 
 /**
- * Title labels of the service states other than running.
- */
-const STATE_TITLES: Readonly<Partial<Record<ServiceSnapshot['service']['state'], string>>> = {
-    pausing: 'Pausing',
-    pause: 'Paused',
-    stopping: 'Stopping',
-    stopped: 'Stopped',
-    finished: 'Finished',
-};
-
-/**
- * The terminal title of a project view: project, view mode, then the meaningful context that changes rarely (state
- * other than running, an agent waiting for the user, the current agent and task, or a blocker), never per-tick
- * progress.
+ * The minimal terminal title of a project dashboard, `PTBK <single-line agent visual> <project>`: the visual of the
+ * agent that currently owns execution, otherwise the stable default Promptbook visual (never a stale previous worker).
+ * Versions, paths, modes and task titles live inside the dashboard pages.
  *
  * @private terminal dashboard
  */
-export function dashboardTitle(snapshot: ServiceSnapshot, owning: boolean): TerminalTitleContext {
-    const mode = !owning ? 'Dashboard' : 'Foreground';
-    const detail = [
-        STATE_TITLES[snapshot.service.state],
-        snapshot.chats.waiting.length ? 'Needs you' : undefined,
-        snapshot.current ? `${snapshot.current.agent.name}: ${snapshot.current.taskTitle}` : snapshot.phase === 'blocked' ? 'Blocked' : snapshot.tools?.waiting ? 'Waiting for tools' : undefined,
-    ].filter(Boolean);
-    return { project: snapshot.project.name, mode, detail: detail.length ? detail.join(' · ') : undefined };
+export function dashboardTitle(snapshot: ServiceSnapshot, frame = 0): DashboardTitleContext {
+    const current = snapshot.current;
+    return { kind: 'dashboard', label: snapshot.project.name, project: snapshot.project.name, visual: singleLineVisual(current?.agent.name, current?.agent.activity ?? 'working', frame) };
 }
 
 /**
@@ -446,6 +430,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         keyboard.stop();
         screen.leave();
         clearInterval(animation);
+        title.stop();
         clearTimeout(feedbackTimer);
         process.stdout.off('resize', onResize);
         finished?.(reason);
@@ -464,7 +449,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             nested = false;
             keyboard.start();
             screen.invalidate();
-            terminal.title.set(dashboardTitle(snapshot, source.owning));
+            title.refresh(true);
             draw();
         }
     };
@@ -474,7 +459,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         nested = true;
         keyboard.stop();
         try {
-            await runBookEditor(terminal, source.books, target, { screen, drafts });
+            await runBookEditor(terminal, source.books, target, { screen, drafts, embedded: true });
             if (drafts.size) feedback = `${drafts.size} unsaved Book draft(s) kept; reopen to continue.`;
         } catch (error) {
             feedback = `Editor failed: ${errorMessage(error)}`;
@@ -482,7 +467,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             nested = false;
             keyboard.start();
             screen.invalidate();
-            terminal.title.set(dashboardTitle(snapshot, source.owning));
+            title.refresh(true);
             inventoryRevision = -1;
             void refreshInventory();
             draw();
@@ -942,7 +927,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     screen.enter();
     keyboard.start();
     process.stdout.on('resize', onResize);
-    terminal.title.set(dashboardTitle(snapshot, source.owning));
+    // The PTBK title animates the current worker's visual and is reasserted while this viewer is open.
+    const title = new TitleAnimation(terminal.title, (titleFrame) => dashboardTitle(snapshot, titleFrame), terminal.reducedMotion);
+    title.start();
     const animation = setInterval(() => {
         if (snapshot.current?.agent.activity === 'working' && !terminal.reducedMotion && !plain) {
             frame++;
@@ -963,8 +950,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 previous = next;
                 snapshot = next;
                 if (focusRequest >= snapshot.chats.waiting.length) focusRequest = 0;
-                // Written only when the title text changes (task start/switch, state, attention), not per update.
-                if (!nested) terminal.title.set(dashboardTitle(snapshot, source.owning));
+                // A changed worker switches the title's visual at once.
+                title.refresh();
                 if (!dashboardPanels(snapshot, terminal.columns()).some((row) => row.includes(focus))) focus = 'work';
                 draw();
                 void refreshQr();

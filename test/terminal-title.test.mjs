@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { dashboardTitle } from '../dist/ui/dashboard.js';
 import { createTerminalProfile } from '../dist/ui/terminal.js';
-import { formatTerminalTitle, isTerminalTitleDisabled, sanitizeTitleText, TerminalTitle, titleRestoration, titleSequence } from '../dist/ui/terminal-title.js';
+import { singleLineVisual, framedBadge } from '../dist/ui/badges.js';
+import { formatDashboardTitle, formatTerminalTitle, isTerminalTitleDisabled, sanitizeTitleText, TerminalTitle, TitleAnimation, titleRestoration, titleSequence } from '../dist/ui/terminal-title.js';
 import { ptbk, temporaryDirectory } from './helpers.mjs';
 
 /**
@@ -117,19 +118,52 @@ test('titles are enabled only for interactive pretty terminals and can be switch
     assert.equal(profile.title.current, undefined, 'nothing is emitted into redirected output');
 });
 
-test('project views name the mode and change the title on task start, task switch and state changes', () => {
-    const current = (agent, taskTitle) => ({ current: { agent: { name: agent }, taskTitle }, phase: 'executing' });
-    assert.deepEqual(dashboardTitle(snapshot(), false), { project: 'birds', mode: 'Dashboard', detail: undefined });
-    assert.equal(dashboardTitle(snapshot(current('Expert', 'Write the README')), false).detail, 'Expert: Write the README');
-    assert.equal(dashboardTitle(snapshot(current('Developer', 'Fix the feed')), false).detail, 'Developer: Fix the feed');
-    assert.equal(dashboardTitle(snapshot({ service: { mode: 'daemon', state: 'pause' } }), false).detail, 'Paused');
-    assert.equal(dashboardTitle(snapshot({ chats: { waiting: [{ name: 'Question' }] } }), false).detail, 'Needs you');
-    assert.equal(dashboardTitle(snapshot({ tools: { waiting: { reason: 'no harness' } } }), false).detail, 'Waiting for tools');
-    assert.equal(dashboardTitle(snapshot({ service: { mode: 'foreground', state: 'running' } }), true).mode, 'Foreground');
+test('dashboards show exactly PTBK, the single-line agent visual and the project (or Global)', () => {
+    const current = (agent, activity = 'working') => ({ current: { agent: { name: agent, activity }, taskTitle: 'Write the README' }, phase: 'executing' });
+    const idle = dashboardTitle(snapshot());
+    assert.deepEqual(idle, { kind: 'dashboard', label: 'birds', project: 'birds', visual: singleLineVisual(undefined, 'working', 0) }, 'idle: the stable default Promptbook visual');
+    assert.equal(formatDashboardTitle(idle), 'PTBK ~<@@/>- birds');
+    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(), 1)), 'PTBK ~<@@/>/ birds', 'the default visual animates');
+    const developer = formatDashboardTitle(dashboardTitle(snapshot(current('Developer'))));
+    assert.equal(developer, `PTBK ${singleLineVisual('Developer', 'working', 0)} birds`, 'the working agent’s own visual');
+    assert.doesNotMatch(developer, /Promptbook|📖|Dashboard|README|0\.\d/, 'no symbol, product word, mode, task or version');
+    assert.notEqual(formatDashboardTitle(dashboardTitle(snapshot(current('Developer')), 1)), developer, 'the working visual moves between frames');
+    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(current('Teacher', 'waiting-user')))), `PTBK ${singleLineVisual('Teacher', 'waiting-user', 0)} birds`);
+    assert.equal(formatDashboardTitle({ label: 'Global', visual: singleLineVisual(undefined, 'working', 0) }), 'PTBK ~<@@/>- Global');
+    assert.ok(framedBadge('Developer', 'working', { color256: (_code, text) => text, bold: (text) => text }, true, 0)[1].includes(singleLineVisual('Developer', 'working', 0)), 'the same character as the framed badge');
 
+    const hostile = formatDashboardTitle({ label: 'evil\x1b]0;pwned\x07\nname', visual: '~<\x07@@/>-' });
+    assert.doesNotMatch(hostile, /[\x00-\x1f]/, 'sanitized label and visual');
+    assert.ok([...formatDashboardTitle({ label: 'p'.repeat(200), visual: '~<@@/>-' })].length <= 96);
+});
+
+test('the dashboard title animates at a bounded cadence and is reasserted so terminal integrations cannot keep a generic label', async () => {
     const { title, writes } = recorder();
-    for (const view of [snapshot(), snapshot(), snapshot(current('Expert', 'Write the README')), snapshot(current('Expert', 'Write the README')), snapshot(current('Developer', 'Fix the feed'))]) title.set(dashboardTitle(view, false));
-    assert.equal(writes.length, 3, 'one write per meaningful change, none per refresh');
+    let worker;
+    const animation = new TitleAnimation(title, (frame) => ({ kind: 'dashboard', label: 'birds', project: 'birds', visual: singleLineVisual(worker, 'working', frame) }), false);
+    animation.start();
+    assert.equal(writes.at(-1), '\x1b[22;0t\x1b]0;PTBK ~<@@/>- birds\x07');
+    await new Promise((resolve) => setTimeout(resolve, 1600));
+    const titles = writes.map((text) => text.replace(/^\x1b\[22;0t/, ''));
+    assert.ok(titles.includes('\x1b]0;PTBK ~<@@/>/ birds\x07'), 'the visual moves');
+    assert.ok(writes.length <= 4, `bounded cadence (${writes.length} writes in 1.6 s)`);
+    worker = 'Developer';
+    animation.refresh();
+    assert.ok([0, 1].some((frame) => title.current === `PTBK ${singleLineVisual('Developer', 'working', frame)} birds`), `a new worker switches at once: ${title.current}`);
+    assert.equal(writes.at(-1), titleSequence(title.current));
+    animation.stop();
+
+    const still = recorder();
+    const reduced = new TitleAnimation(still.title, () => ({ kind: 'dashboard', label: 'birds', visual: singleLineVisual(undefined, 'working', 0) }), true);
+    reduced.start();
+    reduced.refresh(true);
+    assert.equal(still.writes.length, 2, 'reduced motion keeps one still frame but reasserts it');
+    assert.equal(new Set(still.writes.map((text) => text.replace(/^\x1b\[22;0t/, ''))).size, 1);
+    reduced.stop();
+
+    const disabled = recorder(false);
+    new TitleAnimation(disabled.title, () => ({ kind: 'dashboard', label: 'birds', visual: '~<@@/>-' }), false).start();
+    assert.deepEqual(disabled.writes, [], 'never written where titles are disabled');
 });
 
 test('redirected and machine-readable CLI output never contains title controls; the opt-out flag is accepted', async (t) => {
