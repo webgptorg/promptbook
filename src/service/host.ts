@@ -296,6 +296,10 @@ export class ServiceHost {
             case 'browser-retry':
             case 'browser-restart':
             case 'sync-now':
+            case 'health-recheck':
+            case 'health-override':
+            case 'health-clean-cache':
+            case 'health-swap':
                 return await applyControlAction(agenda, method, params, this.browserControls);
             case 'tool-operation':
                 return await applyToolAction(agenda, params, typeof params.via === 'string' ? params.via : 'cli');

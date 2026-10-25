@@ -1,5 +1,6 @@
 import QRCode from 'qrcode';
 import { formatShortTime } from '../common/time.js';
+import { formatMiB } from '../engine/health.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import { stringWidth, truncate, wrap } from './ansi.js';
 
@@ -21,7 +22,7 @@ function flow(items: readonly string[], width: number, separator: string): strin
 }
 import { activityLabel, framedBadge, inlineBadge } from './badges.js';
 import { smartTaskOrder, type TaskInventoryItem } from '../tasks/views.js';
-import { browserDetailLines, executionDetailLines, executionOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary, syncCompactLines, syncDetailLines, toolRow, toolsCompactLines } from './details.js';
+import { browserDetailLines, executionDetailLines, executionOneLine, healthDetailLines, healthOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary, pauseReasonLines, syncCompactLines, syncDetailLines, toolRow, toolsCompactLines } from './details.js';
 import { renderPanel, sideBySide, type PanelTone } from './panels.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
@@ -138,6 +139,9 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
         `Service: ${snapshot.service.mode}, ${snapshot.service.state}${snapshot.service.state !== 'stopped' ? `, PID ${snapshot.service.pid}` : ''}, ${snapshot.service.commitMode === 'commit' ? 'automatic commits' : 'NO-COMMIT mode (results stay uncommitted)'}${snapshot.service.persistent === null ? '' : snapshot.service.persistent ? ', persistent' : ', not persistent'}`,
     );
     lines.push(`Lifecycle: ${lifecycleSummary(snapshot)}`);
+    const reasons = snapshot.service.pauseReasons ?? [];
+    if (reasons.length) lines.push(`Pause reasons: ${pauseReasonLines(reasons).join(' · ')}`);
+    if (snapshot.health) lines.push(`Health: ${healthOneLine(snapshot.health)}`);
     const actions = lifecycleActions(snapshot);
     if (actions.length) lines.push(`Controls: ${actions.map((action) => `${action.command} (${action.label})`).join(' · ')}`);
     if (snapshot.service.persistenceNote) lines.push(`Persistence: ${snapshot.service.persistenceNote}`);
@@ -180,6 +184,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
         for (const problem of snapshot.tools.problems) lines.push(`Problem: ${problem}`);
     }
     if (snapshot.sync) lines.push('', 'SYNCHRONIZATION', ...syncDetailLines(snapshot.sync).slice(0, -1).map((line) => `  ${line}`));
+    if (snapshot.health) lines.push('', 'HEALTH', ...healthDetailLines(snapshot.health).filter(Boolean).map((line) => `  ${line}`));
     if (snapshot.configuration?.pending) lines.push('', `CONFIGURATION: ${snapshot.configuration.pending}`);
     const execution = snapshot.phase === 'unknown' ? ['Unavailable: the service runs another ptbk version.'] : executionDetailLines(snapshot.execution);
     lines.push('', 'EXECUTION DETAILS', ...execution.map((line) => `  ${line}`));
@@ -249,6 +254,8 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
                 : flow(controlActions.map((action) => style.muted(`${action.command}${action.label && action.label !== action.command.replace(/^ptbk /, '') ? ` (${action.label})` : ''}`)), total - 4, style.muted('  ·  '))
             : [style.muted('No lifecycle action applies now.')]),
         ...(options.live?.controlNote ? [style.warning(options.live.controlNote)] : []),
+        ...((snapshot.service.pauseReasons?.length ?? 0) > 1 || (snapshot.service.pauseReasons ?? []).some((reason) => reason.kind === 'health') ? pauseReasonLines(snapshot.service.pauseReasons!).map((line) => style.warning(`${marks.dot} ${line}`)) : []),
+        ...(snapshot.health ? [`${style.muted('Health')} ${snapshot.health.status === 'ok' ? style.success(snapshot.health.summary) : snapshot.health.status === 'hard' ? style.error(snapshot.health.summary) : style.warning(snapshot.health.summary)}${style.muted(` · disk ${formatMiB(snapshot.health.disk.freeMiB)} free · memory ${formatMiB(snapshot.health.memory.availableMiB)} available`)}`] : []),
     ];
     output.push(...renderPanel({ title: titled('controls', 'Service controls'), titleRight: snapshot.service.mode, lines: controls, width: total, tone: toned('controls', snapshot.service.state === 'running' ? 'default' : 'attention'), unicode, style }));
 

@@ -7,25 +7,60 @@ import type { ToolOperation, ToolOperationOutcome } from '../tools/operations.js
 
 /**
  * Runtime actions shared by every channel (CLI, terminal, browser, API): the engine's lifecycle operations, wait
- * skipping and coordinated project-browser recovery. `stop-now`/`cancel-stop` remain as compatibility aliases.
+ * skipping, coordinated project-browser recovery and the Health sub-engine's operations. `stop-now`/`cancel-stop`
+ * remain as compatibility aliases.
  *
  * @private shared runtime controls
  */
-export type ControlAction = 'pause' | 'resume' | 'skip-wait' | 'stop' | 'force-stop' | 'restart' | 'stop-now' | 'cancel-stop' | 'browser-recheck' | 'browser-retry' | 'browser-restart' | 'sync-now';
+export type ControlAction =
+    | 'pause'
+    | 'resume'
+    | 'skip-wait'
+    | 'stop'
+    | 'force-stop'
+    | 'restart'
+    | 'stop-now'
+    | 'cancel-stop'
+    | 'browser-recheck'
+    | 'browser-retry'
+    | 'browser-restart'
+    | 'sync-now'
+    | 'health-recheck'
+    | 'health-override'
+    | 'health-clean-cache'
+    | 'health-swap';
 
 /**
  * Every control action name (for request validation).
  *
  * @private shared runtime controls
  */
-export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>(['pause', 'resume', 'skip-wait', 'stop', 'force-stop', 'restart', 'stop-now', 'cancel-stop', 'browser-recheck', 'browser-retry', 'browser-restart', 'sync-now']);
+export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>([
+    'pause',
+    'resume',
+    'skip-wait',
+    'stop',
+    'force-stop',
+    'restart',
+    'stop-now',
+    'cancel-stop',
+    'browser-recheck',
+    'browser-retry',
+    'browser-restart',
+    'sync-now',
+    'health-recheck',
+    'health-override',
+    'health-clean-cache',
+    'health-swap',
+]);
 
 /**
- * Outcome of a control action as every client reports it.
+ * Outcome of a control action as every client reports it (`data`: a preview or plan the client shows before the
+ * confirmed operation).
  *
  * @private shared runtime controls
  */
-export type ControlOutcome = { readonly action: string; readonly outcome: string; readonly applied: boolean; readonly completed?: boolean; readonly state?: string };
+export type ControlOutcome = { readonly action: string; readonly outcome: string; readonly applied: boolean; readonly completed?: boolean; readonly state?: string; readonly data?: unknown };
 
 /**
  * Engine-owned browser recovery operations (the service owns the project browser).
@@ -66,6 +101,28 @@ export async function applyControlAction(agenda: Agenda, action: string, params:
             // One cycle of the shared coordinator (never a second scheduler, never enabling a disabled policy).
             const result = await agenda.synchronizeNow();
             return { action, outcome: result.message, applied: result.outcome !== 'disabled', completed: result.outcome === 'synchronized' };
+        }
+        case 'health-recheck':
+            return { action, ...(await agenda.healthRecheck()) };
+        case 'health-override':
+            // Incident-scoped: only a soft health pause can be overridden (a hard one is refused).
+            return { action, ...agenda.healthOverride(typeof params.incident === 'string' && params.incident ? params.incident : undefined) };
+        case 'health-clean-cache': {
+            // Destructive cleanup is two-phase: a preview first, then the confirmed operation recomputes what it removes.
+            if (params.confirm !== true) {
+                const preview = await agenda.healthCachePreview();
+                if (!preview) return { action, outcome: 'This process has no Health sub-engine.', applied: false };
+                return { action, outcome: `${preview.entries.filter((entry) => !entry.kept).length} cache entr${preview.entries.filter((entry) => !entry.kept).length === 1 ? 'y' : 'ies'} (${Math.round(preview.removableBytes / 1048576)} MiB) can be removed from ${preview.path}/; confirm to clean.`, applied: false, data: preview };
+            }
+            return { action, ...(await agenda.healthCleanCache()) };
+        }
+        case 'health-swap': {
+            if (params.apply !== true) {
+                const plan = await agenda.healthSwapPlan();
+                if (!plan) return { action, outcome: 'This process has no Health sub-engine.', applied: false };
+                return { action, outcome: plan.proposal ? `${plan.note} Planned: ${plan.proposal.sizeMiB} MiB at ${plan.proposal.path} (${plan.proposal.privilege === 'missing' ? 'an administrator must run it' : `runs as ${plan.proposal.privilege}`}).` : plan.note, applied: false, data: plan };
+            }
+            return { action, ...(await agenda.healthApplySwap()) };
         }
         case 'browser-recheck':
         case 'browser-retry':

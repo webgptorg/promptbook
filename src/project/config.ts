@@ -129,6 +129,20 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
     { key: 'team.maxDepth', type: 'integer', default: 4, description: 'Maximal consultation depth.', application: 'next-task' },
     { key: 'team.maxCalls', type: 'integer', default: 24, description: 'Consultations per task.', application: 'next-task' },
     { key: 'team.maxResponseChars', type: 'integer', default: 128_000, description: 'Maximal consultation response length.', application: 'next-task' },
+    {
+        key: 'limit.disk',
+        type: 'integer',
+        default: 500,
+        description: 'Preferred minimum free disk capacity in MiB; below it Health pauses new background work (soft, overridable per incident; 0 disables only this preventive threshold).',
+        application: 'live',
+    },
+    {
+        key: 'limit.memory',
+        type: 'integer',
+        default: 512,
+        description: 'Preferred minimum available memory (available RAM plus available swap) in MiB; below it Health pauses new background work (soft, overridable per incident; 0 disables only this preventive threshold).',
+        application: 'live',
+    },
     { key: 'timezone', type: 'string', default: undefined, description: 'Project time zone (system zone when omitted).', application: 'live' },
 ];
 
@@ -333,7 +347,7 @@ export const SUPERSEDED_ROUTING_KEYS = ['harness', 'model', 'thinkingLevel', 'pr
 /**
  * Known top-level keys of `ptbk.json` (canonical spellings).
  */
-const KNOWN_TOP_LEVEL_KEYS = ['$schema', 'promptbookVersion', 'isAutoSync', 'tools', 'paths', 'routing', 'execution', 'traces', 'server', 'service', 'discovery', 'learning', 'team', 'timezone', 'initialized'];
+const KNOWN_TOP_LEVEL_KEYS = ['$schema', 'promptbookVersion', 'isAutoSync', 'tools', 'paths', 'routing', 'execution', 'traces', 'server', 'service', 'discovery', 'learning', 'team', 'limit', 'timezone', 'initialized'];
 
 /**
  * Known property names per configuration object path (for tolerant key canonicalization).

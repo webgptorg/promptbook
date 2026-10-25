@@ -85,6 +85,8 @@ export async function fakeHarness(t, directory) {
             OPENAI_API_KEY: '',
             // Browser readiness only checks that an executable exists (it is never launched by these fixtures).
             CHROME_PATH: process.execPath,
+            // Fixtures never depend on Internet reachability (Health still measures disk, memory and CPU).
+            PTBK_HEALTH_CONNECTIVITY: 'off',
         },
     };
 }

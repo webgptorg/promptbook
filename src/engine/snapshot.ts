@@ -277,6 +277,87 @@ export type LifecycleView = {
 };
 
 /**
+ * One active reason why background scheduling is paused (reasons compose; scheduling resumes only when none remains).
+ *
+ * @private shared status view model
+ */
+export type PauseReasonView = {
+    /** Stable identity of the reason (`manual`, or `health:<incident>`). */
+    readonly id: string;
+    /** `manual`: the operator's ordinary Pause; `health`: created and removed by the Health sub-engine. */
+    readonly kind: 'manual' | 'health';
+    /** Owning domain that removes it: System (manual Resume) or Health (resolution or soft override). */
+    readonly owner: 'System' | 'Health';
+    /** Health reasons only: `soft` (preventive limit, incident-scoped override allowed) or `hard` (actual exhaustion). */
+    readonly severity?: 'soft' | 'hard';
+    /** Human summary. */
+    readonly summary: string;
+    /** When it became active (ISO). */
+    readonly since: string;
+    /** Health incident behind the reason. */
+    readonly incident?: string;
+    /** Whether the operator may remove it (manual Resume, or the soft Health override). */
+    readonly removable: boolean;
+};
+
+/**
+ * One open health incident of the Health sub-engine.
+ *
+ * @private shared status view model
+ */
+export type HealthIncidentView = {
+    /** Stable incident identity (a recovered and later repeated drop is a new incident). */
+    readonly id: string;
+    readonly resource: 'disk' | 'memory' | 'cpu' | 'network';
+    /** `soft`/`hard` incidents pause new background work; `warning` only marks attention. */
+    readonly severity: 'soft' | 'hard' | 'warning';
+    readonly summary: string;
+    /** When the incident opened (ISO). */
+    readonly openedAt: string;
+    /** A soft incident the operator chose to continue below (ISO), until it recovers. */
+    readonly overriddenAt?: string;
+    /** Whether it currently contributes a pause reason. */
+    readonly pauses: boolean;
+};
+
+/**
+ * Host health observed by the engine's Health sub-engine (one per engine, independent of any viewer).
+ *
+ * @private shared status view model
+ */
+export type HealthView = {
+    /** `ok` healthy; `warning` attention without pause; `soft`/`hard` a health pause applies; `unknown` before the first sample. */
+    readonly status: 'ok' | 'warning' | 'soft' | 'hard' | 'unknown';
+    /** Terse bounded summary for the home tile. */
+    readonly summary: string;
+    /** Time of the last measurement (ISO) and the polling interval. */
+    readonly observedAt?: string;
+    readonly intervalMs: number;
+    /** Effective preventive limits in MiB (0 disables that soft threshold) and where they come from. */
+    readonly limits: { readonly disk: number; readonly memory: number; readonly source: string };
+    /** Free disk capacity of the filesystem(s) holding the project and its runtime storage. */
+    readonly disk: { readonly freeMiB?: number; readonly totalMiB?: number; readonly paths: readonly { readonly path: string; readonly freeMiB?: number; readonly totalMiB?: number }[]; readonly error?: string };
+    /** RAM and swap reported separately; `availableMiB` (RAM + swap) is what `limit.memory` applies to. */
+    readonly memory: {
+        readonly ramAvailableMiB?: number;
+        readonly ramTotalMiB?: number;
+        readonly swapFreeMiB?: number;
+        readonly swapTotalMiB?: number;
+        readonly availableMiB?: number;
+        readonly note?: string;
+    };
+    /** CPU load relative to the available cores (no automatic pause threshold). */
+    readonly cpu: { readonly cores: number; readonly load1?: number; readonly load5?: number; readonly load15?: number; readonly state: 'normal' | 'high' | 'unknown' };
+    /** Basic Internet reachability of external work. */
+    readonly network: { readonly state: 'reachable' | 'unreachable' | 'unknown'; readonly target?: string; readonly checkedAt?: string; readonly error?: string };
+    readonly incidents: readonly HealthIncidentView[];
+    /** Remediation the Health sub-engine offers on this host. */
+    readonly remediation: { readonly cache: { readonly path: string }; readonly swap: { readonly supported: boolean; readonly note: string } };
+    /** Last remediation/override operation and its outcome. */
+    readonly lastAction?: { readonly action: string; readonly outcome: string; readonly at: string };
+};
+
+/**
  * One execution context: the task's own agent run or a task-/conversation-scoped consultation.
  *
  * @private shared status view model
@@ -459,6 +540,8 @@ export type ServiceSnapshot = {
         readonly stopRequested: boolean;
         /** Pending lifecycle intent (absent for an observed stopped service). */
         readonly lifecycle?: LifecycleView;
+        /** Every active pause reason (manual and Health); absent from engines that predate composed pause. */
+        readonly pauseReasons?: readonly PauseReasonView[];
     };
     readonly phase: Phase;
     readonly current?: CurrentWorkView;
@@ -472,6 +555,8 @@ export type ServiceSnapshot = {
     readonly tools?: ToolsView;
     /** Git synchronization, present only while autosync is enabled. */
     readonly sync?: SyncView;
+    /** Host health of the engine's Health sub-engine (absent for stopped services and older engines). */
+    readonly health?: HealthView;
     /** Saved configuration version and pending configuration work. */
     readonly configuration?: { readonly promptbookVersion?: string; readonly pending?: string };
     readonly wait?: WaitView;

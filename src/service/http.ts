@@ -310,7 +310,19 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         if (url.pathname === '/api/control') {
             const action = String(body.action ?? '');
             if (!CONTROL_ACTIONS.has(action)) throw new PtbkError(`Unknown control action "${action}".`, { kind: 'usage' });
-            sendJson(response, 200, await options.control(action, { replaceStop: body.replaceStop === true, revision: typeof body.revision === 'number' ? body.revision : undefined, ...(typeof body.name === 'string' ? { name: body.name } : {}) }));
+            sendJson(
+                response,
+                200,
+                await options.control(action, {
+                    replaceStop: body.replaceStop === true,
+                    revision: typeof body.revision === 'number' ? body.revision : undefined,
+                    ...(typeof body.name === 'string' ? { name: body.name } : {}),
+                    ...(typeof body.incident === 'string' ? { incident: body.incident } : {}),
+                    // Health's destructive/privileged operations run only with the explicit confirmation of their preview.
+                    ...(body.confirm === true ? { confirm: true } : {}),
+                    ...(body.apply === true ? { apply: true } : {}),
+                }),
+            );
             return;
         }
         if (url.pathname === '/api/tools') {

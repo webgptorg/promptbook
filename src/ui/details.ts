@@ -1,5 +1,6 @@
 import { formatShortTime } from '../common/time.js';
-import type { BrowserDetailView, ExecutionContextView, ExecutionDetailView, ServiceSnapshot, SyncView, ToolView, ToolsView } from '../engine/snapshot.js';
+import { formatMiB } from '../engine/health.js';
+import type { BrowserDetailView, ExecutionContextView, ExecutionDetailView, HealthView, PauseReasonView, ServiceSnapshot, SyncView, ToolView, ToolsView } from '../engine/snapshot.js';
 import type { Style } from './ansi.js';
 
 /**
@@ -10,20 +11,52 @@ import type { Style } from './ansi.js';
 export type LifecycleActionView = { readonly key: string; readonly label: string; readonly command: string; readonly action: string; readonly confirm?: string };
 
 /**
- * What the current service state means, including a pending intent and whether work is still draining.
+ * Whether the ordinary manual pause reason is active (engines that predate composed pause report only the state).
+ *
+ * @private service controls view
+ */
+export function hasManualPause(snapshot: ServiceSnapshot): boolean {
+    const reasons = snapshot.service.pauseReasons;
+    if (!reasons) return snapshot.service.state === 'pause' || snapshot.service.state === 'pausing';
+    return reasons.some((reason) => reason.kind === 'manual');
+}
+
+/**
+ * Health pause reasons of the snapshot (soft and hard).
+ *
+ * @private service controls view
+ */
+export function healthPauseReasons(snapshot: ServiceSnapshot): PauseReasonView[] {
+    return (snapshot.service.pauseReasons ?? []).filter((reason) => reason.kind === 'health');
+}
+
+/**
+ * One line per active pause reason with its owner and severity.
+ *
+ * @private service controls view
+ */
+export function pauseReasonLines(reasons: readonly PauseReasonView[]): string[] {
+    return reasons.map((reason) => (reason.kind === 'manual' ? `Manual pause (System) — removed by Resume` : `Health ${reason.severity ?? ''} — ${reason.summary}${reason.severity === 'hard' ? ' (no override; clears when resolved)' : ' (resolves automatically, or override on Health)'}`));
+}
+
+/**
+ * What the current service state means, including a pending intent, whether work is still draining and which pause
+ * reasons hold it.
  *
  * @private service controls view
  */
 export function lifecycleExplanation(snapshot: ServiceSnapshot): string {
     const { state, lifecycle } = snapshot.service;
     const task = snapshot.current ? `"${snapshot.current.taskTitle}"` : 'the current task';
+    const health = healthPauseReasons(snapshot);
+    const byHealth = health.length ? `paused by Health (${health.map((reason) => `${reason.severity}: ${reason.summary}`).join('; ')})${hasManualPause(snapshot) ? ' and manually' : ''}` : '';
     switch (state) {
         case 'running':
             return snapshot.current ? 'new tasks start when ready' : 'idle is normal; new tasks start when ready';
         case 'pausing':
-            return `${task} finishes first, then no task starts until resumed`;
+            return health.length ? `${task} finishes first; ${byHealth}` : `${task} finishes first, then no task starts until resumed`;
         case 'pause':
-            return 'alive and controllable; no task runs or starts';
+            return health.length ? `${byHealth}; resumes when every reason is cleared` : 'alive and controllable; no task runs or starts';
         case 'stopping':
             if (lifecycle?.intent === 'force-stop') return 'force stop: owned work is being interrupted (recoverable)';
             if (lifecycle?.shutdown) return lifecycle.intent === 'restart' ? 'shutting down for a restart (one replacement starts next)' : 'shutting down';
@@ -54,9 +87,11 @@ export function lifecycleActions(snapshot: ServiceSnapshot): LifecycleActionView
     if (state === 'stopped' || state === 'finished') return [{ key: '', label: 'start', command: 'ptbk start', action: '' }];
     const actions: LifecycleActionView[] = [];
     const restartable = lifecycle?.restartable ?? mode !== 'run';
-    if (state === 'running') actions.push({ key: 'P', label: 'pause', command: 'ptbk pause', action: 'pause' });
-    if (state === 'pause') actions.push({ key: 'P', label: 'resume', command: 'ptbk resume', action: 'resume' });
-    if (state === 'pausing') actions.push({ key: 'U', label: 'cancel pause', command: 'ptbk resume', action: 'resume' });
+    // Pause/Resume manage only the manual reason; a pause of Health alone can still get a manual reason added.
+    const manual = hasManualPause(snapshot);
+    if (state === 'running' || ((state === 'pause' || state === 'pausing') && !manual)) actions.push({ key: 'P', label: state === 'running' ? 'pause' : 'pause manually too', command: 'ptbk pause', action: 'pause' });
+    if (state === 'pause' && manual) actions.push({ key: 'P', label: healthPauseReasons(snapshot).length ? 'remove manual pause' : 'resume', command: 'ptbk resume', action: 'resume' });
+    if (state === 'pausing' && manual) actions.push({ key: 'U', label: 'cancel pause', command: 'ptbk resume', action: 'resume' });
     if (state === 'stopping' && lifecycle?.cancellable) {
         actions.push({ key: 'U', label: `cancel ${lifecycle.intent === 'restart' ? 'restart' : 'stop'}`, command: 'ptbk resume', action: 'resume' });
         actions.push({ key: 'P', label: 'pause instead', command: 'ptbk pause', action: 'pause', confirm: `Cancel the pending ${lifecycle.intent === 'restart' ? 'restart' : 'stop'} and pause instead?` });
@@ -267,4 +302,55 @@ export function syncDetailLines(sync: SyncView, style?: Style): string[] {
         ...(sync.manual ? [`Manual       ${time(sync.manual.at)}: ${sync.manual.outcome}`] : []),
         muted('G synchronize now (one cycle of the shared coordinator; merges are visible, history is never rewritten)'),
     ];
+}
+
+/**
+ * Compact one-line health summary (tile, raw status, one-shot snapshot).
+ *
+ * @private health view
+ */
+export function healthOneLine(health: HealthView): string {
+    const parts = [
+        `disk ${formatMiB(health.disk.freeMiB)} free`,
+        `memory ${formatMiB(health.memory.availableMiB)} available`,
+        health.cpu.state === 'unknown' ? 'CPU load unknown' : `CPU ${health.cpu.load1?.toFixed(1)}/${health.cpu.cores} cores`,
+        `network ${health.network.state}`,
+    ];
+    return `${health.summary} · ${parts.join(' · ')}`;
+}
+
+/**
+ * Lines of the Health page (also the raw HEALTH section): measurements, limits, incidents and their scheduling
+ * impact. Never offers generic manual Pause/Resume (that belongs to System).
+ *
+ * @private health view
+ */
+export function healthDetailLines(health: HealthView, style?: Style): string[] {
+    const muted = style?.muted ?? ((text: string) => text);
+    const warn = style?.warning ?? ((text: string) => text);
+    const fail = style?.error ?? ((text: string) => text);
+    const time = (value?: string): string => (value ? formatShortTime(Date.parse(value)) : muted('never'));
+    const stale = health.observedAt && Date.now() - Date.parse(health.observedAt) > health.intervalMs * 3;
+    const lines = [
+        `Status     ${health.status === 'ok' ? health.summary : health.status === 'hard' ? fail(health.summary) : warn(health.summary)}`,
+        `Measured   ${time(health.observedAt)}${stale ? warn(' (stale)') : ''}${muted(` · every ${Math.round(health.intervalMs / 1000)} s, with or without viewers`)}`,
+        `Limits     disk ${health.limits.disk ? formatMiB(health.limits.disk) : 'off'} · memory ${health.limits.memory ? formatMiB(health.limits.memory) : 'off'}${muted(` (${health.limits.source}; ptbk.json limit.disk/limit.memory, soft only)`)}`,
+        `Disk       ${formatMiB(health.disk.freeMiB)} free${health.disk.totalMiB ? muted(` of ${formatMiB(health.disk.totalMiB)}`) : ''}${health.disk.error ? warn(` · ${health.disk.error}`) : ''}`,
+        ...health.disk.paths.map((entry) => muted(`           ${entry.path}: ${formatMiB(entry.freeMiB)} free`)),
+        `Memory     ${formatMiB(health.memory.availableMiB)} available for new work${muted(' (RAM + swap)')}`,
+        `  RAM      ${formatMiB(health.memory.ramAvailableMiB)} available${health.memory.ramTotalMiB ? muted(` of ${formatMiB(health.memory.ramTotalMiB)}`) : ''}`,
+        `  Swap     ${health.memory.swapTotalMiB === undefined ? muted('not measured') : `${formatMiB(health.memory.swapFreeMiB)} free${muted(` of ${formatMiB(health.memory.swapTotalMiB)}`)}`}`,
+        ...(health.memory.note ? [muted(`           ${health.memory.note}`)] : []),
+        `CPU        ${health.cpu.state === 'unknown' ? muted('load not reported on this platform') : `load ${health.cpu.load1?.toFixed(2)} / ${health.cpu.load5?.toFixed(2)} / ${health.cpu.load15?.toFixed(2)} on ${health.cpu.cores} cores${health.cpu.state === 'high' ? warn(' · high') : ''}`}`,
+        `Network    ${health.network.state === 'unreachable' ? warn(health.network.state) : health.network.state}${health.network.target ? muted(` · ${health.network.target}`) : ''}${health.network.checkedAt ? muted(` · checked ${time(health.network.checkedAt)}`) : ''}${health.network.error && health.network.state !== 'reachable' ? muted(` · ${health.network.error}`) : ''}`,
+        '',
+    ];
+    if (!health.incidents.length) lines.push(muted('No health incident; new background work is not limited by Health.'));
+    for (const incident of health.incidents) {
+        const tone = incident.severity === 'hard' ? fail : incident.severity === 'soft' ? warn : muted;
+        const impact = incident.pauses ? 'pauses new background work' : incident.overriddenAt ? `overridden ${time(incident.overriddenAt)} — work continues below the limit` : 'attention only (no pause)';
+        lines.push(`${tone(`${incident.severity.toUpperCase().padEnd(7)} ${incident.summary}`)}`, muted(`        since ${time(incident.openedAt)} · ${impact}${incident.severity === 'hard' ? ' · cannot be overridden' : ''}`));
+    }
+    if (health.lastAction) lines.push('', `Last action ${time(health.lastAction.at)} ${health.lastAction.action}: ${health.lastAction.outcome}`);
+    return lines;
 }
