@@ -8,3 +8,8 @@ Remove the remote connection functionality from both specs and implementation
 
 MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
 
+CHAT MESSAGE @Tasker 2026-10-25T17:13:12+01:00
+Created a task to remove remote dashboard connections from specs and implementation, including tunnels, pairing, related settings, CLI controls and UI.
+
+The task preserves local dashboard/API access and Git synchronization, and includes verification and a changelog update. It is queued for execution; implementation has not changed yet.
+
