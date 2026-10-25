@@ -1,0 +1,436 @@
+import { formatShortTime } from '../common/time.js';
+import { formatMiB } from '../engine/health.js';
+import type { ServiceSnapshot } from '../engine/snapshot.js';
+import { fit, stringWidth, truncate, wrap } from './ansi.js';
+import { activityLabel, inlineBadge } from './badges.js';
+import { hasManualPause, healthPauseReasons, lifecycleActions } from './details.js';
+import { renderPanel, sideBySide, type PanelTone } from './panels.js';
+import { symbols, type TerminalProfile } from './terminal.js';
+
+/**
+ * Tiles of the dashboard home screen; each opens the dashboard page of its domain.
+ *
+ * @private terminal dashboard home
+ */
+export type HomeTile = 'work' | 'system' | 'health' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'connection' | 'sync';
+
+/**
+ * Title of each tile (and of its page).
+ *
+ * @private terminal dashboard home
+ */
+export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
+    work: 'Current work',
+    system: 'System',
+    health: 'Health',
+    chats: 'Chats',
+    tasks: 'Tasks',
+    agents: 'Agents',
+    tools: 'Tools',
+    results: 'Results',
+    connection: 'Connection',
+    sync: 'Synchronization',
+};
+
+/**
+ * The tiles of a snapshot in home order (Synchronization only while autosync is enabled).
+ *
+ * @private terminal dashboard home
+ */
+export function homeTiles(snapshot: ServiceSnapshot): HomeTile[] {
+    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'results', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
+}
+
+/**
+ * Why a tile needs the operator's attention: `key` identifies the current actionable items (a changed key is a new
+ * event), `tone` its severity.
+ *
+ * @private terminal dashboard home
+ */
+export type TileAttention = { readonly key: string; readonly tone: 'warning' | 'error' };
+
+/**
+ * Attention of one tile, derived from its own domain (never a modal global alarm and never moving focus).
+ *
+ * @private terminal dashboard home
+ */
+export function tileAttention(snapshot: ServiceSnapshot, tile: HomeTile): TileAttention | undefined {
+    switch (tile) {
+        case 'work':
+            return snapshot.blockers.length ? { key: snapshot.blockers.map((blocker) => `${blocker.kind}:${blocker.title}`).join('|'), tone: 'error' } : undefined;
+        case 'system':
+            return snapshot.configuration?.pending ? { key: `configuration:${snapshot.configuration.pending}`, tone: 'warning' } : undefined;
+        case 'health': {
+            const incidents = snapshot.health?.incidents ?? [];
+            if (!incidents.length) return undefined;
+            return { key: incidents.map((incident) => incident.id).join('|'), tone: incidents.some((incident) => incident.severity === 'hard') ? 'error' : 'warning' };
+        }
+        case 'chats':
+            return snapshot.chats.waiting.length ? { key: snapshot.chats.waiting.map((chat) => `${chat.name}:${chat.messages}`).join('|'), tone: 'warning' } : undefined;
+        case 'tasks': {
+            const stuck = snapshot.queue.filter((item) => ['needs-recovery', 'failed'].includes(item.readiness));
+            return stuck.length ? { key: stuck.map((item) => `${item.ref}:${item.readiness}`).join('|'), tone: 'warning' } : undefined;
+        }
+        case 'tools': {
+            const failing = [...(snapshot.browsers ?? []), ...(snapshot.browser && !snapshot.browsers?.length ? [snapshot.browser] : [])].filter((browser) => browser.state === 'failed' || browser.recovery?.state === 'blocked');
+            const problems = [...(snapshot.tools?.waiting ? [`waiting:${snapshot.tools.waiting.reason}`] : []), ...(snapshot.tools?.problems ?? []), ...failing.map((browser) => `browser:${browser.name}:${browser.lastFailure?.at ?? ''}`)];
+            return problems.length ? { key: problems.join('|'), tone: failing.length ? 'error' : 'warning' } : undefined;
+        }
+        case 'results': {
+            const error = snapshot.errors[snapshot.errors.length - 1];
+            return error ? { key: `${error.at}:${error.summary}`, tone: 'warning' } : undefined;
+        }
+        case 'connection': {
+            const remote = snapshot.connection.remote;
+            return remote.state === 'failed' || remote.state === 'degraded' ? { key: `${remote.state}:${remote.error ?? ''}`, tone: 'warning' } : undefined;
+        }
+        case 'sync':
+            return snapshot.sync && ['failed', 'conflict'].includes(snapshot.sync.state) ? { key: `${snapshot.sync.state}:${snapshot.sync.reason ?? ''}`, tone: snapshot.sync.state === 'conflict' ? 'error' : 'warning' } : undefined;
+        default:
+            return undefined;
+    }
+}
+
+/**
+ * Narrowest tile, including borders.
+ */
+const MIN_TILE_WIDTH = 26;
+
+/**
+ * Preferred tile width when the surface is wide (more columns beyond it).
+ */
+const PREFERRED_TILE_WIDTH = 36;
+
+/**
+ * Tallest tile, including borders (larger surfaces add spacing, not verbose dumps).
+ */
+const MAX_TILE_HEIGHT = 12;
+
+/**
+ * Rows of the fixed home chrome: the identity/status line and the legend.
+ */
+const HOME_CHROME_ROWS = 2;
+
+/**
+ * Geometry of the home screen for the current surface.
+ *
+ * @private terminal dashboard home
+ */
+export type HomeLayout =
+    /** Bordered tiles in a grid (`rows` of tiles; every tile `height` rows tall). */
+    | { readonly kind: 'grid'; readonly rows: readonly (readonly HomeTile[])[]; readonly widths: readonly number[]; readonly height: number }
+    /** One line per tile when the surface is too short for bordered tiles. */
+    | { readonly kind: 'list'; readonly rows: readonly (readonly HomeTile[])[] }
+    /** The surface is too small for the complete home screen. */
+    | { readonly kind: 'tiny'; readonly rows: readonly (readonly HomeTile[])[] };
+
+/**
+ * Chooses the home geometry: columns from the width (preferring roomy tiles), more columns when the height is short,
+ * one line per tile on short surfaces and a minimal message on tiny ones. The complete home screen never needs
+ * vertical scrolling.
+ *
+ * @private terminal dashboard home
+ */
+export function homeLayout(tiles: readonly HomeTile[], width: number, height: number): HomeLayout {
+    const room = height - HOME_CHROME_ROWS;
+    const maxColumns = Math.max(1, Math.floor((width + 1) / (MIN_TILE_WIDTH + 1)));
+    let columns = Math.max(1, Math.min(maxColumns, Math.floor((width + 1) / (PREFERRED_TILE_WIDTH + 1)) || 1, tiles.length));
+    const rowsFor = (count: number): number => Math.ceil(tiles.length / count);
+    while (columns < maxColumns && rowsFor(columns) * 3 > room) columns++;
+    const chunk = (count: number): HomeTile[][] => Array.from({ length: Math.ceil(tiles.length / count) }, (_, index) => tiles.slice(index * count, (index + 1) * count));
+    if (rowsFor(columns) * 3 <= room) {
+        const gaps = columns - 1;
+        const base = Math.floor((width - gaps) / columns);
+        const widths = Array.from({ length: columns }, (_, index) => base + (index < (width - gaps) % columns ? 1 : 0));
+        return { kind: 'grid', rows: chunk(columns), widths, height: Math.min(MAX_TILE_HEIGHT, Math.floor(room / rowsFor(columns))) };
+    }
+    if (tiles.length <= room && width >= 30) return { kind: 'list', rows: tiles.map((tile) => [tile]) };
+    return { kind: 'tiny', rows: tiles.map((tile) => [tile]) };
+}
+
+/**
+ * Viewer-local presentation of the home screen.
+ *
+ * @private terminal dashboard home
+ */
+export type HomeView = {
+    /** The operator's cursor (never moved by attention). */
+    readonly focus: HomeTile;
+    /** Attention per tile: `new` (conspicuous until the operator is clearly active) or `seen` (static warning). */
+    readonly attention: ReadonlyMap<HomeTile, 'new' | 'seen'>;
+    /** Animation frame (badge gesture and the blink phase of new attention). */
+    readonly frame: number;
+    readonly legend: string;
+    readonly feedback?: string;
+    readonly connectionLost?: string;
+    /** Note under a pending owner stop. */
+    readonly controlNote?: string;
+};
+
+/**
+ * Smallest useful summary lines of one tile (never the complete domain; details live on its page).
+ *
+ * @private terminal dashboard home
+ */
+export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: TerminalProfile, frame: number): string[] {
+    const { style } = terminal;
+    const marks = symbols(terminal.unicode);
+    const time = (iso?: string): string => (iso ? formatShortTime(Date.parse(iso)) : '');
+    switch (tile) {
+        case 'work': {
+            const current = snapshot.current;
+            if (current) {
+                return [
+                    `${inlineBadge(current.agent.name, current.agent.activity, style, terminal.reducedMotion ? 0 : frame)} ${style.muted(activityLabel(current.agent.activity))}`,
+                    current.taskTitle,
+                    style.muted(`${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}`),
+                    ...(snapshot.wait ? [style.warning(`${marks.wait} ${snapshot.wait.reason}`)] : []),
+                ];
+            }
+            if (snapshot.service.state === 'stopped') return [style.muted('The service is stopped.')];
+            const blocker = snapshot.blockers[0];
+            return [
+                `${style.bold(snapshot.phase)}${snapshot.wait && !blocker ? style.muted(` ${marks.dot} ${snapshot.wait.reason}`) : ''}`,
+                ...(blocker ? [style.error(`${marks.fail} ${blocker.title}`), style.muted(blocker.action ?? blocker.reason)] : []),
+                ...(snapshot.wait?.until && !blocker ? [style.muted(`next ${time(snapshot.wait.until)}${snapshot.wait.skippable ? ' · S skips' : ''}`)] : []),
+            ];
+        }
+        case 'system': {
+            const state = snapshot.service.state;
+            const tone = state === 'running' ? style.success : state === 'stopping' ? style.error : style.warning;
+            const health = healthPauseReasons(snapshot);
+            const why = health.length ? `paused by Health (${health.map((reason) => reason.severity).join(', ')})${hasManualPause(snapshot) ? ' + manual' : ''}` : hasManualPause(snapshot) && (state === 'pause' || state === 'pausing') ? 'paused manually' : '';
+            const intent = snapshot.service.lifecycle?.intent;
+            const keys = lifecycleActions(snapshot)
+                .filter((action) => action.key)
+                .map((action) => `${action.key} ${action.label}`);
+            return [
+                `${tone(state)}${why ? style.muted(` ${marks.dot} ${why}`) : ''}`,
+                ...(intent && intent !== 'pause' ? [style.warning(`${intent} pending${snapshot.service.lifecycle?.draining ? ' (current task finishes first)' : ''}`)] : []),
+                ...(snapshot.configuration?.pending ? [style.warning('configuration update pending')] : []),
+                style.muted(keys.join(' · ')),
+            ];
+        }
+        case 'health': {
+            const health = snapshot.health;
+            if (!health) return [style.muted('Not reported by this engine.')];
+            const tone = health.status === 'ok' ? style.success : health.status === 'hard' ? style.error : health.status === 'unknown' ? style.muted : style.warning;
+            return [
+                tone(health.summary),
+                style.muted(`disk ${formatMiB(health.disk.freeMiB)} · memory ${formatMiB(health.memory.availableMiB)}`),
+                style.muted(`CPU ${health.cpu.load1 === undefined ? '?' : `${health.cpu.load1.toFixed(1)}/${health.cpu.cores}`} · network ${health.network.state}`),
+                ...(healthPauseReasons(snapshot).length ? [style.warning('new background work is paused')] : []),
+            ];
+        }
+        case 'chats': {
+            const waiting = snapshot.chats.waiting;
+            const first = waiting[0];
+            return [
+                waiting.length ? style.warning(`${marks.warn} ${waiting.length} waiting for you`) : style.muted('Nobody waits for you'),
+                ...(first ? [`${style.bold(first.awaiting?.sender ?? first.agent ?? 'An agent')}: ${(first.awaiting?.text ?? first.name).split('\n')[0]}`] : []),
+                style.muted(`${snapshot.chats.total} chat${snapshot.chats.total === 1 ? '' : 's'}${snapshot.chats.unread ? ` · ${snapshot.chats.unread} unread` : ''}`),
+                style.muted(waiting.length ? 'A answer · C new chat' : 'C new chat'),
+            ];
+        }
+        case 'tasks': {
+            const count = (kinds: readonly string[]): number => snapshot.queue.filter((item) => kinds.includes(item.readiness)).length;
+            const parts = [
+                [count(['ready', 'active', 'needs-assignment', 'assigning']), 'ready'],
+                [count(['awaiting-user']), 'waiting for you'],
+                [count(['blocked', 'failed', 'needs-recovery', 'incompatible', 'not-ready', 'placeholder']), 'blocked'],
+                [count(['waiting-until', 'waiting-dependency']), 'later'],
+            ].filter(([value]) => value) as Array<[number, string]>;
+            const next = snapshot.queue.find((item) => item.readiness === 'ready') ?? snapshot.queue[0];
+            return [
+                `${style.bold(String(snapshot.queueTotal))} unfinished${parts.length ? style.muted(` · ${parts.map(([value, label]) => `${value} ${label}`).join(' · ')}`) : ''}`,
+                ...(next ? [`${style.muted('next')} ${next.title}`] : [style.muted('No unfinished tasks.')]),
+            ];
+        }
+        case 'agents': {
+            const working = snapshot.agents.filter((agent) => agent.activity !== 'idle');
+            const shown = [...working, ...snapshot.agents.filter((agent) => agent.activity === 'idle')];
+            return [style.muted(`${snapshot.agents.length} agent${snapshot.agents.length === 1 ? '' : 's'}${working.length ? ` · ${working.length} active` : ''}`), ...shown.map((agent) => `${inlineBadge(agent.name, agent.activity, style, terminal.reducedMotion ? 0 : frame)} ${style.muted(activityLabel(agent.activity))}`)];
+        }
+        case 'tools': {
+            const tools = snapshot.tools;
+            if (!tools) return [style.muted('Not reported by this engine.')];
+            const summary = (type: 'HARNESS' | 'BROWSER', label: string): string => {
+                const items = tools.items.filter((item) => item.type === type);
+                const usable = items.filter((item) => item.state === 'usable').length;
+                const text = `${label} ${usable}/${items.length}`;
+                return items.length && usable === 0 ? style.warning(text) : text;
+            };
+            const inUse = tools.items.filter((item) => item.inUse).map((item) => item.name);
+            return [
+                `${summary('HARNESS', 'Harnesses')} ${style.muted(marks.dot)} ${summary('BROWSER', 'Browsers')}`,
+                ...(tools.waiting ? [style.warning(`new work waits: ${tools.waiting.reason}`)] : []),
+                ...tools.problems.slice(0, 1).map((problem) => style.warning(problem)),
+                ...(inUse.length ? [style.muted(`in use: ${inUse.join(', ')}`)] : []),
+            ];
+        }
+        case 'results': {
+            const last = snapshot.results.recent[0];
+            const activity = snapshot.activity[snapshot.activity.length - 1];
+            const error = snapshot.errors[snapshot.errors.length - 1];
+            return [
+                `${style.success(`${marks.ok} ${snapshot.results.completed}`)} ${style.muted('completed')}  ${snapshot.results.failed ? style.error(`${marks.fail} ${snapshot.results.failed}`) : style.muted(`${marks.fail} 0`)} ${style.muted('failed')}`,
+                ...(last ? [`${last.outcome.startsWith('completed') ? style.success(marks.ok) : last.outcome === 'failed' ? style.error(marks.fail) : style.warning(marks.wait)} ${last.title}`] : []),
+                ...(error ? [style.warning(`last error: ${error.summary}`)] : activity ? [style.muted(`${time(activity.at)} ${activity.text}`)] : []),
+            ];
+        }
+        case 'connection': {
+            const { local, remote } = snapshot.connection;
+            const host = local.url ? local.url.replace(/^https?:\/\//, '').replace(/\/$/, '') : undefined;
+            return [
+                remote.state === 'ready' ? style.success(`Remote ready${remote.provider ? ` via ${remote.provider}` : ''}`) : remote.state === 'disabled' ? style.muted(local.state === 'disabled' ? 'No HTTP server' : 'Local only') : style.warning(`Remote ${remote.state}`),
+                ...(host ? [style.muted(`local ${host}`)] : []),
+                style.muted(snapshot.connection.pairing?.available ? 'pairing link ready · Enter for QR' : 'Enter: links, QR, pairing'),
+            ];
+        }
+        case 'sync': {
+            const sync = snapshot.sync;
+            if (!sync) return [];
+            const tone = sync.state === 'synchronized' ? style.success : sync.state === 'never' ? style.muted : style.warning;
+            return [
+                `${tone(sync.phase === 'idle' ? sync.state : sync.phase)}${sync.incoming || sync.outgoing ? style.muted(` · ${sync.incoming ?? '?'} in / ${sync.outgoing ?? '?'} out`) : ''}`,
+                ...(sync.upstream ? [style.muted(`${sync.branch} ↔ ${sync.upstream}`)] : []),
+                ...(sync.reason ? [style.warning(sync.reason)] : []),
+                style.muted('G synchronize now'),
+            ];
+        }
+    }
+}
+
+/**
+ * The concise top identity/status line: PTBK, project and actual lifecycle state, with attention and freshness.
+ *
+ * @private terminal dashboard home
+ */
+export function homeStatusLine(snapshot: ServiceSnapshot, terminal: TerminalProfile, width: number, options: { readonly attention: number; readonly connectionLost?: string; readonly context?: string }): string {
+    const { style } = terminal;
+    const marks = symbols(terminal.unicode);
+    const state = snapshot.service.state;
+    const tone = state === 'running' ? style.success : state === 'stopped' || state === 'finished' ? style.muted : state === 'stopping' ? style.error : style.warning;
+    const right = options.connectionLost
+        ? style.error(`disconnected: ${options.connectionLost}`)
+        : `${options.attention ? style.warning(`${marks.warn} ${options.attention} need${options.attention === 1 ? 's' : ''} attention  `) : ''}${style.muted(`live ${formatShortTime(Date.parse(snapshot.observedAt))}`)}`;
+    const leftRoom = Math.max(10, width - stringWidth(right) - 2);
+    const left = truncate(` ${style.bold(style.accent('PTBK'))} ${style.muted(marks.dot)} ${style.bold(snapshot.project.name)} ${style.muted(marks.dot)} ${tone(state)}${snapshot.service.commitMode === 'no-commit' ? style.warning(' · NO-COMMIT') : ''}${options.context ? `  ${style.muted('›')} ${style.bold(options.context)}` : ''}`, leftRoom);
+    return `${fit(left, width - stringWidth(right) - 1)} ${right}`;
+}
+
+/**
+ * Joins legend items in priority order, keeping as many as fit the width (the most important ones first).
+ *
+ * @private terminal dashboard home
+ */
+export function fitLegend(items: readonly string[], width: number, separator = ' · '): string {
+    let legend = '';
+    for (const item of items) {
+        const candidate = legend ? `${legend}${separator}${item}` : item;
+        if (stringWidth(candidate) + 1 > width) continue;
+        legend = candidate;
+    }
+    return ` ${legend}`;
+}
+
+/**
+ * Renders the complete dashboard home screen, exactly fitting the surface (never taller than it).
+ *
+ * @private terminal dashboard home
+ */
+export function renderHome(snapshot: ServiceSnapshot, terminal: TerminalProfile, view: HomeView): string[] {
+    const { style } = terminal;
+    const marks = symbols(terminal.unicode);
+    const width = Math.max(20, terminal.columns());
+    const height = Math.max(5, terminal.rows());
+    const tiles = homeTiles(snapshot);
+    const layout = homeLayout(tiles, width, height);
+    const attentionCount = [...view.attention.keys()].filter((tile) => tiles.includes(tile)).length;
+    const lines = [homeStatusLine(snapshot, terminal, width, { attention: attentionCount, connectionLost: view.connectionLost })];
+    const blinkOn = !terminal.reducedMotion && view.frame % 2 === 0;
+    const titleOf = (tile: HomeTile): string => {
+        const attention = view.attention.get(tile);
+        const focused = view.focus === tile;
+        const label = `${focused ? `${marks.pointer} ` : ''}${attention ? `${marks.warn} ` : ''}${TILE_TITLES[tile]}${attention === 'new' && terminal.reducedMotion ? ' NEW' : ''}`;
+        return attention === 'new' && blinkOn ? style.inverse(label) : label;
+    };
+    const toneOf = (tile: HomeTile): PanelTone => {
+        const attention = view.attention.get(tile);
+        if (attention) return attention === 'new' && !blinkOn && !terminal.reducedMotion && view.focus !== tile ? 'default' : tileAttention(snapshot, tile)?.tone === 'error' ? 'error' : 'attention';
+        return view.focus === tile ? 'accent' : 'default';
+    };
+    if (layout.kind === 'grid') {
+        for (const row of layout.rows) {
+            const blocks = row.map((tile, index) =>
+                renderPanel({
+                    title: titleOf(tile),
+                    lines: tileLines(snapshot, tile, terminal, view.frame).slice(0, layout.height - 2),
+                    width: layout.widths[index]!,
+                    tone: toneOf(tile),
+                    unicode: terminal.unicode,
+                    style,
+                    minHeight: layout.height - 2,
+                }),
+            );
+            lines.push(...sideBySide(blocks, layout.widths.slice(0, blocks.length)));
+        }
+    } else if (layout.kind === 'list') {
+        const labelWidth = Math.max(...tiles.map((tile) => stringWidth(TILE_TITLES[tile]))) + 4;
+        for (const tile of tiles) {
+            const attention = view.attention.get(tile);
+            const label = fit(`${view.focus === tile ? marks.pointer : ' '} ${attention ? marks.warn : ' '} ${TILE_TITLES[tile]}`, labelWidth);
+            const styled = view.focus === tile ? style.accent(label) : attention ? style.warning(label) : label;
+            lines.push(truncate(`${attention === 'new' && blinkOn ? style.inverse(styled) : styled} ${tileLines(snapshot, tile, terminal, view.frame)[0] ?? ''}`, width));
+        }
+    } else {
+        lines.push(...wrap('The terminal is too small for the dashboard. Enlarge it, or press O for plain output.', width - 1).map((line) => style.warning(` ${line}`)));
+    }
+    const footer = `${view.controlNote ? `${view.controlNote}  ` : ''}${view.feedback ? `${view.legend}   ${style.accent(marks.arrow)} ${view.feedback}` : view.legend}`;
+    while (lines.length < height - 1) lines.push('');
+    lines.length = Math.min(lines.length, height - 1);
+    lines.push(truncate(style.muted(footer), width));
+    return lines;
+}
+
+/**
+ * A full dashboard page: fixed identity/title and context lines, a scrollable body and a fixed legend. The body
+ * window keeps `anchor` (a focused list row) visible; the returned scroll is the viewer's new local position.
+ *
+ * @private terminal dashboard home
+ */
+export function renderPage(
+    snapshot: ServiceSnapshot,
+    terminal: TerminalProfile,
+    page: { readonly title: string; readonly context?: string; readonly body: readonly string[]; readonly anchor?: number; readonly scroll: number; readonly legend: string; readonly feedback?: string; readonly connectionLost?: string; readonly attention: number },
+): { readonly lines: string[]; readonly scroll: number } {
+    const { style } = terminal;
+    const marks = symbols(terminal.unicode);
+    const width = Math.max(20, terminal.columns());
+    const height = Math.max(6, terminal.rows());
+    const rule = (label = ''): string => style.muted(fit(`${terminal.unicode ? '─' : '-'}${label ? ` ${label} ` : ''}${(terminal.unicode ? '─' : '-').repeat(width)}`, width));
+    const room = Math.max(1, height - 5);
+    const maxScroll = Math.max(0, page.body.length - room);
+    let scroll = Math.max(0, Math.min(page.scroll, maxScroll));
+    if (page.anchor !== undefined) {
+        if (page.anchor < scroll) scroll = page.anchor;
+        else if (page.anchor >= scroll + room) scroll = page.anchor - room + 1;
+        scroll = Math.max(0, Math.min(scroll, maxScroll));
+    }
+    const body = page.body.slice(scroll, scroll + room).map((line) => ` ${line}`);
+    while (body.length < room) body.push('');
+    const above = scroll;
+    const below = Math.max(0, page.body.length - scroll - room);
+    const footer = page.feedback ? `${page.legend}   ${style.accent(marks.arrow)} ${page.feedback}` : page.legend;
+    return {
+        scroll,
+        lines: [
+            homeStatusLine(snapshot, terminal, width, { attention: page.attention, connectionLost: page.connectionLost, context: page.title }),
+            style.muted(truncate(` ${page.context ?? ''}`, width)),
+            rule(above ? `↑ ${above} more` : ''),
+            ...body,
+            rule(below ? `↓ ${below} more` : ''),
+            truncate(style.muted(footer), width),
+        ],
+    };
+}

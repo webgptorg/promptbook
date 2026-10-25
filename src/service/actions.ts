@@ -2,6 +2,7 @@ import type { ComposedSegment } from '../ui/composer.js';
 import { PtbkError } from '../common/errors.js';
 import { parseSettingValue, SETTING_SPEC_BY_KEY } from '../project/config.js';
 import type { Agenda } from '../engine/agenda.js';
+import { formatBytes } from '../engine/health.js';
 import { defaultChatAgent } from '../chats/service.js';
 import type { ToolOperation, ToolOperationOutcome } from '../tools/operations.js';
 
@@ -112,7 +113,7 @@ export async function applyControlAction(agenda: Agenda, action: string, params:
             if (params.confirm !== true) {
                 const preview = await agenda.healthCachePreview();
                 if (!preview) return { action, outcome: 'This process has no Health sub-engine.', applied: false };
-                return { action, outcome: `${preview.entries.filter((entry) => !entry.kept).length} cache entr${preview.entries.filter((entry) => !entry.kept).length === 1 ? 'y' : 'ies'} (${Math.round(preview.removableBytes / 1048576)} MiB) can be removed from ${preview.path}/; confirm to clean.`, applied: false, data: preview };
+                return { action, outcome: `${preview.entries.filter((entry) => !entry.kept).length} cache entr${preview.entries.filter((entry) => !entry.kept).length === 1 ? 'y' : 'ies'} (${formatBytes(preview.removableBytes)}) can be removed from ${preview.path}/; confirm to clean.`, applied: false, data: preview };
             }
             return { action, ...(await agenda.healthCleanCache()) };
         }

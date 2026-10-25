@@ -1,5 +1,13 @@
 # Unreleased
 
+## Terminal dashboard: home screen and pages
+
+-   `ptbk dashboard` (and the live view of `--foreground`) opens on a **home screen** of compact tiles that always fits the terminal without scrolling: Current work, System, Health, Chats, Tasks, Agents, Tools, Results, Connection and, only with autosync, Synchronization. Its geometry follows width and height and is redrawn live on resize. Narrower or shorter terminals get fewer columns, then one line per tile, then a short "too small" note. The top line says only `PTBK · <project> · <state>`; version, paths, URLs/QR and provider details moved to pages.
+-   Enter opens the focused tile as a full **page** that replaces the grid (Escape returns, and Escape on the home screen leaves the viewer). Pages keep a fixed title, context and legend while their body scrolls. List pages (Tasks, Chats, Agents, Tools) keep the selected item through live updates and re-sorting, and a tool opens its own nested page with browser recovery. Letter shortcuts open the same pages or call the same operations; `I` (System) and `H` (Health) are new.
+-   **System** shows engine/process/project details, the lifecycle with pending intent, every active pause reason with its owner and severity, and the manual Pause/Resume, stop, restart and force-stop controls. **Health** shows the Health sub-engine's measurements, limits and incidents, plus soft-incident override with a warning (O), project-cache cleanup with preview and confirmation (K), Linux swap planning (W) and measure now (M). Health has no generic Pause/Resume.
+-   Focus and attention are independent. A tile whose domain needs you (a waiting chat, a health incident, a tool or connection problem, a blocker, failed sync) is marked and blinks without moving focus. It settles to a static mark after a few key presses in this viewer, never just because time passed, and stays marked until resolved. Reduced motion labels unseen items `NEW` instead of blinking. Shortcuts typed in one burst now act as separate keys.
+-   One-shot pretty snapshots (`status`, lifecycle results) keep their panel layout, with a System panel that lists pause reasons and Health.
+
 ## Animated PTBK terminal titles
 
 -   The project dashboard's tab title is now exactly `PTBK <agent visual> <project>`, and the global dashboard's is `PTBK <visual> Global`. The book symbol, the word Promptbook, mode, task, path and version are gone from it; they live inside the dashboard. The visual is the current worker's single-line badge (the same renderer as the terminal badges, now shared as `singleLineVisual`). With no current worker it is the default Promptbook mascot, never a stale previous worker. The global dashboard always shows the default.

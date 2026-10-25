@@ -34,6 +34,11 @@ const CONNECTIVITY_TIMEOUT_MS = 5_000;
 const DEFAULT_CONNECTIVITY_TARGET = 'cloudflare.com:443';
 
 /**
+ * Port of a connectivity target given without one.
+ */
+const DEFAULT_CONNECTIVITY_PORT = 443;
+
+/**
  * Free capacity below which the disk is treated as actually exhausted (a hard condition, never configurable).
  */
 const HARD_DISK_MIB = 16;
@@ -68,6 +73,16 @@ const CACHE_KEEP_RECENT_MS = 10 * 60_000;
  * Bytes per MiB.
  */
 const MIB = 1024 * 1024;
+
+/**
+ * Recovery margin above a soft limit (10% of it, bounded) before its incident closes.
+ */
+const RECOVERY_MARGIN = { ratio: 0.1, minMiB: 32, maxMiB: 512 } as const;
+
+/**
+ * Size bounds of a proposed swap file (MiB): at least this much, at most this much, in these steps.
+ */
+const SWAP_SIZE = { minMiB: 1024, maxMiB: 4096, stepMiB: 256 } as const;
 
 /**
  * One host sample (MiB; undefined where a value is not measurable on this platform).
@@ -185,6 +200,15 @@ export function formatMiB(value: number | undefined): string {
 }
 
 /**
+ * Formats a byte count for summaries (in MiB/GiB).
+ *
+ * @private health sub-engine
+ */
+export function formatBytes(bytes: number): string {
+    return formatMiB(bytes / MIB);
+}
+
+/**
  * Whole MiB of a byte count.
  */
 function toMiB(bytes: number): number {
@@ -277,9 +301,9 @@ export function hostProbes(env: NodeJS.ProcessEnv): HealthProbes {
         },
         connectivity: target
             ? async () => {
-                  const [host, portText] = target.includes(':') ? [target.slice(0, target.lastIndexOf(':')), target.slice(target.lastIndexOf(':') + 1)] : [target, '443'];
+                  const [host, portText] = target.includes(':') ? [target.slice(0, target.lastIndexOf(':')), target.slice(target.lastIndexOf(':') + 1)] : [target, String(DEFAULT_CONNECTIVITY_PORT)];
                   return await new Promise<ConnectivityProbe>((resolvePromise) => {
-                      const socket = connect({ host, port: Number(portText) || 443, timeout: CONNECTIVITY_TIMEOUT_MS });
+                      const socket = connect({ host, port: Number(portText) || DEFAULT_CONNECTIVITY_PORT, timeout: CONNECTIVITY_TIMEOUT_MS });
                       const done = (error?: string): void => {
                           socket.destroy();
                           resolvePromise({ reachable: !error, target, ...(error ? { error } : {}) });
@@ -434,10 +458,11 @@ export class HealthSubEngine {
         const sample = this.sample;
         if (!sample) return;
         const limits = this.options.limits();
-        const margin = (limit: number): number => Math.min(512, Math.max(32, Math.round(limit * 0.1)));
+        const margin = (limit: number): number => Math.min(RECOVERY_MARGIN.maxMiB, Math.max(RECOVERY_MARGIN.minMiB, Math.round(limit * RECOVERY_MARGIN.ratio)));
         const free = sample.disk.freeMiB;
         const where = sample.disk.paths.find((entry) => entry.freeMiB === free)?.path;
-        const location = where ? ` on ${toProjectRelative(this.options.project.root, where) || '.'}` : '';
+        // The project's own filesystem needs no location; a separate runtime filesystem is named.
+        const location = where && toProjectRelative(this.options.project.root, where) ? ` on ${toProjectRelative(this.options.project.root, where)}` : '';
         if (free !== undefined) {
             this.track('disk', 'hard', free < HARD_DISK_MIB, free >= HARD_DISK_MIB * 2, `Disk full: ${formatMiB(free)} free${location}`);
             this.track('disk', 'soft', limits.disk > 0 && free < limits.disk, limits.disk === 0 || free >= limits.disk + margin(limits.disk), `Low free disk: ${formatMiB(free)} free${location} (limit ${formatMiB(limits.disk)})`);
@@ -544,8 +569,8 @@ export class HealthSubEngine {
                 () => undefined,
             );
         }
-        this.options.log(`Health: cleaned the project cache ${preview.path}/ — ${removed} entr${removed === 1 ? 'y' : 'ies'}, ${formatMiB(freedBytes / MIB)} freed.`, 'info');
-        const result = this.record('health-clean-cache', { applied: true, outcome: `Removed ${removed} cache entr${removed === 1 ? 'y' : 'ies'} (${formatMiB(freedBytes / MIB)})${preview.keptBytes ? `; kept ${formatMiB(preview.keptBytes / MIB)} changed recently` : ''}.`, freedBytes });
+        this.options.log(`Health: cleaned the project cache ${preview.path}/ — ${removed} entr${removed === 1 ? 'y' : 'ies'}, ${formatBytes(freedBytes)} freed.`, 'info');
+        const result = this.record('health-clean-cache', { applied: true, outcome: `Removed ${removed} cache entr${removed === 1 ? 'y' : 'ies'} (${formatBytes(freedBytes)})${preview.keptBytes ? `; kept ${formatBytes(preview.keptBytes)} changed recently` : ''}.`, freedBytes });
         void this.sampleNow();
         return result;
     }
@@ -565,13 +590,13 @@ export class HealthSubEngine {
         const ram = toMiB(os.totalmem());
         const root = await statfs('/').catch(() => undefined);
         const freeRoot = root ? toMiB(root.bavail * root.bsize) : 0;
-        const reserve = Math.max(1024, this.options.limits().disk);
-        const size = Math.max(0, Math.min(4096, Math.max(1024, ram), freeRoot - reserve));
-        const sizeMiB = Math.floor(size / 256) * 256;
+        const reserve = Math.max(SWAP_SIZE.minMiB, this.options.limits().disk);
+        const size = Math.max(0, Math.min(SWAP_SIZE.maxMiB, Math.max(SWAP_SIZE.minMiB, ram), freeRoot - reserve));
+        const sizeMiB = Math.floor(size / SWAP_SIZE.stepMiB) * SWAP_SIZE.stepMiB;
         const existing = new Set(current.map((area) => area.path));
         const path = existing.has('/swapfile') ? '/swapfile-ptbk' : '/swapfile';
         const total = current.reduce((sum, area) => sum + area.sizeMiB, 0);
-        if (sizeMiB < 256) return { supported: true, note: `Not enough free disk on / for a useful swap file (${formatMiB(freeRoot)} free, ${formatMiB(reserve)} kept free).`, current };
+        if (sizeMiB < SWAP_SIZE.stepMiB) return { supported: true, note: `Not enough free disk on / for a useful swap file (${formatMiB(freeRoot)} free, ${formatMiB(reserve)} kept free).`, current };
         const privilege = process.getuid?.() === 0 ? 'root' : (await runProcess('sudo', ['-n', 'true'], { cwd: '/', timeoutMs: 5000 }).catch(() => undefined))?.exitCode === 0 ? 'sudo' : 'missing';
         return {
             supported: true,

@@ -130,7 +130,7 @@ export type AgendaOptions = {
     readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
     /** Releases per-task resources after every executed piece of work, whatever its outcome. */
     readonly afterWork?: () => Promise<void>;
-    /** Named browser tools owned by the service: inspections for the detail panels and the names held by work. */
+    /** Named browser tools owned by the service: inspections for the dashboard pages and the names held by work. */
     readonly browsers?: { readonly primary: () => BrowserDetailView | undefined; readonly all: () => BrowserDetailView[]; readonly inUse: () => string[] };
 };
 

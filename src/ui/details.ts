@@ -153,7 +153,7 @@ export function executionOneLine(execution: ExecutionDetailView): string {
 }
 
 /**
- * Lines of the expandable execution detail panel (also the raw EXECUTION section).
+ * Lines of the execution details on the Current work page (also the raw EXECUTION section).
  *
  * @private execution details view
  */
@@ -181,7 +181,7 @@ export function executionDetailLines(execution: ExecutionDetailView | undefined,
 }
 
 /**
- * Lines of the expandable browser detail panel (also the raw BROWSER section). Never includes profile contents.
+ * Lines of the browser details on a browser tool page (also the raw BROWSER section). Never includes profile contents.
  *
  * @private browser details view
  */
@@ -210,11 +210,11 @@ export function browserDetailLines(browser: BrowserDetailView | undefined, style
 }
 
 /**
- * Compact tool overview for the main cockpit: availability per type and the concrete resource wait.
+ * Compact tool overview of one-shot snapshots: availability per type and the concrete resource wait.
  *
  * @private tools view
  */
-export function toolsCompactLines(tools: ToolsView | undefined, style?: Style, options: { readonly live?: boolean } = {}): string[] {
+export function toolsCompactLines(tools: ToolsView | undefined, style?: Style): string[] {
     const muted = style?.muted ?? ((text: string) => text);
     const warn = style?.warning ?? ((text: string) => text);
     const ok = style?.success ?? ((text: string) => text);
@@ -230,7 +230,6 @@ export function toolsCompactLines(tools: ToolsView | undefined, style?: Style, o
     if (tools.waiting) lines.push(warn(`New work waits for tools: ${tools.waiting.reason}`), `  ${tools.waiting.action}`);
     for (const problem of tools.problems.slice(0, 2)) lines.push(warn(`Problem: ${problem}`));
     if (tools.items.some((item) => item.inUse)) lines.push(muted('* in use by current work'));
-    if (options.live) lines.push(muted('T manage tools (enable/disable, add, modify, reorder, remove)'));
     return lines;
 }
 
@@ -271,7 +270,7 @@ export function toolDetailLines(item: ToolView, style?: Style): string[] {
  *
  * @private synchronization view
  */
-export function syncCompactLines(sync: SyncView, style?: Style, options: { readonly live?: boolean } = {}): string[] {
+export function syncCompactLines(sync: SyncView, style?: Style): string[] {
     const muted = style?.muted ?? ((text: string) => text);
     const warn = style?.warning ?? ((text: string) => text);
     const ok = style?.success ?? ((text: string) => text);
@@ -279,7 +278,6 @@ export function syncCompactLines(sync: SyncView, style?: Style, options: { reado
     const lines = [`${tone(sync.phase === 'idle' ? sync.state : sync.phase)}${sync.upstream ? muted(` · ${sync.branch} ↔ ${sync.upstream}`) : ''}${sync.incoming || sync.outgoing ? muted(` · ${sync.incoming ?? '?'} in / ${sync.outgoing ?? '?'} out`) : ''}`];
     if (sync.reason) lines.push(warn(sync.reason));
     if (sync.lastAttemptAt) lines.push(muted(`last attempt ${formatShortTime(Date.parse(sync.lastAttemptAt))}${sync.nextAttemptAt ? ` · next ${formatShortTime(Date.parse(sync.nextAttemptAt))}` : ''}`));
-    if (options.live) lines.push(muted('Y details · G synchronize now'));
     return lines;
 }
 
