@@ -1,0 +1,15 @@
+CHAT Router asks: How should I continue? Retrying runs the task again with a fresh attem — 2026-10-25 16:52:50
+CHAT MEMBER @User
+CHAT MEMBER @Router
+CHAT STATUS waiting-for-user
+LINK {Assign routing: Project health check — 2026-10-24 11:47:37 — 2026-10-25 14:03:18}
+
+CHAT MESSAGE @Router 2026-10-25T16:52:50+01:00
+The task {Assign routing: Project health check — 2026-10-24 11:47:37 — 2026-10-25 14:03:18} failed: The requested outcome was not accepted after 3 attempts. Last problem: Your final message did not end with the required PTBK_RESULT line, so the outcome could not be verified. Verify the result and end with the completion line.
+
+Already attempted: 3 attempt(s) and 0 technical retries within the configured budgets. Evidence: traces/2026-10-25-1403-assign-project-health-check-2026-10-24-11-47-37/.
+
+How should I continue? Retrying runs the task again with a fresh attempt budget; acknowledging records the failure (TASK STATUS failed) and moves on. Partial changes stay in the working tree.
+» Retry the task
+» Acknowledge the failure
+
