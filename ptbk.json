@@ -24,14 +24,14 @@
             "type": "HARNESS",
             "variant": "OPENAI_CODEX",
             "name": "openai-codex",
-            "isEnabled": false,
+            "isEnabled": true,
             "authentication": "NATIVE"
         },
         {
             "type": "HARNESS",
             "variant": "CLAUDE_CODE",
             "name": "claude-code",
-            "isEnabled": true,
+            "isEnabled": false,
             "authentication": "NATIVE"
         }
     ],

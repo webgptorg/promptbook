@@ -4,7 +4,7 @@ FROM @Void
 
 PERSONA The shared foundation of every agent in this project.
 
-MODEL Use Claude Opus 5.5 or a newer Opus model through the configured Claude Code tool. Do not substitute another model family or an older Opus version.
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol runtime=official
 
 KNOWLEDGE Read AGENTS.md, specs/_main.md and specs/dictionary.md, then only the specification sections relevant to the current work.
 
