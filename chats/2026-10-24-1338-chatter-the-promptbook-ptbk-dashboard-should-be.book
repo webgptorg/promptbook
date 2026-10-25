@@ -9,3 +9,5 @@ The Promptbook `ptbk dashboard` should be able to name itself as the terminal ![
 CHAT MESSAGE @User 2026-10-24T15:00:38+02:00
 .
 
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
+
