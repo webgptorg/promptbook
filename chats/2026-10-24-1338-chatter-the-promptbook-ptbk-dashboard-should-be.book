@@ -11,3 +11,8 @@ CHAT MESSAGE @User 2026-10-24T15:00:38+02:00
 
 MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
 
+CHAT MESSAGE @Chatter 2026-10-25T16:53:11+01:00
+This is already implemented in the current source: `ptbk dashboard` sets the terminal title to `PTBK <animated agent visual> <project name>` and periodically refreshes it.
+
+I checked the implementation and test coverage, but haven’t verified it live in your terminal. Reopen the dashboard to try it.
+
