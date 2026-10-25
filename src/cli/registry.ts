@@ -28,6 +28,7 @@ const START_OPTIONS: OptionGroup = {
     options: [
         { name: 'daemon', type: 'boolean', description: 'Run in the background, independent of this terminal (default).' },
         { name: 'foreground', type: 'boolean', description: 'Keep the service attached to this terminal (live dashboard, or plain events with --raw).' },
+        { name: 'dashboard', type: 'boolean', negatable: true, negatedOnly: true, description: 'Report once and return instead of opening the project dashboard afterwards (the default in an interactive terminal; raw/noninteractive output never opens it).' },
         { name: 'persist', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not restart automatically after crashes or reboots (state stays durable).' },
         { name: 'harness-updates', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not update enabled harnesses automatically for this run.' },
         { name: 'harness', type: 'string', valueName: '<variant|tool>', repeatable: true, description: 'Restrict routing to these harness variants or named harness tools for this run (repeatable; not saved).' },
@@ -116,7 +117,7 @@ export const COMMANDS: readonly CommandSpec[] = [
         summary: 'Set up a project from your intent, then start its agenda in the background.',
         description: `A finite, attended setup. It first asks what you are working on (free text, long pasted material, images or other files) and preserves that input verbatim in specs/_initial.md with project-local attachments. It then prepares Git, ptbk.json, agents (default roles plus the core agents Adam, Router — initialized with a concrete MODEL from the first suitable selected harness and its plugin defaults —, Tasker, Teacher, Fixer and Chatter — the default partner of new chats, with TEAM access to every other initialized role), task templates, project instructions, ignore rules, local or global installation, the selected harnesses (installed, logged in and verified) and one browser — saved as named tools in ptbk.json "tools" through the same operations as \`ptbk tool\` — trace settings and optional automatic Git synchronization, and saves one ordinary Expert task that transforms the project according to the initial specification. There is no check-command question: an existing real check is kept, otherwise an informational placeholder records that real validation is not configured yet (it never counts as passing tests). Setup is committed with a "PTBK: " subject and the task's Task-Name trailer; a new repository starts on main.
 
-After successful setup the agenda starts automatically as a background service (the same operation as \`ptbk start\`); init never waits for the first task. In an interactive terminal a short countdown then opens the ordinary dashboard (Enter opens it at once, Esc/Ctrl+C skips it — the service keeps running either way); raw/noninteractive init returns directly. Stop the service with \`ptbk stop\`. Repeating init with satisfied prerequisites changes nothing and reuses a running service.
+After successful setup the agenda starts automatically as a background service (the same operation as \`ptbk start\`); init never waits for the first task. In an interactive terminal a short countdown then opens the ordinary dashboard (Enter opens it at once, Esc/Ctrl+C skips it — the service keeps running either way); \`--no-dashboard\` and raw/noninteractive init return directly. Stop the service with \`ptbk stop\`. Repeating init with satisfied prerequisites changes nothing and reuses a running service.
 
 Without a terminal (or with --non-interactive), supply decisions with flags: missing decisions fail before any change, and blank intent creates a skeleton whose first task is a readiness review.`,
         optionGroups: [
@@ -171,6 +172,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                 title: 'Automatic background start (startup-only)',
                 options: [
                     { name: 'start', type: 'boolean', negatable: true, negatedOnly: true, description: 'Only prepare the project; do not start the agenda (start it later with `ptbk start`).' },
+                    { name: 'dashboard', type: 'boolean', negatable: true, negatedOnly: true, description: 'Return after the summary instead of the countdown into the project dashboard (interactive terminals only).' },
                     { name: 'persist', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not register restart persistence.' },
                     ...SERVER_OPTIONS.options,
                 ],
@@ -191,15 +193,16 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
     {
         name: 'start',
         category: 'Run the agenda',
-        summary: 'Start (or resume) the ongoing agenda as a background service and report once.',
-        description: `Successful \`ptbk init\` already starts the agenda; use start for an initialized, cloned or intentionally stopped project. It is the ongoing work launcher (there is no separate finite run): it executes eligible tasks one at a time, lets Router choose the agent and concrete MODEL of tasks that do not determine them (also ahead of future tasks), checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon, serves the local dashboard/API on a free loopback port (from 3000) with protected remote access through a managed tunnel, renders one status snapshot and returns the terminal.
+        summary: 'Start (or reuse) the ongoing agenda as a background service, then open its dashboard.',
+        description: `Successful \`ptbk init\` already starts the agenda; use start for an initialized, cloned or intentionally stopped project. It is the ongoing work launcher (there is no separate finite run): it executes eligible tasks one at a time, lets Router choose the agent and concrete MODEL of tasks that do not determine them (also ahead of future tasks), checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon and serves the local dashboard/API on a free loopback port (from 3000) with protected remote access through a managed tunnel. In an interactive terminal it then opens the ordinary project dashboard (the same viewer as \`ptbk dashboard\`; leaving it keeps the daemon running). With \`--no-dashboard\`, \`--raw\`, \`--non-interactive\` or redirected output it renders one status snapshot and returns the terminal.
 
-Missing setup is offered through the same initialization workflow when interactive; unattended starts report what is missing. Repeated start reports the existing service without starting another one. Use \`ptbk dashboard\` to watch it live.`,
+Missing setup is offered through the same initialization workflow when interactive; unattended starts report what is missing. Repeated start never starts another service or changes the running one's configuration or pause: it is start-or-open (the dashboard attaches) or, without a dashboard, one report.`,
         optionGroups: [START_OPTIONS, SERVER_OPTIONS, BROWSER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, { title: 'Context', options: [EXECUTION_SELECTION_OPTIONS.options[4]!] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
             { command: 'ptbk start', description: 'Background agenda with dashboard, tunnel and reboot persistence.' },
             { command: 'ptbk start --no-tunnel', description: 'Local-only dashboard.' },
             { command: 'ptbk start --foreground', description: 'Own the agenda in this terminal with the live dashboard.' },
+            { command: 'ptbk start --no-dashboard', description: 'Start the daemon and return after one status snapshot.' },
             { command: 'ptbk start --raw', description: 'Still a daemon; plain one-shot output.' },
         ],
         run: lazy(() => import('./commands/start.js')),
@@ -253,7 +256,7 @@ Missing setup is offered through the same initialization workflow when interacti
         name: 'restart',
         category: 'Run the agenda',
         summary: 'Gracefully restart the service: drain, release the project, start exactly one replacement.',
-        description: 'The shared engine restart: the service drains like a graceful stop (`stopping` with restart intent), releases ownership, and exactly one replacement starts for the same project with the same effective configuration and installation (a daemon\'s supervisor, or the owning foreground terminal — never turned into a daemon). Newly given flags replace a daemon\'s saved launch overrides. A failed replacement start is reported as a failure; `ptbk resume` cancels a pending restart. Restart is not an intentional permanent stop and never installs an engine update. With no service running it starts the daemon.',
+        description: 'The shared engine restart: the service drains like a graceful stop (`stopping` with restart intent), releases ownership, and exactly one replacement starts for the same project with the same effective configuration and installation (a daemon\'s supervisor, or the owning foreground terminal — never turned into a daemon). Newly given flags replace a daemon\'s saved launch overrides. A failed replacement start is reported as a failure; `ptbk resume` cancels a pending restart. Restart is not an intentional permanent stop and never installs an engine update. With no service running it starts the daemon. In an interactive terminal the replacement\'s dashboard opens afterwards (`--no-dashboard` reports once instead).',
         optionGroups: [{ title: 'Restart', options: [{ name: 'timeout', type: 'duration', valueName: '<duration>', description: 'How long to wait for the current task to settle and the replacement to start.', defaultText: '3m' }] }, START_OPTIONS, SERVER_OPTIONS, BROWSER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [{ command: 'ptbk restart', description: 'Restart with the same settings.' }],
         run: lazy(() => import('./commands/restart.js')),

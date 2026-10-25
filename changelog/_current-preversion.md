@@ -1,5 +1,10 @@
 # Unreleased
 
+## Automatic dashboard handoff
+
+-   In an ordinary interactive terminal, a successful daemon `ptbk start` now opens the project dashboard right after a one-line launch outcome. This also happens when the engine is already running, which makes repeated start a start-or-open that never changes the running engine's configuration or pause. `ptbk restart` opens the replacement's dashboard the same way. It is the same independent viewer as `ptbk dashboard`; leaving it keeps the daemon running.
+-   New `--no-dashboard` for `start`, `restart` and `init` reports once and returns (init skips its countdown). Raw/`--no-ui`, `--non-interactive`, `--json` and redirected output never open the viewer, `--foreground` keeps its own live view, and `pause`, `resume` and `stop` stay one-shot.
+
 ## Health sub-engine and composable pause reasons
 
 -   Every engine now has exactly one Health sub-engine. It samples free disk on the filesystems of the project and `.ptbk/`, available RAM and swap (reported separately, combined as memory available for new work; macOS uses the kernel's memory-pressure level), CPU load per core and basic Internet reachability, every 30 seconds whether or not a dashboard is open. Unsupported measurements are reported as unknown. Each engine samples independently, with no host-wide coordinator.

@@ -54,14 +54,13 @@ import { materializeAttachments, isImagePath } from '../../ui/attachments.js';
 import type { BadgeActivity } from '../../ui/badges.js';
 import { celebrate } from '../../ui/celebration.js';
 import { countdownHandoff } from '../../ui/countdown.js';
-import { runDashboard } from '../../ui/dashboard.js';
 import type { ComposedSegment } from '../../ui/composer.js';
 import { renderPanel } from '../../ui/panels.js';
 import { CANCELLED, composeRich, confirm, inputLine, selectMany, selectOne, toggleList, wasInterrupted, type WizardFrame } from '../../ui/prompts.js';
 import { symbols } from '../../ui/terminal.js';
 import { readStdin, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
-import { controlSource } from '../sources.js';
+import { attachDashboard, wantsDashboardHandoff } from '../dashboard-handoff.js';
 import { liveSnapshot } from '../service-view.js';
 
 /**
@@ -1265,18 +1264,19 @@ export default async function init(context: CommandContext): Promise<number> {
 }
 
 /**
- * Interactive init's handoff: a brief cancellable countdown, then the ordinary independent dashboard attached to the
- * service that was just started or reused (never another start, initialization or worker). Skipping it or later
- * closing the viewer leaves the engine running; raw/noninteractive use returns without it.
+ * Interactive init's automatic handoff: a brief cancellable countdown, then the ordinary independent dashboard attached
+ * to the service that was just started or reused (never another start, initialization or worker). Skipping it or
+ * later closing the viewer leaves the engine running; `--no-dashboard` and raw/no-UI/noninteractive use return
+ * without it.
  */
 async function handOffToDashboard(context: CommandContext, project: Project): Promise<void> {
     const { terminal } = context;
-    if (!terminal.interactive || !terminal.pretty) return;
+    if (!wantsDashboardHandoff(context)) return;
     if ((await countdownHandoff(terminal, { label: 'Opening the dashboard' })) === 'skip') return;
     const lookup = await lookupService(project);
-    if (lookup.state !== 'running' || !lookup.engine.compatible) {
-        terminal.write(`${terminal.style.warning('The dashboard cannot attach right now')}${lookup.state === 'running' ? ' (the service runs another ptbk version)' : ''}; run \`ptbk status\` or \`ptbk dashboard\`.\n`);
+    if (lookup.state !== 'running') {
+        terminal.write(`${terminal.style.warning('The dashboard cannot attach right now')}; run \`ptbk status\` or \`ptbk dashboard\`.\n`);
         return;
     }
-    await runDashboard(terminal, controlSource(lookup.client), { noQr: flag(context, 'qr') === false });
+    await attachDashboard(context, project, lookup);
 }

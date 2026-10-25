@@ -5,6 +5,7 @@ import { runDashboard } from '../../ui/dashboard.js';
 import { runGlobalDashboard } from '../../ui/global-dashboard.js';
 import { selectedProject } from '../common.js';
 import { flag, type CommandContext } from '../context.js';
+import { attachDashboard } from '../dashboard-handoff.js';
 import { delegateToEngine } from '../engine-delegation.js';
 import { controlSource } from '../sources.js';
 
@@ -61,7 +62,5 @@ export default async function dashboard(context: CommandContext): Promise<number
     if (lookup.state === 'unreachable') {
         throw new PtbkError('The recorded ptbk service does not answer.', { kind: 'technical', project: project.root, reason: lookup.reason, next: ['Run `ptbk status` to inspect it, or `ptbk restart`.'] });
     }
-    if (!lookup.engine.compatible) return await delegateToEngine(project, lookup, context.argv, context.cwd, context.env);
-    await runDashboard(context.terminal, controlSource(lookup.client), { noQr: flag(context, 'qr') === false });
-    return EXIT.success;
+    return (await attachDashboard(context, project, lookup, context.argv)) || EXIT.success;
 }

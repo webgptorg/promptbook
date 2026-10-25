@@ -13,6 +13,7 @@ import { runDashboard } from '../../ui/dashboard.js';
 import { confirm } from '../../ui/prompts.js';
 import { browserOverrides, selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
+import { attachDashboard, wantsDashboardHandoff } from '../dashboard-handoff.js';
 import { liveSnapshot, renderServiceResult } from '../service-view.js';
 import { hostSource } from '../sources.js';
 import { initializeProject } from './init.js';
@@ -138,7 +139,16 @@ async function runForeground(context: CommandContext, project: Project, override
 }
 
 /**
- * `ptbk start`: launch the ongoing agenda (daemon by default) and report once.
+ * Writes the bounded launch outcome that precedes the automatic dashboard handoff (the viewer then shows live state).
+ */
+function handoffLine(context: CommandContext, title: string, message: string): void {
+    const { style } = context.terminal;
+    context.terminal.write(`${style.bold(style.success(title))} ${message} ${style.muted('Opening the dashboard (leaving it keeps the service running)…')}\n`);
+}
+
+/**
+ * `ptbk start`: launch the ongoing agenda (daemon by default) or reuse the running one, then, in an ordinary
+ * interactive terminal, open its project dashboard; otherwise report once.
  *
  * @private command
  */
@@ -150,8 +160,13 @@ export default async function start(context: CommandContext): Promise<number> {
     const cliHarnesses = option<string[]>(context, 'harness');
     const existing = await lookupService(project);
     if (existing.state === 'running') {
+        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'daemon', 'dashboard'].includes(name));
+        if (wantsDashboardHandoff(context)) {
+            // Start-or-open: the running engine keeps its state and configuration; only a viewer attaches.
+            handoffLine(context, 'Already running.', `PID ${existing.record.pid}${ignored.length ? `; the new options (${ignored.map((name) => `--${name}`).join(', ')}) were not applied — use \`ptbk restart\`` : ''}.`);
+            return (await attachDashboard(context, project, existing)) || EXIT.success;
+        }
         const snapshot = await liveSnapshot(project, existing);
-        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'daemon'].includes(name));
         await renderServiceResult(context, snapshot, {
             client: existing.client,
             outcome: {
@@ -174,8 +189,12 @@ export default async function start(context: CommandContext): Promise<number> {
     const settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context) });
     const persistent = setting<boolean>(settings, 'service.isPersistent');
     const result = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser: browserOverrides(context), tasksDirectory: tasksOverride(context), persistent, env: context.env });
-    const snapshot = await settledSnapshot(() => liveSnapshot(project, result.lookup));
     const persistence = result.persistence ? ` ${result.persistence.note}` : persistent ? '' : ' Restart persistence is disabled (--no-persist).';
+    if (wantsDashboardHandoff(context)) {
+        handoffLine(context, result.started ? 'Started.' : 'Already running.', `The agenda runs in the background (PID ${result.lookup.record.pid}).${persistence}`);
+        return (await attachDashboard(context, project, result.lookup)) || EXIT.success;
+    }
+    const snapshot = await settledSnapshot(() => liveSnapshot(project, result.lookup));
     await renderServiceResult(context, snapshot, {
         client: result.lookup.client,
         outcome: { title: result.started ? 'Started' : 'Already running', message: `The agenda runs in the background (PID ${snapshot.service.pid}).${persistence}`, tone: 'success' },

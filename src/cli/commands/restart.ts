@@ -5,6 +5,7 @@ import { registerPersistence, unregisterPersistence } from '../../service/persis
 import { readLaunchMetadata } from '../../service/records.js';
 import { browserOverrides, selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
 import { option, type CommandContext } from '../context.js';
+import { attachDashboard, wantsDashboardHandoff } from '../dashboard-handoff.js';
 import { liveSnapshot, renderServiceResult } from '../service-view.js';
 
 /**
@@ -16,13 +17,14 @@ const TUNNEL_SETTLE_MS = 25_000;
  * Explicit options that change a restart's launch configuration (presentation/selection options do not).
  */
 function launchChanges(context: CommandContext): string[] {
-    return [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'json', 'daemon', 'timeout'].includes(name));
+    return [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'json', 'daemon', 'timeout', 'dashboard'].includes(name));
 }
 
 /**
  * `ptbk restart`: the engine's shared restart — drain like a graceful stop (`stopping` with restart intent), release
  * ownership, then exactly one replacement starts with the same project, effective configuration and installation.
- * Newly given flags replace the saved launch overrides of a daemon. Nothing running: starts the daemon.
+ * Newly given flags replace the saved launch overrides of a daemon. Nothing running: starts the daemon. An ordinary
+ * interactive terminal then opens the replacement's dashboard.
  *
  * @private command
  */
@@ -79,6 +81,11 @@ export default async function restart(context: CommandContext): Promise<number> 
         const launched = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser, tasksDirectory, persistent, env: context.env });
         replacement = launched.lookup;
         message = `No service was running; the agenda runs in the background (PID ${launched.lookup.record.pid}).${launched.persistence ? ` ${launched.persistence.note}` : ''}`;
+    }
+    if (wantsDashboardHandoff(context)) {
+        const { style } = context.terminal;
+        context.terminal.write(`${style.bold(style.success('Restarted.'))} ${message} ${style.muted('Opening the dashboard (leaving it keeps the service running)…')}\n`);
+        return (await attachDashboard(context, project, replacement)) || EXIT.success;
     }
     let snapshot = await liveSnapshot(project, replacement);
     const deadline = Date.now() + TUNNEL_SETTLE_MS;

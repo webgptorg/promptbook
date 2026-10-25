@@ -94,6 +94,16 @@ test('contradictory options are diagnosed before any work', async (t) => {
     assert.deepEqual(await readdir(directory), [], 'nothing was created');
 });
 
+test('start, restart and init document their automatic dashboard handoff and its --no-dashboard opt-out', async () => {
+    for (const command of ['start', 'restart', 'init']) {
+        const help = await ptbk([command, '--help', '--raw']);
+        assert.equal(help.code, 0, help.output);
+        assert.match(help.stdout, /--no-dashboard/, `ptbk ${command} --help`);
+    }
+    assert.match((await ptbk(['start', '--help', '--raw'])).stdout, /open(s)? (its|the ordinary project) dashboard/);
+    assert.doesNotMatch((await ptbk(['pause', '--help', '--raw'])).stdout, /--no-dashboard/, 'pause/resume/stop stay one-shot');
+});
+
 test('help, about and version never initialize or touch a project', async (t) => {
     const directory = await temporaryDirectory(t);
     for (const args of [['--raw'], ['about', '--raw'], ['start', '--help'], ['init', 'help'], ['--version']]) {
