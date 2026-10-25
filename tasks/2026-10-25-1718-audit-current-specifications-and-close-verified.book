@@ -1,0 +1,13 @@
+TASK Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34
+GOAL Original owner request (preserve verbatim): "Look at the specs and update the implementation".
+
+Implement this request in /Users/hejny/work/promptbook. Start with AGENTS.md, specs/_main.md and specs/dictionary.md; read only relevant topic specifications as each area is examined. Treat specs/ as intended behavior, not proof of shipped behavior, and use specs/whitepaper.md only as conceptual context with its explicitly long-term directions excluded from current requirements.
+
+Compare the current implementation and existing tests with the current specification contracts. Produce a concise traceable gap inventory recording specification path, observed implementation behavior and code path, existing test evidence, and concrete acceptance outcomes. Check existing agenda work before creating duplicate follow-ups. Select clear, actionable discrepancies and implement small coherent fixes with focused regression coverage; this must deliver implementation changes where verified gaps exist, not stop at an audit report. For independent remaining gaps too large for this pass, save bounded follow-up tasks preserving the original request and linking the relevant specifications. If no gap can be reproduced, report exactly what was inspected and verified without inventing changes.
+
+Preserve the original brief, any linked initial specification and user-provided material. Do not rewrite or weaken requirements to fit existing code, promote long-term ideas into current requirements, invent product preferences, or claim unverified compliance. Seek owner intent only for genuine ambiguous product decisions; continue unambiguous authorized work. Follow existing shared domain logic and JSDoc conventions, including @public/@private on exported src entities. Record every project change in changelog/_current-preversion.md. Run appropriate package.json checks and report exact validation and any unverified limitations. Do not commit changes or write task completion stamps; the Promptbook engine owns checks/commits/completion.
+
+Acceptance: verified discrepancies have specification-to-code-to-regression-test traceability; implemented behavior meets the cited acceptance outcomes; unrelated behavior and existing source material remain preserved; the changelog records changes; remaining gaps and blockers are stated concretely. Report implemented, tested and still-unverified behavior distinctly.
+TASK AGENT @Developer
+TASK ORIGIN chat {Spec-keeper: Look at the specs and update the implementation — 2026-10-25 07:27:20}
+LINK {Spec-keeper: Look at the specs and update the implementation — 2026-10-25 07:27:20}
