@@ -210,3 +210,54 @@ test('force stop ends an unresponsive engine and every execution process it owns
     assert.equal(restarted.code, 0, `an explicit start works after an uncatchable kill:\n${restarted.output}`);
     await ptbk(['stop', '-F', '--raw'], { cwd: project, env });
 });
+
+test('panic force-stops every active engine and its owned execution, keeps them registered as stopped, and never prompts without --yes', async (t) => {
+    const first = await initializedProject(t, { check: CHECK });
+    const second = await initializedProject(t, { check: CHECK });
+    // Both projects belong to one OS user's host registry.
+    const env = { ...first.env, FAKE_CODEX_SLOW_MS: '60000' };
+    const secondEnv = { ...second.env, PTBK_HOME: env.PTBK_HOME };
+    await ptbk(['add', 'Slow work SLOW_WORK', '--agent', 'Developer', '--raw'], { cwd: first.project, env });
+    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: first.project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-server', '--no-persist', '--raw'], { cwd: second.project, env: secondEnv })).code, 0);
+    assert.equal((await ptbk(['pause', '--raw'], { cwd: second.project, env: secondEnv })).code, 0);
+    const busy = await waitFor(async () => {
+        const snapshot = await status(first.project, env);
+        return snapshot.current?.phase === 'executing' ? snapshot : undefined;
+    }, { message: 'the slow task to execute' });
+    const harness = await waitFor(async () => JSON.parse(await readFile(join(first.project, '.ptbk', 'service', 'owned.json'), 'utf8').catch(() => '{"processes":[]}')).processes.find((owned) => /codex/.test(owned.label)), { message: 'the owned harness' });
+    const paused = await status(second.project, secondEnv);
+    assert.ok(['pausing', 'pause'].includes(paused.service.state), 'a paused (or still draining) engine');
+    const unrelated = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' });
+    t.after(() => unrelated.kill('SIGKILL'));
+
+    for (const args of [['panic', '--soft'], ['panic', '--pause'], ['panic', '--path', first.project]]) {
+        const rejected = await ptbk([...args, '--raw'], { cwd: first.directory, env });
+        assert.equal(rejected.code, 2, `${args.join(' ')}: ${rejected.output}`);
+    }
+    const unconfirmed = await ptbk(['panic', '--raw'], { cwd: first.directory, env });
+    assert.equal(unconfirmed.code, 2, unconfirmed.output);
+    assert.match(unconfirmed.output, /--yes/);
+    assert.equal((await status(first.project, env)).service.state, 'running', 'without --yes and without a terminal nothing changes');
+
+    const result = await ptbk(['panic', '--yes', '--raw'], { cwd: first.directory, env, timeoutMs: 90_000 });
+    assert.equal(result.code, 0, result.output);
+    assert.match(result.stdout, /Panic: 2 terminated\./, result.output);
+    assert.equal(alive(busy.service.pid), false);
+    assert.equal(alive(paused.service.pid), false, 'a paused engine is a target too');
+    await waitFor(() => !alive(harness.pid), { timeoutMs: 5000, message: 'the owned harness to end' });
+    assert.equal(alive(unrelated.pid), true, 'unrelated Node processes survive');
+    for (const project of [first.project, second.project]) {
+        assert.equal(JSON.parse(await readFile(join(project, '.ptbk', 'service', 'launch.json'), 'utf8')).intentionallyStopped, true, `${project}: deliberate stop suppresses automatic startup`);
+    }
+    const { readKnownProjects } = await import('../dist/service/known-projects.js');
+    const known = (await readKnownProjects(env)).entries;
+    assert.deepEqual(known.map((entry) => entry.projectRoot).sort(), [first.project, second.project].sort(), 'both stay registered');
+    assert.ok(known.every((entry) => entry.lastRun?.outcome === 'force-stopped'), 'their last run is recorded as force-stopped');
+    const again = await ptbk(['panic', '--yes', '--raw'], { cwd: first.directory, env });
+    assert.equal(again.code, 0, again.output);
+    assert.match(again.stdout, /No active Promptbook engines/, 'no active engines is a successful zero-target result');
+    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: first.project, env })).code, 0, 'an explicit start works again');
+    await ptbk(['stop', '-F', '--raw'], { cwd: first.project, env });
+    for (const project of [first.project, second.project]) assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'panic creates no project commits');
+});

@@ -263,6 +263,31 @@ Missing setup is offered through the same initialization workflow when interacti
         run: lazy(() => import('./commands/restart.js')),
     },
     {
+        name: 'panic',
+        category: 'Run the agenda',
+        summary: 'Emergency: force-stop every active engine on this computer and all their owned execution (confirmed).',
+        description:
+            'Works from any directory, for every accessible Promptbook engine of your OS user across installations and versions (foreground or background, running, pausing, paused or stopping, including a pending restart and engines that no longer answer). It first lists them and asks for one confirmation; `--yes` skips it, and without a terminal `--yes` is required (nothing is prompted or changed otherwise). Each engine ends through the same whole-engine force stop as `ptbk stop --force`: no current task, check or chat turn is waited for, and its harnesses, helpers and engine-owned browser end with it; interrupted work keeps its recovery record and nothing is marked done. Targets come from verified host discovery (never process-name matching), so unrelated Node or browser processes survive, and every target is attempted independently. Each is a deliberate stop: supervisors, pending replacements and reboots do not bring it back, and its project stays listed as stopped in `ptbk dashboard --global` until you start it explicitly. There are no soft or pause variants (the global dashboard has Stop all and Pause all). The result reports each engine as terminated, already ended, unconfirmed or failed; no Git commit is created and no dashboard opens.',
+        optionGroups: [
+            {
+                title: 'Confirmation',
+                options: [
+                    { name: 'yes', type: 'boolean', description: 'Force-stop at once without asking (required without a terminal).' },
+                    { name: 'soft', type: 'boolean', hidden: true, description: 'Unsupported: diagnosed (panic always force-stops).' },
+                    { name: 'pause', type: 'boolean', hidden: true, description: 'Unsupported: diagnosed (panic always force-stops).' },
+                ],
+            },
+            PROJECT_OPTIONS,
+            PRESENTATION_OPTIONS,
+        ],
+        examples: [
+            { command: 'ptbk panic', description: 'List every active engine, confirm, then force-stop them all.' },
+            { command: 'ptbk panic --yes', description: 'Force-stop everything now (scripts and emergencies).' },
+            { command: 'ptbk dashboard --global', description: 'Start them again explicitly (S, or A then S for all).' },
+        ],
+        run: lazy(() => import('./commands/panic.js')),
+    },
+    {
         name: 'dashboard',
         category: 'Observe and respond',
         summary: 'Attach the live home screen and pages to the running service (or --global: every known project).',
