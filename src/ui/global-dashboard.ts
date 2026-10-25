@@ -368,8 +368,8 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
             if (row.key === selected) anchor = table.length;
             table.push(...rowLines(row, width));
         }
-        // A bounded table: the window follows the selected project.
-        const room = Math.max(3, height - lines.length - 3);
+        // A bounded table: the window follows the selected project (the panel borders, legend and feedback line stay).
+        const room = Math.max(3, height - lines.length - 4);
         let start = 0;
         if (table.length > room) {
             start = Math.max(0, Math.min(anchor - 1, table.length - room));
