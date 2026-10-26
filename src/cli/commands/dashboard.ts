@@ -19,7 +19,6 @@ async function globalDashboard(context: CommandContext): Promise<number> {
     for (const name of ['path', 'tasks']) {
         if (context.explicit.has(name)) throw usageError(`--global observes every project; --${name} would select one project.`, 'dashboard', 'Use `ptbk dashboard --path <dir>` for one project, or `ptbk dashboard --global` for all of them.');
     }
-    const noQr = flag(context, 'qr') === false;
     await runGlobalDashboard(
         context.terminal,
         async (row) => {
@@ -30,10 +29,10 @@ async function globalDashboard(context: CommandContext): Promise<number> {
             if (lookup.record.instanceId !== row.engine?.instanceId) return `${row.projectName} is now owned by another engine instance; press Enter again to attach to it.`;
             if (!lookup.engine.compatible) {
                 // Another engine version renders its own dashboard, so the view keeps that engine's version and shape.
-                await delegateToEngine(project, lookup, ['dashboard', '--path', project.root, ...(noQr ? ['--no-qr'] : [])], context.cwd, context.env);
+                await delegateToEngine(project, lookup, ['dashboard', '--path', project.root], context.cwd, context.env);
                 return undefined;
             }
-            await runDashboard(context.terminal, controlSource(lookup.client), { noQr });
+            await runDashboard(context.terminal, controlSource(lookup.client));
             return undefined;
         },
         context.env,

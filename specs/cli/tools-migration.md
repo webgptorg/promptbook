@@ -33,13 +33,11 @@ Apply the [naming contract](../coding-standards/naming.md) to known migrated fie
 | `traces.ignoreVideos` | `traces.isVideoIgnored` |
 | `traces.recordVideo` | `traces.isVideoRecordingEnabled` |
 | `server.enabled` | `server.isEnabled` |
-| `server.tunnel.enabled` | `server.tunnel.isEnabled` |
 | `service.persist` | `service.isPersistent` |
-| `service.qr` | `service.isQrShown` |
 | `discovery.enabled` | `discovery.isEnabled` |
 | `learning.enabled` | `learning.isEnabled` |
 
-Preserve the value, including false, for each such rename. Canonicalize known Promptbook-owned enum values: check-before modes to `NO`/`YES_AND_FAIL`/`YES_AND_FIX`, dirty-work policies to `FAIL`/`IGNORE`/`CONTINUE`, harness-update policies to `AUTO`/`OFF`, tunnel providers to `CLOUDFLARE_QUICK`/`CLOUDFLARE_NAMED`, and engine-defined thinking selectors to `LOW`/`MEDIUM`/`HIGH`/`XHIGH`/`MAX`. Provider-native model/effort identifiers and external strings remain provider data, not invented enums.
+Preserve the value, including false, for each such rename. Canonicalize known Promptbook-owned enum values: check-before modes to `NO`/`YES_AND_FAIL`/`YES_AND_FIX`, dirty-work policies to `FAIL`/`IGNORE`/`CONTINUE`, harness-update policies to `AUTO`/`OFF`, engine-defined thinking selectors to `LOW`/`MEDIUM`/`HIGH`/`XHIGH`/`MAX`. Provider-native model/effort identifiers and external strings remain provider data, not invented enums.
 
 Introduce root-level **`isAutoSync: false`** for migrated projects lacking that explicit new choice. Do not enable synchronization just because `origin` exists or a legacy auto-pull/auto-push option was present. Retire the superseded persisted `execution.autoPull` and `execution.autoPush` fields and record that change in the migration explanation; do not retain two competing sources of synchronization policy. An already explicit canonical `isAutoSync` value survives idempotent recovery.
 

@@ -62,7 +62,7 @@ When autosync is off, omit this dedicated tile/page rather than showing a perman
 
 ## Connection page
 
-Keep connection information secondary on the home screen. The Connection page owns verified local/remote addresses, provider/tunnel state, pairing guidance, QR code and link detail. Long URLs/QR art must not force the dashboard home screen to scroll.
+Keep connection information secondary on the home screen. The Connection page owns the verified local address, HTTP state and link detail. Long URLs must not force the dashboard home screen to scroll.
 
 ## System page
 

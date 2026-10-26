@@ -264,21 +264,12 @@ export type SettingView = {
 };
 
 /**
- * Local HTTP and remote tunnel state.
+ * Local loopback HTTP state.
  *
  * @private shared status view model
  */
 export type ConnectionView = {
     readonly local: { readonly state: 'disabled' | 'starting' | 'ready' | 'failed'; readonly url?: string; readonly port?: number; readonly error?: string };
-    readonly remote: {
-        readonly state: 'disabled' | 'connecting' | 'ready' | 'degraded' | 'failed';
-        readonly provider?: string;
-        readonly url?: string;
-        readonly error?: string;
-        readonly checkedAt?: string;
-    };
-    /** Whether an unused pairing capability exists (never the secret itself). */
-    readonly pairing?: { readonly available: boolean; readonly expiresAt?: string };
 };
 
 /**

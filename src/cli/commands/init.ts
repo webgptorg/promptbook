@@ -1177,9 +1177,8 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
     const running = service?.kind === 'started' || service?.kind === 'reused';
     const snapshot = running ? service.snapshot : undefined;
     const local = snapshot?.connection.local.url;
-    const remote = snapshot?.connection.remote;
     const serviceLine = running
-        ? `${service.kind === 'started' ? 'running in the background' : 'already running (reused)'} (PID ${snapshot!.service.pid})${local ? ` · local ${local}` : ''}${remote && remote.state !== 'disabled' ? ` · remote access ${remote.state}` : ''}${snapshot!.service.commitMode === 'no-commit' ? ' · no-commit mode' : ''}`
+        ? `${service.kind === 'started' ? 'running in the background' : 'already running (reused)'} (PID ${snapshot!.service.pid})${local ? ` · local ${local}` : ''}${snapshot!.service.commitMode === 'no-commit' ? ' · no-commit mode' : ''}`
         : service?.kind === 'failed'
           ? `did not start: ${service.reason}`
           : service?.kind === 'skipped'
@@ -1237,8 +1236,8 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
  */
 export default async function init(context: CommandContext): Promise<number> {
     validateCombinations(context);
-    if (flag(context, 'start') === false && (context.explicit.has('tunnel') || context.explicit.has('port') || context.explicit.has('server'))) {
-        throw usageError('--no-start conflicts with service options (--tunnel/--no-tunnel, --port, --no-server).', 'init');
+    if (flag(context, 'start') === false && (context.explicit.has('port') || context.explicit.has('server'))) {
+        throw usageError('--no-start conflicts with service options (--port, --no-server).', 'init');
     }
     let result: InitResult;
     try {

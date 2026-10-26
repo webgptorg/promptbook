@@ -161,7 +161,7 @@ test('health: a soft health pause stops new claims, composes with a manual pause
     await writeFile(path, `${JSON.stringify(config, null, 4)}\n`);
     await git(project, ['commit', '-q', '-m', 'Fixture health limit', '--', 'ptbk.json']);
     await ptbk(['add', 'Healthy work', '--agent', 'Developer', '--raw'], { cwd: project, env });
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const status = async () => JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
 
     const paused = await waitFor(async () => {

@@ -14,7 +14,7 @@ A known project remains registered after graceful stop, force stop, [panic](pani
 
 Private metadata identifies the canonical project path, selected installation and enough non-secret launch context to use ordinary start again. Live records include verified owner identity, actual loaded version/mode and local control discovery. Label last-run data historical when no owner exists; never show an old PID, endpoint or version as live. The registry is not a task store, credential catalogue or global execution queue. Preserve project configuration, recovery evidence and [startup intent](persistence.md).
 
-Respect OS-user permissions and authentication; state inaccessible coverage honestly. Registration grants no cross-user authority and exposes no tokens, sessions, pairing capabilities or unauthorized content. Local discovery/control works offline and without HTTP or an internet relay. The common discovery/control contract remains interoperable across supported engine versions.
+Respect OS-user permissions and authentication; state inaccessible coverage honestly. Registration grants no cross-user authority and exposes no tokens or unauthorized content. Local discovery/control works offline and without HTTP or an internet relay. The common discovery/control contract remains interoperable across supported engine versions.
 
 Verify process identity before presenting live state or controlling an owner. Distinguish verified `stopped` from unknown/unreachable and from the four live states. Stale records, PID reuse or connection loss cannot authorize control of an unrelated process. Registry reconciliation/removal never substitutes for [project lock cleanup](locking.md).
 

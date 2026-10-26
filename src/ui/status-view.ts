@@ -1,4 +1,3 @@
-import QRCode from 'qrcode';
 import { formatShortTime } from '../common/time.js';
 import { formatMiB } from '../engine/health.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
@@ -58,32 +57,6 @@ const RECENT_RESULTS = 3;
 const RECENT_ACTIVITY = 5;
 
 /**
- * QR code prepared for the connection panel.
- *
- * @private shared status view
- */
-export type PreparedQr = {
-    /** Encoded URL (may contain the pairing secret in its fragment). */
-    readonly url: string;
-    /** Rendered terminal lines. */
-    readonly lines: readonly string[];
-    /** Label describing what the code opens. */
-    readonly label: string;
-    /** Whether it carries a sensitive pairing capability. */
-    readonly sensitive: boolean;
-};
-
-/**
- * Renders a QR code for the terminal (half-block characters).
- *
- * @private shared status view
- */
-export async function renderQr(url: string): Promise<string[]> {
-    const text = await QRCode.toString(url, { type: 'terminal', small: true, errorCorrectionLevel: 'L' });
-    return text.replace(/\n+$/, '').split('\n');
-}
-
-/**
  * Options of the shared status view.
  *
  * @private shared status view
@@ -91,36 +64,12 @@ export async function renderQr(url: string): Promise<string[]> {
 export type StatusViewOptions = {
     /** Operation outcome shown above the status (start/restart/stop). */
     readonly outcome?: { readonly title: string; readonly message?: string; readonly tone: PanelTone };
-    /** Prepared QR (omitted with --no-qr/raw). */
-    readonly qr?: PreparedQr;
-    /** QR suppressed explicitly (`--no-qr`). */
-    readonly noQr?: boolean;
-    /** Pairing link for the trusted local terminal (pretty only; raw never prints it automatically). */
-    readonly pairingUrl?: string;
     /** Next commands. */
     readonly next?: readonly string[];
 };
 
 /**
- * Human label of the remote state.
- */
-function remoteLabel(snapshot: ServiceSnapshot): string {
-    const remote = snapshot.connection.remote;
-    switch (remote.state) {
-        case 'disabled':
-            return snapshot.connection.local.state === 'disabled' ? 'disabled (no HTTP server)' : 'disabled (local only)';
-        case 'connecting':
-            return `connecting via ${remote.provider ?? 'tunnel'}…`;
-        case 'ready':
-            return `ready via ${remote.provider ?? 'tunnel'}`;
-        case 'degraded':
-        case 'failed':
-            return `degraded: ${remote.error ?? 'unavailable'}`;
-    }
-}
-
-/**
- * Renders the snapshot as plain text sections (raw output: no color, borders, QR or pairing secrets).
+ * Renders the snapshot as plain text sections (raw output: no color or borders).
  *
  * @private shared status view
  */
@@ -197,8 +146,6 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     lines.push('', 'CONNECTION');
     const local = snapshot.connection.local;
     lines.push(`Local: ${local.state}${local.url ? ` ${local.url} (same computer only)` : ''}${local.error ? ` (${local.error})` : ''}`);
-    lines.push(`Remote: ${remoteLabel(snapshot)}${snapshot.connection.remote.url ? ` ${snapshot.connection.remote.url}` : ''}`);
-    if (snapshot.connection.pairing) lines.push(`Pairing: ${snapshot.connection.pairing.available ? 'a pairing link is available; print it with `ptbk access pair`' : 'none active; renew with `ptbk access pair --renew`'}`);
     if (options.next?.length) lines.push('', `Next: ${options.next.join(' · ')}`);
     return `${lines.join('\n')}\n`;
 }
@@ -344,18 +291,8 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         };
         const lines: string[] = [];
         const local = snapshot.connection.local;
-        const remote = snapshot.connection.remote;
-        if (remote.state === 'ready' && remote.url) lines.push(`${style.success('Remote')} ${style.muted(`ready via ${remote.provider}; relay sees traffic`)}`, ...breakLink(remote.url, '  ').map((line) => style.bold(line)));
-        else lines.push(`${remote.state === 'disabled' ? style.muted('Remote') : style.warning('Remote')} ${remoteLabel(snapshot)}`);
         if (local.url) lines.push(`${local.state === 'ready' ? style.success('Local') : style.muted('Local')} ${style.muted('(this computer only)')}`, ...breakLink(local.url, '  '));
         else lines.push(`${style.muted('Local')} ${local.state}${local.error ? `: ${local.error}` : ''}`);
-        if (options.qr) {
-            if (Math.max(...options.qr.lines.map((line) => stringWidth(line))) > inner) lines.push(style.warning('The terminal is too narrow for a scannable QR code; use the link above.'));
-            else lines.push('', style.muted(options.qr.label), ...options.qr.lines);
-            if (options.qr.sensitive) lines.push(style.warning('Single-use pairing code, valid 10 min.'), style.warning('Do not share it.'));
-        } else if (options.noQr) lines.push(style.muted('QR hidden (--no-qr).'));
-        if (options.pairingUrl) lines.push(style.muted(remote.state === 'ready' ? 'Pairing link (secret, single use):' : 'Pairing link (this computer only):'), ...breakLink(options.pairingUrl, '  '));
-        else if (snapshot.connection.pairing && !snapshot.connection.pairing.available && local.state === 'ready') lines.push(style.muted('No active pairing link'), style.muted('  ptbk access pair --renew'));
         return lines;
     };
 
@@ -364,8 +301,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     const syncPanel = (width: number): string[] => (snapshot.sync ? renderPanel({ title: 'Synchronization', titleRight: 'Git', lines: syncCompactLines(snapshot.sync, style), width, tone: ['failed', 'conflict'].includes(snapshot.sync.state) ? 'attention' : 'default', unicode, style }) : []);
 
     if (total >= WIDE_SNAPSHOT) {
-        const qrWidth = options.qr ? Math.max(...options.qr.lines.map((line) => stringWidth(line))) + 4 : 0;
-        const rightWidth = Math.max(Math.round(total * CONNECTION_SHARE), Math.min(qrWidth, Math.round(total / 2)));
+        const rightWidth = Math.round(total * CONNECTION_SHARE);
         const leftWidth = total - rightWidth - 1;
         const left = [...renderPanel({ title: 'Current work', lines: work, width: leftWidth, tone: current ? 'accent' : 'default', unicode, style }), ...toolsPanel(leftWidth)];
         const sync = syncPanel(rightWidth);

@@ -339,9 +339,8 @@ async function waitUntil(condition: () => boolean, timeoutMs: number): Promise<b
  * The deliberate stop is recorded first, so neither a supervisor, a pending restart replacement, startup registration
  * nor a reboot undoes it. The engine is asked to force-stop itself (bounded request; its own cleanup releases its
  * records and lock); an engine that does not answer, or does not end within the grace, is killed after its PID is
- * verified against the recorded start, then its supervisor, the recorded owned processes (harnesses, helpers, browser,
- * tunnel) and a replacement already started by that supervisor. Unrelated processes, other projects and a successor's
- * lock are never touched; an owner that cannot be verified is reported, not killed. Interrupted work keeps its
+ * verified against the recorded start, then its supervisor, the recorded owned processes (harnesses, helpers, browser)
+ * and a replacement already started by that supervisor. Unrelated processes, other projects and a successor's lock are never touched; an owner that cannot be verified is reported, not killed. Interrupted work keeps its
  * recovery record. No project file is committed.
  *
  * @private daemon launcher

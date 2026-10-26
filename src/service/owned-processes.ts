@@ -7,7 +7,7 @@ import type { Project } from '../project/workspace.js';
 
 /**
  * One execution process an engine started: a harness, check, Git or helper command, an engine-owned browser or the
- * tunnel client.
+ * other execution helpers.
  *
  * @private owned processes
  */

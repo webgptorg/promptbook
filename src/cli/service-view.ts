@@ -6,9 +6,8 @@ import { setting } from '../project/config.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import { StateStore } from '../engine/state.js';
 import type { ControlClient, ServiceLookup } from '../service/control.js';
-import { publicSnapshot } from '../service/http.js';
 import type { PanelTone } from '../ui/panels.js';
-import { renderQr, renderStatus, type PreparedQr } from '../ui/status-view.js';
+import { renderStatus } from '../ui/status-view.js';
 import { flag, type CommandContext } from './context.js';
 import { printJson } from './common.js';
 
@@ -53,7 +52,7 @@ export async function stoppedSnapshot(project: Project): Promise<ServiceSnapshot
         agents: [],
         harnesses: [],
         settings: [],
-        connection: { local: { state: 'disabled' }, remote: { state: 'disabled' } },
+        connection: { local: { state: 'disabled' } },
     };
 }
 
@@ -94,24 +93,6 @@ export async function liveSnapshot(project: Project, lookup: Extract<ServiceLook
 }
 
 /**
- * Prepares the QR for a trusted local terminal: the existing pairing link (never minted here), otherwise the
- * verified public URL. A loopback address is never presented as mobile access.
- *
- * @private service views
- */
-export async function prepareConnectionQr(snapshot: ServiceSnapshot, client: ControlClient | undefined, noQr: boolean): Promise<{ qr?: PreparedQr; pairingUrl?: string }> {
-    if (noQr || !client) return {};
-    const remote = snapshot.connection.remote;
-    let pairing: { available: boolean; url?: string; remote?: boolean } = { available: false };
-    if (snapshot.connection.pairing?.available) pairing = await client.request<typeof pairing>('pairing', { renew: false }).catch(() => ({ available: false }));
-    if (pairing.available && pairing.url && pairing.remote) {
-        return { qr: { url: pairing.url, lines: await renderQr(pairing.url), label: 'Scan to pair a phone (protected remote access):', sensitive: true } };
-    }
-    if (remote.state === 'ready' && remote.url) return { qr: { url: remote.url, lines: await renderQr(remote.url), label: 'Remote dashboard (pairing required):', sensitive: false }, pairingUrl: pairing.url };
-    return { pairingUrl: pairing.available ? pairing.url : undefined };
-}
-
-/**
  * Renders a one-shot service result (status, start, restart, stop) in the invocation's presentation.
  *
  * @private service views
@@ -122,17 +103,12 @@ export async function renderServiceResult(
     options: { client?: ControlClient; outcome?: { title: string; message?: string; tone: PanelTone }; next?: string[] } = {},
 ): Promise<void> {
     if (flag(context, 'json')) {
-        printJson(publicSnapshot(snapshot));
+        printJson(snapshot);
         return;
     }
-    const noQr = flag(context, 'qr') === false || snapshot.service.state === 'stopped';
-    const prepared = context.terminal.pretty ? await prepareConnectionQr(snapshot, options.client, noQr) : {};
     context.terminal.write(
         renderStatus(snapshot, context.terminal, {
             outcome: options.outcome,
-            qr: prepared.qr,
-            noQr: flag(context, 'qr') === false,
-            pairingUrl: prepared.qr?.sensitive ? undefined : prepared.pairingUrl,
             next: options.next,
         }),
     );

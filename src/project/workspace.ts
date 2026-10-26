@@ -35,8 +35,6 @@ export type RuntimePaths = {
     readonly traces: string;
     /** Diagnostics outside tasks. */
     readonly logs: string;
-    /** Pairing/session/API credentials (access-controlled). */
-    readonly auth: string;
     /** Default isolated browser profile. */
     readonly browserProfile: string;
     /** Short-lived scratch files. */
@@ -90,7 +88,6 @@ export function runtimePaths(root: string): RuntimePaths {
         requests: join(runtime, 'requests'),
         traces: join(runtime, 'traces'),
         logs: join(runtime, 'logs'),
-        auth: join(runtime, 'auth'),
         browserProfile: join(runtime, 'browser', 'profile'),
         temporary: join(runtime, 'tmp'),
         lock: join(runtime, 'lock.json'),

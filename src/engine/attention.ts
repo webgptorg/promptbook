@@ -43,8 +43,8 @@ function attentionOf(snapshot: Omit<ServiceSnapshot, 'attention'>, domain: Dashb
             return error ? { key: `${error.at}:${error.summary}`, tone: 'warning' } : undefined;
         }
         case 'connection': {
-            const remote = snapshot.connection.remote;
-            return remote.state === 'failed' || remote.state === 'degraded' ? { key: `${remote.state}:${remote.error ?? ''}`, tone: 'warning' } : undefined;
+            const local = snapshot.connection.local;
+            return local.state === 'failed' ? { key: `${local.state}:${local.error ?? ''}`, tone: 'warning' } : undefined;
         }
         case 'sync':
             return snapshot.sync && ['failed', 'conflict'].includes(snapshot.sync.state) ? { key: `${snapshot.sync.state}:${snapshot.sync.reason ?? ''}`, tone: snapshot.sync.state === 'conflict' ? 'error' : 'warning' } : undefined;

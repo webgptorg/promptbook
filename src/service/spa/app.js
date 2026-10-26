@@ -17,7 +17,6 @@
         drafts: new Map(),
         showMoreHarnesses: false,
         busy: new Set(),
-        qrFor: null,
         frame: 0,
         /** Open chat: its name, loaded messages and the message count they reflect. */
         chat: null,
@@ -78,13 +77,13 @@
         return element;
     }
 
-    /** Calls the API with the session cookie and CSRF header. */
+    /** Calls the local API with the in-memory browser capability. */
     async function api(path, options = {}) {
         const response = await fetch(path, {
             method: options.method || 'GET',
             credentials: 'same-origin',
             cache: 'no-store',
-            headers: { 'Content-Type': 'application/json', ...(state.csrf ? { 'X-PTBK-CSRF': state.csrf } : {}) },
+            headers: { 'Content-Type': 'application/json', 'X-PTBK-Client': 'dashboard', ...(state.csrf ? { 'X-PTBK-CSRF': state.csrf } : {}) },
             body: options.body ? JSON.stringify(options.body) : undefined,
         });
         const data = await response.json().catch(() => ({}));
@@ -959,32 +958,16 @@
         return card;
     }
 
+    /** Local HTTP connection details; opening this viewer never starts an engine. */
     function renderConnection(snapshot) {
-        const card = h('section', { className: 'card connection', 'aria-label': 'Connection' });
-        card.append(h('h2', {}, 'Connection'));
-        const { local, remote } = snapshot.connection;
-        const remoteTone = remote.state === 'ready' ? 'ok' : remote.state === 'disabled' ? '' : remote.state === 'connecting' ? 'warn' : 'bad';
-        const rows = [
-            [h('dt', {}, 'Remote'), h('dd', {}, pill(remote.state, remoteTone), remote.provider ? ` ${remote.provider}` : '', remote.url ? h('div', {}, h('a', { href: remote.url, rel: 'noreferrer' }, remote.url)) : null, remote.error ? h('div', { className: 'muted' }, remote.error) : null)],
-            [h('dt', {}, 'Local'), h('dd', {}, pill(local.state, local.state === 'ready' ? 'ok' : ''), local.url ? h('div', {}, local.url, h('span', { className: 'muted' }, ' (same computer only)')) : null)],
-        ];
-        card.append(h('dl', { className: 'kv' }, rows));
-        if (remote.state === 'ready' && remote.url) {
-            if (state.qrFor !== remote.url) state.qrFor = remote.url;
-            card.append(h('div', { className: 'qr' }, h('img', { src: `/api/qr?v=${encodeURIComponent(remote.url)}`, alt: `QR code of ${remote.url}` }), h('div', { className: 'muted' }, 'Opens this dashboard; new devices still need a pairing link from the local terminal.')));
-        } else if (remote.state !== 'disabled') {
-            card.append(h('p', { className: 'muted' }, 'Remote access is not ready; local access keeps working.'));
-        }
-        card.append(h('p', { className: 'muted' }, 'The tunnel provider relays traffic; HTTPS does not hide content from the relay. Pairing links are shown only in the local terminal (ptbk access pair).'));
-        card.append(
-            h('button', {
-                onclick: async () => {
-                    await api('/api/logout', { method: 'POST' }).catch(() => undefined);
-                    location.reload();
-                },
-            }, 'Sign out this device'),
-        );
-        return card;
+        const { local } = snapshot.connection;
+        return h('section', { className: 'card connection', 'aria-label': 'Connection' },
+            h('h2', {}, 'Connection'),
+            h('dl', { className: 'kv' }, h('dt', {}, 'Local'), h('dd', {},
+                pill(local.state, local.state === 'ready' ? 'ok' : ''),
+                local.url ? h('div', {}, h('a', { href: local.url }, local.url)) : null,
+                local.error ? h('div', { className: 'muted' }, local.error) : null)),
+            h('p', { className: 'muted' }, 'Available on this computer only.'));
     }
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
@@ -1121,8 +1104,8 @@
                 return [`✔ ${snapshot.results.completed} completed · ✖ ${snapshot.results.failed} failed`, last ? h('span', { className: 'muted' }, last.title) : null, error ? h('span', { className: 'warn' }, `Last error: ${error.summary}`) : null];
             }
             case 'connection': {
-                const { local, remote } = snapshot.connection;
-                return [remote.state === 'ready' ? h('strong', { className: 'ok' }, 'Remote ready') : remote.state === 'disabled' ? 'Local only' : h('strong', { className: 'warn' }, `Remote ${remote.state}`), local.url ? h('span', { className: 'muted' }, local.url.replace(/^https?:\/\//, '').replace(/\/$/, '')) : null];
+                const { local } = snapshot.connection;
+                return [local.state === 'ready' ? h('strong', { className: 'ok' }, 'Local only') : `HTTP ${local.state}`, local.url ? h('span', { className: 'muted' }, local.url.replace(/^https?:\/\//, '').replace(/\/$/, '')) : null];
             }
             case 'sync': {
                 const sync = snapshot.sync;
@@ -1604,7 +1587,7 @@
             case 'results':
                 return pageFrame('results', 'Outcomes of this session and the bounded runtime activity log', renderActivity(snapshot));
             case 'connection':
-                return pageFrame('connection', 'Verified local and remote dashboard access', renderConnection(snapshot));
+                return pageFrame('connection', 'Local dashboard access on this computer', renderConnection(snapshot));
             case 'sync':
                 return pageFrame('sync', 'Git autosync through the engine’s one coordinator', renderSync(snapshot));
             default:
@@ -1649,19 +1632,10 @@
         document.title = `${snapshot.chats.waiting.length ? `(${snapshot.chats.waiting.length}) ` : ''}PTBK · ${snapshot.project.name}`;
     }
 
-    /** Pairing screen for unauthenticated visitors (no project data). */
-    function showPairing(message) {
-        headerStatus.textContent = 'Not paired';
-        app.replaceChildren(
-            h(
-                'section',
-                { className: 'card pairing' },
-                h('h2', {}, 'Pair this device'),
-                h('p', {}, 'This project dashboard is protected. Open the pairing link or scan the QR code shown in the local terminal (`ptbk status`, `ptbk dashboard` or `ptbk access pair`).'),
-                message ? h('div', { className: 'notice error' }, message) : null,
-                h('p', { className: 'muted' }, 'Pairing links are single-use and expire after 10 minutes.'),
-            ),
-        );
+    /** Displays a local connection failure without claiming fresh state. */
+    function showConnectionError(message) {
+        headerStatus.textContent = 'Disconnected';
+        app.replaceChildren(h('section', { className: 'card' }, h('h2', {}, 'Local dashboard unavailable'), h('p', {}, message)));
     }
 
     /** Long-polling loop with honest disconnection state. */
@@ -1690,7 +1664,7 @@
                 }
             } catch (error) {
                 if (error.status === 401) {
-                    showPairing('Your session ended or was revoked.');
+                    showConnectionError('The engine restarted. Reload this local dashboard to reconnect.');
                     return;
                 }
                 state.connected = false;
@@ -1702,29 +1676,13 @@
         }
     }
 
-    /** Boot: redeem a pairing fragment, then load the session. */
+    /** Boot the direct local browser client, then load live state. */
     async function boot() {
-        const fragment = new URLSearchParams(location.hash.slice(1));
-        const code = fragment.get('pair');
-        if (code) {
-            history.replaceState(null, '', location.pathname + location.search);
-            try {
-                const result = await api('/api/pair', { method: 'POST', body: { code } });
-                state.csrf = result.csrf;
-            } catch (error) {
-                showPairing(error.message);
-                return;
-            }
-        }
         try {
             const session = await api('/api/session');
-            if (!session.authenticated) {
-                showPairing();
-                return;
-            }
-            state.csrf = session.csrf || state.csrf;
+            state.csrf = session.csrf;
         } catch (error) {
-            showPairing(error.message);
+            showConnectionError(error.message);
             return;
         }
         // Viewer-local navigation: the URL fragment names the open page, so browser Back returns home.

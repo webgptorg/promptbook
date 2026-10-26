@@ -38,7 +38,7 @@ function snapshot(change = {}) {
         agents: [{ name: 'Developer', key: 'developer', activity: 'working', face: '', gesture: '', hue: 0 }, { name: 'Expert', key: 'expert', activity: 'idle', face: '', gesture: '', hue: 0, role: 'engine' }],
         harnesses: [],
         settings: [],
-        connection: { local: { state: 'ready', url: 'http://127.0.0.1:3000/' }, remote: { state: 'ready', url: `https://${'x'.repeat(120)}.trycloudflare.com/`, provider: 'cloudflare-quick' } },
+        connection: { local: { state: 'ready', url: 'http://127.0.0.1:3000/' } },
         ...change,
     };
 }
@@ -114,7 +114,7 @@ test('focus is a double-line border and bold heading that never changes tile geo
 
 test('pages replace the home grid, keep context and legend fixed and scroll their body', () => {
     const page = pageForTile('results');
-    const context = { snapshot: snapshot(), terminal: terminal(80, 24), frame: 0, noQr: true, owning: false };
+    const context = { snapshot: snapshot(), terminal: terminal(80, 24), frame: 0, owning: false };
     const built = pageBody(page, context);
     const rendered = renderPage(context.snapshot, context.terminal, { ...built, scroll: page.scroll, attention: 0 });
     assert.equal(rendered.lines.length, 24);
@@ -172,7 +172,7 @@ test('the Wallet tile and page show readiness, requests and labels with the comm
     const home = renderHome(view, terminal(120, 30), { focus: 'wallet', attention: new Map(), frame: 0, legend: ' Q leave' }).map(stripAnsi).join('\n');
     assert.match(home, /1 saved login · 1 login request/);
     assert.match(home, /login for news\.example/);
-    const context = { snapshot: view, terminal: terminal(120, 30), frame: 0, noQr: true, owning: false };
+    const context = { snapshot: view, terminal: terminal(120, 30), frame: 0, owning: false };
     const page = pageBody(pageForTile('wallet'), context);
     const text = page.body.map(stripAnsi).join('\n');
     assert.match(text, /https:\/\/news\.example · no saved login · for Weekly update/);

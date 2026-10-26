@@ -129,7 +129,7 @@ export const PRESENTATION_OPTIONS: OptionGroup = {
     title: 'Presentation and input',
     shared: true,
     options: [
-        { name: 'raw', type: 'boolean', description: 'Plain output: no color, layout, cursor control, QR art or prompts.', defaultText: 'automatic when redirected' },
+        { name: 'raw', type: 'boolean', description: 'Plain output: no color, layout, cursor control or prompts.', defaultText: 'automatic when redirected' },
         { name: 'no-ui', type: 'boolean', description: 'Same as --raw.', hidden: false },
         { name: 'interactive', type: 'boolean', description: 'Request terminal interaction appropriate to the command.' },
         { name: 'non-interactive', type: 'boolean', description: 'Forbid terminal questions; supply decisions with flags.' },
@@ -201,18 +201,15 @@ export const EXECUTION_POLICY_OPTIONS: OptionGroup = {
 };
 
 /**
- * HTTP, tunnel and QR options.
+ * Local HTTP server options.
  *
  * @private CLI specification
  */
 export const SERVER_OPTIONS: OptionGroup = {
-    title: 'Dashboard server and remote access (startup-only)',
+    title: 'Local dashboard server (startup-only)',
     options: [
-        { name: 'server', type: 'boolean', negatable: true, description: 'Serve the local HTTP API and browser dashboard (--no-server disables HTTP and the tunnel).', defaultText: 'on' },
+        { name: 'server', type: 'boolean', negatable: true, description: 'Serve the local HTTP API and browser dashboard (--no-server disables HTTP).', defaultText: 'on' },
         { name: 'port', type: 'integer', valueName: '<port>', description: 'Local port (loopback only).', defaultText: 'first free from 3000' },
-        { name: 'tunnel', type: 'boolean', negatable: true, description: 'Protected remote tunnel for phone access (--no-tunnel keeps access local).', defaultText: 'on with HTTP' },
-        { name: 'tunnel-provider', type: 'enum', values: ['cloudflare-quick', 'cloudflare-named'], valueName: '<provider>', description: 'Tunnel provider.', defaultText: 'cloudflare-quick' },
-        { name: 'qr', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not print QR codes (HTTP and remote access stay as configured).' },
     ],
 };
 

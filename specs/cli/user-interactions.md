@@ -8,7 +8,7 @@ Human involvement follows the [engine's minimal-interruption principle](../conce
 
 ## Attention and state
 
-Waiting-for-user chats are the **highest-priority** dashboard attention content, with pending count, affected work, agent author, reason and a direct open-chat action visible without scrolling. Unread chats are also shown distinctly, but unread alone does not mean blocked. List **all chats** through an explicit view; no special Fixer category or separate request pane is necessary. Narrow screens retain actionable content above routine queue, QR and activity. Opening/read markers never resolve the underlying condition or commit a synthetic answer.
+Waiting-for-user chats are the **highest-priority** dashboard attention content, with pending count, affected work, agent author, reason and a direct open-chat action visible without scrolling. Unread chats are also shown distinctly, but unread alone does not mean blocked. List **all chats** through an explicit view; no special Fixer category or separate request pane is necessary. Narrow screens retain actionable content above routine queue and activity. Opening/read markers never resolve the underlying condition or commit a synthetic answer.
 
 Status snapshots and raw output give a usable chat name/ref and `ptbk chat` / `ptbk answer` guidance without waiting on stdin. Terminal `A` opens the relevant existing conversation; browser and authenticated API use the same messages and action state. Live updates do not steal focus or discard drafts. Each accepted answer is saved once and immediately clears that question's attention before agent acceptance/Git batching. Other pending questions retain their state.
 

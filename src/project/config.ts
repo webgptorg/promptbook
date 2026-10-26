@@ -6,7 +6,7 @@ import { systemTimeZone } from '../common/time.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { HARNESS_VARIANTS, THINKING_LEVELS, enabledToolsOf, harnessPluginId, harnessVariantOf, type BrowserToolRecord, type HarnessToolRecord, type ProfileSource, type ThinkingLevel, type ToolRecord } from '../tools/model.js';
 import { parseTools, type ConfigCorrection, type ConfigProblem } from '../tools/normalize.js';
-import { applyConfigurationMigration, planConfigurationMigration, type MigrationPlan } from './migrations.js';
+import { applyConfigurationMigration, planConfigurationMigration, retireRemoteDashboardSettings, type MigrationPlan } from './migrations.js';
 import type { Project } from './workspace.js';
 
 export { THINKING_LEVELS, type ThinkingLevel };
@@ -112,22 +112,8 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
     { key: 'traces.isVideoRecordingEnabled', type: 'boolean', default: true, description: 'Record attributable activity of browser tools used by tasks.', application: 'next-task' },
     { key: 'server.isEnabled', type: 'boolean', default: true, description: 'Serve the local HTTP API and browser dashboard.', application: 'restart' },
     { key: 'server.port', type: 'port', default: undefined, description: 'Local HTTP port (automatic from 3000 when omitted).', application: 'restart' },
-    { key: 'server.tunnel.isEnabled', type: 'boolean', default: true, description: 'Protected remote tunnel when HTTP runs.', application: 'restart' },
-    {
-        key: 'server.tunnel.provider',
-        type: 'enum',
-        values: ['cloudflare-quick', 'cloudflare-named'],
-        default: 'cloudflare-quick',
-        description: 'Tunnel provider.',
-        application: 'restart',
-    },
-    { key: 'server.tunnel.hostname', type: 'string', default: undefined, description: 'Hostname of a named tunnel.', application: 'restart' },
-    { key: 'server.tunnel.name', type: 'string', default: undefined, description: 'Named tunnel name or UUID.', application: 'restart' },
-    { key: 'server.tunnel.credentialsFile', type: 'string', default: undefined, description: 'Path to named-tunnel credentials (reference, not content).', application: 'restart' },
-    { key: 'server.tunnel.tokenEnv', type: 'string', default: undefined, description: 'Environment variable holding a named-tunnel token.', application: 'restart' },
     { key: 'service.isPersistent', type: 'boolean', default: true, description: 'Restart automatically after crashes and reboots.', application: 'restart' },
     { key: 'service.harnessUpdates', type: 'enum', values: ['auto', 'off'], default: 'auto', description: 'Automatic harness updates.', application: 'live' },
-    { key: 'service.isQrShown', type: 'boolean', default: true, description: 'Show QR codes.', application: 'live' },
     { key: 'discovery.isEnabled', type: 'boolean', default: true, description: 'Goal discovery when the backlog is empty.', application: 'live' },
     { key: 'discovery.cooldown', type: 'duration', default: 6 * 3_600_000, description: 'Wait after a no-work enquiry.', application: 'live' },
     { key: 'learning.isEnabled', type: 'boolean', default: true, description: 'Teacher follow-ups for open agents.', application: 'next-task' },
@@ -400,7 +386,7 @@ export type CanonicalConfig = {
  */
 export function canonicalizeConfig(input: Readonly<Record<string, unknown>>): CanonicalConfig {
     const raw = structuredClone(input) as Record<string, unknown>;
-    const corrections: ConfigCorrection[] = [];
+    const corrections: ConfigCorrection[] = retireRemoteDashboardSettings(raw).map((location) => ({ location, from: 'obsolete setting', to: 'removed' }));
     const problems: ConfigProblem[] = [];
     const known = knownKeysByPath();
     const walk = (object: Record<string, unknown>, path: string): void => {
@@ -613,7 +599,6 @@ export function resolveSettings(layers: SettingsLayers): EffectiveSettings {
     let tools = [...parsedTools.tools];
     if (layers.cliHarnesses?.length) tools = restrictHarnesses(tools, layers.cliHarnesses, diagnostics, overridden);
     if (layers.cliBrowser) tools = overrideBrowser(tools, layers.cliBrowser, diagnostics, overridden);
-    if (values['server.isEnabled'] === false && sources['server.tunnel.isEnabled'] !== 'cli') values['server.tunnel.isEnabled'] = false;
     return { values, sources, tools, overriddenTools: overridden, diagnostics };
 }
 

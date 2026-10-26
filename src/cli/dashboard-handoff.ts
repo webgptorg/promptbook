@@ -24,8 +24,7 @@ export function wantsDashboardHandoff(context: CommandContext): boolean {
  * @private dashboard handoff
  */
 export async function attachDashboard(context: CommandContext, project: Project, lookup: Extract<ServiceLookup, { state: 'running' }>, args: readonly string[] = ['dashboard', '--path', project.root]): Promise<number> {
-    const noQr = flag(context, 'qr') === false;
-    if (!lookup.engine.compatible) return await delegateToEngine(project, lookup, [...args, ...(noQr && !args.includes('--no-qr') ? ['--no-qr'] : [])], context.cwd, context.env);
-    await runDashboard(context.terminal, controlSource(lookup.client), { noQr });
+    if (!lookup.engine.compatible) return await delegateToEngine(project, lookup, args, context.cwd, context.env);
+    await runDashboard(context.terminal, controlSource(lookup.client));
     return 0;
 }

@@ -55,9 +55,9 @@ test('scoped help forms are equivalent and only describe that command', async ()
     const start = await ptbk(['start', '--help', '--raw']);
     assert.match(start.stdout, /--foreground/);
     assert.doesNotMatch(start.stdout, /--installation/);
-    const nested = await ptbk(['help', 'access', 'pair', '--raw']);
-    assert.match(nested.stdout, /ptbk access pair/);
-    assert.match(nested.stdout, /--renew/);
+    const nested = await ptbk(['help', 'tool', 'list', '--raw']);
+    assert.match(nested.stdout, /ptbk tool list/);
+    assert.match(nested.stdout, /--json/);
 });
 
 test('unknown commands, paths and options fail with scoped guidance (never silently ignored)', async () => {
@@ -76,7 +76,6 @@ test('contradictory options are diagnosed before any work', async (t) => {
     const directory = await temporaryDirectory(t);
     const cases = [
         [['start', '--daemon', '--foreground'], /mutually exclusive/],
-        [['start', '--tunnel', '--no-server'], /conflicts with --no-server/],
         [['start', '--isolate', '--no-commit'], /--isolate is no longer supported/],
         [['start', '--no-commit', '--auto-push'], /conflicts with automatic synchronization/],
         [['start', '--no-commit', '--auto-sync'], /conflicts with automatic synchronization/],
@@ -130,4 +129,17 @@ test('bare picker: exactly two choices — the focused action of the directory s
         assert.deepEqual(labels({ kind: 'live', project: stopped.project, version: version, state }), ['Open dashboard', 'Open help'], `${state} is a live engine: dashboard, never another start or restart`);
     }
     assert.deepEqual((await readdir(directory)).sort(), ['notes.txt', 'ptbk.json'], 'inspecting the directory changes nothing');
+});
+test('remote dashboard commands and options are removed from help and rejected before startup', async (t) => {
+    const directory = await temporaryDirectory(t);
+    for (const command of ['', 'init', 'start', 'restart', 'dashboard', 'status', 'show']) {
+        const help = await ptbk([...(command ? [command] : []), '--help', '--raw']);
+        assert.equal(help.code, 0, help.output);
+        assert.doesNotMatch(help.stdout, /--(?:no-)?tunnel|--tunnel-provider|--no-qr|renew pairing|managed tunnel|QR art/);
+    }
+    for (const args of [['start', '--tunnel'], ['start', '--no-tunnel'], ['init', '--tunnel-provider', 'cloudflare-quick'], ['dashboard', '--no-qr'], ['access', 'pair'], ['access', 'devices'], ['access', 'token', 'old']]) {
+        const result = await ptbk([...args, '--raw'], { cwd: directory });
+        assert.equal(result.code, 2, `${args.join(' ')}: ${result.output}`);
+        assert.match(result.stderr, /Unknown (?:option|command)/);
+    }
 });

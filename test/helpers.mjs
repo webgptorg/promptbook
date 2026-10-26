@@ -150,7 +150,7 @@ export async function initializedProject(t, options = {}) {
     }
     const args = ['init', '--path', project, '--non-interactive', '--installation', 'global', '--harness', 'openai-codex', '--raw'];
     if (options.check) args.push('--check', 'node check.mjs');
-    args.push(...(options.start ? ['--no-tunnel', '--no-persist'] : ['--no-start']), ...(options.initArgs ?? []));
+    args.push(...(options.start ? ['--no-persist'] : ['--no-start']), ...(options.initArgs ?? []));
     const result = await ptbk(args, { cwd: directory, env: harness.env });
     if (![0, 3].includes(result.code)) throw new Error(`init failed (${result.code}):\n${result.output}`);
     // Fixtures drive the ongoing engine until their work is done; goal discovery would add unrelated enquiries.

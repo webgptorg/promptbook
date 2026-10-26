@@ -267,12 +267,12 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
             ];
         }
         case 'connection': {
-            const { local, remote } = snapshot.connection;
+            const { local } = snapshot.connection;
             const host = local.url ? local.url.replace(/^https?:\/\//, '').replace(/\/$/, '') : undefined;
             return [
-                remote.state === 'ready' ? style.success(`Remote ready${remote.provider ? ` via ${remote.provider}` : ''}`) : remote.state === 'disabled' ? style.muted(local.state === 'disabled' ? 'No HTTP server' : 'Local only') : style.warning(`Remote ${remote.state}`),
+                local.state === 'ready' ? style.success('Local only') : style.muted(`HTTP ${local.state}`),
                 ...(host ? [style.muted(`local ${host}`)] : []),
-                style.muted(snapshot.connection.pairing?.available ? 'pairing link ready · Enter for QR' : 'Enter: links, QR, pairing'),
+                style.muted('Enter: local connection details'),
             ];
         }
         case 'sync': {

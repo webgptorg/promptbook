@@ -11,14 +11,12 @@ import { browserTools } from '../browser/agent-tools.js';
 import { BrowserFleet } from '../browser/fleet.js';
 import { describeProfileSource } from '../tools/model.js';
 import { WALLET_ACTIONS, applyChatAction, applyControlAction, applySettings, applyToolAction, applyWalletAction, type BrowserControls } from './actions.js';
-import { AuthStore } from './auth.js';
 import { CONTROL_CONTRACT, startControlServer } from './control.js';
 import { registerEngine, summaryOfSnapshot } from './discovery.js';
 import { recordRunEnded, registerKnownProject } from './known-projects.js';
 import { startHttpServer, type RunningHttpServer } from './http.js';
 import { OwnedProcessRecorder } from './owned-processes.js';
 import { acquireProjectLock, engineIdentity, removeProcessRecord, writeProcessRecord } from './records.js';
-import { TunnelManager } from './tunnel.js';
 
 /**
  * Options of a hosted service process.
@@ -45,32 +43,26 @@ export type HostOptions = {
     readonly supervisorPid?: number;
     /** Launch correlation nonce. */
     readonly launchNonce?: string;
-    /** Allows installing cloudflared when missing. */
-    readonly allowTunnelInstall: boolean;
     /** Plain event stream. */
     readonly onEvent?: (text: string, level: 'info' | 'warning' | 'error') => void;
 };
 
 /**
- * Hosts one project's agenda with its control channel, HTTP API/SPA and tunnel.
+ * Hosts one project's agenda with its control channel, local HTTP API/SPA.
  *
  * @private service host
  */
 export class ServiceHost {
     public readonly instanceId = shortId(12);
     public readonly agenda: Agenda;
-    private readonly auth: AuthStore;
     private readonly token = secretToken(24);
-    private readonly publicInstance = secretToken(9);
     private controlServer?: IpcServer;
     private http?: RunningHttpServer;
-    private tunnel?: TunnelManager;
     private releaseLock?: () => Promise<void>;
     private unregister?: () => Promise<void>;
     /** This instance is the known project's last run (its end is recorded on shutdown). */
     private knownRun = false;
-    private connection: ConnectionView = { local: { state: 'disabled' }, remote: { state: 'disabled' } };
-    private pairingRefresh?: NodeJS.Timeout;
+    private connection: ConnectionView = { local: { state: 'disabled' } };
     private readonly browsers: BrowserFleet;
     /** Every execution process this engine starts, so a force stop (also from outside) ends all of them. */
     private readonly owned: OwnedProcessRecorder;
@@ -111,7 +103,6 @@ export class ServiceHost {
                 inUse: () => this.browsers.inUse(),
             },
         });
-        this.auth = new AuthStore(options.project);
         this.browsers = new BrowserFleet(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange(), this.instanceId);
     }
 
@@ -137,15 +128,7 @@ export class ServiceHost {
         this.agenda.setConnection(this.connection);
     }
 
-    /** Refreshes pairing availability (never mints). */
-    private async refreshPairing(): Promise<void> {
-        const pairing = await this.auth.currentPairing();
-        this.publishConnection({ pairing: { available: Boolean(pairing), expiresAt: pairing ? new Date(pairing.expiresAt).toISOString() : undefined } });
-    }
-
-    /**
-     * Acquires ownership and starts the agenda's supporting services. Local readiness never waits indefinitely for the tunnel.
-     */
+    /** Acquires ownership and starts the agenda's local supporting services. */
     public async start(): Promise<void> {
         const { project } = this.options;
         this.releaseLock = await acquireProjectLock(project, this.instanceId, this.options.mode);
@@ -161,11 +144,8 @@ export class ServiceHost {
                     this.http = await startHttpServer({
                         agenda: this.agenda,
                         control: (action, params) => applyControlAction(this.agenda, action, params, this.browserControls),
-                        auth: this.auth,
+                        token: this.token,
                         port: setting<number | undefined>(settings, 'server.port'),
-                        publicInstance: this.publicInstance,
-                        publicUrl: () => (this.tunnel?.state.state === 'ready' ? this.tunnel.state.url : undefined),
-                        onPairingChanged: () => void this.refreshPairing(),
                     });
                     this.publishConnection({ local: { state: 'ready', url: this.http.url, port: this.http.port } });
                 } catch (error) {
@@ -219,34 +199,6 @@ export class ServiceHost {
                     (error: unknown) => this.agenda.log(`This project could not be registered as known for \`ptbk dashboard --global\`: ${errorMessage(error)}`, 'warning'),
                 );
             }
-            if (this.http && setting<boolean>(settings, 'server.tunnel.isEnabled')) {
-                if (!(await this.auth.currentPairing())) await this.auth.renewPairing();
-                await this.refreshPairing();
-                this.pairingRefresh = setInterval(() => void this.refreshPairing(), 30_000);
-                this.pairingRefresh.unref();
-                this.tunnel = new TunnelManager(
-                    {
-                        provider: setting<'cloudflare-quick' | 'cloudflare-named'>(settings, 'server.tunnel.provider'),
-                        hostname: setting<string | undefined>(settings, 'server.tunnel.hostname'),
-                        name: setting<string | undefined>(settings, 'server.tunnel.name'),
-                        credentialsFile: setting<string | undefined>(settings, 'server.tunnel.credentialsFile'),
-                        tokenEnv: setting<string | undefined>(settings, 'server.tunnel.tokenEnv'),
-                        allowInstall: this.options.allowTunnelInstall,
-                    },
-                    this.http.url,
-                    this.publicInstance,
-                    (remote, message) => {
-                        this.publishConnection({ remote });
-                        if (message) this.agenda.log(message, remote.state === 'degraded' ? 'warning' : 'info');
-                    },
-                    this.options.env,
-                );
-                this.publishConnection({ remote: this.tunnel.state });
-                await this.tunnel.start();
-            } else if (this.http) {
-                if (!(await this.auth.currentPairing())) await this.auth.renewPairing();
-                await this.refreshPairing();
-            }
         } catch (error) {
             await this.shutdown();
             throw error;
@@ -278,7 +230,7 @@ export class ServiceHost {
     }
 
     /**
-     * Releases every owned resource (browser, tunnel, HTTP, control, discovery entry, record and finally its own project
+     * Releases every owned resource (browser, HTTP, control, discovery entry, record and finally its own project
      * lock). Each step is bounded so an internal force stop still cleans up promptly; after a force stop every owned
      * process still running is killed, so no owned worker outlives the engine. Only this owner's records are removed,
      * never another process's lock or persistent project data.
@@ -287,13 +239,10 @@ export class ServiceHost {
         const bounded = async (step: () => Promise<unknown> | unknown): Promise<void> => {
             await Promise.race([Promise.resolve().then(step).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 10_000).unref())]);
         };
-        clearInterval(this.pairingRefresh);
         const forced = this.agenda.forceStopped;
         // Recording evidence is finalized even on force stop (bounded); this engine leaves its shared browsers (a
         // browser other engines still use stays, the last disconnection closes it).
         await bounded(() => this.browsers.close());
-        this.tunnel?.stop();
-        this.tunnel = undefined;
         if (forced) await bounded(() => this.owned.terminateRemaining(1000));
         await bounded(() => this.http?.close());
         this.http = undefined;
@@ -310,13 +259,6 @@ export class ServiceHost {
         this.owned.stop();
         await bounded(() => this.releaseLock?.());
         this.releaseLock = undefined;
-    }
-
-    /** Public pairing URL (with the secret in the fragment) of the current capability. */
-    private pairingUrl(code: string): string | undefined {
-        const remote = this.tunnel?.state;
-        const base = remote?.state === 'ready' && remote.url ? remote.url : this.http?.url;
-        return base ? `${base.replace(/\/$/, '')}/#pair=${code}` : undefined;
     }
 
     /** In-process control (the owning terminal uses the same methods as the IPC channel). */
@@ -389,19 +331,6 @@ export class ServiceHost {
                 );
             case 'recover':
                 return { message: await agenda.recover(String(params.taskRef), params.action as 'resume' | 'retry' | 'acknowledge') };
-            case 'pairing': {
-                if (!this.http) return { available: false, reason: 'HTTP is disabled (--no-server).' };
-                const pairing = params.renew === true ? await this.auth.renewPairing() : await this.auth.currentPairing();
-                await this.refreshPairing();
-                if (!pairing) return { available: false, reason: 'No unused pairing link exists; renew it with `ptbk access pair`.' };
-                return { available: true, url: this.pairingUrl(pairing.code), expiresAt: new Date(pairing.expiresAt).toISOString(), remote: this.tunnel?.state.state === 'ready' };
-            }
-            case 'devices':
-                return (await this.auth.sessions()).map(({ id, label, createdAt, lastSeenAt, expiresAt, revokedAt }) => ({ id, label, createdAt, lastSeenAt, expiresAt, revokedAt }));
-            case 'revoke':
-                return { revoked: await this.auth.revokeSessions(String(params.id ?? 'all')) };
-            case 'api-token':
-                return await this.auth.createApiToken(String(params.label ?? 'api client'));
             default:
                 throw new PtbkError(`Unknown control method ${method}.`, { kind: 'usage' });
         }

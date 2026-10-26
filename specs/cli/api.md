@@ -1,16 +1,16 @@
 # Project service API
 
-[Main specification](../_main.md) · [Shared controls](controls.md) · [Remote access](remote-access.md)
+[Main specification](../_main.md) · [Shared controls](controls.md)
 
 The active engine exposes an independently usable authenticated HTTP API for project inspection/control. It requires neither browser app nor terminal dashboard. Zero, one or many clients use the same scheduling, lifecycle, management and recovery operations; neither clients nor page rendering create another worker.
 
-Start enables loopback HTTP in either process mode on a free or explicitly selected port and reports actual address/conflicts. Protected remote tunnelling follows its separate default policy. No-tunnel keeps local HTTP; no-server disables HTTP/SPA/tunnel but not local engine control/discovery.
+Start enables loopback HTTP in either process mode on a free or explicitly selected port and reports actual address/conflicts. No-server disables HTTP/SPA but not local engine control/discovery. No provider is contacted and no software is installed to expose the dashboard.
 
 ## Observed state and shared operations
 
 Expose project identity, actual engine version, instance/freshness, four live [service states](service-lifecycle.md), pending intent, concurrent task/agent/phase collection, selected detail, shared capacity/queue, results, waits/errors, links, configuration revision/effective sources and commit mode. Resource waits and failed synchronization are not new lifecycle states. An unreachable engine is not proof of a completed stop.
 
-Execution data includes actual named tool, harness variant, model/thinking level and attempt/consultation attribution, with unknown/unsupported distinctions. Tool inventory includes canonical saved records, enabled/usability/in-use state and retained old uses distinct from new defaults. Authorized browser diagnostics identify each named instance's profile source/resolved path, mode, ownership/health and redacted recovery outcome. Ordinary state never exposes cookies, profile contents, resolved API keys or pairing/device credentials.
+Execution data includes actual named tool, harness variant, model/thinking level and attempt/consultation attribution, with unknown/unsupported distinctions. Tool inventory includes canonical saved records, enabled/usability/in-use state and retained old uses distinct from new defaults. Authorized browser diagnostics identify each named instance's profile source/resolved path, mode, ownership/health and redacted recovery outcome. Ordinary state never exposes cookies, profile contents, resolved API keys or local client credentials.
 
 Expose lifecycle controls, real pacing wait skipping, per-browser diagnosis/recheck/retry/restart, chat operations and supported settings changes. Apply shared stale-request/confirmation rules, including replacing pending stop with pause. Distinguish accepted, pending safe boundary, applied, committed, failed, unconfirmed and restart-required outcomes. Expose saved-to-file and pending/committed Git separately; immediate-commit operations retain that requirement.
 
@@ -44,10 +44,14 @@ Expose evolving titles separately from stable opening names, multiple declared p
 
 ## Independence and security
 
-Clients observe fresh changes from every channel. Inspection is read-only, including normalization/migration previews. Writes obey authority, source revisions, configuration/ownership and recovery contracts. Serve SPA/assets and API at the same origin with compatible live updates; SSE alone is insufficient where a tunnel provider does not support it. Responses do not depend on server-rendered runtime HTML or form actions.
+Clients observe fresh changes from every channel. Inspection is read-only, including normalization/migration previews. Writes obey authority, source revisions, configuration/ownership and recovery contracts. Serve SPA/assets and API at the same origin with compatible live updates, including bounded polling. Responses do not depend on server-rendered runtime HTML or form actions.
 
-Authenticate inspection and mutation before tunnelling. Unauthenticated clients get only a minimal pairing/app shell. Use project-scoped session/direct-client authority, reject invalid/stale/cross-origin requests and access outside scope, and prevent public caching of private responses. Hostname opacity, forwarded headers and apparent localhost origin are not authorization. Never expose unredacted diagnostics, tokens or profile contents.
+Bind HTTP only to `127.0.0.1`. Accept only the listener's exact `127.0.0.1:<port>` or `localhost:<port>` Host and matching HTTP Origin, and reject forwarded headers and cross-origin/cross-site fetches before serving assets or API. Never trust a proxy to grant local authority.
 
-Client/tunnel failure cannot stop a daemon, reset state or duplicate tasks. The lightweight [SPA](dashboard.md) is a consumer at `/`; host-wide [global discovery](global-dashboard.md) is a separate local inventory, not silently extended project API authority.
+The local browser bootstraps with `GET /api/session` and `X-PTBK-Client: dashboard`, then sends the returned in-memory `csrf` capability as `X-PTBK-CSRF` for API reads and writes. No pairing, persistent device session or cookie is created. Direct local clients use `Authorization: Bearer <token>` with the credential in the owner-readable ignored `.ptbk/service/process.json`; it changes when the engine restarts. Ordinary snapshots never disclose either credential. Old remote tokens and device cookies confer no authority. Keep Wallet owner-only recovery-word presentation restricted to local browser/terminal surfaces, not direct API clients.
+
+Reject invalid/stale credentials and access outside scope, prevent caching of private responses and never expose unredacted diagnostics or profile contents.
+
+Client failure cannot stop a daemon, reset state or duplicate tasks. The lightweight [SPA](dashboard.md) is a consumer at `/`; host-wide [global discovery](global-dashboard.md) is a separate local inventory, not silently extended project API authority.
 
 Book-source inspection/editing is available through the shared operations, including source revision checks, nonblocking content warnings, scoped commits and ordinary repair task context. Chat and required first-message routing remain available alongside queued work and during scheduling pause; creating a task then saves it pending. Source edits cannot change engine-owned Expert definitions or overwrite another operation's changes.

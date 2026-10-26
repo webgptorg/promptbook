@@ -108,7 +108,7 @@ export function renderTopLevelHelp(commands: readonly CommandSpec[], terminal: T
         heading: 'Common options',
         rows: [
             ['--path <dir>', 'Project directory (default: current directory).'],
-            ['--raw', 'Plain output without color, layout, prompts or QR art (automatic when redirected).'],
+            ['--raw', 'Plain output without color, layout or prompts (automatic when redirected).'],
             ['--non-interactive', 'Never ask questions; supply decisions with flags.'],
             ['--help, help', 'Help for one command, e.g. `ptbk start --help` or `ptbk help start`.'],
             ['--version', 'Print the running engine version.'],

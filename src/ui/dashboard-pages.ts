@@ -4,7 +4,7 @@ import type { CachePreview, SwapPlan } from '../engine/health.js';
 import { formatBytes, formatMiB } from '../engine/health.js';
 import type { CurrentWorkView, ServiceSnapshot } from '../engine/snapshot.js';
 import { TASK_SORT_FIELDS, sortTasks, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
-import { stringWidth, wrap } from './ansi.js';
+import { wrap } from './ansi.js';
 import { activityLabel, framedBadge, inlineBadge, type BadgeActivity } from './badges.js';
 import {
     browserDetailLines,
@@ -19,7 +19,6 @@ import {
     toolRow,
 } from './details.js';
 import type { HomeTile } from './dashboard-home.js';
-import type { PreparedQr } from './status-view.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { WalletView } from '../wallet/wallet.js';
 
@@ -102,9 +101,6 @@ export type PageContext = {
     readonly frame: number;
     /** The complete task inventory (loaded on demand). */
     readonly inventory?: readonly TaskInventoryItem[];
-    readonly qr?: PreparedQr;
-    readonly pairingUrl?: string;
-    readonly noQr: boolean;
     /** This invocation owns the engine (foreground). */
     readonly owning: boolean;
 };
@@ -446,7 +442,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             return { title: 'Results and activity', context: 'Outcomes of this session and the bounded runtime activity log', body, ...(page.follow ? { anchor: body.length - 1 } : {}), legend: `↑↓ PgUp PgDn scroll · End follow${page.follow ? 'ing' : ''} · ${back}` };
         }
         case 'connection': {
-            const { local, remote } = snapshot.connection;
+            const { local } = snapshot.connection;
             const breakLink = (link: string, indent = '  '): string[] => {
                 const chunks: string[] = [];
                 const room = Math.max(10, width - indent.length);
@@ -454,19 +450,9 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 return chunks;
             };
             const body: string[] = [];
-            if (remote.state === 'ready' && remote.url) body.push(`${style.success('Remote')} ${style.muted(`ready via ${remote.provider}; the relay sees traffic (pairing required)`)}`, ...breakLink(remote.url).map((line) => style.bold(line)));
-            else body.push(`${remote.state === 'disabled' ? style.muted('Remote') : style.warning('Remote')} ${remote.state}${remote.provider ? ` via ${remote.provider}` : ''}${remote.error ? `: ${remote.error}` : ''}`);
             if (local.url) body.push(`${local.state === 'ready' ? style.success('Local') : style.muted('Local')} ${style.muted('(this computer only)')}`, ...breakLink(local.url));
             else body.push(`${style.muted('Local')} ${local.state}${local.error ? `: ${local.error}` : ''}`);
-            if (context.qr) {
-                body.push('', style.muted(context.qr.label));
-                if (Math.max(...context.qr.lines.map((line) => stringWidth(line))) > width) body.push(style.warning('The terminal is too narrow for a scannable QR code; use the link instead.'));
-                else body.push(...context.qr.lines);
-                if (context.qr.sensitive) body.push(style.warning('Single-use pairing code, valid 10 min. Do not share it.'));
-            } else if (context.noQr) body.push('', style.muted('QR hidden (--no-qr).'));
-            if (context.pairingUrl) body.push('', style.muted(remote.state === 'ready' ? 'Pairing link (secret, single use):' : 'Pairing link (this computer only):'), ...breakLink(context.pairingUrl));
-            else if (snapshot.connection.pairing && !snapshot.connection.pairing.available && local.state === 'ready') body.push('', style.muted('No active pairing link · V renews it'));
-            return { title: 'Connection', context: 'Verified local and remote dashboard access, pairing and QR', body, legend: `V renew pairing · ↑↓ scroll · ${back}` };
+            return { title: 'Connection', context: 'Local dashboard access on this computer', body, legend: `↑↓ scroll · ${back}` };
         }
         case 'sync': {
             if (!snapshot.sync) return { title: 'Synchronization', context: 'Automatic synchronization is off (isAutoSync false).', body: [style.muted('Nothing to show while autosync is disabled.')], legend: back };

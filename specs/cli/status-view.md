@@ -26,16 +26,10 @@ Agent [mascot badges](../agents/visual-identity.md) accompany readable names and
 
 Keep concrete tool/authentication/browser/recovery blockers visible through bounded rechecks even with details closed. Show the actual cause, next action and next check when known; an answered request alone does not prove repair. Skip wait cannot dismiss readiness, grant authority or bypass a resource requirement. A waiting engine with no active provider call is not waiting for inference.
 
-## Connection, URL and QR
+## Local connection
 
-Separate local HTTP and [remote dashboard access](remote-access.md) with actual addresses/provider/health. This connection region is distinct from Git synchronization. A verified ready public HTTPS address is primary for phone access; retain labelled loopback for the same computer. Never guess another project's port/address.
-
-A trusted local pretty terminal may display the existing short-lived single-use pairing QR and identical readable entry link. Label its sensitivity and lifetime. Paired sessions authorise later visits; public base URL alone grants no authority. Ordinary API and remote browser output never reveal fresh pairing credentials or profile/secret content.
-
-QR may appear in start/status/show/live views, not as a replacement for work/requests. No-tunnel/failure is local-only/degraded; loopback QR is not mobile-network access. No-server, unverified or stopped endpoints get no usable-connection claims. Old addresses are diagnostic history only. `--no-qr` suppresses code, not exposure. Raw/redirected output retains redacted public addresses/health without QR art or automatic secret disclosure.
-
-If a QR does not fit, keep essential state, requests and readable guidance rather than clipping it. Live updates preserve placement/focus and change verified URLs/validity honestly without repeated QR scrollback. Rendering never creates a tunnel or mints new pairing credentials.
+Show the actual loopback HTTP address, readiness and errors for this computer. This connection region is distinct from Git synchronization. Never guess another project's port or present stopped/disabled endpoints as usable. No-server disables HTTP while local engine control remains available. Raw output and browser/API state carry equivalent local connection information without credentials. Rendering never starts a service or changes authentication.
 
 ## Acceptance outcomes
 
-All clients and one-shot commands show matching observed categories with truthful version/time/lifecycle state. Missing browsers/harnesses leave a visible running/resource wait; adding a tool updates and resumes eligibility. Pending/failed sync appears only in its enabled tile/page and does not falsify local state. Inspect actual per-instance diagnostics and metadata by entering/returning from the corresponding dashboard pages. Verify pause in one client appears in others while closing viewers changes nothing. Test narrow/raw/no-QR/no-server, pairing expiry, port changes, tunnel failure and service exit without fabricated activity or stale ready endpoints.
+All clients and one-shot commands show matching observed categories with truthful version/time/lifecycle state. Missing browsers/harnesses leave a visible running/resource wait; adding a tool updates and resumes eligibility. Pending/failed sync appears only in its enabled tile/page and does not falsify local state. Inspect actual per-instance diagnostics and metadata by entering/returning from the corresponding dashboard pages. Verify pause in one client appears in others while closing viewers changes nothing. Test narrow/raw/no-server, port conflicts/changes, authenticated local API controls and service exit without fabricated activity or stale ready endpoints.

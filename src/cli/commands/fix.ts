@@ -71,7 +71,6 @@ export default async function fix(context: CommandContext): Promise<number> {
         cliHarnesses: harnessOption ? [harnessOption] : undefined,
         tasksDirectory: tasksOverride(context),
         persistent: null,
-        allowTunnelInstall: false,
         onEvent: (text, level) => terminal.write(`${clockTime()} ${level === 'info' ? '' : `${level.toUpperCase()}: `}${text}\n`),
     });
     await host.start();

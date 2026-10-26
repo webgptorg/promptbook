@@ -338,8 +338,8 @@ test('Wallet acceptance: a task waits for a protected login (no chat), resumes o
     await owner.confirmSetup();
 
     assert.equal((await ptbk(['add', 'WALLET_LOGIN Read the fixture dashboard', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env })).code, 0);
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
-    const token = /\n(ptbk_[A-Za-z0-9_-]+)\n/.exec((await ptbk(['access', 'token', 'wallet', '--raw'], { cwd: project, env })).stdout)[1];
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     const status = async () => JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
     const base = (await status()).connection.local.url;
     const call = async (path, body) => {

@@ -154,7 +154,7 @@ export async function applyControlAction(agenda: Agenda, action: string, params:
 
 /**
  * Composed message segments of a request. Attachments name local files, which only the engine host's own trusted
- * control channel may submit: a remote client can never make the engine copy host files into the project.
+ * control channel may submit: an HTTP client can never make the engine copy host files into the project.
  */
 function requestSegments(params: Readonly<Record<string, unknown>>, trusted: boolean): ComposedSegment[] | undefined {
     if (!Array.isArray(params.segments)) return undefined;
@@ -249,7 +249,7 @@ export async function applyToolAction(agenda: Agenda, params: Readonly<Record<st
 /**
  * Wallet operations of every channel (terminal, browser, API): one engine-owned implementation. Secrets are
  * write-only (never echoed in replies, errors or logs). The 12 words for recovery are returned only by `wallet-setup`
- * and only to an owner surface (`ownerSurface`: the local terminal or a paired browser session, never an API token).
+ * and only to an owner surface (`ownerSurface`: the local terminal or the local browser, never a direct API client).
  *
  * @private shared runtime controls
  */
@@ -260,7 +260,7 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
         case 'wallet':
             return wallet.view();
         case 'wallet-setup':
-            if (!options.ownerSurface) throw new PtbkError('The 12 words for recovery are shown only in the dashboard (terminal or paired browser), never to API clients.', { kind: 'usage', effect: 'Nothing was changed.' });
+            if (!options.ownerSurface) throw new PtbkError('The 12 words for recovery are shown only in the dashboard (terminal or local browser), never to API clients.', { kind: 'usage', effect: 'Nothing was changed.' });
             return await wallet.beginSetup();
         case 'wallet-setup-confirm':
             return await wallet.confirmSetup();

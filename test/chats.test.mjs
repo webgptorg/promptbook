@@ -105,7 +105,7 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
     await writeFile(join(project, 'chats', 'offline.book'), 'CHAT Offline question\nCHAT MEMBER @User\nCHAT MEMBER @Developer\nCHAT STATUS open\n\nCHAT MESSAGE @User 2026-10-17T10:00:00+02:00\nAre you there?\n');
     await git(project, ['add', 'agents', 'chats']);
     await git(project, ['commit', '-qm', 'Duplicate agent names and an offline chat']);
-    const started = await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    const started = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
     const healthCommit = await waitFor(async () => (await subjects(project)).find((subject) => subject.startsWith('PTBK: Add task - Project health check')), { timeoutMs: 90_000, message: 'Fixer health check task' });
     const healthFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('project-health-check') && !file.includes('learn') && !file.includes('assign'));
@@ -120,7 +120,7 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
     const offline = (await chats(project)).find((item) => item.chat.name === 'Offline question');
     assert.equal(offline.chat.messages[1].sender, '@Developer');
     assert.match(offline.chat.messages[1].text, /Fixture reply to: Are you there\?/);
-    const token = /\n(ptbk_[A-Za-z0-9_-]+)\n/.exec((await ptbk(['access', 'token', 'chats', '--raw'], { cwd: project, env })).stdout)[1];
+    const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     const snapshot = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
     const base = snapshot.connection.local.url;
     const call = async (path, body) => {
@@ -166,8 +166,8 @@ test('service chats: a force stop before the batched commit loses nothing; the n
     const { project, env: baseEnv } = await initializedProject(t, { check: CHECK });
     // A long quiet period keeps the batch pending until the force stop, however slow the host is.
     const env = { ...baseEnv, PTBK_CHAT_BATCH_QUIET_MS: '600000' };
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
-    const token = /\n(ptbk_[A-Za-z0-9_-]+)\n/.exec((await ptbk(['access', 'token', 'chats', '--raw'], { cwd: project, env })).stdout)[1];
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
     const call = async (path, body) => {
         const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
@@ -181,7 +181,7 @@ test('service chats: a force stop before the batched commit loses nothing; the n
     assert.ok((await git(project, ['status', '--porcelain', '--', 'chats'])).trim(), 'its commit was still pending');
     assert.match(await readFile(join(project, '.ptbk', 'state', 'chat-batches.json'), 'utf8'), /Remember this|Developer: Remember this/, 'the pending batch is recorded for recovery');
     const subjectsBefore = await subjects(project);
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env: baseEnv })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env: baseEnv })).code, 0);
     await waitFor(async () => !(await git(project, ['status', '--porcelain', '--', 'chats'])).trim(), { timeoutMs: 60_000, message: 'the recovered batch to be committed' });
     const added = (await subjects(project)).slice(0, (await subjects(project)).length - subjectsBefore.length);
     assert.ok(added.includes(`PTBK: Chat - ${created.data.name}`), added.join('\n'));
@@ -205,8 +205,8 @@ test('browser profile sources: the managed global profile is the default; isolat
 test('live replies: progress streams to every client, input is accepted meanwhile, and the final reply closes the turn into Thinking', async (t) => {
     const { project, env: baseEnv } = await initializedProject(t, { check: CHECK });
     const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '6000' };
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
-    const token = /\n(ptbk_[A-Za-z0-9_-]+)\n/.exec((await ptbk(['access', 'token', 'chats', '--raw'], { cwd: project, env })).stdout)[1];
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
     const call = async (path, body) => {
         const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });

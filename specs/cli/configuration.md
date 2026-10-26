@@ -43,7 +43,9 @@ Save `traces.isCommitted`, `traces.isVideoIgnored` and `traces.isVideoRecordingE
 
 `isAutoSync` is the single saved opt-in for ongoing pull/push through the repository's existing origin and current branch; remote/branch definitions stay in Git, not duplicate JSON fields. New initialization asks, while migrated projects default off. See [Git synchronization](git-synchronization.md).
 
-Remote HTTP exposure still defaults on with HTTP under [remote access](remote-access.md); this is unrelated to Git autosync. Persisted booleans use `server.isEnabled` and `server.tunnel.isEnabled`, with canonical provider enums. CLI `--no-tunnel`/`--tunnel` and `--tunnel-provider` remain invocation overrides; no-server suppresses implicit tunneling. Store references rather than provider secrets, pairing links or device sessions. Runtime URLs/processes are not versioned defaults.
+HTTP serves only the local dashboard/API under [local authentication](api.md#independence-and-security). Use `server.isEnabled` and optional `server.port`, with CLI `--no-server`/`--port` invocation overrides. Runtime URLs/processes and local credentials are not versioned defaults. This policy is independent of Git autosync.
+
+The deterministic configuration migration retires `server.tunnel` and `service.qr`/`service.isQrShown` without inspecting their values, contacting providers or installing software. Current-version configurations containing these obsolete fields receive the same deterministic normalization; read-only inspection previews it without writes. Preserve local server enablement/port, persistence and unrelated settings. Saved launch overrides for removed settings are ignored. Existing ignored authentication files are inert and need not be deleted.
 
 ## Initialization and checks
 

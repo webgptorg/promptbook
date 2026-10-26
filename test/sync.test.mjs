@@ -155,10 +155,14 @@ test('engine synchronization: remote work is integrated at an operation boundary
     await mkdir(bare);
     await git(bare, ['init', '--bare', '--quiet']);
     const { project, env } = await initializedProject(t, { check: 'process.exit(0);\n', initArgs: ['--auto-sync', '--origin-url', bare] });
-    const started = await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    const started = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
-    const snapshot = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
     const branch = (await git(project, ['symbolic-ref', '--short', 'HEAD'])).trim();
+    // Local startup does not wait for Git's asynchronous upstream discovery.
+    const snapshot = await waitFor(async () => {
+        const observed = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
+        return observed.sync?.upstream === `origin/${branch}` ? observed : undefined;
+    }, { message: 'the synchronization upstream to be discovered' });
     assert.ok(snapshot.sync, 'the synchronization panel exists while autosync is enabled');
     assert.equal(snapshot.sync.upstream, `origin/${branch}`);
 

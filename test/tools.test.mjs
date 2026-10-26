@@ -102,7 +102,7 @@ test('live tools: a running engine waits for tools without stopping, and resumes
     const { project, env } = await initializedProject(t, { check: CHECK });
     assert.equal((await ptbk(['tool', 'remove', 'openai-codex', '--yes', '--raw'], { cwd: project, env })).code, 0);
     await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
-    const started = await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    const started = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
     assert.match(started.output, /Waiting for tools|waits for tools/i, 'start reports the running service with its resource wait');
     const waiting = await waitFor(async () => {
@@ -124,7 +124,7 @@ test('live tools: a browser added during a task serves that task; an in-use tool
     const env = { ...base, FAKE_CODEX_SLOW_MS: '9000' };
     assert.equal((await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'codex-second', '--raw'], { cwd: project, env })).code, 0);
     await ptbk(['add', 'Publish the post SLOW_WORK LIST_BROWSERS', '--agent', 'Developer', '--raw'], { cwd: project, env });
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const running = await waitFor(async () => {
         const snapshot = await status(project, env);
         return snapshot.current?.taskTitle.startsWith('Publish the post') && snapshot.current.phase === 'executing' ? snapshot : undefined;

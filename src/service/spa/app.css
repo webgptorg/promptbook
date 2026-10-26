@@ -613,13 +613,6 @@ button:disabled {
     border-left-color: var(--danger);
 }
 
-.qr img {
-    width: 100%;
-    max-width: 220px;
-    background: #fff;
-    border-radius: 8px;
-    padding: 6px;
-}
 
 a {
     color: var(--accent);
@@ -643,10 +636,6 @@ details summary {
     z-index: 10;
 }
 
-.pairing {
-    max-width: 560px;
-    margin: 12vh auto;
-}
 
 .chats .messages {
     max-height: 55vh;

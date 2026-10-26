@@ -9,15 +9,10 @@ import { attachDashboard, wantsDashboardHandoff } from '../dashboard-handoff.js'
 import { liveSnapshot, renderServiceResult } from '../service-view.js';
 
 /**
- * How long the result waits for the replacement's tunnel to report its first outcome.
- */
-const TUNNEL_SETTLE_MS = 25_000;
-
-/**
  * Explicit options that change a restart's launch configuration (presentation/selection options do not).
  */
 function launchChanges(context: CommandContext): string[] {
-    return [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'json', 'daemon', 'timeout', 'dashboard'].includes(name));
+    return [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'json', 'daemon', 'timeout', 'dashboard'].includes(name));
 }
 
 /**
@@ -87,12 +82,7 @@ export default async function restart(context: CommandContext): Promise<number> 
         context.terminal.write(`${style.bold(style.success('Restarted.'))} ${message} ${style.muted('Opening the dashboard (leaving it keeps the service running)…')}\n`);
         return (await attachDashboard(context, project, replacement)) || EXIT.success;
     }
-    let snapshot = await liveSnapshot(project, replacement);
-    const deadline = Date.now() + TUNNEL_SETTLE_MS;
-    while (snapshot.connection.remote.state === 'connecting' && Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        snapshot = await liveSnapshot(project, replacement);
-    }
+    const snapshot = await liveSnapshot(project, replacement);
     await renderServiceResult(context, snapshot, { client: replacement.client, outcome: { title: 'Restarted', message, tone: 'success' }, next: ['ptbk dashboard', 'ptbk stop'] });
     return EXIT.success;
 }

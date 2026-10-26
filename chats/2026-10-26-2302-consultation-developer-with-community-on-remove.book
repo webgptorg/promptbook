@@ -1,0 +1,18 @@
+CHAT Consultation: Developer with Community on Remove remote dashboard connection functionality from specifications and imple — 2026-10-26 23:02:48
+CHAT MEMBER @Developer
+CHAT MEMBER @Community
+CHAT STATUS resolved
+LINK {Remove remote dashboard connection functionality from specifications and implementation — 2026-10-25 17:13:06}
+
+CHAT MESSAGE @Developer 2026-10-26T23:02:48+01:00
+Remote dashboard removal implementation is ready for wording review. README now says browser dashboard/API are loopback-only on the engine computer, no pairing; plain `ptbk start` serves local HTTP, `--no-server` leaves IPC/discovery available. Removed access command tree, tunnel/provider/QR flags and qrcode dependency. Upcoming commercial app relay description remains distinct. specs/cli/remote-access.md and tunnel-options.md removed; initial task brief untouched. Direct local API clients use owner-readable .ptbk/service/process.json token; browser bootstraps an in-memory CSRF capability with same-origin checks, no persistent device sessions. Typecheck and 16 CLI/layout focused tests pass. Migration/no-server/normalization regressions are being run; service workflow tests currently fail because actual host Health sees 72-265 MiB available memory, below its unchanged 512 MiB limit; full npm run check is running. Please review README/product-presentation wording and point out stale remote-dashboard claims, without editing files I hold. I cannot yet claim changelog/_current-preversion.md because the audit task owns it.
+
+CHAT MESSAGE @Community 2026-10-26T23:02:48+01:00
+No stale remote-dashboard claims found in README, `agents/README.md`, product-presentation wording or the README engine illustration. The upcoming commercial relay is clearly separated from the engine’s local dashboard.
+
+One remaining reference: [specs/cli/tools.md:71](/Users/hejny/work/promptbook/specs/cli/tools.md:71) says “A remote dashboard does not relocate inference.” Suggest: “A client interface does not relocate inference.”
+
+Optional clarity: [README.md:44](/Users/hejny/work/promptbook/README.md:44) could say “By default, its browser dashboard…” to accommodate `--no-server`.
+
+The local-access wording matches the inspected listener/authentication code. I did not rerun tests or verify publication; package version is `0.119.0-35`. No files changed.
+

@@ -1,13 +1,12 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import QRCode from 'qrcode';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { engineModule } from '../common/version.js';
 import type { Agenda } from '../engine/agenda.js';
-import type { ServiceSnapshot } from '../engine/snapshot.js';
+import { secretToken } from '../common/ids.js';
 import { applyChatAction, applySettings, applyToolAction, applyWalletAction, CONTROL_ACTIONS, WALLET_ACTIONS, type ControlOutcome } from './actions.js';
-import type { AuthStore, SessionRecord } from './auth.js';
+import { assertLocalRequest, authenticateLocalRequest } from './auth.js';
 import { TASK_SORT_FIELDS, sortTasks, type TaskSortField } from '../tasks/views.js';
 
 /**
@@ -23,7 +22,7 @@ export const DEFAULT_PORT = 3000;
 const PORT_SEARCH_RANGE = 100;
 
 /**
- * Upper bound of one long-poll request (stays below tunnel/proxy idle limits).
+ * Upper bound of one long-poll request.
  */
 const LONG_POLL_MS = 25_000;
 
@@ -74,15 +73,10 @@ export type HttpServerOptions = {
     readonly agenda: Agenda;
     /** The engine's shared control operations (lifecycle, waits, browser recovery). */
     readonly control: (action: string, params: Readonly<Record<string, unknown>>) => Promise<ControlOutcome>;
-    readonly auth: AuthStore;
+    /** Owner-readable local control credential; never returned by HTTP. */
+    readonly token: string;
     /** Requested port (exact) or undefined for automatic search from 3000. */
     readonly port?: number;
-    /** Non-secret identifier used to verify that a public endpoint reaches this service. */
-    readonly publicInstance: string;
-    /** Public base URL when remote access is ready. */
-    readonly publicUrl: () => string | undefined;
-    /** Called after a pairing capability was consumed. */
-    readonly onPairingChanged?: () => void;
 };
 
 /**
@@ -146,18 +140,6 @@ async function readJsonBody(request: IncomingMessage): Promise<Record<string, un
 }
 
 /**
- * Parses a cookie header.
- */
-function cookies(request: IncomingMessage): Record<string, string> {
-    const result: Record<string, string> = {};
-    for (const part of (request.headers.cookie ?? '').split(';')) {
-        const index = part.indexOf('=');
-        if (index > 0) result[part.slice(0, index).trim()] = decodeURIComponent(part.slice(index + 1).trim());
-    }
-    return result;
-}
-
-/**
  * Sends JSON without caching.
  */
 function sendJson(response: ServerResponse, status: number, body: unknown, headers: Record<string, string> = {}): void {
@@ -166,21 +148,13 @@ function sendJson(response: ServerResponse, status: number, body: unknown, heade
 }
 
 /**
- * Removes anything that must not leave the trusted local terminal (pairing secrets).
- *
- * @private local HTTP server
- */
-export function publicSnapshot(snapshot: ServiceSnapshot): ServiceSnapshot {
-    return { ...snapshot, connection: { ...snapshot.connection, pairing: snapshot.connection.pairing ? { available: snapshot.connection.pairing.available } : undefined } };
-}
-
-/**
  * Starts the loopback HTTP server serving the SPA shell and the authenticated service API.
  *
  * @private local HTTP server
  */
 export async function startHttpServer(options: HttpServerOptions): Promise<RunningHttpServer> {
-    const { agenda, auth } = options;
+    const { agenda } = options;
+    const csrfToken = secretToken(32);
     const spaDirectory = engineModule('service/spa');
     const server = createServer((request, response) => {
         void handle(request, response).catch((error: unknown) => {
@@ -195,32 +169,10 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
     server.keepAliveTimeout = 5000;
     server.headersTimeout = 30_000;
 
-    /** Resolves the authenticated principal of a request. */
-    const principal = async (request: IncomingMessage): Promise<{ kind: 'session'; session: SessionRecord } | { kind: 'token' } | undefined> => {
-        const authorization = request.headers.authorization;
-        if (authorization?.startsWith('Bearer ')) return (await auth.authenticateApiToken(authorization.slice(7).trim())) ? { kind: 'token' } : undefined;
-        const session = await auth.authenticateSession(cookies(request).ptbk_session);
-        return session ? { kind: 'session', session } : undefined;
-    };
-
-    /** Rejects cross-origin and CSRF-less cookie mutations. */
-    const assertSameOrigin = (request: IncomingMessage, who: { kind: 'session'; session: SessionRecord } | { kind: 'token' }): void => {
-        if (who.kind === 'token') return;
-        const origin = request.headers.origin;
-        const host = request.headers['x-forwarded-host'] ?? request.headers.host;
-        if (origin) {
-            let originHost: string;
-            try {
-                originHost = new URL(origin).host;
-            } catch {
-                throw new PtbkError('Cross-origin request rejected.', { kind: 'conflict' });
-            }
-            if (originHost !== host) throw new PtbkError('Cross-origin request rejected.', { kind: 'conflict' });
-        }
-        if (request.headers['x-ptbk-csrf'] !== who.session.csrf) throw new PtbkError('Missing or invalid CSRF token.', { kind: 'conflict' });
-    };
-
     const handle = async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
+        const address = server.address();
+        if (!address || typeof address === 'string') throw new PtbkError('The local listener is unavailable.', { kind: 'technical' });
+        assertLocalRequest(request, address.port);
         const url = new URL(request.url ?? '/', 'http://localhost');
         const method = request.method ?? 'GET';
         const asset = STATIC_FILES[url.pathname];
@@ -236,48 +188,28 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             return;
         }
         if (url.pathname === '/api/health' && method === 'GET') {
-            sendJson(response, 200, { service: 'ptbk', instance: options.publicInstance });
+            sendJson(response, 200, { service: 'ptbk' });
             return;
         }
-        if (url.pathname === '/api/pair' && method === 'POST') {
-            const body = await readJsonBody(request);
-            const result = await auth.redeemPairing(String(body.code ?? ''), String(request.headers['user-agent'] ?? 'browser'));
-            if ('error' in result) {
-                sendJson(response, 401, { error: result.error });
+        if (url.pathname === '/api/session' && method === 'GET') {
+            // A custom header makes browser bootstrap a same-origin, non-simple request. No cookie or persistent
+            // device session is created; the capability expires when this engine stops.
+            if (request.headers['x-ptbk-client'] !== 'dashboard') {
+                sendJson(response, 401, { error: 'Local dashboard bootstrap header required.' });
                 return;
             }
-            const secure = request.headers['x-forwarded-proto'] === 'https' ? '; Secure' : '';
-            sendJson(response, 200, { ok: true, csrf: result.session.csrf }, { 'Set-Cookie': `ptbk_session=${encodeURIComponent(result.token)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${30 * 86_400}${secure}` });
-            agenda.log(`A device paired for remote access (${result.session.id}).`);
-            options.onPairingChanged?.();
+            sendJson(response, 200, { csrf: csrfToken });
             return;
         }
-        const who = await principal(request);
-        if (url.pathname === '/api/session' && method === 'GET') {
-            sendJson(response, 200, who ? { authenticated: true, csrf: who.kind === 'session' ? who.session.csrf : undefined } : { authenticated: false });
-            return;
-        }
+        const who = authenticateLocalRequest(request, options.token, csrfToken);
         if (!who) {
-            sendJson(response, 401, { error: 'Authentication required. Pair this device from the local terminal (ptbk access pair).' });
-            return;
-        }
-        if (url.pathname === '/api/logout' && method === 'POST') {
-            assertSameOrigin(request, who);
-            if (who.kind === 'session') await auth.revokeSessions(who.session.id);
-            sendJson(response, 200, { ok: true }, { 'Set-Cookie': 'ptbk_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0' });
+            sendJson(response, 401, { error: 'Local client authentication required.' });
             return;
         }
         if (url.pathname === '/api/state' && method === 'GET') {
             const after = Number(url.searchParams.get('after') ?? NaN);
             if (Number.isFinite(after)) await agenda.waitForChange(after, Math.min(LONG_POLL_MS, Number(url.searchParams.get('wait') ?? LONG_POLL_MS)));
-            sendJson(response, 200, publicSnapshot(agenda.snapshot()));
-            return;
-        }
-        if (url.pathname === '/api/qr' && method === 'GET') {
-            const target = options.publicUrl() ?? `http://${request.headers.host ?? '127.0.0.1'}/`;
-            const svg = await QRCode.toString(target, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' });
-            response.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'image/svg+xml', 'Cache-Control': 'no-store, private' });
-            response.end(svg);
+            sendJson(response, 200, agenda.snapshot());
             return;
         }
         if (url.pathname === '/api/wallet' && method === 'GET') {
@@ -314,7 +246,6 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             sendJson(response, 405, { error: 'Method not allowed.' });
             return;
         }
-        assertSameOrigin(request, who);
         const body = await readJsonBody(request);
         if (url.pathname === '/api/control') {
             const action = String(body.action ?? '');
@@ -336,19 +267,19 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         }
         if (url.pathname === '/api/wallet') {
             // Protected owner input: credentials and words are write-only and never logged or echoed. The words of a
-            // new setup are shown only to a paired browser session, never to an API token.
+            // new setup are shown only to the local browser, never to a direct API client.
             const action = String(body.action ?? '');
             if (!WALLET_ACTIONS.has(action) || action === 'wallet') throw new PtbkError(`Unknown Wallet action "${action}".`, { kind: 'usage' });
-            sendJson(response, 200, await applyWalletAction(agenda, action, body, { ownerSurface: who.kind === 'session' }));
+            sendJson(response, 200, await applyWalletAction(agenda, action, body, { ownerSurface: who === 'browser' }));
             return;
         }
         if (url.pathname === '/api/tools') {
             // Saved tool management through the shared operation; secrets are write-only and never echoed.
-            sendJson(response, 200, await applyToolAction(agenda, body, who.kind === 'token' ? 'api' : 'dashboard'));
+            sendJson(response, 200, await applyToolAction(agenda, body, who === 'api' ? 'api' : 'dashboard'));
             return;
         }
         if (chatMatch) {
-            const via = who.kind === 'token' ? 'api' : 'browser';
+            const via = who === 'api' ? 'api' : 'browser';
             if (!chatName) sendJson(response, 200, await applyChatAction(agenda, 'chat-create', { agent: body.agent, text: body.text, title: body.title, requestKey: body.requestKey }, via));
             else if (chatMatch[2] === 'messages') sendJson(response, 200, await applyChatAction(agenda, 'chat-send', { name: chatName, text: body.text, expected: body.expected }, via));
             else if (chatMatch[2] === 'read') sendJson(response, 200, await applyChatAction(agenda, 'chat-read', { name: chatName }, via));
@@ -356,7 +287,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             return;
         }
         if (url.pathname === '/api/books') {
-            // Text only: a remote client never makes the engine copy host files into the project.
+            // Text only: an HTTP client never makes the engine copy host files into the project.
             sendJson(response, 200, await agenda.bookSave({ path: String(body.path ?? ''), text: String(body.text ?? ''), revision: String(body.revision ?? '') }));
             return;
         }

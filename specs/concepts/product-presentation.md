@@ -8,7 +8,7 @@ Present Promptbook through two connected principles: an entrusted agenda continu
 
 Explain ownership concretely: the engine runs on the owner's computer or server; project context, agent definitions and tasks are readable, editable files; supported harnesses and models are replaceable execution choices; Git records versioned changes and task traces provide the evidence actually exposed by the tools. Files can be inspected, moved and used by other people or tools without claiming identical behavior in another runtime.
 
-The application and the engine have distinct responsibilities. The engine owns the work and keeps running without an open client. The upcoming commercial application provides convenient remote control through an end-to-end encrypted relay connection. Its intended zero-trust content boundary means the relay is not trusted to decrypt working content. Do not attribute that guarantee to the current [dashboard tunnel](../cli/remote-access.md), or imply that an external model or connected service cannot receive the inputs sent to it by the engine.
+The application and the engine have distinct responsibilities. The engine owns the work and keeps running without an open client. The upcoming commercial application provides convenient remote control through an end-to-end encrypted relay connection. Its intended zero-trust content boundary means the relay is not trusted to decrypt working content. The self-hosted engine currently serves its dashboard/API only on loopback. Do not imply that an external model or connected service cannot receive the inputs sent to it by the engine.
 
 ## Match the audience
 

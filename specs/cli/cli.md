@@ -55,9 +55,9 @@ Pretty/raw and interactive/noninteractive follow [CLI presentation](interactive-
 
 New chat without an explicit target offers Chatter (focused default/Enter) or Choose another agent; the latter opens all valid core/specialist/Expert targets. Explicit `--agent` bypasses selection; noninteractive default is Chatter. Existing threads retain participants; User/Void/Null are not speakers. Ctrl+C leaves chat only. Authorized execution requested in chat uses ordinary tasks and respects pause/ownership.
 
-Start supports `--daemon` (default), `--foreground`, `--no-dashboard`, `--no-persist`, `--no-server`, `--port`, `--no-qr`, `--browser-mode headless|headful` and `--browser-profile <path>`. `init` and `restart` also accept `--no-dashboard` to suppress their automatic interactive viewer handoff. With several browsers, `--browser-tool <name>` disambiguates temporary browser overrides; never silently apply them to every instance. Saved per-tool changes instead use `ptbk tool modify`.
+Start supports `--daemon` (default), `--foreground`, `--no-dashboard`, `--no-persist`, `--no-server`, `--port`, `--browser-mode headless|headful` and `--browser-profile <path>`. `init` and `restart` also accept `--no-dashboard` to suppress their automatic interactive viewer handoff. With several browsers, `--browser-tool <name>` disambiguates temporary browser overrides; never silently apply them to every instance. Saved per-tool changes instead use `ptbk tool modify`.
 
-HTTP workflows support `--tunnel`, `--no-tunnel`, `--tunnel-provider`; CLI provider spellings remain `cloudflare-quick`/`cloudflare-named` and saved enums are canonical uppercase. No-server suppresses implicit tunnelling and conflicts with explicit enablement. HTTP exposure is not Git autosync. Raw does not select foreground or change exposure. Dashboard/status do not apply launch-only options or create tunnels.
+HTTP is loopback-only. `--no-server` disables HTTP/SPA while retaining local engine control. Raw does not select foreground or change HTTP enablement. Dashboard/status do not apply launch-only options.
 
 `--help`, trailing `help` and `ptbk help <command-path>` show only the selected scope, including `tool add`/`modify`/`disable` and global-dashboard help. No path means top-level. Help/version/read-only inspection require no service/setup and never run the selected command.
 
@@ -79,6 +79,6 @@ Validate incompatible priorities and flags before work. Start is the ongoing wor
 
 Authoring saves one approved operation; push requires a commit. Add keeps template/priority input; boilerplate count accepts N or N*M (default 5*1); verify retains review order/repeatable ignore filters. An optional project-specific hook cannot replace or disable the shared mandatory project-version migration mechanism for configuration and Books. Diagnose unsupported flags rather than ignoring them.
 
-List/help/about/version/dry-run never install/update/authenticate, start tunnels, call models, normalize/migrate files or modify Git. Report missing capabilities and needed repairs without performing them. See [Git persistence](git-persistence.md), [unattended operation](autonomous-operation.md) and [acceptance](acceptance.md).
+List/help/about/version/dry-run never install/update/authenticate, call models, normalize/migrate files or modify Git. Report missing capabilities and needed repairs without performing them. See [Git persistence](git-persistence.md), [unattended operation](autonomous-operation.md) and [acceptance](acceptance.md).
 
 The command surface contains no `ptbk run`; use `ptbk start` for the ongoing engine and ordinary tasks for bounded work. Unknown/removed commands give an actionable diagnostic rather than silently invoking another workflow. Bare-command menu, technical help and the visual product/about box are distinct experiences under [help](help.md).

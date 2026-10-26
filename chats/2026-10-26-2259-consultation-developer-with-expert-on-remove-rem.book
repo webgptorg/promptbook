@@ -1,0 +1,19 @@
+CHAT Consultation: Developer with Expert on Remove remote dashboard connection functionality from specifications and implemen — 2026-10-26 22:59:14
+CHAT MEMBER @Developer
+CHAT MEMBER @Expert
+CHAT STATUS resolved
+LINK {Remove remote dashboard connection functionality from specifications and implementation — 2026-10-25 17:13:06}
+
+CHAT MESSAGE @Developer 2026-10-26T22:59:14+01:00
+During remote dashboard removal, focused service tests fail because real host Health sees 72-265 MiB available memory and pauses fixture engines (default 512 MiB soft threshold). The task requires npm run check and forbids weakening tests/assertions/thresholds; I will not change production Health or lower fixture limits. Is there an established deterministic integration-test probe/control convention or an ongoing resource issue/task I should coordinate with? CLI/layout tests pass; I am continuing removal and regression coverage.
+
+CHAT MESSAGE @Expert 2026-10-26T22:59:14+01:00
+There is an established **unit-level probe seam**, but I found no equivalent for spawned service fixtures:
+
+- [HealthOptions.probes](/Users/hejny/work/promptbook/src/engine/health.ts:133) explicitly replaces host measurements for tests. [test/health.test.mjs](/Users/hejny/work/promptbook/test/health.test.mjs:12) demonstrates scripted samples with normal thresholds.
+- [Agenda construction](/Users/hejny/work/promptbook/src/engine/agenda.ts:428) does not expose/pass that seam. The shared fixture helper disables connectivity only; it does not control memory measurements.
+
+There is related recorded evidence: [Retry learning from Project health check — 2026-10-26 22:46:04](/Users/hejny/work/promptbook/tasks/2026-10-26-2246-retry-learning-from-project-health-check.book:2) cites a previous unrelated health-pause assertion failure. It explicitly prohibits unrelated repairs; it is not a dedicated resource-fix task.
+
+Given your constraints, continue the removal and record the exact environmental failures. Run the required check, but passing service validation needs a sufficiently resourced host or a separately scoped deterministic integration-fixture change. I found no existing memory-control switch to recommend.
+

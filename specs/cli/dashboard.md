@@ -36,4 +36,4 @@ Updates never steal focus, reset page/list choices or discard drafts/secret-entr
 
 Show loading, disconnection, observed service exit and failed/unconfirmed/pending operations truthfully. Refresh/closure/failure never starts/stops/recreates the service or duplicates work/messages. Mutations obey authorization and revision/ownership checks.
 
-No secret is echoed in ordinary state or diagnostic errors. Long URLs and pairing QR live on Connection rather than forcing the home page taller. The global dashboard remains a separate host-wide terminal feature. See [controls](controls.md), [channels](channels.md) and [start](start.md).
+No secret is echoed in ordinary state or diagnostic errors. Local address details live on Connection rather than forcing the home page taller. The browser opens directly on the engine computer using the API's local bootstrap and same-origin safeguards. The global dashboard remains a separate host-wide terminal feature. See [controls](controls.md), [channels](channels.md) and [start](start.md).

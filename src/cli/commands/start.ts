@@ -4,7 +4,6 @@ import { clockTime } from '../../common/time.js';
 import { loadSettings, setting } from '../../project/config.js';
 import { assessReadiness, type ReadinessProblem } from '../../project/readiness.js';
 import type { Project } from '../../project/workspace.js';
-import type { ServiceSnapshot } from '../../engine/snapshot.js';
 import { lookupService } from '../../service/control.js';
 import { ServiceHost } from '../../service/host.js';
 import { launchDaemon } from '../../service/launcher.js';
@@ -61,20 +60,6 @@ async function ensureReady(context: CommandContext, project: Project, overrides:
 }
 
 /**
- * Waits a bounded time for the tunnel's first outcome so the result reports it truthfully.
- */
-async function settledSnapshot(fetch: () => Promise<ServiceSnapshot>, boundMs = 25_000): Promise<ServiceSnapshot> {
-    const deadline = Date.now() + boundMs;
-    const firstEvaluation = Date.now() + 10_000;
-    let snapshot = await fetch();
-    while ((snapshot.connection.remote.state === 'connecting' || ((snapshot.phase === 'starting' || snapshot.phase === 'evaluating') && Date.now() < firstEvaluation)) && Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        snapshot = await fetch();
-    }
-    return snapshot;
-}
-
-/**
  * Resumes a persisted service after login/boot: idempotent, never prompts, honors intentional stops.
  */
 async function resumeService(context: CommandContext, project: Project): Promise<number> {
@@ -113,7 +98,6 @@ async function runForeground(context: CommandContext, project: Project, override
             tasksDirectory: tasksOverride(context),
             persistent: false,
             persistenceNote: 'Foreground: stops with this terminal; no restart persistence.',
-            allowTunnelInstall: true,
             onEvent: live ? undefined : (text, level) => terminal.write(`${clockTime()} ${level === 'info' ? '' : `${level.toUpperCase()}: `}${text}\n`),
         });
         await host.start();
@@ -123,7 +107,7 @@ async function runForeground(context: CommandContext, project: Project, override
             const agenda = host.runAgenda();
             if (live) {
                 // The owning view stays until the engine ends (Q/Ctrl+C request a graceful stop inside it).
-                await runDashboard(terminal, hostSource(host), { noQr: flag(context, 'qr') === false });
+                await runDashboard(terminal, hostSource(host));
                 host.agenda.requestStop({});
             }
             const summary = await agenda;
@@ -156,7 +140,7 @@ export default async function start(context: CommandContext): Promise<number> {
     validateCombinations(context);
     const project = await selectedProject(context);
     if (flag(context, 'resume-service')) return await resumeService(context, project);
-    // An explicit start from the global dashboard keeps the project's recorded launch overrides (e.g. --no-tunnel).
+    // An explicit start from the global dashboard keeps the project's recorded launch overrides (e.g. --no-server).
     const saved = flag(context, 'saved-launch') ? await readLaunchMetadata(project) : undefined;
     const overrides = saved ? { ...saved.cli } : settingOverrides(context);
     const cliHarnesses = saved ? saved.cliHarnesses : option<string[]>(context, 'harness');
@@ -164,7 +148,7 @@ export default async function start(context: CommandContext): Promise<number> {
     const tasksDirectory = saved ? saved.tasksDirectory : tasksOverride(context);
     const existing = await lookupService(project);
     if (existing.state === 'running') {
-        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'qr', 'daemon', 'dashboard', 'saved-launch'].includes(name));
+        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'daemon', 'dashboard', 'saved-launch'].includes(name));
         if (wantsDashboardHandoff(context)) {
             // Start-or-open: the running engine keeps its state and configuration; only a viewer attaches.
             handoffLine(context, 'Already running.', `PID ${existing.record.pid}${ignored.length ? `; the new options (${ignored.map((name) => `--${name}`).join(', ')}) were not applied — use \`ptbk restart\`` : ''}.`);
@@ -198,7 +182,7 @@ export default async function start(context: CommandContext): Promise<number> {
         handoffLine(context, result.started ? 'Started.' : 'Already running.', `The agenda runs in the background (PID ${result.lookup.record.pid}).${persistence}`);
         return (await attachDashboard(context, project, result.lookup)) || EXIT.success;
     }
-    const snapshot = await settledSnapshot(() => liveSnapshot(project, result.lookup));
+    const snapshot = await liveSnapshot(project, result.lookup);
     await renderServiceResult(context, snapshot, {
         client: result.lookup.client,
         outcome: { title: result.started ? 'Started' : 'Already running', message: `The agenda runs in the background (PID ${snapshot.service.pid}).${persistence}`, tone: 'success' },

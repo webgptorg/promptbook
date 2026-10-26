@@ -63,9 +63,9 @@ The home screen favors:
 4. compact state of the major domains;
 5. navigation and lifecycle discoverability.
 
-Technical details are not deleted; they move to pages. Wallet owns its encrypted credential labels, protected pending login actions and restoration input; no secret appears in home summaries. The **System page** owns engine/process/configuration/lifecycle detail, generic manual pause/resume and the complete active pause-reason list. The **Health page** owns host-resource measurements, health incidents, allowed soft-incident override and remediation from the [Health sub-engine](health-sub-engine.md); it does not own generic manual pause controls. Tool pages own provider/profile readiness and configuration. Connection owns URLs/QR/access. Execution owns harness/model/thinking details. Activity/log pages own verbose history.
+Technical details are not deleted; they move to pages. Wallet owns its encrypted credential labels, protected pending login actions and restoration input; no secret appears in home summaries. The **System page** owns engine/process/configuration/lifecycle detail, generic manual pause/resume and the complete active pause-reason list. The **Health page** owns host-resource measurements, health incidents, allowed soft-incident override and remediation from the [Health sub-engine](health-sub-engine.md); it does not own generic manual pause controls. Tool pages own provider/profile readiness and configuration. Connection owns local HTTP address/readiness. Execution owns harness/model/thinking details. Activity/log pages own verbose history.
 
-A concrete blocker may be summarized on the related home tile so the operator knows *where* attention is required. The complete cause, evidence and remediation can live on its page. Long errors, paths, URLs, model names, version strings and QR codes must not inflate the root layout.
+A concrete blocker may be summarized on the related home tile so the operator knows *where* attention is required. The complete cause, evidence and remediation can live on its page. Long errors, paths, URLs, model names, and version strings must not inflate the root layout.
 
 ## Responsive and live behavior
 
@@ -83,4 +83,4 @@ Move focus through every tile: double border/bold heading never changes its dime
 
 Create simultaneous attention in several domains. New items are conspicuous without moving focus; an operator can continue navigating elsewhere, after clear interaction the transient animation settles while unresolved warnings remain. Reduced motion preserves the meaning.
 
-Open every tile with Enter. The home grid disappears and a full page is shown; long pages scroll inside their content while stable controls/context remain usable. Escape returns to the same home focus. No page, avatar, log, QR or background refresh obscures required controls or mutates engine state merely by being viewed.
+Open every tile with Enter. The home grid disappears and a full page is shown; long pages scroll inside their content while stable controls/context remain usable. Escape returns to the same home focus. No page, avatar, log or background refresh obscures required controls or mutates engine state merely by being viewed.

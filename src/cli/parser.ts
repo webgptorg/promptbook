@@ -163,7 +163,7 @@ export function parseInvocation(argv: readonly string[], commands: readonly Comm
         if (wantsHelp && !words.length) return { kind: 'help', path: [], raw };
         if (presentationOnly && !words.length) return { kind: 'bare', raw, interactive: head.includes('--interactive') || undefined, nonInteractive: head.includes('--non-interactive') };
         const first = words[0] ?? head.find((token) => token.startsWith('-')) ?? '';
-        if (!words.length) throw usageError(`Unknown option ${first}.`, '', 'Options must follow a command, e.g. `ptbk start --no-tunnel`.');
+        if (!words.length) throw usageError(`Unknown option ${first}.`, '', 'Options must follow a command, e.g. `ptbk start --no-server`.');
         const removed = REMOVED_COMMANDS[first];
         if (removed) throw usageError(`ptbk ${first} was removed.`, '', removed);
         throw usageError(`Unknown command "${first}".`, '', suggestionText(first, commands));

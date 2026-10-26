@@ -55,7 +55,7 @@ function runOther(bin, args, options) {
 test('another ptbk version: viewers open the service through its own installation; one-shot results never misrender it', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     const other = await otherInstallation(t);
-    const started = await runOther(other.bin, ['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    const started = await runOther(other.bin, ['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
     assert.match(started.output, new RegExp(`ptbk ${OTHER_VERSION.replace(/\./g, '\\.')}`));
 
@@ -95,7 +95,7 @@ test('configuration compatibility: an older engine refuses a newer configuration
     const before = (await git(project, ['log', '--format=%H'])).trim();
     const configBefore = await readFile(join(project, 'ptbk.json'), 'utf8');
     const older = await otherInstallation(t, '0.0.1-older');
-    const refused = await runOther(older.bin, ['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    const refused = await runOther(older.bin, ['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.notEqual(refused.code, 0, 'an older engine does not start project work');
     assert.match(refused.output, new RegExp(`configured by ptbk ${ENGINE_VERSION.replace(/\./g, '\\.')}; the running ptbk 0\\.0\\.1-older is older`));
     assert.match(refused.output, /update ptbk/i, 'it offers the update instead of downgrading');

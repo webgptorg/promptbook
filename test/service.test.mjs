@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { request as httpRequest } from 'node:http';
 import { test } from 'node:test';
 import { BIN, findGenerated, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
 
@@ -20,7 +21,7 @@ async function status(project, env) {
 
 test('daemon lifecycle: one service, repeated start reports it, add is executed via Manager, stop releases the project', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
-    const started = await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    const started = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
     assert.match(started.stdout, /^Started/, started.output);
     assert.doesNotMatch(started.stdout, /\x1b|[┌┐└┘╭╮]/, 'raw output without decoration');
@@ -30,8 +31,8 @@ test('daemon lifecycle: one service, repeated start reports it, add is executed 
     }, { message: 'the daemon to report running' });
     assert.equal(first.service.mode, 'daemon');
     assert.equal(first.connection.local.state, 'ready', JSON.stringify(first.connection));
-    assert.equal(first.connection.remote.state, 'disabled');
-    assert.equal(first.connection.pairing.code, undefined, 'snapshots never carry pairing secrets');
+    assert.deepEqual(Object.keys(first.connection), ['local'], 'only the local connection is advertised');
+    assert.doesNotMatch(started.stdout, /Remote:|Pairing:|#pair=/);
     const repeated = await ptbk(['start', '--raw'], { cwd: project, env });
     assert.match(repeated.stdout, /^Already running/, repeated.output);
     assert.equal((await status(project, env)).service.pid, first.service.pid);
@@ -60,62 +61,87 @@ test('daemon lifecycle: one service, repeated start reports it, add is executed 
     assert.match(dashboard.stderr, /No ptbk service is running/);
 });
 
-test('HTTP API: no project data without pairing; single-use pairing; CSRF and origin checks on controls', async (t) => {
+test('local HTTP dashboard and API: bootstrap, authenticated controls and loopback origin safeguards without a tunnel', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
-    await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
-    const pairing = await ptbk(['access', 'pair', '--raw'], { cwd: project, env });
-    const link = /(http:\/\/127\.0\.0\.1:\d+\/)#pair=([A-Za-z0-9_-]+)/.exec(pairing.stdout);
-    assert.ok(link, pairing.output);
-    const [, base, code] = link;
+    const started = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
+    assert.equal(started.code, 0, started.output);
+    const { token, http } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
+    const base = http.url;
+    assert.match(base, /^http:\/\/127\.0\.0\.1:\d+\/$/);
     assert.equal((await fetch(`${base}api/state`)).status, 401);
-    const health = await (await fetch(`${base}api/health`)).json();
-    assert.equal(health.service, 'ptbk');
-    assert.equal(Object.keys(health).length, 2, 'health discloses nothing else');
+    assert.deepEqual(await (await fetch(`${base}api/health`)).json(), { service: 'ptbk' });
     const shell = await fetch(base);
     assert.match(shell.headers.get('content-security-policy'), /default-src 'self'/);
-    assert.doesNotMatch(await shell.text(), /my project/, 'the app shell contains no project data');
-    const paired = await fetch(`${base}api/pair`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
-    assert.equal(paired.status, 200);
-    const cookie = paired.headers.get('set-cookie').split(';')[0];
-    assert.match(paired.headers.get('set-cookie'), /HttpOnly/);
-    const { csrf } = await paired.json();
-    const reused = await fetch(`${base}api/pair`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
-    assert.equal(reused.status, 401);
-    const state = await fetch(`${base}api/state`, { headers: { cookie } });
+    assert.doesNotMatch(await shell.text(), /my project/, 'the shell contains no project data');
+    const bootstrapHeaders = { 'X-PTBK-Client': 'dashboard' };
+    assert.equal((await fetch(`${base}api/session`)).status, 401, 'bootstrap requires a non-simple browser request');
+    const session = await fetch(`${base}api/session`, { headers: bootstrapHeaders });
+    assert.equal(session.status, 200);
+    assert.equal(session.headers.get('set-cookie'), null, 'no persistent device session');
+    const { csrf } = await session.json();
+    const browserHeaders = { 'X-PTBK-CSRF': csrf };
+    const state = await fetch(`${base}api/state`, { headers: browserHeaders });
     assert.equal(state.status, 200);
     assert.equal(state.headers.get('cache-control'), 'no-store, private');
     const snapshot = await state.json();
     assert.equal(snapshot.project.name, 'my project');
-    assert.equal(typeof snapshot.attention, 'object', 'the engine shares per-domain attention with every viewer');
-    assert.equal(snapshot.health.status === 'unknown' || typeof snapshot.health.disk.freeMiB === 'number', true, 'Health reports measured disk');
+    assert.equal(typeof snapshot.attention, 'object');
+    assert.equal(snapshot.health.status === 'unknown' || typeof snapshot.health.disk.freeMiB === 'number', true);
     assert.deepEqual(snapshot.service.pauseReasons, []);
-    const sorted = await (await fetch(`${base}api/tasks?sort=name&descending=1`, { headers: { cookie } })).json();
+    assert.deepEqual(Object.keys(snapshot.connection), ['local']);
+    const sorted = await (await fetch(`${base}api/tasks?sort=name&descending=1`, { headers: browserHeaders })).json();
     assert.ok(Array.isArray(sorted.tasks));
-    assert.deepEqual(sorted.tasks.map((task) => task.title), [...sorted.tasks.map((task) => task.title)].sort((a, b) => b.localeCompare(a)), 'the shared viewer sort is applied by the engine');
-    assert.equal((await fetch(`${base}api/tasks?sort=bogus`, { headers: { cookie } })).status, 400);
-    const control = (headers) => fetch(`${base}api/control`, { method: 'POST', headers: { cookie, 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ action: 'pause' }) });
-    assert.equal((await control({})).status, 409, 'missing CSRF token');
-    assert.equal((await control({ 'X-PTBK-CSRF': csrf, Origin: 'https://evil.example' })).status, 409, 'cross-origin');
-    const accepted = await control({ 'X-PTBK-CSRF': csrf, Origin: base.replace(/\/$/, '') });
+    assert.deepEqual(sorted.tasks.map((task) => task.title), [...sorted.tasks.map((task) => task.title)].sort((a, b) => b.localeCompare(a)));
+    assert.equal((await fetch(`${base}api/tasks?sort=bogus`, { headers: browserHeaders })).status, 400);
+    const control = (headers) => fetch(`${base}api/control`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ action: 'pause' }) });
+    assert.equal((await control({})).status, 401, 'missing local capability');
+    assert.equal((await control({ 'X-PTBK-CSRF': 'wrong' })).status, 401);
+    for (const headers of [
+        { Origin: 'https://evil.example' },
+        { Origin: base.replace('http:', 'https:').replace(/\/$/, '') },
+        { 'X-Forwarded-Host': new URL(base).host },
+        { 'X-Forwarded-Proto': 'https' },
+        { Forwarded: 'for=127.0.0.1' },
+        { 'Sec-Fetch-Site': 'cross-site' },
+        { 'Sec-Fetch-Site': 'same-site' },
+    ]) {
+        assert.equal((await fetch(`${base}api/session`, { headers: { ...bootstrapHeaders, ...headers } })).status, 409, JSON.stringify(headers));
+        assert.equal((await control({ ...browserHeaders, ...headers })).status, 409, JSON.stringify(headers));
+        assert.equal((await fetch(`${base}api/state`, { headers: { Authorization: `Bearer ${token}`, ...headers } })).status, 409, 'bearer credentials never bypass the local boundary');
+    }
+    // Fetch replaces a supplied Host header on current Node versions; send a real rebinding request over HTTP.
+    const reboundStatus = await new Promise((resolve, reject) => {
+        const request = httpRequest(`${base}api/session`, { headers: { ...bootstrapHeaders, Host: 'evil.example' } }, (response) => {
+            response.resume();
+            resolve(response.statusCode);
+        });
+        request.on('error', reject);
+        request.end();
+    });
+    assert.equal(reboundStatus, 409, 'DNS rebinding Host is rejected before browser bootstrap');
+    const accepted = await control({ ...browserHeaders, Origin: base.replace(/\/$/, '') });
     assert.equal(accepted.status, 200);
     assert.equal((await accepted.json()).applied, true);
     await waitFor(async () => ['pause', 'pausing'].includes((await status(project, env)).service.state), { message: 'pause visible in the CLI snapshot' });
-    const token = /\n(ptbk_[A-Za-z0-9_-]+)\n/.exec((await ptbk(['access', 'token', 'ci', '--raw'], { cwd: project, env })).stdout)[1];
-    const viaToken = await fetch(`${base}api/control`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resume' }) });
-    assert.equal(viaToken.status, 200);
-    const healthControl = (body) => fetch(`${base}api/control`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then((response) => response.json());
+    const apiHeaders = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+    assert.equal((await fetch(`${base}api/control`, { method: 'POST', headers: apiHeaders, body: JSON.stringify({ action: 'resume' }) })).status, 200);
+    const healthControl = (body) => fetch(`${base}api/control`, { method: 'POST', headers: apiHeaders, body: JSON.stringify(body) }).then((response) => response.json());
     const preview = await healthControl({ action: 'health-clean-cache' });
-    assert.equal(preview.applied, false, 'cache cleanup without confirmation only previews');
+    assert.equal(preview.applied, false);
     assert.equal(preview.data.path, '.ptbk/tmp');
     assert.equal((await healthControl({ action: 'health-recheck' })).applied, true);
-    assert.equal((await healthControl({ action: 'health-override' })).applied, false, 'nothing to override while healthy');
-    assert.equal((await ptbk(['access', 'revoke', '--all', '--raw'], { cwd: project, env })).code, 0);
-    assert.equal((await fetch(`${base}api/state`, { headers: { cookie } })).status, 401, 'revoked device loses access');
+    assert.equal((await healthControl({ action: 'health-override' })).applied, false);
+    for (const [path, method] of [['api/pair', 'POST'], ['api/logout', 'POST'], ['api/qr', 'GET']]) {
+        assert.equal((await fetch(`${base}${path}`, { method, headers: apiHeaders })).status, method === 'GET' ? 405 : 404, `${path} is removed`);
+    }
+    assert.equal((await fetch(`${base}api/state`, { headers: { Cookie: 'ptbk_session=old-device' } })).status, 401, 'old device cookies have no authority');
+    assert.equal((await fetch(`${base}api/state`, { headers: { Authorization: 'Bearer ptbk_old-token' } })).status, 401, 'old remote tokens have no authority');
+    await assert.rejects(readFile(join(project, '.ptbk', 'auth', 'pairing.json')), 'startup does not create pairing state');
 });
 
 test('attached raw dashboard observes the running service and leaving it does not stop the service', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
-    await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     const child = spawn(process.execPath, [BIN, 'dashboard', '--raw'], { cwd: project, env, stdio: ['ignore', 'pipe', 'pipe'] });
     let output = '';
     child.stdout.setEncoding('utf8').on('data', (chunk) => (output += chunk));
@@ -128,7 +154,7 @@ test('attached raw dashboard observes the running service and leaving it does no
 test('force stop interrupts owned work recoverably; the next start resumes it without repeating accepted work', async (t) => {
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
-    await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     await waitFor(async () => findGenerated(await subjects(project), 'Write the welcome page', 'PTBK: '), { message: 'the added task' });
     const stopped = await ptbk(['stop', '-F', '--raw'], { cwd: project, env });
     assert.equal(stopped.code, 0, stopped.output);
@@ -138,7 +164,7 @@ test('force stop interrupts owned work recoverably; the next start resumes it wi
     const records = await readdir(join(project, '.ptbk', 'state', 'active')).catch(() => []);
     const dirty = (await git(project, ['status', '--porcelain'])).trim();
     if (dirty) assert.ok(records.some((name) => name.endsWith('.json')), `uncommitted changes after stop must belong to a recovery record:\n${dirty}`);
-    await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     await waitFor(async () => (await subjects(project)).some((subject) => subject.startsWith('PTBK: Learn from: Write the welcome page')), { message: 'the learning task to finish after restart' });
     await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
     const learningTurns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((entry) => entry.learning);
@@ -155,12 +181,12 @@ test('init starts the agenda automatically, returns without waiting, and an expl
     assert.doesNotMatch(init.stdout, /ptbk start \(/, 'a successful init never asks for another start');
     assert.equal((await status(project, env)).service.state === 'stopped', false, 'the service runs after init returned');
     await waitFor(async () => findGenerated(await subjects(project), 'Review the initialized project', 'PTBK: '), { message: 'the Expert bootstrap task, executed by the service' });
-    const repeated = await ptbk(['init', '--non-interactive', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    const repeated = await ptbk(['init', '--non-interactive', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(repeated.code, 0, repeated.output);
     assert.match(repeated.stdout, /already running \(reused\)/, 'repeating init reuses the service');
     await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
     assert.equal(JSON.parse(await readFile(join(project, '.ptbk', 'service', 'launch.json'), 'utf8')).intentionallyStopped, true);
-    const again = await ptbk(['init', '--non-interactive', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    const again = await ptbk(['init', '--non-interactive', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(again.code, 0, again.output);
     assert.match(again.stdout, /Service: running in the background/, 'an explicit init performs an authorized start');
     assert.equal(JSON.parse(await readFile(join(project, '.ptbk', 'service', 'launch.json'), 'utf8')).intentionallyStopped, false);
@@ -184,7 +210,7 @@ test('force stop ends an unresponsive engine and every execution process it owns
     const { project, env: baseEnv } = await initializedProject(t, { check: CHECK });
     const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '60000' };
     await ptbk(['add', 'Slow work SLOW_WORK', '--agent', 'Developer', '--raw'], { cwd: project, env });
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const running = await waitFor(async () => {
         const snapshot = await status(project, env);
         return snapshot.current?.taskTitle.startsWith('Slow work') && snapshot.current.phase === 'executing' ? snapshot : undefined;
@@ -207,7 +233,7 @@ test('force stop ends an unresponsive engine and every execution process it owns
     await waitFor(() => !alive(harness.pid), { timeoutMs: 5000, message: 'the owned harness to end' });
     assert.equal(JSON.parse(await readFile(join(project, '.ptbk', 'service', 'launch.json'), 'utf8')).intentionallyStopped, true, 'the deliberate stop suppresses automatic startup');
     assert.equal((await status(project, env)).service.state, 'stopped');
-    const restarted = await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    const restarted = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(restarted.code, 0, `an explicit start works after an uncatchable kill:\n${restarted.output}`);
     await ptbk(['stop', '-F', '--raw'], { cwd: project, env });
 });
@@ -219,7 +245,7 @@ test('panic force-stops every active engine and its owned execution, keeps them 
     const env = { ...first.env, FAKE_CODEX_SLOW_MS: '60000' };
     const secondEnv = { ...second.env, PTBK_HOME: env.PTBK_HOME };
     await ptbk(['add', 'Slow work SLOW_WORK', '--agent', 'Developer', '--raw'], { cwd: first.project, env });
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: first.project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: first.project, env })).code, 0);
     assert.equal((await ptbk(['start', '--no-server', '--no-persist', '--raw'], { cwd: second.project, env: secondEnv })).code, 0);
     assert.equal((await ptbk(['pause', '--raw'], { cwd: second.project, env: secondEnv })).code, 0);
     const busy = await waitFor(async () => {
@@ -258,7 +284,7 @@ test('panic force-stops every active engine and its owned execution, keeps them 
     const again = await ptbk(['panic', '--yes', '--raw'], { cwd: first.directory, env });
     assert.equal(again.code, 0, again.output);
     assert.match(again.stdout, /No active Promptbook engines/, 'no active engines is a successful zero-target result');
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: first.project, env })).code, 0, 'an explicit start works again');
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: first.project, env })).code, 0, 'an explicit start works again');
     await ptbk(['stop', '-F', '--raw'], { cwd: first.project, env });
     for (const project of [first.project, second.project]) assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'panic creates no project commits');
 });

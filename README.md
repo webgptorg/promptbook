@@ -41,7 +41,7 @@ ptbk stop          # finish the current task, then stop
 ptbk start         # resume the agenda
 ```
 
-The engine machine must stay available. By default, the engine resumes at login and its browser dashboard uses a paired-device tunnel. For local-only access, initialize with `ptbk init --no-tunnel`. [Access and pairing](specs/cli/remote-access.md) · [Startup behavior](specs/cli/persistence.md)
+The engine machine must stay available. By default, the engine resumes at login. Its browser dashboard and API are available only on that computer through a loopback address, with no pairing step. [Local API access](specs/cli/api.md) · [Startup behavior](specs/cli/persistence.md)
 
 **Windows:** download the EXE from [GitHub Releases](https://github.com/webgptorg/promptbook/releases), or follow the [installation guide](https://www.ptbk.io/en/open-source).
 
@@ -63,7 +63,7 @@ Set real project checks in `ptbk.json`; the initializer's placeholder is informa
 
 ## App, engine and support
 
-This repository is the **self-hosted engine**. The upcoming **Promptbook app** adds convenient remote control through an end-to-end encrypted relay connection, separate from the current dashboard tunnel. [Register interest](https://www.ptbk.io/en) or [deploy Promptbook for your clients](https://www.ptbk.io/en/partnership).
+This repository is the **self-hosted engine**. The upcoming **Promptbook app** adds convenient remote control through an end-to-end encrypted relay connection, separate from the engine's local dashboard. [Register interest](https://www.ptbk.io/en) or [deploy Promptbook for your clients](https://www.ptbk.io/en/partnership).
 
 [Command reference](specs/cli/cli.md) · [Book language](specs/book-language/_index.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 

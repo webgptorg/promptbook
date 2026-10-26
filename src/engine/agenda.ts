@@ -361,7 +361,7 @@ export class Agenda {
     private readonly gitMutex = new Mutex();
     private readonly authoredPaths = new Set<string>();
     private repositoryRoot?: string;
-    private connection: ConnectionView = { local: { state: 'disabled' }, remote: { state: 'disabled' } };
+    private connection: ConnectionView = { local: { state: 'disabled' } };
     private readonly startedAt = new Date().toISOString();
     private lastHarnessMaintenance = 0;
     private readonly watchers: FSWatcher[] = [];

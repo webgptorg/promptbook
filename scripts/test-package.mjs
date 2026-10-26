@@ -78,6 +78,10 @@ try {
     ]) {
         assert(files.includes(required), `Missing package file: ${required}`);
     }
+    // The installed engine must not retain the removed remote dashboard entry points or Expert contracts.
+    for (const removed of ['dist/service/tunnel.js', 'dist/service/cloudflared.js', 'dist/cli/commands/access.js', 'dist/expert/cli/remote-access.md', 'dist/expert/cli/tunnel-options.md']) {
+        assert(!files.includes(removed), `Removed remote dashboard file is still packaged: ${removed}`);
+    }
     assert(!files.some((path) => /^(src|test|scripts|tasks|specs|agents|\.github|design|other|changelog)\//.test(path) || /(^|\/)\.env/.test(path)), 'The package includes repository-only files.');
     const tarball = join(temporary, packed.filename);
 
@@ -132,7 +136,7 @@ try {
     await git(fixture, ['add', '.']);
     await git(fixture, ['commit', '--quiet', '-m', 'External project baseline']);
     try {
-        const init = await linkedResult(local, ['init', '--non-interactive', '--harness', 'openai-codex', '--check', 'npm run check', '--no-tunnel', '--no-persist', '--raw'], fixture, env);
+        const init = await linkedResult(local, ['init', '--non-interactive', '--harness', 'openai-codex', '--check', 'npm run check', '--no-persist', '--raw'], fixture, env);
         assert.equal(init.code, 0, `${init.stdout}\n${init.stderr}`);
         assert.match(init.stdout, /^Project ready · agenda running/m);
         assert.doesNotMatch(init.stdout, /\x1b|[╭╮╰╯]/);

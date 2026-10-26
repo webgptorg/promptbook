@@ -195,13 +195,12 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
         name: 'start',
         category: 'Run the agenda',
         summary: 'Start (or reuse) the ongoing agenda as a background service, then open its dashboard.',
-        description: `Successful \`ptbk init\` already starts the agenda; use start for an initialized, cloned or intentionally stopped project. It is the ongoing work launcher (there is no separate finite run): it executes eligible tasks one at a time, lets Router choose the agent and concrete MODEL of tasks that do not determine them (also ahead of future tasks), checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon and serves the local dashboard/API on a free loopback port (from 3000) with protected remote access through a managed tunnel. In an interactive terminal it then opens the ordinary project dashboard (the same viewer as \`ptbk dashboard\`; leaving it keeps the daemon running). With \`--no-dashboard\`, \`--raw\`, \`--non-interactive\` or redirected output it renders one status snapshot and returns the terminal.
+        description: `Successful \`ptbk init\` already starts the agenda; use start for an initialized, cloned or intentionally stopped project. It is the ongoing work launcher (there is no separate finite run): it executes eligible tasks one at a time, lets Router choose the agent and concrete MODEL of tasks that do not determine them (also ahead of future tasks), checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon and serves the local dashboard/API on a free loopback port (from 3000) for access on this computer. In an interactive terminal it then opens the ordinary project dashboard (the same viewer as \`ptbk dashboard\`; leaving it keeps the daemon running). With \`--no-dashboard\`, \`--raw\`, \`--non-interactive\` or redirected output it renders one status snapshot and returns the terminal.
 
 Missing setup is offered through the same initialization workflow when interactive; unattended starts report what is missing. Repeated start never starts another service or changes the running one's configuration or pause: it is start-or-open (the dashboard attaches) or, without a dashboard, one report.`,
         optionGroups: [START_OPTIONS, SERVER_OPTIONS, BROWSER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, { title: 'Context', options: [EXECUTION_SELECTION_OPTIONS.options[4]!] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
-            { command: 'ptbk start', description: 'Background agenda with dashboard, tunnel and reboot persistence.' },
-            { command: 'ptbk start --no-tunnel', description: 'Local-only dashboard.' },
+            { command: 'ptbk start', description: 'Background agenda with local dashboard and reboot persistence.' },
             { command: 'ptbk start --foreground', description: 'Own the agenda in this terminal with the live dashboard.' },
             { command: 'ptbk start --no-dashboard', description: 'Start the daemon and return after one status snapshot.' },
             { command: 'ptbk start --raw', description: 'Still a daemon; plain one-shot output.' },
@@ -233,7 +232,7 @@ Missing setup is offered through the same initialization workflow when interacti
         name: 'stop',
         category: 'Run the agenda',
         summary: "Gracefully stop the project's service (it stays stopped after reboot); --force/-F stops immediately.",
-        description: 'The shared engine stop for any placement (daemon or an owning foreground terminal). By default it is graceful: the service is `stopping`, no next task starts, the current task finishes its checks and result persistence (or is safely checkpointed, e.g. while waiting for a human), then the owner cleans up and exits. Repeating stop never escalates. `--force`/`-F` immediately ends the engine and every execution process it owns (harnesses, helpers, an engine-owned browser, the tunnel), without waiting for work to finish and without marking it done; interrupted work keeps its recovery record and the owner attempts bounded cleanup of its own lock and records. An engine that does not answer, or does not end within the bound, is terminated after its PID is verified against the recorded start (it then gets no cleanup); an owner that cannot be verified is reported, never killed. Force stop is a deliberate stop: supervisors, a pending restart and reboots do not undo it. The result says whether the stop is still pending or completed (confirmed only after the owner ended); `ptbk resume` cancels a pending stop. A completed intentional stop disables automatic startup until the next explicit `ptbk start` (or the start performed by a successful `ptbk init`).',
+        description: 'The shared engine stop for any placement (daemon or an owning foreground terminal). By default it is graceful: the service is `stopping`, no next task starts, the current task finishes its checks and result persistence (or is safely checkpointed, e.g. while waiting for a human), then the owner cleans up and exits. Repeating stop never escalates. `--force`/`-F` immediately ends the engine and every execution process it owns (harnesses, helpers, an engine-owned browser), without waiting for work to finish and without marking it done; interrupted work keeps its recovery record and the owner attempts bounded cleanup of its own lock and records. An engine that does not answer, or does not end within the bound, is terminated after its PID is verified against the recorded start (it then gets no cleanup); an owner that cannot be verified is reported, never killed. Force stop is a deliberate stop: supervisors, a pending restart and reboots do not undo it. The result says whether the stop is still pending or completed (confirmed only after the owner ended); `ptbk resume` cancels a pending stop. A completed intentional stop disables automatic startup until the next explicit `ptbk start` (or the start performed by a successful `ptbk init`).',
         optionGroups: [
             {
                 title: 'Stop',
@@ -293,13 +292,13 @@ Missing setup is offered through the same initialization workflow when interacti
         summary: 'Attach the live home screen and pages to the running service (or --global: every known project).',
         description: `Continuously shows and controls the running project engine. Any number of dashboards can attach; opening or leaving one never starts, stops or owns the service, and a project without a running service is reported (nothing is started). Its terminal tab is titled \`PTBK <current agent> <project>\`.
 
-The root is a home screen of compact tiles that always fits the terminal without scrolling (it adapts to width and height): Current work, System, Health, Chats, Tasks, Agents, Tools, Results, Connection and — only with autosync — Synchronization. Arrows move the focus between tiles; a tile that needs you (a waiting chat, a health incident, a failing tool…) is marked and blinks until you are working in the viewer, without ever moving your focus. Enter opens the focused tile as a full page (Escape returns; Escape on the home screen leaves the viewer). Pages scroll: System has the engine/process details, every active pause reason and the lifecycle controls; Health shows disk, RAM, swap, CPU and connectivity with the soft-incident override (O), project-cache cleanup (K) and Linux swap (W); Tools manages named tools (Space enable/disable, N add, M modify, [ ] move, D remove, Enter one tool's details with browser recovery 1/2/3); Agents (C chat, E edit its Book, S sort), Chats (N new chat, Chatter first), Tasks (smart order, S sort, D reverse, E edit source, T Tasker), Results (activity log), Connection (links, QR, V renew pairing) and Synchronization (G synchronize now).
+The root is a home screen of compact tiles that always fits the terminal without scrolling (it adapts to width and height): Current work, System, Health, Chats, Tasks, Agents, Tools, Results, Connection and — only with autosync — Synchronization. Arrows move the focus between tiles; a tile that needs you (a waiting chat, a health incident, a failing tool…) is marked and blinks until you are working in the viewer, without ever moving your focus. Enter opens the focused tile as a full page (Escape returns; Escape on the home screen leaves the viewer). Pages scroll: System has the engine/process details, every active pause reason and the lifecycle controls; Health shows disk, RAM, swap, CPU and connectivity with the soft-incident override (O), project-cache cleanup (K) and Linux swap (W); Tools manages named tools (Space enable/disable, N add, M modify, [ ] move, D remove, Enter one tool's details with browser recovery 1/2/3); Agents (C chat, E edit its Book, S sort), Chats (N new chat, Chatter first), Tasks (smart order, S sort, D reverse, E edit source, T Tasker), Results (activity log), Connection (local address) and Synchronization (G synchronize now).
 
-Shortcuts on the home screen open the same pages or call the same operations: A answer the agent waiting for you (its real author), N next waiting chat, C new chat (Enter = Chatter, or Choose another agent), L chats, E current work, I system, H health, T tools, B the browser, Y synchronization, G synchronize now; P pause/resume (manual pause only; Health pauses resolve on Health), U cancel a pending pause/stop/restart, X graceful stop (never escalates), R restart, F force stop (confirmed), S skip a pacing wait; V renew pairing, O plain presentation, Q/Ctrl+C leave. The Book editor inserts a line with Enter and saves with Ctrl+S without closing. With --raw it streams plain state changes instead.
+Shortcuts on the home screen open the same pages or call the same operations: A answer the agent waiting for you (its real author), N next waiting chat, C new chat (Enter = Chatter, or Choose another agent), L chats, E current work, I system, H health, T tools, B the browser, Y synchronization, G synchronize now; P pause/resume (manual pause only; Health pauses resolve on Health), U cancel a pending pause/stop/restart, X graceful stop (never escalates), R restart, F force stop (confirmed), S skip a pacing wait; O plain presentation, Q/Ctrl+C leave. The Book editor inserts a line with Enter and saves with Ctrl+S without closing. With --raw it streams plain state changes instead.
 
 \`ptbk dashboard --global\` works from any directory (no project is selected or initialized): a continuously refreshed table of every project known to your OS user — registered by a successful init or start, and kept after stop, force stop, panic and reboot until you remove it — across installations and versions. Live rows show path, version, PID, mode, live state and current work; stopped rows say \`stopped\` with the last run labelled historical. It stays open with zero projects and shows projects registered or started later. Enter attaches to a running project's dashboard without \`cd\` (Q returns to the table). S start (a stopped project, with its recorded installation and launch options), X graceful stop, F force stop (confirmed), P pause, R resume (never starts or clears Health) and D remove (a verified stopped entry only; its files stay) act on the selected project; A followed by the same key acts on every applicable project, with per-project outcomes. Closing it leaves every engine as it was.`,
         optionGroups: [
-            { title: 'View', options: [{ name: 'global', type: 'boolean', description: 'Host-wide table of every known project and its engine, with individual and bulk controls (independent of the current directory; conflicts with --path).' }, SERVER_OPTIONS.options[4]!] },
+            { title: 'View', options: [{ name: 'global', type: 'boolean', description: 'Host-wide table of every known project and its engine, with individual and bulk controls (independent of the current directory; conflicts with --path).' }] },
             PROJECT_OPTIONS,
             PRESENTATION_OPTIONS,
         ],
@@ -315,8 +314,8 @@ Shortcuts on the home screen open the same pages or call the same operations: A 
         aliases: ['show'],
         category: 'Observe and respond',
         summary: 'Show one snapshot of the service status, chat attention and connection.',
-        description: 'Renders the same grouped status as the dashboard once and returns. It never starts work, a service or a tunnel, and never mints pairing credentials.',
-        optionGroups: [{ title: 'View', options: [SERVER_OPTIONS.options[4]!, JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        description: 'Renders the same grouped status as the dashboard once and returns. It never starts work or a service.',
+        optionGroups: [{ title: 'View', options: [JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
             { command: 'ptbk status', description: 'Snapshot of the current project.' },
             { command: 'ptbk show --json', description: 'Machine-readable snapshot.' },
@@ -723,62 +722,11 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
         run: lazy(() => import('./commands/lint.js')),
     },
     {
-        name: 'access',
-        category: 'Observe and respond',
-        summary: 'Manage remote dashboard access: pairing, devices and API tokens.',
-        description: 'Trusted local management of the protected remote dashboard.',
-        optionGroups: [PROJECT_OPTIONS, PRESENTATION_OPTIONS],
-        examples: [
-            { command: 'ptbk access pair', description: 'Show the current pairing link and QR.' },
-            { command: 'ptbk access revoke --all', description: 'Sign out all paired devices.' },
-        ],
-        subcommands: [
-            {
-                name: 'pair',
-                category: 'Observe and respond',
-                summary: 'Show (or renew) the single-use pairing link and QR code.',
-                description: 'Prints the existing pairing link of the running service. --renew creates a new link and invalidates the previous one. The link is a secret: it grants dashboard access to whoever opens it first.',
-                optionGroups: [{ title: 'Pairing', options: [{ name: 'renew', type: 'boolean', description: 'Create a new pairing link.' }, SERVER_OPTIONS.options[4]!] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
-                examples: [{ command: 'ptbk access pair --renew', description: 'New pairing link.' }],
-                run: lazy(() => import('./commands/access.js').then((module) => ({ default: module.pair }))),
-            },
-            {
-                name: 'devices',
-                category: 'Observe and respond',
-                summary: 'List paired devices.',
-                description: 'Lists device sessions created by pairing.',
-                optionGroups: [{ title: 'Output', options: [JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
-                examples: [{ command: 'ptbk access devices', description: 'Paired devices.' }],
-                run: lazy(() => import('./commands/access.js').then((module) => ({ default: module.devices }))),
-            },
-            {
-                name: 'revoke',
-                category: 'Observe and respond',
-                summary: 'Revoke a paired device or all devices.',
-                description: 'Revoked devices lose access immediately.',
-                arguments: [{ name: 'device-id', description: 'Device to revoke.' }],
-                optionGroups: [{ title: 'Revoke', options: [{ name: 'all', type: 'boolean', description: 'Revoke every paired device.' }] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
-                examples: [{ command: 'ptbk access revoke d-k3x9m2', description: 'Revoke one device.' }],
-                run: lazy(() => import('./commands/access.js').then((module) => ({ default: module.revoke }))),
-            },
-            {
-                name: 'token',
-                category: 'Observe and respond',
-                summary: 'Issue a project-scoped API token for direct API clients.',
-                description: 'The token is shown once; send it as `Authorization: Bearer <token>`.',
-                arguments: [{ name: 'label', description: 'Label of the client.' }],
-                optionGroups: [{ title: 'Token', options: [{ name: 'revoke', type: 'string', valueName: '<token-id>', description: 'Revoke a token instead.' }] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
-                examples: [{ command: 'ptbk access token ci', description: 'New token labeled ci.' }],
-                run: lazy(() => import('./commands/access.js').then((module) => ({ default: module.token }))),
-            },
-        ],
-    },
-    {
         name: 'help',
         category: 'Information',
         summary: 'Show the technical command reference for ptbk or one command path.',
         description: 'Equivalent to `<command> --help`. Without a command, shows the technical overview of commands and options (bare interactive `ptbk` offers the Initialize/Start/Dashboard picker instead).',
-        arguments: [{ name: 'command', description: 'Command path, e.g. `init` or `access pair`.', variadic: true }],
+        arguments: [{ name: 'command', description: 'Command path, e.g. `init` or `tool list`.', variadic: true }],
         optionGroups: [PRESENTATION_OPTIONS],
         examples: [{ command: 'ptbk help start', description: 'Help for start.' }],
     },

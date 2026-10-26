@@ -42,7 +42,7 @@ async function addTask(project, env, title) {
 test('automatic repair: a task its agent cannot finish is handed to Fixer, which completes it without asking anyone', async (t) => {
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     const source = await addTask(project, env, 'Stubborn page NEEDS_FIXER');
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     await waitFor(async () => (await subjects(project)).some((subject) => generated('Stubborn page NEEDS_FIXER', 'PTBK: ').test(subject)), { message: 'the result after Fixer took over', timeoutMs: 90_000 });
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
     assert.deepEqual((await turnsOf(log, 'Stubborn page NEEDS_FIXER')).map((turn) => turn.agent), ['Developer', 'Fixer'], 'Fixer continues the same task once, before anyone is asked');
@@ -58,7 +58,7 @@ test('automatic repair: a task its agent cannot finish is handed to Fixer, which
 test('automatic repair: when Fixer cannot resolve a failure either, Fixer asks how to continue', async (t) => {
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     await addTask(project, env, 'Impossible BLOCKED work');
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const [chat] = await waitFor(async () => {
         const chats = await waitingChats(project, env);
         return chats.length ? chats : undefined;

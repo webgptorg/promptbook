@@ -55,11 +55,8 @@ export function settingOverrides(context: CommandContext): Record<string, unknow
     set('execution.isCommitEnabled', flag(context, 'commit'));
     set('server.isEnabled', flag(context, 'server'));
     set('server.port', option<number>(context, 'port'));
-    set('server.tunnel.isEnabled', flag(context, 'tunnel'));
-    set('server.tunnel.provider', option<string>(context, 'tunnel-provider'));
     set('service.isPersistent', flag(context, 'persist'));
     if (flag(context, 'harness-updates') === false) overrides['service.harnessUpdates'] = 'off';
-    set('service.isQrShown', flag(context, 'qr'));
     set('traces.isCommitted', flag(context, 'commit-traces'));
     set('traces.isVideoIgnored', flag(context, 'ignore-trace-videos'));
     set('traces.isVideoRecordingEnabled', flag(context, 'record-video'));
@@ -109,7 +106,6 @@ export function validateCombinations(context: CommandContext): void {
     if (flag(context, 'auto-sync') === false && (flag(context, 'auto-pull') || flag(context, 'auto-push'))) throw usageError('--no-auto-sync contradicts --auto-pull/--auto-push (compatibility aliases of --auto-sync).', path);
     if (noCommit && (flag(context, 'auto-sync') || flag(context, 'auto-pull') || flag(context, 'auto-push'))) throw usageError('--no-commit conflicts with automatic synchronization (--auto-sync, --auto-pull, --auto-push): synchronization publishes commits.', path);
     if (flag(context, 'daemon') && flag(context, 'foreground')) throw usageError('--daemon and --foreground are mutually exclusive.', path);
-    if (flag(context, 'tunnel') === true && flag(context, 'server') === false) throw usageError('--tunnel needs the HTTP server; it conflicts with --no-server.', path);
     if (option<number>(context, 'port') !== undefined && flag(context, 'server') === false) throw usageError('--port conflicts with --no-server.', path);
 }
 

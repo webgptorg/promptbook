@@ -26,7 +26,7 @@ Enter opens the focused tile as a full **dashboard page**; the root tile grid is
 
 Pages can scroll. Prefer a stable header/context and shortcut/footer area with a scrollable body for long task/chat/agent/tool/activity content. Inside a focused list/editor/composer, its own arrows/Enter/Escape take precedence until returning to the page.
 
-Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, tools/browser, Agents, Chats, Tasks, activity/results, Connection and enabled Synchronization. Technical metadata such as engine version, installation/path/location, URLs/QR and provider/model detail belongs on pages instead of bloating the home screen.
+Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, tools/browser, Agents, Chats, Tasks, activity/results, Connection and enabled Synchronization. Technical metadata such as engine version, installation/path/location, local URLs and provider/model detail belongs on pages instead of bloating the home screen.
 
 Live updates never steal focus, reset scroll, discard drafts or flood scrollback.
 
@@ -44,4 +44,4 @@ O may switch dashboard/plain presentation interactively; End can follow focused 
 
 ## Raw output
 
-Raw/noninteractive dashboard streams bounded plain state/events without colour, cursor control, animation or hidden prompts. Keep equivalent state/diagnostic meaning, redacted addresses and attributed waiting-chat notices without QR art. Status/show are one-shot alternatives. Presentation never resubmits work or changes authority. See [process modes](process-modes.md), [channels](channels.md) and [traces](traces.md).
+Raw/noninteractive dashboard streams bounded plain state/events without colour, cursor control, animation or hidden prompts. Keep equivalent state/diagnostic meaning, redacted addresses and attributed waiting-chat notices without decorative art. Status/show are one-shot alternatives. Presentation never resubmits work or changes authority. See [process modes](process-modes.md), [channels](channels.md) and [traces](traces.md).

@@ -56,7 +56,6 @@ async function main(): Promise<number> {
         persistenceNote: launch.persistent ? undefined : 'Persistence disabled (--no-persist).',
         supervisorPid: process.ppid,
         launchNonce: launch.launchNonce,
-        allowTunnelInstall: true,
         onEvent: (text, level) => appendServiceLog(eventLog, `${new Date().toISOString()} ${level.toUpperCase()} ${text}\n`),
     });
     // A catchable OS termination request drains gracefully (the host may still kill the process after its own grace period).

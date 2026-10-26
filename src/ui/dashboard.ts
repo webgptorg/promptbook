@@ -8,7 +8,6 @@ import { runChatClient, type ChatSource } from './chat-client.js';
 import { singleLineVisual } from './badges.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { FullScreen } from './screen.js';
-import { renderQr, type PreparedQr } from './status-view.js';
 import { lifecycleActions } from './details.js';
 import { fitLegend, homeLayout, homeTiles, renderHome, renderPage, tileAttention, type HomeTile } from './dashboard-home.js';
 import { keepSelection, pageBody, pageForTile, pageItemKeys, taskOrder, teamOrder, toolsOf, walletItems, TEAM_SORT_FIELDS, type DashboardPage, type PageContext } from './dashboard-pages.js';
@@ -36,8 +35,6 @@ export type DashboardSource = {
     readonly action: (name: string, params?: Readonly<Record<string, unknown>>) => Promise<{ outcome: string; applied?: boolean }>;
     /** Chats (the same committed operations as `ptbk chat`). */
     readonly chats: ChatSource;
-    /** Existing (or explicitly renewed) pairing link. */
-    readonly pairing: (renew: boolean) => Promise<{ available: boolean; url?: string; remote?: boolean }>;
     /** Saved tool management through the engine's shared operation (committed immediately). */
     readonly tool: (request: ToolOperationRequest) => Promise<ToolOperationOutcome>;
     /** The engine's Wallet operations (secrets are write-only; only setup returns the 12 words, to this owner view). */
@@ -90,7 +87,6 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
         if (toolStates(previous) !== toolStates(next)) lines.push(`Tools: ${(next.tools?.items ?? []).map((item) => `${item.name} ${item.isEnabled ? item.state : 'disabled'}${item.inUse ? ' (in use)' : ''}`).join(', ') || 'none'}`);
         if (next.sync && (previous.sync?.state !== next.sync.state || previous.sync?.reason !== next.sync.reason)) lines.push(`Synchronization ${next.sync.state}${next.sync.reason ? `: ${next.sync.reason}` : ''}`);
         if (previous.phase !== next.phase) lines.push(`Phase ${next.phase}${next.current ? `: ${next.current.agent.name} on "${next.current.taskTitle}"` : next.wait ? `: ${next.wait.reason}` : ''}`);
-        if (previous.connection.remote.url !== next.connection.remote.url && next.connection.remote.url) lines.push(`Remote dashboard: ${next.connection.remote.url}`);
     }
     const seen = new Set(previous?.activity.map((line) => `${line.at}${line.text}`) ?? []);
     for (const line of next.activity) if (!seen.has(`${line.at}${line.text}`) && previous) lines.push(`${line.level === 'info' ? '' : `${line.level.toUpperCase()}: `}${line.text}`);
@@ -172,7 +168,7 @@ const ENDED_VISIBLE_MS = 1500;
  *
  * @private terminal dashboard
  */
-export async function runDashboard(terminal: TerminalProfile, source: DashboardSource, options: { noQr: boolean }): Promise<'left' | 'ended'> {
+export async function runDashboard(terminal: TerminalProfile, source: DashboardSource): Promise<'left' | 'ended'> {
     if (!terminal.pretty || !terminal.interactive) return await runPlainDashboard(terminal, source);
     const screen = new FullScreen();
     const marks = symbols(terminal.unicode);
@@ -190,9 +186,6 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     let inventoryRevision = -1;
     const drafts = new Map<string, BookDraft>();
     let nested = false;
-    let qr: PreparedQr | undefined;
-    let qrKey = '';
-    let pairingUrl: string | undefined;
     let plain = false;
     let ownerStopRequested = false;
     let connectionLost: string | undefined;
@@ -235,31 +228,6 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     };
 
     const attentionView = (): Map<HomeTile, 'new' | 'seen'> => new Map([...attention].map(([tile, item]) => [tile, item.seen ? 'seen' : 'new']));
-
-    const refreshQr = async (): Promise<void> => {
-        if (options.noQr) return;
-        const remote = snapshot.connection.remote;
-        const pairingAvailable = snapshot.connection.pairing?.available;
-        const key = `${remote.state}|${remote.url}|${String(pairingAvailable)}`;
-        if (key === qrKey) return;
-        qrKey = key;
-        try {
-            const pairing = pairingAvailable ? await source.pairing(false) : { available: false };
-            if (pairing.available && pairing.url && pairing.remote) {
-                pairingUrl = pairing.url;
-                qr = { url: pairing.url, lines: await renderQr(pairing.url), label: 'Scan to pair a phone (protected remote access):', sensitive: true };
-            } else if (remote.state === 'ready' && remote.url) {
-                pairingUrl = pairing.url;
-                qr = { url: remote.url, lines: await renderQr(remote.url), label: 'Remote dashboard (pairing required):', sensitive: false };
-            } else {
-                pairingUrl = pairing.available ? pairing.url : undefined;
-                qr = undefined;
-            }
-        } catch {
-            qr = undefined;
-        }
-        draw();
-    };
 
     /** Reloads the complete task inventory when the service state changed (bounded: once per revision). */
     const refreshInventory = async (): Promise<void> => {
@@ -344,7 +312,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         };
     };
 
-    const pageContext = (): PageContext => ({ snapshot, terminal, frame, inventory, qr, pairingUrl: qr?.sensitive ? undefined : pairingUrl, noQr: options.noQr, owning: source.owning });
+    const pageContext = (): PageContext => ({ snapshot, terminal, frame, inventory, owning: source.owning });
 
     const draw = (): void => {
         if (plain || nested) return;
@@ -801,7 +769,6 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 }
                 return;
             case 'connection':
-                if (key === 'v') renewPairing();
                 return;
             case 'chats':
                 if (key === 'n') void startNewChat();
@@ -920,17 +887,6 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         draw();
     };
 
-    const renewPairing = (): void => {
-        void source.pairing(true).then(
-            () => {
-                qrKey = '';
-                notify('Pairing renewed; the previous link is invalid.');
-                void refreshQr();
-            },
-            (error: unknown) => notify(`Pairing not renewed: ${errorMessage(error)}`),
-        );
-    };
-
     /** Keys of the home screen: tiles, letter shortcuts to the same pages/operations, and leaving. */
     const homeKey = (event: KeyEvent): void => {
         if (event.type === 'key') {
@@ -1002,9 +958,6 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 notify('Synchronizing…');
                 void runAction('sync-now');
                 return;
-            case 'v':
-                renewPairing();
-                return;
             case 'o':
                 plain = !plain;
                 if (plain) {
@@ -1070,7 +1023,6 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         }
     }, HOME_FRAME_MS);
     draw();
-    void refreshQr();
     void refreshInventory();
 
     void (async () => {
@@ -1090,7 +1042,6 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 // A changed worker switches the title's visual at once.
                 title.refresh();
                 draw();
-                void refreshQr();
                 if (pages.some((page) => page.kind === 'tasks' || page.kind === 'agents')) void refreshInventory();
                 if (['stopped', 'finished'].includes(snapshot.service.state)) {
                     // The engine ended (observed): show it briefly, never start a replacement.

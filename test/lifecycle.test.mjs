@@ -56,7 +56,7 @@ test('lifecycle: pause drains the current task without a next claim; resume cont
     await git(project, ['commit', '-q', '-m', 'Serialize work', '--', 'ptbk.json']);
     await ptbk(['add', 'Slow work SLOW_WORK', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
     await ptbk(['add', 'Next work', '--agent', 'Developer', '--priority', '8', '--raw'], { cwd: project, env });
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const active = await waitFor(async () => {
         const snapshot = await status(project, env);
         return snapshot.current?.taskTitle.startsWith('Slow work') && snapshot.current.phase === 'executing' ? snapshot : undefined;
@@ -103,7 +103,7 @@ test('lifecycle: a pending stop can be cancelled; replacing it with pause needs 
     const { project, env: baseEnv, log } = await initializedProject(t, { check: CHECK });
     const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '7000' };
     await ptbk(['add', 'Slow work SLOW_WORK', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
-    await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     await waitFor(async () => (await status(project, env)).current?.taskTitle.startsWith('Slow work'), { message: 'the slow task to execute' });
     const pending = await ptbk(['stop', '--timeout', '1s', '--raw'], { cwd: project, env });
     assert.equal(pending.code, 3, pending.output);
@@ -183,7 +183,7 @@ test('global dashboard: works outside any project, keeps stopped known projects,
 
     const view = watch(env);
     await waitFor(() => /1 known, 0 active engines/.test(view.output) && /my project \[stopped\] · /.test(view.output), { message: 'the initialized project as a stopped known row' });
-    await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     await waitFor(() => /~ my project \[running\] ptbk .* · daemon · PID \d+/.test(view.output), { message: 'the started engine to appear' });
     const { removeStoppedProject, startKnownProject } = await import('../dist/service/global-controls.js');
     const { readKnownProjects } = await import('../dist/service/known-projects.js');
@@ -200,7 +200,8 @@ test('global dashboard: works outside any project, keeps stopped known projects,
     assert.equal(started.status, 'completed', started.message);
     const relaunched = await status(project, env);
     assert.equal(relaunched.service.state, 'running', 'an explicit Start uses the ordinary launcher');
-    assert.equal(relaunched.connection.remote.state, 'disabled', 'it keeps the recorded launch overrides (--no-tunnel)');
+    assert.equal(relaunched.connection.local.state, 'ready', 'the local HTTP service is restored');
+    assert.deepEqual(Object.keys(relaunched.connection), ['local']);
     assert.equal((await startKnownProject(target, env)).status, 'unchanged', 'Start leaves a live engine unchanged');
     await ptbk(['stop', '--raw'], { cwd: project, env });
 
@@ -210,7 +211,7 @@ test('global dashboard: works outside any project, keeps stopped known projects,
     assert.equal((await readKnownProjects(env)).entries.length, 0);
     assert.ok(JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8')), 'removal keeps the project files');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'registry changes create no project commits');
-    await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
+    await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.deepEqual((await readKnownProjects(env)).entries.map((entry) => entry.projectRoot), [project], 'a later explicit start registers it again');
     await ptbk(['stop', '-F', '--raw'], { cwd: project, env });
     view.child.kill('SIGINT');
@@ -221,7 +222,7 @@ test('global dashboard: works outside any project, keeps stopped known projects,
 
 test('lifecycle: an accepted manual pause survives an engine crash; a deliberate stop replaces it', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const paused = await ptbk(['pause', '--raw'], { cwd: project, env });
     assert.equal(paused.code, 0, paused.output);
     await waitFor(async () => (await status(project, env)).service.state === 'pause', { message: 'the pause to settle' });
@@ -230,7 +231,7 @@ test('lifecycle: an accepted manual pause survives an engine crash; a deliberate
     // An uncatchable kill is what a crash looks like: no cleanup and no chance to record anything.
     process.kill(before.service.pid, 'SIGKILL');
     await waitFor(async () => (await status(project, env)).service.state === 'stopped', { message: 'the killed engine to be observed as stopped' });
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const restored = await status(project, env);
     assert.notEqual(restored.service.instanceId, before.service.instanceId);
     assert.equal(restored.service.state, 'pause', 'the operator’s manual pause is restored before any background claim');
@@ -242,7 +243,7 @@ test('lifecycle: an accepted manual pause survives an engine crash; a deliberate
     await waitFor(async () => findGenerated(await subjects(project), 'Queued work', 'PTBK: '), { message: 'the queued work after resume' });
     assert.equal((await ptbk(['pause', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
-    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await status(project, env)).service.state, 'running', 'an explicit start after a deliberate stop runs again');
     await ptbk(['stop', '--raw'], { cwd: project, env });
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'operator intent is runtime-only and never committed');

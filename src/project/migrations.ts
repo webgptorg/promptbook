@@ -1,4 +1,4 @@
-import { canonicalEnumValue, matchEnum } from '../common/naming.js';
+import { canonicalEnumValue, matchEnum, matchProperty } from '../common/naming.js';
 import { compareVersions } from '../common/semver.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { environmentReference } from '../tools/environment.js';
@@ -60,9 +60,7 @@ export const LEGACY_BOOLEAN_PATHS: ReadonlyArray<readonly [string, string]> = [
     ['traces.ignoreVideos', 'traces.isVideoIgnored'],
     ['traces.recordVideo', 'traces.isVideoRecordingEnabled'],
     ['server.enabled', 'server.isEnabled'],
-    ['server.tunnel.enabled', 'server.tunnel.isEnabled'],
     ['service.persist', 'service.isPersistent'],
-    ['service.qr', 'service.isQrShown'],
     ['discovery.enabled', 'discovery.isEnabled'],
     ['learning.enabled', 'learning.isEnabled'],
 ];
@@ -268,7 +266,7 @@ const UNIFIED_TOOLS_MIGRATION: ConfigurationMigration = {
             raw.isAutoSync = false;
             notes.push('isAutoSync: false (automatic synchronization stays off until explicitly enabled)');
         }
-        for (const path of ['execution', 'traces', 'server.tunnel', 'server', 'service', 'discovery', 'learning']) pruneEmpty(raw, path);
+        for (const path of ['execution', 'traces', 'server', 'service', 'discovery', 'learning']) pruneEmpty(raw, path);
         // The former schema counter is superseded by promptbookVersion (never two competing version sources).
         if (raw.version !== undefined) {
             notes.push(`retired the former schema counter version (${JSON.stringify(raw.version)}); promptbookVersion records the engine version`);
@@ -312,11 +310,43 @@ const ROUTER_MODEL_MIGRATION: ConfigurationMigration = {
 };
 
 /**
+ * Retires only the removed dashboard exposure/presentation settings, including their old spellings. Values are never
+ * inspected or included in reports. Shared by version migration and deterministic normalization of current projects.
+ *
+ * @private configuration migrations
+ */
+export function retireRemoteDashboardSettings(raw: Record<string, unknown>): string[] {
+    const retired: string[] = [];
+    for (const rootKey of Object.keys(raw)) {
+        const section = matchProperty(rootKey, ['server', 'service']);
+        const value = raw[rootKey];
+        if (!section || value === null || typeof value !== 'object' || Array.isArray(value)) continue;
+        const object = value as Record<string, unknown>;
+        for (const key of Object.keys(object)) {
+            if (!matchProperty(key, section === 'server' ? ['tunnel'] : ['qr', 'isQrShown'])) continue;
+            delete object[key];
+            retired.push(`${rootKey}.${key}`);
+        }
+        // Keep even an empty section: unrelated settings and their structure remain untouched.
+    }
+    return retired;
+}
+
+/**
+ * Removed dashboard tunnels and remote credentials have no replacement provider or network setup.
+ */
+const LOCAL_DASHBOARD_MIGRATION: ConfigurationMigration = {
+    target: '0.119.0-35',
+    title: 'Retire remote dashboard settings; dashboard and API stay local',
+    migrate: (raw) => ({ notes: retireRemoteDashboardSettings(raw).map((path) => `retired ${path}`), problems: [] }),
+};
+
+/**
  * Every registered configuration migration (sparse: most releases have none).
  *
  * @private configuration migrations
  */
-export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION];
+export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION, LOCAL_DASHBOARD_MIGRATION];
 
 /**
  * Compares the saved configuration version with the running engine and selects the applicable ordered steps
