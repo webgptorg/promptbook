@@ -1,0 +1,7 @@
+TASK Assign routing: Retry learning from Project health check — 2026-10-26 22:46:04 — 2026-10-26 22:46:07
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Retry learning from Project health check — 2026-10-26 22:46:04}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PARENT {Retry learning from Project health check — 2026-10-26 22:46:04}
+TASK ORIGIN assignment for {Retry learning from Project health check — 2026-10-26 22:46:04}
+TASK DONE 2026-10-26T22:47:45+01:00
