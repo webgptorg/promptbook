@@ -717,3 +717,12 @@ details summary {
     padding-top: 12px;
     border-top: 1px solid var(--border);
 }
+
+/* Concurrent work: the selected unit (its details show below the list) is marked without changing row geometry. */
+.work-units li.selected {
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.work-units li.selected .title {
+    font-weight: 700;
+}

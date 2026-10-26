@@ -15,6 +15,8 @@
  *   QUOTA_NATIVE    → a native (ChatGPT) run fails with a usage limit; an API-key run (CODEX_API_KEY) succeeds
  *   LIST_BROWSERS   → after the work (and any SLOW_WORK wait) lists the browser tools through the bridge into
  *                     output/browsers.txt (a tool added meanwhile must be visible to this same task)
+ *   CLAIM_SHARED    → claims output/shared.txt through the `claim_files` tool, appends the task name to it and then
+ *                     keeps working for $FAKE_CODEX_SLOW_MS (concurrent same-file work waits for the claim)
  * Router turns (`## Assignment work`, tasks and chat routing) choose the first listed agent's example combination
  * (ROUTE_IMPOSSIBLE in the target reports no compatible combination). Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
@@ -184,6 +186,16 @@ async function main() {
     } else if (prompt.includes('ASK_USER') && !prompt.includes('## Conversation with the user')) {
         const text = await callTool('ask_user', { question: 'Which color should the fixture use?', choices: ['red', 'blue'], reason: 'The task does not say which color to use.', attempted: 'Checked the task and project instructions.' });
         message(`${text}\nPTBK_RESULT ${JSON.stringify({ status: 'waiting-for-user', summary: 'asked the user' })}`);
+    } else if (prompt.includes('CLAIM_SHARED')) {
+        const claimed = await callTool('claim_files', { paths: ['output/shared.txt'] });
+        if (!/^Claimed/.test(claimed)) {
+            message(`Could not claim: ${claimed}\nPTBK_RESULT ${JSON.stringify({ status: 'blocked', summary: 'blocked', reason: claimed })}`);
+        } else {
+            mkdirSync(join(process.cwd(), 'output'), { recursive: true });
+            appendFileSync(join(process.cwd(), 'output', 'shared.txt'), `${title}\n`);
+            await new Promise((resolve) => setTimeout(resolve, Number(process.env.FAKE_CODEX_SLOW_MS ?? 6000)));
+            done('Appended to output/shared.txt');
+        }
     } else {
         if (prompt.includes('SLOW_WORK')) await new Promise((resolve) => setTimeout(resolve, Number(process.env.FAKE_CODEX_SLOW_MS ?? 6000)));
         const answer = [...prompt.slice(prompt.indexOf('## Conversation with the user')).matchAll(/^- @User: (.+)$/gm)].pop()?.[1];
@@ -191,18 +203,25 @@ async function main() {
         const file = join(process.cwd(), 'output', `${reference.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}.txt`);
         const content = prompt.includes('FAIL_CHECK_ONCE') && attempt === 1 ? 'BROKEN\n' : `${title}${answer ? ` (${answer})` : ''}\n`;
         writeFileSync(file, content);
+        // Like the real CLI, every file this turn writes is reported as a file change.
+        const written = [file];
         if (existsSync(join(process.cwd(), 'docs')) || prompt.includes('docs/promptbook-readiness.md')) {
             mkdirSync(join(process.cwd(), 'docs'), { recursive: true });
             writeFileSync(join(process.cwd(), 'docs', 'promptbook-readiness.md'), '# Readiness\n\nFixture project is ready.\n');
+            written.push(join(process.cwd(), 'docs', 'promptbook-readiness.md'));
         }
         if (prompt.includes('CREATE_FOLLOW_UP')) {
             const tasksDirectory = /top level of `([^`]+)\/`/.exec(prompt)?.[1] ?? 'tasks';
             writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-one.book'), `TASK Follow-up one — ${stamp}\nGOAL More work.\nTASK AGENT @Developer\n`);
             const second = attempt === 1 ? title : `Follow-up two — ${stamp}`;
             writeFileSync(join(process.cwd(), tasksDirectory, 'zz-follow-up-two.book'), `TASK ${second}\nGOAL Copied definition.\nTASK AGENT @Developer\n`);
+            written.push(join(process.cwd(), tasksDirectory, 'zz-follow-up-one.book'), join(process.cwd(), tasksDirectory, 'zz-follow-up-two.book'));
         }
-        if (prompt.includes('LIST_BROWSERS')) writeFileSync(join(process.cwd(), 'output', 'browsers.txt'), `${await callTool('browser_list', {})}\n`);
-        print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'add' }] } });
+        if (prompt.includes('LIST_BROWSERS')) {
+            writeFileSync(join(process.cwd(), 'output', 'browsers.txt'), `${await callTool('browser_list', {})}\n`);
+            written.push(join(process.cwd(), 'output', 'browsers.txt'));
+        }
+        print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: written.map((path) => ({ path, kind: 'update' })) } });
         done(`Wrote ${file}`);
     }
     print({ type: 'turn.completed', usage: { input_tokens: 10, output_tokens: 5 } });

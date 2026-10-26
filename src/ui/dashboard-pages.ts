@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { formatShortTime } from '../common/time.js';
 import type { CachePreview, SwapPlan } from '../engine/health.js';
 import { formatBytes, formatMiB } from '../engine/health.js';
-import type { ServiceSnapshot } from '../engine/snapshot.js';
+import type { CurrentWorkView, ServiceSnapshot } from '../engine/snapshot.js';
 import { TASK_SORT_FIELDS, sortTasks, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
 import { stringWidth, wrap } from './ansi.js';
 import { activityLabel, framedBadge, inlineBadge, type BadgeActivity } from './badges.js';
@@ -42,7 +42,7 @@ export type TeamSortField = (typeof TEAM_SORT_FIELDS)[number];
  * @private terminal dashboard pages
  */
 export type DashboardPage =
-    | { readonly kind: 'work'; scroll: number }
+    | { readonly kind: 'work'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'system'; scroll: number }
     | { readonly kind: 'health'; scroll: number; cache?: CachePreview; swap?: SwapPlan }
     | { readonly kind: 'tools'; scroll: number; focus: number; selected?: string }
@@ -61,6 +61,8 @@ export type DashboardPage =
  */
 export function pageForTile(tile: HomeTile): DashboardPage {
     switch (tile) {
+        case 'work':
+            return { kind: 'work', scroll: 0, focus: 0 };
         case 'tools':
             return { kind: 'tools', scroll: 0, focus: 0 };
         case 'agents':
@@ -175,28 +177,47 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
     switch (page.kind) {
         case 'work': {
             const body: string[] = [];
-            const current = snapshot.current;
-            if (current) {
-                const badge = framedBadge(current.agent.name, current.agent.activity, style, terminal.unicode, terminal.reducedMotion ? 0 : context.frame);
-                const info = [`${style.bold(current.agent.name)} ${style.muted(activityLabel(current.agent.activity))}`, current.taskTitle, style.muted(`${current.kind}${current.target ? ` → ${current.target.title}` : ''}`)];
-                for (let row = 0; row < 3; row++) body.push(`${badge[row]}  ${info[row]}`);
-                body.push(`${style.muted('Phase  ')} ${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? style.muted(` · ${current.detail}`) : ''}`);
-                body.push(`${style.muted('Task   ')} ${current.taskRef}${current.trace ? style.muted(` · trace ${current.trace}`) : ''}`);
-            } else body.push(`${style.bold(snapshot.phase)}${snapshot.wait ? ` ${marks.dot} ${snapshot.wait.reason}` : ''}`);
+            const active = activeWork(snapshot);
+            const capacity = snapshot.capacity;
+            if (capacity) body.push(`${style.muted('Capacity ')} ${style.bold(`${capacity.active}/${capacity.limit}`)} active${style.muted(` · ${capacity.waiting} waiting · ${capacity.queued} queued (execution.maxConcurrentWork)`)}`);
+            let anchor: number | undefined;
+            if (active.length) {
+                body.push('', style.bold(`Active work (${active.length})`));
+                active.forEach((item, index) => {
+                    if (index === page.focus) anchor = body.length;
+                    const label = item.kind === 'chat' ? `${style.accent('chat')} ${item.taskTitle}` : `${inlineBadge(item.agent.name, item.agent.activity, style, terminal.reducedMotion ? 0 : context.frame)} ${item.taskTitle}`;
+                    body.push(`${pointer(index === page.focus)} ${label}${style.muted(` · ${item.phase}${item.attempt ? ` ${item.attempt}/${item.attemptBudget}` : ''}${item.detail ? ` · ${item.detail}` : ''}`)}`);
+                });
+                const selected = active[Math.max(0, Math.min(page.focus, active.length - 1))]!;
+                body.push('', style.bold(selected.kind === 'chat' ? 'Selected chat turn' : 'Selected work'));
+                if (selected.kind !== 'chat') {
+                    const badge = framedBadge(selected.agent.name, selected.agent.activity, style, terminal.unicode, terminal.reducedMotion ? 0 : context.frame);
+                    const info = [`${style.bold(selected.agent.name)} ${style.muted(activityLabel(selected.agent.activity))}`, selected.taskTitle, style.muted(`${selected.kind}${selected.target ? ` → ${selected.target.title}` : ''}`)];
+                    for (let row = 0; row < 3; row++) body.push(`${badge[row]}  ${info[row]}`);
+                } else body.push(selected.taskTitle);
+                body.push(`${style.muted('Phase  ')} ${selected.phase}${selected.attempt ? ` · attempt ${selected.attempt}/${selected.attemptBudget}` : ''}${selected.detail ? style.muted(` · ${selected.detail}`) : ''}`);
+                body.push(`${style.muted('Task   ')} ${selected.taskRef}${selected.trace ? style.muted(` · trace ${selected.trace}`) : ''}`);
+                if (selected.files?.length) body.push(`${style.muted('Files  ')} ${selected.files.join(', ')}`);
+                if (selected.wait) body.push(`${style.warning(marks.wait)} ${selected.wait.reason}${selected.wait.until ? style.muted(` · until ${time(selected.wait.until)}`) : ''}${selected.wait.skippable ? style.muted(' · S skips this wait') : ''}`);
+                const execution = snapshot.executions?.find((candidate) => candidate.task.ref === selected.taskRef) ?? (index0(active, selected) ? snapshot.execution : undefined);
+                if (selected.kind !== 'chat') body.push('', style.bold('Execution'), ...(snapshot.phase === 'unknown' ? [style.muted('Unavailable: the service runs another ptbk version.')] : executionDetailLines(execution, style)));
+            } else {
+                body.push(`${style.bold(snapshot.phase)}${snapshot.wait ? ` ${marks.dot} ${snapshot.wait.reason}` : ''}`);
+                body.push('', style.bold('Execution'), ...(snapshot.phase === 'unknown' ? [style.muted('Unavailable: the service runs another ptbk version.')] : executionDetailLines(snapshot.execution, style)));
+            }
             if (snapshot.wait) {
-                body.push(`${style.warning(marks.wait)} ${snapshot.wait.reason}${snapshot.wait.until ? style.muted(` · until ${time(snapshot.wait.until)}`) : ''}${snapshot.wait.skippable ? style.muted(' · S skips this wait') : ''}`);
+                body.push('', `${style.warning(marks.wait)} ${snapshot.wait.reason}${snapshot.wait.until ? style.muted(` · until ${time(snapshot.wait.until)}`) : ''}${snapshot.wait.skippable ? style.muted(' · S skips this wait') : ''}`);
                 if (snapshot.wait.action) body.push(`${style.accent(marks.arrow)} ${snapshot.wait.action}`);
             }
             for (const blocker of snapshot.blockers) {
                 body.push(`${style.error(marks.fail)} ${style.bold(blocker.title)}: ${blocker.reason}`);
                 if (blocker.action) body.push(`  ${style.accent(marks.arrow)} ${blocker.action}${blocker.recheckAt ? style.muted(` · recheck ${time(blocker.recheckAt)}`) : ''}`);
             }
-            body.push('', style.bold('Execution'), ...(snapshot.phase === 'unknown' ? [style.muted('Unavailable: the service runs another ptbk version.')] : executionDetailLines(snapshot.execution, style)));
             const failing = (snapshot.browsers?.length ? snapshot.browsers : snapshot.browser ? [snapshot.browser] : []).filter((browser) => (browser.state === 'failed' || browser.recovery?.state === 'blocked') && browser.lastFailure);
             for (const browser of failing) body.push('', `${style.error(marks.fail)} ${style.bold(`Browser ${browser.name}`)}: ${browser.lastFailure!.summary}${style.muted(' · T opens Tools')}`);
             const errors = snapshot.errors.slice(-RECENT_ERRORS);
             if (errors.length) body.push('', style.bold('Recent errors'), ...errors.flatMap((error) => [`${style.muted(time(error.at))} ${style.error(error.summary)}`, ...(error.next ? [style.muted(`      next: ${error.next}`)] : [])]));
-            return { title: 'Current work', context: 'Agent, task, phase, waits and the actual harness/model/thinking contexts of this run', body, legend: `S skip a pacing wait · ↑↓ scroll · ${back}` };
+            return { title: 'Current work', context: 'Concurrent tasks and chat turns, their phases, waits and the actual harness/model/thinking context of the selected run', body, anchor, legend: `${active.length > 1 ? '↑↓ choose · ' : ''}S skip a pacing wait · ${back}` };
         }
         case 'system': {
             const { service, engine } = snapshot;
@@ -206,7 +227,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             const body = [
                 style.bold('Lifecycle'),
                 `${style.muted('State     ')} ${service.state === 'running' ? style.success(service.state) : style.warning(service.state)} — ${lifecycleExplanation(snapshot)}`,
-                ...(service.lifecycle?.intent ? [`${style.muted('Pending   ')} ${service.lifecycle.intent}${service.lifecycle.draining ? ' (the current task finishes first)' : ''}${service.lifecycle.since ? style.muted(` · since ${time(service.lifecycle.since)}`) : ''}${service.lifecycle.cancellable ? style.muted(' · U cancels') : ''}`] : []),
+                ...(service.lifecycle?.intent ? [`${style.muted('Pending   ')} ${service.lifecycle.intent}${service.lifecycle.draining ? ' (active work finishes first)' : ''}${service.lifecycle.since ? style.muted(` · since ${time(service.lifecycle.since)}`) : ''}${service.lifecycle.cancellable ? style.muted(' · U cancels') : ''}`] : []),
                 `${style.muted('Pause     ')} ${reasons.length ? `${reasons.length} active reason${reasons.length === 1 ? '' : 's'}` : style.muted('no pause reason; background work may start')}`,
                 ...pauseReasonLines(reasons).map((line, index) => `  ${reasons[index]!.kind === 'manual' ? style.warning(marks.bullet) : reasons[index]!.severity === 'hard' ? style.error(marks.bullet) : style.warning(marks.bullet)} ${line}${style.muted(` · since ${time(reasons[index]!.since)}`)}`),
                 ...(health.length ? [style.muted('  Resume removes only the manual reason; scheduling continues once every reason is gone. Health reasons are handled on the Health page.')] : []),
@@ -293,7 +314,8 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 if (index === page.focus) anchor = body.length;
                 body.push(`${pointer(index === page.focus)} ${inlineBadge(agent.name, agent.activity, style, terminal.reducedMotion ? 0 : context.frame)} ${style.muted(`${activityLabel(agent.activity)}${queued.length ? ` · ${queued.length} queued` : ''}${agent.role === 'engine' ? ' · engine-provided' : agent.role === 'core' ? ' · core' : ''}`)}`);
                 if (index === page.focus && page.detail) {
-                    body.push(...(snapshot.current && snapshot.current.agent.name === agent.name ? [`    ${style.success('now')} ${snapshot.current.taskTitle} ${style.muted(`(${snapshot.current.phase})`)}`] : [style.muted('    Not working on a task now.')]));
+                    const working = activeWork(snapshot).filter((item) => item.kind !== 'chat' && item.agent.name === agent.name);
+                    body.push(...(working.length ? working.map((item) => `    ${style.success('now')} ${item.taskTitle} ${style.muted(`(${item.phase})`)}`) : [style.muted('    Not working on a task now.')]));
                     body.push(...queued.slice(0, 8).map((item) => `    ${style.muted(item.readiness.padEnd(16))} ${item.title}`));
                 }
             });
@@ -407,6 +429,8 @@ export function pageItemKeys(page: DashboardPage, context: Pick<PageContext, 'sn
             return teamOrder(context.snapshot, page.sort, context.inventory).map((agent) => agent.key);
         case 'chats':
             return context.snapshot.chats.recent.map((chat) => chat.name);
+        case 'work':
+            return activeWork(context.snapshot).map((item) => item.unit ?? item.taskRef);
         case 'tasks':
             return taskOrder(context, page).map((item) => item.ref);
         default:
@@ -426,4 +450,20 @@ export function keepSelection(page: DashboardPage, context: Pick<PageContext, 's
     const index = page.selected === undefined ? -1 : keys.indexOf(page.selected);
     page.focus = index >= 0 ? index : Math.max(0, Math.min(page.focus, keys.length - 1));
     page.selected = keys[page.focus];
+}
+
+/**
+ * Every active unit of a snapshot (an older engine reports only its single current task).
+ *
+ * @private terminal dashboard pages
+ */
+export function activeWork(snapshot: ServiceSnapshot): readonly CurrentWorkView[] {
+    return snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
+}
+
+/**
+ * Whether an item is the first of a list (an older engine's single execution belongs to it).
+ */
+function index0(items: readonly CurrentWorkView[], item: CurrentWorkView): boolean {
+    return items[0] === item;
 }

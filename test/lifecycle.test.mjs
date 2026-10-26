@@ -48,6 +48,12 @@ test('execution details distinguish reported, requested, automatic and not-appli
 test('lifecycle: pause drains the current task without a next claim; resume continues; graceful stop releases the owner', async (t) => {
     const { project, env: baseEnv, log } = await initializedProject(t, { check: CHECK });
     const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '7000' };
+    // One slot serializes the work, so the second task can only start after the pause (never alongside the first).
+    const configPath = join(project, 'ptbk.json');
+    const config = JSON.parse(await readFile(configPath, 'utf8'));
+    config.execution = { ...config.execution, maxConcurrentWork: 1 };
+    await writeFile(configPath, `${JSON.stringify(config, null, 4)}\n`);
+    await git(project, ['commit', '-q', '-m', 'Serialize work', '--', 'ptbk.json']);
     await ptbk(['add', 'Slow work SLOW_WORK', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
     await ptbk(['add', 'Next work', '--agent', 'Developer', '--priority', '8', '--raw'], { cwd: project, env });
     assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);

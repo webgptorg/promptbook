@@ -32,6 +32,8 @@
         page: null,
         /** The home tile holding the operator's focus (never moved by attention). */
         focus: 'work',
+        /** The active unit selected on the work page (concurrent work). */
+        workSelected: null,
         /** Viewer-local attention: domain → { key, tone, since, seen } (seen once the operator was clearly active). */
         attention: new Map(),
         /** Meaningful interactions with this page (keys, clicks) since it opened. */
@@ -169,9 +171,9 @@
             actions.push({ action: 'pause', label: 'Pause instead', confirm: `Cancel the pending ${pending} and pause instead?`, extra: { replaceStop: true, revision: lifecycle.revision } });
         }
         if (stateName !== 'stopping' || (lifecycle.intent === 'restart' && lifecycle.cancellable)) {
-            actions.push({ action: 'stop', label: stateName === 'pausing' ? 'Stop instead' : 'Stop (graceful)', confirm: 'Stop the service after the current task settles? Every viewer shares this engine; closing this page does not stop it.' });
+            actions.push({ action: 'stop', label: stateName === 'pausing' ? 'Stop instead' : 'Stop (graceful)', confirm: 'Stop the service after active work settles? Every viewer shares this engine; closing this page does not stop it.' });
         }
-        if (restartable && stateName !== 'stopping') actions.push({ action: 'restart', label: 'Restart', confirm: 'Restart the service? The current task finishes first; then exactly one replacement starts with the same configuration.' });
+        if (restartable && stateName !== 'stopping') actions.push({ action: 'restart', label: 'Restart', confirm: 'Restart the service? Active work finishes first; then exactly one replacement starts with the same configuration.' });
         if (lifecycle.intent !== 'force-stop') actions.push({ action: 'force-stop', label: 'Force stop', danger: true, confirm: 'Force stop now? Owned work is interrupted immediately (recoverable, never marked done).' });
         return actions;
     }
@@ -192,7 +194,8 @@
     function lifecycleText(snapshot) {
         const service = snapshot.service;
         const lifecycle = service.lifecycle || {};
-        const task = snapshot.current ? `“${snapshot.current.taskTitle}”` : 'the current task';
+        const running = activeWork(snapshot).filter((item) => item.kind !== 'chat');
+        const task = running.length === 1 ? `“${running[0].taskTitle}”` : running.length ? `${running.length} active tasks` : 'active work';
         const health = healthReasons(snapshot);
         const byHealth = health.length ? `Paused by Health (${health.map((reason) => `${reason.severity}: ${reason.summary}`).join('; ')})${manualPause(snapshot) ? ' and manually' : ''}` : '';
         switch (service.state === 'paused' ? 'pause' : service.state) {
@@ -457,10 +460,40 @@
         return card;
     }
 
+    /** Every active unit (an older engine reports only its single current task). */
+    function activeWork(snapshot) {
+        return snapshot.active || (snapshot.current ? [snapshot.current] : []);
+    }
+
+    /** The active unit the operator selected on the work page (the first by default). */
+    function selectedWork(snapshot) {
+        const active = activeWork(snapshot);
+        return active.find((item) => (item.unit || item.taskRef) === state.workSelected) || active[0];
+    }
+
     function renderWork(snapshot) {
         const card = h('section', { className: 'card work', 'aria-label': 'Current work' });
-        card.append(h('h2', {}, h('span', {}, 'Current work'), pill(snapshot.phase, snapshot.phase === 'blocked' ? 'bad' : snapshot.current ? 'ok' : '')));
-        const current = snapshot.current;
+        const active = activeWork(snapshot);
+        card.append(h('h2', {}, h('span', {}, 'Current work'), pill(snapshot.phase, snapshot.phase === 'blocked' ? 'bad' : active.length ? 'ok' : '')));
+        const capacity = snapshot.capacity;
+        if (capacity) card.append(h('p', { className: 'muted' }, `${capacity.active}/${capacity.limit} active · ${capacity.waiting} waiting · ${capacity.queued} queued (execution.maxConcurrentWork, shared by tasks and chats)`));
+        if (active.length > 1) {
+            // Concurrent work: one row per unit; selecting one shows its details below.
+            card.append(
+                h(
+                    'ul',
+                    { className: 'list work-units' },
+                    active.map((item) =>
+                        h(
+                            'li',
+                            { className: (item.unit || item.taskRef) === ((selectedWork(snapshot) || {}).unit || (selectedWork(snapshot) || {}).taskRef) ? 'selected' : '' },
+                            h('a', { href: '#', className: 'title', onclick: (event) => (event.preventDefault(), (state.workSelected = item.unit || item.taskRef), render(state.snapshot)) }, item.kind === 'chat' ? `Chat: ${item.taskTitle}` : item.taskTitle, h('span', { className: 'why' }, `${item.kind === 'chat' ? 'reply' : item.agent.name} · ${item.phase}${item.detail ? ` · ${item.detail}` : ''}`)),
+                        ),
+                    ),
+                ),
+            );
+        }
+        const current = selectedWork(snapshot);
         if (current) {
             card.append(
                 h(
@@ -478,6 +511,8 @@
                 ['Since', time(current.startedAt)],
             ];
             if (current.target) rows.push(['Assigning', current.target.ref]);
+            if (current.files && current.files.length) rows.push(['Files', current.files.join(', ')]);
+            if (current.wait) rows.push(['Waiting', `${current.wait.reason}${current.wait.until ? ` · until ${time(current.wait.until)}` : ''}`]);
             card.append(h('dl', { className: 'kv', style: 'margin-top:12px' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])));
         } else {
             card.append(h('p', {}, snapshot.service.state === 'stopped' ? 'The service is stopped.' : snapshot.wait ? snapshot.wait.reason : 'Idle.'));
@@ -535,7 +570,9 @@
     }
 
     function renderExecutionDetails(snapshot) {
-        const execution = snapshot.execution;
+        // The selected unit's run among concurrent work (the first active one by default).
+        const selected = selectedWork(snapshot);
+        const execution = (selected && (snapshot.executions || []).find((candidate) => candidate.task.ref === selected.taskRef)) || snapshot.execution;
         if (!execution) return h('p', { className: 'muted' }, 'No execution yet in this service.');
         const rows = [
             [execution.status === 'active' ? 'Current run' : 'Last run (historical)', execution.status === 'active' ? `${execution.task.kind} · phase ${execution.phase || 'unknown'}${execution.attempt ? ` · attempt ${execution.attempt}/${execution.attemptBudget}` : ''}` : `${execution.outcome || ''} ${execution.endedAt ? `at ${time(execution.endedAt)}` : ''} — not running now`],
@@ -943,10 +980,16 @@
     function tileSummary(snapshot, domain) {
         const current = snapshot.current;
         switch (domain) {
-            case 'work':
+            case 'work': {
+                const active = activeWork(snapshot);
+                if (active.length > 1) {
+                    const capacity = snapshot.capacity;
+                    return [h('strong', {}, `${active.length}${capacity ? `/${capacity.limit}` : ''} active${capacity && capacity.queued ? ` · ${capacity.queued} queued` : ''}`), ...active.map((item) => (item.kind === 'chat' ? h('span', {}, `Chat: ${item.taskTitle}`) : h('span', { className: 'row' }, badge(item.agent, true), item.taskTitle)))];
+                }
                 if (current) return [h('span', { className: 'row' }, badge(current.agent, true), h('strong', {}, current.agent.name), h('span', { className: 'muted' }, ACTIVITY_LABEL[current.agent.activity] || current.agent.activity)), current.taskTitle, h('span', { className: 'muted' }, `${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}`)];
                 if (snapshot.blockers.length) return [h('strong', { className: 'bad' }, snapshot.blockers[0].title), h('span', { className: 'muted' }, snapshot.blockers[0].action || snapshot.blockers[0].reason)];
                 return [h('strong', {}, snapshot.phase), snapshot.wait ? h('span', { className: 'muted' }, snapshot.wait.reason) : null];
+            }
             case 'system': {
                 const stateName = snapshot.service.state;
                 const health = healthReasons(snapshot);

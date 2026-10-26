@@ -77,7 +77,7 @@ test('contradictory options are diagnosed before any work', async (t) => {
     const cases = [
         [['start', '--daemon', '--foreground'], /mutually exclusive/],
         [['start', '--tunnel', '--no-server'], /conflicts with --no-server/],
-        [['start', '--isolate', '--no-commit'], /--isolate requires commits/],
+        [['start', '--isolate', '--no-commit'], /--isolate is no longer supported/],
         [['start', '--no-commit', '--auto-push'], /conflicts with automatic synchronization/],
         [['start', '--no-commit', '--auto-sync'], /conflicts with automatic synchronization/],
         [['start', '--no-auto-sync', '--auto-pull'], /contradicts --auto-pull/],

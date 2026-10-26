@@ -143,8 +143,7 @@ export async function appendUserMessage(
     const waiting = stored.chat.status === 'waiting-for-user';
     const awaited = waiting ? [...stored.chat.messages].reverse().find((message) => message.senderKey !== 'user') : undefined;
     const applicable = !awaited?.choices?.length || awaited.choices.includes(text.trim());
-    const active = await state.readActive();
-    const records = [...(await state.readParked()), ...(active ? [active] : [])];
+    const records = [...(await state.readParked()), ...(await state.readActiveRecords())];
     const waitingTask = records.find((record) => record.waitingChat === stored.chat.name || record.recoveryChat === stored.chat.name);
     if (waitingTask?.recoveryChat === stored.chat.name && waiting && !applicable) {
         throw new PtbkError(`"${text}" is not one of the offered answers.`, { kind: 'usage', reason: `Choose one of: ${awaited!.choices!.join(' | ')}`, effect: 'Nothing was saved.' });

@@ -39,8 +39,6 @@ export type RuntimePaths = {
     readonly auth: string;
     /** Default isolated browser profile. */
     readonly browserProfile: string;
-    /** Isolated task worktrees. */
-    readonly worktrees: string;
     /** Short-lived scratch files. */
     readonly temporary: string;
     /** Project ownership lock. */
@@ -94,7 +92,6 @@ export function runtimePaths(root: string): RuntimePaths {
         logs: join(runtime, 'logs'),
         auth: join(runtime, 'auth'),
         browserProfile: join(runtime, 'browser', 'profile'),
-        worktrees: join(runtime, 'worktrees'),
         temporary: join(runtime, 'tmp'),
         lock: join(runtime, 'lock.json'),
     };

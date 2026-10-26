@@ -47,12 +47,13 @@ export function pauseReasonLines(reasons: readonly PauseReasonView[]): string[] 
  */
 export function lifecycleExplanation(snapshot: ServiceSnapshot): string {
     const { state, lifecycle } = snapshot.service;
-    const task = snapshot.current ? `"${snapshot.current.taskTitle}"` : 'the current task';
+    const running = (snapshot.active ?? (snapshot.current ? [snapshot.current] : [])).filter((item) => item.kind !== 'chat');
+    const task = running.length === 1 ? `"${running[0]!.taskTitle}"` : running.length ? `${running.length} active tasks` : 'active work';
     const health = healthPauseReasons(snapshot);
     const byHealth = health.length ? `paused by Health (${health.map((reason) => `${reason.severity}: ${reason.summary}`).join('; ')})${hasManualPause(snapshot) ? ' and manually' : ''}` : '';
     switch (state) {
         case 'running':
-            return snapshot.current ? 'new tasks start when ready' : 'idle is normal; new tasks start when ready';
+            return running.length ? 'new tasks start when ready' : 'idle is normal; new tasks start when ready';
         case 'pausing':
             return health.length ? `${task} finishes first; ${byHealth}` : `${task} finishes first, then no task starts until resumed`;
         case 'pause':

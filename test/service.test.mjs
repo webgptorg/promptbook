@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { BIN, findGenerated, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
@@ -134,9 +134,10 @@ test('force stop interrupts owned work recoverably; the next start resumes it wi
     assert.equal(stopped.code, 0, stopped.output);
     assert.match(stopped.stdout, /^Force-stopped/, stopped.output);
     await assert.rejects(readFile(join(project, '.ptbk', 'lock.json')), 'the owner cleans up its own lock on an internal force stop');
-    const record = await readFile(join(project, '.ptbk', 'state', 'active.json'), 'utf8').then(JSON.parse, () => undefined);
+    // Concurrent runs keep one recovery record each (`.ptbk/state/active/<run>.json`).
+    const records = await readdir(join(project, '.ptbk', 'state', 'active')).catch(() => []);
     const dirty = (await git(project, ['status', '--porcelain'])).trim();
-    if (dirty) assert.ok(record, `uncommitted changes after stop must belong to a recovery record:\n${dirty}`);
+    if (dirty) assert.ok(records.some((name) => name.endsWith('.json')), `uncommitted changes after stop must belong to a recovery record:\n${dirty}`);
     await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env });
     await waitFor(async () => (await subjects(project)).some((subject) => subject.startsWith('PTBK: Learn from: Write the welcome page')), { message: 'the learning task to finish after restart' });
     await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });

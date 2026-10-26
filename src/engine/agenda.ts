@@ -1,5 +1,5 @@
 import { watch, type FSWatcher } from 'node:fs';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { formatDuration } from '../common/duration.js';
@@ -10,7 +10,7 @@ import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { setControlCommitment } from '../book/edit.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue, referenceName, toReference } from '../book/references.js';
 import { isCheckPlaceholder, loadSettings, setting, SETTING_SPECS, serializeSettingValue, updateProjectConfig, type BrowserOverrides, type EffectiveSettings, type LoadedSettings } from '../project/config.js';
-import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent, validateAgents } from '../project/agents.js';
+import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent, validateAgents, type AgentDefinition } from '../project/agents.js';
 import { readBookSource, type BookSource } from '../project/book-sources.js';
 import { validateAttachments } from '../chats/store.js';
 import { materializeAttachments } from '../ui/attachments.js';
@@ -33,14 +33,14 @@ import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
 import { HARNESS_PLUGINS, harnessName } from '../harness/registry.js';
 import { readTaskBook } from '../tasks/book-task.js';
-import { evaluateQueue, isUnfinished, selectNext, type EvaluatedTask, type RouteCheck } from '../tasks/eligibility.js';
+import { evaluateQueue, isUnfinished, selectCandidates, type EvaluatedTask, type RouteCheck, type SelectedTask } from '../tasks/eligibility.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
 import { isRecurring, nameKey, type Task } from '../tasks/model.js';
 import { describePriority } from '../tasks/priority.js';
 import { findTask, readTaskQueue } from '../tasks/sources.js';
 import { agentView, type BadgeActivity } from '../ui/badges.js';
 import type { BridgeTool } from './bridge.js';
-import { HANDOVER_ATTEMPTS, captureSnapshot, changedPaths, executeWork, type ExecutionEnvironment, type ExecutionOutcome, type WorkItem } from './executor.js';
+import { HANDOVER_ATTEMPTS, captureSnapshot, executeWork, type ExecutionEnvironment, type ExecutionOutcome, type WorkItem } from './executor.js';
 import {
     applyAssignment,
     assignmentPrompt,
@@ -89,7 +89,8 @@ import type {
 import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ResultRecord, type RoutingSelection } from './state.js';
 import { TaskTrace } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
-import { finishWorktree, integrateWorktree, isIntegrated, prepareWorktree } from './isolation.js';
+import { finishWorktree, isIntegrated } from './isolation.js';
+import { FileOwnership, TurnWindows, WorkCapacity, type FileConflict } from './concurrency.js';
 import { shortHash, shortId } from '../common/ids.js';
 
 /**
@@ -171,7 +172,7 @@ export type AgendaSummary = {
 };
 
 /**
- * A pending lifecycle request applied once the current task settles (draining).
+ * A pending lifecycle request applied once active work settles (draining).
  *
  * @private agenda supervisor
  */
@@ -238,7 +239,51 @@ const HEALTH_ORIGIN = 'maintenance: project health';
 const RECOVERY_CHOICES = ['Retry the task', 'Acknowledge the failure'] as const;
 
 /**
- * The project supervisor: one active task at a time, shared by start (indefinite) and run (finite).
+ * Longest wait of the `claim_files` tool for a file another run holds (the agent then works on other files).
+ */
+const CLAIM_WAIT_MS = 10 * 60_000;
+
+/**
+ * Longest wait of a failing check for other runs' uncommitted files to settle before it counts as this run's failure.
+ */
+const FOREIGN_SETTLE_MS = 30 * 60_000;
+
+/**
+ * Retry interval of a failed result commit (persistence resumes without rerunning the agent).
+ */
+const PERSISTENCE_RETRY_MS = 120_000;
+
+/**
+ * One unit of active work holding a capacity slot: a background task (its runs: Router prerequisite, the task itself,
+ * a goal enquiry) or one chat turn. Units progress concurrently in the project's one working tree; each run owns the
+ * files it changes.
+ */
+type WorkUnit = {
+    /** Unit identity (a fresh id, or `chat:<name key>`). */
+    readonly id: string;
+    readonly kind: 'task' | 'chat';
+    /** Task or chat name. */
+    readonly label: string;
+    /** Normalized task name claimed by this unit (never claimed twice). */
+    readonly key?: string;
+    /** When the unit started (epoch ms). */
+    readonly startedAt: number;
+    /** The run executing now (its run identifier owns files). */
+    owner: string;
+    /** Live view of the work. */
+    current?: CurrentWorkView;
+    /** Effective routing of the run and its consultation contexts (for the execution panel). */
+    context?: { readonly selection: RoutingSelection; readonly harnessVersion?: string; readonly source: string; consultations: ExecutionContextView[] };
+    /** A pacing/backoff wait inside the run (skippable) or its wait for files. */
+    wait?: WaitView;
+    /** Since when its failing check waits for other runs' uncommitted files to settle (orders mutual waits). */
+    checkWaitingSince?: number;
+    waiter?: { readonly skippable: boolean; readonly resolve: (reason: 'elapsed' | 'skipped' | 'cancelled' | 'woken') => void };
+};
+
+/**
+ * The project supervisor: concurrent background tasks and chat turns in the project's one working tree, within the
+ * shared capacity (`execution.maxConcurrentWork`) and per-file ownership.
  *
  * @private agenda supervisor
  */
@@ -248,9 +293,22 @@ export class Agenda {
     private phase: Phase = 'starting';
     /** Observed outcome after the agenda ended (not a live state). */
     private exitState?: 'stopped';
-    private current?: CurrentWorkView;
-    /** Effective routing of the current execution and its consultation contexts (for the execution panel). */
-    private currentContext?: { readonly selection: RoutingSelection; readonly harnessVersion?: string; readonly source: string; consultations: ExecutionContextView[] };
+    /** Active units of work (background tasks and chat turns), each holding one capacity slot. */
+    private readonly units = new Map<string, WorkUnit>();
+    /** The shared limit of active tasks and chat turns together. */
+    private readonly capacity: WorkCapacity;
+    /** Per-file mutation ownership of active (and checkpointed) runs. */
+    private readonly ownership: FileOwnership;
+    /** Harness-turn windows (attribution of changes nobody claimed). */
+    private readonly turns = new TurnWindows();
+    /** Normalized task names claimed by active units. */
+    private readonly claimedKeys = new Set<string>();
+    /** Active records whose resumption waits (quota, setup, failed commit) until this time (epoch ms), by run. */
+    private readonly resumeAfter = new Map<string, number>();
+    /** No new background claim before this time (pause between tasks). */
+    private pacingUntil = 0;
+    /** Listeners waiting for an active unit to finish (draining towards stop). */
+    private readonly unitListeners = new Set<() => void>();
     private waitView?: WaitView;
     private queueView: QueueItemView[] = [];
     private queueTotal = 0;
@@ -261,16 +319,14 @@ export class Agenda {
     private recentResults: ResultView[] = [];
     private completed = 0;
     private failed = 0;
-    /** Isolated results of this process waiting on their temporary branch for integration. */
-    private pendingIntegrations = 0;
     /**
      * The ordinary manual pause reason (since when): set by Pause, removed by Resume. Pause is composed from this and the
      * Health sub-engine's reasons; scheduling continues only when no reason remains.
      */
     private manualPauseSince?: string;
-    /** A pause became effective while a task was still draining (logged once it settles). */
+    /** A pause became effective while background work was still draining (logged once it settles). */
     private pauseDraining = false;
-    /** Pending stop/restart applied once the current task settles. */
+    /** Pending stop/restart applied once active work settles. */
     private intent?: Exclude<LifecycleIntent, 'pause'>;
     /** When the pending request was accepted (ISO). */
     private intentSince?: string;
@@ -280,8 +336,6 @@ export class Agenda {
     private shutdown?: 'stop' | 'restart' | 'force';
     /** Whether shutdown was requested by the operating system (not an intentional user stop). */
     private shutdownBySignal = false;
-    /** A task owns execution right now (the claim boundary of pause/stop). */
-    private executing = false;
     private ownedWork = new AbortController();
     private waiter?: { readonly skippable: boolean; readonly resolve: (reason: 'elapsed' | 'skipped' | 'cancelled' | 'woken') => void };
     private readonly runtimeOverrides: Record<string, unknown> = {};
@@ -299,7 +353,6 @@ export class Agenda {
     private readonly watchers: FSWatcher[] = [];
     private wakeTimer?: NodeJS.Timeout;
     private configTimer?: NodeJS.Timeout;
-    private lastPersistenceRetry = 0;
     private nextKnownTime?: number;
     /** Readiness of the enabled browser tools (inspected without launching them). */
     private browserReadiness = new Map<string, BrowserReadiness>();
@@ -314,6 +367,8 @@ export class Agenda {
 
     public constructor(private readonly options: AgendaOptions) {
         this.state = new StateStore(options.project.runtime.state);
+        this.capacity = new WorkCapacity(() => (this.settings ? setting<number>(this.settings, 'execution.maxConcurrentWork') : 5));
+        this.ownership = new FileOwnership(options.project.root, { onChange: () => this.touch() });
         this.sync = new SyncCoordinator({
             repositoryRoot: () => this.repositoryRoot,
             env: options.env,
@@ -414,6 +469,7 @@ export class Agenda {
         });
         if (migrated) this.log(`Migrated ${migrated} pending request(s) of an older engine into chats waiting for you.`);
         await this.refreshChats();
+        await this.restoreOwnership();
         if (this.options.mode !== 'maintenance') {
             // User messages written while no service ran (or interrupted replies) still get their agent's reply, once.
             for (const stored of await this.chats.list().catch(() => [])) {
@@ -428,8 +484,20 @@ export class Agenda {
 
     /** Whether a task waits for (or was just answered in) this chat: its reply resumes the task instead. */
     private async isAwaitedByTask(name: string): Promise<boolean> {
-        const active = await this.state.readActive();
-        return [...(await this.state.readParked()), ...(active ? [active] : [])].some((record) => record.waitingChat === name || record.recoveryChat === name);
+        return [...(await this.state.readParked()), ...(await this.state.readActiveRecords())].some((record) => record.waitingChat === name || record.recoveryChat === name);
+    }
+
+    /**
+     * Restores per-file ownership of the previous engine's runs (active and checkpointed records). This engine holds
+     * the project lock, so every record belongs to the verified previous owner; their files stay theirs until each
+     * run completes, is acknowledged or resumes.
+     */
+    private async restoreOwnership(): Promise<void> {
+        for (const record of [...(await this.state.readActiveRecords()), ...(await this.state.readParked())]) {
+            if (!record.ownedFiles?.length) continue;
+            const restored = this.ownership.tryAcquire(record.runId, record.taskTitle, record.ownedFiles);
+            if (!restored.ok) this.log(`Ownership of ${restored.conflicts.map((conflict) => conflict.path).join(', ')} is recorded for both "${record.taskTitle}" and "${restored.conflicts[0]!.label}"; the first keeps it.`, 'warning');
+        }
     }
 
     /**
@@ -510,8 +578,6 @@ export class Agenda {
         }
         this.exitState = 'stopped';
         this.phase = 'stopped';
-        this.current = undefined;
-        this.currentContext = undefined;
         this.waitView = undefined;
         this.touch();
         if (this.shutdown === 'restart') {
@@ -543,8 +609,14 @@ export class Agenda {
 
     // ── Lifecycle controls (shared by CLI, terminal, browser and API) ────────
 
+    /** Whether background task work is active (the claim boundary of pause/stop; chat turns are not background work). */
+    private get executing(): boolean {
+        for (const unit of this.units.values()) if (unit.kind === 'task') return true;
+        return false;
+    }
+
     /**
-     * The live service state: `running`, `pausing` (a pause reason is active while the current task drains), `pause`
+     * The live service state: `running`, `pausing` (a pause reason is active while background work drains), `pause`
      * or `stopping` (draining into exit, including a restart's shutdown phase). After the agenda ended, the observed
      * `stopped`/`finished` outcome.
      */
@@ -582,7 +654,7 @@ export class Agenda {
         if (this.pauseActive && this.executing) this.pauseDraining = true;
         if (!this.pauseActive) this.pauseDraining = false;
         // A paused wait ends so that a resolved reason resumes (or a new one holds) at once.
-        if (!this.executing) this.waiter?.resolve('woken');
+        this.waiter?.resolve('woken');
         this.touch();
     }
 
@@ -625,16 +697,18 @@ export class Agenda {
     }
 
     /**
-     * Applies pending intents once no task executes: a draining pause settles into `pause`; stop/restart begin the
-     * irreversible orderly shutdown (the run loop then exits and the owner cleans up).
+     * Applies pending intents once work settles: a draining pause settles into `pause` when no background task remains;
+     * stop/restart begin the irreversible orderly shutdown once every task and chat turn has settled (the run loop then
+     * exits and the owner cleans up).
      */
     private settle(): void {
-        if (this.executing || this.shutdown) return;
+        if (this.shutdown) return;
         if (this.intent === 'stop' || this.intent === 'restart') {
+            if (this.units.size) return;
             this.shutdown = this.intent;
             this.log(this.intent === 'restart' ? 'Restarting: shutting down so one replacement can start.' : 'Stopping: shutting down.');
             this.waiter?.resolve('cancelled');
-        } else if (this.pauseDraining) {
+        } else if (this.pauseDraining && !this.executing) {
             this.pauseDraining = false;
             if (this.pauseActive) this.log(this.manualPauseSince ? 'Paused: no task runs until you resume.' : 'Paused by Health: no task runs until the health condition is resolved.');
         }
@@ -642,18 +716,18 @@ export class Agenda {
     }
 
     /**
-     * Adds the ordinary manual pause reason: no new task is claimed; the current task settles first (`pausing`),
+     * Adds the ordinary manual pause reason: no new task is claimed; active background work settles first (`pausing`),
      * otherwise the service pauses immediately. Replacing a pending stop/restart requires explicit confirmation
      * against the decision revision the caller saw (`replaceStop` + `revision`).
      */
     public pause(options: { readonly replaceStop?: boolean; readonly revision?: number } = {}): LifecycleOutcome {
         if (this.shutdown) return this.outcome('pause', false, 'Too late: the service is already shutting down.');
-        if (this.manualPauseSince && !this.intent) return this.outcome('pause', true, this.executing ? 'Pause is already pending: the current task finishes first.' : 'Already paused.');
+        if (this.manualPauseSince && !this.intent) return this.outcome('pause', true, this.executing ? 'Pause is already pending: active background work finishes first.' : 'Already paused.');
         if (this.intent) {
             if (!options.replaceStop) {
                 throw new PtbkError(`A ${this.intent} is pending; pausing instead would cancel it.`, {
                     kind: 'conflict',
-                    reason: `Decision revision ${this.intentRevision}: ${this.intent} after the current task.`,
+                    reason: `Decision revision ${this.intentRevision}: ${this.intent} after active work.`,
                     effect: 'Nothing was changed.',
                     next: ['Confirm replacing the pending shutdown with pause, or run `ptbk resume` (cancels it) and then `ptbk pause`.'],
                     data: { intent: this.intent, revision: this.intentRevision },
@@ -665,7 +739,7 @@ export class Agenda {
             this.decide(undefined, `The pending ${this.intent} was cancelled in favour of pause.`);
         } else {
             this.intentRevision++;
-            this.log(this.executing ? 'Pause requested: the current task finishes first, then no task starts until you resume.' : 'Paused: no task runs until you resume.');
+            this.log(this.executing ? 'Pause requested: active background work finishes first, then no task starts until you resume.' : 'Paused: no task runs until you resume.');
         }
         this.setManualPause(new Date().toISOString());
         if (this.executing) this.pauseDraining = true;
@@ -673,12 +747,12 @@ export class Agenda {
         // An idle wait (or a human wait outside task execution) re-evaluates so the pause holds immediately.
         if (!this.executing) this.waiter?.resolve('woken');
         this.touch();
-        return this.outcome('pause', true, this.serviceState === 'pause' ? 'Paused.' : 'Pause pending: the current task finishes first.');
+        return this.outcome('pause', true, this.serviceState === 'pause' ? 'Paused.' : 'Pause pending: active background work finishes first.');
     }
 
     /**
      * Removes the manual pause reason, or cancels a pending stop/restart (and a restart's planned replacement), without
-     * interrupting or replaying the current task. Health pause reasons are never removed here: the service returns to
+     * interrupting or replaying active work. Health pause reasons are never removed here: the service returns to
      * `running` only when no other reason remains.
      */
     public resume(): LifecycleOutcome {
@@ -689,7 +763,7 @@ export class Agenda {
         };
         if (this.intent) {
             const cancelled = this.intent;
-            this.decide(undefined, `The pending ${cancelled} was cancelled; the service keeps running${this.executing ? ' (the current task continues)' : ''}.`);
+            this.decide(undefined, `The pending ${cancelled} was cancelled; the service keeps running${this.units.size ? ' (active work continues)' : ''}.`);
             this.setManualPause(undefined);
             this.waiter?.resolve('woken');
             this.touch();
@@ -703,24 +777,27 @@ export class Agenda {
         this.setManualPause(undefined);
         this.intentRevision++;
         if (!this.pauseActive) this.pauseDraining = false;
-        this.log(this.pauseActive ? `Manual pause removed.${remaining()}` : pending ? 'The pending pause was cancelled; the current task continues.' : 'Resumed.');
+        this.log(this.pauseActive ? `Manual pause removed.${remaining()}` : pending ? 'The pending pause was cancelled; active work continues.' : 'Resumed.');
         this.waiter?.resolve('woken');
         this.touch();
         if (this.pauseActive) return this.outcome('resume', true, `Manual pause removed; still paused.${remaining()}`);
         return this.outcome('resume', true, pending ? 'Cancelled the pending pause.' : 'Resumed.');
     }
 
-    /** Skips a pacing/backoff wait; setup, schedule and human waits cannot be skipped. */
+    /** Skips pacing/backoff waits (of the loop and of active work); setup, schedule and human waits cannot be skipped. */
     public skipWait(): { applied: boolean; reason?: string } {
-        if (!this.waiter || !this.waitView) return { applied: false, reason: 'Nothing is waiting.' };
-        if (!this.waiter.skippable) return { applied: false, reason: `This wait cannot be skipped: ${this.waitView.reason}` };
-        this.log('Wait skipped.');
-        this.waiter.resolve('skipped');
+        const skippable = [...(this.waiter?.skippable ? [this.waiter] : []), ...[...this.units.values()].flatMap((unit) => (unit.waiter?.skippable ? [unit.waiter] : []))];
+        if (!skippable.length) {
+            if (!this.waiter || !this.waitView) return { applied: false, reason: 'Nothing is waiting.' };
+            return { applied: false, reason: `This wait cannot be skipped: ${this.waitView.reason}` };
+        }
+        this.log(skippable.length === 1 ? 'Wait skipped.' : `${skippable.length} waits skipped.`);
+        for (const waiter of skippable) waiter.resolve('skipped');
         return { applied: true };
     }
 
     /**
-     * Requests a graceful stop (`stopping`: the current task settles, then orderly shutdown), a graceful restart (the
+     * Requests a graceful stop (`stopping`: all active work settles, then orderly shutdown), a graceful restart (the
      * same drain, then exactly one replacement) or an immediate force stop of owned work. Repeating a request is
      * idempotent; it never escalates to force.
      */
@@ -730,20 +807,21 @@ export class Agenda {
         if (options.signal && !this.intent && !this.shutdown) this.shutdownBySignal = true;
         if (options.force) {
             if (this.shutdown === 'force') return this.outcome(action, true, 'Already force-stopping.');
-            const busy = this.executing;
+            const busy = this.units.size > 0;
             if (!this.shutdownBySignal) this.setManualPause(undefined);
             this.shutdown = 'force';
             this.intent = 'stop';
             this.intentRevision++;
-            this.log(busy ? 'Force stop: interrupting owned work now (its recovery record is kept; nothing is marked done).' : 'Force stop: no task is running; shutting down now.', 'warning');
+            this.log(busy ? 'Force stop: interrupting all owned work now (recovery records are kept; nothing is marked done).' : 'Force stop: no work is running; shutting down now.', 'warning');
             this.ownedWork.abort();
             this.waiter?.resolve('cancelled');
+            for (const unit of this.units.values()) unit.waiter?.resolve('cancelled');
             this.touch();
             return this.outcome(action, true, busy ? 'Force-stopping: owned work is interrupted and recoverable.' : 'Stopping now.');
         }
         if (this.shutdown) return this.outcome(action, this.shutdown === (options.restart ? 'restart' : 'stop'), this.shutdown === 'restart' ? 'Already restarting.' : 'Already shutting down.');
         const wanted = options.restart ? 'restart' : 'stop';
-        if (this.intent === wanted) return this.outcome(action, true, `${options.restart ? 'Restart' : 'Stop'} is already pending: the current task finishes first.`);
+        if (this.intent === wanted) return this.outcome(action, true, `${options.restart ? 'Restart' : 'Stop'} is already pending: active work finishes first.`);
         if (options.restart && this.options.mode === 'maintenance') throw new PtbkError('A finite maintenance operation cannot be restarted.', { kind: 'usage', next: ['Run it again when it has finished.'] });
         const previous = this.intent ?? (this.manualPauseSince && this.executing ? 'pause' : undefined);
         // An intentional stop replaces the manual pause (resume cancels the stop and returns to running, as before). An
@@ -752,15 +830,16 @@ export class Agenda {
         this.pauseDraining = false;
         this.decide(
             wanted,
-            this.executing
-                ? `${options.restart ? 'Restart' : 'Stop'} requested${previous ? ` (instead of the pending ${previous})` : ''}: the current task finishes first, then the service ${options.restart ? 'restarts' : 'stops'}.`
+            this.units.size
+                ? `${options.restart ? 'Restart' : 'Stop'} requested${previous ? ` (instead of the pending ${previous})` : ''}: active work finishes first, then the service ${options.restart ? 'restarts' : 'stops'}.`
                 : `${options.restart ? 'Restart' : 'Stop'} requested.`,
         );
         this.settle();
-        // Waits between tasks end now; a wait inside the current task ends with a recoverable checkpoint.
+        // Waits between tasks end now; a wait inside active work ends with a recoverable checkpoint.
         this.waiter?.resolve('cancelled');
+        for (const unit of this.units.values()) unit.waiter?.resolve('cancelled');
         this.touch();
-        return this.outcome(action, true, this.shutdown ? (options.restart ? 'Restarting now.' : 'Stopping now.') : `${options.restart ? 'Restart' : 'Stop'} pending: the current task finishes first.`);
+        return this.outcome(action, true, this.shutdown ? (options.restart ? 'Restarting now.' : 'Stopping now.') : `${options.restart ? 'Restart' : 'Stop'} pending: active work finishes first.`);
     }
 
     /** Cancels a pending stop/restart that has not taken effect yet (compatibility alias of resume). */
@@ -776,7 +855,7 @@ export class Agenda {
             intent: this.shutdown ? (this.shutdown === 'force' ? 'force-stop' : this.shutdown) : (this.intent ?? (pausing ? 'pause' : undefined)),
             since: this.intent ? this.intentSince : pausing ? this.manualPauseSince : undefined,
             revision: this.intentRevision,
-            draining: (Boolean(this.intent) || pausing) && this.executing,
+            draining: (Boolean(this.intent) && this.units.size > 0) || (pausing && this.executing),
             shutdown: Boolean(this.shutdown),
             // A pending manual pause is cancelled by Resume; a pause of Health alone resolves by itself.
             cancellable: !this.shutdown && (Boolean(this.intent) || (pausing && Boolean(this.manualPauseSince))),
@@ -894,32 +973,57 @@ export class Agenda {
     /** Serializes chat creation so a retried request cannot race its original. */
     private readonly chatCreation = new Mutex();
 
-    /** Chats queued for an agent reply (one turn at a time, outside the single-task queue). */
-    private readonly chatTurns = new Mutex();
+    /** Per-chat order of turns: one chat answers its messages in order, different chats progress concurrently. */
+    private readonly chatTurns = new Map<string, Mutex>();
 
-    /** Runs the chat agent's reply in the background (read-only; tasks only through ordinary authoring). */
-    private queueChatReply(name: string): void {
+    /**
+     * Runs the chat agent's reply as one unit of the shared capacity (read-only; tasks only through ordinary authoring).
+     * Different chats reply concurrently up to the limit; a full capacity queues the turn visibly while input stays
+     * accepted. User messages that arrive during a reply get one follow-up turn at the next safe point.
+     */
+    private queueChatReply(name: string, options: { readonly followUp?: boolean } = {}): void {
         if (this.options.chatReplies === false) return;
-        void this.chatTurns
+        const key = nameKey(name);
+        let lock = this.chatTurns.get(key);
+        if (!lock) this.chatTurns.set(key, (lock = new Mutex()));
+        void lock
             .run(async () => {
-                const turn = await replyInChat(
-                    {
-                        project: this.options.project,
-                        settings: this.settings,
-                        catalog: this.catalog,
-                        pool: this.pool,
-                        chats: this.chats,
-                        env: this.options.env,
-                        createTask: async (input) => await this.createChatTask(input),
-                        scheduleLearning: async (input) => await this.scheduleChatLearning(input),
-                        establishedExecution: async (chat) => {
-                            const active = await this.state.readActive();
-                            return [...(active ? [active] : []), ...(await this.state.readParked())].find((record) => record.waitingChat === chat || record.recoveryChat === chat)?.routing;
+                if (this.stopRequested) return;
+                const label = `chat {${name}}`;
+                this.touch();
+                try {
+                    await this.capacity.acquire(label, this.ownedWork.signal);
+                } catch {
+                    return;
+                }
+                // Stopping won the race for the slot: the message stays unanswered and gets its reply after restart.
+                if (this.stopRequested) {
+                    this.capacity.release();
+                    return;
+                }
+                const unit = this.registerUnit({ id: `chat:${key}:${shortId(6)}`, kind: 'chat', label: name });
+                let turn: Awaited<ReturnType<typeof replyInChat>> | undefined;
+                try {
+                    turn = await replyInChat(
+                        {
+                            project: this.options.project,
+                            settings: this.settings,
+                            catalog: this.catalog,
+                            pool: this.pool,
+                            chats: this.chats,
+                            env: this.options.env,
+                            signal: this.ownedWork.signal,
+                            createTask: async (input) => await this.createChatTask(input),
+                            scheduleLearning: async (input) => await this.scheduleChatLearning(input),
+                            establishedExecution: async (chat) => [...(await this.state.readActiveRecords()), ...(await this.state.readParked())].find((record) => record.waitingChat === chat || record.recoveryChat === chat)?.routing,
+                            onActivity: (text) => this.log(text),
                         },
-                        onActivity: (text) => this.log(text),
-                    },
-                    name,
-                );
+                        name,
+                        options,
+                    );
+                } finally {
+                    this.finishUnit(unit);
+                }
                 if (turn.error) this.log(`No reply in {${name}}: ${turn.error}`, 'warning');
                 else if (turn.reply) {
                     const notes = [
@@ -927,6 +1031,9 @@ export class Agenda {
                         ...(turn.createdTasks.length ? [`created ${turn.createdTasks.map((task) => `{${task}}`).join(', ')}`] : []),
                     ];
                     this.log(`Reply in {${turn.reply.chat.name}}${notes.length ? ` (${notes.join('; ')})` : ''}.`);
+                    // Messages written while the agent was replying are answered next, in order (never dropped).
+                    const later = turn.seen !== undefined ? turn.reply.chat.messages.slice(turn.seen).filter((message) => message.senderKey === 'user') : [];
+                    if (later.length) this.queueChatReply(name, { followUp: true });
                 }
                 await this.refreshChats();
             })
@@ -1080,6 +1187,193 @@ export class Agenda {
         this.touch();
     }
 
+    // ── Units of concurrent work ─────────────────────────────────────────────
+
+    /** Registers an active unit (its capacity slot is already taken). */
+    private registerUnit(input: { readonly id: string; readonly kind: WorkUnit['kind']; readonly label: string; readonly key?: string }): WorkUnit {
+        const unit: WorkUnit = { ...input, startedAt: Date.now(), owner: input.id };
+        this.units.set(unit.id, unit);
+        if (unit.key) this.claimedKeys.add(unit.key);
+        this.touch();
+        return unit;
+    }
+
+    /**
+     * Ends a unit: returns its slot, releases the files of its last run unless that run is still recorded (failed,
+     * waiting for a retry, or checkpointed with changes), and lets pause/stop settle.
+     */
+    private finishUnit(unit: WorkUnit): void {
+        if (!this.units.delete(unit.id)) return;
+        if (unit.key) this.claimedKeys.delete(unit.key);
+        this.capacity.release();
+        void this.releaseUnlessRecorded(unit.owner).finally(() => this.touch());
+        for (const listener of [...this.unitListeners]) listener();
+        this.settle();
+        this.wake();
+        this.touch();
+    }
+
+    /** Releases a run's files unless an active or checkpointed record still owns them. */
+    private async releaseUnlessRecorded(runId: string): Promise<void> {
+        const recorded = [...(await this.state.readActiveRecords()), ...(await this.state.readParked())].find((record) => record.runId === runId);
+        if (!recorded) this.ownership.release(runId);
+        else this.ownership.release(runId, this.ownership.owned(runId).filter((path) => !(recorded.ownedFiles ?? []).includes(path)));
+    }
+
+    /**
+     * Claims a slot and runs background work as one unit, without waiting for it. Returns false when the capacity is
+     * full (or a chat turn waits for a slot first).
+     */
+    private launch(input: { readonly label: string; readonly key?: string }, work: (unit: WorkUnit) => Promise<void>): boolean {
+        if (!this.capacity.tryAcquire()) return false;
+        const unit = this.registerUnit({ id: shortId(10), kind: 'task', label: input.label, key: input.key });
+        void (async () => {
+            try {
+                await work(unit);
+            } catch (error) {
+                await this.reportError('execution', error, input.label);
+            } finally {
+                this.finishUnit(unit);
+            }
+        })();
+        return true;
+    }
+
+    /** Whether a live unit executes this run now. */
+    private runIsLive(runId: string): boolean {
+        for (const unit of this.units.values()) if (unit.owner === runId) return true;
+        return false;
+    }
+
+    /** Waits until some active unit finishes (draining towards a stop). */
+    private async untilUnitFinishes(): Promise<void> {
+        if (!this.units.size) return;
+        await new Promise<void>((resolvePromise) => {
+            const done = (): void => {
+                this.unitListeners.delete(done);
+                resolvePromise();
+            };
+            this.unitListeners.add(done);
+        });
+    }
+
+    /**
+     * A pacing/backoff wait inside one unit (skippable; ends early on stop). The unit keeps its slot: the wait is part
+     * of its ordinary bounded execution.
+     */
+    private async unitWait(unit: WorkUnit, ms: number, view: Omit<WaitView, 'until'>): Promise<'elapsed' | 'skipped' | 'cancelled'> {
+        if (this.stopRequested) return 'cancelled';
+        unit.wait = { ...view, until: new Date(Date.now() + ms).toISOString() };
+        this.touch();
+        const reason = await new Promise<'elapsed' | 'skipped' | 'cancelled' | 'woken'>((resolvePromise) => {
+            const timer = setTimeout(() => done('elapsed'), Math.max(0, Math.min(ms, 2_147_000_000)));
+            const done = (result: 'elapsed' | 'skipped' | 'cancelled' | 'woken'): void => {
+                clearTimeout(timer);
+                unit.waiter = undefined;
+                resolvePromise(result);
+            };
+            unit.waiter = { skippable: view.skippable, resolve: done };
+        });
+        unit.wait = undefined;
+        this.touch();
+        return reason === 'woken' ? 'elapsed' : reason;
+    }
+
+    /** Updates a unit's live view. */
+    private updateUnit(unit: WorkUnit, change: Partial<CurrentWorkView>): void {
+        if (!unit.current) return;
+        unit.current = { ...unit.current, ...change };
+        this.touch();
+    }
+
+    /**
+     * Claims files for an agent before it changes them (the `claim_files` tool): waits (bounded) while another run
+     * owns one of them, showing the blocker on the waiting unit. The claim is recorded for crash recovery at once.
+     */
+    private async claimFiles(unit: WorkUnit, label: string, paths: readonly string[]): Promise<{ readonly ok: boolean; readonly message: string }> {
+        const relative: string[] = [];
+        for (const path of paths) {
+            try {
+                relative.push(this.ownership.relativePath(await confinePath(this.options.project.root, resolve(this.options.project.root, path))));
+            } catch {
+                return { ok: false, message: `${path} is outside the project; only project files can be claimed.` };
+            }
+        }
+        const before = unit.current;
+        const outcome = await this.ownership.acquire(unit.owner, label, relative, {
+            signal: this.ownedWork.signal,
+            timeoutMs: CLAIM_WAIT_MS,
+            onWait: (conflicts) => {
+                this.updateUnit(unit, { detail: `waits for ${describeConflicts(conflicts)}` });
+                this.log(`"${label}" waits for ${describeConflicts(conflicts)}.`);
+            },
+        });
+        if (before) this.updateUnit(unit, { detail: before.detail });
+        if (!outcome.ok) return { ok: false, message: `Not claimed: ${describeConflicts(outcome.conflicts)}. Work on other files, or call claim_files again later.` };
+        const record = await this.state.readActive(unit.owner);
+        if (record) await this.state.writeActive({ ...record, ownedFiles: this.ownership.owned(unit.owner) });
+        return { ok: true, message: `Claimed ${relative.join(', ')}; you own ${relative.length === 1 ? 'it' : 'them'} until this task's result is committed.` };
+    }
+
+    /**
+     * Files the harness reported changing: they belong to the run (taken at once). A file another run owns was changed
+     * against its ownership: that is reported, never silently merged into either result.
+     */
+    private reportedEdits(unit: WorkUnit, label: string, paths: readonly string[]): void {
+        const inProject = paths.filter((path) => !this.ownership.relativePath(path).startsWith('..'));
+        const taken = this.ownership.tryAcquire(unit.owner, label, inProject.filter((path) => !this.ownership.conflicts(unit.owner, [path]).length));
+        void taken;
+        const conflicts = this.ownership.conflicts(unit.owner, inProject);
+        if (conflicts.length) this.log(`"${label}" changed ${describeConflicts(conflicts)} without owning it; the change stays with that work's file.`, 'warning');
+    }
+
+    /**
+     * The changed paths that belong to a run: files it owns (claimed or reported by its harness), plus unowned changes
+     * only this run can have made: no other run's turn overlapped, only its own turn covers the modification time, or
+     * the agent itself named the file. Ambiguous changes stay unowned and visible (never committed with the wrong work)
+     * and are handed to Fixer's health check instead of blocking new work.
+     */
+    private async attributeChanges(unit: WorkUnit, label: string, changed: readonly string[], reported = ''): Promise<string[]> {
+        const mine: string[] = [];
+        for (const path of changed) {
+            const owner = this.ownership.ownerOf(path);
+            if (owner?.owner === unit.owner) {
+                mine.push(path);
+                continue;
+            }
+            if (owner) continue;
+            const absolute = resolve(this.options.project.root, path);
+            const modified = await stat(absolute).then((stats) => stats.mtimeMs).catch(() => undefined);
+            const named = reported.includes(path) || reported.includes(absolute);
+            if ((this.turns.attributable(unit.owner, unit.startedAt, modified) || named) && this.ownership.tryAcquire(unit.owner, label, [path]).ok) {
+                mine.push(path);
+                this.unattributed.delete(absolute);
+            } else if (!this.unattributed.has(absolute)) {
+                this.unattributed.add(absolute);
+                this.log(`${path} changed while several tasks worked and no task claimed or reported it, so it is not attributed to "${label}"; it stays uncommitted for review (Fixer's health check covers it).`, 'warning');
+            }
+        }
+        return mine;
+    }
+
+    /** Changes of concurrent work that no run could be credited with (kept uncommitted; never "unrelated" user edits). */
+    private readonly unattributed = new Set<string>();
+
+    /**
+     * Files other live units own now (a check failing meanwhile may see their partial state). With `blocking`, only
+     * files of units a waiting check should wait for: units that are not themselves waiting for checks, or that started
+     * waiting earlier. So runs waiting for each other never wait mutually: the earliest waiter proceeds.
+     */
+    private foreignChanges(unit: WorkUnit, options: { readonly blocking?: boolean } = {}): string[] {
+        const since = unit.checkWaitingSince ?? Number.POSITIVE_INFINITY;
+        const live = new Set(
+            [...this.units.values()]
+                .filter((other) => other !== unit && (!options.blocking || other.checkWaitingSince === undefined || other.checkWaitingSince < since))
+                .map((other) => other.owner),
+        );
+        return this.ownership.entries().filter((entry) => live.has(entry.owner)).map((entry) => entry.path);
+    }
+
     // ── Snapshot ─────────────────────────────────────────────────────────────
 
     /** Publishes a change of service-owned state (e.g. the project browser) to every view. */
@@ -1087,13 +1381,68 @@ export class Agenda {
         this.touch();
     }
 
+    /** Active task units (with a live view), oldest first. */
+    private activeTaskUnits(): WorkUnit[] {
+        return [...this.units.values()].filter((unit) => unit.kind === 'task' && unit.current).sort((a, b) => a.startedAt - b.startedAt);
+    }
+
+    /** Live views of every active unit (tasks with their files and waits, chat turns), oldest first. */
+    private activeViews(): CurrentWorkView[] {
+        return [...this.units.values()]
+            .sort((a, b) => a.startedAt - b.startedAt)
+            .flatMap((unit): CurrentWorkView[] => {
+                if (unit.current) return [{ ...unit.current, unit: unit.id, ...(unit.wait ? { wait: unit.wait } : {}), files: this.ownership.owned(unit.owner) }];
+                if (unit.kind !== 'chat') return [];
+                return [
+                    {
+                        unit: unit.id,
+                        taskRef: `{${unit.label}}`,
+                        taskTitle: unit.label,
+                        kind: 'chat',
+                        agent: agentView('Chat', 'working'),
+                        harness: '',
+                        harnessName: '',
+                        modelSource: 'default',
+                        phase: 'executing',
+                        attempt: 0,
+                        attemptBudget: 0,
+                        startedAt: new Date(unit.startedAt).toISOString(),
+                        detail: 'replying in the chat',
+                    },
+                ];
+            });
+    }
+
     /**
-     * Effective execution configuration of the current execution, or of the last finished one labelled historical
-     * (never presented as currently running).
+     * Effective execution configuration of every active task run (the first one in `execution`), or of the last
+     * finished one labelled historical (never presented as currently running).
      */
-    private executionView(): ExecutionDetailView | undefined {
-        const current = this.current;
-        const context = this.currentContext;
+    private executionViews(): ExecutionDetailView[] {
+        const active = this.activeTaskUnits().flatMap((unit) => {
+            const view = this.unitExecutionView(unit);
+            return view ? [view] : [];
+        });
+        if (active.length) return active;
+        const last = this.recentResults[0];
+        if (!last?.harness) return [];
+        return [
+            {
+                status: 'historical',
+                task: { ref: last.ref, title: last.title, source: last.source, trace: last.trace, kind: last.kind ?? 'task' },
+                agent: { name: last.agent ?? 'unknown' },
+                startedAt: last.startedAt,
+                endedAt: last.endedAt,
+                outcome: last.outcome,
+                attempt: last.attempts || undefined,
+                contexts: [executionContextView({ role: 'task', agent: last.agent ?? 'unknown', harness: last.harness, harnessVersion: last.harnessVersion, model: last.model, modelReported: last.modelReported, thinkingLevel: last.thinkingLevel, state: 'finished' })],
+            },
+        ];
+    }
+
+    /** Effective execution configuration of one active task run. */
+    private unitExecutionView(unit: WorkUnit): ExecutionDetailView | undefined {
+        const current = unit.current;
+        const context = unit.context;
         if (current && context) {
             return {
                 status: 'active',
@@ -1120,18 +1469,7 @@ export class Agenda {
                 ],
             };
         }
-        const last = this.recentResults[0];
-        if (!last?.harness) return undefined;
-        return {
-            status: 'historical',
-            task: { ref: last.ref, title: last.title, source: last.source, trace: last.trace, kind: last.kind ?? 'task' },
-            agent: { name: last.agent ?? 'unknown' },
-            startedAt: last.startedAt,
-            endedAt: last.endedAt,
-            outcome: last.outcome,
-            attempt: last.attempts || undefined,
-            contexts: [executionContextView({ role: 'task', agent: last.agent ?? 'unknown', harness: last.harness, harnessVersion: last.harnessVersion, model: last.model, modelReported: last.modelReported, thinkingLevel: last.thinkingLevel, state: 'finished' })],
-        };
+        return undefined;
     }
 
     /** Notifies listeners of a state change. */
@@ -1172,10 +1510,13 @@ export class Agenda {
      */
     public snapshot(): ServiceSnapshot {
         const installation = detectInstallation();
+        const active = this.activeViews();
         const activityOf = (name: string): BadgeActivity => {
-            if (!this.current || normalizeAgentName(this.current.agent.name) !== normalizeAgentName(name)) return 'idle';
-            return this.current.agent.activity;
+            const working = active.filter((view) => view.kind !== 'chat' && normalizeAgentName(view.agent.name) === normalizeAgentName(name));
+            return working.find((view) => view.agent.activity === 'working')?.agent.activity ?? working[0]?.agent.activity ?? 'idle';
         };
+        const current = active.find((view) => view.kind !== 'chat');
+        const executions = this.executionViews();
         // The complete team inventory: ordinary agents, core roles and the engine-provided Expert.
         const agents: AgentView[] = this.catalog
             ? [
@@ -1186,7 +1527,7 @@ export class Agenda {
                   { ...agentView('Expert', activityOf('Expert')), role: 'engine' as const },
               ]
             : [];
-        if (this.current && !agents.some((agent) => agent.key === this.current!.agent.key)) agents.unshift(this.current.agent);
+        for (const view of active) if (view.kind !== 'chat' && !agents.some((agent) => agent.key === view.agent.key)) agents.unshift(view.agent);
         const harnesses = this.pool
             ? HARNESS_PLUGINS.map((plugin) => {
                   const inspection = this.pool.inspection(plugin.id);
@@ -1219,9 +1560,12 @@ export class Agenda {
                 lifecycle: this.lifecycleView(),
                 pauseReasons: this.pauseReasons,
             },
-            phase: this.pauseActive && !this.current && !this.intent && !this.shutdown ? 'paused' : this.phase,
-            current: this.current,
-            execution: this.executionView(),
+            phase: this.pauseActive && !this.executing && !this.intent && !this.shutdown ? 'paused' : current ? current.phase : this.phase,
+            current,
+            active,
+            capacity: this.capacityView(),
+            execution: executions[0],
+            executions: executions.filter((execution) => execution.status === 'active'),
             browser: this.options.browsers?.primary(),
             browsers: this.options.browsers?.all(),
             tools: this.settings && this.pool ? toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, inUse: this.toolsInUse(), retained: this.retainedTools() }) : undefined,
@@ -1281,26 +1625,48 @@ export class Agenda {
         }
     }
 
-    /** Names of tools held by active work (the task's harness instance, active consultations, acquired browsers). */
+    /** Names of tools held by active work (each task's harness instance, active consultations, acquired browsers). */
     private toolsInUse(): Set<string> {
         const names = new Set<string>(this.options.browsers?.inUse() ?? []);
-        if (this.current && this.currentContext?.selection.tool) names.add(this.currentContext.selection.tool);
-        for (const consultation of this.currentContext?.consultations ?? []) if (consultation.state === 'active' && consultation.harness.tool) names.add(consultation.harness.tool);
+        for (const unit of this.units.values()) {
+            if (unit.current && unit.context?.selection.tool) names.add(unit.context.selection.tool);
+            for (const consultation of unit.context?.consultations ?? []) if (consultation.state === 'active' && consultation.harness.tool) names.add(consultation.harness.tool);
+        }
         return names;
     }
 
     /** Tools whose acquired old configuration active work still uses (changed, disabled or removed meanwhile). */
     private retainedTools(): Set<string> {
         const retained = new Set((this.options.browsers?.all() ?? []).filter((browser) => browser.retained && browser.inUse).map((browser) => browser.name));
-        const tool = this.current ? this.currentContext?.selection.tool : undefined;
-        if (tool && !this.settings.tools.some((record) => record.name === tool && record.isEnabled)) retained.add(tool);
+        for (const unit of this.units.values()) {
+            const tool = unit.current ? unit.context?.selection.tool : undefined;
+            if (tool && !this.settings.tools.some((record) => record.name === tool && record.isEnabled)) retained.add(tool);
+        }
         return retained;
+    }
+
+    /** Ready/queued work that waits for a slot or for files, counted at the last evaluation. */
+    private queuedWork = 0;
+
+    /** Checkpointed runs waiting for a person or resource, counted at the last evaluation. */
+    private waitingWork = 0;
+
+    /** The shared capacity view. */
+    private capacityView(): ServiceSnapshot['capacity'] {
+        if (!this.settings) return undefined;
+        return {
+            limit: this.capacity.size,
+            active: this.units.size,
+            waiting: this.waitingWork,
+            queued: this.queuedWork + this.capacity.queued.length,
+            files: this.ownership.entries().map((entry) => ({ path: entry.path, owner: entry.label })),
+        };
     }
 
     /**
      * Re-reads the tool inventory and `.env`, reinspecting changed and new instances (no browser launch, no model
      * call). Runs before every task, while idle or waiting, and when ptbk.json/.env change during active work: a
-     * new usable tool can serve the current task at its next selection.
+     * new usable tool can serve active tasks at their next selection.
      */
     private async refreshTools(force = false): Promise<void> {
         if (!this.pool) this.pool = new HarnessPool(this.options.project.root, this.settings, this.options.env);
@@ -1408,7 +1774,7 @@ export class Agenda {
         if (this.stopRequested) return 'cancelled';
         const until = view.kind === 'user' || view.kind === 'paused' ? undefined : Number.isFinite(ms) ? new Date(Date.now() + ms).toISOString() : view.until;
         this.waitView = { ...view, until };
-        if (!this.current) this.phase = view.kind === 'paused' ? 'paused' : ['setup', 'recovery', 'workspace', 'persistence'].includes(view.kind) ? 'blocked' : view.kind === 'user' ? 'awaiting-user' : view.kind === 'idle' || view.kind === 'schedule' || view.kind === 'discovery' ? 'idle' : 'waiting';
+        if (!this.executing) this.phase = view.kind === 'paused' ? 'paused' : ['setup', 'recovery', 'workspace', 'persistence'].includes(view.kind) ? 'blocked' : view.kind === 'user' ? 'awaiting-user' : view.kind === 'idle' || view.kind === 'schedule' || view.kind === 'discovery' ? 'idle' : 'waiting';
         this.touch();
         const reason = await new Promise<'elapsed' | 'skipped' | 'cancelled' | 'woken'>((resolvePromise) => {
             let timer: NodeJS.Timeout | undefined;
@@ -1421,16 +1787,29 @@ export class Agenda {
             this.waiter = { skippable: view.skippable, resolve: done };
         });
         this.waitView = undefined;
+        this.waiterSkipped = reason === 'skipped';
         this.touch();
         return reason;
     }
 
     // ── Main iteration ───────────────────────────────────────────────────────
 
-    /** One supervisor step: resume, execute, discover or wait. */
+    /**
+     * One supervisor step: handle recorded runs (failures, retries, recovery), claim eligible work while capacity and
+     * file ownership allow, discover goal work when nothing is left, or wait for a change. Claimed work runs as
+     * concurrent units; the loop never waits for one of them.
+     */
     private async iteration(): Promise<void> {
         this.settle();
         if (this.shutdown) return;
+        if (this.stopRequested) {
+            // Draining towards stop: nothing new starts; every active task and chat turn settles first.
+            this.waitView = { kind: 'draining', reason: `Stopping: ${this.units.size} active unit${this.units.size === 1 ? '' : 's'} finishing first.`, skippable: false };
+            this.touch();
+            await this.untilUnitFinishes();
+            this.waitView = undefined;
+            return;
+        }
         if (this.pauseActive) {
             await this.wait(Infinity, { kind: 'paused', reason: this.pauseExplanation(), skippable: false });
             return;
@@ -1438,19 +1817,17 @@ export class Agenda {
         this.phase = 'evaluating';
         await this.refreshContext();
         await this.refreshChats();
+        this.capacity.drain();
         if (this.blockers.some((blocker) => blocker.kind === 'workspace' || blocker.kind === 'configuration')) {
             const blocker = this.blockers.find((item) => item.kind === 'workspace' || item.kind === 'configuration')!;
             await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason: `${blocker.title}: ${blocker.reason}`, action: blocker.action, skippable: false });
             return;
         }
-        await this.maintainHarnesses();
-        const active = await this.state.readActive();
-        if (active) {
-            await this.continueActive(active);
-            return;
-        }
+        // Shared harness executables are only updated while nothing runs them.
+        if (!this.units.size) await this.maintainHarnesses();
+        if (await this.handleRecordedRuns()) return;
         if (await this.resumeParked()) return;
-        this.blockers = this.blockers.filter((blocker) => blocker.kind !== 'recovery' && blocker.kind !== 'persistence');
+        this.blockers = this.blockers.filter((blocker) => blocker.kind !== 'recovery' && (blocker.kind !== 'persistence' || this.resumeAfter.size > 0));
         if (!(await this.checkBeforeWork())) return;
         // Opt-in synchronization before new work: an attempt, never a prerequisite of local progress.
         await this.sync.request('boundary');
@@ -1459,16 +1836,18 @@ export class Agenda {
         if (await this.scheduleRoutingRepairs(evaluated)) return;
         // While Router cannot run, routing waits (bounded) and its repair or other ready work proceeds.
         const routerProblem = evaluated.some((item) => item.readiness.kind === 'needs-assignment') ? await this.routerProblem() : undefined;
-        const next = selectNext(evaluated, Date.now(), { assignable: !routerProblem });
+        const now = Date.now();
+        for (const [key, until] of this.claimDeferred) if (until <= now) this.claimDeferred.delete(key);
+        const candidates = selectCandidates(evaluated, now, { assignable: !routerProblem }).filter((candidate) => !this.claimedKeys.has(candidate.task.key) && !this.claimDeferred.has(candidate.task.key));
         const waitingForTools = this.tools.waiting;
         // Unfinished work that cannot be routed for lack of tools is a running resource wait (never a plain idle).
-        if (waitingForTools && (next || evaluated.some((item) => isUnfinished(item.readiness)))) {
+        if (waitingForTools && (candidates.length || evaluated.some((item) => isUnfinished(item.readiness)))) {
             // A running engine waiting for resources (not a pause or stop): controls, refresh and rechecks stay alive.
             this.setBlocker({ kind: 'tools', title: 'Waiting for tools', reason: waitingForTools.reason, action: waitingForTools.action, recheckAt: new Date(Date.now() + TOOLS_RECHECK_MS).toISOString() });
             await this.wait(TOOLS_RECHECK_MS, { kind: 'tools', reason: `Waiting for tools: ${waitingForTools.reason}`, action: waitingForTools.action, skippable: false });
             return;
         }
-        if (next) {
+        if (candidates.length) {
             const dirty = await this.unrelatedChanges();
             const policy = setting<string>(this.settings, 'execution.gitChanges');
             if (dirty.length && policy !== 'ignore') {
@@ -1482,26 +1861,95 @@ export class Agenda {
             this.clearBlocker('workspace');
             // Lifecycle decisions are serialized with claims: after pause/stop is accepted, no next task starts.
             if (!this.claimable) return;
-            await this.startTask(next);
+            if (this.pacingUntil > Date.now()) {
+                await this.wait(this.pacingUntil - Date.now(), { kind: 'pacing', reason: 'Pause between tasks (--wait-between-prompts).', skippable: true });
+                if (this.waiterSkipped) this.pacingUntil = 0;
+                return;
+            }
+            let launched = 0;
+            const blockedByFiles: FileConflict[] = [];
+            for (const candidate of candidates) {
+                if (!this.capacity.claimable) break;
+                // A task whose source another run is changing waits for it (no whole-project serialization).
+                const conflicts = this.ownership.conflicts('', [candidate.task.source.path]);
+                if (conflicts.length) {
+                    blockedByFiles.push(...conflicts);
+                    continue;
+                }
+                if (!this.launch({ label: candidate.task.title, key: candidate.task.key }, async (unit) => await this.startTask(candidate, unit))) break;
+                launched++;
+            }
+            this.queuedWork = candidates.length - launched;
+            if (launched) return;
+            const full = !this.capacity.claimable;
+            const reason = full
+                ? `${candidates.length} task${candidates.length === 1 ? '' : 's'} wait${candidates.length === 1 ? 's' : ''} for a free slot (${this.capacity.used}/${this.capacity.size} active).`
+                : `Ready work waits for files other work is changing: ${describeConflicts(blockedByFiles)}.`;
+            this.phase = 'waiting';
+            await this.wait(IDLE_RECHECK_MS, { kind: full ? 'capacity' : 'files', reason, skippable: false });
             return;
         }
-        if (!evaluated.some((item) => isUnfinished(item.readiness)) && setting<boolean>(this.settings, 'discovery.isEnabled') && !waitingForTools) {
-            const discovered = await this.discover();
-            if (discovered) return;
+        this.queuedWork = 0;
+        if (!this.executing && !evaluated.some((item) => isUnfinished(item.readiness)) && setting<boolean>(this.settings, 'discovery.isEnabled') && !waitingForTools && this.claimable) {
+            const chosen = await this.discoveryDue();
+            if (chosen && this.launch({ label: `Goal enquiry of ${chosen.name}` }, async (unit) => await this.runDiscovery(chosen, unit))) return;
         }
         const waiting = evaluated.filter((item) => item.readiness.kind === 'waiting-until').map((item) => (item.readiness as { until: number }).until);
-        const nextTime = waiting.length ? Math.min(...waiting) : undefined;
+        const earliest = (times: readonly number[]): number | undefined => times.filter((until) => until > Date.now()).reduce<number | undefined>((first, until) => (first === undefined || until < first ? until : first), undefined);
+        const nextTime = earliest([...waiting, ...(this.nextKnownTime ? [this.nextKnownTime] : [])]);
         this.nextKnownTime = nextTime;
+        // Internal retries (resumable runs, deferred claims) also wake the loop, without being presented as scheduled work.
+        const wakeAt = earliest([...(nextTime ? [nextTime] : []), ...this.resumeAfter.values(), ...this.claimDeferred.values()]);
         const blocked = evaluated.filter((item) => ['blocked', 'needs-recovery', 'failed'].includes(item.readiness.kind));
-        const reason = nextTime
-            ? `No eligible work now; next scheduled work at ${formatShortTime(nextTime, Date.now(), this.timeZone)}.`
-            : blocked.length
-              ? `No eligible work; ${blocked.length} task(s) blocked (${blocked[0]!.task.title}: ${blocked[0]!.readiness.reason}).`
-              : waitingForTools && !evaluated.some((item) => isUnfinished(item.readiness))
-                ? `No unfinished work. Waiting for tools: ${waitingForTools.reason}`
-                : (this.idleReason ?? 'No unfinished work.');
+        const reason = this.executing
+            ? `${this.units.size} unit${this.units.size === 1 ? '' : 's'} working; no other eligible work now.`
+            : nextTime
+              ? `No eligible work now; next scheduled work at ${formatShortTime(nextTime, Date.now(), this.timeZone)}.`
+              : blocked.length
+                ? `No eligible work; ${blocked.length} task(s) blocked (${blocked[0]!.task.title}: ${blocked[0]!.readiness.reason}).`
+                : waitingForTools && !evaluated.some((item) => isUnfinished(item.readiness))
+                  ? `No unfinished work. Waiting for tools: ${waitingForTools.reason}`
+                  : (this.idleReason ?? 'No unfinished work.');
         this.phase = 'idle';
-        await this.wait(nextTime ? Math.min(nextTime - Date.now(), IDLE_RECHECK_MS) : IDLE_RECHECK_MS, { kind: nextTime ? 'schedule' : 'idle', reason, skippable: false });
+        await this.wait(wakeAt ? Math.min(Math.max(1_000, wakeAt - Date.now()), IDLE_RECHECK_MS) : IDLE_RECHECK_MS, { kind: nextTime ? 'schedule' : 'idle', reason, skippable: false });
+    }
+
+    /** Whether the last loop wait was skipped by the operator. */
+    private waiterSkipped = false;
+
+    /**
+     * Handles recorded runs that no live unit executes: a failed run goes to Fixer or asks how to continue, a run
+     * waiting for a person is checkpointed, and a resumable run (crash recovery, retry after quota/setup/commit
+     * problems) is resumed as its own unit when its retry time has come and a slot is free. A run left in an older
+     * engine's task worktree is checkpointed with an explanation. Returns whether the loop should reevaluate at once.
+     */
+    private async handleRecordedRuns(): Promise<boolean> {
+        let changed = false;
+        for (const record of await this.state.readActiveRecords()) {
+            if (this.runIsLive(record.runId)) continue;
+            if (record.worktree) {
+                this.log(`"${record.taskTitle}" was running in a task worktree of an older engine (${record.worktree}); task worktrees were removed, so it is kept for you to merge or discard (ptbk recover).`, 'warning');
+                await this.state.park(record);
+                changed = true;
+                continue;
+            }
+            if (record.phase === 'failed') {
+                if (this.options.mode === 'maintenance') continue;
+                await this.handleFailedRecord(record);
+                changed = true;
+                continue;
+            }
+            if ((this.resumeAfter.get(record.runId) ?? 0) > Date.now()) continue;
+            if (record.phase === 'awaiting-user' && record.waitingChat && !(await this.chatReplyOf(record.waitingChat, record.awaitedMessages)).answered) {
+                await this.checkpoint(record);
+                changed = true;
+                continue;
+            }
+            if (!this.claimable || this.claimedKeys.has(record.taskKey || nameKey(record.taskTitle))) continue;
+            this.resumeAfter.delete(record.runId);
+            if (!this.launch({ label: record.taskTitle, key: record.taskKey || nameKey(record.taskTitle) }, async (unit) => await this.continueActive(record, unit))) break;
+        }
+        return changed;
     }
 
     /**
@@ -1522,6 +1970,15 @@ export class Agenda {
         }
         for (const stored of await this.chats.list().catch(() => [])) {
             for (const diagnostic of stored.chat.diagnostics.filter((item) => item.severity === 'error')) findings.add(`error: ${stored.relativePath}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
+        }
+        // Changes of concurrent work nobody could be credited with stay uncommitted until someone reviews them.
+        if (!this.units.size && this.repositoryRoot) {
+            const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot });
+            for (const absolute of [...this.unattributed]) {
+                const path = toProjectRelative(this.options.project.root, absolute);
+                if (dirty[path] === undefined || this.ownership.ownerOf(path)) this.unattributed.delete(absolute);
+                else findings.add(`warning: ${path} — changed while several tasks worked concurrently, but no task claimed or reported it; review it and commit (or revert) it as appropriate.`);
+            }
         }
         return [...findings].sort();
     }
@@ -1583,7 +2040,9 @@ export class Agenda {
         for (const problem of queue.problems) this.logOnce(problem, 'warning');
         const blockers = await this.state.readBlockers();
         // Checkpointed tasks wait for their person (a chat) until resumed, even once answered (resumption restores them first).
-        const { awaitingUser, integrations } = parkedReadiness(await this.state.readParked());
+        const parkedRecords = await this.state.readParked();
+        this.waitingWork = parkedRecords.length;
+        const { awaitingUser, integrations } = parkedReadiness(parkedRecords);
         const uncommitted = new Set<string>();
         if (this.commitMode && this.repositoryRoot) {
             const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, new Set());
@@ -1611,11 +2070,11 @@ export class Agenda {
             if (resolution.kind === 'routable') return { kind: 'routable' };
             return resolution;
         };
-        const active = await this.state.readActive();
+        const active = await this.state.readActiveRecords();
         const evaluated = await evaluateQueue(queue.tasks, {
             now: Date.now(),
             timeZone: this.timeZone,
-            activeKey: active ? (active.taskKey ?? normalizeAgentName(active.taskTitle)) : undefined,
+            activeKeys: new Set([...active.map((record) => record.taskKey || normalizeAgentName(record.taskTitle)), ...this.claimedKeys]),
             awaitingUser,
             recovery: new Map([...Object.entries(blockers).map(([key, blocker]) => [key, blocker.reason] as const), ...integrations]),
             uncommittedSources: uncommitted,
@@ -1694,9 +2153,10 @@ export class Agenda {
             if (current.revision !== input.revision) {
                 throw new PtbkError(`${current.path} changed since you opened it.`, { kind: 'conflict', effect: 'Nothing was saved; your draft is kept.', next: ['Reload the source, reconcile your draft and save again.'] });
             }
-            const active = await this.state.readActive();
-            if (active && (active.sourcePath === current.path || active.createdPaths.includes(current.path))) {
-                throw new PtbkError(`${current.path} belongs to the executing task "${active.taskTitle}".`, { kind: 'conflict', effect: 'Nothing was saved; your draft is kept.', next: ['Save again after the task has finished.'] });
+            const owner = this.ownership.ownerOf(current.path);
+            const active = (await this.state.readActiveRecords()).find((record) => record.sourcePath === current.path || record.createdPaths.includes(current.path));
+            if (owner || active) {
+                throw new PtbkError(`${current.path} belongs to the active work "${owner?.label ?? active!.taskTitle}".`, { kind: 'conflict', effect: 'Nothing was saved; your draft is kept.', next: ['Save again after that work has finished.'] });
             }
             const absolute = resolve(this.options.project.root, current.path);
             let text = input.text;
@@ -1748,7 +2208,8 @@ export class Agenda {
     /** Uncommitted project paths not owned by ptbk (relative). */
     private async unrelatedChanges(): Promise<string[]> {
         if (!this.repositoryRoot) return [];
-        const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, this.authoredPaths);
+        // Files active or checkpointed work owns are its own changes in progress, never "unrelated".
+        const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, new Set([...this.authoredPaths, ...this.ownership.heldByOthers(undefined), ...this.unattributed]));
         // Explicit no-commit writes stay owned only within no-commit operation; committed operation must reconcile them.
         const owned = this.commitMode ? {} : await this.state.readOwnedUncommitted();
         return Object.entries(dirty)
@@ -1756,10 +2217,11 @@ export class Agenda {
             .map(([path]) => path);
     }
 
-    /** Execution environment for the executor. */
-    private environment(task: Task): ExecutionEnvironment {
+    /** Execution environment of one run inside a unit (its events update that unit's view). */
+    private environment(task: Task, unit: WorkUnit): ExecutionEnvironment {
         if (!this.repositoryRoot) throw new PtbkError('The project is not in a Git working tree.', { kind: 'setup', next: ['Run `ptbk init`.'] });
         this.ownedWork = this.ownedWork.signal.aborted && !this.stopRequested ? new AbortController() : this.ownedWork;
+        const label = task.title;
         return {
             project: this.options.project,
             settings: this.settings,
@@ -1779,19 +2241,13 @@ export class Agenda {
             hooks: {
                 emit: (event) => {
                     if (event.type === 'activity') this.log(event.text, event.level);
-                    else if (event.type === 'phase' && this.current) {
+                    else if (event.type === 'phase' && unit.current) {
                         const phase: Phase = event.phase === 'repairing' ? 'repairing' : event.phase === 'awaiting-user' ? 'awaiting-user' : (event.phase as Phase);
-                        this.current = { ...this.current, phase, detail: event.detail, agent: agentView(this.current.agent.name, phase === 'awaiting-user' ? 'waiting-user' : 'working') };
-                        this.phase = phase;
-                        this.touch();
-                    } else if (event.type === 'attempt' && this.current) {
-                        this.current = { ...this.current, attempt: event.attempt, attemptBudget: event.budget };
-                        this.touch();
-                    } else if (event.type === 'model' && this.current) {
-                        this.current = { ...this.current, model: event.model, modelSource: 'reported' };
-                        this.touch();
-                    } else if (event.type === 'consultation' && this.currentContext) {
-                        const consultations = this.currentContext.consultations;
+                        this.updateUnit(unit, { phase, detail: event.detail, agent: agentView(unit.current.agent.name, phase === 'awaiting-user' ? 'waiting-user' : 'working') });
+                    } else if (event.type === 'attempt') this.updateUnit(unit, { attempt: event.attempt, attemptBudget: event.budget });
+                    else if (event.type === 'model') this.updateUnit(unit, { model: event.model, modelSource: 'reported' });
+                    else if (event.type === 'consultation' && unit.context) {
+                        const consultations = unit.context.consultations;
                         if (event.state === 'started') {
                             consultations.push(executionContextView({ role: 'consultation', agent: event.advisor, by: event.by, harness: event.harness, tool: event.tool, model: event.model, state: 'active' }));
                             if (consultations.length > 8) consultations.splice(0, consultations.length - 8);
@@ -1802,33 +2258,51 @@ export class Agenda {
                         this.touch();
                     }
                 },
-                wait: async (ms, info) => {
-                    const result = await this.wait(ms, { kind: info.kind, reason: info.reason, skippable: true });
-                    return result === 'woken' ? 'elapsed' : result;
-                },
+                wait: async (ms, info) => await this.unitWait(unit, ms, { kind: info.kind, reason: info.reason, skippable: true }),
                 gitLock: (action) => this.gitMutex.run(action),
-                excludedPaths: () => this.authoredPaths,
+                // Engine-authored files and every file another run owns are never attributed to this run.
+                excludedPaths: () => new Set([...this.authoredPaths, ...this.ownership.heldByOthers(unit.owner)]),
                 extraTools: this.options.extraTools ? (context) => this.options.extraTools!(task, context) : undefined,
                 finalizeEvidence: this.options.finalizeEvidence,
                 beforeCommit: async () => void (await this.sync.request('pre-commit')),
+                attribute: async (changed, evidence) => await this.attributeChanges(unit, label, changed, evidence.reported),
+                own: (paths) => void this.ownership.tryAcquire(unit.owner, label, paths),
+                edited: (paths) => this.reportedEdits(unit, label, paths),
+                claimFiles: async (paths) => await this.claimFiles(unit, label, paths),
+                turn: (state) => (state === 'begin' ? this.turns.begin(unit.owner) : this.turns.end(unit.owner)),
+                ownedFiles: () => this.ownership.owned(unit.owner),
+                foreignChanges: () => this.foreignChanges(unit),
+                waitForForeign: async (signal) => {
+                    const deadline = Date.now() + FOREIGN_SETTLE_MS;
+                    unit.checkWaitingSince ??= Date.now();
+                    this.updateUnit(unit, { detail: 'check waits for other work to settle' });
+                    try {
+                        while (this.foreignChanges(unit, { blocking: true }).length && Date.now() < deadline && !signal.aborted) await new Promise((resolvePromise) => setTimeout(resolvePromise, 2_000));
+                    } finally {
+                        unit.checkWaitingSince = undefined;
+                    }
+                },
             },
         };
     }
 
     // ── Starting work ────────────────────────────────────────────────────────
 
-    /** Starts the selected task (or its Router prerequisite). */
-    private async startTask(next: ReturnType<typeof selectNext> & object): Promise<void> {
+    /** Claims of tasks deferred after a setup problem (task key → epoch ms), so a blocked claim is not retried at once. */
+    private readonly claimDeferred = new Map<string, number>();
+
+    /** Starts the selected task (or its Router prerequisite) inside its unit. */
+    private async startTask(next: SelectedTask, unit: WorkUnit): Promise<void> {
         const task = next.task;
         if (next.readiness.kind === 'needs-assignment') {
-            await this.assign(task, next.rank);
+            await this.assign(task, next.rank, unit);
             return;
         }
         const route = await this.route(task);
         if (route.kind !== 'routable') return;
         const item = await this.buildWorkItem(task, route, { slot: next.readiness.kind === 'ready' ? next.readiness.slot : undefined });
         if (!item) return;
-        await this.execute(item);
+        await this.execute(item, unit);
     }
 
     /**
@@ -1876,7 +2350,7 @@ export class Agenda {
             const teacher = await this.catalog.resolve('@Teacher');
             if (teacher.kind === 'agent' && learningPolicyOf(teacher.definition.document).open) {
                 this.setBlocker({ kind: 'configuration', title: 'Teacher is open', reason: 'Teacher must end with CLOSED; an open Teacher would teach itself endlessly. Learning tasks wait until it is fixed.', action: `Add CLOSED as the last line of ${teacher.definition.relativePath}.` });
-                await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason: 'Teacher must end with CLOSED before learning tasks run.', skippable: false });
+                this.claimDeferred.set(task.key, Date.now() + BLOCKER_RECHECK_MS);
                 return undefined;
             }
             if (!learner?.definition || !learner.learning.open) {
@@ -1951,7 +2425,7 @@ export class Agenda {
      * Creates and executes Router's prerequisite of a task whose agent or concrete execution is not determined.
      * Router must be directly runnable; an incomplete bootstrap is a bounded setup problem, never a Router chain.
      */
-    private async assign(target: Task, priority: number, options: { readonly createdPaths?: readonly string[] } = {}): Promise<void> {
+    private async assign(target: Task, priority: number, unit: WorkUnit, options: { readonly createdPaths?: readonly string[] } = {}): Promise<void> {
         if (!this.claimable) return;
         const router = await routerAgent(this.catalog);
         if (!router) {
@@ -1962,11 +2436,10 @@ export class Agenda {
                 reason: needsConversion ? 'The core agent Router uses former Book syntax, so missing routing cannot be assigned.' : 'The core agent Router (agents/.core/router.book) is not available, so missing routing cannot be assigned.',
                 action: needsConversion ? 'Run `ptbk migrate` to convert Books in former syntax.' : 'Restart the service or run `ptbk init` to restore core agents.',
             });
-            await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason: 'Router core agent is missing.', action: 'Run `ptbk init`.', skippable: false });
+            this.claimDeferred.set(target.key, Date.now() + BLOCKER_RECHECK_MS);
             return;
         }
         if (router.legacy) this.logOnce('Manager is the former name of Router: it routes until the project migration converts agents/.core/manager.book into router.book.', 'info');
-        this.phase = 'assigning';
         const created = await createAssignmentTask({ target, tasksDirectory: this.tasksDirectory, router: router.name, priority, timeZone: this.timeZone, taken: await this.takenNames() });
         const routerTask = readTaskBook({ source: await readFile(created.path, 'utf8'), path: created.path, relativePath: toProjectRelative(this.options.project.root, created.path), order: 0, timeZone: this.timeZone })!;
         const route = await this.route(routerTask);
@@ -1981,7 +2454,8 @@ export class Agenda {
         // Local evidence of the target (its own versioned trace is written when the target itself executes).
         await (await TaskTrace.open(this.options.project, { name: target.title, source: target.source.relativePath })).event('assignment-requested', { routerTask: created.name, routerSource: toProjectRelative(this.options.project.root, created.path) }, { local: true });
         const item = await this.buildWorkItem(routerTask, route, { createdPaths: [created.path, ...(options.createdPaths ?? [])] });
-        if (item) await this.execute({ ...item, relatedTaskNames: [target.title] });
+        // Router changes the target's source: its run owns that file too.
+        if (item) await this.execute({ ...item, relatedTaskNames: [target.title] }, unit, [target.source.path]);
     }
 
     /**
@@ -2083,17 +2557,19 @@ export class Agenda {
         return await routeWithDefaults(effective, intersectModels(task.routing.model, established), this.routing, { sources: { agent: 'established execution of the interrupted work' } });
     }
 
-    /** Creates and executes a goal enquiry when one is due; returns false when none is due. */
-    private async discover(): Promise<boolean> {
-        if (!this.claimable) return true;
+    /**
+     * The agent whose goal enquiry is due now, if any. Otherwise `idleReason` (and the next known time) explains why
+     * none runs.
+     */
+    private async discoveryDue(): Promise<AgentDefinition | undefined> {
         const candidates = this.catalog.ordinary().filter((definition) => definition.document.commitments.some((commitment) => commitment.keyword === 'GOAL' && commitment.body.trim()));
         if (!candidates.length) {
             this.idleReason = 'No unfinished work, and no ordinary agent has a GOAL for goal discovery. Add tasks or goals.';
-            return false;
+            return undefined;
         }
         if (!this.pool.usable().length) {
             this.idleReason = 'No unfinished work; goal discovery needs a usable harness.';
-            return false;
+            return undefined;
         }
         const discovery = await this.state.readDiscovery();
         const now = Date.now();
@@ -2105,11 +2581,14 @@ export class Agenda {
             const nextAt = Math.min(...candidates.map((definition) => Date.parse(discovery.agents[definition.normalized]?.cooldownUntil ?? new Date(now).toISOString())));
             this.idleReason = `No unfinished work; next goal enquiry at ${formatShortTime(nextAt, now, this.timeZone)}.`;
             this.nextKnownTime = nextAt;
-            await this.wait(Math.max(1000, Math.min(nextAt - now, IDLE_RECHECK_MS)), { kind: 'discovery', reason: this.idleReason, skippable: false });
-            return true;
+            return undefined;
         }
-        const chosen = due[0]!.definition;
-        this.phase = 'discovering';
+        return due[0]!.definition;
+    }
+
+    /** Creates and executes one goal enquiry of the chosen agent inside its unit. */
+    private async runDiscovery(chosen: AgentDefinition, unit: WorkUnit): Promise<void> {
+        if (!this.claimable) return;
         const { path } = await createDiscoveryTask({ tasksDirectory: this.tasksDirectory, agentName: chosen.name, timeZone: this.timeZone, taken: await this.takenNames() });
         this.log(`Goal discovery: asking ${chosen.name} whether its goals justify new work.`);
         let task = readTaskBook({ source: await readFile(path, 'utf8'), path, relativePath: toProjectRelative(this.options.project.root, path), order: 0, timeZone: this.timeZone })!;
@@ -2118,32 +2597,31 @@ export class Agenda {
         let createdPaths = [path];
         if (route.kind === 'needs-assignment') {
             // The enquiry is ordinary work: Router specializes its MODEL first (one prerequisite, then the enquiry).
-            await this.assign(task, task.priority.value, { createdPaths: [path] });
-            if (!(await pathExists(path))) return true;
+            await this.assign(task, task.priority.value, unit, { createdPaths: [path] });
+            if (!(await pathExists(path))) return;
             task = readTaskBook({ source: await readFile(path, 'utf8'), path, relativePath: toProjectRelative(this.options.project.root, path), order: 0, timeZone: this.timeZone })!;
             route = await this.route(task);
             // Router's result committed the enquiry: from now on it is an ordinary queued task, never withdrawn.
             createdPaths = this.commitMode ? [] : [path];
-            if (route.kind === 'routable' && !this.claimable) return true;
+            if (route.kind === 'routable' && !this.claimable) return;
         }
         if (route.kind !== 'routable') {
             this.log(`Goal enquiry cannot run: ${route.reason}`, 'warning');
             const { rm } = await import('node:fs/promises');
             await rm(path, { force: true });
             await this.recordDiscovery(chosen.normalized, 'failed');
-            return false;
+            return;
         }
         const item = await this.buildWorkItem(task, route, { createdPaths });
-        if (!item) return false;
-        const outcome = await this.execute(item);
+        if (!item) return;
+        const outcome = await this.execute(item, unit);
         // Not claimed (pause/stop accepted meanwhile) or interrupted by a force stop: no enquiry outcome to record.
-        if (outcome.kind === 'interrupted' && !this.claimable) return true;
+        if ((outcome.kind === 'interrupted' || outcome.kind === 'deferred') && !this.claimable) return;
         const tasksRelative = toProjectRelative(this.options.project.root, this.tasksDirectory);
         const created = outcome.kind === 'completed' ? outcome.changedPaths.filter((changed) => changed !== task.source.relativePath && changed.startsWith(`${tasksRelative}/`) && /\.(book|md)$/i.test(changed)) : [];
         const work = created.filter((changed) => !/learn-/.test(changed));
         await this.recordDiscovery(chosen.normalized, outcome.kind === 'completed' ? (work.length ? 'work' : 'no-work') : 'failed');
         this.log(work.length ? `${chosen.name} recorded ${work.length} new task(s).` : `${chosen.name} found no new work; next enquiry after the cooldown.`);
-        return true;
     }
 
     /** Persists a goal-enquiry outcome and cooldown. */
@@ -2170,34 +2648,49 @@ export class Agenda {
     // ── Executing ────────────────────────────────────────────────────────────
 
     /**
-     * Runs one work item through the executor and handles its outcome. The claim boundary: once pause/stop is
-     * accepted, nothing new starts (the work stays queued with its record intact).
+     * Runs one work item through the executor inside a unit and handles its outcome. The claim boundary: once
+     * pause/stop is accepted, nothing new starts (the work stays queued with its record intact). The run owns its task
+     * source, its engine-created files and `files` (e.g. the target of a routing decision); when another run owns one of
+     * them, nothing starts and the claim is retried once that run releases it.
      */
-    private async execute(item: WorkItem): Promise<ExecutionOutcome> {
-        if (!this.claimable) {
-            this.log(`Not starting "${item.task.title}": the service is ${this.serviceState}.`);
+    private async execute(item: WorkItem, unit: WorkUnit, files: readonly string[] = []): Promise<ExecutionOutcome> {
+        const withdraw = async (): Promise<void> => {
             // Engine-created Books prepared for this very claim (a Router or discovery task) are withdrawn; they are
             // created again when work resumes. A resumed record keeps everything.
-            if (!item.resume) {
-                const { rm } = await import('node:fs/promises');
-                for (const path of item.createdPaths) await rm(path, { force: true });
-            }
+            if (item.resume) return;
+            const { rm } = await import('node:fs/promises');
+            for (const path of item.createdPaths) await rm(path, { force: true });
+        };
+        if (!this.claimable) {
+            this.log(`Not starting "${item.task.title}": the service is ${this.serviceState}.`);
+            await withdraw();
             return { kind: 'interrupted' };
         }
-        this.executing = true;
+        const runId = item.resume?.runId ?? item.runId ?? shortId(10);
+        unit.owner = runId;
+        const taken = this.ownership.tryAcquire(runId, item.task.title, [item.task.source.path, ...item.createdPaths, ...files]);
+        if (!taken.ok) {
+            const reason = `"${item.task.title}" waits: ${describeConflicts(taken.conflicts)}.`;
+            this.logOnce(reason, 'info');
+            await withdraw();
+            this.claimDeferred.set(item.task.key, Date.now() + 5_000);
+            return { kind: 'deferred', reason };
+        }
         try {
-            return await this.executeClaimed(item);
+            return await this.executeClaimed({ ...item, runId }, unit);
         } finally {
-            this.executing = false;
-            this.settle();
+            await this.releaseUnlessRecorded(runId);
+            unit.current = undefined;
+            unit.context = undefined;
+            this.touch();
         }
     }
 
-    /** Executes claimed work (the service owns it until its outcome is handled). */
-    private async executeClaimed(item: WorkItem): Promise<ExecutionOutcome> {
+    /** Executes claimed work inside its unit (the service owns it until its outcome is handled). */
+    private async executeClaimed(item: WorkItem & { readonly runId: string }, unit: WorkUnit): Promise<ExecutionOutcome> {
         const selection = item.route.selection;
         const targetRef = item.kind === 'assignment' ? originTarget(item.task) : undefined;
-        this.current = {
+        unit.current = {
             taskRef: item.task.ref,
             trace: `${traceDirectoryOf(item.task.source.relativePath)}/`,
             taskTitle: item.task.title,
@@ -2209,48 +2702,47 @@ export class Agenda {
             model: selection.model,
             modelSource: selection.model ? 'requested' : 'default',
             thinkingLevel: selection.thinkingLevel,
-            phase: 'executing',
+            phase: item.kind === 'assignment' ? 'assigning' : item.kind === 'learning' ? 'learning' : item.kind === 'discovery' ? 'discovering' : 'executing',
             attempt: item.resume?.attempt ?? 0,
             attemptBudget: setting<number>(this.settings, 'execution.repairAttempts'),
             startedAt: new Date().toISOString(),
             target: targetRef ? { ref: targetRef, title: targetRef } : undefined,
         };
-        this.currentContext = { selection, harnessVersion: item.route.inspection.version, source: item.task.source.relativePath, consultations: [] };
-        this.phase = item.kind === 'assignment' ? 'assigning' : item.kind === 'learning' ? 'learning' : item.kind === 'discovery' ? 'discovering' : 'executing';
-        this.log(`${item.resume ? 'Resuming' : 'Starting'} ${item.kind === 'task' ? '' : `${item.kind} `}"${item.task.title}" with ${selection.agent} on ${harnessName(selection.harness)}${selection.tool ? ` [${selection.tool}]` : ''}${selection.model ? ` (${selection.model})` : ''}`);
+        unit.context = { selection, harnessVersion: item.route.inspection.version, source: item.task.source.relativePath, consultations: [] };
+        this.touch();
+        const others = this.units.size - 1;
+        this.log(`${item.resume ? 'Resuming' : 'Starting'} ${item.kind === 'task' ? '' : `${item.kind} `}"${item.task.title}" with ${selection.agent} on ${harnessName(selection.harness)}${selection.tool ? ` [${selection.tool}]` : ''}${selection.model ? ` (${selection.model})` : ''}${others > 0 ? ` alongside ${others} other active unit${others === 1 ? '' : 's'}` : ''}`);
         let outcome: ExecutionOutcome;
         try {
-            outcome = await this.executeMaybeIsolated(item);
+            outcome = await executeWork(this.environment(item.task, unit), item);
         } catch (error) {
             await this.reportError('execution', error, item.task.ref);
             outcome = { kind: 'failed', reason: errorMessage(error) };
-            const record = await this.state.readActive();
+            const record = await this.state.readActive(item.runId);
             if (record) await this.state.writeActive({ ...record, phase: 'failed', failure: errorMessage(error) });
         } finally {
             await this.options.afterWork?.().catch(() => undefined);
         }
-        const finished = this.current;
-        this.current = undefined;
-        this.currentContext = undefined;
-        this.touch();
         switch (outcome.kind) {
             case 'completed': {
                 this.completed++;
                 await this.state.setBlocker(item.task.key, undefined);
                 this.recentResults = (await this.state.recentResults(20)).map(resultView);
                 if (outcome.commit) void this.publish({ name: item.task.title, source: item.task.source.relativePath });
+                // The pause between tasks holds new claims; other active work continues meanwhile.
                 const pacing = setting<number>(this.settings, 'execution.waitBetweenPrompts');
-                if (pacing > 0 && !this.stopRequested && !this.pauseActive) await this.wait(pacing, { kind: 'pacing', reason: 'Pause between tasks (--wait-between-prompts).', skippable: true });
+                if (pacing > 0) this.pacingUntil = Math.max(this.pacingUntil, Date.now() + pacing);
                 break;
             }
             case 'awaiting-user': {
                 this.log(`"${item.task.title}" waits for your reply in the chat {${outcome.chat}} (ptbk chat --open "${outcome.chat}").`, 'warning');
                 await this.refreshChats();
-                const record = await this.state.readActive();
+                const record = await this.state.readActive(item.runId);
                 if (record) await this.checkpoint(record);
                 break;
             }
             case 'failed':
+                // The record stays active as failed: the supervisor hands it to Fixer or asks how to continue.
                 this.failed++;
                 this.recentResults = (await this.state.recentResults(20)).map(resultView);
                 this.addError({
@@ -2262,42 +2754,39 @@ export class Agenda {
                     next: this.options.mode !== 'maintenance' && !item.resume?.handover && HANDOVER_KINDS.has(item.kind) ? 'Fixer takes over automatically; a decision is asked in a chat only if it cannot resolve it.' : `Reply in the recovery chat or run \`ptbk recover "${item.task.title}"\`.`,
                 });
                 break;
-            case 'setup':
-                if (this.sameVariantFallback(item, outcome.tool)) {
-                    this.log(`${outcome.reason}; continuing with the next ${harnessName(selection.harness)} instance "${this.sameVariantFallback(item, outcome.tool)!.name}" (same-variant fallback).`, 'warning');
+            case 'setup': {
+                const fallback = this.sameVariantFallback(item, outcome.tool);
+                if (fallback) {
+                    this.log(`${outcome.reason}; continuing with the next ${harnessName(selection.harness)} instance "${fallback.name}" (same-variant fallback).`, 'warning');
                     break;
                 }
                 this.setBlocker({ kind: 'harness', title: `${harnessName(selection.harness)} needs setup`, reason: outcome.reason, action: outcome.next, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
+                this.resumeAfter.set(item.runId, Date.now() + BLOCKER_RECHECK_MS);
                 break;
-            case 'quota':
+            }
+            case 'quota': {
                 // An authorized later instance of the same variant serves the retry at once (no wait through this reset).
-                if (this.sameVariantFallback(item, outcome.tool)) {
-                    this.log(`${outcome.reason}; continuing with the next ${harnessName(selection.harness)} instance "${this.sameVariantFallback(item, outcome.tool)!.name}" (same-variant fallback).`, 'warning');
+                const fallback = this.sameVariantFallback(item, outcome.tool);
+                if (fallback) {
+                    this.log(`${outcome.reason}; continuing with the next ${harnessName(selection.harness)} instance "${fallback.name}" (same-variant fallback).`, 'warning');
                     break;
                 }
-                this.log(`${outcome.reason}; waiting ${formatDuration(outcome.retryAfterMs)} before rechecking.`, 'warning');
-                await this.wait(outcome.retryAfterMs, { kind: 'quota', reason: outcome.reason, skippable: true });
+                // A resource wait holds no slot: other work continues and this run resumes after the reset.
+                this.log(`${outcome.reason}; "${item.task.title}" resumes in ${formatDuration(outcome.retryAfterMs)}.`, 'warning');
+                this.resumeAfter.set(item.runId, Date.now() + outcome.retryAfterMs);
                 break;
+            }
             case 'persistence-failed':
-                this.setBlocker({ kind: 'persistence', title: 'Commit failed', reason: outcome.reason, action: 'Fix the Git hook/signing/identity problem; ptbk retries persistence without rerunning the agent.' });
+                this.setBlocker({ kind: 'persistence', title: 'Commit failed', reason: outcome.reason, action: 'Fix the Git hook/signing/identity problem; ptbk retries persistence without rerunning the agent.', recheckAt: new Date(Date.now() + PERSISTENCE_RETRY_MS).toISOString() });
                 this.addError({ at: new Date().toISOString(), summary: `Commit of "${item.task.title}" failed: ${outcome.reason}`, phase: 'commit', task: item.task.ref, next: 'Fix the cause; persistence resumes automatically.' });
+                this.resumeAfter.set(item.runId, Date.now() + PERSISTENCE_RETRY_MS);
                 break;
             case 'interrupted':
                 this.log(`"${item.task.title}" was interrupted; its recovery record is preserved.`, 'warning');
                 break;
-            case 'integration-pending': {
-                // The committed result waits on its temporary branch; execution is released so Fixer can integrate it.
-                this.pendingIntegrations++;
-                const record = await this.state.readActive();
-                if (record) {
-                    await this.state.park(record);
-                    await this.scheduleIntegrationRepair(record, outcome.reason);
-                }
-                this.addError({ at: new Date().toISOString(), summary: `The isolated result of "${item.task.title}" is not integrated yet: ${outcome.reason}`, phase: 'integration', task: item.task.ref, next: `Fixer integrates it with a visible merge; or merge ${record ? isolationBranch(record.runId) : 'its branch'} yourself (ptbk completes the task once it is merged).` });
+            case 'deferred':
                 break;
-            }
         }
-        void finished;
         return outcome;
     }
 
@@ -2311,92 +2800,19 @@ export class Agenda {
     }
 
     /**
-     * Executes ordinary tasks in an isolated worktree when requested (generated work stays in the checkout).
+     * Continues a recorded run inside its unit (crash recovery, a retry after quota/setup/commit problems, an answered
+     * question). A run that still waits for a person is checkpointed; one that cannot be routed waits visibly without
+     * holding a slot.
      */
-    private async executeMaybeIsolated(item: WorkItem): Promise<ExecutionOutcome> {
-        const environment = this.environment(item.task);
-        // Maintenance work (e.g. Fixer integrating a result or resolving a merge) operates on the project branch itself.
-        const maintenance = /^maintenance:/i.test(item.task.origin ?? '');
-        const isolate = (setting<boolean>(this.settings, 'execution.isIsolated') && item.kind === 'task' && !maintenance && this.commitMode && !item.createdPaths.length) || Boolean(item.resume?.worktree);
-        if (!isolate) return await executeWork(environment, item);
-        const runId = item.resume?.runId ?? shortId(10);
-        const worktree = await prepareWorktree(this.options.project, environment.repositoryRoot, runId);
-        const project = this.options.project;
-        const map = (path: string): string => resolve(worktree.projectRoot, relative(project.root, path));
-        const isolatedProject = { ...project, root: worktree.projectRoot };
-        const task = { ...item.task, source: { ...item.task.source, path: map(item.task.source.path) } };
-        this.log(`Isolated in worktree ${toProjectRelative(project.root, worktree.root)} (branch ${worktree.branch}).`);
-        const outcome = await executeWork(
-            { ...environment, project: isolatedProject, repositoryRoot: worktree.root, tasksDirectory: map(this.tasksDirectory) },
-            {
-                ...item,
-                task,
-                runId,
-                worktree: worktree.root,
-                integrate: async () => {
-                    const { sha } = await this.gitMutex.run(() =>
-                        integrateWorktree(environment.repositoryRoot, worktree, {
-                            check: item.check ?? setting<string | undefined>(this.settings, 'execution.check'),
-                            env: this.options.env,
-                            message: { taskName: item.task.title, runId },
-                            temporaryDirectory: project.runtime.temporary,
-                        }),
-                    );
-                    this.log(`Integrated the isolated result with a visible merge commit (${sha.slice(0, 8)}).`);
-                    return sha;
-                },
-            },
-        );
-        // The worktree's local evidence moves to the project's traces/ before the temporary checkout is removed.
-        if (outcome.kind === 'completed') await this.gitMutex.run(() => finishWorktree(environment.repositoryRoot, worktree, project.root)).catch((error: unknown) => this.log(`Could not remove the worktree ${worktree.root}: ${errorMessage(error)}`, 'warning'));
-        return outcome;
-    }
-
-    /** Continues the task recorded in the active record. */
-    private async continueActive(initialRecord: ActiveRecord): Promise<void> {
+    private async continueActive(initialRecord: ActiveRecord, unit: WorkUnit): Promise<void> {
         let record = initialRecord;
-        if (record.phase === 'failed') {
-            await this.handleFailedRecord(record);
-            return;
-        }
+        unit.owner = record.runId;
         if (record.phase === 'awaiting-user' && record.waitingChat) {
             const reply = await this.chatReplyOf(record.waitingChat, record.awaitedMessages);
-            if (!reply.answered && (await this.checkpoint(record))) return;
             if (!reply.answered) {
-                this.current = {
-                    taskRef: record.taskRef,
-                    trace: `${traceDirectoryOf(record.sourcePath)}/`,
-                    taskTitle: record.taskTitle,
-                    kind: record.kind,
-                    agent: agentView(record.routing.agent, 'waiting-user'),
-                    harness: record.routing.harness,
-                    harnessName: harnessName(record.routing.harness),
-                    model: record.routing.model,
-                    modelSource: record.routing.model ? 'requested' : 'default',
-                    thinkingLevel: record.routing.thinkingLevel,
-                    phase: 'awaiting-user',
-                    attempt: record.attempt,
-                    attemptBudget: setting<number>(this.settings, 'execution.repairAttempts'),
-                    startedAt: record.startedAt,
-                    detail: `{${record.waitingChat}}`,
-                };
-                this.currentContext = { selection: record.routing, source: record.sourcePath, consultations: [] };
-                this.phase = 'awaiting-user';
-                await this.evaluate();
-                await this.wait(IDLE_RECHECK_MS, { kind: 'user', reason: `"${record.taskTitle}" waits for your reply in the chat {${record.waitingChat}} and holds uncommitted changes, so other work waits too.`, action: `ptbk answer "${record.waitingChat}"`, skippable: false });
-                this.current = undefined;
-                this.currentContext = undefined;
+                await this.checkpoint(record);
                 return;
             }
-        }
-        if (record.phase === 'committing' && record.failure) {
-            const since = Date.now() - this.lastPersistenceRetry;
-            if (since < 120_000) {
-                this.setBlocker({ kind: 'persistence', title: 'Commit pending', reason: record.failure, action: 'Fix the cause; ptbk retries the commit without rerunning the agent.', recheckAt: new Date(this.lastPersistenceRetry + 120_000).toISOString() });
-                await this.wait(120_000 - since, { kind: 'persistence', reason: `Commit of "${record.taskTitle}" failed: ${record.failure}`, skippable: false });
-                return;
-            }
-            this.lastPersistenceRetry = Date.now();
         }
         const queue = await this.readQueue();
         const task =
@@ -2416,13 +2832,14 @@ export class Agenda {
         if (route.kind !== 'routable') {
             const reason = `"${record.taskTitle}" cannot resume: ${route.reason}`;
             this.setBlocker({ kind: 'harness', title: 'Interrupted work cannot resume', reason, action: route.kind === 'blocked' ? route.next : undefined, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
+            this.logOnce(reason, 'warning');
             await this.pool.refresh(undefined, true);
-            await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason, action: route.kind === 'blocked' ? route.next : undefined, skippable: false });
+            this.resumeAfter.set(record.runId, Date.now() + BLOCKER_RECHECK_MS);
             return;
         }
         this.clearBlocker('harness');
         const item = await this.buildWorkItem(task, route, { resume: record, createdPaths: record.createdPaths.map((path) => resolve(this.options.project.root, path)), slot: record.occurrence ? Date.parse(record.occurrence) : undefined });
-        if (item) await this.execute(record.handover ? { ...item, extraPrompt: [item.extraPrompt, handoverPrompt(record, record.handover)].filter(Boolean).join('\n\n') } : item);
+        if (item) await this.execute(record.handover ? { ...item, extraPrompt: [item.extraPrompt, handoverPrompt(record, record.handover)].filter(Boolean).join('\n\n') } : item, unit);
     }
 
     /**
@@ -2479,9 +2896,8 @@ export class Agenda {
         }
         const reply = await this.chatReplyOf(current.recoveryChat!, current.awaitedMessages, RECOVERY_CHOICES);
         if (!reply.answered) {
-            if (await this.checkpoint(current)) return;
-            this.setBlocker({ kind: 'recovery', title: `"${current.taskTitle}" needs a decision`, reason: current.failure ?? 'The task failed.', action: `ptbk answer "${current.recoveryChat}"` });
-            await this.wait(IDLE_RECHECK_MS, { kind: 'recovery', reason: `"${current.taskTitle}" failed; its agent asks how to continue in {${current.recoveryChat}}.`, action: `ptbk answer "${current.recoveryChat}"`, skippable: false });
+            // The decision waits in its chat; the run is checkpointed (keeping its files) and independent work continues.
+            await this.checkpoint(current);
             return;
         }
         this.clearBlocker('recovery');
@@ -2508,15 +2924,16 @@ export class Agenda {
         return { answered: !choices && stored.chat.status === 'resolved' };
     }
 
-    /** Resets a failed record for a deliberate retry. */
+    /** Resets a failed record for a deliberate retry (its run keeps the files it owns). */
     public async retryRecord(record: ActiveRecord): Promise<void> {
+        this.resumeAfter.delete(record.runId);
         // A deliberate retry starts a fresh chain with the task's own agent (Fixer may take over again if it fails).
         await this.state.writeActive({ ...record, phase: 'executing', attempt: 0, technicalRetries: 0, completionApplied: false, failure: undefined, recoveryChat: undefined, awaitedMessages: undefined, handover: undefined, feedback: `A previous run failed: ${record.failure ?? 'unknown'}. Inspect the current state and complete the task.` });
         this.log(`Retrying "${record.taskTitle}".`);
         this.wake();
     }
 
-    /** Records an acknowledged failure in the task source (its own commit) and releases the active slot. */
+    /** Records an acknowledged failure in the task source (its own commit) and releases its record and files. */
     public async acknowledgeRecord(record: ActiveRecord): Promise<void> {
         const path = resolve(this.options.project.root, record.sourcePath);
         try {
@@ -2530,8 +2947,10 @@ export class Agenda {
         } catch (error) {
             this.log(`Could not mark "${record.taskTitle}" as failed in its source: ${errorMessage(error)}`, 'warning');
         }
-        await this.state.clearActive();
+        await this.state.clearActive(record.runId);
         await this.state.dropParked(record.taskTitle);
+        // Its partial changes stay for review, no longer owned by anyone (they count as uncommitted changes).
+        this.ownership.release(record.runId);
         if (record.recoveryChat) await this.chats.setStatus(record.recoveryChat, 'resolved').catch(() => undefined);
         this.log(`Acknowledged the failure of "${record.taskTitle}". Partial changes (if any) remain uncommitted for review.`, 'warning');
     }
@@ -2615,15 +3034,20 @@ export class Agenda {
     }
 
     /**
-     * Why integrating remote changes now would be unsafe: work in progress (integration waits for the task boundary)
-     * or uncommitted local edits of the same files (never overwritten, stashed or reset).
+     * Why integrating remote changes now would be unsafe: a running check or result commit (its validated content must
+     * not change underneath it), or incoming files that active work owns or that have uncommitted local edits (never
+     * overwritten, stashed or reset). Other concurrent work does not prevent integration.
      */
     private async integrationBlocker(incomingFiles: readonly string[]): Promise<string | undefined> {
-        if (this.executing || this.current) return 'a task is in progress; integration happens at its boundary';
+        const validating = [...this.units.values()].find((unit) => unit.current && ['checking', 'finalizing', 'committing'].includes(unit.current.phase));
+        if (validating) return `"${validating.label}" is validating or committing its result; integration happens after it`;
         if (!this.repositoryRoot) return 'the project is not in a Git working tree';
         const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot });
         const base = toProjectRelative(this.repositoryRoot, this.options.project.root);
-        const overlap = incomingFiles.map((file) => (base && base !== '.' && file.startsWith(`${base}/`) ? file.slice(base.length + 1) : file)).filter((file) => dirty[file] !== undefined);
+        const incoming = incomingFiles.map((file) => (base && base !== '.' && file.startsWith(`${base}/`) ? file.slice(base.length + 1) : file));
+        const owned = incoming.filter((file) => this.ownership.ownerOf(file));
+        if (owned.length) return `active work owns incoming files (${owned.slice(0, 5).join(', ')}); integration happens once it releases them`;
+        const overlap = incoming.filter((file) => dirty[file] !== undefined);
         if (overlap.length) return `uncommitted local changes of incoming files (${overlap.slice(0, 5).join(', ')}) are preserved`;
         return undefined;
     }
@@ -2661,41 +3085,9 @@ export class Agenda {
     }
 
     /**
-     * Hands an isolated result that could not be merged automatically to the ordinary Fixer (one task per run; no
-     * new channel). The result stays on its temporary branch and the project branch is unchanged meanwhile.
+     * Records a checkpointed result of an older engine's task worktree as completed once it was merged into the project
+     * branch (task worktrees were removed; their pending results are never deleted).
      */
-    private async scheduleIntegrationRepair(record: ActiveRecord, reason: string): Promise<void> {
-        const branch = isolationBranch(record.runId);
-        const origin = `maintenance: integration of ${branch}`;
-        const queue = await this.readQueue();
-        if (queue.tasks.some((task) => task.origin === origin)) return;
-        const fixer = await this.catalog.resolve('@Fixer');
-        const target = this.repositoryRoot ? (await git(this.repositoryRoot, ['symbolic-ref', '--quiet', '--short', 'HEAD'])).stdout.trim() || 'the project branch' : 'the project branch';
-        if (fixer.kind !== 'agent') {
-            this.logOnce(`The isolated result of "${record.taskTitle}" waits on ${branch}: Fixer is unavailable, so it stays visible until it is merged manually (git merge --no-ff ${branch}).`, 'warning');
-            return;
-        }
-        const path = await newTaskPath(this.tasksDirectory, 'integrate isolated result', Date.now(), this.timeZone);
-        const title = generatedName(`Integrate the isolated result of ${record.taskTitle}`, { taken: await this.takenNames(), timeZone: this.timeZone });
-        await writeFile(
-            path,
-            renderTaskBook({
-                title,
-                description: [
-                    `The task {${record.taskTitle}} was executed in an isolated worktree and its verified result is committed on the branch \`${branch}\` (${record.commitSha ? `commit ${record.commitSha.slice(0, 12)}` : 'latest commit'}), but Promptbook could not merge it into \`${target}\` automatically: ${reason}`,
-                    `Integrate it with a visible merge that keeps both histories: run \`git merge --no-ff --no-commit ${branch}\`, resolve each conflict so that both intents are kept (inspect \`git log ${target}...${branch}\`), make the project check pass, consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m "PTBK: Merge the isolated result of ${record.taskTitle} into ${target} (conflicts resolved by Fixer)"\`. This merge commit is the one exception to "do not commit yourself"; Promptbook completes {${record.taskTitle}} once the branch is merged.`,
-                    'Never rebase, reset, amend, force-push or delete the branch or its worktree. If the result cannot be integrated safely, abort the merge (`git merge --abort`) and explain why.',
-                ].join('\n\n'),
-                commitments: ['TASK AGENT @Fixer', `TASK ORIGIN ${origin}`, `LINK {${record.taskTitle}}`],
-            }),
-            { flag: 'wx' },
-        );
-        const commit = this.commitMode ? await this.commitAuthoring([path], `Ask Fixer to integrate the isolated result of ${record.taskTitle}`, { 'Task-Name': title, 'Related-Task-Name': record.taskTitle }).catch(() => undefined) : undefined;
-        this.log(`The isolated result of "${record.taskTitle}" was handed to Fixer for integration (${toProjectRelative(this.options.project.root, path)}${commit ? `, ${commit.slice(0, 8)}` : ''}).`, 'warning');
-        this.wake();
-    }
-
-    /** Records a parked isolated result as completed once it was merged into the project branch (e.g. by Fixer). */
     private async completeIntegratedRecord(record: ActiveRecord): Promise<void> {
         const repositoryRoot = this.repositoryRoot!;
         await this.state.dropParked(record.taskTitle);
@@ -2764,25 +3156,17 @@ export class Agenda {
     }
 
     /**
-     * Checkpoints a task waiting for a person (answer or recovery decision) and releases execution so independent
-     * work can continue — only when it holds no uncommitted changes. Otherwise the wait stays a project-wide blocker
-     * whose reason is shown. Returns whether the task was checkpointed.
+     * Checkpoints a run waiting for a person (an answer or a recovery decision): its slot is released so independent
+     * work continues, while the files it already changed stay owned by it (work needing them waits visibly, nothing is
+     * mixed into another result). Returns whether the run was checkpointed.
      */
     private async checkpoint(record: ActiveRecord): Promise<boolean> {
-        if (!this.repositoryRoot || record.worktree) return false;
-        const owned = changedPaths(record.preSnapshot, await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, this.authoredPaths));
-        if (owned.length) {
-            this.setBlocker({
-                kind: 'recovery',
-                title: `"${record.taskTitle}" holds uncommitted changes while waiting`,
-                reason: `It waits for a person and has uncommitted changes (${owned.slice(0, 4).join(', ')}${owned.length > 4 ? ', …' : ''}), so other tasks cannot run safely without mixing them into another result.`,
-                action: record.waitingChat || record.recoveryChat ? `ptbk answer "${record.waitingChat ?? record.recoveryChat}"` : `ptbk recover ${record.taskRef}`,
-            });
-            return false;
-        }
-        await this.state.park(record);
-        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat });
-        this.log(`"${record.taskTitle}" is checkpointed until you reply in {${record.waitingChat ?? record.recoveryChat}}; independent work continues.`);
+        const files = this.ownership.owned(record.runId);
+        const parked = { ...record, ownedFiles: files.length ? files : record.ownedFiles };
+        await this.state.park(parked);
+        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat, ownedFiles: parked.ownedFiles ?? [] });
+        const kept = parked.ownedFiles?.length ? ` It keeps its changes in ${parked.ownedFiles.slice(0, 4).join(', ')}${parked.ownedFiles.length > 4 ? ', …' : ''}; other work on those files waits.` : '';
+        this.log(`"${record.taskTitle}" is checkpointed until you reply in {${record.waitingChat ?? record.recoveryChat}}; independent work continues.${kept}`);
         return true;
     }
 
@@ -2793,9 +3177,10 @@ export class Agenda {
     private async resumeParked(): Promise<boolean> {
         if (!this.repositoryRoot) return false;
         for (const record of await this.state.readParked()) {
-            if (record.phase === 'synchronizing' && record.worktree) {
-                // An isolated result waits for integration: complete it once its commit is part of the project branch.
-                if (record.commitSha && (await isIntegrated(this.repositoryRoot, record.commitSha))) {
+            if (record.worktree) {
+                // A result of an older engine's task worktree waits for its merge: complete it once its commit is part
+                // of the project branch. Unmerged work stays checkpointed and explained, never deleted or resumed here.
+                if (record.phase === 'synchronizing' && record.commitSha && (await isIntegrated(this.repositoryRoot, record.commitSha))) {
                     await this.completeIntegratedRecord(record);
                     return true;
                 }
@@ -2803,8 +3188,13 @@ export class Agenda {
             }
             const chat = record.phase === 'awaiting-user' ? record.waitingChat : record.recoveryChat;
             if (chat && !(await this.chatReplyOf(chat, record.awaitedMessages, record.phase === 'failed' ? RECOVERY_CHOICES : undefined)).answered) continue;
-            // The checkpoint held no changes; later commits by other tasks are the new baseline.
-            const preSnapshot = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, this.authoredPaths);
+            // Later commits of other work are the new baseline; the run's own kept changes keep their original baseline.
+            const fresh = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, new Set([...this.authoredPaths, ...this.ownership.heldByOthers(record.runId)]));
+            const preSnapshot: Record<string, string | null> = { ...fresh };
+            for (const path of record.ownedFiles ?? []) {
+                if (Object.hasOwn(record.preSnapshot, path)) preSnapshot[path] = record.preSnapshot[path]!;
+                else delete preSnapshot[path];
+            }
             await this.state.unpark({ ...record, preSnapshot, instanceId: this.options.instanceId });
             this.log(`Resuming "${record.taskTitle}" after your reply${chat ? ` in {${chat}}` : ''}.`);
             return true;
@@ -2871,17 +3261,25 @@ export class Agenda {
             route = await routeWithDefaults(await resolveEffectiveAgent(this.catalog, toReference(task.routing.agent)), task.routing.model, this.routing, { tool: options.tool, sources: { agent: 'maintenance (TASK AGENT)' } });
         }
         if (route.kind !== 'routable') throw new PtbkError(`The maintenance task cannot run: ${route.reason}`, { kind: 'setup', next: route.kind === 'blocked' && route.next ? [route.next] : [] });
-        return await this.execute({ task, route, kind: 'maintenance', createdPaths: [taskPath], learning: false, check });
+        // An explicit maintenance operation is one unit of the shared capacity (it waits for a slot like a chat turn).
+        await this.capacity.acquire(`maintenance "${task.title}"`, this.ownedWork.signal);
+        const unit = this.registerUnit({ id: shortId(10), kind: 'task', label: task.title, key: task.key });
+        try {
+            return await this.execute({ task, route, kind: 'maintenance', createdPaths: [taskPath], learning: false, check }, unit);
+        } finally {
+            this.finishUnit(unit);
+        }
     }
 
     /** Applies a recovery action from `ptbk recover` through the running process. */
     public async recover(taskRef: string, action: 'resume' | 'retry' | 'acknowledge'): Promise<string> {
         const matches = (candidate: ActiveRecord | undefined): boolean =>
             Boolean(candidate && (candidate.taskRef === taskRef || (candidate.taskKey || nameKey(candidate.taskTitle)) === (parseReferenceValue(taskRef)?.normalized ?? nameKey(taskRef)) || candidate.sourcePath === taskRef.replace(/\\/g, '/')));
-        const active = await this.state.readActive();
-        const parked = matches(active) ? undefined : (await this.state.readParked()).find(matches);
+        const active = (await this.state.readActiveRecords()).find(matches);
+        if (active && this.runIsLive(active.runId)) throw new PtbkError(`"${active.taskTitle}" is executing now; recovery applies to interrupted, failed or waiting work.`, { kind: 'conflict', next: ['Wait until it finishes or fails, then recover it.'] });
+        const parked = active ? undefined : (await this.state.readParked()).find(matches);
         if (parked) await this.state.dropParked(parked.taskTitle);
-        const record = matches(active) ? active : parked;
+        const record = active ?? parked;
         if (!record) {
             const blockers = await this.state.readBlockers();
             if (blockers[taskRef]) {
@@ -2939,6 +3337,15 @@ function handoverPrompt(record: ActiveRecord, handover: NonNullable<ActiveRecord
         '- When a genuine decision or human-only action is needed, consult your team as your own instructions direct.',
         '- If the task cannot be completed safely, report `blocked` with the concrete reason; nothing is retried automatically and the decision is then asked in a chat.',
     ].join('\n');
+}
+
+/**
+ * Human description of files held by other runs.
+ */
+function describeConflicts(conflicts: readonly FileConflict[]): string {
+    const byOwner = new Map<string, string[]>();
+    for (const conflict of conflicts) byOwner.set(conflict.label, [...(byOwner.get(conflict.label) ?? []), conflict.path]);
+    return [...byOwner].map(([label, paths]) => `${paths.join(', ')} (being changed by "${label}")`).join('; ');
 }
 
 /**

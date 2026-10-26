@@ -146,7 +146,10 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
                 break;
             case 'file_change': {
                 const changes = Array.isArray(item.changes) ? (item.changes as Array<{ path?: string; kind?: string }>) : [];
-                if (completed && changes.length) events.push({ type: 'activity', text: `edited ${changes.map((change) => change.path).join(', ').slice(0, 160)}` });
+                if (completed && changes.length) {
+                    events.push({ type: 'activity', text: `edited ${changes.map((change) => change.path).join(', ').slice(0, 160)}` });
+                    events.push({ type: 'files', paths: changes.map((change) => change.path).filter((path): path is string => typeof path === 'string' && path !== '') });
+                }
                 break;
             }
             case 'mcp_tool_call':

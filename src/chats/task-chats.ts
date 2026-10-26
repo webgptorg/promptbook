@@ -111,6 +111,7 @@ export function taskChats(store: ChatStore, task: { readonly name: string; reado
                 ],
                 taken: options.takenNames(),
             });
+            options.onCreated?.(created.path);
             return created.chat.name;
         },
     };

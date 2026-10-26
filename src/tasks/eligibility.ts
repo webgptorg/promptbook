@@ -48,8 +48,8 @@ export type EligibilityContext = {
     readonly now: number;
     /** Time zone for display. */
     readonly timeZone: string;
-    /** Normalized name of the task currently owning execution. */
-    readonly activeKey?: string;
+    /** Normalized names of the tasks executing now (several run concurrently). */
+    readonly activeKeys?: ReadonlySet<string>;
     /** Chat waiting for the user, per task name key. */
     readonly awaitingUser: ReadonlyMap<string, string>;
     /** Runtime recovery/failure blockers per task name key. */
@@ -103,7 +103,7 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
     if (task.shadowedBy) {
         return { kind: 'blocked', reason: `Shadowed: ${task.shadowedBy} wins the same name "${task.title}", so this copy is not a separate task.`, next: 'Rename one of them (Fixer can propose a correction).' };
     }
-    if (context.activeKey === task.key) return { kind: 'active', reason: 'Currently executing.' };
+    if (context.activeKeys?.has(task.key)) return { kind: 'active', reason: 'Currently executing.' };
     if (task.status === 'retired') return { kind: 'retired', reason: 'Recurring work retired.' };
     if (task.status === 'done') return { kind: 'done', reason: `Completed ${task.doneStamps[task.doneStamps.length - 1] ?? ''}`.trim() };
     if (hasBlockingDiagnostics(task)) {
@@ -254,13 +254,23 @@ export function isUnfinished(readiness: Readiness): boolean {
 export type SelectedTask = EvaluatedTask & { readonly rank: number };
 
 /**
- * Selects the next work: the highest-ranked ready task or Router assignment. Routing ahead of a task's own start
- * waits behind ready work of the same rank and nearer targets come first, so distant routing never delays urgent
- * executable work. Execution order never depends on how a viewer sorts its task list.
+ * Selects the next work: the highest-ranked ready task or Router assignment (see {@link selectCandidates}).
  *
  * @private task eligibility
  */
 export function selectNext(evaluated: readonly EvaluatedTask[], now: number = Date.now(), options: { readonly assignable?: boolean } = {}): SelectedTask | undefined {
+    return selectCandidates(evaluated, now, options)[0];
+}
+
+/**
+ * Every claimable work in claim order: ready tasks and Router assignments by rank. Routing ahead of a task's own start
+ * waits behind ready work of the same rank and nearer targets come first, so distant routing never delays urgent
+ * executable work. The concurrent scheduler claims from the front while capacity and file ownership allow. Execution
+ * order never depends on how a viewer sorts its task list.
+ *
+ * @private task eligibility
+ */
+export function selectCandidates(evaluated: readonly EvaluatedTask[], now: number = Date.now(), options: { readonly assignable?: boolean } = {}): SelectedTask[] {
     const candidates = evaluated
         .filter((item) => item.readiness.kind === 'ready' || (item.readiness.kind === 'needs-assignment' && options.assignable !== false))
         .map((item) => {
@@ -272,6 +282,5 @@ export function selectNext(evaluated: readonly EvaluatedTask[], now: number = Da
             return { item, rank, tier, distance };
         });
     candidates.sort((a, b) => b.rank - a.rank || a.tier - b.tier || a.distance - b.distance || a.item.task.source.order - b.item.task.source.order);
-    const first = candidates[0];
-    return first ? { ...first.item, rank: first.rank } : undefined;
+    return candidates.map((candidate) => ({ ...candidate.item, rank: candidate.rank }));
 }

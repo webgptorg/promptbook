@@ -188,7 +188,15 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
  *
  * @private chats
  */
-export type ChatTurn = { readonly reply?: ChatWrite; readonly error?: string; readonly createdTasks: readonly string[]; readonly learning?: string; readonly consultations?: readonly string[] };
+export type ChatTurn = {
+    readonly reply?: ChatWrite;
+    readonly error?: string;
+    readonly createdTasks: readonly string[];
+    readonly learning?: string;
+    readonly consultations?: readonly string[];
+    /** Messages the agent saw (later user messages arrived during the turn and get a follow-up turn). */
+    readonly seen?: number;
+};
 
 /**
  * Lets the chat's agent answer the user's latest message (read-only; tasks only through `create_task`).
@@ -197,7 +205,7 @@ export type ChatTurn = { readonly reply?: ChatWrite; readonly error?: string; re
  *
  * @private chats
  */
-export async function replyInChat(context: ConversationContext, chatName: string): Promise<ChatTurn> {
+export async function replyInChat(context: ConversationContext, chatName: string, options: { readonly followUp?: boolean } = {}): Promise<ChatTurn> {
     const stored = await context.chats.find(chatName);
     if (!stored) throw new PtbkError(`No chat named "${chatName}".`, { kind: 'not-found' });
     const { chat } = stored;
@@ -205,7 +213,8 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const agentReference = chatAgent(chat);
     if (!agentReference) throw new PtbkError(`The chat "${chat.name}" has no agent participant.`, { kind: 'configuration' });
     const last = chat.messages[chat.messages.length - 1];
-    if (!last || last.senderKey !== 'user') return { createdTasks: [] };
+    // A follow-up turn answers user messages that arrived while the previous reply was being written.
+    if (!last || (last.senderKey !== 'user' && !options.followUp)) return { createdTasks: [] };
     const agent = await resolveEffectiveAgent(context.catalog, agentReference);
     const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { createdTasks: [], error: `${agentReference} cannot reply: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };
@@ -300,7 +309,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
         [
             '## How to answer',
             '',
-            '- Reply to the user\'s latest message directly and helpfully; you may inspect project files and Git history to answer.',
+            '- Reply to the user\'s latest message(s) you have not answered yet, directly and helpfully; you may inspect project files and Git history to answer.',
             '- This conversation is read-only: never modify files or run write operations.',
             tools.some((tool) => tool.name === 'create_task') ? '- To start work the user asked for or agreed to, call the `create_task` tool; the agenda executes it later with checks and commits. Do not claim work is done when you only created a task.' : '- You cannot create tasks here; describe what `ptbk add` should contain instead.',
             ...(tools.some((tool) => tool.name === 'consult')
@@ -353,5 +362,5 @@ export async function replyInChat(context: ConversationContext, chatName: string
     if (learning && agent.learning.open && agent.definition && parseReferenceValue(agentReference)?.normalized !== 'teacher' && setting<boolean>(context.settings, 'learning.isEnabled')) {
         await context.scheduleLearning?.({ chat: chat.name, agent: agent.name, note: learning }).catch(() => undefined);
     }
-    return { reply, createdTasks: created, learning, consultations };
+    return { reply, createdTasks: created, learning, consultations, seen: chat.messages.length };
 }

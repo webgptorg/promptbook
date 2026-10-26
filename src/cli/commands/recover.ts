@@ -18,9 +18,9 @@ import { flag, option, type CommandContext } from '../context.js';
 export default async function recover(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const state = new StateStore(project.runtime.state);
-    const active = await state.readActive();
+    const active = await state.readActiveRecords();
     const parked = await state.readParked();
-    const records = [...(active ? [active] : []), ...parked];
+    const records = [...active, ...parked];
     const blockers = await state.readBlockers();
     const { terminal } = context;
     const [reference] = context.positionals;
@@ -35,13 +35,14 @@ export default async function recover(context: CommandContext): Promise<number> 
         }
         for (const record of records.filter(matches)) {
             const lines = [
-                `Task: ${record.taskTitle} (${record.taskRef}) — ${record.kind}${record === active ? '' : ' — checkpointed (independent work continues)'}`,
+                `Task: ${record.taskTitle} (${record.taskRef}) — ${record.kind}${active.includes(record) ? '' : ' — checkpointed (independent work continues)'}`,
                 `Evidence: ${traceDirectoryOf(record.sourcePath)}/ (declared name ${record.taskTitle}, source ${record.sourcePath})`,
                 `Phase: ${record.phase}${record.failure ? ` — ${record.failure}` : ''}`,
                 `Attempts: ${record.attempt} implementation/repair, ${record.technicalRetries} technical retries`,
                 `Routing: ${record.routing.agent} on ${record.routing.harness}${record.routing.model ? ` ${record.routing.model}` : ''}`,
                 ...(record.handover ? [`Taken over by: ${record.handover.agent} after ${record.handover.from} could not (${record.handover.failure})`] : []),
-                ...(record.phase === 'synchronizing' && record.worktree ? [`Integration: the committed result waits on ${isolationBranch(record.runId)} for a visible merge into the project branch`] : []),
+                ...(record.worktree ? [`Task worktree of an older engine: ${record.worktree} (branch ${isolationBranch(record.runId)}); task worktrees were removed, so merge or discard that branch yourself`] : []),
+                ...(record.ownedFiles?.length ? [`Owned files: ${record.ownedFiles.join(', ')}`] : []),
                 `Commit mode: ${record.noCommit ? 'no-commit' : 'automatic'}${record.commitSha ? `; committed ${record.commitSha}` : ''}`,
                 `Waiting for your reply: ${record.waitingChat ?? record.recoveryChat ? `chat {${record.waitingChat ?? record.recoveryChat}} (ptbk answer "${record.waitingChat ?? record.recoveryChat}")` : 'no'}`,
                 `Engine-created files: ${record.createdPaths.join(', ') || 'none'}`,

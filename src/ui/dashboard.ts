@@ -650,7 +650,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         keepSelection(page, context);
         const keys = pageItemKeys(page, context);
         const count = keys.length;
-        const list = ['tools', 'agents', 'chats', 'tasks'].includes(page.kind);
+        const list = ['work', 'tools', 'agents', 'chats', 'tasks'].includes(page.kind);
         const room = Math.max(1, terminal.rows() - 5);
         if (event.type === 'key') {
             if (event.name === 'escape') {

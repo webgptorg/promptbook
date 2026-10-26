@@ -187,7 +187,8 @@ export const EXECUTION_POLICY_OPTIONS: OptionGroup = {
         { name: 'auto-sync', type: 'boolean', negatable: true, description: 'Automatic Git synchronization for this invocation (existing origin and current branch: pull every 60 s and before work/commits with visible merges, push completed work).', defaultText: 'isAutoSync in ptbk.json (off)' },
         { name: 'auto-pull', type: 'boolean', description: 'Compatibility alias of --auto-sync (enables both pull and push).' },
         { name: 'auto-push', type: 'boolean', description: 'Compatibility alias of --auto-sync (enables both pull and push).' },
-        { name: 'isolate', type: 'boolean', description: 'Execute each task in a separate Git worktree; its verified result joins the branch through a visible merge commit (conflicts go to Fixer).' },
+        // Removed: accepted only so that legacy use gets a specific explanation (never in help or completion).
+        { name: 'isolate', type: 'boolean', description: 'Removed: tasks share the project working tree with per-file ownership.', hidden: true },
         { name: 'normalize-line-endings', type: 'boolean', negatable: true, negatedOnly: true, description: 'Keep CRLF line endings in changed files.' },
         { name: 'questions', type: 'boolean', negatable: true, negatedOnly: true, description: 'Agents may not ask the user questions.' },
         { name: 'allow-credits', type: 'boolean', description: 'Authorize explicit paid-credit fallback where the harness supports it.' },

@@ -58,11 +58,13 @@ export type AgentView = {
  * @private shared status view model
  */
 export type CurrentWorkView = {
+    /** Identity of the active unit (selects its detail among concurrent work). */
+    readonly unit?: string;
     readonly taskRef: string;
     /** Project-relative audit directory (`traces/<task-file-basename>/`). */
     readonly trace?: string;
     readonly taskTitle: string;
-    /** task, assignment, learning, discovery, ... */
+    /** task, assignment, learning, discovery, chat (a conversational turn), ... */
     readonly kind: string;
     readonly agent: AgentView;
     readonly harness: string;
@@ -80,8 +82,30 @@ export type CurrentWorkView = {
     readonly startedAt: string;
     /** For assignment work: the target task. */
     readonly target?: { readonly ref: string; readonly title: string };
-    /** Extra detail (check command, waiting chat, ...). */
+    /** Extra detail (check command, waiting chat, the files it waits for, ...). */
     readonly detail?: string;
+    /** A pacing/backoff wait inside this work. */
+    readonly wait?: WaitView;
+    /** Project-relative files this work owns now (per-file ownership). */
+    readonly files?: readonly string[];
+};
+
+/**
+ * The shared capacity of active work: background tasks and chat turns together.
+ *
+ * @private shared status view model
+ */
+export type CapacityView = {
+    /** `execution.maxConcurrentWork`. */
+    readonly limit: number;
+    /** Units working now. */
+    readonly active: number;
+    /** Checkpointed work waiting for a person or a resource (holds no slot). */
+    readonly waiting: number;
+    /** Ready work and chat turns waiting for a free slot or for files another run owns. */
+    readonly queued: number;
+    /** Files owned by active or checkpointed work, with their owner. */
+    readonly files?: ReadonlyArray<{ readonly path: string; readonly owner: string }>;
 };
 
 /**
@@ -91,7 +115,7 @@ export type CurrentWorkView = {
  */
 export type WaitView = {
     /** `tools`: the running engine waits for a usable browser/harness (not a lifecycle state, technical pause or stop). */
-    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence' | 'tools';
+    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence' | 'tools' | 'capacity' | 'files' | 'draining';
     readonly reason: string;
     /** Next action/opportunity time (ISO). */
     readonly until?: string;
@@ -559,9 +583,16 @@ export type ServiceSnapshot = {
         readonly pauseReasons?: readonly PauseReasonView[];
     };
     readonly phase: Phase;
+    /** The first active work (compatibility view of a single current task; see `active`). */
     readonly current?: CurrentWorkView;
-    /** Effective execution configuration for the expandable execution panel. */
+    /** Every active unit of work: background tasks and chat turns, oldest first. */
+    readonly active?: readonly CurrentWorkView[];
+    /** Shared capacity, waiting and queued counts. */
+    readonly capacity?: CapacityView;
+    /** Effective execution configuration for the expandable execution panel (the first active, else the last). */
     readonly execution?: ExecutionDetailView;
+    /** Execution details of every active task run (the operator selects one). */
+    readonly executions?: readonly ExecutionDetailView[];
     /** The browser serving (or next serving) work, for the expandable browser panel. */
     readonly browser?: BrowserDetailView;
     /** Every named browser tool. */

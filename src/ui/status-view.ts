@@ -151,15 +151,23 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
         lines.push(`  Answer: ptbk answer "${chat.name}" "<answer>" · discuss: ptbk chat --open "${chat.name}"`);
     }
     lines.push(`CHATS: ${snapshot.chats.total} total, ${snapshot.chats.unread} unread message(s), ${waiting.length} waiting for you (ptbk chat --list)`);
-    lines.push('', 'CURRENT WORK');
-    if (snapshot.current) {
-        const current = snapshot.current;
+    const active = snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
+    lines.push('', `CURRENT WORK${snapshot.capacity ? ` (${snapshot.capacity.active}/${snapshot.capacity.limit} active, ${snapshot.capacity.waiting} waiting, ${snapshot.capacity.queued} queued)` : ''}`);
+    for (const current of active) {
+        if (current.kind === 'chat') {
+            lines.push(`- chat reply in {${current.taskTitle}}`);
+            continue;
+        }
         lines.push(`- ${current.agent.name} (${activityLabel(current.agent.activity)}) on "${current.taskTitle}" [${current.taskRef}]${current.kind !== 'task' ? ` (${current.kind})` : ''}`);
-        if (snapshot.execution) lines.push(`  ${executionOneLine(snapshot.execution)}`);
+        const execution = snapshot.executions?.find((candidate) => candidate.task.ref === current.taskRef) ?? (current === active[0] ? snapshot.execution : undefined);
+        if (execution) lines.push(`  ${executionOneLine(execution)}`);
         lines.push(`  Phase: ${current.phase}${current.attempt ? ` (attempt ${current.attempt}/${current.attemptBudget})` : ''}${current.detail ? `; ${current.detail}` : ''}`);
+        if (current.files?.length) lines.push(`  Files: ${current.files.join(', ')}`);
+        if (current.wait) lines.push(`  Waiting: ${current.wait.reason}${current.wait.until ? ` (until ${current.wait.until})` : ''}`);
         if (current.trace) lines.push(`  Trace: ${current.trace}`);
-    } else lines.push(`- ${snapshot.phase}${snapshot.wait ? `: ${snapshot.wait.reason}` : ''}`);
-    if (snapshot.wait && snapshot.current) lines.push(`  Waiting: ${snapshot.wait.reason}${snapshot.wait.until ? ` (until ${snapshot.wait.until})` : ''}`);
+    }
+    if (!active.length) lines.push(`- ${snapshot.phase}${snapshot.wait ? `: ${snapshot.wait.reason}` : ''}`);
+    if (snapshot.wait && active.length) lines.push(`  Waiting: ${snapshot.wait.reason}${snapshot.wait.until ? ` (until ${snapshot.wait.until})` : ''}`);
     if (snapshot.wait?.action) lines.push(`  Next action: ${snapshot.wait.action}`);
     for (const blocker of snapshot.blockers) lines.push(`  BLOCKED: ${blocker.title}: ${blocker.reason}${blocker.action ? ` Action: ${blocker.action}` : ''}${blocker.recheckAt ? ` (recheck ${blocker.recheckAt})` : ''}`);
     lines.push('', `QUEUE (${snapshot.queueTotal})`);
@@ -244,13 +252,17 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
 
     // Current work.
     const work: string[] = [];
-    const current = snapshot.current;
+    const active = snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
+    const current = active.find((item) => item.kind !== 'chat');
     if (current) {
         const badgeLines = framedBadge(current.agent.name, current.agent.activity, style, unicode, 0);
         const info = [`${style.bold(current.agent.name)} ${style.muted(activityLabel(current.agent.activity))}`, truncate(current.taskTitle, 200), style.muted(snapshot.execution ? executionOneLine(snapshot.execution) : current.harnessName)];
         for (let row = 0; row < 3; row++) work.push(`${badgeLines[row]}  ${info[row]}`);
         work.push(`${style.muted('Phase')} ${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? style.muted(` · ${current.detail}`) : ''}`);
         work.push(`${style.muted('Task ')} ${current.taskRef}${current.kind !== 'task' ? style.muted(` (${current.kind})`) : ''}${current.trace ? style.muted(` · trace ${current.trace}`) : ''}`);
+        // Further concurrent work, one line each.
+        for (const other of active.filter((item) => item !== current)) work.push(`${style.muted('Also ')} ${other.kind === 'chat' ? `chat reply in {${other.taskTitle}}` : `${other.agent.name} on ${truncate(other.taskTitle, 120)} ${style.muted(`(${other.phase})`)}`}`);
+        if (snapshot.capacity) work.push(style.muted(`${snapshot.capacity.active}/${snapshot.capacity.limit} active · ${snapshot.capacity.waiting} waiting · ${snapshot.capacity.queued} queued`));
     } else {
         work.push(snapshot.service.state === 'stopped' ? style.muted('The service is stopped.') : `${style.bold(snapshot.phase)}${snapshot.wait ? ` ${marks.dot} ${snapshot.wait.reason}` : ''}`);
     }

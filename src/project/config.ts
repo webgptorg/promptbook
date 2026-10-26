@@ -28,7 +28,7 @@ export type SettingApplication = 'live' | 'next-task' | 'restart';
 /**
  * Value type of a setting.
  */
-type SettingType = 'boolean' | 'string' | 'nullable-string' | 'integer' | 'duration' | 'enum' | 'port';
+type SettingType = 'boolean' | 'string' | 'nullable-string' | 'integer' | 'positive-integer' | 'duration' | 'enum' | 'port';
 
 /**
  * Specification of one scalar setting.
@@ -73,6 +73,13 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
         description: 'Run the check before work.',
         application: 'next-task',
     },
+    {
+        key: 'execution.maxConcurrentWork',
+        type: 'positive-integer',
+        default: 5,
+        description: 'Most background tasks and chat turns working at once, together (not per kind or agent); 1 serializes them. Waiting, idle and queued work takes no slot.',
+        application: 'live',
+    },
     { key: 'execution.repairAttempts', type: 'integer', default: 3, description: 'Implementation/repair attempts per task.', application: 'next-task' },
     { key: 'execution.technicalRetries', type: 'integer', default: 3, description: 'Technical retries after the initial attempt.', application: 'next-task' },
     { key: 'execution.waitBetweenPrompts', type: 'duration', default: 0, description: 'Pause between tasks.', application: 'live' },
@@ -87,7 +94,6 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
         application: 'next-task',
     },
     { key: 'execution.isCommitEnabled', type: 'boolean', default: true, description: 'Commit versioned changes automatically.', application: 'restart' },
-    { key: 'execution.isIsolated', type: 'boolean', default: false, description: 'Execute tasks in a separate Git worktree.', application: 'next-task' },
     { key: 'execution.isLineEndingNormalizationEnabled', type: 'boolean', default: true, description: 'Normalize CRLF in changed files of LF projects.', application: 'next-task' },
     { key: 'execution.isCreditFallbackAllowed', type: 'boolean', default: false, description: 'Authorize explicit paid-credit fallback where supported.', application: 'next-task' },
     { key: 'execution.isQuestionsEnabled', type: 'boolean', default: true, description: 'Allow agents to ask the user.', application: 'next-task' },
@@ -270,6 +276,11 @@ export function parseSettingValue(spec: SettingSpec, raw: unknown): { ok: true; 
             const number = typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : raw;
             if (typeof number === 'number' && Number.isInteger(number) && number >= 0) return { ok: true, value: number };
             return { ok: false, message: 'expected a nonnegative integer' };
+        }
+        case 'positive-integer': {
+            const number = typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : raw;
+            if (typeof number === 'number' && Number.isInteger(number) && number >= 1) return { ok: true, value: number };
+            return { ok: false, message: 'expected a positive integer' };
         }
         case 'port': {
             const number = typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : raw;
@@ -552,6 +563,10 @@ export function resolveSettings(layers: SettingsLayers): EffectiveSettings {
     const sources: Record<string, SettingSource> = {};
     for (const key of Object.keys(layers.file)) {
         if (!KNOWN_TOP_LEVEL_KEYS.includes(key)) diagnostics.push({ location: `ptbk.json › ${key}`, message: 'unknown setting (preserved, ignored)', severity: 'warning' });
+    }
+    // Task worktrees were removed: work shares the project's one working tree with per-file ownership.
+    if (getPath(layers.file, 'execution.isIsolated') !== undefined) {
+        diagnostics.push({ location: 'ptbk.json › execution.isIsolated', message: 'obsolete setting (preserved, ignored): task worktrees were removed; tasks and chats share the project\'s working tree and current branch with per-file ownership. Remove it.', severity: 'warning' });
     }
     const routing = layers.file.routing;
     if (routing !== null && typeof routing === 'object' && !Array.isArray(routing)) {

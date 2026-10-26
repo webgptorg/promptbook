@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { usageError } from '../common/errors.js';
+import { PtbkError, usageError } from '../common/errors.js';
 import { confinePath } from '../common/fs.js';
 import { BookIndex } from '../project/books.js';
 import { setting, type BrowserOverrides, type EffectiveSettings } from '../project/config.js';
@@ -44,7 +44,6 @@ export function settingOverrides(context: CommandContext): Record<string, unknow
     // --auto-pull/--auto-push are documented compatibility opt-ins to the one combined synchronization policy.
     const autoSync = flag(context, 'auto-sync') ?? (flag(context, 'auto-pull') || flag(context, 'auto-push') ? true : undefined);
     set('isAutoSync', autoSync);
-    set('execution.isIsolated', flag(context, 'isolate'));
     set('execution.isLineEndingNormalizationEnabled', flag(context, 'normalize-line-endings'));
     set('execution.isQuestionsEnabled', flag(context, 'questions'));
     set('execution.isCreditFallbackAllowed', flag(context, 'allow-credits'));
@@ -97,9 +96,14 @@ export function validateCombinations(context: CommandContext): void {
     const path = context.path.join(' ');
     const noCommit = flag(context, 'commit') === false;
     const gitChanges = option<string>(context, 'git-changes');
-    if (flag(context, 'isolate')) {
-        if (noCommit) throw usageError('--isolate requires commits; it conflicts with --no-commit.', path);
-        if (gitChanges === 'continue') throw usageError('--isolate conflicts with --git-changes continue.', path);
+    // Legacy use is diagnosed before anything changes; it never silently creates a worktree or pretends to isolate.
+    if (flag(context, 'isolate') !== undefined) {
+        throw new PtbkError('--isolate is no longer supported: task worktrees were removed.', {
+            kind: 'usage',
+            reason: 'Tasks and chats now share the project\'s one working tree and current branch. Different files are edited concurrently; work on the same file waits for its current owner (per-file ownership). No branch or worktree is created.',
+            effect: 'Nothing was started or changed.',
+            next: [`Run the command again without --isolate (ptbk ${path}).`, 'To serialize all work, set "execution": { "maxConcurrentWork": 1 } in ptbk.json.'],
+        });
     }
     if (gitChanges === 'continue' && option<string>(context, 'check-before') === 'yes-and-fix') throw usageError('--git-changes continue conflicts with --check-before yes-and-fix.', path);
     if (flag(context, 'auto-sync') === false && (flag(context, 'auto-pull') || flag(context, 'auto-push'))) throw usageError('--no-auto-sync contradicts --auto-pull/--auto-push (compatibility aliases of --auto-sync).', path);

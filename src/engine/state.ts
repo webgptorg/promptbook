@@ -78,7 +78,7 @@ export type AttemptRecord = {
 };
 
 /**
- * Recovery record of the task currently owning execution (`.ptbk/state/active.json`).
+ * Recovery record of one active run (`.ptbk/state/active/<run>.json`); several runs can be active at once.
  *
  * @private runtime state
  */
@@ -138,8 +138,16 @@ export type ActiveRecord = {
     readonly feedback?: string;
     /** Explicit no-commit mode. */
     readonly noCommit: boolean;
-    /** Worktree path when isolated. */
+    /**
+     * Task worktree of an older engine's isolated run (task worktrees were removed; such a run is preserved and
+     * explained, never resumed in the shared working tree).
+     */
     readonly worktree?: string;
+    /**
+     * Project-relative files this run owns (per-file ownership), kept while it works, waits or is checkpointed with
+     * changes, so a restart restores the same ownership and other work never mixes them into its result.
+     */
+    readonly ownedFiles?: readonly string[];
     /** Owning process instance. */
     readonly instanceId: string;
     /** Start time (ISO). */
@@ -161,7 +169,7 @@ export function isolationBranch(runId: string): string {
 
 /**
  * Readiness contributions of checkpointed tasks, keyed by normalized task name: the chat each one waits on, or (for
- * an isolated result waiting for its merge, which is no question for the user) a recovery explanation.
+ * work left in an older engine's task worktree, which is no question for the user) a recovery explanation.
  *
  * @private runtime state
  */
@@ -171,7 +179,9 @@ export function parkedReadiness(records: readonly ActiveRecord[]): { readonly aw
     for (const record of records) {
         const key = record.taskKey || normalizeAgentName(record.taskTitle);
         if (record.phase === 'synchronizing' && record.worktree) integrations.set(key, `Its isolated result waits on ${isolationBranch(record.runId)} for a visible merge into the project branch; the task completes once it is merged.`);
-        else awaitingUser.set(key, record.waitingChat ?? record.recoveryChat ?? 'checkpoint');
+        else if (record.worktree) {
+            integrations.set(key, `It was running in a task worktree of an older engine (${record.worktree}, branch ${isolationBranch(record.runId)}); task worktrees were removed. Merge or discard that branch yourself, then run \`ptbk recover ${record.taskRef} --action retry\` or \`--action acknowledge\`.`);
+        } else awaitingUser.set(key, record.waitingChat ?? record.recoveryChat ?? 'checkpoint');
     }
     return { awaitingUser, integrations };
 }
@@ -281,19 +291,45 @@ export class StateStore {
         return join(this.directory, name);
     }
 
-    /** Reads the active recovery record. */
-    public async readActive(): Promise<ActiveRecord | undefined> {
-        return await readJsonIfExists<ActiveRecord>(this.file('active.json'));
+    /** Path of one run's active record. */
+    private activeFile(runId: string): string {
+        return join(this.file('active'), `${runId.replace(/[^A-Za-z0-9_-]/g, '_')}.json`);
     }
 
-    /** Persists the active recovery record. */
+    /**
+     * Every active recovery record (oldest first). The single `active.json` of an older engine is adopted into the
+     * per-run directory first, so recovery never loses it.
+     */
+    public async readActiveRecords(): Promise<ActiveRecord[]> {
+        const legacy = await readJsonIfExists<ActiveRecord>(this.file('active.json')).catch(() => undefined);
+        if (legacy) {
+            await ensureDirectory(this.file('active'));
+            await writeJsonAtomic(this.activeFile(legacy.runId), legacy);
+            await rm(this.file('active.json'), { force: true });
+        }
+        const records: ActiveRecord[] = [];
+        for (const entry of await listDirectory(this.file('active'))) {
+            if (!entry.isFile || !entry.name.endsWith('.json')) continue;
+            const record = await readJsonIfExists<ActiveRecord>(join(this.file('active'), entry.name)).catch(() => undefined);
+            if (record) records.push(record);
+        }
+        return records.sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+    }
+
+    /** Reads one run's active record. */
+    public async readActive(runId: string): Promise<ActiveRecord | undefined> {
+        return (await this.readActiveRecords()).find((record) => record.runId === runId);
+    }
+
+    /** Persists one run's active recovery record. */
     public async writeActive(record: ActiveRecord): Promise<void> {
-        await writeJsonAtomic(this.file('active.json'), { ...record, updatedAt: new Date().toISOString() });
+        await ensureDirectory(this.file('active'));
+        await writeJsonAtomic(this.activeFile(record.runId), { ...record, updatedAt: new Date().toISOString() });
     }
 
-    /** Removes the active record after the task's outcome is fully recorded. */
-    public async clearActive(): Promise<void> {
-        await rm(this.file('active.json'), { force: true });
+    /** Removes one run's active record after its outcome is fully recorded. */
+    public async clearActive(runId: string): Promise<void> {
+        await rm(this.activeFile(runId), { force: true });
     }
 
     /**
@@ -310,11 +346,11 @@ export class StateStore {
         return records.sort((a, b) => a.updatedAt.localeCompare(b.updatedAt));
     }
 
-    /** Checkpoints a waiting task and releases the active slot. */
+    /** Checkpoints a waiting task and releases its active record (its owned files stay recorded). */
     public async park(record: ActiveRecord): Promise<void> {
         await ensureDirectory(this.file('parked'));
         await writeJsonAtomic(join(this.file('parked'), `${nameKeyPath(record.taskTitle)}.json`), { ...record, updatedAt: new Date().toISOString() });
-        await this.clearActive();
+        await this.clearActive(record.runId);
     }
 
     /** Rewrites a checkpoint in place (the active record is untouched). */
@@ -323,7 +359,7 @@ export class StateStore {
         await writeJsonAtomic(join(this.file('parked'), `${nameKeyPath(record.taskTitle)}.json`), { ...record, updatedAt: new Date().toISOString() });
     }
 
-    /** Restores a checkpointed task as the active one. */
+    /** Restores a checkpointed task as an active run. */
     public async unpark(record: ActiveRecord): Promise<void> {
         await this.writeActive(record);
         await rm(join(this.file('parked'), `${nameKeyPath(record.taskTitle)}.json`), { force: true });

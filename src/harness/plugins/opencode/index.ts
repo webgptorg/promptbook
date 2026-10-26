@@ -1,4 +1,4 @@
-import { baseInspection, helpText, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
+import { baseInspection, helpText, parseJsonLine, probe, editedFiles, summarizeToolInput, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest, ParserState } from '../../types.js';
 
 /**
@@ -64,7 +64,8 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
             return typeof part.text === 'string' ? [{ type: 'reasoning', text: part.text }] : [];
         case 'tool_use': {
             const toolState = (part.state ?? {}) as Record<string, unknown>;
-            return [{ type: 'activity', text: `${String(part.tool ?? 'tool')} ${summarizeToolInput(toolState.input)}`.trim() }];
+            const paths = editedFiles(part.tool, toolState.input);
+            return [{ type: 'activity', text: `${String(part.tool ?? 'tool')} ${summarizeToolInput(toolState.input)}`.trim() }, ...(paths.length ? [{ type: 'files' as const, paths }] : [])];
         }
         case 'step_finish': {
             const tokens = (part.tokens ?? {}) as Record<string, unknown>;

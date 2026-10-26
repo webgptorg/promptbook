@@ -166,6 +166,25 @@ export function summarizeToolInput(input: unknown): string {
 }
 
 /**
+ * Tool names whose invocation changes the file named in its input (Claude Code, Gemini CLI, Qwen Code, OpenCode, …).
+ */
+const FILE_EDITING_TOOL = /^(write|edit|multiedit|multi_edit|notebookedit|notebook_edit|write_file|replace|edit_file|create_file|apply_patch|str_replace(_based_edit_tool|_editor)?)$/i;
+
+/**
+ * Files a tool invocation reports changing (empty for reading or other tools).
+ *
+ * @private harness plugin helpers
+ */
+export function editedFiles(tool: unknown, input: unknown): string[] {
+    if (typeof tool !== 'string' || !FILE_EDITING_TOOL.test(tool.replace(/^.*[.:]/, '')) || !input || typeof input !== 'object') return [];
+    const record = input as Record<string, unknown>;
+    return ['file_path', 'filePath', 'path', 'notebook_path', 'absolute_path']
+        .map((key) => record[key])
+        .filter((value): value is string => typeof value === 'string' && value.trim() !== '')
+        .slice(0, 1);
+}
+
+/**
  * Tolerant parser for Claude-style and Gemini-style `stream-json` events.
  *
  * @private harness plugin helpers
@@ -188,7 +207,11 @@ export function parseStreamJson(line: string, state: ParserState): HarnessEvent[
         for (const block of content) {
             if (block.type === 'text' && typeof block.text === 'string') texts.push(block.text);
             else if (block.type === 'thinking' && typeof block.thinking === 'string') events.push({ type: 'reasoning', text: block.thinking });
-            else if (block.type === 'tool_use') events.push({ type: 'activity', text: `${String(block.name)} ${summarizeToolInput(block.input)}`.trim() });
+            else if (block.type === 'tool_use') {
+                events.push({ type: 'activity', text: `${String(block.name)} ${summarizeToolInput(block.input)}`.trim() });
+                const paths = editedFiles(block.name, block.input);
+                if (paths.length) events.push({ type: 'files', paths });
+            }
         }
         if (texts.length) events.push({ type: 'message', text: texts.join('\n') });
     } else if (type === 'message') {
@@ -202,6 +225,8 @@ export function parseStreamJson(line: string, state: ParserState): HarnessEvent[
             state.pendingText = '';
         }
         events.push({ type: 'activity', text: `${String(event.tool_name ?? event.name ?? 'tool')} ${summarizeToolInput(event.parameters ?? event.input)}`.trim() });
+        const paths = editedFiles(event.tool_name ?? event.name, event.parameters ?? event.input);
+        if (paths.length) events.push({ type: 'files', paths });
     } else if (type === 'result') {
         if (state.pendingText) {
             events.push({ type: 'message', text: state.pendingText });

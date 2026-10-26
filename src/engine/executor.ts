@@ -1,5 +1,5 @@
 import { readFile, rm, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, hashFileIfExists, isPathInside, readTextIfExists, toProjectRelative } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
@@ -79,6 +79,25 @@ export type ExecutionHooks = {
     readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
     /** Opt-in synchronization attempt before the result commit (fetch only; never a prerequisite). */
     readonly beforeCommit?: () => Promise<void>;
+    /**
+     * Per-file ownership: the changed paths (project-relative) that belong to this run. Files other active work owns
+     * are already excluded from snapshots; unowned changes are attributed only when unambiguous.
+     */
+    readonly attribute?: (changed: readonly string[], evidence: { readonly reported: string }) => Promise<string[]>;
+    /** Takes ownership of engine-created files of this run (follow-ups, task-scoped consultation chats). */
+    readonly own?: (paths: readonly string[]) => void;
+    /** Files the harness reported changing during this run's turn (they belong to this run unless another owns them). */
+    readonly edited?: (paths: readonly string[]) => void;
+    /** Claims files before the agent changes them (the `claim_files` tool); waits while another run owns one. */
+    readonly claimFiles?: (paths: readonly string[]) => Promise<{ readonly ok: boolean; readonly message: string }>;
+    /** Marks the beginning and end of a harness turn (attribution of unclaimed changes). */
+    readonly turn?: (state: 'begin' | 'end') => void;
+    /** Project-relative files this run owns now (persisted in its recovery record). */
+    readonly ownedFiles?: () => readonly string[];
+    /** Uncommitted files other active work owns right now (a failing check may be caused by their partial state). */
+    readonly foreignChanges?: () => readonly string[];
+    /** Waits (bounded) until other active work no longer holds uncommitted files, so a check sees a coherent tree. */
+    readonly waitForForeign?: (signal: AbortSignal) => Promise<void>;
 };
 
 /**
@@ -151,12 +170,8 @@ export type WorkItem = {
     readonly resume?: ActiveRecord;
     /** Fixed check override for this work (fix command, temporary --check). */
     readonly check?: string | null;
-    /** Run identifier chosen by the caller (isolated worktrees are named after it). */
+    /** Run identifier chosen by the caller (its unit owns files under it). */
     readonly runId?: string;
-    /** Isolated worktree path (recorded for recovery). */
-    readonly worktree?: string;
-    /** Integrates a committed isolated result into the original branch; returns the integrated commit. */
-    readonly integrate?: (sha: string | undefined) => Promise<string | undefined>;
 };
 
 /**
@@ -172,8 +187,8 @@ export type ExecutionOutcome =
     | { readonly kind: 'quota'; readonly reason: string; readonly retryAfterMs: number; readonly tool?: string }
     | { readonly kind: 'interrupted' }
     | { readonly kind: 'persistence-failed'; readonly reason: string }
-    /** The isolated result is committed on its temporary branch but not yet merged into the project branch. */
-    | { readonly kind: 'integration-pending'; readonly reason: string; readonly commit?: string };
+    /** Not started: a file the run must change is owned by other active work (the supervisor claims it again later). */
+    | { readonly kind: 'deferred'; readonly reason: string };
 
 /**
  * Implementation/repair attempts of Fixer's takeover of a failed task (at most the configured budget).
@@ -360,7 +375,6 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     let record: ActiveRecord = item.resume ?? {
         version: 1,
         runId: item.runId ?? shortId(10),
-        worktree: item.worktree,
         taskRef: task.ref,
         taskKey: task.key,
         taskTitle: task.title,
@@ -382,7 +396,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         history: [],
     };
     const save = async (changes: Partial<ActiveRecord>): Promise<void> => {
-        record = { ...record, ...changes, instanceId: environment.instanceId };
+        record = { ...record, ...changes, ...(hooks.ownedFiles ? { ownedFiles: [...hooks.ownedFiles()] } : {}), instanceId: environment.instanceId };
         await state.writeActive(record);
     };
     // Fixer's takeover of a failed task is one bounded extra round, accounted separately from the original budget.
@@ -405,14 +419,19 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     const resetPending = (): void => {
         pending.chat = undefined;
     };
-    const chats = taskChats(environment.chats, { name: task.title, key: task.key }, { takenNames: environment.takenNames });
+    // Task-scoped chat Books (consultations) belong to this run's result: nobody else may attribute them.
+    const chats = taskChats(environment.chats, { name: task.title, key: task.key }, { takenNames: environment.takenNames, onCreated: (path) => hooks.own?.([path]) });
     let lastResult: HarnessRunResult | undefined;
     let lastReport: AgentReport | undefined;
     let retainedInstance: HarnessToolRecord | undefined;
     const contextFile = setting<string | null>(settings, 'paths.context');
     const context = contextFile ? await readTextIfExists(resolve(project.root, contextFile)) : undefined;
 
-    const changed = async (): Promise<string[]> => changedPaths(record.preSnapshot, await captureSnapshot(environment, hooks.excludedPaths()));
+    // Changes of this run only: other runs' owned files are excluded, unowned changes attributed only when unambiguous.
+    const changed = async (): Promise<string[]> => {
+        const paths = changedPaths(record.preSnapshot, await captureSnapshot(environment, hooks.excludedPaths()));
+        return hooks.attribute ? await hooks.attribute(paths, { reported: lastResult ? [...lastResult.messages, lastResult.finalMessage].join('\n') : '' }) : paths;
+    };
     const finishResult = async (outcome: ResultRecord['outcome'], summary: string, commit?: string): Promise<void> => {
         await state.appendResult({
             taskRef: task.ref,
@@ -447,25 +466,6 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         hooks.emit({ type: 'activity', text: `Failed: ${reason}`, level: 'error' });
         return { kind: 'failed', reason, trace: trace.reference };
     };
-    /**
-     * Merges a committed isolated result into the project branch. A conflict, failing recheck or blocked merge keeps
-     * the result on its temporary branch as pending integration (never a model rerun or a deleted result).
-     */
-    const integrateIsolated = async (resultSha: string | undefined): Promise<{ readonly ok: true; readonly sha?: string } | { readonly ok: false; readonly outcome: ExecutionOutcome }> => {
-        hooks.emit({ type: 'phase', phase: 'synchronizing', detail: 'integrating the isolated result' });
-        try {
-            return { ok: true, sha: await item.integrate!(resultSha) };
-        } catch (error) {
-            const details = error instanceof PtbkError ? [error.details.reason, error.details.preserved].filter(Boolean).join(' ') : '';
-            const reason = `${errorMessage(error)}${details ? ` ${details}` : ''}`;
-            await save({ phase: 'synchronizing', commitSha: resultSha, failure: reason });
-            // After the result commit: a local event, never part of a committed snapshot.
-            await trace.event('integration-pending', { runId: record.runId, commit: resultSha ?? null, reason }, { local: true });
-            hooks.emit({ type: 'activity', text: `Integration pending: ${reason}`, level: 'warning' });
-            return { ok: false, outcome: { kind: 'integration-pending', reason, commit: resultSha } };
-        }
-    };
-
     // Resume an awaiting-user checkpoint only with a real reply in its chat.
     if (record.phase === 'awaiting-user' && record.waitingChat) {
         const stored = await environment.chats.find(record.waitingChat);
@@ -479,18 +479,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     }
 
     if (record.phase === 'failed') return { kind: 'failed', reason: record.failure ?? 'The task needs recovery.', trace: trace.reference };
-    if (record.phase === 'synchronizing' && record.worktree && item.integrate) {
-        // A committed isolated result is complete only once it is merged into the project branch.
-        const integrated = await integrateIsolated(record.commitSha);
-        if (!integrated.ok) return integrated.outcome;
-        await save({ phase: 'committed', commitSha: integrated.sha, failure: undefined });
-        await trace.event('committed', { runId: record.runId, occurrence: record.occurrence, commit: integrated.sha ?? null }, { local: true });
-        await finishResult('completed', 'Integrated the isolated result.', integrated.sha);
-        await state.clearActive();
-        return { kind: 'completed', commit: integrated.sha, summary: 'Integrated the isolated result.', changedPaths: [] };
-    }
     if (record.phase === 'committed' || record.phase === 'synchronizing') {
-        await state.clearActive();
+        await state.clearActive(record.runId);
         return { kind: 'completed', commit: record.commitSha, summary: 'Recovered a committed result.', changedPaths: [] };
     }
     let skipAgent = record.phase === 'checking' || record.phase === 'finalizing' || record.phase === 'committing';
@@ -542,6 +532,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     }),
                     ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), trace, attempt: attemptLabel }) ?? []),
                 );
+                if (hooks.claimFiles) tools.push(claimFilesTool(hooks.claimFiles));
             }
             const prompt = buildTaskPrompt({
                 agent,
@@ -550,7 +541,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 tasksDirectory: toProjectRelative(project.root, environment.tasksDirectory),
                 context: context !== undefined && contextFile ? { name: contextFile, content: context } : undefined,
                 check: check ?? undefined,
-                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), browser: tools.some((tool) => tool.name.startsWith('browser_')) },
+                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), browser: tools.some((tool) => tool.name.startsWith('browser_')), claimFiles: tools.some((tool) => tool.name === 'claim_files') },
                 feedback: record.feedback,
                 attempt,
                 extra: item.extraPrompt,
@@ -590,6 +581,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 engineVersion: ENGINE_VERSION,
             });
             resetPending();
+            hooks.turn?.('begin');
             try {
                 lastResult = await runHarness(
                     plugin,
@@ -611,6 +603,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         readableDirectories: agent.name === 'Expert' || agent.chain.includes('Expert') ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],
                         onEvent: (event) => {
                             if (event.type === 'activity') hooks.emit({ type: 'activity', text: event.text });
+                            else if (event.type === 'files') hooks.edited?.(event.paths);
                             else if (event.type === 'error') hooks.emit({ type: 'activity', text: event.text, level: 'warning' });
                             else if (event.type === 'model') hooks.emit({ type: 'model', model: event.model });
                         },
@@ -619,9 +612,13 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     item.route.inspection.executablePath ?? plugin.executable,
                 );
             } finally {
+                hooks.turn?.('end');
                 await bridge?.close();
                 await rm(promptFile, { force: true });
             }
+            // Ownership of what this turn changed is settled (and recorded) right after the turn.
+            await save({});
+            await changed().catch(() => undefined);
             await trace.text(`\n## Attempt outcome\n\n${lastResult.outcome}: ${lastResult.diagnostic}\nExit code: ${String(lastResult.exitCode)} · duration ${Math.round(lastResult.durationMs / 1000)}s${lastResult.model ? ` · model ${lastResult.model}` : ''}`);
             await trace.event('attempt-finished', {
                 runId: record.runId,
@@ -738,7 +735,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const wantsLearning = typeof item.learning === 'function' ? item.learning(await changed()) : item.learning;
             if (wantsLearning && setting<boolean>(settings, 'learning.isEnabled') && agent.definition && !isTeacher(agent.name) && agent.learning.open) {
                 const learning = await createLearningTask({
-                    // Agent Books belong to the project itself (an isolated worktree is only where this run works).
+                    // Agent Books belong to the project's own catalog root.
                     projectRoot: environment.catalog.root,
                     tasksDirectory: environment.tasksDirectory,
                     task,
@@ -750,6 +747,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     taken: environment.takenNames(),
                 });
                 created.push(relativeKey(environment, learning.path));
+                hooks.own?.([learning.path]);
             }
             await save({ completionApplied: true, completionBackup: { source: originalSource, created }, createdPaths: [...new Set([...record.createdPaths, ...created])] });
         }
@@ -770,7 +768,31 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             await save({ phase: 'checking' });
             hooks.emit({ type: 'phase', phase: 'checking', detail: check });
             hooks.emit({ type: 'activity', text: `Running check: ${check}` });
-            const result = await runCheck(project.root, check, { env: environment.env, signal: environment.signal });
+            // Validate a coherent tree: a failure while other active work holds uncommitted files is rechecked once
+            // that work has settled (no repair attempt is spent on someone else's partial state) unless the output
+            // names this run's own files, and a pass is only trusted when this run's files did not change meanwhile.
+            let result: Awaited<ReturnType<typeof runCheck>>;
+            for (let round = 0; ; round++) {
+                const before = await ownedHashes(environment, await changed());
+                result = await runCheck(project.root, check, { env: environment.env, signal: environment.signal });
+                if (environment.signal.aborted) break;
+                const foreign = hooks.foreignChanges?.() ?? [];
+                const names = (path: string): boolean => result.output.includes(path) || (basename(path).length > 3 && result.output.includes(basename(path)));
+                const own = !result.passed && foreign.length ? (await changed()).some(names) && !foreign.some(names) : false;
+                if (!result.passed && foreign.length && !own && hooks.waitForForeign && round < 3) {
+                    hooks.emit({ type: 'activity', text: `Check failed while other work holds uncommitted changes (${foreign.slice(0, 4).join(', ')}${foreign.length > 4 ? ', …' : ''}); rechecking once they are committed.` });
+                    await trace.event('check-deferred', { command: check, exitCode: result.exitCode, foreign });
+                    await hooks.waitForForeign(environment.signal);
+                    continue;
+                }
+                const after = await ownedHashes(environment, await changed());
+                if (result.passed && round < 3 && JSON.stringify(before) !== JSON.stringify(after)) {
+                    hooks.emit({ type: 'activity', text: 'Files of this task changed while the check ran (for example your own edit); checking again.' });
+                    await trace.event('check-stale', { command: check });
+                    continue;
+                }
+                break;
+            }
             await trace.section(`Check \`${check}\` (${result.passed ? 'passed' : 'failed'}, exit ${String(result.exitCode)})`, [result.output]);
             await trace.event('check', { command: check, passed: result.passed, exitCode: result.exitCode, durationMs: result.durationMs, failure: result.failure });
             if (environment.signal.aborted) return { kind: 'interrupted' };
@@ -830,18 +852,12 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     return { kind: 'persistence-failed', reason: details ?? reason };
                 }
             }
-            if (item.integrate) {
-                await save({ phase: 'synchronizing', commitSha: sha });
-                const integrated = await integrateIsolated(sha);
-                if (!integrated.ok) return integrated.outcome;
-                sha = integrated.sha;
-            }
             await save({ phase: 'committed', commitSha: sha });
             // Recorded after the snapshot: the commit cannot contain its own hash.
             await trace.event('committed', { runId: record.runId, occurrence: record.occurrence, commit: sha ?? null }, { local: true });
             const summary = lastReport?.summary || 'Completed.';
             await finishResult('completed', summary, sha);
-            await state.clearActive();
+            await state.clearActive(record.runId);
             hooks.emit({ type: 'activity', text: `Committed ${sha ? sha.slice(0, 8) : '(no changes)'} PTBK: ${task.title}` });
             return { kind: 'completed', commit: sha, summary, changedPaths: owned, report: lastReport };
         }
@@ -851,8 +867,40 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         const summary = lastReport?.summary || 'Completed (uncommitted).';
         await trace.event('completed-uncommitted', { runId: record.runId, occurrence: record.occurrence, paths: owned });
         await finishResult('completed-uncommitted', summary);
-        await state.clearActive();
+        await state.clearActive(record.runId);
         hooks.emit({ type: 'activity', text: `Checked but not committed (--no-commit): ${owned.length} path(s)` });
         return { kind: 'completed', summary, changedPaths: owned, report: lastReport };
     }
+}
+
+/**
+ * Content fingerprints of a run's changed files (a check result is only trusted for exactly this content).
+ */
+async function ownedHashes(environment: ExecutionEnvironment, paths: readonly string[]): Promise<Record<string, string | null>> {
+    const hashes: Record<string, string | null> = {};
+    for (const path of paths) hashes[path] = (await hashFileIfExists(resolve(environment.project.root, path))) ?? null;
+    return hashes;
+}
+
+/**
+ * The `claim_files` tool: claims project files before the agent changes them, so concurrent tasks never write the
+ * same file. It returns once the files are owned, or explains which active work still holds them.
+ */
+function claimFilesTool(claim: NonNullable<ExecutionHooks['claimFiles']>): BridgeTool {
+    return {
+        name: 'claim_files',
+        description:
+            'Claim project files (relative paths, new files too) before you change them. Other tasks run concurrently in the same working tree; a file another task is editing waits until it is released. Returns when you own them, or says which work still holds them (then work on other files or try again later).',
+        inputSchema: {
+            type: 'object',
+            properties: { paths: { type: 'array', items: { type: 'string' }, description: 'Project-relative paths you are about to change' } },
+            required: ['paths'],
+        },
+        handler: async (input) => {
+            const paths = Array.isArray(input.paths) ? input.paths.filter((path): path is string => typeof path === 'string' && path.trim() !== '').map((path) => path.trim()) : [];
+            if (!paths.length) return { text: 'Give the project-relative paths you are about to change.', isError: true };
+            const outcome = await claim(paths);
+            return { text: outcome.message, isError: !outcome.ok };
+        },
+    };
 }

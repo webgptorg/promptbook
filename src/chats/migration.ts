@@ -35,9 +35,9 @@ type LegacyRecordFields = { readonly requestId?: string; readonly recoveryReques
  */
 export async function migrateLegacyRequests(project: Project, chats: ChatStore, state: StateStore, takenNames: () => ReadonlySet<string>): Promise<number> {
     let migrated = 0;
-    const records = [...(await state.readParked())];
-    const active = await state.readActive();
-    if (active) records.push(active);
+    const parked = await state.readParked();
+    const active = await state.readActiveRecords();
+    const records = [...parked, ...active];
     for (const entry of await listDirectory(project.runtime.requests)) {
         if (!entry.isFile || !/^r-[a-z0-9]+\.json$/.test(entry.name)) continue;
         const path = join(project.runtime.requests, entry.name);
@@ -65,7 +65,7 @@ export async function migrateLegacyRequests(project: Project, chats: ChatStore, 
             if (legacy.recoveryRequestId === request.id) Object.assign(updates, { recoveryChat: created.chat.name, awaitedMessages: created.chat.messages.length });
             if (!Object.keys(updates).length) continue;
             const updated = { ...record, ...updates } as ActiveRecord;
-            if (record === active) await state.writeActive(updated);
+            if (active.includes(record)) await state.writeActive(updated);
             else await state.writeParked(updated);
         }
         await writeFile(path, `${JSON.stringify({ ...request, status: 'cancelled', answer: `Migrated to the chat {${created.chat.name}}.` }, null, 2)}\n`);

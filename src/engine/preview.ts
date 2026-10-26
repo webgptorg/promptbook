@@ -44,9 +44,9 @@ export async function previewQueue(
     const state = new StateStore(project.runtime.state);
     const blockers = await state.readBlockers().catch(() => ({}));
     const activations = await state.readActivations().catch(() => ({}) as Record<string, number>);
-    // Checkpointed tasks wait for the user's reply in their chat (or, isolated, for their merge).
+    // Checkpointed tasks wait for the user's reply in their chat (or, from an older engine's task worktree, for a merge).
     const { awaitingUser, integrations } = parkedReadiness(await state.readParked().catch(() => []));
-    const active = await state.readActive().catch(() => undefined);
+    const active = await state.readActiveRecords().catch(() => []);
     const uncommitted = new Set<string>();
     const gitInfo = await inspectGit(project.root);
     if (gitInfo.state === 'repository' && setting<boolean>(settings, 'execution.isCommitEnabled')) {
@@ -65,7 +65,7 @@ export async function previewQueue(
     const evaluated = await evaluateQueue(queue.tasks, {
         now,
         timeZone,
-        activeKey: active ? active.taskKey || nameKey(active.taskTitle) : undefined,
+        activeKeys: new Set(active.map((record) => record.taskKey || nameKey(record.taskTitle))),
         awaitingUser,
         recovery: new Map([...Object.entries(blockers).map(([ref, blocker]) => [ref, (blocker as { reason: string }).reason] as const), ...integrations]),
         uncommittedSources: uncommitted,

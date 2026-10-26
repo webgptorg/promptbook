@@ -145,13 +145,22 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
     const time = (iso?: string): string => (iso ? formatShortTime(Date.parse(iso)) : '');
     switch (tile) {
         case 'work': {
-            const current = snapshot.current;
+            const active = snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
+            const capacity = snapshot.capacity;
+            if (active.length > 1 || (active.length && capacity && (capacity.queued || capacity.waiting))) {
+                // Concurrent work: shared capacity first, then one line per active unit.
+                return [
+                    `${style.bold(`${active.length}${capacity ? `/${capacity.limit}` : ''}`)} active${capacity?.waiting ? style.muted(` · ${capacity.waiting} waiting`) : ''}${capacity?.queued ? style.muted(` · ${capacity.queued} queued`) : ''}`,
+                    ...active.map((item) => (item.kind === 'chat' ? `${style.accent('chat')} ${item.taskTitle}` : `${inlineBadge(item.agent.name, item.agent.activity, style, terminal.reducedMotion ? 0 : frame)} ${item.taskTitle}${style.muted(` · ${item.phase}`)}`)),
+                ];
+            }
+            const current = active[0];
             if (current) {
                 return [
-                    `${inlineBadge(current.agent.name, current.agent.activity, style, terminal.reducedMotion ? 0 : frame)} ${style.muted(activityLabel(current.agent.activity))}`,
+                    current.kind === 'chat' ? `${style.accent('chat')} ${style.muted('replying')}` : `${inlineBadge(current.agent.name, current.agent.activity, style, terminal.reducedMotion ? 0 : frame)} ${style.muted(activityLabel(current.agent.activity))}`,
                     current.taskTitle,
                     style.muted(`${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}`),
-                    ...(snapshot.wait ? [style.warning(`${marks.wait} ${snapshot.wait.reason}`)] : []),
+                    ...(current.wait ? [style.warning(`${marks.wait} ${current.wait.reason}`)] : snapshot.wait ? [style.warning(`${marks.wait} ${snapshot.wait.reason}`)] : []),
                 ];
             }
             if (snapshot.service.state === 'stopped') return [style.muted('The service is stopped.')];
