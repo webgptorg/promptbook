@@ -1,0 +1,7 @@
+TASK Assign routing: Add show/hide toggles to dashboard Wallet username and password inputs — 2026-10-26 23:08:06 — 2026-10-26 23:08:10
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Add show/hide toggles to dashboard Wallet username and password inputs — 2026-10-26 23:08:06}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PARENT {Add show/hide toggles to dashboard Wallet username and password inputs — 2026-10-26 23:08:06}
+TASK ORIGIN assignment for {Add show/hide toggles to dashboard Wallet username and password inputs — 2026-10-26 23:08:06}
+TASK DONE 2026-10-26T23:36:28+01:00

@@ -6,3 +6,5 @@ Implement independent show/hide controls for username and password entry in the 
 Read specs/cli/wallet.md and relevant dashboard/input specifications and implementation. Update the Wallet specification to describe the requested deliberate owner reveal exception to currently concealed/write-only entry while preserving exclusion from agent APIs, logs, traces and recordings. Preserve existing credential storage and login behavior. Add the project changelog entry and appropriate focused validation for default masking, independent reveal/conceal, value preservation and no accidental submission. Do not commit manually or add completion stamps.
 TASK ORIGIN Chat {Tasker: The username and password in wallet input theough dashboard — 2026-10-26 23:07:37}
 LINK {Tasker: The username and password in wallet input theough dashboard — 2026-10-26 23:07:37}
+TASK AGENT @Developer
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
