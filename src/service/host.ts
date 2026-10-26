@@ -89,17 +89,16 @@ export class ServiceHost {
             persistent: options.persistent,
             persistenceNote: options.persistenceNote,
             onEvent: options.onEvent,
-            extraTools: (_task, context) => {
-                void this.browsers.useFor(context.trace, context.attempt);
-                return browserTools(this.browsers, context.chats, context.agent, context.onUserChat, () =>
+            // Each task works in its own tabs of the shared browsers, with its own recordings (concurrent tasks too).
+            extraTools: (task, context) => {
+                const scope = this.browsers.scope(task.key);
+                void scope.useFor(context.trace, context.attempt);
+                return browserTools(scope, context.chats, context.agent, context.onUserChat, () =>
                     this.agenda.effectiveSettings.tools.flatMap((tool) => (tool.type === 'BROWSER' && tool.isEnabled ? [{ name: tool.name, description: tool.description, profile: describeProfileSource(tool.profile.source, tool.profile.path), isHeadless: tool.isHeadless }] : [])),
                 );
             },
-            finalizeEvidence: async () => await this.browsers.finishEvidence(),
-            afterWork: async () => {
-                await this.browsers.detach();
-                await this.browsers.taskFinished();
-            },
+            finalizeEvidence: async (task) => await this.browsers.scope(task.key).finishEvidence(),
+            afterWork: async (task) => await this.browsers.endScope(task.key),
             browsers: {
                 primary: () => (this.agenda.effectiveSettings ? this.browsers.primary() : undefined),
                 all: () => (this.agenda.effectiveSettings ? this.browsers.inspectAll() : []),
@@ -107,12 +106,18 @@ export class ServiceHost {
             },
         });
         this.auth = new AuthStore(options.project);
-        this.browsers = new BrowserFleet(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange());
+        this.browsers = new BrowserFleet(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange(), this.instanceId);
     }
 
     /** Engine-owned per-browser diagnosis and recovery shared by every client. */
     private get browserControls(): BrowserControls {
-        return { recheck: (name) => this.browsers.control('recheck', name), retry: (name) => this.browsers.control('retry', name), restart: (name) => this.browsers.control('restart', name) };
+        return {
+            recheck: (name) => this.browsers.control('recheck', name),
+            retry: (name) => this.browsers.control('retry', name),
+            restart: (name) => this.browsers.control('restart', name),
+            kill: (name) => this.browsers.control('kill', name),
+            testTab: (name) => this.browsers.control('test-tab', name),
+        };
     }
 
     /** Local HTTP address, when serving. */
@@ -163,6 +168,21 @@ export class ServiceHost {
                 }
             }
             await this.writeRecord();
+            // Enabled browsers start (or join their profile's shared process) with the engine, not at their first task,
+            // and again when the enabled set changes; a failure is that browser's resource wait, never the engine's.
+            if (this.options.env.PTBK_BROWSER_START !== 'lazy') {
+                let enabled = '';
+                const startBrowsers = (): void => {
+                    const names = this.agenda.effectiveSettings ? this.browsers.enabledNames().join('\n') : '';
+                    if (names === enabled) return;
+                    enabled = names;
+                    void this.browsers.startEnabled();
+                };
+                startBrowsers();
+                this.agenda.onChange(startBrowsers);
+                // Diagnostics follow other engines joining or leaving the shared browsers.
+                this.browsers.watch();
+            }
             // Host-wide discovery (independent of HTTP and of any open dashboard); not a project lock.
             this.unregister = await registerEngine(
                 {
@@ -263,9 +283,9 @@ export class ServiceHost {
         };
         clearInterval(this.pairingRefresh);
         const forced = this.agenda.forceStopped;
-        // Recording evidence is finalized even on force stop (bounded).
-        await bounded(() => this.browsers.detach());
-        this.browsers.close();
+        // Recording evidence is finalized even on force stop (bounded); this engine leaves its shared browsers (a
+        // browser other engines still use stays, the last disconnection closes it).
+        await bounded(() => this.browsers.close());
         this.tunnel?.stop();
         this.tunnel = undefined;
         if (forced) await bounded(() => this.owned.terminateRemaining(1000));

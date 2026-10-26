@@ -12,6 +12,7 @@ import type { Project } from '../project/workspace.js';
 import { lookupService, type ServiceLookup } from './control.js';
 import { recordRunEnded } from './known-projects.js';
 import { terminateOwnedProcesses } from './owned-processes.js';
+import { BrowserPools } from '../browser/pool.js';
 import { registerPersistence, unregisterPersistence, type PersistenceOutcome } from './persistence.js';
 import { discoveryEnvironment, readLaunchMetadata, readProcessRecord, rotateServiceLog, servicePaths, writeLaunchMetadata, type LaunchMetadata, type ProcessRecord } from './records.js';
 
@@ -365,6 +366,7 @@ export async function forceStopEngine(project: Project, options: { readonly expe
         // Nothing runs, but the request is still a deliberate stop, and a crashed engine's owned workers end too.
         await suppress();
         if (owner) await endOwned(owner.instanceId);
+        await new BrowserPools().reconcile().catch(() => undefined);
         return { status: 'not-running', record, owner, killed: false, warnings, message: record ? 'The engine was not running (a stale record was found and ignored).' : 'The engine was not running.' };
     }
     await suppress();
@@ -401,6 +403,8 @@ export async function forceStopEngine(project: Project, options: { readonly expe
         if ((await verifyRecordedProcess(owner.supervisorPid, owner.startedAt)) === 'verified') await killVerifiedProcess(owner.supervisorPid);
     }
     await endOwned(owner.instanceId);
+    // Its shared browsers: the ended engine's connections are dropped; a browser no running engine uses closes.
+    await new BrowserPools().reconcile().catch((error: unknown) => warnings.push(`Shared browsers could not be reconciled: ${errorMessage(error)}.`));
     // A replacement that a pending restart's supervisor already launched belongs to the stopped engine, not a successor.
     const after = await readProcessRecord(project);
     if (depth === 0 && after && after.instanceId !== owner.instanceId && owner.supervisorPid && after.supervisorPid === owner.supervisorPid && isProcessAlive(after.pid)) {

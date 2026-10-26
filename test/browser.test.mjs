@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -10,7 +10,7 @@ import { BrowserFleet } from '../dist/browser/fleet.js';
 import { parseKeyPress, parseModifiers } from '../dist/browser/input.js';
 import { ToolBridge } from '../dist/engine/bridge.js';
 import { readableHarnessLine } from '../dist/engine/task-trace.js';
-import { temporaryDirectory } from './helpers.mjs';
+import { temporaryDirectory, waitFor } from './helpers.mjs';
 
 test('browser keys: named keys, characters and shortcuts become trusted key presses; editing shortcuts work on macOS', () => {
     assert.deepEqual(parseKeyPress('Enter', 'linux'), { key: 'Enter', code: 'Enter', keyCode: 13, text: '\r', modifiers: 0 });
@@ -87,7 +87,9 @@ document.getElementById('start').addEventListener('click', (event) => {
 </script></body></html>`;
 
 test('full browser access: an agent posts through a shadow-DOM rich-text composer, uploads, follows new tabs, scripts the page and drives it over DevTools', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
-    const root = await temporaryDirectory(t, 'ptbk browser');
+    // The browser is closed before its temporary profile is removed.
+    const teardown = [];
+    const root = await temporaryDirectory(t, 'ptbk browser', teardown);
     await mkdir(join(root, '.ptbk', 'tmp'), { recursive: true });
     await writeFile(join(root, 'photo.png'), 'pretend image');
     const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
@@ -97,12 +99,13 @@ test('full browser access: an agent posts through a shadow-DOM rich-text compose
     });
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     const settings = { tools: [{ type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: true }], overriddenTools: new Set() };
-    const fleet = new BrowserFleet(project, () => settings, process.env);
-    t.after(() => {
-        fleet.close();
+    const fleet = new BrowserFleet(project, () => settings, { ...process.env, PTBK_HOME: join(root, 'ptbk home') });
+    teardown.push(async () => {
+        await fleet.close();
+        server.closeAllConnections();
         server.close();
     });
-    const tools = Object.fromEntries(browserTools(fleet, undefined, 'Tester', () => undefined, () => []).map((tool) => [tool.name, tool]));
+    const tools = Object.fromEntries(browserTools(fleet.scope('test task'), undefined, 'Tester', () => undefined, () => []).map((tool) => [tool.name, tool]));
     const call = async (name, input = {}) => {
         const result = await tools[name].handler(input);
         assert.ok(!result.isError, `${name}: ${result.text}`);
@@ -141,4 +144,83 @@ test('full browser access: an agent posts through a shadow-DOM rich-text compose
     assert.match(text, /Posted:/, 'closing the current tab continues in the remaining one');
     ({ text } = await call('browser_navigate', { action: 'reload' }));
     assert.match(text, /Main feed text/);
+});
+
+/**
+ * Whether a process still runs.
+ */
+function alive(pid) {
+    try {
+        process.kill(pid, 0);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+test('shared browser pools: engines share one process per profile, tasks get their own tabs, and the last disconnection closes it', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+    const teardown = [];
+    const root = await temporaryDirectory(t, 'ptbk pool', teardown);
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home') };
+    const profile = join(root, 'shared profile');
+    await mkdir(profile, { recursive: true });
+    const project = async (name) => {
+        const base = join(root, name);
+        await mkdir(join(base, '.ptbk', 'tmp'), { recursive: true });
+        return { root: base, name, runtime: { root: join(base, '.ptbk'), temporary: join(base, '.ptbk', 'tmp'), browserProfile: join(base, '.ptbk', 'browser', 'profile') } };
+    };
+    const server = createServer((request, response) => {
+        response.setHeader('content-type', 'text/html');
+        response.end(`<title>${request.url}</title><p>Page ${request.url}</p>`);
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const url = (path) => `http://127.0.0.1:${server.address().port}${path}`;
+    const settings = { tools: [{ type: 'BROWSER', variant: 'CHROME', name: 'shared', isEnabled: true, profile: { source: 'CUSTOM', path: profile }, isHeadless: true }], overriddenTools: new Set() };
+    const a = new BrowserFleet(await project('alpha'), () => settings, env, () => undefined, 'engine-alpha');
+    const b = new BrowserFleet(await project('beta'), () => settings, env, () => undefined, 'engine-beta');
+    teardown.push(async () => {
+        await a.close();
+        await b.close();
+        server.closeAllConnections();
+        server.close();
+    });
+
+    // Both engines start the enabled browser eagerly: the first launches the process, the second joins it.
+    await Promise.all([a.startEnabled(), b.startEnabled()]);
+    await a.refresh();
+    const [alpha] = a.inspectAll();
+    const [beta] = b.inspectAll();
+    assert.equal(alpha.state, 'running', JSON.stringify(alpha));
+    assert.equal(alpha.pid, beta.pid, 'one browser process for the profile, no matter who started it');
+    assert.equal(alpha.connections.length, 2, 'both engines are connected members of the pool');
+    assert.deepEqual(alpha.connections.map((connection) => connection.self).sort(), [false, true]);
+    const pid = alpha.pid;
+
+    // Concurrent tasks work in their own tabs of the shared process.
+    const [one, two] = await Promise.all([a.scope('task one').acquire(), a.scope('task two').acquire()]);
+    const [pageOne, pageTwo] = await Promise.all([one.open(url('/one')), two.open(url('/two'))]);
+    assert.match(pageOne, /Page \/one/);
+    assert.match(pageTwo, /Page \/two/, 'neither task navigated the other one’s tab');
+    const listing = await two.tabs();
+    const foreign = listing.split('\n').find((line) => line.startsWith('x '));
+    assert.ok(foreign, `the other task's tab is marked as not yours:\n${listing}`);
+    await assert.rejects(two.tab('close', foreign.split(' ')[1]), /belongs to another task/, 'a task never closes another task’s tab');
+    assert.equal(a.inspectAll()[0].tabs.length, 2, 'diagnostics list the task tabs');
+    await a.endScope('task one');
+    assert.doesNotMatch(await two.tabs(), /^x /m, 'a finished task’s tabs are closed');
+
+    // The engine that launched the process leaves: the other keeps working in the same process.
+    await a.close();
+    assert.ok(alive(pid), 'the shared process stays for the remaining engine (no master engine)');
+    await b.refresh();
+    assert.equal(b.inspectAll()[0].connections.length, 1);
+    const three = await b.scope('task three').acquire();
+    assert.match(await three.open(url('/three')), /Page \/three/);
+    assert.equal(b.inspectAll()[0].pid, pid);
+
+    // The last managed disconnection closes the process; its profile stays and nothing is left recorded.
+    await b.close();
+    await waitFor(() => !alive(pid), { timeoutMs: 20_000, message: 'the browser to close after the last disconnection' });
+    assert.ok((await readdir(profile)).length > 0, 'the profile data is kept');
+    assert.deepEqual((await readdir(join(root, 'ptbk home', 'browser-pools')).catch(() => [])).filter((name) => name.endsWith('.json')), []);
 });

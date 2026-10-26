@@ -25,6 +25,8 @@ export type ControlAction =
     | 'browser-recheck'
     | 'browser-retry'
     | 'browser-restart'
+    | 'browser-kill'
+    | 'browser-test-tab'
     | 'sync-now'
     | 'health-recheck'
     | 'health-override'
@@ -48,6 +50,8 @@ export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>([
     'browser-recheck',
     'browser-retry',
     'browser-restart',
+    'browser-kill',
+    'browser-test-tab',
     'sync-now',
     'health-recheck',
     'health-override',
@@ -71,7 +75,12 @@ export type ControlOutcome = { readonly action: string; readonly outcome: string
 export type BrowserControls = {
     readonly recheck: (name?: string) => Promise<ControlOutcome>;
     readonly retry: (name?: string) => Promise<ControlOutcome>;
+    /** Restarts the shared profile process (every connected engine is affected). */
     readonly restart: (name?: string) => Promise<ControlOutcome>;
+    /** Kills the Promptbook-started shared profile process (its data stays; every connected engine is affected). */
+    readonly kill: (name?: string) => Promise<ControlOutcome>;
+    /** Opens https://github.com/ in the actual browser to check that it works. */
+    readonly testTab: (name?: string) => Promise<ControlOutcome>;
 };
 
 /**
@@ -127,10 +136,16 @@ export async function applyControlAction(agenda: Agenda, action: string, params:
         }
         case 'browser-recheck':
         case 'browser-retry':
-        case 'browser-restart': {
+        case 'browser-restart':
+        case 'browser-kill':
+        case 'browser-test-tab': {
             if (!browser) return { action, outcome: 'This process does not own a project browser.', applied: false };
             const name = typeof params.name === 'string' && params.name ? params.name : undefined;
-            return action === 'browser-recheck' ? await browser.recheck(name) : action === 'browser-retry' ? await browser.retry(name) : await browser.restart(name);
+            if (action === 'browser-recheck') return await browser.recheck(name);
+            if (action === 'browser-retry') return await browser.retry(name);
+            if (action === 'browser-restart') return await browser.restart(name);
+            if (action === 'browser-kill') return await browser.kill(name);
+            return await browser.testTab(name);
         }
         default:
             throw new PtbkError(`Unknown control action "${action}".`, { kind: 'usage' });

@@ -1,19 +1,19 @@
-import { spawn, type ChildProcess } from 'node:child_process';
-import { readFile, readlink, rm, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, pathExists } from '../common/fs.js';
-import { shortHash, shortId } from '../common/ids.js';
-import { isProcessAlive, reportSpawnedProcess, terminateProcessTree, which } from '../common/process.js';
+import { shortId } from '../common/ids.js';
+import { which } from '../common/process.js';
 import { MIGRATED_BROWSER_NAME } from '../project/migrations.js';
-import { describeProfileSource, type BrowserToolRecord, type BrowserVariant, type ProfileSource } from '../tools/model.js';
+import { describeProfileSource, type BrowserToolRecord, type BrowserVariant } from '../tools/model.js';
 import type { Project } from '../project/workspace.js';
 import type { BrowserDetailView } from '../engine/snapshot.js';
 import type { ControlOutcome } from '../service/actions.js';
 import { createRedactor } from '../common/redact.js';
 import { promptbookAppData } from '../common/app-data.js';
 import { BrowserRecorder, type ScreencastPort } from './recording.js';
+import { BrowserPools, profileOwnerPid, type PoolRecord } from './pool.js';
 import { parseKeyPress, type KeyPress } from './input.js';
 import {
     MAX_PAGE_TEXT,
@@ -75,11 +75,6 @@ const MAX_SCREENSHOT_HEIGHT = 16_000;
  * Pressed-button bit of each mouse button in DevTools mouse events.
  */
 const MOUSE_BUTTONS = { left: 1, right: 2, middle: 4 } as const;
-
-/**
- * How long Chrome may take to expose its DevTools endpoint.
- */
-const STARTUP_TIMEOUT_MS = 30_000;
 
 /**
  * Bounded automatic launch attempts before a failure becomes a visible blocker.
@@ -167,51 +162,11 @@ export function browserProfileDirectory(project: Project, tool: Pick<BrowserTool
 }
 
 /**
- * Whether a profile source is shared beyond this project (claimed per profile across projects, released after tasks).
- */
-function isSharedSource(source: ProfileSource): boolean {
-    return source !== 'PROJECT';
-}
-
-/**
- * Cross-project ownership of a shared profile: one project's automation at a time (`<app data>/locks/`).
- *
- * Returns a release function, or the PID of the live owner when another process holds it.
- */
-async function claimProfile(profileDirectory: string, project: Project, env: NodeJS.ProcessEnv): Promise<{ release: () => Promise<void> } | { owner: number; project?: string }> {
-    const directory = await ensureDirectory(join(promptbookAppData(env), 'locks'));
-    const path = join(directory, `browser-${shortHash(profileDirectory, 16)}.json`);
-    for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-            await writeFile(path, JSON.stringify({ pid: process.pid, project: project.root, profile: profileDirectory, at: new Date().toISOString() }), { flag: 'wx' });
-            return { release: async () => await rm(path, { force: true }) };
-        } catch {
-            const holder = await readFile(path, 'utf8')
-                .then((text) => JSON.parse(text) as { pid?: number; project?: string })
-                .catch(() => undefined);
-            if (holder?.pid === process.pid) return { release: async () => await rm(path, { force: true }) };
-            if (holder?.pid && isProcessAlive(holder.pid)) return { owner: holder.pid, project: holder.project };
-            // A stale claim of a process that no longer runs is removed, never a live one.
-            await rm(path, { force: true });
-        }
-    }
-    return { owner: -1 };
-}
-
-/**
- * Checks whether another browser process currently owns a profile (Chrome's singleton lock).
+ * Checks whether a browser process currently holds a profile (Chrome's singleton lock).
  *
  * @private project browser
  */
-export async function profileOwner(profileDirectory: string): Promise<number | undefined> {
-    try {
-        const target = await readlink(join(profileDirectory, 'SingletonLock'));
-        const pid = Number(target.split('-').pop());
-        return isProcessAlive(pid) ? pid : undefined;
-    } catch {
-        return undefined;
-    }
-}
+export const profileOwner = profileOwnerPid;
 
 /**
  * Whether a graphical display is available for a visible window.
@@ -368,14 +323,14 @@ class CdpConnection {
 }
 
 /**
- * Observed health of the project browser (engine-owned diagnosis and recovery; never inferred from configuration).
+ * Observed health of one named browser's connection (engine-owned diagnosis and recovery; never inferred from
+ * configuration).
  *
  * @private project browser
  */
 export type BrowserHealth = {
     state: BrowserDetailView['state'];
     checkedAt?: string;
-    pid?: number;
     profilePath?: string;
     actualMode?: 'headless' | 'headful';
     executable?: string;
@@ -398,36 +353,29 @@ export type BrowserTarget = {
 };
 
 /**
- * One named browser tool of the project: one profile and one automation owner at a time, shared by the project's
- * agents. A launched process keeps the configuration it was acquired with (retained use) until the task that uses
- * it releases it; later selections see the new saved configuration.
+ * One named browser tool of this engine: its connection to the shared browser process of the tool's actual profile
+ * (a [browser pool](pool.ts) that other project engines may use too) and the tabs of this engine's active tasks. The
+ * engine connects eagerly at startup; pause keeps the connection; stopping disconnects only this engine (the last
+ * managed disconnection closes the process). Restart and kill act on the shared process and so on every connected
+ * engine. A connection keeps the configuration it was made with while tasks use it (retained use).
  *
  * @private project browser
  */
 export class ProjectBrowser {
-    private child?: ChildProcess;
-    /** Release of the cross-project claim of a shared profile. */
-    private releaseClaim?: () => Promise<void>;
     private connection?: CdpConnection;
-    /** Session of the page (tab) the agent currently works in. */
-    private sessionId?: string;
-    /** Target of that page. */
-    private targetId?: string;
-    /** Local DevTools endpoint of the running browser (shared with the agent that holds it). */
-    private devtools?: { readonly port: number; readonly webSocket: string };
+    /** The pool record this connection was made through (process, endpoint, actual mode). */
+    private record?: PoolRecord;
+    /** Profile directory of the current connection. */
+    private connectedProfile?: string;
     private note?: string;
-    /** Configuration the running process was launched with (retained while a task uses it). */
-    private launchedWith?: BrowserToolRecord;
-    /** A launch in progress (concurrent automatic/manual starts share it: never two owners). */
-    private launching?: Promise<{ connection: CdpConnection; sessionId: string }>;
-    /** The current task used the browser (a restart waits for the task boundary). */
-    private usedByTask = false;
-    /** A manual restart waits for the current task to release the browser. */
-    private pendingRestart = false;
+    /** Configuration the connection was made with (retained while tasks use it). */
+    private connectedWith?: BrowserToolRecord;
+    /** A connection in progress (concurrent automatic/manual attempts share it). */
+    private connecting?: Promise<CdpConnection>;
     /** Observed health, diagnostics and recovery. */
     private health: BrowserHealth = { state: 'not-started', ownership: { state: 'unknown' }, recovery: { attempts: 0, state: 'idle' } };
-    /** Task-linked recording of browser activity (`traces/<task-file-basename>/video/`). */
-    public readonly recorder: BrowserRecorder;
+    /** Tabs of this engine's active tasks, by task scope. */
+    private readonly sessions = new Map<string, TaskBrowser>();
 
     public constructor(
         private readonly project: Project,
@@ -437,27 +385,53 @@ export class ProjectBrowser {
         private readonly env: NodeJS.ProcessEnv,
         /** Publishes health changes to every view. */
         private readonly onChange: () => void = () => undefined,
-        recordingEnabled: () => boolean = () => true,
-    ) {
-        this.recorder = new BrowserRecorder(project, recordingEnabled, env);
-    }
+        private readonly recordingEnabled: () => boolean = () => true,
+        private readonly pools: BrowserPools = new BrowserPools(env),
+        /** This engine's identity in the pool. */
+        private readonly instanceId: string = `pid-${process.pid}`,
+    ) {}
 
-    /** Configuration of the next use: the retained one while a task holds the process, otherwise the saved one. */
+    /** Configuration of the next use: the retained one while tasks use the connection, otherwise the saved one. */
     private config(): BrowserToolRecord | undefined {
-        if (this.child && this.usedByTask && this.launchedWith) return this.launchedWith;
+        if (this.connection && this.sessions.size && this.connectedWith) return this.connectedWith;
         return this.target()?.tool;
     }
 
-    /** Whether a task currently holds this browser. */
+    /** Whether active tasks of this engine use this browser. */
     public get inUse(): boolean {
-        return this.usedByTask && Boolean(this.child);
+        return this.sessions.size > 0;
     }
 
-    /** Whether the running process still uses a configuration that was changed, disabled or removed meanwhile. */
+    /** Whether the connection still uses a configuration that was changed, disabled or removed meanwhile. */
     public get retained(): boolean {
-        if (!this.child || !this.launchedWith) return false;
+        if (!this.connection || !this.connectedWith) return false;
         const saved = this.target()?.tool;
-        return !saved || !saved.isEnabled || JSON.stringify(saved) !== JSON.stringify(this.launchedWith);
+        return !saved || !saved.isEnabled || JSON.stringify(saved) !== JSON.stringify(this.connectedWith);
+    }
+
+    /** Re-reads the shared process's pool record (other engines joining or leaving) for diagnostics. */
+    public async refreshPool(): Promise<void> {
+        if (!this.connection || !this.connectedProfile) return;
+        const record = await this.pools.read(this.connectedProfile).catch(() => undefined);
+        if (record && record.pid === this.record?.pid) {
+            this.record = record;
+            this.onChange();
+        }
+    }
+
+    /** Whether this engine is connected. */
+    public get connected(): boolean {
+        return Boolean(this.connection);
+    }
+
+    /** The headless-fallback note shown with page readings. */
+    public get modeNote(): string | undefined {
+        return this.note;
+    }
+
+    /** The DevTools endpoint of the shared process. */
+    public get devtools(): { readonly port: number; readonly webSocket: string } | undefined {
+        return this.record ? { port: this.record.port, webSocket: this.record.webSocket } : undefined;
     }
 
     /** Updates the observed health and notifies the views. */
@@ -475,7 +449,8 @@ export class ProjectBrowser {
 
     /**
      * The browser as the engine sees it: effective profile source and resolved path, requested/actual mode, health,
-     * ownership, last failure and recovery. A profile path is diagnostic data, never permission to read its contents.
+     * the engines connected to the shared process, this engine's task tabs, the last failure and recovery. A profile
+     * path is diagnostic data, never permission to read its contents.
      */
     public inspect(): BrowserDetailView {
         const target = this.target();
@@ -494,22 +469,22 @@ export class ProjectBrowser {
             savedProfile: target?.overridden ? 'overridden for this process (command-line flags); the saved tool stays in ptbk.json' : undefined,
             pending: retained
                 ? saved
-                    ? `The current task keeps using the configuration it acquired; the saved change${savedPath && savedPath !== profilePath ? ` (profile ${savedPath})` : ''} applies after it releases the browser.`
-                    : 'This tool was disabled or removed; the current task finishes with it, no new selection uses it.'
-                : this.pendingRestart
-                  ? 'A browser restart waits for the current task to release the browser.'
-                  : undefined,
+                    ? `Active tasks keep using the configuration they acquired; the saved change${savedPath && savedPath !== profilePath ? ` (profile ${savedPath})` : ''} applies once they release the browser.`
+                    : 'This tool was disabled or removed; the active tasks finish with it, no new selection uses it.'
+                : undefined,
             retained: retained || undefined,
             inUse: this.inUse || undefined,
-            mode: { requested: effective?.isHeadless === false ? 'headful' : 'headless', actual: this.child ? this.health.actualMode : undefined, note: this.note },
+            mode: { requested: effective?.isHeadless === false ? 'headful' : 'headless', actual: this.connection ? this.health.actualMode : undefined, note: this.note },
             executable: this.health.executable,
             state: this.health.state,
-            pid: this.child?.pid,
+            pid: this.connection ? this.record?.pid : undefined,
             ownership: this.health.ownership,
             lastFailure: this.health.lastFailure,
             recovery: this.health.recovery,
             lastAction: this.health.lastAction,
             checkedAt: this.health.checkedAt,
+            ...(this.record && this.connection ? { connections: Object.values(this.record.connections).map((connection) => ({ project: connection.project, instanceId: connection.instanceId, since: connection.since, self: connection.instanceId === this.instanceId })) } : {}),
+            ...(this.sessions.size ? { tabs: [...this.sessions.values()].map((session) => ({ task: session.scope, url: session.url })) } : {}),
         };
     }
 
@@ -520,8 +495,8 @@ export class ProjectBrowser {
     }
 
     /**
-     * Diagnostic recheck (no launch, no change): browser executable, profile existence and ownership, and the live
-     * connection when the browser runs.
+     * Diagnostic recheck (no launch, no change): browser executable, profile, the shared process and its connected
+     * engines, a browser Promptbook did not start holding the profile, and this engine's live connection.
      */
     public async recheck(): Promise<ControlOutcome> {
         const tool = this.config();
@@ -533,163 +508,139 @@ export class ProjectBrowser {
         const source = tool.profile.source;
         const exists = await pathExists(profile);
         findings.push(exists ? `profile ${profile}` : source === 'USER_EXISTING' || source === 'CUSTOM' ? `profile ${profile} does not exist` : `profile ${profile} is created on first use`);
-        const holder = this.child ? undefined : await profileOwner(profile);
-        const ownership: BrowserDetailView['ownership'] = this.child ? { state: 'owned' } : holder ? { state: 'busy', holder: `browser PID ${holder}` } : { state: 'free' };
-        if (holder) findings.push(`profile in use by browser PID ${holder}`);
+        const record = await this.pools.read(profile);
+        const holder = await profileOwnerPid(profile);
+        const external = holder && holder !== record?.pid ? holder : undefined;
+        if (record) findings.push(`shared process PID ${record.pid} with ${Object.keys(record.connections).length} connected engine(s)`);
+        if (external) findings.push(`profile in use by a browser Promptbook did not start (PID ${external})`);
+        const ownership: BrowserDetailView['ownership'] = this.connection ? { state: 'owned' } : external ? { state: 'busy', holder: `browser PID ${external}` } : { state: 'free' };
         let state = this.health.state;
         if (this.connection) {
             try {
-                await Promise.race([this.connection.send('Browser.getVersion'), new Promise((_, reject) => setTimeout(() => reject(new Error('no answer within 5 s')), 5000))]);
+                await withTimeout(this.connection.send('Browser.getVersion'), 5000, 'The browser');
                 state = 'running';
                 findings.push('connection healthy');
             } catch (error) {
                 this.connectionLost(`The browser stopped answering: ${errorMessage(error)}`);
                 state = 'failed';
-                findings.push('connection lost (the next use relaunches it)');
+                findings.push('connection lost (the next use reconnects)');
             }
         } else if (state === 'running') state = 'stopped';
         this.setHealth({ state, executable: executable ?? undefined, ownership });
-        const healthy = Boolean(executable) && (exists || source === 'MANAGED_GLOBAL' || source === 'PROJECT') && !holder && state !== 'failed';
+        const healthy = Boolean(executable) && (exists || source === 'MANAGED_GLOBAL' || source === 'PROJECT') && !external && state !== 'failed';
         return this.acted('recheck', healthy ? 'succeeded' : 'failed', `${healthy ? 'Browser diagnostics OK' : 'Browser problem found'}: ${findings.join('; ')}.`);
     }
 
-    /** Retries browser startup now (sharing any launch already in progress); a shared profile is released again when idle. */
+    /** Connects (or retries connecting) now, sharing an attempt already in progress. */
     public async retry(): Promise<ControlOutcome> {
-        if (this.connection && this.sessionId) return this.acted('retry', 'succeeded', `The browser "${this.name}" is already running.`);
+        if (this.connection) return this.acted('retry', 'succeeded', `The browser "${this.name}" is already connected.`);
         this.setHealth({ recovery: { ...this.health.recovery, attempts: 0, state: 'retrying' } });
         try {
-            await this.ensure();
+            await this.connect();
         } catch (error) {
             return this.acted('retry', 'failed', `Startup failed: ${errorMessage(error)}`);
         }
-        if (!this.usedByTask) this.releaseShared();
-        return this.acted('retry', 'succeeded', this.child ? `The browser "${this.name}" started.` : `The browser "${this.name}" started successfully and was released again (shared profile, no task needs it now).`);
+        return this.acted('retry', 'succeeded', `The browser "${this.name}" is connected.`);
     }
 
     /**
-     * Restarts only this project's own browser process, preserving the selected profile and its sessions. While a task
-     * uses the browser the restart waits for that task's boundary instead of breaking its work.
+     * Restarts the shared browser process with the same profile (its data and sessions stay). It affects every engine
+     * connected to it: their task tabs end and they reconnect at their next use; uncertain website effects are never
+     * replayed.
      */
     public async restart(): Promise<ControlOutcome> {
-        if (this.usedByTask) {
-            this.pendingRestart = true;
-            return this.acted('restart', 'deferred', 'The current task is using the browser; the restart happens when it finishes.');
-        }
-        return await this.restartNow();
-    }
-
-    /** Performs a restart at a safe boundary. */
-    private async restartNow(): Promise<ControlOutcome> {
-        this.pendingRestart = false;
-        const wasRunning = Boolean(this.child);
-        this.close();
-        const shared = isSharedSource(this.config()?.profile.source ?? 'MANAGED_GLOBAL');
-        if (shared) return this.acted('restart', 'succeeded', wasRunning ? `Closed the browser "${this.name}"; the next use starts it again with the same profile.` : 'The browser was not running; the next use starts it with the same profile.');
+        const tool = this.config();
+        if (!tool) return this.acted('restart', 'failed', `The browser tool "${this.name}" is no longer configured.`);
+        const profile = browserProfileDirectory(this.project, tool, this.env);
+        const tabs = this.sessions.size;
         try {
-            await this.ensure();
-            return this.acted('restart', 'succeeded', `Restarted the browser "${this.name}" with the same profile.`);
+            const restarted = await this.pools.restart(profile);
+            if (!restarted.record) {
+                await this.connect();
+                return this.acted('restart', 'succeeded', `The browser "${this.name}" was not running; it is started now.`);
+            }
+            this.dropConnection('The browser was restarted.');
+            await this.connect();
+            const others = restarted.affected.filter((connection) => connection.instanceId !== this.instanceId).map((connection) => connection.project);
+            return this.acted('restart', 'succeeded', `Restarted the browser "${this.name}" with the same profile${others.length ? `; also affected: ${others.join(', ')}` : ''}${tabs ? `; ${tabs} task tab(s) here continue in new tabs` : ''}.`);
         } catch (error) {
+            this.recordFailure(error);
             return this.acted('restart', 'failed', `The browser did not start again: ${errorMessage(error)}`);
         }
     }
 
     /**
-     * After a task: performs a deferred restart, ends a retained use of a changed/disabled/removed configuration and
-     * releases a shared profile.
+     * Kills the shared browser process Promptbook launched for this profile (its data stays). Every connected engine
+     * loses its tabs and reconnects at its next use under the ordinary retry policy. A browser Promptbook did not start
+     * is never killed.
      */
-    public async taskFinished(): Promise<void> {
-        const retained = this.retained;
-        this.usedByTask = false;
-        if (this.pendingRestart) await this.restartNow().catch(() => undefined);
-        if (retained) this.close();
-        this.releaseShared();
+    public async kill(): Promise<ControlOutcome> {
+        const tool = this.config();
+        if (!tool) return this.acted('kill', 'failed', `The browser tool "${this.name}" is no longer configured.`);
+        const profile = browserProfileDirectory(this.project, tool, this.env);
+        const killed = await this.pools.kill(profile);
+        this.dropConnection('The browser was killed.');
+        this.setHealth({ state: 'stopped', ownership: { state: 'free' } });
+        const others = killed.affected.filter((connection) => connection.instanceId !== this.instanceId).map((connection) => connection.project);
+        if (!killed.killed) return this.acted('kill', 'succeeded', `No Promptbook-started browser process was running for "${this.name}".`);
+        return this.acted('kill', 'succeeded', `Killed the browser "${this.name}" (its profile is kept)${others.length ? `; also affected: ${others.join(', ')}` : ''}. The next use starts it again.`);
     }
 
-    /** Handles a lost connection: stops only this project's browser process; the next use relaunches it. */
-    private connectionLost(reason: string): void {
-        this.navigationListener?.();
-        this.navigationListener = undefined;
-        this.connection = undefined;
-        this.sessionId = undefined;
-        this.targetId = undefined;
-        this.devtools = undefined;
-        if (this.child) terminateProcessTree(this.child);
-        this.child = undefined;
-        void this.releaseProfile();
-        this.recordFailure(new PtbkError(`The connection to the browser "${this.name}" was lost.`, { kind: 'technical', reason }));
-        this.setHealth({ state: 'failed', recovery: { ...this.health.recovery, state: 'retrying' } });
-    }
-
-    /** Unsubscribes the page-transition listener of the current connection. */
-    private navigationListener?: () => void;
-
-    /** Ensures the browser runs and recording of the attached task has begun. */
-    private async active(): Promise<{ connection: CdpConnection; sessionId: string }> {
-        const target = await this.ensure();
-        this.usedByTask = true;
-        // Page transitions (including link clicks and redirects) are listed with the recording segment.
-        // Recording and page transitions follow the tab the agent currently works in.
-        this.navigationListener ??= target.connection.on((message) => {
-            if (message.method !== 'Page.frameNavigated' || message.sessionId !== this.sessionId) return;
-            const frame = (message.params as { frame?: { parentId?: string; url?: string } }).frame;
-            if (frame && !frame.parentId && frame.url && frame.url !== 'about:blank') this.recorder.visited(frame.url);
-        });
-        const port: ScreencastPort = {
-            send: (method, params) => target.connection.send(method, params ?? {}, this.sessionId),
-            onFrame: (listener) =>
-                target.connection.on((message) => {
-                    if (message.method !== 'Page.screencastFrame' || message.sessionId !== this.sessionId) return;
-                    const params = message.params as { data: string; sessionId: number; metadata?: { timestamp?: number } };
-                    listener({ data: params.data, sessionId: params.sessionId, timestamp: params.metadata?.timestamp });
-                }),
-        };
-        await this.recorder.begin(port);
-        return target;
+    /** Opens https://github.com/ in the actual shared browser to show that it works (a visible window keeps the tab). */
+    public async testTab(): Promise<ControlOutcome> {
+        try {
+            const connection = await this.connect();
+            const targetId = String((await connection.send('Target.createTarget', { url: 'https://github.com/' })).targetId);
+            const deadline = Date.now() + 20_000;
+            let page: BrowserTab | undefined;
+            while (Date.now() < deadline) {
+                page = (await listPages(connection)).find((candidate) => candidate.targetId === targetId);
+                if (page && page.title && !page.title.startsWith('https://')) break;
+                await delay(500);
+            }
+            if (this.health.actualMode === 'headless') await connection.send('Target.closeTarget', { targetId }).catch(() => undefined);
+            return this.acted('test-tab', 'succeeded', `Opened https://github.com/ in the browser "${this.name}"${page?.title ? `: "${page.title}"` : ''}${this.health.actualMode === 'headless' ? ' (headless; the tab was closed again)' : ' (the tab stays open in its window)'}.`);
+        } catch (error) {
+            return this.acted('test-tab', 'failed', `The test tab could not be opened: ${errorMessage(error)}`);
+        }
     }
 
     /**
-     * Launches (or reuses) the browser and attaches to one page. A technical launch failure is retried automatically
-     * within a bound; concurrent callers share one launch, so automatic and manual recovery never start two owners.
+     * Connects this engine to the profile's shared browser (joining a running one, or launching it) with bounded
+     * automatic recovery; concurrent callers share one attempt.
      */
-    private async ensure(): Promise<{ connection: CdpConnection; sessionId: string }> {
-        if (this.connection && this.sessionId) return { connection: this.connection, sessionId: this.sessionId };
-        // A running browser whose working tab was closed continues in another tab instead of relaunching.
-        const connection = this.connection;
-        this.launching ??= (connection ? this.reattach(connection) : this.launchWithRecovery()).finally(() => {
-            this.launching = undefined;
+    public async connect(): Promise<CdpConnection> {
+        if (this.connection) return this.connection;
+        this.connecting ??= this.connectWithRecovery().finally(() => {
+            this.connecting = undefined;
         });
-        return await this.launching;
+        return await this.connecting;
     }
 
-    /** Continues in some open tab of the running browser (a new blank one when none is left). */
-    private async reattach(connection: CdpConnection): Promise<{ connection: CdpConnection; sessionId: string }> {
-        return { connection, sessionId: await this.attachPage(connection, await this.anyPage(connection)) };
-    }
-
-    /** Bounded automatic launch recovery with recorded attempts, causes and next retry. */
-    private async launchWithRecovery(): Promise<{ connection: CdpConnection; sessionId: string }> {
+    /** Bounded automatic connection recovery with recorded attempts, causes and next retry. */
+    private async connectWithRecovery(): Promise<CdpConnection> {
         for (let attempt = 1; ; attempt++) {
             this.setHealth({ state: this.health.lastFailure ? 'recovering' : 'starting', recovery: { ...this.health.recovery, attempts: attempt - 1 } });
             try {
-                const target = await this.launchOnce();
+                const connection = await this.connectOnce();
                 this.setHealth({ state: 'running', ownership: { state: 'owned' }, recovery: { attempts: 0, state: 'idle' } });
-                return target;
+                return connection;
             } catch (error) {
                 this.recordFailure(error);
                 const kind = error instanceof PtbkError ? error.details.kind : 'technical';
                 if (kind !== 'technical' || attempt >= LAUNCH_ATTEMPTS) {
-                    this.setHealth({ state: 'failed', recovery: { attempts: attempt, state: 'blocked', blocker: kind === 'conflict' ? 'The profile is in use by another owner; ptbk retries when a task needs the browser.' : kind === 'technical' ? `Startup failed ${attempt} times; the next task use retries.` : 'Needs setup: see the last failure.' } });
+                    this.setHealth({ state: 'failed', recovery: { attempts: attempt, state: 'blocked', blocker: kind === 'conflict' ? 'The profile is held by a browser Promptbook did not start; ptbk retries when a task needs the browser.' : kind === 'technical' ? `Startup failed ${attempt} times; the next task use retries.` : 'Needs setup: see the last failure.' } });
                     throw error;
                 }
-                const delay = LAUNCH_RETRY_MS * 2 ** (attempt - 1);
-                this.setHealth({ state: 'recovering', recovery: { attempts: attempt, state: 'retrying', nextRetryAt: new Date(Date.now() + delay).toISOString() } });
-                await new Promise((resolve) => setTimeout(resolve, delay));
+                const wait = LAUNCH_RETRY_MS * 2 ** (attempt - 1);
+                this.setHealth({ state: 'recovering', recovery: { attempts: attempt, state: 'retrying', nextRetryAt: new Date(Date.now() + wait).toISOString() } });
+                await delay(wait);
             }
         }
     }
 
-    /** One launch attempt of the configured browser and profile. */
-    private async launchOnce(): Promise<{ connection: CdpConnection; sessionId: string }> {
+    /** One connection attempt to the configured profile's shared browser. */
+    private async connectOnce(): Promise<CdpConnection> {
         const tool = this.target()?.tool;
         if (!tool) throw new PtbkError(`The browser tool "${this.name}" is not configured.`, { kind: 'configuration', next: ['Add a browser with `ptbk tool add BROWSER …`.'] });
         if (!tool.isEnabled) throw new PtbkError(`The browser tool "${this.name}" is disabled.`, { kind: 'configuration', next: [`Enable it: ptbk tool enable ${this.name}`] });
@@ -702,84 +653,196 @@ export class ProjectBrowser {
             // An existing profile is reused as it is; it is never created, copied or migrated implicitly.
             if (!(await pathExists(profile))) throw new PtbkError(`The selected browser profile ${profile} does not exist.`, { kind: 'configuration', next: [`Choose another profile: ptbk tool modify ${this.name} --profile-source MANAGED_GLOBAL|PROJECT|USER_EXISTING|CUSTOM [--profile-path <path>]`] });
         } else await ensureDirectory(profile);
-        this.launchedWith = tool;
-        if (isSharedSource(source)) {
-            let claim = await claimProfile(profile, this.project, this.env);
-            for (let attempt = 0; 'owner' in claim && attempt < 10; attempt++) {
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-                claim = await claimProfile(profile, this.project, this.env);
-            }
-            if ('owner' in claim) {
-                this.setHealth({ ownership: { state: 'busy', holder: `${claim.project ? `project ${claim.project}, ` : ''}PID ${claim.owner}` } });
-                throw new PtbkError(`The shared browser profile is in use by another Promptbook project${claim.project ? ` (${claim.project})` : ''}.`, {
-                    kind: 'conflict',
-                    reason: `One project automates a shared profile at a time; PID ${claim.owner} holds ${profile}.`,
-                    next: ['The other project releases it after its current task; ptbk retries later. Choose an isolated profile to avoid waiting.'],
-                });
-            }
-            this.releaseClaim = claim.release;
-        }
-        let owner = await profileOwner(profile);
-        // Ownership is often transient (a browser still shutting down): recheck briefly before involving a person.
-        for (let attempt = 0; owner && attempt < 10; attempt++) {
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            owner = await profileOwner(profile);
-        }
-        if (owner) {
-            await this.releaseProfile();
-            this.setHealth({ ownership: { state: 'busy', holder: `browser PID ${owner}` } });
-            throw new PtbkError(`The browser profile ${profile} is in use by another browser (PID ${owner}).`, {
-                kind: 'conflict',
-                next: [`Close that browser to hand the profile over, or choose another profile (ptbk tool modify ${this.name} --profile-source …).`],
-            });
-        }
         let headless = tool.isHeadless;
+        this.note = undefined;
         if (!headless && !hasDisplay(this.env)) {
             headless = true;
             this.note = 'No display is available on this host, so the browser runs headless (no window was shown).';
         }
-        const activePortFile = join(profile, 'DevToolsActivePort');
-        await writeFile(activePortFile, '').catch(() => undefined);
         // A headless browser gets a desktop-sized window, so websites show the layout a person at a desktop sees.
-        const args = [`--user-data-dir=${profile}`, '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', ...(headless ? ['--headless=new', `--window-size=${HEADLESS_WINDOW_SIZE}`] : []), 'about:blank'];
-        this.health = { ...this.health, actualMode: headless ? 'headless' : 'headful' };
+        const args = ['--no-first-run', '--no-default-browser-check', '--disable-background-networking', ...(headless ? ['--headless=new', `--window-size=${HEADLESS_WINDOW_SIZE}`] : []), 'about:blank'];
+        const { record, launched } = await this.pools.connect({ profile, executable, headless, args, project: this.project.root, instanceId: this.instanceId });
+        if (record.headless !== headless) this.note = `The shared browser already runs ${record.headless ? 'headless' : 'with a visible window'} for other projects; it keeps that mode until it restarts.`;
+        let connection: CdpConnection;
         try {
-            return await this.launch(executable, args, activePortFile, headless);
+            connection = await CdpConnection.open(record.webSocket);
         } catch (error) {
-            // A browser that did not come up is stopped and a shared profile is released again.
-            this.close();
-            throw error;
+            await this.pools.disconnect(profile, this.instanceId).catch(() => undefined);
+            throw new PtbkError('The shared browser did not accept the connection.', { kind: 'technical', reason: errorMessage(error) });
         }
-    }
-
-    /** Starts the browser process and attaches to one page. */
-    private async launch(executable: string, args: readonly string[], activePortFile: string, headless: boolean): Promise<{ connection: CdpConnection; sessionId: string }> {
-        this.child = spawn(executable, args, { stdio: 'ignore', windowsHide: headless, detached: process.platform !== 'win32' });
-        reportSpawnedProcess(this.child, { group: process.platform !== 'win32', label: 'browser' });
-        this.child.unref();
-        const deadline = Date.now() + STARTUP_TIMEOUT_MS;
-        let port: number | undefined;
-        while (Date.now() < deadline && !port) {
-            const content = await readFile(activePortFile, 'utf8').catch(() => '');
-            const value = Number(content.split('\n')[0]);
-            if (value > 0) port = value;
-            else await new Promise((resolve) => setTimeout(resolve, 200));
-        }
-        if (!port) throw new PtbkError('The browser did not start in time.', { kind: 'technical', reason: `No DevTools port appeared in ${activePortFile} within ${STARTUP_TIMEOUT_MS / 1000}s.` });
-        const version = (await (await fetch(`http://127.0.0.1:${port}/json/version`)).json()) as { webSocketDebuggerUrl: string };
-        const connection = await CdpConnection.open(version.webSocketDebuggerUrl);
-        connection.onClose(() => this.connectionLost('The browser process exited or closed its DevTools connection.'));
-        // The working tab may be closed by the website, the agent or a person; the next use continues in another tab.
+        connection.onClose(() => this.connectionLost('The browser process exited or closed its DevTools connection (for example a restart or kill from another project).'));
+        // A task's working tab may be closed by the website, the agent or a person; that task continues in another one.
         connection.on((message) => {
-            if (message.method === 'Target.detachedFromTarget' && (message.params as { sessionId?: string }).sessionId === this.sessionId) {
-                this.sessionId = undefined;
-                this.targetId = undefined;
-            }
+            if (message.method !== 'Target.detachedFromTarget') return;
+            const sessionId = (message.params as { sessionId?: string }).sessionId;
+            for (const session of this.sessions.values()) session.detached(sessionId);
         });
         this.connection = connection;
-        this.devtools = { port, webSocket: version.webSocketDebuggerUrl };
-        const sessionId = await this.attachPage(connection, await this.anyPage(connection));
-        return { connection, sessionId };
+        this.record = record;
+        this.connectedProfile = profile;
+        this.connectedWith = tool;
+        this.health = { ...this.health, actualMode: record.headless ? 'headless' : 'headful' };
+        if (launched) this.note ??= undefined;
+        return connection;
+    }
+
+    /** Forgets the connection and every task tab of it (the shared process itself is not touched). */
+    private dropConnection(reason: string): void {
+        this.connection?.close();
+        this.connection = undefined;
+        this.record = undefined;
+        for (const session of this.sessions.values()) session.reset(reason);
+    }
+
+    /** Handles a lost connection: task tabs end, the next use reconnects (relaunching the process if needed). */
+    private connectionLost(reason: string): void {
+        this.connection = undefined;
+        this.record = undefined;
+        for (const session of this.sessions.values()) session.reset(reason);
+        this.recordFailure(new PtbkError(`The connection to the browser "${this.name}" was lost.`, { kind: 'technical', reason }));
+        this.setHealth({ state: 'failed', recovery: { ...this.health.recovery, state: 'retrying' } });
+    }
+
+    /** The working tabs of one task (created on first use; each task has its own). */
+    public session(scope: string): TaskBrowser {
+        let session = this.sessions.get(scope);
+        if (!session) {
+            session = new TaskBrowser(this, scope, this.project, this.recordingEnabled, this.env);
+            this.sessions.set(scope, session);
+            this.onChange();
+        }
+        return session;
+    }
+
+    /** Ids of tabs other active tasks of this engine work in (never closed or taken over by a task). */
+    public tabsOfOthers(scope: string): Set<string> {
+        const tabs = new Set<string>();
+        for (const session of this.sessions.values()) if (session.scope !== scope) for (const tab of session.ownTabs) tabs.add(tab);
+        return tabs;
+    }
+
+    /**
+     * After a task: its tabs close (the browser stays connected for others) and a connection that kept a changed,
+     * disabled or removed configuration ends once no task uses it.
+     */
+    public async endSession(scope: string): Promise<void> {
+        const session = this.sessions.get(scope);
+        if (!session) return;
+        this.sessions.delete(scope);
+        await session.release();
+        if (!this.sessions.size && this.retained) await this.disconnect();
+        this.onChange();
+    }
+
+    /** Disconnects this engine from the shared browser; the process closes when it was the last managed connection. */
+    public async disconnect(): Promise<void> {
+        const profile = this.connectedProfile;
+        const lastKnown = this.record;
+        const wasConnected = Boolean(this.connection);
+        this.dropConnection('This engine disconnected from the browser.');
+        this.sessions.clear();
+        this.connectedProfile = undefined;
+        if (profile) await this.pools.disconnect(profile, this.instanceId, lastKnown).catch(() => undefined);
+        if (wasConnected) this.setHealth({ state: 'stopped', ownership: { state: 'free' } });
+    }
+}
+
+/**
+ * The open pages (tabs) of a browser connection.
+ */
+async function listPages(connection: CdpConnection): Promise<BrowserTab[]> {
+    const targets = (await connection.send('Target.getTargets')).targetInfos as Array<BrowserTab & { type: string }>;
+    return targets.filter((target) => target.type === 'page' && !target.url.startsWith('devtools://')).map(({ targetId, title, url }) => ({ targetId, title, url }));
+}
+
+/**
+ * One task's work in a named browser: its own tabs in the shared process (independent tasks work concurrently, never in
+ * each other's tabs), its recording and every page action an agent performs. Tabs are separate, cookies and accounts
+ * are not: the profile's sessions are shared.
+ *
+ * @private project browser
+ */
+export class TaskBrowser {
+    /** Session of the tab the agent currently works in. */
+    private sessionId?: string;
+    /** Target of that tab. */
+    private targetId?: string;
+    /** Tabs this task opened (or that its actions opened). */
+    public readonly ownTabs = new Set<string>();
+    /** Unsubscribes the page-transition listener. */
+    private navigationListener?: () => void;
+    /** Task-linked recording of this task's tabs (`traces/<task-file-basename>/video/`). */
+    public readonly recorder: BrowserRecorder;
+    /** URL the task works on (diagnostics). */
+    public url?: string;
+
+    public constructor(
+        private readonly browser: ProjectBrowser,
+        /** The task scope (one per active task run). */
+        public readonly scope: string,
+        private readonly project: Project,
+        recordingEnabled: () => boolean,
+        env: NodeJS.ProcessEnv,
+    ) {
+        this.recorder = new BrowserRecorder(project, recordingEnabled, env);
+    }
+
+    /** Name of the browser tool. */
+    public get name(): string {
+        return this.browser.name;
+    }
+
+    /** The connection ended (restart, kill, crash): this task's tabs are gone; its next action opens a new tab. */
+    public reset(_reason: string): void {
+        this.navigationListener?.();
+        this.navigationListener = undefined;
+        this.sessionId = undefined;
+        this.targetId = undefined;
+        this.ownTabs.clear();
+    }
+
+    /** A target session was detached (its tab closed). */
+    public detached(sessionId: string | undefined): void {
+        if (!sessionId || sessionId !== this.sessionId) return;
+        if (this.targetId) this.ownTabs.delete(this.targetId);
+        this.sessionId = undefined;
+        this.targetId = undefined;
+    }
+
+    /** Ensures the connection and this task's working tab, with recording following that tab. */
+    private async active(): Promise<{ connection: CdpConnection; sessionId: string }> {
+        const connection = await this.browser.connect();
+        if (!this.sessionId) {
+            // Another of this task's tabs, else a new tab of its own (never another task's).
+            const own = (await listPages(connection)).find((page) => this.ownTabs.has(page.targetId));
+            await this.attachPage(connection, own?.targetId ?? (await this.newTab(connection)));
+        }
+        this.navigationListener ??= connection.on((message) => {
+            if (message.method !== 'Page.frameNavigated' || message.sessionId !== this.sessionId) return;
+            const frame = (message.params as { frame?: { parentId?: string; url?: string } }).frame;
+            if (frame && !frame.parentId && frame.url && frame.url !== 'about:blank') {
+                this.url = frame.url;
+                this.recorder.visited(frame.url);
+            }
+        });
+        const port: ScreencastPort = {
+            send: (method, params) => connection.send(method, params ?? {}, this.sessionId),
+            onFrame: (listener) =>
+                connection.on((message) => {
+                    if (message.method !== 'Page.screencastFrame' || message.sessionId !== this.sessionId) return;
+                    const params = message.params as { data: string; sessionId: number; metadata?: { timestamp?: number } };
+                    listener({ data: params.data, sessionId: params.sessionId, timestamp: params.metadata?.timestamp });
+                }),
+        };
+        await this.recorder.begin(port);
+        return { connection, sessionId: this.sessionId! };
+    }
+
+    /** Opens a new tab of this task. */
+    private async newTab(connection: CdpConnection, url = 'about:blank'): Promise<string> {
+        const targetId = String((await connection.send('Target.createTarget', { url })).targetId);
+        this.ownTabs.add(targetId);
+        return targetId;
     }
 
     /** Evaluates JavaScript in the current page and returns its value. */
@@ -790,19 +853,7 @@ export class ProjectBrowser {
         return (result.result as { value: T }).value;
     }
 
-    /** Open pages (tabs) of the browser. */
-    private async pages(connection: CdpConnection): Promise<BrowserTab[]> {
-        const targets = (await connection.send('Target.getTargets')).targetInfos as Array<BrowserTab & { type: string }>;
-        return targets.filter((target) => target.type === 'page' && !target.url.startsWith('devtools://')).map(({ targetId, title, url }) => ({ targetId, title, url }));
-    }
-
-    /** Some open tab to work in (a new blank tab when none is open). */
-    private async anyPage(connection: CdpConnection, except?: string): Promise<string> {
-        const page = (await this.pages(connection)).find((candidate) => candidate.targetId !== except);
-        return page?.targetId ?? String((await connection.send('Target.createTarget', { url: 'about:blank' })).targetId);
-    }
-
-    /** Moves control, and the recording, to one tab of the browser. */
+    /** Moves control, and the recording, to one tab. */
     private async attachPage(connection: CdpConnection, targetId: string): Promise<string> {
         if (this.sessionId && this.targetId === targetId) return this.sessionId;
         const previous = this.sessionId;
@@ -811,6 +862,7 @@ export class ProjectBrowser {
         await connection.send('Runtime.enable', {}, sessionId);
         this.sessionId = sessionId;
         this.targetId = targetId;
+        this.ownTabs.add(targetId);
         await connection.send('Target.activateTarget', { targetId }).catch(() => undefined);
         if (previous) {
             await connection.send('Page.stopScreencast', {}, previous).catch(() => undefined);
@@ -823,9 +875,14 @@ export class ProjectBrowser {
     /** Resolves a tab id or a unique prefix of it. */
     private async resolveTab(connection: CdpConnection, id: string): Promise<string> {
         const wanted = id.trim().toUpperCase();
-        const matches = wanted ? (await this.pages(connection)).filter((page) => page.targetId.toUpperCase().startsWith(wanted)) : [];
+        const matches = wanted ? (await listPages(connection)).filter((page) => page.targetId.toUpperCase().startsWith(wanted)) : [];
         if (matches.length !== 1) throw new PtbkError(matches.length ? `The tab id "${id}" matches several tabs; give more of it.` : `No open tab has the id "${id}"; browser_tabs lists them.`, { kind: 'usage' });
         return matches[0]!.targetId;
+    }
+
+    /** Refuses to take over or close a tab another active task works in. */
+    private guard(targetId: string): void {
+        if (this.browser.tabsOfOthers(this.scope).has(targetId)) throw new PtbkError(`The tab ${targetId} belongs to another task working in this browser now; work in your own tabs (open one with browser_tabs action new).`, { kind: 'usage' });
     }
 
     /** Waits (bounded) until the current page finished loading. */
@@ -836,9 +893,10 @@ export class ProjectBrowser {
 
     /** After an action: continues in a tab the action opened (a link to a new window, `window.open`), as a person would. */
     private async followNewTab(connection: CdpConnection, before: ReadonlySet<string>): Promise<string> {
-        const opened = (await this.pages(connection)).filter((page) => !before.has(page.targetId));
+        const opened = (await listPages(connection)).filter((page) => !before.has(page.targetId));
         const tab = opened[opened.length - 1];
         if (!tab) return '';
+        this.ownTabs.add(tab.targetId);
         await this.attachPage(connection, tab.targetId);
         await this.settle(10_000);
         return `The action opened a new tab (${tab.targetId}); you now work in it (browser_tabs switches back).\n`;
@@ -846,15 +904,17 @@ export class ProjectBrowser {
 
     /** Ids of the open tabs (to notice tabs an action opens). */
     private async tabIds(connection: CdpConnection): Promise<Set<string>> {
-        return new Set((await this.pages(connection)).map((page) => page.targetId));
+        return new Set((await listPages(connection)).map((page) => page.targetId));
     }
 
     /** Text and numbered interactive elements of the complete current page (dialogs, shadow DOM and same-origin frames included). */
     public async read(): Promise<string> {
         const page = await this.evaluate<PageReading>(readPageScript());
-        const tabs = this.connection ? (await this.pages(this.connection)).length : 1;
+        const connection = await this.browser.connect();
+        const tabs = (await listPages(connection)).filter((candidate) => this.ownTabs.has(candidate.targetId)).length;
         const omitted = page.omitted ? `\n… ${page.omitted} more elements are not listed (scroll to them, or use browser_evaluate).` : '';
-        return `${page.title}\n${page.url}${tabs > 1 ? `\n(${tabs} tabs are open; browser_tabs lists and switches them)` : ''}\n\n${page.text}\n\nInteractive elements (their numbers are the ref of other browser tools):\n${page.elements.join('\n') || '(none)'}${omitted}${this.note ? `\n\nNote: ${this.note}` : ''}`;
+        const note = this.browser.modeNote;
+        return `${page.title}\n${page.url}${tabs > 1 ? `\n(${tabs} of your tabs are open; browser_tabs lists and switches them)` : ''}\n\n${page.text}\n\nInteractive elements (their numbers are the ref of other browser tools):\n${page.elements.join('\n') || '(none)'}${omitted}${note ? `\n\nNote: ${note}` : ''}`;
     }
 
     /** Navigates the current tab (or a new one) to any URL and waits for it to load (bounded). */
@@ -865,7 +925,7 @@ export class ProjectBrowser {
         const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) || /^(about|blob|data|javascript|mailto|tel|view-source):/i.test(trimmed);
         const address = hasScheme ? trimmed : `${/^(localhost|127\.|0\.0\.0\.0|\[::1\])/i.test(trimmed) ? 'http' : 'https'}://${trimmed}`;
         const { connection } = await this.active();
-        if (newTab) await this.attachPage(connection, String((await connection.send('Target.createTarget', { url: 'about:blank' })).targetId));
+        if (newTab) await this.attachPage(connection, await this.newTab(connection));
         const sessionId = this.sessionId!;
         const loaded = connection.waitFor('Page.loadEventFired', 30_000, sessionId);
         const result = await connection.send('Page.navigate', { url: address }, sessionId);
@@ -897,30 +957,34 @@ export class ProjectBrowser {
         return await this.read();
     }
 
-    /** Lists the open tabs; the one the agent works in is marked with `*`. */
+    /** Lists the open tabs: this task's own (the current one marked `*`) and, separately, other tasks' and other tabs. */
     public async tabs(): Promise<string> {
         const { connection } = await this.active();
-        const pages = await this.pages(connection);
-        return `Open tabs (* = the tab you work in; a unique prefix of an id is enough):\n${pages.map((page) => `${page.targetId === this.targetId ? '*' : '-'} ${page.targetId}  ${page.title || '(untitled)'}  ${page.url}`).join('\n')}`;
+        const pages = await listPages(connection);
+        const others = this.browser.tabsOfOthers(this.scope);
+        const mark = (page: BrowserTab): string => (page.targetId === this.targetId ? '*' : this.ownTabs.has(page.targetId) ? '-' : others.has(page.targetId) ? 'x' : 'o');
+        return `Open tabs (* = the tab you work in, - = your other tabs, x = another task's tab (not yours to use), o = other tabs; a unique prefix of an id is enough):\n${pages.map((page) => `${mark(page)} ${page.targetId}  ${page.title || '(untitled)'}  ${page.url}`).join('\n')}`;
     }
 
-    /** Opens a new tab (optionally at a URL), switches to a tab or closes one. */
+    /** Opens a new tab (optionally at a URL), switches to a tab or closes one (never another task's). */
     public async tab(action: 'new' | 'select' | 'close', id?: string, url?: string): Promise<string> {
         const { connection } = await this.active();
         if (action === 'new') {
             if (url?.trim()) return await this.open(url, true);
-            await this.attachPage(connection, String((await connection.send('Target.createTarget', { url: 'about:blank' })).targetId));
+            await this.attachPage(connection, await this.newTab(connection));
             return await this.read();
         }
         const targetId = id?.trim() ? await this.resolveTab(connection, id) : this.targetId;
         if (!targetId) throw new PtbkError('Name the tab id (browser_tabs lists them).', { kind: 'usage' });
+        this.guard(targetId);
         if (action === 'select') {
             await this.attachPage(connection, targetId);
             return await this.read();
         }
         // The tab to continue in exists before the current one closes (closing the last window may end the browser).
-        const replacement = targetId === this.targetId ? await this.anyPage(connection, targetId) : undefined;
+        const replacement = targetId === this.targetId ? ((await listPages(connection)).find((page) => page.targetId !== targetId && this.ownTabs.has(page.targetId))?.targetId ?? (await this.newTab(connection))) : undefined;
         await connection.send('Target.closeTarget', { targetId });
+        this.ownTabs.delete(targetId);
         if (replacement) {
             this.sessionId = undefined;
             this.targetId = undefined;
@@ -1121,10 +1185,10 @@ export class ProjectBrowser {
         return truncate(JSON.stringify(result, null, 2), MAX_PAGE_TEXT);
     }
 
-    /** The local DevTools endpoint of the running browser for the agent's own automation scripts. */
+    /** The local DevTools endpoint of the shared browser for the agent's own automation scripts. */
     public async devtoolsEndpoint(): Promise<string> {
         await this.active();
-        const devtools = this.devtools;
+        const devtools = this.browser.devtools;
         if (!devtools) throw new PtbkError(`The browser "${this.name}" exposes no DevTools endpoint right now; try again.`, { kind: 'technical' });
         const http = `http://127.0.0.1:${devtools.port}`;
         return [
@@ -1132,7 +1196,7 @@ export class ProjectBrowser {
             `WebSocket endpoint: ${devtools.webSocket}`,
             `Tab you work in: ${this.targetId ?? '(none)'}`,
             '',
-            `Use it from your own scripts while this task holds the browser, for example Playwright \`chromium.connectOverCDP("${http}")\` (its existing context, browser.contexts()[0], carries the profile's sessions) or Puppeteer \`puppeteer.connect({ browserWSEndpoint: "${devtools.webSocket}" })\`. Disconnect when done; do not close the browser (Promptbook owns the process and releases the profile after the task). The endpoint changes when the browser restarts.`,
+            `Use it from your own scripts while this task runs, for example Playwright \`chromium.connectOverCDP("${http}")\` (its existing context, browser.contexts()[0], carries the profile's sessions) or Puppeteer \`puppeteer.connect({ browserWSEndpoint: "${devtools.webSocket}" })\`. Work in your own tabs, disconnect when done and never close the browser: other tasks and projects may use it too. The endpoint changes when the browser restarts.`,
         ].join('\n');
     }
 
@@ -1155,44 +1219,37 @@ export class ProjectBrowser {
         return { path, data, summary: `Screenshot of ${coordinates}.\nSaved as ${path}` };
     }
 
-    /** Brings the window forward for a human action (only meaningful with a visible window); the human part is not recorded. */
+    /** Brings this task's tab forward for a human action (only meaningful with a visible window); the human part is not recorded. */
     public async bringToFront(): Promise<string | undefined> {
         await this.recorder.pause('human action in the project browser (sign-in, two-factor authentication or consent; not recorded)');
-        if (!this.connection || !this.sessionId) return this.note;
-        await this.connection.send('Page.bringToFront', {}, this.sessionId).catch(() => undefined);
-        return this.note;
-    }
-
-    /** Stops only the browser process this service launched (never the user's browsers or the profile). */
-    public close(): void {
-        this.navigationListener?.();
-        this.navigationListener = undefined;
-        this.connection?.close();
-        this.connection = undefined;
-        this.sessionId = undefined;
-        this.targetId = undefined;
-        this.devtools = undefined;
-        const wasRunning = Boolean(this.child);
-        if (this.child) terminateProcessTree(this.child);
-        this.child = undefined;
-        void this.releaseProfile();
-        if (wasRunning) this.setHealth({ state: 'stopped', ownership: { state: 'free' } });
-    }
-
-    /** Releases this project's claim of a shared profile. */
-    private async releaseProfile(): Promise<void> {
-        const release = this.releaseClaim;
-        this.releaseClaim = undefined;
-        await release?.().catch(() => undefined);
+        const { connection, sessionId } = await this.active();
+        await connection.send('Page.bringToFront', {}, sessionId).catch(() => undefined);
+        return this.browser.modeNote;
     }
 
     /**
-     * After a task: a browser on a shared profile (global, user or custom) is closed so other projects can use the
-     * profile; the isolated project profile stays open for the next task.
+     * Ends this task's use: its tabs close (one stays as a blank page when it is the browser's last tab, so the shared
+     * process keeps running for others).
      */
-    public releaseShared(): void {
-        if (!this.child && !this.releaseClaim) return;
-        if (!isSharedSource(this.config()?.profile.source ?? 'MANAGED_GLOBAL')) return;
-        this.close();
+    public async release(): Promise<void> {
+        this.navigationListener?.();
+        this.navigationListener = undefined;
+        const tabs = [...this.ownTabs];
+        this.ownTabs.clear();
+        this.sessionId = undefined;
+        this.targetId = undefined;
+        if (!tabs.length || !this.browser.connected) return;
+        const connection = await this.browser.connect().catch(() => undefined);
+        if (!connection) return;
+        const pages = await listPages(connection).catch(() => []);
+        const remaining = pages.filter((page) => !tabs.includes(page.targetId));
+        for (const [index, targetId] of tabs.entries()) {
+            if (!pages.some((page) => page.targetId === targetId)) continue;
+            if (!remaining.length && index === tabs.length - 1) {
+                await connection.send('Target.attachToTarget', { targetId, flatten: true }).then((attached) => connection.send('Page.navigate', { url: 'about:blank' }, String(attached.sessionId))).catch(() => undefined);
+                continue;
+            }
+            await connection.send('Target.closeTarget', { targetId }).catch(() => undefined);
+        }
     }
 }

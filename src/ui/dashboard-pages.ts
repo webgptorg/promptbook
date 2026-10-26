@@ -303,7 +303,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             if (!item) return { title: `Tools › ${page.name}`, context: 'This tool is no longer configured.', body: [style.muted('It was removed (possibly from another client).')], legend: back };
             const browser = item.type === 'BROWSER' ? (snapshot.browsers ?? []).find((candidate) => candidate.name === item.name) ?? (snapshot.browser?.name === item.name ? snapshot.browser : undefined) : undefined;
             const body = [...toolDetailLines(item, style), ...(item.type === 'BROWSER' ? ['', style.bold('Browser'), ...browserDetailLines(browser, style, { keys: true })] : [])];
-            return { title: `Tools › ${item.name}`, context: `${item.variantLabel} · ${item.type} ${item.variant}`, body, legend: `Space enable/disable · M modify · D remove${item.type === 'BROWSER' ? ' · 1 recheck · 2 retry · 3 restart this browser' : ''} · ${back}` };
+            return { title: `Tools › ${item.name}`, context: `${item.variantLabel} · ${item.type} ${item.variant}`, body, legend: `Space enable/disable · M modify · D remove${item.type === 'BROWSER' ? ' · 1 recheck · 2 retry · 3 restart · 4 kill · 5 test GitHub tab' : ''} · ${back}` };
         }
         case 'agents': {
             const items = teamOrder(snapshot, page.sort, context.inventory);

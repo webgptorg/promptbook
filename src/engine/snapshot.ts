@@ -465,6 +465,13 @@ export type BrowserDetailView = {
     /** Last manual/automatic browser action and its observed outcome. */
     readonly lastAction?: { readonly action: string; readonly at: string; readonly outcome: string; readonly state: 'accepted' | 'deferred' | 'succeeded' | 'failed' };
     readonly checkedAt?: string;
+    /**
+     * Engines connected to the profile's shared browser process (this one marked `self`): a restart or kill affects all
+     * of them. There is no master engine; the last disconnection closes the process.
+     */
+    readonly connections?: ReadonlyArray<{ readonly project: string; readonly instanceId: string; readonly since: string; readonly self: boolean }>;
+    /** Tabs this engine's active tasks work in (each task has its own). */
+    readonly tabs?: ReadonlyArray<{ readonly task: string; readonly url?: string }>;
 };
 
 /**

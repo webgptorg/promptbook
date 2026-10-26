@@ -690,6 +690,12 @@
                 if (browser.lastFailure) rows.push(['Last failure', `${time(browser.lastFailure.at)} ${browser.lastFailure.summary}${browser.lastFailure.evidence ? ` — ${browser.lastFailure.evidence}` : ''}`]);
                 if (browser.recovery && (browser.recovery.state !== 'idle' || browser.recovery.attempts)) rows.push(['Recovery', `${browser.recovery.state}${browser.recovery.attempts ? ` · ${browser.recovery.attempts} attempt(s)` : ''}${browser.recovery.nextRetryAt ? ` · next ${time(browser.recovery.nextRetryAt)}` : ''}${browser.recovery.blocker ? ` · ${browser.recovery.blocker}` : ''}`]);
                 if (browser.lastAction) rows.push(['Last action', `${browser.lastAction.action}: ${browser.lastAction.state} — ${browser.lastAction.outcome}`]);
+                // The process belongs to the profile's pool shared with other projects (no master engine).
+                const connections = browser.connections || [];
+                if (connections.length) rows.push(['Engines', connections.map((connection) => (connection.self ? 'this project' : connection.project)).join(', ')]);
+                if (browser.tabs && browser.tabs.length) rows.push(['Task tabs', browser.tabs.map((tab) => `${tab.task}${tab.url ? ` (${tab.url})` : ''}`).join('; ')]);
+                const others = connections.filter((connection) => !connection.self).map((connection) => connection.project);
+                const scope = others.length ? ` It also affects ${others.length} other connected project(s): ${others.join(', ')}.` : '';
                 return h(
                     'div',
                     { className: 'browser-detail' },
@@ -700,11 +706,13 @@
                         { className: 'row', style: 'margin-top:8px', role: 'group', 'aria-label': `Recovery of ${browser.name}` },
                         h('button', { onclick: () => control('browser-recheck', null, { name: browser.name }) }, 'Recheck'),
                         h('button', { onclick: () => control('browser-retry', null, { name: browser.name }) }, 'Retry startup'),
-                        h('button', { onclick: () => control('browser-restart', `Restart the browser “${browser.name}”? Its profile and sessions are kept; the engine keeps running.`, { name: browser.name }) }, 'Restart browser'),
+                        h('button', { onclick: () => control('browser-restart', `Restart the browser “${browser.name}”? Its profile and sessions are kept; open task tabs end; the engine keeps running.${scope}`, { name: browser.name }) }, 'Restart browser'),
+                        h('button', { className: 'danger', onclick: () => control('browser-kill', `Kill the browser “${browser.name}”? Its profile is kept and the next use starts it again.${scope}`, { name: browser.name }) }, 'Kill browser'),
+                        h('button', { onclick: () => control('browser-test-tab', null, { name: browser.name }) }, 'Open test GitHub tab'),
                     ),
                 );
             }),
-            h('p', { className: 'muted' }, 'Recovery is automatic; these actions use the same engine-owned recovery of one named browser and never restart the engine or other browsers.'),
+            h('p', { className: 'muted' }, 'Recovery is automatic; these actions use the same engine-owned operations on the selected profile’s shared browser. Restart and kill affect every project connected to it; they never restart an engine or touch other browsers.'),
         );
     }
 

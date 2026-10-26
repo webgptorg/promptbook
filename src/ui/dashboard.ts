@@ -748,9 +748,15 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 } else if (key === 'n' && page.kind === 'tools') void openForm(() => addToolForm(terminal));
                 else if (key === 'm' && focused) void openForm(() => modifyToolForm(terminal, focused));
                 else if (key === 'd' && focused) confirmThen(`Permanently remove the configuration of "${focused.name}"? (Disable keeps it; profiles, native logins and .env history are never deleted.)`, () => runTool({ operation: { kind: 'remove', name: focused.name } }));
-                else if (['1', '2', '3'].includes(text) && focused) {
+                else if (['1', '2', '3', '4', '5'].includes(text) && focused) {
                     if (focused.type !== 'BROWSER') notify('Browser recovery applies to browser tools.');
-                    else void runAction(text === '1' ? 'browser-recheck' : text === '2' ? 'browser-retry' : 'browser-restart', { name: focused.name });
+                    else if (text === '3' || text === '4') {
+                        // Restart and kill act on the profile's shared process: every connected engine is affected.
+                        const browser = (snapshot.browsers ?? []).find((item) => item.name === focused.name);
+                        const others = (browser?.connections ?? []).filter((connection) => !connection.self).map((connection) => connection.project);
+                        const scope = others.length ? ` It also affects ${others.length} other connected project(s): ${others.join(', ')}.` : '';
+                        confirmThen(text === '3' ? `Restart the browser "${focused.name}" (its profile and sessions are kept; open task tabs end)?${scope}` : `Kill the browser "${focused.name}" (its profile is kept; the next use starts it again)?${scope}`, async () => void (await runAction(text === '3' ? 'browser-restart' : 'browser-kill', { name: focused.name })));
+                    } else void runAction(text === '1' ? 'browser-recheck' : text === '2' ? 'browser-retry' : 'browser-test-tab', { name: focused.name });
                 }
                 draw();
                 return;

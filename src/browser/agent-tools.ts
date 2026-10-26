@@ -1,7 +1,7 @@
 import { PtbkError, errorMessage } from '../common/errors.js';
 import type { BridgeTool, ToolResult } from '../engine/bridge.js';
 import type { TaskChats } from '../chats/task-chats.js';
-import type { BrowserFleet } from './fleet.js';
+import type { BrowserScope } from './fleet.js';
 import type { PointerTarget } from './browser.js';
 import { parseModifiers } from './input.js';
 
@@ -46,7 +46,7 @@ function pointerArgument(input: Readonly<Record<string, unknown>>): PointerTarge
  *
  * @private project browser
  */
-export function browserTools(fleet: BrowserFleet, chats: TaskChats | undefined, agent: string, onUserChat: (chat: { chat: string; awaited: number }) => void, describe: () => Array<{ name: string; description?: string; profile: string; isHeadless: boolean }>): BridgeTool[] {
+export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskChats | undefined, agent: string, onUserChat: (chat: { chat: string; awaited: number }) => void, describe: () => Array<{ name: string; description?: string; profile: string; isHeadless: boolean }>): BridgeTool[] {
     const run = async (action: () => Promise<string | ToolResult>): Promise<ToolResult> => {
         try {
             const result = await action();

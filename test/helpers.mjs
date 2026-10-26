@@ -87,6 +87,8 @@ export async function fakeHarness(t, directory) {
             CHROME_PATH: process.execPath,
             // Fixtures never depend on Internet reachability (Health still measures disk, memory and CPU).
             PTBK_HEALTH_CONNECTIVITY: 'off',
+            // The fixture browser executable is not a browser: engines connect browsers at their first use only.
+            PTBK_BROWSER_START: 'lazy',
         },
     };
 }

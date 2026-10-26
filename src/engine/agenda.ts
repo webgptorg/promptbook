@@ -131,10 +131,10 @@ export type AgendaOptions = {
     readonly extraTools?: (task: Task, context: { readonly chats: TaskChats; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
     /** Answers a user message in a human-led chat (an agent turn outside the task queue). */
     readonly chatReplies?: boolean;
-    /** Finalizes task evidence produced outside the harness (browser video) before the result commit. */
-    readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
-    /** Releases per-task resources after every executed piece of work, whatever its outcome. */
-    readonly afterWork?: () => Promise<void>;
+    /** Finalizes a task's evidence produced outside the harness (its browser video) before its result commit. */
+    readonly finalizeEvidence?: (task: Task, trace: TaskTrace) => Promise<void>;
+    /** Releases a task's own resources (its browser tabs) after each of its executed runs, whatever the outcome. */
+    readonly afterWork?: (task: Task) => Promise<void>;
     /** Named browser tools owned by the service: inspections for the dashboard pages and the names held by work. */
     readonly browsers?: { readonly primary: () => BrowserDetailView | undefined; readonly all: () => BrowserDetailView[]; readonly inUse: () => string[] };
 };
@@ -2372,7 +2372,7 @@ export class Agenda {
                 // Engine-authored files and every file another run owns are never attributed to this run.
                 excludedPaths: () => new Set([...this.authoredPaths, ...this.ownership.heldByOthers(unit.owner)]),
                 extraTools: this.options.extraTools ? (context) => this.options.extraTools!(task, context) : undefined,
-                finalizeEvidence: this.options.finalizeEvidence,
+                finalizeEvidence: this.options.finalizeEvidence ? async (trace) => await this.options.finalizeEvidence!(task, trace) : undefined,
                 beforeCommit: async () => void (await this.sync.request('pre-commit')),
                 attribute: async (changed, evidence) => await this.attributeChanges(unit, label, changed, evidence.reported),
                 own: (paths) => void this.ownership.tryAcquire(unit.owner, label, paths),
@@ -2830,7 +2830,7 @@ export class Agenda {
             const record = await this.state.readActive(item.runId);
             if (record) await this.state.writeActive({ ...record, phase: 'failed', failure: errorMessage(error) });
         } finally {
-            await this.options.afterWork?.().catch(() => undefined);
+            await this.options.afterWork?.(item.task).catch(() => undefined);
         }
         switch (outcome.kind) {
             case 'completed': {

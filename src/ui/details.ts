@@ -206,7 +206,13 @@ export function browserDetailLines(browser: BrowserDetailView | undefined, style
     }
     if (browser.lastAction) lines.push(`Action   ${browser.lastAction.action}: ${browser.lastAction.state} — ${browser.lastAction.outcome}`);
     if (browser.checkedAt) lines.push(muted(`Checked  ${formatShortTime(Date.parse(browser.checkedAt))}`));
-    if (options.keys) lines.push(muted('1 recheck diagnostics · 2 retry startup · 3 restart this browser (not the engine)'));
+    // The process belongs to the profile's pool: every connected engine (no master) is affected by restart/kill.
+    if (browser.connections?.length) {
+        lines.push(`Engines  ${browser.connections.length} connected to this profile's shared browser${browser.connections.length > 1 ? ' (restart and kill affect all of them)' : ''}`);
+        for (const connection of browser.connections) lines.push(muted(`         ${connection.self ? 'this project' : connection.project}${connection.self ? '' : ` · since ${formatShortTime(Date.parse(connection.since))}`}`));
+    }
+    if (browser.tabs?.length) lines.push(`Tabs     ${browser.tabs.length} task tab(s): ${browser.tabs.map((tab) => `${tab.task}${tab.url ? ` (${tab.url})` : ''}`).join('; ')}`);
+    if (options.keys) lines.push(muted('1 recheck diagnostics · 2 retry startup · 3 restart the browser · 4 kill the browser · 5 open a test GitHub tab'));
     return lines;
 }
 
