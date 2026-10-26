@@ -18,7 +18,7 @@
             "profile": {
                 "source": "MANAGED_GLOBAL"
             },
-            "isHeadless": true
+            "isHeadless": false
         },
         {
             "type": "HARNESS",
