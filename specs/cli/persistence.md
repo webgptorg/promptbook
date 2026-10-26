@@ -32,7 +32,9 @@ Support Linux, macOS and Windows, global/project-local installations and desktop
 
 Startup registration is scoped to the correct project/user and does not duplicate on repeated starts. It is distinct from the [durable known-project registry](global-dashboard.md): disabling startup, using `--no-persist` or stopping does not forget the project. Deliberately stopped projects stay stopped. Missing paths, unavailable installations and expired authentication become visible recoverable conditions, not execution against another directory or identity.
 
-Reconcile previous work before continuing; restart is not permission to repeat completed work or external actions. See [process modes](process-modes.md), [updates](updates.md) and [recovery](recovery.md).
+Reconcile previous work before continuing; restart is not permission to repeat completed work or external actions. Website credentials also retain unattended startup through [Wallet](wallet.md)/[project encryption](project-encryption.md): host-protected automatic unlock works without recovery-word/master-password prompts after reboot. Never copy raw keys or recovery words into restart metadata. A missing host binding requests one protected restoration and blocks only affected login work.
+
+See [process modes](process-modes.md), [updates](updates.md) and [recovery](recovery.md).
 
 ## Acceptance outcomes
 

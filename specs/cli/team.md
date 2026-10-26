@@ -10,13 +10,13 @@ Record an agent↔agent consultation as a two-participant Chat Book linked to it
 
 ## Conversation-scoped consultation
 
-[Chatter](../agents/core-agents/chatter.md), or another selected conversational agent, may consult a teammate to answer the user without inventing a queued task. Record a two-agent internal exchange linked to the originating human-facing chat. The user's selected agent remains their speaker; do not silently add specialists as participants in a human group chat or claim their advice as executed work.
+[Chatter](../agents/core-agents/chatter.md), or another selected conversational agent, may consult a teammate to answer the user without inventing a queued task. Record a two-agent internal exchange linked to the originating human-facing chat. The main agent can relay bounded advice. A specialist contributing to the human thread joins explicitly with CHAT MEMBER and speaks under its own name under [chat/task rules](chat-tasks.md); do not impersonate it or claim advice as executed work.
 
-When no executing task owns this consultation, persist the bounded exchange as an ordinary scoped authoring operation under [Git persistence](git-persistence.md), never attach it to an unrelated task's result. Human-facing messages still commit individually. Pending/failed persistence remains recoverable and is not reported saved. A request to perform actual specialist work creates ordinary authorized tasks instead of bypassing the queue, checks, pause or task ownership.
+When no executing task owns this consultation, persist the bounded exchange as an ordinary scoped authoring operation under [Git persistence](git-persistence.md), never attach it to an unrelated task's result. Human-facing messages save immediately with bounded debounced commits. Pending/failed Git persistence stays recoverable and distinct from the saved Book. A request to perform actual specialist work creates ordinary authorized tasks instead of bypassing the queue, checks, pause or task ownership.
 
 ## Shared authority and limits
 
-TEAM User initiates/continues an attributed agent↔User chat with individually committed messages. A truly blocking question checkpoints its owning task under [human interactions](user-interactions.md). TEAM Expert uses current engine expertise; Void/Null is a no-op. Resolve every participant through the common resolver; wrong-kind/unresolved names produce diagnostics.
+TEAM User initiates/continues an attributed agent↔User chat with immediate saved messages and bounded debounced commits. A truly blocking question checkpoints its owning task under [human interactions](user-interactions.md). TEAM Expert uses current engine expertise; Void/Null is a no-op. Resolve every participant through the common resolver; wrong-kind/unresolved names produce diagnostics.
 
 Consultations remain bounded: initial defaults are five minutes, depth four, 24 calls and 128,000 response characters per task or originating bounded chat turn. Reaching limits is a visible outcome, not recursive hidden work. A reciprocal TEAM graph never means unbounded automatic consultation. Human waiting does not hold an MCP call open through think time. Advisors cannot exceed the originator's authority or mutate unrelated task-owned content.
 

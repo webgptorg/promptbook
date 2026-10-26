@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Unattended operation](autonomous-operation.md) · [Automatic repair](../concepts/automatic-repair.md)
 
-`ptbk start` operates the project's agenda indefinitely without per-task agent/harness/model/thinking selection. Successful [init](initialization.md) calls the same background start. A ready project starts actual processing without another work-launch action, with one executing task at a time, not a concurrent worker per agent.
+`ptbk start` operates the project's agenda indefinitely without per-task agent/harness/model/thinking selection. Successful [init](initialization.md) calls the same background start. A ready project starts actual processing without another work-launch action, with concurrent task/chat work under the shared [capacity and per-file ownership contract](concurrency.md), not a permanent unbounded worker per agent.
 
 ## Readiness is not service existence
 
@@ -16,7 +16,7 @@ There is no check-command setup question at start. Preserve real checks; the exp
 
 Default start launches a background daemon with restart persistence and a lightweight loopback HTTP service on a free port searched from 3000. Establish the usual protected [remote dashboard access](remote-access.md), with `--no-tunnel` for local only and `--no-server` for neither. This tunnel is distinct from Git autosync. Tunnel/network failures are visibly degraded and retried without unnecessarily preventing safe local work. Starting/serving the service and attaching a viewer remain separate operations internally, but ordinary interactive `ptbk start` performs both in sequence.
 
-Discover agents with the shared resolver and enabled named tools with the shared registry. Reuse global harness setup and apply [update policy](harness-updates.md) safely across shared executables. Installed unselected harnesses are not implicit choices. Referenceable hidden/dependency agents are not automatically goal-discovery candidates. The launching terminal may complete genuinely missing attended initialization before detaching, not hide runtime decisions on stdin.
+Discover agents with the shared resolver and enabled named tools with the shared registry. Attach/start each enabled browser's [profile pool](browser.md) at engine startup rather than waiting for its first task; a browser failure is a resource wait, not failure of the whole service. Wallet unlock uses protected host credentials without a reboot prompt. Reuse global harness setup and apply [update policy](harness-updates.md) safely across shared executables. Installed unselected harnesses are not implicit choices. Referenceable hidden/dependency agents are not automatically goal-discovery candidates. The launching terminal may complete genuinely missing attended initialization before detaching, not hide runtime decisions on stdin.
 
 After a bounded successful daemon launch, an ordinary suitable interactive terminal **automatically attaches the ordinary project dashboard** and keeps that viewer open. This is the same independent viewer as `ptbk dashboard`; leaving it keeps the daemon running.
 
@@ -36,7 +36,7 @@ Before new work and before its commit, attempt opt-in [Git synchronization](git-
 
 Authoring normally commits sources before dispatch; explicit ordinary `--no-commit` is the labelled exception under [Git persistence](git-persistence.md), not an excuse to mix unrelated dirt or skip required committed migrations. When no unfinished work remains, including future tasks, perform due [goal discovery](goal-discovery.md) with persistent cooldowns. Do not generate useless work merely to avoid idle time.
 
-Follow [automatic repair](../concepts/automatic-repair.md) as a core principle: deterministic retries/corrections and ordinary Fixer work resolve routine issues without needless user decisions. Fixer is not a special worker or channel; its current Book/TEAM controls consultations. Checkpoint task-local blockers and continue independent eligible work when safe, while keeping one task owner and respecting pause/stop. No usable harness also means Fixer cannot execute yet; retain the visible resource wait.
+Follow [automatic repair](../concepts/automatic-repair.md) as a core principle: deterministic retries/corrections and ordinary Fixer work resolve routine issues without needless user decisions. Fixer is not a special worker or channel; its current Book/TEAM controls consultations. Checkpoint task-local blockers and continue independent eligible work when safe, while preserving one owner per affected file and respecting pause/stop. No usable harness also means Fixer cannot execute yet; retain the visible resource wait.
 
 Survive ordinary task/check/provider/browser/tunnel/update/synchronization/persistence failures with bounded recovery, useful traces and controls. Empty queues or missing resources do not mean service exit. Deliberate pause/stop remains authoritative. The product targets extended unattended operation, not guaranteed work while a host sleeps or external accounts are unavailable.
 

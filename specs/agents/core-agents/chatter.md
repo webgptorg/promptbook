@@ -2,7 +2,7 @@
 
 [Agents](../_index.md) · [Core agents](../core-agents.md) · [Chat entry](../../cli/chat-ui.md) · [TEAM](../../cli/team.md)
 
-**Chatter** is the user's ordinary conversational entry point when they want to inspect, discuss or manually direct a project without knowing which specialist to choose. It is a project-owned core agent, not the engine, the automatic scheduler or a replacement for Tasker, Router and specialist execution. The user's main conversation stays with Chatter while appropriate teammates advise or perform the actual specialist work.
+**Chatter** is the user's ordinary conversational entry point when they want to inspect, discuss or manually direct a project without knowing which specialist to choose. It is a project-owned core agent, not the engine, the automatic scheduler or a replacement for Tasker, Router and specialist execution. Chatter remains the main agent while teammates advise or execute specialist tasks; those agents can join the same human-facing thread under their own names.
 
 ## Initialization and ownership
 
@@ -14,11 +14,11 @@ Core hiding still applies to ordinary automatic discovery, but new human-chat en
 
 ## Conversation and delegation
 
-Chatter answers project questions, clarifies intent, explains status, performs authorized basic scoped actions and proposes or creates ordinary named tasks. For specialist topics it consults appropriate teammates rather than pretending to have performed their work itself. TEAM advice is attributed and bounded. Work requiring task execution goes through the normal queue, ownership, checks and persistence; opening a chat or asking a read-only question does not create a task or start an engine.
+Chatter answers project questions, clarifies intent, explains status and creates/manages ordinary named tasks. Chat primarily coordinates: substantial work such as implementing a feature or submitting a tax return becomes a task, with a prompt creation response instead of inline execution/waiting for completion. For specialist topics it consults appropriate teammates rather than pretending to have performed their work itself. TEAM advice is attributed and bounded. Work requiring task execution goes through the normal queue, ownership, checks and persistence; opening a chat or asking a read-only question does not create a task or start an engine.
 
-A specialist consultation in an existing task retains that task's trace and result-commit scope. A consultation serving a conversation without an executing task is a linked two-agent exchange under [chat/TEAM rules](../../cli/team.md), not a fabricated task or a human group chat. Chatter remains the human-facing speaker; do not silently switch the user's selected agent. It distinguishes requested, queued, running and completed work and cannot report a proposal as implemented.
+A specialist consultation in an existing task retains that task's trace and result-commit scope. A consultation serving a conversation without an executing task is a linked two-agent exchange under [chat/TEAM rules](../../cli/team.md), not a fabricated task. Advice can remain internal; a task agent contributing to the human thread joins explicitly and speaks under its own name. Chatter remains the main agent. It distinguishes requested, queued, running and completed work and cannot report a proposal as implemented.
 
-Normal approval, scope, account, browser, learning and secret-handling rules still apply. Chat and its necessary routing/consultations work while another task executes and while background scheduling is paused. Tasks created in that conversation stay pending during pause. Chatter does not dispatch queued work through chat, bypass stopping, commit unrelated edits or take over another task's ownership. Task-authoring conversations can use Tasker through ordinary consultation or an explicitly selected Tasker chat. Its user messages follow the same per-message persistence contract as every other human-facing chat.
+Normal approval, scope, account, browser, learning and secret-handling rules still apply. Chat and its necessary routing/consultations work while another task executes and while background scheduling is paused. Tasks created in that conversation stay pending during pause. Chatter does not dispatch queued work through chat, bypass stopping, commit unrelated edits or take over another task's ownership. Task-authoring conversations can use Tasker through ordinary consultation or an explicitly selected Tasker chat. Its user messages follow the same immediate-save/debounced-commit persistence contract as every other human-facing chat.
 
 ## Entry-point contract
 

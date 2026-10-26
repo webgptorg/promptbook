@@ -8,7 +8,7 @@
 
 ## Resolution and effective state
 
-Resolve each supported setting from engine defaults, then the selected project's explicit `ptbk.json`, then explicit CLI overrides. Omitted values inherit; false, empty and disabled values are not omission. Credentials are secret inputs, resolved through [environment references](environment.md), not a second project configuration file.
+Resolve each supported setting from engine defaults, then the selected project's explicit `ptbk.json`, then explicit CLI overrides. Omitted values inherit; false, empty and disabled values are not omission. Harness API credentials use [environment references](environment.md), not a second project configuration file. Website login credentials instead use [Wallet](wallet.md); encryption material never belongs in ptbk.json or environment references.
 
 Configuration covers named browser/harness connections, checks, [trace settings](trace-configuration.md), operating/update policies and optional synchronization. A task's explicit requirements constrain selection; they are not lower-priority defaults to overwrite. Multiple browsers and harnesses coexist in `tools`; the old singleton browser and separate harness map are [migrated](tools-migration.md), not retained as competing live configuration sources.
 
@@ -21,6 +21,10 @@ Load/revalidate before every task and refresh promptly during work and waits. Fi
 Invocation-only CLI overrides and generic temporary runtime controls do not rewrite defaults. Explicit saves are scoped authoring operations. **Tool management is explicitly saved management**, not a temporary runtime-control variant: its changes commit immediately and publish their new revision to the engine. Configuration migrations and deterministic normalization also create their own scoped audit commits, excluding task work. A no-op/read-only load does not commit.
 
 Recovery may retain a particular active use's effective settings without restoring an obsolete whole-project snapshot. A new invocation resolves its own overrides. Init's automatic start preserves applicable explicit workflow overrides. Show effective values and their sources without secrets, and distinguish saved state, active retained use, pending changes and restart-only settings.
+
+## Concurrent work
+
+`execution.maxConcurrentWork` is a positive integer, default **5**, shared by active background tasks and chat work together. It is not a per-agent or per-kind limit. Refresh it live: a lower value drains excess existing work without termination; a higher value opens capacity. Idle chats, viewers and checkpointed waits do not consume active slots. File conflicts and task dependencies still block affected work even when slots are free. See [concurrency](concurrency.md).
 
 ## Health limits
 

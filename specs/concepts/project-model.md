@@ -18,11 +18,11 @@ Every resolved name selects exactly one Book. Conflicting/copied definitions are
 
 ## Work and conversation
 
-Agents converse without necessarily creating tasks; a later message can create several. Tasks can involve many linked chats and bounded TEAM consultations. Direct User↔one agent and internal two-agent task- or conversation-scoped consultations are supported. Human multi-agent/group topologies remain a future extension.
+Agents converse without necessarily creating tasks; a later message can create several. Tasks can involve many linked chats and bounded TEAM consultations. Human-facing chats support User and one or more agents; internal two-agent consultations retain task/conversation scope. Task agents can join an originating chat before asking questions or reporting results. Chat primarily coordinates and creates tasks for substantial execution under [chat/task relationships](../cli/chat-tasks.md).
 
 [Chatter](../agents/core-agents/chatter.md) is the default human-facing project entry when no specialist was explicitly selected. It clarifies intent, handles basic authorized actions and uses teammates for specialist advice/work. It is an ordinary required project agent, not the scheduler or a privileged replacement for specialist tasks.
 
-Every independently saved versioned operation follows [Git persistence](../cli/git-persistence.md). Human-facing messages commit individually. Agent messages inside one executing task join its result commit; conversation-scoped specialist advice without a task uses ordinary scoped authoring persistence. See [chats](../cli/chats.md).
+Every independently saved versioned operation follows [Git persistence](../cli/git-persistence.md). Human-facing messages save immediately and compatible changes use bounded debounced commits, preserving chronology and attribution. Agent messages inside one executing task join its result commit; conversation-scoped specialist advice without a task uses ordinary scoped authoring persistence. See [chats](../cli/chats.md).
 
 ## Engine and clients
 

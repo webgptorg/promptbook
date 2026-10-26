@@ -26,7 +26,7 @@ Keep dashboard/API controls, configuration refresh, bounded readiness rechecks a
 
 ## Operation and Git ownership
 
-Coordinate all configuration mutations and commits independently from the single executing task. A supported history is: task begins; another client adds a tool and its own commit; the task uses that tool; the task's result commit follows. The tool commit contains no unfinished task changes and the result does not remove or duplicate the earlier commit. Preserve unrelated index/working-tree edits even when configuration and task work touch the same file; use scoped ownership/reconciliation rather than blanket staging or old-snapshot restoration.
+Coordinate all configuration mutations and commits independently from concurrently executing tasks under [per-file ownership](concurrency.md). A supported history is: task begins; another client adds a tool and its own commit; the task uses that tool; the task's result commit follows. The tool commit contains no unfinished task changes and the result does not remove or duplicate the earlier commit. Preserve unrelated index/working-tree edits even when configuration and task work touch the same file; use scoped ownership/reconciliation rather than blanket staging or old-snapshot restoration.
 
 Apply [same-variant fallback](tools.md) using the latest eligible inventory, with bounded health rechecks and actual instance/account attribution. Explicit task constraints and already completed external effects remain authoritative. Fixer uses these same resources and constraints; lack of a harness cannot be solved by pretending Fixer ran without one.
 

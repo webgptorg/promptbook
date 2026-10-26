@@ -32,6 +32,8 @@ ptbk tool enable company-api
 
 `--profile-path` supplies a CUSTOM path. `--account-profile` selects an adapter-supported native context. `--api-key-env NAME` writes the canonical `${{ env.NAME }}` reference, not the key. Supplying a new key uses concealed input or explicit `--api-key-stdin` with the same safe `.env` editor; never accept a literal secret as an ordinary argv option. Enum flag input is tolerant but saved values are canonical. Do not silently ignore unsupported type/variant options.
 
+Browser runtime restart/kill/test-GitHub-tab actions are defined separately in [browser controls](browser.md). They affect the actual shared profile pool, not configuration removal, and show their all-connected-engine scope.
+
 ## Saved operations and confirmations
 
 Every successful state-changing management operation persists and commits its own non-secret changes immediately, including add, modify, reorder, enable, disable and remove. Read-only/no-op/cancelled actions create no commit. A commit failure is pending/failed persistence, not success. These explicit saved-management commands do not have a temporary-settings mode or an uncommitted fallback; diagnose `--no-commit` before writes. Init can batch the same domain operations into its existing setup transaction and follows that workflow's explicitly selected persistence policy.

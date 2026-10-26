@@ -10,7 +10,7 @@ All page actions call the same engine/domain operations as CLI/API. A page is a 
 
 ## Execution page
 
-For the selected current task/run, show the agent, named tool instance, harness variant, effective model identifier/name and thinking level together. These are separate concepts. Include applicable overrides, phase and attempt/consultation attribution. When several harnesses/accounts or models are involved, show actual contexts rather than one misleading project-wide provider label.
+List concurrent active work and let the operator select a task/run without pretending there is only one project-wide current task. For the selected task/run, show the agent, named tool instance, harness variant, effective model identifier/name and thinking level together. These are separate concepts. Include applicable overrides, phase and attempt/consultation attribution. When several harnesses/accounts or models are involved, show actual contexts rather than one misleading project-wide provider label.
 
 Use execution metadata, not merely saved defaults. Preserve provider-native thinking terminology where returned. Distinguish unknown/not reported, unresolved automatic choice and unsupported/not applicable. Refresh with activity; label last-run data as historical and do not invent inference while idle. Raw/API/detail snapshots retain the same information.
 
@@ -32,9 +32,13 @@ For an in-use modify/disable/remove, offer the shared alternatives: save the cha
 
 For the selected named browser tool, show saved and effective variant, profile source, authorized resolved path, `isHeadless`, actual launch/connection health, ownership/busy state and retained active uses. Distinguish newly saved settings from an old context still used by current work. A profile path does not grant access to its contents, cookies or credentials.
 
-Show real redacted failure evidence, automatic recovery attempts/outcomes and next retry where known. Recheck, retry startup and restart target this **owned browser instance**, calling the same [browser recovery](browser.md) as automatic repair. Label deferred safe-boundary actions; preserve sessions, task checkpoints and external-effect evidence, and never kill unrelated user/project browsers or restart the entire engine as ordinary browser repair.
+Show real redacted failure evidence, automatic recovery attempts/outcomes and next retry where known. Recheck, retry startup, restart, kill and open-test-GitHub-tab actions target its **actual profile connection pool**, calling the same [browser recovery](browser.md) as automatic repair. Label deferred safe-boundary actions; preserve sessions, task checkpoints and external-effect evidence, and never kill unrelated browsers or restart the entire engine as ordinary browser repair. Show connected engines/active tabs and that restart/kill affects all users of this selected pool. There is no master/slave engine; the last managed disconnection closes the process. Manual headful login remains possible, but no new remote desktop or generic Open browser action is required.
 
 Significant failures set attention on the Tools/Browser path of the home screen; verbose evidence stays here.
+
+## Wallet page
+
+Wallet has its own home tile and page over the project [sub-engine](wallet.md). Summarize readiness/pending count compactly; list service/account labels and pending actions in detail. Provide concealed credential management and deliberate protected recovery/setup input through shared engine operations. Never show passwords, recovery words or raw keys in ordinary detail/status, logs or snapshots. Use the one attention presentation, clear answered actions promptly and keep independent work running.
 
 ## Agents, Chats, Tasks and activity pages
 
@@ -42,7 +46,7 @@ Agents, Chats and Tasks remain separate home tiles and separate pages.
 
 The Agents page lists every available agent with actual activity and assigned queue. It can open the selected agent's source, current/queued work and direct chat. [Book editing](book-editor.md) defines the shared editor; do not create another source editor here.
 
-The Chats page lists all conversations, unread/actionable states and new Chatter-first entry. Opening a thread enters the ordinary full chat view. Waiting-for-user state can mark the Chats tile for attention but does not force navigation.
+The Chats page lists all conversations, unread/actionable states and new Chatter-first entry. Opening a thread enters the ordinary full chat view with live task cards, declared multi-agent authorship, input during progress and post-final Thinking/duration collapse under [chat UI](chat-ui.md). Waiting-for-user state can mark the Chats tile for attention but does not force navigation.
 
 The Tasks page uses the [complete task view](task-views.md), with smart default order and user-selected sorting independent of engine scheduling. Tasker remains the task-authoring entry.
 

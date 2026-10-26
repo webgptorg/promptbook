@@ -2,7 +2,7 @@
 
 [Chats](chats.md) · [Chatter](../agents/core-agents/chatter.md) · [Terminal dashboard](terminal.md) · [Browser dashboard](dashboard.md)
 
-Chat is a real persistent conversation screen, not a one-off answer box. Show the full saved thread name, participants and actual message authors with stable identity, chronological messages, actionable questions, related work/conversations and a [rich composer](rich-input.md). Human-facing and internal two-agent histories share these presentation concepts while retaining their distinct participants and persistence scope.
+Chat is a real persistent conversation screen, not a one-off answer box. Show the full saved thread name, participants and actual message authors with stable identity, chronological messages, actionable questions, related work/conversations and a [rich composer](rich-input.md). Show the changing CHAT TITLE prominently while keeping the stable opening name/reference inspectable. Human-facing and internal two-agent histories share these presentation concepts while retaining their distinct participants and persistence scope.
 
 ## Chatter-first new-chat entry
 
@@ -21,11 +21,19 @@ Generate a readable thread name with creation date/time and normalized collision
 
 Ctrl+C closes the chat client/view, not the background engine or durable conversation. Opening chat does not create a task, start another engine or acquire its lock. Chatter and explicit specialists can clarify intent, advise and later create ordinary authorized tasks through the shared machinery.
 
-Retain discoverable C for dashboard new chat, A for the highest-priority existing waiting conversation and access to all chats. A opens the complete authored discussion, not an isolated answer field. Attribute agent-originated messages to their actual speaker. A Chatter specialist consultation remains an internal linked two-agent history, not an unannounced human group chat or target switch. Browser controls provide equivalent entry, all-chats, resume, reply and related-work navigation.
+Retain discoverable C for dashboard new chat, A for the highest-priority existing waiting conversation and access to all chats. A opens the complete authored discussion, not an isolated answer field. Attribute agent-originated messages to their actual speaker. Internal advice may remain a linked two-agent exchange. Task agents visibly join the human-facing thread as participants/actual authors without changing the main agent. Browser controls provide equivalent entry, all-chats, resume, reply and related-work navigation.
 
-Unread is not necessarily actionable and actionable is not necessarily unread. Distinguish new messages, waiting approvals/questions and unrelated notifications. New arrivals never steal focus or submit drafts. Narrow views retain thread identity, speaker, required action and composer; truncation must allow full-name inspection/copying. Predefined responses use shared choice controls; freeform replies use the rich composer. Reading does not resolve a request; an actual accepted/committed answer does.
+Unread is not necessarily actionable and actionable is not necessarily unread. Distinguish new messages, waiting approvals/questions and unrelated notifications. New arrivals never steal focus or submit drafts. Narrow views retain thread identity, speaker, required action and composer; truncation must allow full-name inspection/copying. Predefined responses use shared choice controls; freeform replies use the rich composer. Reading does not resolve a request; an accepted/saved response immediately clears that question's attention before model processing/Git batching.
 
 `ptbk ask` may remain a quick-question/task-submission entry, not a second anonymous request model. `ptbk add` remains explicit finite authoring. Status/show exposes attention without opening a client; raw/noninteractive output never prompts invisibly.
+
+## Progress, input and task cards
+
+Show in-progress reply text and available progress during work and keep the composer usable for additional instructions. Do not wait for the final reply or freeze other chats. Clients share ordered messages/task state while retaining their own drafts, focus, scroll and expanded presentation.
+
+After the final reply, automatically collapse interim material into **Thinking** plus elapsed duration, without a message count or repeated interim text by default. It can be expanded; the complete actual conversation remains in the Book. Measure real elapsed time and do not invent provider thinking content.
+
+Show live task boxes/cards under [chat/task relationships](chat-tasks.md): readable task name, actual state and normal detail navigation. Reflect starts/waits/outcomes while keeping chat usable; append the concise completion result. Questions identify actual agent/task and share one answer/state with task detail.
 
 ## Acceptance outcomes
 
