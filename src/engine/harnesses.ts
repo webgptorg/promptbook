@@ -1,3 +1,4 @@
+import { createHmac, randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { promptbookAppData } from '../common/app-data.js';
 import { formatShortTime } from '../common/time.js';
@@ -42,9 +43,9 @@ export function instanceEnvironment(plugin: HarnessPlugin, tool: HarnessToolReco
 }
 
 /**
- * A runtime unavailability mark of one instance (quota/rate limit or failed authentication), cleared by time or recheck.
+ * A runtime quota or authentication failure, scoped to its connection identity and bounded by time.
  */
-type UnavailableMark = { readonly kind: 'quota' | 'authentication'; readonly reason: string; readonly until: number };
+type UnavailableMark = { readonly kind: 'quota' | 'authentication'; readonly reason: string; readonly until: number; readonly identity: string };
 
 /**
  * Tracks inspections of the project's enabled harness instances (only configured instances are inspected) and selects
@@ -55,9 +56,11 @@ type UnavailableMark = { readonly kind: 'quota' | 'authentication'; readonly rea
  */
 export class HarnessPool {
     private readonly inspections = new Map<string, HarnessInspection>();
+    /** Per-pool secret key keeps cache identities private to this runtime, never diagnostic or persisted. */
+    readonly #identityKey = randomBytes(32);
     private readonly inspectedConfig = new Map<string, string>();
     private readonly unavailable = new Map<string, UnavailableMark>();
-    private readonly modelCache = new Map<string, Promise<string[]>>();
+    private readonly modelCache = new Map<string, { identity: string; models: Promise<string[]> }>();
     private dotEnv: DotEnv = { exists: false, text: '', assignments: [] };
 
     public constructor(
@@ -116,10 +119,19 @@ export class HarnessPool {
         return { projectRoot: this.projectRoot, env: tool ? this.environment(tool) : { ...this.env }, tool, signal };
     }
 
-    /** A fingerprint of the configuration an inspection depends on (a changed instance is reinspected at once). */
-    private fingerprint(tool: HarnessToolRecord): string {
+    /** Runtime-only connection identity shared by readiness, model catalogs and provider failure backoff. */
+    private fingerprint(tool: HarnessToolRecord, env = this.environment(tool)): string {
+        const plugin = this.plugin(harnessPluginId(tool.variant));
+        return createHmac('sha256', this.#identityKey).update(JSON.stringify([
+            tool.variant, tool.authentication, tool.accountProfile, toolRuntime(tool),
+            tool.authentication === 'API_KEY' && plugin?.apiKeyVariable ? env[plugin.apiKeyVariable] : undefined,
+        ])).digest('hex');
+    }
+
+    /** Inspection dependencies also include the non-secret source description shown in readiness output. */
+    private inspectionFingerprint(tool: HarnessToolRecord): string {
         const credential = this.credential(tool);
-        return JSON.stringify([tool.variant, tool.authentication, tool.accountProfile, tool.apiKey, credential?.source, credential?.value ? credential.value.length : 0]);
+        return JSON.stringify([this.fingerprint(tool), credential?.name, credential?.source]);
     }
 
     /** Inspects one instance through its adapter (API_KEY readiness needs no login probe and never a paid call). */
@@ -169,8 +181,10 @@ export class HarnessPool {
                 const plugin = harnessPlugin(harnessPluginId(tool.variant));
                 if (!plugin) return;
                 const existing = this.inspections.get(tool.name);
-                const fingerprint = this.fingerprint(tool);
+                const fingerprint = this.inspectionFingerprint(tool);
                 if (!force && existing && this.inspectedConfig.get(tool.name) === fingerprint && Date.now() - existing.checkedAt < INSPECTION_TTL_MS) return;
+                // Model discovery also depends on installed CLI/readiness state, even when the connection is unchanged.
+                this.modelCache.delete(tool.name);
                 try {
                     this.inspections.set(tool.name, await this.inspectInstance(tool));
                 } catch (error) {
@@ -198,8 +212,9 @@ export class HarnessPool {
     public inspectionOf(name: string): HarnessInspection | undefined {
         const inspection = this.inspections.get(name);
         const mark = this.unavailable.get(name);
-        if (!inspection) return undefined;
-        if (mark && mark.until > Date.now()) return { ...inspection, usable: false, summary: `${mark.reason} (rechecked after ${formatShortTime(mark.until)})`, problem: 'error', nextAction: mark.kind === 'quota' ? 'Wait for the reset, or enable another instance of this variant as a fallback.' : inspection.nextAction };
+        const tool = this.instance(name);
+        if (!inspection || !tool || this.inspectedConfig.get(name) !== this.inspectionFingerprint(tool)) return undefined;
+        if (mark && mark.identity === this.fingerprint(tool) && mark.until > Date.now()) return { ...inspection, usable: false, summary: `${mark.reason} (rechecked after ${formatShortTime(mark.until)})`, problem: 'error', nextAction: mark.kind === 'quota' ? 'Wait for the reset, or enable another instance of this variant as a fallback.' : inspection.nextAction };
         if (mark) this.unavailable.delete(name);
         return inspection;
     }
@@ -256,12 +271,15 @@ export class HarnessPool {
     public async models(variant: string): Promise<string[]> {
         const plugin = this.plugin(variant);
         if (!plugin?.listModels) return [];
-        let cached = this.modelCache.get(plugin.id);
-        if (!cached) {
-            cached = plugin.listModels(this.context(variant)).catch(() => []);
-            this.modelCache.set(plugin.id, cached);
+        const context = this.context(variant);
+        const name = context.tool?.name ?? plugin.id;
+        const identity = context.tool ? this.fingerprint(context.tool, context.env) : plugin.id;
+        let cached = this.modelCache.get(name);
+        if (!cached || cached.identity !== identity) {
+            cached = { identity, models: plugin.listModels(context).catch(() => []) };
+            this.modelCache.set(name, cached);
         }
-        return [...(await cached)];
+        return [...(await cached.models)];
     }
 
     /**
@@ -292,10 +310,16 @@ export class HarnessPool {
 
     /**
      * Marks an instance temporarily unavailable after an observed quota or authentication failure, so the same-variant
-     * fallback serves the next selection without repeated failing probes.
+     * fallback serves the next selection without repeated failing probes. The acquired context attributes a late
+     * failure to its original connection, so it cannot penalize a replacement credential or endpoint.
      */
-    public markUnavailable(name: string, kind: UnavailableMark['kind'], reason: string, forMs: number): void {
-        this.unavailable.set(name, { kind, reason, until: Date.now() + forMs });
+    public markUnavailable(name: string, kind: UnavailableMark['kind'], reason: string, forMs: number, context?: HarnessContext): void {
+        const tool = context?.tool ?? this.instance(name);
+        if (!tool) return;
+        const identity = this.fingerprint(tool, context?.env);
+        const current = this.instance(name);
+        if (!current || identity !== this.fingerprint(current)) return;
+        this.unavailable.set(name, { kind, reason, until: Date.now() + forMs, identity });
     }
 
     /** Marks a variant or instance for recheck (e.g. after an authentication failure). */
@@ -304,8 +328,7 @@ export class HarnessPool {
         for (const name of names) {
             this.inspections.delete(name);
             this.inspectedConfig.delete(name);
+            this.modelCache.delete(name);
         }
-        const plugin = this.plugin(nameOrVariant);
-        if (plugin) this.modelCache.delete(plugin.id);
     }
 }

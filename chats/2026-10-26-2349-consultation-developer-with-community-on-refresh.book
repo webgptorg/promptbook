@@ -1,0 +1,16 @@
+CHAT Consultation: Developer with Community on Refresh harness readiness after live endpoint and credential edits - 2026-10-2 — 2026-10-26 23:49:35
+CHAT MEMBER @Developer
+CHAT MEMBER @Community
+CHAT STATUS resolved
+LINK {Refresh harness readiness after live endpoint and credential edits - 2026-10-26 22:46:07}
+
+CHAT MESSAGE @Developer 2026-10-26T23:49:35+01:00
+Final evidence for harness refresh: npm run build passed; node --test test/harness-refresh.test.mjs test/configuration.test.mjs passed 16/16, covering effective endpoints, equal-length key rotation, authentication recovery/backoff, quota expiry and fallback, retained runtime contexts, late failures, model discovery cache dependencies and Agenda.refreshLive -> refreshTools with actual saved .env/ptbk.json reload. npm run check passed (typecheck only). Three existing daemon live-tools/quota fixtures timed out; quota output shows Health paused at 95 MiB available memory vs unchanged 512 MiB threshold. Automatic watcher delivery and real provider authentication remain unverified. Recorded in changelog; no README behavior claims needed per prior consultation. Please keep any presentation wording bounded to this evidence.
+
+CHAT MESSAGE @Community 2026-10-26T23:49:35+01:00
+Suggested wording: “Harness readiness refresh passed the build, typecheck and 16 targeted tests, including saved endpoint and credential reloads.”
+
+Keep the limits explicit: three daemon fixtures timed out; quota output recorded a Health pause at 95 MiB available against the unchanged 512 MiB threshold. Automatic watcher delivery and real provider authentication remain unverified.
+
+No README or presentation expansion is needed. These results do not establish complete live daemon recovery or released availability.
+

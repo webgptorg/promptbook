@@ -577,6 +577,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             // The acquired instance (retained for this attempt even if its saved configuration changes meanwhile).
             const instance = selection.tool ? (environment.pool.instance(selection.tool) ?? retainedInstance) : undefined;
             if (instance) retainedInstance = instance;
+            /** Capture before awaiting: live edits govern later selections, never this dispatched use or its failure. */
+            const acquiredContext = instance ? { projectRoot: project.root, tool: instance, env: environment.pool.environment(instance) } : undefined;
             await trace.section(`Attempt ${attempt}/${repairBudget}${record.technicalRetries ? ` (technical retry ${record.technicalRetries})` : ''} · ${runLabel}`, [
                 `Agent: ${agent.name} · Harness: ${harnessLabel} · Model: ${selection.model ?? '(harness default)'} · Thinking: ${selection.thinkingLevel ?? '(default)'}`,
                 `Started: ${new Date().toISOString()}`,
@@ -615,7 +617,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         thinkingLevel: selection.thinkingLevel,
                         readOnly: false,
                         mcp: bridge?.launch(),
-                        env: instance ? environment.pool.environment(instance) : environment.env,
+                        env: acquiredContext?.env ?? environment.env,
                         timeoutMs: TURN_TIMEOUT_MS,
                         stallTimeoutMs: setting<number>(settings, 'execution.stallTimeout'),
                         signal: environment.signal,
@@ -663,7 +665,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 return { kind: 'interrupted' };
             }
             if (lastResult.outcome === 'authentication') {
-                if (selection.tool) environment.pool.markUnavailable(selection.tool, 'authentication', `Authentication failed: ${lastResult.diagnostic}`, QUOTA_BACKOFF_MS);
+                if (selection.tool) environment.pool.markUnavailable(selection.tool, 'authentication', `Authentication failed: ${lastResult.diagnostic}`, QUOTA_BACKOFF_MS, acquiredContext);
                 environment.pool.invalidate(selection.tool ?? selection.harness);
                 await save({ attempt: attempt - 1 });
                 return { kind: 'setup', reason: lastResult.diagnostic, next: plugin.loginHint, tool: selection.tool };
@@ -671,7 +673,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             if (lastResult.outcome === 'quota') {
                 // The exhausted instance is skipped by the next selection: an authorized same-variant fallback serves the
                 // retry promptly instead of waiting through this account's reset.
-                if (selection.tool) environment.pool.markUnavailable(selection.tool, 'quota', `Quota/rate limit: ${lastResult.diagnostic}`, QUOTA_BACKOFF_MS);
+                if (selection.tool) environment.pool.markUnavailable(selection.tool, 'quota', `Quota/rate limit: ${lastResult.diagnostic}`, QUOTA_BACKOFF_MS, acquiredContext);
                 await save({ attempt: attempt - 1 });
                 await trace.event('waiting', { reason: 'provider quota', tool: selection.tool ?? null, diagnostic: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS });
                 return { kind: 'quota', reason: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS, tool: selection.tool };

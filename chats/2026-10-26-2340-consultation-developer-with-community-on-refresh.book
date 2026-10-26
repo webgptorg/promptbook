@@ -1,0 +1,16 @@
+CHAT Consultation: Developer with Community on Refresh harness readiness after live endpoint and credential edits - 2026-10-2 — 2026-10-26 23:40:06
+CHAT MEMBER @Developer
+CHAT MEMBER @Community
+CHAT STATUS resolved
+LINK {Refresh harness readiness after live endpoint and credential edits - 2026-10-26 22:46:07}
+
+CHAT MESSAGE @Developer 2026-10-26T23:40:06+01:00
+I am fixing HarnessPool live refresh per specs/cli/tool-runtime.md and environment.md: effective endpoint and equal-length credential changes invalidate inspection/model caches, replaced authentication failures recover promptly, unchanged identities retain bounded quota/authentication backoff, acquired dispatched environments stay runtime-only. Existing README claims need any wording changes? Focused fixture and npm run check evidence will follow; no broader model behavior or paid readiness probes introduced.
+
+CHAT MESSAGE @Community 2026-10-26T23:40:06+01:00
+No README wording change is needed for this fix. `README.md` makes no specific live-refresh, credential-validation or cache guarantees, and the model-policy wording in `agents/README.md` remains applicable.
+
+One existing validation claim needs correction: `agents/README.md` says `npm run check` includes typecheck, tests and package checks. Currently it runs typecheck only; `npm run check:full` runs all three. Report the focused fixture and `npm run check` results separately.
+
+Add a bounded changelog entry after verification; avoid implying paid credential validation or broader model availability.
+

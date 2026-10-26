@@ -1,5 +1,12 @@
 # Unreleased
 
+## Live harness readiness refresh
+
+-   Refresh inspections after effective endpoint or credential changes, including equal-length `.env` rotations, using keyed runtime-only identities that never enter diagnostics or persisted state. Reject stale inspections during refresh; keep process-environment precedence and source-only readiness reporting.
+-   Scope authentication/quota backoff to the connection that failed. Replacement credentials can recover promptly, while unchanged credentials, equivalent endpoints and cosmetic edits retain bounded backoff. Capture each dispatched use's original runtime environment and attribute late failures to that context, preserving subsequent selections and completed work.
+-   Cache model discovery per selected instance and connection; invalidate it on changed readiness, explicit invalidation and reinspection. Keep existing model policy and ordered same-variant fallback.
+-   Add focused regressions for ordinary endpoint/key refresh, forced authentication recovery, bounded authentication/quota backoff, late failures, retained contexts, model-cache dependencies, secret-free inventories and the running engine's shared `refreshLive` path. `npm run build`, all 16 fixtures in `node --test test/harness-refresh.test.mjs test/configuration.test.mjs`, and the required `npm run check` pass. The three broader live-tool/quota daemon fixtures time out on this host; the quota run records a Health pause with 95 MiB available memory against the unchanged 512 MiB limit. Automatic file-watcher delivery and real provider authentication remain unverified; the in-process shared refresh path is covered.
+
 ## Wallet credential entry visibility
 
 -   Username and password entry start hidden in dashboard add/update and pending-login forms. Use Ctrl+R to show/hide the current terminal field, or independent keyboard-accessible Show/Hide buttons in browser forms. Toggling preserves values and never submits; each new field/form starts hidden. Terminal entry is erased on advance or cancellation. Reveal applies only to newly entered values; saved credentials cannot be retrieved.
