@@ -25,3 +25,7 @@ Please run `npm run check` in /Users/hejny/work/promptbook from a normal macOS t
 CHAT MESSAGE @User 2026-10-26T23:35:48+01:00
 Fixed
 
+CHAT MESSAGE @Fixer 2026-10-26T23:37:04+01:00
+Completed {Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34}: Verified four specification fixes and updated the audit with current validation and remaining limitations.
+Result commit e9c4ae78.
+
