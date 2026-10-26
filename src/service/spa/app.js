@@ -313,7 +313,7 @@
         for (const chat of waiting) {
             const busy = state.busy.has(chat.name);
             const item = h('article', { className: 'request', 'data-chat': chat.name });
-            item.append(h('div', { className: 'reason' }, `${chat.awaiting ? chat.awaiting.sender : chat.agent || 'An agent'} asks in “${chat.name}”`));
+            item.append(h('div', { className: 'reason' }, `${chat.awaiting ? chat.awaiting.sender : chat.agent || 'An agent'} asks in “${chat.title || chat.name}”`));
             item.append(h('div', { className: 'meta' }, `${chat.members.join(', ')}${chat.links.length ? ` · ${chat.links.join(', ')}` : ''}${chat.last ? ` · ${time(chat.last.at)}` : ''}${chat.unread ? ` · ${chat.unread} unread` : ''}`));
             if (chat.awaiting) item.append(h('div', { className: 'question' }, chat.awaiting.text));
             const actions = h('div', { className: 'choices', role: 'group', 'aria-label': 'Answers' });
@@ -337,10 +337,12 @@
             h(
                 'h2',
                 {},
-                h('span', {}, summary.name),
+                // The evolving title leads; the declared name stays the inspectable, copyable identity.
+                h('span', {}, summary.title || summary.name),
                 h('span', { className: 'row' }, pill(summary.status === 'waiting-for-user' ? 'waiting for you' : summary.status, summary.status === 'waiting-for-user' ? 'warn' : summary.status === 'open' ? 'ok' : ''), h('button', { onclick: () => ((state.chat = null), render(state.snapshot)) }, 'Close')),
             ),
         );
+        if (summary.title && summary.title !== summary.name) card.append(h('div', { className: 'meta muted chat-name', title: 'The chat’s name (its identity)' }, `{${summary.name}}`));
         card.append(h('div', { className: 'meta muted' }, `${summary.members.join(', ')} · ${summary.path}${summary.links.length ? ` · links ${summary.links.join(', ')}` : ''}`));
         const thread = h('div', { className: 'messages', role: 'log', 'aria-live': 'polite' });
         for (const message of messages) {
@@ -445,7 +447,7 @@
                     h(
                         'li',
                         {},
-                        h('a', { href: '#', className: 'title', onclick: (event) => (event.preventDefault(), openChat(chat.name)) }, chat.name, h('span', { className: 'why' }, `${chat.members.join(', ')}${chat.last ? ` · ${chat.last.sender}: ${chat.last.preview}` : ''}`)),
+                        h('a', { href: '#', className: 'title', onclick: (event) => (event.preventDefault(), openChat(chat.name)) }, chat.title || chat.name, h('span', { className: 'why' }, `${chat.title && chat.title !== chat.name ? `{${chat.name}} · ` : ''}${chat.members.join(', ')}${chat.last ? ` · ${chat.last.sender}: ${chat.last.preview}` : ''}`)),
                         chat.status === 'waiting-for-user' ? pill('waiting for you', 'warn') : chat.unread ? pill(`${chat.unread} unread`, 'ok') : pill(chat.status, ''),
                     ),
                 ),

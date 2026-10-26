@@ -31,7 +31,19 @@ export type ChatMessage = {
     readonly text: string;
     /** Predefined answers offered by an agent message. */
     readonly choices?: readonly string[];
+    /**
+     * `progress`: an interim update of a turn (collapsed into Thinking once its final reply exists); `final`: the reply
+     * that ends a turn which had progress. An ordinary message has no phase.
+     */
+    readonly phase?: ChatMessagePhase;
 };
+
+/**
+ * Phase of a message within an agent's turn.
+ *
+ * @private chats
+ */
+export type ChatMessagePhase = 'progress' | 'final';
 
 /**
  * A parsed chat Book.
@@ -39,11 +51,13 @@ export type ChatMessage = {
  * @private chats
  */
 export type ChatBook = {
-    /** Display name (first line): the chat's identity. */
+    /** Declared name (the opening `CHAT` line): the chat's identity. */
     readonly name: string;
     /** Normalized name. */
     readonly key: string;
-    /** Participant references. */
+    /** The latest valid `CHAT TITLE` (presentation only; the name stays the identity). */
+    readonly title?: string;
+    /** Participant references in declaration order (the first agent is the main agent). */
     readonly members: readonly string[];
     /** Durable action state. */
     readonly status: ChatStatus;
@@ -110,9 +124,9 @@ function needsEscape(line: string): boolean {
  *
  * @private chats
  */
-export function renderChatMessage(message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices'>): string[] {
+export function renderChatMessage(message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'>): string[] {
     const body = message.text.replace(/\r\n?/g, '\n').split('\n').map((line) => (needsEscape(line) ? `\\${line}` : line));
-    return [`CHAT MESSAGE ${message.sender} ${message.at}`, ...body, ...(message.choices ?? []).map((choice) => `${CHOICE_PREFIX}${choice.replace(/\s*\n\s*/g, ' ')}`), ''];
+    return [`CHAT MESSAGE ${message.sender} ${message.at}${message.phase ? ` ${message.phase}` : ''}`, ...body, ...(message.choices ?? []).map((choice) => `${CHOICE_PREFIX}${choice.replace(/\s*\n\s*/g, ' ')}`), ''];
 }
 
 /**
@@ -131,10 +145,42 @@ export function renderChatBook(chat: { name: string; members: readonly string[];
  *
  * @private chats
  */
-export function appendChatMessage(source: string, message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices'>, status?: ChatStatus): string {
+export function appendChatMessage(source: string, message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'>, status?: ChatStatus): string {
     const base = source.endsWith('\n') ? source : `${source}\n`;
     const text = `${base}${renderChatMessage(message).join('\n')}\n`;
     return status ? setChatStatus(text, status) : text;
+}
+
+/**
+ * Appends single-line commitments (a joining `CHAT MEMBER`, a `LINK`, a new `CHAT TITLE`) at their chronological
+ * position, after everything so far, without touching earlier content.
+ *
+ * @private chats
+ */
+export function appendChatCommitments(source: string, lines: readonly string[]): string {
+    if (!lines.length) return source;
+    const base = source.endsWith('\n') ? source : `${source}\n`;
+    // The separating blank line of a final message stays its own; commitments follow it.
+    return `${base}${lines.map((line) => line.replace(/[\r\n]+/g, ' ')).join('\n')}\n`;
+}
+
+/**
+ * Whether a participant reference is already a member (normalized; re-adding is idempotent).
+ *
+ * @private chats
+ */
+export function hasMember(chat: Pick<ChatBook, 'members'>, reference: string): boolean {
+    const key = parseReferenceValue(reference)?.normalized ?? normalizeAgentName(reference);
+    return chat.members.some((member) => parseReferenceValue(member)?.normalized === key);
+}
+
+/**
+ * The human-facing presentation title: the latest `CHAT TITLE`, or the declared name without one.
+ *
+ * @private chats
+ */
+export function chatDisplayTitle(chat: Pick<ChatBook, 'name' | 'title'>): string {
+    return chat.title ?? chat.name;
 }
 
 /**
@@ -176,9 +222,9 @@ export function parseChatBook(source: string): ChatBook {
     const messageCommitments = commitmentsOf(document, 'CHAT MESSAGE');
     const messages: ChatMessage[] = [];
     for (const commitment of messageCommitments) {
-        const header = /^(\{[^{}]+\}|@\S+)\s+(\S+)$/.exec(commitment.value.trim());
+        const header = /^(\{[^{}]+\}|@\S+)\s+(\S+)(?:\s+(progress|final))?$/.exec(commitment.value.trim());
         if (!header) {
-            diagnostics.push({ line: commitment.startLine + 1, message: 'A CHAT MESSAGE needs `<sender> <timestamp>`.', severity: 'error' });
+            diagnostics.push({ line: commitment.startLine + 1, message: 'A CHAT MESSAGE needs `<sender> <timestamp>`, optionally followed by `progress` or `final`.', severity: 'error' });
             continue;
         }
         const isLast = commitment === messageCommitments[messageCommitments.length - 1] && commitment.endLine === document.lines.length;
@@ -189,11 +235,17 @@ export function parseChatBook(source: string): ChatBook {
         while (raw.length && raw[raw.length - 1]!.startsWith(CHOICE_PREFIX)) choices.unshift(raw.pop()!.slice(CHOICE_PREFIX.length));
         const text = raw.map((line) => (line.startsWith('\\') ? line.slice(1) : line)).join('\n');
         const sender = header[1]!;
-        messages.push({ sender, senderKey: parseReferenceValue(sender)?.normalized ?? normalizeAgentName(sender), at: header[2]!, text, choices: choices.length ? choices : undefined });
+        const phase = header[3] as ChatMessagePhase | undefined;
+        messages.push({ sender, senderKey: parseReferenceValue(sender)?.normalized ?? normalizeAgentName(sender), at: header[2]!, text, choices: choices.length ? choices : undefined, ...(phase ? { phase } : {}) });
     }
+    // The latest valid title wins; earlier ones stay in the Book as its history.
+    const titles = commitmentsOf(document, 'CHAT TITLE').map((commitment) => commitment.value.split('\n')[0]!.trim());
+    for (const commitment of commitmentsOf(document, 'CHAT TITLE')) if (!commitment.value.split('\n')[0]!.trim()) diagnostics.push({ line: commitment.startLine + 1, message: 'CHAT TITLE needs a nonempty single-line title.', severity: 'warning' });
+    const title = titles.filter(Boolean).at(-1);
     return {
         name: document.name,
         key: normalizeAgentName(document.name),
+        ...(title ? { title } : {}),
         members,
         status,
         links: commitmentsOf(document, 'LINK').map((commitment) => commitment.value.trim()),
@@ -215,13 +267,22 @@ export function appendChatModel(source: string, model: ModelConstraint): string 
 }
 
 /**
- * The agent participant of a human-facing chat (the non-User member), when there is exactly one.
+ * The main agent of a human-facing chat: its first agent member (the initially selected agent). Joined agents speak
+ * under their own names but never replace it.
  *
  * @private chats
  */
 export function chatAgent(chat: Pick<ChatBook, 'members'>): string | undefined {
-    const agents = chat.members.filter((member) => parseReferenceValue(member)?.normalized !== 'user');
-    return agents.length === 1 ? agents[0] : undefined;
+    return chatAgents(chat)[0];
+}
+
+/**
+ * Every agent participant of a chat in declaration order (the first is the main agent).
+ *
+ * @private chats
+ */
+export function chatAgents(chat: Pick<ChatBook, 'members'>): string[] {
+    return chat.members.filter((member) => parseReferenceValue(member)?.normalized !== 'user');
 }
 
 /**

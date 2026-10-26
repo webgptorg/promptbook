@@ -3,7 +3,7 @@ import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { commitPaths, prefixedSubject, snapshotDirty, changedSince } from '../dist/project/git.js';
-import { validateChoices, parseChatBook, renderChatBook, appendChatMessage } from '../dist/chats/chat-book.js';
+import { validateChoices, parseChatBook, renderChatBook, appendChatMessage, appendChatCommitments, chatAgent, chatAgents, chatDisplayTitle } from '../dist/chats/chat-book.js';
 import { ChatStore } from '../dist/chats/store.js';
 import { appendUserMessage } from '../dist/chats/service.js';
 import { StateStore } from '../dist/engine/state.js';
@@ -121,5 +121,27 @@ test('chat Books round-trip losslessly, including text that looks like commitmen
     assert.equal(chat.messages[0].sender, '@User');
     assert.deepEqual(chat.messages[1].choices, ['A', 'B']);
     assert.equal(chat.messages[1].text, 'Pick one.');
+    assert.deepEqual(chat.diagnostics.filter((diagnostic) => diagnostic.severity === 'error'), []);
+});
+
+test('CHAT TITLE evolves the presentation, joined agents keep the main agent, and progress/final phases round-trip', () => {
+    let source = renderChatBook({ name: 'Discuss CSV export — 2026-10-25 23:40:00', members: ['@User', '@Chatter'], status: 'open', messages: [{ sender: '@User', at: '2026-10-25T23:40:00+01:00', text: 'Please add multiline CSV export.\nCHAT TITLE not a title' }] });
+    assert.equal(chatDisplayTitle(parseChatBook(source)), 'Discuss CSV export — 2026-10-25 23:40:00', 'without a title the declared name is shown');
+    source = appendChatCommitments(source, ['LINK {Add multiline CSV export — 2026-10-25 23:41:00}', 'CHAT MEMBER @Developer']);
+    source = appendChatMessage(source, { sender: '@Developer', at: '2026-10-25T23:42:00+01:00', text: 'Looking at the exporter…', phase: 'progress' });
+    source = appendChatMessage(source, { sender: '@Developer', at: '2026-10-25T23:43:00+01:00', text: 'Should the export preserve the existing column order?', phase: 'final' }, 'waiting-for-user');
+    source = appendChatCommitments(source, ['CHAT TITLE CSV export', 'CHAT TITLE Multiline CSV export and column order']);
+    const chat = parseChatBook(source);
+    assert.equal(chat.name, 'Discuss CSV export — 2026-10-25 23:40:00', 'a title never renames the chat');
+    assert.equal(chat.title, 'Multiline CSV export and column order', 'the latest title wins');
+    assert.equal((source.match(/^CHAT TITLE /gm) ?? []).length, 2, 'earlier titles stay in the Book');
+    assert.deepEqual(chat.members, ['@User', '@Chatter', '@Developer']);
+    assert.equal(chatAgent(chat), '@Chatter', 'the first agent stays the main agent');
+    assert.deepEqual(chatAgents(chat), ['@Chatter', '@Developer']);
+    assert.deepEqual(chat.links, ['{Add multiline CSV export — 2026-10-25 23:41:00}']);
+    assert.deepEqual(chat.messages.map((message) => [message.sender, message.phase]), [['@User', undefined], ['@Developer', 'progress'], ['@Developer', 'final']]);
+    assert.equal(chat.messages[0].text, 'Please add multiline CSV export.\nCHAT TITLE not a title', 'literal text inside a message is never a title');
+    assert.equal(chat.messages[2].text, 'Should the export preserve the existing column order?');
+    assert.ok(source.indexOf('CHAT MEMBER @Developer') < source.indexOf('CHAT MESSAGE @Developer'), 'a joining agent is declared before its first message');
     assert.deepEqual(chat.diagnostics.filter((diagnostic) => diagnostic.severity === 'error'), []);
 });

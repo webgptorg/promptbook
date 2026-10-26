@@ -40,6 +40,11 @@ const MAX_TRANSCRIPT_CHARACTERS = 60_000;
 const LEARN_MARKER = /^PTBK_LEARN\s+(.+)$/m;
 
 /**
+ * Marker of a new presentation title for the chat (appended as `CHAT TITLE`; the declared name never changes).
+ */
+const TITLE_MARKER = /^PTBK_TITLE\s+(.+)$/m;
+
+/**
  * Services a chat turn needs from its host (service or CLI).
  *
  * @private chats
@@ -198,7 +203,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const { chat } = stored;
     if (!isHumanFacing(chat)) throw new PtbkError('Agent↔agent consultation chats are task records, not conversations with the user.', { kind: 'usage' });
     const agentReference = chatAgent(chat);
-    if (!agentReference) throw new PtbkError(`The chat "${chat.name}" has no single agent participant.`, { kind: 'configuration' });
+    if (!agentReference) throw new PtbkError(`The chat "${chat.name}" has no agent participant.`, { kind: 'configuration' });
     const last = chat.messages[chat.messages.length - 1];
     if (!last || last.senderKey !== 'user') return { createdTasks: [] };
     const agent = await resolveEffectiveAgent(context.catalog, agentReference);
@@ -302,6 +307,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
                 ? ['- For a specialist question, call the `consult` tool with a teammate from your TEAM (or @Expert for Promptbook itself) and tell the user whose advice you relay. Advice is not executed work: specialist work goes through `create_task`.']
                 : []),
             '- If the user corrected you or stated a lasting, project-specific preference relevant to your role, add a final line `PTBK_LEARN <one sentence>` (it is removed from your reply).',
+            `- When the topic of this chat becomes clear or changes, add a final line \`PTBK_TITLE <short topic title>\`${chat.title ? ` (currently "${chat.title}")` : ''}: it updates the title shown to the user and is removed from your reply. The chat's name {${chat.name}} never changes.`,
         ].join('\n'),
     ]
         .filter(Boolean)
@@ -340,8 +346,10 @@ export async function replyInChat(context: ConversationContext, chatName: string
     }
     if (result.outcome !== 'completed' || !result.finalMessage.trim()) return { createdTasks: created, error: result.outcome === 'completed' ? `${agent.name} gave no reply.` : result.diagnostic };
     const learning = LEARN_MARKER.exec(result.finalMessage)?.[1]?.trim();
-    const text = result.finalMessage.replace(LEARN_MARKER, '').replace(/^PTBK_RESULT .*$/m, '').trim();
-    const reply = await context.chats.append(chat.name, { sender: formatAgentReference(agent.name), text: text || '(no reply text)' }, { trailers: created.length ? { 'Task-Name': created } : undefined });
+    const title = TITLE_MARKER.exec(result.finalMessage)?.[1]?.trim();
+    const text = result.finalMessage.replace(LEARN_MARKER, '').replace(TITLE_MARKER, '').replace(/^PTBK_RESULT .*$/m, '').trim();
+    let reply = await context.chats.append(chat.name, { sender: formatAgentReference(agent.name), text: text || '(no reply text)' }, { trailers: created.length ? { 'Task-Name': created } : undefined });
+    if (title) reply = await context.chats.annotate(chat.name, { title }).catch(() => reply);
     if (learning && agent.learning.open && agent.definition && parseReferenceValue(agentReference)?.normalized !== 'teacher' && setting<boolean>(context.settings, 'learning.isEnabled')) {
         await context.scheduleLearning?.({ chat: chat.name, agent: agent.name, note: learning }).catch(() => undefined);
     }

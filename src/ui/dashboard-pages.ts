@@ -311,7 +311,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             const chats = snapshot.chats.recent;
             const body = chats.map(
                 (chat, index) =>
-                    `${pointer(index === page.focus)} ${chat.status === 'waiting-for-user' ? style.warning(`${marks.warn} `) : ''}${chat.name}${chat.unread ? style.accent(` · ${chat.unread} unread`) : ''}${style.muted(` · ${chat.members.join(', ')}${chat.links.length ? ` · ${chat.links.join(', ')}` : ''}`)}`,
+                    `${pointer(index === page.focus)} ${chat.status === 'waiting-for-user' ? style.warning(`${marks.warn} `) : ''}${chat.title ?? chat.name}${chat.unread ? style.accent(` · ${chat.unread} unread`) : ''}${style.muted(` · ${chat.title && chat.title !== chat.name ? `{${chat.name}} · ` : ''}${chat.members.join(', ')}${chat.links.length ? ` · ${chat.links.join(', ')}` : ''}`)}`,
             );
             if (!chats.length) body.push(style.muted('No chats yet; press N to start one (Chatter first).'));
             const waiting = snapshot.chats.waiting;

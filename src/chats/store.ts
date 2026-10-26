@@ -12,7 +12,7 @@ import { generatedName } from '../tasks/identity.js';
 import { formatModelRow, type ModelRow } from '../book/model.js';
 import { MAX_ATTACHMENT_BYTES, materializeAttachments } from '../ui/attachments.js';
 import type { ComposedSegment } from '../ui/composer.js';
-import { appendChatMessage, appendChatModel, chatAgent, isHumanFacing, parseChatBook, renderChatBook, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
+import { appendChatCommitments, appendChatMessage, appendChatModel, chatAgent, chatDisplayTitle, hasMember, isHumanFacing, parseChatBook, renderChatBook, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
 
 /**
  * How chat operations are versioned: each human-facing operation is its own commit unless explicitly uncommitted.
@@ -39,10 +39,13 @@ export type StoredChat = { readonly path: string; readonly relativePath: string;
  * @private chats
  */
 export type ChatSummary = {
+    /** Declared name: the chat's identity and reference (`{name}`). */
     readonly name: string;
+    /** Presentation title: the latest `CHAT TITLE`, or the declared name without one. */
+    readonly title: string;
     readonly path: string;
     readonly members: readonly string[];
-    /** The agent participant (human-facing chats). */
+    /** The main agent (the first agent member of a human-facing chat). */
     readonly agent?: string;
     readonly status: ChatStatus;
     readonly humanFacing: boolean;
@@ -234,6 +237,41 @@ export class ChatStore {
         });
     }
 
+    /**
+     * Appends single-line commitments in chronological position: a joining agent (`CHAT MEMBER`, idempotent for an
+     * existing participant), named links (`LINK`, deduplicated) and a new presentation title (`CHAT TITLE`, unchanged
+     * titles are not repeated). Returns the stored chat unchanged when nothing new was added.
+     */
+    public async annotate(name: string, additions: { readonly members?: readonly string[]; readonly links?: readonly string[]; readonly title?: string }, options: { readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>> } = {}): Promise<ChatWrite> {
+        return await this.mutex.run(async () => {
+            const stored = await this.find(name);
+            if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found' });
+            const lines: string[] = [];
+            const members = new Set<string>();
+            for (const member of additions.members ?? []) {
+                const key = parseReferenceValue(member)?.normalized ?? normalizeAgentName(member);
+                if (hasMember(stored.chat, member) || members.has(key)) continue;
+                members.add(key);
+                lines.push(`CHAT MEMBER ${member}`);
+            }
+            const links = new Set(stored.chat.links.map((link) => parseReferenceValue(link)?.normalized ?? link));
+            for (const link of additions.links ?? []) {
+                const key = parseReferenceValue(link)?.normalized ?? link;
+                if (links.has(key)) continue;
+                links.add(key);
+                lines.push(`LINK ${link}`);
+            }
+            const title = additions.title?.replace(/\s+/g, ' ').trim().slice(0, 200);
+            if (title && title !== stored.chat.title && title !== stored.chat.name) lines.push(`CHAT TITLE ${title}`);
+            if (!lines.length) return stored;
+            const updated = appendChatCommitments(await readFile(stored.path, 'utf8'), lines);
+            await writeFile(stored.path, updated);
+            const chat = parseChatBook(updated);
+            const commit = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers) : undefined;
+            return { ...stored, chat, commit };
+        });
+    }
+
     /** Changes only the durable status (e.g. resolving a request without a new message). */
     public async setStatus(name: string, status: ChatStatus): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
@@ -301,6 +339,7 @@ export function summarize(chat: ChatBook, relativePath: string, seen: number): C
     const awaiting = chat.status === 'waiting-for-user' ? [...chat.messages].reverse().find((message) => message.senderKey !== 'user') : undefined;
     return {
         name: chat.name,
+        title: chatDisplayTitle(chat),
         path: relativePath,
         members: chat.members,
         agent: chatAgent(chat),

@@ -102,8 +102,10 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         const height = terminal.rows();
         const header = detail
             ? [
-                  // The full saved name stays visible (wrapped, never cut) for identification and copying.
-                  ...wrap(detail.summary.name, width - 4).map((line) => style.bold(line)),
+                  // The evolving title leads; the full saved name (its identity) stays visible, wrapped, never cut, for
+                  // identification and copying.
+                  ...wrap(detail.summary.title ?? detail.summary.name, width - 4).map((line) => style.bold(line)),
+                  ...(detail.summary.title && detail.summary.title !== detail.summary.name ? wrap(`{${detail.summary.name}}`, width - 4).map((line) => style.muted(line)) : []),
                   style.muted(detail.summary.members.join(', ')),
                   `${detail.summary.status === 'waiting-for-user' ? style.warning(`${marks.warn} ${detail.summary.awaiting?.sender ?? 'The agent'} waits for you`) : detail.summary.status === 'resolved' ? style.muted('resolved') : style.success('open')}${detail.summary.links.length ? style.muted(` · links ${detail.summary.links.join(', ')}`) : ''}${style.muted(` · ${detail.summary.path}`)}`,
               ]
@@ -243,7 +245,7 @@ export function renderChatList(chats: readonly ChatSummary[]): string {
     return `${chats
         .map(
             (chat) =>
-                `${chat.status === 'waiting-for-user' ? '[waiting for you] ' : chat.status === 'resolved' ? '[resolved] ' : ''}${chat.name}${chat.unread ? ` (${chat.unread} unread)` : ''}\n  ${chat.members.join(', ')} · ${chat.messages} message(s)${chat.links.length ? ` · ${chat.links.join(', ')}` : ''} · ${chat.path}${chat.last ? `\n  ${chat.last.sender}: ${chat.last.preview}` : ''}`,
+                `${chat.status === 'waiting-for-user' ? '[waiting for you] ' : chat.status === 'resolved' ? '[resolved] ' : ''}${chat.name}${chat.unread ? ` (${chat.unread} unread)` : ''}${chat.title && chat.title !== chat.name ? `\n  title: ${chat.title}` : ''}\n  ${chat.members.join(', ')} · ${chat.messages} message(s)${chat.links.length ? ` · ${chat.links.join(', ')}` : ''} · ${chat.path}${chat.last ? `\n  ${chat.last.sender}: ${chat.last.preview}` : ''}`,
         )
         .join('\n')}\n`;
 }

@@ -1,5 +1,11 @@
 # Unreleased
 
+## Chat titles, several agents and message phases
+
+-   New `CHAT TITLE <title>` commitment: a human-facing topic title appended as the conversation evolves. The latest one wins and earlier ones stay in the Book. It is presentation only: the opening `CHAT` name stays the chat's identity and reference, so links, the file name and its creation date never change. Without a title the name is shown. The main agent can set or update it with a final `PTBK_TITLE <title>` line in its reply (removed from the reply). Terminal, browser and API show the title first and keep the full name visible (`title` is new in chat summaries).
+-   A human-facing chat can now have several agents: `CHAT MEMBER` lines are kept in order, the first agent is the main agent, and a joining agent is appended before its first message (re-adding a participant changes nothing).
+-   `CHAT MESSAGE <sender> <timestamp>` accepts an optional `progress` or `final` phase after the timestamp, for interim updates and the final reply of a turn; ordinary messages need none. Chat details report it.
+
 ## Context-aware bare `ptbk`
 
 -   Bare interactive `ptbk` now offers exactly two choices for the selected directory (`--path`, else the current one). The first is focused: **Initialize project** in a directory that has no `ptbk.json` (even a nonempty one), **Start project** in an initialized project with no engine, or **Open dashboard** when a verified engine exists, including one that is `pausing`, paused or `stopping`. **Open help** is always second and prints `ptbk help`. Restart is never offered, and the three lifecycle actions never appear together.

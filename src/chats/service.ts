@@ -34,7 +34,7 @@ export type ChatAgentChoice = {
  */
 export type ChatDetail = {
     readonly summary: ChatSummary;
-    readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[] }>;
+    readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final' }>;
 };
 
 /**
@@ -92,7 +92,7 @@ export async function chatDetail(store: ChatStore, name: string): Promise<ChatDe
     const stored = await store.find(name);
     if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found', next: ['List chats with `ptbk chat --list`.'] });
     const summary = (await store.summaries()).find((item) => item.path === stored.relativePath)!;
-    return { summary, messages: stored.chat.messages.map((message) => ({ sender: message.sender, at: message.at, text: message.text, choices: message.choices })) };
+    return { summary, messages: stored.chat.messages.map((message) => ({ sender: message.sender, at: message.at, text: message.text, choices: message.choices, ...(message.phase ? { phase: message.phase } : {}) })) };
 }
 
 /**
