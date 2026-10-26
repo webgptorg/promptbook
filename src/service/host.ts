@@ -344,6 +344,8 @@ export class ServiceHost {
             case 'browser-recheck':
             case 'browser-retry':
             case 'browser-restart':
+            case 'browser-kill':
+            case 'browser-test-tab':
             case 'sync-now':
             case 'health-recheck':
             case 'health-override':
