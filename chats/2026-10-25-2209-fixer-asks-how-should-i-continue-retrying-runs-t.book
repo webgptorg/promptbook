@@ -1,7 +1,7 @@
 CHAT Fixer asks: How should I continue? Retrying runs the task again with a fresh attem — 2026-10-25 22:09:54
 CHAT MEMBER @User
 CHAT MEMBER @Fixer
-CHAT STATUS open
+CHAT STATUS waiting-for-user
 LINK {Project health check — 2026-10-24 11:47:37}
 
 CHAT MESSAGE @Fixer 2026-10-25T22:09:54+01:00
@@ -15,4 +15,11 @@ How should I continue? Retrying runs the task again with a fresh attempt budget;
 
 CHAT MESSAGE @User 2026-10-26T11:48:20+01:00
 Retry the task
+
+CHAT MESSAGE @Fixer 2026-10-26T11:58:33+01:00
+The mandatory npm run check cannot pass in this runner: Chrome immediately exits with SIGABRT, and sandbox-denied process identity queries prevent safe force-stop verification. Changing tests or bypassing PID verification would violate the task.
+
+Already attempted: Verified the existing MODEL fix and zero lint errors; preserved all 83 accepted legacy warnings; reran npm run check sequentially with a writable cache (130 passed, 2 failed, 1 skipped); all four focused Health tests and package validation pass. Recorded evidence and diagnosis in changelog/_current-preversion.md and ignored .ptbk logs.
+
+Can you arrange a rerun in an environment where headless Chrome starts and `ps -o lstart= -p <pid>` is permitted?
 
