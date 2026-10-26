@@ -14,7 +14,9 @@ Adapt across ordinary desktop/window sizes. On smaller surfaces reduce columns a
 
 Opening a tile navigates to a dashboard page that uses the available surface for that domain; do not leave the entire root grid rendered around an expanded subpanel. Browser history/back or an explicit Back control returns to the home screen while preserving reasonable local state. Long page bodies may scroll; keep page context/actions accessible.
 
-Use [dashboard pages](dashboard-details.md) for execution, System, Health, named tools/browser profiles, Agents, Chats, Tasks, activity/results, Connection and enabled Synchronization. Technical version/path/URL/model/profile details live on those pages rather than permanently on root.
+Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, named tools/browser profiles, Agents, Chats, Tasks, activity/results, Connection and enabled Synchronization. Technical version/path/URL/model/profile details live on those pages rather than permanently on root.
+
+The full-width identity header emphasizes PTBK/project; lifecycle/pause state stays in System/related tiles without an extra header pause badge. Keep focus visually strong without layout shift, equivalent to the terminal's double border and bold heading.
 
 ## Shared operations
 
@@ -26,7 +28,7 @@ Health state and remediation come from the per-engine [Health sub-engine](health
 
 When and only when autosync is enabled, show its tile/page with real status, drill-down detail and Synchronize now through the shared coordinator. Omit it while off. Pending/failed remote operations do not obscure successful local work.
 
-Chats awaiting User are actionable attention with actual agent, reason, links and direct thread action. New chat uses [Chatter-first entry](chat-ui.md); existing questions keep their authors. Unread is distinct from actionable.
+Chats awaiting User are actionable attention with actual agent, reason, links and direct thread action. Wallet uses the same attention for missing login actions and protected secret input. Chat/task questions clear attention immediately on saved response without pausing unrelated work. New chat uses [Chatter-first entry](chat-ui.md); existing questions keep their authors. Unread is distinct from actionable.
 
 ## Viewer behavior and safety
 

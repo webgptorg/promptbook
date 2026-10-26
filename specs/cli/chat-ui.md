@@ -29,7 +29,7 @@ Unread is not necessarily actionable and actionable is not necessarily unread. D
 
 ## Progress, input and task cards
 
-Show available progress during work and keep the composer usable for additional instructions. Do not wait for the final reply or freeze other chats. Clients share ordered messages/task state while retaining their own drafts, focus, scroll and expanded presentation.
+Show in-progress reply text and available progress during work and keep the composer usable for additional instructions. Do not wait for the final reply or freeze other chats. Clients share ordered messages/task state while retaining their own drafts, focus, scroll and expanded presentation.
 
 After the final reply, automatically collapse interim material into **Thinking** plus elapsed duration, without a message count or repeated interim text by default. It can be expanded; the complete actual conversation remains in the Book. Measure real elapsed time and do not invent provider thinking content.
 

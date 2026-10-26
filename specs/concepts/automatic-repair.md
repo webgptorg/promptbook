@@ -1,6 +1,6 @@
 # Automatic repair is a core product principle
 
-[Main specification](../_main.md) · [Unattended operation](../cli/autonomous-operation.md) · [Fixer](../agents/core-agents/fixer.md) · [Core agents](../agents/core-agents.md)
+[Engine autonomy](engine-and-project.md#autonomous-operation-and-minimal-interruption) · [Main specification](../_main.md) · [Unattended operation](../cli/autonomous-operation.md) · [Fixer](../agents/core-agents/fixer.md) · [Core agents](../agents/core-agents.md)
 
 **A started project should solve ordinary problems itself and involve the user as little as necessary.** This is a central system contract across configuration, migrations, tool availability, execution, persistence and synchronization, not a footnote in the definition of a maintenance agent. An alive engine that repeatedly waits for routine decisions does not satisfy this principle.
 

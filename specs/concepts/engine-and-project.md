@@ -2,6 +2,18 @@
 
 [Project model](project-model.md) · [Core agents](../agents/core-agents.md) · [Expert](../agents/expert.md) · [Configuration migrations](../cli/configuration-migrations.md)
 
+## Autonomous operation and minimal interruption
+
+**The engine should accomplish authorized work as autonomously as possible and involve the user only when genuinely necessary.** Prefer existing context, routine deterministic recovery and ordinary agent/Fixer consultation over repetitive approvals or questions. Attention is an exceptional request for useful human action, not the normal steady state. With a supported running host and available resources/access, the product target is a month of useful unattended operation without routine interruptions.
+
+One pending question, missing credential, blocked task, failed remote sync or recoverable domain problem does **not** stop the engine. Checkpoint/release safe resources for the affected operation and continue independent eligible work; retain domain supervision/retries and responsive controls with zero viewers. Apply actual manual/Health pause and deliberate stop only under their explicit lifecycle contracts. Do not manufacture work or paid calls merely to appear busy.
+
+Use **one common attention mechanism** across chats, tasks, Wallet, Health, Tools and other domains. Deduplicate a still-pending condition; clear resolved items automatically. A user response clears that question's attention immediately when accepted/saved, without waiting for an agent or commit. Reading/navigation alone does not answer, and a different unresolved request can remain pending. Validate actual authority/access before resuming work; minimal interruption is not permission to assume consent or hide uncertainty.
+
+This principle is shared by [unattended operation](../cli/autonomous-operation.md), [automatic repair](automatic-repair.md), [concurrent work](../cli/concurrency.md), [human interaction](../cli/user-interactions.md), [Wallet](../cli/wallet.md) and [dashboard attention](../cli/dashboard-layout.md#focus-and-attention-are-independent). Those are implementations of the same product behavior, not independent escalation policies.
+
+## Engine and project evolution
+
 A running Promptbook engine and a user's project evolve on different timelines. **Engine-defined non-agents** such as `@Expert` belong to the invoked engine; their effective Book-like instructions may be internally embedded or generated. They can be comprehensive and change when that engine version changes. Expert describes the currently running Promptbook, not the version that originally initialized the project.
 
 **Project configuration and affected Book sources** evolve through one explicit deterministic versioned migration chain. `ptbk.json.promptbookVersion` records initialization or the last successful migration to an engine version, not an independent schema counter or permanently fixed creation version. A newer engine applies applicable sparse steps and commits the whole pass once; an older engine offers an update instead of downgrading the project. The fixed versionless baseline and actual first conversion are defined by [configuration migrations](../cli/configuration-migrations.md), not guessed from Book contents. There is no separate per-Book version or age detector; inserting an older Book into a current project does not trigger automatic migration. A migration agent is future scope.

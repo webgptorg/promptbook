@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Start](start.md) · [Automatic repair principle](../concepts/automatic-repair.md)
 
-**Once started, the agenda should keep doing useful authorized work without routine human attendance.** An alive service silently waiting for trivial decisions does not satisfy this primary product requirement. The separate [automatic-repair contract](../concepts/automatic-repair.md) is a first-class foundation across scheduling, configuration, migrations, tools, execution, persistence and synchronization, not an incidental Fixer implementation detail.
+Follow the engine's [autonomy and minimal-interruption principle](../concepts/engine-and-project.md#autonomous-operation-and-minimal-interruption). **Once started, the agenda should keep doing useful authorized work without routine human attendance.** An alive service silently waiting for trivial decisions does not satisfy this primary product requirement. The separate [automatic-repair contract](../concepts/automatic-repair.md) is a first-class foundation across scheduling, configuration, migrations, tools, execution, persistence and synchronization, not an incidental Fixer implementation detail.
 
 ## Attended setup, unattended work
 
@@ -22,11 +22,11 @@ Git synchronization is independent of local execution. Failed pull/push stays pe
 
 ## Genuine human involvement and authority
 
-An agent can ask its team when a problem requires help under its current instructions, such as login/2FA, missing authority, an irreconcilable user edit or consequential ambiguity. Retain the ordinary attributed question with context and minimum needed action; suppress repeated unresolved notifications for the same condition. Transport/presentation follows existing [human interaction](user-interactions.md), not a new autofix-specific mechanism.
+An agent can ask its team when a problem requires help under its current instructions, such as a human-only login challenge, missing authority, an irreconcilable user edit or consequential ambiguity. Website username/password entry uses [Wallet](wallet.md), automatically applying stored credentials or requesting one protected input, never a chat password. Retain the ordinary attributed question with context and minimum needed action; suppress repeated unresolved notifications for the same condition. Transport/presentation follows existing [human interaction](user-interactions.md), not a new autofix-specific mechanism.
 
 Minimal user interruption is a default policy, not permission to ignore explicit review instructions or remove the user from decision-making against their wishes. Authenticated access alone never authorizes unrelated purchases/publication/destruction, extra billing accounts or bypassing safeguards. No consultation policy can invent missing authority or treat silence as approval.
 
-Checkpoint task-local blockers and release resources where safe so independent work can continue with one task owner. Waiting is not completion. If shared edits or uncertain external effects make switching unsafe, report that concrete project-wide blocker instead of overlapping mutations. A failed synchronization alone is not such a blocker; preserve/defer remote integration safely. Resume the correct phase after repair/reply without another Start/Run action.
+Checkpoint task-local blockers and release resources where safe so independent work can continue under the shared capacity and per-file ownership contract. Waiting is not completion. If shared edits or uncertain external effects make switching unsafe, report the actual affected files/effects instead of overlapping conflicting mutations; keep other safe work, supervision and controls available. A failed synchronization alone is not such a blocker; preserve/defer remote integration safely. Resume the correct phase after repair/reply without another Start/Run action.
 
 ## Continuity and acceptance
 

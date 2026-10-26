@@ -8,7 +8,7 @@ Start enables loopback HTTP in either process mode on a free or explicitly selec
 
 ## Observed state and shared operations
 
-Expose project identity, actual engine version, instance/freshness, four live [service states](service-lifecycle.md), pending intent, task/agent/phase, queue/details, results, waits/errors, links, configuration revision/effective sources and commit mode. Resource waits and failed synchronization are not new lifecycle states. An unreachable engine is not proof of a completed stop.
+Expose project identity, actual engine version, instance/freshness, four live [service states](service-lifecycle.md), pending intent, concurrent task/agent/phase collection, selected detail, shared capacity/queue, results, waits/errors, links, configuration revision/effective sources and commit mode. Resource waits and failed synchronization are not new lifecycle states. An unreachable engine is not proof of a completed stop.
 
 Execution data includes actual named tool, harness variant, model/thinking level and attempt/consultation attribution, with unknown/unsupported distinctions. Tool inventory includes canonical saved records, enabled/usability/in-use state and retained old uses distinct from new defaults. Authorized browser diagnostics identify each named instance's profile source/resolved path, mode, ownership/health and redacted recovery outcome. Ordinary state never exposes cookies, profile contents, resolved API keys or pairing/device credentials.
 

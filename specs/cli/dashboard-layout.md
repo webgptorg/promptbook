@@ -19,23 +19,27 @@ Use the available width and height responsively:
 
 The renderer reacts to terminal resize and repaints the layout without losing selection, drafts or page state. Responsive behavior applies to **height as well as width**. The home screen should utilize the available surface, not assume one fixed terminal geometry.
 
-Render a clearly recognizable **shared application header above the entire tile grid**, identifying **Promptbook / PTBK**, the project name and actual engine lifecycle state. It visually unifies the home screen so the tiles read as domains of one application, not unrelated boxes. The header is separate from the tiles, not another focusable tile, and must remain prominent without becoming tall or verbose. Version, installation scope, process/path/location, connection URLs, detailed execution/provider data and other technical metadata belong on the appropriate dashboard page rather than permanently consuming home-screen space.
+Render a clearly recognizable **shared application header above the entire tile grid**, identifying **Promptbook / PTBK** and the project name. Use a full-width prominent identity panel, normally about two terminal rows; compact it on smaller surfaces without hiding the project. Actual lifecycle/pause state remains in the relevant tiles, especially System, and its page; do not add another paused/pausing badge to this identity header. It visually unifies the home screen so the tiles read as domains of one application, not unrelated boxes. The header is separate from the tiles, not another focusable tile, and must remain prominent without becoming tall or verbose. Version, installation scope, process/path/location, connection URLs, detailed execution/provider data and other technical metadata belong on the appropriate dashboard page rather than permanently consuming home-screen space.
 
 Reserve the shared header in responsive height/width calculations; shorten secondary content before sacrificing identity or forcing normal-size scrolling. The terminal window/tab title does not replace this in-application header.
 
 The home screen contains compact tiles for operational domains. A tile shows only the smallest useful summary: healthy/idle/busy counts, current work, actionable problem summary or another bounded state. It is a navigation/control surface, not the complete content of that domain. The detailed inventory, diagnostics, lists and long explanations live on the corresponding page.
 
-At minimum preserve the existing domains as compact tiles/pages: Current work, **System**, **Health**, Tools, Agents, Chats, Tasks, Results/Activity, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
+At minimum preserve the existing domains as compact tiles/pages: Current work, **System**, **Health**, Tools, **Wallet**, Agents, Chats, Tasks, Results/Activity, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
 
 ## Focus and attention are independent
 
-The home screen has a **focus** used for navigation. Arrow keys move focus between tiles and the focused tile has a clear visual selection state. Focus is solely the operator's cursor. It must never be stolen merely because a different tile becomes important.
+The home screen has a **focus** used for navigation. Arrow keys move focus between tiles and the focused terminal tile uses a **double-line border and bold heading**, clearly visible without color. Reserve border/content geometry so focus changes neither resize the tile nor shift its content/neighbors. Browser focus is equivalently prominent and distinguishable from attention. Focus is solely the operator's cursor. It must never be stolen merely because a different tile becomes important.
+
+There is **one shared attention mechanism**, regardless of whether a task question, Wallet login, tool problem or another domain caused it. Apply the engine's [minimal-interruption principle](../concepts/engine-and-project.md#autonomous-operation-and-minimal-interruption): attention is exceptional and resolved automatically when possible, without a global work stop.
 
 Separately, any tile may have **attention** because its underlying domain has a new actionable event, failure, warning or human request. Multiple tiles may require attention simultaneously. Attention does not move focus, open a page, block another action or force the operator to resolve items in system-chosen order. The operator may inspect another tile, solve issues in any order or intentionally ignore an attention item.
 
 New/unseen attention should be visually conspicuous, for example by a restrained blink/pulse in addition to its warning tone. The animation exists to make it difficult to overlook a new issue, not to punish intentional ignoring. Do **not** expire the conspicuous state simply because wall-clock time passed: an unattended dashboard may sit open for hours before an operator looks at it.
 
 Once the viewer has clear evidence that the operator is actively using that dashboard while leaving the attention item unresolved, the transient blink/pulse should settle into a persistent static warning. This acknowledgement is viewer-local presentation state; it may be derived from a short period or several meaningful navigation/actions after the operator becomes active. The exact debounce/count is an implementation choice. The underlying incident/request remains unresolved and the tile remains visibly marked until the domain reports it resolved. Focus and attention must still be distinguishable when both apply to the same tile.
+
+A saved user response clears its question's attention immediately, before agent/model processing or a Git batch, and updates every surface. Viewing/reading only settles local animation; it does not answer. Several pending items retain their individual state behind the same attention presentation.
 
 Reduced-motion mode removes blinking/motion but retains equally clear unseen-versus-active warning semantics without relying on animation or color alone.
 
@@ -59,7 +63,7 @@ The home screen favors:
 4. compact state of the major domains;
 5. navigation and lifecycle discoverability.
 
-Technical details are not deleted; they move to pages. The **System page** owns engine/process/configuration/lifecycle detail, generic manual pause/resume and the complete active pause-reason list. The **Health page** owns host-resource measurements, health incidents, allowed soft-incident override and remediation from the [Health sub-engine](health-sub-engine.md); it does not own generic manual pause controls. Tool pages own provider/profile readiness and configuration. Connection owns URLs/QR/access. Execution owns harness/model/thinking details. Activity/log pages own verbose history.
+Technical details are not deleted; they move to pages. Wallet owns its encrypted credential labels, protected pending login actions and restoration input; no secret appears in home summaries. The **System page** owns engine/process/configuration/lifecycle detail, generic manual pause/resume and the complete active pause-reason list. The **Health page** owns host-resource measurements, health incidents, allowed soft-incident override and remediation from the [Health sub-engine](health-sub-engine.md); it does not own generic manual pause controls. Tool pages own provider/profile readiness and configuration. Connection owns URLs/QR/access. Execution owns harness/model/thinking details. Activity/log pages own verbose history.
 
 A concrete blocker may be summarized on the related home tile so the operator knows *where* attention is required. The complete cause, evidence and remediation can live on its page. Long errors, paths, URLs, model names, version strings and QR codes must not inflate the root layout.
 
@@ -69,11 +73,13 @@ Live updates must not flicker, move focus, reset page scroll, discard drafts or 
 
 Pretty one-shot snapshots may reuse the same information hierarchy without pretending to be navigable. Raw output remains labelled plain sections and need not imitate the tile geometry.
 
-When an enabled synchronization domain, tool, chat, health monitor or other subsystem produces an actionable issue, it marks its own tile/page through the shared attention presentation rather than inventing a modal global alarm. Severe engine state may also be summarized in the top status. The operator remains in control of navigation.
+When an enabled synchronization domain, tool, chat, health monitor or other subsystem produces an actionable issue, it marks its own tile/page through the shared attention presentation rather than inventing a modal global alarm. Lifecycle/pause state remains summarized in the relevant tiles, with detail on System; do not add another state badge to the identity header. The operator remains in control of navigation.
 
 ## Acceptance outcomes
 
-Exercise the dashboard at standard Windows terminal size, a moderately reduced VS Code terminal, wide/fullscreen sizes and live resize. The complete home screen, including the prominent shared Promptbook/project/state header above the grid, remains visible without scrolling in all normal cases and uses the available space sensibly. The header cannot be mistaken for an independent tile and remains recognizable through live updates/resize. Long paths/versions/URLs do not force the root taller.
+Exercise the dashboard at standard Windows terminal size, a moderately reduced VS Code terminal, wide/fullscreen sizes and live resize. The complete home screen, including the prominent full-width shared Promptbook/project header above the grid and lifecycle state within System/related tiles, remains visible without scrolling in all normal cases and uses the available space sensibly. The header cannot be mistaken for an independent tile and remains recognizable through live updates/resize. Long paths/versions/URLs do not force the root taller.
+
+Move focus through every tile: double border/bold heading never changes its dimensions or shifts content. Keep state visible in tiles without an extra pause badge in the identity header. Include Wallet within the normal-size no-scroll layout.
 
 Create simultaneous attention in several domains. New items are conspicuous without moving focus; an operator can continue navigating elsewhere, after clear interaction the transient animation settles while unresolved warnings remain. Reduced motion preserves the meaning.
 

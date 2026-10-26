@@ -42,7 +42,7 @@ Route a user reply to the author of the question it answers; an explicit agent m
 
 ## Live operation and persistence
 
-Accept/save messages promptly during work. Deliver available progress as it arrives, accept follow-up input during a turn and synchronize one ordered history across clients without duplicate provider work. Preserve available provider/harness progress or reasoning summaries and the complete actual conversation in the Book; private internal reasoning the provider does not expose is not a required output.
+Accept/save messages promptly during work. Stream in-progress reply text and progress as the provider makes them available rather than buffering the complete answer until its end. Durable partial chunks belong to the same reply, not a new message per token; interruption retains an explicitly unfinished reply. Deliver available progress as it arrives, accept follow-up input during a turn and synchronize one ordered history across clients without duplicate provider work. Preserve available provider/harness progress or reasoning summaries and the complete actual conversation in the Book; private internal reasoning the provider does not expose is not a required output.
 
 Different chats/tasks share [concurrent capacity](concurrency.md), not one serial chat queue. Chat and necessary routing/consultations remain eligible during scheduling pause; newly created tasks wait for resume. Stopping/force stop remain authoritative. Checkpoint human waits promptly instead of keeping a provider/MCP call open until timeout.
 

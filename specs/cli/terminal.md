@@ -12,11 +12,11 @@ Zero or many dashboards can attach. They share engine state but not viewer focus
 
 ## Home screen
 
-Use the [dashboard home-screen contract](dashboard-layout.md). The root has a prominent shared **Promptbook / PTBK, project and lifecycle-state header above the tile grid**, visually identifying one application. It is separate from focusable tiles and from the terminal tab title. The complete header/grid form a compact responsive cockpit, not a vertically scrollable report. In normal terminal sizes the complete root is visible at once, including PTBK/project/service state, current work, operator attention and entries to the major pages.
+Use the [dashboard home-screen contract](dashboard-layout.md). The root has a prominent shared **full-width Promptbook / PTBK and project header above the tile grid**, normally about two rows, visually identifying one application. It is separate from focusable tiles and from the terminal tab title. The complete header/grid form a compact responsive cockpit, not a vertically scrollable report. In normal terminal sizes the complete root is visible at once, including PTBK/project/service state, current work, operator attention and entries to the major pages.
 
 Width and **height** both affect layout. A narrower/shorter terminal reduces columns and secondary copy before it removes important state. A larger terminal may use more whitespace/richer bounded previews. Handle `resize` live without losing tile focus, page selection, list scroll or drafts.
 
-Arrow keys move a clear focused tile. Focus is independent from attention. A newly actionable tile may blink/pulse or otherwise stand out without moving focus. If the operator is clearly active in this viewer and continues working elsewhere, the transient animation settles while the unresolved tile remains statically marked. Do not age out unseen attention merely because the dashboard sat unattended. Reduced motion preserves the distinction without animation.
+Arrow keys move focus; the selected tile has a double-line border and bold heading with reserved geometry, so neither its dimensions nor content positions change. Focus is independent from attention. A newly actionable tile may blink/pulse or otherwise stand out without moving focus. If the operator is clearly active in this viewer and continues working elsewhere, the transient animation settles while the unresolved tile remains statically marked. Do not age out unseen attention merely because the dashboard sat unattended. Reduced motion preserves the distinction without animation.
 
 Chats awaiting a human, health/resource failures, tool/provider problems and future actionable domains use this common attention presentation. The operator may ignore or address them in any order.
 
@@ -26,7 +26,7 @@ Enter opens the focused tile as a full **dashboard page**; the root tile grid is
 
 Pages can scroll. Prefer a stable header/context and shortcut/footer area with a scrollable body for long task/chat/agent/tool/activity content. Inside a focused list/editor/composer, its own arrows/Enter/Escape take precedence until returning to the page.
 
-Use [dashboard pages](dashboard-details.md) for execution, System, Health, tools/browser, Agents, Chats, Tasks, activity/results, Connection and enabled Synchronization. Technical metadata such as engine version, installation/path/location, URLs/QR and provider/model detail belongs on pages instead of bloating the home screen.
+Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, tools/browser, Agents, Chats, Tasks, activity/results, Connection and enabled Synchronization. Technical metadata such as engine version, installation/path/location, URLs/QR and provider/model detail belongs on pages instead of bloating the home screen.
 
 Live updates never steal focus, reset scroll, discard drafts or flood scrollback.
 
@@ -38,7 +38,7 @@ Retain C for new Chatter-first chat, A for an existing waiting thread, and acces
 
 Retain state-appropriate pause/resume controls, wait skipping and explicit graceful/force stop/restart under [shared lifecycle](service-lifecycle.md). Manual pause management and the full pause-reason list live on System. Health-generated pause reasons are surfaced through Health/System according to [Health](health-sub-engine.md); Health does not become another manual pause controller.
 
-Browser recheck/retry/restart targets the named owned instance through engine operations. Synchronize now calls the one shared coordinator and is absent while autosync is off.
+Browser recheck/retry/restart/kill/test-GitHub-tab targets the named profile pool through engine operations, clearly showing effects on all connected engines. Wallet uses protected input and the common attention mechanism. Synchronize now calls the one shared coordinator and is absent while autosync is off.
 
 O may switch dashboard/plain presentation interactively; End can follow focused activity where applicable. Background tool/sync/health updates do not steal focus or discard an edit.
 
