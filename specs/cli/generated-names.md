@@ -26,7 +26,7 @@ Coordinate concurrent creation and recheck at persistence. Allocate distinct fin
 
 Allocate once for genuinely new entities. Retain the name/creation context through pending save, persistence retry, recovery and reconnect. Opening/appending a chat, updating task status, executing recurrence or retrying work does not rename it or refresh its date. Repeated init recognizes its bootstrap. Explicit source conversion preserves identity; it is not new work.
 
-References, chat/task links, UI/API outcomes and commit trailers use the complete final **declared name**, including date/discriminator, never a successful preliminary reference. Evidence stores that declared name and source provenance, but its directory uses the **actual source filename** under [trace rules](traces.md). A deliberate logical rename reconciles links/history; it does not turn trace storage into another identity system.
+References, chat/task links, UI/API outcomes and commit trailers use the complete final **declared name**, including date/discriminator, never a successful preliminary reference. Evidence stores that declared name and source provenance, but its directory uses the **actual source filename** under [trace rules](traces.md). Appended CHAT TITLE can evolve without changing declared identity/creation text. A deliberate logical rename instead reconciles links/history; it does not turn trace storage into another identity system.
 
 ## Filenames remain storage names
 

@@ -20,6 +20,7 @@ Exactly one of these starts a Book. Its content is the entity's name; subsequent
 ## Chat commitments
 
 - [CHAT MEMBER](chat-member.md)
+- [CHAT TITLE](chat-title.md)
 - [CHAT MESSAGE](chat-message.md)
 - [CHAT STATUS](chat-status.md)
 

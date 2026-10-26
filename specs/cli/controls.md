@@ -10,7 +10,7 @@ Expose actual engine version, four live service states, composable pause reasons
 
 Also expose real pacing/backoff wait skipping, current agent/task, ordered queue, outcomes, waits, errors, actionable/unread chat counts and effective routing. Missing tools mean running with a resource wait, not technical pause or stop. Skip wait cannot bypass readiness, authority or task conditions. Any active pause reason prevents new background claims and is not erased by unrelated repair/tool changes. Manual and Health reasons compose under [service lifecycle](service-lifecycle.md). Pause still permits chat and all work necessary to serve it, including first-message Router selection; tasks authored there remain pending. Stopping retains its shutdown boundary.
 
-New/open/list/append/reply chat operations use the same durable chat model. New human chat uses the [Chatter-first picker](chat-ui.md); an existing request retains its author. Read-only browsing creates no message/commit. Every accepted human-facing message commits independently; task-internal exchanges join their result and conversation-only consultations use ordinary scoped persistence. Fixer questions use ordinary agent/TEAM communication, not another control channel.
+New/open/list/append/reply chat operations use the same durable chat model. New human chat uses the [Chatter-first picker](chat-ui.md); an existing request retains its author. Read-only browsing creates no message/commit. Accepted human-facing messages save immediately and use bounded debounced commits; task-internal exchanges join their result and conversation-only consultations use ordinary scoped persistence. Fixer questions use ordinary agent/TEAM communication, not another control channel.
 
 ## System and Health controls
 

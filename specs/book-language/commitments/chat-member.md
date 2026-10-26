@@ -4,4 +4,6 @@
 
 **Document:** Chat.
 
-`CHAT MEMBER @User` or `CHAT MEMBER @Developer` declares a participant. A normal human-facing chat has exactly User and one chosen agent (including Expert where meaningful); a task-scoped TEAM consultation has two participating agents. Multiple agents with a human are reserved for future support. Void/Null are not speakers and User cannot have a chat with itself. A participant is resolved by the common name resolver.
+`CHAT MEMBER @User` or `CHAT MEMBER @Developer` declares one participant through the common name resolver. Human-facing chats support User and **one or more agents**; bounded internal TEAM consultations retain their two actual agents. Void/Null are not speakers and User cannot converse with itself.
+
+The initially selected agent is the main agent, represented by the first agent member. Another agent joins by appending its member commitment on a new line before its first message. Preserve prior members/order. Re-adding a normalized participant is idempotent, not another speaker or invitation to answer every arrival. Messages retain actual authors; routing follows [chats](../../cli/chats.md).

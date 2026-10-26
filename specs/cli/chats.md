@@ -1,67 +1,61 @@
 # Durable Book conversations
 
-[Project model](../concepts/project-model.md) · [Chat UX](chat-ui.md) · [Git persistence](git-persistence.md)
+[Project model](../concepts/project-model.md) · [Chat UX](chat-ui.md) · [Chat/task relationships](chat-tasks.md) · [Git persistence](git-persistence.md)
 
-## Chat as a first-class entity
+## Conversation, identity and title
 
-Every conversation is a project-owned `.book`, conventionally in root `chats/`, starting with **`CHAT <name>`**. The name content uses the same normalized identity/resolver as agents/tasks. CHAT itself and the filename are not identity; there is no chat ID. The declaration makes kind clear outside the conventional folder; ENTITY CHAT or directory inference is not canonical.
+Every conversation is a project-owned `.book`, conventionally in root `chats/`, beginning **`CHAT <name>`**. Its full normalized opening name is its global name/ID under the shared resolver, independent of filename or participants. Do not create another opaque CHAT ID. New system-created names include readable creation date/time and normalized collision checks under [generated names](generated-names.md); valid existing undated names remain valid.
 
-Several independent threads may involve the same participants. Each new system-created thread receives a descriptive name with creation date/time and normalized collision checks under [generated-name policy](generated-names.md), whether user- or agent-initiated. This is preventive authoring, not timestamp syntax required for existing Books. A copied same-name chat is a resolver collision, not a merged thread. Reopening/appending/recovery preserves the saved name/date.
+Several threads can have identical participants/display titles while retaining distinct opening names. Reopening, appending and recovery preserve identity. Append **`CHAT TITLE <title>`** as the topic evolves: the latest valid title wins and older values remain in the Book/Git. It never silently rewrites the opening CHAT, breaks links or refreshes creation time. Keep the full name/reference inspectable/copyable.
 
-Supported conversation topologies are:
+## Participants and authors
 
-- **User ↔ exactly one agent**, initiated by either side. The agent can be Chatter, another project/core agent or Expert. User cannot converse with itself.
-- **Agent ↔ agent** for a bounded TEAM consultation scoped to an executing task or an originating human-facing conversation. It retains its two actual participants and provenance; it is not a hidden task or a new human group chat.
-- Human-facing multi-agent/arbitrary group chats remain future extensibility, not a current requirement.
+Human-facing chats support **User and one or more agents**, including Chatter, specialists/core roles and Expert where meaningful. Internal bounded TEAM consultations retain their two actual agents and task/conversation scope. User cannot converse with itself; Void/Null are not speakers.
+
+Each participant has a separate `CHAT MEMBER` commitment. The initially selected agent is the main conversational agent (the first agent member). A new contributing task agent joins by appending its member commitment **before** its first message; preserve prior members/chronology and the main agent. Agents do not each automatically answer every arrival.
+
+Repeated `CHAT MESSAGE <sender-reference> <timestamp>` commitments preserve actual author, full text, attachments, options and source order using the common Book grammar. Optional phase `progress` or `final` after the timestamp distinguishes interim updates and a final reply; ordinary messages need no phase. Preserve originating-turn/question/task correlation durably without turning timestamps or transport keys into entity IDs. Literal control-looking text remains lossless and cannot change the containing Book.
 
 ```book
-CHAT Help with the expired browser login — 2026-10-18 01:25:00
-CHAT MEMBER @Fixer
+CHAT Discuss CSV export — 2026-10-25 23:40:00
 CHAT MEMBER @User
+CHAT MEMBER @Chatter
+CHAT MESSAGE @User 2026-10-25T23:40:00+01:00
+Please add multiline CSV export.
+LINK {Add multiline CSV export — 2026-10-25 23:41:00}
+CHAT MEMBER @Developer
+CHAT MESSAGE @Developer 2026-10-25T23:43:00+01:00
+Should the export preserve the existing column order?
 CHAT STATUS waiting-for-user
-CHAT MESSAGE @Fixer 2026-10-18T01:25:00+02:00
-The project browser session expired. Please log in using the opened browser window.
-LINK {Restore access to publishing}
+CHAT TITLE Multiline CSV export and column order
 ```
 
-CHAT MEMBER declares participants; repeat CHAT MESSAGE with sender/time, full text and attachments in source order. Extend the same Book using the common grammar, not another CHAT declaration/parser. Message timestamps are distinct from date text in its name. CHAT STATUS open/waiting-for-user/resolved records durable action state; waiting requires an actual question/decision/action, not merely the latest speaker. Local read/unread markers are separate, optionally in ignored `.ptbk/`; reading is not approval. Preserve full text, attachments, options and provenance while excluding secrets. Explain that versioned conversation content may be sensitive.
+## Conversation manages work
 
-## Relationship to tasks and actions
+**Chat is primarily for discussion, clarification, status and creating/managing tasks. Substantial execution belongs to tasks.** Requests such as submitting a tax return or implementing a feature create ordinary authorized tasks and promptly return creation/status, without performing that work inline or waiting for completion. Read-only status lookup, bounded advice and task authoring can take time and show progress; they cannot become a task-execution bypass.
 
-Chats are not tasks. A user can enquire about status/advice without creating work. With ordinary authority an agent may propose/create one or more named tasks or perform a basic scoped action through ordinary authoring/task machinery. Chats/LINKs never bypass routing, checks, approval or ownership. Scheduling pause leaves chat and its required routing/consultations available, including alongside another task. Newly authored tasks remain pending until resume; conversation is not permission to execute background tasks during pause. Chat↔task links remain optional and many-to-many; directed named references support incoming/outgoing navigation without redundant inverse writes. New linked tasks get their own generated names; use the final persisted names, not guessed titles.
+Persist origin and named links under [chat/task relationships](chat-tasks.md). The source chat has a live task card and receives a concise completion outcome. A task question reuses its originating/designated chat; create another only when no suitable conversation exists. Its executing agent joins and speaks under its own name.
 
-[Chatter](../agents/core-agents/chatter.md) is the default manual entry when the user does not know which specialist to choose. It answers/clarifies and consults appropriate teammates while remaining the human-facing speaker; specialist execution follows ordinary tasks. Read-only TEAM advice may be a linked internal conversation-scoped chat without a task. Record its actual author/scope under [TEAM](team.md), not an unannounced participant switch or a claim that advice was implemented.
+Route a user reply to the author of the question it answers; an explicit agent mention targets that participant; otherwise the main agent handles it. Use the same `@Name`/`{Full Name}` resolver as other Books. A task mention is not an agent switch. Resolve genuinely ambiguous pending questions without broadcasting/applying one answer to every wait.
 
-Every human-facing question, confirmation, login need, TEAM User consultation or exceptional runtime request is initiated/continued by an identified agent in a chat. It is not an anonymous environmental alert or separate persistent Request object. A genuinely waiting task links the chat, checkpoints and releases task ownership when safe, resuming only after a valid actual reply. Failed/expired responses are not approval; preserve evidence and never apply an answer twice. Pending messages survive engine restart without viewers. Humans can ask follow-up questions before deciding; the thread is not a one-field form.
+`CHAT STATUS open|waiting-for-user|resolved` records durable action state; unread markers are separate. Once the engine accepts/saves a user's response, clear **that question's** attention immediately, without waiting for model acceptance or Git batching. Other questions can remain pending. Reading alone is not answering; a response is not automatically approval or proof of an external prerequisite.
 
-A committed correction/instruction in an OPEN agent's chat can create an ordinary linked Teacher task under [learning](../agents/learning.md). The response does not silently edit its agent Book without authorized checked work. This applies to Chatter, Fixer and any other open agent.
+## Live operation and persistence
 
-New human-chat entry without an explicit target first offers **Chat with Chatter** (default/Enter) and **Choose another agent** (full valid target list, including core/hidden and Expert). Noninteractive default is Chatter; explicit targets are respected. User/Void/Null are not selectable. Reopening an existing thread or waiting request retains its original speaker. Missing Chatter is a setup/repair diagnostic, not an implicit replacement or project initialization. Direct chat needs no dashboard; closing it leaves service/history intact.
+Accept/save messages promptly during work. Deliver available progress as it arrives, accept follow-up input during a turn and synchronize one ordered history across clients without duplicate provider work. Preserve available provider/harness progress or reasoning summaries and the complete actual conversation in the Book; private internal reasoning the provider does not expose is not a required output.
 
-## First-message routing and chronology
+Different chats/tasks share [concurrent capacity](concurrency.md), not one serial chat queue. Chat and necessary routing/consultations remain eligible during scheduling pause; newly created tasks wait for resume. Stopping/force stop remain authoritative. Checkpoint human waits promptly instead of keeping a provider/MCP call open until timeout.
 
-Opening a chat selects the conversational agent, not a concrete model call. After the first User message has been saved, determine effective execution parameters before the first agent reply. Reuse a fully specified agent MODEL without Router; otherwise the same ordinary Router resolves missing harness/model/thinking/runtime within applicable constraints, using a bounded conversation-scoped agent consultation rather than claiming a second background queue task. Persist the effective MODEL in the chat itself. Source order is definition/participants, first User message, MODEL, first agent reply; do not reorder metadata ahead of the event that caused it. The MODEL change has its own ordinary scoped commit, preserving the already committed User message and later agent-message boundary.
+Messages are durable on file save and use [bounded debounced Git commits](git-persistence.md), not a mandatory commit each. Preserve Chat-Name, order and attribution. Task-internal exchanges retain result scope; conversation-only advice has compatible scoped persistence. Failed Git persistence remains visible/recoverable without losing saved answers or repeating accepted effects.
 
-Resolve once for the current chat. Reopening and subsequent messages reuse that choice; mid-chat MODEL switching remains future work. An agent's question originating in an already executing task uses its known context rather than delaying the question for another routing pass. Chat routing needed to serve the user works during a busy task and during scheduling pause, while queued background work still waits.
+## Entry and model chronology
 
-## Commit boundaries
+New human-led entry without an explicit agent offers **Chat with Chatter** (default/Enter) or **Choose another agent**. Noninteractive default is Chatter; explicit targets are respected; existing questions retain their participants. Missing/invalid Chatter is diagnosed, not silently substituted or initialized by opening the picker. Closing chat leaves service/history intact.
 
-Every accepted human-facing message, from User or an agent, receives its own scoped commit by default; creation/material metadata changes are ordinary scoped authoring operations. Use `PTBK: Chat - <chat name>` and `Chat-Name: <name>`, not CHAT ID. A human answer is a real independently committed message. Report saved/delivered only after write and required commit. Failed persistence stays visibly pending/recoverable, not silently dropped. Explicit no-commit remains the exception.
+After saving the first User message, resolve the main agent's effective MODEL before its first reply. Reuse a fully specified agent choice; otherwise ordinary Router consultation fills missing constraints without a hidden extra worker. Source order is definition/members, first User message, MODEL, first reply, even when saves share a Git batch. Reopening does not reroute; mid-chat MODEL switching remains future work. A joined task agent retains its actual task context rather than inheriting the main speaker's MODEL.
 
-Task-scoped internal agent messages are saved with their owning task's **one result commit**, never per-message side commits during that task. Retain unfinished/waiting consultation evidence for completion/recovery. Human-facing messages spawned from tasks still have their own commits, coordinated safely with active writes.
+## Migration, recovery and acceptance
 
-Internal agent consultations serving a conversation with no owning task use ordinary scoped authoring persistence for the bounded exchange, linked to the parent chat. They do not wait for an unrelated task result or create a fake completed task. This does not change human-message or task-result commit boundaries.
+Preserve legacy requests' authors, messages, choices, checkpoints and wait state during conversion. `ptbk answer` appends through the same operations. Recovery never allocates another chat/name, duplicates a response or invents a participant. OPEN-agent corrections can still create ordinary linked Teacher work; a chat response does not silently edit the agent Book.
 
-Only actual versioned operations create commits. Reading, opening, closing/navigating, ephemeral drafts and read markers do not. Never commit another task's changes, unrelated files, session credentials or tracing secrets.
-
-## Migration and consistency
-
-Upgrade legacy pending requests into this chat abstraction without losing actual agent, reason, task checkpoint, answer choices or wait state. Do not duplicate on restart or invent replies. `ptbk answer` remains a compatibility path that selects a waiting chat and appends through this contract. Existing names survive [header conversion](migration.md); do not refresh timestamps on upgrade. UI/API shows actual authors, waiting agent and relevant links.
-
-The same resolver governs participants/LINKs. Collisions, missing agents, malformed Books and failed persistence are [Fixer](../agents/core-agents/fixer.md) maintenance conditions, not another request subsystem. Chatter's default entry does not absorb existing authored requests or alter their authority.
-
-## Acceptance outcomes
-
-Create separate same-agent chats, including same-title/same-tick creation, with distinct normalized generated names. Enter via Chatter by default, select alternatives explicitly and reopen existing requests without rerouting them. Ask read-only status, consult a specialist with a linked two-agent exchange, then create two ordinary authorized tasks from another thread. Opening alone creates no work. Preserve agent-started question, human clarification/reply and once-only resume through restart. Human-facing messages commit individually; task-internal consultation belongs to its task result; conversation-only consultation has scoped authoring persistence without fake tasks. Read/close/navigation create no commits or lost messages, and valid undated Books remain usable.
-
-Acceptance also covers first-message source order and distinct User/MODEL/agent commits, a fully specified agent without a Router call, reopening without rerouting, and chat during active work/pause while newly authored tasks remain pending.
+Exercise independent/same-agent threads, several clients on one thread, input during progress and force stop before a Git batch. Recover every saved message. Verify appended titles without identity changes, joins before messages, question/mention/main-agent routing and immediate per-question attention clearing. Ask status without work; request substantial work and get a linked task/card promptly; receive its question/result in the same conversation. Preserve pause and MODEL chronology without per-message commits.

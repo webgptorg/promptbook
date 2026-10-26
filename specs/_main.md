@@ -26,6 +26,8 @@ The project dashboard root is a responsive **no-scroll home screen** with a prom
 
 `ptbk dashboard --global` is a separate refreshed host-wide table of known projects, including stopped ones, across installations/versions and independent of CWD. Entries survive stop/reboot; the view stays open at zero entries and attaches to selected live engines without cd or startup. Explicit individual/bulk Start, Stop, Force stop, Pause and Resume call shared operations. Individual/bulk removal forgets only verified stopped entries, preserving project data. `ptbk panic` confirms (or accepts `--yes`) and immediately force-stops accessible local engines and owned execution, leaving them registered and stopped until explicit start; no soft/pause variants exist. There is no global engine. Ordinary project dashboard entry still diagnoses a missing service actionably.
 
+Chat primarily coordinates, checks status and creates/manages tasks; substantial execution belongs to tasks, with live cards, questions and results in the originating chat through [named links](cli/chat-tasks.md). Progress collapses after the final reply to Thinking plus elapsed duration. Appended CHAT TITLE changes presentation without identity changes. Human-facing chats support multiple agents with actual authorship and question/mention/main-agent routing.
+
 Chatter is the editable core default for human-led project conversation. New chat first offers Chatter (Enter) or another agent; only the latter expands all valid targets. Initial TEAM includes the other initialized roles; specialist advice and execution use normal consultation/tasks. Existing chats/questions retain their real authors. Human-facing messages persist immediately and use debounced scoped commits; task-internal consultations retain result attribution, and conversation-only consultations use scoped authoring persistence.
 
 Logical task identity, Git/source provenance and evidence location remain distinct. Trace directories exactly match source basenames, not normalized TASK names or opaque IDs. Evidence preserves declared names, revisions, actual tool instances, available harness output/events and enabled attributable browser recording. Init saves independent trace-commit, video-ignore and recording choices; runtime, secret stores and browser sessions stay ignored regardless.
@@ -98,7 +100,8 @@ The Windows installer is an additional release artifact, not a second engine or 
 - [Browser dashboard](cli/dashboard.md): Lightweight JavaScript SPA using the same API.
 - [Remote access](cli/remote-access.md): Protected tunnel, pairing, opt-out and lifetime.
 - [Tunnel provider decision](cli/tunnel-options.md): Alternatives and stable-hostname tradeoffs.
-- [Chats](cli/chats.md): Durable named conversations, attribution and commit boundaries.
+- [Chats](cli/chats.md): Responsive multi-agent conversations, stable names, evolving titles and debounced persistence.
+- [Chat/task relationships](cli/chat-tasks.md): Task-first heavy work, source links, live cards, questions and results.
 - [Chat UI](cli/chat-ui.md): Chatter-first entry, existing threads and unread/actionable state.
 - [Human interactions](cli/user-interactions.md): Ordinary attributed questions and once-only replies.
 - [Channels](cli/channels.md): Terminal, CLI, browser and API.

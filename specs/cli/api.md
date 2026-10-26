@@ -12,7 +12,7 @@ Expose project identity, actual engine version, instance/freshness, four live [s
 
 Execution data includes actual named tool, harness variant, model/thinking level and attempt/consultation attribution, with unknown/unsupported distinctions. Tool inventory includes canonical saved records, enabled/usability/in-use state and retained old uses distinct from new defaults. Authorized browser diagnostics identify each named instance's profile source/resolved path, mode, ownership/health and redacted recovery outcome. Ordinary state never exposes cookies, profile contents, resolved API keys or pairing/device credentials.
 
-Expose lifecycle controls, real pacing wait skipping, per-browser diagnosis/recheck/retry/restart, chat operations and supported settings changes. Apply shared stale-request/confirmation rules, including replacing pending stop with pause. Distinguish accepted, pending safe boundary, applied, committed, failed, unconfirmed and restart-required outcomes. No save is complete before its required commit.
+Expose lifecycle controls, real pacing wait skipping, per-browser diagnosis/recheck/retry/restart, chat operations and supported settings changes. Apply shared stale-request/confirmation rules, including replacing pending stop with pause. Distinguish accepted, pending safe boundary, applied, committed, failed, unconfirmed and restart-required outcomes. Expose saved-to-file and pending/committed Git separately; immediate-commit operations retain that requirement.
 
 ## Shared saved tool management
 
@@ -30,11 +30,13 @@ Network/rejected-push failures do not stop safe local execution or create duplic
 
 ## Chat and creation
 
-Chats expose full names, participants/authors, status/timestamps, history and task/conversation links. Authenticated list/new/open/append/answer use durable Books and normalized names, not new chat IDs. A new human-chat request with no target selects [Chatter](../agents/core-agents/chatter.md); existing-thread participants and explicit targets remain unchanged. Missing/invalid Chatter is diagnosed, not silently replaced. Human answers are committed messages.
+Chats expose full names, participants/authors, status/timestamps, history and task/conversation links. Authenticated list/new/open/append/answer use durable Books and normalized names, not new chat IDs. A new human-chat request with no target selects [Chatter](../agents/core-agents/chatter.md); existing-thread participants and explicit targets remain unchanged. Missing/invalid Chatter is diagnosed, not silently replaced. Human answers are promptly saved messages with bounded Git batching; clear their question's attention on accepted save.
 
 Use revision/idempotency checks against stale/reconnecting duplicate writes. Expose canonical agent identity/observed activity for [visual presentation](../agents/visual-identity.md). Distinguish actionable human waits from ordinary internal specialist consultations; Fixer uses these normal agent mechanisms, not a special transport.
 
 Task/chat creation follows [generated names](generated-names.md): opening kind/name, readable creation date/time and normalized collision prevention. Return the final name and actual reference/path rather than asking clients to append timestamps. Retry reconciles the prepared entity instead of creating another. Existing undated names remain unchanged by append/read/recovery. Task trace paths come from [source-filename mapping](traces.md), not client guesses from names.
+
+Expose evolving titles separately from stable opening names, multiple declared participants, progress/final phases and elapsed Thinking data. Accept follow-up input during work with ordered replay/live updates. Expose live task cards, named source links, once-only outcomes and question/mention/main-agent routing through [chat/task operations](chat-tasks.md). A question in chat and task detail shares one answer/state.
 
 ## Independence and security
 

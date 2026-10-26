@@ -4,4 +4,4 @@
 
 **Document:** Chat.
 
-`CHAT STATUS open|waiting-for-user|resolved` describes the conversation's durable action state. `waiting-for-user` requires a concrete unanswered agent message, decision or human-only action; it is not inferred merely from who spoke last. Appending an actual answer updates the state in that message's atomic save/commit. Read/unread presentation per local viewer is separate from durable action state; reading never answers or approves a request.
+`CHAT STATUS open|waiting-for-user|resolved` describes the conversation's durable action state. `waiting-for-user` requires a concrete unanswered agent message, decision or human-only action; it is not inferred merely from who spoke last. Accepting/saving a user response immediately resolves that question's attention, before agent acceptance or Git batching. Other unanswered questions retain their state; aggregate chat status reflects them. Read/unread presentation per local viewer is separate from durable action state; reading never answers or approves a request.

@@ -38,7 +38,7 @@ Excluded from discovery: Git metadata, local `.ptbk/` runtime/browser profiles, 
 
 ## Typed meaning and graph edges
 
-A reference can point from **any Book kind to any other** through LINK or appropriate domain commitments. These edges are **directed**: A referring to B does not require writing an inverse reference in B. Views can show both references made and references received. Multiple chats may refer to one task, and one chat may refer to multiple tasks; no relationship requires a task to exist. A link alone does not imply execution order, consultation, conversation participants, write authority or task assignment.
+A reference can point from **any Book kind to any other** through LINK or appropriate domain commitments. These edges are **directed**: A referring to B does not require writing an inverse reference in B. Views can show both references made and references received. Multiple chats may refer to one task, and one chat may refer to multiple tasks; no relationship requires a task to exist. A link alone does not imply execution order, consultation, conversation participants, write authority or task assignment. [Chat-created tasks](../cli/chat-tasks.md) intentionally persist both directions and origin metadata; general LINK remains directed. CHAT TITLE is a changing label, never a name for resolution.
 
 Specific commitments impose additional semantics: FROM requires an agent or supported non-agent parent; TEAM describes consultation; TASK AGENT assigns an agent; TASK PARENT/TASK DEPENDS ON require a task; CHAT MEMBER chooses a participant. Literal examples, Markdown code blocks, incidental email addresses and malformed text must not be treated as active relationships.
 
