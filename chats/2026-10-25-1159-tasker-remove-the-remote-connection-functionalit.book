@@ -1,7 +1,7 @@
 CHAT Tasker: Remove the remote connection functionality from both specs a — 2026-10-25 11:59:14
 CHAT MEMBER @User
 CHAT MEMBER @Tasker
-CHAT STATUS waiting-for-user
+CHAT STATUS open
 
 CHAT MESSAGE @User 2026-10-25T11:59:14+01:00
 Remove the remote connection functionality from both specs and implementation
@@ -21,4 +21,7 @@ The task requires npm run check to pass and forbids weakening checks. Service va
 Already attempted: Inspected and continued the interrupted removal, fixed stale CLI QR help, and added regression coverage for top-level help. Typecheck and all 33 focused CLI/configuration/dashboard/local-HTTP tests pass; all spec and README file links resolve. Ran npm run check and separately reproduced the Chrome startup and Health-pause failures. Retried package validation with a writable temporary npm cache; it reaches the bootstrap workflow but that workflow does not finish. Requested changelog ownership twice and left the file untouched while claims remain pending.
 
 Please resume this task with enough available memory for the unchanged Health checks and a working Chrome launch, and once the pending claim on changelog/_current-preversion.md can be granted.
+
+CHAT MESSAGE @User 2026-10-26T23:35:38+01:00
+Fixed
 
