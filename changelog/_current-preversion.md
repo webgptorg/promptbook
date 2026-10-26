@@ -1,5 +1,9 @@
 # Unreleased
 
+## Fixer learning from the project health check
+
+-   Teach Fixer to inspect full lint findings outside the accepted legacy warnings, based on the broken chat `LINK` found in the 2026-10-23 health check. Preserve its learning permissions and the owner's accepted legacy Books.
+
 ## Live harness readiness refresh
 
 -   Refresh inspections after effective endpoint or credential changes, including equal-length `.env` rotations, using keyed runtime-only identities that never enter diagnostics or persisted state. Reject stale inspections during refresh; keep process-environment precedence and source-only readiness reporting.
