@@ -35,10 +35,11 @@
 -   An OS termination request (for example a reboot shutting the worker down) no longer erases the manual pause. A deliberate stop (graceful, `--force` or panic) still replaces it, so the next explicit start runs. Restart keeps its own rules: its replacement runs.
 -   The daemon supervisor now checks for a deliberate stop before every respawn: after its crash backoff and before the replacement of a requested restart. A force stop or panic during that window is never undone.
 
-## Shared dashboard header
+## Shared dashboard header and focus
 
--   The project dashboard's home screen (and every page) now starts with one prominent application header above the tiles: `━━ Promptbook · PTBK ━━ <project> ━━ ● <state> ━━…` across the full width, with attention and freshness at the right. Its heavy rule and, with colors, the inverse brand badge set it apart from the bordered tiles. It is not a tile and cannot be focused. It stays one row. Narrow terminals drop freshness, then the attention count (the tiles keep their marks), then the word Promptbook, and only then shorten the project and state. Its row is reserved before the tiles get room, so the home screen still never scrolls. It is independent of the terminal tab title.
--   The browser dashboard's top bar is the same header: the mascot, **Promptbook** with a `PTBK` badge, the project name in larger type, the live state as a colored pill and the attention/freshness details, above an accent rule. Phones keep the badge, project and state.
+-   The project dashboard's home screen (and every page) now starts with one prominent, full-width identity header above the tiles: ` Promptbook · PTBK  <project>` with attention and freshness at the right, over a heavy accent rule (two rows). With colors the brand is an inverse badge. It is not a tile and cannot be focused. Lifecycle and pause state are not in the header: System (and the related tiles) shows them, so there is no extra paused/pausing badge. Short terminals compact it to one row; narrow ones drop freshness, then the attention count (the tiles keep their marks), then the word Promptbook, and only then shorten the project. Its rows are reserved before the tiles get room, so the home screen still never scrolls. It is independent of the terminal tab title.
+-   The focused tile now has a double-line border (`╔═╗`, `#=#` without Unicode) and a bold heading, visible without colors; the other tiles' headings are plain. Focus no longer adds a `❯` prefix, so moving it changes no tile's size, position or content.
+-   The browser dashboard's top bar is the same header: the mascot, **Promptbook** with a `PTBK` badge and the project name in larger type, with attention and freshness details above a heavy accent rule; the lifecycle pill is gone. The focused tile has a double outline and a bold heading, without changing its geometry. Phones keep the badge and project.
 
 ## Repair of a problematic inherited MODEL
 

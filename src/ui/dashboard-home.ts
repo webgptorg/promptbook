@@ -68,9 +68,14 @@ const PREFERRED_TILE_WIDTH = 36;
 const MAX_TILE_HEIGHT = 12;
 
 /**
- * Rows of the fixed home chrome: the shared application header and the legend (reserved before tiles get room).
+ * Rows of the shared application header: a prominent two-row identity band on ordinary surfaces, one compact row on
+ * short ones (reserved before the tiles get room, so the home screen still never scrolls).
+ *
+ * @private terminal dashboard home
  */
-const HOME_CHROME_ROWS = 2;
+export function headerRows(height: number): 1 | 2 {
+    return height >= 16 ? 2 : 1;
+}
 
 /**
  * Geometry of the home screen for the current surface.
@@ -93,7 +98,8 @@ export type HomeLayout =
  * @private terminal dashboard home
  */
 export function homeLayout(tiles: readonly HomeTile[], width: number, height: number): HomeLayout {
-    const room = height - HOME_CHROME_ROWS;
+    // The header and the legend are reserved before the tiles get room.
+    const room = height - headerRows(height) - 1;
     const maxColumns = Math.max(1, Math.floor((width + 1) / (MIN_TILE_WIDTH + 1)));
     let columns = Math.max(1, Math.min(maxColumns, Math.floor((width + 1) / (PREFERRED_TILE_WIDTH + 1)) || 1, tiles.length));
     const rowsFor = (count: number): number => Math.ceil(tiles.length / count);
@@ -263,37 +269,41 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
 }
 
 /**
- * The shared application header above the tile grid (and every page): one full-width band identifying Promptbook /
- * PTBK, the project and its actual lifecycle state, with attention and freshness on the right. Its heavy rule (and,
- * with colors, the inverse identity badge) sets it apart from the bordered focusable tiles; it is never a tile and
- * stays a single row. The identity is shortened only after the right-hand details, never the project and state.
+ * The shared application header above the tile grid (and every page): a full-width identity band naming Promptbook /
+ * PTBK and the project, with attention and freshness on the right. It carries no lifecycle or pause state (System and
+ * the related tiles show it). Ordinary surfaces get two rows: the identity line over a heavy accent rule; short ones
+ * get one compact row. Its rule (and, with colors, the inverse identity badge) sets it apart from the bordered,
+ * focusable tiles; it is never a tile. Narrow widths drop freshness, then the attention count (the tiles keep their
+ * marks), then the word Promptbook, and only then shorten the project.
  *
  * @private terminal dashboard home
  */
-export function homeStatusLine(snapshot: ServiceSnapshot, terminal: TerminalProfile, width: number, options: { readonly attention: number; readonly connectionLost?: string; readonly context?: string }): string {
+export function homeHeader(snapshot: ServiceSnapshot, terminal: TerminalProfile, width: number, options: { readonly rows: 1 | 2; readonly attention: number; readonly connectionLost?: string; readonly context?: string }): string[] {
     const { style } = terminal;
     const marks = symbols(terminal.unicode);
     const rule = terminal.unicode ? '━' : '=';
-    const state = snapshot.service.state;
-    const tone = state === 'running' ? style.success : state === 'stopped' || state === 'finished' ? style.muted : state === 'stopping' ? style.error : style.warning;
     const separator = style.accent(` ${rule}${rule} `);
     const attention = options.attention ? style.warning(`${marks.warn} ${options.attention} need${options.attention === 1 ? 's' : ''} attention`) : '';
     const freshness = options.connectionLost ? style.error(`disconnected: ${options.connectionLost}`) : style.muted(`live ${formatShortTime(Date.parse(snapshot.observedAt))}`);
     const identity = (label: string): string => style.bold(style.inverse(style.accent(` ${label} `)));
-    const left = (label: string): string =>
-        `${style.accent(`${rule}${rule}`)} ${identity(label)}${separator}${style.bold(snapshot.project.name)}${separator}${tone(`${terminal.unicode ? '● ' : ''}${state}`)}${snapshot.service.commitMode === 'no-commit' ? style.warning(' · NO-COMMIT') : ''}${options.context ? `${separator}${style.bold(`› ${options.context}`)}` : ''} `;
+    const mode = snapshot.service.commitMode === 'no-commit' ? style.warning(' · NO-COMMIT') : '';
+    const brands = [`Promptbook ${marks.dot} PTBK`, 'PTBK'];
+    const details = [[attention, freshness].filter(Boolean), [attention].filter(Boolean), []];
+    if (options.rows === 2) {
+        // The identity line over a full-width heavy rule: prominent, yet only two rows.
+        const left = (label: string): string => ` ${identity(label)}  ${style.bold(snapshot.project.name)}${mode}${options.context ? `${style.muted(` ${marks.dot} `)}${style.bold(options.context)}` : ''}`;
+        const right = (parts: readonly string[]): string => (parts.length ? `${parts.join(style.muted(` ${marks.dot} `))} ` : '');
+        const candidates = brands.flatMap((brand) => details.map((parts) => [left(brand), right(parts)] as const));
+        const [head, tail] = candidates.find(([head, tail]) => stringWidth(head) + stringWidth(tail) + 1 <= width) ?? candidates.at(-1)!;
+        const fill = Math.max(1, width - stringWidth(head) - stringWidth(tail));
+        return [truncate(`${head}${' '.repeat(fill)}${tail}`, width), style.accent(rule.repeat(width))];
+    }
+    const left = (label: string): string => `${style.accent(`${rule}${rule}`)} ${identity(label)}${separator}${style.bold(snapshot.project.name)}${mode}${options.context ? `${separator}${style.bold(`› ${options.context}`)}` : ''} `;
     const right = (parts: readonly string[]): string => (parts.length ? ` ${parts.join(style.muted(` ${marks.dot} `))} ${style.accent(`${rule}${rule}`)}` : style.accent(`${rule}${rule}`));
-    // Narrow terminals drop freshness, then attention (the tiles keep their marks), then the long brand, before the
-    // project and state are cut.
-    const candidates: Array<[string, string]> = [
-        [left(`Promptbook ${marks.dot} PTBK`), right([attention, freshness].filter(Boolean))],
-        [left(`Promptbook ${marks.dot} PTBK`), right([attention].filter(Boolean))],
-        [left(`Promptbook ${marks.dot} PTBK`), right([])],
-        [left('PTBK'), right([])],
-    ];
+    const candidates = brands.flatMap((brand) => details.map((parts) => [left(brand), right(parts)] as const));
     const [head, tail] = candidates.find(([head, tail]) => stringWidth(head) + stringWidth(tail) + 1 <= width) ?? candidates.at(-1)!;
     const fill = Math.max(0, width - stringWidth(head) - stringWidth(tail));
-    return truncate(`${head}${style.accent(rule.repeat(fill))}${tail}`, width);
+    return [truncate(`${head}${style.accent(rule.repeat(fill))}${tail}`, width)];
 }
 
 /**
@@ -324,17 +334,17 @@ export function renderHome(snapshot: ServiceSnapshot, terminal: TerminalProfile,
     const tiles = homeTiles(snapshot);
     const layout = homeLayout(tiles, width, height);
     const attentionCount = [...view.attention.keys()].filter((tile) => tiles.includes(tile)).length;
-    const lines = [homeStatusLine(snapshot, terminal, width, { attention: attentionCount, connectionLost: view.connectionLost })];
+    const lines = homeHeader(snapshot, terminal, width, { rows: headerRows(height), attention: attentionCount, connectionLost: view.connectionLost });
     const blinkOn = !terminal.reducedMotion && view.frame % 2 === 0;
     const titleOf = (tile: HomeTile): string => {
         const attention = view.attention.get(tile);
-        const focused = view.focus === tile;
-        const label = `${focused ? `${marks.pointer} ` : ''}${attention ? `${marks.warn} ` : ''}${TILE_TITLES[tile]}${attention === 'new' && terminal.reducedMotion ? ' NEW' : ''}`;
+        // Focus is the double border and bold heading (never a prefix that would shift the title).
+        const label = `${attention ? `${marks.warn} ` : ''}${TILE_TITLES[tile]}${attention === 'new' && terminal.reducedMotion ? ' NEW' : ''}`;
         return attention === 'new' && blinkOn ? style.inverse(label) : label;
     };
     const toneOf = (tile: HomeTile): PanelTone => {
         const attention = view.attention.get(tile);
-        if (attention) return attention === 'new' && !blinkOn && !terminal.reducedMotion && view.focus !== tile ? 'default' : tileAttention(snapshot, tile)?.tone === 'error' ? 'error' : 'attention';
+        if (attention) return attention === 'new' && !blinkOn && !terminal.reducedMotion ? 'default' : tileAttention(snapshot, tile)?.tone === 'error' ? 'error' : 'attention';
         return view.focus === tile ? 'accent' : 'default';
     };
     if (layout.kind === 'grid') {
@@ -348,6 +358,7 @@ export function renderHome(snapshot: ServiceSnapshot, terminal: TerminalProfile,
                     unicode: terminal.unicode,
                     style,
                     minHeight: layout.height - 2,
+                    focused: view.focus === tile,
                 }),
             );
             lines.push(...sideBySide(blocks, layout.widths.slice(0, blocks.length)));
@@ -357,7 +368,7 @@ export function renderHome(snapshot: ServiceSnapshot, terminal: TerminalProfile,
         for (const tile of tiles) {
             const attention = view.attention.get(tile);
             const label = fit(`${view.focus === tile ? marks.pointer : ' '} ${attention ? marks.warn : ' '} ${TILE_TITLES[tile]}`, labelWidth);
-            const styled = view.focus === tile ? style.accent(label) : attention ? style.warning(label) : label;
+            const styled = view.focus === tile ? style.bold(style.accent(label)) : attention ? style.warning(label) : label;
             lines.push(truncate(`${attention === 'new' && blinkOn ? style.inverse(styled) : styled} ${tileLines(snapshot, tile, terminal, view.frame)[0] ?? ''}`, width));
         }
     } else {
@@ -386,7 +397,8 @@ export function renderPage(
     const width = Math.max(20, terminal.columns());
     const height = Math.max(6, terminal.rows());
     const rule = (label = ''): string => style.muted(fit(`${terminal.unicode ? '─' : '-'}${label ? ` ${label} ` : ''}${(terminal.unicode ? '─' : '-').repeat(width)}`, width));
-    const room = Math.max(1, height - 5);
+    const header = homeHeader(snapshot, terminal, width, { rows: headerRows(height), attention: page.attention, connectionLost: page.connectionLost, context: page.title });
+    const room = Math.max(1, height - 4 - header.length);
     const maxScroll = Math.max(0, page.body.length - room);
     let scroll = Math.max(0, Math.min(page.scroll, maxScroll));
     if (page.anchor !== undefined) {
@@ -402,7 +414,7 @@ export function renderPage(
     return {
         scroll,
         lines: [
-            homeStatusLine(snapshot, terminal, width, { attention: page.attention, connectionLost: page.connectionLost, context: page.title }),
+            ...header,
             style.muted(truncate(` ${page.context ?? ''}`, width)),
             rule(above ? `↑ ${above} more` : ''),
             ...body,

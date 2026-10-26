@@ -1341,12 +1341,10 @@
         if (topbar) document.documentElement.style.setProperty('--topbar-height', `${topbar.offsetHeight}px`);
         const live = state.connected ? 'live' : 'disconnected — showing last known state';
         const attention = state.attention.size;
-        const stateName = snapshot.service.state;
-        // The shared application header: Promptbook / PTBK (brand), the project and its actual lifecycle state, with
-        // attention and freshness as secondary details; it is never a tile.
+        // The shared application header: Promptbook / PTBK (brand) and the project, with attention and freshness as
+        // secondary details; it is never a tile. Lifecycle/pause state lives in the System and related tiles.
         headerStatus.replaceChildren(
             h('strong', { className: 'header-project' }, snapshot.project.name),
-            h('span', { className: `pill header-state ${stateName === 'running' ? 'ok' : stateName === 'stopping' ? 'bad' : 'warn'}` }, stateName),
             snapshot.service.commitMode === 'no-commit' ? h('span', { className: 'pill warn' }, 'NO-COMMIT') : '',
             h('span', { className: 'header-details' }, attention ? h('span', { className: 'warn' }, `▲ ${attention} need${attention === 1 ? 's' : ''} attention · `) : '', live),
         );

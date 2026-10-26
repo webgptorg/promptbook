@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { homeLayout, homeTiles, renderHome, renderPage, tileAttention } from '../dist/ui/dashboard-home.js';
+import { headerRows, homeLayout, homeTiles, renderHome, renderPage, tileAttention } from '../dist/ui/dashboard-home.js';
 import { keepSelection, pageBody, pageForTile } from '../dist/ui/dashboard-pages.js';
 import { stringWidth, stripAnsi } from '../dist/ui/ansi.js';
 import { createTerminalProfile } from '../dist/ui/terminal.js';
@@ -52,10 +52,17 @@ test('the home screen fits standard, narrowed and fullscreen terminals completel
         for (const line of lines) assert.ok(stringWidth(line) <= columns, `${columns}x${rows}: no line wider than the terminal`);
         const text = lines.map(stripAnsi).join('\n');
         for (const title of ['Current work', 'System', 'Health', 'Chats', 'Tasks', 'Agents', 'Tools', 'Results', 'Connection']) assert.match(text, new RegExp(title), `${columns}x${rows}: ${title} is visible`);
-        assert.match(stripAnsi(lines[0]), /^━━ {2}Promptbook · PTBK {2}━━ birds ━━ ● running .*━━$/, `${columns}x${rows}: the shared Promptbook/PTBK, project and state header spans the top`);
-        assert.equal(stringWidth(lines[0]), columns, `${columns}x${rows}: the header band fills the width`);
-        assert.doesNotMatch(stripAnsi(lines[0]), /[╭╮│]/, `${columns}x${rows}: the header is not another bordered tile`);
-        if (homeLayout(homeTiles(snapshot()), columns, rows).kind === 'grid') assert.match(stripAnsi(lines[1]), /^╭/, `${columns}x${rows}: the tile grid starts right below the header`);
+        const header = headerRows(rows);
+        if (header === 2) {
+            assert.match(stripAnsi(lines[0]), /^ {2}(Promptbook · )?PTBK {3}birds\b/, `${columns}x${rows}: the full-width Promptbook/PTBK and project identity heads the screen`);
+            assert.match(stripAnsi(lines[1]), /^━+$/, `${columns}x${rows}: a heavy rule completes the two-row identity band`);
+        } else assert.match(stripAnsi(lines[0]), /^━━ {2}(Promptbook · )?PTBK {2}━━ birds .*━━$/, `${columns}x${rows}: a short surface keeps one compact identity row`);
+        for (const line of lines.slice(0, header)) {
+            assert.equal(stringWidth(line), columns, `${columns}x${rows}: the header band fills the width`);
+            assert.doesNotMatch(stripAnsi(line), /[╭╮│╔╗║]/, `${columns}x${rows}: the header is not another bordered tile`);
+            assert.doesNotMatch(stripAnsi(line), /running|paus|stopp/, `${columns}x${rows}: lifecycle state stays in the tiles, not in the identity header`);
+        }
+        if (homeLayout(homeTiles(snapshot()), columns, rows).kind === 'grid') assert.match(stripAnsi(lines[header]), /^╔/, `${columns}x${rows}: the tile grid (focused tile first) starts right below the header`);
         assert.doesNotMatch(text, /0\.119\.0-33|very-long-directory|trycloudflare/, 'version, path and URLs live on pages, not on the root');
     }
     assert.equal(homeLayout(homeTiles(snapshot()), 120, 30).kind, 'grid');
@@ -75,17 +82,34 @@ test('attention is independent from focus and distinguishable from it; reduced m
     assert.equal(tileAttention(snapshot(), 'chats'), undefined);
 
     const lines = renderHome(waiting, terminal(120, 30), view({ attention: new Map([['chats', 'new']]) })).map(stripAnsi).join('\n');
-    assert.match(lines, /❯ Current work/, 'focus stays where the operator left it');
+    assert.match(lines, /╔═ Current work/, 'focus stays where the operator left it');
     assert.match(lines, /▲ Chats/, 'the attention tile is marked');
-    assert.doesNotMatch(lines, /❯ ▲ Chats/);
+    assert.doesNotMatch(lines, /╔═ ▲ Chats/);
     assert.match(lines, /1 needs attention/);
     const both = renderHome(waiting, terminal(120, 30), view({ focus: 'chats', attention: new Map([['chats', 'seen']]) })).map(stripAnsi).join('\n');
-    assert.match(both, /❯ ▲ Chats/, 'focus and attention are both visible on one tile');
+    assert.match(both, /╔═ ▲ Chats/, 'focus and attention are both visible on one tile');
     const reduced = renderHome(waiting, terminal(120, 30, { reducedMotion: true }), view({ attention: new Map([['chats', 'new']]) })).map(stripAnsi).join('\n');
     assert.match(reduced, /▲ Chats NEW/, 'without animation, unseen attention is labelled instead of blinking');
 
     const health = snapshot({ health: { ...snapshot().health, status: 'hard', summary: 'Disk full', incidents: [{ id: 'disk-hard-1', resource: 'disk', severity: 'hard', summary: 'Disk full', openedAt: new Date().toISOString(), pauses: true }] } });
     assert.deepEqual(tileAttention(health, 'health'), { key: 'disk-hard-1', tone: 'error' });
+});
+
+test('focus is a double-line border and bold heading that never changes tile geometry', () => {
+    const single = { '╔': '╭', '╗': '╮', '╚': '╰', '╝': '╯', '═': '─', '║': '│' };
+    const normalized = (focus) => renderHome(snapshot(), terminal(120, 30), view({ focus })).map(stripAnsi).map((line) => line.replace(/[╔╗╚╝═║]/g, (char) => single[char]));
+    const tiles = homeTiles(snapshot());
+    const reference = normalized('work');
+    for (const tile of tiles) {
+        const lines = renderHome(snapshot(), terminal(120, 30), view({ focus: tile })).map(stripAnsi);
+        assert.equal(lines.filter((line) => /[╔╗╚╝]/.test(line)).length, 2, `${tile}: exactly one tile has the double border`);
+        assert.deepEqual(normalized(tile), reference, `${tile}: moving focus changes no size, position or content`);
+    }
+    // With colors the focused heading is bold and the others are not; the border alone is visible without color.
+    const colored = { ...terminal(120, 30), style: { ...terminal(120, 30).style, bold: (text) => `<b>${text}</b>` } };
+    const text = renderHome(snapshot(), colored, view({ focus: 'system' })).join('\n');
+    assert.match(text, /<b> System <\/b>/);
+    assert.doesNotMatch(text, /<b> Health <\/b>/);
 });
 
 test('pages replace the home grid, keep context and legend fixed and scroll their body', () => {
@@ -95,13 +119,14 @@ test('pages replace the home grid, keep context and legend fixed and scroll thei
     const rendered = renderPage(context.snapshot, context.terminal, { ...built, scroll: page.scroll, attention: 0 });
     assert.equal(rendered.lines.length, 24);
     const text = rendered.lines.map(stripAnsi);
-    assert.match(text[0], /Promptbook · PTBK {2}━━ birds ━━ ● running ━━ › Results and activity/, 'pages keep the shared header with their title');
+    assert.match(text[0], /Promptbook · PTBK {3}birds · Results and activity/, 'pages keep the shared header with their title');
+    assert.match(text[1], /^━+$/);
     assert.doesNotMatch(text.join('\n'), /Current work|╭─ System/, 'the root grid is not rendered around the page');
-    assert.match(text[2], /↑ \d+ more/, 'a long page shows what is above');
+    assert.match(text[3], /↑ \d+ more/, 'a long page shows what is above');
     assert.match(text.at(-3), /activity line 79/, 'following the activity keeps the newest line visible');
     assert.match(text.at(-1), /Esc back/);
     const top = renderPage(context.snapshot, context.terminal, { ...built, anchor: undefined, scroll: 0, attention: 0 });
-    assert.match(top.lines.map(stripAnsi)[3], /This session/);
+    assert.match(top.lines.map(stripAnsi)[4], /This session/);
     assert.match(top.lines.map(stripAnsi).at(-2), /↓ \d+ more/);
 
     const system = pageBody(pageForTile('system'), { ...context, snapshot: snapshot({ service: { ...snapshot().service, state: 'pause', pauseReasons: [{ id: 'manual', kind: 'manual', owner: 'System', summary: 'Paused', since: new Date().toISOString(), removable: true }, { id: 'health:x', kind: 'health', owner: 'Health', severity: 'soft', summary: 'Low free disk', since: new Date().toISOString(), incident: 'x', removable: true }] } }) }).body.map(stripAnsi).join('\n');

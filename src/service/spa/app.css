@@ -55,10 +55,10 @@ body {
     gap: 8px 16px;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 18px;
+    padding: 12px 18px;
     background: var(--surface);
-    /* The accent rule sets the shared application header apart from the bordered tiles below it. */
-    border-bottom: 2px solid var(--accent);
+    /* A full-width identity band; the heavy accent rule sets it apart from the bordered tiles below it. */
+    border-bottom: 3px solid var(--accent);
 }
 
 .brand {
@@ -101,13 +101,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--text);
-    font-size: 16px;
-}
-
-.header-state {
-    flex: none;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 20px;
 }
 
 .header-details {
@@ -116,7 +110,7 @@ body {
     text-overflow: ellipsis;
 }
 
-/* Narrow screens keep the brand, project and state; the secondary details go first. */
+/* Narrow screens keep the brand and the project; the secondary details go first. */
 @media (max-width: 560px) {
     .brand strong {
         display: none;
@@ -187,7 +181,7 @@ body.home-view .app {
     gap: 6px;
     align-items: center;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted);
@@ -204,11 +198,20 @@ body.home-view .app {
     flex-wrap: nowrap;
 }
 
-/* Focus is the operator's cursor; attention is a separate mark, so both stay distinguishable on one tile. */
+/*
+ * Focus is the operator's cursor: a double outline and bold heading (the terminal's double border), which never
+ * changes the tile's geometry. Attention is a separate mark, so both stay distinguishable on one tile.
+ */
 .tile.focused,
 .tile:focus-visible {
-    outline: 3px solid var(--accent);
-    outline-offset: 2px;
+    outline: 5px double var(--accent);
+    outline-offset: 1px;
+}
+
+.tile.focused .tile-title,
+.tile:focus-visible .tile-title {
+    color: var(--text);
+    font-weight: 800;
 }
 
 .tile.attention {
