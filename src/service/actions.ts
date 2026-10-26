@@ -245,3 +245,44 @@ export async function applyToolAction(agenda: Agenda, params: Readonly<Record<st
         via,
     });
 }
+
+/**
+ * Wallet operations of every channel (terminal, browser, API): one engine-owned implementation. Secrets are
+ * write-only (never echoed in replies, errors or logs). The 12 words for recovery are returned only by `wallet-setup`
+ * and only to an owner surface (`ownerSurface`: the local terminal or a paired browser session, never an API token).
+ *
+ * @private shared runtime controls
+ */
+export async function applyWalletAction(agenda: Agenda, method: string, params: Readonly<Record<string, unknown>>, options: { readonly ownerSurface: boolean }): Promise<unknown> {
+    const text = (key: string): string => (typeof params[key] === 'string' ? (params[key] as string) : '');
+    const wallet = agenda.wallet;
+    switch (method) {
+        case 'wallet':
+            return wallet.view();
+        case 'wallet-setup':
+            if (!options.ownerSurface) throw new PtbkError('The 12 words for recovery are shown only in the dashboard (terminal or paired browser), never to API clients.', { kind: 'usage', effect: 'Nothing was changed.' });
+            return await wallet.beginSetup();
+        case 'wallet-setup-confirm':
+            return await wallet.confirmSetup();
+        case 'wallet-setup-cancel':
+            return wallet.cancelSetup();
+        case 'wallet-restore':
+            return await wallet.restore(text('words'));
+        case 'wallet-save':
+            // `request` names the pending login request being answered (`action` is the operation itself over HTTP).
+            return await wallet.save({ origin: text('origin'), username: text('username'), password: text('password'), label: text('label') || undefined, id: text('id') || undefined, action: text('request') || undefined });
+        case 'wallet-remove':
+            return await wallet.remove(text('id'));
+        case 'wallet-dismiss':
+            return await wallet.dismiss(text('request'));
+        default:
+            throw new PtbkError(`Unknown Wallet action "${method}".`, { kind: 'usage' });
+    }
+}
+
+/**
+ * Every Wallet operation name (for request validation).
+ *
+ * @private shared runtime controls
+ */
+export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-remove', 'wallet-dismiss']);

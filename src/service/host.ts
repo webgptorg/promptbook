@@ -10,7 +10,7 @@ import type { ConnectionView } from '../engine/snapshot.js';
 import { browserTools } from '../browser/agent-tools.js';
 import { BrowserFleet } from '../browser/fleet.js';
 import { describeProfileSource } from '../tools/model.js';
-import { applyChatAction, applyControlAction, applySettings, applyToolAction, type BrowserControls } from './actions.js';
+import { WALLET_ACTIONS, applyChatAction, applyControlAction, applySettings, applyToolAction, applyWalletAction, type BrowserControls } from './actions.js';
 import { AuthStore } from './auth.js';
 import { CONTROL_CONTRACT, startControlServer } from './control.js';
 import { registerEngine, summaryOfSnapshot } from './discovery.js';
@@ -93,8 +93,14 @@ export class ServiceHost {
             extraTools: (task, context) => {
                 const scope = this.browsers.scope(task.key);
                 void scope.useFor(context.trace, context.attempt);
-                return browserTools(scope, context.chats, context.agent, context.onUserChat, () =>
-                    this.agenda.effectiveSettings.tools.flatMap((tool) => (tool.type === 'BROWSER' && tool.isEnabled ? [{ name: tool.name, description: tool.description, profile: describeProfileSource(tool.profile.source, tool.profile.path), isHeadless: tool.isHeadless }] : [])),
+                return browserTools(
+                    scope,
+                    context.chats,
+                    context.agent,
+                    context.onUserChat,
+                    () => this.agenda.effectiveSettings.tools.flatMap((tool) => (tool.type === 'BROWSER' && tool.isEnabled ? [{ name: tool.name, description: tool.description, profile: describeProfileSource(tool.profile.source, tool.profile.path), isHeadless: tool.isHeadless }] : [])),
+                    // A login request for the task's page only: the agent never reads a Wallet record.
+                    { login: async (page, request) => await this.agenda.wallet.login(page, { ...request, task: task.title }), onWait: context.onWalletWait },
                 );
             },
             finalizeEvidence: async (task) => await this.browsers.scope(task.key).finishEvidence(),
@@ -321,6 +327,8 @@ export class ServiceHost {
     /** Handles authenticated local control requests. */
     private async handleControl(method: string, params: Readonly<Record<string, unknown>>): Promise<unknown> {
         const agenda = this.agenda;
+        // The authenticated local channel is the owner's terminal: it may show the 12 words for recovery during setup.
+        if (WALLET_ACTIONS.has(method)) return await applyWalletAction(agenda, method, params, { ownerSurface: true });
         switch (method) {
             case 'identify':
                 return { instanceId: this.instanceId, projectRoot: this.options.project.root, pid: process.pid, mode: this.options.mode, version: ENGINE_VERSION, contract: CONTROL_CONTRACT, state: agenda.serviceState };

@@ -75,6 +75,7 @@
         "registry": "https://registry.npmjs.org/"
     },
     "dependencies": {
+        "@scure/bip39": "2.4.0",
         "qrcode": "1.5.4"
     }
 }

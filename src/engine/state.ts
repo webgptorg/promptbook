@@ -4,6 +4,7 @@ import { ensureDirectory, listDirectory, readJsonIfExists, writeJsonAtomic } fro
 import { normalizeAgentName } from '../book/references.js';
 import { nameKeyPath } from '../tasks/identity.js';
 import type { ThinkingLevel } from '../project/config.js';
+import { WALLET_WAIT } from '../tasks/eligibility.js';
 
 /**
  * Phases of the active task's lifecycle, persisted for recovery.
@@ -121,6 +122,8 @@ export type ActiveRecord = {
     readonly commitSha?: string;
     /** Chat waiting for the user's reply (agent-authored question of this task). */
     readonly waitingChat?: string;
+    /** Pending Wallet login request (protected owner input) this run waits for, instead of a chat reply. */
+    readonly waitingWallet?: string;
     /** Message count of that chat when the question was asked: a later User message is the reply. */
     readonly awaitedMessages?: number;
     /**
@@ -188,7 +191,7 @@ export function parkedReadiness(records: readonly ActiveRecord[]): { readonly aw
         if (record.phase === 'synchronizing' && record.worktree) integrations.set(key, `Its isolated result waits on ${isolationBranch(record.runId)} for a visible merge into the project branch; the task completes once it is merged.`);
         else if (record.worktree) {
             integrations.set(key, `It was running in a task worktree of an older engine (${record.worktree}, branch ${isolationBranch(record.runId)}); task worktrees were removed. Merge or discard that branch yourself, then run \`ptbk recover ${record.taskRef} --action retry\` or \`--action acknowledge\`.`);
-        } else awaitingUser.set(key, record.waitingChat ?? record.recoveryChat ?? 'checkpoint');
+        } else awaitingUser.set(key, record.waitingWallet && record.phase === 'awaiting-user' ? WALLET_WAIT : (record.waitingChat ?? record.recoveryChat ?? 'checkpoint'));
     }
     return { awaitingUser, integrations };
 }

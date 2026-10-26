@@ -28,6 +28,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
     tasks: 'Tasks',
     agents: 'Agents',
     tools: 'Tools',
+    wallet: 'Wallet',
     results: 'Results',
     connection: 'Connection',
     sync: 'Synchronization',
@@ -39,7 +40,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
  * @private terminal dashboard home
  */
 export function homeTiles(snapshot: ServiceSnapshot): HomeTile[] {
-    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'results', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
+    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
 }
 
 /**
@@ -196,6 +197,17 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
                 style.muted(`disk ${formatMiB(health.disk.freeMiB)} · memory ${formatMiB(health.memory.availableMiB)}`),
                 style.muted(`CPU ${health.cpu.load1 === undefined ? '?' : `${health.cpu.load1.toFixed(1)}/${health.cpu.cores}`} · network ${health.network.state}`),
                 ...(healthPauseReasons(snapshot).length ? [style.warning('new background work is paused')] : []),
+            ];
+        }
+        case 'wallet': {
+            const wallet = snapshot.wallet;
+            if (!wallet) return [style.muted('Not reported by this engine.')];
+            const tone = wallet.state === 'unavailable' ? style.error : wallet.state === 'locked' || wallet.state === 'setup' || wallet.pending.length ? style.warning : wallet.state === 'ready' ? style.success : style.muted;
+            const first = wallet.pending[0];
+            return [
+                tone(wallet.summary),
+                ...(first ? [style.warning(`${marks.warn} login for ${first.origin.replace(/^https?:\/\//, '')}${first.problem === 'rejected' ? ' (rejected)' : ''}`)] : []),
+                style.muted(wallet.state === 'locked' ? 'W open · restore it there' : 'W open'),
             ];
         }
         case 'chats': {

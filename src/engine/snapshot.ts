@@ -1,6 +1,7 @@
 import type { ChatSummary } from '../chats/store.js';
 import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
+import type { WalletView } from '../wallet/wallet.js';
 
 /**
  * Operating phase shown by every view.
@@ -549,7 +550,7 @@ export type SyncView = {
  *
  * @private shared status view model
  */
-export type DashboardDomain = 'work' | 'system' | 'health' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'connection' | 'sync';
+export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'connection' | 'sync';
 
 /**
  * Why a domain needs the operator's attention: `key` identifies the current actionable items (a changed key is a new
@@ -612,6 +613,8 @@ export type ServiceSnapshot = {
     readonly sync?: SyncView;
     /** Host health of the engine's Health sub-engine (absent for stopped services and older engines). */
     readonly health?: HealthView;
+    /** The project's Wallet: readiness, login labels and pending login requests (never a secret). */
+    readonly wallet?: WalletView;
     /** Saved configuration version and pending configuration work. */
     readonly configuration?: { readonly promptbookVersion?: string; readonly pending?: string };
     readonly wait?: WaitView;

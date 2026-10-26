@@ -988,9 +988,9 @@
     }
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
-    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'results', 'connection', 'sync'];
+    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'connection', 'sync'];
 
-    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', results: 'Results and activity', connection: 'Connection', sync: 'Synchronization' };
+    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', results: 'Results and activity', connection: 'Connection', sync: 'Synchronization' };
 
     /** Interactions after a new attention item appeared that show the operator is active here (it then settles). */
     const ATTENTION_SETTLE_INTERACTIONS = 3;
@@ -1088,6 +1088,13 @@
                 const health = snapshot.health;
                 if (!health) return [h('span', { className: 'muted' }, 'Not reported by this engine.')];
                 return [h('strong', { className: health.status === 'ok' ? 'ok' : health.status === 'hard' ? 'bad' : health.status === 'unknown' ? '' : 'warn' }, health.summary), h('span', { className: 'muted' }, `disk ${mib(health.disk.freeMiB)} · memory ${mib(health.memory.availableMiB)}`), healthReasons(snapshot).length ? h('span', { className: 'warn' }, 'new background work is paused') : null];
+            }
+            case 'wallet': {
+                const wallet = snapshot.wallet;
+                if (!wallet) return [h('span', { className: 'muted' }, 'Not reported by this engine.')];
+                const tone = wallet.state === 'unavailable' ? 'bad' : wallet.state === 'locked' || wallet.state === 'setup' || wallet.pending.length ? 'warn' : wallet.state === 'ready' ? 'ok' : 'muted';
+                const first = wallet.pending[0];
+                return [h('strong', { className: tone }, wallet.summary), first ? h('span', { className: 'warn' }, `login for ${first.origin.replace(/^https?:\/\//, '')}${first.problem === 'rejected' ? ' (rejected)' : ''}`) : null];
             }
             case 'chats': {
                 const waiting = snapshot.chats.waiting;
@@ -1330,6 +1337,159 @@
         return pageFrame('health', 'Disk, RAM, swap, CPU and connectivity observed by this engine’s Health sub-engine', status, incidents, remediation);
     }
 
+    /**
+     * The Wallet page: readiness, pending login requests and saved logins (labels only). Protected input (passwords,
+     * the 12 words for recovery) happens in dialogs outside the live-updating page and is never shown again.
+     */
+    function renderWalletPage(snapshot) {
+        const wallet = snapshot.wallet;
+        if (!wallet) return pageFrame('wallet', 'Website logins of this project', h('p', { className: 'muted' }, 'This engine does not report a Wallet.'));
+        const status = h('section', { className: 'card', 'aria-label': 'Wallet' });
+        status.append(h('h2', {}, h('span', {}, 'Wallet'), pill(wallet.state, wallet.state === 'ready' ? 'ok' : wallet.state === 'unavailable' ? 'bad' : wallet.state === 'empty' ? '' : 'warn')));
+        status.append(h('p', {}, wallet.summary));
+        if (wallet.facility) status.append(h('p', { className: 'muted' }, `This computer unlocks it automatically (${wallet.facility}).`));
+        if (wallet.problem) status.append(h('div', { className: `notice ${wallet.state === 'unavailable' ? 'error' : ''}` }, wallet.problem));
+        const actions = h('div', { className: 'row' });
+        if (wallet.state === 'empty' || wallet.state === 'setup') actions.append(h('button', { className: 'primary', onclick: walletSetup }, 'Set up the Wallet'));
+        if (wallet.state === 'locked' || wallet.state === 'unavailable') actions.append(h('button', { className: 'primary', onclick: walletRestore }, 'Restore with 12 words for recovery'));
+        if (wallet.state === 'ready') actions.append(h('button', { className: 'primary', onclick: () => walletLoginDialog({}) }, 'Add a login'));
+        status.append(actions);
+        if (wallet.lastAction) status.append(h('p', { className: 'muted' }, `Last: ${wallet.lastAction.outcome}`));
+        const requests = h('section', { className: 'card', 'aria-label': 'Login requests' }, h('h2', {}, `Login requests waiting (${wallet.pending.length})`));
+        if (!wallet.pending.length) requests.append(h('p', { className: 'muted' }, 'Nothing waits for a login.'));
+        for (const action of wallet.pending) {
+            const problem = action.problem === 'rejected' ? 'the saved login was rejected' : action.problem === 'locked' ? 'restore the Wallet first' : 'no saved login';
+            requests.append(
+                h(
+                    'div',
+                    { className: 'notice' },
+                    h('strong', {}, `${action.origin}${action.account ? ` · ${action.account}` : ''} · ${problem}`),
+                    h('div', { className: 'muted' }, `${action.reason} ${action.tasks.length ? `For ${action.tasks.join(', ')}.` : ''} Since ${time(action.createdAt)}${action.requests > 1 ? ` · requested ${action.requests}×` : ''}.`),
+                    h('div', { className: 'row' }, wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletLoginDialog({ origin: action.origin, action: action.id }) }, 'Add this login') : null, h('button', { onclick: () => walletCall('wallet-dismiss', { request: action.id }, `Dismiss the login request for ${action.origin}? The waiting work continues without it.`) }, 'Dismiss')),
+                ),
+            );
+        }
+        const records = h('section', { className: 'card', 'aria-label': 'Saved logins' }, h('h2', {}, `Saved logins (${wallet.records.length})`));
+        if (!wallet.records.length) records.append(h('p', { className: 'muted' }, wallet.state === 'ready' ? 'No saved logins yet.' : 'None.'));
+        records.append(
+            h(
+                'ul',
+                { className: 'list' },
+                wallet.records.map((record) =>
+                    h(
+                        'li',
+                        {},
+                        h('span', { className: 'title' }, `${record.origin} · ${record.account}`, h('span', { className: 'why' }, `${record.lastUsedAt ? `used ${time(record.lastUsedAt)}` : 'not used yet'}${record.lastOutcome === 'rejected' ? ' · rejected by the site' : ''}`)),
+                        h('span', { className: 'row' }, h('button', { onclick: () => walletLoginDialog({ origin: record.origin, label: record.account, id: record.id }) }, 'Update'), h('button', { className: 'danger', onclick: () => walletCall('wallet-remove', { id: record.id }, `Remove the saved login "${record.account}" for ${record.origin}?`) }, 'Remove')),
+                    ),
+                ),
+            ),
+        );
+        records.append(h('p', { className: 'muted' }, 'Agents never receive passwords: the Wallet signs in for them. Passwords, the 12 words for recovery and keys are never shown here.'));
+        return pageFrame('wallet', 'Encrypted website logins of this project, applied for agents without showing them the credentials', status, requests, records);
+    }
+
+    /** Calls a Wallet operation (optionally confirmed) and reports its outcome (never a secret). */
+    async function walletCall(action, body, confirmText) {
+        if (confirmText && !window.confirm(confirmText)) return undefined;
+        try {
+            const result = await api('/api/wallet', { method: 'POST', body: { ...(body || {}), action } });
+            if (result && result.outcome) toast(result.outcome);
+            return result;
+        } catch (error) {
+            toast(`Wallet: ${error.message}`);
+            return undefined;
+        }
+    }
+
+    /** A modal dialog outside the live-updating page (its inputs survive snapshot updates); removed when closed. */
+    function walletDialog(title, ...content) {
+        const dialog = h('dialog', { className: 'wallet-dialog', 'aria-label': title }, h('h2', {}, title), ...content);
+        dialog.addEventListener('close', () => dialog.remove());
+        document.body.append(dialog);
+        dialog.showModal();
+        return dialog;
+    }
+
+    /** Protected entry of a website login: the password is write-only and cleared from the form once sent. */
+    function walletLoginDialog(initial) {
+        const field = (label, input) => h('label', { className: 'field' }, h('span', {}, label), input);
+        const origin = h('input', { type: 'text', value: initial.origin || '', autocomplete: 'off', placeholder: 'https://example.com', required: true });
+        const username = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', required: true });
+        const password = h('input', { type: 'password', autocomplete: 'new-password', required: true });
+        const label = h('input', { type: 'text', value: initial.label || '', autocomplete: 'off', placeholder: 'optional, e.g. Work account' });
+        let dialog;
+        const form = h(
+            'form',
+            {
+                method: 'dialog',
+                autocomplete: 'off',
+                onsubmit: async (event) => {
+                    event.preventDefault();
+                    const body = { origin: origin.value, username: username.value, password: password.value, label: label.value, ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) };
+                    password.value = '';
+                    const result = await walletCall('wallet-save', body);
+                    body.password = '';
+                    if (result) dialog.close();
+                },
+            },
+            h('p', { className: 'muted' }, 'The password is encrypted at once and never shown again; agents never receive it.'),
+            field('Website', origin),
+            field('Username or email', username),
+            field('Password', password),
+            field('Label (shown instead of the username)', label),
+            h('div', { className: 'row' }, h('button', { type: 'submit', className: 'primary' }, 'Save login'), h('button', { type: 'button', onclick: () => ((password.value = ''), dialog.close()) }, 'Cancel')),
+        );
+        dialog = walletDialog(initial.id ? 'Update a website login' : 'Add a website login', form);
+        (initial.origin ? username : origin).focus();
+    }
+
+    /** First setup: the 12 words for recovery are shown once in a dialog and the Wallet is created after confirmation. */
+    async function walletSetup() {
+        const result = await walletCall('wallet-setup');
+        if (!result || !result.words) return;
+        let confirmed = false;
+        const words = h('ol', { className: 'recovery-words' }, result.words.map((word) => h('li', {}, word)));
+        const dialog = walletDialog(
+            '12 words for recovery',
+            h('p', {}, 'Write these 12 words on paper, in order, and keep them safe. With the project folder they restore its saved logins on another computer. They are shown only now.'),
+            words,
+            h(
+                'div',
+                { className: 'row' },
+                h('button', { className: 'primary', onclick: async () => ((confirmed = true), words.remove(), dialog.close(), await walletCall('wallet-setup-confirm')) }, 'I wrote them down — create the Wallet'),
+                h('button', { onclick: () => dialog.close() }, 'Cancel'),
+            ),
+        );
+        dialog.addEventListener('close', () => {
+            if (!confirmed) void walletCall('wallet-setup-cancel');
+        });
+    }
+
+    /** Restoration on this computer from the 12 words for recovery (hidden while typed, never sent anywhere else). */
+    function walletRestore() {
+        const words = h('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', required: true, placeholder: 'word1 word2 … word12' });
+        let dialog;
+        const form = h(
+            'form',
+            {
+                method: 'dialog',
+                autocomplete: 'off',
+                onsubmit: async (event) => {
+                    event.preventDefault();
+                    const value = words.value;
+                    words.value = '';
+                    if (await walletCall('wallet-restore', { words: value })) dialog.close();
+                },
+            },
+            h('p', {}, 'Enter the 12 words for recovery of this project, in order, separated by spaces. Saved logins need not be entered again.'),
+            h('label', { className: 'field' }, h('span', {}, '12 words for recovery'), words),
+            h('div', { className: 'row' }, h('button', { type: 'submit', className: 'primary' }, 'Restore'), h('button', { type: 'button', onclick: () => ((words.value = ''), dialog.close()) }, 'Cancel')),
+        );
+        dialog = walletDialog('Restore the Wallet on this computer', form);
+        words.focus();
+    }
+
     /** Runs a Health operation (optionally confirmed) and returns its preview/plan data. */
     async function healthAction(action, extra, confirmText) {
         if (confirmText && !window.confirm(confirmText)) return undefined;
@@ -1431,6 +1591,8 @@
                 return renderSystemPage(snapshot);
             case 'health':
                 return renderHealthPage(snapshot);
+            case 'wallet':
+                return renderWalletPage(snapshot);
             case 'chats':
                 return pageFrame('chats', `${snapshot.chats.total} chats · ${snapshot.chats.unread} unread · ${snapshot.chats.waiting.length} waiting for you`, snapshot.chats.waiting.length && !state.chat && !state.newChat ? renderAttention(snapshot) : null, renderChats(snapshot));
             case 'tasks':

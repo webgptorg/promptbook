@@ -6,7 +6,7 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { engineModule } from '../common/version.js';
 import type { Agenda } from '../engine/agenda.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
-import { applyChatAction, applySettings, applyToolAction, CONTROL_ACTIONS, type ControlOutcome } from './actions.js';
+import { applyChatAction, applySettings, applyToolAction, applyWalletAction, CONTROL_ACTIONS, WALLET_ACTIONS, type ControlOutcome } from './actions.js';
 import type { AuthStore, SessionRecord } from './auth.js';
 import { TASK_SORT_FIELDS, sortTasks, type TaskSortField } from '../tasks/views.js';
 
@@ -280,6 +280,11 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             response.end(svg);
             return;
         }
+        if (url.pathname === '/api/wallet' && method === 'GET') {
+            // Readiness, login labels and pending requests only: no endpoint returns a password, key or record.
+            sendJson(response, 200, agenda.wallet.view());
+            return;
+        }
         if (url.pathname === '/api/chat-agents' && method === 'GET') {
             sendJson(response, 200, { agents: await applyChatAction(agenda, 'chat-agents', {}, 'api') });
             return;
@@ -327,6 +332,14 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
                     ...(body.apply === true ? { apply: true } : {}),
                 }),
             );
+            return;
+        }
+        if (url.pathname === '/api/wallet') {
+            // Protected owner input: credentials and words are write-only and never logged or echoed. The words of a
+            // new setup are shown only to a paired browser session, never to an API token.
+            const action = String(body.action ?? '');
+            if (!WALLET_ACTIONS.has(action) || action === 'wallet') throw new PtbkError(`Unknown Wallet action "${action}".`, { kind: 'usage' });
+            sendJson(response, 200, await applyWalletAction(agenda, action, body, { ownerSurface: who.kind === 'session' }));
             return;
         }
         if (url.pathname === '/api/tools') {

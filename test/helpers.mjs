@@ -89,6 +89,8 @@ export async function fakeHarness(t, directory) {
             PTBK_HEALTH_CONNECTIVITY: 'off',
             // The fixture browser executable is not a browser: engines connect browsers at their first use only.
             PTBK_BROWSER_START: 'lazy',
+            // Fixtures never touch the real Keychain/DPAPI/systemd credentials (an explicit unprotected test store).
+            PTBK_HOST_UNLOCK: 'insecure-test-file',
         },
     };
 }

@@ -75,7 +75,9 @@ export type ExecutionHooks = {
     /** Absolute paths written by concurrent authoring (never attributed to the task). */
     readonly excludedPaths: () => ReadonlySet<string>;
     /** Additional tools (project browser); a human-only step becomes a chat waiting for the user, like `ask_user`. */
-    readonly extraTools?: (context: { readonly chats: ReturnType<typeof taskChats>; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
+    readonly extraTools?: (context: { readonly chats: ReturnType<typeof taskChats>; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
+    /** State of a Wallet login request this run waits for (undefined: unknown, which never blocks). */
+    readonly walletAction?: (id: string) => { readonly state: 'pending' | 'resolved' | 'dismissed'; readonly origin: string } | undefined;
     /** Finalizes evidence that belongs in the result commit (browser recordings of this task). */
     readonly finalizeEvidence?: (trace: TaskTrace) => Promise<void>;
     /** Opt-in synchronization attempt before the result commit (fetch only; never a prerequisite). */
@@ -183,6 +185,8 @@ export type WorkItem = {
 export type ExecutionOutcome =
     | { readonly kind: 'completed'; readonly commit?: string; readonly summary: string; readonly changedPaths: readonly string[]; readonly report?: AgentReport }
     | { readonly kind: 'awaiting-user'; readonly chat: string }
+    /** Checkpointed until the owner resolves a Wallet login request (protected input, never a chat). */
+    | { readonly kind: 'awaiting-wallet'; readonly action: string; readonly origin?: string }
     | { readonly kind: 'failed'; readonly reason: string; readonly trace?: string }
     | { readonly kind: 'setup'; readonly reason: string; readonly next?: string; readonly tool?: string }
     | { readonly kind: 'quota'; readonly reason: string; readonly retryAfterMs: number; readonly tool?: string }
@@ -417,9 +421,10 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     await trace.provenance({ runId: record.runId, occurrence: record.occurrence, section: task.source.section });
     const agent: EffectiveAgent = item.route.agent;
     const budget: ConsultationBudget = { calls: 0 };
-    const pending: { chat?: { chat: string; awaited: number } } = {};
+    const pending: { chat?: { chat: string; awaited: number }; wallet?: string } = {};
     const resetPending = (): void => {
         pending.chat = undefined;
+        pending.wallet = undefined;
     };
     // Task-scoped chat Books (consultations) belong to this run's result: nobody else may attribute them.
     // A question is asked in the chat the task came from (its executing agent joins it), else in a linked chat.
@@ -482,6 +487,17 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         await trace.event('user-reply', { chat: stored.chat.name, at: reply?.at, reply: reply?.text ?? '(resolved without a reply)' });
         await save({ phase: 'executing', waitingChat: undefined, awaitedMessages: undefined, answerMessage: undefined, chats: [...new Set([...(record.chats ?? []), stored.chat.name])] });
     }
+    // Resume a Wallet wait only once its login request was resolved (or dismissed) through the protected interface.
+    if (record.phase === 'awaiting-user' && record.waitingWallet) {
+        const request = hooks.walletAction?.(record.waitingWallet);
+        if (request?.state === 'pending') return { kind: 'awaiting-wallet', action: record.waitingWallet, origin: request.origin };
+        await trace.event('wallet-settled', { runId: record.runId, action: record.waitingWallet, state: request?.state ?? 'unknown' });
+        const feedback =
+            request?.state === 'resolved'
+                ? `The owner added the login for ${request.origin} to the Wallet. Open the site's login page again in your browser and call wallet_login: the Wallet signs in automatically.`
+                : `The owner dismissed the Wallet login request${request ? ` for ${request.origin}` : ''}. Continue without that login if the task allows it; otherwise report the task as blocked with the reason.`;
+        await save({ phase: 'executing', waitingWallet: undefined, feedback });
+    }
 
     if (record.phase === 'failed') return { kind: 'failed', reason: record.failure ?? 'The task needs recovery.', trace: trace.reference };
     if (record.phase === 'committed' || record.phase === 'synchronizing') {
@@ -535,7 +551,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         onActivity: (text) => hooks.emit({ type: 'activity', text }),
                         onConsultation: (consultation) => hooks.emit({ type: 'consultation', ...consultation }),
                     }),
-                    ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), trace, attempt: attemptLabel }) ?? []),
+                    ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), onWalletWait: (action) => (pending.wallet = action), trace, attempt: attemptLabel }) ?? []),
                 );
                 if (hooks.claimFiles) tools.push(claimFilesTool(hooks.claimFiles));
             }
@@ -546,7 +562,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 tasksDirectory: toProjectRelative(project.root, environment.tasksDirectory),
                 context: context !== undefined && contextFile ? { name: contextFile, content: context } : undefined,
                 check: check ?? undefined,
-                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), browser: tools.some((tool) => tool.name.startsWith('browser_')), claimFiles: tools.some((tool) => tool.name === 'claim_files') },
+                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), browser: tools.some((tool) => tool.name.startsWith('browser_')), claimFiles: tools.some((tool) => tool.name === 'claim_files'), wallet: tools.some((tool) => tool.name === 'wallet_login') },
                 feedback: record.feedback,
                 attempt,
                 extra: item.extraPrompt,
@@ -667,6 +683,15 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 await trace.event('awaiting-user', { runId: record.runId, chat: pending.chat.chat });
                 await finishResult('awaiting-user', `Waiting for the user's reply in the chat {${pending.chat.chat}}.`);
                 return { kind: 'awaiting-user', chat: pending.chat.chat };
+            }
+            if (pending.wallet && (!report || report.status === 'waiting-for-user')) {
+                // The run checkpoints without a chat question: the owner answers in the Wallet's protected interface.
+                await save({ phase: 'awaiting-user', waitingWallet: pending.wallet, attempt: attempt - 1 });
+                const origin = hooks.walletAction?.(pending.wallet)?.origin;
+                hooks.emit({ type: 'phase', phase: 'awaiting-user', detail: `Wallet login${origin ? ` for ${origin}` : ''}` });
+                await trace.event('awaiting-wallet', { runId: record.runId, action: pending.wallet, origin: origin ?? null });
+                await finishResult('awaiting-user', `Waiting for a website login${origin ? ` for ${origin}` : ''} that the owner adds in the Wallet.`);
+                return { kind: 'awaiting-wallet', action: pending.wallet, origin };
             }
             if (lastResult.outcome !== 'completed') {
                 const technical = record.technicalRetries + 1;

@@ -77,7 +77,7 @@ export type TaskPromptInput = {
     /** Project check command. */
     readonly check?: string;
     /** Whether the ptbk MCP tools are available. */
-    readonly tools: { readonly team: boolean; readonly askUser: boolean; readonly browser: boolean; readonly claimFiles?: boolean };
+    readonly tools: { readonly team: boolean; readonly askUser: boolean; readonly browser: boolean; readonly claimFiles?: boolean; readonly wallet?: boolean };
     /** Feedback from the previous attempt (repair). */
     readonly feedback?: string;
     /** Attempt number. */
@@ -164,6 +164,11 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
         rules.push(
             'Use the `browser_*` tools of the `ptbk` MCP server for websites. You have full access to the project browser and its profile with its logged-in sessions: every tab, any URL, the complete page (`browser_read`, screenshots you can see), real mouse and keyboard input that also works in rich-text editors, file uploads, page JavaScript (`browser_evaluate`), any DevTools protocol command (`browser_cdp`) and the DevTools endpoint for your own scripts (`browser_devtools_endpoint`). Do in it whatever a person at that browser could, within the authority of this task. Never ask the user to enable, grant or widen browser control, and do not change the browser configuration to work around a tool; ask only for genuinely human-only steps (credentials you do not have, two-factor codes, CAPTCHAs) with `browser_request_user_action`.',
         );
+        if (input.tools.wallet) {
+            rules.push(
+                'If a website is already signed in, keep using that session. When it requires signing in, open its login page and call `wallet_login`: the project Wallet signs in with a saved login without showing it to you, or asks the owner for it through its protected interface. Never ask for usernames or passwords in a chat, never type or read them yourself, and when `wallet_login` reports a waiting request, end your turn with status waiting-for-user.',
+            );
+        }
     }
     parts.push(`## How to work\n\n${rules.map((rule) => `- ${rule}`).join('\n')}`);
     if (input.feedback) {

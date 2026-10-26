@@ -17,6 +17,8 @@
  *                     output/browsers.txt (a tool added meanwhile must be visible to this same task)
  *   CLAIM_SHARED    → claims output/shared.txt through the `claim_files` tool, appends the task name to it and then
  *                     keeps working for $FAKE_CODEX_SLOW_MS (concurrent same-file work waits for the claim)
+ *   WALLET_LOGIN    → opens $FAKE_LOGIN_URL in the project browser and calls `wallet_login`: a waiting Wallet request
+ *                     ends the turn waiting-for-user, a sign-in writes the page heading to output/wallet.txt
  * Router turns (`## Assignment work`, tasks and chat routing) choose the first listed agent's example combination
  * (ROUTE_IMPOSSIBLE in the target reports no compatible combination). Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
@@ -193,6 +195,18 @@ async function main() {
     } else if (prompt.includes('ASK_USER') && !prompt.includes('## Conversation with the user')) {
         const text = await callTool('ask_user', { question: 'Which color should the fixture use?', choices: ['red', 'blue'], reason: 'The task does not say which color to use.', attempted: 'Checked the task and project instructions.' });
         message(`${text}\nPTBK_RESULT ${JSON.stringify({ status: 'waiting-for-user', summary: 'asked the user' })}`);
+    } else if (prompt.includes('WALLET_LOGIN')) {
+        await callTool('browser_open', { url: process.env.FAKE_LOGIN_URL });
+        const result = await callTool('wallet_login', { reason: 'The fixture site needs its account.' });
+        if (/protected Wallet request/.test(result)) {
+            message(`${result}\nPTBK_RESULT ${JSON.stringify({ status: 'waiting-for-user', summary: 'waiting for a Wallet login' })}`);
+        } else {
+            mkdirSync(join(process.cwd(), 'output'), { recursive: true });
+            const file = join(process.cwd(), 'output', 'wallet.txt');
+            writeFileSync(file, `${result.split('\n')[0]}\n${/Welcome[^\n]*/.exec(result)?.[0] ?? 'no welcome'}\n`);
+            print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'update' }] } });
+            done('Signed in through the Wallet');
+        }
     } else if (prompt.includes('CLAIM_SHARED')) {
         const claimed = await callTool('claim_files', { paths: ['output/shared.txt'] });
         if (!/^Claimed/.test(claimed)) {

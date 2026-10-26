@@ -21,6 +21,7 @@ export function controlSource(client: ControlClient): DashboardSource {
         chats: controlChatSource((method, params) => client.request(method, params ?? {}), 'terminal'),
         pairing: (renew) => client.request('pairing', { renew }),
         tool: (request) => client.request<ToolOperationOutcome>('tool-operation', request as unknown as Record<string, unknown>, 120_000),
+        wallet: (method, params) => client.request(method, { ...(params ?? {}) }, 120_000),
         inventory: () => client.request<TaskInventoryItem[]>('task-inventory'),
         books: {
             read: (input) => client.request<BookSource>('book-source', { ...input }),
@@ -43,6 +44,7 @@ export function hostSource(host: ServiceHost): DashboardSource {
         chats: controlChatSource((method, params) => host.control(method, params ?? {}), 'terminal'),
         pairing: (renew) => host.control('pairing', { renew }),
         tool: (request) => host.control<ToolOperationOutcome>('tool-operation', request as unknown as Record<string, unknown>),
+        wallet: (method, params) => host.control(method, params ?? {}),
         inventory: () => host.control<TaskInventoryItem[]>('task-inventory'),
         books: {
             read: (input) => host.control<BookSource>('book-source', { ...input }),

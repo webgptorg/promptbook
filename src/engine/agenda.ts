@@ -35,7 +35,7 @@ import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
 import { HARNESS_PLUGINS, harnessName } from '../harness/registry.js';
 import { readTaskBook } from '../tasks/book-task.js';
-import { evaluateQueue, isUnfinished, selectCandidates, type EvaluatedTask, type RouteCheck, type SelectedTask } from '../tasks/eligibility.js';
+import { WALLET_WAIT, evaluateQueue, isUnfinished, selectCandidates, type EvaluatedTask, type RouteCheck, type SelectedTask } from '../tasks/eligibility.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
 import { isRecurring, nameKey, type Task } from '../tasks/model.js';
 import { describePriority } from '../tasks/priority.js';
@@ -60,6 +60,7 @@ import {
 import { HarnessPool } from './harnesses.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
+import { WalletSubEngine } from '../wallet/wallet.js';
 import { readOperatorIntent, saveOperatorIntent } from './operator-intent.js';
 import { SyncCoordinator, type SyncOutcome } from './sync.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
@@ -128,7 +129,7 @@ export type AgendaOptions = {
     /** Plain event stream (raw/noninteractive output). */
     readonly onEvent?: (text: string, level: 'info' | 'warning' | 'error') => void;
     /** Additional tools for agents (project browser); `trace`/`attempt` identify the evidence they belong to. */
-    readonly extraTools?: (task: Task, context: { readonly chats: TaskChats; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
+    readonly extraTools?: (task: Task, context: { readonly chats: TaskChats; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
     /** Answers a user message in a human-led chat (an agent turn outside the task queue). */
     readonly chatReplies?: boolean;
     /** Finalizes a task's evidence produced outside the harness (its browser video) before its result commit. */
@@ -377,6 +378,8 @@ export class Agenda {
     private readonly sync: SyncCoordinator;
     /** The engine's one Health sub-engine (host resources, health incidents and their pause reasons). */
     private readonly health?: HealthSubEngine;
+    /** The project's Wallet sub-engine (encrypted website logins, protected login requests). */
+    public readonly wallet: WalletSubEngine;
 
     public constructor(private readonly options: AgendaOptions) {
         this.state = new StateStore(options.project.runtime.state);
@@ -410,6 +413,14 @@ export class Agenda {
                 this.wake();
             },
             onChange: () => this.touch(),
+            log: (text, level) => this.log(text, level),
+        });
+        this.wallet = new WalletSubEngine({
+            project: options.project,
+            env: options.env,
+            onChange: () => this.touch(),
+            // A resolved login request lets its checkpointed task resume at the next iteration.
+            onSettled: () => this.wake(),
             log: (text, level) => this.log(text, level),
         });
         // A finite maintenance host is not the ongoing engine and has no Health sub-engine of its own.
@@ -513,6 +524,8 @@ export class Agenda {
         if (migrated) this.log(`Migrated ${migrated} pending request(s) of an older engine into chats waiting for you.`);
         await this.refreshChats();
         await this.restoreOwnership();
+        // Automatic unlock through this host's protected secret: no words or master password at startup.
+        await this.wallet.initialize().catch((error: unknown) => this.log(`The Wallet could not be loaded: ${errorMessage(error)}`, 'warning'));
         // Results finished before an interruption still reach their chat (once).
         if (this.options.mode !== 'maintenance') for (const result of results.slice(0, 50)) await this.deliverChatOutcome(result).catch(() => undefined);
         if (this.options.mode !== 'maintenance') {
@@ -1669,6 +1682,7 @@ export class Agenda {
             tools: this.settings && this.pool ? toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, inUse: this.toolsInUse(), retained: this.retainedTools() }) : undefined,
             sync: this.sync.view(),
             health: this.health?.view(),
+            wallet: this.wallet.view(),
             configuration: this.settings ? { promptbookVersion: typeof this.settings.interpreted.promptbookVersion === 'string' ? this.settings.interpreted.promptbookVersion : undefined, pending: this.configurationPending } : undefined,
             wait: this.waitView,
             queue: this.queueView,
@@ -2044,7 +2058,7 @@ export class Agenda {
                 continue;
             }
             if ((this.resumeAfter.get(record.runId) ?? 0) > Date.now()) continue;
-            if (record.phase === 'awaiting-user' && record.waitingChat && !(await this.chatReplyOf(record.waitingChat, record.awaitedMessages, undefined, record.answerMessage)).answered) {
+            if (record.phase === 'awaiting-user' && ((record.waitingChat && !(await this.chatReplyOf(record.waitingChat, record.awaitedMessages, undefined, record.answerMessage)).answered) || this.walletPending(record))) {
                 await this.checkpoint(record);
                 changed = true;
                 continue;
@@ -2208,7 +2222,7 @@ export class Agenda {
                 doneCount: task.doneStamps.length,
                 source: task.source.relativePath,
                 origin: task.origin,
-                ...(readiness.kind === 'awaiting-user' && readiness.chat !== 'checkpoint' ? { waitingChat: readiness.chat } : {}),
+                ...(readiness.kind === 'awaiting-user' && readiness.chat !== 'checkpoint' && readiness.chat !== WALLET_WAIT ? { waitingChat: readiness.chat } : {}),
             } satisfies TaskInventoryItem;
         });
         this.queueTotal = evaluated.filter((item) => item.readiness.kind !== 'done' && item.readiness.kind !== 'retired').length;
@@ -2372,6 +2386,7 @@ export class Agenda {
                 // Engine-authored files and every file another run owns are never attributed to this run.
                 excludedPaths: () => new Set([...this.authoredPaths, ...this.ownership.heldByOthers(unit.owner)]),
                 extraTools: this.options.extraTools ? (context) => this.options.extraTools!(task, context) : undefined,
+                walletAction: (id) => this.wallet.action(id),
                 finalizeEvidence: this.options.finalizeEvidence ? async (trace) => await this.options.finalizeEvidence!(task, trace) : undefined,
                 beforeCommit: async () => void (await this.sync.request('pre-commit')),
                 attribute: async (changed, evidence) => await this.attributeChanges(unit, label, changed, evidence.reported),
@@ -2854,6 +2869,11 @@ export class Agenda {
                 if (record) await this.checkpoint(record);
                 break;
             }
+            case 'awaiting-wallet': {
+                const record = await this.state.readActive(item.runId);
+                if (record) await this.checkpoint(record);
+                break;
+            }
             case 'failed':
                 // The record stays active as failed: the supervisor hands it to Fixer or asks how to continue.
                 this.failed++;
@@ -2949,6 +2969,10 @@ export class Agenda {
                 await this.checkpoint(record);
                 return;
             }
+        }
+        if (this.walletPending(record)) {
+            await this.checkpoint(record);
+            return;
         }
         const queue = await this.readQueue();
         const task =
@@ -3294,6 +3318,11 @@ export class Agenda {
         }
     }
 
+    /** Whether a run waits for a Wallet login request that is still pending (an unknown request never blocks). */
+    private walletPending(record: ActiveRecord): boolean {
+        return record.phase === 'awaiting-user' && Boolean(record.waitingWallet) && this.wallet.action(record.waitingWallet!)?.state === 'pending';
+    }
+
     /**
      * Checkpoints a run waiting for a person (an answer or a recovery decision): its slot is released so independent
      * work continues, while the files it already changed stay owned by it (work needing them waits visibly, nothing is
@@ -3303,9 +3332,11 @@ export class Agenda {
         const files = this.ownership.owned(record.runId);
         const parked = { ...record, ownedFiles: files.length ? files : record.ownedFiles };
         await this.state.park(parked);
-        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat, ownedFiles: parked.ownedFiles ?? [] });
+        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat, ...(record.waitingWallet ? { wallet: record.waitingWallet } : {}), ownedFiles: parked.ownedFiles ?? [] });
         const kept = parked.ownedFiles?.length ? ` It keeps its changes in ${parked.ownedFiles.slice(0, 4).join(', ')}${parked.ownedFiles.length > 4 ? ', …' : ''}; other work on those files waits.` : '';
-        this.log(`"${record.taskTitle}" is checkpointed until you reply in {${record.waitingChat ?? record.recoveryChat}}; independent work continues.${kept}`);
+        const origin = record.waitingWallet ? this.wallet.action(record.waitingWallet)?.origin : undefined;
+        const until = record.waitingWallet ? `a login${origin ? ` for ${origin}` : ''} is added in the Wallet (protected input, never in a chat)` : `you reply in {${record.waitingChat ?? record.recoveryChat}}`;
+        this.log(`"${record.taskTitle}" is checkpointed until ${until}; independent work continues.${kept}`);
         return true;
     }
 
@@ -3327,6 +3358,7 @@ export class Agenda {
             }
             const chat = record.phase === 'awaiting-user' ? record.waitingChat : record.recoveryChat;
             if (chat && !(await this.chatReplyOf(chat, record.awaitedMessages, record.phase === 'failed' ? RECOVERY_CHOICES : undefined, record.answerMessage)).answered) continue;
+            if (this.walletPending(record)) continue;
             // Later commits of other work are the new baseline; the run's own kept changes keep their original baseline.
             const fresh = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, new Set([...this.authoredPaths, ...this.ownership.heldByOthers(record.runId)]));
             const preSnapshot: Record<string, string | null> = { ...fresh };
@@ -3335,7 +3367,7 @@ export class Agenda {
                 else delete preSnapshot[path];
             }
             await this.state.unpark({ ...record, preSnapshot, instanceId: this.options.instanceId });
-            this.log(`Resuming "${record.taskTitle}" after your reply${chat ? ` in {${chat}}` : ''}.`);
+            this.log(record.waitingWallet ? `Resuming "${record.taskTitle}": its Wallet login request was settled.` : `Resuming "${record.taskTitle}" after your reply${chat ? ` in {${chat}}` : ''}.`);
             return true;
         }
         return false;

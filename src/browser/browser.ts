@@ -17,19 +17,25 @@ import { BrowserPools, profileOwnerPid, type PoolRecord } from './pool.js';
 import { parseKeyPress, type KeyPress } from './input.js';
 import {
     MAX_PAGE_TEXT,
+    clearLoginFieldsScript,
     elementObjectScript,
     elementPointScript,
     entryContentScript,
     entryTargetScript,
     focusForEntryScript,
+    focusLoginFieldScript,
     isFileInputScript,
+    loginFormScript,
     programmaticClickScript,
     readPageScript,
     setValueScript,
     submitFormScript,
+    submitLoginScript,
     viewportScript,
+    type LoginScan,
     type PageReading,
 } from './page-scripts.js';
+import { originMatches, type SignInAttempt, type SignInPage } from '../wallet/wallet.js';
 
 /**
  * Window size of a headless browser (a desktop layout, as a person at a desktop sees websites).
@@ -1217,6 +1223,81 @@ export class TaskBrowser {
             ? `the full page, ${view.pageWidth}×${height} CSS pixels${height < view.pageHeight ? ` (cut from ${view.pageHeight})` : ''}; positions are page positions, scroll before clicking`
             : `the viewport, ${view.width}×${view.height} CSS pixels, scrolled to (${Math.round(view.scrollX)}, ${Math.round(view.scrollY)}); ${Math.abs(scale - 1) < 0.01 ? 'image pixels are the x/y of browser_click' : `divide image pixels by ${scale.toFixed(2)} for the x/y of browser_click`}`;
         return { path, data, summary: `Screenshot of ${coordinates}.\nSaved as ${path}` };
+    }
+
+    /**
+     * This task's current tab as a login page of the Wallet. The Wallet enters credentials by trusted input; they are
+     * never recorded, returned or left readable in the page (password fields are cleared afterwards).
+     */
+    public walletPage(): SignInPage {
+        return {
+            browser: this.name,
+            inspect: async () => {
+                const scan = await this.scanLogin();
+                return { origin: scan.origin, form: scan.password ? 'password' : scan.username ? 'username' : 'none' };
+            },
+            signIn: async (credentials) => await this.walletSignIn(credentials),
+        };
+    }
+
+    /** Scans the login fields (retried while a navigation replaces the page). */
+    private async scanLogin(): Promise<LoginScan> {
+        for (let attempt = 0; ; attempt++) {
+            try {
+                return await this.evaluate<LoginScan>(loginFormScript());
+            } catch (error) {
+                if (attempt >= 4) throw error;
+                await delay(500);
+            }
+        }
+    }
+
+    /** Enters one marked login field by trusted text input. */
+    private async enterLoginField(field: 'username' | 'password', value: string): Promise<void> {
+        const { connection, sessionId } = await this.active();
+        if (!(await this.evaluate<boolean>(focusLoginFieldScript(field)))) throw new PtbkError(`The ${field} field of the login form disappeared.`, { kind: 'technical' });
+        await connection.send('Input.insertText', { text: value }, sessionId);
+    }
+
+    /** Submits the login form and waits for the page to settle. */
+    private async submitLogin(): Promise<void> {
+        if (!(await this.evaluate<boolean>(submitLoginScript()).catch(() => false))) await this.key(parseKeyPress('Enter'));
+        await delay(SUBMIT_SETTLE_MS);
+        await this.settle(15_000);
+        await delay(HOVER_SETTLE_MS);
+    }
+
+    /**
+     * Signs in with credentials of one origin: a field is entered only while the page is on that origin (a redirect to
+     * another site never receives them), a two-step login gets the username first, and the result is verified on the
+     * resulting page rather than assumed from the submission.
+     */
+    private async walletSignIn(credentials: { readonly origin: string; readonly username: string; readonly password: string }): Promise<SignInAttempt> {
+        await this.recorder.pause('Wallet sign-in (credentials are not recorded)');
+        try {
+            let scan = await this.scanLogin();
+            const elsewhere = (current: LoginScan): SignInAttempt | undefined => (originMatches(credentials.origin, current.origin) ? undefined : { result: 'no-form', note: `the page moved to ${current.origin}, which this login does not belong to` });
+            if (!scan.password && !scan.username) return { result: 'no-form', note: 'no login form is shown' };
+            const moved = elsewhere(scan);
+            if (moved) return moved;
+            if (scan.username) await this.enterLoginField('username', credentials.username);
+            if (!scan.password) {
+                await this.submitLogin();
+                scan = await this.scanLogin();
+                if (!scan.password) return scan.otp ? { result: 'challenge', note: 'the site asks for a one-time code' } : scan.username ? { result: 'rejected', note: 'the site did not accept the username' } : { result: 'no-form', note: 'no password field followed the username' };
+                const away = elsewhere(scan);
+                if (away) return away;
+            }
+            await this.enterLoginField('password', credentials.password);
+            await this.submitLogin();
+            const after = await this.scanLogin();
+            if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
+            if (after.otp) return { result: 'challenge', note: 'the site asks for a one-time code' };
+            return { result: 'signed-in' };
+        } finally {
+            await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
+            await this.recorder.resume();
+        }
     }
 
     /** Brings this task's tab forward for a human action (only meaningful with a visible window); the human part is not recorded. */

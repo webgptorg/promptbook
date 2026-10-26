@@ -1,5 +1,7 @@
 import { PtbkError, errorMessage } from '../common/errors.js';
+import { Mutex } from '../common/mutex.js';
 import type { BridgeTool, ToolResult } from '../engine/bridge.js';
+import type { SignInPage, WalletLoginResult } from '../wallet/wallet.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import type { BrowserScope } from './fleet.js';
 import type { PointerTarget } from './browser.js';
@@ -38,6 +40,37 @@ function pointerArgument(input: Readonly<Record<string, unknown>>): PointerTarge
 }
 
 /**
+ * The Wallet as one task's agent may use it: a login request for the page it works on (never reading a record).
+ *
+ * @private project browser
+ */
+export type AgentWallet = {
+    readonly login: (page: SignInPage, request: { readonly account?: string; readonly reason?: string }) => Promise<WalletLoginResult>;
+    /** The task now waits for a protected Wallet action (it checkpoints when its turn ends). */
+    readonly onWait: (action: string) => void;
+};
+
+/**
+ * What the agent learns from a Wallet login request (redacted: never a username or password).
+ */
+function walletMessage(result: WalletLoginResult): string {
+    switch (result.status) {
+        case 'signed-in':
+            return `Signed in to ${result.origin} with the saved login "${result.account}" (the Wallet entered it; the credentials are not available to you).${result.note ? ` ${result.note}.` : ''} Verify the page shows what the task needs.`;
+        case 'challenge':
+            return `The Wallet entered the saved login "${result.account}" for ${result.origin}, and the site now asks for a human-only step (${result.note ?? 'for example a two-factor code or CAPTCHA'}). Use browser_request_user_action for it.`;
+        case 'no-login-form':
+            return `The current page of ${result.origin} shows no login form. If the site is already signed in, just continue; otherwise open its login page and call wallet_login again.`;
+        case 'ambiguous':
+            return `The Wallet has several logins for ${result.origin}: ${result.accounts.map((account) => `"${account}"`).join(', ')}. Call wallet_login again with account set to the one the task requires.`;
+        case 'waiting':
+            return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for the username or password in a chat. End your turn now with status waiting-for-user: the task resumes once the login is added, then open the login page again and call wallet_login.`;
+        case 'failed':
+            return `The Wallet could not sign in: ${result.reason}`;
+    }
+}
+
+/**
  * Browser tools exposed to agents through the ptbk MCP bridge. An agent has full access to the browser it uses —
  * everything a person at that browser could do: every tab, any URL, the complete page (shadow DOM and frames
  * included), trusted mouse and keyboard input, uploads, page JavaScript, the raw DevTools protocol and the DevTools
@@ -46,16 +79,19 @@ function pointerArgument(input: Readonly<Record<string, unknown>>): PointerTarge
  *
  * @private project browser
  */
-export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskChats | undefined, agent: string, onUserChat: (chat: { chat: string; awaited: number }) => void, describe: () => Array<{ name: string; description?: string; profile: string; isHeadless: boolean }>): BridgeTool[] {
-    const run = async (action: () => Promise<string | ToolResult>): Promise<ToolResult> => {
-        try {
-            const result = await action();
-            return typeof result === 'string' ? { text: result } : result;
-        } catch (error) {
-            const next = error instanceof PtbkError && error.details.next?.length ? ` ${error.details.next.join(' ')}` : '';
-            return { text: `${errorMessage(error)}${next}`, isError: true };
-        }
-    };
+export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskChats | undefined, agent: string, onUserChat: (chat: { chat: string; awaited: number }) => void, describe: () => Array<{ name: string; description?: string; profile: string; isHeadless: boolean }>, wallet?: AgentWallet): BridgeTool[] {
+    // One task's browser calls run one at a time: nothing observes its tab while the Wallet enters a login.
+    const serial = new Mutex();
+    const run = async (action: () => Promise<string | ToolResult>): Promise<ToolResult> =>
+        await serial.run(async () => {
+            try {
+                const result = await action();
+                return typeof result === 'string' ? { text: result } : result;
+            } catch (error) {
+                const next = error instanceof PtbkError && error.details.next?.length ? ` ${error.details.next.join(' ')}` : '';
+                return { text: `${errorMessage(error)}${next}`, isError: true };
+            }
+        });
     const name = (input: Readonly<Record<string, unknown>>): string | undefined => (typeof input.browser === 'string' && input.browser.trim() ? input.browser.trim() : undefined);
     const tool = (definition: { name: string; description: string; properties?: Record<string, unknown>; required?: string[] }, handler: (input: Readonly<Record<string, unknown>>) => Promise<string | ToolResult>): BridgeTool => ({
         name: definition.name,
@@ -169,10 +205,29 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
             async (input) => (await browser(input)).protocol(String(input.method ?? ''), input.params && typeof input.params === 'object' ? (input.params as Record<string, unknown>) : {}, input.scope === 'browser' ? 'browser' : 'page'),
         ),
         tool({ name: 'browser_devtools_endpoint', description: "Return the browser's local DevTools endpoint for your own automation scripts (Playwright connectOverCDP, Puppeteer connect) while this task holds the browser." }, async (input) => (await browser(input)).devtoolsEndpoint()),
+        ...(wallet
+            ? [
+                  tool(
+                      {
+                          name: 'wallet_login',
+                          description:
+                              "When the website open in your current tab requires signing in (and is not signed in already): the project's Wallet signs in with a saved login of that page's actual origin, without showing you the credentials. Open the site's login page first. If no saved login fits (or it was rejected), the Wallet asks the owner through its protected interface; never ask for usernames or passwords in a chat and never type them yourself.",
+                          properties: { account: { type: 'string', description: 'Account the task requires (label or username), when the task names one.' }, reason: { type: 'string', description: 'Why the task needs this login (shown to the owner).' } },
+                      },
+                      async (input) => {
+                          const instance = await browser(input);
+                          const result = await wallet.login(instance.walletPage(), { account: typeof input.account === 'string' ? input.account : undefined, reason: typeof input.reason === 'string' ? input.reason : undefined });
+                          if (result.status === 'waiting') wallet.onWait(result.action);
+                          const message = walletMessage(result);
+                          return result.status === 'signed-in' ? `${message}\n\n${await instance.read()}` : { text: message, isError: result.status === 'failed' };
+                      },
+                  ),
+              ]
+            : []),
         tool(
             {
                 name: 'browser_request_user_action',
-                description: 'Only for a genuinely human-only step that you cannot do with full access to the browser (credentials you do not have, two-factor codes, CAPTCHAs, consent only the account owner may give): ask the human to act in the project browser. Never use it to ask for browser control or permissions. Then end your turn with status waiting-for-user.',
+                description: `Only for a genuinely human-only step that you cannot do with full access to the browser (two-factor codes, CAPTCHAs, consent only the account owner may give${wallet ? '; a missing username/password goes through wallet_login instead' : ', credentials you do not have'}): ask the human to act in the project browser. Never use it to ask for browser control or permissions. Then end your turn with status waiting-for-user.`,
                 properties: { reason: { type: 'string' } },
                 required: ['reason'],
             },

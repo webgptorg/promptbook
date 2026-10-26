@@ -136,6 +136,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     const reasons = snapshot.service.pauseReasons ?? [];
     if (reasons.length) lines.push(`Pause reasons: ${pauseReasonLines(reasons).join(' · ')}`);
     if (snapshot.health) lines.push(`Health: ${healthOneLine(snapshot.health)}`);
+    if (snapshot.wallet) lines.push(`Wallet: ${snapshot.wallet.summary}${snapshot.wallet.problem ? ` — ${snapshot.wallet.problem}` : ''}`);
     const actions = lifecycleActions(snapshot);
     if (actions.length) lines.push(`Controls: ${actions.map((action) => `${action.command} (${action.label})`).join(' · ')}`);
     if (snapshot.service.persistenceNote) lines.push(`Persistence: ${snapshot.service.persistenceNote}`);
@@ -187,6 +188,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     }
     if (snapshot.sync) lines.push('', 'SYNCHRONIZATION', ...syncDetailLines(snapshot.sync).slice(0, -1).map((line) => `  ${line}`));
     if (snapshot.health) lines.push('', 'HEALTH', ...healthDetailLines(snapshot.health).filter(Boolean).map((line) => `  ${line}`));
+    if (snapshot.wallet?.pending.length) lines.push('', 'WALLET LOGIN REQUESTS (add them on the Wallet page of the dashboard)', ...snapshot.wallet.pending.map((action) => `  - ${action.origin}${action.account ? ` (${action.account})` : ''}: ${action.problem === 'rejected' ? 'the saved login was rejected' : action.problem === 'locked' ? 'the Wallet must be restored first' : 'no saved login'}${action.tasks.length ? ` · for ${action.tasks.join(', ')}` : ''}`));
     if (snapshot.configuration?.pending) lines.push('', `CONFIGURATION: ${snapshot.configuration.pending}`);
     const execution = snapshot.phase === 'unknown' ? ['Unavailable: the service runs another ptbk version.'] : executionDetailLines(snapshot.execution);
     lines.push('', 'EXECUTION DETAILS', ...execution.map((line) => `  ${line}`));

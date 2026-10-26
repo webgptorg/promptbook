@@ -5,6 +5,13 @@ import { recurrenceState } from './recurrence.js';
 import { findTask } from './sources.js';
 
 /**
+ * Marker of a checkpointed task waiting for a Wallet login request instead of a chat (never a chat name).
+ *
+ * @private task eligibility
+ */
+export const WALLET_WAIT = '\u0000wallet';
+
+/**
  * Readiness of one task, shared by list, dry-run, dashboards, API and execution.
  *
  * @private task eligibility
@@ -134,6 +141,7 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
     const recovery = context.recovery.get(task.key);
     if (recovery) return { kind: 'needs-recovery', reason: recovery };
     const chat = context.awaitingUser.get(task.key);
+    if (chat === WALLET_WAIT) return { kind: 'awaiting-user', reason: 'Waiting for a website login the owner adds in the Wallet.', chat };
     if (chat) return { kind: 'awaiting-user', reason: `Waiting for your reply in the chat {${chat}}.`, chat };
     const waitingOn: string[] = [];
     for (const reference of task.dependsOn) {

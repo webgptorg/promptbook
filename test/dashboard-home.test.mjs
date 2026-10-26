@@ -51,7 +51,7 @@ test('the home screen fits standard, narrowed and fullscreen terminals completel
         assert.equal(lines.length, rows, `${columns}x${rows}: exactly the surface height`);
         for (const line of lines) assert.ok(stringWidth(line) <= columns, `${columns}x${rows}: no line wider than the terminal`);
         const text = lines.map(stripAnsi).join('\n');
-        for (const title of ['Current work', 'System', 'Health', 'Chats', 'Tasks', 'Agents', 'Tools', 'Results', 'Connection']) assert.match(text, new RegExp(title), `${columns}x${rows}: ${title} is visible`);
+        for (const title of ['Current work', 'System', 'Health', 'Chats', 'Tasks', 'Agents', 'Tools', 'Wallet', 'Results', 'Connection']) assert.match(text, new RegExp(title), `${columns}x${rows}: ${title} is visible`);
         const header = headerRows(rows);
         if (header === 2) {
             assert.match(stripAnsi(lines[0]), /^ {2}(Promptbook · )?PTBK {3}birds\b/, `${columns}x${rows}: the full-width Promptbook/PTBK and project identity heads the screen`);
@@ -153,4 +153,34 @@ test('list pages keep the selected item across live updates and re-sorting', () 
     assert.equal(page.focus, 0, 'reversing keeps the same task selected');
     keepSelection(page, { ...context, inventory: tasks(['a', 'b']) });
     assert.equal(page.selected, 'tasks/b.book', 'a vanished item leaves the cursor at its position');
+});
+
+test('the Wallet tile and page show readiness, requests and labels with the common attention, never a secret', () => {
+    const at = new Date().toISOString();
+    const wallet = {
+        state: 'ready',
+        summary: '1 saved login · 1 login request waiting',
+        facility: 'macos-keychain',
+        records: [{ id: 'r1', origin: 'https://example.com', account: 'ja…@example.com', updatedAt: at, lastUsedAt: at, lastOutcome: 'signed-in' }],
+        pending: [{ id: 'a1', origin: 'https://news.example', problem: 'missing', reason: 'A login for https://news.example is needed; the Wallet has none.', tasks: ['Weekly update'], browser: 'project-browser', createdAt: at, requests: 2 }],
+    };
+    const view = snapshot({ wallet });
+    assert.ok(homeTiles(view).includes('wallet'), 'Wallet is a home tile');
+    assert.equal(tileAttention(view, 'wallet')?.tone, 'warning', 'a pending login request uses the common attention');
+    assert.equal(tileAttention(snapshot({ wallet: { ...wallet, pending: [] } }), 'wallet'), undefined, 'a ready Wallet without requests needs no attention');
+    assert.equal(tileAttention(snapshot({ wallet: { ...wallet, pending: [], state: 'locked', problem: 'Enter the 12 words for recovery once.' } }), 'wallet')?.tone, 'warning', 'a locked Wallet asks for its restoration');
+    const home = renderHome(view, terminal(120, 30), { focus: 'wallet', attention: new Map(), frame: 0, legend: ' Q leave' }).map(stripAnsi).join('\n');
+    assert.match(home, /1 saved login · 1 login request/);
+    assert.match(home, /login for news\.example/);
+    const context = { snapshot: view, terminal: terminal(120, 30), frame: 0, noQr: true, owning: false };
+    const page = pageBody(pageForTile('wallet'), context);
+    const text = page.body.map(stripAnsi).join('\n');
+    assert.match(text, /https:\/\/news\.example · no saved login · for Weekly update/);
+    assert.match(text, /https:\/\/example\.com · ja…@example\.com/);
+    assert.match(text, /never shown here/);
+    assert.match(page.legend, /N add login/);
+    assert.match(page.legend, /Enter add this login · X dismiss/, 'the focused request offers its protected input');
+    const empty = pageBody(pageForTile('wallet'), { ...context, snapshot: snapshot({ wallet: { state: 'empty', summary: 'Not set up (no saved logins)', records: [], pending: [] } }) });
+    assert.match(empty.legend, /S set up \(shows 12 words for recovery once\)/);
+    assert.doesNotMatch(`${text}\n${empty.body.join('\n')}`, /seed|mnemonic|BIP|passphrase/i, 'no technical jargon in the Wallet UI');
 });

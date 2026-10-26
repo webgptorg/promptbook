@@ -407,6 +407,7 @@ body.home-view .app {
 
 textarea,
 input[type='text'],
+input[type='password'],
 select {
     width: 100%;
     font: inherit;
@@ -772,4 +773,38 @@ details summary {
 .message.progress .text,
 .message.live .text {
     color: var(--muted);
+}
+
+/* Wallet: protected input outside the live-updating page. */
+.wallet-dialog {
+    max-width: 520px;
+    width: calc(100% - 32px);
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+}
+
+.wallet-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.wallet-dialog h2 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.wallet-dialog .field {
+    display: grid;
+    gap: 4px;
+    margin: 10px 0;
+}
+
+.recovery-words {
+    columns: 3;
+    font-family: var(--mono, monospace);
+    font-size: 15px;
+    margin: 12px 0;
+    padding-left: 28px;
 }

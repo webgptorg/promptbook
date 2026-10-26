@@ -11,8 +11,9 @@ import { FullScreen } from './screen.js';
 import { renderQr, type PreparedQr } from './status-view.js';
 import { lifecycleActions } from './details.js';
 import { fitLegend, homeLayout, homeTiles, renderHome, renderPage, tileAttention, type HomeTile } from './dashboard-home.js';
-import { keepSelection, pageBody, pageForTile, pageItemKeys, taskOrder, teamOrder, toolsOf, TEAM_SORT_FIELDS, type DashboardPage, type PageContext } from './dashboard-pages.js';
+import { keepSelection, pageBody, pageForTile, pageItemKeys, taskOrder, teamOrder, toolsOf, walletItems, TEAM_SORT_FIELDS, type DashboardPage, type PageContext } from './dashboard-pages.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
+import { walletLoginForm, walletRestoreForm } from './wallet-forms.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import { TitleAnimation, type DashboardTitleContext } from './terminal-title.js';
@@ -39,6 +40,8 @@ export type DashboardSource = {
     readonly pairing: (renew: boolean) => Promise<{ available: boolean; url?: string; remote?: boolean }>;
     /** Saved tool management through the engine's shared operation (committed immediately). */
     readonly tool: (request: ToolOperationRequest) => Promise<ToolOperationOutcome>;
+    /** The engine's Wallet operations (secrets are write-only; only setup returns the 12 words, to this owner view). */
+    readonly wallet: (method: string, params?: Readonly<Record<string, unknown>>) => Promise<unknown>;
     /** The complete task inventory (every state). */
     readonly inventory: () => Promise<TaskInventoryItem[]>;
     /** Book sources through the engine's shared read/save operations. */
@@ -46,6 +49,11 @@ export type DashboardSource = {
     /** The invocation owns the service lifetime (foreground start / run). */
     readonly owning: boolean;
 };
+
+/**
+ * Width of one column of the 12 words for recovery in the setup confirmation.
+ */
+const RECOVERY_WORD_COLUMN = 18;
 
 /**
  * Formats a plain event line.
@@ -120,7 +128,7 @@ const AGENT_PICKER_ROWS = 10;
 /**
  * A pending yes/no confirmation of a consequential action.
  */
-type Confirmation = { readonly kind: 'confirm'; readonly question: string; readonly details?: readonly string[]; readonly run: () => Promise<void> };
+type Confirmation = { readonly kind: 'confirm'; readonly question: string; readonly details?: readonly string[]; readonly run: () => Promise<void>; readonly cancel?: () => Promise<void> };
 
 /**
  * A tool change waiting for the shared in-use acknowledgement (save while current work finishes, or force-stop the
@@ -279,6 +287,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 'I system',
                 'H health',
                 'T tools',
+                'W wallet',
                 'L chats',
                 'O plain',
                 ...(source.owning ? [] : ['(leaving never stops the engine; X stops it)']),
@@ -520,16 +529,16 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         }
     };
 
-    /** Runs a form outside the live view (the dashboard returns afterwards; nothing changes when it is cancelled). */
-    const openForm = async (form: () => Promise<ToolForm | undefined>): Promise<void> => {
+    /** Runs prompts outside the live view (the dashboard returns afterwards; nothing changes when it is cancelled). */
+    const outside = async <T>(form: () => Promise<T | undefined>): Promise<T | undefined> => {
         nested = true;
         keyboard.stop();
         screen.leave();
-        let result: ToolForm | undefined;
         try {
-            result = await form();
+            return await form();
         } catch (error) {
             feedback = `Form failed: ${errorMessage(error)}`;
+            return undefined;
         } finally {
             screen.enter();
             screen.invalidate();
@@ -538,13 +547,90 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             title.refresh(true);
             draw();
         }
+    };
+
+    /** Runs a tool form outside the live view, then the shared tool operation. */
+    const openForm = async (form: () => Promise<ToolForm | undefined>): Promise<void> => {
+        const result = await outside(form);
         if (result) await runTool({ operation: result.operation, secret: result.secret });
     };
 
-    /** Asks for confirmation before a consequential action. */
-    const confirmThen = (question: string, run: () => Promise<void>, details?: readonly string[]): void => {
-        overlay = { kind: 'confirm', question, run, details };
+    /** Asks for confirmation before a consequential action (`cancel` runs when it is declined). */
+    const confirmThen = (question: string, run: () => Promise<void>, details?: readonly string[], cancel?: () => Promise<void>): void => {
+        overlay = { kind: 'confirm', question, run, details, ...(cancel ? { cancel } : {}) };
         draw();
+    };
+
+    /** A Wallet operation through the engine's shared implementation; its outcome (never a secret) is shown. */
+    const runWallet = async (method: string, params: Readonly<Record<string, unknown>> = {}): Promise<unknown> => {
+        try {
+            const result = await source.wallet(method, params);
+            const outcome = (result as { outcome?: unknown } | undefined)?.outcome;
+            if (typeof outcome === 'string') notify(outcome);
+            return result;
+        } catch (error) {
+            notify(`Wallet: ${errorMessage(error)}`);
+            return undefined;
+        } finally {
+            draw();
+        }
+    };
+
+    /** Adds (or updates) a login through concealed input; a focused pending request supplies the website. */
+    const walletLogin = async (initial: { readonly origin?: string; readonly label?: string; readonly action?: string; readonly id?: string } = {}): Promise<void> => {
+        const login = await outside(() => walletLoginForm(terminal, { origin: initial.origin, label: initial.label, step: initial.id ? 'Wallet · update a website login' : undefined }));
+        if (!login) {
+            notify('Nothing was saved.');
+            return;
+        }
+        await runWallet('wallet-save', { ...login, ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) });
+    };
+
+    /**
+     * First Wallet setup: the 12 words for recovery are shown once inside the full-screen view (never printed to the
+     * terminal's scrollback) and the Wallet is created only after the owner confirms writing them down.
+     */
+    const walletSetup = async (): Promise<void> => {
+        const result = (await runWallet('wallet-setup')) as { words?: readonly string[] } | undefined;
+        const words = result?.words;
+        if (!words?.length) return;
+        const columns = [0, 4, 8].map((start) => words.slice(start, start + 4).map((word, index) => `${String(start + index + 1).padStart(2)}. ${word}`.padEnd(RECOVERY_WORD_COLUMN)));
+        confirmThen(
+            'Did you write down the 12 words for recovery?',
+            async () => void (await runWallet('wallet-setup-confirm')),
+            [
+                'Write these 12 words for recovery on paper, in order, and keep them safe.',
+                'With the project folder they restore its saved logins on another computer; they are shown only now.',
+                '',
+                ...[0, 1, 2, 3].map((row) => `   ${columns.map((column) => column[row] ?? '').join('')}`),
+                '',
+                style.muted('Y creates the Wallet (this computer then unlocks it automatically) · N discards these words.'),
+            ],
+            async () => void (await runWallet('wallet-setup-cancel')),
+        );
+    };
+
+    /** Keys of the Wallet page (protected owner input through the engine's Wallet). */
+    const walletKey = (page: Extract<DashboardPage, { kind: 'wallet' }>, key: string): void => {
+        const wallet = snapshot.wallet;
+        if (!wallet) return;
+        const focused = walletItems(wallet)[page.focus];
+        const unset = wallet.state === 'empty' || wallet.state === 'setup';
+        if (key === 's') {
+            if (unset) void walletSetup();
+            else notify(wallet.state === 'ready' ? 'The Wallet is already set up.' : 'This project already has a Wallet: restore it with R.');
+        } else if (key === 'r') {
+            if (wallet.state === 'locked' || wallet.state === 'unavailable')
+                void outside(() => walletRestoreForm(terminal)).then(async (words) => {
+                    if (words) await runWallet('wallet-restore', { words });
+                    else notify('Nothing was changed.');
+                });
+            else notify(unset ? 'There is nothing to restore yet; set the Wallet up with S.' : 'This computer already unlocks the Wallet.');
+        } else if (key === 'n') {
+            if (wallet.state === 'ready') void walletLogin(focused?.kind === 'request' ? { origin: focused.origin, action: focused.id } : {});
+            else notify(unset ? 'Set up the Wallet first (S).' : 'Restore the Wallet on this computer first (R).');
+        } else if (key === 'd' && focused?.kind === 'record') confirmThen(`Remove the saved login "${focused.account}" for ${focused.origin}?`, async () => void (await runWallet('wallet-remove', { id: focused.id })));
+        else if (key === 'x' && focused?.kind === 'request') confirmThen(`Dismiss the login request for ${focused.origin}? The waiting work continues without it.`, async () => void (await runWallet('wallet-dismiss', { request: focused.id })));
     };
 
     /** Runs a lifecycle action offered for the current state (same operations as the CLI commands). */
@@ -650,7 +736,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         keepSelection(page, context);
         const keys = pageItemKeys(page, context);
         const count = keys.length;
-        const list = ['work', 'tools', 'agents', 'chats', 'tasks'].includes(page.kind);
+        const list = ['work', 'tools', 'wallet', 'agents', 'chats', 'tasks'].includes(page.kind);
         const room = Math.max(1, terminal.rows() - 5);
         if (event.type === 'key') {
             if (event.name === 'escape') {
@@ -680,6 +766,12 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     if (chat) void openChat({ kind: 'existing', name: chat.name });
                     return;
                 }
+                if (page.kind === 'wallet') {
+                    const item = snapshot.wallet?.state === 'ready' ? walletItems(snapshot.wallet)[page.focus] : undefined;
+                    if (item?.kind === 'request') void walletLogin({ origin: item.origin, action: item.id });
+                    else if (item?.kind === 'record') void walletLogin({ origin: item.origin, label: item.account, id: item.id });
+                    return;
+                }
                 if (page.kind === 'agents' || page.kind === 'tasks') page.detail = !page.detail;
             }
             draw();
@@ -698,6 +790,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 return;
             case 'health':
                 healthKey(page, key);
+                return;
+            case 'wallet':
+                walletKey(page, key);
                 return;
             case 'sync':
                 if (key === 'g') {
@@ -791,6 +886,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             } else if ((event.type === 'text' && event.text.toLowerCase() === 'n') || (event.type === 'key' && event.name === 'escape')) {
                 overlay = undefined;
                 notify('Nothing changed.');
+                if (step.cancel) void step.cancel();
             }
             draw();
             return;
@@ -883,6 +979,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 return;
             case 't':
                 openTile('tools');
+                return;
+            case 'w':
+                openTile('wallet');
                 return;
             case 'b': {
                 // The browser detail is the nested tool page of the browser serving (or next serving) work.

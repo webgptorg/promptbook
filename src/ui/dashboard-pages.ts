@@ -21,6 +21,7 @@ import {
 import type { HomeTile } from './dashboard-home.js';
 import type { PreparedQr } from './status-view.js';
 import { symbols, type TerminalProfile } from './terminal.js';
+import type { WalletView } from '../wallet/wallet.js';
 
 /**
  * Fields the agent inventory can be sorted by (`activity` keeps working and waiting agents first).
@@ -45,6 +46,7 @@ export type DashboardPage =
     | { readonly kind: 'work'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'system'; scroll: number }
     | { readonly kind: 'health'; scroll: number; cache?: CachePreview; swap?: SwapPlan }
+    | { readonly kind: 'wallet'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tools'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tool'; scroll: number; readonly name: string }
     | { readonly kind: 'agents'; scroll: number; focus: number; selected?: string; detail: boolean; sort: TeamSortField }
@@ -53,6 +55,15 @@ export type DashboardPage =
     | { readonly kind: 'results'; scroll: number; follow: boolean }
     | { readonly kind: 'connection'; scroll: number }
     | { readonly kind: 'sync'; scroll: number };
+
+/**
+ * The selectable rows of the Wallet page: pending login requests first, then saved logins.
+ *
+ * @private terminal dashboard pages
+ */
+export function walletItems(wallet: WalletView): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string }> {
+    return [...wallet.pending.map((action) => ({ kind: 'request' as const, id: action.id, origin: action.origin, ...(action.account ? { account: action.account } : {}) })), ...wallet.records.map((record) => ({ kind: 'record' as const, id: record.id, origin: record.origin, account: record.account }))];
+}
 
 /**
  * A fresh page for a home tile.
@@ -65,6 +76,8 @@ export function pageForTile(tile: HomeTile): DashboardPage {
             return { kind: 'work', scroll: 0, focus: 0 };
         case 'tools':
             return { kind: 'tools', scroll: 0, focus: 0 };
+        case 'wallet':
+            return { kind: 'wallet', scroll: 0, focus: 0 };
         case 'agents':
             return { kind: 'agents', scroll: 0, focus: 0, detail: false, sort: 'activity' };
         case 'chats':
@@ -281,6 +294,49 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 legend: `${soft ? 'O override the soft incident · ' : ''}K clean cache · W swap · M measure now · ↑↓ scroll · ${back}`,
             };
         }
+        case 'wallet': {
+            const wallet = snapshot.wallet;
+            if (!wallet) return { title: 'Wallet', context: 'Website logins of this project', body: [style.muted('This engine does not report a Wallet (another ptbk version).')], legend: back };
+            const items = walletItems(wallet);
+            const time = (iso?: string): string => (iso ? formatShortTime(Date.parse(iso)) : '');
+            const body: string[] = [
+                `${style.muted('State     ')} ${wallet.state === 'ready' ? style.success(wallet.summary) : wallet.state === 'unavailable' ? style.error(wallet.summary) : style.warning(wallet.summary)}`,
+                ...(wallet.facility ? [`${style.muted('Unlock    ')} automatic on this computer (${wallet.facility})`] : []),
+                ...(wallet.problem ? [style.warning(wallet.problem)] : []),
+                '',
+                style.bold(`Login requests waiting (${wallet.pending.length})`),
+            ];
+            let index = 0;
+            let anchor = 0;
+            /** The row of the next selectable item (the focused one is the scroll anchor). */
+            const row = (): string => {
+                const focused = index++ === page.focus;
+                if (focused) anchor = body.length;
+                return pointer(focused);
+            };
+            for (const action of wallet.pending) {
+                const problem = action.problem === 'rejected' ? 'the saved login was rejected' : action.problem === 'locked' ? 'restore the Wallet first' : 'no saved login';
+                body.push(`${row()} ${action.origin}${action.account ? ` · ${action.account}` : ''} ${style.warning(`· ${problem}`)}${style.muted(` · ${action.tasks.length ? `for ${action.tasks.join(', ')}` : 'requested'} · since ${time(action.createdAt)}${action.requests > 1 ? ` · ${action.requests}×` : ''}`)}`);
+            }
+            if (!wallet.pending.length) body.push(style.muted('  Nothing waits for a login.'));
+            body.push('', style.bold(`Saved logins (${wallet.records.length})`));
+            for (const record of wallet.records) {
+                body.push(`${row()} ${record.origin} · ${record.account}${record.lastUsedAt ? style.muted(` · used ${time(record.lastUsedAt)}`) : ''}${record.lastOutcome === 'rejected' ? style.warning(' · rejected by the site') : ''}`);
+            }
+            if (!wallet.records.length) body.push(style.muted(wallet.state === 'ready' ? '  No saved logins; press N to add one.' : '  None.'));
+            if (wallet.lastAction) body.push('', style.muted(`Last: ${wallet.lastAction.outcome}`));
+            body.push('', style.muted('Agents never receive passwords: the Wallet signs in for them. Passwords, the 12 words for recovery and keys are never shown here.'));
+            const focused = items[page.focus];
+            const keys =
+                wallet.state === 'empty' || wallet.state === 'setup'
+                    ? ['S set up (shows 12 words for recovery once)']
+                    : wallet.state === 'locked'
+                      ? ['R restore with the 12 words for recovery']
+                      : wallet.state === 'ready'
+                        ? ['N add login', ...(focused ? [focused.kind === 'request' ? 'Enter add this login · X dismiss' : 'Enter update · D remove'] : [])]
+                        : [];
+            return { title: 'Wallet', context: 'Website logins of this project, encrypted in .ptbk/wallet/ and applied for agents without showing them the credentials', body, anchor, legend: `${keys.join(' · ')}${keys.length ? ' · ' : ''}↑↓ choose · ${back}` };
+        }
         case 'tools': {
             const items = toolsOf(snapshot);
             const body: string[] = [];
@@ -436,6 +492,8 @@ export function pageItemKeys(page: DashboardPage, context: Pick<PageContext, 'sn
             return activeWork(context.snapshot).map((item) => item.unit ?? item.taskRef);
         case 'tasks':
             return taskOrder(context, page).map((item) => item.ref);
+        case 'wallet':
+            return context.snapshot.wallet ? walletItems(context.snapshot.wallet).map((item) => `${item.kind}:${item.id}`) : [];
         default:
             return [];
     }

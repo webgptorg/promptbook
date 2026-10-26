@@ -367,3 +367,91 @@ export function isFileInputScript(ref: number): string {
 export function viewportScript(): string {
     return `({ width: window.innerWidth, height: window.innerHeight, scale: window.devicePixelRatio, pageWidth: Math.max(document.documentElement.scrollWidth, document.body ? document.body.scrollWidth : 0), pageHeight: Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0), scrollX: window.scrollX, scrollY: window.scrollY })`;
 }
+
+/**
+ * Result of {@link loginFormScript}.
+ *
+ * @private browser page scripts
+ */
+export type LoginScan = { readonly origin: string; readonly username: boolean; readonly password: boolean; readonly otp: boolean };
+
+/**
+ * Finds the visible login fields of the current page (top document) for the Wallet and marks them: the password field
+ * and the username field before it in its form, or a lone username field of a two-step login. Values are never read.
+ *
+ * @private browser page scripts
+ */
+export function loginFormScript(): string {
+    return `(() => {
+        const visible = (element) => { const box = element.getBoundingClientRect(); const style = getComputedStyle(element); return box.width > 0 && box.height > 0 && style.visibility !== 'hidden' && style.display !== 'none' && !element.disabled && !element.readOnly; };
+        const label = (element) => [element.name, element.id, element.placeholder || '', element.getAttribute('aria-label') || '', element.autocomplete || ''].join(' ');
+        const textual = (element) => ['text', 'email', 'tel', ''].includes((element.getAttribute('type') || '').toLowerCase());
+        const userLike = (element) => textual(element) && (element.type === 'email' || /username|email/i.test(element.autocomplete || '') || /user|e-?mail|login|account|identifier|phone/i.test(label(element)));
+        const otpLike = (element) => /one-time-code/i.test(element.autocomplete || '') || /otp|totp|2fa|mfa|two.?factor|verification.?code|security.?code/i.test(label(element));
+        for (const marked of document.querySelectorAll('[data-ptbk-wallet]')) marked.removeAttribute('data-ptbk-wallet');
+        const inputs = [...document.querySelectorAll('input')].filter(visible);
+        const passwords = inputs.filter((element) => element.type === 'password' && !otpLike(element));
+        const password = passwords.find((element) => element.autocomplete !== 'new-password') || passwords[0];
+        let username = null;
+        if (password) {
+            const scope = password.form || document;
+            const before = [...scope.querySelectorAll('input')].filter((element) => visible(element) && textual(element) && !otpLike(element) && (element.compareDocumentPosition(password) & Node.DOCUMENT_POSITION_FOLLOWING));
+            username = before.filter(userLike).pop() || before.pop() || null;
+            password.setAttribute('data-ptbk-wallet', 'password');
+        } else username = inputs.find((element) => userLike(element) && !otpLike(element)) || null;
+        if (username) username.setAttribute('data-ptbk-wallet', 'username');
+        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: inputs.some(otpLike) };
+    })()`;
+}
+
+/**
+ * Focuses a login field marked by {@link loginFormScript} and selects its content (trusted text entry replaces it).
+ *
+ * @private browser page scripts
+ */
+export function focusLoginFieldScript(field: 'username' | 'password'): string {
+    return `(() => {
+        const element = document.querySelector('[data-ptbk-wallet="${field === 'password' ? 'password' : 'username'}"]');
+        if (!element) return false;
+        element.focus();
+        if (element.select) element.select();
+        return document.activeElement === element;
+    })()`;
+}
+
+/**
+ * Submits the login form of the marked fields (its submit button, else the form); `false` when Enter is needed.
+ *
+ * @private browser page scripts
+ */
+export function submitLoginScript(): string {
+    return `(() => {
+        const field = document.querySelector('[data-ptbk-wallet="password"]') || document.querySelector('[data-ptbk-wallet="username"]');
+        const form = field && field.form;
+        if (!form) return false;
+        const button = form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
+        if (button && !button.disabled) { button.click(); return true; }
+        if (form.requestSubmit) { form.requestSubmit(); return true; }
+        return false;
+    })()`;
+}
+
+/**
+ * Clears every password field of the page and removes the Wallet's marks, so no entered secret stays readable after a
+ * Wallet sign-in (also when the site rejected it).
+ *
+ * @private browser page scripts
+ */
+export function clearLoginFieldsScript(): string {
+    return `(() => {
+        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+        for (const element of document.querySelectorAll('input[type="password"], [data-ptbk-wallet="password"]')) {
+            if (!element.value) continue;
+            setter.call(element, '');
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        for (const marked of document.querySelectorAll('[data-ptbk-wallet]')) marked.removeAttribute('data-ptbk-wallet');
+        return true;
+    })()`;
+}
