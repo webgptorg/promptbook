@@ -18,7 +18,7 @@ These are attempts, not prerequisites of local progress. Network, authentication
 
 A pull is a fetch plus safe integration. Fetching may occur during work; integrating remote files may not overwrite active task/tool edits or alter files under a running check. At a pre-commit attempt with owned dirty work, preserve that work: safely reconcile when possible, otherwise record integration as deferred, commit only the verified local operation and integrate at the next safe boundary. Do not claim a successful integration when only fetch succeeded. Never automatically stash/drop unknown changes, reset the worktree or mix unrelated staging to make pull succeed.
 
-After successful integration, refresh tasks, configuration version, tools and relevant readiness before selecting new work. If integration changes the content intended for a task result, rerun affected validation rather than commit an invalidated checked snapshot. New remotely authored tasks become ordinary eligible work. In isolated execution, synchronize/publish the integrated project branch, not temporary worktree branches.
+After successful integration, refresh tasks, configuration version, tools and relevant readiness before selecting new work. If integration changes the content intended for a task result, rerun affected validation rather than commit an invalidated checked snapshot. New remotely authored tasks become ordinary eligible work. Tasks use the existing project working tree/current branch; there are no temporary task-worktree branches to publish.
 
 ## Visible merges and immutable history
 

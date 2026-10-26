@@ -1,13 +1,9 @@
-# Optional task worktree isolation
+# Shared working tree and mutation isolation
 
-[Main specification](../_main.md)
+[Main specification](../_main.md) · [Concurrent work](concurrency.md) · [Git persistence](git-persistence.md)
 
-`--isolate` executes one task in a separate Git worktree while preserving project identity and sequential task policy. It requires a named branch and enabled commits. Map project, sources, agents, context and necessary dependencies consistently. A worktree is not another engine, browser-session identity or security sandbox.
+Tasks and chats use the selected project's **one existing working tree and current branch**. Do not create separate task worktrees or branches, switch branches for a task, or introduce per-task integration merges. The engine does not manage the user's branch choice. A project already located in a user-selected Git worktree is still supported.
 
-The source project's live tool registry remains authoritative: tool additions/changes from other clients are not lost merely because task files live in a worktree. Preserve current-use rules and keep tool-management commits separate from the task result. Do not copy stale configuration back over intervening project changes at integration.
+Isolation means coordinated **per-file ownership**, scoped mutations, coherent checks and attributable commits under [concurrency](concurrency.md). Different files may progress concurrently; conflicting file writes wait. Preserve external user edits to affected files, unrelated index/worktree state, named-tool changes and every operation's evidence through interruption and recovery.
 
-Create one verified task result commit in the task context, then integrate into the project branch with a visible **non-fast-forward merge**, preserving the original result and all intervening commits. The integration commit is not a second task result or execution. A changed source branch is reconciled, not rewritten by rebase, amend or force reset. Conflicts preserve both versions and use the ordinary [Fixer path](../concepts/automatic-repair.md); never delete unintegrated work automatically.
-
-The project branch receives accepted result/completion only through successful verified integration. Publish that integrated branch under [synchronization](git-synchronization.md), not the temporary branch. Keep isolation artifacts in ignored `.ptbk/` or another explicitly authorized ignored location, preserving diagnostics and recovery state before cleanup. Copy/access only authorized local configuration and never commit secrets while preparing the worktree.
-
-See [workspace](workspace.md), [Git persistence](git-persistence.md) and [recovery](recovery.md).
+`--isolate` is no longer a supported task-worktree mode. Diagnose legacy use before mutation and explain shared-working-tree behavior; do not silently create a worktree or pretend the option still provides isolation. Remove it from current help/completion. Explicit nested-project Git boundaries and synchronization's visible remote merge policy remain applicable.

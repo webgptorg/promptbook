@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Unattended operation](autonomous-operation.md) · [Automatic repair](../concepts/automatic-repair.md)
 
-`ptbk start` operates the project's agenda indefinitely without per-task agent/harness/model/thinking selection. Successful [init](initialization.md) calls the same background start. A ready project starts actual processing without another work-launch action, with one executing task at a time, not a concurrent worker per agent.
+`ptbk start` operates the project's agenda indefinitely without per-task agent/harness/model/thinking selection. Successful [init](initialization.md) calls the same background start. A ready project starts actual processing without another work-launch action, with concurrent task/chat work under the shared [capacity and per-file ownership contract](concurrency.md), not a permanent unbounded worker per agent.
 
 ## Readiness is not service existence
 
@@ -36,7 +36,7 @@ Before new work and before its commit, attempt opt-in [Git synchronization](git-
 
 Authoring normally commits sources before dispatch; explicit ordinary `--no-commit` is the labelled exception under [Git persistence](git-persistence.md), not an excuse to mix unrelated dirt or skip required committed migrations. When no unfinished work remains, including future tasks, perform due [goal discovery](goal-discovery.md) with persistent cooldowns. Do not generate useless work merely to avoid idle time.
 
-Follow [automatic repair](../concepts/automatic-repair.md) as a core principle: deterministic retries/corrections and ordinary Fixer work resolve routine issues without needless user decisions. Fixer is not a special worker or channel; its current Book/TEAM controls consultations. Checkpoint task-local blockers and continue independent eligible work when safe, while keeping one task owner and respecting pause/stop. No usable harness also means Fixer cannot execute yet; retain the visible resource wait.
+Follow [automatic repair](../concepts/automatic-repair.md) as a core principle: deterministic retries/corrections and ordinary Fixer work resolve routine issues without needless user decisions. Fixer is not a special worker or channel; its current Book/TEAM controls consultations. Checkpoint task-local blockers and continue independent eligible work when safe, while preserving one owner per affected file and respecting pause/stop. No usable harness also means Fixer cannot execute yet; retain the visible resource wait.
 
 Survive ordinary task/check/provider/browser/tunnel/update/synchronization/persistence failures with bounded recovery, useful traces and controls. Empty queues or missing resources do not mean service exit. Deliberate pause/stop remains authoritative. The product targets extended unattended operation, not guaranteed work while a host sleeps or external accounts are unavailable.
 

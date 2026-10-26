@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Project model](../concepts/project-model.md) · [Automatic repair](../concepts/automatic-repair.md)
 
-An agent is a persistent role, goal, instructions and learned project knowledge, not a permanently running model call. Its Book starts with [AGENT](../book-language/commitments/agent.md), for example `AGENT Developer`; Developer supplies the name and later commitments develop the role. Agents, tasks and chats are distinct Book entities sharing syntax and [normalized name references](../book-language/references.md). Only one queued background task executes at a time; chats and their necessary routing/read-only consultations remain available concurrently and during scheduling pause without dispatching queued work.
+An agent is a persistent role, goal, instructions and learned project knowledge, not a permanently running model call. Its Book starts with [AGENT](../book-language/commitments/agent.md), for example `AGENT Developer`; Developer supplies the name and later commitments develop the role. Agents, tasks and chats are distinct Book entities sharing syntax and [normalized name references](../book-language/references.md). Tasks and chats share the configurable active-work limit (five by default) and [per-file ownership](../cli/concurrency.md) in one working tree. Chats and their necessary routing/read-only consultations remain eligible during scheduling pause without dispatching queued work.
 
 - [Core agents](core-agents.md): Minimal editable required roles Adam, Router, Tasker, Teacher, Fixer and Chatter; one specification per role in `core-agents/`.
 - [Chatter](core-agents/chatter.md): Default human conversation, with specialist TEAM consultation and ordinary tasks.

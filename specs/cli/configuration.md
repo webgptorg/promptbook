@@ -22,6 +22,10 @@ Invocation-only CLI overrides and generic temporary runtime controls do not rewr
 
 Recovery may retain a particular active use's effective settings without restoring an obsolete whole-project snapshot. A new invocation resolves its own overrides. Init's automatic start preserves applicable explicit workflow overrides. Show effective values and their sources without secrets, and distinguish saved state, active retained use, pending changes and restart-only settings.
 
+## Concurrent work
+
+`execution.maxConcurrentWork` is a positive integer, default **5**, shared by active background tasks and chat work together. It is not a per-agent or per-kind limit. Refresh it live: a lower value drains excess existing work without termination; a higher value opens capacity. Idle chats, viewers and checkpointed waits do not consume active slots. File conflicts and task dependencies still block affected work even when slots are free. See [concurrency](concurrency.md).
+
 ## Health limits
 
 `limit` contains the project-specific preventive resource thresholds used by the [Health sub-engine](health-sub-engine.md):
