@@ -1,7 +1,7 @@
 CHAT Spec-keeper: Look at the specs and update the implementation — 2026-10-25 07:27:20
 CHAT MEMBER @User
 CHAT MEMBER @Spec-keeper
-CHAT STATUS waiting-for-user
+CHAT STATUS open
 
 CHAT MESSAGE @User 2026-10-25T07:27:20+01:00
 Look at the specs and update the implementation
@@ -21,4 +21,7 @@ This task explicitly requires a passing npm run check. In this restricted sessio
 Already attempted: Reviewed the previous traces and implementation/specification links; consulted Expert; reran the required check (typecheck/build passed, browser fixtures failed and background work timed out, then stopped with exit 130); independently reproduced Chrome SIGABRT; verified denied sysctl probes; passed all 12 configuration regressions, follow-up Book parsing and scoped git diff --check. Updated other/specification-audit-2026-10-26.md and the changelog. Preserved the four implemented fixes and existing readiness follow-up; made no commits or completion stamps.
 
 Please run `npm run check` in /Users/hejny/work/promptbook from a normal macOS terminal, with Chrome able to start and no concurrent rebuilds, and share the result or failure log.
+
+CHAT MESSAGE @User 2026-10-26T23:35:48+01:00
+Fixed
 
