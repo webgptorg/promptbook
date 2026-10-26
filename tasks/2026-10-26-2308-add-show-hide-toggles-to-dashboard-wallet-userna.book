@@ -1,0 +1,8 @@
+TASK Add show/hide toggles to dashboard Wallet username and password inputs — 2026-10-26 23:08:06
+GOAL Original user brief: “The username and password in wallet input theough dashboard should be toggleba to hide / uncover”. Referenced image: _assets/2026-10-26-2307-tasker-the-username-and-password-in-wallet-input/1/image-1.png (not found under prompts in this chat environment; inspect the original chat attachment if available).
+
+Implement independent show/hide controls for username and password entry in the dashboard Wallet credential form, including applicable add/update and pending-login entry flows. Both fields should start concealed; the owner can explicitly reveal and conceal each field without changing its value or submitting the form. Controls must be keyboard accessible and clearly indicate their action/state. Scope reveal to the protected owner input flow; do not add credential retrieval or reveal stored passwords in ordinary views.
+
+Read specs/cli/wallet.md and relevant dashboard/input specifications and implementation. Update the Wallet specification to describe the requested deliberate owner reveal exception to currently concealed/write-only entry while preserving exclusion from agent APIs, logs, traces and recordings. Preserve existing credential storage and login behavior. Add the project changelog entry and appropriate focused validation for default masking, independent reveal/conceal, value preservation and no accidental submission. Do not commit manually or add completion stamps.
+TASK ORIGIN Chat {Tasker: The username and password in wallet input theough dashboard — 2026-10-26 23:07:37}
+LINK {Tasker: The username and password in wallet input theough dashboard — 2026-10-26 23:07:37}
