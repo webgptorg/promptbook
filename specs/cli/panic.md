@@ -14,7 +14,7 @@ There are **no `--soft` or `--pause` variants**; diagnose those unsupported flag
 
 ## Termination and durable stop
 
-Use verified [host discovery](global-dashboard.md), not process-name matching or blanket Node/Chrome kills. Terminate each selected engine and every execution process it owns, including active harnesses, helpers and engine-owned browsers. No owned worker may continue merely because its parent exited. Unrelated processes/browsers and externally owned resources stay outside that scope.
+Use verified [host discovery](global-dashboard.md), not process-name matching or blanket Node/Chrome kills. Terminate each selected engine and every execution process it owns, including active harnesses, helpers and exclusively owned browsers. Shared-profile browser connections are released under [pool ownership](browser.md); when all connected engines are stopped, the now-unused managed process closes. Preserve any remaining unrelated/external users. No owned worker may continue merely because its parent exited. Unrelated processes/browsers and externally owned resources stay outside that scope.
 
 Do not wait for tasks, checks, chat turns or graceful draining. An unresponsive engine or unavailable HTTP endpoint must not make emergency termination depend on an acknowledgement. Shared force stop handles verified owned termination and bounded best-effort cleanup; an uncatchable kill has no cleanup guarantee. Preserve available interruption evidence and never mark unfinished work complete.
 

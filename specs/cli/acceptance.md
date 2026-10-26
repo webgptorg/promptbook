@@ -82,6 +82,15 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 
 - **U19:** Exercise bare `ptbk` in a nonempty uninitialized directory, an initialized stopped project and an initialized live project, including manual pause/draining and different installation/path aliases. Each offers only the correct focused action and Help second. No restart item or three-action menu appears. Help/cancel performs no mutation; stale selection/unknown ownership cannot silently initialize or duplicate a service. Direct and picker-based start share default dashboard handoff and explicit opt-outs.
 
+## Shared browsers and Wallet
+
+- **W01:** Enabled configured browsers start/attach with the engine. Two engines using the same actual profile share one process and a connection pool without master/slave; each task uses its own tabs. Pause and first-launching-engine disconnect preserve the other connection; last managed disconnect closes the process.
+- **W02:** Browser restart/kill shows all connected engines as affected, preserves profile data and checkpoints/reconnects safely without replaying uncertain effects. Open test GitHub tab targets the actual selected instance. Never kill unrelated/external browsers or add a remote desktop requirement.
+- **W03:** An already signed-in session is reused. Missing login requests Wallet, never username/password in chat/model tools. Stored credentials apply automatically; missing/rejected credentials get one protected action, ordinary attention and only an affected-task wait. Optional remembered headful manual login stays possible.
+- **W04:** First Wallet storage lazily displays 12 recovery words in protected owner UI, with no cryptocurrency/BIP jargon. Per-project ciphertext/envelopes stay ignored in the project; plaintext keys/credentials/words never enter Git, environment, chat, traces, screenshots or agent observation/decryption tools.
+- **W05:** Engine/OS reboot automatically unlocks on the provisioned host. Folder transfer requires one protected 12-word restoration, then works unattended. Wrong words/tampering preserve the existing vault; encrypted data plus words are needed for recovery. Headless Linux cannot depend on an interactive desktop keyring.
+- **W06:** File-lock deadlocks and shared-profile account/session interference are explicitly acknowledged and deferred. They do not imply automatic cycle-breaking, account isolation or a whole-engine pause.
+
 ## Conversations, resolver and project maintenance
 
 - **C01:** Two independent User-to-agent threads with identical titles/clock ticks receive distinct date-decorated normalized names. Direct chat needs no task/dashboard. Chatter is Enter default; full valid alternative list includes hidden/core/Expert. Explicit target skips picker; noninteractive default is Chatter. Ctrl+C closes only the client.

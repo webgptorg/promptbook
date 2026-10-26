@@ -20,11 +20,12 @@ The architecture uses this vocabulary for runtime domains such as:
 
 - the **Health sub-engine**, exactly one per Promptbook Engine, continuously observing host health and owning health incidents/actions;
 - browser sub-engine behavior, which can manage zero or many named browser tool instances;
-- harness sub-engine behavior, which can manage zero or many named harness instances and their execution/readiness.
+- harness sub-engine behavior, which can manage zero or many named harness instances and their execution/readiness;
+- the **[Wallet sub-engine](wallet.md)**, one per project engine, managing encrypted project login credentials and protected pending login actions.
 
 This list is extensible. A sub-engine may manage one singleton domain or a collection of configured instances; "sub-engine" does not imply one external process per item.
 
-The [Health sub-engine](health-sub-engine.md) is the first domain whose singleton/per-engine behavior and pause interaction are specified explicitly here. Existing browser/harness specifications continue to define their concrete resource semantics.
+The [Health sub-engine](health-sub-engine.md) is the first domain whose singleton/per-engine behavior and pause interaction are specified explicitly here. Browser/harness specifications define their concrete resources. A [profile connection pool](browser.md) can share an external browser process across engines without turning their project-owned sub-engines into a host-global Promptbook engine. Wallet keeps project-local encrypted persistent data under [project encryption](project-encryption.md).
 
 ## UI boundary
 

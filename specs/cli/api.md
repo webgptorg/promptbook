@@ -18,9 +18,13 @@ Expose lifecycle controls, real pacing wait skipping, per-browser diagnosis/rech
 
 Expose the same list/show/add/modify/reorder/enable/disable/remove operations as [tool CLI/dashboard management](tool-management.md), using the [single typed domain contract](../coding-standards/shared-logic.md), not API-specific validators or Git writes. Saved tool changes commit their authorized versioned configuration immediately and notify live consumers; a running task may use a newly added resource. Preserve other clients' edits, task ownership and operation isolation.
 
-In-use and last-enabled-type protections return explicit decision requirements and revalidate them when applying an acknowledgement. An acknowledgement to retain active work is not a kill request. The emergency route invokes the existing whole-engine force-stop operation; removing a tool remains a separate operation after confirmed stop. Do not add a tool-specific force-stop mechanism.
+In-use and last-enabled-type protections return explicit decision requirements and revalidate them when applying an acknowledgement. An acknowledgement to retain active work is not a kill request. The emergency route invokes the existing whole-engine force-stop operation; removing a tool remains a separate operation after confirmed stop. Do not add a tool-removal force-stop shortcut. Browser restart/kill/test-tab are separate runtime operations on the shared profile pool, showing effects on all connected engines.
 
 Credential references are readable, actual credentials are not. Where adding a secret is authorized, use a protected write-only input that calls the shared [environment editor](environment.md), with timestamped non-destructive audit and no echoed value in response/error/logs. Do not treat general configuration field writes as permission to read arbitrary environment variables or edit files outside project authority.
+
+## Wallet and encryption boundary
+
+Expose nonsecret Wallet readiness, service/account labels and pending action/result state. Protected owner operations submit credentials and recovery words through concealed write-only input under [Wallet](wallet.md) and [project encryption](project-encryption.md); ordinary status, chat/source export and agent APIs never return them. Agent requests authorize a specific browser login, not raw decryption. Apply project authentication, origin/scope checks, redaction and once-only persistence to these operations; never log request bodies containing secrets. Share one implementation across terminal/browser/API.
 
 ## Synchronization
 

@@ -71,6 +71,8 @@ Swap operations are primarily for Linux/VPS environments. They require explicit 
 
 These operations belong to the Health sub-engine and are exposed consistently to applicable clients. The dashboard page does not shell out independently.
 
+Cache cleanup must preserve persistent `.ptbk/wallet/` and `.ptbk/encryption/` data, host-binding references, browser sessions and recovery records. Ignored does not mean disposable.
+
 ## Acceptance outcomes
 
 Run one engine with healthy resources: the home tile stays compact while the Health page shows disk, RAM, swap, available memory, CPU and connectivity. Lower disk below 500 MiB with defaults: a soft health pause appears and no new background task starts. Override it: the current incident stays acknowledged without being recreated on the next poll; recovery closes it and a later new drop creates a fresh incident.

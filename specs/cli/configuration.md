@@ -8,7 +8,7 @@
 
 ## Resolution and effective state
 
-Resolve each supported setting from engine defaults, then the selected project's explicit `ptbk.json`, then explicit CLI overrides. Omitted values inherit; false, empty and disabled values are not omission. Credentials are secret inputs, resolved through [environment references](environment.md), not a second project configuration file.
+Resolve each supported setting from engine defaults, then the selected project's explicit `ptbk.json`, then explicit CLI overrides. Omitted values inherit; false, empty and disabled values are not omission. Harness API credentials use [environment references](environment.md), not a second project configuration file. Website login credentials instead use [Wallet](wallet.md); encryption material never belongs in ptbk.json or environment references.
 
 Configuration covers named browser/harness connections, checks, [trace settings](trace-configuration.md), operating/update policies and optional synchronization. A task's explicit requirements constrain selection; they are not lower-priority defaults to overwrite. Multiple browsers and harnesses coexist in `tools`; the old singleton browser and separate harness map are [migrated](tools-migration.md), not retained as competing live configuration sources.
 

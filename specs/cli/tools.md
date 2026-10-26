@@ -18,6 +18,8 @@ A browser record includes `profile` and `isHeadless`, plus the supported adapter
 
 A normal init creates one browser using the existing simple profile/mode choices. Advanced users may add more: a dedicated agent profile plus an explicitly authorized personal profile, separate Facebook/LinkedIn profiles, or several accounts on one site. All remain independently named and diagnosable. Browser website sessions are independent from harness authentication. Ownership, persistent profile safety and diagnostics are defined in [browser behavior](browser.md).
 
+Wallet is a project sub-engine rather than an entry in `tools[]`. Browser records connect to a [shared process pool per profile](browser.md); website passwords are mediated through [Wallet](wallet.md), independently of the harness authentication below.
+
 ## Harness records
 
 Initial canonical variants cover the existing integrations: `OPENAI_CODEX`, `CLAUDE_CODE`, `GITHUB_COPILOT`, `CLINE`, `OPENCODE`, `GEMINI` and `QWEN_CODE`. A configured harness grants its actual supported execution capabilities through that connection. Tool setup describes how to connect, authenticate and reach an endpoint; it does not define per-instance model/thinking defaults or model/effort allowlists. Model/thinking defaults belong to the plugin's code, and selection requirements belong to [MODEL](../book-language/commitments/model.md).

@@ -10,6 +10,8 @@ Support only this bounded environment-reference notation, including optional sur
 
 The versioned configuration, commits, traces, API snapshots and diagnostic output retain the reference only. Never persist a resolved key there, echo it in an error, include it in a commit message or interpolate it into logged commands. Inline credential values are invalid and handled without reproducing the secret. Native login stores, browser sessions and process-level credentials remain separate from `.env` editing.
 
+Wallet website usernames/passwords use [encrypted project storage](wallet.md), not plaintext `.env` entries. Its project root, recovery words and host unlock secrets are not exported as environment references. Existing harness API keys retain the present contract; this version does not silently move them into Wallet.
+
 ## Audit trail inside .env
 
 Because `.env` is not in Git, every engine-authored addition or modification must include an adjacent comment with an unambiguous timestamp (including timezone), reason and affected operation/tool where applicable. Put that comment immediately above the added assignment or the newly commented-out assignment. The comment contains no secret value.

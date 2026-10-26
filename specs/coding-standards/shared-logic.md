@@ -31,3 +31,5 @@ Use the same approach for configuration migrations, canonicalization, synchroniz
 ## Acceptance outcomes
 
 Apply equivalent add/modify/enable/disable/remove operations through initialization where applicable, CLI and dashboard. Verify equivalent canonical records, diagnostics, confirmation requirements, secret retention and persistence. Race a dashboard edit with a second-terminal edit and with task completion: preserve all authorized changes, reject stale conflicting intent actionably, and never mix operation ownership. Test both a running and a stopped project without separate behavior implementations.
+
+[Wallet](../cli/wallet.md) credential input, project encryption/key handling, login application and browser-pool operations also have one engine-owned implementation. Terminal/browser/API surfaces are controllers, not independent cryptography, credential stores or pool coordinators. Keep agent access behind the same secret boundary.
