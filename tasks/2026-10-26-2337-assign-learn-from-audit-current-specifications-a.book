@@ -1,0 +1,7 @@
+TASK Assign routing: Learn from: Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34 — 2026-10-26 23:37:01 — 2026-10-26 23:37:07
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Learn from: Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34 — 2026-10-26 23:37:01}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PARENT {Learn from: Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34 — 2026-10-26 23:37:01}
+TASK ORIGIN assignment for {Learn from: Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34 — 2026-10-26 23:37:01}
+TASK DONE 2026-10-26T23:37:30+01:00

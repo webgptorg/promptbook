@@ -1,6 +1,7 @@
 TASK Learn from: Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34 — 2026-10-26 23:37:01
 GOAL Review how Fixer performed {Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34} and improve `agents/.core/fixer.book` where the available evidence justifies it and its learning permission allows. Making no change is a valid result.
 TASK AGENT @Teacher
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK PARENT {Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34}
 TASK ORIGIN learning from {Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34} by @Fixer
 TASK NOTE Evidence: traces/2026-10-25-1718-audit-current-specifications-and-close-verified/harness.log
