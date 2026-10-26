@@ -1,0 +1,24 @@
+CHAT Consultation: Fixer with Expert on Audit current specifications and close verified implementation gaps — 2026-10-25 17:1 — 2026-10-26 23:04:46
+CHAT MEMBER @Fixer
+CHAT MEMBER @Expert
+CHAT STATUS resolved
+LINK {Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34}
+
+CHAT MESSAGE @Fixer 2026-10-26T23:04:46+01:00
+I am Fixer repairing the audit task {Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34}. Prior implementation A1–A4 is present, and npm run check is now running (log /private/tmp/promptbook-fixer-check.log). Its previous runs failed during concurrent rebuilds and Chrome SIGABRT. Is other work still rebuilding shared dist/, and is there an established safe way to coordinate a stable required check without weakening checks? Please advise from current project evidence; do not modify files or launch builds.
+
+CHAT MESSAGE @Expert 2026-10-26T23:04:46+01:00
+There is evidence of competing checks, but I cannot confirm another build is running **right now**: process inspection (`ps`) was denied by the sandbox.
+
+The remote-dashboard-removal task’s [trace](/Users/hejny/work/promptbook/traces/2026-10-25-1713-remove-remote-dashboard-connection-functionality/harness.log) records its own full `npm run check` and subsequent test failures. It also reports very low available memory. Your current log already shows two browser fixture failures; it has no final result yet.
+
+The collision mechanism is clear: [build.mjs](/Users/hejny/work/promptbook/scripts/build.mjs:17) deletes all of `dist/` before compiling. Both `npm test` and `test:package` rebuild it, and the build script has no coordination lock.
+
+The safe approach is to coordinate an exclusive validation window with the other active work:
+
+- Drain existing builds/checks and defer new commands that rebuild this checkout, including `npm start`, `npm run ptbk`, and package/prepack operations.
+- Keep the checked source stable, then run the unchanged, complete `npm run check`.
+- Preserve browser failure diagnostics. If Chrome still aborts without competing work, investigate that separately; concurrency does not establish its cause.
+
+The [concurrency specification](/Users/hejny/work/promptbook/specs/cli/concurrency.md) requires coordinated mutation ownership and coherent checks. Existing file ownership can support cooperative coordination, but I found no automatic build lock in these scripts. Lowering concurrency only drains existing work; pause also leaves chats available, so neither alone guarantees exclusivity. Do not skip browser/package checks or weaken assertions.
+

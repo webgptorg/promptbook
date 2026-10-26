@@ -2,7 +2,7 @@
  * Parsed semantic version.
  */
 type ParsedVersion = {
-    readonly core: [number, number, number];
+    readonly core: readonly [string, string, string];
     readonly prerelease: readonly string[];
 };
 
@@ -10,9 +10,18 @@ type ParsedVersion = {
  * Parses `1.2.3`, `v1.2.3-4`, `1.2.3-beta.1+build`; returns `undefined` for anything else.
  */
 function parseVersion(version: string): ParsedVersion | undefined {
-    const match = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(version.trim());
+    const match = /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/.exec(version.trim());
     if (!match) return undefined;
-    return { core: [Number(match[1]), Number(match[2]), Number(match[3])], prerelease: match[4] ? match[4].split('.') : [] };
+    const prerelease = match[4] ? match[4].split('.') : [];
+    if (prerelease.some((identifier) => /^0\d+$/.test(identifier))) return undefined;
+    return { core: [match[1]!, match[2]!, match[3]!], prerelease };
+}
+
+/**
+ * Compares validated nonnegative decimal identifiers without losing precision to JavaScript numbers.
+ */
+function compareNumericIdentifiers(left: string, right: string): number {
+    return Math.sign(left.length - right.length) || (left === right ? 0 : left < right ? -1 : 1);
 }
 
 /**
@@ -34,8 +43,8 @@ export function compareVersions(a: string, b: string): number | undefined {
     const right = parseVersion(b);
     if (!left || !right) return undefined;
     for (let index = 0; index < 3; index++) {
-        const difference = left.core[index]! - right.core[index]!;
-        if (difference !== 0) return Math.sign(difference);
+        const difference = compareNumericIdentifiers(left.core[index]!, right.core[index]!);
+        if (difference !== 0) return difference;
     }
     if (!left.prerelease.length && !right.prerelease.length) return 0;
     if (!left.prerelease.length) return 1;
@@ -46,12 +55,13 @@ export function compareVersions(a: string, b: string): number | undefined {
         const r = right.prerelease[index];
         if (l === undefined) return -1;
         if (r === undefined) return 1;
-        const ln = /^\d+$/.test(l) ? Number(l) : undefined;
-        const rn = /^\d+$/.test(r) ? Number(r) : undefined;
-        if (ln !== undefined && rn !== undefined) {
-            if (ln !== rn) return Math.sign(ln - rn);
-        } else if (ln !== undefined) return -1;
-        else if (rn !== undefined) return 1;
+        const isLeftNumeric = /^\d+$/.test(l);
+        const isRightNumeric = /^\d+$/.test(r);
+        if (isLeftNumeric && isRightNumeric) {
+            const difference = compareNumericIdentifiers(l, r);
+            if (difference !== 0) return difference;
+        } else if (isLeftNumeric) return -1;
+        else if (isRightNumeric) return 1;
         else if (l !== r) return l < r ? -1 : 1;
     }
     return 0;

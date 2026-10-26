@@ -1,5 +1,13 @@
 # Unreleased
 
+## Configuration contract fixes and specification audit
+
+-   Reject malformed semantic versions before planning configuration migrations, and compare numeric version identifiers without rounding away their ordering.
+-   Honor explicitly empty process-environment credentials as unavailable instead of falling back to a project's `.env`. Preserve literal backslash sequences when reading stored credentials, identical-edit no-ops and existing final-newline formatting.
+-   Add focused migration/environment regressions and a harness readiness/fallback fixture; keep migration expectations aligned with the concurrent local-dashboard migration. Record specification-to-code/test evidence and the separately scoped live-readiness cache follow-up in [the bounded audit](../other/specification-audit-2026-10-26.md).
+-   Reverify all 12 configuration regressions during the repair handoff, correct stray punctuation in the readiness follow-up and record the remaining full-check blockers (Chrome startup abort and unavailable host resource probes) without changing validation requirements.
+-   After the owner's check-script update, verify the current required `npm run check`, a fresh build and all 12 configuration regressions pass. Update the audit to distinguish that result from the still-unverified full browser/service/package workflow and the existing readiness-cache follow-up.
+
 ## Wallet: website logins for agents, without showing them the password
 
 -   New per-project **Wallet** (a sub-engine of every project engine, not a Book or a tool): a small login/password manager for websites. Agents get one new browser tool, `wallet_login`: when the website in the task's current tab needs signing in (and is not signed in already), the Wallet signs in with a saved login of that page's **actual origin**, automatically and without per-use approval. The agent only learns the redacted outcome (signed in as a label, waiting, rejected, a human-only step such as a two-factor code); it never receives a username or password, and agents are told never to ask for them in a chat. A saved login is only used on the same scheme and host (`www.` counts as the same site); a lookalike host, a redirect to another site or the page's text never receives it. The Wallet enters credentials by trusted input with the recording paused, verifies the resulting page (a still-shown password form is a rejection) and clears password fields afterwards; one task's browser calls run one at a time, so nothing observes the tab mid-sign-in. Two-step logins (username first) work.

@@ -70,7 +70,8 @@ function assignmentValue(raw: string): string {
     const value = raw.trim();
     if (value.length >= 2 && ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))) {
         const inner = value.slice(1, -1);
-        return value.startsWith('"') ? inner.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\') : inner;
+        // Decode once: a literal backslash followed by n must not become a newline after unescaping the backslash.
+        return value.startsWith('"') ? inner.replace(/\\([n"\\])/g, (_match, character: string) => character === 'n' ? '\n' : character) : inner;
     }
     return value.replace(/\s+#.*$/, '');
 }
@@ -111,13 +112,14 @@ export type ResolvedReference = {
 
 /**
  * Resolves a variable: an explicitly supplied process-environment value takes precedence over the project's `.env`.
+ * An explicitly empty process value is missing for readiness, but still prevents file fallback.
  * Duplicate active `.env` assignments with different values are ambiguous (never guessed).
  *
  * @private environment references
  */
 export function resolveVariable(name: string, env: NodeJS.ProcessEnv, dotEnv: DotEnv): ResolvedReference {
     const fromProcess = env[name];
-    if (fromProcess !== undefined && fromProcess !== '') return { name, source: 'environment', value: fromProcess };
+    if (fromProcess !== undefined) return fromProcess === '' ? { name, source: 'missing' } : { name, source: 'environment', value: fromProcess };
     const assignments = dotEnv.assignments.filter((assignment) => assignment.name === name);
     if (new Set(assignments.map((assignment) => assignment.value)).size > 1) return { name, source: 'ambiguous' };
     const value = assignments[0]?.value;
@@ -228,7 +230,7 @@ export async function editDotEnv(projectRoot: string, changes: readonly DotEnvCh
         }
     }
     if (!changed) return { changed: false, notes };
-    const text = `${lines.join(newline)}${trailingNewline || lines.length ? newline : ''}`;
+    const text = `${lines.join(newline)}${trailingNewline ? newline : ''}`;
     await writeFileAtomic(path, text, { mode: 0o600 });
     return { changed: true, notes };
 }
