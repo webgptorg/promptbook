@@ -6,6 +6,7 @@ import type { AgentCatalog } from '../project/agents.js';
 import { CHATTER_NAME } from '../project/defaults.js';
 import type { ActiveRecord, StateStore } from '../engine/state.js';
 import { isHumanFacing } from './chat-book.js';
+import { routeUserMessage, type ChatTaskCard } from './chat-tasks.js';
 import type { ChatStore, ChatSummary, ChatWrite } from './store.js';
 
 /**
@@ -34,6 +35,8 @@ export type ChatAgentChoice = {
  */
 export type ChatDetail = {
     readonly summary: ChatSummary;
+    /** Live cards of the tasks this chat created or links (from the engine's own task state). */
+    readonly tasks?: readonly ChatTaskCard[];
     readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final' }>;
 };
 
@@ -122,11 +125,15 @@ export async function createUserChat(store: ChatStore, catalog: AgentCatalog, ag
 }
 
 /**
- * Appends the user's message to a chat (one commit).
+ * Appends the user's message to a chat and routes it: a reply to a pending question goes to that question's author
+ * (its waiting run resumes with exactly this message), an explicit mention of a participant goes to that agent, and
+ * anything else to the main agent. With several pending questions and no mention picking one, the main agent handles
+ * it and every question keeps waiting (one answer is never applied to every wait).
  *
- * In a chat waiting for the user, a reply matching the offered choices (or any reply when none were offered) answers
- * it, reopens the chat and lets the waiting task resume; any other reply is a clarifying question for the agent.
- * A failure-recovery decision accepts only one of its offered choices.
+ * The question's attention clears as soon as its answer is saved: the chat leaves `waiting-for-user` unless another
+ * question still waits, before any agent processing or Git batching. A reply that is not among the offered answers
+ * of a predefined decision is a clarifying message for the agents, and a failure-recovery decision accepts only one
+ * of its offered choices.
  *
  * @private chats
  */
@@ -136,26 +143,39 @@ export async function appendUserMessage(
     name: string,
     text: string,
     options: { readonly expected?: number; readonly segments?: readonly ComposedSegment[] } = {},
-): Promise<{ readonly written: ChatWrite; readonly waitingTask?: ActiveRecord; readonly answered: boolean; readonly needsReply: boolean }> {
+): Promise<{ readonly written: ChatWrite; readonly waitingTask?: ActiveRecord; readonly answered: boolean; readonly needsReply: boolean; readonly replyAgent?: string }> {
     const stored = await store.find(name);
     if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found', next: ['List chats with `ptbk chat --list`.'] });
     if (!isHumanFacing(stored.chat)) throw new PtbkError('Agent↔agent consultation chats are task records; you cannot write into them.', { kind: 'usage' });
-    const waiting = stored.chat.status === 'waiting-for-user';
-    const awaited = waiting ? [...stored.chat.messages].reverse().find((message) => message.senderKey !== 'user') : undefined;
+    const active = await state.readActiveRecords();
+    const parked = await state.readParked();
+    // Questions of runs waiting in this chat (an answer, or a recovery decision after a failure).
+    const pending = [...parked, ...active].filter((record) => record.waitingChat === stored.chat.name || (record.phase === 'failed' && record.recoveryChat === stored.chat.name));
+    const route = routeUserMessage(stored.chat, text, pending);
+    const target = route.answers;
+    const awaited = target ? stored.chat.messages[(target.awaitedMessages ?? stored.chat.messages.length) - 1] : undefined;
     const applicable = !awaited?.choices?.length || awaited.choices.includes(text.trim());
-    const records = [...(await state.readParked()), ...(await state.readActiveRecords())];
-    const waitingTask = records.find((record) => record.waitingChat === stored.chat.name || record.recoveryChat === stored.chat.name);
-    if (waitingTask?.recoveryChat === stored.chat.name && waiting && !applicable) {
+    if (target?.recoveryChat === stored.chat.name && target.phase === 'failed' && !applicable) {
         throw new PtbkError(`"${text}" is not one of the offered answers.`, { kind: 'usage', reason: `Choose one of: ${awaited!.choices!.join(' | ')}`, effect: 'Nothing was saved.' });
     }
-    const answered = waiting && applicable;
+    const answered = Boolean(target) && applicable;
+    const othersWaiting = pending.filter((record) => record !== target).length > 0;
     const written = await store.append(stored.chat.name, { sender: '@User', text: answered && awaited?.choices?.length ? text.trim() : text }, {
-        // Answering reopens the chat; writing into a resolved chat continues the conversation.
-        status: answered || stored.chat.status === 'resolved' ? 'open' : undefined,
+        // An answer clears its question's attention at once (the chat keeps waiting only for other questions); writing
+        // into a resolved chat continues the conversation.
+        status: (answered && !othersWaiting) || (!pending.length && stored.chat.status !== 'open') ? 'open' : undefined,
         expectedMessages: options.expected,
-        trailers: waitingTask ? { 'Task-Name': waitingTask.taskTitle } : undefined,
+        trailers: target ? { 'Task-Name': target.taskTitle } : undefined,
         segments: options.segments,
     });
+    // Durable correlation: the answered run takes exactly this message; for every other waiting run it is not an
+    // answer (their awaited position moves past it).
+    const position = written.chat.messages.length;
+    for (const record of pending) {
+        const update: ActiveRecord = record === target && answered ? { ...record, answerMessage: position } : { ...record, awaitedMessages: position };
+        if (parked.includes(record)) await state.writeParked(update);
+        else await state.writeActive(update);
+    }
     await store.markRead(written.chat.name);
-    return { written, waitingTask, answered, needsReply: !(waitingTask && answered) };
+    return { written, waitingTask: target, answered, needsReply: !answered, replyAgent: answered ? undefined : route.agent };
 }

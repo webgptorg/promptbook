@@ -364,6 +364,9 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 body.push(`${pointer(index === page.focus)} ${style.muted(item.readiness.padEnd(16).slice(0, 16))} ${item.title}${style.muted(`${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · P${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${when ? ` · ${when}` : ''}`)}`);
                 if (index === page.focus && page.detail) {
                     body.push(`    ${style.muted('Status')} ${item.readiness} — ${item.reason}`, `    ${style.muted('Source')} ${item.source}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}`, ...(item.model ? [`    ${style.muted('MODEL ')} ${item.model.replace(/\n/g, ' | ')}`] : []));
+                    // The task's pending question is the same one its chat shows; answering here answers it there.
+                    const question = item.waitingChat ? snapshot.chats.waiting.find((chat) => chat.name === item.waitingChat) : undefined;
+                    if (question?.awaiting) body.push(`    ${style.warning(`${marks.warn} ${question.awaiting.sender} asks:`)} ${question.awaiting.text.split('\n').filter(Boolean).at(-1) ?? ''}`, `    ${style.muted(`A answers in {${question.title ?? question.name}}`)}`);
                 }
             });
             if (!items.length) body.push(style.muted('No tasks yet; press T to talk to Tasker.'));
@@ -372,7 +375,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 context: `${items.length} tasks · ${page.sort === 'smart' ? 'smart order: current, coming up, recent, distant, history' : `sorted by ${page.sort}`}${page.descending ? ' (reversed)' : ''} · viewer order only, never scheduling`,
                 body,
                 anchor,
-                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · E edit source · S sort (${TASK_SORT_FIELDS.length}) · D reverse · T Tasker · ${back}`,
+                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}E edit source · S sort (${TASK_SORT_FIELDS.length}) · D reverse · T Tasker · ${back}`,
             };
         }
         case 'results': {

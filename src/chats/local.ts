@@ -18,6 +18,7 @@ import { replyInChat } from './conversation.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat } from './service.js';
 import { ChatStore } from './store.js';
 import { ChatCommitBatcher } from './batcher.js';
+import { chatOrigin } from './chat-tasks.js';
 
 /**
  * Chats of a project whose service is not running: every write takes the project lock briefly and is saved at once;
@@ -122,11 +123,13 @@ export class LocalChats {
                         const commitments: string[] = [];
                         if (input.agent) commitments.push(`TASK AGENT ${toReference(input.agent)}`);
                         if (input.priority !== undefined) commitments.push(`TASK PRIORITY ${input.priority}`);
-                        commitments.push(`TASK ORIGIN chat {${input.chat}}`, `LINK {${input.chat}}`);
+                        commitments.push(`TASK ORIGIN ${chatOrigin(input.chat)}`, `LINK ${formatAgentReference(input.chat)}`);
                         const path = await newTaskPath(this.catalog.index.rootPath('tasks'), input.title, Date.now(), setting<string>(this.settings, 'timezone'));
                         await writeFile(path, renderTaskBook({ title, description: input.description || undefined, commitments }), { flag: 'wx' });
                         if (this.repositoryRoot && setting<boolean>(this.settings, 'execution.isCommitEnabled')) await this.commit([path], `Add task - ${title}`, { 'Task-Name': title, 'Chat-Name': input.chat });
                         else await this.state.addOwnedUncommitted({ [toProjectRelative(this.project.root, path)]: (await hashFileIfExists(path)) ?? null });
+                        // Both directions: the chat links the task's final name (saved with the chat's batch).
+                        await this.store.annotate(input.chat, { links: [formatAgentReference(title)] }, { trailers: { 'Task-Name': title } });
                         return title;
                     }),
                 scheduleLearning: async (input) =>

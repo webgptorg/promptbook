@@ -726,3 +726,33 @@ details summary {
 .work-units li.selected .title {
     font-weight: 700;
 }
+
+/* Live task cards of a chat: compact, one per task, above the conversation. */
+.task-cards {
+    display: grid;
+    gap: 8px;
+    margin: 8px 0 12px;
+}
+
+.task-card {
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    font-size: 14px;
+}
+
+.task-card.completed {
+    border-left-color: var(--success);
+}
+
+.task-card.failed,
+.task-card.blocked {
+    border-left-color: var(--danger);
+}
+
+.task-card.waiting {
+    border-left-color: var(--warning);
+}

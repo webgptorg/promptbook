@@ -123,7 +123,13 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
                   `${detail.summary.status === 'waiting-for-user' ? style.warning(`${marks.warn} ${detail.summary.awaiting?.sender ?? 'The agent'} waits for you`) : detail.summary.status === 'resolved' ? style.muted('resolved') : style.success('open')}${detail.summary.links.length ? style.muted(` · links ${detail.summary.links.join(', ')}`) : ''}${style.muted(` · ${detail.summary.path}`)}${detail.summary.persistence ? (detail.summary.persistence.state === 'failed' ? style.warning(` · saved, commit failing: ${detail.summary.persistence.failure ?? 'retrying'}`) : style.muted(' · saved, commit pending')) : ''}`,
               ]
             : [`${style.bold(`New chat with ${target.kind === 'new' ? target.agent.reference : name}`)}`, style.muted('Write the first message; the chat is saved when you send it (and committed shortly after).')];
-        const top = renderPanel({ title: `${marks.bullet} Chat`, titleRight: options.embedded ? 'Esc back to dashboard' : 'Ctrl+C close', lines: header, width, tone: detail?.summary.status === 'waiting-for-user' ? 'attention' : 'accent', unicode: terminal.unicode, style });
+        // Live task cards: work this chat created or links, with its actual state (details on the Tasks page).
+        const cards = (detail?.tasks ?? []).slice(-4).map((card) => {
+            const tone = card.state === 'completed' ? style.success : card.state === 'failed' || card.state === 'blocked' ? style.error : card.state === 'waiting' ? style.warning : style.accent;
+            return `${tone(`${card.state === 'completed' ? marks.ok : card.state === 'failed' ? marks.fail : card.state === 'waiting' ? marks.warn : marks.bullet} ${card.state}`)} ${truncate(`{${card.name}}`, Math.max(20, width - 30))}${card.detail ? style.muted(` · ${truncate(card.detail.split('\n')[0]!, 60)}`) : ''}`;
+        });
+        if ((detail?.tasks?.length ?? 0) > cards.length) cards.unshift(style.muted(`${detail!.tasks!.length - cards.length} earlier task(s) on the Tasks page`));
+        const top = renderPanel({ title: `${marks.bullet} Chat`, titleRight: options.embedded ? 'Esc back to dashboard' : 'Ctrl+C close', lines: [...header, ...cards], width, tone: detail?.summary.status === 'waiting-for-user' ? 'attention' : 'accent', unicode: terminal.unicode, style });
         const question = awaited();
         const choiceLines = question?.choices?.length ? [style.muted('Offered answers (press the number with an empty composer):'), ...question.choices.map((choice, index) => `  ${style.accent(`[${index + 1}]`)} ${choice}`)] : [];
         const layout = editor.layout(width - 6, 5);

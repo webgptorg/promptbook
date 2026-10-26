@@ -29,6 +29,8 @@ export type TaskInventoryItem = {
     readonly source: string;
     /** Provenance. */
     readonly origin?: string;
+    /** The chat holding this task's pending question (the same question and answer as in that chat). */
+    readonly waitingChat?: string;
 };
 
 /**

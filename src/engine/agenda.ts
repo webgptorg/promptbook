@@ -28,6 +28,7 @@ import { ChatCommitBatcher } from '../chats/batcher.js';
 import { isHumanFacing } from '../chats/chat-book.js';
 import { taskChats } from '../chats/task-chats.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, type ChatAgentChoice, type ChatDetail } from '../chats/service.js';
+import { chatOrigin, chatOriginOf, questionAuthor, type ChatTaskCard } from '../chats/chat-tasks.js';
 import { replyInChat } from '../chats/conversation.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
 import type { Project } from '../project/workspace.js';
@@ -512,6 +513,8 @@ export class Agenda {
         if (migrated) this.log(`Migrated ${migrated} pending request(s) of an older engine into chats waiting for you.`);
         await this.refreshChats();
         await this.restoreOwnership();
+        // Results finished before an interruption still reach their chat (once).
+        if (this.options.mode !== 'maintenance') for (const result of results.slice(0, 50)) await this.deliverChatOutcome(result).catch(() => undefined);
         if (this.options.mode !== 'maintenance') {
             // User messages written while no service ran (or interrupted replies) still get their agent's reply, once.
             for (const stored of await this.chats.list().catch(() => [])) {
@@ -962,7 +965,39 @@ export class Agenda {
     public async chatGet(name: string): Promise<ChatDetail> {
         const detail = await chatDetail(this.chats, name);
         const pending = this.chatBatches.pending(detail.summary.name);
-        return pending ? { ...detail, summary: { ...detail.summary, persistence: { state: pending.failure ? 'failed' : 'pending', since: pending.since, ...(pending.failure ? { failure: pending.failure } : {}) } } } : detail;
+        const summary = pending ? { ...detail.summary, persistence: { state: pending.failure ? ('failed' as const) : ('pending' as const), since: pending.since, ...(pending.failure ? { failure: pending.failure } : {}) } } : detail.summary;
+        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links) };
+    }
+
+    /**
+     * Live cards of the tasks a chat created (`TASK ORIGIN Chat`) or links: queued, running, waiting, blocked,
+     * completed or failed, observed from the same engine state as the Tasks view (presentation, not new states).
+     */
+    private async chatTaskCards(chat: string, links: readonly string[]): Promise<ChatTaskCard[]> {
+        const inventory = await this.taskInventory().catch(() => this.inventory);
+        const linked = new Set(links.map((link) => parseReferenceValue(link)?.normalized).filter((key): key is string => Boolean(key)));
+        const chatKey = nameKey(chat);
+        const tasks = inventory.filter((item) => linked.has(nameKey(item.title)) || nameKey(chatOriginOf(item.origin) ?? '') === chatKey);
+        const active = this.activeViews();
+        return tasks.map((item): ChatTaskCard => {
+            const running = active.find((view) => view.kind !== 'chat' && nameKey(view.taskTitle) === nameKey(item.title));
+            const result = this.recentResults.find((candidate) => nameKey(candidate.title) === nameKey(item.title));
+            if (running) return { name: item.title, ref: item.ref, state: running.phase === 'awaiting-user' ? 'waiting' : 'running', detail: `${running.phase}${running.detail ? ` · ${running.detail}` : ''}`, agent: running.agent.name };
+            switch (item.readiness) {
+                case 'done':
+                    return { name: item.title, ref: item.ref, state: 'completed', detail: result?.summary, agent: result?.agent ?? item.agent, commit: result?.commit };
+                case 'awaiting-user':
+                    return { name: item.title, ref: item.ref, state: 'waiting', detail: item.reason, agent: item.agent };
+                case 'failed':
+                    return { name: item.title, ref: item.ref, state: 'failed', detail: item.reason, agent: item.agent };
+                case 'blocked':
+                case 'needs-recovery':
+                case 'incompatible':
+                    return { name: item.title, ref: item.ref, state: 'blocked', detail: item.reason, agent: item.agent };
+                default:
+                    return { name: item.title, ref: item.ref, state: 'queued', detail: item.reason, agent: item.agent };
+            }
+        });
     }
 
     /** Agents the user may start a chat with (ordinary first; hidden/core and Expert behind More). */
@@ -1006,10 +1041,10 @@ export class Agenda {
      * message is a conversation turn the chat's agent replies to.
      */
     public async chatSend(name: string, text: string, options: { readonly expected?: number; readonly via?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
-        const { written, needsReply } = await appendUserMessage(this.chats, this.state, name, text, { expected: options.expected, segments: options.segments });
-        this.log(`Message in {${written.chat.name}}${options.via ? ` via ${options.via}` : ''}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
+        const { written, needsReply, replyAgent, waitingTask, answered } = await appendUserMessage(this.chats, this.state, name, text, { expected: options.expected, segments: options.segments });
+        this.log(`Message in {${written.chat.name}}${options.via ? ` via ${options.via}` : ''}${answered && waitingTask ? ` answers ${questionAuthor(waitingTask)}'s question of "${waitingTask.taskTitle}"` : ''}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
         await this.refreshChats();
-        if (needsReply) this.queueChatReply(written.chat.name);
+        if (needsReply) this.queueChatReply(written.chat.name, replyAgent ? { agent: replyAgent } : {});
         this.wake();
         return written;
     }
@@ -1028,7 +1063,7 @@ export class Agenda {
      * Different chats reply concurrently up to the limit; a full capacity queues the turn visibly while input stays
      * accepted. User messages that arrive during a reply get one follow-up turn at the next safe point.
      */
-    private queueChatReply(name: string, options: { readonly followUp?: boolean } = {}): void {
+    private queueChatReply(name: string, options: { readonly followUp?: boolean; readonly agent?: string } = {}): void {
         if (this.options.chatReplies === false) return;
         const key = nameKey(name);
         let lock = this.chatTurns.get(key);
@@ -1080,25 +1115,31 @@ export class Agenda {
                     this.log(`Reply in {${turn.reply.chat.name}}${notes.length ? ` (${notes.join('; ')})` : ''}.`);
                     // Messages written while the agent was replying are answered next, in order (never dropped).
                     const later = turn.seen !== undefined ? turn.reply.chat.messages.slice(turn.seen).filter((message) => message.senderKey === 'user') : [];
-                    if (later.length) this.queueChatReply(name, { followUp: true });
+                    if (later.length) this.queueChatReply(name, { followUp: true, agent: options.agent });
                 }
                 await this.refreshChats();
             })
             .catch((error: unknown) => this.log(`The reply in {${name}} failed: ${errorMessage(error)}`, 'warning'));
     }
 
-    /** Creates an ordinary task requested in a chat (own authoring commit, linked to the chat). */
+    /**
+     * Creates an ordinary task requested in a chat: its own authoring commit (flushed before it can be dispatched) with
+     * `TASK ORIGIN Chat {chat}` and a LINK back, and the chat links the task's final name. It returns at once; the task
+     * runs later under the ordinary rules (and waits during pause).
+     */
     private async createChatTask(input: { readonly title: string; readonly description: string; readonly agent?: string; readonly priority?: number; readonly chat: string }): Promise<string> {
         if (!input.title) throw new PtbkError('A task needs a name.', { kind: 'usage' });
         const title = generatedName(input.title, { taken: await this.takenNames(), timeZone: this.timeZone });
         const commitments: string[] = [];
         if (input.agent) commitments.push(`TASK AGENT ${toReference(input.agent)}`);
         if (input.priority !== undefined) commitments.push(`TASK PRIORITY ${input.priority}`);
-        commitments.push(`TASK ORIGIN chat {${input.chat}}`, `LINK {${input.chat}}`);
+        commitments.push(`TASK ORIGIN ${chatOrigin(input.chat)}`, `LINK ${formatAgentReference(input.chat)}`);
         const path = await newTaskPath(this.tasksDirectory, input.title, Date.now(), this.timeZone);
         // The final name (rechecked at publication) is what the chat reports and links.
         const published = await this.addTaskFile(path, renderTaskBook({ title, description: input.description || undefined, commitments }), `Add task - ${title}`, this.commitMode, [title]);
-        return published.names[0] ?? title;
+        const name = published.names[0] ?? title;
+        await this.chats.annotate(input.chat, { links: [formatAgentReference(name)] }, { trailers: { 'Task-Name': name } }).catch((error: unknown) => this.log(`{${name}} could not be linked from {${input.chat}}: ${errorMessage(error)}`, 'warning'));
+        return name;
     }
 
     /** Schedules one Teacher task for a chat correction, unless equivalent teaching work is still unresolved. */
@@ -1993,7 +2034,7 @@ export class Agenda {
                 continue;
             }
             if ((this.resumeAfter.get(record.runId) ?? 0) > Date.now()) continue;
-            if (record.phase === 'awaiting-user' && record.waitingChat && !(await this.chatReplyOf(record.waitingChat, record.awaitedMessages)).answered) {
+            if (record.phase === 'awaiting-user' && record.waitingChat && !(await this.chatReplyOf(record.waitingChat, record.awaitedMessages, undefined, record.answerMessage)).answered) {
                 await this.checkpoint(record);
                 changed = true;
                 continue;
@@ -2011,14 +2052,18 @@ export class Agenda {
      */
     private async healthFindings(evaluated: readonly EvaluatedTask[]): Promise<string[]> {
         const findings = new Set<string>();
-        for (const diagnostic of this.catalog.index.diagnostics) findings.add(`${diagnostic.severity}: ${diagnostic.path}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
+        // Files an active run owns are its work in progress (it is validated before its result), not project problems.
+        const settled = (path: string | undefined): boolean => !path || !this.ownership.ownerOf(path);
+        for (const diagnostic of this.catalog.index.diagnostics) if (settled(diagnostic.path)) findings.add(`${diagnostic.severity}: ${diagnostic.path}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
         // Problems of effective agents (inheritance, references, MODEL) and of every project Book's own content.
-        for (const diagnostic of await validateAgents(this.catalog)) findings.add(`${diagnostic.severity}: ${diagnostic.path}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
+        for (const diagnostic of await validateAgents(this.catalog)) if (settled(diagnostic.path)) findings.add(`${diagnostic.severity}: ${diagnostic.path}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
         for (const diagnostic of this.settings.diagnostics.filter((item) => !item.location.startsWith('--') && !item.location.startsWith('environment ›') && !/migration .* is pending/.test(item.message))) {
             findings.add(`${diagnostic.severity}: ${diagnostic.location} — ${diagnostic.message}`);
         }
-        for (const problem of (await this.readQueue()).problems) findings.add(`error: ${problem}`);
+        const inProgress = this.ownership.entries().map((entry) => entry.path);
+        for (const problem of (await this.readQueue()).problems) if (!inProgress.some((path) => problem.includes(path))) findings.add(`error: ${problem}`);
         for (const { task } of evaluated) {
+            if (!settled(task.source.relativePath)) continue;
             for (const diagnostic of task.diagnostics.filter((item) => item.severity === 'error')) findings.add(`error: ${task.source.relativePath}${diagnostic.line ? `:${diagnostic.line}` : ''} — ${diagnostic.message}`);
         }
         for (const stored of await this.chats.list().catch(() => [])) {
@@ -2153,6 +2198,7 @@ export class Agenda {
                 doneCount: task.doneStamps.length,
                 source: task.source.relativePath,
                 origin: task.origin,
+                ...(readiness.kind === 'awaiting-user' && readiness.chat !== 'checkpoint' ? { waitingChat: readiness.chat } : {}),
             } satisfies TaskInventoryItem;
         });
         this.queueTotal = evaluated.filter((item) => item.readiness.kind !== 'done' && item.readiness.kind !== 'retired').length;
@@ -2780,7 +2826,11 @@ export class Agenda {
             case 'completed': {
                 this.completed++;
                 await this.state.setBlocker(item.task.key, undefined);
-                this.recentResults = (await this.state.recentResults(20)).map(resultView);
+                const results = await this.state.recentResults(20);
+                this.recentResults = results.map(resultView);
+                // A task created in a chat reports its result there, once.
+                const result = results.find((candidate) => candidate.runId === item.runId);
+                if (result) await this.deliverChatOutcome(result);
                 if (outcome.commit) void this.publish({ name: item.task.title, source: item.task.source.relativePath });
                 // The pause between tasks holds new claims; other active work continues meanwhile.
                 const pacing = setting<number>(this.settings, 'execution.waitBetweenPrompts');
@@ -2844,6 +2894,29 @@ export class Agenda {
     }
 
     /**
+     * Reports a completed task's concise result in the chat it was created in, once per run (also after a restart or
+     * reconnect): its agent joins the chat and says what was done, with the result commit. A failure or an unfinished
+     * task never announces success here.
+     */
+    private async deliverChatOutcome(result: ResultRecord): Promise<void> {
+        if (!result.originChat || !result.runId || result.outcome !== 'completed' || this.options.mode === 'maintenance') return;
+        if ((await this.state.readChatOutcomes())[result.runId]) return;
+        const stored = await this.chats.find(result.originChat);
+        const agent = formatAgentReference(result.agent ?? 'Developer');
+        const marker = `Completed {${result.title}}`;
+        // The Book itself is the durable record: a restart between saving and bookkeeping never repeats the message.
+        const already = stored?.chat.messages.some((message) => message.text.startsWith(marker) && (!result.commit || message.text.includes(result.commit.slice(0, 8))));
+        if (stored && isHumanFacing(stored.chat) && !already) {
+            const text = [`${marker}: ${result.summary}`, result.commit ? `Result commit ${result.commit.slice(0, 8)}.` : 'Completed without changes to commit.'].join('\n');
+            await this.chats.annotate(stored.chat.name, { members: [agent], links: [formatAgentReference(result.title)] }, { trailers: { 'Task-Name': result.title } });
+            await this.chats.append(stored.chat.name, { sender: agent, text }, { trailers: { 'Task-Name': result.title } });
+            this.log(`Reported the result of "${result.title}" in {${stored.chat.name}}.`);
+            await this.refreshChats();
+        }
+        await this.state.markChatOutcome(result.runId);
+    }
+
+    /**
      * The next usable instance of the failed instance's variant aimed at the same endpoint (MODEL never binds an
      * account, but accounts aimed at different services are not interchangeable).
      */
@@ -2861,7 +2934,7 @@ export class Agenda {
         let record = initialRecord;
         unit.owner = record.runId;
         if (record.phase === 'awaiting-user' && record.waitingChat) {
-            const reply = await this.chatReplyOf(record.waitingChat, record.awaitedMessages);
+            const reply = await this.chatReplyOf(record.waitingChat, record.awaitedMessages, undefined, record.answerMessage);
             if (!reply.answered) {
                 await this.checkpoint(record);
                 return;
@@ -2934,7 +3007,7 @@ export class Agenda {
         let current = record;
         if (!current.recoveryChat || !(await this.chats.find(current.recoveryChat))) {
             const agent = current.handover?.agent ?? current.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
-            const asked = await taskChats(this.chats, { name: current.taskTitle, key: current.taskKey || nameKey(current.taskTitle) }, { takenNames: () => this.catalog.index.names() }).askUser({
+            const asked = await taskChats(this.chats, { name: current.taskTitle, key: current.taskKey || nameKey(current.taskTitle) }, { takenNames: () => this.catalog.index.names(), designated: current.originChat }).askUser({
                 agent,
                 reason: current.handover
                     ? `The task {${current.taskTitle}} failed with ${current.handover.from} (${current.handover.failure}), and ${current.handover.agent} could not resolve it either: ${current.failure ?? 'unknown reason'}`
@@ -2947,7 +3020,7 @@ export class Agenda {
             await this.state.writeActive(current);
             await this.refreshChats();
         }
-        const reply = await this.chatReplyOf(current.recoveryChat!, current.awaitedMessages, RECOVERY_CHOICES);
+        const reply = await this.chatReplyOf(current.recoveryChat!, current.awaitedMessages, RECOVERY_CHOICES, current.answerMessage);
         if (!reply.answered) {
             // The decision waits in its chat; the run is checkpointed (keeping its files) and independent work continues.
             await this.checkpoint(current);
@@ -2962,10 +3035,13 @@ export class Agenda {
      * Whether the user replied in a chat after the awaited message (a reply among `choices` when they are required,
      * otherwise among the awaited message's own offered choices, or any reply when none were offered).
      */
-    private async chatReplyOf(name: string, awaitedMessages: number | undefined, choices?: readonly string[]): Promise<{ readonly answered: boolean; readonly answer?: string; readonly missing?: boolean }> {
+    private async chatReplyOf(name: string, awaitedMessages: number | undefined, choices?: readonly string[], answerMessage?: number): Promise<{ readonly answered: boolean; readonly answer?: string; readonly missing?: boolean }> {
         const stored = await this.chats.find(name);
         if (!stored) return { answered: !choices, missing: true };
         const messages = stored.chat.messages;
+        // The reply routed to this question (several questions may wait in one chat).
+        const routed = answerMessage !== undefined ? messages[answerMessage - 1] : undefined;
+        if (routed?.senderKey === 'user' && (!choices || choices.includes(routed.text.trim()))) return { answered: true, answer: routed.text.trim() };
         const awaited = awaitedMessages ?? messages.length;
         const question = messages[awaited - 1];
         const offered = choices ?? question?.choices;
@@ -3240,7 +3316,7 @@ export class Agenda {
                 continue;
             }
             const chat = record.phase === 'awaiting-user' ? record.waitingChat : record.recoveryChat;
-            if (chat && !(await this.chatReplyOf(chat, record.awaitedMessages, record.phase === 'failed' ? RECOVERY_CHOICES : undefined)).answered) continue;
+            if (chat && !(await this.chatReplyOf(chat, record.awaitedMessages, record.phase === 'failed' ? RECOVERY_CHOICES : undefined, record.answerMessage)).answered) continue;
             // Later commits of other work are the new baseline; the run's own kept changes keep their original baseline.
             const fresh = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, new Set([...this.authoredPaths, ...this.ownership.heldByOthers(record.runId)]));
             const preSnapshot: Record<string, string | null> = { ...fresh };

@@ -726,6 +726,11 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 else if (key === 'd') page.descending = !page.descending;
                 else if (key === 't') void chatWith('Tasker');
                 else if (key === 'e' && task) void openBook({ path: task.source });
+                // One question, one answer: the task's pending question opens in its chat.
+                else if (key === 'a' && task?.waitingChat) {
+                    void openChat({ kind: 'existing', name: task.waitingChat });
+                    return;
+                }
                 draw();
                 return;
             }

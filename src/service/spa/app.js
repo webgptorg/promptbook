@@ -348,6 +348,25 @@
         if (summary.title && summary.title !== summary.name) card.append(h('div', { className: 'meta muted chat-name', title: 'The chat’s name (its identity)' }, `{${summary.name}}`));
         const persistence = summary.persistence ? (summary.persistence.state === 'failed' ? ` · saved, commit failing (${summary.persistence.failure || 'retrying'})` : ' · saved, commit pending') : '';
         card.append(h('div', { className: 'meta muted' }, `${summary.members.join(', ')} · ${summary.path}${summary.links.length ? ` · links ${summary.links.join(', ')}` : ''}${persistence}`));
+        // Live task cards: work this chat created or links, with its actual state; the Tasks page has the details.
+        const tasks = chat.detail.tasks || [];
+        if (tasks.length) {
+            card.append(
+                h(
+                    'div',
+                    { className: 'task-cards', 'aria-label': 'Tasks of this chat' },
+                    tasks.map((task) =>
+                        h(
+                            'div',
+                            { className: `task-card ${task.state}` },
+                            h('div', { className: 'row' }, pill(task.state, task.state === 'completed' ? 'ok' : task.state === 'failed' || task.state === 'blocked' ? 'bad' : task.state === 'waiting' ? 'warn' : ''), h('strong', {}, task.name)),
+                            task.detail || task.agent ? h('div', { className: 'muted' }, [task.agent, task.detail ? task.detail.split('\n')[0] : null, task.commit ? `commit ${task.commit.slice(0, 8)}` : null].filter(Boolean).join(' · ')) : null,
+                            h('a', { href: '#/tasks', onclick: () => openPage('tasks') }, 'Open in Tasks'),
+                        ),
+                    ),
+                ),
+            );
+        }
         const thread = h('div', { className: 'messages', role: 'log', 'aria-live': 'polite' });
         for (const message of messages) {
             const user = message.sender.replace(/^@/, '').toLowerCase() === 'user';
@@ -1291,7 +1310,14 @@
                 'ul',
                 { className: 'list' },
                 state.tasks.items.map((item) =>
-                    h('li', {}, h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}`)), pill(item.readiness, tone[item.readiness])),
+                    h(
+                        'li',
+                        {},
+                        h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}`)),
+                        // The task's question is the one in its chat: answering opens that conversation.
+                        item.waitingChat ? h('button', { className: 'primary', onclick: () => openChat(item.waitingChat) }, 'Answer') : null,
+                        pill(item.readiness, tone[item.readiness]),
+                    ),
                 ),
             ),
         );

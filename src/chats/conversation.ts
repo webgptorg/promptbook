@@ -4,7 +4,7 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, readTextIfExists } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
 import { describeModel, determinedRow, formatModelRow, intersectModels, isImpossible, type ModelRow } from '../book/model.js';
-import { formatAgentReference, parseReferenceValue } from '../book/references.js';
+import { formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
 import { resolveEffectiveAgent, type AgentCatalog, type EffectiveAgent } from '../project/agents.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
@@ -20,7 +20,7 @@ import type { RoutingSelection } from '../engine/state.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { harnessPluginId, harnessVariantOf } from '../tools/model.js';
 import { teamTools } from '../engine/team.js';
-import { chatAgent, isHumanFacing } from './chat-book.js';
+import { chatAgent, chatAgents, isHumanFacing } from './chat-book.js';
 import type { ChatStore, ChatWrite, StoredChat } from './store.js';
 import { conversationChats } from './task-chats.js';
 
@@ -124,6 +124,23 @@ async function chatExecution(context: ConversationContext, stored: StoredChat, a
 }
 
 /**
+ * The execution of a joined participant answering in a chat: the established execution of its task when it asked from
+ * one, otherwise its own MODEL on a read-only-capable harness. The chat's MODEL (the main agent's) is not imposed and
+ * nothing is recorded in the chat.
+ */
+async function participantExecution(context: ConversationContext, stored: StoredChat, agent: EffectiveAgent): Promise<{ readonly route: RoutableChat } | { readonly error: string }> {
+    const routing: RoutingContext = { catalog: context.catalog, pool: context.pool, settings: context.settings };
+    const established = await context.establishedExecution?.(stored.chat.name);
+    const variant = established ? harnessVariantOf(established.harness) : undefined;
+    if (established && variant && established.model && normalizeAgentName(established.agent) === normalizeAgentName(agent.name)) {
+        const route = await routeConcrete(agent, { harness: variant, model: established.model, ...(established.thinkingLevel ? { thinking: established.thinkingLevel } : {}), runtime: established.runtime ?? 'official' }, routing);
+        if (route.kind === 'routable') return { route };
+    }
+    const route = await readOnlyRoute(agent, established?.harness, routing);
+    return route.kind === 'routable' ? { route } : { error: route.reason };
+}
+
+/**
  * Asks Router (with its own concrete MODEL) to choose a chat's execution: one bounded read-only turn, validated like
  * task assignment.
  */
@@ -205,20 +222,25 @@ export type ChatTurn = {
  *
  * @private chats
  */
-export async function replyInChat(context: ConversationContext, chatName: string, options: { readonly followUp?: boolean } = {}): Promise<ChatTurn> {
+export async function replyInChat(context: ConversationContext, chatName: string, options: { readonly followUp?: boolean; readonly agent?: string } = {}): Promise<ChatTurn> {
     const stored = await context.chats.find(chatName);
     if (!stored) throw new PtbkError(`No chat named "${chatName}".`, { kind: 'not-found' });
     const { chat } = stored;
     if (!isHumanFacing(chat)) throw new PtbkError('Agent↔agent consultation chats are task records, not conversations with the user.', { kind: 'usage' });
-    const agentReference = chatAgent(chat);
-    if (!agentReference) throw new PtbkError(`The chat "${chat.name}" has no agent participant.`, { kind: 'configuration' });
+    // The main agent answers unless the user addressed another participant explicitly.
+    const mainReference = chatAgent(chat);
+    if (!mainReference) throw new PtbkError(`The chat "${chat.name}" has no agent participant.`, { kind: 'configuration' });
+    const addressed = options.agent ? chatAgents(chat).find((member) => parseReferenceValue(member)?.normalized === parseReferenceValue(options.agent!)?.normalized) : undefined;
+    const agentReference = addressed ?? mainReference;
+    const isMain = agentReference === mainReference;
     const last = chat.messages[chat.messages.length - 1];
     // A follow-up turn answers user messages that arrived while the previous reply was being written.
     if (!last || (last.senderKey !== 'user' && !options.followUp)) return { createdTasks: [] };
     const agent = await resolveEffectiveAgent(context.catalog, agentReference);
     const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { createdTasks: [], error: `${agentReference} cannot reply: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };
-    const execution = await chatExecution(context, stored, agent);
+    // A joined agent keeps its own (task) execution context rather than the main speaker's resolved MODEL.
+    const execution = isMain ? await chatExecution(context, stored, agent) : await participantExecution(context, stored, agent);
     if ('error' in execution) return { createdTasks: [], error: execution.error };
     const { route } = execution;
     const harnessId = route.selection.harness;
@@ -301,7 +323,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
         );
     }
     const prompt = [
-        `# Conversation\n\nYou are **${agent.name}**, talking with the user (the project owner) in the persistent chat {${chat.name}} of the project at \`${context.project.root}\`.`,
+        `# Conversation\n\nYou are **${agent.name}**, talking with the user (the project owner) in the persistent chat {${chat.name}} of the project at \`${context.project.root}\`.${isMain ? '' : ` The user addressed you directly; ${mainReference} is the chat's main agent and stays so.`}`,
         `## Your role\n\n${renderAgentInstructions(agent) || '_No additional instructions._'}`,
         projectInstructions ? `## Project instructions (${contextFile})\n\n${projectInstructions.slice(0, 16_000)}` : '',
         chat.links.length ? `## Linked Books\n\n${chat.links.join(', ')}` : '',
@@ -311,7 +333,9 @@ export async function replyInChat(context: ConversationContext, chatName: string
             '',
             '- Reply to the user\'s latest message(s) you have not answered yet, directly and helpfully; you may inspect project files and Git history to answer.',
             '- This conversation is read-only: never modify files or run write operations.',
-            tools.some((tool) => tool.name === 'create_task') ? '- To start work the user asked for or agreed to, call the `create_task` tool; the agenda executes it later with checks and commits. Do not claim work is done when you only created a task.' : '- You cannot create tasks here; describe what `ptbk add` should contain instead.',
+            tools.some((tool) => tool.name === 'create_task')
+                ? '- This chat coordinates work; tasks execute it. For substantial work the user asked for or agreed to (implementing a feature, preparing or submitting a document, anything beyond a quick read-only look), call the `create_task` tool promptly instead of doing or simulating the work here, and do not wait for it: the agenda executes it later with checks and commits, its live status card and its result appear in this chat, and its agent may ask questions here. Do not claim work is done when you only created a task.'
+                : '- You cannot create tasks here; describe what `ptbk add` should contain instead.',
             ...(tools.some((tool) => tool.name === 'consult')
                 ? ['- For a specialist question, call the `consult` tool with a teammate from your TEAM (or @Expert for Promptbook itself) and tell the user whose advice you relay. Advice is not executed work: specialist work goes through `create_task`.']
                 : []),

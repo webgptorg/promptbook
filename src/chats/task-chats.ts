@@ -1,5 +1,5 @@
 import { formatAgentReference, parseReferenceValue, referenceName } from '../book/references.js';
-import type { ChatBook } from './chat-book.js';
+import { isHumanFacing, type ChatBook } from './chat-book.js';
 import type { ChatStore } from './store.js';
 
 /**
@@ -68,20 +68,37 @@ export function conversationChats(store: ChatStore, conversation: string, option
  *
  * @private chats
  */
-export function taskChats(store: ChatStore, task: { readonly name: string; readonly key: string }, options: { readonly takenNames: () => ReadonlySet<string>; readonly onCreated?: (path: string) => void }): TaskChats {
+export function taskChats(
+    store: ChatStore,
+    task: { readonly name: string; readonly key: string },
+    options: {
+        readonly takenNames: () => ReadonlySet<string>;
+        /** A task-internal consultation Book was created (it belongs to the task's result). */
+        readonly onCreated?: (path: string) => void;
+        /** The chat the task came from (its questions are asked there). */
+        readonly designated?: string;
+    },
+): TaskChats {
     const taskRef = `{${task.name}}`;
     return {
         askUser: async (input) => {
             const agentRef = formatAgentReference(referenceName(input.agent));
             const text = questionText(input);
             const agentKey = parseReferenceValue(agentRef)?.normalized;
-            const existing = (await store.list()).find(
-                (stored) => linksTask(stored.chat, task.key) && stored.chat.members.some((member) => parseReferenceValue(member)?.normalized === agentKey) && stored.chat.members.some((member) => parseReferenceValue(member)?.normalized === 'user'),
-            );
+            // The chat the task came from is its designated conversation, else an existing human-facing chat linked to
+            // the task (its own agent's first). The executing agent joins it (a CHAT MEMBER before its first message)
+            // and asks there under its own name: a different executing agent never starts a duplicate chat.
+            const designated = options.designated ? await store.find(options.designated) : undefined;
+            const linked = (await store.list()).filter((stored) => linksTask(stored.chat, task.key) && isHumanFacing(stored.chat));
+            const existing =
+                (designated && isHumanFacing(designated.chat) ? designated : undefined) ??
+                linked.find((stored) => stored.chat.members.some((member) => parseReferenceValue(member)?.normalized === agentKey)) ??
+                linked[0];
             if (existing) {
                 const last = [...existing.chat.messages].reverse().find((message) => message.senderKey === agentKey);
                 // The same still-unanswered question is never sent twice.
                 if (existing.chat.status === 'waiting-for-user' && last && last.text.trim() === text.trim()) return { chat: existing.chat.name, awaited: existing.chat.messages.length, reused: true };
+                await store.annotate(existing.chat.name, { members: [agentRef], links: [taskRef] }, { trailers: { 'Task-Name': task.name } });
                 const written = await store.append(existing.chat.name, { sender: agentRef, text, choices: input.choices }, { status: 'waiting-for-user', trailers: { 'Task-Name': task.name } });
                 return { chat: written.chat.name, awaited: written.chat.messages.length, reused: false };
             }
@@ -94,7 +111,6 @@ export function taskChats(store: ChatStore, task: { readonly name: string; reado
                 taken: options.takenNames(),
                 trailers: { 'Task-Name': task.name },
             });
-            options.onCreated?.(created.path);
             return { chat: created.chat.name, awaited: created.chat.messages.length, reused: false };
         },
         recordConsultation: async (input) => {

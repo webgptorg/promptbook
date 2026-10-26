@@ -123,6 +123,13 @@ export type ActiveRecord = {
     readonly waitingChat?: string;
     /** Message count of that chat when the question was asked: a later User message is the reply. */
     readonly awaitedMessages?: number;
+    /**
+     * The User message (1-based position) routed to this run's question as its answer: in a chat with several pending
+     * questions, the reply belongs to the question it was routed to, never to every wait.
+     */
+    readonly answerMessage?: number;
+    /** The chat the task was created in (its `TASK ORIGIN Chat`): questions are asked and results reported there. */
+    readonly originChat?: string;
     /** Chats with the user that belong to this task (their transcripts are given to later attempts). */
     readonly chats?: readonly string[];
     /** Failure explanation when the phase is `failed`. */
@@ -252,6 +259,10 @@ export type ResultRecord = {
     readonly usage?: Readonly<Record<string, number>>;
     /** Cost (reported by the harness). */
     readonly costUsd?: number;
+    /** The chat the task was created in (its outcome is reported there once). */
+    readonly originChat?: string;
+    /** The run (one occurrence's execution) this result belongs to. */
+    readonly runId?: string;
 };
 
 /**
@@ -467,6 +478,18 @@ export class StateStore {
             }
         }
         return results.reverse();
+    }
+
+    /** Runs whose outcome was already reported in their origin chat (run → time, ISO). */
+    public async readChatOutcomes(): Promise<Record<string, string>> {
+        return (await readJsonIfExists<Record<string, string>>(this.file('chat-outcomes.json')).catch(() => undefined)) ?? {};
+    }
+
+    /** Records that a run's outcome was reported in its origin chat (bounded to recent runs). */
+    public async markChatOutcome(runId: string): Promise<void> {
+        const entries = Object.entries({ ...(await this.readChatOutcomes()), [runId]: new Date().toISOString() }).slice(-500);
+        await ensureDirectory(this.directory);
+        await writeJsonAtomic(this.file('chat-outcomes.json'), Object.fromEntries(entries));
     }
 
     /** Paths written by this project's explicit no-commit work (project-relative path → hash). */

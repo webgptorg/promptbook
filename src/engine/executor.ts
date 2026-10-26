@@ -26,6 +26,7 @@ import type { HarnessPool } from './harnesses.js';
 import { buildTaskPrompt } from './prompt.js';
 import type { ChatStore } from '../chats/store.js';
 import { taskChats } from '../chats/task-chats.js';
+import { chatOriginOf } from '../chats/chat-tasks.js';
 import { parseAgentReport, type AgentReport } from './result.js';
 import type { RouteResolution } from './routing.js';
 import type { ActiveRecord, ResultRecord, RoutingSelection, StateStore, WorkKind } from './state.js';
@@ -375,6 +376,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     let record: ActiveRecord = item.resume ?? {
         version: 1,
         runId: item.runId ?? shortId(10),
+        originChat: chatOriginOf(task.origin),
         taskRef: task.ref,
         taskKey: task.key,
         taskTitle: task.title,
@@ -420,7 +422,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         pending.chat = undefined;
     };
     // Task-scoped chat Books (consultations) belong to this run's result: nobody else may attribute them.
-    const chats = taskChats(environment.chats, { name: task.title, key: task.key }, { takenNames: environment.takenNames, onCreated: (path) => hooks.own?.([path]) });
+    // A question is asked in the chat the task came from (its executing agent joins it), else in a linked chat.
+    const chats = taskChats(environment.chats, { name: task.title, key: task.key }, { takenNames: environment.takenNames, onCreated: (path) => hooks.own?.([path]), designated: record.originChat ?? chatOriginOf(task.origin) });
     let lastResult: HarnessRunResult | undefined;
     let lastReport: AgentReport | undefined;
     let retainedInstance: HarnessToolRecord | undefined;
@@ -456,6 +459,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             harnessVersion: item.route.inspection.version,
             usage: lastResult?.usage,
             costUsd: lastResult?.costUsd,
+            ...(record.originChat ? { originChat: record.originChat } : {}),
+            runId: record.runId,
         });
     };
     const fail = async (reason: string): Promise<ExecutionOutcome> => {
@@ -469,13 +474,13 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     // Resume an awaiting-user checkpoint only with a real reply in its chat.
     if (record.phase === 'awaiting-user' && record.waitingChat) {
         const stored = await environment.chats.find(record.waitingChat);
-        const reply = stored?.chat.messages.slice(record.awaitedMessages ?? 0).find((message) => message.senderKey === 'user');
+        // The reply routed to this question, else the first User message after it.
+        const reply = record.answerMessage !== undefined ? stored?.chat.messages[record.answerMessage - 1] : stored?.chat.messages.slice(record.awaitedMessages ?? 0).find((message) => message.senderKey === 'user');
         // A valid answer reopens the chat; resolving it without an answer lets the task continue with what it has.
-        if (!stored || stored.chat.status === 'waiting-for-user' || (!reply && stored.chat.status !== 'resolved')) return { kind: 'awaiting-user', chat: record.waitingChat };
+        // Another question of the same chat may still wait: this one is answered by its own routed reply.
+        if (!stored || (!reply && stored.chat.status !== 'resolved')) return { kind: 'awaiting-user', chat: record.waitingChat };
         await trace.event('user-reply', { chat: stored.chat.name, at: reply?.at, reply: reply?.text ?? '(resolved without a reply)' });
-        await save({ phase: 'executing', waitingChat: undefined, awaitedMessages: undefined, chats: [...new Set([...(record.chats ?? []), stored.chat.name])] });
-        // The agent's question is answered: the chat's action state is resolved (a later message reopens the conversation).
-        await environment.chats.setStatus(stored.chat.name, 'resolved').catch(() => undefined);
+        await save({ phase: 'executing', waitingChat: undefined, awaitedMessages: undefined, answerMessage: undefined, chats: [...new Set([...(record.chats ?? []), stored.chat.name])] });
     }
 
     if (record.phase === 'failed') return { kind: 'failed', reason: record.failure ?? 'The task needs recovery.', trace: trace.reference };
