@@ -10,9 +10,22 @@ import { FullScreen } from './screen.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
 /**
+ * Outcome of sending a chat message.
+ *
+ * @private chat client
+ */
+export type ChatSent = {
+    readonly name: string;
+    /** The commit, when the message was committed by this operation. */
+    readonly commit?: string;
+    /** Saved in every case; `pending` while its batched commit has not happened yet. */
+    readonly persistence?: 'committed' | 'pending' | 'uncommitted';
+};
+
+/**
  * Where a chat client reads and writes chats: a running service (control channel) or the project directly.
  *
- * Every write is the same durable, committed chat operation regardless of the source.
+ * Every write is the same durable chat operation regardless of the source: saved at once, committed in a batch.
  *
  * @private chat client
  */
@@ -24,9 +37,9 @@ export type ChatSource = {
     /** One chat with its messages. */
     readonly get: (name: string) => Promise<ChatDetail>;
     /** Starts a new chat with one agent; returns its name. `segments` carries attachments (become project assets). */
-    readonly create: (agent: string, text: string, title?: string, segments?: readonly ComposedSegment[]) => Promise<{ readonly name: string; readonly commit?: string }>;
+    readonly create: (agent: string, text: string, title?: string, segments?: readonly ComposedSegment[]) => Promise<ChatSent>;
     /** Appends the user's message; `expected` is the message count the user saw (stale clients are rejected). */
-    readonly send: (name: string, text: string, expected?: number, segments?: readonly ComposedSegment[]) => Promise<{ readonly name: string; readonly commit?: string }>;
+    readonly send: (name: string, text: string, expected?: number, segments?: readonly ComposedSegment[]) => Promise<ChatSent>;
     /** Marks a chat as read by this viewer (never an answer). */
     readonly read: (name: string) => Promise<void>;
     /** Whether agent replies are produced (a running service or this client); otherwise they wait for the service. */
@@ -43,8 +56,8 @@ export function controlChatSource(request: (method: string, params?: Readonly<Re
         list: async () => (await request('chat-list')) as ChatSummary[],
         agents: async () => (await request('chat-agents')) as ChatAgentChoice[],
         get: async (name) => (await request('chat-get', { name })) as ChatDetail,
-        create: async (agent, text, title, segments) => (await request('chat-create', { agent, text, title, via, ...(segments ? { segments } : {}) })) as { name: string; commit?: string },
-        send: async (name, text, expected, segments) => (await request('chat-send', { name, text, expected, via, ...(segments ? { segments } : {}) })) as { name: string; commit?: string },
+        create: async (agent, text, title, segments) => (await request('chat-create', { agent, text, title, via, ...(segments ? { segments } : {}) })) as ChatSent,
+        send: async (name, text, expected, segments) => (await request('chat-send', { name, text, expected, via, ...(segments ? { segments } : {}) })) as ChatSent,
         read: async (name) => {
             await request('chat-read', { name });
         },
@@ -107,9 +120,9 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
                   ...wrap(detail.summary.title ?? detail.summary.name, width - 4).map((line) => style.bold(line)),
                   ...(detail.summary.title && detail.summary.title !== detail.summary.name ? wrap(`{${detail.summary.name}}`, width - 4).map((line) => style.muted(line)) : []),
                   style.muted(detail.summary.members.join(', ')),
-                  `${detail.summary.status === 'waiting-for-user' ? style.warning(`${marks.warn} ${detail.summary.awaiting?.sender ?? 'The agent'} waits for you`) : detail.summary.status === 'resolved' ? style.muted('resolved') : style.success('open')}${detail.summary.links.length ? style.muted(` · links ${detail.summary.links.join(', ')}`) : ''}${style.muted(` · ${detail.summary.path}`)}`,
+                  `${detail.summary.status === 'waiting-for-user' ? style.warning(`${marks.warn} ${detail.summary.awaiting?.sender ?? 'The agent'} waits for you`) : detail.summary.status === 'resolved' ? style.muted('resolved') : style.success('open')}${detail.summary.links.length ? style.muted(` · links ${detail.summary.links.join(', ')}`) : ''}${style.muted(` · ${detail.summary.path}`)}${detail.summary.persistence ? (detail.summary.persistence.state === 'failed' ? style.warning(` · saved, commit failing: ${detail.summary.persistence.failure ?? 'retrying'}`) : style.muted(' · saved, commit pending')) : ''}`,
               ]
-            : [`${style.bold(`New chat with ${target.kind === 'new' ? target.agent.reference : name}`)}`, style.muted('Write the first message; the chat is saved (and committed) when you send it.')];
+            : [`${style.bold(`New chat with ${target.kind === 'new' ? target.agent.reference : name}`)}`, style.muted('Write the first message; the chat is saved when you send it (and committed shortly after).')];
         const top = renderPanel({ title: `${marks.bullet} Chat`, titleRight: options.embedded ? 'Esc back to dashboard' : 'Ctrl+C close', lines: header, width, tone: detail?.summary.status === 'waiting-for-user' ? 'attention' : 'accent', unicode: terminal.unicode, style });
         const question = awaited();
         const choiceLines = question?.choices?.length ? [style.muted('Offered answers (press the number with an empty composer):'), ...question.choices.map((choice, index) => `  ${style.accent(`[${index + 1}]`)} ${choice}`)] : [];
@@ -172,10 +185,10 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             if (!name && target.kind === 'new') {
                 const created = await source.create(target.agent.reference, text, target.title, attached);
                 name = created.name;
-                notice = created.commit ? `Saved (${created.commit.slice(0, 8)}).` : 'Saved.';
+                notice = savedNotice(created);
             } else if (name) {
                 const sent = await source.send(name, text, detail?.messages.length, attached);
-                notice = sent.commit ? `Saved (${sent.commit.slice(0, 8)}).` : 'Saved.';
+                notice = savedNotice(sent);
             }
             input.clear();
             scroll = 0;
@@ -248,4 +261,13 @@ export function renderChatList(chats: readonly ChatSummary[]): string {
                 `${chat.status === 'waiting-for-user' ? '[waiting for you] ' : chat.status === 'resolved' ? '[resolved] ' : ''}${chat.name}${chat.unread ? ` (${chat.unread} unread)` : ''}${chat.title && chat.title !== chat.name ? `\n  title: ${chat.title}` : ''}\n  ${chat.members.join(', ')} · ${chat.messages} message(s)${chat.links.length ? ` · ${chat.links.join(', ')}` : ''} · ${chat.path}${chat.last ? `\n  ${chat.last.sender}: ${chat.last.preview}` : ''}`,
         )
         .join('\n')}\n`;
+}
+
+/**
+ * The truthful outcome of a sent message: saved in every case, committed only when a commit exists.
+ */
+function savedNotice(sent: ChatSent): string {
+    if (sent.commit) return `Saved and committed (${sent.commit.slice(0, 8)}).`;
+    if (sent.persistence === 'pending') return 'Saved; its commit follows shortly.';
+    return 'Saved.';
 }

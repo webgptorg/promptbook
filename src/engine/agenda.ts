@@ -24,6 +24,7 @@ import { BookIndex } from '../project/books.js';
 import { parseBook } from '../book/parse.js';
 import { renderDeclaration } from '../book/write.js';
 import { ChatStore, type ChatSummary, type ChatWrite } from '../chats/store.js';
+import { ChatCommitBatcher } from '../chats/batcher.js';
 import { isHumanFacing } from '../chats/chat-book.js';
 import { taskChats } from '../chats/task-chats.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, type ChatAgentChoice, type ChatDetail } from '../chats/service.js';
@@ -254,6 +255,17 @@ const FOREIGN_SETTLE_MS = 30 * 60_000;
 const PERSISTENCE_RETRY_MS = 120_000;
 
 /**
+ * Quiet period after the latest message of a chat before its saved messages are committed together
+ * (`PTBK_CHAT_BATCH_QUIET_MS` overrides it, e.g. for fixtures).
+ */
+const CHAT_BATCH_QUIET_MS = 5_000;
+
+/**
+ * Longest time saved chat messages wait for their commit while the conversation continues.
+ */
+const CHAT_BATCH_MAX_AGE_MS = 60_000;
+
+/**
  * One unit of active work holding a capacity slot: a background task (its runs: Router prerequisite, the task itself,
  * a goal enquiry) or one chat turn. Units progress concurrently in the project's one working tree; each run owns the
  * files it changes.
@@ -369,6 +381,22 @@ export class Agenda {
         this.state = new StateStore(options.project.runtime.state);
         this.capacity = new WorkCapacity(() => (this.settings ? setting<number>(this.settings, 'execution.maxConcurrentWork') : 5));
         this.ownership = new FileOwnership(options.project.root, { onChange: () => this.touch() });
+        this.chatBatches = new ChatCommitBatcher(options.project, {
+            repositoryRoot: () => this.repositoryRoot,
+            commit: async (paths, subject, trailers) => await this.commitAuthoring(paths, subject, trailers),
+            quietMs: Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || CHAT_BATCH_QUIET_MS,
+            maxAgeMs: Math.max(Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || 0, CHAT_BATCH_MAX_AGE_MS),
+            retryMs: 60_000,
+            // Saved chat files are engine-authored until committed: never attributed to a task or seen as foreign edits.
+            onPending: (paths, pending) => {
+                for (const path of paths) {
+                    if (pending) this.authoredPaths.add(path);
+                    else this.authoredPaths.delete(path);
+                }
+            },
+            onChange: () => void this.refreshChats().catch(() => undefined),
+            log: (text, level) => this.log(text, level),
+        });
         this.sync = new SyncCoordinator({
             repositoryRoot: () => this.repositoryRoot,
             env: options.env,
@@ -400,7 +428,13 @@ export class Agenda {
         }
     }
 
-    /** The project's chats (each human-facing message is its own commit unless explicitly uncommitted). */
+    /**
+     * Batched commits of human-facing chats: every accepted message is saved to its Book at once, and compatible saves
+     * of one chat share a bounded, debounced `PTBK: Chat - <name>` commit (never one per message).
+     */
+    private readonly chatBatches: ChatCommitBatcher;
+
+    /** The project's chats (messages are saved at once; their commits are batched unless explicitly uncommitted). */
     public get chats(): ChatStore {
         if (!this.chatStore) {
             this.chatStore = new ChatStore(this.options.project, {
@@ -412,7 +446,7 @@ export class Agenda {
                               await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, path)]: null });
                           },
                       }
-                    : { commit: async (paths, subject, trailers) => await this.commitAuthoring(paths, subject, trailers) },
+                    : { schedule: async (chat, paths, trailers) => await this.chatBatches.schedule(chat, paths, trailers) },
                 takenNames: async () => await this.freshTakenNames(),
             });
         }
@@ -456,6 +490,14 @@ export class Agenda {
         }
         await this.maintainConfiguration();
         await this.refreshContext(true);
+        // Chat messages an earlier process saved but did not commit (force stop, crash) are committed first.
+        if (this.commitMode && this.repositoryRoot) {
+            const recovered = await this.chatBatches.recover().catch((error: unknown) => {
+                this.log(`Saved chat messages could not be committed yet: ${errorMessage(error)}`, 'warning');
+                return [];
+            });
+            if (recovered.length) this.log(`Committed chat messages saved before the last stop (${recovered.map((sha) => sha.slice(0, 8)).join(', ')}).`);
+        }
         await this.sync.begin();
         await confinePath(project.root, this.tasksDirectory);
         const results = await this.state.recentResults(200);
@@ -575,6 +617,9 @@ export class Agenda {
             }
         } finally {
             this.stopWatching();
+            // A graceful stop or restart commits saved chat messages; a force stop leaves them to recovery.
+            if (this.shutdown !== 'force') await this.chatBatches.flush().catch(() => undefined);
+            this.chatBatches.dispose();
         }
         this.exitState = 'stopped';
         this.phase = 'stopped';
@@ -915,7 +960,9 @@ export class Agenda {
 
     /** One chat with its full messages. */
     public async chatGet(name: string): Promise<ChatDetail> {
-        return await chatDetail(this.chats, name);
+        const detail = await chatDetail(this.chats, name);
+        const pending = this.chatBatches.pending(detail.summary.name);
+        return pending ? { ...detail, summary: { ...detail.summary, persistence: { state: pending.failure ? 'failed' : 'pending', since: pending.since, ...(pending.failure ? { failure: pending.failure } : {}) } } } : detail;
     }
 
     /** Agents the user may start a chat with (ordinary first; hidden/core and Expert behind More). */
@@ -1721,9 +1768,15 @@ export class Agenda {
         this.blockers = [...blockers, ...this.blockers.filter((blocker) => !['workspace', 'configuration'].includes(blocker.kind))];
     }
 
-    /** Reloads chat summaries (waiting-for-user first) into the view. */
+    /** Reloads chat summaries (waiting-for-user first) into the view, with each chat's pending commit state. */
     private async refreshChats(): Promise<void> {
-        this.chatSummaries = await this.chats.summaries().catch(() => this.chatSummaries);
+        const summaries = await this.chats.summaries().catch(() => this.chatSummaries);
+        this.chatSummaries = summaries.map((summary) => {
+            const pending = this.chatBatches.pending(summary.name);
+            const { persistence: _previous, ...rest } = summary;
+            void _previous;
+            return pending ? { ...rest, persistence: { state: pending.failure ? 'failed' : 'pending', since: pending.since, ...(pending.failure ? { failure: pending.failure } : {}) } } : rest;
+        });
         this.touch();
     }
 

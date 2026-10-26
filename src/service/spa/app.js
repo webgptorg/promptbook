@@ -346,7 +346,8 @@
             ),
         );
         if (summary.title && summary.title !== summary.name) card.append(h('div', { className: 'meta muted chat-name', title: 'The chat’s name (its identity)' }, `{${summary.name}}`));
-        card.append(h('div', { className: 'meta muted' }, `${summary.members.join(', ')} · ${summary.path}${summary.links.length ? ` · links ${summary.links.join(', ')}` : ''}`));
+        const persistence = summary.persistence ? (summary.persistence.state === 'failed' ? ` · saved, commit failing (${summary.persistence.failure || 'retrying'})` : ' · saved, commit pending') : '';
+        card.append(h('div', { className: 'meta muted' }, `${summary.members.join(', ')} · ${summary.path}${summary.links.length ? ` · links ${summary.links.join(', ')}` : ''}${persistence}`));
         const thread = h('div', { className: 'messages', role: 'log', 'aria-live': 'polite' });
         for (const message of messages) {
             const user = message.sender.replace(/^@/, '').toLowerCase() === 'user';

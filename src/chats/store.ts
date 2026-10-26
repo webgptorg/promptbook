@@ -15,11 +15,14 @@ import type { ComposedSegment } from '../ui/composer.js';
 import { appendChatCommitments, appendChatMessage, appendChatModel, chatAgent, chatDisplayTitle, hasMember, isHumanFacing, parseChatBook, renderChatBook, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
 
 /**
- * How chat operations are versioned: each human-facing operation is its own commit unless explicitly uncommitted.
+ * How chat operations are versioned: saved to the Book at once, then committed in a bounded batch (`schedule`) or as
+ * one commit per operation (`commit`), unless explicitly uncommitted.
  *
  * @private chats
  */
 export type ChatPersistence = {
+    /** Records saved paths of a chat for its batched commit (the engine's and the CLI's batches). */
+    readonly schedule?: (chat: string, paths: readonly string[], trailers: Readonly<Record<string, string | readonly string[] | undefined>>) => Promise<void>;
     /** Commits exactly these paths; returns the commit (undefined when nothing was committed). Absent in no-commit mode. */
     readonly commit?: (paths: readonly string[], subject: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>>) => Promise<string | undefined>;
     /** Records a written path as owned but uncommitted (explicit no-commit mode). */
@@ -54,16 +57,26 @@ export type ChatSummary = {
     readonly last?: { readonly sender: string; readonly at: string; readonly preview: string };
     /** The agent's question awaiting the user (when waiting-for-user). */
     readonly awaiting?: { readonly sender: string; readonly text: string; readonly choices?: readonly string[] };
+    /** Saved messages whose batched commit is still pending (or failing and retried); absent when committed. */
+    readonly persistence?: { readonly state: 'pending' | 'failed'; readonly since: string; readonly failure?: string };
     /** New messages not authored by User since this viewer last opened the chat. */
     readonly unread: number;
 };
 
 /**
- * Result of a chat write.
+ * Persistence state of a write: saved to the Book and committed, saved with its commit pending in a batch, or saved
+ * and deliberately uncommitted (explicit no-commit, agent↔agent records of a task).
  *
  * @private chats
  */
-export type ChatWrite = StoredChat & { readonly commit?: string };
+export type ChatPersistenceState = 'committed' | 'pending' | 'uncommitted';
+
+/**
+ * Result of a chat write (the message is saved in its Book in every case).
+ *
+ * @private chats
+ */
+export type ChatWrite = StoredChat & { readonly commit?: string; readonly persistence?: ChatPersistenceState };
 
 /**
  * Folder (inside `chats/`, never scanned for chat Books) holding the attachments of chat messages.
@@ -185,8 +198,8 @@ export class ChatStore {
             const source = renderChatBook({ name, members: options.members, status: options.status, links: options.links, messages: messages.map((message) => ({ ...message, at: message.at ?? this.now() })) });
             await writeFile(path, source, { flag: 'wx' });
             const chat = parseChatBook(source);
-            const commit = isHumanFacing(chat) || options.commit ? await this.persist(path, name, options.trailers, undefined, assets.files) : undefined;
-            return { path, relativePath: toProjectRelative(this.project.root, path), chat, commit };
+            const persisted = isHumanFacing(chat) || options.commit ? await this.persist(path, name, options.trailers, undefined, assets.files) : { persistence: 'uncommitted' as const };
+            return { path, relativePath: toProjectRelative(this.project.root, path), chat, ...persisted };
         });
     }
 
@@ -216,8 +229,8 @@ export class ChatStore {
             const updated = appendChatMessage(source, { ...message, text: assets.text, at: this.now() }, options.status);
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
-            const commit = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers, undefined, assets.files) : undefined;
-            return { ...stored, chat, commit };
+            const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers, undefined, assets.files) : { persistence: 'uncommitted' as const };
+            return { ...stored, chat, ...persisted };
         });
     }
 
@@ -232,8 +245,8 @@ export class ChatStore {
             const updated = appendChatModel(await readFile(stored.path, 'utf8'), { rows: [row], explicit: true });
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
-            const commit = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, { 'Chat-Model': formatModelRow(row), ...(options.by ? { 'Routed-By': options.by } : {}) }, `Chat routing - ${chat.name}`) : undefined;
-            return { ...stored, chat, commit };
+            const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, { 'Chat-Model': formatModelRow(row), ...(options.by ? { 'Routed-By': options.by } : {}) }, `Chat routing - ${chat.name}`) : { persistence: 'uncommitted' as const };
+            return { ...stored, chat, ...persisted };
         });
     }
 
@@ -267,8 +280,8 @@ export class ChatStore {
             const updated = appendChatCommitments(await readFile(stored.path, 'utf8'), lines);
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
-            const commit = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers) : undefined;
-            return { ...stored, chat, commit };
+            const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers) : { persistence: 'uncommitted' as const };
+            return { ...stored, chat, ...persisted };
         });
     }
 
@@ -281,21 +294,28 @@ export class ChatStore {
             const updated = setChatStatus(await readFile(stored.path, 'utf8'), status);
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
-            const commit = isHumanFacing(chat) ? await this.persist(stored.path, chat.name) : undefined;
-            return { ...stored, chat, commit };
+            const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name) : { persistence: 'uncommitted' as const };
+            return { ...stored, chat, ...persisted };
         });
     }
 
-    /** Commits (or records as uncommitted) one chat operation. */
-    private async persist(path: string, name: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}, subject = `Chat - ${name}`, assets: readonly string[] = []): Promise<string | undefined> {
+    /**
+     * Versions one saved chat operation: batched (its commit pending), committed now, or recorded as uncommitted.
+     */
+    private async persist(path: string, name: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}, subject = `Chat - ${name}`, assets: readonly string[] = []): Promise<{ readonly commit?: string; readonly persistence: ChatPersistenceState }> {
         const persistence = this.options.persistence;
-        if (!persistence) return undefined;
+        if (!persistence) return { persistence: 'uncommitted' };
+        if (persistence.schedule) {
+            await persistence.schedule(name, [path, ...assets], trailers);
+            return { persistence: 'pending' };
+        }
         if (!persistence.commit) {
             for (const file of [path, ...assets]) await persistence.uncommitted?.(file);
-            return undefined;
+            return { persistence: 'uncommitted' };
         }
         try {
-            return await persistence.commit([path, ...assets], subject, { 'Chat-Name': name, ...trailers });
+            const commit = await persistence.commit([path, ...assets], subject, { 'Chat-Name': name, ...trailers });
+            return { commit, persistence: 'committed' };
         } catch (error) {
             throw new PtbkError(`The chat message was written but could not be committed.`, {
                 kind: 'persistence',

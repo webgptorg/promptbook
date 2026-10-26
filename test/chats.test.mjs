@@ -19,7 +19,7 @@ async function chats(project) {
     return await Promise.all(names.map(async (name) => ({ file: `chats/${name}`, chat: parseChatBook(await readFile(join(project, 'chats', name), 'utf8')) })));
 }
 
-test('ptbk chat without a service: agent chosen first, every message its own commit, separate threads, tasks and learning only through ordinary authoring', async (t) => {
+test('ptbk chat without a service: agent chosen first, messages saved at once and committed per operation, separate threads, tasks and learning only through ordinary authoring', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     const refused = await ptbk(['chat', '--agent', 'User', 'Hello me', '--raw'], { cwd: project, env });
     assert.notEqual(refused.code, 0, 'the user cannot chat with itself');
@@ -36,10 +36,10 @@ test('ptbk chat without a service: agent chosen first, every message its own com
     assert.deepEqual(stored.chat.messages.map((message) => message.sender), ['@User', '@Developer'], 'the actual author of every message is kept');
     assert.equal((await readFile(join(project, stored.file), 'utf8')).split('\n')[0], `CHAT ${stored.chat.name}`, 'the Book opens with its CHAT declaration');
     const history = await subjects(project);
-    assert.equal(history.length, before + 3, 'the user message, the resolved MODEL and the agent reply are one commit each');
-    assert.deepEqual(history.slice(0, 3), [`PTBK: Chat - ${stored.chat.name}`, `PTBK: Chat routing - ${stored.chat.name}`, `PTBK: Chat - ${stored.chat.name}`], 'newest first: reply, MODEL, first User message');
+    assert.equal(history.length, before + 1, 'the user message, the resolved MODEL and the agent reply share one batched commit (not one per message)');
+    assert.equal(history[0], `PTBK: Chat - ${stored.chat.name}`);
     assert.ok((await messages(project))[0].includes(`Chat-Name: ${stored.chat.name}`));
-    assert.match((await messages(project))[1], /^Chat-Model: harness=OPENAI_CODEX model=fake-model-1 thinking=medium runtime=official$/m, 'Router chose the conversation’s execution once');
+    assert.match((await messages(project))[0], /^Chat-Model: harness=OPENAI_CODEX model=fake-model-1 thinking=medium runtime=official$/m, 'Router chose the conversation’s execution once');
     const source = await readFile(join(project, stored.file), 'utf8');
     assert.ok(source.indexOf('CHAT MESSAGE @User') < source.indexOf('MODEL harness=') && source.indexOf('MODEL harness=') < source.indexOf('CHAT MESSAGE @Developer'), `chronology: first User message, MODEL, first agent reply\n${source}`);
     assert.equal((await readdir(join(project, 'tasks'))).filter((name) => name.endsWith('.book')).length, 1, 'opening a chat never creates a task');
@@ -135,7 +135,9 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
     assert.ok(!agents.data.agents.some((agent) => ['User', 'Void', 'Null'].includes(agent.name)));
     const created = await call('api/chats', { agent: '@Developer', text: 'Status please', requestKey: 'draft-1' });
     assert.equal(created.status, 200, JSON.stringify(created.data));
-    assert.ok(created.data.commit, 'the first message is committed before the API reports it');
+    assert.equal(created.data.persistence, 'pending', 'the first message is saved at once; its batched commit follows');
+    assert.equal(created.data.commit, undefined, 'no commit is claimed before it exists');
+    assert.ok((await chats(project)).some((item) => item.chat.name === created.data.name && item.chat.messages[0].text === 'Status please'), 'the saved message is in the Book immediately');
     assert.match(created.data.name, generated('Developer: Status please'), 'the API returns the final generated name');
     const retried = await call('api/chats', { agent: '@Developer', text: 'Status please', requestKey: 'draft-1' });
     assert.equal(retried.data.name, created.data.name, 'a retried creation returns the chat it already created');
@@ -153,6 +155,39 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
     const state = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
     assert.ok(state.chats.total >= 1);
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+    // A graceful stop commits what was saved; the conversation's saves shared a few batched commits.
+    assert.equal((await git(project, ['status', '--porcelain', '--', 'chats'])).trim(), '', 'nothing saved stays uncommitted after a graceful stop');
+    const chatCommits = (await messages(project)).filter((message) => message.includes(`Chat-Name: ${created.data.name}\n`) || message.endsWith(`Chat-Name: ${created.data.name}`));
+    assert.ok(chatCommits.length >= 1 && chatCommits.length <= 2, `four saves (message, MODEL, reply, message) shared at most two commits, got ${chatCommits.length}`);
+    assert.ok(chatCommits.every((message) => message.startsWith(`PTBK: Chat - ${created.data.name}`)));
+});
+
+test('service chats: a force stop before the batched commit loses nothing; the next start commits the saved messages once', async (t) => {
+    const { project, env: baseEnv } = await initializedProject(t, { check: CHECK });
+    // A long quiet period keeps the batch pending until the force stop, however slow the host is.
+    const env = { ...baseEnv, PTBK_CHAT_BATCH_QUIET_MS: '600000' };
+    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const token = /\n(ptbk_[A-Za-z0-9_-]+)\n/.exec((await ptbk(['access', 'token', 'chats', '--raw'], { cwd: project, env })).stdout)[1];
+    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
+    const call = async (path, body) => {
+        const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+        return { status: response.status, data: await response.json() };
+    };
+    const created = await call('api/chats', { agent: '@Developer', text: 'Remember this' });
+    assert.equal(created.status, 200, JSON.stringify(created.data));
+    assert.equal((await ptbk(['stop', '--force', '--raw'], { cwd: project, env })).code, 0);
+    const [saved] = (await chats(project)).filter((item) => item.chat.name === created.data.name);
+    assert.equal(saved.chat.messages[0].text, 'Remember this', 'the accepted message survived the force stop');
+    assert.ok((await git(project, ['status', '--porcelain', '--', 'chats'])).trim(), 'its commit was still pending');
+    assert.match(await readFile(join(project, '.ptbk', 'state', 'chat-batches.json'), 'utf8'), /Remember this|Developer: Remember this/, 'the pending batch is recorded for recovery');
+    const subjectsBefore = await subjects(project);
+    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env: baseEnv })).code, 0);
+    await waitFor(async () => !(await git(project, ['status', '--porcelain', '--', 'chats'])).trim(), { timeoutMs: 60_000, message: 'the recovered batch to be committed' });
+    const added = (await subjects(project)).slice(0, (await subjects(project)).length - subjectsBefore.length);
+    assert.ok(added.includes(`PTBK: Chat - ${created.data.name}`), added.join('\n'));
+    const [after] = (await chats(project)).filter((item) => item.chat.name === created.data.name);
+    assert.equal(after.chat.messages.filter((message) => message.text === 'Remember this').length, 1, 'recovery never duplicates a message');
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env: baseEnv })).code, 0);
 });
 
 test('browser profile sources: the managed global profile is the default; isolated, user and custom paths are explicit', () => {

@@ -178,12 +178,12 @@ export async function applyChatAction(agenda: Agenda, method: string, params: Re
             // A new human chat without an explicit target goes to Chatter (diagnosed, never silently replaced).
             const agent = text('agent') || defaultChatAgent(agenda.chatAgents()).reference;
             const written = await agenda.chatCreate(agent, text('text'), { name: text('title') || undefined, requestKey: text('requestKey') || undefined, segments });
-            return { name: written.chat.name, path: written.relativePath, commit: written.commit, messages: written.chat.messages.length };
+            return { name: written.chat.name, path: written.relativePath, commit: written.commit, persistence: written.persistence, messages: written.chat.messages.length };
         }
         case 'chat-send': {
             const expected = typeof params.expected === 'number' ? params.expected : undefined;
             const written = await agenda.chatSend(text('name'), text('text'), { expected, via, segments });
-            return { name: written.chat.name, path: written.relativePath, commit: written.commit, messages: written.chat.messages.length, status: written.chat.status };
+            return { name: written.chat.name, path: written.relativePath, commit: written.commit, persistence: written.persistence, messages: written.chat.messages.length, status: written.chat.status };
         }
         default:
             throw new PtbkError(`Unknown chat action "${method}".`, { kind: 'usage' });

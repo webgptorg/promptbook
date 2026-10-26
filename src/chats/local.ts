@@ -17,16 +17,20 @@ import type { ChatSource } from '../ui/chat-client.js';
 import { replyInChat } from './conversation.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat } from './service.js';
 import { ChatStore } from './store.js';
+import { ChatCommitBatcher } from './batcher.js';
 
 /**
- * Chats of a project whose service is not running: every write takes the project lock briefly and is committed as
- * its own scoped operation; agent replies run in this process through the same read-only conversation turn.
+ * Chats of a project whose service is not running: every write takes the project lock briefly and is saved at once;
+ * the saves of one operation (the user's message, the routing MODEL and the agent's reply) share one batched commit at
+ * its end. Agent replies run in this process through the same read-only conversation turn.
  *
  * @private chats
  */
 export class LocalChats {
     public readonly store: ChatStore;
     private readonly state: StateStore;
+    /** Saved chat writes waiting for the commit at the end of the current operation. */
+    private readonly batches: ChatCommitBatcher;
     private pool?: HarnessPool;
     private inFlight = 0;
 
@@ -39,10 +43,11 @@ export class LocalChats {
     ) {
         const commit = setting<boolean>(settings, 'execution.isCommitEnabled') && Boolean(repositoryRoot);
         this.state = new StateStore(project.runtime.state);
+        this.batches = new ChatCommitBatcher(project, { repositoryRoot: () => this.repositoryRoot, commit: async (paths, subject, trailers) => await this.locked(async () => await this.commit(paths, subject, trailers)) });
         this.store = new ChatStore(project, {
             timeZone: setting<string>(settings, 'timezone'),
             persistence: commit
-                ? { commit: async (paths, subject, trailers) => await this.commit(paths, subject, trailers) }
+                ? { schedule: async (chat, paths, trailers) => await this.batches.schedule(chat, paths, trailers) }
                 : { uncommitted: async (path) => await this.state.addOwnedUncommitted({ [toProjectRelative(project.root, path)]: (await hashFileIfExists(path)) ?? null }) },
             takenNames: async () => {
                 await this.reload();
@@ -60,7 +65,15 @@ export class LocalChats {
             throw new PtbkError('The project is not in a Git working tree, so chat messages cannot be committed.', { kind: 'setup', next: ['Run `ptbk init`, or use --no-commit.'] });
         }
         const catalog = await AgentCatalog.load(project.root, setting<string>(settings, 'paths.agents'), setting<string>(settings, 'paths.tasks'));
-        return new LocalChats(project, settings, env, git.state === 'repository' ? git.root : undefined, catalog);
+        const chats = new LocalChats(project, settings, env, git.state === 'repository' ? git.root : undefined, catalog);
+        // Messages an interrupted earlier process saved but did not commit are committed first.
+        if (setting<boolean>(settings, 'execution.isCommitEnabled') && git.state === 'repository') await chats.batches.recover();
+        return chats;
+    }
+
+    /** Commits the saved writes of the finished operation (one batched commit per chat). */
+    public async flush(): Promise<string | undefined> {
+        return (await this.batches.flush()).at(-1);
     }
 
     /** Commits chat or authoring paths. */
@@ -158,7 +171,11 @@ export class LocalChats {
                     (error) => error && options.onReplyError?.(error),
                     (error: unknown) => options.onReplyError?.(String(error)),
                 )
-                .finally(() => this.inFlight--);
+                // The user's message, the routing and the reply share the operation's batched commit.
+                .finally(async () => {
+                    await this.flush().catch((error: unknown) => options.onReplyError?.(`Saved, but not committed yet: ${String(error)}`));
+                    this.inFlight--;
+                });
         };
         return {
             list: async () => await this.store.summaries(),
@@ -173,13 +190,19 @@ export class LocalChats {
                     return await createUserChat(this.store, this.catalog, agent, text, { name: title, segments });
                 });
                 await this.store.markRead(written.chat.name);
-                respond(written.chat.name);
-                return { name: written.chat.name, commit: written.commit };
+                if (options.replies) {
+                    respond(written.chat.name);
+                    return { name: written.chat.name, persistence: written.persistence };
+                }
+                return { name: written.chat.name, commit: await this.flush(), persistence: 'committed' as const };
             },
             send: async (name, text, expected, segments) => {
                 const result = await this.locked(async () => await appendUserMessage(this.store, this.state, name, text, { expected, segments }));
-                if (result.needsReply) respond(result.written.chat.name);
-                return { name: result.written.chat.name, commit: result.written.commit };
+                if (result.needsReply && options.replies) {
+                    respond(result.written.chat.name);
+                    return { name: result.written.chat.name, persistence: result.written.persistence };
+                }
+                return { name: result.written.chat.name, commit: await this.flush(), persistence: 'committed' as const };
             },
             read: async (name) => await this.store.markRead(name),
             replies: options.replies,
