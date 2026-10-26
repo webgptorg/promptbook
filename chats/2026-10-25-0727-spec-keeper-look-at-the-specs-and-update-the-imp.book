@@ -1,7 +1,7 @@
 CHAT Spec-keeper: Look at the specs and update the implementation — 2026-10-25 07:27:20
 CHAT MEMBER @User
 CHAT MEMBER @Spec-keeper
-CHAT STATUS open
+CHAT STATUS waiting-for-user
 
 CHAT MESSAGE @User 2026-10-25T07:27:20+01:00
 Look at the specs and update the implementation
@@ -12,4 +12,13 @@ CHAT MESSAGE @Spec-keeper 2026-10-25T17:18:44+01:00
 Created an agenda task for @Developer to compare specs with code and tests, fix verified gaps, add regression coverage, and update the changelog.
 
 The task is linked to this chat and awaits agenda execution. No implementation changes have been made here.
+
+CHAT MEMBER @Fixer
+LINK {Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34}
+CHAT MESSAGE @Fixer 2026-10-26T23:08:56+01:00
+This task explicitly requires a passing npm run check. In this restricted session Chrome exits with SIGABRT, macOS memory queries are denied, and Health sees only 93 MiB available against the unchanged 512 MiB limit. I cannot safely repair the host session or complete acceptance by changing those safeguards.
+
+Already attempted: Reviewed the previous traces and implementation/specification links; consulted Expert; reran the required check (typecheck/build passed, browser fixtures failed and background work timed out, then stopped with exit 130); independently reproduced Chrome SIGABRT; verified denied sysctl probes; passed all 12 configuration regressions, follow-up Book parsing and scoped git diff --check. Updated other/specification-audit-2026-10-26.md and the changelog. Preserved the four implemented fixes and existing readiness follow-up; made no commits or completion stamps.
+
+Please run `npm run check` in /Users/hejny/work/promptbook from a normal macOS terminal, with Chrome able to start and no concurrent rebuilds, and share the result or failure log.
 
