@@ -142,6 +142,8 @@ export type HarnessRunRequest = {
 export type HarnessEvent =
     | { readonly type: 'message'; readonly text: string }
     | { readonly type: 'activity'; readonly text: string }
+    /** The reply text streamed so far (cumulative), where the harness streams it before the complete message. */
+    | { readonly type: 'partial'; readonly text: string }
     /** Files the harness reports it changed (authorship evidence for per-file ownership). */
     | { readonly type: 'files'; readonly paths: readonly string[] }
     | { readonly type: 'reasoning'; readonly text: string }

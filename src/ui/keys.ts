@@ -38,6 +38,7 @@ export type KeyName =
     | 'w'
     | 'l'
     | 'o'
+    | 'r'
     | 's'
     | 't'
     | 'v'
@@ -95,6 +96,7 @@ const CONTROL: Readonly<Record<string, KeyEvent>> = {
     '\x17': { type: 'key', name: 'w', ctrl: true },
     '\x0c': { type: 'key', name: 'l', ctrl: true },
     '\x0f': { type: 'key', name: 'o', ctrl: true },
+    '\x12': { type: 'key', name: 'r', ctrl: true },
     '\x13': { type: 'key', name: 's', ctrl: true },
     '\x14': { type: 'key', name: 't', ctrl: true },
     '\x16': { type: 'key', name: 'v', ctrl: true },

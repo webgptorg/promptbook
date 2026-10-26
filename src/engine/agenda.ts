@@ -29,7 +29,7 @@ import { isHumanFacing } from '../chats/chat-book.js';
 import { taskChats } from '../chats/task-chats.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, type ChatAgentChoice, type ChatDetail } from '../chats/service.js';
 import { chatOrigin, chatOriginOf, questionAuthor, type ChatTaskCard } from '../chats/chat-tasks.js';
-import { replyInChat } from '../chats/conversation.js';
+import { replyInChat, type LiveReply } from '../chats/conversation.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
 import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
@@ -966,7 +966,8 @@ export class Agenda {
         const detail = await chatDetail(this.chats, name);
         const pending = this.chatBatches.pending(detail.summary.name);
         const summary = pending ? { ...detail.summary, persistence: { state: pending.failure ? ('failed' as const) : ('pending' as const), since: pending.since, ...(pending.failure ? { failure: pending.failure } : {}) } } : detail.summary;
-        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links) };
+        const live = this.liveReplies.get(detail.summary.name);
+        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}) };
     }
 
     /**
@@ -1055,6 +1056,9 @@ export class Agenda {
     /** Serializes chat creation so a retried request cannot race its original. */
     private readonly chatCreation = new Mutex();
 
+    /** Replies being written now, by chat name (live progress shared with every client). */
+    private readonly liveReplies = new Map<string, LiveReply>();
+
     /** Per-chat order of turns: one chat answers its messages in order, different chats progress concurrently. */
     private readonly chatTurns = new Map<string, Mutex>();
 
@@ -1098,12 +1102,18 @@ export class Agenda {
                             createTask: async (input) => await this.createChatTask(input),
                             scheduleLearning: async (input) => await this.scheduleChatLearning(input),
                             establishedExecution: async (chat) => [...(await this.state.readActiveRecords()), ...(await this.state.readParked())].find((record) => record.waitingChat === chat || record.recoveryChat === chat)?.routing,
+                            onLive: (chat, live) => {
+                                if (live) this.liveReplies.set(chat, live);
+                                else this.liveReplies.delete(chat);
+                                this.touch();
+                            },
                             onActivity: (text) => this.log(text),
                         },
                         name,
                         options,
                     );
                 } finally {
+                    this.liveReplies.delete(name);
                     this.finishUnit(unit);
                 }
                 if (turn.error) this.log(`No reply in {${name}}: ${turn.error}`, 'warning');
@@ -1664,7 +1674,7 @@ export class Agenda {
             queue: this.queueView,
             queueTotal: this.queueTotal,
             results: { completed: this.completed, failed: this.failed, recent: this.recentResults },
-            chats: { waiting: this.waitingChats(), unread: this.chatSummaries.reduce((sum, chat) => sum + chat.unread, 0), total: this.chatSummaries.length, recent: this.chatSummaries.slice(0, 30) },
+            chats: { waiting: this.waitingChats(), unread: this.chatSummaries.reduce((sum, chat) => sum + chat.unread, 0), total: this.chatSummaries.length, recent: this.chatSummaries.slice(0, 30), replying: [...this.liveReplies.keys()] },
             blockers: this.blockers,
             errors: this.errors.slice(-10),
             activity: this.activity.slice(-120),

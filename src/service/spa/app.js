@@ -328,6 +328,43 @@
         return card;
     }
 
+    /** Human duration (seconds/minutes), as measured, never invented. */
+    function duration(ms) {
+        if (!Number.isFinite(ms) || ms < 0) return '';
+        const seconds = Math.round(ms / 1000);
+        return seconds < 60 ? `${seconds} s` : `${Math.floor(seconds / 60)} min ${seconds % 60} s`;
+    }
+
+    /**
+     * Collapses each final reply's preceding progress messages (same sender) into one Thinking item, as the engine's
+     * shared view model does; progress without a final reply stays visible.
+     */
+    function collapseThinking(messages) {
+        const key = (sender) => sender.replace(/^[@{]|}$/g, '').toLowerCase();
+        const groups = new Map();
+        const collapsed = new Set();
+        messages.forEach((message, index) => {
+            if (message.phase !== 'final') return;
+            const members = [];
+            for (let previous = index - 1; previous >= 0; previous--) {
+                const candidate = messages[previous];
+                if (key(candidate.sender) !== key(message.sender)) continue;
+                if (candidate.phase !== 'progress') break;
+                members.unshift(previous);
+            }
+            if (!members.length) return;
+            groups.set(members[0], { members, final: message });
+            for (const member of members) collapsed.add(member);
+        });
+        const items = [];
+        messages.forEach((message, index) => {
+            const group = groups.get(index);
+            if (group) items.push({ kind: 'thinking', sender: message.sender, elapsedMs: Date.parse(group.final.at) - Date.parse(message.at), messages: group.members.map((member) => messages[member]) });
+            else if (!collapsed.has(index)) items.push({ kind: 'message', message });
+        });
+        return items;
+    }
+
     function renderThread(snapshot) {
         const chat = state.chat;
         const card = h('section', { className: 'card chats thread', 'aria-label': 'Conversation' });
@@ -368,20 +405,39 @@
             );
         }
         const thread = h('div', { className: 'messages', role: 'log', 'aria-live': 'polite' });
-        for (const message of messages) {
+        for (const item of collapseThinking(messages)) {
+            // A final reply's interim progress collapses into Thinking with its real duration; it can be expanded.
+            if (item.kind === 'thinking') {
+                thread.append(h('details', { className: 'thinking' }, h('summary', {}, `${item.sender} · Thinking${item.elapsedMs !== undefined ? ` · ${duration(item.elapsedMs)}` : ''}`), item.messages.map((message) => h('div', { className: 'text muted' }, message.text))));
+                continue;
+            }
+            const message = item.message;
             const user = message.sender.replace(/^@/, '').toLowerCase() === 'user';
             thread.append(
                 h(
                     'article',
-                    { className: `message ${user ? 'user' : 'agent'}` },
-                    h('div', { className: 'meta' }, h('strong', {}, user ? 'You' : message.sender), ` · ${time(message.at)}`),
+                    { className: `message ${user ? 'user' : 'agent'}${message.phase === 'progress' ? ' progress' : ''}` },
+                    h('div', { className: 'meta' }, h('strong', {}, user ? 'You' : message.sender), ` · ${time(message.at)}${message.phase === 'progress' ? ' · working…' : ''}`),
                     h('div', { className: 'text' }, message.text),
                     message.choices && message.choices.length ? h('div', { className: 'muted' }, `Offered: ${message.choices.join(' | ')}`) : null,
                 ),
             );
         }
+        // The reply being written now (the same in every client); the composer stays usable meanwhile.
+        const live = chat.detail.live;
+        if (live) {
+            thread.append(
+                h(
+                    'article',
+                    { className: 'message agent live' },
+                    h('div', { className: 'meta' }, h('strong', {}, live.sender), ` · replying for ${duration(Date.now() - Date.parse(live.startedAt))}`),
+                    live.activity.length ? h('div', { className: 'muted' }, live.activity.slice(-4).join(' · ')) : null,
+                    live.text ? h('div', { className: 'text' }, live.text) : null,
+                ),
+            );
+        }
         const last = messages[messages.length - 1];
-        if (last && last.sender.replace(/^@/, '').toLowerCase() === 'user' && summary.status === 'open') thread.append(h('p', { className: 'muted' }, `Waiting for ${summary.agent || 'the agent'}’s reply…`));
+        if (!live && last && last.sender.replace(/^@/, '').toLowerCase() === 'user' && summary.status === 'open') thread.append(h('p', { className: 'muted' }, `Waiting for ${summary.agent || 'the agent'}’s reply…`));
         card.append(thread);
         requestAnimationFrame(() => {
             thread.scrollTop = thread.scrollHeight;
@@ -1454,7 +1510,9 @@
                 // New messages in the open chat arrive without stealing focus or drafts.
                 if (state.chat && state.chat.detail) {
                     const summary = snapshot.chats.recent.find((chat) => chat.name === state.chat.name);
-                    if (summary && (summary.messages !== state.chat.detail.messages.length || summary.status !== state.chat.detail.summary.status)) loadChat(state.chat.name);
+                    // A reply in progress streams its progress: refetch while it lasts and once more when it ends.
+                    const replying = (snapshot.chats.replying || []).includes(state.chat.name) || Boolean(state.chat.detail.live);
+                    if (summary && (replying || summary.messages !== state.chat.detail.messages.length || summary.status !== state.chat.detail.summary.status)) loadChat(state.chat.name);
                 }
                 if (snapshot.service.state === 'stopped' || snapshot.service.state === 'finished') {
                     // An exited engine is an observation; the page never starts or recreates a service.

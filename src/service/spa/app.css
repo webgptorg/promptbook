@@ -756,3 +756,20 @@ details summary {
 .task-card.waiting {
     border-left-color: var(--warning);
 }
+
+/* A final reply's interim progress, collapsed into Thinking (expandable). */
+.thinking {
+    margin: 4px 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.thinking .text {
+    white-space: pre-wrap;
+    margin: 4px 0 0 12px;
+}
+
+.message.progress .text,
+.message.live .text {
+    color: var(--muted);
+}

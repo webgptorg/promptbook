@@ -1,4 +1,6 @@
 import { errorMessage } from '../common/errors.js';
+import { formatDuration } from '../common/duration.js';
+import { collapseThinking } from '../chats/chat-book.js';
 import type { ChatAgentChoice, ChatDetail } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
 import { fit, truncate, wrap } from './ansi.js';
@@ -98,6 +100,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     let scroll = 0;
     let busy = '';
     let notice = '';
+    /** Whether collapsed Thinking (a reply's interim progress) is shown in full. */
+    let showThinking = false;
     let closed = false;
     let finish: (() => void) | undefined;
     const done = new Promise<void>((resolve) => {
@@ -148,17 +152,32 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             style,
         });
         const keys = input.keys().map((key) => key.replace(/^Enter submit$/, 'Enter send').replace(/^Esc cancel$/, options.embedded ? 'Esc back' : 'Ctrl+C close (the service keeps running)'));
-        const legend = style.muted(fit(`  ${[...keys, 'PgUp/PgDn scroll', ...(question?.choices?.length ? ['1-9 answer'] : [])].join(' · ')}${notice ? `   ${marks.arrow} ${notice}` : ''}`, width));
+        const legend = style.muted(fit(`  ${[...keys, 'PgUp/PgDn scroll', ...(question?.choices?.length ? ['1-9 answer'] : []), ...(detail?.messages.some((message) => message.phase === 'progress') ? [`Ctrl+R ${showThinking ? 'hide' : 'show'} thinking`] : [])].join(' · ')}${notice ? `   ${marks.arrow} ${notice}` : ''}`, width));
         const available = Math.max(3, height - top.length - composer.length - 1);
         const body: string[] = [];
-        for (const message of detail?.messages ?? []) {
+        for (const item of collapseThinking(detail?.messages ?? [])) {
+            // A final reply's interim progress is one Thinking line (Ctrl+R expands it); the Book keeps it all.
+            if (item.kind === 'thinking') {
+                body.push(style.muted(`${item.sender} · Thinking${item.elapsedMs !== undefined ? ` · ${formatDuration(item.elapsedMs)}` : ''}${showThinking ? '' : '  (Ctrl+R shows it)'}`));
+                if (showThinking) for (const message of item.messages) for (const line of wrap(message.text, width - 6)) body.push(style.muted(`    ${line}`));
+                continue;
+            }
+            const message = item.message;
             const user = message.sender.replace(/^@/, '').toLowerCase() === 'user';
-            body.push(`${user ? style.accent(style.bold('You')) : style.bold(message.sender)} ${style.muted(message.at)}`);
-            for (const line of wrap(message.text, width - 4)) body.push(`  ${line}`);
+            body.push(`${user ? style.accent(style.bold('You')) : style.bold(message.sender)} ${style.muted(`${message.at}${message.phase === 'progress' ? ' · working…' : ''}`)}`);
+            for (const line of wrap(message.text, width - 4)) body.push(`  ${message.phase === 'progress' ? style.muted(line) : line}`);
             if (message.choices?.length) body.push(`  ${style.muted(`offered: ${message.choices.join(' | ')}`)}`);
             body.push('');
         }
-        if (detail && detail.messages[detail.messages.length - 1]?.sender.replace(/^@/, '').toLowerCase() === 'user' && detail.summary.status === 'open') {
+        // The reply being written now: available progress and streamed text, the same in every client.
+        const live = detail?.live;
+        if (live) {
+            body.push(`${style.bold(live.sender)} ${style.muted(`is replying · ${formatDuration(Date.now() - Date.parse(live.startedAt))}`)}`);
+            for (const line of live.activity.slice(-4)) body.push(style.muted(`  ${truncate(line, width - 6)}`));
+            if (live.text) for (const line of wrap(live.text, width - 4)) body.push(`  ${line}`);
+            body.push('');
+        }
+        if (!live && detail && detail.messages[detail.messages.length - 1]?.sender.replace(/^@/, '').toLowerCase() === 'user' && detail.summary.status === 'open') {
             body.push(style.muted(source.replies ? `${marks.wait} Waiting for ${detail.summary.agent ?? 'the agent'}'s reply…` : `${marks.wait} The reply is written when the project's service runs (\`ptbk start\`).`));
         }
         scroll = Math.max(0, Math.min(scroll, Math.max(0, body.length - available)));
@@ -174,6 +193,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         try {
             const next = await source.get(name);
             const changed = !detail || next.messages.length !== detail.messages.length || next.summary.status !== detail.summary.status;
+            // Live progress redraws every refresh (it changes without new messages).
             detail = next;
             if (changed) await source.read(name).catch(() => undefined);
         } catch (error) {
@@ -219,6 +239,10 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
 
     const onKey = (event: KeyEvent): void => {
         if (event.type === 'key' && event.name === 'c' && event.ctrl) return close();
+        if (event.type === 'key' && event.name === 'r' && event.ctrl) {
+            showThinking = !showThinking;
+            return draw();
+        }
         if (event.type === 'key' && event.name === 'escape' && options.embedded && !input.attaching) return close();
         if (event.type === 'key' && event.name === 'pageup') {
             scroll += Math.max(1, terminal.rows() - 12);

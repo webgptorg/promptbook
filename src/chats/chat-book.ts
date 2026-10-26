@@ -152,6 +152,22 @@ export function appendChatMessage(source: string, message: Pick<ChatMessage, 'se
 }
 
 /**
+ * Re-renders one existing message (by its position among the messages) in place: a reply's progress stays one
+ * durable message that grows, instead of a new message per update. Everything else stays byte-for-byte intact.
+ *
+ * @private chats
+ */
+export function replaceChatMessage(source: string, index: number, message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'>): string {
+    const document = parseBook(source);
+    const target = commitmentsOf(document, 'CHAT MESSAGE')[index];
+    if (!target) throw new Error(`No message ${index + 1} to replace.`);
+    const lines = source.split('\n');
+    const rendered = renderChatMessage(message);
+    if (target.endLine >= lines.length) return `${lines.slice(0, target.startLine).join('\n')}${target.startLine ? '\n' : ''}${rendered.join('\n')}\n`;
+    return [...lines.slice(0, target.startLine), ...rendered, ...lines.slice(target.endLine)].join('\n');
+}
+
+/**
  * Appends single-line commitments (a joining `CHAT MEMBER`, a `LINK`, a new `CHAT TITLE`) at their chronological
  * position, after everything so far, without touching earlier content.
  *
@@ -301,4 +317,52 @@ export function isHumanFacing(chat: Pick<ChatBook, 'members'>): boolean {
  */
 export function memberReference(name: string): string {
     return formatAgentReference(name);
+}
+
+/**
+ * One item of a presented conversation: a message, or the interim progress of a turn that a final reply closed,
+ * collapsed into Thinking with the real elapsed time (the complete messages stay in the Book and can be expanded).
+ *
+ * @private chats
+ */
+export type ThreadItem =
+    | { readonly kind: 'message'; readonly message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'> }
+    | { readonly kind: 'thinking'; readonly sender: string; readonly elapsedMs?: number; readonly messages: ReadonlyArray<Pick<ChatMessage, 'sender' | 'at' | 'text' | 'phase'>> };
+
+/**
+ * Collapses each final reply's preceding progress messages (same sender, since its previous ordinary message) into one
+ * Thinking item placed where the progress began. Progress without a final reply (in progress or unfinished) stays as
+ * it is. No message count is shown; the elapsed time is measured from the first progress to the final reply.
+ *
+ * @private chats
+ */
+export function collapseThinking(messages: ReadonlyArray<Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'>>): ThreadItem[] {
+    const key = (sender: string): string => parseReferenceValue(sender)?.normalized ?? normalizeAgentName(sender);
+    const groups = new Map<number, number[]>();
+    const collapsed = new Set<number>();
+    messages.forEach((message, index) => {
+        if (message.phase !== 'final') return;
+        const members: number[] = [];
+        for (let previous = index - 1; previous >= 0; previous--) {
+            const candidate = messages[previous]!;
+            if (key(candidate.sender) !== key(message.sender)) continue;
+            if (candidate.phase !== 'progress') break;
+            members.unshift(previous);
+        }
+        if (!members.length) return;
+        groups.set(members[0]!, members);
+        for (const member of members) collapsed.add(member);
+    });
+    const items: ThreadItem[] = [];
+    messages.forEach((message, index) => {
+        const group = groups.get(index);
+        if (group) {
+            const final = messages.slice(group[group.length - 1]! + 1).find((candidate) => candidate.phase === 'final' && key(candidate.sender) === key(message.sender));
+            const elapsed = final ? Date.parse(final.at) - Date.parse(message.at) : NaN;
+            items.push({ kind: 'thinking', sender: message.sender, ...(Number.isFinite(elapsed) && elapsed >= 0 ? { elapsedMs: elapsed } : {}), messages: group.map((member) => messages[member]!) });
+            return;
+        }
+        if (!collapsed.has(index)) items.push({ kind: 'message', message });
+    });
+    return items;
 }

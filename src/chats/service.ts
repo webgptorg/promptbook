@@ -7,6 +7,7 @@ import { CHATTER_NAME } from '../project/defaults.js';
 import type { ActiveRecord, StateStore } from '../engine/state.js';
 import { isHumanFacing } from './chat-book.js';
 import { routeUserMessage, type ChatTaskCard } from './chat-tasks.js';
+import type { LiveReply } from './conversation.js';
 import type { ChatStore, ChatSummary, ChatWrite } from './store.js';
 
 /**
@@ -37,6 +38,8 @@ export type ChatDetail = {
     readonly summary: ChatSummary;
     /** Live cards of the tasks this chat created or links (from the engine's own task state). */
     readonly tasks?: readonly ChatTaskCard[];
+    /** The reply being written now: available progress and streamed text (the same for every client). */
+    readonly live?: LiveReply;
     readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final' }>;
 };
 

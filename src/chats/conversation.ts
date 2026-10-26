@@ -10,6 +10,7 @@ import { setting, type EffectiveSettings } from '../project/config.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
 import type { Project } from '../project/workspace.js';
 import { runHarness } from '../harness/run.js';
+import type { HarnessEvent } from '../harness/types.js';
 import { ToolBridge, type BridgeTool } from '../engine/bridge.js';
 import { instanceEnvironment, type HarnessPool } from '../engine/harnesses.js';
 import { renderAgentInstructions } from '../engine/prompt.js';
@@ -63,6 +64,8 @@ export type ConversationContext = {
     readonly scheduleLearning?: (input: { readonly chat: string; readonly agent: string; readonly note: string }) => Promise<string | undefined>;
     /** The established execution of a task whose agent asked in this chat (its question needs no new routing). */
     readonly establishedExecution?: (chat: string) => Promise<RoutingSelection | undefined>;
+    /** Live progress of a reply being written (undefined once it ended), shared with every client of the chat. */
+    readonly onLive?: (chat: string, live: LiveReply | undefined) => void;
     readonly onActivity?: (text: string) => void;
 };
 
@@ -350,6 +353,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const promptFile = join(directory, `chat-${shortId()}.md`);
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} is replying in {${chat.name}}`);
+    const progress = new ReplyProgress(context, chat.name, formatAgentReference(agent.name));
     let result;
     try {
         result = await runHarness(
@@ -370,21 +374,142 @@ export async function replyInChat(context: ConversationContext, chatName: string
                 model: route.selection.model,
                 thinkingLevel: route.selection.thinkingLevel,
                 baseUrl: route.selection.baseUrl,
+                onEvent: (event) => progress.event(event),
             },
             inspection.executablePath ?? plugin.executable,
         );
+    } catch (error) {
+        await progress.unfinished(errorMessage(error));
+        throw error;
     } finally {
         await bridge?.close();
         await rm(promptFile, { force: true });
     }
-    if (result.outcome !== 'completed' || !result.finalMessage.trim()) return { createdTasks: created, error: result.outcome === 'completed' ? `${agent.name} gave no reply.` : result.diagnostic };
+    if (result.outcome !== 'completed' || !result.finalMessage.trim()) {
+        const error = result.outcome === 'completed' ? `${agent.name} gave no reply.` : result.diagnostic;
+        // An interrupted reply stays visible as explicitly unfinished (its progress is never presented as an answer).
+        await progress.unfinished(error);
+        return { createdTasks: created, error };
+    }
     const learning = LEARN_MARKER.exec(result.finalMessage)?.[1]?.trim();
     const title = TITLE_MARKER.exec(result.finalMessage)?.[1]?.trim();
     const text = result.finalMessage.replace(LEARN_MARKER, '').replace(TITLE_MARKER, '').replace(/^PTBK_RESULT .*$/m, '').trim();
-    let reply = await context.chats.append(chat.name, { sender: formatAgentReference(agent.name), text: text || '(no reply text)' }, { trailers: created.length ? { 'Task-Name': created } : undefined });
+    // The final reply closes the turn's progress (clients collapse it into Thinking with the real elapsed time).
+    const phase = await progress.finish();
+    let reply = await context.chats.append(chat.name, { sender: formatAgentReference(agent.name), text: text || '(no reply text)', ...(phase ? { phase } : {}) }, { trailers: created.length ? { 'Task-Name': created } : undefined });
+    context.onLive?.(chat.name, undefined);
     if (title) reply = await context.chats.annotate(chat.name, { title }).catch(() => reply);
     if (learning && agent.learning.open && agent.definition && parseReferenceValue(agentReference)?.normalized !== 'teacher' && setting<boolean>(context.settings, 'learning.isEnabled')) {
         await context.scheduleLearning?.({ chat: chat.name, agent: agent.name, note: learning }).catch(() => undefined);
     }
     return { reply, createdTasks: created, learning, consultations, seen: chat.messages.length };
+}
+
+/**
+ * The live state of a reply being written: available progress (tool use, reasoning summaries) and the text streamed so
+ * far. It is shown to every client of the chat; the durable record is the turn's `progress` message.
+ *
+ * @private chats
+ */
+export type LiveReply = {
+    readonly sender: string;
+    /** When the turn started (ISO). */
+    readonly startedAt: string;
+    /** Latest progress lines (bounded). */
+    readonly activity: readonly string[];
+    /** The reply text streamed so far, where the harness streams it. */
+    readonly text?: string;
+};
+
+/**
+ * First durable save of a reply's progress (quick replies need none and show no Thinking).
+ */
+const PROGRESS_FIRST_SAVE_MS = 2_000;
+
+/**
+ * Interval between durable saves of a reply's progress.
+ */
+const PROGRESS_SAVE_MS = 5_000;
+
+/**
+ * Progress lines kept in the durable progress message.
+ */
+const PROGRESS_LINES = 40;
+
+/**
+ * Streams one reply's progress: every harness event updates the live view at once, and the turn's single `progress`
+ * message in the Book is saved at a bounded rate (first after a short delay, so quick replies stay one message). The
+ * final reply is then marked `final`; an interrupted turn keeps its progress marked unfinished.
+ */
+class ReplyProgress {
+    private readonly startedAt = Date.now();
+    private readonly at: string;
+    private readonly lines: string[] = [];
+    private text = '';
+    private saved = false;
+    private dirty = false;
+    private timer?: NodeJS.Timeout;
+    private writing: Promise<void> = Promise.resolve();
+
+    public constructor(
+        private readonly context: ConversationContext,
+        private readonly chat: string,
+        private readonly sender: string,
+    ) {
+        this.at = context.chats.now();
+    }
+
+    /** Takes one harness event. */
+    public event(event: HarnessEvent): void {
+        if (event.type === 'activity') this.lines.push(event.text.replace(/\s+/g, ' ').slice(0, 200));
+        else if (event.type === 'reasoning') this.lines.push(`thinking: ${event.text.replace(/\s+/g, ' ').slice(0, 300)}`);
+        else if (event.type === 'partial') this.text = event.text;
+        else return;
+        if (this.lines.length > PROGRESS_LINES) this.lines.splice(0, this.lines.length - PROGRESS_LINES);
+        this.dirty = true;
+        this.context.onLive?.(this.chat, { sender: this.sender, startedAt: new Date(this.startedAt).toISOString(), activity: this.lines.slice(-8), ...(this.text ? { text: this.text } : {}) });
+        this.schedule();
+    }
+
+    /** Arms the next durable save. */
+    private schedule(): void {
+        if (this.timer) return;
+        const delay = this.saved ? PROGRESS_SAVE_MS : Math.max(0, this.startedAt + PROGRESS_FIRST_SAVE_MS - Date.now());
+        this.timer = setTimeout(() => {
+            this.timer = undefined;
+            this.writing = this.writing.then(async () => await this.save());
+        }, delay);
+        this.timer.unref?.();
+    }
+
+    /** The durable progress text. */
+    private render(note?: string): string {
+        return [...this.lines.map((line) => `- ${line}`), ...(this.text ? ['', this.text] : []), ...(note ? ['', note] : [])].join('\n') || '(working)';
+    }
+
+    /** Saves the progress message (in place after the first save). */
+    private async save(note?: string): Promise<void> {
+        if (!this.dirty && !note) return;
+        this.dirty = false;
+        await this.context.chats.upsertProgress(this.chat, { sender: this.sender, at: this.at, text: this.render(note) }).catch(() => undefined);
+        this.saved = true;
+    }
+
+    /** Ends the turn: saves the complete progress when any was saved, and says whether the final reply closes it. */
+    public async finish(): Promise<'final' | undefined> {
+        clearTimeout(this.timer);
+        this.timer = undefined;
+        await this.writing;
+        if (this.saved) await this.save();
+        return this.saved ? 'final' : undefined;
+    }
+
+    /** Ends an interrupted or failed turn: its progress stays, explicitly marked unfinished. */
+    public async unfinished(reason: string): Promise<void> {
+        clearTimeout(this.timer);
+        this.timer = undefined;
+        await this.writing;
+        if (this.saved || this.text || this.lines.length) await this.save(`(unfinished reply: ${reason})`);
+        this.context.onLive?.(this.chat, undefined);
+    }
 }

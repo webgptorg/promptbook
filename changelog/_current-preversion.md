@@ -1,5 +1,11 @@
 # Unreleased
 
+## Live chat replies and Thinking
+
+-   While an agent writes a chat reply, the progress its harness exposes (commands and tools it uses, reasoning summaries, and the reply text where the harness streams it, e.g. Gemini/Qwen deltas) is shown live in every client of the chat (terminal chat view, browser thread, `GET /api/chats/<name>` `live`; snapshots list replying chats in `chats.replying`). The composer stays usable: messages written meanwhile are saved and answered by a follow-up turn.
+-   The turn's progress is also saved durably as **one** `CHAT MESSAGE … progress` message, updated in place at most every few seconds (first after 2 seconds, so quick replies stay a single message), and the reply that ends such a turn is marked `final`. An interrupted or failed turn keeps its progress, explicitly marked as an unfinished reply.
+-   After the final reply, clients collapse the turn's progress into **Thinking** with the real elapsed time, without a message count; Ctrl+R in the terminal chat (or the expandable Thinking line in the browser) shows it. The Book keeps the complete conversation.
+
 ## Chats coordinate tasks: links, questions and results in the source chat
 
 -   A task created from a chat (`create_task`) is linked both ways with final names: the task gets `TASK ORIGIN Chat {chat name}` and `LINK {chat name}`, and the chat gets `LINK {task name}` (saved with its batch). The chat agent is told that chat coordinates and tasks execute: substantial work becomes a task promptly instead of being done or simulated in the conversation, and the chat does not wait for it.

@@ -12,7 +12,7 @@ import { generatedName } from '../tasks/identity.js';
 import { formatModelRow, type ModelRow } from '../book/model.js';
 import { MAX_ATTACHMENT_BYTES, materializeAttachments } from '../ui/attachments.js';
 import type { ComposedSegment } from '../ui/composer.js';
-import { appendChatCommitments, appendChatMessage, appendChatModel, chatAgent, chatDisplayTitle, hasMember, isHumanFacing, parseChatBook, renderChatBook, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
+import { appendChatCommitments, appendChatMessage, appendChatModel, chatAgent, chatDisplayTitle, hasMember, isHumanFacing, parseChatBook, renderChatBook, replaceChatMessage, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
 
 /**
  * How chat operations are versioned: saved to the Book at once, then committed in a bounded batch (`schedule`) or as
@@ -210,7 +210,7 @@ export class ChatStore {
      */
     public async append(
         name: string,
-        message: Pick<ChatMessage, 'sender' | 'text' | 'choices'>,
+        message: Pick<ChatMessage, 'sender' | 'text' | 'choices' | 'phase'>,
         options: { readonly status?: ChatStatus; readonly expectedMessages?: number; readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>>; readonly segments?: readonly ComposedSegment[] } = {},
     ): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
@@ -281,6 +281,28 @@ export class ChatStore {
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
             const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers) : { persistence: 'uncommitted' as const };
+            return { ...stored, chat, ...persisted };
+        });
+    }
+
+    /**
+     * Saves the progress of a reply in progress: the turn's one `progress` message (identified by its sender and turn
+     * timestamp) is updated in place, or appended when it does not exist yet. Returns its position.
+     */
+    public async upsertProgress(name: string, message: Pick<ChatMessage, 'sender' | 'at' | 'text'>): Promise<ChatWrite> {
+        return await this.mutex.run(async () => {
+            const stored = await this.find(name);
+            if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found' });
+            const source = await readFile(stored.path, 'utf8');
+            const key = parseReferenceValue(message.sender)?.normalized ?? normalizeAgentName(message.sender);
+            let index = -1;
+            stored.chat.messages.forEach((existing, position) => {
+                if (existing.phase === 'progress' && existing.senderKey === key && existing.at === message.at) index = position;
+            });
+            const updated = index >= 0 ? replaceChatMessage(source, index, { ...message, phase: 'progress' }) : appendChatMessage(source, { ...message, phase: 'progress' });
+            await writeFile(stored.path, updated);
+            const chat = parseChatBook(updated);
+            const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name) : { persistence: 'uncommitted' as const };
             return { ...stored, chat, ...persisted };
         });
     }

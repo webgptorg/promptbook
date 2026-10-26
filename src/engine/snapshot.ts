@@ -194,6 +194,8 @@ export type ChatsView = {
     readonly unread: number;
     /** All chats. */
     readonly total: number;
+    /** Chats whose agent is writing a reply now (their live progress is in the chat detail). */
+    readonly replying?: readonly string[];
     /** Recently active chats (bounded). */
     readonly recent: readonly ChatView[];
 };

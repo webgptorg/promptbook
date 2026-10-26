@@ -20,7 +20,8 @@
  * Router turns (`## Assignment work`, tasks and chat routing) choose the first listed agent's example combination
  * (ROUTE_IMPOSSIBLE in the target reports no compatible combination). Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
- * containing CORRECTION adds a `PTBK_LEARN` note. Consultation turns (`# Consultation`) answer read-only.
+ * containing CORRECTION adds a `PTBK_LEARN` note and one containing SLOW_REPLY reports a command and a reasoning summary,
+ * then works for $FAKE_CODEX_SLOW_MS before its reply. Consultation turns (`# Consultation`) answer read-only.
  * Every executed turn is appended to $FAKE_CODEX_LOG (one JSON line) when set.
  */
 import { spawn } from 'node:child_process';
@@ -166,6 +167,12 @@ async function main() {
             text += `\nDeveloper advises: ${advice}`;
         }
         if (last.includes('CORRECTION')) text += '\nPTBK_LEARN Prefer short answers in this project.';
+        if (last.includes('SLOW_REPLY')) {
+            // Progress the CLI exposes while it works: a command and a reasoning summary.
+            print({ type: 'item.started', item: { id: 'item_cmd', type: 'command_execution', command: 'ls docs' } });
+            print({ type: 'item.completed', item: { id: 'item_reason', type: 'reasoning', text: 'Checking the documentation first.' } });
+            await new Promise((resolve) => setTimeout(resolve, Number(process.env.FAKE_CODEX_SLOW_MS ?? 6000)));
+        }
         message(text);
     } else if (prompt.includes('## Assignment work')) {
         // Router: the first listed agent with an example combination (plugin defaults within its MODEL), or impossible.

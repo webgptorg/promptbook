@@ -201,3 +201,41 @@ test('browser profile sources: the managed global profile is the default; isolat
     assert.equal(browserProfileDirectory(project, tool('CUSTOM', 'profiles/shared'), env), resolve('/work/site', 'profiles', 'shared'));
     assert.notEqual(browserProfileDirectory(project, tool('USER_EXISTING'), env), browserProfileDirectory(project, tool('MANAGED_GLOBAL'), env), "the managed profile is never the user's Chrome profile");
 });
+
+test('live replies: progress streams to every client, input is accepted meanwhile, and the final reply closes the turn into Thinking', async (t) => {
+    const { project, env: baseEnv } = await initializedProject(t, { check: CHECK });
+    const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '6000' };
+    assert.equal((await ptbk(['start', '--no-tunnel', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const token = /\n(ptbk_[A-Za-z0-9_-]+)\n/.exec((await ptbk(['access', 'token', 'chats', '--raw'], { cwd: project, env })).stdout)[1];
+    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
+    const call = async (path, body) => {
+        const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+        return { status: response.status, data: await response.json() };
+    };
+    const created = await call('api/chats', { agent: '@Developer', text: 'Look at the docs SLOW_REPLY' });
+    assert.equal(created.status, 200, JSON.stringify(created.data));
+    const path = `api/chats/${encodeURIComponent(created.data.name)}`;
+    const live = await waitFor(async () => (await call(path)).data.live, { timeoutMs: 60_000, message: 'live progress of the reply' });
+    assert.equal(live.sender, '@Developer');
+    assert.ok(live.activity.some((line) => line.includes('ls docs')), JSON.stringify(live));
+    assert.ok(live.activity.some((line) => line.includes('Checking the documentation first')), 'reasoning summaries the harness exposes are shown');
+    assert.ok(JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).chats.replying.includes(created.data.name), 'snapshots say which chats are replying');
+    // The durable record of the progress is one message of the turn, saved while it works.
+    await waitFor(async () => (await chats(project)).find((item) => item.chat.name === created.data.name)?.chat.messages.some((message) => message.phase === 'progress'), { timeoutMs: 30_000, message: 'the saved progress message' });
+    const during = await call(`${path}/messages`, { text: 'Also check the changelog.' });
+    assert.equal(during.status, 200, 'input is accepted while the agent replies');
+    const done = await waitFor(async () => {
+        const detail = (await call(path)).data;
+        return detail.messages.filter((message) => message.sender === '@Developer' && !message.phase).length >= 1 && !detail.live ? detail : undefined;
+    }, { timeoutMs: 60_000, message: 'the final reply and the answer to the follow-up' });
+    const developer = done.messages.filter((message) => message.sender === '@Developer');
+    assert.deepEqual(developer.slice(0, 2).map((message) => message.phase), ['progress', 'final'], JSON.stringify(done.messages, null, 1));
+    assert.equal(done.messages.filter((message) => message.phase === 'progress').length, 1, 'one progress message per turn, not one per update');
+    assert.match(developer.at(-1).text, /Fixture reply to: Also check the changelog\./, 'the message written during the reply got its own answer');
+    const { collapseThinking } = await import('../dist/chats/chat-book.js');
+    const items = collapseThinking(done.messages);
+    const thinking = items.find((item) => item.kind === 'thinking');
+    assert.ok(thinking && thinking.elapsedMs >= 0, 'the progress collapses into Thinking with its elapsed time');
+    assert.ok(!items.some((item) => item.kind === 'message' && item.message.phase === 'progress'), 'nothing of the closed turn stays expanded');
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+});

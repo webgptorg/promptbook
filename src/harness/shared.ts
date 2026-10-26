@@ -216,8 +216,10 @@ export function parseStreamJson(line: string, state: ParserState): HarnessEvent[
         if (texts.length) events.push({ type: 'message', text: texts.join('\n') });
     } else if (type === 'message') {
         if (event.role === 'assistant' && typeof event.content === 'string') {
-            if (event.delta) state.pendingText += event.content;
-            else events.push({ type: 'message', text: event.content });
+            if (event.delta) {
+                state.pendingText += event.content;
+                events.push({ type: 'partial', text: state.pendingText });
+            } else events.push({ type: 'message', text: event.content });
         }
     } else if (type === 'tool_use') {
         if (state.pendingText) {
