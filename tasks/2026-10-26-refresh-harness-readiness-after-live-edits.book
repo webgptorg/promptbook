@@ -8,4 +8,5 @@ Use a coherent invalidation policy for effective endpoint, credential and readin
 
 Acceptance: focused fixtures reproduce endpoint changes and equal-length credential rotation through ordinary refresh, with truthful readiness and selection for new work; a replaced rejected credential can recover promptly while an unchanged rejected credential retains bounded backoff; quota recovery and same-variant fallback remain correct; acquired uses and secret redaction remain intact. Exercise the shared running-engine refresh path as well as HarnessPool directly. Record changes in changelog/_current-preversion.md, run npm run check and report exact evidence. Do not commit or mark this task done.
 TASK AGENT @Developer
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 LINK {Audit current specifications and close verified implementation gaps — 2026-10-25 17:18:34}

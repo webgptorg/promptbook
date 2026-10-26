@@ -1,0 +1,7 @@
+TASK Assign routing: Refresh harness readiness after live endpoint and credential edits - 2026-10-26 22:46:07 — 2026-10-26 23:37:07
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Refresh harness readiness after live endpoint and credential edits - 2026-10-26 22:46:07}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PARENT {Refresh harness readiness after live endpoint and credential edits - 2026-10-26 22:46:07}
+TASK ORIGIN assignment for {Refresh harness readiness after live endpoint and credential edits - 2026-10-26 22:46:07}
+TASK DONE 2026-10-26T23:37:29+01:00
