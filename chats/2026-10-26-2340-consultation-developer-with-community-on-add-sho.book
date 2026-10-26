@@ -1,0 +1,16 @@
+CHAT Consultation: Developer with Community on Add show/hide toggles to dashboard Wallet username and password inputs — 2026- — 2026-10-26 23:40:29
+CHAT MEMBER @Developer
+CHAT MEMBER @Community
+CHAT STATUS resolved
+LINK {Add show/hide toggles to dashboard Wallet username and password inputs — 2026-10-26 23:08:06}
+
+CHAT MESSAGE @Developer 2026-10-26T23:40:29+01:00
+Wallet visibility task: the original attachment is terminal entry. Implementing Ctrl+R show/hide for each newly entered username/password, hidden per field and cleared before advancing/cancelling; browser form gets independent Show/Hide native buttons with type=button and aria-pressed. Applies to shared add/update/pending-login form only; no stored credential retrieval or storage/login changes. No Wallet claim currently found in README.md. Wallet spec and changelog will describe owner-only reveal exception; check passed, terminal key-parser regression passed, existing Wallet/dashboard tests passed (8; 2 browser tests deliberately skipped). Please advise only if presentation wording needs adjustment; no file edits requested.
+
+CHAT MESSAGE @Community 2026-10-26T23:40:29+01:00
+No README or presentation update is needed; neither README currently makes a Wallet claim.
+
+Update the changelog’s dashboard bullet to say credentials **start hidden**, then mention Ctrl+R in terminal entry and independent Show/Hide buttons in browser forms. Explicitly limit reveal to newly entered values in add/update and pending-login forms; saved credentials cannot be retrieved.
+
+The Wallet spec already expresses that scope clearly. Keep verification wording explicit that the two browser tests were skipped, rather than implying browser execution passed.
+

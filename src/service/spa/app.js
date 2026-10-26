@@ -1394,11 +1394,26 @@
         return dialog;
     }
 
-    /** Protected entry of a website login: the password is write-only and cleared from the form once sent. */
+    /** A concealed owner-entry field with a native keyboard-accessible visibility button; never loads saved values. */
+    function walletCredentialField(label, input) {
+        const button = h('button', {
+            type: 'button',
+            'aria-pressed': 'false',
+            onclick: () => {
+                const isRevealed = input.type === 'password';
+                input.type = isRevealed ? 'text' : 'password';
+                button.textContent = `${isRevealed ? 'Hide' : 'Show'} ${label.toLowerCase()}`;
+                button.setAttribute('aria-pressed', String(isRevealed));
+            },
+        }, `Show ${label.toLowerCase()}`);
+        return h('div', { className: 'field' }, h('label', {}, h('span', {}, label), input), button);
+    }
+
+    /** Protected entry of a website login: owner reveal applies only to new input, cleared once sent. */
     function walletLoginDialog(initial) {
         const field = (label, input) => h('label', { className: 'field' }, h('span', {}, label), input);
         const origin = h('input', { type: 'text', value: initial.origin || '', autocomplete: 'off', placeholder: 'https://example.com', required: true });
-        const username = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', required: true });
+        const username = h('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', required: true });
         const password = h('input', { type: 'password', autocomplete: 'new-password', required: true });
         const label = h('input', { type: 'text', value: initial.label || '', autocomplete: 'off', placeholder: 'optional, e.g. Work account' });
         let dialog;
@@ -1416,10 +1431,10 @@
                     if (result) dialog.close();
                 },
             },
-            h('p', { className: 'muted' }, 'The password is encrypted at once and never shown again; agents never receive it.'),
+            h('p', { className: 'muted' }, 'Credentials start hidden. Show or hide each field while entering it; saved passwords cannot be revealed. Agents never receive them.'),
             field('Website', origin),
-            field('Username or email', username),
-            field('Password', password),
+            walletCredentialField('Username or email', username),
+            walletCredentialField('Password', password),
             field('Label (shown instead of the username)', label),
             h('div', { className: 'row' }, h('button', { type: 'submit', className: 'primary' }, 'Save login'), h('button', { type: 'button', onclick: () => ((password.value = ''), dialog.close()) }, 'Cancel')),
         );
