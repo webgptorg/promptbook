@@ -29,4 +29,7 @@ Is it fixed?
 
 CHAT MESSAGE @Chatter 2026-10-27T20:32:05+01:00 progress
 - $ /bin/zsh -lc 'cat AGENTS.md specs/_main.md specs/dictionary.md; git log -6 --oneline; git status --short'
+- $ /bin/zsh -lc "rg --files -g '*publishing*' -g '*publish*' -g '*restore*' -g '*Restore*' tasks .ptbk 2>/dev/null; rg -n 'Restore and verify the ptbk publishing w
+- $ /bin/zsh -lc 'cat tasks/2026-10-27-1945-restore-and-verify-the-ptbk-publishing-workflow.book .ptbk/state/parked/restoreandverifytheptbkpublishingworkflow2026102
+- $ /bin/zsh -lc 'tail -45 traces/2026-10-27-1945-restore-and-verify-the-ptbk-publishing-workflow/harness.log; cat .ptbk/wallet/actions.json'
 
