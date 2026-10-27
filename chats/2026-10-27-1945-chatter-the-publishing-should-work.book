@@ -11,3 +11,8 @@ https://github.com/webgptorg/promptbook/actions/workflows/publish.yml
 
 MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
 
+CHAT MESSAGE @Chatter 2026-10-27T19:45:34+01:00 progress
+- $ /bin/zsh -lc 'cat AGENTS.md specs/_main.md specs/dictionary.md'
+- $ /bin/zsh -lc "cat .github/workflows/publish.yml; rg --files prompts | rg '2026-10-27-1945-chatter'"
+- command exited with 1
+
