@@ -9,3 +9,5 @@ The publishing should work
 https://github.com/webgptorg/promptbook/actions/workflows/publish.yml
 ![Image 1](_assets/2026-10-27-1945-chatter-the-publishing-should-work/1/image-1.png)
 
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
+
