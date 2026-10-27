@@ -33,3 +33,8 @@ CHAT MESSAGE @Chatter 2026-10-27T20:32:05+01:00 progress
 - $ /bin/zsh -lc 'cat tasks/2026-10-27-1945-restore-and-verify-the-ptbk-publishing-workflow.book .ptbk/state/parked/restoreandverifytheptbkpublishingworkflow2026102
 - $ /bin/zsh -lc 'tail -45 traces/2026-10-27-1945-restore-and-verify-the-ptbk-publishing-workflow/harness.log; cat .ptbk/wallet/actions.json'
 
+CHAT MESSAGE @Chatter 2026-10-27T20:32:26+01:00 final
+Not yet. @Developer found that validation and npm publication passed, but the Windows installer job failed.
+
+The task is waiting for the protected GitHub login request in Wallet so it can inspect the failure logs. No fix has been applied yet.
+
