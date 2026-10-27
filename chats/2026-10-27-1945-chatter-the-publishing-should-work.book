@@ -15,4 +15,12 @@ CHAT MESSAGE @Chatter 2026-10-27T19:45:34+01:00 progress
 - $ /bin/zsh -lc 'cat AGENTS.md specs/_main.md specs/dictionary.md'
 - $ /bin/zsh -lc "cat .github/workflows/publish.yml; rg --files prompts | rg '2026-10-27-1945-chatter'"
 - command exited with 1
+- ptbk.create_task Original owner brief: “The publishing should work” with https://github.com/webgptorg/promptbook/actions/workflows/publis
 
+LINK {Restore and verify the ptbk publishing workflow — 2026-10-27 19:45:48}
+CHAT MESSAGE @Chatter 2026-10-27T19:45:54+01:00 final
+Created a task for @Developer to investigate failed publishing runs, fix the cause, and verify the npm and Windows installer release flow.
+
+It’s queued for the agenda; no fix has been implemented yet.
+
+CHAT TITLE Fix publishing workflow
