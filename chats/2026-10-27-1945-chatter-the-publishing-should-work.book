@@ -27,3 +27,6 @@ CHAT TITLE Fix publishing workflow
 CHAT MESSAGE @User 2026-10-27T20:32:05+01:00
 Is it fixed?
 
+CHAT MESSAGE @Chatter 2026-10-27T20:32:05+01:00 progress
+- $ /bin/zsh -lc 'cat AGENTS.md specs/_main.md specs/dictionary.md; git log -6 --oneline; git status --short'
+
