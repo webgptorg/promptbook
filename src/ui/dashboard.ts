@@ -12,7 +12,7 @@ import { lifecycleActions } from './details.js';
 import { fitLegend, homeLayout, homeTiles, renderHome, renderPage, tileAttention, type HomeTile } from './dashboard-home.js';
 import { keepSelection, pageBody, pageForTile, pageItemKeys, taskOrder, teamOrder, toolsOf, walletItems, TEAM_SORT_FIELDS, type DashboardPage, type PageContext } from './dashboard-pages.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
-import { walletLoginForm, walletRestoreForm } from './wallet-forms.js';
+import { recoveryWordLines, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import { TitleAnimation, type DashboardTitleContext } from './terminal-title.js';
@@ -46,11 +46,6 @@ export type DashboardSource = {
     /** The invocation owns the service lifetime (foreground start / run). */
     readonly owning: boolean;
 };
-
-/**
- * Width of one column of the 12 words for recovery in the setup confirmation.
- */
-const RECOVERY_WORD_COLUMN = 18;
 
 /**
  * Formats a plain event line.
@@ -562,15 +557,11 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         const result = (await runWallet('wallet-setup')) as { words?: readonly string[] } | undefined;
         const words = result?.words;
         if (!words?.length) return;
-        const columns = [0, 4, 8].map((start) => words.slice(start, start + 4).map((word, index) => `${String(start + index + 1).padStart(2)}. ${word}`.padEnd(RECOVERY_WORD_COLUMN)));
         confirmThen(
             'Did you write down the 12 words for recovery?',
             async () => void (await runWallet('wallet-setup-confirm')),
             [
-                'Write these 12 words for recovery on paper, in order, and keep them safe.',
-                'With the project folder they restore its saved logins on another computer; they are shown only now.',
-                '',
-                ...[0, 1, 2, 3].map((row) => `   ${columns.map((column) => column[row] ?? '').join('')}`),
+                ...recoveryWordLines(words),
                 '',
                 style.muted('Y creates the Wallet (this computer then unlocks it automatically) · N discards these words.'),
             ],

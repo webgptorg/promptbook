@@ -93,7 +93,7 @@ begin
   RootPage := CreateInputDirPage(wpWelcome, 'Projects folder', 'Where should your Promptbook projects live?',
     'Promptbook keeps each project in its own folder inside this one. It is an ordinary folder, not a project itself.', False, '');
   RootPage.Add('');
-  RootPage.Values[0] := ExpandConstant('{%USERPROFILE}\Promptbook');
+  RootPage.Values[0] := ExpandConstant('{%USERPROFILE}\PTBK\project');
 
   ProjectPage := CreateInputQueryPage(RootPage.ID, 'First project', 'Create your first project',
     'An empty folder is created for it. The setup assistant (ptbk init) then asks what you are working on; the folder name is only a name.');

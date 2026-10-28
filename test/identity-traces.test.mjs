@@ -223,6 +223,9 @@ test('initial input: verbatim text and attachments with working relative links; 
     assert.match(content, /^GOAL Transform this project according to the initial specification/m, 'the assignment is under GOAL');
     assert.match(content, /\(\.\.\/specs\/_initial\.md\)/);
     assert.ok((await changedFiles(project)).includes('specs/_initial/image-1.png'), 'specification and assets are versioned with the task');
+    assert.match(content, /No sample roles were created for this agenda: create the specialist agents it actually needs/, 'the first task establishes relevant specialists');
+    await assert.rejects(readFile(join(project, 'agents', 'developer.book'), 'utf8'), 'a supplied intent keeps no irrelevant sample roles');
+    assert.match(await readFile(join(project, 'agents', '.core', 'chatter.book'), 'utf8'), /^AGENT Chatter$/m, 'every core role is still prepared');
 });
 
 test('a task waiting for the user is checkpointed so independent work continues; the answer resumes it', async (t) => {

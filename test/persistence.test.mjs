@@ -195,3 +195,16 @@ test('chat layering: a new chat is implicitly open; status transitions are appen
     assert.match(parseChatBook(`${source}CHAT STATUS sleeping\n`).diagnostics.map((diagnostic) => diagnostic.message).join('\n'), /CHAT STATUS must be/);
     assert.equal(parseChatBook(`${source}CHAT STATUS sleeping\n`).status, 'resolved', 'an invalid later value does not replace the last valid state');
 });
+
+test('user home: an ordinary launch uses its own home; the shared projects folder is exactly PTBK/project below it', async () => {
+    const { homedir } = await import('node:os');
+    const { intendedUser, sharedProjectsRoot, missingDirectories } = await import('../dist/common/user-home.js');
+    const user = intendedUser({ ...process.env, SUDO_USER: 'someone-else', SUDO_UID: '12345' });
+    if (typeof process.getuid === 'function' && process.getuid() === 0) return;
+    assert.equal(user.scope, 'direct', 'sudo variables without elevation never switch the account');
+    assert.equal(user.home, homedir());
+    assert.equal(sharedProjectsRoot(process.env), join(homedir(), 'PTBK', 'project'));
+    const root = join(homedir(), `.ptbk-missing-${process.pid}`);
+    assert.deepEqual(await missingDirectories(join(root, 'PTBK', 'project', 'demo')), [root, join(root, 'PTBK'), join(root, 'PTBK', 'project'), join(root, 'PTBK', 'project', 'demo')]);
+    assert.deepEqual(await missingDirectories(homedir()), [], 'nothing is created for an existing folder');
+});

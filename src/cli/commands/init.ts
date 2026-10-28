@@ -43,6 +43,10 @@ import {
 import { prepareCoreAgents } from '../../project/core-templates.js';
 import { canonicalPath, projectAt, type Project } from '../../project/workspace.js';
 import { HARNESS_PLUGINS, harnessPlugin } from '../../harness/registry.js';
+import { handOverCreated, intendedUser, missingDirectories, sharedProjectsRoot } from '../../common/user-home.js';
+import { kebabIdentifier } from '../../common/naming.js';
+import { WalletSubEngine } from '../../wallet/wallet.js';
+import { confirmRecoveryWords } from '../../ui/wallet-forms.js';
 import { checkHarnessVersion, installHarness, loginHarness, updateHarness } from '../../harness/maintenance.js';
 import type { HarnessInspection, HarnessPlugin } from '../../harness/types.js';
 import type { ServiceSnapshot } from '../../engine/snapshot.js';
@@ -112,7 +116,7 @@ function answered<T>(value: T | typeof CANCELLED): T {
 /**
  * User-facing wizard steps, in order.
  */
-type StepId = 'intent' | 'update' | 'destination' | 'installation' | 'harnesses' | 'browser' | 'traces' | 'sync' | 'finish';
+type StepId = 'intent' | 'update' | 'destination' | 'installation' | 'harnesses' | 'browser' | 'traces' | 'wallet' | 'sync' | 'finish';
 
 /**
  * Titles of the user-facing steps.
@@ -125,6 +129,7 @@ const STEP_TITLES: Readonly<Record<StepId, string>> = {
     harnesses: 'Harnesses',
     browser: 'Project browser',
     traces: 'Traces',
+    wallet: 'Wallet',
     sync: 'Automatic synchronization',
     finish: 'Set up and start',
 };
@@ -220,6 +225,56 @@ async function recordedPurpose(root: string): Promise<boolean> {
 }
 
 /**
+ * A sensible folder name for a new project in the shared projects folder: a few words of the intent, otherwise a
+ * generic name (folder naming is never the project's brief).
+ */
+function projectFolderName(segments: readonly ComposedSegment[] | undefined): string {
+    const text = (segments ?? []).flatMap((segment) => (segment.type === 'text' ? [segment.text] : [])).join(' ');
+    const words = (kebabIdentifier(text.split(/\r?\n/).find((line) => line.trim()) ?? '') ?? '').split('-').filter(Boolean).slice(0, 4);
+    // A name does not end in a filler word ("bird-newsletter-for-the" → "bird-newsletter").
+    while (words.length > 1 && ['a', 'an', 'and', 'for', 'in', 'of', 'on', 'or', 'the', 'to', 'with'].includes(words[words.length - 1]!)) words.pop();
+    return words.join('-').slice(0, 40).replace(/-+$/, '') || 'my-project';
+}
+
+/**
+ * The given folder name, or the first free numbered variant (`name-2`, …) when that child already holds content.
+ */
+async function freeProjectFolder(container: string, name: string): Promise<string> {
+    for (let attempt = 1; ; attempt++) {
+        const candidate = attempt === 1 ? name : `${name}-${attempt}`;
+        const target = join(container, candidate);
+        if (!(await pathExists(target)) || ((await isDirectory(target)) && (await isFreshDirectory(target)))) return candidate;
+    }
+}
+
+/**
+ * Why a folder name cannot be one child of the shared projects folder (undefined when it can).
+ */
+function projectFolderProblem(value: string): string | undefined {
+    const name = value.trim();
+    if (!name) return 'Enter a folder name.';
+    if (name === '.' || name === '..' || /[\\/]/.test(name)) return 'Enter one folder name (no path separators); every project is its own child folder.';
+    // eslint-disable-next-line no-control-regex
+    if (/[<>:"|?*\u0000-\u001f]/.test(name) || /[. ]$/.test(name)) return 'Use letters, digits, spaces, dashes or dots (not at the end).';
+    return undefined;
+}
+
+/**
+ * Harness variants that are installed **and ready** (verified login or configuration, usable now), inspected in
+ * parallel without any model call. An executable alone, a signed-out or an unverifiable variant is not ready.
+ */
+async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Promise<string[]> {
+    const ready = await Promise.all(
+        HARNESS_PLUGINS.map(async (plugin) => {
+            const tool: HarnessToolRecord = { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
+            const inspection = await plugin.inspect({ projectRoot, env: instanceEnvironment(plugin, tool, undefined, env), tool }).catch(() => undefined);
+            return inspection?.installed && inspection.usable && inspection.authenticated === true ? plugin.id : undefined;
+        }),
+    );
+    return ready.filter((id): id is string => id !== undefined);
+}
+
+/**
  * Wizard/unattended initialization shared by `ptbk init` and the setup step of `ptbk start`.
  *
  * It completes technical setup, preserves the initial input in `specs/_initial.md`, saves one ordinary Expert task and
@@ -240,8 +295,8 @@ export async function initializeProject(context: CommandContext, options: { proj
     const notes: string[] = [];
     const missingDecisions: string[] = [];
     const title = options.fromStart ? 'ptbk start · setup' : 'ptbk init';
-    const steps = new StepTracker(['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'sync', 'finish']);
-    const stepOrder: readonly StepId[] = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'sync', 'finish'];
+    const steps = new StepTracker(['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'wallet', 'sync', 'finish']);
+    const stepOrder: readonly StepId[] = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'wallet', 'sync', 'finish'];
     const frame = (id: StepId, note?: string, activity: BadgeActivity = 'working'): WizardFrame => ({
         title,
         step: steps.label(id),
@@ -267,11 +322,15 @@ export async function initializeProject(context: CommandContext, options: { proj
         root: string;
         nested?: { strategy: NestedStrategy; parentRoot: string; url?: string };
         installation?: 'local' | 'global' | 'existing';
+        /** The chosen kind of destination (offered again as the default when going back). */
+        destinationKind?: 'shared' | 'current' | 'subfolder';
         selected?: string[];
         inspections: Map<string, HarnessInspection>;
         browserProfile?: string;
         browserMode?: 'headless' | 'headful';
         traces?: { commit: boolean; ignoreVideos: boolean; recordVideo: boolean };
+        /** Optional Wallet setup now (default No; the same protected operation as later Wallet setup). */
+        wallet?: boolean;
         /** Automatic synchronization: the saved choice and, for a new opt-in, the explicit destination. */
         sync?: { enabled: boolean; choice?: PublicationChoice; reused: boolean };
     } = { purposeRecorded: false, root: option<string>(context, 'subfolder') ? resolve(base, option<string>(context, 'subfolder')!) : base, inspections: new Map() };
@@ -361,25 +420,49 @@ export async function initializeProject(context: CommandContext, options: { proj
                 }
             }
         },
-        // 3. Destination (current folder by default) and the versioning boundary of a new child.
+        // 3. Destination (the shared home-based projects folder first) and the versioning boundary of a new child.
         destination: async () => {
             for (;;) {
                 if (!explicitDestination && interactive) {
                     shown.add('destination');
+                    const user = intendedUser(context.env);
+                    const sharedRoot = sharedProjectsRoot(context.env);
+                    if (user.problem) notes.push(`${user.problem} The shared projects folder is not offered; choose the destination explicitly.`);
+                    const initializedHere = await pathExists(projectAt(base).configPath);
                     const destination = answered(
                         await selectOne(terminal, {
-                            frame: frame('destination'),
+                            frame: frame('destination', 'start a new agenda anywhere, or add Promptbook to existing work'),
                             question: 'Where should the project live?',
                             choices: [
-                                { value: 'current', label: 'Current directory', description: base },
-                                { value: 'subfolder', label: 'New subfolder', description: 'create a new project folder here' },
+                                ...(user.problem ? [] : [{ value: 'shared' as const, label: 'New project in the shared Promptbook projects folder', description: `${sharedRoot}${sep}<name> — a new agenda without choosing a location` }]),
+                                { value: 'current' as const, label: 'Current directory', description: `${base} — add Promptbook to the work here` },
+                                { value: 'subfolder' as const, label: 'New subfolder of the current directory', description: 'create a new project folder here' },
                             ],
-                            defaultValue: state.root === base ? 'current' : 'subfolder',
+                            defaultValue: state.destinationKind ?? (initializedHere || user.problem ? 'current' : 'shared'),
                             escapeLabel: 'Esc back',
                         }),
                     );
-                    if (destination === 'subfolder') {
-                        const name = answered(await inputLine(terminal, { frame: frame('destination'), question: 'Name (or relative path) of the new folder:', initial: state.root !== base ? relative(base, state.root) : undefined, validate: (value) => (!value ? 'Enter a folder name.' : undefined) }));
+                    state.destinationKind = destination;
+                    if (destination === 'shared') {
+                        const suggested = state.root !== base && dirname(state.root) === sharedRoot ? basename(state.root) : await freeProjectFolder(sharedRoot, projectFolderName(state.intent?.segments));
+                        const name = answered(
+                            await inputLine(terminal, {
+                                frame: frame('destination', `one folder per project in ${sharedRoot}`),
+                                question: `Folder name of the new project (in ${sharedRoot}):`,
+                                initial: suggested,
+                                validate: (value) => projectFolderProblem(value),
+                            }),
+                        );
+                        const target = join(sharedRoot, name.trim());
+                        const occupied = (await isDirectory(target)) && !(await isFreshDirectory(target));
+                        if (occupied || ((await pathExists(target)) && !(await isDirectory(target)))) {
+                            notes.push(`${target} already exists and is not empty; choose another name.`);
+                            say(style.warning(`${target} already exists and is not empty; choose another name.`));
+                            continue;
+                        }
+                        state.root = target;
+                    } else if (destination === 'subfolder') {
+                        const name = answered(await inputLine(terminal, { frame: frame('destination'), question: 'Name (or relative path) of the new folder:', initial: state.root !== base && !relative(base, state.root).startsWith('..') ? relative(base, state.root) : undefined, validate: (value) => (!value ? 'Enter a folder name.' : undefined) }));
                         state.root = resolve(base, name);
                     } else state.root = base;
                 } else if (interactive && !options.fromStart) {
@@ -478,10 +561,10 @@ export async function initializeProject(context: CommandContext, options: { proj
                     frame: frame('installation'),
                     question: 'How should this project run Promptbook?',
                     choices: [
-                        { value: 'local' as const, label: "Install Promptbook locally in this project's dependencies", description: `ptbk@${ENGINE_VERSION} (recommended)` },
-                        { value: 'global' as const, label: 'Use the global CLI', description: 'no project dependency' },
+                        { value: 'global' as const, label: 'Use the global CLI', description: 'no project dependency (recommended)' },
+                        { value: 'local' as const, label: "Install Promptbook locally in this project's dependencies", description: `ptbk@${ENGINE_VERSION}` },
                     ],
-                    defaultValue: state.installation === 'global' ? 'global' : 'local',
+                    defaultValue: state.installation === 'local' ? 'local' : 'global',
                 }),
             );
             answers.set('installation', `Installation: ${state.installation}`);
@@ -503,12 +586,14 @@ export async function initializeProject(context: CommandContext, options: { proj
                     return;
                 } else {
                     shown.add('harnesses');
+                    // A fresh selection starts with every installed and ready harness (no paid probes); earlier choices win.
+                    state.selected ??= await readyHarnesses(await nearestExisting(state.root), context.env);
                     selected = answered(
                         await selectMany(terminal, {
                             frame: frame('harnesses', 'pick the coding agents that will do the work'),
-                            question: 'Which harnesses should run this project? (installed globally, shared with other projects)',
-                            choices: HARNESS_PLUGINS.map((plugin) => ({ value: plugin.id, label: plugin.displayName, featured: plugin.featured, description: plugin.featured ? undefined : plugin.npmPackage })),
-                            initial: state.selected ?? [],
+                            question: 'Which harnesses should run this project? (installed globally, shared with other projects; ready ones are preselected)',
+                            choices: HARNESS_PLUGINS.map((plugin) => ({ value: plugin.id, label: plugin.displayName, featured: plugin.featured || state.selected!.includes(plugin.id), description: plugin.featured ? undefined : plugin.npmPackage })),
+                            initial: state.selected,
                             noneLabel: 'None selected (setup stays incomplete)',
                             emptyWarning: 'No harness is selected: no model work can run, and Router cannot receive its concrete initial MODEL. Nothing is selected for you; choose one with Space, or continue and add one later (ptbk tool add HARNESS …).',
                         }),
@@ -613,7 +698,26 @@ export async function initializeProject(context: CommandContext, options: { proj
             );
             answers.set('traces', `Traces: ${state.traces.commit ? 'committed' : 'local only'}, videos ${state.traces.recordVideo ? `recorded${state.traces.commit && !state.traces.ignoreVideos ? ' and committed' : ' locally'}` : 'off'}`);
         },
-        // 8. Automatic synchronization: one opt-in decision, default off; "no" asks nothing further.
+        // 8. Optional Wallet setup, default No; an existing vault is never recreated.
+        wallet: async () => {
+            if (!interactive || (await pathExists(join(projectAt(state.root).runtime.root, 'encryption', 'project.json')))) {
+                state.wallet = false;
+                steps.set('wallet', false);
+                return;
+            }
+            shown.add('wallet');
+            state.wallet = answered(
+                await confirm(terminal, {
+                    frame: frame('wallet', 'website logins your agents may need'),
+                    question: 'Set up Wallet now? It keeps website logins encrypted in this project and signs agents in without ever showing them a password. You can also set it up later on the dashboard.',
+                    defaultYes: false,
+                    yesLabel: 'Yes, set it up now (shows 12 words for recovery once)',
+                    noLabel: 'No, later',
+                }),
+            );
+            answers.set('wallet', `Wallet: ${state.wallet ? 'set up at the end' : 'later'}`);
+        },
+        // 9. Automatic synchronization: one opt-in decision, default off; "no" asks nothing further.
         sync: async () => {
             const saved = await savedConfiguration(state.root);
             const explicit = flag(context, 'auto-sync') ?? (flag(context, 'auto-pull') || flag(context, 'auto-push') ? true : undefined);
@@ -745,6 +849,7 @@ export async function initializeProject(context: CommandContext, options: { proj
         const tracesSaved = ['traces.isCommitted', 'traces.isVideoIgnored', 'traces.isVideoRecordingEnabled'].every((key) => typeof getPath(raw, key) === 'boolean');
         const tracesFlagged = flag(context, 'commit-traces') !== undefined && flag(context, 'ignore-trace-videos') !== undefined && flag(context, 'record-video') !== undefined;
         steps.set('traces', !(tracesSaved || tracesFlagged));
+        steps.set('wallet', !(await pathExists(join(destination.runtime.root, 'encryption', 'project.json'))));
         steps.set('sync', !(typeof raw.isAutoSync === 'boolean' || flag(context, 'auto-sync') !== undefined || flag(context, 'auto-pull') || flag(context, 'auto-push')));
     };
 
@@ -849,7 +954,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     };
 
     // Questions, with Esc going back to the previous screen.
-    const order: Array<Exclude<StepId, 'finish'>> = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'sync'];
+    const order: Array<Exclude<StepId, 'finish'>> = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'wallet', 'sync'];
     for (let index = 0; index < order.length; ) {
         const id = order[index]!;
         // Named after the destination folder, which the destination step may change.
@@ -880,6 +985,9 @@ export async function initializeProject(context: CommandContext, options: { proj
     if (interactive && terminal.pretty) terminal.write(`\n${style.muted(steps.label('finish'))}\n`);
     let root = state.root;
     const fresh = !(await isDirectory(root)) || (await isFreshDirectory(root));
+    // Directories this init creates (e.g. the shared projects folder and the new project in it): under sudo they are
+    // handed over to the original user afterwards.
+    const createdDirectories = await missingDirectories(root);
     const createdPaths: string[] = [];
     const parentChanges: string[] = [];
     if (state.nested) {
@@ -925,8 +1033,10 @@ export async function initializeProject(context: CommandContext, options: { proj
     const savedPolicy = configBefore ? { commit: setting<boolean>(configBefore, 'traces.isCommitted'), ignoreVideos: setting<boolean>(configBefore, 'traces.isVideoIgnored') } : undefined;
     const traceIgnore = await ensureTraceIgnoreRules(root, savedPolicy && configBefore?.interpreted.traces ? savedPolicy : tracePolicy);
     if (traceIgnore) createdPaths.push(traceIgnore);
-    // Default roles first: a missing Chatter's initial TEAM covers the completed role set.
-    for (const path of await ensureDefaultRoles(root, agentsDirectory)) createdPaths.push(path);
+    // Default roles first: a missing Chatter's initial TEAM covers the completed role set. They are the useful
+    // boilerplate of a blank start; a supplied intent gets relevant specialists from the ordinary first task instead
+    // of sample roles. Existing user-owned agents are never touched.
+    if (!state.intent || blankIntent(state.intent.segments)) for (const path of await ensureDefaultRoles(root, agentsDirectory)) createdPaths.push(path);
     // Router starts directly runnable: the first suitable selected harness with its plugin's coded defaults.
     const routerModel = async (): Promise<string | undefined> => {
         const id = selected.find((candidate) => state.inspections.get(candidate)?.usable) ?? selected[0] ?? (configBefore ? enabledHarnesses(configBefore)[0] : undefined);
@@ -1122,6 +1232,23 @@ export async function initializeProject(context: CommandContext, options: { proj
         publication = await publishProject(project, repository.repositoryRoot, state.sync.choice, context.env);
         (publication.ok ? alreadyReady : notes).push(publication.ok ? publication.message : `Remote publication did not succeed: ${publication.message}`);
     }
+
+    // Optional Wallet setup through the same protected operation as later Wallet management (never a second vault).
+    if (state.wallet) {
+        const wallet = new WalletSubEngine({ project, env: context.env, onChange: () => undefined, log: () => undefined });
+        await wallet.initialize();
+        if (wallet.readiness === 'empty' || wallet.readiness === 'setup') {
+            const { words } = await wallet.beginSetup();
+            if (await confirmRecoveryWords(terminal, words)) {
+                const outcome = await wallet.confirmSetup();
+                (outcome.applied ? changed : unresolved).push(outcome.applied ? 'Set up the Wallet (this computer unlocks it automatically)' : `Wallet setup: ${outcome.outcome} → set it up later on the Wallet page`);
+            } else {
+                wallet.cancelSetup();
+                notes.push('Wallet setup was discarded (nothing was saved); set it up later on the dashboard Wallet page.');
+            }
+        } else alreadyReady.push(`Wallet: ${wallet.view().summary}`);
+    }
+    await handOverCreated(createdDirectories, intendedUser(context.env)).catch((error: unknown) => unresolved.push(`The new project folder could not be handed over to its user: ${errorMessage(error)} → fix its ownership (chown) before running Promptbook without sudo`));
 
     // Readiness from the saved settings the service will use.
     project = projectAt(root);

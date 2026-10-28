@@ -319,6 +319,7 @@ export function bootstrapTask(options: { blank: boolean; specificationLink: stri
         description: [
             `Transform this project according to the initial specification in ${link} and its linked assets. Preserve the original specification; create or adapt the project content, agents, checks and follow-up tasks needed to fulfill it.`,
             'The linked specification is the source of the user\'s intent: read it in full, keep it unchanged, and write any additional specifications or other project files next to it instead of replacing it.',
+            'No sample roles were created for this agenda: create the specialist agents it actually needs in `agents/` (each with a clear PERSONA/GOAL and useful TEAM relationships), add them to Chatter\'s TEAM, and set `routing.defaultAgent` in `ptbk.json` to the most suitable specialist when the default Developer does not exist. Keep every agent the project already has.',
         ].join('\n\n'),
     };
 }
