@@ -58,7 +58,7 @@ function walletMessage(result: WalletLoginResult): string {
         case 'signed-in':
             return `Signed in to ${result.origin} with the saved login "${result.account}" (the Wallet entered it; the credentials are not available to you).${result.note ? ` ${result.note}.` : ''} Verify the page shows what the task needs.`;
         case 'challenge':
-            return `The Wallet entered the saved login "${result.account}" for ${result.origin}, and the site now asks for a human-only step (${result.note ?? 'for example a two-factor code or CAPTCHA'}). Use browser_request_user_action for it.`;
+            return `The Wallet entered the saved login "${result.account}" for ${result.origin}, and the site now asks for another step (${result.note ?? 'for example a CAPTCHA, a two-factor code or an approval'}). Complete technical steps such as a CAPTCHA yourself; use browser_request_user_action only for what genuinely needs the human (a code or approval only the account owner receives). You are not signed in until the site shows the access you need.`;
         case 'no-login-form':
             return `The current page of ${result.origin} shows no login form. If the site is already signed in, just continue; otherwise open its login page and call wallet_login again.`;
         case 'ambiguous':
@@ -227,7 +227,7 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
         tool(
             {
                 name: 'browser_request_user_action',
-                description: `Only for a genuinely human-only step that you cannot do with full access to the browser (two-factor codes, CAPTCHAs, consent only the account owner may give${wallet ? '; a missing username/password goes through wallet_login instead' : ', credentials you do not have'}): ask the human to act in the project browser. Never use it to ask for browser control or permissions. Then end your turn with status waiting-for-user.`,
+                description: `Only for a step that genuinely needs the human after you tried it with full access to the browser (a code or approval only the account owner receives, consent only they may give, a challenge you could not solve${wallet ? '; a missing username/password goes through wallet_login instead' : ', credentials you do not have'}): ask the human to act in the project browser. Attempt CAPTCHAs and other technical steps yourself first. Never use it to ask for browser control or permissions. Then end your turn with status waiting-for-user.`,
                 properties: { reason: { type: 'string' } },
                 required: ['reason'],
             },
