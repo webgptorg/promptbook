@@ -1,5 +1,9 @@
 # Unreleased
 
+## macOS Command+V in the shared composer
+
+-   Every rich input (init intent, chat, task/planning input, Book editing) now accepts macOS Command+V through the same paste pipeline as Ctrl+V: native terminal paste already arrives as text, a terminal that reports Command+V (or Ctrl+V) as a CSI-u key chord now triggers the shared rich clipboard read instead of being dropped, and an empty native paste (for example an image the terminal cannot type) looks for an image or document in the clipboard. No separate macOS editor exists; text-only paste does not claim image support, and Ctrl+O file attachment stays the fallback. Key hints show `Ctrl+V/Cmd+V` on macOS.
+
 ## Dashboards stay current on hidden or slow terminals
 
 -   Full-screen views (dashboard, chat, Book editor, global dashboard) no longer queue frames while the terminal applies back-pressure (hidden, minimized, throttled or slow): only the newest frame is kept and it is drawn once the output drains, at the terminal's then-current size. Obsolete frames are discarded, never real events, messages or usage (they live in the engine's state), and drawing never blocks the engine. A regression test draws 500 frames into a blocked terminal and checks that exactly the latest is written after the drain. This implements the required behavior; it does not claim a confirmed cause of the reported freeze.

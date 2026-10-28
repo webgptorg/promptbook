@@ -147,6 +147,9 @@ export class RichInput {
             return 'changed';
         }
         this.message = '';
+        // A native paste (e.g. macOS Command+V) that delivered no text may carry an image or document the terminal
+        // cannot type: the same rich clipboard acquisition as Ctrl+V looks for it.
+        if (event.type === 'paste' && !event.text && attachments) return this.handle({ type: 'key', name: 'v', ctrl: true });
         if (event.type === 'paste') {
             if (event.text.length > MAX_PASTE_CHARACTERS) {
                 this.message = `The pasted text is larger than ${MAX_PASTE_CHARACTERS / 1024 / 1024} MB and was not inserted.`;
@@ -231,8 +234,10 @@ export class RichInput {
         if (this.attachPath) return ['Enter attach', 'Esc back', 'paste or drop a path'];
         const items = this.editor.insertedItems.length;
         const counted = items ? [`${items} item${items === 1 ? '' : 's'} attached/pasted`] : [];
-        if (this.options.singleLine) return ['Enter submit', 'Ctrl+V paste', 'Esc cancel'];
-        const attach = this.options.attachments ? ['Ctrl+V paste text/image/file', 'Ctrl+O attach file'] : ['Ctrl+V paste'];
+        // macOS terminals paste with Command+V; it enters the same pipeline as Ctrl+V.
+        const paste = process.platform === 'darwin' ? 'Ctrl+V/Cmd+V paste' : 'Ctrl+V paste';
+        if (this.options.singleLine) return ['Enter submit', paste, 'Esc cancel'];
+        const attach = this.options.attachments ? [`${paste} text/image/file`, 'Ctrl+O attach file'] : [paste];
         if (this.options.mode === 'source') return [...counted, 'Enter newline', 'Ctrl+S save (stays open)', ...attach, 'Esc leave'];
         return [...counted, 'Enter submit', 'Shift+Enter/Ctrl+J newline', ...attach, 'Esc cancel', 'paste never submits'];
     }

@@ -159,6 +159,13 @@ export class KeyParser {
                 events.push({ type: 'key', name: 'escape' });
                 break;
             }
+            // A terminal reporting macOS Command+V (or Ctrl+V) as a CSI-u key chord enters the same rich paste.
+            const chord = /^\x1b\[(118|86)(?::\d+)*;(\d+)(?::\d+)?u/.exec(rest);
+            if (chord && ((Number(chord[2]) - 1) & (8 | 4))) {
+                events.push({ type: 'key', name: 'v', ctrl: true });
+                rest = rest.slice(chord[0].length);
+                continue;
+            }
             if (rest.startsWith('\x1b[') || rest.startsWith('\x1bO')) {
                 const match = /^\x1b[[O][0-9;]*[ -/]*[@-~]/.exec(rest);
                 rest = rest.slice(match ? match[0].length : 2);

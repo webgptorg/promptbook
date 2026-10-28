@@ -71,7 +71,7 @@ test('task views: the smart order puts current decisions first, then coming work
     assert.equal(items[0].title, 'Old done', 'sorting is a presentation and never reorders the inventory itself');
 });
 
-test('rich input: one implementation with flow and source policies (Enter submits or inserts a line, Ctrl+S saves)', () => {
+test('rich input: one implementation with flow and source policies (Enter submits or inserts a line, Ctrl+S saves)', async () => {
     const key = (name, extra = {}) => ({ type: 'key', name, ...extra });
     const flow = new RichInput({ mode: 'flow', refresh: () => {} });
     flow.handle({ type: 'paste', text: 'line one\nline two' });
@@ -84,6 +84,15 @@ test('rich input: one implementation with flow and source policies (Enter submit
     assert.equal(source.handle(key('s', { ctrl: true })), 'save');
     assert.equal(source.handle(key('escape')), 'cancel');
     assert.equal(source.segments().map((segment) => segment.text).join(''), 'AGENT Developer\n\tPERSONA Builds.\n', 'a line was inserted at the cursor and tabs stay literal');
+    const { KeyParser } = await import('../dist/ui/keys.js');
+    assert.deepEqual(new KeyParser().parse('\x1b[118;9u'), [{ type: 'key', name: 'v', ctrl: true }], 'macOS Command+V reported as a CSI-u chord enters the shared rich paste');
+    assert.deepEqual(new KeyParser().parse('\x1b[118;5u'), [{ type: 'key', name: 'v', ctrl: true }], 'Ctrl+V reported as a CSI-u chord as well');
+    assert.deepEqual(new KeyParser().parse('\x1b[118;3u'), [], 'Alt+V is not a paste');
+    assert.deepEqual(new KeyParser().parse('\x1b[200~native text\x1b[201~'), [{ type: 'paste', text: 'native text' }], 'native Command+V text arrives as an ordinary paste');
+    let reads = 0;
+    const rich = new RichInput({ mode: 'flow', attachments: true, env: { PATH: '' }, refresh: () => reads++ });
+    assert.equal(rich.handle({ type: 'paste', text: '' }), 'changed', 'an empty native paste looks for an image or document in the clipboard');
+    assert.equal(rich.segments().length, 0, 'nothing is inserted before the clipboard was read');
     const long = new RichInput({ mode: 'flow', refresh: () => {} });
     long.handle({ type: 'paste', text: `${'x'.repeat(12_399)}\n` });
     assert.match(long.status(200)?.text ?? '', /\[Pasted text #1, 12,400 characters/, 'a long paste is a compact, inspectable token');
