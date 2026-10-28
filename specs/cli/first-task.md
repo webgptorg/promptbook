@@ -12,7 +12,7 @@ Generate the title and assignment in English. Put the assignment under GOAL usin
 
 The linked specification, not a rewritten copy embedded in the task, is the source of the user's intent. Its original text and attachments remain intact. Expert can write additional specifications or other project files without replacing that source. This applies equally to an application, accounting agenda, publishing workflow or another project purpose.
 
-For deliberately blank input, the same Expert task performs a small project-local readiness review without inventing a purpose, requesting extra credentials or causing unrelated external effects. Do not create a second generic test task alongside the bootstrap task. Existing content and user work remain protected.
+For deliberately blank input, the same Expert task retains useful default noncore-agent boilerplate and performs a small project-local readiness review without inventing a purpose, requesting extra credentials or causing unrelated external effects. With nonblank intent, create/adapt specialists relevant to the agenda instead of keeping irrelevant sample roles in every new project; preserve existing user-owned agents during reinit. Do not create a second generic test task alongside the bootstrap task. Existing content and user work remain protected.
 
 ## Normal execution
 

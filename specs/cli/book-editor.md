@@ -4,7 +4,7 @@
 
 The dashboard can display and edit the real source of a project-owned Book, including core agents, tasks and chats. It is a lightweight terminal over the engine, with the familiar full-source editing experience of composing a Git commit message. Opening an editor does not save, regenerate or silently rewrite the Book. Show its source path and preserve literal source, Unicode, existing order and attachments. Engine-owned definitions such as Expert can be inspected but are not materialized or edited as project files.
 
-Use the **same shared rich-input implementation** as initialization and chat for Ctrl+V text, images, documents and long pasted blocks. Saving materializes readable full content and working project-relative asset links, never compact UI tokens. Do not implement a second clipboard, attachment or serialization pipeline for this editor; see the explicit [DRY contract](../coding-standards/shared-logic.md#one-rich-input-implementation).
+Use the **same shared rich-input implementation** as initialization and chat for Ctrl+V and macOS Command+V text, images, documents and long pasted blocks. Saving materializes readable full content and working project-relative asset links, never compact UI tokens. Do not implement a second clipboard, attachment or serialization pipeline for this editor; see the explicit [DRY contract](../coding-standards/shared-logic.md#one-rich-input-implementation).
 
 ## Editing and saving
 

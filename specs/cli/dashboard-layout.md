@@ -25,7 +25,7 @@ Reserve the shared header in responsive height/width calculations; shorten secon
 
 The home screen contains compact tiles for operational domains. A tile shows only the smallest useful summary: healthy/idle/busy counts, current work, actionable problem summary or another bounded state. It is a navigation/control surface, not the complete content of that domain. The detailed inventory, diagnostics, lists and long explanations live on the corresponding page.
 
-At minimum preserve the existing domains as compact tiles/pages: Current work, **System**, **Health**, Tools, **Wallet**, Agents, Chats, Tasks, Results/Activity, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
+At minimum preserve the existing domains as compact tiles/pages: Current work, **System**, **Health**, Tools, **Wallet**, Agents, Chats, Tasks, Results/Activity, **Usage**, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
 
 ## Focus and attention are independent
 
@@ -52,6 +52,12 @@ Escape returns one level to the previous dashboard page/home screen. Escape at t
 A dashboard page may use the full terminal/window and may scroll when its content is larger than the viewport. Prefer a stable page frame: keep a concise page title/context and discoverable controls/footer fixed where practical, while the list/log/detail body scrolls. Lists such as tasks, chats, agents and activity preserve selection and scroll across live updates and resize. Editing/composer controls retain drafts and local navigation.
 
 Opening a page is inspection/navigation, not mutation. Actions on that page use the shared engine/domain operations. Returning to the home screen preserves the operator's tile focus and reasonable local page state.
+
+## Nested tile navigation
+
+Apply the same tile-to-page hierarchy below the root. **Tools** and **Health** landings use compact tiles for their categories/resources, leading to relevant inventories, measurements, incidents and controls; do not make the first click dump all detail at once. Continue to selected tool/browser, incident or other leaf detail as needed. Inventories may use lists at the appropriate level. Enter opens the focused child; Escape/Back returns one level with selection preserved.
+
+A dedicated [Usage](usage.md) tile opens a lightweight summary and useful breakdowns. Labels follow the chosen grouping. Preserve billing mode and certainty, keep technical pricing internals hidden and avoid building a comprehensive analytics UI before raw-data capture is correct.
 
 ## Information hierarchy
 
@@ -84,3 +90,11 @@ Move focus through every tile: double border/bold heading never changes its dime
 Create simultaneous attention in several domains. New items are conspicuous without moving focus; an operator can continue navigating elsewhere, after clear interaction the transient animation settles while unresolved warnings remain. Reduced motion preserves the meaning.
 
 Open every tile with Enter. The home grid disappears and a full page is shown; long pages scroll inside their content while stable controls/context remain usable. Escape returns to the same home focus. No page, avatar, log or background refresh obscures required controls or mutates engine state merely by being viewed.
+
+## Rendering under slow or hidden terminals
+
+Keep state/evidence collection independent of presentation. Coalesce superseded invalidations and pending frames; bound repaint rate and queued terminal output. Respect output backpressure asynchronously without blocking engine work, input or durable event/usage persistence. A hidden, minimized, throttled or slow terminal must not accumulate an ever-growing queue of obsolete full screens.
+
+When viewing resumes, render the latest coherent snapshot at the current size rather than replay every missed frame. Discard redundant presentation frames only, never actual messages, usage or evidence. No viewer or output stall may stop an independently running engine. This is a required behavior, not a claim that the reported freeze has a confirmed root cause.
+
+Exercise sustained work while a VS Code/other supported terminal is hidden, then restore/resize it: current state and controls appear promptly without a backlog flood, lost events, unbounded memory growth or an engine stall.

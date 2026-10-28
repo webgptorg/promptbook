@@ -6,7 +6,7 @@
 
 ## Readiness is not service existence
 
-Check project configuration compatibility and apply required [migrations](configuration-migrations.md) before affected work. An engine older than the saved version explains/offers its update rather than downgrading the project. For genuinely missing structural initialization, reuse the same finite initializer when interactive, preserving prior choices and one setup/start handoff; noninteractive use reports missing decisions without hidden prompts.
+Check project configuration compatibility and apply required [migrations](configuration-migrations.md) before affected work. An engine older than the saved version explains/offers its update rather than downgrading the project. Ensure required core roles through the same [preparation/update operation](../agents/core-agents.md#shared-preparation-and-template-updates) as init: add missing roles without another wizard and reconcile template updates while preserving project edits, using Fixer for conflicts. For genuinely missing structural initialization, reuse the same finite initializer when interactive, preserving prior choices and one setup/start handoff; noninteractive use reports missing decisions without hidden prompts.
 
 An initialized project whose tools are missing, disabled, signed out, quota-limited or otherwise unusable may still start its supervisor and controls. Show **running, waiting for tools**, with the precise missing resource and enable/add/repair action. Do not rerun onboarding to reverse a deliberate removal. Check the live inventory before every task and keep refreshing while idle; new tools resume work without restart and can help an existing task. See [tool runtime](tool-runtime.md).
 

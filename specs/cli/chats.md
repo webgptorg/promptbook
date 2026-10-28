@@ -38,7 +38,7 @@ Persist origin and named links under [chat/task relationships](chat-tasks.md). T
 
 Route a user reply to the author of the question it answers; an explicit agent mention targets that participant; otherwise the main agent handles it. Use the same `@Name`/`{Full Name}` resolver as other Books. A task mention is not an agent switch. Resolve genuinely ambiguous pending questions without broadcasting/applying one answer to every wait.
 
-`CHAT STATUS open|waiting-for-user|resolved` records durable action state; unread markers are separate. Once the engine accepts/saves a user's response, clear **that question's** attention immediately, without waiting for model acceptance or Git batching. Other questions can remain pending. Reading alone is not answering; a response is not automatically approval or proof of an external prerequisite.
+A new chat is implicitly open, with no initial status line. Append `CHAT STATUS open|waiting-for-user|resolved` at each actual transition; the last valid status determines current state. Preserve earlier commitments instead of rewriting them. Unread markers are separate. Follow [Book layering](../book-language/layering.md). Once the engine accepts/saves a user's response, clear **that question's** attention immediately, without waiting for model acceptance or Git batching. Other questions can remain pending. Reading alone is not answering; a response is not automatically approval or proof of an external prerequisite.
 
 ## Live operation and persistence
 

@@ -26,9 +26,9 @@ Enter opens the focused tile as a full **dashboard page**; the root tile grid is
 
 Pages can scroll. Prefer a stable header/context and shortcut/footer area with a scrollable body for long task/chat/agent/tool/activity content. Inside a focused list/editor/composer, its own arrows/Enter/Escape take precedence until returning to the page.
 
-Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, tools/browser, Agents, Chats, Tasks, activity/results, Connection and enabled Synchronization. Technical metadata such as engine version, installation/path/location, local URLs and provider/model detail belongs on pages instead of bloating the home screen.
+Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, tools/browser, Agents, Chats, Tasks, activity/results, Usage, Connection and enabled Synchronization. Technical metadata such as engine version, installation/path/location, local URLs and provider/model detail belongs on pages instead of bloating the home screen.
 
-Live updates never steal focus, reset scroll, discard drafts or flood scrollback.
+Live updates never steal focus, reset scroll, discard drafts or flood scrollback. Follow [bounded/coalesced rendering](dashboard-layout.md#rendering-under-slow-or-hidden-terminals): hidden/throttled output retains the latest snapshot rather than queued old frames, without dropping real events or blocking the engine.
 
 ## Keyboard and shared actions
 

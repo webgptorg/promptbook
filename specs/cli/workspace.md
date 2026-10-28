@@ -1,10 +1,24 @@
 # Project workspace
 
-[Main specification](../_main.md)
+[Main specification](../_main.md) · [Storage and Git guide](storage-and-git.md)
 
 A project is an operating-system directory in a Git working tree. The default is the invocation's current working directory; `--path` selects another. Resolve relative CLI paths from the invocation directory and paths in `ptbk.json` from the selected project. Project, enclosing repository and installed package are distinct, including a project inside a repository subdirectory.
 
-The optional [Windows installer](windows-installer.md) proposes a projects root beneath the user's home and creates an empty child for an accepted first project. That parent is only a filesystem container, not a shared Git repository, configuration scope or global engine workspace. Each child is initialized independently through ordinary `ptbk init`. This convenience default does not restrict manually selected project locations or change CLI path resolution.
+The shared [init destination](initialization.md#initial-input-and-destination) and optional [Windows installer](windows-installer.md) propose `<resolved-user-home>/PTBK/project/` and create a child for an accepted new project. That parent is only a filesystem container, not a shared Git repository, configuration scope or global engine workspace. Each child is initialized independently through ordinary `ptbk init`. This convenience default does not restrict manually selected project locations or change CLI path resolution.
+
+## Home directory and shared projects root
+
+Resolve the intended OS account's actual home at runtime through shared platform-aware account/path operations. Do not hardcode `/home/<name>`, `/Users/<name>`, a drive letter or shell-specific tilde expansion. Windows, macOS and Linux may have custom/redirected homes, spaces and Unicode.
+
+The convenience root is exactly `PTBK/project/` beneath that home: uppercase `PTBK`, singular lowercase `project`, one child per independent project. Example paths are `C:\Users\Alice\PTBK\project\demo`, `/Users/alice/PTBK/project/demo` and `/home/alice/PTBK/project/demo`; these illustrate layouts, not account lookup rules. Explicit destinations and existing projects remain unchanged.
+
+On Linux an ordinary launch uses that user's home. A launch through `sudo` on behalf of another user keeps the validated **original invoking user's** home and PTBK project/discovery scope even if the effective process account or `HOME` names root. Direct root launch without an originating non-root sudo user uses root's actual home. Do not guess ownership from CWD or blindly trust an environment-supplied username/path. Diagnose an unresolved intended account/home before creating a project elsewhere.
+
+Init defaults, known-project registry and engine discovery share this identity resolution; detached/recovered launches preserve that intended scope. This grants no extra cross-user or harness/browser account authority. Keep created files/directories usable by their intended owner; elevated creation must not accidentally leave a user's project root-only. Do not recursively change unrelated ownership/permissions.
+
+Validate safe child names, collisions, writability and path/symlink boundaries. Create the container only when needed. The projects container and host registry remain distinct stores even if they share a user-scoped PTBK parent.
+
+## Project-local content
 
 Agents, tasks, chats, context, checks, traces and engine runtime state belong to that selected project. Promptbook uses files/Git, not a database. Project selection is consistent across interfaces. The versioned `ptbk.json` contains defaults, not runtime/evidence storage. Each project directory has at most one [engine owner](locking.md), independently of the number of attached dashboards or package installations.
 

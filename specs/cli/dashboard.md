@@ -12,7 +12,7 @@ Use the same [dashboard home-screen hierarchy](dashboard-layout.md) as the termi
 
 Adapt across ordinary desktop/window sizes. On smaller surfaces reduce columns and secondary text; on larger surfaces use space without expanding every diagnostic. Focus/selection and attention are distinct visual states. New attention is conspicuous but never forcibly changes the selected tile/page. Persistent unresolved attention remains marked after transient emphasis settles.
 
-Opening a tile navigates to a dashboard page that uses the available surface for that domain; do not leave the entire root grid rendered around an expanded subpanel. Browser history/back or an explicit Back control returns to the home screen while preserving reasonable local state. Long page bodies may scroll; keep page context/actions accessible.
+Use the same nested tile hierarchy on Tools and Health and provide the simple [Usage](usage.md) page with visible billing/estimate distinctions. Opening a tile navigates to a dashboard page that uses the available surface for that domain; do not leave the entire root grid rendered around an expanded subpanel. Browser history/back or an explicit Back control returns to the home screen while preserving reasonable local state. Long page bodies may scroll; keep page context/actions accessible.
 
 Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, named tools/browser profiles, Agents, Chats, Tasks, activity/results, Connection and enabled Synchronization. Technical version/path/URL/model/profile details live on those pages rather than permanently on root.
 

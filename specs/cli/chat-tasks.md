@@ -27,3 +27,5 @@ Reply-to-question routes to its author; explicit agent mention targets that part
 ## Acceptance outcomes
 
 Create tasks from a chat, inspect live cards in two dashboards and observe starts/waits/outcomes. Both Books contain full-name links and TASK ORIGIN identifies the source. A specialist joins, asks there, receives an answer from task detail and resumes once when eligible. Attention clears on saved response while another unresolved question stays pending. Change the title and restart during link/message persistence without broken provenance, duplicate outcomes or inline heavy execution.
+
+An agent can answer chat while holding one active or waiting task. Substantial newly requested execution queues as another ordinary task; it cannot bypass the [one-task-per-agent reservation](concurrency.md#one-unfinished-started-task-per-agent). Preserve a quick status/authoring response while the long-running task keeps its ownership and provenance.

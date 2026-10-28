@@ -1,6 +1,6 @@
 # Per-task execution audit
 
-[Main specification](../_main.md) · [Task identity](task-identity.md) · [Trace configuration](trace-configuration.md)
+[Main specification](../_main.md) · [Task identity](task-identity.md) · [Trace configuration](trace-configuration.md) · [Raw usage](usage.md) · [Storage and Git](storage-and-git.md)
 
 ## Literal source-filename mapping
 
@@ -24,7 +24,7 @@ Existing name-derived trace directories remain historical evidence, not proof th
 
 Retain success, failure, interruption, recovery and human-chat waiting records from the first attempt onward. Preserve chronological harness/attempt/occurrence boundaries and one consolidated readable stream of **available harness output**: exposed tool observations, text, errors and diagnostic/reasoning material actually provided. Unknown, truncated or private reasoning is labelled unavailable, never fabricated; Teacher/Fixer use only actual evidence.
 
-Record source revision, selected agent/harness/model/thinking level and versions, actions, checks/formatters, known usage, external effects, linked chats, commits and synchronization/recovery outcomes. Distinguish contexts using different execution settings. Dashboard/API links use the actual saved source-filename-based path; a missing path is never reported as saved.
+Record source revision, selected agent/harness/model/thinking level and versions, actions, checks/formatters, external effects, linked chats, commits and synchronization/recovery outcomes. Preserve finest available [structured raw usage](usage.md) separately from harness text and video in this evidence area, with execution/owner/initiator and occurrence/attempt/time provenance. Monetary totals and dashboard caches never replace raw records. Distinguish contexts using different execution settings. Dashboard/API links use the actual saved source-filename-based path; a missing path is never reported as saved.
 
 ## Browser video and secrets
 

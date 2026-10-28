@@ -6,6 +6,7 @@ Book is one human-readable language for **agents, tasks and chats**, each in one
 
 The same syntax and parser apply to every entity kind. The first commitment establishes what is being defined; subsequent commitments build up that entity's instructions, work or conversation. Entity-specific validation and engine behavior are separate from parsing. The commitment vocabulary and supported entity kinds may grow without introducing another document grammar.
 
+- [Progressive layering](layering.md): Evolving Books and chronological chat events, with implicit open status.
 - [Syntax](syntax.md): Commitment-first documents, uppercase boundaries, content and diagnostics.
 - [References](references.md): One normalized name resolver and graph links across all three kinds.
 - [Inheritance](inheritance.md): Agent-only FROM, implicit Adam and termination.

@@ -1,35 +1,59 @@
-# Wallet: project login credentials
+# Wallet: project credentials and verified login
 
-[Sub-engines](sub-engines.md) · [Project encryption](project-encryption.md) · [Browser tools](browser.md) · [Human interactions](user-interactions.md)
+[Sub-engines](sub-engines.md) · [Project encryption](project-encryption.md) · [Browser tools](browser.md) · [Human interactions](user-interactions.md) · [Storage and Git](storage-and-git.md)
 
-**Wallet** is one project-owned sub-engine providing a simple login/password manager. It is not a Book entity, agent, cryptocurrency wallet or new tool type. Projects have separate wallets even when they share a browser profile. The sub-engine works with zero clients and has its own dashboard tile/page.
+**Wallet** is one project-owned credential-manager sub-engine, intended as the user's ordinary manager for service accounts, passwords and TOTP generators. It is not a Book entity, agent, cryptocurrency wallet or tool type. Projects retain separate vaults even when sharing a browser profile. The sub-engine works with zero clients and has its own dashboard tile/page.
 
-## Request access, never return a password
+## Access without exposing credentials
 
-An agent encountering missing website authentication requests login from Wallet with the target browser/tab, actual origin and required service/account context. It does **not** request username/password in chat, fetch them into its context, read the vault or type secrets itself. The trusted Wallet/browser integration applies credentials directly and returns only redacted success, waiting or failure plus nonsecret context. The same contract applies headless and headful.
+An agent missing website authentication requests Wallet login with the actual service origin, target browser/tab, required account context and affected work. It does not request credentials in chat, read/decrypt the vault, fetch secrets into model context or type them itself. The trusted Wallet/browser integration applies protected values directly and returns only redacted progress, waiting, failure or verified success. Headless/headful use the same contract.
 
-If the selected browser is already signed in, continue using that session; Wallet is invoked only when authentication is missing. Do not introduce automatic account switching/profile isolation to address cross-project session interference in this version; it is an explicit [known limitation](known-limitations.md).
+Reuse an already authenticated suitable session. Otherwise use matching stored credentials automatically without per-use approval. Actual origin/account matching prevents a page's instructions from redirecting secrets to another service. Shared-profile account interference remains a [known limitation](known-limitations.md), not a new automatic account-isolation requirement.
 
-If suitable stored credentials exist, log in **automatically without per-use approval**. Match actual service origin and account context; a page's text cannot redirect a saved password to an unrelated origin or cause secret export. If credentials are absent, rejected or the account is genuinely ambiguous, create one deduplicated pending Wallet action and request only what is needed in the **protected Wallet interface**. The tile uses the same attention as other domains. A chat can record a nonsecret status/link, never a field asking for the password.
+## One continuing login workflow
 
-The requesting task checkpoints/releases safe capacity while waiting. A pending login affects that operation, not engine lifecycle or independent work. On protected input save, clear that action's attention and retry the waiting login when eligible. Verify the site's resulting session instead of treating form submission as proof. Invalid credentials are a specific recoverable failure, not endless silent retries or repeated credential prompts.
+The unit of completion is **verified access to the requested service/account**, not saving credentials or submitting a form. Input, trusted browser interaction and verification form one continuing workflow. Progress may request further fields, a TOTP factor, mobile approval, consent or manual takeover of the existing headful browser. New steps extend the current request rather than create repeated disconnected prompts.
 
-## Storage and management
+Keep one durable request for the same unresolved service/account/login context. Do not collapse distinct accounts together or create duplicate credential records just because a login retried. Preserve affected-work links, current step, supplied-factor state and safe resume point across restart. Rejected input returns that same workflow to the relevant protected field with an actionable failure; bound retries and do not consume repeated model calls waiting for a human.
 
-Use [project encryption](project-encryption.md), never plaintext Wallet records in `.env`, `ptbk.json` or Books. Persist records for service/origin, account label/username and password in the encrypted project store; ordinary views expose only necessary nonsecret labels and masked state. Credential entry starts concealed and remains write-only to the engine. In the protected owner add/update and pending-login forms, the owner may deliberately show and hide each newly entered username and password independently (terminal: Ctrl+R for the current field; browser: a keyboard-accessible Show/Hide button per field). Controls identify their action/state, preserve the value and never submit the form. Each new field/form starts hidden; terminal entry is erased before advancing or cancelling. This owner-only reveal exception does not retrieve stored credentials or expose them in ordinary views, agent APIs, browser observation APIs, model tool output, logs, traces, screenshots/recordings, telemetry or diagnostics.
+A protected save immediately clears the answered input's attention and permits verification, but does not mark the whole login request successful or unblock access-dependent work. Report verifying/waiting/failed states honestly. Only verified session access completes the request and resumes affected work once. A new genuinely necessary human step sets attention on that same workflow.
 
-Management can add/update/remove credentials and resolve pending login actions through shared engine operations. Preserve unrelated records and atomic recovery; do not commit encrypted Wallet files or raw secrets to Git. Existing harness API-key/native-auth setup remains under its current environment/native-store rules; this version does not silently migrate all secrets into Wallet.
+Checkpoint affected work and release safe capacity while waiting. A Wallet wait does not stop independent tasks, supervision or the engine. Manual login in the existing headful browser remains possible with optional protected remembering. Do not claim a GUI exists on a headless host or require a new remote desktop/VNC/screen-sharing product now.
 
-Ordinary attended **manual login in the existing headful browser remains possible**. Wallet may offer to remember explicitly submitted login details through the protected flow; never silently scrape all forms or export browser saved passwords/cookies. Remote desktop, VNC and a new CDP screen-sharing/login window are not requirements now.
+## Protected records and forms
 
-2FA, CAPTCHA, consent and other human-only site challenges remain human actions. Wallet does not promise to defeat them or store a new class of factors. Request necessary human action through the normal protected/attributed surface without leaking codes into recordings; retain one pending action and resume only after actual access is verified.
+Use [project encryption](project-encryption.md), not plaintext `.env`, `ptbk.json` or Books. Persist service/origin, account context, editable label, username, password and supported generator parameters in the encrypted store. Vault/encryption files stay ignored and survive ordinary restart/cache cleanup; do not commit even their ciphertext.
 
-## UI/API boundary
+Derive a useful initial item label from service and account, rather than a meaningless placeholder. The owner can rename it. In add/update and pending-login forms, **username is visible by default; password is masked by default**. Both have independent show/hide controls (terminal Ctrl+R for the current field; accessible buttons in browser UI). Masked typing shows neutral characters or equivalent feedback, never a blank unresponsive field. Toggling preserves the entered value and never submits. New forms reset to these defaults; erase secret entry before advancing/cancelling.
 
-The Wallet home tile is compact: ready/empty/waiting/failure summary and pending count. Its page lists service/account labels, pending requests and protected management actions; it does not print passwords, recovery words or keys as ordinary diagnostics. Recovery/setup words appear only in the deliberate protected owner flow, not snapshots or task/chat messages. Terminal, browser and authorized API clients call the same sub-engine; agent-facing API authority cannot read records or submit arbitrary decryption requests.
+Owner-controlled reveal of newly entered values is confined to the protected surface. Ordinary views, agent APIs, browser observation/JavaScript/CDP, model tools, logs, traces, screenshots/video and diagnostics never receive raw secrets. API clients cannot submit arbitrary decryption requests. Harness API-key/native-auth setup retains its existing environment/native-store rules; do not silently migrate all credentials now.
 
-Credential requests are secret-input actions owned by Wallet, not a fourth Book entity or an anonymous chat containing secrets. A task/chat can retain the nonsecret reason, named work link and result. Persistence, request deduplication and once-only resume survive engine restart independently of any viewer.
+## TOTP and other factors
+
+Store a **TOTP generator**, not a succession of expiring codes: secret plus the algorithm, digits, period and applicable service/account metadata required to generate codes correctly. Existing generators may be imported through a secret/configuration value or export QR in protected Wallet input. QR payloads and generator secrets stay outside agent context, Git and evidence. Generate/apply each current code inside the trusted boundary.
+
+A one-off human code is temporary input for the current login step, not a reusable generator or durable ordinary record. If the owner cannot export an existing generator, offer the actually required manual code/approval step without pretending the factor was imported. Preserve the same request during factor entry, mobile confirmation or takeover. Solve challenges autonomously when supported and authorized, including browser CAPTCHA under [browser instructions](browser.md); request human action only when it is genuinely needed.
+
+## Autonomous management and human intervention
+
+Use the shared minimal-interruption principle within authorized work. Agents can request technical corrections/updates that the trusted Wallet performs without routine human reapproval. Merely changing a saved record or advancing a login does not automatically require a confirmation window.
+
+When a human's decision or action is actually required, use Wallet's own attributed protected notice/form, not a request to approve a secret operation in agent chat. Ask only for the missing input/action, such as a code, mobile approval or an otherwise unresolved consequential access decision. Preserve the user's explicit account/authority constraints.
+
+For example, an agent may create a new service account needed for authorized work and have its generated credentials saved by trusted Wallet operations without an extra routine confirmation. This is an example of Wallet use, not a separately specified account-registration subsystem.
+
+Management adds/updates/removes records through shared operations with atomic recovery and no unrelated-record changes. Meaningful mutations follow the default-on, disableable [nonsecret Git audit](storage-and-git.md#wallet-operation-audit); failures in audit persistence never cause a successful service action to repeat.
+
+## Initialization and presentation
+
+Init offers **Set up Wallet now?**, default No. Yes uses precisely the same protected initialization and 12-recovery-word flow as later dashboard/first use, without duplicating logic or recreating an initialized vault. No defers it.
+
+The home tile gives a compact ready/empty/waiting/failure summary and pending count. Its page lists nonsecret service/account labels, workflow progress and protected management actions. Never present keys, passwords, codes or recovery words as ordinary state or chat text. Recovery words appear only in deliberate protected setup/restoration. Requests are Wallet actions, not a fourth Book entity; chats may contain a nonsecret reason/link/outcome.
 
 ## Acceptance outcomes
 
-Request a missing login headless/headful: no username/password request appears in chat or model tools. Resolve it through Wallet, store only ciphertext and sign in. Later requests use stored credentials automatically; already signed-in sessions need no Wallet request. Verify wrong-origin refusal, failed login, repeated requests, multiple waiting actions, restart during input/persistence and once-only resume without blocking unrelated work. Test default masking, independent reveal/conceal, value preservation, keyboard operation, no accidental submission and fresh hidden state in add/update and pending-login entry. Test attended manual login and optional remembering, masked management and complete exclusion from traces/browser observations/recording. Different projects retain separate vaults while shared-profile session interference stays explicitly deferred.
+Test init No/Yes/later setup with one implementation. Username starts visible, password masked with typing feedback; independent reveal preserves values, never submits and resets correctly on new forms. Useful editable labels survive restart.
+
+Exercise stored and missing credentials, rejection, extra login fields, imported TOTP secret/QR, one-off code, mobile approval and manual takeover. Repeated attempts keep one request/record and accurate step state. Saving a password clears only that input attention; failed/unverified access never releases dependent work. Verified access resumes once after restart and keeps unrelated work running.
+
+Verify origin/account matching and exclusion of all secret material from Git, ordinary API/status, model tools, browser observations and recordings. Perform authorized technical updates without automatic approval prompts; genuinely necessary human steps use protected Wallet input. Audit meaningful mutations separately, including empty commits and disabled audit, without versioning the vault or rerunning successful external effects.

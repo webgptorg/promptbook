@@ -8,7 +8,7 @@ There is no global engine. Every engine owns one concrete project directory. The
 
 ## Durable registry and live discovery
 
-Maintain a host-local registry outside individual projects. Successful initialization/start registers the project; live discovery also includes engines launched by other clients, foreground/background modes, global/project-local installations and supported package versions. Do not limit discovery to this client's history or installation, and do not scan unrelated directories to invent projects.
+Maintain a host-local registry outside individual projects under the shared [home/identity policy](workspace.md#home-directory-and-shared-projects-root). Sudo preserves the original user's project/discovery scope; direct root uses root's own scope. Successful initialization/start registers the project; live discovery also includes engines launched by other clients, foreground/background modes, global/project-local installations and supported package versions. Do not limit discovery to this client's history or installation, and do not scan unrelated directories to invent projects.
 
 A known project remains registered after graceful stop, force stop, [panic](panic.md), process exit and OS reboot. Reconcile transient process records without deleting its durable entry. Equivalent paths/installations identify one project; successive engine instances remain distinct. Explicit registry removal is how the operator forgets it.
 

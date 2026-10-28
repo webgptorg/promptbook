@@ -22,7 +22,7 @@ After successful integration, refresh tasks, configuration version, tools and re
 
 ## Visible merges and immutable history
 
-Integrate fetched changes using a normal **non-fast-forward merge**: when remote changes need integration, retain a visible merge commit even if fast-forward would have been possible. An already up-to-date branch does not produce an empty merge commit. Never use rebase, squash, amend, destructive reset, force-push or another history rewrite as an automatic synchronization strategy. Preserve existing commits and both parents of real merges. Automatic merge/repair commits use the normal `PTBK: ` subjects and remain separate from task-result or tool-management commits.
+Integrate fetched changes using a normal **non-fast-forward merge**: when remote changes need integration, retain a visible merge commit even if fast-forward would have been possible. An already up-to-date branch does not produce an empty merge commit. Never use rebase, squash, amend, destructive reset, force-push or another history rewrite as an automatic synchronization strategy. Preserve existing commits and both parents of real merges. Automatic merge/repair commits use the normal `ptbk: ` subjects and remain separate from task-result or tool-management commits.
 
 Resolve ordinary conflict-free merges automatically. Problems needing judgment go to the ordinary **Fixer**, which may resolve straightforward conflicts using evidence and project policy or consult its team, including User by default, when necessary. Do not automatically make every conflict a human question or silently choose ours/theirs and lose work.
 

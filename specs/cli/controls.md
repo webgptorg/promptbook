@@ -32,7 +32,7 @@ Per-tool browser recheck, startup retry, restart, kill and test-GitHub-tab actio
 
 ## Wallet controls
 
-Expose the project [Wallet sub-engine](wallet.md) with masked record labels, pending login actions and protected add/update/remove/restore input. It calls the same encryption/login operations with zero viewers; agent-facing operations cannot read raw records/keys. Wallet waits use ordinary attention and do not pause independent work. Stored credentials are applied automatically; human input is requested only when needed.
+Expose the project [Wallet sub-engine](wallet.md) with masked record labels, pending login actions and protected add/update/remove/restore input. It calls the same encryption/login operations with zero viewers; agent-facing operations cannot read raw records/keys. Wallet waits use ordinary attention and do not pause independent work. Stored credentials and TOTP generators are applied automatically; technical updates need no blanket approval. A genuinely required human action uses Wallet's protected notice. Saving an input clears its attention without falsely completing an unverified login. The same setup flow is available optionally in init (default No).
 
 ## Synchronization controls
 

@@ -8,6 +8,12 @@ Init is a short attended journey with a beginning, visible progress and an end. 
 
 Open new initialization with one generous field asking what the user is working on. Accept prose, long pasted material and images/files through the shared [rich composer](rich-input.md), with inspectable compact tokens instead of terminal payload dumps. Retain supplied input and resumed drafts. Existing-project maintenance reuses recorded purpose and does not request a replacement brief. Do not ask for a separate first task.
 
+After intent, offer the three [destinations](initialization.md#initial-input-and-destination) in order: shared home-based PTBK projects folder, current directory, new subfolder. Explain existing-work versus new-agenda use, reuse an explicit destination and show the resolved path before writes.
+
+Offer **Use the global CLI** first/preferred and local installation second, respecting an existing destination-local dependency. For a fresh selection, preselect installed and verified-ready harnesses; executable presence alone is insufficient. Let users deselect them and retain explicit/prior selections.
+
+Offer **Set up Wallet now?**, default No. Yes opens the same protected setup/recovery-word flow as later Wallet management; No proceeds without it. Existing vaults are preserved.
+
 Keep the familiar selected-harness featured/More flow and one **Browser profile** picker: dedicated global Promptbook profile (default), isolated project profile, user's existing Chrome profile, or custom path. Explain the difference between dedicated and personal identities and safe sharing; preserve previous choices. Headless is independent. Unified tools are an internal/configuration improvement, not a requirement to ask about advanced instance naming, account pools, multiple browsers or fallback chains in the normal wizard. Those are managed later.
 
 Harness selection must visibly warn when the selected set is empty, explaining that no model work can run and Router cannot receive its concrete initial selection. Preserve the user's current selection and offer the normal navigation to choose a harness; do not silently select one, claim successful readiness or hide the empty selection behind a later cryptic failure.

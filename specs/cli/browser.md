@@ -33,7 +33,7 @@ Task/agent instructions determine authority for consequential actions. A session
 
 If already signed in, use the existing session. If not, request [Wallet](wallet.md): it applies saved credentials automatically or asks for protected input and returns only nonsecret outcome. Agents do not obtain/type the password. During trusted secret entry, observation/JavaScript/raw CDP paths, screenshots and traces must not reveal credential values; agent tooling cannot bypass that boundary. Preserve full ordinary browsing outside this protected operation. Direct unrestricted access cannot be claimed secret-isolated under [project encryption](project-encryption.md).
 
-Manual sign-in in an existing headful browser remains possible, with optional protected Wallet remembering. Do not pretend a GUI appeared on a headless host. A new remote desktop/VNC/CDP screen-sharing login UI is deferred. Human-only 2FA/CAPTCHA/consent remains an actual human step.
+Manual sign-in in an existing headful browser remains possible, with optional protected Wallet remembering. Do not pretend a GUI appeared on a headless host. A new remote desktop/VNC/CDP screen-sharing login UI is deferred. Browser instructions explicitly authorize attempting supported CAPTCHA solving autonomously during registration, login and other authorized browsing. Use stored TOTP through trusted Wallet operations and complete technical steps without routine user prompts. Do not classify every CAPTCHA/2FA step as human-only; request the user's actual action only when necessary, retaining the same verified-login workflow. A successful CAPTCHA is not by itself proof of authenticated access.
 
 ## Diagnostics, restart, kill and test tab
 

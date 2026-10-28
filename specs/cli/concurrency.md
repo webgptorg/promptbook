@@ -12,6 +12,12 @@ Different chats and tasks can progress independently up to this limit. No single
 
 The limit is refreshed with configuration. Raising it permits more eligible work; lowering it prevents excess new claims without killing already active work. Chat remains eligible during scheduling pause; background tasks and their queued follow-ups do not. Stop/force stop apply to **all** active work. See [service lifecycle](service-lifecycle.md).
 
+## One unfinished started task per agent
+
+An executing agent holds at most **one started unfinished task**, including a task checkpointed for human input, Wallet, resources or another wait. A wait releases active execution capacity where safe but does not free that agent's task reservation. Different agents may work in parallel; queue another task for a busy agent until the first is completed or explicitly cancelled/reassigned through ordinary task management. Selecting a different harness/account for the same agent does not create another task capacity.
+
+The agent can still answer chat while its task is active or waiting, under shared capacity and file ownership. Chat is a timely interaction with a present person; a task is durable longer-running work that may wait in a queue. A status reply or consultation does not start a second independent task or falsely complete the first. Restore this reservation before claiming tasks after restart.
+
 ## Per-file ownership
 
 Different files can be edited concurrently. Conflicting work on the **same file** waits for its current owner; do not serialize the whole project just because any task is active. Resolve actual file identity consistently across aliases/paths and coordinate engine authoring, tools, chats, task edits, checks and Git operations through the same ownership model. Read-only inspection does not take a mutation lock.

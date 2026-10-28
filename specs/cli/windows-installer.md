@@ -32,7 +32,7 @@ Make the selected executables available immediately to the launched terminal, in
 
 ## Project location
 
-Propose a writable projects root beneath the initiating user's actual home, defaulting to `%USERPROFILE%\Promptbook`. Show the resolved path and allow a different location. Create it if missing, otherwise reuse it. This is an ordinary container for independent project directories, not itself a Promptbook project, Git repository or global engine workspace.
+Propose a writable projects root beneath the initiating user's actual home, defaulting to `<resolved-user-home>/PTBK/project/` under the shared [home/identity policy](workspace.md#home-directory-and-shared-projects-root). Show the resolved path and allow a different location. Create it if missing, otherwise reuse it. This is an ordinary container for independent project directories, not itself a Promptbook project, Git repository or global engine workspace.
 
 Offer **Create the first project** with an editable, sensible folder name and a way to skip it. Create one empty child directory for the accepted project. Folder naming is not a project brief; intent is still collected by init. Do not prepopulate Books, `ptbk.json`, package metadata or `.git` in either the projects root or its new child.
 

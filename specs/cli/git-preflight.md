@@ -6,7 +6,7 @@ Read-only inspection may operate without Git. Initialization and mutating task e
 
 Reuse existing repositories, including unborn branches, nested project directories and worktrees where `.git` is a file. Preserve the current branch/history. Explicitly use `main` only when creating a new repository. Never create accidental nested Git; use the existing [ignored-child/submodule choices](nested-projects.md). Distinguish missing Git, damaged and bare repositories from ordinary absent initialization.
 
-Default init commits only authorized setup as an initial/scoped `PTBK: ` commit, preserving unrelated files/staging, hooks, identity and signing. Repeated satisfied setup produces no empty commit. Failed local persistence remains incomplete; explicit `--no-commit` labels its exception and obeys migration/synchronization compatibility rules.
+Default init commits only authorized setup as an initial/scoped `ptbk: ` commit, preserving unrelated files/staging, hooks, identity and signing. Repeated satisfied setup produces no empty commit. Failed local persistence remains incomplete; explicit `--no-commit` labels its exception and obeys migration/synchronization compatibility rules.
 
 Establish a committed baseline or explicitly owned uncommitted bootstrap before unattended work. Authoring normally creates its own scoped baseline. Validate source revisions and ownership in either mode; a newly committed tool change during another owned task is not unrelated dirt to erase.
 

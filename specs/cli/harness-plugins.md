@@ -23,3 +23,9 @@ Readiness and variant-specific parsing feed the shared tool domain layer. Init, 
 Default integration catalogs show a small curated featured set, initially OpenAI Codex and Claude Code, plus **More**. All other supported variants remain reachable through bounded/searchable navigation even with hundreds of adapters. Default entries show names, not model/configuration dumps; reveal details on request and preserve selections.
 
 Featured status is presentation, not installation, enablement or paid-use authorization. The configured-tool inventory is different from the adapter catalog: it must distinguish several named instances of the same variant, their order, enabled state, availability and current uses. An active nonfeatured variant remains visible. See [harnesses](harnesses.md), [updates](harness-updates.md), [tool management](tool-management.md) and [help](help.md).
+
+## Usage and current price lists
+
+Every adapter preserves the finest available provider-native usage, timestamps, token-category semantics, actual model and nonsecret named-account/billing context under [usage](usage.md). Distinguish cumulative snapshots from deltas and unavailable from zero. Include failed/interrupted attempts and tool/consultation provenance without leaking secrets.
+
+Each adapter can retrieve its current price list and retain independent timestamped observations in ignored internal storage, with source and effective dates when known. Do not bind raw usage to one price snapshot, assume today's rate applied historically or add an automatic historical backfill mechanism. Unsupported/unavailable usage or pricing is explicit and never a reason to fabricate a precise subscription percentage.

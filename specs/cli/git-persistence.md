@@ -1,6 +1,6 @@
 # Automatic Git persistence
 
-[Main specification](../_main.md)
+[Main specification](../_main.md) · [Storage and Git guide](storage-and-git.md)
 
 ## Commit by default
 
@@ -8,7 +8,7 @@ Every successful Promptbook operation changing versioned project content commits
 
 Write accepted messages and file changes **immediately**, independently of Git timing. Use smart, bounded debouncing/batching for compatible conversation and authoring saves rather than a mandatory commit per message, token or file write. Preserve chronology, authorship and Chat-Name/Task-Name attribution in every batch. Flush at meaningful boundaries and graceful shutdown; continuous activity must not postpone commits indefinitely. The exact debounce duration is an implementation choice. Task authoring flushes before dispatch and completed tasks retain their own scoped result commit. Task-internal consultations join that result; conversation-only advice can use a scoped conversation batch. See [chats](chats.md) and [concurrency](concurrency.md).
 
-[Configuration migrations](configuration-migrations.md) commit the whole successful multi-version pass once, including the final version even if there are no transformation steps. [Tool management](tool-management.md) commits add/modify/reorder/enable/disable/remove immediately and separately. Deterministic normalization saves an isolated correction, or joins the owning configuration operation when already being prepared there. None may absorb task changes or create an empty commit for a no-op. Secret-file edits follow their own [timestamped local audit](environment.md), never a Git commit of `.env`.
+[Configuration migrations](configuration-migrations.md) commit the whole successful multi-version pass once, including the final version even if there are no transformation steps. [Tool management](tool-management.md) commits add/modify/reorder/enable/disable/remove immediately and separately. Deterministic normalization saves an isolated correction, or joins the owning configuration operation when already being prepared there. None may absorb task changes or create an empty commit for a no-op. Completed meaningful external work and Wallet mutations may intentionally use an empty audit commit under [storage and Git](storage-and-git.md#logical-operations). Secret-file edits follow their own [timestamped local audit](environment.md), never a Git commit of `.env`.
 
 A clean repository is clean at completed operation boundaries unless another owned operation is still active. Read-only commands, cancelled previews, no-ops and runtime/session changes create no commits. Pause/resume/stop/restart, browser repair and viewer navigation are runtime-only unless explicitly saving defaults. Trace inclusion never authorizes versioning `.ptbk/`, credentials or profiles. Push is governed separately by [autosynchronization](git-synchronization.md).
 
@@ -16,11 +16,15 @@ Distinguish saved-to-file, pending Git, committed and failed persistence. A dura
 
 ## Commit messages and history
 
-Every automatic engine commit starts with exact `PTBK: ` plus a meaningful operation summary. Apply the prefix once. A task result uses `PTBK: <task title>` with its descriptive assignment and task-local rules retained in the body. Other subjects identify setup, tool changes, migration, normalization, maintenance or integration. Chat commits retain Chat-Name correlation.
+Every automatic engine subject starts with lowercase `ptbk: `, exactly once, followed by a meaningful operation summary. When actual agent work is responsible, include that agent's compact single-line textual visualization in backticks, using its shared [visual identity](../agents/visual-identity.md). Use the stable static identity, not an animation frame or a made-up system agent.
+
+Agent-work subjects have the shape `ptbk: ` + backtick-quoted agent visual + space + meaningful subject, normally the task title for a task result. For example: ``ptbk: `~<@@/>-` Review export``. System operations use `ptbk: <operation summary>` without an invented agent. Do not automatically decorate subjects with another date/time: Git already records it. Preserve a date that is part of an actual declared name when needed for name correlation.
+
+The body may explain the detailed work, assignment, decisions and external outcome; retain Task-Name/Chat-Name/source provenance. Other subjects identify setup, tool changes, migration, normalization, maintenance, Wallet audit or integration. Chat batches keep actual authorship even when multiple agents contributed. Do not rewrite existing history to restyle older commit messages.
 
 Task-attributable commits carry `Task-Name: <declared name>` and source/revision context, not generated IDs or filename identity. Creation, assignment, result, repair, integration and recurrence retain the name valid for that operation; explicit renames relate old/new names. Multi-task records distinguish executing work from generated follow-ups.
 
-History is append-only for automatic engine operations. Never rebase, amend, squash away commits, reset away history or force-push to manufacture cleanliness. Real integrations use visible non-fast-forward merge commits under [synchronization](git-synchronization.md); task worktrees are removed under [shared-tree isolation](isolation.md); already up-to-date input does not require an empty merge. Preserve each original result commit and its provenance. Specification-editing commits in this repository follow their requested `Specs - ...` convention, not the runtime `PTBK: ` convention.
+History is append-only for automatic engine operations. Never rebase, amend, squash away commits, reset away history or force-push to manufacture cleanliness. Real integrations use visible non-fast-forward merge commits under [synchronization](git-synchronization.md); task worktrees are removed under [shared-tree isolation](isolation.md); already up-to-date input does not require an empty merge. Preserve each original result commit and its provenance. Specification-editing commits in this repository follow their requested `Specs - ...` convention, not the runtime `ptbk: ` convention.
 
 ## Concurrent operations and task results
 
@@ -52,6 +56,6 @@ A full revert may reverse result/completion together or remove a task created th
 
 ## Acceptance outcomes
 
-Verify creation commits before dispatch, one meaningful PTBK prefix, task/chat name correlation and one result per occurrence. Verify immediate message/file saves, meaningful debounced batches with a bounded flush, saved-versus-committed state and recovery after force stop before a commit. Interleave tool changes and task work, including same-file edits: preserve both scoped histories and unrelated staging. Test mandatory version-only migration commits, normalization no-ops, secret exclusion, failed hooks/signing and explicit uncommitted workflows. Pull/push failure does not rerun successful work; visible merge commits retain original results. Runtime controls and navigation create no commits.
+Verify creation commits before dispatch, one meaningful lowercase ptbk prefix with a backtick-quoted visual only for actual agent work, task/chat name correlation and one result per occurrence. Verify immediate message/file saves, meaningful debounced batches with a bounded flush, saved-versus-committed state and recovery after force stop before a commit. Interleave tool changes and task work, including same-file edits: preserve both scoped histories and unrelated staging. Test mandatory version-only migration commits, normalization no-ops, secret exclusion, failed hooks/signing and explicit uncommitted workflows. Pull/push failure does not rerun successful work; visible merge commits retain original results. Runtime controls and navigation create no commits.
 
 See [authoring](authoring.md), [checks](checks.md), [recovery](recovery.md), [Git synchronization](git-synchronization.md) and [isolation](isolation.md).

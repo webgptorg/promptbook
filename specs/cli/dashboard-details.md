@@ -20,7 +20,7 @@ The home Current work tile uses only a bounded agent/task/phase/wait summary and
 
 Show the ordered [tool inventory](tools.md), identifying each instance by name, type and variant, with enabled, usable, currently used and retained-current-use/draining states distinguished. The home Tools tile shows only a compact health/count/problem summary.
 
-The Tools page provides add, modify, reorder, **enable and disable as primary actions**, and clearly secondary permanent removal. Opening one tool may enter a nested tool detail page while preserving the Tools list selection.
+The Tools landing uses the shared nested tile hierarchy for types/resources, then exposes the ordered inventory and selected-instance detail. Its management view provides add, modify, reorder, **enable and disable as primary actions**, and clearly secondary permanent removal. Opening one tool may enter a nested tool detail page while preserving the Tools list selection.
 
 Editing exposes the variant's applicable fields, optional description and safe credential-reference input. Explain actual account/profile identity; do not imply that two names referencing one native login or browser profile are two separate accounts. Secret values are write-only inputs and never shown in ordinary detail responses.
 
@@ -38,7 +38,7 @@ Significant failures set attention on the Tools/Browser path of the home screen;
 
 ## Wallet page
 
-Wallet has its own home tile and page over the project [sub-engine](wallet.md). Summarize readiness/pending count compactly; list service/account labels and pending actions in detail. Provide concealed credential management and deliberate protected recovery/setup input through shared engine operations. Never show passwords, recovery words or raw keys in ordinary detail/status, logs or snapshots. Use the one attention presentation, clear answered actions promptly and keep independent work running.
+Wallet has its own home tile and page over the project [sub-engine](wallet.md). Summarize readiness/pending count compactly; list service/account labels and pending actions in detail. Provide protected credential management with visible-by-default username, masked-by-default password with typing feedback, independent reveal and deliberate recovery/setup input through shared operations. Saved input is not verified login success; preserve the continuing request through further factors and verification. Never show passwords, recovery words or raw keys in ordinary detail/status, logs or snapshots. Use the one attention presentation, clear answered actions promptly and keep independent work running.
 
 ## Agents, Chats, Tasks and activity pages
 
@@ -51,6 +51,10 @@ The Chats page lists all conversations, unread/actionable states and new Chatter
 The Tasks page uses the [complete task view](task-views.md), with smart default order and user-selected sorting independent of engine scheduling. Tasker remains the task-authoring entry.
 
 The Results/Activity page may scroll through longer runtime history. The home tile contains only bounded totals/recent outcome/error information.
+
+## Usage page
+
+The [Usage](usage.md) page defaults to a simple seven-day summary and supports grouping/filtering with self-only/inclusive scope. It may remember the last view locally. Show agents in agent views, harnesses in harness views and only relevant labels in aggregate views. Billing mode and exact/estimated/unknown coverage remain visible; price-list version/timestamp details stay hidden. All totals are reproducible from durable raw records and independent historical prices, with no double counting.
 
 ## Synchronization page, only when enabled
 
@@ -72,7 +76,7 @@ When only the ordinary manual pause reason exists, keep the presentation simple.
 
 ## Health page
 
-The Health page is a controller/view over the exactly-one-per-engine [Health sub-engine](health-sub-engine.md). Show disk, RAM, swap, combined available memory, CPU/load, connectivity, configured preventive limits, incident freshness/severity and scheduling impact.
+The Health landing uses compact metric/incident/remediation tiles and drills into relevant measurements and controls, rather than expanding everything at once. The Health page is a controller/view over the exactly-one-per-engine [Health sub-engine](health-sub-engine.md). Show disk, RAM, swap, combined available memory, CPU/load, connectivity, configured preventive limits, incident freshness/severity and scheduling impact.
 
 Expose Promptbook-project cache cleanup and supported Linux swap remediation through Health sub-engine operations. Allow incident-scoped override only for a soft health pause and show a strong warning. Hard health pauses have no override.
 

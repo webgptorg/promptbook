@@ -28,7 +28,7 @@ A migration belongs to a particular target engine version. Many releases have no
 
 A step deterministically transforms its assigned project behavior. It must not advance `promptbookVersion`, create an independent commit or perform ordinary task work. The coordinator owns those actions: after all selected steps succeed, validate/canonicalize the complete prepared migration result (checking transformation invariants, not rejecting unrelated recoverable user-content warnings), set `promptbookVersion` to E and persist **one dedicated commit for the whole pass**, including all affected configuration and Book files. Even with no selected steps, changing the version is a real committed operation. Do not fold task changes, unrelated configuration edits or another operation's files into it.
 
-Use an automatic `PTBK: ` subject describing migration from C to E; the body can identify the applied migration targets. This is the runtime engine's commit convention, distinct from commits that edit these specification documents. No empty commit is needed when E and C are already equal and nothing else changes.
+Use an automatic `ptbk: ` subject describing migration from C to E; the body can identify the applied migration targets. This is the runtime engine's commit convention, distinct from commits that edit these specification documents. No empty commit is needed when E and C are already equal and nothing else changes.
 
 ## Safety and recovery
 

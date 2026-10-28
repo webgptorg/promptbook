@@ -16,7 +16,7 @@ With a running engine, route changes through coordinated project ownership. With
 
 ## One rich-input implementation
 
-Initialization, chat and full-source Book editing **must implement rich input once**. Reuse the same editor/input model, Ctrl+V acquisition, long-text collapsing/expansion, image/document handling, project-asset storage and readable serialization. A shared visual style with three copied paste handlers does not satisfy DRY. Task descriptions, planning and other text fields reuse this same capability.
+Initialization, chat and full-source Book editing **must implement rich input once**. Reuse the same editor/input model, Ctrl+V and macOS Command+V acquisition, long-text collapsing/expansion, image/document handling, project-asset storage and readable serialization. A shared visual style with three copied paste handlers does not satisfy DRY. Task descriptions, planning and other text fields reuse this same capability.
 
 The entry point only configures interaction policy: chat/init Enter accepts/submits; Book-source Enter inserts a newline and Ctrl+S saves without exit. Saving behavior and content diagnostics are coordinated with shared authoring/repair operations. Tests of payload preservation and attachments should exercise that common behavior rather than conceal separate implementations. See [rich input](../cli/rich-input.md) for the single behavioral contract and [Book editor](../cli/book-editor.md) for its mode.
 

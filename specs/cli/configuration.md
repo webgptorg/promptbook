@@ -24,7 +24,11 @@ Recovery may retain a particular active use's effective settings without restori
 
 ## Concurrent work
 
-`execution.maxConcurrentWork` is a positive integer, default **5**, shared by active background tasks and chat work together. It is not a per-agent or per-kind limit. Refresh it live: a lower value drains excess existing work without termination; a higher value opens capacity. Idle chats, viewers and checkpointed waits do not consume active slots. File conflicts and task dependencies still block affected work even when slots are free. See [concurrency](concurrency.md).
+`execution.maxConcurrentWork` is a positive integer, default **5**, shared by active background tasks and chat work together. It is not a per-kind limit; the independent one-started-unfinished-task-per-agent reservation in [concurrency](concurrency.md#one-unfinished-started-task-per-agent) also applies, including checkpointed waits. Chat can still respond for that agent. Refresh it live: a lower value drains excess existing work without termination; a higher value opens capacity. Idle chats, viewers and checkpointed waits do not consume active slots. File conflicts and task dependencies still block affected work even when slots are free. See [concurrency](concurrency.md).
+
+## Wallet operation audit
+
+`wallet.isAuditCommitted` defaults to `true`; false disables only the separate nonsecret Wallet mutation audit, not storage or automatic use. Preserve explicit false on resume/reinit. Do not add an init question for this setting. Vault files remain ignored in both cases. See [storage and Git](storage-and-git.md#wallet-operation-audit).
 
 ## Health limits
 
