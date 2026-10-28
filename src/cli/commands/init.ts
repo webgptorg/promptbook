@@ -27,7 +27,6 @@ import { ensureManifest, inspectLocalInstallation, installLocally, verifyGlobalA
 import { assessReadiness } from '../../project/readiness.js';
 import { checkForEngineUpdate, updateEngine, type UpdateCheck } from '../../project/self-update.js';
 import {
-    ensureCoreAgents,
     ensureDefaultRoles,
     ensureGitRepository,
     ensureProjectInstructions,
@@ -41,6 +40,7 @@ import {
     traceIgnoreLines,
     type NestedStrategy,
 } from '../../project/setup.js';
+import { prepareCoreAgents } from '../../project/core-templates.js';
 import { canonicalPath, projectAt, type Project } from '../../project/workspace.js';
 import { HARNESS_PLUGINS, harnessPlugin } from '../../harness/registry.js';
 import { checkHarnessVersion, installHarness, loginHarness, updateHarness } from '../../harness/maintenance.js';
@@ -935,7 +935,10 @@ export async function initializeProject(context: CommandContext, options: { proj
         const catalog = plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env: context.env }).catch(() => []) : [];
         return formatModelRow(pluginDefaultRow(plugin, catalog));
     };
-    for (const path of await ensureCoreAgents(root, agentsDirectory, { routerModel })) createdPaths.push(path);
+    // The same core preparation as start: missing roles are created, clean template updates applied; conflicts stay
+    // for the engine's ordinary Fixer work (init itself makes no model calls).
+    const cores = await prepareCoreAgents(root, agentsDirectory, { runtimeRoot: project.runtime.root, routerModel });
+    createdPaths.push(...cores.created, ...cores.updated);
     for (const path of await ensureTemplates(root, tasksDirectory)) createdPaths.push(path);
     await ensureDirectory(join(root, tasksDirectory));
     await ensureDirectory(join(root, 'specs'));

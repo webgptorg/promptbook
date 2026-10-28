@@ -1,5 +1,13 @@
 # Unreleased
 
+## Core agents: one shared preparation with three-way template updates
+
+-   Init and start now use one preparation operation for **all** required core roles: a role introduced by a newer engine is added at the next `ptbk start` without another init or bootstrap. Each installed core Book's exact engine template, its inputs and the engine version are recorded as its baseline in the ignored, persistent `.ptbk/core-templates.json` (cache cleanup never touches it).
+-   When an engine template changes, the engine compares the old baseline, the new template and your current Book line by line: upstream changes are applied while your own and learned changes are kept, an unchanged default is updated directly and a template that did not change leaves a customized Book alone. Nothing is ever reset, bulk-regenerated or duplicated. For a Book created before baselines existed, only exact earlier engine templates count as its base.
+-   Overlapping changes and Books without a verifiable baseline are left unchanged and go to **one** ordinary, deduplicated Fixer task with the old/new templates and instructions to keep project policy, asking User only when needed. Init itself makes no model calls; once Fixer's task has finished, the new templates become the baselines, so the same update is never requested again. Template updates are their own scoped commit.
+-   Adam's default rules now ask for the ordinary hyphen `-` instead of long typographic dashes in written prose, without rewriting verbatim input, quotations, names or identifiers. Existing projects receive it through the template update above.
+-   New `test/core-templates.test.mjs` covers the merge, fresh preparation and its idempotence, an unchanged older Adam, learned additions, overlaps, unknown baselines, a recorded baseline and an untouched customized Fixer.
+
 ## Wallet: nonsecret audit commits, useful labels and clearer entry
 
 -   Each meaningful Wallet change (a saved, updated or removed login) gets its own scoped audit commit, `ptbk: Wallet - Add login "<label>"` (and Update/Remove), naming only the operation, the editable label and the website. It is an intentional empty commit created through a temporary index, so the encrypted vault, secrets and your staged or unstaged work never enter it. If Git fails (for example a hook), the change itself stays saved and the audit is retried later, also after a restart, without repeating the change. New `ptbk.json` setting `wallet.isAuditCommitted` (default `true`); `false` disables only the audit, not storage or automatic login, and `--no-commit` workflows create none. Login attempts and unchanged records create no commits.

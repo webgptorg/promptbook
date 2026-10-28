@@ -16,6 +16,7 @@ import { validateAttachments } from '../chats/store.js';
 import { materializeAttachments } from '../ui/attachments.js';
 import type { TaskInventoryItem } from '../tasks/views.js';
 import { commitAudit, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
+import { coreReconciliationDescription, prepareCoreAgents, type CorePreparation } from '../project/core-templates.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
@@ -566,19 +567,23 @@ export class Agenda {
     }
 
     /**
-     * Materializes required core agents that are missing (e.g. Fixer after an engine upgrade) as one scoped commit;
-     * existing core Books are never touched.
+     * Prepares the required core agents through the same operation as init: missing roles (e.g. a role introduced by
+     * an engine upgrade) are created without another init, clean template updates are applied by a three-way merge
+     * that preserves project and learned changes, and overlaps or unverifiable baselines become one ordinary,
+     * deduplicated Fixer task. Changes are one scoped commit; a resolved reconciliation is never repeated.
      */
     private async ensureCoreAgents(): Promise<void> {
         if (!this.repositoryRoot) return;
-        const { ensureCoreAgents } = await import('../project/setup.js');
+        const agentsDirectory = setting<string>(this.settings, 'paths.agents');
         // A missing Router is created directly runnable: the first suitable enabled harness and its plugin defaults.
-        const created = await ensureCoreAgents(this.options.project.root, setting<string>(this.settings, 'paths.agents'), {
+        const prepared = await prepareCoreAgents(this.options.project.root, agentsDirectory, {
+            runtimeRoot: this.options.project.runtime.root,
             routerModel: async () => {
                 const completed = await completeWithDefaults(UNCONSTRAINED, this.routing, { includeUnusable: true });
                 return completed.row ? formatModelRow(completed.row) : undefined;
             },
         });
+        const { created, updated } = prepared;
         // Sources in former syntax are never rewritten automatically: they wait for an explicit `ptbk migrate`.
         const legacy = (this.catalog?.index.all() ?? []).filter((entry) => entry.tier !== 4 && entry.document.legacy && entry.kind === 'invalid');
         if (legacy.length) {
@@ -590,11 +595,44 @@ export class Agenda {
                 'warning',
             );
         }
-        if (!created.length) return;
-        const commit = this.commitMode ? await this.commitAuthoring(created, 'Add required core agents').catch(() => undefined) : undefined;
-        if (!this.commitMode) for (const path of created) await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, path)]: null });
-        this.log(`Added missing core agent(s): ${created.map((path) => toProjectRelative(this.options.project.root, path)).join(', ')}${commit ? ` (${commit.slice(0, 8)})` : ''}.`);
-        await this.refreshContext();
+        const changed = [...created, ...updated];
+        if (changed.length) {
+            const summary = created.length && updated.length ? 'Prepare core agents' : created.length ? 'Add required core agents' : 'Update core agents from engine templates';
+            const commit = this.commitMode ? await this.commitAuthoring(changed, summary).catch(() => undefined) : undefined;
+            if (!this.commitMode) for (const path of changed) await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, path)]: null });
+            const list = (paths: readonly string[]): string => paths.map((path) => toProjectRelative(this.options.project.root, path)).join(', ');
+            this.log(`${created.length ? `Added missing core agent(s): ${list(created)}. ` : ''}${updated.length ? `Applied engine template updates, keeping project changes: ${list(updated)}. ` : ''}${commit ? `(${commit.slice(0, 8)})` : ''}`.trim());
+            await this.refreshContext();
+        }
+        await this.reconcileCoreTemplates(prepared, agentsDirectory);
+    }
+
+    /**
+     * Sends core template updates that need judgment to one ordinary Fixer task. Once that task has finished (Fixer
+     * merged, adapted or deliberately kept the project version), the new templates become the baselines, so the same
+     * update is never requested again.
+     */
+    private async reconcileCoreTemplates(prepared: CorePreparation, agentsDirectory: string): Promise<void> {
+        if (!prepared.conflicts.length) return;
+        const key = 'core-templates';
+        const previous = (await this.state.readRepairs())[key];
+        if (previous?.fingerprint === shortHash(prepared.fingerprint, 16)) {
+            const task = (await this.readQueue()).tasks.find((candidate) => nameKey(candidate.title) === nameKey(previous.task));
+            if (!task || task.status === 'done' || task.status === 'retired') {
+                await prepared.resolve(prepared.conflicts.map((conflict) => conflict.file));
+                this.log(`Core template updates were reconciled by {${previous.task}}.`);
+            }
+            return;
+        }
+        const names = prepared.conflicts.map((conflict) => conflict.name).join(', ');
+        await this.scheduleRepair({
+            key,
+            origin: 'maintenance: core agent template update',
+            title: `Reconcile core agent template updates (${names})`,
+            description: coreReconciliationDescription(prepared.conflicts, agentsDirectory),
+            links: prepared.conflicts.map((conflict) => formatAgentReference(conflict.name)),
+            fingerprint: prepared.fingerprint,
+        });
     }
 
     /**
