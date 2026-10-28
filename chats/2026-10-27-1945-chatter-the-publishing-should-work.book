@@ -1,7 +1,7 @@
 CHAT Chatter: The publishing should work — 2026-10-27 19:45:20
 CHAT MEMBER @User
 CHAT MEMBER @Chatter
-CHAT STATUS open
+CHAT STATUS waiting-for-user
 
 CHAT MESSAGE @User 2026-10-27T19:45:20+01:00
 The publishing should work
@@ -37,4 +37,14 @@ CHAT MESSAGE @Chatter 2026-10-27T20:32:26+01:00 final
 Not yet. @Developer found that validation and npm publication passed, but the Windows installer job failed.
 
 The task is waiting for the protected GitHub login request in Wallet so it can inspect the failure logs. No fix has been applied yet.
+
+CHAT MEMBER @Developer
+CHAT MESSAGE @Developer 2026-10-28T14:58:16+01:00
+Please complete GitHub two-factor authentication in the project browser using your passkey/security key or More options (GitHub Mobile or SMS). The Wallet supplied the saved login successfully, but GitHub is still on its two-factor page. Authentication is needed to inspect the failed publishing jobs and actual logs; no credentials or codes should be sent in chat.
+
+Already attempted: I used the existing session of the project browser "project-browser"; the website still requires this human-only step.
+
+Please complete the action in the browser "project-browser", then confirm here.
+» Done
+» I cannot do it
 
