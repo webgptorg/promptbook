@@ -2,6 +2,7 @@ import { formatShortTime } from '../common/time.js';
 import { formatMiB } from '../engine/health.js';
 import { domainAttention } from '../engine/attention.js';
 import type { DashboardDomain, DomainAttention, ServiceSnapshot } from '../engine/snapshot.js';
+import type { UsageTotals } from '../engine/usage.js';
 import { fit, stringWidth, truncate, wrap } from './ansi.js';
 import { activityLabel, inlineBadge } from './badges.js';
 import { hasManualPause, healthPauseReasons, lifecycleActions } from './details.js';
@@ -30,6 +31,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
     tools: 'Tools',
     wallet: 'Wallet',
     results: 'Results',
+    usage: 'Usage',
     connection: 'Connection',
     sync: 'Synchronization',
 };
@@ -40,7 +42,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
  * @private terminal dashboard home
  */
 export function homeTiles(snapshot: ServiceSnapshot): HomeTile[] {
-    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
+    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
 }
 
 /**
@@ -134,6 +136,27 @@ export type HomeView = {
     /** Note under a pending owner stop. */
     readonly controlNote?: string;
 };
+
+/**
+ * A compact token count (`950`, `12.3k`, `4.1M`).
+ *
+ * @private terminal dashboard home
+ */
+export function compactCount(value: number): string {
+    if (value < 1_000) return String(Math.round(value));
+    if (value < 1_000_000) return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)}k`;
+    return `${(value / 1_000_000).toFixed(value < 10_000_000 ? 1 : 0)}M`;
+}
+
+/**
+ * Billing mode and certainty of usage totals in words (subscription/API/unknown runs, unavailable usage).
+ *
+ * @private terminal dashboard home
+ */
+export function billingMix(totals: UsageTotals): string {
+    const parts = [totals.billing.subscription ? `${totals.billing.subscription} subscription` : '', totals.billing.api ? `${totals.billing.api} API` : '', totals.billing.unknown ? `${totals.billing.unknown} unknown billing` : ''].filter(Boolean);
+    return parts.join(' · ') || 'no runs';
+}
 
 /**
  * Smallest useful summary lines of one tile (never the complete domain; details live on its page).
@@ -264,6 +287,17 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
                 `${style.success(`${marks.ok} ${snapshot.results.completed}`)} ${style.muted('completed')}  ${snapshot.results.failed ? style.error(`${marks.fail} ${snapshot.results.failed}`) : style.muted(`${marks.fail} 0`)} ${style.muted('failed')}`,
                 ...(last ? [`${last.outcome.startsWith('completed') ? style.success(marks.ok) : last.outcome === 'failed' ? style.error(marks.fail) : style.warning(marks.wait)} ${last.title}`] : []),
                 ...(error ? [style.warning(`last error: ${error.summary}`)] : activity ? [style.muted(`${time(activity.at)} ${activity.text}`)] : []),
+            ];
+        }
+        case 'usage': {
+            const usage = snapshot.usage;
+            if (!usage) return [style.muted('Not reported by this engine yet.')];
+            const { total } = usage;
+            return [
+                total.units ? `${style.bold(compactCount(total.input + total.output))} ${style.muted(`tokens · ${total.units} run${total.units === 1 ? '' : 's'} · ${usage.days} days`)}` : style.muted(`No model usage in ${usage.days} days`),
+                ...(total.units ? [style.muted(billingMix(total))] : []),
+                ...(total.coverage.unavailable ? [style.warning(`${total.coverage.unavailable} run${total.coverage.unavailable === 1 ? '' : 's'} without reported usage`)] : []),
+                style.muted('M open'),
             ];
         }
         case 'connection': {

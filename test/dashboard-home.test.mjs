@@ -184,3 +184,37 @@ test('the Wallet tile and page show readiness, requests and labels with the comm
     assert.match(empty.legend, /S set up \(shows 12 words for recovery once\)/);
     assert.doesNotMatch(`${text}\n${empty.body.join('\n')}`, /seed|mnemonic|BIP|passphrase/i, 'no technical jargon in the Wallet UI');
 });
+
+test('Usage tile and page: a seven-day summary with grouping-specific labels, visible billing mode and certainty, no price internals', () => {
+    const totals = (change = {}) => ({ units: 3, input: 12000, output: 3400, cachedInput: 0, reasoning: 0, reportedCostUsd: 0, calculated: { apiUsd: 0.42, subscriptionEquivalentUsd: 1.5, priced: 2, estimated: 1, unpriced: 0 }, billing: { subscription: 2, api: 1, unknown: 0 }, coverage: { reported: 2, unavailable: 1, costReported: 0 }, ...change });
+    const usage = {
+        days: 7,
+        from: new Date(Date.now() - 7 * 86400000).toISOString(),
+        to: new Date().toISOString(),
+        computedAt: new Date().toISOString(),
+        total: totals(),
+        breakdowns: { agent: [{ label: 'Developer', ...totals() }], agentInclusive: [{ label: 'Developer', ...totals({ input: 20000 }) }, { label: 'Lawyer', ...totals({ units: 1 }) }], harness: [{ label: 'openai-codex (codex)', ...totals() }], model: [{ label: 'gpt-test', ...totals() }], work: [{ label: 'task', ...totals() }] },
+    };
+    const view = terminal(120, 40);
+    const tile = renderHome(snapshot({ usage }), view, { focus: 'usage', attention: new Map(), frame: 0, legend: '' }).map(stripAnsi).join('\n');
+    assert.match(tile, /Usage/);
+    assert.match(tile, /15k tokens · 3 runs · 7 days/);
+    assert.match(tile, /M open/);
+    const context = { snapshot: snapshot({ usage }), terminal: view, frame: 0, owning: false };
+    const page = pageForTile('usage');
+    const byAgent = pageBody(page, context).body.map(stripAnsi).join('\n');
+    assert.match(byAgent, /^By executing agent$/m);
+    assert.match(byAgent, /^Developer +12k in · 3\.4k out/m);
+    assert.match(byAgent, /2 subscription · 1 API/, 'billing mode stays visible');
+    assert.match(byAgent, /1 without reported usage/, 'missing usage is visible, not zero');
+    assert.match(byAgent, /\$0\.42 API \(partly estimated\)/);
+    assert.match(byAgent, /\$1\.50 token-price equivalent of subscription work/);
+    assert.doesNotMatch(byAgent, /observedAt|effectiveFrom|price list version/i, 'technical price internals stay hidden');
+    assert.doesNotMatch(byAgent, /openai-codex/, 'an agent view does not force a harness column');
+    const inclusive = pageBody({ ...page, inclusive: true }, context).body.map(stripAnsi).join('\n');
+    assert.match(inclusive, /including work it initiated \(rows overlap\)/);
+    assert.match(inclusive, /^Lawyer/m);
+    const byHarness = pageBody({ ...page, grouping: 'harness' }, context).body.map(stripAnsi).join('\n');
+    assert.match(byHarness, /^openai-codex \(codex\)/m);
+    assert.doesNotMatch(byHarness, /^Developer/m);
+});

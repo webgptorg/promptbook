@@ -17,6 +17,8 @@ import { materializeAttachments } from '../ui/attachments.js';
 import type { TaskInventoryItem } from '../tasks/views.js';
 import { commitAudit, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
 import { coreReconciliationDescription, prepareCoreAgents, type CorePreparation } from '../project/core-templates.js';
+import { readUsage, summarizeUsage, type UsageGrouping, type UsageRow, type UsageSummary } from './usage.js';
+import { readPriceObservations } from './pricing.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
@@ -88,6 +90,7 @@ import type {
     ResultView,
     ServiceSnapshot,
     ToolsView,
+    UsageOverview,
     WaitView,
 } from './snapshot.js';
 import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ResultRecord, type RoutingSelection } from './state.js';
@@ -205,6 +208,11 @@ const MAX_ACTIVITY = 300;
 /**
  * Recheck interval of setup/workspace/recovery blockers.
  */
+/**
+ * Longest age of the cached usage overview of snapshots.
+ */
+const USAGE_REFRESH_MS = 60_000;
+
 const BLOCKER_RECHECK_MS = 5 * 60_000;
 
 /**
@@ -1761,8 +1769,50 @@ export class Agenda {
                   }))
                 : [],
             connection: this.connection,
+            ...(this.usageOverview() ? { usage: this.usageOverview() } : {}),
         };
         return { ...snapshot, attention: domainAttention(snapshot) };
+    }
+
+    /** The cached usage overview and when its refresh started (raw records are only read, never written, by views). */
+    private usageCache?: { readonly view?: UsageOverview; readonly refreshing?: boolean; readonly at: number };
+
+    /**
+     * The seven-day usage overview of snapshots: served from a cache refreshed in the background at most once a
+     * minute, so building snapshots never blocks on reading evidence.
+     */
+    private usageOverview(): UsageOverview | undefined {
+        const cache = this.usageCache;
+        if (!cache || (!cache.refreshing && Date.now() - cache.at > USAGE_REFRESH_MS)) {
+            this.usageCache = { view: cache?.view, refreshing: true, at: Date.now() };
+            void this.usageSummary({ grouping: 'none' })
+                .then(async (total) => {
+                    const breakdown = async (grouping: UsageGrouping, scope: 'self' | 'inclusive' = 'self'): Promise<readonly UsageRow[]> => (await this.usageSummary({ grouping, scope })).rows;
+                    const view: UsageOverview = {
+                        days: total.days,
+                        from: total.from,
+                        to: total.to,
+                        computedAt: new Date().toISOString(),
+                        total: total.total,
+                        breakdowns: { agent: await breakdown('agent'), agentInclusive: await breakdown('agent', 'inclusive'), harness: await breakdown('harness'), model: await breakdown('model'), work: await breakdown('work') },
+                    };
+                    this.usageCache = { view, at: Date.now() };
+                    this.touch();
+                })
+                .catch(() => {
+                    this.usageCache = { view: cache?.view, at: Date.now() };
+                });
+        }
+        return this.usageCache?.view;
+    }
+
+    /**
+     * The shared usage view over durable raw usage and the independent price observations (terminal, browser and API
+     * derive the same results). It only reads evidence: no usage is manufactured and no paid probe runs.
+     */
+    public async usageSummary(options: { readonly days?: number; readonly grouping?: UsageGrouping; readonly scope?: 'self' | 'inclusive' } = {}): Promise<UsageSummary> {
+        const [records, prices] = await Promise.all([readUsage(this.options.project), readPriceObservations(this.options.project)]);
+        return summarizeUsage(records, { ...options, prices });
     }
 
     // ── Context ──────────────────────────────────────────────────────────────

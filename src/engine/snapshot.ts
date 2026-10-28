@@ -2,6 +2,22 @@ import type { ChatSummary } from '../chats/store.js';
 import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
 import type { WalletView } from '../wallet/wallet.js';
+import type { UsageRow, UsageTotals } from './usage.js';
+
+/**
+ * The cached seven-day usage overview of snapshots: the total (each consumption once) and simple breakdowns. Billing
+ * mode and certainty stay visible; technical price-list details are not part of it.
+ *
+ * @private shared status view model
+ */
+export type UsageOverview = {
+    readonly days: number;
+    readonly from: string;
+    readonly to: string;
+    readonly computedAt: string;
+    readonly total: UsageTotals;
+    readonly breakdowns: { readonly agent: readonly UsageRow[]; readonly agentInclusive: readonly UsageRow[]; readonly harness: readonly UsageRow[]; readonly model: readonly UsageRow[]; readonly work: readonly UsageRow[] };
+};
 
 /**
  * Operating phase shown by every view.
@@ -544,7 +560,7 @@ export type SyncView = {
  *
  * @private shared status view model
  */
-export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'connection' | 'sync';
+export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'usage' | 'connection' | 'sync';
 
 /**
  * Why a domain needs the operator's attention: `key` identifies the current actionable items (a changed key is a new
@@ -609,6 +625,8 @@ export type ServiceSnapshot = {
     readonly health?: HealthView;
     /** The project's Wallet: readiness, login labels and pending login requests (never a secret). */
     readonly wallet?: WalletView;
+    /** Lightweight seven-day usage view derived from durable raw usage (absent from older engines). */
+    readonly usage?: UsageOverview;
     /** Saved configuration version and pending configuration work. */
     readonly configuration?: { readonly promptbookVersion?: string; readonly pending?: string };
     readonly wait?: WaitView;

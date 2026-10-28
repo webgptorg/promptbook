@@ -18,7 +18,8 @@ import {
     toolDetailLines,
     toolRow,
 } from './details.js';
-import type { HomeTile } from './dashboard-home.js';
+import { billingMix, compactCount, type HomeTile } from './dashboard-home.js';
+import type { UsageTotals } from '../engine/usage.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { WalletView } from '../wallet/wallet.js';
 
@@ -52,6 +53,7 @@ export type DashboardPage =
     | { readonly kind: 'chats'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; detail: boolean }
     | { readonly kind: 'results'; scroll: number; follow: boolean }
+    | { readonly kind: 'usage'; scroll: number; grouping: UsagePageGrouping; inclusive: boolean }
     | { readonly kind: 'connection'; scroll: number }
     | { readonly kind: 'sync'; scroll: number };
 
@@ -63,6 +65,27 @@ export type DashboardPage =
 export function walletItems(wallet: WalletView): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string }> {
     return [...wallet.pending.map((action) => ({ kind: 'request' as const, id: action.id, origin: action.origin, ...(action.account ? { account: action.account } : {}) })), ...wallet.records.map((record) => ({ kind: 'record' as const, id: record.id, origin: record.origin, account: record.account }))];
 }
+
+/**
+ * Groupings of the Usage page, in the order `G` cycles them.
+ *
+ * @private terminal dashboard pages
+ */
+export const USAGE_PAGE_GROUPINGS = ['agent', 'harness', 'model', 'work'] as const;
+
+/**
+ * A grouping of the Usage page.
+ *
+ * @private terminal dashboard pages
+ */
+export type UsagePageGrouping = (typeof USAGE_PAGE_GROUPINGS)[number];
+
+/**
+ * The last Usage view of this viewer (local presentation state, never a project setting).
+ *
+ * @private terminal dashboard pages
+ */
+export const lastUsageView: { grouping: UsagePageGrouping; inclusive: boolean } = { grouping: 'agent', inclusive: false };
 
 /**
  * A fresh page for a home tile.
@@ -85,6 +108,8 @@ export function pageForTile(tile: HomeTile): DashboardPage {
             return { kind: 'tasks', scroll: 0, focus: 0, sort: 'smart', descending: false, detail: false };
         case 'results':
             return { kind: 'results', scroll: Number.MAX_SAFE_INTEGER, follow: true };
+        case 'usage':
+            return { kind: 'usage', scroll: 0, grouping: lastUsageView.grouping, inclusive: lastUsageView.inclusive };
         default:
             return { kind: tile, scroll: 0 };
     }
@@ -440,6 +465,41 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 body.push(`${style.muted(formatShortTime(Date.parse(line.at)))} ${colored(line.text)}`);
             }
             return { title: 'Results and activity', context: 'Outcomes of this session and the bounded runtime activity log', body, ...(page.follow ? { anchor: body.length - 1 } : {}), legend: `↑↓ PgUp PgDn scroll · End follow${page.follow ? 'ing' : ''} · ${back}` };
+        }
+        case 'usage': {
+            const usage = snapshot.usage;
+            if (!usage) return { title: 'Usage', context: 'Model usage of this project', body: [style.muted('This engine does not report usage yet (another ptbk version, or the first summary is still being prepared).')], legend: back };
+            const rows = page.grouping === 'agent' ? (page.inclusive ? usage.breakdowns.agentInclusive : usage.breakdowns.agent) : usage.breakdowns[page.grouping];
+            const tokens = (row: UsageTotals): string => `${compactCount(row.input)} in · ${compactCount(row.output)} out${row.cachedInput ? ` · ${compactCount(row.cachedInput)} cached` : ''}${row.reasoning ? ` · ${compactCount(row.reasoning)} reasoning` : ''}`;
+            const money = (row: UsageTotals): string[] => [
+                ...(row.coverage.costReported ? [`$${row.reportedCostUsd.toFixed(2)} reported by providers`] : []),
+                ...(row.calculated.apiUsd ? [`$${row.calculated.apiUsd.toFixed(2)} API${row.calculated.estimated ? ' (partly estimated)' : ''}`] : []),
+                ...(row.calculated.subscriptionEquivalentUsd ? [`$${row.calculated.subscriptionEquivalentUsd.toFixed(2)} token-price equivalent of subscription work`] : []),
+            ];
+            const certainty = (row: UsageTotals): string => [billingMix(row), row.coverage.unavailable ? `${row.coverage.unavailable} without reported usage` : '', row.calculated.unpriced && row.coverage.reported ? `${row.calculated.unpriced} not priced` : ''].filter(Boolean).join(' · ');
+            const heading = { agent: page.inclusive ? 'By agent, including work it initiated (rows overlap)' : 'By executing agent', harness: 'By harness (tool)', model: 'By model', work: 'By kind of work' }[page.grouping];
+            const body = [
+                `${style.muted('Last')} ${usage.days} days ${style.muted(`(${formatShortTime(Date.parse(usage.from))} – now)`)}`,
+                `${style.bold('Total')}  ${usage.total.units ? tokens(usage.total) : 'no model usage'}${style.muted(` · ${usage.total.units} run${usage.total.units === 1 ? '' : 's'}`)}`,
+                ...money(usage.total).map((line) => `       ${line}`),
+                `       ${style.muted(certainty(usage.total))}`,
+                '',
+                style.bold(heading),
+            ];
+            const labelWidth = Math.min(28, Math.max(8, ...rows.map((row) => row.label.length)));
+            for (const row of rows) {
+                body.push(`${row.label.padEnd(labelWidth)}  ${tokens(row)}${style.muted(` · ${row.units} run${row.units === 1 ? '' : 's'}`)}`);
+                const details = [...money(row), certainty(row)].filter(Boolean);
+                if (details.length) body.push(style.muted(`${' '.repeat(labelWidth)}  ${details.join(' · ')}`));
+            }
+            if (!rows.length) body.push(style.muted('Nothing in this period.'));
+            body.push('', style.muted('Totals count every consumption once and come from durable raw usage (traces/…/usage.jsonl). Missing usage is shown, never counted as zero.'));
+            return {
+                title: 'Usage',
+                context: `Model usage over the last ${usage.days} days · billing mode and certainty stay visible`,
+                body,
+                legend: `G group by ${page.grouping === 'agent' ? 'harness' : page.grouping === 'harness' ? 'model' : page.grouping === 'model' ? 'work' : 'agent'}${page.grouping === 'agent' ? ` · I ${page.inclusive ? 'own work only' : 'include initiated work'}` : ''} · ↑↓ scroll · ${back}`,
+            };
         }
         case 'connection': {
             const { local } = snapshot.connection;

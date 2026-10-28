@@ -10,7 +10,21 @@ import { KeyboardSession, type KeyEvent } from './keys.js';
 import { FullScreen } from './screen.js';
 import { lifecycleActions } from './details.js';
 import { fitLegend, homeLayout, homeTiles, renderHome, renderPage, tileAttention, type HomeTile } from './dashboard-home.js';
-import { keepSelection, pageBody, pageForTile, pageItemKeys, taskOrder, teamOrder, toolsOf, walletItems, TEAM_SORT_FIELDS, type DashboardPage, type PageContext } from './dashboard-pages.js';
+import {
+    keepSelection,
+    pageBody,
+    pageForTile,
+    pageItemKeys,
+    taskOrder,
+    teamOrder,
+    toolsOf,
+    walletItems,
+    TEAM_SORT_FIELDS,
+    type DashboardPage,
+    type PageContext,
+    USAGE_PAGE_GROUPINGS,
+    lastUsageView,
+} from './dashboard-pages.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
 import { recoveryWordLines, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
@@ -251,6 +265,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 'H health',
                 'T tools',
                 'W wallet',
+                'M usage',
                 'L chats',
                 'O plain',
                 ...(source.owning ? [] : ['(leaving never stops the engine; X stops it)']),
@@ -753,6 +768,16 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             case 'wallet':
                 walletKey(page, key);
                 return;
+            case 'usage':
+                // Viewer-local presentation choices, remembered for the next visit in this dashboard.
+                if (key === 'g') page.grouping = USAGE_PAGE_GROUPINGS[(USAGE_PAGE_GROUPINGS.indexOf(page.grouping) + 1) % USAGE_PAGE_GROUPINGS.length]!;
+                else if (key === 'i' && page.grouping === 'agent') page.inclusive = !page.inclusive;
+                else return;
+                lastUsageView.grouping = page.grouping;
+                lastUsageView.inclusive = page.inclusive;
+                page.scroll = 0;
+                draw();
+                return;
             case 'sync':
                 if (key === 'g') {
                     notify('Synchronizing…');
@@ -929,6 +954,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 return;
             case 'w':
                 openTile('wallet');
+                return;
+            case 'm':
+                openTile('usage');
                 return;
             case 'b': {
                 // The browser detail is the nested tool page of the browser serving (or next serving) work.

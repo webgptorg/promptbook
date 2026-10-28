@@ -971,9 +971,73 @@
     }
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
-    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'connection', 'sync'];
+    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'connection', 'sync'];
 
-    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', results: 'Results and activity', connection: 'Connection', sync: 'Synchronization' };
+    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', results: 'Results and activity', usage: 'Usage', connection: 'Connection', sync: 'Synchronization' };
+
+    /** A compact token count (`950`, `12.3k`, `4.1M`). */
+    function compactCount(value) {
+        if (value < 1000) return String(Math.round(value));
+        if (value < 1000000) return `${(value / 1000).toFixed(value < 10000 ? 1 : 0)}k`;
+        return `${(value / 1000000).toFixed(value < 10000000 ? 1 : 0)}M`;
+    }
+
+    /** Billing mode and certainty of usage totals in words. */
+    function billingMix(totals) {
+        return [totals.billing.subscription ? `${totals.billing.subscription} subscription` : '', totals.billing.api ? `${totals.billing.api} API` : '', totals.billing.unknown ? `${totals.billing.unknown} unknown billing` : '', totals.coverage.unavailable ? `${totals.coverage.unavailable} without reported usage` : '']
+            .filter(Boolean)
+            .join(' · ') || 'no runs';
+    }
+
+    /** The last Usage view of this viewer (a local convenience; storage may be unavailable). */
+    function usageView() {
+        try {
+            const saved = JSON.parse(localStorage.getItem('ptbk-usage-view') || '{}');
+            return { grouping: ['agent', 'harness', 'model', 'work'].includes(saved.grouping) ? saved.grouping : 'agent', inclusive: saved.inclusive === true };
+        } catch {
+            return { grouping: 'agent', inclusive: false };
+        }
+    }
+
+    /** Remembers the Usage view locally (never a project setting). */
+    function rememberUsageView(view) {
+        try {
+            localStorage.setItem('ptbk-usage-view', JSON.stringify(view));
+        } catch {
+            // Private windows may refuse storage; the view still works.
+        }
+    }
+
+    /** The Usage page: a simple seven-day summary with the chosen breakdown; billing mode and certainty stay visible. */
+    function renderUsagePage(snapshot) {
+        const usage = snapshot.usage;
+        if (!usage) return pageFrame('usage', 'Model usage of this project', h('p', { className: 'muted' }, 'This engine does not report usage yet.'));
+        const view = usageView();
+        const rows = view.grouping === 'agent' ? (view.inclusive ? usage.breakdowns.agentInclusive : usage.breakdowns.agent) : usage.breakdowns[view.grouping];
+        const tokens = (row) => `${compactCount(row.input)} in · ${compactCount(row.output)} out${row.cachedInput ? ` · ${compactCount(row.cachedInput)} cached` : ''}${row.reasoning ? ` · ${compactCount(row.reasoning)} reasoning` : ''}`;
+        const money = (row) => [row.coverage.costReported ? `$${row.reportedCostUsd.toFixed(2)} reported by providers` : '', row.calculated.apiUsd ? `$${row.calculated.apiUsd.toFixed(2)} API${row.calculated.estimated ? ' (partly estimated)' : ''}` : '', row.calculated.subscriptionEquivalentUsd ? `$${row.calculated.subscriptionEquivalentUsd.toFixed(2)} token-price equivalent of subscription work` : ''].filter(Boolean).join(' · ');
+        const choose = (changes) => {
+            rememberUsageView({ ...view, ...changes });
+            render(state.snapshot);
+        };
+        const groupings = { agent: 'Agent', harness: 'Harness', model: 'Model', work: 'Kind of work' };
+        const controls = h(
+            'div',
+            { className: 'row', role: 'group', 'aria-label': 'Group usage by' },
+            ...Object.entries(groupings).map(([value, label]) => h('button', { className: value === view.grouping ? 'primary' : '', 'aria-pressed': String(value === view.grouping), onclick: () => choose({ grouping: value }) }, label)),
+            view.grouping === 'agent' ? h('button', { 'aria-pressed': String(view.inclusive), onclick: () => choose({ inclusive: !view.inclusive }) }, view.inclusive ? 'Own work only' : 'Include initiated work') : null,
+        );
+        const total = h('section', { className: 'card', 'aria-label': 'Total' }, h('h2', {}, `Last ${usage.days} days`), h('p', {}, usage.total.units ? `${tokens(usage.total)} · ${usage.total.units} runs` : 'No model usage.'), money(usage.total) ? h('p', {}, money(usage.total)) : null, h('p', { className: 'muted' }, billingMix(usage.total)));
+        const table = h(
+            'section',
+            { className: 'card', 'aria-label': 'Breakdown' },
+            h('h2', {}, view.grouping === 'agent' && view.inclusive ? 'By agent, including work it initiated (rows overlap)' : `By ${groupings[view.grouping].toLowerCase()}`),
+            rows.length
+                ? h('ul', { className: 'list' }, ...rows.map((row) => h('li', {}, h('strong', {}, row.label), h('span', {}, ` ${tokens(row)} · ${row.units} runs`), h('div', { className: 'muted' }, [money(row), billingMix(row)].filter(Boolean).join(' · ')))))
+                : h('p', { className: 'muted' }, 'Nothing in this period.'),
+        );
+        return pageFrame('usage', 'Totals count every consumption once, from durable raw usage; missing usage is shown, never counted as zero', controls, total, table);
+    }
 
     /** Interactions after a new attention item appeared that show the operator is active here (it then settles). */
     const ATTENTION_SETTLE_INTERACTIONS = 3;
@@ -1102,6 +1166,12 @@
                 const last = snapshot.results.recent[0];
                 const error = snapshot.errors[snapshot.errors.length - 1];
                 return [`✔ ${snapshot.results.completed} completed · ✖ ${snapshot.results.failed} failed`, last ? h('span', { className: 'muted' }, last.title) : null, error ? h('span', { className: 'warn' }, `Last error: ${error.summary}`) : null];
+            }
+            case 'usage': {
+                const usage = snapshot.usage;
+                if (!usage) return [h('span', { className: 'muted' }, 'Not reported by this engine yet.')];
+                const total = usage.total;
+                return [total.units ? h('strong', {}, `${compactCount(total.input + total.output)} tokens · ${total.units} runs`) : h('span', { className: 'muted' }, `No model usage in ${usage.days} days`), total.units ? h('span', { className: 'muted' }, billingMix(total)) : null];
             }
             case 'connection': {
                 const { local } = snapshot.connection;
@@ -1605,6 +1675,8 @@
                 return pageFrame('tools', 'Named tools · saved changes are committed immediately and apply to new work at once', renderTools(snapshot), detailPanel('browser', 'Browser details — named browsers, profiles, health, recovery', renderBrowserDetails(snapshot)));
             case 'results':
                 return pageFrame('results', 'Outcomes of this session and the bounded runtime activity log', renderActivity(snapshot));
+            case 'usage':
+                return renderUsagePage(snapshot);
             case 'connection':
                 return pageFrame('connection', 'Local dashboard access on this computer', renderConnection(snapshot));
             case 'sync':

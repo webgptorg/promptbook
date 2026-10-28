@@ -435,6 +435,13 @@ test('Wallet acceptance: a task waits for a protected login (no chat), resumes o
     assert.match(await readFile(join(project, 'output', 'wallet.txt'), 'utf8'), /^Signed in to .* "Fixture account".*\nWelcome, fixture-user/);
     const turns = (await readFile(env.FAKE_CODEX_LOG, 'utf8')).split('\n').filter((line) => line.includes('WALLET_LOGIN Read') && !line.includes('"assignment":true'));
     assert.equal(turns.length, 2, `one waiting turn and exactly one resumed turn:\n${turns.join('\n')}`);
+    // The same raw usage through the shared read-only view: both Developer turns, counted once each.
+    const usage = await call('api/usage?group=agent');
+    assert.equal(usage.status, 200);
+    assert.equal(usage.data.days, 7);
+    assert.ok(usage.data.rows.find((row) => row.label === 'Developer')?.units >= 2, JSON.stringify(usage.data.rows));
+    assert.equal(usage.data.total.units, usage.data.rows.reduce((sum, row) => sum + row.units, 0), 'self-scope rows partition the total');
+    assert.equal((await call('api/usage?group=price-list')).status, 400);
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 
     // No password, username or word anywhere outside the ciphertext: Git history, traces, state, logs, output.
