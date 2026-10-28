@@ -74,7 +74,7 @@ test('older projects start locally with retired settings, one migration commit, 
     assert.equal((await ptbk(['resume', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await ptbk(['start', '--raw'], { cwd: project, env })).code, 0, 'repeated start reuses the engine');
     assert.equal((await ptbk(['stop', '-F', '--raw'], { cwd: project, env })).code, 0);
-    const migrations = (await subjects(project)).filter((subject) => subject.startsWith('PTBK: Migrate configuration'));
+    const migrations = (await subjects(project)).filter((subject) => subject.startsWith('ptbk: Migrate configuration'));
     assert.equal(migrations.length, 1);
     assert.match(migrations[0], new RegExp(`0\\.119\\.0-34 to ${ENGINE_VERSION.replaceAll('.', '\\.')}`));
     const launchPath = join(project, '.ptbk', 'service', 'launch.json');
@@ -85,7 +85,7 @@ test('older projects start locally with retired settings, one migration commit, 
     assert.equal(restored.code, 0, restored.output);
     assert.deepEqual(JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection, { local: { state: 'disabled' } });
     assert.equal((await ptbk(['stop', '-F', '--raw'], { cwd: project, env })).code, 0);
-    assert.equal((await subjects(project)).filter((subject) => subject.startsWith('PTBK: Migrate configuration')).length, 1);
+    assert.equal((await subjects(project)).filter((subject) => subject.startsWith('ptbk: Migrate configuration')).length, 1);
 });
 
 test('current projects retire stale dashboard settings through the existing scoped normalization coordinator once', async (t) => {

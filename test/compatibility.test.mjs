@@ -109,8 +109,8 @@ test('configuration compatibility: an older engine refuses a newer configuration
     const tool = await runOther(newer.bin, ['tool', 'disable', 'openai-codex', '--yes', '--raw'], { cwd: project, env });
     assert.equal(tool.code, 0, tool.output);
     const history = (await git(project, ['log', '--format=%s'])).trim().split('\n');
-    assert.equal(history[0], 'PTBK: Disable tool openai-codex', 'the tool change is its own commit');
-    assert.equal(history[1], `PTBK: Migrate configuration from ${ENGINE_VERSION} to ${OTHER_VERSION}`, 'the migration pass is one dedicated commit before it');
+    assert.equal(history[0], 'ptbk: Disable tool openai-codex', 'the tool change is its own commit');
+    assert.equal(history[1], `ptbk: Migrate configuration from ${ENGINE_VERSION} to ${OTHER_VERSION}`, 'the migration pass is one dedicated commit before it');
     assert.equal(JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8')).promptbookVersion, OTHER_VERSION);
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
 });

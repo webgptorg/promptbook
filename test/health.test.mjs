@@ -174,7 +174,7 @@ test('health: a soft health pause stops new claims, composes with a manual pause
     assert.ok(paused.health.memory.ramTotalMiB > 0, 'RAM is reported');
     const incident = paused.service.pauseReasons.find((reason) => reason.kind === 'health');
     assert.equal(incident.severity, 'soft');
-    assert.equal(findGenerated(await subjects(project), 'Healthy work', 'PTBK: '), undefined, 'no task is claimed while Health pauses');
+    assert.equal(findGenerated(await subjects(project), 'Healthy work', 'ptbk: '), undefined, 'no task is claimed while Health pauses');
 
     const raw = await ptbk(['status', '--raw'], { cwd: project, env });
     assert.match(raw.stdout, /Pause reasons: Health soft — Low free disk/);
@@ -196,11 +196,11 @@ test('health: a soft health pause stops new claims, composes with a manual pause
     assert.deepEqual(manualOnly.service.pauseReasons.map((reason) => reason.kind), ['manual'], 'the override removes only the health reason');
     assert.equal(manualOnly.service.state, 'pause', 'the manual reason still holds');
     assert.equal(JSON.parse(await readFile(path, 'utf8')).limit.disk, 1_000_000_000, 'the override never changes ptbk.json');
-    assert.equal(findGenerated(await subjects(project), 'Healthy work', 'PTBK: '), undefined);
+    assert.equal(findGenerated(await subjects(project), 'Healthy work', 'ptbk: '), undefined);
 
     const running = await ptbk(['resume', '--raw'], { cwd: project, env });
     assert.equal(running.code, 0, running.output);
     assert.equal((await status()).service.state, 'running');
-    await waitFor(async () => findGenerated(await subjects(project), 'Healthy work', 'PTBK: '), { message: 'work to continue once every reason is gone' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Healthy work', 'ptbk: '), { message: 'work to continue once every reason is gone' });
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 });

@@ -1,5 +1,10 @@
 # Unreleased
 
+## Commit subjects: lowercase `ptbk: ` and the responsible agent's visual
+
+-   Every automatic commit subject now starts with lowercase `ptbk: ` (applied exactly once; an older `PTBK: ` prefix is never repeated, and existing history is not rewritten). Commits of actual agent work quote that agent's stable single-line visual after the prefix: a task result is ``ptbk: `~<@@/>-` <task name>`` for the executing agent, and a chat batch carries the visual of the one agent whose replies it adds. System commits (setup, tool changes, migrations, normalization, merges, task creation, User-only chat batches, batches with several replying agents) name no invented agent and add no date; Task-Name/Chat-Name trailers and bodies are unchanged.
+-   Help texts and Expert documentation use the new subjects. Fixtures compare work by its meaningful subject (`subjects()`/`messages()` drop the visual) and new unit tests cover the prefix, the visual of equivalent references and the chat batch's responsible agent.
+
 ## Fixer learning from the project health check
 
 -   Teach Fixer to inspect full lint findings outside the accepted legacy warnings, based on the broken chat `LINK` found in the 2026-10-23 health check. Preserve its learning permissions and the owner's accepted legacy Books.

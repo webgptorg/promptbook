@@ -11,7 +11,7 @@ import { runCheck } from '../project/checks.js';
 import type { AgentCatalog, EffectiveAgent } from '../project/agents.js';
 import { BookIndex } from '../project/books.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
-import { commitPaths, findCommitWithTrailer, gitStatus, readAtHead, stageableFiles } from '../project/git.js';
+import { agentSubject, commitPaths, findCommitWithTrailer, gitStatus, prefixedSubject, readAtHead, stageableFiles } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
 import type { HarnessToolRecord } from '../tools/model.js';
 import { runHarness, type HarnessRunResult } from '../harness/run.js';
@@ -860,7 +860,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                             projectRoot: project.root,
                             repositoryRoot: environment.repositoryRoot,
                             paths: [...owned.map((path) => resolve(project.root, path)), ...evidence],
-                            subject: task.title,
+                            subject: agentSubject(agent.name, task.title),
                             body: [assignmentText(task), record.handover ? `Completed by ${record.handover.agent} after ${record.handover.from} could not: ${record.handover.failure}` : ''].filter(Boolean).join('\n\n'),
                             trailers: {
                                 'Task-Name': task.title,
@@ -890,7 +890,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const summary = lastReport?.summary || 'Completed.';
             await finishResult('completed', summary, sha);
             await state.clearActive(record.runId);
-            hooks.emit({ type: 'activity', text: `Committed ${sha ? sha.slice(0, 8) : '(no changes)'} PTBK: ${task.title}` });
+            hooks.emit({ type: 'activity', text: `Committed ${sha ? sha.slice(0, 8) : '(no changes)'} ${prefixedSubject(agentSubject(agent.name, task.title))}` });
             return { kind: 'completed', commit: sha, summary, changedPaths: owned, report: lastReport };
         }
         await hooks.finalizeEvidence?.(trace).catch(() => undefined);

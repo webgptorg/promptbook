@@ -373,7 +373,7 @@ export type ToolOperationContext = {
 /**
  * The single implementation behind init, `ptbk tool`, dashboards and the API: validates the operation against the
  * configuration current at application time, applies the shared protections, edits `.env` non-destructively for a
- * supplied secret, and commits only its own non-secret changes immediately (`PTBK: <operation>`), even during an
+ * supplied secret, and commits only its own non-secret changes immediately (`ptbk: <operation>`), even during an
  * unrelated active task whose edits stay uncommitted in the working tree.
  *
  * @private shared tool management

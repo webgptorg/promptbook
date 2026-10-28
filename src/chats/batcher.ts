@@ -1,9 +1,12 @@
+import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { parseReferenceValue } from '../book/references.js';
 import { errorMessage } from '../common/errors.js';
 import { ensureDirectory, readJsonIfExists, toProjectRelative, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
-import { gitStatus } from '../project/git.js';
+import { agentSubject, gitStatus, readAtHead } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
+import { parseChatBook } from './chat-book.js';
 
 /**
  * Commit trailers of a batch (several values per key are kept in order, e.g. every Task-Name a message relates to).
@@ -39,7 +42,7 @@ export type BatchView = { readonly chat: string; readonly since: string; readonl
 
 /**
  * Smart, bounded batching of chat commits: every accepted message is saved to its Book at once (usable immediately),
- * and compatible saves of one chat share one scoped `PTBK: Chat - <name>` commit with `Chat-Name` and the union of the
+ * and compatible saves of one chat share one scoped `ptbk: Chat - <name>` commit with `Chat-Name` and the union of the
  * other trailers. A batch is committed after a quiet period, at the latest after a bounded age (continuous activity
  * never postpones it indefinitely), and on explicit flushes (graceful shutdown, the end of a CLI operation). Pending
  * batches are recorded in `.ptbk/state/chat-batches.json`, so after a crash or force stop the saved files are committed
@@ -162,7 +165,8 @@ export class ChatCommitBatcher {
                     const root = this.options.repositoryRoot();
                     const dirty = root ? new Set((await gitStatus(this.project.root, root)).map((entry) => entry.path)) : undefined;
                     const changed = dirty ? absolute.filter((path) => dirty.has(path)) : absolute;
-                    const sha = changed.length ? await this.options.commit(changed, `Chat - ${batch.chat}`, { 'Chat-Name': batch.chat, ...batch.trailers }) : undefined;
+                    const agent = root && changed.length ? await batchAgent(root, absolute[0]!).catch(() => undefined) : undefined;
+                    const sha = changed.length ? await this.options.commit(changed, agentSubject(agent, `Chat - ${batch.chat}`), { 'Chat-Name': batch.chat, ...batch.trailers }) : undefined;
                     if (sha) commits.push(sha);
                     this.batches.delete(batch.chat);
                     this.options.onPending?.(absolute, false);
@@ -200,4 +204,23 @@ export class ChatCommitBatcher {
         this.disposed = true;
         clearTimeout(this.timer);
     }
+}
+
+/**
+ * The one agent whose messages a pending chat batch adds (compared with the committed Book), so the batch commit
+ * names the agent actually responsible. A batch with only User messages, or with several replying agents, has none:
+ * the Book keeps every message's actual author either way.
+ *
+ * @private chats
+ */
+export async function batchAgent(repositoryRoot: string, chatPath: string): Promise<string | undefined> {
+    const current = parseChatBook(await readFile(chatPath, 'utf8'));
+    const committedSource = await readAtHead(repositoryRoot, chatPath);
+    const committed = new Set((committedSource === undefined ? [] : parseChatBook(committedSource).messages).map((message) => `${message.senderKey}\0${message.at}\0${message.phase ?? ''}\0${message.text}`));
+    const authors = new Map<string, string>();
+    for (const message of current.messages) {
+        if (message.senderKey === 'user' || committed.has(`${message.senderKey}\0${message.at}\0${message.phase ?? ''}\0${message.text}`)) continue;
+        authors.set(message.senderKey, parseReferenceValue(message.sender)?.name ?? message.sender);
+    }
+    return authors.size === 1 ? [...authors.values()][0] : undefined;
 }

@@ -169,14 +169,41 @@ export async function initializedProject(t, options = {}) {
  * Full commit messages, newest first.
  */
 export async function messages(project) {
+    return (await rawMessages(project)).map(withoutVisual);
+}
+
+/**
+ * Full commit messages exactly as committed (agent visuals kept), newest first.
+ */
+export async function rawMessages(project) {
     return (await git(project, ['log', '--format=%B%x00'])).split('\0').map((message) => message.trim()).filter(Boolean);
 }
 
 /**
- * Commit subjects, newest first.
+ * Commit subjects, newest first, without the agent visual of agent-work subjects (see {@link withoutVisual}).
  */
 export async function subjects(project) {
+    return (await rawSubjects(project)).map(withoutVisual);
+}
+
+/**
+ * Commit subjects exactly as committed (agent visuals kept), newest first.
+ */
+export async function rawSubjects(project) {
     return (await git(project, ['log', '--format=%s'])).trim().split('\n').filter(Boolean);
+}
+
+/**
+ * Pattern of the backtick-quoted agent visual that follows `ptbk: ` in subjects of actual agent work.
+ */
+export const AGENT_VISUAL = /^(ptbk: )`[^`\n]+` /;
+
+/**
+ * A subject (or full message) without the agent visual: ``ptbk: `~<@@/>-` Review export`` → `ptbk: Review export`.
+ * Fixtures compare work by its meaningful subject; dedicated assertions inspect the visual with {@link rawSubjects}.
+ */
+export function withoutVisual(text) {
+    return text.replace(AGENT_VISUAL, '$1');
 }
 
 /**
@@ -193,7 +220,7 @@ export function generated(title, prefix = '', suffix = '') {
 }
 
 /**
- * The first item matching a generated name (e.g. a commit subject `PTBK: <title> — <date time>`).
+ * The first item matching a generated name (e.g. a commit subject `ptbk: <title> — <date time>`).
  */
 export function findGenerated(items, title, prefix = '') {
     return items.find((item) => generated(title, prefix).test(item));
@@ -227,6 +254,6 @@ export async function drive(project, env, until, { args = [], timeoutMs = 90_000
 /**
  * Whether a commit with a generated-name subject exists (newest first search).
  */
-export async function committed(project, title, prefix = 'PTBK: ') {
+export async function committed(project, title, prefix = 'ptbk: ') {
     return findGenerated(await subjects(project), title, prefix);
 }

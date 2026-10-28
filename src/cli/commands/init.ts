@@ -1214,7 +1214,7 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
         wrap(value, width - 18).forEach((line, index) => lines.push(`${index === 0 ? style.bold(label.padEnd(12)) : ' '.repeat(12)}${line}`));
     };
     row('Project', `${result.project?.name ?? ''}  ${style.muted(root)}`);
-    row('Setup', `${result.changed.length ? `${result.changed.length} change${result.changed.length === 1 ? '' : 's'}` : 'nothing to change'}${result.commit ? ` committed ${result.commit.slice(0, 8)} (PTBK: setup)` : ''}${result.alreadyReady.length ? style.muted(` · ${result.alreadyReady.length} already ready`) : ''}`);
+    row('Setup', `${result.changed.length ? `${result.changed.length} change${result.changed.length === 1 ? '' : 's'}` : 'nothing to change'}${result.commit ? ` committed ${result.commit.slice(0, 8)} (ptbk: setup)` : ''}${result.alreadyReady.length ? style.muted(` · ${result.alreadyReady.length} already ready`) : ''}`);
     if (first) row('First task', first);
     row('Service', running ? style.success(serviceLine) : style.warning(serviceLine));
     if (running && service.note) row('', style.muted(service.note));

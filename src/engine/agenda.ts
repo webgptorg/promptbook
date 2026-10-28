@@ -442,7 +442,7 @@ export class Agenda {
 
     /**
      * Batched commits of human-facing chats: every accepted message is saved to its Book at once, and compatible saves
-     * of one chat share a bounded, debounced `PTBK: Chat - <name>` commit (never one per message).
+     * of one chat share a bounded, debounced `ptbk: Chat - <name>` commit (never one per message).
      */
     private readonly chatBatches: ChatCommitBatcher;
 
@@ -3235,7 +3235,7 @@ export class Agenda {
                 title: generatedName(`Resolve the synchronization conflict with ${conflict.upstream}`, { taken: await this.takenNames(), timeZone: this.timeZone }),
                 description: [
                     `Automatic Git synchronization could not merge \`${conflict.upstream}\` (${conflict.incoming} incoming commit(s)) into \`${conflict.branch}\`: both sides changed ${conflict.files.map((file) => `\`${file}\``).join(', ')}. The merge was aborted, so the local branch, history and working tree are unchanged.`,
-                    `Integrate the remote changes with a visible merge: run \`git merge --no-ff --no-commit ${conflict.upstream}\`, resolve each conflict so that both intents are kept (inspect \`git log ${conflict.branch}...${conflict.upstream}\`), consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m "PTBK: Merge ${conflict.upstream} into ${conflict.branch} (conflicts resolved by Fixer)"\`. This merge commit is the one exception to "do not commit yourself".`,
+                    `Integrate the remote changes with a visible merge: run \`git merge --no-ff --no-commit ${conflict.upstream}\`, resolve each conflict so that both intents are kept (inspect \`git log ${conflict.branch}...${conflict.upstream}\`), consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m "ptbk: Merge ${conflict.upstream} into ${conflict.branch} (conflicts resolved by Fixer)"\`. This merge commit is the one exception to "do not commit yourself".`,
                     'Never rebase, reset, amend, force-push or discard either side. If the conflict cannot be resolved safely, abort the merge (`git merge --abort`) and explain why.',
                 ].join('\n\n'),
                 commitments: ['TASK AGENT @Fixer', `TASK ORIGIN ${origin}`],

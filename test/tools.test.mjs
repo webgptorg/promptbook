@@ -31,7 +31,7 @@ test('tool management (stopped project): canonical records, scoped commits, prot
     const add = await ptbk(['tool', 'add', 'browser', '--variant', 'chrome', '--name', 'Work Browser', '--profile-source', 'project', '--is-headless', 'false', '--description', 'LinkedIn account', '--raw'], { cwd: project, env });
     assert.equal(add.code, 0, add.output);
     assert.deepEqual((await savedTools(project))[2], { type: 'BROWSER', variant: 'CHROME', name: 'work-browser', description: 'LinkedIn account', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: false }, 'tolerant input, canonical saved output');
-    assert.equal((await subjects(project))[0], 'PTBK: Add browser tool work-browser');
+    assert.equal((await subjects(project))[0], 'ptbk: Add browser tool work-browser');
 
     const secret = 'sk-fixture-secret-123';
     const api = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'company-api', '--authentication', 'API_KEY', '--api-key-env', 'COMPANY_OPENAI_API_KEY', '--api-key-stdin', '--raw'], { cwd: project, env, input: secret });
@@ -113,9 +113,9 @@ test('live tools: a running engine waits for tools without stopping, and resumes
     assert.match(waiting.tools.waiting.reason, /no harness tool is configured/i);
     const added = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'openai-codex', '--raw'], { cwd: project, env });
     assert.equal(added.code, 0, added.output);
-    await waitFor(async () => (await subjects(project)).some((subject) => /^PTBK: Write the welcome page/.test(subject)), { message: 'the task result after the tool was added', timeoutMs: 90_000 });
+    await waitFor(async () => (await subjects(project)).some((subject) => /^ptbk: Write the welcome page/.test(subject)), { message: 'the task result after the tool was added', timeoutMs: 90_000 });
     const history = await subjects(project);
-    assert.ok(history.indexOf('PTBK: Add harness tool openai-codex') > history.findIndex((subject) => /^PTBK: Write the welcome page/.test(subject)), 'the tool commit precedes the result');
+    assert.ok(history.indexOf('ptbk: Add harness tool openai-codex') > history.findIndex((subject) => /^ptbk: Write the welcome page/.test(subject)), 'the tool commit precedes the result');
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 });
 
@@ -146,13 +146,13 @@ test('live tools: a browser added during a task serves that task; an in-use tool
     const forced = await ptbk(['tool', 'disable', tool, '--force', '--raw'], { cwd: project, env });
     assert.equal(forced.code, 0, forced.output);
 
-    await waitFor(async () => (await subjects(project)).some((subject) => /^PTBK: Publish the post/.test(subject)), { message: 'the task result', timeoutMs: 90_000 });
+    await waitFor(async () => (await subjects(project)).some((subject) => /^ptbk: Publish the post/.test(subject)), { message: 'the task result', timeoutMs: 90_000 });
     const listed = await readFile(join(project, 'output', 'browsers.txt'), 'utf8');
     assert.match(listed, /facebook-browser: Facebook page account/, 'the browser added during the task was available to it');
     const history = await subjects(project);
-    const result = history.findIndex((subject) => /^PTBK: Publish the post/.test(subject));
-    assert.ok(history.indexOf('PTBK: Add browser tool facebook-browser') > result && history.indexOf(`PTBK: Disable tool ${tool}`) > result, 'tool commits are separate and earlier');
-    const resultSha = (await git(project, ['log', '--format=%H', '--grep', '^PTBK: Publish the post'])).trim().split('\n')[0];
+    const result = history.findIndex((subject) => /^ptbk: Publish the post/.test(subject));
+    assert.ok(history.indexOf('ptbk: Add browser tool facebook-browser') > result && history.indexOf(`ptbk: Disable tool ${tool}`) > result, 'tool commits are separate and earlier');
+    const resultSha = (await git(project, ['log', '--format=%H', '--grep', '^ptbk: .*Publish the post'])).trim().split('\n')[0];
     assert.doesNotMatch(await git(project, ['show', '--name-only', '--format=', resultSha]), /ptbk\.json/, 'the result commit does not restore or include configuration');
     const saved = await savedTools(project);
     assert.equal(saved.find((item) => item.name === tool).isEnabled, false, 'the saved change survives the task completion');
@@ -166,12 +166,12 @@ test('same-variant fallback: a quota failure of the first instance moves the wor
     assert.equal(api.code, 0, api.output);
     await ptbk(['add', 'Summarize the news QUOTA_NATIVE', '--agent', 'Developer', '--raw'], { cwd: project, env });
     const started = Date.now();
-    const run = await drive(project, env, async () => findGenerated(await subjects(project), 'Summarize the news QUOTA_NATIVE', 'PTBK: '), { args: ['--harness', 'openai-codex'], message: 'the result through the fallback' });
+    const run = await drive(project, env, async () => findGenerated(await subjects(project), 'Summarize the news QUOTA_NATIVE', 'ptbk: '), { args: ['--harness', 'openai-codex'], message: 'the result through the fallback' });
     assert.equal(run.code, 0, run.output);
     assert.ok(Date.now() - started < 120_000, 'no wait through the exhausted account’s reset');
     assert.match(run.output, /same-variant fallback/);
     const turns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((turn) => turn.title.startsWith('Summarize the news'));
     assert.deepEqual(turns.map((turn) => turn.api), [false, true], 'native first, then the configured API fallback');
     assert.equal(turns[1].apiKey, 'fallback-secret', 'the instance gets exactly its own credential');
-    assert.ok((await subjects(project)).some((subject) => /^PTBK: Summarize the news/.test(subject)));
+    assert.ok((await subjects(project)).some((subject) => /^ptbk: Summarize the news/.test(subject)));
 });

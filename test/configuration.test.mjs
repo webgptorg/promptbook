@@ -169,7 +169,7 @@ test('configuration coordinator: one migration commit; repeated loads are no-ops
     const outcome = await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.121.0', env: { ...process.env, CODING_AGENT_GIT_NAME: 'Fixture', CODING_AGENT_GIT_EMAIL: 'f@example.test' } });
     assert.equal(outcome.migrated.from, PRE_VERSIONING_BASELINE);
     assert.deepEqual(outcome.migrated.steps, ['0.119.0-22', '0.119.0-32', '0.119.0-35'], 'every applicable sparse step, in order, in one pass');
-    assert.deepEqual(await subjects(root), [`PTBK: Migrate project from ${PRE_VERSIONING_BASELINE} to 0.121.0`, 'Legacy project']);
+    assert.deepEqual(await subjects(root), [`ptbk: Migrate project from ${PRE_VERSIONING_BASELINE} to 0.121.0`, 'Legacy project']);
     const body = (await git(root, ['log', '-1', '--format=%B'])).trim();
     assert.match(body, /harnesses\.openai-codex → tools "openai-codex"/);
     assert.match(body, /PTBK-Configuration-Migration: 0\.119\.0-21 -> 0\.121\.0/);
@@ -194,7 +194,7 @@ test('configuration coordinator: one migration commit; repeated loads are no-ops
     await git(root, ['commit', '-q', '-am', 'Manual edit']);
     const normalized = await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.121.0' });
     assert.match(normalized.normalized.corrections[0], /tools\[0\]\.variant: chromium → CHROMIUM/);
-    assert.equal((await subjects(root))[0], 'PTBK: Normalize project configuration');
+    assert.equal((await subjects(root))[0], 'ptbk: Normalize project configuration');
     assert.deepEqual(await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.121.0' }), {});
 });
 

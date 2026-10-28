@@ -38,15 +38,15 @@ test('daemon lifecycle: one service, repeated start reports it, add is executed 
     assert.equal((await status(project, env)).service.pid, first.service.pid);
     const record = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     assert.equal(record.pid, first.service.pid);
-    await waitFor(async () => findGenerated(await subjects(project), 'Review the initialized project', 'PTBK: '), { message: 'the Expert bootstrap task to be committed' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Review the initialized project', 'ptbk: '), { message: 'the Expert bootstrap task to be committed' });
     const added = await ptbk(['add', 'Write the welcome page', '--raw'], { cwd: project, env });
     assert.match(added.stdout, /committed [0-9a-f]{8}/, added.output);
-    await waitFor(async () => findGenerated(await subjects(project), 'Write the welcome page', 'PTBK: '), { timeoutMs: 90_000, message: 'the added task to be executed after Manager assignment' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Write the welcome page', 'ptbk: '), { timeoutMs: 90_000, message: 'the added task to be executed after Manager assignment' });
     const history = await subjects(project);
-    const target = findGenerated(history, 'Write the welcome page', 'PTBK: ');
-    const assignment = history.find((subject) => subject.startsWith(`PTBK: Assign routing: ${target.slice('PTBK: '.length)}`));
+    const target = findGenerated(history, 'Write the welcome page', 'ptbk: ');
+    const assignment = history.find((subject) => subject.startsWith(`ptbk: Assign routing: ${target.slice('ptbk: '.length)}`));
     assert.ok(assignment && history.indexOf(assignment) > history.indexOf(target), 'assignment precedes its target');
-    assert.ok(history.filter((subject) => subject !== 'Fixture check').every((subject) => subject.startsWith('PTBK: ') && !subject.startsWith('PTBK: PTBK:')));
+    assert.ok(history.filter((subject) => subject !== 'Fixture check').every((subject) => subject.startsWith('ptbk: ') && !subject.startsWith('ptbk: PTBK:')));
     const stopped = await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
     assert.equal(stopped.code, 0, stopped.output);
     assert.match(stopped.stdout, /^Stopped/, stopped.output);
@@ -155,7 +155,7 @@ test('force stop interrupts owned work recoverably; the next start resumes it wi
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
     await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
-    await waitFor(async () => findGenerated(await subjects(project), 'Write the welcome page', 'PTBK: '), { message: 'the added task' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Write the welcome page', 'ptbk: '), { message: 'the added task' });
     const stopped = await ptbk(['stop', '-F', '--raw'], { cwd: project, env });
     assert.equal(stopped.code, 0, stopped.output);
     assert.match(stopped.stdout, /^Force-stopped/, stopped.output);
@@ -165,11 +165,11 @@ test('force stop interrupts owned work recoverably; the next start resumes it wi
     const dirty = (await git(project, ['status', '--porcelain'])).trim();
     if (dirty) assert.ok(records.some((name) => name.endsWith('.json')), `uncommitted changes after stop must belong to a recovery record:\n${dirty}`);
     await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
-    await waitFor(async () => (await subjects(project)).some((subject) => subject.startsWith('PTBK: Learn from: Write the welcome page')), { message: 'the learning task to finish after restart' });
+    await waitFor(async () => (await subjects(project)).some((subject) => subject.startsWith('ptbk: Learn from: Write the welcome page')), { message: 'the learning task to finish after restart' });
     await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
     const learningTurns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((entry) => entry.learning);
     assert.ok(learningTurns.length <= 2, 'an interrupted turn may be redone once, never repeatedly');
-    assert.equal((await subjects(project)).filter((subject) => subject.startsWith('PTBK: Learn from: Write the welcome page')).length, 1, 'one result commit');
+    assert.equal((await subjects(project)).filter((subject) => subject.startsWith('ptbk: Learn from: Write the welcome page')).length, 1, 'one result commit');
 });
 
 test('init starts the agenda automatically, returns without waiting, and an explicit init resumes after an intentional stop', async (t) => {
@@ -180,7 +180,7 @@ test('init starts the agenda automatically, returns without waiting, and an expl
     assert.match(init.stdout, /Next: ptbk dashboard/);
     assert.doesNotMatch(init.stdout, /ptbk start \(/, 'a successful init never asks for another start');
     assert.equal((await status(project, env)).service.state === 'stopped', false, 'the service runs after init returned');
-    await waitFor(async () => findGenerated(await subjects(project), 'Review the initialized project', 'PTBK: '), { message: 'the Expert bootstrap task, executed by the service' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Review the initialized project', 'ptbk: '), { message: 'the Expert bootstrap task, executed by the service' });
     const repeated = await ptbk(['init', '--non-interactive', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(repeated.code, 0, repeated.output);
     assert.match(repeated.stdout, /already running \(reused\)/, 'repeating init reuses the service');

@@ -37,7 +37,7 @@ test('ptbk chat without a service: agent chosen first, messages saved at once an
     assert.equal((await readFile(join(project, stored.file), 'utf8')).split('\n')[0], `CHAT ${stored.chat.name}`, 'the Book opens with its CHAT declaration');
     const history = await subjects(project);
     assert.equal(history.length, before + 1, 'the user message, the resolved MODEL and the agent reply share one batched commit (not one per message)');
-    assert.equal(history[0], `PTBK: Chat - ${stored.chat.name}`);
+    assert.equal(history[0], `ptbk: Chat - ${stored.chat.name}`);
     assert.ok((await messages(project))[0].includes(`Chat-Name: ${stored.chat.name}`));
     assert.match((await messages(project))[0], /^Chat-Model: harness=OPENAI_CODEX model=fake-model-1 thinking=medium runtime=official$/m, 'Router chose the conversation’s execution once');
     const source = await readFile(join(project, stored.file), 'utf8');
@@ -61,7 +61,7 @@ test('ptbk chat without a service: agent chosen first, messages saved at once an
     assert.match(task, /^GOAL Requested in a chat/m);
     assert.match(task, /^TASK AGENT @Developer$/m);
     assert.ok(task.includes(`LINK {${name}}`), task);
-    const taskCommit = (await messages(project)).find((message) => message.startsWith(`PTBK: Add task - ${taskName}`));
+    const taskCommit = (await messages(project)).find((message) => message.startsWith(`ptbk: Add task - ${taskName}`));
     assert.ok(taskCommit, 'the task has its own authoring commit');
     assert.ok(taskCommit.includes(`Task-Name: ${taskName}`));
     [stored] = (await chats(project)).filter((item) => item.chat.name === name);
@@ -107,14 +107,14 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
     await git(project, ['commit', '-qm', 'Duplicate agent names and an offline chat']);
     const started = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
-    const healthCommit = await waitFor(async () => (await subjects(project)).find((subject) => subject.startsWith('PTBK: Add task - Project health check')), { timeoutMs: 90_000, message: 'Fixer health check task' });
+    const healthCommit = await waitFor(async () => (await subjects(project)).find((subject) => subject.startsWith('ptbk: Add task - Project health check')), { timeoutMs: 90_000, message: 'Fixer health check task' });
     const healthFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('project-health-check') && !file.includes('learn') && !file.includes('assign'));
     const health = await readFile(join(project, 'tasks', healthFile), 'utf8');
     assert.match(health, /^TASK AGENT @Fixer$/m);
     assert.match(health, /agents\/twins\/two\.book/, 'the finding names the shadowed source');
-    assert.match(healthCommit, generated('Project health check', 'PTBK: Add task - '));
-    await waitFor(async () => (await subjects(project)).includes(healthCommit.replace('PTBK: Add task - ', 'PTBK: ')), { timeoutMs: 90_000, message: 'Fixer to execute its health check' });
-    assert.equal((await subjects(project)).filter((subject) => subject.startsWith('PTBK: Add task - Project health check')).length, 1, 'no repeated checks for unchanged findings');
+    assert.match(healthCommit, generated('Project health check', 'ptbk: Add task - '));
+    await waitFor(async () => (await subjects(project)).includes(healthCommit.replace('ptbk: Add task - ', 'ptbk: ')), { timeoutMs: 90_000, message: 'Fixer to execute its health check' });
+    assert.equal((await subjects(project)).filter((subject) => subject.startsWith('ptbk: Add task - Project health check')).length, 1, 'no repeated checks for unchanged findings');
 
     await waitFor(async () => (await chats(project)).find((item) => item.chat.name === 'Offline question')?.chat.messages.length === 2, { timeoutMs: 60_000, message: 'the startup reply to the offline message' });
     const offline = (await chats(project)).find((item) => item.chat.name === 'Offline question');
@@ -159,7 +159,7 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
     assert.equal((await git(project, ['status', '--porcelain', '--', 'chats'])).trim(), '', 'nothing saved stays uncommitted after a graceful stop');
     const chatCommits = (await messages(project)).filter((message) => message.includes(`Chat-Name: ${created.data.name}\n`) || message.endsWith(`Chat-Name: ${created.data.name}`));
     assert.ok(chatCommits.length >= 1 && chatCommits.length <= 2, `four saves (message, MODEL, reply, message) shared at most two commits, got ${chatCommits.length}`);
-    assert.ok(chatCommits.every((message) => message.startsWith(`PTBK: Chat - ${created.data.name}`)));
+    assert.ok(chatCommits.every((message) => message.startsWith(`ptbk: Chat - ${created.data.name}`)));
 });
 
 test('service chats: a force stop before the batched commit loses nothing; the next start commits the saved messages once', async (t) => {
@@ -184,7 +184,7 @@ test('service chats: a force stop before the batched commit loses nothing; the n
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env: baseEnv })).code, 0);
     await waitFor(async () => !(await git(project, ['status', '--porcelain', '--', 'chats'])).trim(), { timeoutMs: 60_000, message: 'the recovered batch to be committed' });
     const added = (await subjects(project)).slice(0, (await subjects(project)).length - subjectsBefore.length);
-    assert.ok(added.includes(`PTBK: Chat - ${created.data.name}`), added.join('\n'));
+    assert.ok(added.includes(`ptbk: Chat - ${created.data.name}`), added.join('\n'));
     const [after] = (await chats(project)).filter((item) => item.chat.name === created.data.name);
     assert.equal(after.chat.messages.filter((message) => message.text === 'Remember this').length, 1, 'recovery never duplicates a message');
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env: baseEnv })).code, 0);

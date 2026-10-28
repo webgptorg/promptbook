@@ -187,7 +187,7 @@ export default async function migrate(context: CommandContext): Promise<number> 
             temporaryDirectory: project.runtime.temporary,
             env: context.env,
         });
-        if (outcome.committed) terminal.write(`Committed ${outcome.sha.slice(0, 8)} (PTBK: ${subject}).\n`);
+        if (outcome.committed) terminal.write(`Committed ${outcome.sha.slice(0, 8)} (ptbk: ${subject}).\n`);
     } else if (!commit) terminal.write('Not committed (--no-commit).\n');
     return blocked.length ? EXIT.incomplete : EXIT.success;
 }

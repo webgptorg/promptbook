@@ -43,11 +43,11 @@ test('automatic repair: a task its agent cannot finish is handed to Fixer, which
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     const source = await addTask(project, env, 'Stubborn page NEEDS_FIXER');
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
-    await waitFor(async () => (await subjects(project)).some((subject) => generated('Stubborn page NEEDS_FIXER', 'PTBK: ').test(subject)), { message: 'the result after Fixer took over', timeoutMs: 90_000 });
+    await waitFor(async () => (await subjects(project)).some((subject) => generated('Stubborn page NEEDS_FIXER', 'ptbk: ').test(subject)), { message: 'the result after Fixer took over', timeoutMs: 90_000 });
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
     assert.deepEqual((await turnsOf(log, 'Stubborn page NEEDS_FIXER')).map((turn) => turn.agent), ['Developer', 'Fixer'], 'Fixer continues the same task once, before anyone is asked');
     assert.equal((await waitingChats(project, env)).length, 0, 'no routine decision is asked of the user');
-    const result = (await messages(project)).find((message) => generated('Stubborn page NEEDS_FIXER', 'PTBK: ').test(message.split('\n')[0]));
+    const result = (await messages(project)).find((message) => generated('Stubborn page NEEDS_FIXER', 'ptbk: ').test(message.split('\n')[0]));
     assert.match(result, /Completed by Fixer after Developer could not: Developer reported the task as blocked/);
     assert.match(result, /^Task-Name: Stubborn page NEEDS_FIXER/m, 'one ordinary result commit of the task');
     assert.match(await readFile(join(project, source), 'utf8'), /TASK DONE /);

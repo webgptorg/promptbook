@@ -152,7 +152,7 @@ export const JSON_OPTION: OptionSpec = { name: 'json', type: 'boolean', descript
 export const COMMIT_OPTIONS: OptionGroup = {
     title: 'Git persistence',
     options: [
-        { name: 'commit', type: 'boolean', negatable: true, description: 'Commit versioned changes with a `PTBK: ` subject (default). --no-commit saves without committing.', defaultText: 'on' },
+        { name: 'commit', type: 'boolean', negatable: true, description: 'Commit versioned changes with a `ptbk: ` subject (default). --no-commit saves without committing.', defaultText: 'on' },
     ],
 };
 

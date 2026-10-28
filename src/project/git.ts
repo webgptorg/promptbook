@@ -4,24 +4,43 @@ import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, hashFileIfExists, isDirectory, isPathInside, writeFileAtomic } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
 import { runProcess, type ProcessResult } from '../common/process.js';
-import { normalizeAgentName } from '../book/references.js';
+import { normalizeAgentName, parseReferenceValue } from '../book/references.js';
+import { staticVisual } from '../ui/badges.js';
 import { rm } from 'node:fs/promises';
 
 /**
- * Prefix of every commit created by Promptbook.
+ * Prefix of every commit created by Promptbook (lowercase; older history may still carry `PTBK: `).
  *
  * @private Git persistence
  */
-export const COMMIT_PREFIX = 'PTBK: ';
+export const COMMIT_PREFIX = 'ptbk: ';
 
 /**
- * Applies the commit prefix exactly once.
+ * Matches an already applied runtime prefix in either historical spelling.
+ */
+const APPLIED_PREFIX = /^ptbk:\s*/i;
+
+/**
+ * Applies the lowercase commit prefix exactly once (an existing `ptbk: `/`PTBK: ` prefix is not repeated).
  *
  * @private Git persistence
  */
 export function prefixedSubject(subject: string): string {
     const trimmed = subject.trim().replace(/\s+/g, ' ');
-    return trimmed.startsWith(COMMIT_PREFIX) ? trimmed : `${COMMIT_PREFIX}${trimmed}`;
+    return `${COMMIT_PREFIX}${trimmed.replace(APPLIED_PREFIX, '')}`;
+}
+
+/**
+ * Subject summary of actual agent work: the responsible agent's backtick-quoted static visual followed by the
+ * meaningful subject (``ptbk: `~<@@/>-` Review export`` once prefixed). Without an agent (system operations) the
+ * summary stays undecorated; no agent and no extra date are invented.
+ *
+ * @private Git persistence
+ */
+export function agentSubject(agentName: string | undefined, summary: string): string {
+    const trimmed = summary.trim().replace(APPLIED_PREFIX, '');
+    const name = agentName?.trim() ? (parseReferenceValue(agentName)?.name ?? agentName.trim()) : undefined;
+    return name ? `\`${staticVisual(name)}\` ${trimmed}` : trimmed;
 }
 
 /**
@@ -239,7 +258,7 @@ export async function resolveCommitIdentity(cwd: string, env: NodeJS.ProcessEnv 
 export type CommitOutcome = { readonly committed: true; readonly sha: string; readonly paths: readonly string[] } | { readonly committed: false; readonly reason: 'no-changes' };
 
 /**
- * Commits exactly the given paths with a `PTBK: ` subject, preserving every other staged/unstaged change.
+ * Commits exactly the given paths with a `ptbk: ` subject, preserving every other staged/unstaged change.
  *
  * Hooks and signing are respected. Paths must be inside the project.
  *

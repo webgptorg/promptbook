@@ -78,9 +78,9 @@ test('lifecycle: pause drains the current task without a next claim; resume cont
     assert.equal(pausing.service.lifecycle.intent, 'pause');
     assert.equal(pausing.service.lifecycle.draining, true);
     await waitFor(async () => (await status(project, env)).service.state === 'pause', { message: 'pausing to settle into pause' });
-    assert.ok(findGenerated(await subjects(project), 'Slow work SLOW_WORK', 'PTBK: '), 'the current task finished normally');
+    assert.ok(findGenerated(await subjects(project), 'Slow work SLOW_WORK', 'ptbk: '), 'the current task finished normally');
     await new Promise((resolve) => setTimeout(resolve, 2500));
-    assert.equal(findGenerated(await subjects(project), 'Next work', 'PTBK: '), undefined, 'no next task is claimed while paused');
+    assert.equal(findGenerated(await subjects(project), 'Next work', 'ptbk: '), undefined, 'no next task is claimed while paused');
     assert.equal((await status(project, env)).current, undefined);
     const again = await ptbk(['pause', '--raw'], { cwd: project, env });
     assert.match(again.stdout, /Already paused/, 'repeating pause is idempotent');
@@ -88,7 +88,7 @@ test('lifecycle: pause drains the current task without a next claim; resume cont
     const resumed = await ptbk(['resume', '--raw'], { cwd: project, env });
     assert.equal(resumed.code, 0, resumed.output);
     assert.equal((await status(project, env)).service.state, 'running');
-    await waitFor(async () => findGenerated(await subjects(project), 'Next work', 'PTBK: '), { message: 'work to continue after resume' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Next work', 'ptbk: '), { message: 'work to continue after resume' });
     assert.equal((await turnsOf(log, 'Slow work')).length, 1, 'draining never replays the task');
 
     const stopped = await ptbk(['stop', '--raw'], { cwd: project, env });
@@ -119,7 +119,7 @@ test('lifecycle: a pending stop can be cancelled; replacing it with pause needs 
     assert.equal(cancelled.code, 0, cancelled.output);
     assert.match(cancelled.stdout, /Cancelled the pending stop/);
     assert.equal((await status(project, env)).service.state, 'running');
-    await waitFor(async () => findGenerated(await subjects(project), 'Slow work SLOW_WORK', 'PTBK: '), { message: 'the task to finish' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Slow work SLOW_WORK', 'ptbk: '), { message: 'the task to finish' });
     assert.equal((await status(project, env)).service.state, 'running', 'the cancelled stop did not take effect');
     assert.equal((await turnsOf(log, 'Slow work')).length, 1, 'cancellation does not replay the task');
     assert.equal(JSON.parse(await readFile(join(project, '.ptbk', 'service', 'launch.json'), 'utf8')).intentionallyStopped, false, 'no permanent-stop setting is left behind');
@@ -153,8 +153,8 @@ test('Chatter: initialized with every other role as TEAM, default partner of new
     assert.deepEqual([...consultation.members].sort(), ['@Chatter', '@Developer']);
     assert.ok(consultation.links.some((link) => link.includes(human.name)), 'linked to the originating conversation');
     const history = await subjects(project);
-    assert.ok(history.includes(`PTBK: Chat - ${consultation.name}`), 'a conversation-scoped consultation has its own scoped commit');
-    assert.ok(!history.slice(0, history.length - before).some((subject) => /^PTBK: (?!Chat - |Chat routing - )/.test(subject)), 'no task was created or executed (only chat messages and the chat routing)');
+    assert.ok(history.includes(`ptbk: Chat - ${consultation.name}`), 'a conversation-scoped consultation has its own scoped commit');
+    assert.ok(!history.slice(0, history.length - before).some((subject) => /^ptbk: (?!Chat - |Chat routing - )/.test(subject)), 'no task was created or executed (only chat messages and the chat routing)');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
     await writeFile(join(project, 'agents', '.core', 'chatter.book'), `${chatter}RULE Answer in one paragraph.\n`);
     await git(project, ['commit', '-qam', 'Customize Chatter']);
@@ -237,10 +237,10 @@ test('lifecycle: an accepted manual pause survives an engine crash; a deliberate
     assert.equal(restored.service.state, 'pause', 'the operator’s manual pause is restored before any background claim');
     assert.deepEqual(restored.service.pauseReasons.map((reason) => reason.kind), ['manual']);
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    assert.equal(findGenerated(await subjects(project), 'Queued work', 'PTBK: '), undefined, 'queued work waits for an explicit resume');
+    assert.equal(findGenerated(await subjects(project), 'Queued work', 'ptbk: '), undefined, 'queued work waits for an explicit resume');
     const resumed = await ptbk(['resume', '--raw'], { cwd: project, env });
     assert.equal(resumed.code, 0, resumed.output);
-    await waitFor(async () => findGenerated(await subjects(project), 'Queued work', 'PTBK: '), { message: 'the queued work after resume' });
+    await waitFor(async () => findGenerated(await subjects(project), 'Queued work', 'ptbk: '), { message: 'the queued work after resume' });
     assert.equal((await ptbk(['pause', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);

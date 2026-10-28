@@ -182,6 +182,16 @@ export function singleLineVisual(agentName: string | undefined, activity: BadgeA
 }
 
 /**
+ * The stable static single-line visual of an agent (its identity at rest, never an animation frame or an activity
+ * expression), e.g. `~<@@/>-` for Expert. Commit subjects of actual agent work quote it.
+ *
+ * @private agent visual identity
+ */
+export function staticVisual(agentName: string): string {
+    return badgeFace(badgeIdentity(agentName), 'working', 0);
+}
+
+/**
  * Inline badge: colored single-line visual followed by the readable name.
  *
  * @private agent visual identity

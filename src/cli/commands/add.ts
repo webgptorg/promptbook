@@ -194,7 +194,7 @@ export default async function add(context: CommandContext): Promise<number> {
 function report(context: CommandContext, root: string, path: string, commit: string | undefined, commitMode: boolean, title: string): void {
     const relativePath = toProjectRelative(root, path);
     const { terminal } = context;
-    const committed = commit ? `committed ${commit.slice(0, 8)} (PTBK: Add task - ${title})` : commitMode ? 'nothing to commit' : 'NOT committed (--no-commit): a default `ptbk start` treats it as an uncommitted source until you commit it';
+    const committed = commit ? `committed ${commit.slice(0, 8)} (ptbk: Add task - ${title})` : commitMode ? 'nothing to commit' : 'NOT committed (--no-commit): a default `ptbk start` treats it as an uncommitted source until you commit it';
     terminal.write(
         terminal.pretty
             ? `${terminal.style.success('✔')} Added ${terminal.style.bold(title)}\n  ${terminal.style.muted(`${relativePath} · ${nameReference(title)}`)} · ${committed}\n`

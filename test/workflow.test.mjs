@@ -4,20 +4,20 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { ENGINE_VERSION } from '../dist/common/version.js';
 import { traceDirectoryOf } from '../dist/tasks/identity.js';
-import { committed, drive, fakeHarness, findGenerated, generated, git, initRepository, initializedProject, messages, ptbk, subjects, temporaryDirectory } from './helpers.mjs';
+import { committed, drive, fakeHarness, findGenerated, generated, git, initializedProject, initRepository, messages, ptbk, subjects, temporaryDirectory, withoutVisual } from './helpers.mjs';
 
 /**
  * The full message of the newest commit whose subject matches a generated name.
  */
-async function commitMessage(project, title, prefix = 'PTBK: ') {
+async function commitMessage(project, title, prefix = 'ptbk: ') {
     return (await messages(project)).find((message) => generated(title, prefix).test(message.split('\n')[0]));
 }
 
 /**
  * Files changed by the newest commit whose subject matches a generated name.
  */
-async function changedFilesOf(project, title, prefix = 'PTBK: ') {
-    const sha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t')).find(([, subject]) => generated(title, prefix).test(subject))?.[0];
+async function changedFilesOf(project, title, prefix = 'ptbk: ') {
+    const sha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t').map(withoutVisual)).find(([, subject]) => generated(title, prefix).test(subject))?.[0];
     return sha ? changedFiles(project, sha) : [];
 }
 
@@ -47,7 +47,7 @@ test('unattended init saves setup, a blank initial specification and one named E
     assert.equal(init.code, 0, init.output);
     assert.match(init.stdout, /Setup complete · service not running/);
     assert.match(init.stdout, /Service: not started \(--no-start\)/);
-    assert.deepEqual(await subjects(project), ['PTBK: Initialize project']);
+    assert.deepEqual(await subjects(project), ['ptbk: Initialize project']);
     for (const path of ['ptbk.json', 'AGENTS.md', 'agents/.core/adam.book', 'agents/.core/router.book', 'agents/.core/tasker.book', 'agents/.core/teacher.book', 'agents/.core/fixer.book', 'agents/developer.book', 'tasks/templates/feature.book']) {
         await readFile(join(project, path), 'utf8');
     }
@@ -95,7 +95,7 @@ test('unattended init saves setup, a blank initial specification and one named E
     }
     const again = await ptbk(['init', '--non-interactive', '--no-start', '--raw'], { cwd: project, env });
     assert.equal(again.code, 0, again.output);
-    assert.deepEqual(await subjects(project), ['PTBK: Initialize project'], 'no empty or duplicate setup commit');
+    assert.deepEqual(await subjects(project), ['ptbk: Initialize project'], 'no empty or duplicate setup commit');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
     assert.equal((await readdir(join(project, 'tasks'))).filter((name) => name.endsWith('.book')).length, 1, 'the first task is never duplicated');
     const list = JSON.parse((await ptbk(['list', '--json'], { cwd: project, env })).stdout);
@@ -119,7 +119,7 @@ test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-Name tr
     const { project, env } = await initializedProject(t);
     const bootstrap = await drive(project, env, async () => committed(project, 'Review the initialized project'), { message: 'the Expert bootstrap result' });
     assert.equal(bootstrap.code, 0, bootstrap.output);
-    assert.ok((await subjects(project)).some((subject) => subject.startsWith('PTBK: Assign routing: Review the initialized project — ')), 'Router specialized the bootstrap MODEL first, in its own commit');
+    assert.ok((await subjects(project)).some((subject) => subject.startsWith('ptbk: Assign routing: Review the initialized project — ')), 'Router specialized the bootstrap MODEL first, in its own commit');
     const bootstrapMessage = await commitMessage(project, 'Review the initialized project');
     const bootstrapName = /^Task-Name: (.+)$/m.exec(bootstrapMessage)[1];
     assert.match(bootstrapName, generated('Review the initialized project'));
@@ -150,7 +150,7 @@ test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-Name tr
 
     await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
     // The engine keeps working: Router routes the task, the task commits, Router routes the Teacher follow-up, Teacher learns.
-    const result = await drive(project, env, async () => (await subjects(project)).some((subject) => /^PTBK: Learn from: /.test(subject)), { message: 'the task and its Teacher follow-up' });
+    const result = await drive(project, env, async () => (await subjects(project)).some((subject) => /^ptbk: Learn from: /.test(subject)), { message: 'the task and its Teacher follow-up' });
     assert.equal(result.code, 0, result.output);
     const files = await changedFilesOf(project, 'Write the welcome page');
     assert.ok(files.some((file) => /learn-/.test(file)), 'Teacher follow-up is part of the result commit');
@@ -167,7 +167,7 @@ test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-Name tr
     assert.ok(learning.includes(`Evidence: ${traceDirectoryOf(`tasks/${task}`)}/harness.log`), learning);
     assert.match(await readFile(join(project, 'tasks', task), 'utf8'), /TASK DONE \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}/);
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
-    assert.ok((await messages(project)).some((item) => item.startsWith('PTBK: Learn from: ') && item.includes(`Task-Name: ${followUp}\n`)), 'the Teacher result carries the full follow-up name');
+    assert.ok((await messages(project)).some((item) => item.startsWith('ptbk: Learn from: ') && item.includes(`Task-Name: ${followUp}\n`)), 'the Teacher result carries the full follow-up name');
 });
 
 test('a failing check feeds a repair attempt; completion is only stamped after the check passes', async (t) => {
@@ -178,7 +178,7 @@ test('a failing check feeds a repair attempt; completion is only stamped after t
     assert.match(result.stdout, /Check failed/);
     const turns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((entry) => generated('Repair me FAIL_CHECK_ONCE').test(entry.title));
     assert.deepEqual(turns.map((turn) => turn.attempt), [1, 2]);
-    assert.ok(findGenerated(await subjects(project), 'Repair me FAIL_CHECK_ONCE', 'PTBK: '));
+    assert.ok(findGenerated(await subjects(project), 'Repair me FAIL_CHECK_ONCE', 'ptbk: '));
 });
 
 test('a blocked agent leaves a recovery decision; acknowledging records the failure in its own commit', async (t) => {
@@ -197,7 +197,7 @@ test('a blocked agent leaves a recovery decision; acknowledging records the fail
     const reference = /Task: .* \(([^)]+)\) —/.exec(inspect.stdout)[1];
     const acknowledged = await ptbk(['recover', reference, '--action', 'acknowledge', '--raw'], { cwd: project, env });
     assert.equal(acknowledged.code, 0, acknowledged.output);
-    assert.match((await subjects(project))[0], generated('Impossible BLOCKED work', 'PTBK: Mark failed - '));
+    assert.match((await subjects(project))[0], generated('Impossible BLOCKED work', 'ptbk: Mark failed - '));
     const list = JSON.parse((await ptbk(['list', '--json'], { cwd: project, env })).stdout);
     assert.equal(list.tasks.find((task) => generated('Impossible BLOCKED work').test(task.title)).readiness, 'failed');
     assert.equal((await waitingChats(project, env)).length, 0);
@@ -252,7 +252,7 @@ test('migrate converts Markdown sections into equivalent Books once', async (t) 
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
     const migrated = await ptbk(['migrate', '--raw'], { cwd: project, env });
     assert.equal(migrated.code, 0, migrated.output);
-    assert.equal((await subjects(project))[0], 'PTBK: Migrate Markdown tasks to Books');
+    assert.equal((await subjects(project))[0], 'ptbk: Migrate Markdown tasks to Books');
     const books = (await readdir(join(project, 'tasks'))).filter((name) => name.startsWith('legacy-'));
     assert.equal(books.length, 3);
     const future = await readFile(join(project, 'tasks', books.find((name) => name.includes('future'))), 'utf8');
@@ -282,7 +282,7 @@ test('migrate converts Books in former syntax explicitly, keeping names and cont
     const migrated = await ptbk(['migrate', '--raw'], { cwd: project, env });
     assert.equal(migrated.code, 3, migrated.output);
     assert.match(migrated.stdout, /Not converted: docs\.book: its kind is unknown/);
-    assert.equal((await subjects(project))[0], 'PTBK: Convert Books to canonical syntax');
+    assert.equal((await subjects(project))[0], 'ptbk: Convert Books to canonical syntax');
     assert.equal(await readFile(join(project, 'agents', 'reviewer.book'), 'utf8'), 'AGENT Reviewer\nPERSONA Reviews pull requests carefully.\n\nRULE\n\\API changes need a changelog entry.\n');
     assert.equal(await readFile(join(project, 'tasks', 'old.book'), 'utf8'), 'TASK Old task\nGOAL Keep the export stable.\n\nTASK AGENT @Developer\n');
     assert.equal(await readFile(join(project, 'tasks', 'header.book'), 'utf8'), 'TASK Header style\nGOAL Described below the name.\n\nTASK AGENT @Developer\n');

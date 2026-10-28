@@ -9,20 +9,20 @@ import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../dist/project/s
 import { distinctName, nameKeyPath, traceDirectoryConflicts, traceDirectoryOf } from '../dist/tasks/identity.js';
 import { ChatStore } from '../dist/chats/store.js';
 import { taskChats } from '../dist/chats/task-chats.js';
-import { committed, drive, findGenerated, generated, git, initializedProject, messages, ptbk, subjects, temporaryDirectory } from './helpers.mjs';
+import { committed, drive, findGenerated, generated, git, initializedProject, messages, ptbk, subjects, temporaryDirectory, withoutVisual } from './helpers.mjs';
 
 /**
  * The full message of the newest commit whose subject matches a generated name.
  */
-async function commitMessage(project, title, prefix = 'PTBK: ') {
+async function commitMessage(project, title, prefix = 'ptbk: ') {
     return (await messages(project)).find((message) => generated(title, prefix).test(message.split('\n')[0]));
 }
 
 /**
  * Files changed by the newest commit whose subject matches a generated name.
  */
-async function changedFilesOf(project, title, prefix = 'PTBK: ') {
-    const sha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t')).find(([, subject]) => generated(title, prefix).test(subject))?.[0];
+async function changedFilesOf(project, title, prefix = 'ptbk: ') {
+    const sha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t').map(withoutVisual)).find(([, subject]) => generated(title, prefix).test(subject))?.[0];
     return sha ? changedFiles(project, sha) : [];
 }
 
@@ -146,11 +146,11 @@ test('same-name tasks: the first by resolver order runs; the copy is shadowed, r
     assert.deepEqual(same.map((task) => task.readiness).sort(), ['blocked', 'needs-assignment'], JSON.stringify(same));
     assert.match(same.find((task) => task.readiness === 'blocked').reason, /tasks\/a\.book/);
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'list never writes');
-    const run = await drive(project, env, async () => (await subjects(project)).includes('PTBK: Same title'), { message: 'the winning copy' });
+    const run = await drive(project, env, async () => (await subjects(project)).includes('ptbk: Same title'), { message: 'the winning copy' });
     assert.equal(run.code, 0, run.output);
     const history = await subjects(project);
-    assert.equal(history.filter((subject) => subject === 'PTBK: Same title').length, 1, 'only the winning copy is addressable');
-    const [message] = (await messages(project)).filter((item) => item.startsWith('PTBK: Same title'));
+    assert.equal(history.filter((subject) => subject === 'ptbk: Same title').length, 1, 'only the winning copy is addressable');
+    const [message] = (await messages(project)).filter((item) => item.startsWith('ptbk: Same title'));
     assert.match(message, /^Task-Name: Same title$/m);
     assert.doesNotMatch(message, /Task-ID/);
     const winner = same.find((task) => task.readiness === 'needs-assignment').source;
@@ -199,7 +199,7 @@ test('trace policy: committed traces share the result commit; videos and post-co
     assert.ok(!files.some((file) => file.includes('/local/')), 'post-commit events are never in the snapshot');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'events after the commit do not dirty the tree');
     await readFile(join(project, trace, 'local', 'events.jsonl'), 'utf8');
-    const assignmentSha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t')).find(([, subject]) => subject.startsWith('PTBK: Assign routing: Write the welcome page — '))[0];
+    const assignmentSha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t').map(withoutVisual)).find(([, subject]) => subject.startsWith('ptbk: Assign routing: Write the welcome page — '))[0];
     const assignment = await changedFiles(project, assignmentSha);
     assert.ok(assignment.includes(source), 'Router’s refinement of the task MODEL is its own scoped commit');
 });
@@ -247,7 +247,7 @@ test('a task waiting for the user is checkpointed so independent work continues;
     assert.equal((await ptbk(['answer', chat.name, 'blue', '--raw'], { cwd: project, env })).code, 0);
     const answerCommit = (await messages(project))[0];
     assert.equal((await subjects(project)).length, before + 1, 'the answer is its own commit');
-    assert.match(answerCommit, /^PTBK: Chat - /);
+    assert.match(answerCommit, /^ptbk: Chat - /);
     assert.match(answerCommit, /^Chat-Name: /m);
     assert.match(answerCommit, generated('Choose a color ASK_USER', 'Task-Name: '));
     const second = await drive(project, env, async () => committed(project, 'Choose a color ASK_USER'), { message: 'the resumed task' });

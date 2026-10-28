@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { committed, drive, generated, git, initializedProject, ptbk, subjects } from './helpers.mjs';
+import { committed, drive, generated, git, initializedProject, ptbk, subjects, withoutVisual } from './helpers.mjs';
 
 /**
  * Adds one task (committed by `ptbk add`).
@@ -18,7 +18,7 @@ async function addTask(project, env, title) {
 async function resultFiles(project, title) {
     const subject = await committed(project, title);
     assert.ok(subject, `the result commit of ${title}`);
-    const sha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t')).find(([, line]) => line === subject)[0];
+    const sha = (await git(project, ['log', '--format=%H%x09%s'])).trim().split('\n').map((line) => line.split('\t').map(withoutVisual)).find(([, line]) => line === subject)[0];
     return (await git(project, ['show', '--name-only', '--format=', sha])).trim().split('\n').filter(Boolean);
 }
 
@@ -55,7 +55,7 @@ test('concurrent work: independent tasks overlap in the one working tree and eac
     assert.equal(run.code, 0, run.output);
     const startedAlpha = position(run.output, /^Starting "Write alpha SLOW_WORK/);
     const startedBeta = position(run.output, /^Starting "Write beta SLOW_WORK/);
-    const firstCommit = position(run.output, /^Committed \S+ PTBK: Write (alpha|beta) SLOW_WORK/);
+    const firstCommit = position(run.output, /^Committed \S+ ptbk: `[^`]+` Write (alpha|beta) SLOW_WORK/);
     assert.ok(startedAlpha >= 0 && startedBeta >= 0 && firstCommit >= 0, run.output);
     assert.ok(Math.max(startedAlpha, startedBeta) < firstCommit, `both tasks started before either result was committed:\n${run.output}`);
     assert.match(run.output, /alongside 1 other active unit/);
@@ -91,7 +91,7 @@ test('concurrent work: same-file work waits for the owner of the file and then c
     const shared = await readFile(join(project, 'output', 'shared.txt'), 'utf8');
     assert.ok(generated('Shared one CLAIM_SHARED').test(shared) && generated('Shared two CLAIM_SHARED').test(shared), shared);
     for (const title of ['Shared one CLAIM_SHARED', 'Shared two CLAIM_SHARED']) assert.ok((await resultFiles(project, title)).includes('output/shared.txt'), `${title} committed its change of the shared file`);
-    const order = (await subjects(project)).filter((subject) => /^PTBK: Shared (one|two) CLAIM_SHARED/.test(subject));
+    const order = (await subjects(project)).filter((subject) => /^ptbk: Shared (one|two) CLAIM_SHARED/.test(subject));
     assert.equal(order.length, 2);
 });
 

@@ -194,7 +194,7 @@ export class SyncCoordinator {
             const merged = await this.host.gitLock(async () => {
                 const identity = await resolveCommitIdentity(root, this.host.env);
                 // A visible merge commit even when fast-forward would be possible; history stays append-only.
-                const result = await git(root, [...identity.configArgs, 'merge', '--no-ff', '--no-edit', '-m', `PTBK: Merge ${upstream} into ${branch}`, upstream], { env: this.host.env });
+                const result = await git(root, [...identity.configArgs, 'merge', '--no-ff', '--no-edit', '-m', `ptbk: Merge ${upstream} into ${branch}`, upstream], { env: this.host.env });
                 if (result.exitCode === 0) return { ok: true as const };
                 const conflicted = (await git(root, ['diff', '--name-only', '--diff-filter=U'])).stdout.split('\n').filter(Boolean);
                 // Never leave the sole working tree half-merged: restore the exact pre-attempt state.
