@@ -1,5 +1,11 @@
 # Unreleased
 
+## One started unfinished task per agent
+
+-   An agent now holds at most one started unfinished task, including a task checkpointed while it waits for you, the Wallet, a resource or a decision. Its next task stays queued until that task is completed (or cancelled/reassigned through ordinary task management); choosing another harness or account for the same agent does not create extra capacity. Different agents still work in parallel under the shared `execution.maxConcurrentWork`, and a wait still releases its execution slot. Router prerequisites follow the same rule for Router.
+-   The reservation is rebuilt from the persisted active and checkpointed runs, so it holds across restarts. Chat turns are not tasks: an agent with a running or waiting task still answers chats. When ready work waits only for busy agents, the engine's wait says which agent holds which task (new wait kind `agent`).
+-   The concurrency fixtures now run their parallel tasks on two agents; a new fixture checks that a second Developer task starts only after the first is committed while Planner works in parallel, and the checkpoint fixture checks that a waiting task keeps Developer reserved while another agent's work continues.
+
 ## Core agents: one shared preparation with three-way template updates
 
 -   Init and start now use one preparation operation for **all** required core roles: a role introduced by a newer engine is added at the next `ptbk start` without another init or bootstrap. Each installed core Book's exact engine template, its inputs and the engine version are recorded as its baseline in the ignored, persistent `.ptbk/core-templates.json` (cache cleanup never touches it).

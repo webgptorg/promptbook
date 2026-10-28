@@ -2043,6 +2043,10 @@ export class Agenda {
             }
             let launched = 0;
             const blockedByFiles: FileConflict[] = [];
+            // One started unfinished task per agent: a busy (or waiting) agent's next task queues; other agents proceed.
+            const reserved = await this.agentReservations();
+            const router = candidates.some((candidate) => candidate.readiness.kind === 'needs-assignment') ? (await routerAgent(this.catalog))?.name : undefined;
+            const blockedByAgents: Array<{ readonly agent: string; readonly holder: string }> = [];
             for (const candidate of candidates) {
                 if (!this.capacity.claimable) break;
                 // A task whose source another run is changing waits for it (no whole-project serialization).
@@ -2051,7 +2055,15 @@ export class Agenda {
                     blockedByFiles.push(...conflicts);
                     continue;
                 }
+                const agent = candidate.readiness.kind === 'needs-assignment' ? router : this.routedAgents.get(candidate.task.key);
+                const agentKey = agent ? normalizeAgentName(parseReferenceValue(agent)?.name ?? agent) : undefined;
+                const holder = agentKey ? reserved.get(agentKey) : undefined;
+                if (agent && holder !== undefined) {
+                    blockedByAgents.push({ agent, holder });
+                    continue;
+                }
                 if (!this.launch({ label: candidate.task.title, key: candidate.task.key }, async (unit) => await this.startTask(candidate, unit))) break;
+                if (agentKey) reserved.set(agentKey, candidate.task.title);
                 launched++;
             }
             this.queuedWork = candidates.length - launched;
@@ -2059,9 +2071,11 @@ export class Agenda {
             const full = !this.capacity.claimable;
             const reason = full
                 ? `${candidates.length} task${candidates.length === 1 ? '' : 's'} wait${candidates.length === 1 ? 's' : ''} for a free slot (${this.capacity.used}/${this.capacity.size} active).`
-                : `Ready work waits for files other work is changing: ${describeConflicts(blockedByFiles)}.`;
+                : blockedByFiles.length
+                  ? `Ready work waits for files other work is changing: ${describeConflicts(blockedByFiles)}.`
+                  : `Ready work waits for its agents' unfinished tasks: ${[...new Map(blockedByAgents.map((item) => [item.agent, item.holder])).entries()].map(([agent, holder]) => `${agent} holds "${holder}"`).join('; ')}.`;
             this.phase = 'waiting';
-            await this.wait(IDLE_RECHECK_MS, { kind: full ? 'capacity' : 'files', reason, skippable: false });
+            await this.wait(IDLE_RECHECK_MS, { kind: full ? 'capacity' : blockedByFiles.length ? 'files' : 'agent', reason, skippable: false });
             return;
         }
         this.queuedWork = 0;
@@ -2262,6 +2276,10 @@ export class Agenda {
             assignmentFor,
             routingBlocks,
         });
+        this.routedAgents = new Map(evaluated.flatMap(({ task }) => {
+            const resolution = routeCache.get(task.ref);
+            return resolution?.kind === 'routable' ? [[task.key, resolution.selection.agent] as const] : [];
+        }));
         this.inventory = evaluated.map(({ task, readiness }) => {
             const resolution = routeCache.get(task.ref);
             return {
@@ -2309,6 +2327,24 @@ export class Agenda {
 
     /** The complete task inventory of the last evaluation (every state; views sort it, execution never does). */
     private inventory: TaskInventoryItem[] = [];
+
+    /** The executing agent each routable task of the last evaluation would run as (task key → agent name). */
+    private routedAgents = new Map<string, string>();
+
+    /**
+     * Agents holding a started unfinished task (normalized agent → that task's title): every active run and every
+     * checkpointed one (waiting for the user, Wallet, a resource or a decision). A wait releases its execution slot,
+     * never this reservation; it is rebuilt from the persisted records, so it survives restarts. Chat turns are not
+     * tasks and never reserve an agent.
+     */
+    private async agentReservations(): Promise<Map<string, string>> {
+        const reserved = new Map<string, string>();
+        for (const record of [...(await this.state.readActiveRecords()), ...(await this.state.readParked())]) {
+            const agent = record.routing?.agent;
+            if (agent) reserved.set(normalizeAgentName(parseReferenceValue(agent)?.name ?? agent), record.taskTitle);
+        }
+        return reserved;
+    }
 
     /** The complete task inventory (refreshed when stale, e.g. while the loop waits). */
     public async taskInventory(): Promise<TaskInventoryItem[]> {

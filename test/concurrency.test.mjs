@@ -5,10 +5,10 @@ import { test } from 'node:test';
 import { committed, drive, generated, git, initializedProject, ptbk, subjects, withoutVisual } from './helpers.mjs';
 
 /**
- * Adds one task (committed by `ptbk add`).
+ * Adds one task for an agent (committed by `ptbk add`).
  */
-async function addTask(project, env, title) {
-    const added = await ptbk(['add', title, '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
+async function addTask(project, env, title, agent = 'Developer') {
+    const added = await ptbk(['add', title, '--agent', agent, '--priority', '9', '--raw'], { cwd: project, env });
     assert.equal(added.code, 0, added.output);
 }
 
@@ -47,10 +47,10 @@ function events(output) {
     return output.split('\n').map((line) => line.replace(/^\d\d:\d\d:\d\d /, ''));
 }
 
-test('concurrent work: independent tasks overlap in the one working tree and each result commit holds only its own files', async (t) => {
+test('concurrent work: independent tasks of different agents overlap in the one working tree and each result commit holds only its own files', async (t) => {
     const { project, env } = await initializedProject(t);
     await addTask(project, env, 'Write alpha SLOW_WORK');
-    await addTask(project, env, 'Write beta SLOW_WORK');
+    await addTask(project, env, 'Write beta SLOW_WORK', 'Planner');
     const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '4000' }, async () => Boolean((await committed(project, 'Write alpha SLOW_WORK')) && (await committed(project, 'Write beta SLOW_WORK'))), { message: 'both results' });
     assert.equal(run.code, 0, run.output);
     const startedAlpha = position(run.output, /^Starting "Write alpha SLOW_WORK/);
@@ -84,7 +84,7 @@ test('concurrent work: execution.maxConcurrentWork 1 serializes tasks', async (t
 test('concurrent work: same-file work waits for the owner of the file and then continues', async (t) => {
     const { project, env } = await initializedProject(t);
     await addTask(project, env, 'Shared one CLAIM_SHARED');
-    await addTask(project, env, 'Shared two CLAIM_SHARED');
+    await addTask(project, env, 'Shared two CLAIM_SHARED', 'Planner');
     const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '3000' }, async () => Boolean((await committed(project, 'Shared one CLAIM_SHARED')) && (await committed(project, 'Shared two CLAIM_SHARED'))), { message: 'both same-file results' });
     assert.equal(run.code, 0, run.output);
     assert.match(run.output, /waits for output\/shared\.txt \(being changed by "Shared (one|two) CLAIM_SHARED/, `the second claim waited visibly:\n${run.output}`);
@@ -93,6 +93,24 @@ test('concurrent work: same-file work waits for the owner of the file and then c
     for (const title of ['Shared one CLAIM_SHARED', 'Shared two CLAIM_SHARED']) assert.ok((await resultFiles(project, title)).includes('output/shared.txt'), `${title} committed its change of the shared file`);
     const order = (await subjects(project)).filter((subject) => /^ptbk: Shared (one|two) CLAIM_SHARED/.test(subject));
     assert.equal(order.length, 2);
+});
+
+test('one started unfinished task per agent: a second task of a busy agent queues while another agent works in parallel', async (t) => {
+    const { project, env } = await initializedProject(t);
+    await addTask(project, env, 'Write first developer SLOW_WORK');
+    await addTask(project, env, 'Write planner SLOW_WORK', 'Planner');
+    await addTask(project, env, 'Write second developer SLOW_WORK');
+    const titles = ['Write first developer SLOW_WORK', 'Write planner SLOW_WORK', 'Write second developer SLOW_WORK'];
+    const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '4000' }, async () => (await Promise.all(titles.map((title) => committed(project, title)))).every(Boolean), { message: 'all three results' });
+    assert.equal(run.code, 0, run.output);
+    const started = (title) => position(run.output, new RegExp(`^Starting "${title}`));
+    const done = (title) => position(run.output, new RegExp(`^Committed \\S+ ptbk: \`[^\`]+\` ${title}`));
+    const [firstDeveloper, planner, secondDeveloper] = titles;
+    assert.ok([firstDeveloper, planner, secondDeveloper].every((title) => started(title) >= 0 && done(title) >= 0), run.output);
+    assert.ok(Math.max(started(firstDeveloper), started(planner)) < Math.min(done(firstDeveloper), done(planner)), `two agents work in parallel:\n${run.output}`);
+    const firstToStart = started(firstDeveloper) < started(secondDeveloper) ? firstDeveloper : secondDeveloper;
+    const secondToStart = firstToStart === firstDeveloper ? secondDeveloper : firstDeveloper;
+    assert.ok(started(secondToStart) > done(firstToStart), `Developer starts its next task only after finishing the first:\n${run.output}`);
 });
 
 test('removed task worktrees: --isolate is explained before anything changes; a saved execution.isIsolated is diagnosed', async (t) => {

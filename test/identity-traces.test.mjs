@@ -228,11 +228,13 @@ test('initial input: verbatim text and attachments with working relative links; 
 test('a task waiting for the user is checkpointed so independent work continues; the answer resumes it', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Choose a color ASK_USER', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
-    await ptbk(['add', 'Independent work', '--agent', 'Developer', '--priority', '1', '--raw'], { cwd: project, env });
+    await ptbk(['add', 'Developer follow-up', '--agent', 'Developer', '--priority', '5', '--raw'], { cwd: project, env });
+    await ptbk(['add', 'Independent work', '--agent', 'Planner', '--priority', '1', '--raw'], { cwd: project, env });
     const first = await drive(project, env, async () => committed(project, 'Independent work'), { message: 'the independent work beside the waiting question' });
     assert.equal(first.code, 0, first.output);
-    assert.ok(await committed(project, 'Independent work'), 'independent work progressed while the question waits');
+    assert.ok(await committed(project, 'Independent work'), "another agent's work progressed while the question waits");
     assert.ok(!(await committed(project, 'Choose a color ASK_USER')), 'the waiting task is not complete');
+    assert.ok(!(await committed(project, 'Developer follow-up')), 'the waiting task keeps its agent reserved: Developer starts no second task');
     const inspect = await ptbk(['recover', '--raw'], { cwd: project, env });
     assert.match(inspect.stdout, /checkpointed/);
     const [chat] = JSON.parse((await ptbk(['answer', '--json'], { cwd: project, env })).stdout);

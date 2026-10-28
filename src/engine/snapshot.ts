@@ -115,8 +115,11 @@ export type CapacityView = {
  * @private shared status view model
  */
 export type WaitView = {
-    /** `tools`: the running engine waits for a usable browser/harness (not a lifecycle state, technical pause or stop). */
-    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence' | 'tools' | 'capacity' | 'files' | 'draining';
+    /**
+     * `tools`: the running engine waits for a usable browser/harness (not a lifecycle state, technical pause or stop).
+     * `agent`: ready tasks wait because each of their agents already holds one started unfinished task.
+     */
+    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence' | 'tools' | 'capacity' | 'files' | 'agent' | 'draining';
     readonly reason: string;
     /** Next action/opportunity time (ISO). */
     readonly until?: string;
