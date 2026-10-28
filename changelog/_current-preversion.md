@@ -1,5 +1,9 @@
 # Unreleased
 
+## Release: full check before versioning
+
+-   `npm version …` (`npm run release:prerelease` and the other `release:*` scripts) now runs the full check in `preversion`: typecheck, tests and the packed-package test. The package test expects the current agent-work subject of the Expert bootstrap result (``ptbk: `<agent visual>` Review the initialized project — <date time>``) instead of the retired `PTBK: ` subject, and reads that commit's `Task-Name` trailer directly.
+
 ## macOS Command+V in the shared composer
 
 -   Every rich input (init intent, chat, task/planning input, Book editing) now accepts macOS Command+V through the same paste pipeline as Ctrl+V: native terminal paste already arrives as text, a terminal that reports Command+V (or Ctrl+V) as a CSI-u key chord now triggers the shared rich clipboard read instead of being dropped, and an empty native paste (for example an image the terminal cannot type) looks for an image or document in the clipboard. No separate macOS editor exists; text-only paste does not claim image support, and Ctrl+O file attachment stays the fallback. Key hints show `Ctrl+V/Cmd+V` on macOS.

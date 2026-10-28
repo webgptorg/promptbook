@@ -140,12 +140,15 @@ try {
         assert.equal(init.code, 0, `${init.stdout}\n${init.stderr}`);
         assert.match(init.stdout, /^Project ready · agenda running/m);
         assert.doesNotMatch(init.stdout, /\x1b|[╭╮╰╯]/);
+        // Agent-work subject: lowercase `ptbk: `, the executing agent's backtick-quoted visual and the task name.
+        const bootstrapSubject = /^([0-9a-f]+) ptbk: `[^`\n]+` Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m;
         const deadline = Date.now() + 90_000;
-        while (!/^PTBK: Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m.test((await git(fixture, ['log', '--format=%s'])).stdout)) {
+        let bootstrap;
+        while (!(bootstrap = bootstrapSubject.exec((await git(fixture, ['log', '--format=%H %s'])).stdout))) {
             if (Date.now() > deadline) throw new Error('The started service did not complete the Expert bootstrap task.');
             await new Promise((resolvePromise) => setTimeout(resolvePromise, 500));
         }
-        assert.match((await git(fixture, ['log', '-1', '--format=%B', '--grep', 'Review the initialized project'])).stdout, /^Task-Name: Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m);
+        assert.match((await git(fixture, ['log', '-1', '--format=%B', bootstrap[1]])).stdout, /^Task-Name: Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m);
         const snapshot = JSON.parse((await linked(global, ['status', '--json'], fixture, env)).stdout);
         assert.equal(snapshot.service.mode, 'daemon');
         assert.equal(snapshot.engine.version, release.version);
