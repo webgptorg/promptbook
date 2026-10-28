@@ -1,5 +1,13 @@
 # Unreleased
 
+## Dashboards stay current on hidden or slow terminals
+
+-   Full-screen views (dashboard, chat, Book editor, global dashboard) no longer queue frames while the terminal applies back-pressure (hidden, minimized, throttled or slow): only the newest frame is kept and it is drawn once the output drains, at the terminal's then-current size. Obsolete frames are discarded, never real events, messages or usage (they live in the engine's state), and drawing never blocks the engine. A regression test draws 500 frames into a blocked terminal and checks that exactly the latest is written after the drain. This implements the required behavior; it does not claim a confirmed cause of the reported freeze.
+
+## Browser agents attempt CAPTCHAs themselves
+
+-   Browser instructions now authorize attempting CAPTCHAs and similar challenges during registration, login and other authorized browsing, and completing technical steps without asking. `browser_request_user_action` is reserved for steps that genuinely need the human after an attempt (a code or approval only the account owner receives, consent only they may give, a challenge the agent could not solve). After a Wallet login the agent is told that a solved challenge is not proof of access and to verify it.
+
 ## Usage tile and page
 
 -   New **Usage** tile and page in the terminal dashboard (key `M`) and the browser dashboard (`#/usage`): a simple summary of the last seven days with the total (every consumption counted once), the runs, subscription/API/unknown billing, runs without reported usage, provider-reported costs and calculated prices (API, and separately the labelled token-price equivalent of subscription work, marked when partly estimated). Breakdowns by executing agent (`I` or the button includes the work an agent initiated; such rows overlap), harness, model and kind of work, each labelled for its grouping. The last view is remembered locally per viewer, never in `ptbk.json`. Price-list timestamps and versions stay hidden.

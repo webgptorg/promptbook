@@ -70,8 +70,31 @@ export class InlineRenderer {
 export class FullScreen {
     private previous: string[] = [];
     private active = false;
+    /**
+     * The latest frame not written yet because the terminal is applying back-pressure (hidden, minimized, throttled or
+     * slow): only the newest one is kept, obsolete frames are discarded, and it is written once the output drains.
+     */
+    private pending?: { readonly lines: readonly string[]; readonly cursor?: { row: number; column: number } };
+    private waitingForDrain = false;
 
     public constructor(private readonly output: NodeJS.WriteStream = process.stdout) {}
+
+    /** Whether the output currently refuses more data (a stream without the signal never blocks). */
+    private get backpressured(): boolean {
+        return this.waitingForDrain || this.output.writableNeedDrain === true;
+    }
+
+    /** Writes the newest pending frame once the output drained (never a backlog of missed screens). */
+    private awaitDrain(): void {
+        if (this.waitingForDrain || typeof this.output.once !== 'function') return;
+        this.waitingForDrain = true;
+        this.output.once('drain', () => {
+            this.waitingForDrain = false;
+            const pending = this.pending;
+            this.pending = undefined;
+            if (pending) this.draw(pending.lines, pending.cursor);
+        });
+    }
 
     /** Enters the alternate screen. */
     public enter(): void {
@@ -85,6 +108,7 @@ export class FullScreen {
     public leave(): void {
         if (!this.active) return;
         this.active = false;
+        this.pending = undefined;
         this.output.write('\x1b[?25h\x1b[?1049l');
     }
 
@@ -94,9 +118,18 @@ export class FullScreen {
         if (this.active) this.output.write('\x1b[2J');
     }
 
-    /** Draws a frame, rewriting only changed lines. */
+    /**
+     * Draws a frame, rewriting only changed lines. While the terminal applies back-pressure the frame only replaces the
+     * pending one; after the drain the latest frame is rendered at the then-current size. Presentation never blocks
+     * the caller, and real events stay in the engine's state, not in discarded frames.
+     */
     public draw(lines: readonly string[], cursor?: { row: number; column: number }): void {
         if (!this.active) return;
+        if (this.backpressured) {
+            this.pending = { lines, cursor };
+            this.awaitDrain();
+            return;
+        }
         const height = Math.max(5, this.output.rows || 24);
         const width = Math.max(20, this.output.columns || 80);
         const frame = lines.slice(0, height).map((line) => truncate(terminalSafe(line), width));
@@ -109,6 +142,6 @@ export class FullScreen {
         this.previous = [...frame];
         while (this.previous.length < height) this.previous.push('');
         if (cursor) output += `\x1b[${cursor.row + 1};${cursor.column + 1}H\x1b[?25h`;
-        this.output.write(output);
+        if (this.output.write(output) === false) this.awaitDrain();
     }
 }

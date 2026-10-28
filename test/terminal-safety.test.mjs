@@ -35,3 +35,26 @@ test('a viewer that leaves cancels its pending long poll instead of waiting for 
         await server.close();
     }
 });
+
+test('a hidden or slow terminal gets the latest frame after it drains, never a backlog of obsolete screens', async () => {
+    const { EventEmitter } = await import('node:events');
+    const writes = [];
+    const output = Object.assign(new EventEmitter(), { isTTY: true, columns: 60, rows: 8, writableNeedDrain: false, write: (text) => (writes.push(text), !output.writableNeedDrain) });
+    const screen = new FullScreen(output);
+    screen.enter();
+    screen.draw(['frame 0']);
+    output.writableNeedDrain = true;
+    const before = writes.length;
+    for (let index = 1; index <= 500; index++) screen.draw([`frame ${index}`, 'x'.repeat(index % 50)]);
+    assert.equal(writes.length, before, 'nothing is queued while the terminal refuses output');
+    output.columns = 40;
+    output.rows = 6;
+    output.writableNeedDrain = false;
+    output.emit('drain');
+    assert.equal(writes.length, before + 1, 'one write after the drain');
+    assert.match(writes.at(-1), /frame 500/, 'the newest frame, not a replay');
+    assert.doesNotMatch(writes.at(-1), /frame 499/);
+    assert.equal(output.listenerCount('drain'), 0, 'no listener accumulates');
+    screen.draw(['frame 501']);
+    assert.match(writes.at(-1), /frame 501/, 'rendering continues normally');
+});
