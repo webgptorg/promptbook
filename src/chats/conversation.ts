@@ -21,6 +21,7 @@ import type { RoutingSelection } from '../engine/state.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { harnessPluginId, harnessVariantOf } from '../tools/model.js';
 import { teamTools } from '../engine/team.js';
+import { appendUsage, chatUsageFile, usageRecords } from '../engine/usage.js';
 import { chatAgent, chatAgents, isHumanFacing } from './chat-book.js';
 import type { ChatStore, ChatWrite, StoredChat } from './store.js';
 import { conversationChats } from './task-chats.js';
@@ -192,6 +193,22 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
     } finally {
         await rm(promptFile, { force: true });
     }
+    const usageFile = chatUsageFile(context.project, stored.path);
+    await appendUsage(
+        usageFile,
+        usageRecords({
+            observations: result.observations,
+            startedAt: result.startedAt,
+            harness: routerRoute.selection.harness,
+            tool: instance.name,
+            model: result.model ?? routerRoute.selection.model,
+            authentication: routerRoute.inspection.authentication,
+            outcome: result.outcome,
+            attribution: { agent: routerAgentDefinition.name, owner: routerAgentDefinition.name, initiator: 'engine', work: { kind: 'chat-routing', chat: stored.chat.name, source: stored.relativePath } },
+        }),
+    )
+        .then(async () => await context.chats.attachEvidence(stored.chat.name, [usageFile]))
+        .catch(() => undefined);
     if (result.outcome !== 'completed') return { error: `${routerAgentDefinition.name} could not route the chat: ${result.diagnostic}` };
     const report = parseAgentReport(result.messages);
     if (!report || report.status !== 'done') return { error: `${routerAgentDefinition.name} gave no usable routing${report?.reason ? `: ${report.reason}` : ''}.` };
@@ -288,6 +305,8 @@ export async function replyInChat(context: ConversationContext, chatName: string
               },
           ]
         : [];
+    // Raw usage of this chat's work is the chat's own evidence (never a task invented to hold it).
+    const usageFile = chatUsageFile(context.project, stored.path);
     // Conversation-scoped TEAM consultation: bounded read-only advice, recorded as linked two-agent chats with their own
     // scoped commits; the chat's agent stays the user's speaker and specialists never join the human chat.
     const consultations: string[] = [];
@@ -320,6 +339,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
                     signal: controller.signal,
                     onUserChat: () => undefined,
                     onActivity: (text) => context.onActivity?.(`${agent.name} in {${chat.name}}: ${text}`),
+                    usage: { file: usageFile, parent: { kind: 'chat', name: chat.name } },
                 },
                 { includeUser: false },
             ),
@@ -385,8 +405,22 @@ export async function replyInChat(context: ConversationContext, chatName: string
         await bridge?.close();
         await rm(promptFile, { force: true });
     }
+    await appendUsage(
+        usageFile,
+        usageRecords({
+            observations: result.observations,
+            startedAt: result.startedAt,
+            harness: harnessId,
+            tool: instance.name,
+            model: result.model ?? route.selection.model,
+            authentication: inspection.authentication,
+            outcome: result.outcome,
+            attribution: { agent: agent.name, owner: parseReferenceValue(mainReference)?.name ?? mainReference, initiator: 'User', work: { kind: 'chat', chat: chat.name, source: stored.relativePath } },
+        }),
+    ).catch((error: unknown) => context.onActivity?.(`Usage evidence of {${chat.name}} could not be saved: ${errorMessage(error)}`));
     if (result.outcome !== 'completed' || !result.finalMessage.trim()) {
         const error = result.outcome === 'completed' ? `${agent.name} gave no reply.` : result.diagnostic;
+        await context.chats.attachEvidence(chat.name, [usageFile]).catch(() => undefined);
         // An interrupted reply stays visible as explicitly unfinished (its progress is never presented as an answer).
         await progress.unfinished(error);
         return { createdTasks: created, error };
@@ -396,7 +430,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const text = result.finalMessage.replace(LEARN_MARKER, '').replace(TITLE_MARKER, '').replace(/^PTBK_RESULT .*$/m, '').trim();
     // The final reply closes the turn's progress (clients collapse it into Thinking with the real elapsed time).
     const phase = await progress.finish();
-    let reply = await context.chats.append(chat.name, { sender: formatAgentReference(agent.name), text: text || '(no reply text)', ...(phase ? { phase } : {}) }, { trailers: created.length ? { 'Task-Name': created } : undefined });
+    let reply = await context.chats.append(chat.name, { sender: formatAgentReference(agent.name), text: text || '(no reply text)', ...(phase ? { phase } : {}) }, { trailers: created.length ? { 'Task-Name': created } : undefined, evidence: [usageFile] });
     context.onLive?.(chat.name, undefined);
     if (title) reply = await context.chats.annotate(chat.name, { title }).catch(() => reply);
     if (learning && agent.learning.open && agent.definition && parseReferenceValue(agentReference)?.normalized !== 'teacher' && setting<boolean>(context.settings, 'learning.isEnabled')) {

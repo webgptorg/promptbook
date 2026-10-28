@@ -32,6 +32,7 @@ import type { RouteResolution } from './routing.js';
 import type { ActiveRecord, ResultRecord, RoutingSelection, StateStore, WorkKind } from './state.js';
 import { teamTools, type ConsultationBudget } from './team.js';
 import { TaskTrace, traceHeader } from './task-trace.js';
+import { appendUsage, taskUsageFile, usageRecords } from './usage.js';
 import { recordDiagnostic } from './traces.js';
 
 /**
@@ -550,6 +551,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         },
                         onActivity: (text) => hooks.emit({ type: 'activity', text }),
                         onConsultation: (consultation) => hooks.emit({ type: 'consultation', ...consultation }),
+                        usage: { file: taskUsageFile(trace.directory), parent: { kind: 'task', name: task.title } },
                     }),
                     ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), onWalletWait: (action) => (pending.wallet = action), trace, attempt: attemptLabel }) ?? []),
                 );
@@ -639,6 +641,25 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 await bridge?.close();
                 await rm(promptFile, { force: true });
             }
+            // Raw usage of every attempt (failed and interrupted ones too) is durable evidence next to the trace.
+            await appendUsage(
+                taskUsageFile(trace.directory),
+                usageRecords({
+                    observations: lastResult.observations,
+                    startedAt: lastResult.startedAt,
+                    harness: plugin.id,
+                    tool: selection.tool,
+                    model: lastResult.model ?? selection.model,
+                    authentication: item.route.inspection.authentication,
+                    outcome: lastResult.outcome,
+                    attribution: {
+                        agent: agent.name,
+                        owner: agent.name,
+                        initiator: item.kind === 'task' || item.kind === 'intent' ? 'User' : 'engine',
+                        work: { kind: item.kind, task: task.title, source: task.source.relativePath, run: record.runId, ...(record.occurrence ? { occurrence: record.occurrence } : {}), attempt },
+                    },
+                }),
+            ).catch((error: unknown) => hooks.emit({ type: 'activity', text: `Usage evidence could not be saved: ${errorMessage(error)}`, level: 'warning' }));
             // Ownership of what this turn changed is settled (and recorded) right after the turn.
             await save({});
             await changed().catch(() => undefined);

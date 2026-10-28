@@ -1,5 +1,5 @@
 import { runProcess } from '../../../common/process.js';
-import { baseInspection, helpText, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
+import { baseInspection, helpText, numericUsage, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest, ParserState } from '../../types.js';
 
 /**
@@ -165,8 +165,8 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
                 break;
         }
     } else if (type === 'turn.completed') {
-        const usage = (event.usage ?? {}) as Record<string, unknown>;
-        events.push({ type: 'usage', usage: Object.fromEntries(Object.entries(usage).filter(([, value]) => typeof value === 'number')) as Record<string, number> });
+        // The completed turn's totals (one turn per run).
+        events.push({ type: 'usage', usage: numericUsage(event.usage), semantics: 'cumulative' });
     } else if (type === 'turn.failed') {
         events.push({ type: 'turn-failed', text: String((event.error as { message?: string } | undefined)?.message ?? 'Codex turn failed.') });
     } else if (type === 'error' && typeof event.message === 'string') {

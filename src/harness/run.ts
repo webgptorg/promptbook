@@ -1,5 +1,5 @@
 import { runProcess } from '../common/process.js';
-import type { HarnessEvent, HarnessPlugin, HarnessRunRequest, ParserState } from './types.js';
+import type { HarnessEvent, HarnessPlugin, HarnessRunRequest, ParserState, UsageObservation } from './types.js';
 
 /**
  * Terminal outcome of one harness invocation.
@@ -24,8 +24,12 @@ export type HarnessRunResult = {
     readonly messages: readonly string[];
     /** Effective model when reported. */
     readonly model?: string;
-    /** Reported usage. */
+    /** Reported usage (merged view of the observations). */
     readonly usage?: Readonly<Record<string, number>>;
+    /** Every usage observation in order, with its time and semantics (the raw evidence of {@link usage}). */
+    readonly observations: readonly UsageObservation[];
+    /** When the run started (ISO). */
+    readonly startedAt: string;
     /** Reported cost. */
     readonly costUsd?: number;
     /** Session identifier. */
@@ -84,6 +88,8 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
     let model: string | undefined;
     let usage: Record<string, number> | undefined;
     let costUsd: number | undefined;
+    const observations: UsageObservation[] = [];
+    const startedAt = new Date().toISOString();
     let sessionId: string | undefined;
     const handle = (event: HarnessEvent): void => {
         switch (event.type) {
@@ -96,6 +102,7 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
             case 'usage':
                 usage = { ...(usage ?? {}), ...event.usage };
                 if (event.costUsd !== undefined) costUsd = event.costUsd;
+                observations.push({ at: new Date().toISOString(), usage: event.usage, ...(event.costUsd !== undefined ? { costUsd: event.costUsd } : {}), semantics: event.semantics ?? 'unknown' });
                 break;
             case 'session':
                 sessionId = event.id;
@@ -140,7 +147,7 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
         if (text.trim()) messages.push(text);
     }
     const finalMessage = messages[messages.length - 1] ?? '';
-    const base = { exitCode: result.exitCode, finalMessage, messages, model, usage, costUsd, sessionId, errors, stdout: result.stdout, stderr: result.stderr, durationMs: result.durationMs };
+    const base = { exitCode: result.exitCode, finalMessage, messages, model, usage, observations, startedAt, costUsd, sessionId, errors, stdout: result.stdout, stderr: result.stderr, durationMs: result.durationMs };
     if (result.spawnError) return { ...base, outcome: 'spawn-error', diagnostic: `${plugin.displayName} could not be started: ${result.spawnError}` };
     if (result.cancelled) return { ...base, outcome: 'cancelled', diagnostic: `${plugin.displayName} was cancelled.` };
     if (result.timedOut) return { ...base, outcome: 'timed-out', diagnostic: `${plugin.displayName} exceeded its time limit and was stopped.` };

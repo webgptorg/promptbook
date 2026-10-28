@@ -211,7 +211,14 @@ export class ChatStore {
     public async append(
         name: string,
         message: Pick<ChatMessage, 'sender' | 'text' | 'choices' | 'phase'>,
-        options: { readonly status?: ChatStatus; readonly expectedMessages?: number; readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>>; readonly segments?: readonly ComposedSegment[] } = {},
+        options: {
+            readonly status?: ChatStatus;
+            readonly expectedMessages?: number;
+            readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>>;
+            readonly segments?: readonly ComposedSegment[];
+            /** Evidence files of the turn (e.g. its raw usage) versioned with the message when trace policy allows it. */
+            readonly evidence?: readonly string[];
+        } = {},
     ): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
             const stored = await this.find(name);
@@ -229,7 +236,8 @@ export class ChatStore {
             const updated = appendChatMessage(source, { ...message, text: assets.text, at: this.now() }, options.status);
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
-            const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers, undefined, assets.files) : { persistence: 'uncommitted' as const };
+            // Ignored evidence (traces not committed) never enters a commit: the batch only commits changed, unignored files.
+            const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers, undefined, [...assets.files, ...(options.evidence ?? [])]) : { persistence: 'uncommitted' as const };
             return { ...stored, chat, ...persisted };
         });
     }
@@ -304,6 +312,17 @@ export class ChatStore {
             const chat = parseChatBook(updated);
             const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name) : { persistence: 'uncommitted' as const };
             return { ...stored, chat, ...persisted };
+        });
+    }
+
+    /**
+     * Versions evidence files of a chat's work (e.g. raw usage of a turn that ended without a reply) with the chat's
+     * batch, so they never linger as unowned changes; ignored evidence is simply not committed.
+     */
+    public async attachEvidence(name: string, paths: readonly string[]): Promise<void> {
+        await this.mutex.run(async () => {
+            const stored = await this.find(name);
+            if (stored && isHumanFacing(stored.chat)) await this.persist(stored.path, stored.chat.name, {}, undefined, paths);
         });
     }
 

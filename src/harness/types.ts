@@ -147,7 +147,11 @@ export type HarnessEvent =
     /** Files the harness reports it changed (authorship evidence for per-file ownership). */
     | { readonly type: 'files'; readonly paths: readonly string[] }
     | { readonly type: 'reasoning'; readonly text: string }
-    | { readonly type: 'usage'; readonly usage: Readonly<Record<string, number>>; readonly costUsd?: number }
+    /**
+     * Provider-native usage numbers. `semantics` says whether this observation is a running/final total of the turn
+     * (`cumulative`: a later one supersedes it) or an increment (`delta`: increments add up); unknown when omitted.
+     */
+    | { readonly type: 'usage'; readonly usage: Readonly<Record<string, number>>; readonly costUsd?: number; readonly semantics?: 'delta' | 'cumulative' }
     | { readonly type: 'model'; readonly model: string }
     | { readonly type: 'session'; readonly id: string }
     | { readonly type: 'error'; readonly text: string }
@@ -255,4 +259,20 @@ export type HarnessPlugin = {
     readonly parseLine: (line: string, state: ParserState) => HarnessEvent[];
     /** Final assistant message when the format has no explicit message events (plain-text output). */
     readonly finalMessageFromOutput?: (stdout: string) => string;
+};
+
+/**
+ * One usage observation of a harness run exactly as the provider exposed it, with its observation time.
+ *
+ * @private harness plugin contract
+ */
+export type UsageObservation = {
+    /** Observation time (ISO with offset). */
+    readonly at: string;
+    /** Provider-native numeric fields (nested provider objects flattened as `cache.read`). */
+    readonly usage: Readonly<Record<string, number>>;
+    /** Provider-reported cost in USD, when exposed. */
+    readonly costUsd?: number;
+    /** Delta or cumulative semantics; `unknown` when the adapter cannot tell. */
+    readonly semantics: 'delta' | 'cumulative' | 'unknown';
 };

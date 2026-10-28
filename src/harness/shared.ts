@@ -134,6 +134,24 @@ export async function anyExists(paths: readonly string[]): Promise<boolean> {
 }
 
 /**
+ * Provider-native numeric usage fields of a usage object; nested objects (e.g. OpenCode's `cache: { read, write }`)
+ * are flattened one level as `cache.read`, so no exposed category is lost. Non-numeric values are dropped.
+ *
+ * @private harness plugin helpers
+ */
+export function numericUsage(value: unknown): Record<string, number> {
+    const usage: Record<string, number> = {};
+    if (!value || typeof value !== 'object') return usage;
+    for (const [key, field] of Object.entries(value as Record<string, unknown>)) {
+        if (typeof field === 'number' && Number.isFinite(field)) usage[key] = field;
+        else if (field && typeof field === 'object' && !Array.isArray(field)) {
+            for (const [inner, nested] of Object.entries(field as Record<string, unknown>)) if (typeof nested === 'number' && Number.isFinite(nested)) usage[`${key}.${inner}`] = nested;
+        }
+    }
+    return usage;
+}
+
+/**
  * Parses a JSON line, returning `undefined` for non-JSON output.
  *
  * @private harness plugin helpers
@@ -236,9 +254,10 @@ export function parseStreamJson(line: string, state: ParserState): HarnessEvent[
         }
         if (typeof event.result === 'string' && event.result) events.push({ type: 'message', text: event.result });
         const usage = (event.usage ?? (event.stats as Record<string, unknown> | undefined)?.models) as Record<string, unknown> | undefined;
-        const numeric = usage ? Object.fromEntries(Object.entries(usage).filter(([, value]) => typeof value === 'number')) : {};
+        const numeric = numericUsage(usage);
         if (Object.keys(numeric).length || typeof event.total_cost_usd === 'number') {
-            events.push({ type: 'usage', usage: numeric as Record<string, number>, costUsd: typeof event.total_cost_usd === 'number' ? event.total_cost_usd : undefined });
+            // The final result reports the totals of the whole run.
+            events.push({ type: 'usage', usage: numeric, costUsd: typeof event.total_cost_usd === 'number' ? event.total_cost_usd : undefined, semantics: 'cumulative' });
         }
         if (event.is_error === true || (typeof event.status === 'string' && event.status !== 'success')) {
             events.push({ type: 'turn-failed', text: String(event.result ?? event.error ?? event.subtype ?? event.status ?? 'The harness reported an unsuccessful result.') });

@@ -15,6 +15,8 @@ import { renderAgentInstructions } from './prompt.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import { validateChoices } from '../chats/chat-book.js';
 import type { TaskTrace } from './task-trace.js';
+import { appendUsage, usageRecords } from './usage.js';
+import { errorMessage } from '../common/errors.js';
 
 /**
  * Shared consultation budget of one task.
@@ -59,6 +61,11 @@ export type TeamContext = {
     readonly onUserChat: (chat: { readonly chat: string; readonly awaited: number }) => void;
     /** Activity reporting. */
     readonly onActivity: (text: string) => void;
+    /**
+     * Where consultations record their raw usage (the parent task's or chat's evidence) and the parent work; the
+     * advisor is the executing agent, the consulting agent its initiator.
+     */
+    readonly usage?: { readonly file: string; readonly parent: { readonly kind: 'task' | 'chat'; readonly name: string }; readonly onRecorded?: (file: string) => void };
 };
 
 /**
@@ -145,6 +152,30 @@ async function consultAgent(context: TeamContext, reference: string, question: s
             instanceInspection?.executablePath ?? plugin.executable,
         );
         await context.trace?.event('consultation-finished', { advisor: advisor.name, outcome: result.outcome, diagnostic: result.diagnostic, model: result.model ?? null });
+        if (context.usage) {
+            const scope = context.scope ?? 'task';
+            await appendUsage(
+                context.usage.file,
+                usageRecords({
+                    observations: result.observations,
+                    startedAt: result.startedAt,
+                    harness: harnessId,
+                    tool: instance.name,
+                    model: result.model ?? route.selection.model,
+                    authentication: instanceInspection?.authentication ?? 'unknown',
+                    outcome: result.outcome,
+                    attribution: {
+                        agent: advisor.name,
+                        owner: advisor.name,
+                        initiator: context.agentName,
+                        work: { kind: 'consultation', ...(scope === 'task' ? { task: context.task.title } : { chat: context.task.title }), ...(context.task.occurrence ? { occurrence: context.task.occurrence } : {}) },
+                        parent: { ...context.usage.parent, agent: context.agentName },
+                    },
+                }),
+            )
+                .then(() => context.usage?.onRecorded?.(context.usage.file))
+                .catch((error: unknown) => context.onActivity(`usage of the consultation could not be saved: ${errorMessage(error)}`));
+        }
         if (result.outcome !== 'completed') return { text: `Consultation of ${advisor.name} ended without an answer: ${result.diagnostic}`, isError: true };
         const limit = setting<number>(context.settings, 'team.maxResponseChars');
         const answer = result.finalMessage.trim() || '(no answer)';

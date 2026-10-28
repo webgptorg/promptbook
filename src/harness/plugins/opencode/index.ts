@@ -1,4 +1,4 @@
-import { baseInspection, helpText, parseJsonLine, probe, editedFiles, summarizeToolInput, withAuthentication } from '../../shared.js';
+import { baseInspection, helpText, numericUsage, parseJsonLine, probe, editedFiles, summarizeToolInput, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest, ParserState } from '../../types.js';
 
 /**
@@ -68,9 +68,8 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
             return [{ type: 'activity', text: `${String(part.tool ?? 'tool')} ${summarizeToolInput(toolState.input)}`.trim() }, ...(paths.length ? [{ type: 'files' as const, paths }] : [])];
         }
         case 'step_finish': {
-            const tokens = (part.tokens ?? {}) as Record<string, unknown>;
-            const usage = Object.fromEntries(Object.entries(tokens).filter(([, value]) => typeof value === 'number')) as Record<string, number>;
-            return [{ type: 'usage', usage, costUsd: typeof part.cost === 'number' ? part.cost : undefined }];
+            // Each finished step reports its own increment.
+            return [{ type: 'usage', usage: numericUsage(part.tokens), costUsd: typeof part.cost === 'number' ? part.cost : undefined, semantics: 'delta' }];
         }
         case 'error': {
             const error = (event.error ?? {}) as Record<string, unknown>;

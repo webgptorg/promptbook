@@ -196,6 +196,10 @@ test('trace policy: committed traces share the result commit; videos and post-co
     assert.equal(trace, `traces/${source.slice('tasks/'.length, -'.book'.length)}`, 'the trace directory is the literal source filename, not the task name');
     assert.ok(files.includes(`${trace}/harness.log`), files.join('\n'));
     assert.ok(files.includes(`${trace}/events.jsonl`));
+    assert.ok(files.includes(`${trace}/usage.jsonl`), 'raw usage follows the trace policy into the result commit');
+    const usage = (await readFile(join(project, trace, 'usage.jsonl'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
+    assert.deepEqual(usage.map((record) => [record.schema, record.certainty, record.semantics, record.attribution.agent, record.attribution.work.kind, record.attribution.work.task, record.attribution.work.attempt, record.normalized.input, record.normalized.output]), [['ptbk-usage/1', 'reported', 'cumulative', 'Developer', 'task', taskName, 1, 10, 5]]);
+    assert.deepEqual(usage[0].provider, { input_tokens: 10, output_tokens: 5 }, 'provider-native fields are kept');
     assert.ok(!files.some((file) => file.includes('/local/')), 'post-commit events are never in the snapshot');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'events after the commit do not dirty the tree');
     await readFile(join(project, trace, 'local', 'events.jsonl'), 'utf8');
