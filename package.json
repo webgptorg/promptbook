@@ -28,7 +28,7 @@
         "check": "npm run check:light",
         "check:light": "npm run typecheck",
         "check:full": "npm run typecheck && npm test && npm run test:package",
-        "preversion": "node scripts/preversion.mjs && npm run typecheck && npm test && npm run release:validate",
+        "preversion": "node scripts/preversion.mjs && npm run check:full && npm run release:validate",
         "postversion": "node scripts/postversion.mjs",
         "prepack": "npm run build",
         "prepublishOnly": "node scripts/assert-publish-context.mjs",
