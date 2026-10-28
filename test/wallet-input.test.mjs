@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { readOwnerCredential } from '../dist/ui/secret.js';
 
 /** Exercises the real terminal key parser with fixture credentials, never actual Wallet data. */
-test('Wallet terminal entry starts hidden, toggles without submitting and clears on exit', async () => {
+test('Wallet terminal entry: password masked with typing feedback, username visible, toggles without submitting and clears on exit', async () => {
     const stdin = process.stdin;
     const originalRawMode = stdin.setRawMode;
     const writes = [];
@@ -15,6 +15,7 @@ test('Wallet terminal entry starts hidden, toggles without submitting and clears
         const username = readOwnerCredential(terminal, 'Username');
         stdin.emit('data', 'fixture-user');
         assert.doesNotMatch(writes.join(''), /fixture-user/);
+        assert.match(writes.at(-1), /hidden; Ctrl\+R show\): \*{12}$/, 'masked typing shows neutral feedback');
         stdin.emit('data', '\x12');
         assert.match(writes.at(-1), /visible; Ctrl\+R hide.*fixture-user/);
         let isSubmitted = false;
@@ -43,6 +44,15 @@ test('Wallet terminal entry starts hidden, toggles without submitting and clears
         await assert.rejects(cancelled, /Cancelled/);
         assert.equal(writes.at(-1), '\r\x1b[2KPassword (hidden)\n');
         assert.equal(stdin.listenerCount('keypress'), 0);
+
+        const visible = readOwnerCredential(terminal, 'Username or email', { isVisible: true });
+        stdin.emit('data', 'fixture-user');
+        assert.match(writes.at(-1), /visible; Ctrl\+R hide\): fixture-user$/, 'the username starts visible');
+        stdin.emit('data', '\x12');
+        assert.match(writes.at(-1), /hidden; Ctrl\+R show\): \*{12}$/);
+        stdin.emit('data', '\r');
+        assert.equal(await visible, 'fixture-user');
+        assert.equal(writes.at(-1), '\r\x1b[2KUsername or email (hidden)\n', 'the entry is erased before advancing');
 
         const narrowWrites = [];
         const narrow = readOwnerCredential({ columns: () => 20, write: (text) => narrowWrites.push(text) }, 'Username');
@@ -84,23 +94,29 @@ test('Wallet browser add, update and pending-login fields toggle independently w
         const inputs = descendants(dialog.form, 'input');
         const [, username, password] = inputs;
         const buttons = descendants(dialog.form, 'button').filter((button) => /^Show /.test(button.children[0]));
-        assert.equal(buttons.length, 2);
-        assert.equal(username.type, 'password');
-        assert.equal(password.type, 'password');
+        const toggles = descendants(dialog.form, 'button').filter((button) => /^(Show|Hide) /.test(button.children[0]));
+        assert.equal(buttons.length, 1);
+        assert.equal(toggles.length, 2);
+        assert.equal(username.type, 'text', 'the username starts visible');
+        assert.equal(toggles[0]['aria-pressed'], 'true');
+        assert.equal(password.type, 'password', 'the password starts masked (the browser shows typing feedback)');
+        assert.equal(toggles[1]['aria-pressed'], 'false');
         username.value = 'fixture-user';
         password.value = 'fixture-password';
         for (const [index, input] of [username, password].entries()) {
-            const button = buttons[index];
+            const button = toggles[index];
+            const initialType = input.type;
+            const other = [username, password][1 - index];
+            const otherType = other.type;
             assert.equal(button.type, 'button', 'native keyboard activation must not submit');
             button.onclick();
-            assert.equal(input.type, 'text');
-            assert.equal(button['aria-pressed'], 'true');
-            assert.match(button.textContent, /^Hide /);
-            assert.equal([username, password][1 - index].type, 'password');
+            assert.equal(input.type, initialType === 'text' ? 'password' : 'text');
+            assert.equal(button['aria-pressed'], String(input.type === 'text'));
+            assert.match(button.textContent, input.type === 'text' ? /^Hide / : /^Show /);
+            assert.equal(other.type, otherType, 'fields toggle independently');
             button.onclick();
-            assert.equal(input.type, 'password');
-            assert.equal(button['aria-pressed'], 'false');
-            assert.match(button.textContent, /^Show /);
+            assert.equal(input.type, initialType);
+            assert.equal(button['aria-pressed'], String(initialType === 'text'));
         }
         assert.equal(username.value, 'fixture-user');
         assert.equal(password.value, 'fixture-password');

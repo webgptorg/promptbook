@@ -3,7 +3,7 @@ import { open as openFile, readFile } from 'node:fs/promises';
 import { hostname, userInfo } from 'node:os';
 import { join } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
-import { ensureDirectory, writeJsonAtomic } from '../common/fs.js';
+import { ensureDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
 import type { Project } from '../project/workspace.js';
 import { ENCRYPTION_FORMAT, createVerifier, deriveProjectRoot, domainKey, generateRecoveryWords, newProjectSalt, normalizeRecoveryWords, open, seal, verifyRoot, type Envelope } from './crypto.js';
@@ -131,7 +131,18 @@ export type WalletOptions = {
     readonly log: (text: string, level?: 'info' | 'warning' | 'error') => void;
     /** Host facility (tests inject one). */
     readonly unlock?: HostUnlock;
+    /**
+     * Nonsecret Git audit of meaningful mutations (`wallet.isAuditCommitted`, default on). `isEnabled` is read at each
+     * mutation; `commit` creates one scoped audit commit, empty when no file changes.
+     */
+    readonly audit?: { readonly isEnabled: () => boolean; readonly commit: (subject: string, body: string) => Promise<void> };
 };
+
+/**
+ * A nonsecret audit record of a successful Wallet mutation whose commit is still pending (retried without repeating
+ * the mutation).
+ */
+type PendingAudit = { readonly subject: string; readonly body: string; readonly at: string; readonly failure?: string };
 
 /**
  * Write-once encryption metadata of a project (`.ptbk/encryption/project.json`): everything except the 12 words that
@@ -260,6 +271,22 @@ export function originMatches(saved: string, actual: string): boolean {
     }
     const host = (url: URL): string => url.host.toLowerCase().replace(/^www\./, '');
     return a.protocol === b.protocol && host(a) === host(b);
+}
+
+/**
+ * The useful initial label of a saved login, derived from its service and account (`example.com · ja…@example.com`);
+ * the owner can rename it. It never contains the full username or the password.
+ *
+ * @private Wallet
+ */
+export function walletLabel(origin: string, username: string): string {
+    let service = origin;
+    try {
+        service = new URL(origin).host.replace(/^www\./, '');
+    } catch {
+        // Keep the given origin text.
+    }
+    return `${service} · ${maskAccount(username)}`;
 }
 
 /**
@@ -618,7 +645,7 @@ export class WalletSubEngine {
      * and never returned. Pending requests for that website are resolved, so waiting work resumes.
      */
     public async save(input: { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string; readonly id?: string; readonly action?: string }): Promise<WalletOutcome> {
-        const result = await this.mutex.run(async (): Promise<{ outcome: WalletOutcome; settled: number }> => {
+        const result = await this.mutex.run(async (): Promise<{ outcome: WalletOutcome; settled: number; audit: Omit<PendingAudit, 'at'> }> => {
             const key = this.requireReady();
             const action = input.action ? this.actions.find((candidate) => candidate.id === input.action) : undefined;
             const origin = normalizeOrigin(input.origin || action?.origin || '');
@@ -630,7 +657,7 @@ export class WalletSubEngine {
             const record: StoredRecord = {
                 id: existing?.id ?? randomBytes(6).toString('hex'),
                 origin,
-                account: input.label?.trim() || (existing && !input.label ? existing.account : maskAccount(username)),
+                account: input.label?.trim() || (existing && !input.label ? existing.account : walletLabel(origin, username)),
                 createdAt: existing?.createdAt ?? now,
                 updatedAt: now,
                 secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ origin, username, password: input.password } satisfies Credentials), 'utf8')),
@@ -643,10 +670,15 @@ export class WalletSubEngine {
                 settled++;
             }
             if (settled) await this.writeActions();
-            return { outcome: { action: 'wallet-save', applied: true, outcome: `${existing ? 'Updated' : 'Saved'} the login "${record.account}" for ${origin}.${settled ? ` ${settled === 1 ? 'The waiting request was' : `${settled} waiting requests were`} resolved; the work resumes.` : ''}` }, settled };
+            return {
+                outcome: { action: 'wallet-save', applied: true, outcome: `${existing ? 'Updated' : 'Saved'} the login "${record.account}" for ${origin}.${settled ? ` ${settled === 1 ? 'The waiting request was' : `${settled} waiting requests were`} resolved; the work resumes.` : ''}` },
+                settled,
+                audit: auditOf(existing ? 'Update' : 'Add', record, settled ? `Resolved ${settled === 1 ? 'one waiting login request' : `${settled} waiting login requests`}.` : undefined),
+            };
         });
         this.options.log(`Wallet: ${result.outcome.outcome}`);
         if (result.settled) this.options.onSettled?.();
+        await this.recordAudit(result.audit);
         return this.remember(result.outcome);
     }
 
@@ -661,16 +693,64 @@ export class WalletSubEngine {
 
     /** Removes a saved login (other records are preserved). */
     public async remove(id: string): Promise<WalletOutcome> {
+        let removed: StoredRecord | undefined;
         const outcome = await this.mutex.run(async (): Promise<WalletOutcome> => {
             this.requireReady();
             const record = this.records.find((candidate) => candidate.id === id);
             if (!record) return { action: 'wallet-remove', applied: false, outcome: 'No saved login has that id.' };
             this.records = this.records.filter((candidate) => candidate.id !== id);
             await this.writeRecords();
+            removed = record;
             return { action: 'wallet-remove', applied: true, outcome: `Removed the login "${record.account}" for ${record.origin}.` };
         });
         if (outcome.applied) this.options.log(`Wallet: ${outcome.outcome}`);
+        if (removed) await this.recordAudit(auditOf('Remove', removed));
         return this.remember(outcome);
+    }
+
+    /** `.ptbk/state/wallet-audit.json`: audits of successful mutations whose commit is still pending. */
+    private get auditFile(): string {
+        return join(this.options.project.runtime.state, 'wallet-audit.json');
+    }
+
+    /** Serializes audit persistence (independent of record mutations, which never wait for Git). */
+    private readonly auditMutex = new Mutex();
+
+    /**
+     * Records a successful mutation's nonsecret audit (when enabled) and commits every pending audit in order. A Git
+     * failure keeps the audit pending for a later retry; the mutation itself is never repeated or undone.
+     */
+    private async recordAudit(audit?: Omit<PendingAudit, 'at'>): Promise<void> {
+        // Disabled (or an explicitly uncommitted workflow): no audit; earlier pending ones wait until it is enabled.
+        if (!this.options.audit?.isEnabled()) return;
+        const commit = this.options.audit.commit;
+        await this.auditMutex.run(async () => {
+            const pending = ((await readJsonIfExists<PendingAudit[]>(this.auditFile).catch(() => undefined)) ?? []).slice();
+            if (audit) pending.push({ ...audit, at: new Date().toISOString() });
+            if (!pending.length) return;
+            const remaining: PendingAudit[] = [];
+            for (const entry of pending) {
+                // Order is kept: after one failure the later audits wait behind it.
+                if (remaining.length) {
+                    remaining.push(entry);
+                    continue;
+                }
+                try {
+                    await commit(entry.subject, entry.body);
+                } catch (error) {
+                    const failure = errorMessage(error);
+                    if (entry.failure !== failure) this.options.log(`Wallet: the audit commit "${entry.subject}" is pending (${failure}); the change itself is saved and is not repeated.`, 'warning');
+                    remaining.push({ ...entry, failure });
+                }
+            }
+            await ensureDirectory(this.options.project.runtime.state);
+            await writeJsonAtomic(this.auditFile, remaining);
+        });
+    }
+
+    /** Retries audit commits an earlier attempt or process could not create (e.g. after a hook failure). */
+    public async retryAudits(): Promise<void> {
+        await this.recordAudit();
     }
 
     /** Dismisses a pending login request: the waiting work resumes without it. */
@@ -807,4 +887,16 @@ export class WalletSubEngine {
             ...(this.lastAction ? { lastAction: this.lastAction } : {}),
         };
     }
+}
+
+/**
+ * The nonsecret audit of a mutation: the operation and the item's editable label and service, never a username,
+ * password, generator secret, code or key.
+ */
+function auditOf(operation: 'Add' | 'Update' | 'Remove', record: Pick<StoredRecord, 'origin' | 'account'>, detail?: string): Omit<PendingAudit, 'at'> {
+    const verb = operation === 'Add' ? 'Add' : operation === 'Update' ? 'Update' : 'Remove';
+    return {
+        subject: `Wallet - ${verb} login "${record.account}"`,
+        body: [`${verb === 'Add' ? 'Added' : verb === 'Update' ? 'Updated' : 'Removed'} the saved login "${record.account}" for ${record.origin} in the encrypted project Wallet.`, detail, 'Secret values and the encrypted vault are never committed.'].filter(Boolean).join('\n'),
+    };
 }

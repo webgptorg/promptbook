@@ -10,20 +10,21 @@ import type { TerminalProfile } from './terminal.js';
 export type WalletLoginForm = { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string };
 
 /**
- * Asks for a website login: the website and an optional label in the open, credentials hidden until owner reveal.
+ * Asks for a website login: the website, the username (visible by default) and an optional label in the open, the
+ * password masked with typing feedback; Ctrl+R shows or hides the current field.
  * `initial` prefills a pending request's website (or an updated record's); returns undefined when cancelled.
  *
  * @private dashboard Wallet forms
  */
 export async function walletLoginForm(terminal: TerminalProfile, initial: { readonly origin?: string; readonly label?: string; readonly step?: string } = {}): Promise<WalletLoginForm | undefined> {
-    const frame: WizardFrame = { title: 'ptbk dashboard', step: initial.step ?? 'Wallet · add a website login', summary: ['Credentials start hidden. Ctrl+R shows or hides the field being entered; saved passwords cannot be revealed.'] };
+    const frame: WizardFrame = { title: 'ptbk dashboard', step: initial.step ?? 'Wallet · add a website login', summary: ['The username starts visible and the password masked. Ctrl+R shows or hides the field being entered; saved passwords cannot be revealed.'] };
     const origin = await inputLine(terminal, { frame, question: 'Website (for example https://example.com):', initial: initial.origin, validate: (value) => (value.trim() ? undefined : 'Enter the website.') });
     if (origin === CANCELLED) return undefined;
-    const username = await readOwnerCredential(terminal, '  Username or email');
+    const username = await readOwnerCredential(terminal, '  Username or email', { isVisible: true });
     if (!username.trim()) return undefined;
     const password = await readOwnerCredential(terminal, '  Password');
     if (!password) return undefined;
-    const label = await inputLine(terminal, { frame, question: 'Label shown instead of the username (optional; "-" for a masked username):', initial: initial.label ?? '-' });
+    const label = await inputLine(terminal, { frame, question: 'Label of this login (optional; "-" for the default: website · masked account):', initial: initial.label ?? '-' });
     if (label === CANCELLED) return undefined;
     return { origin: origin.trim(), username: username.trim(), password, ...(label.trim() && label.trim() !== '-' ? { label: label.trim() } : {}) };
 }

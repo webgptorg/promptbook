@@ -1394,18 +1394,22 @@
         return dialog;
     }
 
-    /** A concealed owner-entry field with a native keyboard-accessible visibility button; never loads saved values. */
+    /**
+     * An owner-entry field with a native keyboard-accessible visibility button, starting in the input's own state
+     * (username visible, password masked with the browser's typing feedback); never loads saved values.
+     */
     function walletCredentialField(label, input) {
+        const isVisible = input.type !== 'password';
         const button = h('button', {
             type: 'button',
-            'aria-pressed': 'false',
+            'aria-pressed': String(isVisible),
             onclick: () => {
                 const isRevealed = input.type === 'password';
                 input.type = isRevealed ? 'text' : 'password';
                 button.textContent = `${isRevealed ? 'Hide' : 'Show'} ${label.toLowerCase()}`;
                 button.setAttribute('aria-pressed', String(isRevealed));
             },
-        }, `Show ${label.toLowerCase()}`);
+        }, `${isVisible ? 'Hide' : 'Show'} ${label.toLowerCase()}`);
         return h('div', { className: 'field' }, h('label', {}, h('span', {}, label), input), button);
     }
 
@@ -1413,9 +1417,9 @@
     function walletLoginDialog(initial) {
         const field = (label, input) => h('label', { className: 'field' }, h('span', {}, label), input);
         const origin = h('input', { type: 'text', value: initial.origin || '', autocomplete: 'off', placeholder: 'https://example.com', required: true });
-        const username = h('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', required: true });
+        const username = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', required: true });
         const password = h('input', { type: 'password', autocomplete: 'new-password', required: true });
-        const label = h('input', { type: 'text', value: initial.label || '', autocomplete: 'off', placeholder: 'optional, e.g. Work account' });
+        const label = h('input', { type: 'text', value: initial.label || '', autocomplete: 'off', placeholder: 'optional; default: website · masked account' });
         let dialog;
         const form = h(
             'form',
@@ -1431,11 +1435,11 @@
                     if (result) dialog.close();
                 },
             },
-            h('p', { className: 'muted' }, 'Credentials start hidden. Show or hide each field while entering it; saved passwords cannot be revealed. Agents never receive them.'),
+            h('p', { className: 'muted' }, 'The username starts visible and the password masked. Show or hide each field while entering it; saved passwords cannot be revealed. Agents never receive them.'),
             field('Website', origin),
             walletCredentialField('Username or email', username),
             walletCredentialField('Password', password),
-            field('Label (shown instead of the username)', label),
+            field('Label (editable name of this login)', label),
             h('div', { className: 'row' }, h('button', { type: 'submit', className: 'primary' }, 'Save login'), h('button', { type: 'button', onclick: () => ((password.value = ''), dialog.close()) }, 'Cancel')),
         );
         dialog = walletDialog(initial.id ? 'Update a website login' : 'Add a website login', form);

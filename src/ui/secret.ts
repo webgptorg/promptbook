@@ -4,20 +4,21 @@ import { truncate } from './ansi.js';
 import type { TerminalProfile } from './terminal.js';
 
 /**
- * Reads newly entered Wallet credentials in the protected owner flow. Ctrl+R toggles visibility.
- * Each field starts hidden and its display is erased before leaving, including cancellation.
+ * Reads newly entered Wallet credentials in the protected owner flow. Ctrl+R toggles visibility. A field starts
+ * masked (neutral `*` typing feedback, never a blank unresponsive field) unless `isVisible` is set, as for the
+ * username; its display is erased before leaving, including cancellation.
  *
  * @private dashboard Wallet credential entry
  */
-export async function readOwnerCredential(terminal: TerminalProfile, label: string): Promise<string> {
+export async function readOwnerCredential(terminal: TerminalProfile, label: string, options: { readonly isVisible?: boolean } = {}): Promise<string> {
     const stdin = process.stdin;
     return await new Promise<string>((resolve, reject) => {
         let value = '';
-        let isRevealed = false;
+        let isRevealed = options.isVisible ?? false;
         /** Replaces one bounded line so revealed input cannot wrap into terminal scrollback. */
         const render = (): void => {
             const prompt = `${label} (${isRevealed ? 'visible; Ctrl+R hide' : 'hidden; Ctrl+R show'}): `;
-            terminal.write(`\r\u001b[2K${truncate(prompt + (isRevealed ? value : ''), terminal.columns() - 1)}`);
+            terminal.write(`\r\u001b[2K${truncate(prompt + (isRevealed ? value : '*'.repeat(Array.from(value).length)), terminal.columns() - 1)}`);
         };
         /** Removes secret text and restores the terminal before resolving or rejecting. */
         const done = (error?: Error): void => {

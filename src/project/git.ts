@@ -251,6 +251,24 @@ export async function resolveCommitIdentity(cwd: string, env: NodeJS.ProcessEnv 
 }
 
 /**
+ * Message trailers; a list repeats the trailer (e.g. several `Task-Name` values).
+ *
+ * @private Git persistence
+ */
+export type CommitTrailers = Readonly<Record<string, string | readonly string[] | undefined>>;
+
+/**
+ * The full commit message: prefixed subject, optional body and deduplicated trailers.
+ */
+function commitMessage(options: { readonly subject: string; readonly body?: string; readonly trailers?: CommitTrailers }): string {
+    const trailers = Object.entries(options.trailers ?? {}).flatMap(([key, value]) => [...new Set(value === undefined ? [] : typeof value === 'string' ? [value] : value)].map((item) => `${key}: ${item.replace(/\s+/g, ' ')}`));
+    return [prefixedSubject(options.subject), options.body?.trim() ? `\n${options.body.trim()}` : '', trailers.length ? `\n${trailers.join('\n')}` : '']
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trimEnd();
+}
+
+/**
  * Outcome of a scoped commit.
  *
  * @private Git persistence
@@ -285,11 +303,7 @@ export async function commitPaths(options: {
     const stagedPaths = new Set(staged.split('\0').filter(Boolean));
     if (!relative.some((path) => stagedPaths.has(path))) return { committed: false, reason: 'no-changes' };
     const identity = await resolveCommitIdentity(repositoryRoot, options.env);
-    const trailers = Object.entries(options.trailers ?? {}).flatMap(([key, value]) => [...new Set(value === undefined ? [] : typeof value === 'string' ? [value] : value)].map((item) => `${key}: ${item.replace(/\s+/g, ' ')}`));
-    const message = [prefixedSubject(options.subject), options.body?.trim() ? `\n${options.body.trim()}` : '', trailers.length ? `\n${trailers.join('\n')}` : '']
-        .join('\n')
-        .replace(/\n{3,}/g, '\n\n')
-        .trimEnd();
+    const message = commitMessage(options);
     await ensureDirectory(options.temporaryDirectory);
     const messageFile = join(options.temporaryDirectory, `commit-message-${shortId()}.txt`);
     await writeFileAtomic(messageFile, `${message}\n`);
@@ -490,12 +504,7 @@ export async function commitFileContents(options: {
         }
         if (updates.every((update) => update.previous === update.blob)) return { committed: false, reason: 'no-changes' };
         const identity = await resolveCommitIdentity(repositoryRoot, options.env);
-        const trailers = Object.entries(options.trailers ?? {}).flatMap(([key, value]) => [...new Set(value === undefined ? [] : typeof value === 'string' ? [value] : value)].map((item) => `${key}: ${item.replace(/\s+/g, ' ')}`));
-        const message = [prefixedSubject(options.subject), options.body?.trim() ? `\n${options.body.trim()}` : '', trailers.length ? `\n${trailers.join('\n')}` : '']
-            .join('\n')
-            .replace(/\n{3,}/g, '\n\n')
-            .trimEnd();
-        await writeFileAtomic(messageFile, `${message}\n`);
+        await writeFileAtomic(messageFile, `${commitMessage(options)}\n`);
         const result = await git(repositoryRoot, [...identity.configArgs, 'commit', '--quiet', '--cleanup=verbatim', '-F', messageFile], { env: indexEnv });
         if (result.exitCode !== 0) {
             throw new PtbkError('The commit failed.', {
@@ -520,4 +529,48 @@ export async function commitFileContents(options: {
     }
     const sha = (await gitOrThrow(repositoryRoot, ['rev-parse', 'HEAD'], { phase: 'commit' })).trim();
     return { committed: true, sha, paths: files.map((file) => resolve(file.path)) };
+}
+
+/**
+ * Creates an intentional empty audit commit for a completed logical operation that changed no eligible versioned file
+ * (completed external work, a Wallet mutation). It commits HEAD's own tree through a temporary index, so the user's
+ * staged and unstaged work is neither included nor disturbed. Hooks and signing apply as for any commit. Never use it
+ * for inspection, polling or no-ops.
+ *
+ * @private Git persistence
+ */
+export async function commitAudit(options: {
+    readonly projectRoot: string;
+    readonly repositoryRoot: string;
+    readonly subject: string;
+    readonly body?: string;
+    readonly trailers?: CommitTrailers;
+    readonly temporaryDirectory: string;
+    readonly env?: NodeJS.ProcessEnv;
+}): Promise<{ readonly committed: true; readonly sha: string }> {
+    const { repositoryRoot } = options;
+    await ensureDirectory(options.temporaryDirectory);
+    const indexFile = join(options.temporaryDirectory, `index-${shortId()}`);
+    const messageFile = join(options.temporaryDirectory, `commit-message-${shortId()}.txt`);
+    const indexEnv = { ...options.env, GIT_INDEX_FILE: indexFile };
+    try {
+        if ((await git(repositoryRoot, ['rev-parse', '--verify', '--quiet', 'HEAD'])).exitCode === 0) await gitOrThrow(repositoryRoot, ['read-tree', 'HEAD'], { env: indexEnv, phase: 'staging' });
+        const identity = await resolveCommitIdentity(repositoryRoot, options.env);
+        await writeFileAtomic(messageFile, `${commitMessage(options)}\n`);
+        const result = await git(repositoryRoot, [...identity.configArgs, 'commit', '--quiet', '--allow-empty', '--cleanup=verbatim', '-F', messageFile], { env: indexEnv });
+        if (result.exitCode !== 0) {
+            throw new PtbkError('The audit commit failed.', {
+                kind: 'persistence',
+                phase: 'commit',
+                project: options.projectRoot,
+                reason: [result.stderr.trim(), result.stdout.trim()].filter(Boolean).join('\n') || `git commit exited with ${String(result.exitCode)}`,
+                effect: 'The audited operation itself already succeeded; only its record in Git is pending.',
+                next: ['Fix the hook/signing/identity problem; the pending audit is retried without repeating the operation.'],
+            });
+        }
+    } finally {
+        await rm(indexFile, { force: true });
+        await rm(messageFile, { force: true });
+    }
+    return { committed: true, sha: (await gitOrThrow(repositoryRoot, ['rev-parse', 'HEAD'], { phase: 'commit' })).trim() };
 }

@@ -10,8 +10,9 @@ import { browserTools } from '../dist/browser/agent-tools.js';
 import { findBrowserExecutable } from '../dist/browser/browser.js';
 import { BrowserFleet } from '../dist/browser/fleet.js';
 import { createVerifier, deriveProjectRoot, domainKey, generateRecoveryWords, normalizeRecoveryWords, open, seal, verifyRoot } from '../dist/wallet/crypto.js';
-import { WalletSubEngine, maskAccount, normalizeOrigin, originMatches } from '../dist/wallet/wallet.js';
-import { committed, git, initializedProject, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
+import { WalletSubEngine, maskAccount, normalizeOrigin, originMatches, walletLabel } from '../dist/wallet/wallet.js';
+import { commitAudit } from '../dist/project/git.js';
+import { committed, git, GIT_IDENTITY, initializedProject, initRepository, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /**
  * Why the real-browser Wallet tests are skipped (or false when a Chrome-compatible browser is available).
@@ -118,6 +119,7 @@ test('project encryption: standard 12-word vectors, derivation, domain separatio
     assert.ok(!originMatches('https://example.com', 'https://example.com.evil.test'), 'a lookalike host never matches');
     assert.ok(!originMatches('https://example.com', 'http://example.com'), 'another scheme never matches');
     assert.equal(maskAccount('jane.doe@example.com'), 'ja…@example.com');
+    assert.equal(walletLabel('https://www.github.com', 'johnsmith'), 'github.com · jo…h');
 });
 
 test('Wallet: lazy setup, automatic unlock after restart, origin-bound automatic login, one deduplicated request and transfer with 12 words', async (t) => {
@@ -152,7 +154,7 @@ test('Wallet: lazy setup, automatic unlock after restart, origin-bound automatic
     const saved = await first.wallet.save({ origin: 'example.com', username: 'jane.doe@example.com', password: 'correct horse battery', action: missing.action });
     assert.ok(saved.applied && !saved.outcome.includes('correct horse') && !saved.outcome.includes('jane.doe'), saved.outcome);
     assert.equal(first.wallet.action(missing.action).state, 'resolved', 'saving resolves the pending request');
-    assert.deepEqual(first.wallet.view().records.map((record) => record.account), ['ja…@example.com']);
+    assert.deepEqual(first.wallet.view().records.map((record) => record.account), ['example.com · ja…@example.com'], 'a useful label derived from the service and account');
     for (const file of await filesBelow(join(project, '.ptbk'))) {
         for (const secret of ['correct horse battery', 'jane.doe@example.com', ...recoveryRuns(words)]) assert.ok(!file.content.includes(secret), `${file.path} contains no secret (${secret.length} chars)`);
     }
@@ -166,7 +168,7 @@ test('Wallet: lazy setup, automatic unlock after restart, origin-bound automatic
     assert.equal(second.wallet.view().state, 'ready');
     const login = fakePage('https://www.example.com');
     const signedIn = await second.wallet.login(login.page, { task: 'Weekly update' });
-    assert.deepEqual(signedIn, { status: 'signed-in', origin: 'https://www.example.com', account: 'ja…@example.com', note: undefined });
+    assert.deepEqual(signedIn, { status: 'signed-in', origin: 'https://www.example.com', account: 'example.com · ja…@example.com', note: undefined });
     assert.deepEqual(login.entered, [{ origin: 'https://example.com', username: 'jane.doe@example.com', password: 'correct horse battery' }], 'the trusted page received the credentials of its own origin');
 
     // Another origin never receives them: one deduplicated request for that site instead.
@@ -267,6 +269,67 @@ function loginSite(password) {
 const LOGIN_PAGE = `<!doctype html><title>Sign in</title><h1>Sign in</h1><!--error-->
 <form method="post" action="/login"><input name="username" autocomplete="username" placeholder="Username"><input name="password" type="password" autocomplete="current-password"><button>Sign in</button></form>`;
 
+test('Wallet audit: each meaningful mutation is its own nonsecret (empty) commit, retried without repeating the change, and can be disabled', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet audit');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    await initRepository(project);
+    await writeFile(join(project, 'base.txt'), 'base\n');
+    await git(project, ['add', '.']);
+    await git(project, ['commit', '-qm', 'base']);
+    await writeFile(join(project, 'staged.txt'), 'user staged\n');
+    await git(project, ['add', 'staged.txt']);
+    await writeFile(join(project, 'base.txt'), 'user edit\n');
+    const env = { ...process.env, ...GIT_IDENTITY, PTBK_HOME: join(root, 'home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
+    let isEnabled = true;
+    let failNext = false;
+    const runtime = { root: join(project, '.ptbk'), state: join(project, '.ptbk', 'state'), temporary: join(project, '.ptbk', 'tmp') };
+    const logs = [];
+    const wallet = new WalletSubEngine({
+        project: { root: project, runtime },
+        env,
+        onChange: () => undefined,
+        log: (text) => logs.push(text),
+        audit: {
+            isEnabled: () => isEnabled,
+            commit: async (subject, body) => {
+                if (failNext) {
+                    failNext = false;
+                    throw new Error('hook says no');
+                }
+                await commitAudit({ projectRoot: project, repositoryRoot: project, subject, body, temporaryDirectory: runtime.temporary, env });
+            },
+        },
+    });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    await wallet.save({ origin: 'example.com', username: 'jane.doe@example.com', password: 'correct horse battery' });
+    assert.equal((await git(project, ['log', '-1', '--format=%s'])).trim(), 'ptbk: Wallet - Add login "example.com · ja…@example.com"');
+    assert.equal((await git(project, ['show', '--name-only', '--format=', 'HEAD'])).trim(), '', 'an empty audit commit: the vault is never committed');
+    const status = await git(project, ['status', '--porcelain']);
+    assert.match(status, /^A  staged\.txt$/m, 'user staging is neither committed nor disturbed');
+    assert.match(status, /^ M base\.txt$/m);
+    const id = wallet.view().records[0].id;
+    failNext = true;
+    await wallet.save({ origin: 'example.com', username: 'jane.doe@example.com', password: 'new password 2', id });
+    assert.equal(wallet.view().records.length, 1, 'the update itself succeeded');
+    assert.match(logs.join('\n'), /audit commit .* is pending/);
+    assert.equal(JSON.parse(await readFile(join(runtime.state, 'wallet-audit.json'), 'utf8')).length, 1);
+    await wallet.retryAudits();
+    assert.equal((await git(project, ['log', '-1', '--format=%s'])).trim(), 'ptbk: Wallet - Update login "example.com · ja…@example.com"', 'the pending audit is committed later');
+    assert.deepEqual(JSON.parse(await readFile(join(runtime.state, 'wallet-audit.json'), 'utf8')), []);
+    await wallet.retryAudits();
+    const count = Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim());
+    isEnabled = false;
+    await wallet.remove(id);
+    assert.equal(wallet.view().records.length, 0, 'removal works with the audit disabled');
+    assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), count, 'no audit commit while disabled; no repeated audit either');
+    const history = await git(project, ['log', '-p', '--all']);
+    for (const secret of ['correct horse battery', 'new password 2', 'jane.doe@example.com']) assert.ok(!history.includes(secret), `no secret in Git (${secret.length} chars)`);
+    assert.doesNotMatch(await git(project, ['ls-files']), /\.ptbk/);
+});
+
 test('Wallet in the real browser: the agent requests a login, never sees the password, a wrong one is cleared and the right one signs in', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
     const teardown = [];
     const root = await temporaryDirectory(t, 'ptbk wallet browser', teardown);
@@ -308,7 +371,7 @@ test('Wallet in the real browser: the agent requests a login, never sees the pas
     await call('browser_open', { url: origin });
     result = await call('wallet_login', {});
     assert.ok(!result.isError, result.text);
-    assert.match(result.text, /^Signed in to http:\/\/127\.0\.0\.1:\d+ with the saved login "fi…r"/);
+    assert.match(result.text, /^Signed in to http:\/\/127\.0\.0\.1:\d+ with the saved login "127\.0\.0\.1:\d+ · fi…r"/);
     assert.match(result.text, /Welcome, fixture-user/, 'the resulting session is verified and the page is returned');
     assert.ok(!result.text.includes('right password 1'));
     result = await call('wallet_login', {});

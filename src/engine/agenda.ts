@@ -15,7 +15,7 @@ import { readBookSource, type BookSource } from '../project/book-sources.js';
 import { validateAttachments } from '../chats/store.js';
 import { materializeAttachments } from '../ui/attachments.js';
 import type { TaskInventoryItem } from '../tasks/views.js';
-import { commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
+import { commitAudit, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
@@ -422,6 +422,11 @@ export class Agenda {
             // A resolved login request lets its checkpointed task resume at the next iteration.
             onSettled: () => this.wake(),
             log: (text, level) => this.log(text, level),
+            // Meaningful mutations get their own nonsecret audit commit (default on, `wallet.isAuditCommitted`).
+            audit: {
+                isEnabled: () => Boolean(this.settings && this.repositoryRoot && this.commitMode && setting<boolean>(this.settings, 'wallet.isAuditCommitted')),
+                commit: async (subject, body) => void (await this.commitAuditRecord(subject, body)),
+            },
         });
         // A finite maintenance host is not the ongoing engine and has no Health sub-engine of its own.
         if (options.mode !== 'maintenance') {
@@ -526,6 +531,8 @@ export class Agenda {
         await this.restoreOwnership();
         // Automatic unlock through this host's protected secret: no words or master password at startup.
         await this.wallet.initialize().catch((error: unknown) => this.log(`The Wallet could not be loaded: ${errorMessage(error)}`, 'warning'));
+        // Audits an earlier process could not commit are retried; their mutations are never repeated.
+        await this.wallet.retryAudits().catch(() => undefined);
         // Results finished before an interruption still reach their chat (once).
         if (this.options.mode !== 'maintenance') for (const result of results.slice(0, 50)) await this.deliverChatOutcome(result).catch(() => undefined);
         if (this.options.mode !== 'maintenance') {
@@ -1271,6 +1278,18 @@ export class Agenda {
         );
         if (outcome.committed) void this.sync.request('post-commit');
         return outcome.committed ? outcome.sha : undefined;
+    }
+
+    /**
+     * Commits an intentional empty audit record of a completed logical operation without eligible file changes (e.g. a
+     * Wallet mutation), under the Git lock and with the usual synchronization around commits.
+     */
+    private async commitAuditRecord(summary: string, body: string): Promise<string> {
+        if (!this.repositoryRoot) throw new PtbkError('The project is not in a Git working tree.', { kind: 'setup', next: ['Run `ptbk init`.'] });
+        await this.sync.request('pre-commit');
+        const outcome = await this.gitMutex.run(() => commitAudit({ projectRoot: this.options.project.root, repositoryRoot: this.repositoryRoot!, subject: summary, body, temporaryDirectory: this.options.project.runtime.temporary, env: this.options.env }));
+        void this.sync.request('post-commit');
+        return outcome.sha;
     }
 
     /** Policy-eligible trace files of a task (by its source file) for a task-related commit (never ignored evidence). */

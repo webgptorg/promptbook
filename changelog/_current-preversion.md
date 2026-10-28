@@ -1,5 +1,12 @@
 # Unreleased
 
+## Wallet: nonsecret audit commits, useful labels and clearer entry
+
+-   Each meaningful Wallet change (a saved, updated or removed login) gets its own scoped audit commit, `ptbk: Wallet - Add login "<label>"` (and Update/Remove), naming only the operation, the editable label and the website. It is an intentional empty commit created through a temporary index, so the encrypted vault, secrets and your staged or unstaged work never enter it. If Git fails (for example a hook), the change itself stays saved and the audit is retried later, also after a restart, without repeating the change. New `ptbk.json` setting `wallet.isAuditCommitted` (default `true`); `false` disables only the audit, not storage or automatic login, and `--no-commit` workflows create none. Login attempts and unchanged records create no commits.
+-   New logins get a useful default label derived from the website and account, e.g. `example.com · ja…@example.com` (the full username is never shown); you can still rename it.
+-   In the terminal and browser login forms the username now starts visible and the password masked; the masked terminal field shows `*` typing feedback instead of staying blank. Each field still toggles independently (Ctrl+R, or the Show/Hide buttons) without submitting, and entries are erased before advancing.
+-   New `commitAudit` Git operation for intentional empty audit commits of completed operations without eligible file changes. Regressions cover the audit subjects, empty commits, preserved staging, pending retry, the disabled setting, the derived label and both form defaults.
+
 ## Chats grow chronologically: implicit open status and appended transitions
 
 -   A new chat no longer gets an initial `CHAT STATUS open` line: without a status commitment a chat is open. Each actual state change appends a new `CHAT STATUS` at that point of the conversation (for example after the question that waits for you, and `open` again after your answer) instead of rewriting an earlier line; the last valid status is effective and an unchanged state (including reading a chat) appends nothing. A chat created with a waiting question records the wait after that question. Existing chats with a status line in their header keep working unchanged, and an invalid later value is reported without replacing the last valid state.
