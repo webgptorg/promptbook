@@ -1,5 +1,5 @@
 import { modelOfDocument, renderModelLines, type ModelConstraint } from '../book/model.js';
-import { commitmentsOf, parseBook, singleValue, type BookDiagnostic } from '../book/parse.js';
+import { commitmentsOf, parseBook, type BookDiagnostic, type BookDocument } from '../book/parse.js';
 import { formatAgentReference, invalidReferenceMessage, normalizeAgentName, parseReferenceValue } from '../book/references.js';
 import { needsLiteralEscape, renderDeclaration } from '../book/write.js';
 
@@ -130,18 +130,21 @@ export function renderChatMessage(message: Pick<ChatMessage, 'sender' | 'at' | '
 }
 
 /**
- * Renders a new chat Book.
+ * Renders a new chat Book. A new chat is implicitly open: no initial `CHAT STATUS open` is written; another initial
+ * state (e.g. an agent's question waiting for the user) is appended after the messages that caused it.
  *
  * @private chats
  */
 export function renderChatBook(chat: { name: string; members: readonly string[]; status: ChatStatus; links?: readonly string[]; messages?: ReadonlyArray<Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices'>> }): string {
-    const lines = [renderDeclaration('chat', chat.name), ...chat.members.map((member) => `CHAT MEMBER ${member}`), `CHAT STATUS ${chat.status}`, ...(chat.links ?? []).map((link) => `LINK ${link}`), ''];
+    const lines = [renderDeclaration('chat', chat.name), ...chat.members.map((member) => `CHAT MEMBER ${member}`), ...(chat.links ?? []).map((link) => `LINK ${link}`), ''];
     for (const message of chat.messages ?? []) lines.push(...renderChatMessage(message));
-    return `${lines.join('\n')}\n`;
+    const source = `${lines.join('\n')}\n`;
+    return chat.status === 'open' ? source : setChatStatus(source, chat.status);
 }
 
 /**
- * Appends a message (and optionally the new status) to a chat source without touching earlier content.
+ * Appends a message (and optionally the status transition it causes) to a chat source without touching earlier
+ * content.
  *
  * @private chats
  */
@@ -200,22 +203,31 @@ export function chatDisplayTitle(chat: Pick<ChatBook, 'name' | 'title'>): string
 }
 
 /**
- * Sets the durable status of a chat source, changing only that line (earlier messages stay byte-for-byte intact).
+ * Records a durable status transition of a chat source under [Book layering](specs/book-language/layering.md): a
+ * new `CHAT STATUS` is appended at the current chronological position, earlier status commitments stay as history and
+ * everything else stays byte-for-byte intact. An unchanged state (including the implicit open of a chat without any
+ * status) appends nothing.
  *
  * @private chats
  */
 export function setChatStatus(source: string, status: ChatStatus): string {
-    const document = parseBook(source);
-    const lines = source.split('\n');
-    const existing = document.commitments.find((commitment) => commitment.keyword === 'CHAT STATUS');
-    if (existing) {
-        const carriage = lines[existing.startLine]!.endsWith('\r') ? '\r' : '';
-        lines[existing.startLine] = `CHAT STATUS ${status}${carriage}`;
-        return lines.join('\n');
+    if (effectiveChatStatus(parseBook(source)).status === status) return source;
+    return appendChatCommitments(source, [`CHAT STATUS ${status}`]);
+}
+
+/**
+ * The effective durable state of a chat document: the last valid `CHAT STATUS` (absence means open), with diagnostics
+ * for invalid values. Literal text inside messages is never a commitment.
+ */
+function effectiveChatStatus(document: BookDocument): { status: ChatStatus; diagnostics: BookDiagnostic[] } {
+    const diagnostics: BookDiagnostic[] = [];
+    let status: ChatStatus = 'open';
+    for (const commitment of commitmentsOf(document, 'CHAT STATUS')) {
+        const value = commitment.value.split('\n')[0]!.trim();
+        if ((CHAT_STATUSES as readonly string[]).includes(value)) status = value as ChatStatus;
+        else diagnostics.push({ line: commitment.startLine + 1, message: `CHAT STATUS must be open, waiting-for-user or resolved, not "${value}".`, severity: 'error' });
     }
-    const anchor = [...document.commitments].filter((commitment) => commitment.keyword === 'CHAT MEMBER').pop();
-    lines.splice(anchor ? anchor.startLine + 1 : document.headerLine + 1, 0, `CHAT STATUS ${status}`);
-    return lines.join('\n');
+    return { status, diagnostics };
 }
 
 /**
@@ -229,10 +241,9 @@ export function parseChatBook(source: string): ChatBook {
     if (document.kind !== 'chat' && document.kind !== 'empty' && !document.legacy?.plainHeader) diagnostics.push({ line: document.headerLine + 1, message: 'This Book is not a chat (it must start with `CHAT <name>`).', severity: 'error' });
     const members = commitmentsOf(document, 'CHAT MEMBER').map((commitment) => commitment.value.trim());
     for (const member of members) if (!parseReferenceValue(member)) diagnostics.push({ line: 0, message: `CHAT MEMBER ${invalidReferenceMessage(member)}`, severity: 'error' });
-    const statusValue = singleValue(document, 'CHAT STATUS');
-    if (statusValue.conflict) diagnostics.push(statusValue.conflict);
-    const status = (CHAT_STATUSES as readonly string[]).includes(statusValue.value ?? 'open') ? ((statusValue.value ?? 'open') as ChatStatus) : 'open';
-    if (statusValue.value && !(CHAT_STATUSES as readonly string[]).includes(statusValue.value)) diagnostics.push({ line: 0, message: `CHAT STATUS must be open, waiting-for-user or resolved, not "${statusValue.value}".`, severity: 'error' });
+    // Chronological transitions: the last valid status wins, earlier ones stay as history (absence means open).
+    const { status, diagnostics: statusDiagnostics } = effectiveChatStatus(document);
+    diagnostics.push(...statusDiagnostics);
     const modelResult = modelOfDocument(document, { multiple: 'last' });
     diagnostics.push(...modelResult.diagnostics);
     const messageCommitments = commitmentsOf(document, 'CHAT MESSAGE');

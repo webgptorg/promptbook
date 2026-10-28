@@ -1,5 +1,10 @@
 # Unreleased
 
+## Chats grow chronologically: implicit open status and appended transitions
+
+-   A new chat no longer gets an initial `CHAT STATUS open` line: without a status commitment a chat is open. Each actual state change appends a new `CHAT STATUS` at that point of the conversation (for example after the question that waits for you, and `open` again after your answer) instead of rewriting an earlier line; the last valid status is effective and an unchanged state (including reading a chat) appends nothing. A chat created with a waiting question records the wait after that question. Existing chats with a status line in their header keep working unchanged, and an invalid later value is reported without replacing the last valid state.
+-   `CHAT STATUS` is now a repeatable commitment like `CHAT TITLE`; joining members and title changes keep their chronological positions as before. Literal message text that looks like a status never changes it. New unit coverage follows the [Book layering](../specs/book-language/layering.md) example.
+
 ## Commit subjects: lowercase `ptbk: ` and the responsible agent's visual
 
 -   Every automatic commit subject now starts with lowercase `ptbk: ` (applied exactly once; an older `PTBK: ` prefix is never repeated, and existing history is not rewritten). Commits of actual agent work quote that agent's stable single-line visual after the prefix: a task result is ``ptbk: `~<@@/>-` <task name>`` for the executing agent, and a chat batch carries the visual of the one agent whose replies it adds. System commits (setup, tool changes, migrations, normalization, merges, task creation, User-only chat batches, batches with several replying agents) name no invented agent and add no date; Task-Name/Chat-Name trailers and bodies are unchanged.
