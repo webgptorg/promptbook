@@ -1,5 +1,9 @@
 # Unreleased
 
+## Release check: date-independent dashboard fixtures
+
+-   Two dashboard-home fixtures (Action log tile, project brief) hardcoded a 2026-10-29 timestamp and expected the same-day short clock form, so `npm test`, and with it `npm run release:prerelease`, failed on every other day. They now use the current time.
+
 ## Chat replies: cause-aware automatic rechecks instead of a lost reply
 
 -   A failed chat reply was only a warning in the activity log: the user's message stayed unanswered until the next restart. A failed reply now gets a scheduled automatic recheck while the message still waits: the first after about a minute, then backing off with spreading up to one hour. The same failure under unchanged tools waits longest. A tool change (a new, repaired or signed-in instance, `ptbk tool …`, a ptbk.json/.env edit) brings it forward, and writing again retries at once. Rechecks run during a scheduling pause like every chat turn, never after stop. Nobody is asked to retry. The activity log, the terminal chat and the browser chat show the failure and the next attempt, and `ptbk status --json`/the snapshot list waiting rechecks under `chats.rechecks`.

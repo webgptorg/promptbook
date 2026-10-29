@@ -227,7 +227,9 @@ test('Usage tile and page: a seven-day summary with grouping-specific labels, vi
 });
 
 test('Action log tile and page: saved external actions with explicit partial/uncertain outcomes and pending persistence', () => {
-    const record = (change) => ({ path: 'actions/2026-10-29-news/2026-10-29-1015-send-email-gmail.md', task: '2026-10-29-news', taskName: 'Weekly news', source: 'tasks/2026-10-29-news.book', operation: 'Send email', service: 'Gmail', target: 'reader@example.test', outcome: 'confirmed', at: '2026-10-29T10:15:00+01:00', agent: '@Developer', ...change });
+    // Today's time keeps the short clock form, so the tile layout does not depend on the date the suite runs.
+    const at = new Date().toISOString();
+    const record = (change) => ({ path: 'actions/2026-10-29-news/2026-10-29-1015-send-email-gmail.md', task: '2026-10-29-news', taskName: 'Weekly news', source: 'tasks/2026-10-29-news.book', operation: 'Send email', service: 'Gmail', target: 'reader@example.test', outcome: 'confirmed', at, agent: '@Developer', ...change });
     const actions = { total: 2, recent: [record({ path: 'actions/2026-10-29-news/b.md', operation: 'Publish post', service: 'LinkedIn', outcome: 'uncertain', pending: true }), record({})], pending: 1, unresolved: 0 };
     const view = terminal(120, 40);
     const tile = renderHome(snapshot({ actions }), view, { focus: 'actions', attention: new Map(), frame: 0, legend: '' }).map(stripAnsi).join('\n');
@@ -246,7 +248,7 @@ test('Action log tile and page: saved external actions with explicit partial/unc
 
 test('project brief beneath the identity: the saved paragraph with its time, labelled clipping and honest absence', () => {
     const text = 'Publishing is on schedule. A temporary provider outage is awaiting its announced reset while other work continues. No action is needed from you.';
-    const report = { path: 'report.book', state: 'available', brief: { text, at: '2026-10-29T10:15:00+01:00' } };
+    const report = { path: 'report.book', state: 'available', brief: { text, at: new Date().toISOString() } };
     const wide = renderHome(snapshot({ report }), terminal(200, 50), view()).map(stripAnsi);
     assert.match(wide[2], /^ \S+ Publishing is on schedule\. A temporary provider outage/, 'the full-width brief comes right after the two-row identity');
     assert.doesNotMatch(wide.join('\n'), /CHAT MESSAGE|@Chatter/, 'parsed text, never raw Book syntax');
