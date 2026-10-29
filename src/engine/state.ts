@@ -79,6 +79,33 @@ export type AttemptRecord = {
 };
 
 /**
+ * The persisted cause-aware recovery of a failed task: how many rounds ran, the last cause, the remedies already tried
+ * and when the next automatic recheck is due.
+ *
+ * @private runtime state
+ */
+export type RecoverySchedule = {
+    /** Rechecks scheduled so far. */
+    readonly rounds: number;
+    /** First failure of this recovery (ISO). */
+    readonly since: string;
+    /** When this round was scheduled (ISO). */
+    readonly scheduledAt: string;
+    /** Next automatic recheck (ISO). */
+    readonly nextAt: string;
+    /** The last failure. */
+    readonly cause: string;
+    /** Remedies already tried (newest last, bounded). */
+    readonly remedies: readonly string[];
+    /** Fingerprint of the last failure together with its conditions (task source, tools, check). */
+    readonly fingerprint: string;
+    /** Fingerprint of the conditions alone: a change brings the recheck forward. */
+    readonly conditions: string;
+    /** Consecutive rounds that ended in an equivalent failure under unchanged conditions. */
+    readonly equivalent: number;
+};
+
+/**
  * Recovery record of one active run (`.ptbk/state/active/<run>.json`); several runs can be active at once.
  *
  * @private runtime state
@@ -137,13 +164,18 @@ export type ActiveRecord = {
     readonly chats?: readonly string[];
     /** Failure explanation when the phase is `failed`. */
     readonly failure?: string;
-    /** Chat in which the task's agent asks how to continue after a failure. */
+    /** Chat in which an older engine asked how to continue after a failure (retired by the next automatic recheck). */
     readonly recoveryChat?: string;
     /**
      * The failed task was handed to Fixer, which continues it in the same record (same ownership, trace and result
-     * commit) for one bounded round before anyone is asked how to continue.
+     * commit) for one bounded round before a cause-aware recheck is scheduled.
      */
     readonly handover?: { readonly agent: string; readonly from: string; readonly failure: string; readonly at: string };
+    /**
+     * Cause-aware recovery beyond the immediate budgets: an exhausted burst never asks anyone to retry; the task waits
+     * for its next automatic recheck (brought forward when conditions change) and is never abandoned.
+     */
+    readonly recovery?: RecoverySchedule;
     /** Feedback for the next attempt. */
     readonly feedback?: string;
     /** Explicit no-commit mode. */
@@ -191,6 +223,9 @@ export function parkedReadiness(records: readonly ActiveRecord[]): { readonly aw
         if (record.phase === 'synchronizing' && record.worktree) integrations.set(key, `Its isolated result waits on ${isolationBranch(record.runId)} for a visible merge into the project branch; the task completes once it is merged.`);
         else if (record.worktree) {
             integrations.set(key, `It was running in a task worktree of an older engine (${record.worktree}, branch ${isolationBranch(record.runId)}); task worktrees were removed. Merge or discard that branch yourself, then run \`ptbk recover ${record.taskRef} --action retry\` or \`--action acknowledge\`.`);
+        } else if (record.phase === 'failed' && record.recovery && !record.recoveryChat) {
+            // A scheduled automatic recheck needs no reply: it is recovery the engine performs by itself.
+            integrations.set(key, `Failed: ${record.recovery.cause} Automatic recheck ${record.recovery.rounds} is due ${record.recovery.nextAt} (sooner when its source, tools or check change); no reply is needed.`);
         } else awaitingUser.set(key, record.waitingWallet && record.phase === 'awaiting-user' ? WALLET_WAIT : (record.waitingChat ?? record.recoveryChat ?? 'checkpoint'));
     }
     return { awaitingUser, integrations };

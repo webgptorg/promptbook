@@ -110,10 +110,28 @@ export const FIXER_BOOK = `AGENT Fixer
 FROM @Adam
 GOAL Solve problems and reduce the decisions the user needs to make.
 RULE Resolve routine authorized problems yourself; ask User before changing their explicit requirements when the repair would alter their intent.
+RULE An exhausted retry budget is no reason to ask User whether to continue: use the existing context and authority, a better remedy or a later recheck, and ask only for a genuinely missing decision, input, authority or human-only step.
+RULE Before repeating a send, submission or publication, reconcile the actual remote outcome and the task's action records; never duplicate an effect.
 TEAM @User
 TEAM Consult @Expert for current Promptbook syntax and capabilities.
 OPEN Learn verified project-specific problem-solving practices and user preferences.
 `;
+
+/**
+ * Earlier engine templates of Fixer (newest first): verifiable bases of a Fixer Book created before baselines existed.
+ *
+ * @private initialization defaults
+ */
+export const FIXER_PREVIOUS_BOOKS: readonly string[] = [
+    `AGENT Fixer
+FROM @Adam
+GOAL Solve problems and reduce the decisions the user needs to make.
+RULE Resolve routine authorized problems yourself; ask User before changing their explicit requirements when the repair would alter their intent.
+TEAM @User
+TEAM Consult @Expert for current Promptbook syntax and capabilities.
+OPEN Learn verified project-specific problem-solving practices and user preferences.
+`,
+];
 
 /**
  * Name of the core agent that is the default human-facing conversational entry of a project.
@@ -175,7 +193,7 @@ export const CORE_AGENTS: ReadonlyArray<{
     { file: '.core/router.book', name: ROUTER_NAME, aliases: [LEGACY_ROUTER_NAME], content: (input) => routerBook(input.routerModel) },
     { file: '.core/tasker.book', name: 'Tasker', content: () => TASKER_BOOK },
     { file: '.core/teacher.book', name: 'Teacher', content: () => TEACHER_BOOK },
-    { file: '.core/fixer.book', name: 'Fixer', content: () => FIXER_BOOK },
+    { file: '.core/fixer.book', name: 'Fixer', content: () => FIXER_BOOK, previous: FIXER_PREVIOUS_BOOKS.map((book) => () => book) },
     { file: '.core/chatter.book', name: CHATTER_NAME, content: (input) => chatterBook(input.teammates) },
 ];
 

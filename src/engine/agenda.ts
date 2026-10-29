@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { watch, type FSWatcher } from 'node:fs';
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
@@ -29,7 +30,6 @@ import { renderDeclaration } from '../book/write.js';
 import { ChatStore, type ChatSummary, type ChatWrite } from '../chats/store.js';
 import { ChatCommitBatcher } from '../chats/batcher.js';
 import { isHumanFacing } from '../chats/chat-book.js';
-import { taskChats } from '../chats/task-chats.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, type ChatAgentChoice, type ChatDetail } from '../chats/service.js';
 import { chatOrigin, chatOriginOf, questionAuthor, type ChatTaskCard } from '../chats/chat-tasks.js';
 import { replyInChat, type LiveReply } from '../chats/conversation.js';
@@ -93,8 +93,8 @@ import type {
     UsageOverview,
     WaitView,
 } from './snapshot.js';
-import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ResultRecord, type RoutingSelection } from './state.js';
-import { TaskTrace } from './task-trace.js';
+import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type RecoverySchedule, type ResultRecord, type RoutingSelection } from './state.js';
+import { TaskTrace, sourceRevision } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
 import { finishWorktree, isIntegrated } from './isolation.js';
 import { FileOwnership, TurnWindows, WorkCapacity, type FileConflict } from './concurrency.js';
@@ -251,6 +251,47 @@ const HEALTH_ORIGIN = 'maintenance: project health';
 const RECOVERY_CHOICES = ['Retry the task', 'Acknowledge the failure'] as const;
 
 /**
+ * First delay of a cause-aware recheck once a task's immediate budgets (and Fixer's round) are exhausted
+ * (`PTBK_RECOVERY_RECHECK_MS` overrides it, e.g. for fixtures); later rounds back off up to {@link RECOVERY_MAX_MS}.
+ */
+const RECOVERY_RECHECK_MS = 15 * 60_000;
+
+/**
+ * Longest wait between automatic rechecks of a failed task (also used for repeated equivalent failures under unchanged
+ * conditions, so an unavailable provider never causes paid idle loops).
+ */
+const RECOVERY_MAX_MS = 24 * 3_600_000;
+
+/**
+ * Changed conditions bring a recheck forward, but never sooner than this after it was scheduled (flapping readiness
+ * cannot cause a burst of paid rechecks).
+ */
+const RECOVERY_MIN_SPACING_MS = 60_000;
+
+/**
+ * Delay before the next automatic recheck: exponential per round with suitable spreading, capped, and the longest
+ * wait once the same failure repeated under unchanged conditions.
+ *
+ * @private agenda supervisor
+ */
+export function recoveryDelay(rounds: number, equivalent: number, base: number = RECOVERY_RECHECK_MS, random: () => number = Math.random): number {
+    const planned = equivalent >= 2 ? RECOVERY_MAX_MS : Math.min(base * 4 ** Math.max(0, rounds - 1), RECOVERY_MAX_MS);
+    return Math.round(Math.max(Math.min(base, RECOVERY_MAX_MS), Math.min(planned * (0.9 + random() * 0.2), RECOVERY_MAX_MS)));
+}
+
+/**
+ * Comparison form of a failure explanation: equivalent failures differ only in counts, times and identifiers.
+ */
+function failureKey(failure: string): string {
+    return failure
+        .toLowerCase()
+        .replace(/[0-9a-f]{8,}/g, '#')
+        .replace(/\d+/g, '#')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+/**
  * Longest wait of the `claim_files` tool for a file another run holds (the agent then works on other files).
  */
 const CLAIM_WAIT_MS = 10 * 60_000;
@@ -348,6 +389,8 @@ export class Agenda {
     private readonly claimedKeys = new Set<string>();
     /** Active records whose resumption waits (quota, setup, failed commit) until this time (epoch ms), by run. */
     private readonly resumeAfter = new Map<string, number>();
+    /** Due times (epoch ms) of scheduled automatic rechecks of failed tasks, by run: idle waits end when one is due. */
+    private readonly recoveryDue = new Map<string, number>();
     /** No new background claim before this time (pause between tasks). */
     private pacingUntil = 0;
     /** Listeners waiting for an active unit to finish (draining towards stop). */
@@ -2171,7 +2214,7 @@ export class Agenda {
         const nextTime = earliest([...waiting, ...(this.nextKnownTime ? [this.nextKnownTime] : [])]);
         this.nextKnownTime = nextTime;
         // Internal retries (resumable runs, deferred claims) also wake the loop, without being presented as scheduled work.
-        const wakeAt = earliest([...(nextTime ? [nextTime] : []), ...this.resumeAfter.values(), ...this.claimDeferred.values()]);
+        const wakeAt = earliest([...(nextTime ? [nextTime] : []), ...this.resumeAfter.values(), ...this.claimDeferred.values(), ...this.recoveryDue.values()]);
         const blocked = evaluated.filter((item) => ['blocked', 'needs-recovery', 'failed'].includes(item.readiness.kind));
         const reason = this.executing
             ? `${this.units.size} unit${this.units.size === 1 ? '' : 's'} working; no other eligible work now.`
@@ -3179,11 +3222,11 @@ export class Agenda {
     }
 
     /**
-     * Automatic repair before any human decision: a task that exhausted its budgets in the ongoing agenda is handed to
-     * the ordinary Fixer, which continues the same record (its partial changes, trace and eventual single result
-     * commit) for one bounded round and consults its team only as its own Book directs. Not repeated for Fixer's own
-     * failure, for work Fixer itself owns, without a usable Fixer, or in a finite run (whose agent was chosen
-     * explicitly). Returns whether the task was handed over.
+     * Automatic repair before any recheck: a task that exhausted its budgets in the ongoing agenda is handed to the
+     * ordinary Fixer, which continues the same record (its partial changes, trace and eventual single result commit)
+     * for one bounded round and consults its team only as its own Book directs. Not repeated for Fixer's own failure,
+     * for work Fixer itself owns, without a usable Fixer, or in a finite run (whose agent was chosen explicitly).
+     * Returns whether the task was handed over.
      */
     private async handOverToFixer(record: ActiveRecord): Promise<boolean> {
         if (this.options.mode === 'maintenance' || record.handover || record.recoveryChat || !HANDOVER_KINDS.has(record.kind)) return false;
@@ -3203,42 +3246,117 @@ export class Agenda {
             feedback: `${formatAgentReference(from)} could not complete this task: ${failure}`,
         });
         await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('handed-over', { runId: record.runId, to: name, from, failure }).catch(() => undefined);
-        this.log(`"${record.taskTitle}" failed with ${from} (${failure}); ${name} takes over for at most ${Math.min(HANDOVER_ATTEMPTS, setting<number>(this.settings, 'execution.repairAttempts'))} attempt(s) before anyone is asked.`, 'warning');
+        this.log(`"${record.taskTitle}" failed with ${from} (${failure}); ${name} takes over for at most ${Math.min(HANDOVER_ATTEMPTS, setting<number>(this.settings, 'execution.repairAttempts'))} attempt(s) before an automatic recheck is scheduled.`, 'warning');
         this.wake();
         return true;
     }
 
     /**
-     * Keeps a failed task visible after automatic repair: the agent that last handled it (Fixer after a takeover) asks
-     * the user how to continue in a chat, then applies the chosen answer.
+     * Cause-aware recovery of a failed task beyond its immediate budgets: Fixer takes over once per distinct failure,
+     * then the task is checkpointed with its cause, the remedies already tried and its next automatic recheck. An
+     * exhausted counter never asks anyone whether to retry; an answer to a question an older engine asked is still
+     * applied.
      */
     private async handleFailedRecord(record: ActiveRecord): Promise<void> {
-        if (await this.handOverToFixer(record)) return;
-        let current = record;
-        if (!current.recoveryChat || !(await this.chats.find(current.recoveryChat))) {
-            const agent = current.handover?.agent ?? current.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
-            const asked = await taskChats(this.chats, { name: current.taskTitle, key: current.taskKey || nameKey(current.taskTitle) }, { takenNames: () => this.catalog.index.names(), designated: current.originChat }).askUser({
-                agent,
-                reason: current.handover
-                    ? `The task {${current.taskTitle}} failed with ${current.handover.from} (${current.handover.failure}), and ${current.handover.agent} could not resolve it either: ${current.failure ?? 'unknown reason'}`
-                    : `The task {${current.taskTitle}} failed: ${current.failure ?? 'unknown reason'}`,
-                attempted: `${current.handover ? `${current.handover.from} used its budgets, then ${current.handover.agent} took over; ` : ''}${current.attempt} attempt(s) and ${current.technicalRetries} technical retr${current.technicalRetries === 1 ? 'y' : 'ies'}${current.handover ? ' in the last round' : ' within the configured budgets'}. Evidence: ${traceDirectoryOf(current.sourcePath)}/.`,
-                question: 'How should I continue? Retrying runs the task again with a fresh attempt budget; acknowledging records the failure (TASK STATUS failed) and moves on. Partial changes stay in the working tree.',
-                choices: [...RECOVERY_CHOICES],
-            });
-            current = { ...current, recoveryChat: asked.chat, awaitedMessages: asked.awaited };
-            await this.state.writeActive(current);
-            await this.refreshChats();
+        if (record.recoveryChat && (await this.chats.find(record.recoveryChat))) {
+            const reply = await this.chatReplyOf(record.recoveryChat, record.awaitedMessages, RECOVERY_CHOICES, record.answerMessage);
+            if (reply.answered) {
+                if (reply.answer === RECOVERY_CHOICES[0]) await this.retryRecord(record);
+                else await this.acknowledgeRecord(record);
+                return;
+            }
         }
-        const reply = await this.chatReplyOf(current.recoveryChat!, current.awaitedMessages, RECOVERY_CHOICES, current.answerMessage);
-        if (!reply.answered) {
-            // The decision waits in its chat; the run is checkpointed (keeping its files) and independent work continues.
-            await this.checkpoint(current);
-            return;
+        const assessment = await this.assessFailure(record);
+        // Fixer already took over this exact failure under the same conditions: wait for a change instead.
+        if (!assessment.equivalent && (await this.handOverToFixer(record))) return;
+        await this.scheduleRecovery(record, assessment);
+    }
+
+    /** Fingerprint of what an automatic recheck depends on: the task source revision, the tools and the project check. */
+    private async recoveryConditions(record: ActiveRecord): Promise<string> {
+        const source = await readFile(resolve(this.options.project.root, record.sourcePath)).catch(() => undefined);
+        const tools = this.tools.items.map((item) => `${item.name}:${item.isEnabled ? item.state : 'disabled'}`).sort();
+        const check = this.settings ? setting<string>(this.settings, 'execution.check') : '';
+        return createHash('sha256')
+            .update(JSON.stringify({ source: source ? sourceRevision(source) : null, tools, check }))
+            .digest('hex')
+            .slice(0, 16);
+    }
+
+    /** Compares a failure with the previous recovery round: the same cause under unchanged conditions is no new evidence. */
+    private async assessFailure(record: ActiveRecord): Promise<{ readonly cause: string; readonly conditions: string; readonly fingerprint: string; readonly equivalent: boolean }> {
+        const cause = record.failure ?? 'unknown reason';
+        const conditions = await this.recoveryConditions(record);
+        const fingerprint = createHash('sha256').update(`${failureKey(cause)}\n${conditions}`).digest('hex').slice(0, 16);
+        return { cause, conditions, fingerprint, equivalent: record.recovery?.fingerprint === fingerprint };
+    }
+
+    /**
+     * Checkpoints a failed task until its next cause-aware recheck (exponential backoff with spreading, capped; the
+     * longest wait for repeated equivalent failures), persisted across restarts. Its files stay owned and independent
+     * work continues; nobody is asked to retry.
+     */
+    private async scheduleRecovery(record: ActiveRecord, assessment: Awaited<ReturnType<Agenda['assessFailure']>>): Promise<void> {
+        const previous = record.recovery;
+        const equivalent = assessment.equivalent && previous ? previous.equivalent + 1 : 0;
+        const rounds = (previous?.rounds ?? 0) + 1;
+        const delay = recoveryDelay(rounds, equivalent, Number(this.options.env.PTBK_RECOVERY_RECHECK_MS) || RECOVERY_RECHECK_MS);
+        const nextAt = new Date(Date.now() + delay).toISOString();
+        const agent = referenceName(record.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent'));
+        const tried = `${record.handover ? `${referenceName(record.handover.from)}, then ${record.handover.agent},` : agent} used ${record.attempt} attempt(s) and ${record.technicalRetries} technical retr${record.technicalRetries === 1 ? 'y' : 'ies'}: ${assessment.cause}`;
+        const recovery: RecoverySchedule = {
+            rounds,
+            since: previous?.since ?? new Date().toISOString(),
+            scheduledAt: new Date().toISOString(),
+            nextAt,
+            cause: assessment.cause,
+            remedies: [...(previous?.remedies ?? []), tried].slice(-6),
+            fingerprint: assessment.fingerprint,
+            conditions: assessment.conditions,
+            equivalent,
+        };
+        const files = this.ownership.owned(record.runId);
+        await this.state.park({ ...record, recovery, ownedFiles: files.length ? files : record.ownedFiles });
+        this.recoveryDue.set(record.runId, Date.parse(nextAt));
+        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('recovery-scheduled', { runId: record.runId, round: rounds, nextAt, cause: assessment.cause, equivalent }).catch(() => undefined);
+        this.log(
+            `"${record.taskTitle}" could not be completed (${assessment.cause}). Nobody needs to retry it: automatic recheck ${rounds} is due ${formatShortTime(Date.parse(nextAt), Date.now(), this.timeZone)}${equivalent ? ' (the same failure repeated, so it waits longer)' : ''}, sooner when its source, tools or check change; independent work continues.`,
+            'warning',
+        );
+    }
+
+    /**
+     * Starts a due automatic recheck of a checkpointed failed task with a fresh immediate budget and the history of
+     * remedies already tried. A recovery question an older engine left unanswered is retired (resolved with the
+     * reason), never asked again.
+     */
+    private async startRecheck(record: ActiveRecord, recovery: RecoverySchedule, reason: string): Promise<void> {
+        this.recoveryDue.delete(record.runId);
+        if (record.recoveryChat) {
+            const agent = record.handover?.agent ?? record.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
+            await this.chats
+                .append(record.recoveryChat, { sender: formatAgentReference(referenceName(agent)), text: `No reply is needed anymore: Promptbook rechecks {${record.taskTitle}} automatically (${reason}). \`ptbk recover\` can still acknowledge the failure.` }, { status: 'resolved' })
+                .catch(() => undefined);
         }
-        this.clearBlocker('recovery');
-        if (reply.answer === RECOVERY_CHOICES[0]) await this.retryRecord(current);
-        else await this.acknowledgeRecord(current);
+        const preSnapshot = await this.resumedPreSnapshot(record);
+        await this.state.unpark({
+            ...record,
+            phase: 'executing',
+            attempt: 0,
+            technicalRetries: 0,
+            completionApplied: false,
+            failure: undefined,
+            handover: undefined,
+            recoveryChat: undefined,
+            awaitedMessages: undefined,
+            answerMessage: undefined,
+            preSnapshot,
+            instanceId: this.options.instanceId,
+            recovery,
+            feedback: `Automatic recheck ${recovery.rounds} (${reason}). Earlier rounds failed; already tried:\n${recovery.remedies.map((remedy) => `- ${remedy}`).join('\n')}\nInspect the current state and complete the task, changing the approach where the same one failed. Reconcile external actions before repeating any of them.`,
+        });
+        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('recovery-recheck', { runId: record.runId, round: recovery.rounds, reason }).catch(() => undefined);
+        this.log(`Automatic recheck ${recovery.rounds} of "${record.taskTitle}" (${reason}).`);
     }
 
     /**
@@ -3267,7 +3385,8 @@ export class Agenda {
     public async retryRecord(record: ActiveRecord): Promise<void> {
         this.resumeAfter.delete(record.runId);
         // A deliberate retry starts a fresh chain with the task's own agent (Fixer may take over again if it fails).
-        await this.state.writeActive({ ...record, phase: 'executing', attempt: 0, technicalRetries: 0, completionApplied: false, failure: undefined, recoveryChat: undefined, awaitedMessages: undefined, handover: undefined, feedback: `A previous run failed: ${record.failure ?? 'unknown'}. Inspect the current state and complete the task.` });
+        this.recoveryDue.delete(record.runId);
+        await this.state.writeActive({ ...record, phase: 'executing', attempt: 0, technicalRetries: 0, completionApplied: false, failure: undefined, recoveryChat: undefined, awaitedMessages: undefined, handover: undefined, recovery: undefined, feedback: `A previous run failed: ${record.failure ?? 'unknown'}. Inspect the current state and complete the task.` });
         this.log(`Retrying "${record.taskTitle}".`);
         this.wake();
     }
@@ -3517,12 +3636,29 @@ export class Agenda {
     }
 
     /**
-     * Restores a checkpointed task whose request was resolved, so it resumes at the correct phase without another
-     * Start/Run action. Returns whether one was restored.
+     * The baseline of a resumed checkpoint: later commits of other work are the new baseline, while the run's own kept
+     * changes keep their original baseline.
+     */
+    private async resumedPreSnapshot(record: ActiveRecord): Promise<Record<string, string | null>> {
+        const fresh = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot! }, new Set([...this.authoredPaths, ...this.ownership.heldByOthers(record.runId)]));
+        const preSnapshot: Record<string, string | null> = { ...fresh };
+        for (const path of record.ownedFiles ?? []) {
+            if (Object.hasOwn(record.preSnapshot, path)) preSnapshot[path] = record.preSnapshot[path]!;
+            else delete preSnapshot[path];
+        }
+        return preSnapshot;
+    }
+
+    /**
+     * Restores a checkpointed task whose request was resolved, or whose automatic recheck is due, so it resumes at the
+     * correct phase without another Start/Run action. Returns whether one was restored.
      */
     private async resumeParked(): Promise<boolean> {
         if (!this.repositoryRoot) return false;
-        for (const record of await this.state.readParked()) {
+        const parked = await this.state.readParked();
+        // Rechecks of tasks no longer checkpointed (acknowledged, retried, resumed) no longer wake the loop.
+        for (const runId of [...this.recoveryDue.keys()]) if (!parked.some((record) => record.runId === runId)) this.recoveryDue.delete(runId);
+        for (const record of parked) {
             if (record.worktree) {
                 // A result of an older engine's task worktree waits for its merge: complete it once its commit is part
                 // of the project branch. Unmerged work stays checkpointed and explained, never deleted or resumed here.
@@ -3532,16 +3668,30 @@ export class Agenda {
                 }
                 continue;
             }
+            if (record.phase === 'failed') {
+                // A failed task recovers through automatic rechecks; a question an older engine asked may still be answered.
+                const answered = record.recoveryChat ? (await this.chatReplyOf(record.recoveryChat, record.awaitedMessages, RECOVERY_CHOICES, record.answerMessage)).answered : false;
+                if (!answered) {
+                    const recovery = record.recovery;
+                    if (!recovery) {
+                        await this.scheduleRecovery(record, await this.assessFailure(record));
+                        continue;
+                    }
+                    const spacing = Math.min(RECOVERY_MIN_SPACING_MS, Number(this.options.env.PTBK_RECOVERY_RECHECK_MS) || RECOVERY_RECHECK_MS);
+                    const changed = Date.now() - Date.parse(recovery.scheduledAt ?? recovery.since) >= spacing && (await this.recoveryConditions(record)) !== recovery.conditions;
+                    const due = Date.parse(recovery.nextAt) <= Date.now();
+                    if (!due && !changed) {
+                        this.recoveryDue.set(record.runId, Date.parse(recovery.nextAt));
+                        continue;
+                    }
+                    await this.startRecheck(record, recovery, changed ? 'its source, tools or check changed' : `scheduled after ${recovery.rounds === 1 ? 'the failure' : `${recovery.rounds} failed rounds`}`);
+                    return true;
+                }
+            }
             const chat = record.phase === 'awaiting-user' ? record.waitingChat : record.recoveryChat;
             if (chat && !(await this.chatReplyOf(chat, record.awaitedMessages, record.phase === 'failed' ? RECOVERY_CHOICES : undefined, record.answerMessage)).answered) continue;
             if (this.walletPending(record)) continue;
-            // Later commits of other work are the new baseline; the run's own kept changes keep their original baseline.
-            const fresh = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, new Set([...this.authoredPaths, ...this.ownership.heldByOthers(record.runId)]));
-            const preSnapshot: Record<string, string | null> = { ...fresh };
-            for (const path of record.ownedFiles ?? []) {
-                if (Object.hasOwn(record.preSnapshot, path)) preSnapshot[path] = record.preSnapshot[path]!;
-                else delete preSnapshot[path];
-            }
+            const preSnapshot = await this.resumedPreSnapshot(record);
             await this.state.unpark({ ...record, preSnapshot, instanceId: this.options.instanceId });
             this.log(record.waitingWallet ? `Resuming "${record.taskTitle}": its Wallet login request was settled.` : `Resuming "${record.taskTitle}" after your reply${chat ? ` in {${chat}}` : ''}.`);
             return true;

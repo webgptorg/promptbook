@@ -41,6 +41,12 @@ export default async function recover(context: CommandContext): Promise<number> 
                 `Attempts: ${record.attempt} implementation/repair, ${record.technicalRetries} technical retries`,
                 `Routing: ${record.routing.agent} on ${record.routing.harness}${record.routing.model ? ` ${record.routing.model}` : ''}`,
                 ...(record.handover ? [`Taken over by: ${record.handover.agent} after ${record.handover.from} could not (${record.handover.failure})`] : []),
+                ...(record.recovery
+                    ? [
+                          `Automatic recovery: recheck ${record.recovery.rounds} due ${record.recovery.nextAt} (sooner when its source, tools or check change; no reply is needed)${record.recovery.equivalent ? `; the same failure repeated ${record.recovery.equivalent} time(s) under unchanged conditions` : ''}`,
+                          ...record.recovery.remedies.map((remedy) => `  tried: ${remedy}`),
+                      ]
+                    : []),
                 ...(record.worktree ? [`Task worktree of an older engine: ${record.worktree} (branch ${isolationBranch(record.runId)}); task worktrees were removed, so merge or discard that branch yourself`] : []),
                 ...(record.ownedFiles?.length ? [`Owned files: ${record.ownedFiles.join(', ')}`] : []),
                 `Commit mode: ${record.noCommit ? 'no-commit' : 'automatic'}${record.commitSha ? `; committed ${record.commitSha}` : ''}`,

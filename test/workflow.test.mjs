@@ -181,19 +181,18 @@ test('a failing check feeds a repair attempt; completion is only stamped after t
     assert.ok(findGenerated(await subjects(project), 'Repair me FAIL_CHECK_ONCE', 'ptbk: '));
 });
 
-test('a blocked agent leaves a recovery decision; acknowledging records the failure in its own commit', async (t) => {
+test('a blocked agent gets an automatic recheck instead of a Retry question; acknowledging records the failure in its own commit', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     await ptbk(['add', 'Impossible BLOCKED work', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
-    const run = await drive(project, env, async () => (await waitingChats(project, env)).length > 0, { message: 'the recovery decision' });
+    const run = await drive(project, env, async () => /Automatic recovery: recheck 1/.test((await ptbk(['recover', '--raw'], { cwd: project, env })).stdout), { message: 'the scheduled recheck' });
     assert.match(run.stdout, /reported the task as blocked/);
-    assert.match(run.stdout, /Fixer takes over/, 'automatic repair is tried before anyone is asked');
-    const chats = await waitingChats(project, env);
-    assert.equal(chats.length, 1);
-    assert.equal(chats[0].agent, '@Fixer', 'the agent that last handled the task asks, not the environment');
-    assert.deepEqual(chats[0].awaiting.choices, ['Retry the task', 'Acknowledge the failure']);
-    assert.match(chats[0].links[0], generated('Impossible BLOCKED work', '{', '}'));
+    assert.match(run.stdout, /Fixer takes over/, 'automatic repair is tried first');
+    assert.match(run.stdout, /Nobody needs to retry it: automatic recheck 1 is due/);
+    assert.equal((await waitingChats(project, env)).length, 0, 'no generic Retry question is asked');
     const inspect = await ptbk(['recover', '--raw'], { cwd: project, env });
     assert.match(inspect.stdout, /Phase: failed/);
+    const scheduled = JSON.parse((await ptbk(['list', '--json'], { cwd: project, env })).stdout);
+    assert.match(scheduled.tasks.find((task) => generated('Impossible BLOCKED work').test(task.title)).reason ?? '', /Automatic recheck 1 is due/);
     const reference = /Task: .* \(([^)]+)\) —/.exec(inspect.stdout)[1];
     const acknowledged = await ptbk(['recover', reference, '--action', 'acknowledge', '--raw'], { cwd: project, env });
     assert.equal(acknowledged.code, 0, acknowledged.output);

@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { prepareCoreAgents, threeWayMerge } from '../dist/project/core-templates.js';
-import { ADAM_BOOK, ADAM_PREVIOUS_BOOKS, CORE_AGENTS, TASKER_BOOK } from '../dist/project/defaults.js';
+import { ADAM_BOOK, ADAM_PREVIOUS_BOOKS, CORE_AGENTS, FIXER_BOOK, FIXER_PREVIOUS_BOOKS, TASKER_BOOK } from '../dist/project/defaults.js';
 import { temporaryDirectory } from './helpers.mjs';
 
 /**
@@ -79,7 +79,7 @@ test('core preparation: an older unchanged or learned Adam receives the new rule
 
 test('core preparation: a recorded baseline merges independent upstream and learned changes; customized roles without template changes stay untouched', async (t) => {
     const oldTasker = TASKER_BOOK.split('\n').filter((line) => !line.startsWith('NOTE ')).join('\n');
-    const project = await projectWith(t, { '.core/tasker.book': `${oldTasker}RULE Learned: label tasks by area.\n`, '.core/fixer.book': 'AGENT Fixer\nFROM @Adam\nGOAL Our own repair policy.\nTEAM @User\n' });
+    const project = await projectWith(t, { '.core/tasker.book': `${oldTasker}RULE Learned: label tasks by area.\n`, '.core/teacher.book': 'AGENT Teacher\nFROM @Adam\nGOAL Our own teaching policy.\n' });
     await mkdir(project.runtimeRoot, { recursive: true });
     await writeFile(join(project.runtimeRoot, 'core-templates.json'), JSON.stringify({ version: 1, baselines: { '.core/tasker.book': { template: oldTasker, input: { teammates: [] }, engineVersion: '0.0.1', recordedAt: '2026-10-01T00:00:00Z' } } }));
     const result = await prepareCoreAgents(project.root, 'agents', { runtimeRoot: project.runtimeRoot });
@@ -87,5 +87,13 @@ test('core preparation: a recorded baseline merges independent upstream and lear
     const tasker = await project.read('.core/tasker.book');
     assert.match(tasker, /^NOTE Turns the user's intent/m, 'the upstream line is applied');
     assert.match(tasker, /RULE Learned: label tasks by area\.\n$/, 'the learned rule is kept');
-    assert.equal(await project.read('.core/fixer.book'), 'AGENT Fixer\nFROM @Adam\nGOAL Our own repair policy.\nTEAM @User\n', 'a customized Fixer whose template did not change is never reset');
+    assert.equal(await project.read('.core/teacher.book'), 'AGENT Teacher\nFROM @Adam\nGOAL Our own teaching policy.\n', 'a customized role whose template did not change is never reset');
+});
+
+test('core preparation: an exact earlier Fixer template receives the cause-aware retry rules', async (t) => {
+    const project = await projectWith(t, { '.core/fixer.book': FIXER_PREVIOUS_BOOKS[0] });
+    const result = await prepareCoreAgents(project.root, 'agents', { runtimeRoot: project.runtimeRoot });
+    assert.deepEqual(result.conflicts, []);
+    assert.equal(await project.read('.core/fixer.book'), FIXER_BOOK);
+    assert.match(FIXER_BOOK, /exhausted retry budget is no reason to ask User/);
 });

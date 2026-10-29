@@ -1,5 +1,12 @@
 # Unreleased
 
+## Cause-aware recovery instead of a Retry question
+
+-   A task whose immediate budgets are exhausted (and that Fixer could not finish in its bounded round) is no longer turned into a "Retry the task / Acknowledge the failure" question. The engine checkpoints it with its cause, the remedies already tried and a persisted next automatic recheck, and keeps its files and independent work going. Rechecks back off from 15 minutes (×4 per round, spread ±10 %) up to 24 hours; a failure that repeats under unchanged conditions waits the longest, so an unavailable provider causes no paid idle loop. An edited task source, changed tools or a changed project check bring the recheck forward (never sooner than a minute after it was scheduled). Every recheck starts a fresh burst with the history of what was tried and Fixer may take over again; due rechecks still obey pause and stop.
+-   `ptbk recover` shows the scheduled recheck and the remedies tried; the task list explains that no reply is needed. `--action retry` and `--action acknowledge` remain the explicit choices. A recovery question an older engine already asked is still answerable; otherwise it is resolved with the reason when the next automatic recheck starts.
+-   Fixer's initial Book gains two rules: an exhausted retry budget is no reason to ask User whether to continue, and remote outcomes and action records are reconciled before any send, submission or publication is repeated. Existing projects receive them through the core-template update (the previous Fixer template is now a recognized base).
+-   The two fixtures that expected the question now check the scheduled recheck, a due recheck with a fresh budget (Developer, then Fixer again) and the longer wait after an equivalent failure; a new core-template fixture checks the Fixer update.
+
 ## Inactive engines come back paused: `ptbk start --paused` and paused OS startup
 
 -   New `ptbk start --paused` starts an absent service with a manual pause installed before the engine exists, so it holds before the first scheduling opportunity: dashboard, API, controls and chat work, while queued tasks (bootstrap, Router assignment, Fixer, Teacher, discovery and every other background task) wait for `ptbk resume`. A running service keeps its state; the result says so. The global dashboard offers the same through **Shift+S** (Start paused) and **A Shift+S** (Start all paused); an older installation that cannot start paused is reported, never started running instead.

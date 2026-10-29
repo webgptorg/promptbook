@@ -55,16 +55,25 @@ test('automatic repair: a task its agent cannot finish is handed to Fixer, which
     assert.ok(events.some((event) => event.event === 'handed-over' && event.to === 'Fixer' && event.from === 'Developer'), 'the takeover is part of the task evidence');
 });
 
-test('automatic repair: when Fixer cannot resolve a failure either, Fixer asks how to continue', async (t) => {
-    const { project, env, log } = await initializedProject(t, { check: CHECK });
+test('automatic repair: when Fixer cannot resolve a failure either, nobody is asked to retry; cause-aware rechecks follow with fresh budgets', async (t) => {
+    const { project, env: baseEnv, log } = await initializedProject(t, { check: CHECK });
+    const env = { ...baseEnv, PTBK_RECOVERY_RECHECK_MS: '3000' };
     await addTask(project, env, 'Impossible BLOCKED work');
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
-    const [chat] = await waitFor(async () => {
-        const chats = await waitingChats(project, env);
-        return chats.length ? chats : undefined;
-    }, { message: 'the recovery decision', timeoutMs: 90_000 });
+    const scheduled = await waitFor(async () => {
+        const inspected = await ptbk(['recover', '--raw'], { cwd: project, env });
+        return /Automatic recovery: recheck 1 due/.test(inspected.stdout) ? inspected.stdout : undefined;
+    }, { message: 'the first automatic recheck to be scheduled', timeoutMs: 90_000 });
+    assert.match(scheduled, /no reply is needed/);
+    assert.match(scheduled, /tried: Developer, then Fixer,/, 'the remedies already tried are kept');
+    assert.equal((await waitingChats(project, env)).length, 0, 'an exhausted budget never asks whether to retry');
+    // The due recheck runs again with a fresh budget (the task's agent, then Fixer), and the equivalent failure waits longer.
+    const second = await waitFor(async () => {
+        const inspected = await ptbk(['recover', '--raw'], { cwd: project, env });
+        return /Automatic recovery: recheck 2 due/.test(inspected.stdout) ? inspected.stdout : undefined;
+    }, { message: 'the second automatic recheck to be scheduled', timeoutMs: 90_000 });
+    assert.match(second, /the same failure repeated 1 time\(s\) under unchanged conditions/);
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
-    assert.equal(chat.agent, '@Fixer', 'the agent that last handled the problem asks, under its own Book');
-    assert.deepEqual(chat.awaiting.choices, ['Retry the task', 'Acknowledge the failure']);
-    assert.deepEqual((await turnsOf(log, 'Impossible BLOCKED work')).map((turn) => turn.agent), ['Developer', 'Fixer'], 'one bounded Fixer round, no loop');
+    assert.deepEqual((await turnsOf(log, 'Impossible BLOCKED work')).map((turn) => turn.agent), ['Developer', 'Fixer', 'Developer', 'Fixer'], 'one bounded burst per round, no tight loop');
+    assert.equal((await waitingChats(project, env)).length, 0);
 });
