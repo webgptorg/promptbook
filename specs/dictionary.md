@@ -43,3 +43,5 @@
 **External action / Action log:** Remote state change recorded as one Markdown file under `actions/<task-file-basename>/`, independently versioned from optional traces. Reads/downloads are excluded and uncertain effects are reconciled before retry. See [action log](cli/action-log.md).
 
 **Project brief:** Root `report.book`, `CHAT Report`, Chatter alone appending all briefs. Chatter is the spokesperson; dashboard/status only read the latest complete message and Discuss creates a new snapshot-seeded thread. **History / Files:** Distinct Git-message/topology and read-only project-inspection pages; Book viewing/editing shares one long-document core. See [report](cli/project-report.md).
+
+**Wallet import:** Protected shared source/selection flow, initially Bitwarden JSON, in optional init and Wallet with individual/all/none selection. **New recovery words:** Preserve/re-encrypt contents when a key remains. **Reset Wallet:** Explicit all-data-loss-confirmed empty encrypted replacement when no key remains; account metadata stays encrypted. See [import](cli/wallet-import.md) and [recovery](cli/wallet-recovery.md).

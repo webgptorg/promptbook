@@ -46,9 +46,15 @@ Management adds/updates/removes records through shared operations with atomic re
 
 ## Initialization and presentation
 
-Init offers **Set up Wallet now?**, default No. Yes uses precisely the same protected initialization and 12-recovery-word flow as later dashboard/first use, without duplicating logic or recreating an initialized vault. No defers it.
+Init offers **Set up Wallet now?**, default No. Yes uses precisely the same protected initialization and 12-recovery-word flow as later dashboard/first use, without duplicating logic or recreating an initialized vault. No defers it. After chosen/reused setup, offer the same optional Bitwarden import before init completes, with individual/all/none selection and no later mandatory dashboard visit.
 
-The home tile gives a compact ready/empty/waiting/failure summary and pending count. Its page lists nonsecret service/account labels, workflow progress and protected management actions. Never present keys, passwords, codes or recovery words as ordinary state or chat text. Recovery words appear only in deliberate protected setup/restoration. Requests are Wallet actions, not a fourth Book entity; chats may contain a nonsecret reason/link/outcome.
+The home tile gives a compact ready/empty/waiting/failure summary and pending count. Its page lists nonsecret service/account labels, workflow progress and protected management actions. Never present keys, passwords, codes or recovery words as ordinary state or chat text. Recovery words appear only in deliberate protected setup/restoration/replacement flows. Requests are Wallet actions, not a fourth Book entity; chats may contain a nonsecret reason/link/outcome.
+
+## Import and recovery management
+
+Provide the shared extensible [Bitwarden importer](wallet-import.md) in Wallet and optional init setup, with individual/all/none selection, duplicate/conflict handling and whole-record encryption. Selected routine access should not require a later dashboard configuration visit.
+
+The Wallet page offers [new recovery words or reset](wallet-recovery.md): if a valid host/other key can decrypt it, re-encrypt all contents with fresh words and preserve records; if all keys/words are lost, only a strongly warned, separately confirmed empty reset is possible. Keep account/service metadata encrypted too. No plaintext account index or routine login/update approval is introduced.
 
 ## Acceptance outcomes
 

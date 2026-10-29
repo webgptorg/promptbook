@@ -4,7 +4,7 @@
 
 ## Scope and lazy setup
 
-Each project has its own encryption root and encrypted local data. Start with **Wallet credentials and TOTP generators only**. The key hierarchy can protect other domains later, but this version does not encrypt all Books, traces, configuration, browser profiles or existing `.env` keys.
+Each project has its own encryption root and encrypted local data. Encrypt the entire Wallet record, including service/origin, account/username and label as well as passwords/TOTP parameters; do not add a plaintext account index for recovery. Start with **Wallet credentials and TOTP generators only**. The key hierarchy can protect other domains later, but this version does not encrypt all Books, traces, configuration, browser profiles or existing `.env` keys.
 
 Initialize encryption lazily on first Wallet use requiring storage, or through init's optional **Set up Wallet now?** choice (default No). Both call the same protected setup operation. Generate **12 random recovery words** and show them only in the owner's protected setup surface, with simple guidance to write them down and keep them safely for recovery of encrypted data. Do not add routine unlock/reconfirmation to every use or reboot. Choosing No leaves an empty project without a phrase prompt; choosing Yes deliberately opens the same protected flow. Interrupted first setup preserves a recoverable state and never overwrites an existing vault/key.
 
@@ -31,6 +31,10 @@ Provision local automatic unlock once during protected setup/restoration. Afterw
 Copying the complete project folder preserves ciphertext/metadata but **does not by itself grant decryption on another host**. Enter the same 12 words once through protected owner input, derive/verify the existing key against the ciphertext and provision that host's automatic unlock. Existing login passwords need not be entered again. Do not silently create a new empty wallet on an unlock error. Recovery needs both the encrypted project data and words; words alone do not restore deleted credential records. Losing both the host unlock and words loses access, without a backdoor.
 
 The trusted engine/Wallet boundary may decrypt for authorized operations. Agent model contexts and agent tool processes must not have direct access to the host unlock facility, raw keys, mnemonic or decrypted records. Enforce tool/filesystem/process permissions; encryption plus prompt instructions or UI redaction alone does not isolate an agent with unrestricted same-user host access. Do not advertise such an unconfined mode as providing this protection. The host administrator's authority is outside the agent-isolation boundary.
+
+## Recovery-word replacement and explicit reset
+
+[Wallet recovery](wallet-recovery.md) distinguishes two paths. With a valid available decryption key, fresh random 12 words derive a new root and re-encrypt all records, replacing ciphertext/metadata/current-host envelope consistently and preserving interruption recovery. Old words cannot unlock the updated generation; historical ciphertext is unaffected. With no valid key/phrase, no old record metadata/password can be recovered: only explicit strongly confirmed reset may create a new empty encrypted generation and host binding. Never weaken host protection, retain a plaintext account list or rotate/reset again just to retry an audit. Preserve unrelated project state.
 
 ## Acceptance outcomes
 

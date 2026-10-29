@@ -36,7 +36,7 @@ Collect/reuse the three Traces choices: `traces.isCommitted`, `traces.isVideoIgn
 
 ## Optional Wallet setup
 
-Offer **Set up Wallet now?**, default **No**. No leaves Wallet/encryption available for later setup from its dashboard or first protected use. Yes calls the exact same shared Wallet/encryption initialization operation, including protected presentation of the 12 recovery words. Do not duplicate logic in the wizard or recreate an existing vault. Noninteractive use supplies the equivalent decision without hidden prompts. See [Wallet](wallet.md) and [project encryption](project-encryption.md).
+Offer **Set up Wallet now?**, default **No**. No leaves Wallet/encryption available for later setup from its dashboard or first protected use. Yes calls the exact same shared Wallet/encryption initialization operation, including protected presentation of the 12 recovery words. Do not duplicate logic in the wizard or recreate an existing vault. Noninteractive use supplies the equivalent decision without hidden prompts. After chosen/reused setup, offer the shared optional [Bitwarden import](wallet-import.md) with individual/all/none selection. Wallet No skips import; no import is valid. Preserve existing items and shared duplicate/conflict handling. Complete selected routine credential/readiness setup now rather than require a later dashboard visit. Noninteractive input retains protected boundaries, never ordinary secret arguments/chat. See [Wallet](wallet.md) and [project encryption](project-encryption.md).
 
 ## No check-command question
 
@@ -52,7 +52,7 @@ Save the ordinary first task assigned to Expert and referring to `specs/_initial
 
 ## Completion and automatic start
 
-Successful local technical setup leaves selected initial tools usable, required roles/storage present, original intent/assets and the ordinary bootstrap saved, and either preserved real validation or the explicitly labelled placeholder. Default setup is committed. Check the settings the service will actually use, not wizard-only state. Do not claim checks or publication succeeded merely because files or login windows were created.
+Successful local technical setup leaves selected initial tools and chosen credential imports usable within supported capabilities, required roles/storage present, original intent/assets and the ordinary bootstrap saved, and either preserved real validation or the explicitly labelled placeholder. Default setup is committed. Check the settings the service will actually use, not wizard-only state. Do not claim checks or publication succeeded merely because files or login windows were created.
 
 Automatically perform the ordinary [background start](start.md) with the selected project and applicable explicit overrides. No extra Start confirmation is required. In ordinary interactive presentation, successful init then automatically hands off to the ordinary project dashboard unless `--no-dashboard` (or raw/noninteractive/no-UI presentation) suppresses that viewer. The daemon executes Expert and follow-ups through the normal queue; init does not execute them inline or wait for their checks/results.
 
