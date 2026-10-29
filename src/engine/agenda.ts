@@ -3896,6 +3896,16 @@ export class Agenda {
         }
     }
 
+    /**
+     * Reinspects every tool now (no browser launch, no model call), e.g. after an attended native sign-in in another
+     * terminal: cached readiness would otherwise hide the new login until its next periodic inspection.
+     */
+    public async recheckTools(): Promise<ToolsView> {
+        await this.refreshTools(true);
+        this.wake();
+        return this.tools;
+    }
+
     /** Whether a run waits for a Wallet login request that is still pending (an unknown request never blocks). */
     private walletPending(record: ActiveRecord): boolean {
         return record.phase === 'awaiting-user' && Boolean(record.waitingWallet) && this.wallet.action(record.waitingWallet!)?.state === 'pending';

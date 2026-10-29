@@ -1,5 +1,11 @@
 # Unreleased
 
+## Harness sign-in in later tool setup, not only in init
+
+-   `ptbk tool add`, `modify` and `enable` now check a saved, enabled harness the way init does: as this terminal sees it and as the background service sees it after detachment or reboot. A native instance that is not signed in gets init's own attended sign-in (the same shared code, remote-compatible methods first over SSH, Ctrl+C scoped to the sign-in) **in its own account context**, so `--account-profile company` signs in that context instead of the default login. **Not now** keeps the tool saved but not usable. Without a terminal, or with `--json`, nothing waits: the state and the next step are printed (`Sign in from an interactive terminal with ptbk tool enable <name>`). Enabling an already enabled tool commits nothing and only checks it again, which is also the way back to sign-in after a lost login.
+-   After such a sign-in a running engine reinspects its tools at once (new local control request `tool-recheck`), instead of keeping the cached signed-out state until its next periodic inspection; an older engine finds it then.
+-   The fake Codex keeps a separate sign-in per `CODEX_HOME` like the real CLI. A new fixture adds a native instance with its own account context next to a signed-in default login, verifies that it is reported signed out with its sign-in command and no waiting, then signed in, with only the addition committed. The interactive tool and init sign-ins were driven in a pseudo-terminal through a device-code login.
+
 ## Installation documentation: complete VPS shell entry
 
 -   README and the VPS guide now link the attended website shell entry, which reuses the existing Ubuntu installer and hands the SSH terminal to ordinary init as `promptbook`. Preserved the lower-level version-selectable installer and provider bootstrap paths; added concise Codex/Claude native headless sign-in instructions. This does not change engine adapters or claim a complete live VPS installation test.

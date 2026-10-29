@@ -5,6 +5,12 @@ import { SyncCoordinator } from '../../engine/sync.js';
 import { maintainProjectConfiguration } from '../../project/configuration.js';
 import type { Project } from '../../project/workspace.js';
 import { HarnessPool } from '../../engine/harnesses.js';
+import { loginLocation } from '../../harness/maintenance.js';
+import { harnessPlugin } from '../../harness/registry.js';
+import type { HarnessContext } from '../../harness/types.js';
+import { persistentServiceEnvironment } from '../../service/records.js';
+import { harnessPluginId, type HarnessToolRecord } from '../../tools/model.js';
+import { attendHarnessSignIn, serviceProblemOf } from '../../ui/harness-sign-in.js';
 import type { ServiceSnapshot, ToolsView, ToolView } from '../../engine/snapshot.js';
 import { lookupService } from '../../service/control.js';
 import { applyToolOperation, commandOf, type ToolChanges, type ToolDraft, type ToolOperation, type ToolOperationOutcome, type ToolOperationRequest } from '../../tools/operations.js';
@@ -236,7 +242,12 @@ async function apply(context: CommandContext): Promise<number> {
     }
     for (let round = 0; round < 3; round++) {
         const outcome = await execute(context, project, request);
-        if (outcome.status !== 'needs-acknowledgement' || !context.terminal.interactive || flag(context, 'json')) return report(context, operation, outcome);
+        if (outcome.status !== 'needs-acknowledgement') {
+            const code = report(context, operation, outcome);
+            if (!flag(context, 'json')) await setUpHarness(context, project, operation);
+            return code;
+        }
+        if (!context.terminal.interactive || flag(context, 'json')) return report(context, operation, outcome);
         // Interactive: the last-of-type warning can be confirmed here; an in-use tool still needs the explicit choice.
         const lastOfType = outcome.requirements.find((requirement) => requirement.kind === 'last-of-type');
         if (!lastOfType || outcome.requirements.some((requirement) => requirement.kind === 'in-use')) return report(context, operation, outcome);
@@ -248,6 +259,54 @@ async function apply(context: CommandContext): Promise<number> {
         request.acknowledgements = { ...request.acknowledgements, confirmLastOfType: true };
     }
     return EXIT.incomplete;
+}
+
+/**
+ * After adding, modifying or enabling a harness tool: its readiness in this terminal and in the background service's
+ * environment. A signed-out native instance gets init's attended sign-in in its own account context (interactive
+ * terminals only; otherwise the state and the next action are reported, never waited on), and a running engine then
+ * reinspects its tools at once instead of after its periodic inspection.
+ */
+async function setUpHarness(context: CommandContext, project: Project, operation: ToolOperation): Promise<void> {
+    const name = operation.kind === 'add' ? operation.tool.name : operation.kind === 'modify' ? (operation.rename ?? operation.name) : operation.kind === 'enable' ? operation.name : undefined;
+    if (!name) return;
+    const settings = await loadSettings(project, { env: context.env });
+    const tool = settings.tools.find((candidate): candidate is HarnessToolRecord => candidate.type === 'HARNESS' && candidate.name === name);
+    const plugin = tool?.isEnabled ? harnessPlugin(harnessPluginId(tool.variant)) : undefined;
+    if (!tool || !plugin) return;
+    const { terminal } = context;
+    const marks = symbols(terminal.unicode);
+    // The instance as this terminal and as the background service (after detachment or reboot) see it.
+    const pools = [new HarnessPool(project.root, settings, context.env), new HarnessPool(project.root, settings, persistentServiceEnvironment(context.env))];
+    await Promise.all(pools.map(async (pool) => await pool.reloadCredentials()));
+    const [here, service] = pools.map((pool) => pool.context(name)) as [HarnessContext, HarnessContext];
+    let inspection = await plugin.inspect(here);
+    let serviceProblem = await serviceProblemOf(plugin, inspection, service);
+    const wasReady = inspection.usable && !serviceProblem;
+    if (tool.authentication === 'NATIVE' && terminal.interactive) {
+        ({ inspection, serviceProblem } = await attendHarnessSignIn(terminal, {
+            plugin,
+            context: here,
+            service,
+            place: loginLocation(context.env),
+            inspection,
+            serviceProblem,
+            frame: () => ({ title: 'ptbk tool', step: `Sign in ${name}` }),
+            exits: [{ value: 'skip', label: 'Not now (the tool stays saved but cannot be used until signed in)' }],
+            say: (text) => terminal.write(`${text}\n`),
+        }));
+    }
+    if (inspection.usable && !serviceProblem) {
+        terminal.write(`${terminal.style.success(marks.ok)} ${name}: ${inspection.summary}\n`);
+        if (wasReady) return;
+        const lookup = await lookupService(project);
+        // An older engine without this request finds the sign-in at its next periodic inspection.
+        if (lookup.state === 'running' && lookup.engine.compatible) await lookup.client.request('tool-recheck').catch(() => undefined);
+        return;
+    }
+    const signedOut = tool.authentication === 'NATIVE' && inspection.installed && inspection.authenticated === false;
+    const next = serviceProblem?.nextAction ?? (signedOut ? `Sign in from an interactive terminal with \`ptbk tool enable ${name}\` (it stays enabled).` : inspection.nextAction);
+    terminal.write(`${terminal.style.warning(marks.warn)} ${name}: ${serviceProblem ? `signed in here, but ${serviceProblem.summary}` : inspection.summary}${next ? terminal.style.muted(` → ${next}`) : ''}\n`);
 }
 
 /**

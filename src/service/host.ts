@@ -304,6 +304,8 @@ export class ServiceHost {
                 return await applyControlAction(agenda, method, params, this.browserControls);
             case 'tool-operation':
                 return await applyToolAction(agenda, params, typeof params.via === 'string' ? params.via : 'cli');
+            case 'tool-recheck':
+                return await agenda.recheckTools();
             case 'chat-list':
             case 'chat-agents':
             case 'chat-get':

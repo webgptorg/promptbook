@@ -32,7 +32,7 @@
  */
 import { spawn } from 'node:child_process';
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 
 const args = process.argv.slice(2);
 const print = (value) => process.stdout.write(`${typeof value === 'string' ? value : JSON.stringify(value)}\n`);
@@ -41,19 +41,24 @@ if (args[0] === '--version') {
     print('codex-cli 9.9.9');
     process.exit(0);
 }
-// Native sign-in: with $FAKE_CODEX_AUTH_FILE, the login state is that file's existence. `login --device-auth` follows
-// $FAKE_CODEX_LOGIN_RESULT (success, expired, disabled or denied) and records its BROWSER/API-key environment in
-// $FAKE_CODEX_LOGIN_LOG; $FAKE_CODEX_NO_DEVICE_AUTH hides the flag like an older Codex.
+// Native sign-in: with $FAKE_CODEX_AUTH_FILE, the login state is that file's existence; a separate $CODEX_HOME (a
+// native account context) keeps its own file of that name, signed in independently. `login --device-auth` follows
+// $FAKE_CODEX_LOGIN_RESULT (success, expired, disabled or denied) and records its BROWSER/API-key environment and
+// account home in $FAKE_CODEX_LOGIN_LOG; $FAKE_CODEX_NO_DEVICE_AUTH hides the flag like an older Codex.
+const authFile = process.env.FAKE_CODEX_AUTH_FILE && process.env.CODEX_HOME ? join(process.env.CODEX_HOME, basename(process.env.FAKE_CODEX_AUTH_FILE)) : process.env.FAKE_CODEX_AUTH_FILE;
 if (args[0] === 'login' && args.includes('--help')) {
     print(`Manage login\n\nUsage: codex login [OPTIONS] [COMMAND]\n\nOptions:\n      --with-api-key\n${process.env.FAKE_CODEX_NO_DEVICE_AUTH ? '' : '      --device-auth\n'}  -h, --help`);
     process.exit(0);
 }
 if (args[0] === 'login' && args[1] !== 'status') {
-    if (process.env.FAKE_CODEX_LOGIN_LOG) appendFileSync(process.env.FAKE_CODEX_LOGIN_LOG, `${JSON.stringify({ args, browser: process.env.BROWSER ?? null, apiKey: Boolean(process.env.OPENAI_API_KEY || process.env.CODEX_API_KEY) })}\n`);
+    if (process.env.FAKE_CODEX_LOGIN_LOG) appendFileSync(process.env.FAKE_CODEX_LOGIN_LOG, `${JSON.stringify({ args, browser: process.env.BROWSER ?? null, apiKey: Boolean(process.env.OPENAI_API_KEY || process.env.CODEX_API_KEY), home: process.env.CODEX_HOME ?? null })}\n`);
     print('Follow these steps to sign in with ChatGPT using device code authorization:\n\n1. Open this link in your browser and sign in to your account\n   https://auth.example.test/codex/device\n\n2. Enter this one-time code (expires in 15 minutes)\n   FAKE-C0DE');
     const result = process.env.FAKE_CODEX_LOGIN_RESULT ?? 'success';
     if (result === 'success') {
-        if (process.env.FAKE_CODEX_AUTH_FILE) writeFileSync(process.env.FAKE_CODEX_AUTH_FILE, 'signed in\n');
+        if (authFile) {
+            if (process.env.CODEX_HOME) mkdirSync(process.env.CODEX_HOME, { recursive: true });
+            writeFileSync(authFile, 'signed in\n');
+        }
         print('Successfully logged in');
         process.exit(0);
     }
@@ -61,7 +66,7 @@ if (args[0] === 'login' && args[1] !== 'status') {
     process.exit(1);
 }
 if (args[0] === 'login' && args[1] === 'status') {
-    if (process.env.FAKE_CODEX_SIGNED_OUT || (process.env.FAKE_CODEX_AUTH_FILE && !existsSync(process.env.FAKE_CODEX_AUTH_FILE))) {
+    if (process.env.FAKE_CODEX_SIGNED_OUT || (authFile && !existsSync(authFile))) {
         process.stderr.write('Not logged in\n');
         process.exit(1);
     }

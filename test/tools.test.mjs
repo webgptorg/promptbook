@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { drive, findGenerated, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
@@ -96,6 +96,29 @@ test('tool management keeps someone else’s uncommitted edit of ptbk.json out o
     assert.equal(working.execution.waitAfterError, '15m', 'the edit stays in the working tree');
     assert.equal(working.tools.at(-1).name, 'second-browser');
     assert.match(await git(project, ['status', '--porcelain']), /M ptbk\.json/);
+});
+
+test('tool setup checks a native harness in its own account context like init; signed out is reported with its sign-in, never waited on', { skip: process.platform === 'win32' }, async (t) => {
+    const { project, env: base } = await initializedProject(t, { check: CHECK });
+    // The default context is signed in; the new company account context has its own, still missing, sign-in.
+    const auth = join(project, '..', 'codex-auth');
+    await writeFile(auth, 'signed in\n');
+    const env = { ...base, FAKE_CODEX_AUTH_FILE: auth };
+    const before = (await subjects(project)).length;
+    const added = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'codex-company', '--account-profile', 'company', '--raw'], { cwd: project, env, input: '' });
+    assert.equal(added.code, 0, added.output);
+    assert.match(added.output, /codex-company: Installed but not logged in\. → Sign in from an interactive terminal with `ptbk tool enable codex-company`/, 'the default sign-in is not mistaken for this account context');
+    assert.equal((await subjects(project)).length, before + 1, 'the addition is saved and committed; nothing waits for a sign-in');
+
+    // Once that account context is signed in, enabling the enabled tool checks it again and commits nothing.
+    const accountHome = join(env.PTBK_HOME, 'harness-accounts', 'openai-codex', 'company');
+    await mkdir(accountHome, { recursive: true });
+    await writeFile(join(accountHome, 'codex-auth'), 'signed in\n');
+    const enabled = await ptbk(['tool', 'enable', 'codex-company', '--raw'], { cwd: project, env });
+    assert.equal(enabled.code, 0, enabled.output);
+    assert.match(enabled.output, /codex-company: Ready \(ChatGPT account login/);
+    assert.equal((await subjects(project)).length, before + 1, 'a readiness check commits nothing');
+    assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
 });
 
 test('live tools: a running engine waits for tools without stopping, and resumes when one is enabled from another terminal', async (t) => {
