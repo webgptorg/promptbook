@@ -1,5 +1,9 @@
 # Unreleased
 
+## DigitalOcean-first cloud deployment
+
+-   Added the primary DigitalOcean Droplet button and startup script with required client IPv4 validation, key-only SSH and the shared Ubuntu installer. Added AWS EC2 CloudFormation setup with encrypted retained storage, SSH-only ingress and installer-success signaling. README and bilingual web distinguish the guided copy/upload steps from Azure's direct deployment form; AI sign-in remains attended.
+
 ## Wallet: whole-record encryption, Bitwarden import, new recovery words and reset
 
 -   Saved logins are now encrypted completely: service, account, label, times, password and TOTP generator are one encrypted record (`records.json` version 2), with no plaintext account or origin index. Records of the older format keep working and are rewritten fully encrypted the first time the Wallet is unlocked. A Wallet this computer cannot unlock shows only how many encrypted logins it holds.

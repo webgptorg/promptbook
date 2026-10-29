@@ -1,0 +1,216 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Promptbook on a paid Ubuntu 24.04 x86-64 EC2 VM. SSH-only; AI sign-in and agenda setup remain attended. Fresh stacks only, not an engine update mechanism.",
+    "Parameters": {
+        "KeyName": {
+            "Type": "AWS::EC2::KeyPair::KeyName",
+            "Description": "Existing SSH key pair in this region. Keep the private key on your computer."
+        },
+        "SshClientCidr": {
+            "Type": "String",
+            "Description": "Your public IPv4 address followed by /32. No default.",
+            "AllowedPattern": "(?!(?:0|10|127)\\.)(?!169\\.254\\.)(?!172\\.(?:1[6-9]|2[0-9]|3[01])\\.)(?!192\\.168\\.)((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])/32",
+            "ConstraintDescription": "Supply one public IPv4 client address with /32, not 0.0.0.0/0."
+        },
+        "InstanceType": {
+            "Type": "String",
+            "Default": "t3.medium",
+            "AllowedValues": [
+                "t3.medium",
+                "t3.large",
+                "t3.xlarge"
+            ],
+            "Description": "x86-64 with at least 4 GB RAM. Review instance, EBS, public IPv4 and transfer charges."
+        },
+        "UbuntuAmi": {
+            "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default": "/aws/service/canonical/ubuntu/server/noble/stable/current/amd64/hvm/ebs-gp3/ami-id",
+            "Description": "Canonical Ubuntu 24.04 x86-64 image for this region; leave unchanged."
+        }
+    },
+    "Resources": {
+        "Vpc": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "10.42.0.0/16",
+                "EnableDnsSupport": true,
+                "EnableDnsHostnames": true
+            }
+        },
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway"
+        },
+        "GatewayAttachment": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Vpc"
+                },
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "Subnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Vpc"
+                },
+                "CidrBlock": "10.42.0.0/24",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        0,
+                        {
+                            "Fn::GetAZs": ""
+                        }
+                    ]
+                }
+            }
+        },
+        "RouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            }
+        },
+        "InternetRoute": {
+            "Type": "AWS::EC2::Route",
+            "DependsOn": "GatewayAttachment",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "SubnetRoute": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "Subnet"
+                },
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                }
+            }
+        },
+        "SshGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "SSH from one client only; engine and browser ports stay private",
+                "VpcId": {
+                    "Ref": "Vpc"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": {
+                            "Ref": "SshClientCidr"
+                        }
+                    }
+                ]
+            }
+        },
+        "InstallHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle"
+        },
+        "Engine": {
+            "Type": "AWS::EC2::Instance",
+            "DependsOn": [
+                "InternetRoute",
+                "SubnetRoute"
+            ],
+            "Properties": {
+                "ImageId": {
+                    "Ref": "UbuntuAmi"
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "MetadataOptions": {
+                    "HttpTokens": "required",
+                    "HttpEndpoint": "enabled"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": true,
+                        "DeviceIndex": "0",
+                        "SubnetId": {
+                            "Ref": "Subnet"
+                        },
+                        "GroupSet": [
+                            {
+                                "Ref": "SshGroup"
+                            }
+                        ]
+                    }
+                ],
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeSize": 64,
+                            "VolumeType": "gp3",
+                            "Encrypted": true,
+                            "DeleteOnTermination": false
+                        }
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}-promptbook"
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/usr/bin/env bash\nset -Eeuo pipefail\numask 022\nsignal_url='${InstallHandle}'\ninstaller=''\n# Report installation failure as failure, not merely a running VM.\nreport_installation() {\n    result=$?\n    trap - EXIT\n    status=FAILURE\n    if (( result == 0 )); then status=SUCCESS; fi\n    curl --fail --silent --show-error --retry 3 -X PUT -H 'Content-Type:' --data-binary \"{\\\"Status\\\":\\\"$status\\\",\\\"Reason\\\":\\\"See cloud-init-output.log and promptbook-install.log\\\",\\\"UniqueId\\\":\\\"bootstrap\\\",\\\"Data\\\":\\\"$status\\\"}\" \"$signal_url\" || result=1\n    if [[ -n \"$installer\" ]]; then rm -f -- \"$installer\"; fi\n    exit \"$result\"\n}\ntrap report_installation EXIT\nexport DEBIAN_FRONTEND=noninteractive\napt-get -o DPkg::Lock::Timeout=300 -o Acquire::Retries=3 update\napt-get -o DPkg::Lock::Timeout=300 -o Acquire::Retries=3 install -y --no-install-recommends ca-certificates curl\ninstaller=\"$(mktemp)\"\ncurl --fail --silent --show-error --location --retry 3 https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o \"$installer\"\nbash \"$installer\"\n"
+                    }
+                }
+            }
+        },
+        "Installation": {
+            "Type": "AWS::CloudFormation::WaitCondition",
+            "DependsOn": "Engine",
+            "Properties": {
+                "Handle": {
+                    "Ref": "InstallHandle"
+                },
+                "Timeout": "3600",
+                "Count": 1
+            }
+        }
+    },
+    "Outputs": {
+        "SshCommand": {
+            "Description": "Use the matching private key with ssh -i. Then initialize an agenda using the setup guide.",
+            "Value": {
+                "Fn::Sub": "ssh ubuntu@${Engine.PublicIp}"
+            }
+        },
+        "InstanceId": {
+            "Value": {
+                "Ref": "Engine"
+            }
+        },
+        "SetupGuide": {
+            "Value": "https://github.com/webgptorg/promptbook/blob/reborn/2026-10/deploy/README.md#finish-setup-over-ssh"
+        },
+        "StorageWarning": {
+            "Value": "The encrypted root EBS volume is retained after instance/stack deletion and continues to incur charges. Back up privately before deleting it explicitly. Stopping a VM does not remove disk charges."
+        }
+    }
+}
