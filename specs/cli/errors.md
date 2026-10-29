@@ -13,3 +13,5 @@ Read-only commands do not create project trace storage. If normal project trace 
 Classify next steps: invalid setup requires correction, authentication requires native login, quota can wait, and safe technical failures can retry within the existing budgets. Never repeat successful model work merely to retry a commit or push. Start remains inspectable while blocked; finite commands terminate with a clear unsuccessful result when they cannot continue.
 
 See [traces](traces.md), [retries](retries.md), [recovery](recovery.md) and [interactive UI](interactive-ui.md).
+
+Explain actual automatic recovery and next check when known. Immediate budget exhaustion is not itself a human Retry requirement; use [cause-aware repair](retries.md). Human input is reserved for a real missing decision/input/authority or necessary action, while independent work continues.

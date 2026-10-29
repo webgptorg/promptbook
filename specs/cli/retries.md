@@ -17,3 +17,11 @@ Commit/signing/disk/push failures do not rerun successful model work or effects.
 Apply deterministic corrections first and hand unresolved/judgment-dependent problems to ordinary Fixer under the core automatic-repair principle. Its Book/TEAM governs consultation, not a new channel or unconditional user prompt. With no execution resources, retain the visible pending repair rather than claiming Fixer ran. The daemon stays controllable; finite commands can return an honest incomplete outcome. See [checks](checks.md), [harnesses](harnesses.md), [recovery](recovery.md) and [traces](traces.md).
 
 The same cause-aware retry path applies to Router, Tasker and other core agents. Use known network recovery/quota reset information or bounded backoff, then send persistent/judgment-dependent failure as an ordinary Fixer repair task with available logs. Do not add separate retry/escalation machinery for each role or consume unbounded model calls on an unavailable provider.
+
+## Cause-aware recovery beyond an immediate budget
+
+Immediate attempt defaults bound a burst, not the lifetime of the agenda. Counter exhaustion alone must never produce a User question or abandon recoverable work. Classify the cause, checkpoint the failed phase and use an authorized alternative, ordinary Fixer or a scheduled recheck. Respect known recovery/quota times, connectivity changes and capped backoff with suitable spreading; do not hammer an outage or rejected credentials.
+
+Persist reason, attempted remedies and next opportunity across restarts. Changed conditions/new tools can bring an attempt forward. Repeated equivalent failures without new evidence wait or change strategy instead of consuming paid idle inference. Task/chat/core-agent, Wallet, tool and Git retries share these principles with domain-safe operations, not independent escalation policies. Due retries still obey pause/stop.
+
+Ask only for an actual missing substantive decision, input, authority or genuinely necessary human action; explain that need instead of offering a generic Retry question. Before repeating a state-changing request after uncertain response, reconcile [action records](action-log.md), local intent and actual service evidence. Prefer supported idempotency; never duplicate email/publication/submission because of a timeout, check failure or failed commit/push.

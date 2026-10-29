@@ -54,6 +54,8 @@ Respect configured Git identity/signing, including `CODING_AGENT_GIT_NAME`, `COD
 
 A full revert may reverse result/completion together or remove a task created there. Reverts add history rather than rewriting it. Git cannot undo browser/external effects; preserve their evidence and never repeat them solely because a completion stamp disappeared.
 
+[External task actions](action-log.md) save/commit Markdown records independently of trace inclusion or successful task completion. Use scoped audit boundaries, not a second successful task-result commit; later results reference earlier action audits without rewriting them. An empty commit cannot replace a required record. Failed Git persistence resumes only persistence, never the remote effect.
+
 ## Acceptance outcomes
 
 Verify creation commits before dispatch, one meaningful lowercase ptbk prefix with a backtick-quoted visual only for actual agent work, task/chat name correlation and one result per occurrence. Verify immediate message/file saves, meaningful debounced batches with a bounded flush, saved-versus-committed state and recovery after force stop before a commit. Interleave tool changes and task work, including same-file edits: preserve both scoped histories and unrelated staging. Test mandatory version-only migration commits, normalization no-ops, secret exclusion, failed hooks/signing and explicit uncommitted workflows. Pull/push failure does not rerun successful work; visible merge commits retain original results. Runtime controls and navigation create no commits.

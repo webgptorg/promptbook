@@ -36,6 +36,8 @@ Local `.ptbk/` holds live ownership/recovery, read markers and system diagnostic
 
 Redact before storing/displaying. Never version browser profiles/credentials; warn that permitted project/page content may still be sensitive. Retention/truncation is visible and protects pending-work evidence before optional capture.
 
+The independent [action log](action-log.md) uses this exact source-basename mapping under `actions/`, with one Markdown record per external mutation. Its audit is versioned even with ignored traces and survives later task failure. Traces may link it but are not its sole durable replacement. Reads/downloads remain ordinary evidence.
+
 ## Acceptance outcomes
 
 Use a Task Book whose filename differs from its TASK name: its trace directory exactly equals the filename without `.book`, including date, case and other supported characters. Repeat with a custom source folder, retry, recurrence and TEAM exchange: no alternate slug/hash or new task ID appears. Test `.md` compatibility, multi-section attribution and basename collisions without mixed evidence. Rename a declaration and a source basename separately; preserve logical identity rules, history and verified links, including old name-derived directories. A shadowed duplicate never acquires another task's records. Video remains playable/attributed/redacted and capture failures never invent saved files.
