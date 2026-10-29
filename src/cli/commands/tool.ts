@@ -14,7 +14,7 @@ import { attendHarnessSignIn, serviceProblemOf } from '../../ui/harness-sign-in.
 import type { ServiceSnapshot, ToolsView, ToolView } from '../../engine/snapshot.js';
 import { lookupService } from '../../service/control.js';
 import { applyToolOperation, commandOf, type ToolChanges, type ToolDraft, type ToolOperation, type ToolOperationOutcome, type ToolOperationRequest } from '../../tools/operations.js';
-import { inspectInventory } from '../../tools/readiness.js';
+import { inspectInventory, nativeSignInAction } from '../../tools/readiness.js';
 import { confirm } from '../../ui/prompts.js';
 import { readConcealed } from '../../ui/secret.js';
 import { symbols } from '../../ui/terminal.js';
@@ -305,7 +305,7 @@ async function setUpHarness(context: CommandContext, project: Project, operation
         return;
     }
     const signedOut = tool.authentication === 'NATIVE' && inspection.installed && inspection.authenticated === false;
-    const next = serviceProblem?.nextAction ?? (signedOut ? `Sign in from an interactive terminal with \`ptbk tool enable ${name}\` (it stays enabled).` : inspection.nextAction);
+    const next = serviceProblem?.nextAction ?? (signedOut ? nativeSignInAction(tool, inspection.nextAction) : inspection.nextAction);
     terminal.write(`${terminal.style.warning(marks.warn)} ${name}: ${serviceProblem ? `signed in here, but ${serviceProblem.summary}` : inspection.summary}${next ? terminal.style.muted(` → ${next}`) : ''}\n`);
 }
 

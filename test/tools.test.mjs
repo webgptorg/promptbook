@@ -107,8 +107,10 @@ test('tool setup checks a native harness in its own account context like init; s
     const before = (await subjects(project)).length;
     const added = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'codex-company', '--account-profile', 'company', '--raw'], { cwd: project, env, input: '' });
     assert.equal(added.code, 0, added.output);
-    assert.match(added.output, /codex-company: Installed but not logged in\. → Sign in from an interactive terminal with `ptbk tool enable codex-company`/, 'the default sign-in is not mistaken for this account context');
+    assert.match(added.output, /codex-company: Installed but not logged in\. → Sign in from an interactive terminal: ptbk tool enable codex-company\n/, 'the default sign-in is not mistaken for this account context');
     assert.equal((await subjects(project)).length, before + 1, 'the addition is saved and committed; nothing waits for a sign-in');
+    const shown = JSON.parse((await ptbk(['tool', 'show', 'codex-company', '--json'], { cwd: project, env })).stdout);
+    assert.equal(shown.nextAction, 'Sign in from an interactive terminal: ptbk tool enable codex-company', 'the inventory names this context, not `codex login` of the default one');
 
     // Once that account context is signed in, enabling the enabled tool checks it again and commits nothing.
     const accountHome = join(env.PTBK_HOME, 'harness-accounts', 'openai-codex', 'company');

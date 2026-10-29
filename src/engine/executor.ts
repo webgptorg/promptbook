@@ -14,6 +14,7 @@ import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
 import { agentSubject, commitPaths, findCommitWithTrailer, gitStatus, prefixedSubject, readAtHead, stageableFiles } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
 import type { HarnessToolRecord } from '../tools/model.js';
+import { nativeSignInAction } from '../tools/readiness.js';
 import { runHarness, type HarnessRunResult } from '../harness/run.js';
 import { readTaskBook, stampBookCompletion } from '../tasks/book-task.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
@@ -692,7 +693,10 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 if (selection.tool) environment.pool.markUnavailable(selection.tool, 'authentication', `Authentication failed: ${lastResult.diagnostic}`, QUOTA_BACKOFF_MS, acquiredContext);
                 environment.pool.invalidate(selection.tool ?? selection.harness);
                 await save({ attempt: attempt - 1 });
-                return { kind: 'setup', reason: lastResult.diagnostic, next: plugin.loginHint, tool: selection.tool };
+                // The repair names this instance: its own account context, or its own key for an API instance.
+                const failed = selection.tool ? environment.pool.instance(selection.tool) : undefined;
+                const next = !failed ? plugin.loginHint : failed.authentication === 'NATIVE' ? nativeSignInAction(failed, plugin.loginHint) : `Replace its key: ptbk tool modify ${failed.name} --api-key-stdin`;
+                return { kind: 'setup', reason: lastResult.diagnostic, next, tool: selection.tool };
             }
             if (lastResult.outcome === 'quota') {
                 // The exhausted instance is skipped by the next selection: an authorized same-variant fallback serves the

@@ -100,6 +100,17 @@ export type ToolInventoryInput = {
 };
 
 /**
+ * The repair of a native harness instance that is not signed in: the shared attended sign-in in that instance's own
+ * account context (`ptbk tool enable` of an enabled tool commits nothing and offers it). The harness's own login hint
+ * is added only for the default context, which that command signs in; an account profile would otherwise be missed.
+ *
+ * @private tool readiness
+ */
+export function nativeSignInAction(tool: Pick<HarnessToolRecord, 'name' | 'accountProfile'>, hint: string | undefined): string {
+    return `Sign in from an interactive terminal: ptbk tool enable ${tool.name}${!tool.accountProfile && hint ? `, or: ${hint}` : ''}`;
+}
+
+/**
  * Builds the shared ordered tool inventory with the baseline readiness of new work: at least one enabled usable
  * browser and harness. Missing resources are a running engine's wait, never a stop.
  *
@@ -119,7 +130,11 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
             const inspection = pool.inspectionOf(tool.name);
             state = !inspection ? 'unknown' : inspection.usable ? 'usable' : 'unavailable';
             summary = inspection?.summary ?? 'Not inspected yet.';
-            nextAction = inspection?.usable ? undefined : inspection?.nextAction;
+            nextAction = inspection?.usable
+                ? undefined
+                : tool.authentication === 'NATIVE' && inspection?.installed && inspection.authenticated === false
+                  ? nativeSignInAction(tool, inspection.nextAction)
+                  : inspection?.nextAction;
         } else {
             const readiness = input.browsers.get(tool.name);
             state = !readiness ? 'unknown' : readiness.usable ? 'usable' : 'unavailable';
