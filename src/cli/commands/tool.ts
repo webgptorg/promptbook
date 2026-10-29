@@ -264,8 +264,8 @@ async function apply(context: CommandContext): Promise<number> {
 /**
  * After adding, modifying or enabling a harness tool: its readiness in this terminal and in the background service's
  * environment. A signed-out native instance gets init's attended sign-in in its own account context (interactive
- * terminals only; otherwise the state and the next action are reported, never waited on), and a running engine then
- * reinspects its tools at once instead of after its periodic inspection.
+ * terminals only; otherwise the state and the next action are reported, never waited on). A ready instance makes a
+ * running engine reinspect its tools at once instead of after its periodic inspection (no model call).
  */
 async function setUpHarness(context: CommandContext, project: Project, operation: ToolOperation): Promise<void> {
     const name = operation.kind === 'add' ? operation.tool.name : operation.kind === 'modify' ? (operation.rename ?? operation.name) : operation.kind === 'enable' ? operation.name : undefined;
@@ -282,7 +282,6 @@ async function setUpHarness(context: CommandContext, project: Project, operation
     const [here, service] = pools.map((pool) => pool.context(name)) as [HarnessContext, HarnessContext];
     let inspection = await plugin.inspect(here);
     let serviceProblem = await serviceProblemOf(plugin, inspection, service);
-    const wasReady = inspection.usable && !serviceProblem;
     if (tool.authentication === 'NATIVE' && terminal.interactive) {
         ({ inspection, serviceProblem } = await attendHarnessSignIn(terminal, {
             plugin,
@@ -298,9 +297,9 @@ async function setUpHarness(context: CommandContext, project: Project, operation
     }
     if (inspection.usable && !serviceProblem) {
         terminal.write(`${terminal.style.success(marks.ok)} ${name}: ${inspection.summary}\n`);
-        if (wasReady) return;
+        // Also after a sign-in made outside ptbk: the engine's cached inspection may still say signed out. An older
+        // engine without this request finds the sign-in at its next periodic inspection.
         const lookup = await lookupService(project);
-        // An older engine without this request finds the sign-in at its next periodic inspection.
         if (lookup.state === 'running' && lookup.engine.compatible) await lookup.client.request('tool-recheck').catch(() => undefined);
         return;
     }
