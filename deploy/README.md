@@ -31,6 +31,8 @@ Your provider's firewall remains your responsibility on an existing VPS: allow S
 
 ## Finish setup over SSH
 
+The installer supplies the local Git service identity `Promptbook <promptbook@localhost>` only when no identity is configured for the dedicated user. This lets init save its first commit on a fresh machine. An existing identity is preserved; set your preferred `git config --global user.name` and `user.email` as `promptbook` if you want different authorship.
+
 ```sh
 sudo -iu promptbook
 cd ~/projects/my-agenda

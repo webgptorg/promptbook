@@ -29,9 +29,12 @@ jobs:
       - name: Verify retry preserves user data
         run: |
           sudo -iu promptbook touch /var/lib/promptbook/projects/keep-me
+          test "$(sudo -iu promptbook git config --global user.email)" = promptbook@localhost
+          sudo -iu promptbook git config --global user.name 'Deployment smoke owner'
           version=$(cat /opt/promptbook/installed-version)
           sudo bash deploy/ubuntu/install.sh "$version"
           sudo test -f /var/lib/promptbook/projects/keep-me
+          test "$(sudo -iu promptbook git config --global user.name)" = 'Deployment smoke owner'
       - name: Initialize without AI access, check boot registration and deliberate stop
         run: |
           sudo -iu promptbook bash -s <<'SMOKE'
