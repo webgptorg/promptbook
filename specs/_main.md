@@ -66,6 +66,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Wallet import](cli/wallet-import.md): Shared extensible Bitwarden import in init/Wallet with individual/all/none selection.
 - [Wallet recovery management](cli/wallet-recovery.md): Preserve records with new words if a key remains, or explicitly reset empty after total key loss.
 - [Harnesses](cli/harnesses.md): Global executables, named authentication contexts, capabilities and authorized fallback.
+- [Remote harness authentication](cli/harness-authentication.md): Native Codex/Claude terminal login without a VPS browser, attended code/URL handling and service-user readiness.
 - [Harness adapters](cli/harness-plugins.md): Common typed setup/execution/evidence contracts and featured/More catalog.
 - [Harness updates](cli/harness-updates.md): Selected shared installations and safe maintenance.
 

@@ -24,7 +24,7 @@ The launcher is a thin bootstrap. Do not duplicate destination selection, core-a
 
 ## Remote operation and provider provisioning
 
-An interactive SSH session is sufficient for supported technical setup. A missing server desktop must not block supported native harness authentication; display the provider's supported remote-login instructions in the terminal and let the owner finish the human part on another device. Default the project browser to headless when no usable display exists, without conflating it with harness authentication. Website logins are a separate capability and may still need their own protected human interaction.
+An interactive SSH session is sufficient for supported technical setup. A missing server desktop must not block supported native harness authentication; use shared [remote-login setup](harness-authentication.md), display its instructions in the terminal and let the owner finish the human part on another device. Default the project browser to headless when no usable display exists, without conflating it with harness authentication. Website logins are a separate capability and may still need their own protected human interaction.
 
 Provider startup scripts, cloud-init and template extensions have no attended terminal. They reuse the same prerequisite bootstrap but do not launch a hidden initializer, wait for an OAuth browser/code or claim a ready agenda. Report **server prepared; initialization pending**. Their guide supplies a single attended continuation command over SSH, reusing satisfied prerequisites and automatically entering the same initializer. A cloud provider's running VM status is separate from successful prerequisite installation, sign-in and project launch.
 

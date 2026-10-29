@@ -20,6 +20,8 @@ Use the existing featured/More picker. Users may select one or several integrati
 
 Once the project is initialized, later resource loss does not mean the service has failed to start or exited. Check before every task, on inventory changes and during waits; display missing executables, credentials, quotas or capabilities and use configured alternatives. No usable harness means running/controllable but waiting for tools. Fixer can help when execution resources exist; no imaginary agent runs without them. Readiness inspection is not an implicit paid model call. Read-only commands do not install, update or authenticate.
 
+On SSH/browserless hosts, use the shared [remote-compatible authentication](harness-authentication.md): the adapter selects an installed-version-supported terminal flow, the owner completes provider sign-in on another device when needed, and readiness is rechecked under the actual engine user's service context. Local desktop setup keeps ordinary native login. A headless project browser is not a harness authentication method.
+
 Browser website sessions and native harness authentication remain independent even when a harness opens its own login page. Never transfer project-browser cookies into a harness or put account secrets in versioned configuration.
 
 ## Selection and fallback
