@@ -61,3 +61,5 @@ Reject invalid/stale credentials and access outside scope, prevent caching of pr
 Client failure cannot stop a daemon, reset state or duplicate tasks. The lightweight [SPA](dashboard.md) is a consumer at `/`; host-wide [global discovery](global-dashboard.md) is a separate local inventory, not silently extended project API authority.
 
 Book-source inspection/editing is available through the shared operations, including source revision checks, nonblocking content warnings, scoped commits and ordinary repair task context. Chat and required first-message routing remain available alongside queued work and during scheduling pause; creating a task then saves it pending. Source edits cannot change engine-owned Expert definitions or overwrite another operation's changes.
+
+Protected local owner flows share [credential import](wallet-import.md) and [word replacement/reset](wallet-recovery.md), including selection/revision safety and explicit destructive confirmation. Raw exports and generated words never enter ordinary responses/agent endpoints; existing local owner-only word-presentation rules remain. Failed audits retry persistence, not completed import/rotation/reset.

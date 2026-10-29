@@ -26,9 +26,9 @@ A real operation can be meaningful without changing a versioned file. Newly capt
 
 ## Wallet operation audit
 
-`wallet.isAuditCommitted` defaults to `true` and can be disabled without disabling Wallet. A successful meaningful add, update, removal or generator import has its own scoped audit commit, empty if needed. Respect an explicitly uncommitted workflow. Audit neither bundles unrelated work nor commits the vault.
+`wallet.isAuditCommitted` defaults to `true` and can be disabled without disabling Wallet. A successful meaningful add, update, removal, selected credential/generator import, recovery-word replacement or explicit reset has its scoped audit, empty if needed. Bulk import can use one nonsecret summary; none/no-op selection creates no commit. Respect an explicitly uncommitted workflow. Audit neither bundles unrelated work nor commits the vault.
 
-Identify the operation and the item's editable nonsecret label, initially derived from service and account. Keep secrets, TOTP seeds/codes, passwords, keys, recovery words and secret-containing URLs/payloads out of both subject and body. Unchanged records, login attempts and repeated retries do not create mutation commits. Preserve the successful mutation when Git fails and report/retry pending audit persistence without repeating the operation.
+Identify the operation and the item's editable nonsecret label, initially derived from service and account. Keep secrets, raw import exports, TOTP seeds/codes, passwords, keys, recovery words and secret URL/payloads out of subject/body. A locked reset audit describes its operation without reading unavailable old labels. Unchanged records, login attempts and repeated retries do not create mutation commits. Preserve the successful mutation when Git fails and report/retry pending audit persistence without repeating the operation.
 
 ## Acceptance outcomes
 

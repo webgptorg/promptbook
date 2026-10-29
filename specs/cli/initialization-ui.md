@@ -12,7 +12,7 @@ After intent, offer the three [destinations](initialization.md#initial-input-and
 
 Offer **Use the global CLI** first/preferred and local installation second, respecting an existing destination-local dependency. For a fresh selection, preselect installed and verified-ready harnesses; executable presence alone is insufficient. Let users deselect them and retain explicit/prior selections.
 
-Offer **Set up Wallet now?**, default No. Yes opens the same protected setup/recovery-word flow as later Wallet management; No proceeds without it. Existing vaults are preserved.
+Offer **Set up Wallet now?**, default No. Yes opens the same protected setup/recovery-word flow as later Wallet management; No proceeds without it. Existing vaults are preserved. Chosen/reused Wallet setup offers the same optional [Bitwarden import](wallet-import.md), protected individual/Select all/Select none controls and honest unsupported/conflicting outcomes. Wallet No skips it. Use shared logic and finish selected routine access without a later required dashboard visit.
 
 Keep the familiar selected-harness featured/More flow and one **Browser profile** picker: dedicated global Promptbook profile (default), isolated project profile, user's existing Chrome profile, or custom path. Explain the difference between dedicated and personal identities and safe sharing; preserve previous choices. Headless is independent. Unified tools are an internal/configuration improvement, not a requirement to ask about advanced instance naming, account pools, multiple browsers or fallback chains in the normal wizard. Those are managed later.
 

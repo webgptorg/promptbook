@@ -88,6 +88,8 @@ Provide distinct compact tiles/full pages, independently of autosync: [Action lo
 
 The full-width [brief](project-report-ui.md) above the home grid reads only the last complete Chatter message. Discuss creates a new seeded chat; Refresh explicitly requests shared generation. Earlier briefs remain inspectable in `report.book` through Files.
 
+The Wallet page additionally offers [Import credentials](wallet-import.md), initially Bitwarden, with protected individual/all/none selection and duplicate/conflict handling. [Generate new 12 words / Reset Wallet](wallet-recovery.md) uses actual decryption availability: preserve/re-encrypt all records when a key remains; otherwise require strong all-data-loss warning and separate destructive confirmation before an empty reset. Keep encrypted account metadata and provide these owner operations without manual file deletion.
+
 ## Acceptance outcomes
 
 Open every applicable page by keyboard and return without mutation. The root grid is not rendered as background clutter while a page is open. Long inventories and logs scroll while context/actions remain usable. Verify actual execution metadata with multiple instances/consultations and unknown model data. Add/enable a tool from another terminal during active work and observe immediate availability. Test browser recovery without secret disclosure or unrelated kills. Toggle autosync: its tile/page appears only when enabled. System and Health pages remain distinct.

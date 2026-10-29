@@ -226,3 +226,8 @@ See [storage and Git](storage-and-git.md), [core agents](../agents/core-agents.m
 - **R04:** History shows real messages, available forks/merges/refs, current/legacy/foreign commits and verified task/chat links. Originals, shallow/missing history and live selection remain honest. Inspection never fetches, switches branches or mutates Git.
 - **R05:** Files safely navigates authorized nonhidden project paths read-only, formats Markdown/JSON/Book/images, confines symlinks and has honest unsupported-image/video fallback. No edit/save/playback requirement; Action log/History/Files remain distinct and available without autosync.
 - **R06:** Book viewing/editing uses one core and handles very long reports/chats/sources with responsive bounded viewport work. Preserve all offscreen text/attachments, cursor/drafts and revision-safe saves during appends/resize. Read-only handlers never mutate.
+
+## Wallet import and recovery management
+
+- **W08:** Init/Wallet share one extensible Bitwarden importer. Select subset/all/none, cancel/repeat, preserve existing records and report duplicate/conflicting/unsupported/encrypted data honestly. Finish chosen routine access without later dashboard setup and keep exports/secrets outside ordinary surfaces/Git/agent context.
+- **W09:** Forgotten words plus valid host unlock permits deliberate fresh-word re-encryption preserving all records/TOTP through interruption/reboot. New words unlock the updated vault and old words do not. Total key loss permits only strongly warned, separately confirmed empty reset covering accounts/origins/usernames/passwords/factors; decline preserves original data. Keep whole-record encryption/no plaintext index, use shared reimport, and retry failed audits without repeating maintenance.
