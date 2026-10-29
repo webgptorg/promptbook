@@ -70,7 +70,7 @@ export type LaunchMetadata = {
     readonly env: Readonly<Record<string, string>>;
     /** Automatic restart after crashes/reboots. */
     readonly persistent: boolean;
-    /** Set by an intentional stop; suppresses automatic startup. */
+    /** Set by an intentional stop: suppresses the supervisor's respawn, and the next OS startup restores it paused. */
     readonly intentionallyStopped: boolean;
     /** Correlates the launched worker. */
     readonly launchNonce: string;

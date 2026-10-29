@@ -208,6 +208,7 @@ export function plainHostDifference(previous: HostObservation | undefined, next:
 export function actionApplies(action: GlobalAction, row: GlobalRow): boolean {
     switch (action) {
         case 'start':
+        case 'start-paused':
             return row.status === 'stopped';
         case 'force-stop':
             return row.status === 'live' || row.status === 'unreachable';
@@ -223,7 +224,7 @@ export function actionApplies(action: GlobalAction, row: GlobalRow): boolean {
  */
 function notApplicable(action: GlobalAction, row: GlobalRow): string {
     const state = row.status === 'live' ? (row.state ?? 'running') : row.status === 'unreachable' ? 'not verifiable' : row.status;
-    if (action === 'start') return `${row.projectName} is ${state}; Start only starts a stopped project (it never resumes or replaces an engine).`;
+    if (action === 'start' || action === 'start-paused') return `${row.projectName} is ${state}; ${action === 'start' ? 'Start' : 'Start paused'} only starts a stopped project (it never resumes, pauses or replaces an engine).`;
     if (action === 'remove') return `${row.projectName} is ${state}; only a stopped project can be removed. Stop it first (X, or F to force).`;
     if (action === 'force-stop') return `${row.projectName} has no engine to force-stop.`;
     return `${row.projectName} has no running engine; ${action === 'resume' ? 'Resume never starts a project (S starts it).' : 'nothing was changed.'}`;
@@ -232,17 +233,25 @@ function notApplicable(action: GlobalAction, row: GlobalRow): string {
 /**
  * Labels of actions.
  */
-const ACTION_LABELS: Readonly<Record<GlobalAction, string>> = { start: 'Start', stop: 'Stop', 'force-stop': 'Force stop', pause: 'Pause', resume: 'Resume', remove: 'Remove' };
+const ACTION_LABELS: Readonly<Record<GlobalAction, string>> = { start: 'Start', 'start-paused': 'Start paused', stop: 'Stop', 'force-stop': 'Force stop', pause: 'Pause', resume: 'Resume', remove: 'Remove' };
 
 /**
  * Labels of bulk actions.
  */
-const BULK_LABELS: Readonly<Record<GlobalAction, string>> = { start: 'Start all', stop: 'Stop all', 'force-stop': 'Force stop all', pause: 'Pause all', resume: 'Resume all', remove: 'Remove all stopped' };
+const BULK_LABELS: Readonly<Record<GlobalAction, string>> = { start: 'Start all', 'start-paused': 'Start all paused', stop: 'Stop all', 'force-stop': 'Force stop all', pause: 'Pause all', resume: 'Resume all', remove: 'Remove all stopped' };
 
 /**
- * Keys of the actions (lowercase; with A first they apply to every applicable project).
+ * Keys of the actions (case-insensitive, except Shift+S for Start paused; with A first they apply to every applicable
+ * project).
  */
 const ACTION_KEYS: Readonly<Record<string, GlobalAction>> = { s: 'start', x: 'stop', f: 'force-stop', p: 'pause', r: 'resume', d: 'remove' };
+
+/**
+ * The action of a typed key: Shift+S starts paused, other keys ignore case.
+ */
+function actionOfKey(text: string): GlobalAction | undefined {
+    return text === 'S' ? 'start-paused' : ACTION_KEYS[text.toLowerCase()];
+}
 
 /**
  * Actions confirmed before they run (individually and in bulk), and bulk-only confirmations.
@@ -384,10 +393,10 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         lines.push(...renderPanel({ title: 'Projects', titleRight: 'Enter opens a running project', lines: table, width, unicode: terminal.unicode, style }));
         const legend =
             modal?.kind === 'bulk'
-                ? style.accent(fitLegend(['All projects:', 'S start stopped', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove stopped', 'Esc cancel'], width, '  '))
+                ? style.accent(fitLegend(['All projects:', 'S start stopped', 'Shift+S start stopped paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove stopped', 'Esc cancel'], width, '  '))
                 : modal?.kind === 'confirm'
                   ? style.warning(` ${truncate(modal.prompt, width - 2)}`)
-                  : style.muted(fitLegend(['↑↓ select', 'Enter attach', 'S start', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove', 'A all projects…', 'Q close (engines keep running)'], width));
+                  : style.muted(fitLegend(['↑↓ select', 'Enter attach', 'S start', 'Shift+S start paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove', 'A all projects…', 'Q close (engines keep running)'], width));
         lines.push(legend);
         if (feedback && !modal) lines.push(` ${style.accent(marks.arrow)} ${truncate(feedback, width - 4)}`);
         screen.draw(lines);
@@ -491,7 +500,7 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         }
         if (row.status !== 'live') {
             // Inspecting or selecting a stopped project never starts it.
-            feedback = row.status === 'stopped' ? `${row.projectName} is stopped; S starts it explicitly.` : `${row.projectName} cannot be opened: ${row.reason ?? row.status}.`;
+            feedback = row.status === 'stopped' ? `${row.projectName} is stopped; S starts it explicitly (Shift+S starts it paused).` : `${row.projectName} cannot be opened: ${row.reason ?? row.status}.`;
             draw();
             return;
         }
@@ -538,7 +547,7 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         }
         if (modal?.kind === 'bulk') {
             modal = undefined;
-            const action = event.type === 'text' ? ACTION_KEYS[event.text.toLowerCase()] : undefined;
+            const action = event.type === 'text' ? actionOfKey(event.text) : undefined;
             if (action) bulk(action);
             else {
                 feedback = 'Cancelled; nothing was changed.';
@@ -556,11 +565,12 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         }
         if (event.type !== 'text') return;
         const key = event.text.toLowerCase();
+        const action = actionOfKey(event.text);
         if (key === 'q') close();
         else if (key === 'a') {
             modal = { kind: 'bulk' };
             draw();
-        } else if (ACTION_KEYS[key]) individual(ACTION_KEYS[key]);
+        } else if (action) individual(action);
     };
 
     const keyboard = new KeyboardSession(onKey);

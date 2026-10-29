@@ -40,7 +40,8 @@ function targetLine(row: GlobalRow): string {
  * `ptbk panic`: the confirmed emergency force stop of every accessible active Promptbook engine on this computer,
  * independent of the current directory, installation and version. Each engine and all its owned execution end through
  * the shared whole-engine force stop without graceful waiting; every target is attempted independently and records a
- * deliberate stop, so no supervisor, pending restart or reboot brings it back. Projects stay registered as stopped.
+ * deliberate stop, so no supervisor or pending restart brings it back, and the next OS startup restores it only paused.
+ * Projects stay registered as stopped.
  * There are no soft or pause variants; without a terminal `--yes` is required and nothing is ever prompted.
  *
  * @private command
@@ -69,7 +70,7 @@ export default async function panic(context: CommandContext): Promise<number> {
     if (!yes) {
         terminal.write(`${style.bold(style.error(`${marks.warn} Emergency stop`))}: these ${found.targets.length} engine${found.targets.length === 1 ? '' : 's'} and every harness, helper and browser process they own will be terminated immediately, without letting current work finish (interrupted work keeps its recovery record):\n`);
         for (const row of found.targets) terminal.write(`  ${marks.bullet} ${targetLine(row)}\n`);
-        terminal.write(`${style.muted(`They stay stopped (also after reboot) until you start them explicitly. ${coverage}`)}\n\n`);
+        terminal.write(`${style.muted(`They stay stopped; with persistence enabled the next OS startup restores them only paused (no queued task runs until you resume). ${coverage}`)}\n\n`);
         const answer = await confirm(terminal, { frame: { title: 'ptbk panic', step: 'Confirm the emergency stop' }, question: `Force-stop all ${found.targets.length} engine${found.targets.length === 1 ? '' : 's'} now?`, defaultYes: false, yesLabel: 'Yes, force-stop everything now', noLabel: 'No, change nothing' });
         if (answer !== true) {
             terminal.write(`${answer === CANCELLED ? 'Cancelled' : 'Declined'}; nothing was changed.\n`);

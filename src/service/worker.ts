@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { errorMessage } from '../common/errors.js';
 import { projectAt } from '../project/workspace.js';
 import { recordDiagnostic } from '../engine/traces.js';
+import { recordHostTermination } from '../engine/operator-intent.js';
 import { ServiceHost } from './host.js';
 import { markIntentionalStop } from './launcher.js';
 import { readLaunchMetadata, restoreDiscoveryEnvironment, RESTART_EXIT_CODE, rotateServiceLog } from './records.js';
@@ -58,9 +59,17 @@ async function main(): Promise<number> {
         launchNonce: launch.launchNonce,
         onEvent: (text, level) => appendServiceLog(eventLog, `${new Date().toISOString()} ${level.toUpperCase()} ${text}\n`),
     });
-    // A catchable OS termination request drains gracefully (the host may still kill the process after its own grace period).
+    // A catchable OS termination request drains gracefully (the host may still kill the process after its own grace
+    // period). It is recorded at once, so the next automatic startup knows the service was neither stopped nor lost.
     const stop = (): void => {
         host.agenda.requestStop({ signal: true });
+        if (host.agenda.shutdownReason === 'signal') {
+            try {
+                recordHostTermination(project);
+            } catch {
+                // Without the record the next startup is conservatively paused.
+            }
+        }
     };
     process.on('SIGTERM', stop);
     process.on('SIGINT', stop);
@@ -72,8 +81,8 @@ async function main(): Promise<number> {
     } finally {
         await host.shutdown();
     }
-    // An intentional user stop suppresses automatic startup until the next authorized start; restart and OS
-    // termination do not.
+    // An intentional user stop suppresses immediate replacement and makes the next automatic startup paused; restart
+    // and OS termination do not.
     if (host.agenda.intentionalStop) await markIntentionalStop(project).catch(() => undefined);
     return outcome === 'restart' ? RESTART_EXIT_CODE : 0;
 }

@@ -76,7 +76,7 @@ ${command.map((argument) => `        <string>${xml(argument)}</string>`).join('\
 </plist>
 `;
             await writeIfChanged(file, content);
-            return { persistent: true, note: 'Restarts after crashes and at login (LaunchAgent).', location: file };
+            return { persistent: true, note: 'Restored at login (LaunchAgent); a crashed worker restarts paused.', location: file };
         }
         if (process.platform === 'win32') {
             const startup = join(process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup');
@@ -85,7 +85,7 @@ ${command.map((argument) => `        <string>${xml(argument)}</string>`).join('\
             const line = command.map((argument) => `""${argument.replace(/"/g, '')}""`).join(' ');
             const content = `' Promptbook agenda for ${project.root.replace(/\r?\n/g, ' ')}\r\nSet shell = CreateObject("WScript.Shell")\r\nshell.CurrentDirectory = "${project.root.replace(/"/g, '')}"\r\nshell.Run "${line}", 0, False\r\n`;
             await writeIfChanged(file, content);
-            return { persistent: true, note: 'Restarts after crashes and at sign-in (Startup folder).', location: file };
+            return { persistent: true, note: 'Restored at sign-in (Startup folder); a crashed worker restarts paused.', location: file };
         }
         const systemd = await runProcess('systemctl', ['--user', 'show-environment'], { cwd: project.root, timeoutMs: 10_000 });
         if (systemd.exitCode === 0) {
@@ -95,23 +95,24 @@ ${command.map((argument) => `        <string>${xml(argument)}</string>`).join('\
             const content = `[Unit]\nDescription=Promptbook agenda for ${project.root}\nAfter=network-online.target\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\nWorkingDirectory=${project.root}\nEnvironment=${quote(`PATH=${path}`)}\nExecStart=${command.map(quote).join(' ')}\n\n[Install]\nWantedBy=default.target\n`;
             if (await writeIfChanged(file, content)) await runProcess('systemctl', ['--user', 'daemon-reload'], { cwd: project.root, timeoutMs: 20_000 });
             const enabled = await runProcess('systemctl', ['--user', 'enable', `${name}.service`], { cwd: project.root, timeoutMs: 20_000 });
-            if (enabled.exitCode !== 0) return { persistent: false, note: `Restarts after crashes, but startup registration failed: ${enabled.stderr.trim()}`, location: file };
+            if (enabled.exitCode !== 0) return { persistent: false, note: `A crashed worker restarts paused, but startup registration failed: ${enabled.stderr.trim()}`, location: file };
             const linger = await runProcess('loginctl', ['show-user', process.env.USER ?? '', '--property=Linger'], { cwd: project.root, timeoutMs: 10_000 });
-            const note = /Linger=yes/.test(linger.stdout) ? 'Restarts after crashes and at boot (systemd user unit with lingering).' : 'Restarts after crashes and at login (systemd user unit). For boot without login run `loginctl enable-linger`.';
+            const note = /Linger=yes/.test(linger.stdout) ? 'Restored at boot (systemd user unit with lingering); a crashed worker restarts paused.' : 'Restored at login (systemd user unit); a crashed worker restarts paused. For boot without login run `loginctl enable-linger`.';
             return { persistent: true, note, location: file };
         }
         const autostart = await ensureDirectory(join(process.env.XDG_CONFIG_HOME ?? join(homedir(), '.config'), 'autostart'));
         const file = join(autostart, `${name}.desktop`);
         const exec = command.map((argument) => (/\s/.test(argument) ? `"${argument}"` : argument)).join(' ');
         await writeIfChanged(file, `[Desktop Entry]\nType=Application\nName=Promptbook agenda\nExec=${exec}\nX-GNOME-Autostart-enabled=true\nNoDisplay=true\n`);
-        return { persistent: true, note: 'Restarts after crashes and at desktop login (XDG autostart; no systemd user session found).', location: file };
+        return { persistent: true, note: 'Restored at desktop login (XDG autostart; no systemd user session found); a crashed worker restarts paused.', location: file };
     } catch (error) {
-        return { persistent: false, note: `Startup persistence could not be installed: ${(error as Error).message}. The service still restarts after crashes while this login session lasts.` };
+        return { persistent: false, note: `Startup persistence could not be installed: ${(error as Error).message}. A crashed worker still restarts paused while this login session lasts.` };
     }
 }
 
 /**
- * Removes the project's startup registration (intentional stop or --no-persist).
+ * Removes the project's startup registration (--no-persist, or forgetting a stopped project; a deliberate stop keeps it
+ * so the next OS startup restores the service paused).
  *
  * @private startup persistence
  */

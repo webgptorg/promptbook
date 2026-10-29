@@ -1,6 +1,7 @@
 import { EXIT } from '../../common/errors.js';
 import { lookupService } from '../../service/control.js';
 import { stopService } from '../../service/launcher.js';
+import { readLaunchMetadata } from '../../service/records.js';
 import { selectedProject } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 import { liveSnapshot, renderServiceResult, stoppedSnapshot } from '../service-view.js';
@@ -23,7 +24,7 @@ export default async function stop(context: CommandContext): Promise<number> {
         const snapshot = lookup.state === 'running' ? await liveSnapshot(project, lookup) : await stoppedSnapshot(project);
         await renderServiceResult(context, snapshot, {
             client: lookup.state === 'running' ? lookup.client : undefined,
-            outcome: { title: 'Force stop not confirmed', message: `${result.message}${warnings} Automatic startup stays disabled.`, tone: 'error' },
+            outcome: { title: 'Force stop not confirmed', message: `${result.message}${warnings} No replacement is started, and a later OS startup restores it only paused.`, tone: 'error' },
             next: ['ptbk status', 'ptbk stop --force'],
         });
         return EXIT.failure;
@@ -39,10 +40,13 @@ export default async function stop(context: CommandContext): Promise<number> {
         return EXIT.incomplete;
     }
     const snapshot = await stoppedSnapshot(project);
+    // A persistent service stays registered: the next OS startup makes it available again, paused.
+    const persistent = (await readLaunchMetadata(project).catch(() => undefined))?.persistent === true;
+    const restore = persistent ? ' It is not respawned; the next OS startup restores it only paused (queued tasks wait for `ptbk resume`), and `ptbk start` runs it again sooner.' : ' It stays stopped until `ptbk start`.';
     await renderServiceResult(context, snapshot, {
         outcome: {
             title: result.wasRunning ? (force ? 'Force-stopped' : 'Stopped') : 'Not running',
-            message: `${result.message}${result.wasRunning ? ` ${force ? 'Interrupted work keeps its recovery record; nothing was marked done.' : 'Unfinished work keeps its recovery record.'}` : ''}${warnings} Automatic startup is disabled until the next \`ptbk start\` (or a successful \`ptbk init\`).`,
+            message: `${result.message}${result.wasRunning ? ` ${force ? 'Interrupted work keeps its recovery record; nothing was marked done.' : 'Unfinished work keeps its recovery record.'}` : ''}${warnings}${restore}`,
             tone: result.wasRunning ? 'success' : 'muted',
         },
         next: ['ptbk start'],

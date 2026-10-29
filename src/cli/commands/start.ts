@@ -8,6 +8,7 @@ import { lookupService } from '../../service/control.js';
 import { ServiceHost } from '../../service/host.js';
 import { launchDaemon } from '../../service/launcher.js';
 import { readLaunchMetadata, restoreDiscoveryEnvironment } from '../../service/records.js';
+import { installPausedStart, readOperatorIntent, startupWorkIntent } from '../../engine/operator-intent.js';
 import { runDashboard } from '../../ui/dashboard.js';
 import { confirm } from '../../ui/prompts.js';
 import { browserOverrides, selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
@@ -60,23 +61,28 @@ async function ensureReady(context: CommandContext, project: Project, overrides:
 }
 
 /**
- * Resumes a persisted service after login/boot: idempotent, never prompts, honors intentional stops.
+ * Restores a persisted service at OS startup/login: idempotent and never prompts. Every still-registered persistent
+ * project becomes available again; only one that was running (or paused by Health alone) when the host terminated it
+ * may continue its work after current checks. Deliberately stopped, force-stopped or panicked projects, and ones whose
+ * previous process disappeared ambiguously, start directly paused (see {@link startupWorkIntent}).
  */
 async function resumeService(context: CommandContext, project: Project): Promise<number> {
     const launch = await readLaunchMetadata(project);
     if (!launch) {
-        context.terminal.write('No launch metadata; nothing to resume.\n');
+        context.terminal.write('No launch metadata; nothing to restore.\n');
         return EXIT.success;
     }
-    if (launch.intentionallyStopped || !launch.persistent) {
-        context.terminal.write('The service was stopped intentionally (or persistence is disabled); not resuming.\n');
+    if (!launch.persistent) {
+        context.terminal.write('Persistence is disabled (--no-persist); not restoring.\n');
         return EXIT.success;
     }
     const lookup = await lookupService(project);
     if (lookup.state === 'running') return EXIT.success;
+    const work = startupWorkIntent(launch, readOperatorIntent(project));
     const env = restoreDiscoveryEnvironment(launch.env, launch.nodePath);
-    const result = await launchDaemon(project, { cli: launch.cli, cliHarnesses: launch.cliHarnesses, cliBrowser: launch.cliBrowser, tasksDirectory: launch.tasksDirectory, persistent: true, env });
-    context.terminal.write(`Resumed ptbk service (PID ${result.lookup.record.pid}).\n`);
+    const result = await launchDaemon(project, { cli: launch.cli, cliHarnesses: launch.cliHarnesses, cliBrowser: launch.cliBrowser, tasksDirectory: launch.tasksDirectory, persistent: true, env, paused: work === 'running' ? undefined : work });
+    const how = work === 'inactive' ? ' paused (it was stopped before; Resume runs its queued work)' : work === 'unexpected-loss' ? ' paused (the previous process ended unexpectedly; Resume runs its queued work)' : '';
+    context.terminal.write(`Restored ptbk service${how} (PID ${result.lookup.record.pid}).\n`);
     return EXIT.success;
 }
 
@@ -87,6 +93,8 @@ async function resumeService(context: CommandContext, project: Project): Promise
 async function runForeground(context: CommandContext, project: Project, overrides: Record<string, unknown>, cliHarnesses: readonly string[] | undefined): Promise<number> {
     const { terminal } = context;
     const live = terminal.pretty && terminal.interactive;
+    // The manual reason holds before the engine's first scheduling opportunity (a restart keeps the saved intent).
+    if (flag(context, 'paused')) installPausedStart(project, 'start-paused');
     for (;;) {
         const host = new ServiceHost({
             project,
@@ -148,10 +156,12 @@ export default async function start(context: CommandContext): Promise<number> {
     const tasksDirectory = saved ? saved.tasksDirectory : tasksOverride(context);
     const existing = await lookupService(project);
     if (existing.state === 'running') {
-        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'daemon', 'dashboard', 'saved-launch'].includes(name));
+        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'daemon', 'dashboard', 'saved-launch', 'paused'].includes(name));
+        // A paused start only applies to an absent engine: the live owner keeps its state.
+        const pausedNote = flag(context, 'paused') ? `; --paused applies only when no service runs, so its ${existing.record.mode} state was kept (\`ptbk pause\` pauses it)` : '';
         if (wantsDashboardHandoff(context)) {
             // Start-or-open: the running engine keeps its state and configuration; only a viewer attaches.
-            handoffLine(context, 'Already running.', `PID ${existing.record.pid}${ignored.length ? `; the new options (${ignored.map((name) => `--${name}`).join(', ')}) were not applied — use \`ptbk restart\`` : ''}.`);
+            handoffLine(context, 'Already running.', `PID ${existing.record.pid}${pausedNote}${ignored.length ? `; the new options (${ignored.map((name) => `--${name}`).join(', ')}) were not applied — use \`ptbk restart\`` : ''}.`);
             return (await attachDashboard(context, project, existing)) || EXIT.success;
         }
         const snapshot = await liveSnapshot(project, existing);
@@ -159,7 +169,7 @@ export default async function start(context: CommandContext): Promise<number> {
             client: existing.client,
             outcome: {
                 title: 'Already running',
-                message: `The ${snapshot.service.mode} service (PID ${snapshot.service.pid}) keeps its configuration${ignored.length ? `; the new options (${ignored.map((name) => `--${name}`).join(', ')}) were not applied — use \`ptbk restart\`` : ''}.`,
+                message: `The ${snapshot.service.mode} service (PID ${snapshot.service.pid}) keeps its configuration${pausedNote}${ignored.length ? `; the new options (${ignored.map((name) => `--${name}`).join(', ')}) were not applied — use \`ptbk restart\`` : ''}.`,
                 tone: 'accent',
             },
             next: ['ptbk dashboard', 'ptbk stop', 'ptbk restart'],
@@ -176,17 +186,23 @@ export default async function start(context: CommandContext): Promise<number> {
     if (flag(context, 'foreground')) return await runForeground(context, project, overrides, cliHarnesses);
     const settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser });
     const persistent = setting<boolean>(settings, 'service.isPersistent');
-    const result = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser, tasksDirectory, persistent, env: context.env });
+    const paused = flag(context, 'paused');
+    const result = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser, tasksDirectory, persistent, env: context.env, paused: paused ? 'start-paused' : undefined });
     const persistence = result.persistence ? ` ${result.persistence.note}` : persistent ? '' : ' Restart persistence is disabled (--no-persist).';
+    const pausedStart = paused && result.started;
+    const title = result.started ? (pausedStart ? 'Started paused' : 'Started') : 'Already running';
+    const message = pausedStart
+        ? `The service runs in the background (PID ${result.lookup.record.pid}) with a manual pause: controls, inspection and chat work, and queued tasks wait for \`ptbk resume\`.${persistence}`
+        : `The agenda runs in the background (PID ${result.lookup.record.pid}).${paused ? ' It was already running, so its state was kept.' : ''}${persistence}`;
     if (wantsDashboardHandoff(context)) {
-        handoffLine(context, result.started ? 'Started.' : 'Already running.', `The agenda runs in the background (PID ${result.lookup.record.pid}).${persistence}`);
+        handoffLine(context, `${title}.`, message);
         return (await attachDashboard(context, project, result.lookup)) || EXIT.success;
     }
     const snapshot = await liveSnapshot(project, result.lookup);
     await renderServiceResult(context, snapshot, {
         client: result.lookup.client,
-        outcome: { title: result.started ? 'Started' : 'Already running', message: `The agenda runs in the background (PID ${snapshot.service.pid}).${persistence}`, tone: 'success' },
-        next: ['ptbk dashboard', 'ptbk show', 'ptbk stop'],
+        outcome: { title, message, tone: pausedStart ? 'accent' : 'success' },
+        next: pausedStart ? ['ptbk resume', 'ptbk dashboard', 'ptbk stop'] : ['ptbk dashboard', 'ptbk show', 'ptbk stop'],
     });
     return EXIT.success;
 }

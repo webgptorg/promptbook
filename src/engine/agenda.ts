@@ -64,7 +64,7 @@ import { HarnessPool } from './harnesses.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
 import { WalletSubEngine } from '../wallet/wallet.js';
-import { readOperatorIntent, saveOperatorIntent } from './operator-intent.js';
+import { readOperatorIntent, saveOperatorIntent, type ManualPauseCause } from './operator-intent.js';
 import { SyncCoordinator, type SyncOutcome } from './sync.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
 import { applyToolOperation, type ToolOperationOutcome, type ToolOperationRequest } from '../tools/operations.js';
@@ -277,6 +277,26 @@ const CHAT_BATCH_QUIET_MS = 5_000;
 const CHAT_BATCH_MAX_AGE_MS = 60_000;
 
 /**
+ * Summary of the manual pause reason by its cause (shown wherever pause reasons are listed).
+ */
+const MANUAL_PAUSE_SUMMARIES: Readonly<Record<ManualPauseCause, string>> = {
+    operator: 'Paused by the operator (Pause).',
+    'start-paused': 'Started paused (ptbk start --paused): queued work waits for Resume.',
+    inactive: 'Started paused after a deliberate stop: queued work waits for Resume.',
+    'unexpected-loss': 'Started paused because the previous process ended unexpectedly: queued work waits for Resume.',
+};
+
+/**
+ * Log line of a restored manual pause by its cause.
+ */
+const MANUAL_PAUSE_RESTORED: Readonly<Record<ManualPauseCause, string>> = {
+    operator: 'Restored the manual pause.',
+    'start-paused': 'Started paused.',
+    inactive: 'Started paused: the service was stopped deliberately before this start.',
+    'unexpected-loss': 'Started paused: the previous process ended unexpectedly, which never resumes work by itself.',
+};
+
+/**
  * One unit of active work holding a capacity slot: a background task (its runs: Router prerequisite, the task itself,
  * a goal enquiry) or one chat turn. Units progress concurrently in the project's one working tree; each run owns the
  * files it changes.
@@ -347,6 +367,8 @@ export class Agenda {
      * Health sub-engine's reasons; scheduling continues only when no reason remains.
      */
     private manualPauseSince?: string;
+    /** Why the manual pause reason is active (the operator's Pause, a paused start or a conservative restoration). */
+    private manualPauseCause: ManualPauseCause = 'operator';
     /** A pause became effective while background work was still draining (logged once it settles). */
     private pauseDraining = false;
     /** Pending stop/restart applied once active work settles. */
@@ -507,12 +529,22 @@ export class Agenda {
     public async initialize(): Promise<void> {
         const { project } = this.options;
         for (const directory of [project.runtime.state, project.runtime.logs, project.runtime.temporary]) await ensureDirectory(directory);
-        // The operator's accepted manual pause (also one still draining) survives crashes and reboots: it holds before
-        // any background claim. Health reasons are re-evaluated by the fresh Health sub-engine instead.
+        // The operator's accepted manual pause (also one still draining, or one installed by a paused start) survives
+        // crashes and reboots: it holds before any background claim. Health reasons are re-evaluated by the fresh
+        // Health sub-engine instead.
         const restored = this.options.mode === 'maintenance' ? undefined : readOperatorIntent(project)?.manualPause;
         if (restored) {
             this.manualPauseSince = restored.since;
-            this.log(`Restored the manual pause of ${restored.since}: no background task starts until you resume (ptbk resume).`);
+            this.manualPauseCause = restored.cause ?? 'operator';
+            this.log(`${MANUAL_PAUSE_RESTORED[this.manualPauseCause]} No background task starts until you resume (ptbk resume).`);
+        }
+        // This owner now holds the intent: an earlier host termination no longer describes the last run.
+        if (this.options.mode !== 'maintenance') {
+            try {
+                saveOperatorIntent(project, restored);
+            } catch (error) {
+                this.log(`The lifecycle intent could not be saved for crash/reboot recovery: ${errorMessage(error)}`, 'warning');
+            }
         }
         await this.maintainConfiguration();
         await this.refreshContext(true);
@@ -746,7 +778,7 @@ export class Agenda {
      * scheduling continues only when none remains.
      */
     public get pauseReasons(): PauseReasonView[] {
-        const manual: PauseReasonView[] = this.manualPauseSince ? [{ id: 'manual', kind: 'manual', owner: 'System', summary: 'Paused by the operator (Pause).', since: this.manualPauseSince, removable: true }] : [];
+        const manual: PauseReasonView[] = this.manualPauseSince ? [{ id: 'manual', kind: 'manual', owner: 'System', summary: MANUAL_PAUSE_SUMMARIES[this.manualPauseCause], since: this.manualPauseSince, removable: true }] : [];
         return [...manual, ...(this.health?.pauseReasons() ?? [])];
     }
 
@@ -778,9 +810,10 @@ export class Agenda {
      */
     private setManualPause(since: string | undefined): void {
         this.manualPauseSince = since;
+        this.manualPauseCause = 'operator';
         if (this.options.mode === 'maintenance') return;
         try {
-            saveOperatorIntent(this.options.project, since);
+            saveOperatorIntent(this.options.project, since ? { since, cause: 'operator' } : undefined);
         } catch (error) {
             this.log(`The ${since ? 'pause' : 'resume'} applies now, but it could not be saved for crash/reboot recovery: ${errorMessage(error)}`, 'warning');
         }

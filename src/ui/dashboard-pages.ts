@@ -276,7 +276,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 `${style.muted('Project   ')} ${snapshot.project.path}`,
                 `${style.muted('Runtime   ')} ${join(snapshot.project.path, '.ptbk')} ${style.muted('(ignored runtime state)')}`,
                 `${style.muted('Commits   ')} ${service.commitMode === 'commit' ? 'automatic' : style.warning('NO-COMMIT mode (results stay uncommitted)')}`,
-                `${style.muted('Persistent')} ${service.persistent === null ? 'n/a' : service.persistent ? 'yes (restarts after reboot)' : style.warning('no')}${service.persistenceNote ? style.muted(` · ${service.persistenceNote}`) : ''}`,
+                `${style.muted('Persistent')} ${service.persistent === null ? 'n/a' : service.persistent ? 'yes (restored at OS startup)' : style.warning('no')}${service.persistenceNote ? style.muted(` · ${service.persistenceNote}`) : ''}`,
                 `${style.muted('Config    ')} promptbookVersion ${snapshot.configuration?.promptbookVersion ?? style.muted('unknown')}${snapshot.configuration?.pending ? style.warning(` · pending: ${snapshot.configuration.pending}`) : ''}`,
                 '',
                 style.bold(`Effective settings (${snapshot.settings.length})`),

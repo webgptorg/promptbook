@@ -7,7 +7,7 @@ import { shortId } from '../common/ids.js';
 import { ipcRequest } from '../common/ipc.js';
 import { isProcessAlive, killVerifiedProcess, verifyRecordedProcess } from '../common/process.js';
 import { ENGINE_ROOT, ENGINE_VERSION, engineModule } from '../common/version.js';
-import { clearOperatorIntent } from '../engine/operator-intent.js';
+import { clearOperatorIntent, installPausedStart, type ManualPauseCause } from '../engine/operator-intent.js';
 import type { Project } from '../project/workspace.js';
 import { lookupService, type ServiceLookup } from './control.js';
 import { recordRunEnded } from './known-projects.js';
@@ -53,6 +53,11 @@ export type LaunchRequest = {
     readonly tasksDirectory?: string;
     readonly persistent: boolean;
     readonly env: NodeJS.ProcessEnv;
+    /**
+     * Start an absent engine directly paused: its manual pause reason is installed before the worker exists, so it holds
+     * before any scheduling opportunity. A live owner is never changed.
+     */
+    readonly paused?: Exclude<ManualPauseCause, 'operator'>;
 };
 
 /**
@@ -106,7 +111,8 @@ async function tail(path: string, characters = 3000): Promise<string> {
 }
 
 /**
- * Starts the detached daemon (supervisor + worker) or reports the existing one without replacing it.
+ * Starts the detached daemon (supervisor + worker) or reports the existing one without replacing it (also its pause
+ * state: a paused start only applies to an absent engine).
  *
  * @private daemon launcher
  */
@@ -123,6 +129,7 @@ export async function launchDaemon(project: Project, request: LaunchRequest): Pr
                 next: ['Wait a moment and run `ptbk status`; if it stays unreachable, stop that process and retry.'],
             });
         }
+        if (request.paused) installPausedStart(project, request.paused);
         const nonce = shortId(10);
         const metadata: LaunchMetadata = {
             version: 1,
@@ -336,8 +343,8 @@ async function waitUntil(condition: () => boolean, timeoutMs: number): Promise<b
  * The shared whole-engine force stop (`ptbk stop --force`, global Force stop, `ptbk panic`): immediately ends the
  * selected engine and every execution process it owns, without waiting for work to finish.
  *
- * The deliberate stop is recorded first, so neither a supervisor, a pending restart replacement, startup registration
- * nor a reboot undoes it. The engine is asked to force-stop itself (bounded request; its own cleanup releases its
+ * The deliberate stop is recorded first, so neither a supervisor nor a pending restart replacement undoes it, and the
+ * next OS startup restores the service only paused. The engine is asked to force-stop itself (bounded request; its own cleanup releases its
  * records and lock); an engine that does not answer, or does not end within the grace, is killed after its PID is
  * verified against the recorded start, then its supervisor, the recorded owned processes (harnesses, helpers, browser)
  * and a replacement already started by that supervisor. Unrelated processes, other projects and a successor's lock are never touched; an owner that cannot be verified is reported, not killed. Interrupted work keeps its
@@ -419,9 +426,10 @@ export async function forceStopEngine(project: Project, options: { readonly expe
 }
 
 /**
- * Records an intentional stop (graceful, force stop or panic): no automatic startup, supervisor respawn or pending
- * replacement until the next authorized start (launch metadata flag and startup registration). A deliberate stop
- * replaces the manual pause, so the next explicit start runs again.
+ * Records an intentional stop (graceful, force stop or panic): inactive work intent that suppresses the supervisor's
+ * respawn and a pending replacement. The enabled startup registration stays, so the next OS startup restores the
+ * service directly paused for inspection and control, never running its queued work. A deliberate stop replaces the
+ * manual pause, so a later explicit start runs again.
  *
  * @private daemon launcher
  */
@@ -429,5 +437,4 @@ export async function markIntentionalStop(project: Project): Promise<void> {
     const launch = await readLaunchMetadata(project);
     if (launch) await writeLaunchMetadata(project, { ...launch, intentionallyStopped: true, savedAt: new Date().toISOString() });
     clearOperatorIntent(project);
-    await unregisterPersistence(project);
 }

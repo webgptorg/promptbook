@@ -248,3 +248,88 @@ test('lifecycle: an accepted manual pause survives an engine crash; a deliberate
     await ptbk(['stop', '--raw'], { cwd: project, env });
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'operator intent is runtime-only and never committed');
 });
+
+test('startup work intent: only a run the host terminated may continue; stopped and ambiguously lost services restore paused', async () => {
+    const { startupWorkIntent } = await import('../dist/engine/operator-intent.js');
+    const at = '2026-10-29T10:00:00.000Z';
+    assert.equal(startupWorkIntent({ intentionallyStopped: false }, { version: 1, hostTermination: { at }, savedAt: at }), 'running');
+    assert.equal(startupWorkIntent({ intentionallyStopped: false }, { version: 1, manualPause: { since: at, cause: 'operator' }, savedAt: at }), 'running', 'the engine itself restores the manual pause');
+    assert.equal(startupWorkIntent({ intentionallyStopped: true }, { version: 1, hostTermination: { at }, savedAt: at }), 'inactive', 'stop, force stop and panic restore paused');
+    assert.equal(startupWorkIntent({ intentionallyStopped: false }, { version: 1, savedAt: at }), 'unexpected-loss', 'a process that disappeared never grants work authority');
+    assert.equal(startupWorkIntent({ intentionallyStopped: false }, undefined), 'unexpected-loss');
+});
+
+test('lifecycle: start --paused, and OS startup restores stopped services paused, host-terminated ones running and crashed workers paused', { skip: process.platform === 'win32' && 'POSIX signals simulate host termination and crashes' }, async (t) => {
+    const { project, env, directory } = await initializedProject(t, { check: CHECK });
+    // Startup registration of the simulated OS startup goes to a private home, never the real one.
+    const home = join(directory, 'os home');
+    const startupEnv = { ...env, HOME: home, XDG_CONFIG_HOME: join(home, '.config'), APPDATA: join(home, 'AppData') };
+    const intentPath = join(project, '.ptbk', 'service', 'intent.json');
+    const launchPath = join(project, '.ptbk', 'service', 'launch.json');
+    const osStartup = async () => {
+        const restored = await ptbk(['start', '--resume-service', '--non-interactive', '--raw', '--path', project], { cwd: directory, env: startupEnv });
+        assert.equal(restored.code, 0, restored.output);
+        return restored.stdout;
+    };
+    const quiet = async (title, reason) => {
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+        assert.equal(findGenerated(await subjects(project), title, 'ptbk: '), undefined, reason);
+    };
+    await ptbk(['add', 'Queued work', '--agent', 'Developer', '--raw'], { cwd: project, env });
+
+    const started = await ptbk(['start', '--paused', '--no-persist', '--raw'], { cwd: project, env });
+    assert.equal(started.code, 0, started.output);
+    assert.match(started.stdout, /^Started paused/, started.output);
+    const paused = await status(project, env);
+    assert.equal(paused.service.state, 'pause', 'the manual reason holds before the first scheduling opportunity');
+    assert.match(paused.service.pauseReasons[0].summary, /Started paused/);
+    await quiet('Queued work', 'no queued task runs');
+    assert.equal(findGenerated(await subjects(project), 'Review the initialized project', 'ptbk: '), undefined, 'no bootstrap task starts while paused');
+    const repeated = await ptbk(['start', '--paused', '--raw'], { cwd: project, env });
+    assert.match(repeated.stdout, /^Already running/, repeated.output);
+    assert.equal((await status(project, env)).service.instanceId, paused.service.instanceId, 'a live owner keeps its state');
+    assert.equal((await ptbk(['resume', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => findGenerated(await subjects(project), 'Queued work', 'ptbk: '), { message: 'the queued work after resume' });
+
+    // A deliberate stop is restored paused by the next OS startup (simulated: the registered launch is persistent).
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+    const launch = JSON.parse(await readFile(launchPath, 'utf8'));
+    assert.equal(launch.intentionallyStopped, true);
+    await writeFile(launchPath, `${JSON.stringify({ ...launch, persistent: true }, null, 4)}\n`);
+    assert.match(await osStartup(), /Restored ptbk service paused \(it was stopped before/);
+    const inactive = await status(project, env);
+    assert.equal(inactive.service.state, 'pause');
+    assert.match(inactive.service.pauseReasons[0].summary, /deliberate stop/);
+    await ptbk(['add', 'After reboot work', '--agent', 'Developer', '--raw'], { cwd: project, env });
+    await quiet('After reboot work', 'a restored stopped project runs no queued task until Resume');
+    assert.equal((await ptbk(['resume', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => findGenerated(await subjects(project), 'After reboot work', 'ptbk: '), { message: 'the work queued after the restore' });
+
+    // A host termination request (OS shutdown) of a running service lets the next startup continue its work.
+    const running = await status(project, env);
+    assert.equal(running.service.state, 'running');
+    process.kill(running.service.pid, 'SIGTERM');
+    await waitFor(async () => (await status(project, env)).service.state === 'stopped', { message: 'the terminated service to end' });
+    assert.ok(JSON.parse(await readFile(intentPath, 'utf8')).hostTermination, 'the termination request is recorded');
+    await ptbk(['add', 'Work after shutdown', '--agent', 'Developer', '--raw'], { cwd: project, env });
+    assert.doesNotMatch(await osStartup(), /paused/);
+    await waitFor(async () => findGenerated(await subjects(project), 'Work after shutdown', 'ptbk: '), { message: 'work to continue after a host-terminated run' });
+
+    // A crashed worker is restarted by its supervisor, but only paused (crashed while idle: no authoring is cut off).
+    let idlePolls = 0;
+    const before = await waitFor(async () => {
+        const snapshot = await status(project, env);
+        const idle = snapshot.service.state === 'running' && !snapshot.current && !snapshot.queueTotal && !(await git(project, ['status', '--porcelain'])).trim();
+        idlePolls = idle ? idlePolls + 1 : 0;
+        return idlePolls >= 4 ? snapshot : undefined;
+    }, { timeoutMs: 90_000, intervalMs: 500, message: 'the follow-up work to settle' });
+    process.kill(before.service.pid, 'SIGKILL');
+    const recovered = await waitFor(async () => {
+        const snapshot = await status(project, env);
+        return snapshot.service.state !== 'stopped' && snapshot.service.instanceId !== before.service.instanceId ? snapshot : undefined;
+    }, { timeoutMs: 30_000, message: 'the supervisor to restart the crashed worker' });
+    assert.equal(recovered.service.state, 'pause');
+    assert.match(recovered.service.pauseReasons[0].summary, /ended unexpectedly/);
+    assert.equal((await ptbk(['stop', '--force', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await git(project, ['ls-files', '.ptbk'])).trim(), '', 'lifecycle intent is runtime-only and never committed');
+});

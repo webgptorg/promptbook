@@ -9,6 +9,7 @@ import { lookupService, type ControlClient } from './control.js';
 import { readRegistry, verifyEngine, type DiscoveryEntry } from './discovery.js';
 import { forgetKnownProject, restoreKnownProject, type KnownProject } from './known-projects.js';
 import { forceStopEngine } from './launcher.js';
+import { unregisterPersistence } from './persistence.js';
 import { readLaunchMetadata, restoreDiscoveryEnvironment } from './records.js';
 
 /**
@@ -16,7 +17,7 @@ import { readLaunchMetadata, restoreDiscoveryEnvironment } from './records.js';
  *
  * @private global controls
  */
-export type GlobalAction = 'start' | 'stop' | 'force-stop' | 'pause' | 'resume' | 'remove';
+export type GlobalAction = 'start' | 'start-paused' | 'stop' | 'force-stop' | 'pause' | 'resume' | 'remove';
 
 /**
  * Per-project outcome of a global action: `completed`, `accepted` (pending: e.g. draining), `unchanged` (already in the
@@ -74,31 +75,36 @@ function failureSummary(stderr: string, stdout: string): string {
 }
 
 /**
- * Explicit Start of a stopped known project through the ordinary launcher (`ptbk start`) of its recorded installation,
- * with its saved launch overrides. A live engine is left unchanged (Start is not Resume); a missing directory or
- * installation is diagnosed, never replaced by another one.
+ * Explicit Start (or Start paused) of a stopped known project through the ordinary launcher (`ptbk start`, with
+ * `--paused`) of its recorded installation, with its saved launch overrides. A live engine is left unchanged (Start is
+ * not Resume, and Start paused never pauses a running engine); a missing directory or installation is diagnosed, never
+ * replaced by another one. An installation that cannot start paused is reported, never started running instead.
  *
  * @private global controls
  */
-export async function startKnownProject(target: GlobalTarget, env: NodeJS.ProcessEnv = process.env): Promise<ProjectActionOutcome> {
-    if (!(await isDirectory(target.projectRoot))) return outcome(target, 'start', 'failed', `The project directory ${target.projectRoot} no longer exists; nothing was started.`);
+export async function startKnownProject(target: GlobalTarget, env: NodeJS.ProcessEnv = process.env, options: { readonly paused?: boolean } = {}): Promise<ProjectActionOutcome> {
+    const action: GlobalAction = options.paused ? 'start-paused' : 'start';
+    if (!(await isDirectory(target.projectRoot))) return outcome(target, action, 'failed', `The project directory ${target.projectRoot} no longer exists; nothing was started.`);
     const project = projectAt(target.projectRoot);
     const lookup = await lookupService(project);
-    if (lookup.state === 'running') return outcome(target, 'start', 'unchanged', `Already running (PID ${lookup.record.pid}); its state was not changed.`);
-    if (lookup.state === 'unreachable') return outcome(target, 'start', 'failed', `A recorded engine (PID ${lookup.record.pid}) does not answer: ${lookup.reason}. Nothing was started.`);
+    if (lookup.state === 'running') return outcome(target, action, 'unchanged', `Already running (PID ${lookup.record.pid}); its state was not changed.`);
+    if (lookup.state === 'unreachable') return outcome(target, action, 'failed', `A recorded engine (PID ${lookup.record.pid}) does not answer: ${lookup.reason}. Nothing was started.`);
     const launch = await readLaunchMetadata(project);
     const installation = launch?.installation ?? target.known?.installation ?? ENGINE_ROOT;
     const bin = join(installation, 'bin', 'ptbk.js');
-    if (!(await pathExists(bin))) return outcome(target, 'start', 'failed', `Its installation ${installation} no longer exists; nothing was started. Run \`ptbk start --path "${target.projectRoot}"\` with the installation you want.`);
+    if (!(await pathExists(bin))) return outcome(target, action, 'failed', `Its installation ${installation} no longer exists; nothing was started. Run \`ptbk start --path "${target.projectRoot}"\` with the installation you want.`);
     const recordedNode = launch?.nodePath ?? target.known?.nodePath;
     const nodePath = recordedNode && (await pathExists(recordedNode)) ? recordedNode : process.execPath;
     const childEnv = launch ? restoreDiscoveryEnvironment(launch.env, nodePath, env) : env;
-    const base = [bin, 'start', '--path', target.projectRoot, '--no-dashboard', '--non-interactive', '--raw'];
+    const base = [bin, 'start', '--path', target.projectRoot, '--no-dashboard', '--non-interactive', '--raw', ...(options.paused ? ['--paused'] : [])];
     let result = await runProcess(nodePath, [...base, ...(launch ? ['--saved-launch'] : [])], { cwd: target.projectRoot, env: childEnv, timeoutMs: START_TIMEOUT_MS });
+    if (options.paused && result.exitCode === 2 && /--paused|paused/.test(result.stderr)) {
+        return outcome(target, action, 'failed', `Its installation ${installation} cannot start paused (an older engine); nothing was started.`);
+    }
     // An installation of an older version does not know the saved-launch start yet: its ordinary start.
     if (launch && result.exitCode === 2 && /saved-launch/.test(result.stderr)) result = await runProcess(nodePath, base, { cwd: target.projectRoot, env: childEnv, timeoutMs: START_TIMEOUT_MS });
-    if (result.exitCode === 0) return outcome(target, 'start', 'completed', result.stdout.trim().split(/\r?\n/)[0] || 'Started.');
-    return outcome(target, 'start', 'failed', failureSummary(result.stderr, result.stdout) || result.spawnError || `ptbk start exited with ${String(result.exitCode)}`);
+    if (result.exitCode === 0) return outcome(target, action, 'completed', result.stdout.trim().split(/\r?\n/)[0] || (options.paused ? 'Started paused.' : 'Started.'));
+    return outcome(target, action, 'failed', failureSummary(result.stderr, result.stdout) || result.spawnError || `ptbk start exited with ${String(result.exitCode)}`);
 }
 
 /**
@@ -155,9 +161,10 @@ async function removalBlocker(projectRoot: string, env: NodeJS.ProcessEnv): Prom
 
 /**
  * Removes one verified stopped project from the host registry. Eligibility is rechecked immediately before and after
- * removing the entry: an engine that started concurrently keeps (or gets back) its registration. Only the entry is
- * forgotten; the directory, Git history, configuration, Books, sessions and recovery evidence stay, and no project
- * lock is touched. A later explicit init/start registers the project again.
+ * removing the entry: an engine that started concurrently keeps (or gets back) its registration. The entry and its
+ * startup registration are forgotten, so a reboot no longer restores it; the directory, Git history, configuration,
+ * Books, sessions and recovery evidence stay, and no project lock is touched. A later explicit init/start registers
+ * the project again.
  *
  * @private global controls
  */
@@ -170,6 +177,7 @@ export async function removeStoppedProject(target: GlobalTarget, env: NodeJS.Pro
         if (removed) await restoreKnownProject(removed, env);
         return outcome(target, 'remove', 'failed', `Not removed: ${late} (it started meanwhile); its registration was kept.`);
     }
+    await unregisterPersistence(projectAt(target.projectRoot)).catch(() => undefined);
     return outcome(target, 'remove', 'completed', `Forgotten by this host; ${target.projectRoot} and all its data are untouched (\`ptbk start --path\` registers it again).`);
 }
 
@@ -183,6 +191,8 @@ export async function applyGlobalAction(action: GlobalAction, target: GlobalTarg
         switch (action) {
             case 'start':
                 return await startKnownProject(target, env);
+            case 'start-paused':
+                return await startKnownProject(target, env, { paused: true });
             case 'force-stop':
                 return await forceStopTarget(target);
             case 'remove':

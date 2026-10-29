@@ -1,6 +1,7 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { openSync } from 'node:fs';
 import { engineModule } from '../common/version.js';
+import { installPausedStart } from '../engine/operator-intent.js';
 import { projectAt } from '../project/workspace.js';
 import { readLaunchMetadata, RESTART_EXIT_CODE, rotateServiceLog, servicePaths } from './records.js';
 
@@ -8,7 +9,9 @@ import { readLaunchMetadata, RESTART_EXIT_CODE, rotateServiceLog, servicePaths }
  * Daemon supervisor entry: `node dist/service/supervisor.js <projectRoot>`.
  *
  * Runs detached from the launching terminal and restarts the worker after an unexpected exit (with backoff) while
- * persistence is enabled and no intentional stop was recorded.
+ * persistence is enabled and no intentional stop was recorded. An unexpected exit cannot be told apart reliably from an
+ * intentional termination, so the replacement only restores availability: it starts paused and never resumes work by
+ * itself.
  */
 
 /**
@@ -67,12 +70,19 @@ async function supervise(): Promise<void> {
         const launch = await readLaunchMetadata(project);
         if (!launch?.persistent || launch.intentionallyStopped) return;
         if (Date.now() - started > HEALTHY_RUN_MS) backoff = 1000;
-        process.stdout.write(`${new Date().toISOString()} worker exited with ${String(code)}; restarting in ${Math.round(backoff / 1000)}s\n`);
+        process.stdout.write(`${new Date().toISOString()} worker exited with ${String(code)}; restarting paused in ${Math.round(backoff / 1000)}s\n`);
         await new Promise((resolve) => setTimeout(resolve, backoff));
         backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
         // A deliberate stop recorded during the backoff (e.g. `ptbk panic` of the crashed worker) is never undone.
         const current = await readLaunchMetadata(project);
         if (terminating || !current?.persistent || current.intentionallyStopped) return;
+        try {
+            installPausedStart(project, 'unexpected-loss');
+        } catch (error) {
+            // Never restore an unpaused engine after an unexpected exit.
+            process.stderr.write(`${new Date().toISOString()} the paused restart could not be prepared (${String((error as Error)?.message ?? error)}); not restarting\n`);
+            return;
+        }
     }
 }
 
