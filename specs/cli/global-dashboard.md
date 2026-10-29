@@ -10,7 +10,7 @@ There is no global engine. Every engine owns one concrete project directory. The
 
 Maintain a host-local registry outside individual projects under the shared [home/identity policy](workspace.md#home-directory-and-shared-projects-root). Sudo preserves the original user's project/discovery scope; direct root uses root's own scope. Successful initialization/start registers the project; live discovery also includes engines launched by other clients, foreground/background modes, global/project-local installations and supported package versions. Do not limit discovery to this client's history or installation, and do not scan unrelated directories to invent projects.
 
-A known project remains registered after graceful stop, force stop, [panic](panic.md), process exit and OS reboot. Reconcile transient process records without deleting its durable entry. Equivalent paths/installations identify one project; successive engine instances remain distinct. Explicit registry removal is how the operator forgets it.
+A known project remains registered after graceful stop, force stop, [panic](panic.md), process exit and OS reboot. Enabled persistence restores all such services at OS startup: inactive agendas become live paused rows, while only prior running/Health-only ones may work after checks. Opted-out/failed launches remain honest stopped/unavailable rows. Reconcile transient process records without deleting its durable entry. Equivalent paths/installations identify one project; successive engine instances remain distinct. Explicit registry removal is how the operator forgets it.
 
 Private metadata identifies the canonical project path, selected installation and enough non-secret launch context to use ordinary start again. Live records include verified owner identity, actual loaded version/mode and local control discovery. Label last-run data historical when no owner exists; never show an old PID, endpoint or version as live. The registry is not a task store, credential catalogue or global execution queue. Preserve project configuration, recovery evidence and [startup intent](persistence.md).
 
@@ -30,11 +30,12 @@ Opening a live row attaches to its [project dashboard](terminal.md) without `cd`
 
 ## Individual and bulk controls
 
-Provide discoverable individual controls and bulk actions over all applicable known projects. Invoke shared project/domain operations, not duplicated UI lifecycle/persistence logic.
+Provide discoverable individual controls, including Start paused, and bulk actions over all applicable known projects. Invoke shared project/domain operations, not duplicated UI lifecycle/persistence logic.
 
 | Bulk action | Shared behavior |
 | --- | --- |
 | Start all | Start verified stopped projects using recorded project/installation context; leave live engines unchanged. Start is not Resume. |
+| Start all paused | Start verified stopped services directly paused before claims; leave live owners unchanged. |
 | Stop all | Gracefully stop applicable live engines, including paused ones; distinguish draining from completion. |
 | Force stop all | Immediately stop applicable live engines and all their owned execution processes, as with `ptbk panic`. |
 | Pause all | Add manual pause to applicable live engines and drain active background work. Preserve Health reasons and conflicting-intent confirmation rules. |
@@ -47,7 +48,7 @@ Show per-project accepted/pending/completed/failed/unconfirmed outcomes and an o
 
 ## Removing projects from the registry
 
-Removal forgets only the host-level entry and obsolete launch/discovery metadata. Preserve the directory, Git history, configuration, Books, browser sessions and recovery/evidence files. Inspection or removal never authorizes project-data deletion.
+Removal forgets only the host-level entry and associated startup/launch/discovery registration, so reboot does not restore it. Preserve the directory, Git history, configuration, Books, browser sessions and recovery/evidence files. Inspection or removal never authorizes project-data deletion.
 
 Only a verified stopped project may be removed. Running, pausing, paused and stopping engines must first complete ordinary or forced stop; unknown/unreachable is not proof of eligibility. Explain the required stop rather than silently performing it during removal.
 
@@ -55,7 +56,7 @@ Provide individual removal and bulk Remove all stopped. In a mixed list, bulk re
 
 ## Acceptance outcomes
 
-Open outside Git with no projects: the view stays open. Initialize/start projects through different installations, versions and modes, including no-HTTP/offline use; each accessible project appears once. Stop/force-stop one and reboot: its stopped row remains without fabricated live data. Distinguish unknown owners, stale records, PID reuse and permission-limited coverage.
+Open outside Git with no projects: the view stays open. Initialize/start projects through different installations, versions and modes, including no-HTTP/offline use; each accessible project appears once. Stop/force-stop and reboot: enabled startup restores an inspectable paused service without tasks; failed/opted-out launches stay truthful stopped rows. Distinguish unknown owners, stale records, PID reuse and permission-limited coverage.
 
 Individually and in bulk start, pause, resume, stop and force stop mixed live/paused/stopped projects. Verify pause composition, no duplicate owners, no implicit starts/resumes, stable selection, partial failures and no viewer fan-out. Attach/return/close without lifecycle effects.
 

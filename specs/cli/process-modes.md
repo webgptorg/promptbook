@@ -19,6 +19,8 @@ Every engine belongs to one concrete selected project directory. There is no glo
 
 `ptbk dashboard --global` instead opens the independent [host-wide overview](global-dashboard.md), from any directory. It lists known projects including stopped ones, discovers live owners and attaches to their dashboards without `cd`. Explicit individual/bulk controls use shared lifecycle operations; navigation alone never starts work. It stays open with zero entries and notices later registrations/starts. It never launches a global worker or acquires any project lock.
 
+`ptbk start --paused` is a shared launch policy in either explicit placement mode: an absent service starts with manual pause installed before claims; inspection/control/chat remain usable. Repeated start preserves a live owner’s state.
+
 Every start mode supports optional HTTP, automatic/selected port and the same project/runtime state. `--no-server` disables HTTP; `--port` selects its port. Local lifecycle controls and terminal discovery must still work without HTTP. Diagnose conflicting or invalid options rather than ignoring them.
 
 ## Lifecycle operations and viewer handoff
@@ -38,6 +40,6 @@ Locate the selected engine through verified runtime information. A stale record 
 
 `ptbk status` and `ptbk show` inspect version, live state, statistics, pending questions and connection details once without changing lifecycle. A stopped/disconnected display is an observation, not another live engine state. Lifecycle results distinguish accepted pending intent from completion.
 
-An intentional completed stop, including force stop or [panic](panic.md), suppresses automatic startup/respawn until a subsequent authorized start, including successful explicit init. Manual pause is restored during automatic OS/crash recovery, independently of re-evaluated Health reasons. Known-project registration survives pause and stop. Opening a dashboard or rebooting does not undo it. Cancelling a pending stop does not leave permanent-stop intent behind. Restart is not an intentional permanent stop. Terminating an owning foreground invocation preserves recoverable state without creating a background replacement; Ctrl+C on an attached dashboard only closes that client.
+An intentional stop/force stop/panic ends the actual process and suppresses immediate supervisor/pending replacement. Retain enabled startup and registry: at OS reboot that service launches paused without tasks. Prior running/Health-only agendas may continue after checks; manual/combined pause remains paused. Unexpected loss never authorizes work resumption. Honor no-persist/foreground opt-outs, preserve explicit restart’s separate contract and remove cancelled stop intent. Closing a viewer never changes lifecycle; an owning foreground exit creates no background replacement.
 
 See [startup persistence](persistence.md), [unattended operation](autonomous-operation.md), [controls](controls.md) and [recovery](recovery.md).

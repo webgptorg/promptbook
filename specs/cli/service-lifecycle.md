@@ -36,6 +36,10 @@ Accepted manual pause/resume intent survives automatic OS/crash recovery under [
 
 The System dashboard page is the authoritative control/inspection surface for manual pause and the complete list of active pause reasons. If the only active reason is one ordinary manual pause, the compact UI may simply say **Paused**. When health/multiple reasons exist, System exposes each reason and its owner/severity. The Health page owns health incident details/allowed override and must not duplicate generic manual pause controls.
 
+## Start directly paused
+
+`ptbk start --paused` and equivalent global controls launch an absent engine with its manual reason active **before any scheduling opportunity**, not by starting running and then sending Pause. Controls, inspection and the ordinary explicit-chat exception work; all queued background work waits. Repeated start over a live owner preserves its state rather than adding/removing pause reasons.
+
 ## Transitions and cancellation
 
 - Pause from `running` enters `pausing` while any background task is active, otherwise `pause` immediately. Once draining settles, `pausing` becomes `pause`.
@@ -51,6 +55,7 @@ The engine serializes control decisions with task claims: after pause/stop is ac
 
 | Entry point | Shared operation |
 | --- | --- |
+| `ptbk start --paused` | Start an absent service directly paused before any task claim; preserve live-owner idempotency. |
 | `ptbk pause` | Add/request the ordinary manual pause reason and gracefully stop new background scheduling. |
 | `ptbk resume` | Remove/cancel the ordinary manual pause/stop/restart intent. Return to `running` only when no independent pause reason remains. |
 | `ptbk stop` | Request graceful shutdown after current work settles. |
@@ -70,8 +75,8 @@ A force request immediately terminates the selected engine and all execution pro
 
 A catchable graceful termination request delivered to the engine by the operating system follows graceful stopping where the host permits it. A signal delivered only to an attached dashboard closes that client; it is not forwarded as an engine stop request. An externally imposed uncatchable kill may prevent all cleanup, leaving lock records behind. This is the deliberate difference between internal force stop and an external hard kill; there is no promised cleanup or new next-start lock-removal requirement for that case. The owner-cleanup rules are in [locking](locking.md).
 
-An intentional completed stop, including force stop and panic, follows [intentional-stop persistence](persistence.md): suppress automatic respawn/startup and pending replacement starts until an authorized explicit start. Retain the project as stopped in the global registry; restart is not a permanent stop. Cancelling a pending stop must not leave an intentional-stop setting that later suppresses ordinary crash/reboot recovery. External termination may be subject to existing host recovery policy; do not describe it as a guaranteed permanent user stop.
+An intentional completed stop, including force stop/panic, ends the service and suppresses immediate supervisor/pending replacement. Retain its registry and enabled persistence registration: next OS startup restores it paused for control, with no queued task execution. Previously running/Health-only-paused agendas may resume after current checks; manual/combined pause remains paused. Cancellation clears pending stop intent. Unexpected disappearance/ambiguous external kill never authorizes automatic work resumption; any restored service is paused, without changing the hard-kill cleanup limitation.
 
 ## Acceptance outcomes
 
-Exercise all four states through commands, two terminal clients, browser and API. Pause/stop an active task and verify it drains exactly once with no next claim. Compose manual + soft Health + hard Health reasons and verify scheduling resumes only after all applicable reasons are removed/resolved. Generic Resume never clears Health. Soft Health override affects only its incident; hard Health cannot be overridden. Cancel pending states and switch intent without restarting the task; confirm stop-to-pause replacement and reject stale conflicting requests. Pause an idle engine immediately, then resume, stop or restart it. Force stop has no waiting state, terminates all owned execution and attempts bounded cleanup, including while paused. Per-project/global panic stops remain deliberate stops across reboot; no owned child or supervisor replacement continues the work. Closing any observing client never invokes these operations.
+Exercise all four states through commands, two terminal clients, browser and API. Pause/stop an active task and verify it drains exactly once with no next claim. Compose manual + soft Health + hard Health reasons and verify scheduling resumes only after all applicable reasons are removed/resolved. Generic Resume never clears Health. Soft Health override affects only its incident; hard Health cannot be overridden. Cancel pending states and switch intent without restarting the task; confirm stop-to-pause replacement and reject stale conflicting requests. Pause an idle engine immediately, then resume, stop or restart it. Force stop has no waiting state, terminates all owned execution and attempts bounded cleanup, including while paused. Stop/panic prevents immediate replacement and next boot restores those persistent services only paused; no owned child or recovered service resumes their queued work before explicit Resume. Closing any observing client never invokes these operations.

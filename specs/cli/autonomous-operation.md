@@ -30,7 +30,7 @@ Checkpoint task-local blockers and release resources where safe so independent w
 
 ## Continuity and acceptance
 
-Persist work, waits, retry opportunities and effect evidence across restarts under [recovery](recovery.md) and [startup persistence](persistence.md). Deliberate stop remains effective until an authorized start. Distinguish active work, scheduled idle, resource/provider waits, automatic recovery, human waits and real unsafe ownership.
+Persist work, waits, retry opportunities and effect evidence across restarts under [recovery](recovery.md) and [startup persistence](persistence.md). Deliberate stop prevents immediate replacement and work resumption; enabled next-boot startup is paused until explicit Resume. Distinguish active work, scheduled idle, resource/provider waits, automatic recovery, human waits and real unsafe ownership.
 
 Retain per-task [traces](traces.md). Optional recording degradation must not unnecessarily halt safe work; report missing evidence honestly and keep resources/retries bounded. Extended unattended operation is not a guarantee that a sleeping machine, revoked account or unavailable provider can perform work.
 
