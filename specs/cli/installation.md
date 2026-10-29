@@ -12,6 +12,12 @@ Each version also ships a thin [Windows installer](windows-installer.md) on its 
 
 This is an additional distribution/onboarding path, not a replacement for npm or a separate engine/graphical initializer. Reuse compatible existing prerequisites, preserve unrelated installations and follow the installer's exact-version, permission, retry and safe-directory rules. Global use is preferred in ordinary init; project-local installation remains an explicit alternative. Automatic artifact creation and publication are part of [releasing](releasing.md).
 
+## Server deployment entry point
+
+The README and localized website installation page expose the same Azure deployment template and [Ubuntu VPS guide](../../deploy/README.md). The button opens the provider's own account/cost confirmation and provisions a persistent Ubuntu 24.04 x86-64 VM plus prerequisites. The same inspected installer is usable on an existing compatible VPS. Do not represent a provisioned host as an authenticated, initialized agenda.
+
+Run the engine as the dedicated non-sudo user. Keep dashboard/API/browser-debugging ports private and allow SSH only from the selected client source in the Azure template. Project and per-user files remain on persistent storage; private backups must include ignored state and native sign-ins, not only Git. Setup and provider authentication remain attended over verified access. Enable user lingering so the engine's ordinary per-project startup registration can work before login; reuse its lifecycle rather than adding a second supervisor that overrides intentional stop. This bootstrap is an installation path, not an automatic updater or the remote-control app.
+
 ## Installation during init
 
 Inspect the selected destination, not merely the folder from which init was launched. If it already declares and has a usable local `ptbk` in dependencies or devDependencies, preserve it without asking to add a second copy or moving it between sections. Repair a declared but missing installation without silently replacing its version choice.

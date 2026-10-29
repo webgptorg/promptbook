@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="#quickstart"><strong>Quickstart</strong></a> ·
+  <a href="#deploy-to-your-own-server"><strong>Deploy</strong></a> ·
   <a href="https://www.ptbk.io/en"><strong>Website</strong></a> ·
   <a href="specs/_main.md"><strong>Specifications</strong></a> ·
   <a href="https://www.ptbk.io/en/partnership"><strong>For partners</strong></a>
@@ -44,6 +45,14 @@ ptbk start         # resume the agenda
 The engine machine must stay available. By default, the engine resumes at login. Its browser dashboard and API are available only on that computer through a loopback address, with no pairing step. [Local API access](specs/cli/api.md) · [Startup behavior](specs/cli/persistence.md)
 
 **Windows:** download the EXE from [GitHub Releases](https://github.com/webgptorg/promptbook/releases), or follow the [installation guide](https://www.ptbk.io/en/open-source).
+
+## Deploy to your own server
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwebgptorg%2Fpromptbook%2Freborn%2F2026-10%2Fdeploy%2Fazure%2Fazuredeploy.json)
+
+Create a **paid Ubuntu VPS in your own Azure account**, with a persistent disk, SSH restricted to your client IP, Node.js, Git, Chrome and the published engine. Review the provider's costs before confirming. Then connect over SSH, complete `ptbk init` and sign in to your chosen AI harness; the button prepares the server, while your agenda still needs setup.
+
+Already have an Ubuntu VPS on DigitalOcean, Hetzner or another provider? Use the same [server installer and setup guide](deploy/README.md). The engine runs as a dedicated user, keeps its dashboard private and can resume at boot after initialization. [All installation options](https://www.ptbk.io/en/open-source).
 
 ## Built around your project
 
