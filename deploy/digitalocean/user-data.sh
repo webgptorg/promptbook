@@ -36,4 +36,5 @@ ufw --force enable
 installer="$(mktemp)"
 trap 'rm -f -- "$installer"' EXIT
 curl --fail --silent --show-error --location --retry 3 https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o "$installer"
-bash "$installer"
+# Unattended: prerequisites only. Initialization and AI sign-in continue attended over SSH.
+bash "$installer" --prepare-only

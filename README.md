@@ -24,7 +24,7 @@ Give Promptbook an ongoing responsibility, a goal and your rules. Its agents fin
 
 ## Quickstart
 
-Requires **Node.js 22.13+ in the 22.x line, or 24+**, **npm 10+**, Git and Chrome, Chromium or Edge. Setup guides you through selecting a supported harness and signing in.
+With **Node.js 22.13+ in the 22.x line, or 24+**, **npm 10+**, Git and Chrome, Chromium or Edge already installed, use npm. Setup guides you through selecting a supported harness and signing in. Starting from a clean Ubuntu server instead? One command prepares everything: [Deploy to your own server](#deploy-to-your-own-server).
 
 ```sh
 npm install --global ptbk
@@ -48,17 +48,25 @@ The engine machine must stay available. By default, the engine resumes at login.
 
 ## Deploy to your own server
 
+**A clean Ubuntu 24.04 LTS x86-64 server** with systemd, outbound HTTPS and root or sudo access over SSH needs no preinstalled Node.js, npm, Git, Chrome or AI harness. Paste one command:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh && sudo bash install-promptbook.sh
+```
+
+It installs the missing prerequisites and the published engine, creates a dedicated non-sudo `promptbook` user and opens the setup assistant (`ptbk init`) as that user in the same terminal. Signing in to Codex or Claude Code needs no browser on the server: you finish it on your phone or computer. [Inspect the installer](deploy/ubuntu/install.sh) · [Server guide and options](deploy/README.md#one-command-on-an-existing-ubuntu-vps)
+
 [![Set up a DigitalOcean Droplet](deploy/digitalocean/button.svg)](deploy/README.md#digitalocean)
 
-**DigitalOcean:** create an Ubuntu Droplet with your SSH key and paste the prepared startup script. It installs the engine with persistent project storage and private dashboard access. [Open the DigitalOcean setup guide](deploy/README.md#digitalocean). The guide includes the required script-copy step; this is not a published Marketplace one-click image.
+**DigitalOcean:** create an Ubuntu Droplet with your SSH key and paste the prepared startup script. It prepares the server with persistent project storage and private dashboard access; then the same command over SSH continues into setup. [Open the DigitalOcean setup guide](deploy/README.md#digitalocean). The guide includes the required script-copy step; this is not a published Marketplace one-click image.
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwebgptorg%2Fpromptbook%2Freborn%2F2026-10%2Fdeploy%2Fazure%2Fazuredeploy.json)
 
-Create a **paid Ubuntu VPS in your own Azure account**, with a persistent disk, SSH restricted to your client IP, Node.js, Git, Chrome and the published engine. Review the provider's costs before confirming. Then connect over SSH, complete `ptbk init` and sign in to your chosen AI harness; the button prepares the server, while your agenda still needs setup.
+Create a **paid Ubuntu VPS in your own Azure account**, with a persistent disk, SSH restricted to your client IP, Node.js, Git, Chrome and the published engine. Review the provider's costs before confirming. Then connect over SSH and run the same command to continue into `ptbk init` and sign in to your chosen AI harness; the button prepares the server, while your agenda still needs setup.
 
-Already have an Ubuntu VPS on DigitalOcean, Hetzner or another provider? Use the same [server installer and setup guide](deploy/README.md). The engine runs as a dedicated user, keeps its dashboard private and can resume at boot after initialization. [All installation options](https://www.ptbk.io/en/open-source).
+On every path the engine runs as a dedicated user, keeps its dashboard private and can resume at boot after initialization. [All installation options](https://www.ptbk.io/en/open-source).
 
-**[AWS EC2 setup](deploy/README.md#aws):** upload the prepared CloudFormation template to create a persistent Ubuntu server with the same installer. All providers require paid resources and attended `ptbk init` / AI sign-in after server preparation.
+**[AWS EC2 setup](deploy/README.md#aws):** upload the prepared CloudFormation template to create a persistent Ubuntu server with the same installer. All providers require paid resources; after server preparation, the same command over SSH continues into attended `ptbk init` and AI sign-in.
 
 ## Built around your project
 

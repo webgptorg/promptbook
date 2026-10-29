@@ -2,7 +2,7 @@
 
 [![Set up a DigitalOcean Droplet](digitalocean/button.svg)](#digitalocean)
 
-**Start with DigitalOcean:** the [Droplet guide](#digitalocean) includes a startup script to paste into the server creation form. [Azure](#azure) provides a direct deployment form; [AWS](#aws) uses a CloudFormation template upload. Every path keeps project data on a persistent disk and uses the same Ubuntu installer. AI login and agenda setup remain attended over SSH.
+**Start with DigitalOcean:** the [Droplet guide](#digitalocean) includes a startup script to paste into the server creation form. [Azure](#azure) provides a direct deployment form; [AWS](#aws) uses a CloudFormation template upload. Every path keeps project data on a persistent disk and uses the same Ubuntu installer. Provider scripts only prepare the server (**server prepared; initialization pending**); [one command over SSH](#finish-setup-over-ssh) then continues into the attended setup and AI sign-in. A server you already have needs only [that one command](#one-command-on-an-existing-ubuntu-vps).
 
 ## DigitalOcean
 
@@ -10,7 +10,7 @@
 
 1. Choose **Ubuntu 24.04 LTS x64** (not ARM), your region and a plan with at least **4 GB RAM**, allowing more for heavier browser/harness workloads. Choose **SSH Key** authentication and select your public key. Review the paid plan, disk and backup options.
 2. Inspect the linked script and replace `REPLACE_WITH_YOUR_PUBLIC_IPV4/32` with your actual public IPv4 address followed by `/32`. Never insert a private key, password or AI token. A missing/invalid address or absent SSH key stops the script before system changes.
-3. Under **Additional Options → Startup scripts**, paste the complete edited script and create the Droplet. It disables password SSH login, allows TCP 22 only from your address through UFW and runs the shared installer. Any attached DigitalOcean Cloud Firewall must also allow that client on TCP 22.
+3. Under **Additional Options → Startup scripts**, paste the complete edited script and create the Droplet. It disables password SSH login, allows TCP 22 only from your address through UFW and runs the shared installer with `--prepare-only`. Any attached DigitalOcean Cloud Firewall must also allow that client on TCP 22.
 4. Connect with `ssh root@DROPLET_IP` using your selected key. Run `cloud-init status --wait` and check its exit status; inspect `/var/log/cloud-init-output.log` and `/var/log/promptbook-install.log` on failure. An **active** Droplet does not prove installation succeeded. Continue with [Finish setup over SSH](#finish-setup-over-ssh); the engine runs as the separate non-sudo `promptbook` user.
 
 This is a **guided deployment with a script-copy step**. DigitalOcean's standard Deploy button targets App Platform, which has no persistent local filesystem or volume support for this engine's project folders and browser profiles. This repository has no published Promptbook Marketplace image.
@@ -21,7 +21,7 @@ If your client IP changes, use the provider's recovery console to update UFW and
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwebgptorg%2Fpromptbook%2Freborn%2F2026-10%2Fdeploy%2Fazure%2Fazuredeploy.json)
 
-The button opens a deployment form in **your Azure account**. It creates a paid Ubuntu 24.04 x86-64 VM, a persistent 64 GB OS disk, a public IP and a network allowing SSH only from the client address you supply. It installs Node.js 24, npm, Git, Chrome and the published `ptbk` engine. It does **not** create an AI account, supply credentials or initialize an agenda.
+The button opens a deployment form in **your Azure account**. It creates a paid Ubuntu 24.04 x86-64 VM, a persistent 64 GB OS disk, a public IP and a network allowing SSH only from the client address you supply. It installs Node.js 24, npm, Git, Chrome and the published `ptbk` engine (`install.sh --prepare-only`). It does **not** create an AI account, supply credentials or initialize an agenda.
 
 Review Azure's regional VM, disk and IP charges before confirming. This is a long-running machine with local files and browser profiles. Short-lived/serverless functions and ephemeral disks are unsuitable substitutes.
 
@@ -47,35 +47,41 @@ This is a **guided deployment with a template-upload step**. A quick-create `tem
 
 If your client IP changes, edit the EC2 security-group SSH rule. A stopped/started instance may receive a new public IP; check its current address. The root EBS volume survives ordinary restarts and is retained after instance/stack deletion, including rollback. **Retained EBS disks remain paid**: find the volume in EC2, verify a private backup and delete it explicitly when no longer needed. Retention is not backup. Instance time, disk, public IPv4, transfer and snapshots have separate charges; stopping a VM does not remove them all.
 
-## An existing VPS, including DigitalOcean or Hetzner
+## One command on an existing Ubuntu VPS
 
-Use a fresh **Ubuntu 24.04 x86-64** machine with systemd and outbound HTTPS. Start with enough memory for your chosen harnesses and browser; the Azure default is a 2-vCPU/4-GB machine, not a guarantee for every workload. Connect as your normal SSH administrator and download, inspect, then run the same installer:
+Use a fresh **Ubuntu 24.04 LTS x86-64** machine with systemd and outbound HTTPS, from DigitalOcean, Hetzner or any other provider, and an SSH (or provider console) session as root or a sudo administrator. Node.js, npm, Git, Chrome and an AI harness are **not** needed beforehand. Start with enough memory for your chosen harnesses and browser; the Azure default is a 2-vCPU/4-GB machine, not a guarantee for every workload. Paste:
 
 ```sh
-curl -fL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh
-less install-promptbook.sh
-sudo bash install-promptbook.sh
+curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh && sudo bash install-promptbook.sh
 ```
 
-The installer resolves npm's `latest` tag once and installs that exact version, recorded in `/opt/promptbook/installed-version`. To select a published version explicitly, pass it as the sole argument: `sudo bash install-promptbook.sh 0.119.0-38`. It leaves an unrelated `ptbk` executable or a conflicting account unchanged and fails rather than overwriting them. It does not upgrade an already-installed engine to a different version. A retry of the same version preserves project files and configuration.
+The first half downloads the [inspectable installer](ubuntu/install.sh); you can read `install-promptbook.sh` before running the second half. It prepares the missing prerequisites, creates the dedicated non-sudo `promptbook` user and then starts the setup assistant (`ptbk init`) **as that user in the same terminal**: no account switch, `cd`, second command or new SSH session. Continue with [the setup](#finish-setup-over-ssh). This installer does not support other Linux distributions, ARM servers, macOS or Windows; a computer with Node.js 22.13+/24+ and npm uses the [ordinary npm installation](../README.md#quickstart).
+
+Options go after `sudo bash install-promptbook.sh`: `--version 0.119.0-38` installs an exact published version; `--path PTBK/project/my-agenda` names the project folder inside `/var/lib/promptbook` (init still asks you to confirm it); `--prepare-only` stops after the prerequisites; further `ptbk init` options follow `--` (for example `-- --non-interactive …` for unattended init with its decisions supplied).
+
+Without `--version`, the installer resolves npm's `latest` tag once and installs that exact version, recorded in `/opt/promptbook/installed-version`. Repeating the command reuses an installed engine and never upgrades it; an explicit different version fails rather than replacing it. It leaves an unrelated `ptbk` executable or a conflicting account unchanged and fails rather than overwriting them. A retry installs only what is still missing and preserves project files and configuration.
 
 Your provider's firewall remains your responsibility on an existing VPS: allow SSH from your client and keep engine/browser ports private. This manual path does not provision a new server or change its inbound firewall. The Azure template configures its own SSH network rule.
 
 ## Finish setup over SSH
 
+Provider startup scripts end with **server prepared; initialization pending**: they install the prerequisites but never start an initializer or wait for a sign-in. Connect over SSH as your administrator and run the same one command; it reuses everything already installed and opens the setup assistant:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh && sudo bash install-promptbook.sh
+```
+
+The setup assistant runs as the `promptbook` user in your terminal. Describe the work, confirm the project folder (by default a new folder in `/var/lib/promptbook/PTBK/project/`), use the global CLI, select a supported AI harness and complete its sign-in, and keep **Headless** for the browser. Sign-in needs no browser or desktop on the server: OpenAI Codex shows a link and a one-time code (`codex login --device-auth`) to enter on your phone or computer, and Claude Code shows a link whose page gives you a code to paste back into the terminal. Device-code login may need enabling in your ChatGPT security settings or by your workspace administrator; the assistant also explains the SSH callback-forwarding alternative. Website logins that need a visible browser require an appropriate private remote desktop/browser setup. Do not run the engine as root or put credentials in templates or installer arguments.
+
 The installer supplies the local Git service identity `Promptbook <promptbook@localhost>` only when no identity is configured for the dedicated user. This lets init save its first commit on a fresh machine. An existing identity is preserved; set your preferred `git config --global user.name` and `user.email` as `promptbook` if you want different authorship.
+
+If the command reports **initialization pending** because no interactive terminal was available, or the setup stops before it is complete, run the same command again: installed components and saved setup are kept, and no second engine, project or first task is created.
+
+The initializer prepares the project, starts the background engine and opens the terminal dashboard. Later, in a new SSH session:
 
 ```sh
 sudo -iu promptbook
-cd ~/projects/my-agenda
-ptbk init --path "$PWD"
-```
-
-Use the global CLI, select a supported AI harness, complete its native sign-in and choose **Headless** for the browser. The initializer reports any remaining missing access. Provider login may require its documented device-login or SSH callback forwarding; website login requiring a visible browser needs an appropriate private remote desktop/browser setup. The deployment does not bypass these requirements. Do not run the engine as root or put credentials in the ARM template or installer arguments.
-
-The initializer prepares the project and starts the background engine. In the same directory:
-
-```sh
+cd ~/PTBK/project/my-agenda   # your project folder
 ptbk status
 ptbk dashboard
 # Close the dashboard, or use another SSH terminal, before opening chat:
@@ -88,7 +94,7 @@ Use the terminal dashboard over SSH. The engine's local browser dashboard and AP
 
 ## Data, backups, updates and removal
 
-The engine's home is `/var/lib/promptbook`; the first project is `/var/lib/promptbook/projects/my-agenda`. Books, Git history, traces, ignored runtime/Wallet files, browser sessions, native harness sign-ins and user startup registrations stay on the persistent OS disk. They survive a normal reboot. **A persistent disk is not a backup.** Back up the whole home privately, including ignored files, not just Git. Preserve recovery material separately and use the normal Wallet restoration workflow when moving hosts. Never publish this backup or an entire home directory to Git.
+The engine's home is `/var/lib/promptbook`; projects are folders in `/var/lib/promptbook/PTBK/project/` (installations before the one-command setup used `/var/lib/promptbook/projects/my-agenda`, which keeps working). Books, Git history, traces, ignored runtime/Wallet files, browser sessions, native harness sign-ins and user startup registrations stay on the persistent OS disk. They survive a normal reboot. **A persistent disk is not a backup.** Back up the whole home privately, including ignored files, not just Git. Preserve recovery material separately and use the normal Wallet restoration workflow when moving hosts. Never publish this backup or an entire home directory to Git.
 
 Use the ordinary engine update workflow after backing up and stopping active projects. This bootstrap's centrally installed engine is root-owned; an administrator must perform package updates in `/opt/promptbook/engine` with the isolated Node runtime in PATH. Do not delete or reinitialize project folders to update. Harnesses installed by the `promptbook` user live in its writable `~/.local` npm prefix.
 
@@ -105,5 +111,7 @@ Before removing a server, stop work and verify a private backup. The Azure VM's 
 - [AWS installation wait conditions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-waitcondition.html)
 - [Canonical Ubuntu AMIs for CloudFormation](https://documentation.ubuntu.com/aws/aws-how-to/instances/build-cloudformation-templates/)
 - [Engine persistence contract](../specs/cli/persistence.md)
+- [Codex authentication](https://developers.openai.com/codex/auth) and [Claude Code authentication](https://code.claude.com/docs/en/authentication)
+- [One-command VPS onboarding](../specs/cli/vps-onboarding.md) and [remote harness authentication](../specs/cli/harness-authentication.md)
 
-Repository checks cover template structure and installer input handling; the server-deployment workflow exercises installation and ordinary project lifecycle on an Ubuntu runner. A successful runner test does not establish subscription availability, a live Azure/DigitalOcean/AWS deployment, provider authentication, or a real reboot test. Validate those in your own deployment.
+Repository checks cover template structure and installer input handling; the server-deployment workflow exercises unattended preparation, reuse on retry, the incomplete no-terminal outcome, the terminal handoff to init as the engine user and ordinary project lifecycle on an Ubuntu runner. A successful runner test does not establish subscription availability, a live Azure/DigitalOcean/AWS deployment, provider authentication, or a real reboot test. Validate those in your own deployment.

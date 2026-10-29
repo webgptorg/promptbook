@@ -207,7 +207,7 @@
           "fileUris": [
             "[variables('installerUrl')]"
           ],
-          "commandToExecute": "bash install.sh"
+          "commandToExecute": "bash install.sh --prepare-only"
         }
       }
     }
