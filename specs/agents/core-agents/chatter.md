@@ -26,6 +26,8 @@ For a new chat without an explicit target, first offer exactly two choices: **Ch
 
 This applies to `ptbk chat`, the dashboard new-chat shortcut and browser/API entry. Existing chats and agent-authored waiting conversations retain their original participants; opening Fixer's question does not redirect it to Chatter. If Chatter is missing or invalid, give an actionable setup/repair diagnostic rather than silently choosing another agent, overwriting a file or initializing a project just by opening a picker.
 
+Chatter is the **project’s spokesperson**: the usual conversational gateway and author of [project briefs](../../cli/project-report.md), not the boss of other agents. Ordinary periodic/event-driven work appends to root `report.book`, with normal editable policy/learning. No Reporter role or privileged worker is added; viewer/status reads never generate work and Discuss report creates a new seeded chat.
+
 ## Acceptance outcomes
 
 Initialize a project and verify one editable Chatter with all other initialized teammates. Enter through direct chat, terminal shortcut and browser: Enter chooses Chatter; the second option reveals every valid alternative; explicit selection is respected. Ask about status without creating work, consult a specialist with attribution, then create authorized linked tasks through the ordinary queue. Reinit preserves customization, adds missing roles and uses [shared template reconciliation](../core-agents.md#shared-preparation-and-template-updates) for upstream changes rather than replacing project policy. Reopen another agent's waiting chat and verify that its identity, messages and required answer remain unchanged.

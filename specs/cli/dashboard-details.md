@@ -82,6 +82,12 @@ Expose Promptbook-project cache cleanup and supported Linux swap remediation thr
 
 Do **not** put generic manual Pause/Resume or a "Pause all" control on Health. Manual pause belongs to System. Merely viewing/acknowledging the tile/page does not resolve a health incident.
 
+## Action log, History, Files and report
+
+Provide distinct compact tiles/full pages, independently of autosync: [Action log](action-log-ui.md) reads external Markdown mutations/outcomes and verified task/evidence links; [History](history.md) reads Git messages and available branch/merge topology, with recognized agent formatting and verified links; [Files](files.md) is confined read-only nonhidden project browsing with formatted Markdown/JSON/Book and supported images. Video playback is deferred. These complement runtime Activity, not three names for one log. Shared readers preserve selection/scroll and never create audits, reports, commits or provider calls. Book viewing/editing shares its long-document core.
+
+The full-width [brief](project-report-ui.md) above the home grid reads only the last complete Chatter message. Discuss creates a new seeded chat; Refresh explicitly requests shared generation. Earlier briefs remain inspectable in `report.book` through Files.
+
 ## Acceptance outcomes
 
 Open every applicable page by keyboard and return without mutation. The root grid is not rendered as background clutter while a page is open. Long inventories and logs scroll while context/actions remain usable. Verify actual execution metadata with multiple instances/consultations and unknown model data. Add/enable a tool from another terminal during active work and observe immediate availability. Test browser recovery without secret disclosure or unrelated kills. Toggle autosync: its tile/page appears only when enabled. System and Health pages remain distinct.

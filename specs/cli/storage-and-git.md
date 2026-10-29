@@ -8,6 +8,7 @@ This is the entry point for deciding where project information belongs and what 
 | --- | --- | --- |
 | Agent, task and chat Books; specifications; nonsecret saved configuration | Readable project sources, retaining chronology where required by [Book layering](../book-language/layering.md). | Scoped logical commits under [Git persistence](git-persistence.md). |
 | Available harness output, events, browser evidence and structured raw usage | Attributed durable evidence under root `traces/`; task directories use the literal source basename. | [Trace policy](trace-configuration.md); usage follows traces by default. |
+| Project brief/history | Root `report.book`, a Chat of appended Chatter messages. | Normal scoped commits independently of trace settings. |
 | External actions | One readable Markdown record per remote mutation under root `actions/<task-file-basename>/`. | Versioned independently of trace settings and final task success; see [action log](action-log.md). |
 | Wallet credentials, TOTP generators, encryption/recovery metadata | Persistent encrypted ignored `.ptbk/wallet/` and `.ptbk/encryption/`. | Never commit secret values, ciphertext vault files or recovery material. Only the nonsecret operation audit below is eligible. |
 | Historical price-list observations | Ignored `.ptbk/pricing/`, separate from usage records. | Not required to be committed; retain snapshots independently. |

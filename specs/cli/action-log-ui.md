@@ -1,6 +1,6 @@
 # Action log page
 
-[External-action records](action-log.md) · [Dashboard pages](dashboard-details.md) · [Git audit](git-persistence.md)
+[External-action records](action-log.md) · [Dashboard pages](dashboard-details.md) · [History](history.md)
 
 Provide a compact **Action log** tile and dedicated terminal/browser page over saved external-action Markdown records, separate from runtime activity, optional traces and Git history. List time, agent, operation/target, outcome and linked task. Open the full record and navigate verified task/evidence/safe receipt links. Failed tasks can have successful actions; partial and uncertain outcomes stay explicit.
 

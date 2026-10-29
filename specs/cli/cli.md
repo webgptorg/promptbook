@@ -17,7 +17,7 @@ The root command is `ptbk`. Bare interactive invocation offers exactly two conte
 | `dashboard` | Continuously observe/control an existing project, without owning or starting it. |
 | `dashboard --global` | Host-wide known-project table including stopped entries, individual/bulk lifecycle controls and stopped-entry removal. |
 | `panic` | Confirmed host-wide force stop of accessible active engines and owned execution; `--yes` skips confirmation. No soft/pause variants. |
-| `status`, `show` | One shared project-state snapshot, including tools and enabled synchronization, without lifecycle changes. |
+| `status`, `show` | Print the same saved brief and shared state snapshot once, then exit without generation or lifecycle changes. |
 | `tool` | Named tool list/show/add/modify/move/enable/disable/remove using shared saved management. See [tool commands](tool-management.md). |
 | `chat` | New Chatter-first persistent conversation or explicit existing thread, without a dashboard requirement. |
 | `ask` | Compatibility/quick submission or enquiry using the same chat/task model. |

@@ -22,6 +22,12 @@ In-use and last-enabled-type protections return explicit decision requirements a
 
 Credential references are readable, actual credentials are not. Where adding a secret is authorized, use a protected write-only input that calls the shared [environment editor](environment.md), with timestamped non-destructive audit and no echoed value in response/error/logs. Do not treat general configuration field writes as permission to read arbitrary environment variables or edit files outside project authority.
 
+## Report and project inspection
+
+Expose the shared saved [brief](project-report.md), original time and actual availability/persistence/generation state, without calling Chatter on read. Explicit Refresh coalesces scheduled work subject to pause/capacity. Discuss creates a new normal chat seeded with the displayed snapshot/provenance and ordinary first-User-message MODEL routing.
+
+Expose bounded read-only Action log, [History](history.md) and [Files](files.md), actual verified task/chat/evidence links and honest missing history. Confine files, hide protected/secret paths and sanitize untrusted content. Book viewing/editing shares one long-document model, without whole-history responses each refresh. Retain current local authentication/origin boundaries; add no remote transport.
+
 ## Wallet and encryption boundary
 
 Expose nonsecret Wallet readiness, service/account labels and pending action/result state. Protected owner operations submit credentials and recovery words through concealed write-only input under [Wallet](wallet.md) and [project encryption](project-encryption.md); ordinary status, chat/source export and agent APIs never return them. Agent requests authorize a specific browser login, not raw decryption. Apply project authentication, origin/scope checks, redaction and once-only persistence to these operations; never log request bodies containing secrets. Share one implementation across terminal/browser/API.

@@ -16,6 +16,8 @@ The resilient Book format is not a conventional strict programming language. Use
 
 Coordinate saves with current source revisions, active task ownership and scoped Git persistence; never overwrite another client's accepted edit or stage an active task's unfinished work. Detect stale conflicting edits and preserve the draft for reconciliation. Report saved/committed only after actual write and required commit; disk, permission or persistence failure is different from a content warning. Saving an unchanged source creates no empty commit.
 
+The read-only [Book viewer](book-viewer.md), including Files/report history, and this editor use one parser/document/render/navigation core with read-only/editable modes under [DRY](../coding-standards/shared-logic.md#one-book-viewing-and-editing-core). Share interpretation/highlighting/diagnostics/attachments and handle very long Books responsively without losing offscreen source/edits or requiring cleanup.
+
 ## Acceptance outcomes
 
 Edit an ordinary and core agent from the dashboard; Enter adds lines and Ctrl+S saves without leaving. Paste the same long text, image and document through init, chat and this editor and verify the same payload/asset behavior. Save unknown commitment/invalid MODEL content with a visible warning and retained exact source; see one ordinary Fixer repair task, pending under pause. Exercise resize, concurrent edits and failed persistence without losing drafts or claiming success.

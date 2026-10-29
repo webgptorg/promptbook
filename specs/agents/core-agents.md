@@ -11,7 +11,7 @@ The engine expects six editable project roles under `agents/.core/`. Each has a 
 | [Tasker](core-agents/tasker.md) | `tasker.book` | Create, clarify and manage tasks, without performing routing. |
 | [Teacher](core-agents/teacher.md) | `teacher.book` | Learn from completed work through ordinary teaching tasks. |
 | [Fixer](core-agents/fixer.md) | `fixer.book` | Solve system/project problems through ordinary agent work. |
-| [Chatter](core-agents/chatter.md) | `chatter.book` | Default general project conversation. |
+| [Chatter](core-agents/chatter.md) | `chatter.book` | Project spokesperson, briefs and default general conversation. |
 
 Their opening commitments are `AGENT <role name>`; core names do not acquire task/chat date-time decoration. A core has ordinary Book, routing, TEAM, learning, Git and runtime behavior. Being required does not grant a special inference mechanism or extra authority.
 
