@@ -98,6 +98,10 @@ LAUNCHER
 chmod 755 /usr/local/bin/ptbk
 loginctl enable-linger promptbook
 systemctl start "user@$(id -u promptbook).service"
+# A fresh service account needs a Git author before init can make its first commit.
+# Preserve an existing identity; these defaults identify the local service, not a person.
+runuser --login promptbook --command 'test -n "$(git config --global --get user.name || true)" || git config --global user.name "Promptbook"'
+runuser --login promptbook --command 'test -n "$(git config --global --get user.email || true)" || git config --global user.email "promptbook@localhost"'
 runuser --login promptbook --command 'ptbk --version && systemctl --user show-environment >/dev/null'
 printf '%s\n' "$resolved_version" > /opt/promptbook/installed-version
 printf '\nServer prerequisites are installed. No agenda or AI account has been configured.\nNext: sudo -iu promptbook\nThen: cd ~/projects/my-agenda && ptbk init --path "$PWD"\nChoose a headless browser. Use ptbk dashboard over SSH; no public dashboard port is needed.\n'
