@@ -47,3 +47,5 @@ OS startup registration and durable host-wide **known-project registry/live disc
 See [Git preflight](git-preflight.md), [browser](browser.md), [installation](installation.md) and [recovery](recovery.md).
 
 Root **`actions/<task-file-basename>/`** holds [external-action audit data](action-log.md), using the exact literal trace basename. One Markdown file describes one remote mutation; zero actions means no task directory. Records are versioned independently of trace settings, excluded from Book discovery/execution, and captured prospectively without historical-task backfill.
+
+Root [`report.book`](project-report.md) is the explicit Chat location/name exception: `CHAT Report`, Chatter alone, all briefs appended without required cleanup. It is discoverable, never executable. Discuss report creates a normal new date-named chat in `chats/` with a copied first Chatter message, rather than adding User to the report feed.

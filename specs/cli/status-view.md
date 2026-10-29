@@ -30,6 +30,8 @@ Keep concrete tool/authentication/browser/recovery blockers visible through boun
 
 Show the actual loopback HTTP address, readiness and errors for this computer. This connection region is distinct from Git synchronization. Never guess another project's port or present stopped/disabled endpoints as usable. No-server disables HTTP while local engine control remains available. Raw output and browser/API state carry equivalent local connection information without credentials. Rendering never starts a service or changes authentication.
 
+`ptbk status`/`show` prominently print the same last complete [saved brief](project-report-ui.md) once and exit, including with a stopped service/no harness, preserving original time and honest missing/stale/pending data. Reading never calls a model, generates reports or starts the service. Separate Action log/History/Files summarize external effects, Git messages/topology and read-only project content; long Books use the common viewer/editor core.
+
 ## Acceptance outcomes
 
 All clients and one-shot commands show matching observed categories with truthful version/time/lifecycle state. Missing browsers/harnesses leave a visible running/resource wait; adding a tool updates and resumes eligibility. Pending/failed sync appears only in its enabled tile/page and does not falsify local state. Inspect actual per-instance diagnostics and metadata by entering/returning from the corresponding dashboard pages. Verify pause in one client appears in others while closing viewers changes nothing. Test narrow/raw/no-server, port conflicts/changes, authenticated local API controls and service exit without fabricated activity or stale ready endpoints.

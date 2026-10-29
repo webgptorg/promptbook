@@ -8,6 +8,8 @@ Whenever Promptbook creates a **new task or chat**, form its declared name from 
 
 This applies to automatic and user-triggered generation: add, chat entry across CLI/dashboard/browser/API, saved plans, conversation-created work including Chatter, bootstrap, Router/Teacher/Fixer/discovery, follow-ups, human requests and internal consultations. It is independent of whether a model, engine or person supplied the title. A CLI writing a Book is system creation; there is no additional manual-authoring mode/workflow.
 
+The explicit [project-report exception](project-report.md) is root `report.book` declared stable undated `CHAT Report`. Discuss report still creates a normal date-named thread in `chats/`.
+
 Use the project's effective time context. Naming must not add routine confirmation or a model call to model-free authoring. Agents, including Chatter, keep ordinary role names without task/chat date decoration.
 
 ## Ordinary text, not an identifier schema
@@ -30,7 +32,7 @@ References, chat/task links, UI/API outcomes and commit trailers use the complet
 
 ## Filenames remain storage names
 
-New task/chat filenames remain readable/date-leading, beginning `YYYY-MM-…` and ending `.book`. Preserve the existing convention while remaining numbering details are undecided; `YYYY-MM-DD-HHMM-<slug>.book` is compatible. Filename date/sequence is not a logical identifier and need not be parsed for resolution. Path safety, collisions and queue boundaries still apply.
+Except for fixed root `report.book`, new task/chat filenames remain readable/date-leading, beginning `YYYY-MM-…` and ending `.book`. Preserve the existing convention while remaining numbering details are undecided; `YYYY-MM-DD-HHMM-<slug>.book` is compatible. Filename date/sequence is not a logical identifier and need not be parsed for resolution. Path safety, collisions and queue boundaries still apply.
 
 The numeric part after `YYYY-MM-` was not finalized; this change adds no mandatory monthly counter or bulk-renaming of existing files. Date/time placement in the declared name is likewise not fixed syntax. Agent filenames are unchanged.
 

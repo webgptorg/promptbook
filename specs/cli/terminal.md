@@ -12,7 +12,7 @@ Zero or many dashboards can attach. They share engine state but not viewer focus
 
 ## Home screen
 
-Use the [dashboard home-screen contract](dashboard-layout.md). The root has a prominent shared **full-width Promptbook / PTBK and project header above the tile grid**, normally about two rows, visually identifying one application. It is separate from focusable tiles and from the terminal tab title. The complete header/grid form a compact responsive cockpit, not a vertically scrollable report. In normal terminal sizes the complete root is visible at once, including PTBK/project/service state, current work, operator attention and entries to the major pages.
+Use the [dashboard home-screen contract](dashboard-layout.md). The root has a prominent shared **full-width Promptbook / PTBK and project header and [project brief](project-report-ui.md) above the tile grid**, visually identifying one application. It is separate from focusable tiles and from the terminal tab title. The complete header/grid form a compact responsive cockpit, not a vertically scrollable report. In normal terminal sizes the complete root is visible at once, including PTBK/project/service state, current work, operator attention and entries to the major pages.
 
 Width and **height** both affect layout. A narrower/shorter terminal reduces columns and secondary copy before it removes important state. A larger terminal may use more whitespace/richer bounded previews. Handle `resize` live without losing tile focus, page selection, list scroll or drafts.
 
@@ -26,7 +26,7 @@ Enter opens the focused tile as a full **dashboard page**; the root tile grid is
 
 Pages can scroll. Prefer a stable header/context and shortcut/footer area with a scrollable body for long task/chat/agent/tool/activity content. Inside a focused list/editor/composer, its own arrows/Enter/Escape take precedence until returning to the page.
 
-Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, tools/browser, Agents, Chats, Tasks, activity/results, Usage, Connection and enabled Synchronization. Technical metadata such as engine version, installation/path/location, local URLs and provider/model detail belongs on pages instead of bloating the home screen.
+Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, tools/browser, Agents, Chats, Tasks, activity/results, Usage, Action log, History, Files, Connection and enabled Synchronization. Technical metadata such as engine version, installation/path/location, local URLs and provider/model detail belongs on pages instead of bloating the home screen.
 
 Live updates never steal focus, reset scroll, discard drafts or flood scrollback. Follow [bounded/coalesced rendering](dashboard-layout.md#rendering-under-slow-or-hidden-terminals): hidden/throttled output retains the latest snapshot rather than queued old frames, without dropping real events or blocking the engine.
 
@@ -34,7 +34,7 @@ Live updates never steal focus, reset scroll, discard drafts or flood scrollback
 
 Keep a discoverable legend and fully keyboard-operable lifecycle/navigation controls. Retain useful direct letter shortcuts, but each shortcut must open/call the same page/domain operation as ordinary navigation rather than an alternate implementation.
 
-Retain C for new Chatter-first chat, A for an existing waiting thread, and access to all chats. Rich-composer/picker keys are not captured by global shortcuts; Ctrl+C in chat closes that view/client, not the service.
+Retain C for new Chatter-first chat, A for an existing waiting thread, and access to all chats. Add discoverable Discuss report/Refresh report actions, optionally two-key sequences without lifecycle/composer collisions. Discussion seeds a distinct new chat; refresh requests coalesced engine work and respects pause. Rich-composer/picker keys are not captured by global shortcuts; Ctrl+C in chat closes that view/client, not the service.
 
 Retain state-appropriate pause/resume controls, wait skipping and explicit graceful/force stop/restart under [shared lifecycle](service-lifecycle.md). Manual pause management and the full pause-reason list live on System. Health-generated pause reasons are surfaced through Health/System according to [Health](health-sub-engine.md); Health does not become another manual pause controller.
 

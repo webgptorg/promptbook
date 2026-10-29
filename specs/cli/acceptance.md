@@ -82,7 +82,7 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 
 - **U19:** Exercise bare `ptbk` in a nonempty uninitialized directory, an initialized stopped project and an initialized live project, including manual pause/draining and different installation/path aliases. Each offers only the correct focused action and Help second. No restart item or three-action menu appears. Help/cancel performs no mutation; stale selection/unknown ownership cannot silently initialize or duplicate a service. Direct and picker-based start share default dashboard handoff and explicit opt-outs.
 
-- **U20:** Move focus across all tiles: a double-line border and bold heading remain clear without color and cause no size/content shift. The full-width two-row identity header compacts responsively; actual pause state stays in tiles. Include Wallet in the no-scroll layout and use one attention animation across causes.
+- **U20:** Move focus across all tiles: a double-line border and bold heading remain clear without color and cause no size/content shift. The full-width identity plus concise brief compacts responsively; actual pause state stays in tiles. Include Wallet in the no-scroll layout and use one attention animation across causes.
 
 ## Shared browsers and Wallet
 
@@ -163,9 +163,9 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 
 ## Unified project evolution
 
-- **E01:** A version-targeted deterministic step changes JSON and agent/task/chat Books through one coordinator. Multiple applicable sparse steps produce one commit and advance `promptbookVersion` only after success; failures preserve source and never expose false partial success. No migration agent or per-Book version exists.
-- **E02:** Convert customized Manager to Router and add only missing Tasker/core roles, retaining learned content and unambiguous references. Consolidate separate task execution fields into one MODEL without widening alternatives, binding an account or dropping explicit preferences. Ambiguities/collisions retain recoverable source and common repair context.
-- **E03:** Insert a legacy/problematic Book into a project already at the current version. No heuristic age detection or automatic per-file migration runs. Actual diagnostics warn and use ordinary Fixer repair; an explicitly requested conversion reuses the same deterministic operations.
+- **E06:** A version-targeted deterministic step changes JSON and agent/task/chat Books through one coordinator. Multiple applicable sparse steps produce one commit and advance `promptbookVersion` only after success; failures preserve source and never expose false partial success. No migration agent or per-Book version exists.
+- **E07:** Convert customized Manager to Router and add only missing Tasker/core roles, retaining learned content and unambiguous references. Consolidate separate task execution fields into one MODEL without widening alternatives, binding an account or dropping explicit preferences. Ambiguities/collisions retain recoverable source and common repair context.
+- **E08:** Insert a legacy/problematic Book into a project already at the current version. No heuristic age detection or automatic per-file migration runs. Actual diagnostics warn and use ordinary Fixer repair; an explicitly requested conversion reuses the same deterministic operations.
 
 ## Dashboard, input and assignment refinements
 
@@ -176,7 +176,7 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 - **D05:** Router is concretely initialized from the first suitable selected tool/plugin defaults. Task MODEL alternatives intersect agent constraints without binding a tool instance; origin and endpoint are independent, official cannot be redefined and local refers to the engine host. Future assignment is eligible early but never lets distant routing backlog delay urgent work. Impossible combinations leave original work blocked and create a separate Fixer task.
 - **D06:** Bare interactive action menu invokes existing init/start/dashboard flows only after selection; help stays technical and about shows product/version/web. Empty harness selection warns. Successful interactive init counts down into the existing shared dashboard, with immediate entry/skip and no second worker; raw/noninteractive returns without opening it.
 
-- **D07:** Project dashboard home has a clearly visible shared Promptbook/PTBK, project identity header above all tiles, with actual lifecycle/pause state in System/related tiles and no extra paused/pausing header badge, visually distinct from focusable tiles and independent of the terminal tab title. Standard, narrower VS Code, wide and resized terminals retain the complete header/grid without normal scrolling; metadata stays on pages and focus/navigation remain unchanged.
+- **D07:** Project dashboard home has a clearly visible shared Promptbook/PTBK, project identity and current brief above all tiles, with actual lifecycle/pause state in System/related tiles and no extra paused/pausing header badge, visually distinct from focusable tiles and independent of the terminal tab title. Standard, narrower VS Code, wide and resized terminals retain the complete header/grid without normal scrolling; metadata stays on pages and focus/navigation remain unchanged.
 
 ## Initialization destinations, core updates and shared input
 
@@ -215,5 +215,14 @@ See [storage and Git](storage-and-git.md), [core agents](../agents/core-agents.m
 
 ## Autonomous recovery and external action audit additions
 
-- **A01:** Outages beyond immediate retry budgets use persistent cause-aware rechecks/authorized alternatives/Fixer, with no generic Retry question or duplicate effects. Clear requests when their actual cause resolves and continue independent work. Completed selected setup suffices without routine later configuration.
-- **A02:** Verify one Markdown per remote mutation, exact action/trace basename pairing, zero-action directories absent, reads/downloads excluded regardless of HTTP method, new-task capture without backfill and versioning with ignored traces/later task failure. Reconcile interrupted acknowledgements, retries, commit/push failure and revert without duplicate effects or lost uncertainty.
+- **A08:** Outages beyond immediate retry budgets use persistent cause-aware rechecks/authorized alternatives/Fixer, with no generic Retry question or duplicate effects. Clear requests when their actual cause resolves and continue independent work. Completed selected setup suffices without routine later configuration.
+- **A09:** Verify one Markdown per remote mutation, exact action/trace basename pairing, zero-action directories absent, reads/downloads excluded regardless of HTTP method, new-task capture without backfill and versioning with ignored traces/later task failure. Reconcile interrupted acknowledgements, retries, commit/push failure and revert without duplicate effects or lost uncertainty.
+
+## Project reports and inspection
+
+- **R01:** Ordinary recurring/event-driven Chatter work appends every brief to root `report.book` (`CHAT Report`, Chatter alone), with scoped commits and normal learning. No Reporter, self-consultation, fabricated User or required compaction is introduced. Content is a concise meaningful project paragraph, not just technical counters.
+- **R02:** Five viewers and status/show immediately read the same last complete parsed brief/original time, even with a stopped service, without generating work/calls/writes. Normal/narrow/short views retain identity, useful brief and grid; missing/stale/partial content is honest.
+- **R03:** Explicit refresh coalesces shared generation and updates all clients, retaining the prior brief while pending and respecting pause/capacity. Zero-viewer cadence/events still work. Discuss creates a distinct normal chat with the exact displayed first Chatter snapshot, unaffected by later reports or old threads.
+- **R04:** History shows real messages, available forks/merges/refs, current/legacy/foreign commits and verified task/chat links. Originals, shallow/missing history and live selection remain honest. Inspection never fetches, switches branches or mutates Git.
+- **R05:** Files safely navigates authorized nonhidden project paths read-only, formats Markdown/JSON/Book/images, confines symlinks and has honest unsupported-image/video fallback. No edit/save/playback requirement; Action log/History/Files remain distinct and available without autosync.
+- **R06:** Book viewing/editing uses one core and handles very long reports/chats/sources with responsive bounded viewport work. Preserve all offscreen text/attachments, cursor/drafts and revision-safe saves during appends/resize. Read-only handlers never mutate.

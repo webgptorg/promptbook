@@ -20,6 +20,12 @@ Initialization, chat and full-source Book editing **must implement rich input on
 
 The entry point only configures interaction policy: chat/init Enter accepts/submits; Book-source Enter inserts a newline and Ctrl+S saves without exit. Saving behavior and content diagnostics are coordinated with shared authoring/repair operations. Tests of payload preservation and attachments should exercise that common behavior rather than conceal separate implementations. See [rich input](../cli/rich-input.md) for the single behavioral contract and [Book editor](../cli/book-editor.md) for its mode.
 
+## One Book viewing and editing core
+
+The read-only [viewer](../cli/book-viewer.md) and [editor](../cli/book-editor.md) share one parser, source/message/rendering/document-navigation core, source coordinates, highlighting, diagnostics and attachments. Read-only/editable is a mode; editing reuses the common composer. Matching colors over copied implementations does not satisfy DRY. Very long Books need bounded responsive navigation/editing without losing offscreen source or reparsing/repainting entire histories per key/frame. Latest-brief lookup need not render the feed.
+
+Report reading/refresh, action audit/readers, History, confined Files, Wallet import/recovery and start-paused operations likewise have shared engine-owned implementations; thin clients introduce no duplicate scheduler/store.
+
 ## Presentation and scheduling boundaries
 
 Keep UI-specific focus, key bindings, formatting and transport separate from shared business decisions. Inspection, configuration changes, runtime diagnostics and lifecycle actions are distinct operations. Enabling/disabling a tool persists configuration; restarting a browser or force-stopping the engine does not implicitly delete that tool.

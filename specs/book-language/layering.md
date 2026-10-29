@@ -32,6 +32,8 @@ CHAT TITLE Preserve export column order
 
 Status describes actual outstanding questions/actions; a new message or merely viewing a chat does not automatically answer every wait. Saved responses clear their own question promptly. Snapshot readers, editing, restart and Git batching must preserve the same effective state and source chronology.
 
+Root [`report.book`](../cli/project-report.md) preserves every new brief as another Chatter message. Dashboard/status read the latest complete message; no overwriting or required compaction is introduced, even for a very long feed.
+
 ## Acceptance outcomes
 
 Create a chat without a status line: it is open. Append waiting, open and resolved transitions around actual messages and recover the last valid state after restart. Join a task agent mid-conversation and change the title: all additions remain at their chronological positions. Literal control-looking message text changes no effective status. Editing an agent instruction remains possible without claiming all Books are immutable event logs.

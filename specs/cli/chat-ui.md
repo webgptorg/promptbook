@@ -35,6 +35,8 @@ After the final reply, automatically collapse interim material into **Thinking**
 
 Show live task boxes/cards under [chat/task relationships](chat-tasks.md): readable task name, actual state and normal detail navigation. Reflect starts/waits/outcomes while keeping chat usable; append the concise completion result. Questions identify actual agent/task and share one answer/state with task detail.
 
+Discuss report is an explicit Chatter-targeted new-thread entry. Persist the exact displayed brief as its first Chatter message with source/time provenance; User replies normally. Never reopen the latest Chatter thread by default or add User to the one-agent `report.book` feed. See [report discussions](project-report.md#discuss-a-displayed-snapshot).
+
 ## Acceptance outcomes
 
 Run direct chat and press Enter: reach Chatter immediately. Repeat from dashboard/browser. Choose another agent and reach ordinary, hidden/core and Expert targets; explicit agent input bypasses the first picker. Verify excluded non-speakers and missing Chatter diagnostics. Ask status without creating a task, then create authorized linked work. Open two same-agent threads with repeated titles/same clock tick, preserve separate histories and reopen without renaming. A opens another agent's original waiting thread; replying resumes linked work once. Closing chat leaves the engine alive and messages, drafts/read markers and identity intact across refresh/reconnect.

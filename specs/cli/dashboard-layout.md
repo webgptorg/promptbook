@@ -19,13 +19,13 @@ Use the available width and height responsively:
 
 The renderer reacts to terminal resize and repaints the layout without losing selection, drafts or page state. Responsive behavior applies to **height as well as width**. The home screen should utilize the available surface, not assume one fixed terminal geometry.
 
-Render a clearly recognizable **shared application header above the entire tile grid**, identifying **Promptbook / PTBK** and the project name. Use a full-width prominent identity panel, normally about two terminal rows; compact it on smaller surfaces without hiding the project. Actual lifecycle/pause state remains in the relevant tiles, especially System, and its page; do not add another paused/pausing badge to this identity header. It visually unifies the home screen so the tiles read as domains of one application, not unrelated boxes. The header is separate from the tiles, not another focusable tile, and must remain prominent without becoming tall or verbose. Version, installation scope, process/path/location, connection URLs, detailed execution/provider data and other technical metadata belong on the appropriate dashboard page rather than permanently consuming home-screen space.
+Render a clearly recognizable **shared application header above the entire tile grid**, identifying **Promptbook / PTBK** and the project name. Use a full-width prominent identity panel, immediately followed by the [last saved Chatter brief](project-report-ui.md) from root `report.book`; compact responsively without hiding the project or meaningful report content. Actual lifecycle/pause state remains in the relevant tiles, especially System, and its page; do not add another paused/pausing badge to this identity header. It visually unifies the home screen so the tiles read as domains of one application, not unrelated boxes. The header is separate from the tiles, not another focusable tile, and must remain prominent without becoming tall or verbose. Version, installation scope, process/path/location, connection URLs, detailed execution/provider data and other technical metadata belong on the appropriate dashboard page rather than permanently consuming home-screen space.
 
-Reserve the shared header in responsive height/width calculations; shorten secondary content before sacrificing identity or forcing normal-size scrolling. The terminal window/tab title does not replace this in-application header.
+Reserve identity plus the concise brief in responsive height/width calculations; shorten secondary content before sacrificing identity or forcing normal-size scrolling. The terminal window/tab title does not replace this in-application header.
 
 The home screen contains compact tiles for operational domains. A tile shows only the smallest useful summary: healthy/idle/busy counts, current work, actionable problem summary or another bounded state. It is a navigation/control surface, not the complete content of that domain. The detailed inventory, diagnostics, lists and long explanations live on the corresponding page.
 
-At minimum preserve the existing domains as compact tiles/pages: Current work, **System**, **Health**, Tools, **Wallet**, Agents, Chats, Tasks, Results/Activity, **Usage**, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
+At minimum preserve the existing domains as compact tiles/pages: Current work, **System**, **Health**, Tools, **Wallet**, Agents, Chats, Tasks, Results/Activity, **Usage**, **Action log**, **History**, **Files**, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
 
 ## Focus and attention are independent
 
@@ -63,7 +63,7 @@ A dedicated [Usage](usage.md) tile opens a lightweight summary and useful breakd
 
 The home screen favors:
 
-1. project identity and service state;
+1. project identity, meaningful project brief and service state;
 2. new/actionable operator attention;
 3. what is currently working/waiting;
 4. compact state of the major domains;
@@ -80,6 +80,8 @@ Live updates must not flicker, move focus, reset page scroll, discard drafts or 
 Pretty one-shot snapshots may reuse the same information hierarchy without pretending to be navigable. Raw output remains labelled plain sections and need not imitate the tile geometry.
 
 When an enabled synchronization domain, tool, chat, health monitor or other subsystem produces an actionable issue, it marks its own tile/page through the shared attention presentation rather than inventing a modal global alarm. Lifecycle/pause state remains summarized in the relevant tiles, with detail on System; do not add another state badge to the identity header. The operator remains in control of navigation.
+
+The brief is a parsed paragraph with original generation time, not raw Book syntax or a history dump. Opening the dashboard never generates it. Reduce secondary tile copy/whitespace to retain the identity/brief/grid without normal scrolling. Discoverable Discuss report opens a new snapshot-seeded chat; Refresh report is an explicit shared generation request, coalesced across viewers and subject to pause/capacity. All viewers read the same saved result without sharing local focus/drafts.
 
 ## Acceptance outcomes
 
