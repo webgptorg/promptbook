@@ -971,9 +971,142 @@
     }
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
-    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'actions', 'connection', 'sync'];
+    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'actions', 'history', 'files', 'connection', 'sync'];
 
-    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', results: 'Results and activity', usage: 'Usage', actions: 'Action log', connection: 'Connection', sync: 'Synchronization' };
+    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', results: 'Results and activity', usage: 'Usage', actions: 'Action log', history: 'History', files: 'Files', connection: 'Connection', sync: 'Synchronization' };
+
+    /** Loads the History window (read-only: the engine never fetches or changes Git for it). */
+    async function loadHistory() {
+        if (state.historyLoading) return;
+        state.historyLoading = true;
+        try {
+            const seen = state.snapshot && state.snapshot.history ? state.snapshot.history.last.sha : null;
+            state.history = { ...(state.history || {}), view: await api('/api/history?limit=300'), error: null, seen };
+        } catch (error) {
+            state.history = { ...(state.history || {}), error: error.message };
+        } finally {
+            state.historyLoading = false;
+        }
+        render(state.snapshot);
+    }
+
+    /** Opens one commit's full original message and its verified provenance links. */
+    async function openCommit(sha) {
+        state.history = { ...(state.history || {}), open: sha, detail: null };
+        render(state.snapshot);
+        try {
+            const detail = await api(`/api/history/commit?sha=${encodeURIComponent(sha)}`);
+            if (state.history && state.history.open === sha) state.history = { ...state.history, detail };
+        } catch (error) {
+            if (state.history && state.history.open === sha) state.history = { ...state.history, detail: { error: error.message } };
+        }
+        render(state.snapshot);
+    }
+
+    /** The History page: Git messages and topology of the current branch, verified links, never a Git mutation. */
+    function renderHistoryPage(snapshot) {
+        const history = state.history || {};
+        if (!history.view && !history.error) {
+            loadHistory();
+            return pageFrame('history', 'Reading the local Git history…', h('p', { className: 'muted' }, 'Loading…'));
+        }
+        if (history.error) return pageFrame('history', 'Git history', h('p', { className: 'warn' }, history.error));
+        if (snapshot.history && history.seen && snapshot.history.last.sha !== history.seen) loadHistory();
+        const view = history.view;
+        if (view.problem) return pageFrame('history', view.branch || 'Git history', h('p', { className: 'muted' }, view.problem));
+        const rows = view.rows.map((row) => {
+            if (!row.commit) return h('li', { className: 'graph-only' }, h('code', { className: 'graph' }, row.graph));
+            const commit = row.commit;
+            const open = history.open === commit.sha;
+            const detail = open ? history.detail : null;
+            return h(
+                'li',
+                {},
+                h('code', { className: 'graph' }, row.graph),
+                ' ',
+                h('button', { 'aria-expanded': String(open), onclick: () => (open ? ((state.history = { ...history, open: null }), render(state.snapshot)) : openCommit(commit.sha)) }, commit.kind === 'agent' ? `\`${commit.visual}\` ${commit.summary}` : commit.kind === 'legacy' ? `PTBK ${commit.summary}` : commit.summary),
+                h('span', { className: 'muted' }, ` ${time(commit.at)}${commit.kind === 'foreign' ? ` · ${commit.author}` : ''}${commit.refs.length ? ` · ${commit.refs.join(', ')}` : ''}`),
+                open
+                    ? detail
+                        ? detail.error
+                            ? h('p', { className: 'warn' }, detail.error)
+                            : h(
+                                  'div',
+                                  { className: 'commit-detail' },
+                                  h('p', { className: 'muted' }, `${detail.sha} · ${detail.author} <${detail.email}> · ${detail.at}${detail.parents.length > 1 ? ` · merge of ${detail.parents.map((parent) => parent.slice(0, 10)).join(', ')}` : ''}`),
+                                  ...detail.links.tasks.map((task) => h('p', {}, `Task {${task.name}} `, h('span', { className: task.path ? 'ok' : 'muted' }, task.path ? task.path : '(no longer in the project)'))),
+                                  ...detail.links.chats.map((chat) => h('p', {}, `Chat {${chat.name}} `, chat.exists && chat.name !== 'Report' ? h('button', { onclick: () => (openPage('chats'), openChat(chat.name)) }, 'Open') : h('span', { className: 'muted' }, chat.exists ? 'report.book' : '(no longer in the project)'))),
+                                  h('pre', { className: 'log' }, detail.message),
+                              )
+                        : h('p', { className: 'muted' }, 'Loading…')
+                    : null,
+            );
+        });
+        return pageFrame(
+            'history',
+            `${view.branch || 'HEAD'} · messages and topology, read-only (never fetches)`,
+            h('ul', { className: 'list history' }, ...rows),
+            view.more ? h('p', { className: 'muted' }, 'Older commits are not shown here.') : null,
+            view.shallow ? h('p', { className: 'warn' }, 'This is a shallow clone: older history is not available locally.') : null,
+        );
+    }
+
+    /** Opens a folder or file in Files (read-only, confined to nonhidden project paths). */
+    async function openFiles(path, kind) {
+        state.files = { ...(state.files || {}), loading: true };
+        render(state.snapshot);
+        try {
+            if (kind === 'file') state.files = { ...state.files, loading: false, file: await api(`/api/files/file?path=${encodeURIComponent(path)}`), error: null };
+            else state.files = { loading: false, path, folder: await api(`/api/files?path=${encodeURIComponent(path)}`), file: null, error: null };
+        } catch (error) {
+            state.files = { ...state.files, loading: false, error: error.message };
+        }
+        render(state.snapshot);
+    }
+
+    /** The Files page: a confined read-only project browser (no edit, save, rename or delete; video is not played). */
+    function renderFilesPage() {
+        const files = state.files;
+        if (!files) {
+            openFiles('');
+            return pageFrame('files', 'Read-only project browser', h('p', { className: 'muted' }, 'Loading…'));
+        }
+        const path = files.path || '';
+        const parent = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
+        const crumbs = h('div', { className: 'row' }, h('strong', {}, `/${path}`), path ? h('button', { onclick: () => openFiles(parent) }, '↑ Up') : null);
+        const list = files.folder
+            ? h(
+                  'ul',
+                  { className: 'list' },
+                  ...files.folder.entries.map((entry) =>
+                      h(
+                          'li',
+                          {},
+                          entry.type === 'link-outside'
+                              ? h('span', { className: 'muted' }, `${entry.name} → outside the project (not followed)`)
+                              : h('button', { onclick: () => openFiles(entry.path, entry.type === 'directory' ? 'folder' : 'file') }, entry.type === 'directory' ? `${entry.name}/` : entry.name),
+                          entry.type === 'file' ? h('span', { className: 'muted' }, ` ${entry.kind} · ${entry.size} bytes${entry.modifiedAt ? ` · ${time(entry.modifiedAt)}` : ''}`) : null,
+                      ),
+                  ),
+              )
+            : null;
+        const file = files.file;
+        const viewer = file
+            ? h(
+                  'section',
+                  { className: 'card', 'aria-label': `File ${file.path}` },
+                  h('h2', {}, file.path),
+                  h('p', { className: 'muted' }, `${file.kind} · ${file.size} bytes · read-only`),
+                  file.image ? h('img', { src: file.image, alt: file.name, className: 'file-image' }) : null,
+                  file.kind === 'image' && !file.image ? h('p', { className: 'muted' }, 'The image is too large to display here.') : null,
+                  file.kind === 'video' ? h('p', { className: 'muted' }, 'Video playback is not part of Files; the file is identified only.') : null,
+                  file.kind === 'binary' ? h('p', { className: 'muted' }, 'Binary file; not shown as text.') : null,
+                  typeof file.text === 'string' ? h('pre', { className: 'log' }, file.text) : null,
+                  file.truncated ? h('p', { className: 'warn' }, 'Only the beginning of this file is shown; the rest stays on disk.') : null,
+              )
+            : null;
+        return pageFrame('files', 'Read-only · hidden and protected paths (.git, .ptbk, .env …) are never shown', crumbs, files.error ? h('p', { className: 'warn' }, files.error) : null, files.loading ? h('p', { className: 'muted' }, 'Loading…') : null, list, viewer);
+    }
 
     /** An external action's outcome as a styled word (partial and uncertain stay explicit). */
     function outcomeBadge(outcome) {
@@ -1212,6 +1345,12 @@
                 const error = snapshot.errors[snapshot.errors.length - 1];
                 return [`✔ ${snapshot.results.completed} completed · ✖ ${snapshot.results.failed} failed`, last ? h('span', { className: 'muted' }, last.title) : null, error ? h('span', { className: 'warn' }, `Last error: ${error.summary}`) : null];
             }
+            case 'history': {
+                const last = snapshot.history && snapshot.history.last;
+                return last ? [h('span', {}, last.summary), h('span', { className: 'muted' }, time(last.at))] : [h('span', { className: 'muted' }, 'Git messages and topology')];
+            }
+            case 'files':
+                return [h('span', { className: 'muted' }, 'Read-only project browser')];
             case 'actions': {
                 const actions = snapshot.actions;
                 if (!actions) return [h('span', { className: 'muted' }, 'Not reported by this engine yet.')];
@@ -1263,7 +1402,47 @@
         return Math.max(1, Math.floor((tileHeight - 44) / 22));
     }
 
-    /** The no-scroll home screen: compact tiles, a focused tile (operator's cursor) and independent attention. */
+    /** Asks the engine for one coalesced brief generation (it waits while background work is paused). */
+    async function refreshBrief() {
+        try {
+            toast((await api('/api/report', { method: 'POST', body: { action: 'refresh' } })).outcome);
+        } catch (error) {
+            toast(`Refresh failed: ${error.message}`);
+        }
+    }
+
+    /** Starts a new chat seeded with exactly the displayed brief, then opens it. */
+    async function discussBrief(at) {
+        try {
+            const result = await api('/api/report', { method: 'POST', body: { action: 'discuss', at } });
+            openPage('chats');
+            openChat(result.chat);
+        } catch (error) {
+            toast(`The discussion could not be started: ${error.message}`);
+        }
+    }
+
+    /** Chatter's saved brief beneath the application header (reading never generates one), with its explicit actions. */
+    function renderBrief(snapshot) {
+        const report = snapshot.report;
+        const brief = report && report.brief;
+        const status = report ? (report.generating ? 'updating…' : report.requestedAt ? `refresh requested${report.waiting ? ` — ${report.waiting}` : ''}` : '') : '';
+        const text = brief ? brief.text : report ? (report.state === 'unreadable' ? `The project brief cannot be read (${report.problem || 'report.book'}).` : 'No project brief yet. Refresh asks Chatter for one.') : 'This engine does not report a project brief.';
+        return h(
+            'section',
+            { className: 'brief', 'aria-label': 'Project brief' },
+            h('div', { className: 'brief-body' }, h('p', { className: `brief-text${state.briefExpanded ? ' expanded' : ''}${brief ? '' : ' muted'}` }, text), h('span', { className: 'muted' }, [brief ? time(brief.at) : '', status].filter(Boolean).join(' · '))),
+            h(
+                'div',
+                { className: 'brief-actions' },
+                brief ? h('button', { onclick: () => discussBrief(brief.at) }, 'Discuss') : null,
+                h('button', { onclick: refreshBrief, disabled: Boolean(report && report.generating) }, 'Refresh'),
+                brief && brief.text.length > 200 ? h('button', { 'aria-expanded': String(Boolean(state.briefExpanded)), onclick: () => ((state.briefExpanded = !state.briefExpanded), render(state.snapshot)) }, state.briefExpanded ? 'Less' : 'More') : null,
+            ),
+        );
+    }
+
+    /** The no-scroll home screen: the saved brief, compact tiles, a focused tile (operator's cursor) and independent attention. */
     function renderHome(snapshot) {
         const tiles = homeTiles(snapshot);
         if (!tiles.includes(state.focus)) state.focus = 'work';
@@ -1292,7 +1471,7 @@
                 ),
             );
         }
-        return grid;
+        return h('div', { className: 'home-wrap' }, renderBrief(snapshot), grid);
     }
 
     /** Arrow-key navigation between tiles, following the rendered grid (focus only; Enter/click opens). */
@@ -1731,6 +1910,10 @@
                 return renderUsagePage(snapshot);
             case 'actions':
                 return renderActionsPage(snapshot);
+            case 'history':
+                return renderHistoryPage(snapshot);
+            case 'files':
+                return renderFilesPage();
             case 'connection':
                 return pageFrame('connection', 'Local dashboard access on this computer', renderConnection(snapshot));
             case 'sync':

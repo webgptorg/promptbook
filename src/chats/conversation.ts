@@ -98,7 +98,8 @@ async function chatExecution(context: ConversationContext, stored: StoredChat, a
     if (!readOnlyVariants.length) return { error: 'No enabled harness supports read-only chat replies.' };
     const constraint = intersectModels(intersectModels(agent.model, chat.model), { rows: readOnlyVariants.map((harness) => ({ harness })), explicit: true });
     if (isImpossible(constraint)) return { error: `${agent.name}'s MODEL (${describeModel(agent.model)}) and the chat's MODEL (${describeModel(chat.model)}) leave no read-only-capable combination.` };
-    const humanLed = chat.messages[0]?.senderKey === 'user';
+    // A discussion seeded with a project brief is led by its first User reply: ordinary MODEL resolution applies.
+    const humanLed = chat.messages[0]?.senderKey === 'user' || chat.links.some((link) => parseReferenceValue(link)?.normalized === 'report');
     if (!humanLed) {
         const established = await context.establishedExecution?.(chat.name);
         const variant = established ? harnessVariantOf(established.harness) : undefined;
@@ -437,6 +438,95 @@ export async function replyInChat(context: ConversationContext, chatName: string
         await context.scheduleLearning?.({ chat: chat.name, agent: agent.name, note: learning }).catch(() => undefined);
     }
     return { reply, createdTasks: created, learning, consultations, seen: chat.messages.length };
+}
+
+/**
+ * Outcome of composing one project brief.
+ *
+ * @private chats
+ */
+export type BriefComposition = { readonly text?: string; readonly error?: string };
+
+/**
+ * Lets Chatter, the project's spokesperson, write one project brief from ordinary Chatter work context (its Book, the
+ * project instructions, the shared status digest and the previous brief), read-only and without a fabricated User
+ * message. Its usage is the report chat's own evidence; the caller appends the paragraph to `report.book`.
+ *
+ * @private chats
+ */
+export async function composeProjectBrief(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity'>, input: { readonly agent: string; readonly digest: string; readonly previous?: { readonly text: string; readonly at: string }; readonly reportPath: string }): Promise<BriefComposition> {
+    const agent = await resolveEffectiveAgent(context.catalog, input.agent);
+    const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
+    if (errors.length) return { error: `${input.agent} cannot write the brief: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };
+    const route = await readOnlyRoute(agent, undefined, { catalog: context.catalog, pool: context.pool, settings: context.settings });
+    if (route.kind !== 'routable') return { error: route.reason };
+    const plugin = route.plugin;
+    const instance = context.pool.instance(route.selection.tool!)!;
+    const contextFile = setting<string | null>(context.settings, 'paths.context');
+    const projectInstructions = contextFile ? await readTextIfExists(join(context.project.root, contextFile)) : undefined;
+    const prompt = [
+        `# Project brief\n\nYou are **${agent.name}**, the spokesperson of the project at \`${context.project.root}\`. Write the next brief of its report feed for the project owner.`,
+        `## Your role\n\n${renderAgentInstructions(agent) || '_No additional instructions._'}`,
+        projectInstructions ? `## Project instructions (${contextFile})\n\n${projectInstructions.slice(0, 16_000)}` : '',
+        `## Current situation (from the engine)\n\n${input.digest}`,
+        input.previous ? `## Previous brief (${input.previous.at})\n\n${input.previous.text}` : '',
+        [
+            '## How to write it',
+            '',
+            '- One short paragraph, normally two to four concise sentences: the meaningful overall situation, important results or current work, the next expected step, and whether a useful human action is needed.',
+            '- Explain what technical waits mean for the project instead of echoing counters, idle states or error text; keep material blockers and requests visible.',
+            '- Never invent progress or routine requests; say plainly when nothing needs the owner.',
+            '- This is read-only: never modify files. You may inspect project files and Git history.',
+            '- Reply with the paragraph only (no heading, list or sign-off).',
+        ].join('\n'),
+    ]
+        .filter(Boolean)
+        .join('\n\n');
+    const directory = await ensureDirectory(context.project.runtime.temporary);
+    const promptFile = join(directory, `brief-${shortId()}.md`);
+    await writeFile(promptFile, prompt);
+    context.onActivity?.(`${agent.name} is writing the project brief`);
+    let result;
+    try {
+        result = await runHarness(
+            plugin,
+            {
+                projectRoot: context.project.root,
+                cwd: context.project.root,
+                prompt,
+                promptFile,
+                readOnly: true,
+                env: instanceEnvironment(plugin, instance, context.pool.credential(instance), context.env),
+                timeoutMs: REPLY_TIMEOUT_MS,
+                signal: context.signal,
+                allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
+                authentication: route.inspection.authentication,
+                readableDirectories: [],
+                model: route.selection.model,
+                thinkingLevel: route.selection.thinkingLevel,
+                baseUrl: route.selection.baseUrl,
+            },
+            route.inspection.executablePath ?? plugin.executable,
+        );
+    } finally {
+        await rm(promptFile, { force: true });
+    }
+    await appendUsage(
+        chatUsageFile(context.project, input.reportPath),
+        usageRecords({
+            observations: result.observations,
+            startedAt: result.startedAt,
+            harness: route.selection.harness,
+            tool: instance.name,
+            model: result.model ?? route.selection.model,
+            authentication: route.inspection.authentication,
+            outcome: result.outcome,
+            attribution: { agent: agent.name, owner: agent.name, initiator: 'engine', work: { kind: 'chat', chat: 'Report', source: input.reportPath } },
+        }),
+    ).catch(() => undefined);
+    if (result.outcome !== 'completed') return { error: result.diagnostic };
+    const text = result.finalMessage.replace(LEARN_MARKER, '').replace(TITLE_MARKER, '').replace(/^PTBK_RESULT .*$/m, '').trim();
+    return text ? { text } : { error: `${agent.name} wrote no brief.` };
 }
 
 /**

@@ -3,6 +3,7 @@ import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
 import type { WalletView } from '../wallet/wallet.js';
 import type { ActionLogView } from './action-log.js';
+import type { ReportView } from './report.js';
 import type { UsageRow, UsageTotals } from './usage.js';
 
 /**
@@ -561,7 +562,7 @@ export type SyncView = {
  *
  * @private shared status view model
  */
-export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'usage' | 'actions' | 'connection' | 'sync';
+export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'usage' | 'actions' | 'history' | 'files' | 'connection' | 'sync';
 
 /**
  * Why a domain needs the operator's attention: `key` identifies the current actionable items (a changed key is a new
@@ -628,6 +629,10 @@ export type ServiceSnapshot = {
     readonly wallet?: WalletView;
     /** Saved external-action records (newest first, bounded) and their persistence (absent from older engines). */
     readonly actions?: ActionLogView;
+    /** Chatter's latest saved project brief from `report.book` and its shared generation state (reading never generates). */
+    readonly report?: ReportView;
+    /** The newest commit of the current branch (History tile; the page reads the history on demand). */
+    readonly history?: { readonly last: { readonly sha: string; readonly at: string; readonly summary: string; readonly kind: string } };
     /** Lightweight seven-day usage view derived from durable raw usage (absent from older engines). */
     readonly usage?: UsageOverview;
     /** Saved configuration version and pending configuration work. */

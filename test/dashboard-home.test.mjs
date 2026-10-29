@@ -62,15 +62,19 @@ test('the home screen fits standard, narrowed and fullscreen terminals completel
             assert.doesNotMatch(stripAnsi(line), /[╭╮│╔╗║]/, `${columns}x${rows}: the header is not another bordered tile`);
             assert.doesNotMatch(stripAnsi(line), /running|paus|stopp/, `${columns}x${rows}: lifecycle state stays in the tiles, not in the identity header`);
         }
-        if (homeLayout(homeTiles(snapshot()), columns, rows).kind === 'grid') assert.match(stripAnsi(lines[header]), /^╔/, `${columns}x${rows}: the tile grid (focused tile first) starts right below the header`);
+        const layout = homeLayout(homeTiles(snapshot()), columns, rows, 1);
+        assert.ok(layout.brief >= 1 || header === 1, `${columns}x${rows}: the brief keeps at least one row on ordinary surfaces`);
+        assert.match(stripAnsi(lines.slice(0, header + layout.brief).join("\n")), /project brief|This engine does/, `${columns}x${rows}: the brief (or its beginning, here honestly unavailable) follows the identity`);
+        if (layout.kind === 'grid') assert.match(stripAnsi(lines[header + layout.brief]), /^╔/, `${columns}x${rows}: the tile grid (focused tile first) starts right below the header and brief`);
         assert.doesNotMatch(text, /0\.119\.0-33|very-long-directory|trycloudflare/, 'version, path and URLs live on pages, not on the root');
     }
     assert.equal(homeLayout(homeTiles(snapshot()), 120, 30).kind, 'grid');
     assert.ok(homeLayout(homeTiles(snapshot()), 200, 50).rows[0].length > homeLayout(homeTiles(snapshot()), 80, 24).rows[0].length, 'wider surfaces use more columns');
-    // One line per tile below the identity rows and above the legend: the threshold follows the number of domains.
-    const listRows = homeTiles(snapshot()).length + 2;
+    // One line per tile below the identity rows and one brief row, above the legend: the threshold follows the domains.
+    const listRows = homeTiles(snapshot()).length + 3;
     const shortRows = listRows + (headerRows(listRows) === 2 ? 1 : 0);
     assert.equal(homeLayout(homeTiles(snapshot()), 70, shortRows).kind, 'list', 'short surfaces fall back to one line per tile');
+    assert.equal(homeLayout(homeTiles(snapshot()), 70, shortRows).brief, 1, 'the list keeps the brief');
     assert.equal(homeLayout(homeTiles(snapshot()), 25, 6).kind, 'tiny');
     assert.match(stripAnsi(renderHome(snapshot(), terminal(25, 6), view()).join('\n')), /too\s+small/);
     assert.ok(!homeTiles(snapshot()).includes('sync') && homeTiles(snapshot({ sync: { phase: 'idle', state: 'synchronized' } })).includes('sync'), 'Synchronization exists only while autosync is enabled');
@@ -238,4 +242,17 @@ test('Action log tile and page: saved external actions with explicit partial/unc
     assert.match(body, /Send email · Gmail → reader@example\.test confirmed/);
     const empty = pageBody(pageForTile('actions'), { snapshot: snapshot({ actions: { total: 0, recent: [], pending: 0, unresolved: 0 } }), terminal: view, frame: 0, owning: false }).body.map(stripAnsi).join('\n');
     assert.match(empty, /earlier tasks may have external work without a record/, 'empty prospective history is not a claim that nothing happened');
+});
+
+test('project brief beneath the identity: the saved paragraph with its time, labelled clipping and honest absence', () => {
+    const text = 'Publishing is on schedule. A temporary provider outage is awaiting its announced reset while other work continues. No action is needed from you.';
+    const report = { path: 'report.book', state: 'available', brief: { text, at: '2026-10-29T10:15:00+01:00' } };
+    const wide = renderHome(snapshot({ report }), terminal(200, 50), view()).map(stripAnsi);
+    assert.match(wide[2], /^ \S+ Publishing is on schedule\. A temporary provider outage/, 'the full-width brief comes right after the two-row identity');
+    assert.doesNotMatch(wide.join('\n'), /CHAT MESSAGE|@Chatter/, 'parsed text, never raw Book syntax');
+    const narrow = renderHome(snapshot({ report }), terminal(60, 18), view()).map(stripAnsi);
+    const layout = homeLayout(homeTiles(snapshot()), 60, 18, 3);
+    assert.match(narrow.slice(2, 2 + layout.brief).join(' '), /… J O full brief/, 'clipping is labelled with how to read it whole');
+    const pending = renderHome(snapshot({ report: { ...report, generating: true } }), terminal(200, 50), view()).map(stripAnsi);
+    assert.match(pending.slice(2, 5).join(' '), /updating…/, 'the previous brief stays readable while a new one is written');
 });

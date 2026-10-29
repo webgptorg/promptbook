@@ -230,6 +230,38 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             sendJson(response, 200, await agenda.usageSummary({ days, grouping: grouping as UsageGrouping, scope: scope as 'self' | 'inclusive' }));
             return;
         }
+        if (url.pathname === '/api/report' && method === 'GET') {
+            // The saved brief only: reading never calls Chatter or writes anything.
+            sendJson(response, 200, agenda.reportSnapshot());
+            return;
+        }
+        if (url.pathname === '/api/report' && method === 'POST') {
+            const body = (await readJsonBody(request)) as { action?: string; at?: string };
+            try {
+                if (body.action === 'refresh') sendJson(response, 200, await agenda.requestReport());
+                else if (body.action === 'discuss') sendJson(response, 200, await agenda.discussReport({ at: typeof body.at === 'string' ? body.at : undefined }));
+                else sendJson(response, 400, { error: 'Use action refresh or discuss.' });
+            } catch (error) {
+                sendJson(response, error instanceof PtbkError && error.details.kind === 'not-found' ? 404 : 400, { error: errorMessage(error) });
+            }
+            return;
+        }
+        // Read-only project inspection: Git history (never fetched or changed) and confined nonhidden project files.
+        const inspection: Record<string, () => Promise<unknown>> = {
+            '/api/history': async () => await agenda.history({ limit: Number(url.searchParams.get('limit') ?? 200) || 200, skip: Number(url.searchParams.get('skip') ?? 0) || 0 }),
+            '/api/history/commit': async () => await agenda.historyCommit(url.searchParams.get('sha') ?? ''),
+            '/api/files': async () => await agenda.files(url.searchParams.get('path') ?? ''),
+            '/api/files/file': async () => await agenda.file(url.searchParams.get('path') ?? ''),
+        };
+        const inspect = method === 'GET' ? inspection[url.pathname] : undefined;
+        if (inspect) {
+            try {
+                sendJson(response, 200, await inspect());
+            } catch (error) {
+                sendJson(response, error instanceof PtbkError && error.details.kind === 'not-found' ? 404 : 400, { error: errorMessage(error) });
+            }
+            return;
+        }
         if (url.pathname === '/api/actions' && method === 'GET') {
             // Saved external-action records (read-only: never a retry, provider call or commit).
             sendJson(response, 200, await agenda.actions.refresh());

@@ -106,6 +106,24 @@ export type RecoverySchedule = {
 };
 
 /**
+ * Bookkeeping of Chatter's project brief (`.ptbk/state/report.json`): the situation the last brief covered (so an
+ * unchanged project causes no paid generation), an explicit Refresh waiting for background scheduling, and the last
+ * failed generation (bounded retry).
+ *
+ * @private runtime state
+ */
+export type ReportState = {
+    /** Fingerprint of significant conditions (blockers, waits, failures, pause) the last brief covered. */
+    readonly significant?: string;
+    /** Fingerprint of recent results the last brief covered. */
+    readonly results?: string;
+    /** Explicit Refresh request (ISO), until a generation covers it. */
+    readonly requestedAt?: string;
+    /** Last failed generation (ISO). */
+    readonly failedAt?: string;
+};
+
+/**
  * Recovery record of one active run (`.ptbk/state/active/<run>.json`); several runs can be active at once.
  *
  * @private runtime state
@@ -454,6 +472,16 @@ export class StateStore {
     /** Persists goal-discovery state. */
     public async writeDiscovery(state: DiscoveryState): Promise<void> {
         await writeJsonAtomic(this.file('discovery.json'), state);
+    }
+
+    /** Reads the project-brief bookkeeping (what the last brief covered, a pending explicit refresh, the last failure). */
+    public async readReport(): Promise<ReportState> {
+        return (await readJsonIfExists<ReportState>(this.file('report.json')).catch(() => undefined)) ?? {};
+    }
+
+    /** Persists the project-brief bookkeeping. */
+    public async writeReport(state: ReportState): Promise<void> {
+        await writeJsonAtomic(this.file('report.json'), state);
     }
 
     /** Reads Fixer's health-check bookkeeping. */

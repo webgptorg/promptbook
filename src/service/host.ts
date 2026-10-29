@@ -319,6 +319,20 @@ export class ServiceHost {
             case 'book-save':
                 // Attachments by local path are accepted on this trusted local channel only (as for chats).
                 return await agenda.bookSave({ path: String(params.path), text: String(params.text ?? ''), revision: String(params.revision ?? ''), segments: Array.isArray(params.segments) ? (params.segments as ComposedSegment[]) : undefined });
+            case 'report-read':
+                return agenda.reportSnapshot();
+            case 'report-refresh':
+                return await agenda.requestReport();
+            case 'report-discuss':
+                return await agenda.discussReport({ at: typeof params.at === 'string' ? params.at : undefined });
+            case 'history-list':
+                return await agenda.history({ limit: typeof params.limit === 'number' ? params.limit : undefined, skip: typeof params.skip === 'number' ? params.skip : undefined });
+            case 'history-commit':
+                return await agenda.historyCommit(String(params.sha ?? ''));
+            case 'files-list':
+                return await agenda.files(String(params.path ?? ''));
+            case 'file-read':
+                return await agenda.file(String(params.path ?? ''));
             case 'actions-list':
                 return await agenda.actions.refresh();
             case 'action-read':

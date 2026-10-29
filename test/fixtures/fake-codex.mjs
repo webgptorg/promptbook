@@ -22,6 +22,7 @@
  *   EXTERNAL_ACTIONS → attempt 1 records a confirmed email, an uncertain (lost acknowledgement) post and an intent
  *                     without an outcome through the action tools, then writes BROKEN output (the check fails); a
  *                     repair attempt reconciles the post from the prompt's action records by its id, without resending
+ * Project brief turns (`# Project brief`) reply with one fixture paragraph counting the digest's completed results.
  * Router turns (`## Assignment work`, tasks and chat routing) choose the first listed agent's example combination
  * (ROUTE_IMPOSSIBLE in the target reports no compatible combination). Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
@@ -147,7 +148,8 @@ async function main() {
     const attempt = /## Feedback from attempt (\d+)/.exec(prompt) ? Number(/## Feedback from attempt (\d+)/.exec(prompt)[1]) + 1 : 1;
     // ptbk removes API keys from a native run's environment, so a present key means an explicit API_KEY instance.
     const api = Boolean(process.env.CODEX_API_KEY);
-    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
+    const brief = prompt.startsWith('# Project brief');
+    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
     print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
     print({ type: 'turn.started' });
     // Routing work only names the target: its markers apply to the target's own execution.
@@ -159,6 +161,10 @@ async function main() {
     const done = (summary, extra = {}) => message(`${summary}\n\nPTBK_RESULT ${JSON.stringify({ status: 'done', summary, evidence: 'fixture', ...extra })}`);
     if (prompt.startsWith('# Consultation')) {
         message('Fixture advice: keep it simple.');
+    } else if (brief) {
+        // A brief is one paragraph from the engine's digest (the number of recent results proves it read the situation).
+        const results = (prompt.match(/^- \S+ completed: /gm) ?? []).length;
+        message(`Fixture brief number ${(prompt.match(/## Previous brief/) ? 2 : 1)}: ${results} recent result(s) are done and nothing needs your attention.`);
     } else if (chat) {
         const conversation = prompt.slice(prompt.indexOf('## Conversation so far'), prompt.indexOf('## How to answer'));
         const last = [...conversation.matchAll(/\*\*@User\*\* \([^)]*\):\n([^\n]*)/g)].pop()?.[1] ?? '';

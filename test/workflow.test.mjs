@@ -150,7 +150,16 @@ test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-Name tr
 
     await ptbk(['add', 'Write the welcome page', '--agent', 'Developer', '--raw'], { cwd: project, env });
     // The engine keeps working: Router routes the task, the task commits, Router routes the Teacher follow-up, Teacher learns.
-    const result = await drive(project, env, async () => (await subjects(project)).some((subject) => /^ptbk: Learn from: /.test(subject)), { message: 'the task and its Teacher follow-up' });
+    // Other background work (the bootstrap's own learning, Chatter's brief) may finish first: wait for this follow-up.
+    const result = await drive(
+        project,
+        env,
+        async () => {
+            const followUp = /^Created-Task-Name: (.+)$/m.exec((await commitMessage(project, 'Write the welcome page')) ?? '')?.[1];
+            return Boolean(followUp) && (await messages(project)).some((item) => item.startsWith('ptbk: Learn from: ') && item.includes(`Task-Name: ${followUp}\n`));
+        },
+        { message: 'the task and its Teacher follow-up' },
+    );
     assert.equal(result.code, 0, result.output);
     const files = await changedFilesOf(project, 'Write the welcome page');
     assert.ok(files.some((file) => /learn-/.test(file)), 'Teacher follow-up is part of the result commit');

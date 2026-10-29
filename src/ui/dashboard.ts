@@ -9,7 +9,7 @@ import { singleLineVisual } from './badges.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { FullScreen } from './screen.js';
 import { lifecycleActions } from './details.js';
-import { fitLegend, homeLayout, homeTiles, renderHome, renderPage, tileAttention, type HomeTile } from './dashboard-home.js';
+import { briefText, fitLegend, homeLayout, homeTiles, renderHome, renderPage, tileAttention, type HomeTile } from './dashboard-home.js';
 import {
     keepSelection,
     pageBody,
@@ -24,7 +24,10 @@ import {
     type PageContext,
     USAGE_PAGE_GROUPINGS,
     lastUsageView,
+    type CommitDetailView,
 } from './dashboard-pages.js';
+import type { HistoryView } from '../project/history.js';
+import type { FileView, FolderView } from '../project/files.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
 import { recoveryWordLines, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
@@ -187,6 +190,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     let snapshot = await source.snapshot();
     let frame = 0;
     let focusRequest = 0;
+    /** J was pressed: the next key chooses a report action (D discuss, R refresh, O open the full report). */
+    let reportPrefix = false;
+    /** The newest commit the open History page has read (a newer one rereads it, keeping the selection). */
+    let historySeen: string | undefined;
     let feedback = '';
     let feedbackTimer: NodeJS.Timeout | undefined;
     // Viewer-local navigation: the home focus, the open page stack, a modal step, the task inventory and Book drafts.
@@ -269,6 +276,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 'W wallet',
                 'M usage',
                 'K actions',
+                'V history',
+                'D files',
+                'J report…',
                 'L chats',
                 'O plain',
                 ...(source.owning ? [] : ['(leaving never stops the engine; X stops it)']),
@@ -371,7 +381,39 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             inventoryRevision = -1;
             void refreshInventory();
         }
+        // History and Files read on opening (the History tile's latest commit tells when to reread).
+        if (page.kind === 'history' && !page.view) void loadHistory(page);
+        if (page.kind === 'files' && !page.view && page.path === '') {
+            void source.inspect('files-list', { path: '' }).then(
+                (value) => {
+                    page.view = value as FolderView;
+                    draw();
+                },
+                (error: unknown) => {
+                    page.problem = errorMessage(error);
+                    draw();
+                },
+            );
+        }
         draw();
+    };
+
+    /**
+     * Opens a nested inspection page and fills it from one of the engine's shared read-only readers (History, Files);
+     * a failure is shown on the page, never retried as a mutation.
+     */
+    const openInspected = <P extends DashboardPage & { problem?: string }>(page: P, method: string, params: Readonly<Record<string, unknown>>, fill: (target: P, value: unknown) => void): void => {
+        openPage(page);
+        void source.inspect(method, params).then(
+            (value) => {
+                fill(page, value);
+                draw();
+            },
+            (error: unknown) => {
+                page.problem = errorMessage(error);
+                draw();
+            },
+        );
     };
 
     /** Opens one saved external-action record as a nested page (read-only; loaded from the engine's shared reader). */
@@ -388,6 +430,43 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 draw();
             },
         );
+    };
+
+    /**
+     * Report actions on the shared saved brief: Discuss starts a new chat seeded with exactly the displayed brief, Refresh
+     * asks the engine for one coalesced generation (subject to pause), Open shows the whole report Book.
+     */
+    const reportKey = (key: string): void => {
+        const displayed = snapshot.report?.brief;
+        if (key === 'd') {
+            if (!displayed) {
+                notify('There is no brief to discuss yet; J R asks Chatter for one.');
+                return;
+            }
+            notify('Starting a discussion of the brief…');
+            void source.inspect('report-discuss', { at: displayed.at }).then(
+                (result) => void openChat({ kind: 'existing', name: (result as { chat: string }).chat }),
+                (error: unknown) => notify(`The discussion could not be started: ${errorMessage(error)}`),
+            );
+        } else if (key === 'r') {
+            void source.inspect('report-refresh').then(
+                (result) => notify((result as { outcome: string }).outcome),
+                (error: unknown) => notify(`Refresh failed: ${errorMessage(error)}`),
+            );
+        } else if (key === 'o') void openBook({ path: 'report.book' }, { readOnly: true });
+        else notify('Cancelled.');
+    };
+
+    /** Reads the History window again, keeping the selected commit (new commits arrive above it). */
+    const loadHistory = async (page: Extract<DashboardPage, { kind: 'history' }>): Promise<void> => {
+        try {
+            page.view = (await source.inspect('history-list', { limit: 300 })) as HistoryView;
+            page.problem = undefined;
+            historySeen = snapshot.history?.last.sha;
+        } catch (error) {
+            page.problem = errorMessage(error);
+        }
+        draw();
     };
 
     /** Opens the page of a home tile, replacing any open page stack. */
@@ -415,11 +494,11 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     };
 
     /** Opens a real Book source in the shared editor (Enter newline, Ctrl+S save); Esc returns here, drafts kept. */
-    const openBook = async (target: { readonly reference?: string; readonly path?: string }): Promise<void> => {
+    const openBook = async (target: { readonly reference?: string; readonly path?: string }, mode: { readonly readOnly?: boolean } = {}): Promise<void> => {
         nested = true;
         keyboard.stop();
         try {
-            await runBookEditor(terminal, source.books, target, { screen, drafts, embedded: true });
+            await runBookEditor(terminal, source.books, target, { screen, drafts, embedded: true, readOnly: mode.readOnly });
             if (drafts.size) feedback = `${drafts.size} unsaved Book draft(s) kept; reopen to continue.`;
         } catch (error) {
             feedback = `Editor failed: ${errorMessage(error)}`;
@@ -450,7 +529,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
 
     /** Arrow keys on the home screen: spatial focus between tiles (highlighted, never enlarged). */
     const moveFocus = (direction: 'up' | 'down' | 'left' | 'right'): void => {
-        const rows = homeLayout(homeTiles(snapshot), Math.max(20, terminal.columns()), Math.max(5, terminal.rows())).rows;
+        const width = Math.max(20, terminal.columns());
+        const rows = homeLayout(homeTiles(snapshot), width, Math.max(5, terminal.rows()), briefText(snapshot, terminal, width).length).rows;
         let row = Math.max(0, rows.findIndex((candidates) => candidates.includes(focus)));
         let column = Math.max(0, rows[row]!.indexOf(focus));
         if (direction === 'up' || direction === 'down') {
@@ -729,7 +809,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         keepSelection(page, context);
         const keys = pageItemKeys(page, context);
         const count = keys.length;
-        const list = ['work', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'actions'].includes(page.kind);
+        const list = ['work', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'actions', 'history', 'files'].includes(page.kind);
         const room = Math.max(1, terminal.rows() - 5);
         if (event.type === 'key') {
             if (event.name === 'escape') {
@@ -762,6 +842,20 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 if (page.kind === 'actions') {
                     const item = snapshot.actions?.recent[page.focus];
                     if (item) openActionRecord(item.path);
+                    return;
+                }
+                if (page.kind === 'history') {
+                    const sha = keys[page.focus];
+                    if (sha) openInspected<Extract<DashboardPage, { kind: 'commit' }>>({ kind: 'commit', scroll: 0, sha }, 'history-commit', { sha }, (target, value) => (target.detail = value as CommitDetailView));
+                    return;
+                }
+                if (page.kind === 'files') {
+                    const entry = page.view?.entries[page.focus];
+                    if (!entry || entry.type === 'link-outside') return;
+                    if (entry.type === 'directory') openInspected<Extract<DashboardPage, { kind: 'files' }>>({ kind: 'files', scroll: 0, focus: 0, path: entry.path }, 'files-list', { path: entry.path }, (target, value) => (target.view = value as FolderView));
+                    // Books open in the shared Book core, read-only here.
+                    else if (entry.kind === 'book') void openBook({ path: entry.path }, { readOnly: true });
+                    else openInspected<Extract<DashboardPage, { kind: 'file' }>>({ kind: 'file', scroll: 0, path: entry.path }, 'file-read', { path: entry.path }, (target, value) => (target.view = value as FileView));
                     return;
                 }
                 if (page.kind === 'wallet') {
@@ -810,6 +904,14 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 return;
             case 'connection':
                 return;
+            case 'commit': {
+                // Verified provenance links only (a name that no longer resolves stays historical).
+                const task = page.detail?.links.tasks.find((item) => item.path);
+                const chat = page.detail?.links.chats.find((item) => item.exists);
+                if (key === 'e' && task?.path) void openBook({ path: task.path });
+                else if (key === 'c' && chat) void (chat.name === 'Report' ? openBook({ path: 'report.book' }, { readOnly: true }) : openChat({ kind: 'existing', name: chat.name }));
+                return;
+            }
             case 'action': {
                 // The record's task Book (a verified link from its saved provenance); viewing never retries the action.
                 const source = snapshot.actions?.recent.find((item) => item.path === page.path)?.source;
@@ -951,6 +1053,11 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         }
         if (event.type !== 'text') return;
         const key = event.text.toLowerCase();
+        if (reportPrefix) {
+            reportPrefix = false;
+            reportKey(key);
+            return;
+        }
         if (lifecycleKey(key)) return;
         switch (key) {
             case 'q':
@@ -990,6 +1097,16 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 return;
             case 'k':
                 openTile('actions');
+                return;
+            case 'v':
+                openTile('history');
+                return;
+            case 'd':
+                openTile('files');
+                return;
+            case 'j':
+                reportPrefix = true;
+                notify('Report: D discuss this brief in a new chat · R refresh (Chatter writes a new one) · O open the full report · any other key cancels');
                 return;
             case 'b': {
                 // The browser detail is the nested tool page of the browser serving (or next serving) work.
@@ -1095,6 +1212,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 title.refresh();
                 draw();
                 if (pages.some((page) => page.kind === 'tasks' || page.kind === 'agents')) void refreshInventory();
+                // A new commit rereads an open History page (its selection stays on the same commit).
+                const history = pages.find((page): page is Extract<DashboardPage, { kind: 'history' }> => page.kind === 'history');
+                if (history && snapshot.history?.last.sha && snapshot.history.last.sha !== historySeen) void loadHistory(history);
                 if (['stopped', 'finished'].includes(snapshot.service.state)) {
                     // The engine ended (observed): show it briefly, never start a replacement.
                     await new Promise((resolve) => setTimeout(resolve, ENDED_VISIBLE_MS));

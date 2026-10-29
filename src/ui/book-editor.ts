@@ -34,7 +34,19 @@ export type BookDraft = { readonly segments: readonly ComposedSegment[]; readonl
  *
  * @private Book editor
  */
-export async function runBookEditor(terminal: TerminalProfile, books: BookSourceClient, target: { readonly reference?: string; readonly path?: string }, options: { readonly screen?: FullScreen; readonly drafts?: Map<string, BookDraft>; /** Inside the dashboard, which keeps its PTBK title. */ readonly embedded?: boolean } = {}): Promise<void> {
+export async function runBookEditor(
+    terminal: TerminalProfile,
+    books: BookSourceClient,
+    target: { readonly reference?: string; readonly path?: string },
+    options: {
+        readonly screen?: FullScreen;
+        readonly drafts?: Map<string, BookDraft>;
+        /** Inside the dashboard, which keeps its PTBK title. */
+        readonly embedded?: boolean;
+        /** The shared viewer mode (Files, the full report): the same parser and navigation, no save path at all. */
+        readonly readOnly?: boolean;
+    } = {},
+): Promise<void> {
     const screen = options.screen ?? new FullScreen();
     const ownsScreen = !options.screen;
     const { style } = terminal;
@@ -46,6 +58,7 @@ export async function runBookEditor(terminal: TerminalProfile, books: BookSource
         terminal.write(`${style.error('Cannot open the Book:')} ${errorMessage(error)}\n`);
         return;
     }
+    if (options.readOnly && source.editable) source = { ...source, editable: false, reason: 'Opened for viewing; edit it from its Agents, Tasks or Chats page.' };
     const draft = options.drafts?.get(source.path);
     // A kept draft based on the current revision is restored; a stale one is offered as the editor content but its
     // base revision makes the save a visible conflict instead of silently overwriting another edit.

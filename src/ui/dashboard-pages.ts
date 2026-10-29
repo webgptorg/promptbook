@@ -22,6 +22,40 @@ import { billingMix, compactCount, outcomeText, type HomeTile } from './dashboar
 import type { UsageTotals } from '../engine/usage.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { WalletView } from '../wallet/wallet.js';
+import type { HistoryDetail, HistoryView } from '../project/history.js';
+import type { FileView, FolderView } from '../project/files.js';
+
+/**
+ * A commit as the History detail page shows it: the original message and its verified provenance links.
+ *
+ * @private terminal dashboard pages
+ */
+export type CommitDetailView = HistoryDetail & { readonly links: { readonly tasks: ReadonlyArray<{ readonly name: string; readonly path?: string }>; readonly chats: ReadonlyArray<{ readonly name: string; readonly exists: boolean }> } };
+
+/**
+ * Readable terminal lines of a project file: Markdown with emphasized headings, JSON with colored keys, text as it is
+ * (always made terminal-safe; formatting never changes the file). Images and videos are identified honestly.
+ *
+ * @private terminal dashboard pages
+ */
+export function fileLines(view: FileView, terminal: TerminalProfile, width: number): string[] {
+    const { style } = terminal;
+    const size = formatBytes(view.size);
+    if (view.kind === 'image') return [`${view.mime ?? 'Image'} · ${size}`, style.muted('This terminal view shows file information only; the browser dashboard displays the image.')];
+    if (view.kind === 'video') return [`Video · ${size}`, style.muted('Video playback is not part of Files; the file is identified only.')];
+    if (view.kind === 'binary' || view.text === undefined) return [`Binary file · ${size}`, style.muted('Not shown as text.')];
+    const lines = view.text.replace(/\r\n?/g, '\n').split('\n');
+    const body = lines.flatMap((raw) => {
+        const line = terminalSafe(raw);
+        if (view.kind === 'markdown') {
+            if (/^#{1,6} /.test(line)) return wrap(style.bold(line.replace(/^#+ /, '')), width);
+            if (/^\s*```/.test(line)) return [style.muted(line)];
+        }
+        if (view.kind === 'json') return wrap(line.replace(/^(\s*)("(?:[^"\\]|\\.)*")(\s*:)/, (_match, indent: string, key: string, colon: string) => `${indent}${style.accent(key)}${colon}`), width);
+        return wrap(line, width);
+    });
+    return view.truncated ? [...body, '', style.warning(`Only the beginning of this ${size} file is shown; the rest stays on disk.`)] : body;
+}
 
 /**
  * Fields the agent inventory can be sorted by (`activity` keeps working and waiting agents first).
@@ -56,6 +90,10 @@ export type DashboardPage =
     | { readonly kind: 'usage'; scroll: number; grouping: UsagePageGrouping; inclusive: boolean }
     | { readonly kind: 'actions'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'action'; scroll: number; readonly path: string; content?: string; problem?: string }
+    | { readonly kind: 'history'; scroll: number; focus: number; selected?: string; view?: HistoryView; problem?: string }
+    | { readonly kind: 'commit'; scroll: number; readonly sha: string; detail?: CommitDetailView; problem?: string }
+    | { readonly kind: 'files'; scroll: number; focus: number; selected?: string; readonly path: string; view?: FolderView; problem?: string }
+    | { readonly kind: 'file'; scroll: number; readonly path: string; view?: FileView; problem?: string }
     | { readonly kind: 'connection'; scroll: number }
     | { readonly kind: 'sync'; scroll: number };
 
@@ -114,6 +152,10 @@ export function pageForTile(tile: HomeTile): DashboardPage {
             return { kind: 'usage', scroll: 0, grouping: lastUsageView.grouping, inclusive: lastUsageView.inclusive };
         case 'actions':
             return { kind: 'actions', scroll: 0, focus: 0 };
+        case 'history':
+            return { kind: 'history', scroll: 0, focus: 0 };
+        case 'files':
+            return { kind: 'files', scroll: 0, focus: 0, path: '' };
         default:
             return { kind: tile, scroll: 0 };
     }
@@ -437,6 +479,67 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 legend: `↑↓ scroll · ${item?.source ? 'E open the task Book · ' : ''}${back}`,
             };
         }
+        case 'history': {
+            if (page.problem) return { title: 'History', context: 'Git history', body: [style.warning(page.problem)], legend: back };
+            const view = page.view;
+            if (!view) return { title: 'History', context: 'Reading the local Git history…', body: [style.muted('Loading…')], legend: back };
+            if (view.problem) return { title: 'History', context: view.branch ?? 'Git history', body: [style.muted(view.problem)], legend: back };
+            const body: string[] = [];
+            let index = 0;
+            let anchor = 0;
+            for (const row of view.rows) {
+                if (!row.commit) {
+                    body.push(style.muted(`  ${row.graph}`));
+                    continue;
+                }
+                const focused = index === page.focus;
+                if (focused) anchor = body.length;
+                const commit = row.commit;
+                const who = commit.kind === 'agent' ? style.accent(`\`${commit.visual}\` `) : commit.kind === 'foreign' ? style.muted(`${commit.author}: `) : '';
+                const refs = commit.refs.length ? style.warning(` (${commit.refs.join(', ')})`) : '';
+                body.push(`${pointer(focused)} ${style.muted(row.graph)} ${style.muted(formatShortTime(Date.parse(commit.at)))} ${who}${commit.kind === 'legacy' ? style.muted('PTBK ') : ''}${terminalSafe(commit.summary)}${refs}`);
+                index++;
+            }
+            if (view.more) body.push('', style.muted('… older commits are not shown here (git log has the complete history).'));
+            if (view.shallow) body.push('', style.warning('This is a shallow clone: older history is not available locally.'));
+            return { title: 'History', context: `${view.branch ?? 'HEAD'} · ${index} commit${index === 1 ? '' : 's'} · messages and topology, read-only (never fetches)`, body, anchor, legend: `↑↓ choose · Enter open the full message · ${back}` };
+        }
+        case 'commit': {
+            if (page.problem) return { title: 'History › commit', context: page.sha.slice(0, 12), body: [style.warning(page.problem)], legend: back };
+            const detail = page.detail;
+            if (!detail) return { title: 'History › commit', context: page.sha.slice(0, 12), body: [style.muted('Loading…')], legend: back };
+            const body = [
+                `${style.muted('Commit')} ${detail.sha}`,
+                `${style.muted('Author')} ${terminalSafe(detail.author)} <${terminalSafe(detail.email)}> · ${detail.at}`,
+                ...(detail.parents.length > 1 ? [`${style.muted('Merge of')} ${detail.parents.map((parent) => parent.slice(0, 10)).join(', ')}`] : detail.parents.length ? [`${style.muted('Parent')} ${detail.parents[0]!.slice(0, 10)}`] : [style.muted('Root commit')]),
+                ...(detail.refs.length ? [`${style.muted('Refs')} ${detail.refs.join(', ')}`] : []),
+                ...detail.links.tasks.map((task) => `${style.muted('Task')} {${task.name}} ${task.path ? style.success(`${task.path} · E opens it`) : style.muted('(no longer in the project)')}`),
+                ...detail.links.chats.map((chat) => `${style.muted('Chat')} {${chat.name}} ${chat.exists ? style.success('C opens it') : style.muted('(no longer in the project)')}`),
+                '',
+                ...detail.message.split('\n').flatMap((line) => wrap(terminalSafe(line), Math.max(20, width - 2))),
+            ];
+            return { title: `History › ${detail.sha.slice(0, 10)}`, context: detail.kind === 'agent' ? `agent work · ${detail.visual}` : detail.kind === 'system' ? 'Promptbook system operation' : detail.kind === 'legacy' ? 'legacy PTBK subject' : 'ordinary commit', body, legend: `↑↓ scroll · ${detail.links.tasks.some((task) => task.path) ? 'E open the task · ' : ''}${detail.links.chats.some((chat) => chat.exists) ? 'C open the chat · ' : ''}${back}` };
+        }
+        case 'files': {
+            const location = page.path || '.';
+            if (page.problem) return { title: `Files › ${location}`, context: 'Read-only project browser', body: [style.warning(page.problem)], legend: back };
+            const view = page.view;
+            if (!view) return { title: `Files › ${location}`, context: 'Read-only project browser', body: [style.muted('Loading…')], legend: back };
+            const body = view.entries.map((entry, index) => {
+                const label = entry.type === 'directory' ? style.bold(`${terminalSafe(entry.name)}/`) : entry.type === 'link-outside' ? style.muted(`${terminalSafe(entry.name)} → outside the project (not followed)`) : terminalSafe(entry.name);
+                const details = entry.type === 'file' ? style.muted(` · ${entry.kind} · ${formatBytes(entry.size ?? 0)}${entry.modifiedAt ? ` · ${formatShortTime(Date.parse(entry.modifiedAt))}` : ''}`) : '';
+                return `${pointer(index === page.focus)} ${label}${details}`;
+            });
+            if (!view.entries.length) body.push(style.muted('This folder has no visible entries.'));
+            if (view.truncated) body.push('', style.muted('… more entries are not listed.'));
+            return { title: `Files › ${location}`, context: 'Read-only · hidden and protected paths (.git, .ptbk, .env …) are never shown', body, anchor: page.focus, legend: `↑↓ choose · Enter open · ${back}` };
+        }
+        case 'file': {
+            if (page.problem) return { title: `Files › ${page.path}`, context: 'Read-only', body: [style.warning(page.problem)], legend: back };
+            const view = page.view;
+            if (!view) return { title: `Files › ${page.path}`, context: 'Read-only', body: [style.muted('Loading…')], legend: back };
+            return { title: `Files › ${view.path}`, context: `${view.kind} · ${formatBytes(view.size)} · read-only (formatting never changes the file)`, body: fileLines(view, terminal, Math.max(20, width - 2)), legend: `↑↓ scroll · ${back}` };
+        }
         case 'chats': {
             const chats = snapshot.chats.recent;
             const body = chats.map(
@@ -573,6 +676,10 @@ export function pageItemKeys(page: DashboardPage, context: Pick<PageContext, 'sn
             return context.snapshot.wallet ? walletItems(context.snapshot.wallet).map((item) => `${item.kind}:${item.id}`) : [];
         case 'actions':
             return (context.snapshot.actions?.recent ?? []).map((item) => item.path);
+        case 'history':
+            return (page.view?.rows ?? []).flatMap((row) => (row.commit ? [row.commit.sha] : []));
+        case 'files':
+            return (page.view?.entries ?? []).map((entry) => entry.path);
         default:
             return [];
     }

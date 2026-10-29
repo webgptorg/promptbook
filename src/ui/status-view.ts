@@ -69,6 +69,20 @@ export type StatusViewOptions = {
 };
 
 /**
+ * The saved brief in one line, or an honest explanation of its absence (never fabricated).
+ *
+ * @private shared status view
+ */
+export function briefLine(snapshot: Pick<ServiceSnapshot, 'report'>): string {
+    const report = snapshot.report;
+    if (!report) return 'not reported by this engine.';
+    const state = [report.generating ? 'a new brief is being written' : '', report.requestedAt && !report.generating ? `a refresh is requested${report.waiting ? ` (${report.waiting})` : ''}` : ''].filter(Boolean).join('; ');
+    if (report.brief) return `${report.brief.text.replace(/\s+/g, ' ')} (${report.brief.at}${state ? `; ${state}` : ''})`;
+    if (report.state === 'unreadable') return `report.book cannot be read: ${report.problem ?? 'unknown problem'}.`;
+    return `no brief yet${state ? ` (${state})` : ' (Chatter writes the first one once there is work to report)'}.`;
+}
+
+/**
  * Renders the snapshot as plain text sections (raw output: no color or borders).
  *
  * @private shared status view
@@ -77,6 +91,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     const lines: string[] = [];
     if (options.outcome) lines.push(`${options.outcome.title}${options.outcome.message ? `: ${options.outcome.message}` : ''}`, '');
     lines.push(`Project: ${snapshot.project.name} (${snapshot.project.path})`);
+    lines.push(`Brief: ${briefLine(snapshot)}`);
     lines.push(`Engine: ptbk ${snapshot.engine.version} (${snapshot.engine.scope} installation)`);
     lines.push(
         `Service: ${snapshot.service.mode}, ${snapshot.service.state}${snapshot.service.state !== 'stopped' ? `, PID ${snapshot.service.pid}` : ''}, ${snapshot.service.commitMode === 'commit' ? 'automatic commits' : 'NO-COMMIT mode (results stay uncommitted)'}${snapshot.service.persistent === null ? '' : snapshot.service.persistent ? ', persistent' : ', not persistent'}`,
@@ -172,6 +187,18 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         output.push(...renderPanel({ title: options.outcome.title, lines: options.outcome.message ? wrap(options.outcome.message, total - 4) : [], width: total, tone: options.outcome.tone, unicode, style }));
     }
     output.push(...renderPanel({ title: `${marks.bullet} Promptbook`, titleRight: headerRight, lines: headerLines, width: total, tone: 'accent', unicode, style }));
+    // Chatter's saved brief, prominently and once (reading it never generates one).
+    const brief = snapshot.report?.brief;
+    output.push(
+        ...renderPanel({
+            title: 'Project brief',
+            titleRight: brief ? `${formatShortTime(Date.parse(brief.at))}${snapshot.report?.generating ? ' · updating' : ''}` : undefined,
+            lines: brief ? wrap(brief.text, total - 4) : [style.muted(briefLine(snapshot))],
+            width: total,
+            unicode,
+            style,
+        }),
+    );
 
     // Attention: chats awaiting the user first, with their real authors.
     const attention: string[] = [];

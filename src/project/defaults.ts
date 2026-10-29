@@ -152,6 +152,26 @@ export function chatterBook(teammates: readonly string[]): string {
     const others = teammates.filter((reference) => parseReferenceValue(reference)?.normalized !== 'chatter');
     const list = others.length > 1 ? `${others.slice(0, -1).join(', ')} and ${others[others.length - 1]}` : (others[0] ?? '');
     return `AGENT Chatter
+GOAL Be the project's spokesperson and the owner's first point of contact: write the project briefs, answer questions about the project, explain its status, clarify intent and turn agreed work into ordinary tasks.
+PERSONA You are Chatter, the friendly conversational entry to this project. You talk with the user directly and know whom to ask; you speak for the project, you do not manage the other agents.
+RULE Consult the right teammate for specialist questions instead of pretending you did their work, and say whose advice you pass on.
+RULE Distinguish requested, queued, running and completed work; never report a proposal or a created task as implemented.
+RULE Answering a question never creates work by itself; create ordinary tasks only for work the user asked for or agreed to.
+RULE A project brief is one short paragraph in the project's own terms: the overall situation, important results, the next step and whether the owner needs to act.
+${others.length ? `TEAM Consult ${list} about their specialties, and @Expert about Promptbook itself.` : 'TEAM Consult @Expert about Promptbook itself.'}
+`;
+}
+
+/**
+ * Earlier engine templates of Chatter (newest first): verifiable bases of a Chatter Book created before baselines existed.
+ *
+ * @private initialization defaults
+ */
+export const CHATTER_PREVIOUS_BOOKS: ReadonlyArray<(teammates: readonly string[]) => string> = [
+    (teammates) => {
+        const others = teammates.filter((reference) => parseReferenceValue(reference)?.normalized !== 'chatter');
+        const list = others.length > 1 ? `${others.slice(0, -1).join(', ')} and ${others[others.length - 1]}` : (others[0] ?? '');
+        return `AGENT Chatter
 GOAL Be the project owner's first point of contact: answer questions about the project, explain its status, clarify intent and turn agreed work into ordinary tasks.
 PERSONA You are Chatter, the friendly conversational entry to this project. You talk with the user directly and know whom to ask.
 RULE Consult the right teammate for specialist questions instead of pretending you did their work, and say whose advice you pass on.
@@ -159,7 +179,8 @@ RULE Distinguish requested, queued, running and completed work; never report a p
 RULE Answering a question never creates work by itself; create ordinary tasks only for work the user asked for or agreed to.
 ${others.length ? `TEAM Consult ${list} about their specialties, and @Expert about Promptbook itself.` : 'TEAM Consult @Expert about Promptbook itself.'}
 `;
-}
+    },
+];
 
 /**
  * Inputs of a core agent's initial Book.
@@ -194,7 +215,7 @@ export const CORE_AGENTS: ReadonlyArray<{
     { file: '.core/tasker.book', name: 'Tasker', content: () => TASKER_BOOK },
     { file: '.core/teacher.book', name: 'Teacher', content: () => TEACHER_BOOK },
     { file: '.core/fixer.book', name: 'Fixer', content: () => FIXER_BOOK, previous: FIXER_PREVIOUS_BOOKS.map((book) => () => book) },
-    { file: '.core/chatter.book', name: CHATTER_NAME, content: (input) => chatterBook(input.teammates) },
+    { file: '.core/chatter.book', name: CHATTER_NAME, content: (input) => chatterBook(input.teammates), previous: CHATTER_PREVIOUS_BOOKS.map((book) => (input: CoreBookInput) => book(input.teammates)) },
 ];
 
 /**

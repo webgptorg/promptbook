@@ -33,6 +33,8 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
     results: 'Results',
     usage: 'Usage',
     actions: 'Action log',
+    history: 'History',
+    files: 'Files',
     connection: 'Connection',
     sync: 'Synchronization',
 };
@@ -43,7 +45,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
  * @private terminal dashboard home
  */
 export function homeTiles(snapshot: ServiceSnapshot): HomeTile[] {
-    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'actions', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
+    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'actions', 'history', 'files', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
 }
 
 /**
@@ -86,7 +88,17 @@ export function headerRows(height: number): 1 | 2 {
  *
  * @private terminal dashboard home
  */
-export type HomeLayout =
+export type HomeLayout = TileLayout & {
+    /** Rows of the project brief beneath the identity header (reserved before the tiles get room). */
+    readonly brief: number;
+};
+
+/**
+ * Geometry of the tiles alone.
+ *
+ * @private terminal dashboard home
+ */
+export type TileLayout =
     /** Bordered tiles in a grid (`rows` of tiles; every tile `height` rows tall). */
     | { readonly kind: 'grid'; readonly rows: readonly (readonly HomeTile[])[]; readonly widths: readonly number[]; readonly height: number }
     /** One line per tile when the surface is too short for bordered tiles. */
@@ -101,9 +113,19 @@ export type HomeLayout =
  *
  * @private terminal dashboard home
  */
-export function homeLayout(tiles: readonly HomeTile[], width: number, height: number): HomeLayout {
-    // The header and the legend are reserved before the tiles get room.
-    const room = height - headerRows(height) - 1;
+export function homeLayout(tiles: readonly HomeTile[], width: number, height: number, briefNeed = 3): HomeLayout {
+    // The header, the brief and the legend are reserved before the tiles get room. The brief keeps at least one row
+    // whenever the domains still fit (grid first, then one line per tile); taller surfaces show more of it.
+    const base = height - headerRows(height) - 1;
+    const most = Math.max(1, Math.min(briefNeed, height >= 30 ? 3 : height >= 22 ? 2 : 1));
+    const candidates: HomeLayout[] = [...Array.from({ length: most }, (_, index) => most - index), 0].map((brief) => ({ ...tileLayout(tiles, width, base - brief), brief }));
+    return candidates.find((layout) => layout.brief > 0 && layout.kind === 'grid') ?? candidates.find((layout) => layout.brief > 0 && layout.kind === 'list') ?? candidates.find((layout) => layout.kind !== 'tiny') ?? candidates.at(-1)!;
+}
+
+/**
+ * The tile geometry for the rows left below the header and brief.
+ */
+function tileLayout(tiles: readonly HomeTile[], width: number, room: number): TileLayout {
     const maxColumns = Math.max(1, Math.floor((width + 1) / (MIN_TILE_WIDTH + 1)));
     let columns = Math.max(1, Math.min(maxColumns, Math.floor((width + 1) / (PREFERRED_TILE_WIDTH + 1)) || 1, tiles.length));
     const rowsFor = (count: number): number => Math.ceil(tiles.length / count);
@@ -116,6 +138,9 @@ export function homeLayout(tiles: readonly HomeTile[], width: number, height: nu
         return { kind: 'grid', rows: chunk(columns), widths, height: Math.min(MAX_TILE_HEIGHT, Math.floor(room / rowsFor(columns))) };
     }
     if (tiles.length <= room && width >= 30) return { kind: 'list', rows: tiles.map((tile) => [tile]) };
+    // Still too short: several compact entries per line while each keeps a readable width.
+    const perLine = Math.ceil(tiles.length / Math.max(1, room));
+    if (room >= 1 && perLine >= 2 && Math.floor((width - perLine + 1) / perLine) >= 22) return { kind: 'list', rows: chunk(perLine) };
     return { kind: 'tiny', rows: tiles.map((tile) => [tile]) };
 }
 
@@ -325,6 +350,13 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
                 style.muted('K open'),
             ];
         }
+        case 'history': {
+            const last = snapshot.history?.last;
+            if (!last) return [style.muted('Git messages and topology'), style.muted('V open')];
+            return [`${style.muted(time(last.at))} ${last.summary}`, style.muted(last.kind === 'agent' ? 'latest: agent work' : last.kind === 'system' ? 'latest: Promptbook system' : last.kind === 'legacy' ? 'latest: legacy PTBK' : 'latest: ordinary commit'), style.muted('V open')];
+        }
+        case 'files':
+            return [style.muted('Read-only project browser'), style.muted('Markdown, JSON, Books, images'), style.muted('D open')];
         case 'connection': {
             const { local } = snapshot.connection;
             const host = local.url ? local.url.replace(/^https?:\/\//, '').replace(/\/$/, '') : undefined;
@@ -358,7 +390,7 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
  *
  * @private terminal dashboard home
  */
-export function homeHeader(snapshot: ServiceSnapshot, terminal: TerminalProfile, width: number, options: { readonly rows: 1 | 2; readonly attention: number; readonly connectionLost?: string; readonly context?: string }): string[] {
+export function homeHeader(snapshot: ServiceSnapshot, terminal: TerminalProfile, width: number, options: { readonly rows: 1 | 2; readonly attention: number; readonly connectionLost?: string; readonly context?: string; readonly brief?: string }): string[] {
     const { style } = terminal;
     const marks = symbols(terminal.unicode);
     const rule = terminal.unicode ? '━' : '=';
@@ -381,8 +413,13 @@ export function homeHeader(snapshot: ServiceSnapshot, terminal: TerminalProfile,
     const left = (label: string): string => `${style.accent(`${rule}${rule}`)} ${identity(label)}${separator}${style.bold(snapshot.project.name)}${mode}${options.context ? `${separator}${style.bold(`› ${options.context}`)}` : ''} `;
     const right = (parts: readonly string[]): string => (parts.length ? ` ${parts.join(style.muted(` ${marks.dot} `))} ${style.accent(`${rule}${rule}`)}` : style.accent(`${rule}${rule}`));
     const candidates = brands.flatMap((brand) => details.map((parts) => [left(brand), right(parts)] as const));
-    const [head, tail] = candidates.find(([head, tail]) => stringWidth(head) + stringWidth(tail) + 1 <= width) ?? candidates.at(-1)!;
+    // An inline brief prefers the compact identity (attention stays; freshness gives way) so the brief has room.
+    const ordered = options.brief ? [...candidates.filter(([, tail]) => !options.attention || tail.includes(marks.warn)).sort((a, b) => stringWidth(a[0]) + stringWidth(a[1]) - stringWidth(b[0]) - stringWidth(b[1])), ...candidates] : candidates;
+    const [head, tail] = ordered.find(([head, tail]) => stringWidth(head) + stringWidth(tail) + 1 <= width) ?? candidates.at(-1)!;
     const fill = Math.max(0, width - stringWidth(head) - stringWidth(tail));
+    // Without a row of its own, the brief's beginning fills the compact identity row (identity always comes first).
+    const brief = options.brief && fill > 12 ? truncate(options.brief, fill - 4) : '';
+    if (brief) return [truncate(`${head}${style.accent(`${rule} `)}${brief} ${style.accent(rule.repeat(Math.max(0, fill - stringWidth(brief) - 3)))}${tail}`, width)];
     return [truncate(`${head}${style.accent(rule.repeat(fill))}${tail}`, width)];
 }
 
@@ -412,9 +449,10 @@ export function renderHome(snapshot: ServiceSnapshot, terminal: TerminalProfile,
     const width = Math.max(20, terminal.columns());
     const height = Math.max(5, terminal.rows());
     const tiles = homeTiles(snapshot);
-    const layout = homeLayout(tiles, width, height);
+    const layout = homeLayout(tiles, width, height, briefText(snapshot, terminal, width).length);
     const attentionCount = [...view.attention.keys()].filter((tile) => tiles.includes(tile)).length;
-    const lines = homeHeader(snapshot, terminal, width, { rows: headerRows(height), attention: attentionCount, connectionLost: view.connectionLost });
+    const lines = homeHeader(snapshot, terminal, width, { rows: headerRows(height), attention: attentionCount, connectionLost: view.connectionLost, brief: layout.brief ? undefined : briefText(snapshot, terminal, Number.MAX_SAFE_INTEGER).join(' ') });
+    lines.push(...briefLines(snapshot, terminal, width, layout.brief));
     const blinkOn = !terminal.reducedMotion && view.frame % 2 === 0;
     const titleOf = (tile: HomeTile): string => {
         const attention = view.attention.get(tile);
@@ -444,12 +482,18 @@ export function renderHome(snapshot: ServiceSnapshot, terminal: TerminalProfile,
             lines.push(...sideBySide(blocks, layout.widths.slice(0, blocks.length)));
         }
     } else if (layout.kind === 'list') {
-        const labelWidth = Math.max(...tiles.map((tile) => stringWidth(TILE_TITLES[tile]))) + 4;
-        for (const tile of tiles) {
-            const attention = view.attention.get(tile);
-            const label = fit(`${view.focus === tile ? marks.pointer : ' '} ${attention ? marks.warn : ' '} ${TILE_TITLES[tile]}`, labelWidth);
-            const styled = view.focus === tile ? style.bold(style.accent(label)) : attention ? style.warning(label) : label;
-            lines.push(truncate(`${attention === 'new' && blinkOn ? style.inverse(styled) : styled} ${tileLines(snapshot, tile, terminal, view.frame)[0] ?? ''}`, width));
+        const columns = Math.max(...layout.rows.map((row) => row.length));
+        const cell = Math.floor((width - columns + 1) / columns);
+        const labelWidth = Math.min(Math.max(...tiles.map((tile) => stringWidth(TILE_TITLES[tile]))) + 4, Math.max(8, cell - 6));
+        for (const row of layout.rows) {
+            const cells = row.map((tile) => {
+                const attention = view.attention.get(tile);
+                const label = fit(`${view.focus === tile ? marks.pointer : ' '} ${attention ? marks.warn : ' '} ${TILE_TITLES[tile]}`, labelWidth);
+                const styled = view.focus === tile ? style.bold(style.accent(label)) : attention ? style.warning(label) : label;
+                const entry = truncate(`${attention === 'new' && blinkOn ? style.inverse(styled) : styled} ${tileLines(snapshot, tile, terminal, view.frame)[0] ?? ''}`, cell);
+                return columns > 1 ? fit(entry, cell) : entry;
+            });
+            lines.push(truncate(cells.join(' '), width));
         }
     } else {
         lines.push(...wrap('The terminal is too small for the dashboard. Enlarge it, or press O for plain output.', width - 1).map((line) => style.warning(` ${line}`)));
@@ -459,6 +503,40 @@ export function renderHome(snapshot: ServiceSnapshot, terminal: TerminalProfile,
     lines.length = Math.min(lines.length, height - 1);
     lines.push(truncate(style.muted(footer), width));
     return lines;
+}
+
+/**
+ * The brief wrapped to the home width: its original time, the paragraph and its generation state (or an honest
+ * explanation of its absence).
+ *
+ * @private terminal dashboard home
+ */
+export function briefText(snapshot: Pick<ServiceSnapshot, 'report'>, terminal: TerminalProfile, width: number): string[] {
+    const { style } = terminal;
+    const report = snapshot.report;
+    const brief = report?.brief;
+    const state = report?.generating ? 'updating…' : report?.requestedAt ? 'refresh requested' : '';
+    const text = brief
+        ? `${style.muted(formatShortTime(Date.parse(brief.at)))} ${brief.text.replace(/\s+/g, ' ')}${state ? style.muted(` · ${state}`) : ''}`
+        : style.muted(report ? (report.state === 'unreadable' ? `The project brief cannot be read (${report.problem ?? 'report.book'}).` : `No project brief yet${state ? ` (${state})` : ''} · J R asks Chatter for one.`) : 'This engine does not report a project brief.');
+    return wrap(text, width - 2);
+}
+
+/**
+ * The saved project brief beneath the identity: Chatter's last complete paragraph with its original time, wrapped to
+ * the reserved rows; clipping is labelled with how to read it whole. A missing brief is said honestly.
+ *
+ * @private terminal dashboard home
+ */
+export function briefLines(snapshot: ServiceSnapshot, terminal: TerminalProfile, width: number, rows: number): string[] {
+    if (rows <= 0) return [];
+    const { style } = terminal;
+    const wrapped = briefText(snapshot, terminal, width);
+    if (wrapped.length <= rows) return [...wrapped.map((line) => ` ${line}`), ...Array.from({ length: rows - wrapped.length }, () => '')];
+    const more = style.muted(' … J O full brief');
+    const kept = wrapped.slice(0, rows);
+    kept[rows - 1] = `${truncate(kept[rows - 1]!, width - 2 - stringWidth(more))}${more}`;
+    return kept.map((line) => ` ${line}`);
 }
 
 /**

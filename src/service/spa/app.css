@@ -147,6 +147,55 @@ body.home-view .app {
     padding: 12px;
 }
 
+/* The brief keeps its own height above the grid; the grid takes the rest. */
+.home-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+}
+
+.home-wrap > .home {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+}
+
+.brief {
+    display: flex;
+    flex: none;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+}
+
+.brief-body {
+    min-width: 0;
+}
+
+.brief-text {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.brief-text.expanded {
+    display: block;
+}
+
+.brief-actions {
+    display: flex;
+    flex: none;
+    gap: 8px;
+}
+
 .home {
     display: grid;
     grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
@@ -796,4 +845,24 @@ details summary {
     font-size: 15px;
     margin: 12px 0;
     padding-left: 28px;
+}
+
+/* History: the real topology lanes stay monospace beside the readable messages. */
+.list.history .graph {
+    font-family: var(--mono, ui-monospace, monospace);
+    white-space: pre;
+    color: var(--muted);
+}
+
+.list.history .graph-only {
+    list-style: none;
+}
+
+.commit-detail {
+    margin-top: 6px;
+}
+
+.file-image {
+    max-width: 100%;
+    height: auto;
 }

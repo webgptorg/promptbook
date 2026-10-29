@@ -4,6 +4,7 @@ import type { Project } from '../project/workspace.js';
 import { ChatStore } from '../chats/store.js';
 import { setting } from '../project/config.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
+import { readLatestBrief } from '../engine/report.js';
 import { StateStore } from '../engine/state.js';
 import type { ControlClient, ServiceLookup } from '../service/control.js';
 import type { PanelTone } from '../ui/panels.js';
@@ -46,6 +47,8 @@ export async function stoppedSnapshot(project: Project): Promise<ServiceSnapshot
             total: chats.length,
             recent: chats.slice(0, 30),
         },
+        // The saved brief is readable without a running service, harness or generation.
+        report: await readLatestBrief(project.root),
         blockers: [],
         errors: [],
         activity: [],
