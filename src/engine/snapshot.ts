@@ -2,6 +2,7 @@ import type { ChatSummary } from '../chats/store.js';
 import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
 import type { WalletView } from '../wallet/wallet.js';
+import type { ActionLogView } from './action-log.js';
 import type { UsageRow, UsageTotals } from './usage.js';
 
 /**
@@ -560,7 +561,7 @@ export type SyncView = {
  *
  * @private shared status view model
  */
-export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'usage' | 'connection' | 'sync';
+export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'usage' | 'actions' | 'connection' | 'sync';
 
 /**
  * Why a domain needs the operator's attention: `key` identifies the current actionable items (a changed key is a new
@@ -625,6 +626,8 @@ export type ServiceSnapshot = {
     readonly health?: HealthView;
     /** The project's Wallet: readiness, login labels and pending login requests (never a secret). */
     readonly wallet?: WalletView;
+    /** Saved external-action records (newest first, bounded) and their persistence (absent from older engines). */
+    readonly actions?: ActionLogView;
     /** Lightweight seven-day usage view derived from durable raw usage (absent from older engines). */
     readonly usage?: UsageOverview;
     /** Saved configuration version and pending configuration work. */

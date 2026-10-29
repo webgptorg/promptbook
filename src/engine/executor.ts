@@ -75,8 +75,10 @@ export type ExecutionHooks = {
     readonly gitLock: <T>(action: () => Promise<T>) => Promise<T>;
     /** Absolute paths written by concurrent authoring (never attributed to the task). */
     readonly excludedPaths: () => ReadonlySet<string>;
-    /** Additional tools (project browser); a human-only step becomes a chat waiting for the user, like `ask_user`. */
-    readonly extraTools?: (context: { readonly chats: ReturnType<typeof taskChats>; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
+    /** Additional tools (project browser, external-action records); a human-only step becomes a chat waiting for the user, like `ask_user`. */
+    readonly extraTools?: (context: { readonly chats: ReturnType<typeof taskChats>; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string; readonly occurrence?: string }) => BridgeTool[];
+    /** What this task already recorded as external actions (given to each attempt for reconciliation before retries). */
+    readonly actionContext?: () => Promise<string | undefined>;
     /** State of a Wallet login request this run waits for (undefined: unknown, which never blocks). */
     readonly walletAction?: (id: string) => { readonly state: 'pending' | 'resolved' | 'dismissed'; readonly origin: string } | undefined;
     /** Finalizes evidence that belongs in the result commit (browser recordings of this task). */
@@ -507,7 +509,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     }
     let skipAgent = record.phase === 'checking' || record.phase === 'finalizing' || record.phase === 'committing';
     if (record.history.length && record.phase === 'executing' && !record.feedback && !record.chats?.length) {
-        record = { ...record, feedback: 'A previous attempt was interrupted. The working tree may contain its partial changes: inspect them and continue. Do not repeat external actions without verifying their current state.' };
+        record = { ...record, feedback: 'A previous attempt was interrupted. The working tree may contain its partial changes: inspect them and continue. Do not repeat external actions without verifying their current state and the action records listed above.' };
     }
 
     for (;;) {
@@ -553,7 +555,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         onConsultation: (consultation) => hooks.emit({ type: 'consultation', ...consultation }),
                         usage: { file: taskUsageFile(trace.directory), parent: { kind: 'task', name: task.title } },
                     }),
-                    ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), onWalletWait: (action) => (pending.wallet = action), trace, attempt: attemptLabel }) ?? []),
+                    ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), onWalletWait: (action) => (pending.wallet = action), trace, attempt: attemptLabel, occurrence: record.occurrence }) ?? []),
                 );
                 if (hooks.claimFiles) tools.push(claimFilesTool(hooks.claimFiles));
             }
@@ -564,7 +566,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 tasksDirectory: toProjectRelative(project.root, environment.tasksDirectory),
                 context: context !== undefined && contextFile ? { name: contextFile, content: context } : undefined,
                 check: check ?? undefined,
-                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), browser: tools.some((tool) => tool.name.startsWith('browser_')), claimFiles: tools.some((tool) => tool.name === 'claim_files'), wallet: tools.some((tool) => tool.name === 'wallet_login') },
+                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), browser: tools.some((tool) => tool.name.startsWith('browser_')), claimFiles: tools.some((tool) => tool.name === 'claim_files'), wallet: tools.some((tool) => tool.name === 'wallet_login'), actions: tools.some((tool) => tool.name === 'record_external_action') },
+                actions: tools.some((tool) => tool.name === 'record_external_action') ? await hooks.actionContext?.() : undefined,
                 feedback: record.feedback,
                 attempt,
                 extra: item.extraPrompt,

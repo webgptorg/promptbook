@@ -971,9 +971,54 @@
     }
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
-    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'connection', 'sync'];
+    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'actions', 'connection', 'sync'];
 
-    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', results: 'Results and activity', usage: 'Usage', connection: 'Connection', sync: 'Synchronization' };
+    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', results: 'Results and activity', usage: 'Usage', actions: 'Action log', connection: 'Connection', sync: 'Synchronization' };
+
+    /** An external action's outcome as a styled word (partial and uncertain stay explicit). */
+    function outcomeBadge(outcome) {
+        const className = outcome === 'confirmed' ? 'ok' : outcome === 'partial' || outcome === 'uncertain' ? 'warn' : 'muted';
+        return h('span', { className }, outcome === 'not-performed' ? 'not performed' : outcome);
+    }
+
+    /** Loads one saved external-action record for the Action log page (read-only). */
+    async function openActionRecord(path) {
+        state.actionRecord = { path, loading: true };
+        render(state.snapshot);
+        try {
+            const record = await api(`/api/actions/record?path=${encodeURIComponent(path)}`);
+            if (state.actionRecord && state.actionRecord.path === path) state.actionRecord = { path, content: record.content };
+        } catch (error) {
+            if (state.actionRecord && state.actionRecord.path === path) state.actionRecord = { path, error: error.message };
+        }
+        render(state.snapshot);
+    }
+
+    /** The Action log page: saved records of external task actions, separate from runtime activity, traces and Git history. */
+    function renderActionsPage(snapshot) {
+        const actions = snapshot.actions;
+        if (!actions) return pageFrame('actions', 'External actions of tasks', h('p', { className: 'muted' }, 'This engine does not report external actions yet.'));
+        const open = state.actionRecord;
+        const items = actions.recent.map((item) =>
+            h(
+                'li',
+                {},
+                h('button', { className: open && open.path === item.path ? 'primary' : '', 'aria-expanded': String(Boolean(open && open.path === item.path)), onclick: () => (open && open.path === item.path ? ((state.actionRecord = null), render(state.snapshot)) : openActionRecord(item.path)) }, `${item.operation}${item.service ? ` · ${item.service}` : ''}`),
+                ' ',
+                outcomeBadge(item.outcome),
+                item.pending ? h('span', { className: 'warn' }, ' · not committed yet') : null,
+                h('div', { className: 'muted' }, [item.at ? time(item.at) : '', item.target ? `→ ${item.target}` : '', item.agent || '', item.taskName || item.task].filter(Boolean).join(' · ')),
+                open && open.path === item.path ? h('pre', { className: 'log', 'aria-label': `Record ${item.path}` }, open.loading ? 'Loading…' : open.error ? `The record could not be read: ${open.error}` : open.content) : null,
+            ),
+        );
+        const summary = `${actions.total} recorded · saved Markdown in actions/, independent of traces${actions.pending ? ` · ${actions.pending} not committed` : ''}${actions.unresolved ? ` · ${actions.unresolved} without a reported outcome` : ''}`;
+        return pageFrame(
+            'actions',
+            summary,
+            items.length ? h('ul', { className: 'list' }, ...items) : h('p', { className: 'muted' }, 'No external action has been recorded. Records are captured from now on; earlier tasks may have external work without a record.'),
+            actions.total > actions.recent.length ? h('p', { className: 'muted' }, `${actions.total - actions.recent.length} older record(s) are in actions/.`) : null,
+        );
+    }
 
     /** A compact token count (`950`, `12.3k`, `4.1M`). */
     function compactCount(value) {
@@ -1166,6 +1211,13 @@
                 const last = snapshot.results.recent[0];
                 const error = snapshot.errors[snapshot.errors.length - 1];
                 return [`✔ ${snapshot.results.completed} completed · ✖ ${snapshot.results.failed} failed`, last ? h('span', { className: 'muted' }, last.title) : null, error ? h('span', { className: 'warn' }, `Last error: ${error.summary}`) : null];
+            }
+            case 'actions': {
+                const actions = snapshot.actions;
+                if (!actions) return [h('span', { className: 'muted' }, 'Not reported by this engine yet.')];
+                const latest = actions.recent[0];
+                if (!latest) return [h('span', { className: 'muted' }, 'No external actions recorded')];
+                return [h('strong', {}, `${actions.total} recorded`), h('span', {}, `${latest.operation}${latest.service ? ` · ${latest.service}` : ''} `, outcomeBadge(latest.outcome)), actions.pending ? h('span', { className: 'warn' }, `${actions.pending} not committed yet`) : null];
             }
             case 'usage': {
                 const usage = snapshot.usage;
@@ -1677,6 +1729,8 @@
                 return pageFrame('results', 'Outcomes of this session and the bounded runtime activity log', renderActivity(snapshot));
             case 'usage':
                 return renderUsagePage(snapshot);
+            case 'actions':
+                return renderActionsPage(snapshot);
             case 'connection':
                 return pageFrame('connection', 'Local dashboard access on this computer', renderConnection(snapshot));
             case 'sync':

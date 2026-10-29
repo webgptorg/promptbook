@@ -230,6 +230,20 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             sendJson(response, 200, await agenda.usageSummary({ days, grouping: grouping as UsageGrouping, scope: scope as 'self' | 'inclusive' }));
             return;
         }
+        if (url.pathname === '/api/actions' && method === 'GET') {
+            // Saved external-action records (read-only: never a retry, provider call or commit).
+            sendJson(response, 200, await agenda.actions.refresh());
+            return;
+        }
+        if (url.pathname === '/api/actions/record' && method === 'GET') {
+            const path = url.searchParams.get('path') ?? '';
+            try {
+                sendJson(response, 200, await agenda.actions.read(path));
+            } catch (error) {
+                sendJson(response, error instanceof PtbkError && error.details.kind === 'not-found' ? 404 : 400, { error: errorMessage(error) });
+            }
+            return;
+        }
         if (url.pathname === '/api/chat-agents' && method === 'GET') {
             sendJson(response, 200, { agents: await applyChatAction(agenda, 'chat-agents', {}, 'api') });
             return;

@@ -57,6 +57,8 @@ export type DashboardSource = {
     readonly inventory: () => Promise<TaskInventoryItem[]>;
     /** Book sources through the engine's shared read/save operations. */
     readonly books: BookSourceClient;
+    /** Read-only inspection of shared engine readers (external-action records); never a mutation. */
+    readonly inspect: (method: string, params?: Readonly<Record<string, unknown>>) => Promise<unknown>;
     /** The invocation owns the service lifetime (foreground start / run). */
     readonly owning: boolean;
 };
@@ -266,6 +268,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 'T tools',
                 'W wallet',
                 'M usage',
+                'K actions',
                 'L chats',
                 'O plain',
                 ...(source.owning ? [] : ['(leaving never stops the engine; X stops it)']),
@@ -369,6 +372,22 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             void refreshInventory();
         }
         draw();
+    };
+
+    /** Opens one saved external-action record as a nested page (read-only; loaded from the engine's shared reader). */
+    const openActionRecord = (path: string): void => {
+        const page: Extract<DashboardPage, { kind: 'action' }> = { kind: 'action', scroll: 0, path };
+        openPage(page);
+        void source.inspect('action-read', { path }).then(
+            (record) => {
+                page.content = (record as { content: string }).content;
+                draw();
+            },
+            (error: unknown) => {
+                page.problem = `The record could not be read: ${errorMessage(error)}`;
+                draw();
+            },
+        );
     };
 
     /** Opens the page of a home tile, replacing any open page stack. */
@@ -710,7 +729,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         keepSelection(page, context);
         const keys = pageItemKeys(page, context);
         const count = keys.length;
-        const list = ['work', 'tools', 'wallet', 'agents', 'chats', 'tasks'].includes(page.kind);
+        const list = ['work', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'actions'].includes(page.kind);
         const room = Math.max(1, terminal.rows() - 5);
         if (event.type === 'key') {
             if (event.name === 'escape') {
@@ -738,6 +757,11 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 if (page.kind === 'chats') {
                     const chat = snapshot.chats.recent[page.focus];
                     if (chat) void openChat({ kind: 'existing', name: chat.name });
+                    return;
+                }
+                if (page.kind === 'actions') {
+                    const item = snapshot.actions?.recent[page.focus];
+                    if (item) openActionRecord(item.path);
                     return;
                 }
                 if (page.kind === 'wallet') {
@@ -786,6 +810,12 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 return;
             case 'connection':
                 return;
+            case 'action': {
+                // The record's task Book (a verified link from its saved provenance); viewing never retries the action.
+                const source = snapshot.actions?.recent.find((item) => item.path === page.path)?.source;
+                if (key === 'e' && source) void openBook({ path: source });
+                return;
+            }
             case 'chats':
                 if (key === 'n') void startNewChat();
                 else if (key === 'a') openWaiting();
@@ -957,6 +987,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 return;
             case 'm':
                 openTile('usage');
+                return;
+            case 'k':
+                openTile('actions');
                 return;
             case 'b': {
                 // The browser detail is the nested tool page of the browser serving (or next serving) work.

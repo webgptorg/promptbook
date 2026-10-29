@@ -16,14 +16,15 @@ import { readBookSource, type BookSource } from '../project/book-sources.js';
 import { validateAttachments } from '../chats/store.js';
 import { materializeAttachments } from '../ui/attachments.js';
 import type { TaskInventoryItem } from '../tasks/views.js';
-import { commitAudit, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
+import { agentSubject, commitAudit, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
+import { ActionLog } from './action-log.js';
 import { coreReconciliationDescription, prepareCoreAgents, type CorePreparation } from '../project/core-templates.js';
 import { readUsage, summarizeUsage, type UsageGrouping, type UsageRow, type UsageSummary } from './usage.js';
 import { readPriceObservations } from './pricing.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
-import { distinctName, generatedName, traceDirectoryOf } from '../tasks/identity.js';
+import { ACTIONS_DIRECTORY, distinctName, generatedName, traceDirectoryOf } from '../tasks/identity.js';
 import { BookIndex } from '../project/books.js';
 import { parseBook } from '../book/parse.js';
 import { renderDeclaration } from '../book/write.js';
@@ -133,7 +134,7 @@ export type AgendaOptions = {
     /** Plain event stream (raw/noninteractive output). */
     readonly onEvent?: (text: string, level: 'info' | 'warning' | 'error') => void;
     /** Additional tools for agents (project browser); `trace`/`attempt` identify the evidence they belong to. */
-    readonly extraTools?: (task: Task, context: { readonly chats: TaskChats; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string }) => BridgeTool[];
+    readonly extraTools?: (task: Task, context: { readonly chats: TaskChats; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string; readonly occurrence?: string }) => BridgeTool[];
     /** Answers a user message in a human-led chat (an agent turn outside the task queue). */
     readonly chatReplies?: boolean;
     /** Finalizes a task's evidence produced outside the harness (its browser video) before its result commit. */
@@ -454,6 +455,8 @@ export class Agenda {
     private readonly health?: HealthSubEngine;
     /** The project's Wallet sub-engine (encrypted website logins, protected login requests). */
     public readonly wallet: WalletSubEngine;
+    /** Durable audit of external task actions (`actions/<task-file-basename>/`), independent of traces. */
+    public readonly actions: ActionLog;
 
     public constructor(private readonly options: AgendaOptions) {
         this.state = new StateStore(options.project.runtime.state);
@@ -488,6 +491,15 @@ export class Agenda {
             },
             onChange: () => this.touch(),
             log: (text, level) => this.log(text, level),
+        });
+        this.actions = new ActionLog({
+            project: options.project,
+            env: options.env,
+            timeZone: () => (this.settings ? this.timeZone : 'UTC'),
+            persist: async (record) => await this.persistActionRecord(record),
+            onChange: () => this.touch(),
+            log: (text, level) => this.log(text, level),
+            retryMs: PERSISTENCE_RETRY_MS,
         });
         this.wallet = new WalletSubEngine({
             project: options.project,
@@ -598,7 +610,12 @@ export class Agenda {
                 return [];
             });
             if (recovered.length) this.log(`Committed chat messages saved before the last stop (${recovered.map((sha) => sha.slice(0, 8)).join(', ')}).`);
+            // External-action records saved but not committed before the last stop: only their persistence resumes.
+            const actions = await this.actions.recover(await stageableFiles(project.root, ACTIONS_DIRECTORY)).catch(() => 0);
+            if (actions) this.log(`Committed ${actions} external-action record(s) saved before the last stop.`);
         }
+        await this.actions.refresh().catch(() => undefined);
+        await this.actions.prune().catch(() => undefined);
         await this.sync.begin();
         await confinePath(project.root, this.tasksDirectory);
         const results = await this.state.recentResults(200);
@@ -1414,6 +1431,22 @@ export class Agenda {
         return outcome.sha;
     }
 
+    /**
+     * Persists one saved external-action record in its own scoped audit commit with the task's provenance, independently
+     * of trace inclusion and of the task's later success (never absorbing other work). In an explicit no-commit workflow
+     * it stays saved and visibly uncommitted. Until committed it is engine-authored, never attributed to a task.
+     */
+    private async persistActionRecord(record: { readonly path: string; readonly subject: { readonly agent: string; readonly taskName: string }; readonly operation: string; readonly service: string }): Promise<'committed' | 'uncommitted'> {
+        this.authoredPaths.add(record.path);
+        if (!this.repositoryRoot || !this.settings || !this.commitMode) {
+            await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, record.path)]: null });
+            return 'uncommitted';
+        }
+        await this.commitAuthoring([record.path], agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}`), { 'Task-Name': record.subject.taskName || undefined });
+        this.authoredPaths.delete(record.path);
+        return 'committed';
+    }
+
     /** Policy-eligible trace files of a task (by its source file) for a task-related commit (never ignored evidence). */
     private async traceFiles(sourcePath: string): Promise<string[]> {
         if (!this.commitMode || !setting<boolean>(this.settings, 'traces.isCommitted')) return [];
@@ -1824,6 +1857,7 @@ export class Agenda {
             sync: this.sync.view(),
             health: this.health?.view(),
             wallet: this.wallet.view(),
+            ...(this.actions.view ? { actions: this.actions.view } : {}),
             configuration: this.settings ? { promptbookVersion: typeof this.settings.interpreted.promptbookVersion === 'string' ? this.settings.interpreted.promptbookVersion : undefined, pending: this.configurationPending } : undefined,
             wait: this.waitView,
             queue: this.queueView,
@@ -2604,7 +2638,12 @@ export class Agenda {
                 gitLock: (action) => this.gitMutex.run(action),
                 // Engine-authored files and every file another run owns are never attributed to this run.
                 excludedPaths: () => new Set([...this.authoredPaths, ...this.ownership.heldByOthers(unit.owner)]),
-                extraTools: this.options.extraTools ? (context) => this.options.extraTools!(task, context) : undefined,
+                extraTools: (context) => [
+                    // External mutations are recorded durably by the engine, whatever trace policy applies.
+                    ...this.actions.tools({ taskName: task.title, source: task.source.relativePath, occurrence: context.occurrence, agent: context.agent, attempt: context.attempt, trace: context.trace.relativeDirectory }),
+                    ...(this.options.extraTools?.(task, context) ?? []),
+                ],
+                actionContext: async () => await this.actions.taskContext(task.source.relativePath).catch(() => undefined),
                 walletAction: (id) => this.wallet.action(id),
                 finalizeEvidence: this.options.finalizeEvidence ? async (trace) => await this.options.finalizeEvidence!(task, trace) : undefined,
                 beforeCommit: async () => void (await this.sync.request('pre-commit')),
@@ -3066,6 +3105,8 @@ export class Agenda {
         } finally {
             await this.options.afterWork?.(item.task).catch(() => undefined);
         }
+        // A finished run's unreported intents may have taken effect: they become durable uncertain records.
+        if (outcome.kind === 'completed' || outcome.kind === 'failed' || outcome.kind === 'persistence-failed') await this.actions.settle(item.task.source.relativePath).catch(() => undefined);
         switch (outcome.kind) {
             case 'completed': {
                 this.completed++;
@@ -3103,7 +3144,7 @@ export class Agenda {
                     phase: 'task execution',
                     task: item.task.ref,
                     trace: outcome.trace,
-                    next: this.options.mode !== 'maintenance' && !item.resume?.handover && HANDOVER_KINDS.has(item.kind) ? 'Fixer takes over automatically; a decision is asked in a chat only if it cannot resolve it.' : `Reply in the recovery chat or run \`ptbk recover "${item.task.title}"\`.`,
+                    next: this.options.mode !== 'maintenance' && !item.resume?.handover && HANDOVER_KINDS.has(item.kind) ? 'Fixer takes over automatically; if it cannot finish either, an automatic recheck is scheduled (no reply is needed).' : `An automatic recheck is scheduled (no reply is needed); \`ptbk recover "${item.task.title}"\` can retry or acknowledge it now.`,
                 });
                 break;
             case 'setup': {

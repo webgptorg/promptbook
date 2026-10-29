@@ -67,7 +67,10 @@ test('the home screen fits standard, narrowed and fullscreen terminals completel
     }
     assert.equal(homeLayout(homeTiles(snapshot()), 120, 30).kind, 'grid');
     assert.ok(homeLayout(homeTiles(snapshot()), 200, 50).rows[0].length > homeLayout(homeTiles(snapshot()), 80, 24).rows[0].length, 'wider surfaces use more columns');
-    assert.equal(homeLayout(homeTiles(snapshot()), 70, 13).kind, 'list', 'short surfaces fall back to one line per tile');
+    // One line per tile below the identity rows and above the legend: the threshold follows the number of domains.
+    const listRows = homeTiles(snapshot()).length + 2;
+    const shortRows = listRows + (headerRows(listRows) === 2 ? 1 : 0);
+    assert.equal(homeLayout(homeTiles(snapshot()), 70, shortRows).kind, 'list', 'short surfaces fall back to one line per tile');
     assert.equal(homeLayout(homeTiles(snapshot()), 25, 6).kind, 'tiny');
     assert.match(stripAnsi(renderHome(snapshot(), terminal(25, 6), view()).join('\n')), /too\s+small/);
     assert.ok(!homeTiles(snapshot()).includes('sync') && homeTiles(snapshot({ sync: { phase: 'idle', state: 'synchronized' } })).includes('sync'), 'Synchronization exists only while autosync is enabled');
@@ -217,4 +220,22 @@ test('Usage tile and page: a seven-day summary with grouping-specific labels, vi
     const byHarness = pageBody({ ...page, grouping: 'harness' }, context).body.map(stripAnsi).join('\n');
     assert.match(byHarness, /^openai-codex \(codex\)/m);
     assert.doesNotMatch(byHarness, /^Developer/m);
+});
+
+test('Action log tile and page: saved external actions with explicit partial/uncertain outcomes and pending persistence', () => {
+    const record = (change) => ({ path: 'actions/2026-10-29-news/2026-10-29-1015-send-email-gmail.md', task: '2026-10-29-news', taskName: 'Weekly news', source: 'tasks/2026-10-29-news.book', operation: 'Send email', service: 'Gmail', target: 'reader@example.test', outcome: 'confirmed', at: '2026-10-29T10:15:00+01:00', agent: '@Developer', ...change });
+    const actions = { total: 2, recent: [record({ path: 'actions/2026-10-29-news/b.md', operation: 'Publish post', service: 'LinkedIn', outcome: 'uncertain', pending: true }), record({})], pending: 1, unresolved: 0 };
+    const view = terminal(120, 40);
+    const tile = renderHome(snapshot({ actions }), view, { focus: 'actions', attention: new Map(), frame: 0, legend: '' }).map(stripAnsi).join('\n');
+    assert.match(tile, /Action log/);
+    assert.match(tile, /2 external actions recorded/);
+    assert.match(tile, /uncertain Publish post/, 'the outcome comes first and stays visible');
+    assert.match(tile, /1 not committed yet/);
+    const page = pageBody(pageForTile('actions'), { snapshot: snapshot({ actions }), terminal: view, frame: 0, owning: false });
+    const body = page.body.map(stripAnsi).join('\n');
+    assert.match(page.context, /2 external actions · saved Markdown records in actions\/, independent of traces · 1 not committed/);
+    assert.match(body, /Publish post · LinkedIn → reader@example\.test uncertain · not committed · @Developer · Weekly news/);
+    assert.match(body, /Send email · Gmail → reader@example\.test confirmed/);
+    const empty = pageBody(pageForTile('actions'), { snapshot: snapshot({ actions: { total: 0, recent: [], pending: 0, unresolved: 0 } }), terminal: view, frame: 0, owning: false }).body.map(stripAnsi).join('\n');
+    assert.match(empty, /earlier tasks may have external work without a record/, 'empty prospective history is not a claim that nothing happened');
 });

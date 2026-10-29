@@ -60,6 +60,25 @@ export function traceDirectoryOf(sourcePath: string): string {
 }
 
 /**
+ * Root directory of external-action audit records (versioned independently of traces; never Book sources).
+ *
+ * @private task identity
+ */
+export const ACTIONS_DIRECTORY = 'actions';
+
+/**
+ * Project-relative POSIX directory of a task's external-action records: `actions/<task-file-basename>`, using exactly
+ * the literal source-basename mapping of its trace directory.
+ *
+ * @private task identity
+ */
+export function actionDirectoryOf(sourcePath: string): string {
+    const basename = traceBasenameOf(sourcePath);
+    if (!basename) throw new PtbkError(`The task source ${sourcePath} has no usable filename for its action records.`, { kind: 'configuration', next: ['Rename the task source to a readable `.book` filename.'] });
+    return `${ACTIONS_DIRECTORY}/${basename}`;
+}
+
+/**
  * Directory where engines before the source-filename convention stored a task's evidence (`traces/<name-key>`).
  * It remains historical evidence and is only linked, never written to again.
  *

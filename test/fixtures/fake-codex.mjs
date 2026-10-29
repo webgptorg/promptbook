@@ -19,6 +19,9 @@
  *                     keeps working for $FAKE_CODEX_SLOW_MS (concurrent same-file work waits for the claim)
  *   WALLET_LOGIN    → opens $FAKE_LOGIN_URL in the project browser and calls `wallet_login`: a waiting Wallet request
  *                     ends the turn waiting-for-user, a sign-in writes the page heading to output/wallet.txt
+ *   EXTERNAL_ACTIONS → attempt 1 records a confirmed email, an uncertain (lost acknowledgement) post and an intent
+ *                     without an outcome through the action tools, then writes BROKEN output (the check fails); a
+ *                     repair attempt reconciles the post from the prompt's action records by its id, without resending
  * Router turns (`## Assignment work`, tasks and chat routing) choose the first listed agent's example combination
  * (ROUTE_IMPOSSIBLE in the target reports no compatible combination). Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
@@ -207,6 +210,25 @@ async function main() {
             print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'update' }] } });
             done('Signed in through the Wallet');
         }
+    } else if (prompt.includes('EXTERNAL_ACTIONS')) {
+        mkdirSync(join(process.cwd(), 'output'), { recursive: true });
+        const file = join(process.cwd(), 'output', 'external-actions.txt');
+        if (attempt === 1) {
+            const idOf = (text) => /intent (act-[a-z0-9]+)/.exec(text)?.[1];
+            const email = idOf(await callTool('begin_external_action', { operation: 'Send email', service: 'Gmail', account: 'fixture@example.test', target: 'reader@example.test', content: 'Weekly news.\nUnsubscribe: https://example.test/unsubscribe?token=SECRETTOKEN123456' }));
+            await callTool('record_external_action', { id: email, outcome: 'confirmed', observed: 'Shown in the Sent folder.', reference: '<msg-1@example.test>' });
+            const post = idOf(await callTool('begin_external_action', { operation: 'Publish post', service: 'LinkedIn', target: 'company page', content: 'This week in AI.' }));
+            await callTool('record_external_action', { id: post, outcome: 'uncertain', observed: 'The request timed out before an acknowledgement.' });
+            await callTool('begin_external_action', { operation: 'Delete record', service: 'CRM', target: 'lead 42' });
+            writeFileSync(file, 'BROKEN\n');
+        } else {
+            const section = prompt.slice(prompt.indexOf('## External actions of this task'));
+            const post = /uncertain: Publish post[^\n]*id (act-[a-z0-9]+)/.exec(section)?.[1];
+            await callTool('record_external_action', { id: post, outcome: 'confirmed', observed: 'Reconciled: the post is visible on the company page.', reference: 'https://example.test/posts/1' });
+            writeFileSync(file, `reconciled ${post}\n`);
+        }
+        print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'update' }] } });
+        done('Performed the external actions');
     } else if (prompt.includes('CLAIM_SHARED')) {
         const claimed = await callTool('claim_files', { paths: ['output/shared.txt'] });
         if (!/^Claimed/.test(claimed)) {

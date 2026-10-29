@@ -319,6 +319,10 @@ export class ServiceHost {
             case 'book-save':
                 // Attachments by local path are accepted on this trusted local channel only (as for chats).
                 return await agenda.bookSave({ path: String(params.path), text: String(params.text ?? ''), revision: String(params.revision ?? ''), segments: Array.isArray(params.segments) ? (params.segments as ComposedSegment[]) : undefined });
+            case 'actions-list':
+                return await agenda.actions.refresh();
+            case 'action-read':
+                return await agenda.actions.read(String(params.path ?? ''));
             case 'settings':
                 return await applySettings(agenda, params);
             case 'add-task':

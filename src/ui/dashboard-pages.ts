@@ -4,7 +4,7 @@ import type { CachePreview, SwapPlan } from '../engine/health.js';
 import { formatBytes, formatMiB } from '../engine/health.js';
 import type { CurrentWorkView, ServiceSnapshot } from '../engine/snapshot.js';
 import { TASK_SORT_FIELDS, sortTasks, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
-import { wrap } from './ansi.js';
+import { terminalSafe, wrap } from './ansi.js';
 import { activityLabel, framedBadge, inlineBadge, type BadgeActivity } from './badges.js';
 import {
     browserDetailLines,
@@ -18,7 +18,7 @@ import {
     toolDetailLines,
     toolRow,
 } from './details.js';
-import { billingMix, compactCount, type HomeTile } from './dashboard-home.js';
+import { billingMix, compactCount, outcomeText, type HomeTile } from './dashboard-home.js';
 import type { UsageTotals } from '../engine/usage.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { WalletView } from '../wallet/wallet.js';
@@ -54,6 +54,8 @@ export type DashboardPage =
     | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; detail: boolean }
     | { readonly kind: 'results'; scroll: number; follow: boolean }
     | { readonly kind: 'usage'; scroll: number; grouping: UsagePageGrouping; inclusive: boolean }
+    | { readonly kind: 'actions'; scroll: number; focus: number; selected?: string }
+    | { readonly kind: 'action'; scroll: number; readonly path: string; content?: string; problem?: string }
     | { readonly kind: 'connection'; scroll: number }
     | { readonly kind: 'sync'; scroll: number };
 
@@ -110,6 +112,8 @@ export function pageForTile(tile: HomeTile): DashboardPage {
             return { kind: 'results', scroll: Number.MAX_SAFE_INTEGER, follow: true };
         case 'usage':
             return { kind: 'usage', scroll: 0, grouping: lastUsageView.grouping, inclusive: lastUsageView.inclusive };
+        case 'actions':
+            return { kind: 'actions', scroll: 0, focus: 0 };
         default:
             return { kind: tile, scroll: 0 };
     }
@@ -406,6 +410,33 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} work · C chat · E ${focused?.role === 'engine' ? 'view' : 'edit'} Book · S sort · ${back}`,
             };
         }
+        case 'actions': {
+            const actions = snapshot.actions;
+            if (!actions) return { title: 'Action log', context: 'This engine does not report external actions yet.', body: [style.muted('Not available.')], legend: back };
+            const body = actions.recent.map((item, index) => {
+                const head = `${pointer(index === page.focus)} ${style.muted(item.at ? formatShortTime(Date.parse(item.at)) : '—')} ${item.operation}${item.service ? style.muted(` · ${item.service}`) : ''}${item.target ? style.muted(` → ${item.target}`) : ''} ${outcomeText(item.outcome, style)}${item.pending ? style.warning(' · not committed') : ''}`;
+                return `${head}${style.muted(` · ${item.agent ?? 'unknown agent'} · ${item.taskName ?? item.task}`)}`;
+            });
+            if (!actions.recent.length) body.push(style.muted('No external action has been recorded. Records are captured from now on; earlier tasks may have external work without a record.'));
+            if (actions.total > actions.recent.length) body.push('', style.muted(`… ${actions.total - actions.recent.length} older record(s) are in actions/ (Files).`));
+            return {
+                title: 'Action log',
+                context: `${actions.total} external action${actions.total === 1 ? '' : 's'} · saved Markdown records in actions/, independent of traces${actions.pending ? ` · ${actions.pending} not committed` : ''}${actions.unresolved ? ` · ${actions.unresolved} without a reported outcome` : ''}`,
+                body,
+                anchor: page.focus,
+                legend: `↑↓ choose · Enter open the record · ${back}`,
+            };
+        }
+        case 'action': {
+            const item = snapshot.actions?.recent.find((candidate) => candidate.path === page.path);
+            const body = page.problem ? [style.warning(page.problem)] : page.content === undefined ? [style.muted('Loading…')] : page.content.split(/\r?\n/).flatMap((line) => wrap(terminalSafe(line), Math.max(20, width - 2)));
+            return {
+                title: `Action log › ${item?.operation ?? page.path.split('/').pop()}`,
+                context: `${page.path}${item?.pending ? ' · saved, not committed yet' : ''}`,
+                body,
+                legend: `↑↓ scroll · ${item?.source ? 'E open the task Book · ' : ''}${back}`,
+            };
+        }
         case 'chats': {
             const chats = snapshot.chats.recent;
             const body = chats.map(
@@ -540,6 +571,8 @@ export function pageItemKeys(page: DashboardPage, context: Pick<PageContext, 'sn
             return taskOrder(context, page).map((item) => item.ref);
         case 'wallet':
             return context.snapshot.wallet ? walletItems(context.snapshot.wallet).map((item) => `${item.kind}:${item.id}`) : [];
+        case 'actions':
+            return (context.snapshot.actions?.recent ?? []).map((item) => item.path);
         default:
             return [];
     }

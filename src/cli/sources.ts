@@ -26,6 +26,7 @@ export function controlSource(client: ControlClient): DashboardSource {
             read: (input) => client.request<BookSource>('book-source', { ...input }),
             save: (input) => client.request<BookSaveOutcome>('book-save', { ...input }, 120_000),
         },
+        inspect: (method, params) => client.request(method, { ...(params ?? {}) }),
         owning: false,
     };
 }
@@ -48,6 +49,7 @@ export function hostSource(host: ServiceHost): DashboardSource {
             read: (input) => host.control<BookSource>('book-source', { ...input }),
             save: (input) => host.control<BookSaveOutcome>('book-save', { ...input }),
         },
+        inspect: (method, params) => host.control(method, params ?? {}),
         owning: true,
     };
 }

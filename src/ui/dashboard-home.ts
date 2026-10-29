@@ -32,6 +32,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
     wallet: 'Wallet',
     results: 'Results',
     usage: 'Usage',
+    actions: 'Action log',
     connection: 'Connection',
     sync: 'Synchronization',
 };
@@ -42,7 +43,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
  * @private terminal dashboard home
  */
 export function homeTiles(snapshot: ServiceSnapshot): HomeTile[] {
-    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
+    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'actions', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
 }
 
 /**
@@ -156,6 +157,18 @@ export function compactCount(value: number): string {
 export function billingMix(totals: UsageTotals): string {
     const parts = [totals.billing.subscription ? `${totals.billing.subscription} subscription` : '', totals.billing.api ? `${totals.billing.api} API` : '', totals.billing.unknown ? `${totals.billing.unknown} unknown billing` : ''].filter(Boolean);
     return parts.join(' · ') || 'no runs';
+}
+
+/**
+ * The outcome of an external action in words, with its tone (partial and uncertain stay explicit).
+ *
+ * @private terminal dashboard home
+ */
+export function outcomeText(outcome: string, style: TerminalProfile['style']): string {
+    if (outcome === 'confirmed') return style.success('confirmed');
+    if (outcome === 'partial' || outcome === 'uncertain') return style.warning(outcome);
+    if (outcome === 'not-performed') return style.muted('not performed');
+    return style.muted(outcome);
 }
 
 /**
@@ -298,6 +311,18 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
                 ...(total.units ? [style.muted(billingMix(total))] : []),
                 ...(total.coverage.unavailable ? [style.warning(`${total.coverage.unavailable} run${total.coverage.unavailable === 1 ? '' : 's'} without reported usage`)] : []),
                 style.muted('M open'),
+            ];
+        }
+        case 'actions': {
+            const actions = snapshot.actions;
+            if (!actions) return [style.muted('Not reported by this engine yet.')];
+            const latest = actions.recent[0];
+            if (!latest) return [style.muted('No external actions recorded'), style.muted('K open')];
+            return [
+                `${style.bold(String(actions.total))} ${style.muted(`external action${actions.total === 1 ? '' : 's'} recorded`)}`,
+                `${style.muted(time(latest.at))} ${outcomeText(latest.outcome, style)} ${latest.operation}${latest.service ? style.muted(` · ${latest.service}`) : ''}`,
+                ...(actions.pending ? [style.warning(`${actions.pending} not committed yet`)] : actions.unresolved ? [style.warning(`${actions.unresolved} without a reported outcome`)] : []),
+                style.muted('K open'),
             ];
         }
         case 'connection': {

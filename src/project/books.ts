@@ -19,6 +19,11 @@ export const CHATS_DIRECTORY = 'chats';
 const TRACES_DIRECTORY = 'traces';
 
 /**
+ * Root-level external-action audit data: never a source of Book definitions, even when records quote Book syntax.
+ */
+const ACTIONS_DIRECTORY = 'actions';
+
+/**
  * Upper bound of files inspected in ignored content (keeps lookup bounded in huge dependency trees).
  */
 const MAX_IGNORED_FILES = 60_000;
@@ -206,7 +211,7 @@ export class BookIndex {
     /** Paths never indexed: runtime state, traces evidence and task templates. */
     private excluded(path: string): boolean {
         if (path.split(sep).includes(RUNTIME_DIRECTORY_NAME) || path.split(sep).includes('.git')) return true;
-        if (isPathInside(join(this.projectRoot, TRACES_DIRECTORY), path)) return true;
+        if (isPathInside(join(this.projectRoot, TRACES_DIRECTORY), path) || isPathInside(join(this.projectRoot, ACTIONS_DIRECTORY), path)) return true;
         return isPathInside(join(this.rootPath('tasks'), 'templates'), path);
     }
 

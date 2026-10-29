@@ -57,7 +57,7 @@ export function bookContentDiagnostics(text: string, relativePath: string): Book
  */
 function editablePath(relativePath: string): boolean {
     const first = relativePath.split('/')[0];
-    return relativePath.toLowerCase().endsWith('.book') && first !== RUNTIME_DIRECTORY_NAME && first !== 'traces' && first !== '.git' && first !== 'node_modules' && !relativePath.startsWith('..');
+    return relativePath.toLowerCase().endsWith('.book') && first !== RUNTIME_DIRECTORY_NAME && first !== 'traces' && first !== 'actions' && first !== '.git' && first !== 'node_modules' && !relativePath.startsWith('..');
 }
 
 /**
@@ -80,7 +80,7 @@ export async function readBookSource(projectRoot: string, catalog: AgentCatalog,
         path = resolution.entry.path;
     } else throw new PtbkError('Name a Book by reference or path.', { kind: 'usage' });
     const relativePath = toProjectRelative(projectRoot, path).split(sep).join('/');
-    if (!editablePath(relativePath)) throw new PtbkError(`${relativePath} is not an editable project Book.`, { kind: 'usage', next: ['Open agent, task or chat Books of the project (.book files outside .ptbk/ and traces/).'] });
+    if (!editablePath(relativePath)) throw new PtbkError(`${relativePath} is not an editable project Book.`, { kind: 'usage', next: ['Open agent, task or chat Books of the project (.book files outside .ptbk/, traces/ and actions/).'] });
     const text = await readFile(path, 'utf8').catch(() => {
         throw new PtbkError(`The Book ${relativePath} cannot be read.`, { kind: 'not-found' });
     });

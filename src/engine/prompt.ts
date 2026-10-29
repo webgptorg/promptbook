@@ -77,7 +77,9 @@ export type TaskPromptInput = {
     /** Project check command. */
     readonly check?: string;
     /** Whether the ptbk MCP tools are available. */
-    readonly tools: { readonly team: boolean; readonly askUser: boolean; readonly browser: boolean; readonly claimFiles?: boolean; readonly wallet?: boolean };
+    readonly tools: { readonly team: boolean; readonly askUser: boolean; readonly browser: boolean; readonly claimFiles?: boolean; readonly wallet?: boolean; readonly actions?: boolean };
+    /** External actions this task already recorded or left unresolved (reconcile before repeating). */
+    readonly actions?: string;
     /** Feedback from the previous attempt (repair). */
     readonly feedback?: string;
     /** Attempt number. */
@@ -138,7 +140,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
         'Work only inside the project directory. Promptbook records the result: do not commit, amend, push, reset, stash or rewrite Git history.',
         'Do not add `TASK DONE` or change the completion state of this task; Promptbook stamps completion after verifying your result.',
         `To create follow-up work, ${taskBookInstructions(input.tasksDirectory, input.creationStamp ?? creationTimestamp())}`,
-        'Do not edit `traces/` (Promptbook-owned audit evidence) and never treat files there as task or agent definitions.',
+        'Do not edit `traces/` or `actions/` (Promptbook-owned audit evidence and external-action records) and never treat files there as task or agent definitions.',
         'You run unattended. Resolve ordinary choices yourself from the task, the project instructions, established rules and the permissions already granted; do not stop to confirm routine or already authorized actions (for example each post of an authorized recurring publication).',
         input.check && isCheckPlaceholder(input.check)
             ? `Real automated validation is not configured: \`ptbk.json\` \`execution.check\` holds an informational placeholder (\`${input.check}\`) that always succeeds and proves nothing. Verify your result by other appropriate means; when the task is about setting up the project, you may replace the placeholder with the project's real check.`
@@ -170,7 +172,13 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
             );
         }
     }
+    if (input.tools.actions) {
+        rules.push(
+            'Every request that changes state outside the repository (sending an email or message, publishing a post, submitting a form or document, creating, updating or deleting a remote record or document) is an external action: call `begin_external_action` right before it and `record_external_action` with the observed outcome right after it (confirmed, partial, uncertain, or not-performed if nothing changed). Reading, searching and downloading are not external actions. Record meaningful operations, not every click. Never infer success from a timeout or from finishing the task; when an acknowledgement is lost, check the service before any retry and update the same record by its id. Never repeat an effect that is already recorded as confirmed. Do not put passwords, tokens or codes in a record.',
+        );
+    }
     parts.push(`## How to work\n\n${rules.map((rule) => `- ${rule}`).join('\n')}`);
+    if (input.actions) parts.push(`## External actions of this task\n\n${input.actions}`);
     if (input.feedback) {
         // A first attempt with feedback continues an earlier run (retry, recovery or Fixer's takeover).
         const heading = input.attempt > 1 ? `## Feedback from attempt ${input.attempt - 1}` : '## Feedback from the previous run';
