@@ -34,8 +34,8 @@ jobs:
           sudo test -f /var/lib/promptbook/projects/keep-me
       - name: Initialize without AI access, check boot registration and deliberate stop
         run: |
-          sudo -iu promptbook bash -lc '
-            set -euo pipefail
+          sudo -iu promptbook bash -s <<'SMOKE'
+            set -euxo pipefail
             cd ~/projects/my-agenda
             ptbk init --path "$PWD" --non-interactive --installation global --no-harness --browser-profile isolated --browser-mode headless --no-dashboard --raw
             ptbk status --raw
@@ -43,4 +43,4 @@ jobs:
             test "$(loginctl show-user promptbook --property=Linger --value)" = yes
             ptbk stop --raw
             ptbk start --resume-service --non-interactive --raw | grep "stopped intentionally"
-          '
+          SMOKE
