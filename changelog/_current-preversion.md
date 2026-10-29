@@ -2,6 +2,8 @@
 
 ## Self-hosted server deployment
 
+-   The VPS account owns every prepared application-data/config/cache directory, including intermediate directories. Its login profile scopes XDG paths to its own home rather than inheriting the SSH administrator's configuration path; the smoke test verifies writable data and actual startup registration.
+
 -   Fresh server accounts receive a local Git service identity only when none is configured, so the first setup commit succeeds; existing identity is preserved. The Ubuntu smoke test executes its multiple commands through stdin rather than sudo's login-command quoting.
 
 -   README now offers a Deploy to Azure button backed by an ARM template for a persistent Ubuntu VPS, client-scoped SSH and a dedicated non-sudo engine user. The shared Ubuntu installer prepares Node.js 24, Git, Chrome and an exact published engine version; AI sign-in and agenda initialization remain attended.

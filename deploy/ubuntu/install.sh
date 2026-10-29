@@ -73,16 +73,23 @@ if ! id promptbook >/dev/null 2>&1; then
     useradd --create-home --home-dir /var/lib/promptbook --shell /bin/bash promptbook
 fi
 chmod 700 /var/lib/promptbook
-install -d -m 700 -o promptbook -g promptbook /var/lib/promptbook/projects /var/lib/promptbook/projects/my-agenda /var/lib/promptbook/.local/bin
+install -d -m 700 -o promptbook -g promptbook \
+    /var/lib/promptbook/projects /var/lib/promptbook/projects/my-agenda \
+    /var/lib/promptbook/.local /var/lib/promptbook/.local/bin /var/lib/promptbook/.local/share \
+    /var/lib/promptbook/.config /var/lib/promptbook/.config/systemd /var/lib/promptbook/.config/systemd/user \
+    /var/lib/promptbook/.cache
 if [[ ! -e /var/lib/promptbook/.npmrc ]]; then
     printf 'prefix=/var/lib/promptbook/.local\n' > /var/lib/promptbook/.npmrc
     chown promptbook:promptbook /var/lib/promptbook/.npmrc
 fi
-if ! grep -q 'Promptbook VPS environment' /var/lib/promptbook/.profile; then
+if ! grep -q 'Promptbook VPS environment v2' /var/lib/promptbook/.profile; then
     cat >> /var/lib/promptbook/.profile <<'PROFILE'
 
-# Promptbook VPS environment
+# Promptbook VPS environment v2
 export PATH="/opt/promptbook/node/bin:$HOME/.local/bin:$PATH"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
 if [ -d "/run/user/$(id -u)" ]; then
     export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 fi
