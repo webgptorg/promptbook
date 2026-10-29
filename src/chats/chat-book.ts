@@ -322,6 +322,20 @@ export function isHumanFacing(chat: Pick<ChatBook, 'members'>): boolean {
 }
 
 /**
+ * Whether the user's latest message still waits for an agent reply. Progress of an interrupted or failed turn (left
+ * explicitly unfinished) does not answer it; only an ordinary or final message does.
+ *
+ * @private chats
+ */
+export function awaitsReply(chat: { readonly messages: ReadonlyArray<Pick<ChatMessage, 'sender' | 'phase'>> }): boolean {
+    for (let index = chat.messages.length - 1; index >= 0; index--) {
+        const message = chat.messages[index]!;
+        if (message.phase !== 'progress') return parseReferenceValue(message.sender)?.normalized === 'user';
+    }
+    return false;
+}
+
+/**
  * Reference form of a participant name.
  *
  * @private chats

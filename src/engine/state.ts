@@ -106,6 +106,33 @@ export type RecoverySchedule = {
 };
 
 /**
+ * The cause-aware automatic recheck of a failed chat reply (`.ptbk/state/chat-replies.json`, by chat name): the user's
+ * message keeps its owed reply across restarts without anybody being asked to retry it.
+ *
+ * @private runtime state
+ */
+export type ChatReplyRecheck = {
+    /** Rechecks scheduled so far. */
+    readonly rounds: number;
+    /** First failed reply of this recovery (ISO). */
+    readonly since: string;
+    /** When this round was scheduled (ISO). */
+    readonly scheduledAt: string;
+    /** Next automatic recheck (ISO). */
+    readonly nextAt: string;
+    /** The last failure. */
+    readonly cause: string;
+    /** Fingerprint of the last failure together with its conditions (tools). */
+    readonly fingerprint: string;
+    /** Fingerprint of the conditions alone: a change brings the recheck forward. */
+    readonly conditions: string;
+    /** Consecutive rounds that ended in an equivalent failure under unchanged conditions. */
+    readonly equivalent: number;
+    /** The participant the user addressed in the failed turn (otherwise the chat's main agent replies). */
+    readonly agent?: string;
+};
+
+/**
  * Bookkeeping of Chatter's project brief (`.ptbk/state/report.json`): the situation the last brief covered (so an
  * unchanged project causes no paid generation), an explicit Refresh waiting for background scheduling, and the last
  * failed generation (bounded retry).
@@ -482,6 +509,16 @@ export class StateStore {
     /** Persists the project-brief bookkeeping. */
     public async writeReport(state: ReportState): Promise<void> {
         await writeJsonAtomic(this.file('report.json'), state);
+    }
+
+    /** Reads the scheduled rechecks of failed chat replies (by chat name). */
+    public async readChatRechecks(): Promise<Record<string, ChatReplyRecheck>> {
+        return (await readJsonIfExists<Record<string, ChatReplyRecheck>>(this.file('chat-replies.json')).catch(() => undefined)) ?? {};
+    }
+
+    /** Persists the scheduled rechecks of failed chat replies. */
+    public async writeChatRechecks(rechecks: Record<string, ChatReplyRecheck>): Promise<void> {
+        await writeJsonAtomic(this.file('chat-replies.json'), rechecks);
     }
 
     /** Reads Fixer's health-check bookkeeping. */

@@ -435,8 +435,11 @@
                 ),
             );
         }
-        const last = messages[messages.length - 1];
-        if (!live && last && last.sender.replace(/^@/, '').toLowerCase() === 'user' && summary.status === 'open') thread.append(h('p', { className: 'muted' }, `Waiting for ${summary.agent || 'the agent'}’s reply…`));
+        // The user's latest message still waits when only an unfinished turn's progress follows it.
+        const answer = [...messages].reverse().find((message) => message.phase !== 'progress');
+        const recheck = chat.detail.recheck;
+        if (!live && recheck) thread.append(h('p', { className: 'muted' }, `The reply failed (${recheck.cause}). Automatic recheck at ${time(recheck.nextAt)}; writing again retries now.`));
+        else if (!live && answer && answer.sender.replace(/^@/, '').toLowerCase() === 'user' && summary.status === 'open') thread.append(h('p', { className: 'muted' }, `Waiting for ${summary.agent || 'the agent'}’s reply…`));
         card.append(thread);
         requestAnimationFrame(() => {
             thread.scrollTop = thread.scrollHeight;
@@ -2087,7 +2090,9 @@
                     const summary = snapshot.chats.recent.find((chat) => chat.name === state.chat.name);
                     // A reply in progress streams its progress: refetch while it lasts and once more when it ends.
                     const replying = (snapshot.chats.replying || []).includes(state.chat.name) || Boolean(state.chat.detail.live);
-                    if (summary && (replying || summary.messages !== state.chat.detail.messages.length || summary.status !== state.chat.detail.summary.status)) loadChat(state.chat.name);
+                    const recheck = (snapshot.chats.rechecks || []).find((item) => item.chat === state.chat.name);
+                    const recheckChanged = (recheck && recheck.nextAt) !== (state.chat.detail.recheck && state.chat.detail.recheck.nextAt);
+                    if (summary && (replying || recheckChanged || summary.messages !== state.chat.detail.messages.length || summary.status !== state.chat.detail.summary.status)) loadChat(state.chat.name);
                 }
                 if (snapshot.service.state === 'stopped' || snapshot.service.state === 'finished') {
                     // An exited engine is an observation; the page never starts or recreates a service.

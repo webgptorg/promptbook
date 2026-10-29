@@ -33,8 +33,8 @@ import { parseBook } from '../book/parse.js';
 import { renderDeclaration } from '../book/write.js';
 import { ChatStore, type ChatSummary, type ChatWrite } from '../chats/store.js';
 import { ChatCommitBatcher } from '../chats/batcher.js';
-import { isHumanFacing } from '../chats/chat-book.js';
-import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, type ChatAgentChoice, type ChatDetail } from '../chats/service.js';
+import { awaitsReply, isHumanFacing } from '../chats/chat-book.js';
+import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, type ChatAgentChoice, type ChatDetail, type ChatRecheckView } from '../chats/service.js';
 import { chatOrigin, chatOriginOf, questionAuthor, type ChatTaskCard } from '../chats/chat-tasks.js';
 import { composeProjectBrief, replyInChat, type LiveReply } from '../chats/conversation.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
@@ -97,7 +97,7 @@ import type {
     UsageOverview,
     WaitView,
 } from './snapshot.js';
-import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type RecoverySchedule, type ResultRecord, type RoutingSelection } from './state.js';
+import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ChatReplyRecheck, type RecoverySchedule, type ResultRecord, type RoutingSelection } from './state.js';
 import { TaskTrace, sourceRevision } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
 import { finishWorktree, isIntegrated } from './isolation.js';
@@ -273,14 +273,25 @@ const RECOVERY_MAX_MS = 24 * 3_600_000;
 const RECOVERY_MIN_SPACING_MS = 60_000;
 
 /**
+ * First delay of the automatic recheck of a failed chat reply (`PTBK_CHAT_REPLY_RECHECK_MS` overrides it, e.g. for
+ * fixtures); someone waits in the chat, so it starts sooner than a task's and backs off up to {@link CHAT_REPLY_MAX_MS}.
+ */
+const CHAT_REPLY_RECHECK_MS = 60_000;
+
+/**
+ * Longest wait between automatic rechecks of a failed chat reply (also for repeated equivalent failures).
+ */
+const CHAT_REPLY_MAX_MS = 3_600_000;
+
+/**
  * Delay before the next automatic recheck: exponential per round with suitable spreading, capped, and the longest
  * wait once the same failure repeated under unchanged conditions.
  *
  * @private agenda supervisor
  */
-export function recoveryDelay(rounds: number, equivalent: number, base: number = RECOVERY_RECHECK_MS, random: () => number = Math.random): number {
-    const planned = equivalent >= 2 ? RECOVERY_MAX_MS : Math.min(base * 4 ** Math.max(0, rounds - 1), RECOVERY_MAX_MS);
-    return Math.round(Math.max(Math.min(base, RECOVERY_MAX_MS), Math.min(planned * (0.9 + random() * 0.2), RECOVERY_MAX_MS)));
+export function recoveryDelay(rounds: number, equivalent: number, base: number = RECOVERY_RECHECK_MS, random: () => number = Math.random, max: number = RECOVERY_MAX_MS): number {
+    const planned = equivalent >= 2 ? max : Math.min(base * 4 ** Math.max(0, rounds - 1), max);
+    return Math.round(Math.max(Math.min(base, max), Math.min(planned * (0.9 + random() * 0.2), max)));
 }
 
 /**
@@ -411,6 +422,8 @@ export class Agenda {
     private readonly resumeAfter = new Map<string, number>();
     /** Due times (epoch ms) of scheduled automatic rechecks of failed tasks, by run: idle waits end when one is due. */
     private readonly recoveryDue = new Map<string, number>();
+    /** Automatic rechecks of failed chat replies by normalized chat name; a timer is armed while the recheck waits. */
+    private readonly chatRechecks = new Map<string, { readonly name: string; readonly schedule: ChatReplyRecheck; timer?: NodeJS.Timeout }>();
     /** No new background claim before this time (pause between tasks). */
     private pacingUntil = 0;
     /** Listeners waiting for an active unit to finish (draining towards stop). */
@@ -671,13 +684,24 @@ export class Agenda {
         if (this.options.mode !== 'maintenance') for (const result of results.slice(0, 50)) await this.deliverChatOutcome(result).catch(() => undefined);
         if (this.options.mode !== 'maintenance') {
             // User messages written while no service ran (or interrupted replies) still get their agent's reply, once.
+            const rechecks = await this.state.readChatRechecks();
+            const conditions = this.chatReplyConditions();
             for (const stored of await this.chats.list().catch(() => [])) {
-                const last = stored.chat.messages[stored.chat.messages.length - 1];
-                if (!isHumanFacing(stored.chat) || last?.senderKey !== 'user' || stored.chat.status === 'resolved') continue;
+                if (!isHumanFacing(stored.chat) || !awaitsReply(stored.chat) || stored.chat.status === 'resolved') continue;
                 // An answer a task waits for resumes the task; a clarifying question in a still-waiting chat gets a reply.
                 const awaited = await this.isAwaitedByTask(stored.chat.name);
-                if (awaited ? stored.chat.status === 'waiting-for-user' : stored.chat.status === 'open') this.queueChatReply(stored.chat.name);
+                if (!(awaited ? stored.chat.status === 'waiting-for-user' : stored.chat.status === 'open')) continue;
+                // A reply that failed before the restart keeps its scheduled recheck unless its tools changed meanwhile.
+                const recheck = rechecks[stored.chat.name];
+                if (recheck && Date.parse(recheck.nextAt) > Date.now() && recheck.conditions === conditions) {
+                    this.armChatRecheck(stored.chat.name, recheck);
+                    continue;
+                }
+                if (recheck) this.chatRechecks.set(nameKey(stored.chat.name), { name: stored.chat.name, schedule: recheck });
+                this.queueChatReply(stored.chat.name, recheck?.agent ? { agent: recheck.agent } : {});
             }
+            // Rechecks of chats that no longer owe a reply are dropped.
+            if (Object.keys(rechecks).length) await this.saveChatRechecks();
         }
     }
 
@@ -1159,7 +1183,13 @@ export class Agenda {
         const pending = this.chatBatches.pending(detail.summary.name);
         const summary = pending ? { ...detail.summary, persistence: { state: pending.failure ? ('failed' as const) : ('pending' as const), since: pending.since, ...(pending.failure ? { failure: pending.failure } : {}) } } : detail.summary;
         const live = this.liveReplies.get(detail.summary.name);
-        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}) };
+        const recheck = this.chatRecheckViews().find((view) => nameKey(view.chat) === nameKey(detail.summary.name));
+        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}), ...(recheck ? { recheck } : {}) };
+    }
+
+    /** Failed chat replies waiting for their automatic recheck (shared by every client). */
+    private chatRecheckViews(): ChatRecheckView[] {
+        return [...this.chatRechecks.values()].filter((entry) => entry.timer).map((entry) => ({ chat: entry.name, cause: entry.schedule.cause, nextAt: entry.schedule.nextAt, rounds: entry.schedule.rounds }));
     }
 
     /**
@@ -1281,6 +1311,7 @@ export class Agenda {
                 }
                 const unit = this.registerUnit({ id: `chat:${key}:${shortId(6)}`, kind: 'chat', label: name });
                 let turn: Awaited<ReturnType<typeof replyInChat>> | undefined;
+                let failure: string | undefined;
                 try {
                     turn = await replyInChat(
                         {
@@ -1304,12 +1335,18 @@ export class Agenda {
                         name,
                         options,
                     );
+                    failure = turn.error;
+                } catch (error) {
+                    // A chat that no longer exists (or is no conversation) has no reply to owe.
+                    if (error instanceof PtbkError && (error.details.kind === 'not-found' || error.details.kind === 'usage')) throw error;
+                    failure = errorMessage(error);
                 } finally {
                     this.liveReplies.delete(name);
                     this.finishUnit(unit);
                 }
-                if (turn.error) this.log(`No reply in {${name}}: ${turn.error}`, 'warning');
-                else if (turn.reply) {
+                if (failure) await this.chatReplyFailed(name, failure, options.agent);
+                else await this.clearChatRecheck(name);
+                if (turn?.reply) {
                     const notes = [
                         ...(turn.consultations?.length ? [`consulted in ${turn.consultations.map((consultation) => `{${consultation}}`).join(', ')}`] : []),
                         ...(turn.createdTasks.length ? [`created ${turn.createdTasks.map((task) => `{${task}}`).join(', ')}`] : []),
@@ -1322,6 +1359,100 @@ export class Agenda {
                 await this.refreshChats();
             })
             .catch((error: unknown) => this.log(`The reply in {${name}} failed: ${errorMessage(error)}`, 'warning'));
+    }
+
+    /** Fingerprint of what a chat reply recheck depends on: the tools (a new or repaired tool brings it forward). */
+    private chatReplyConditions(): string {
+        const tools = this.tools.items.map((item) => `${item.name}:${item.isEnabled ? item.state : 'disabled'}`).sort();
+        return createHash('sha256').update(JSON.stringify({ tools })).digest('hex').slice(0, 16);
+    }
+
+    /**
+     * A chat reply failed: while the user's message still waits for it, a cause-aware automatic recheck is scheduled
+     * (exponential backoff with spreading, capped; the longest wait for an equivalent failure under unchanged tools)
+     * and persisted across restarts. Nobody is asked to retry; writing again or a tool change brings it forward.
+     */
+    private async chatReplyFailed(name: string, cause: string, agent?: string): Promise<void> {
+        // A turn interrupted by stopping is replied to after the restart.
+        if (this.stopRequested || this.ownedWork.signal.aborted) return;
+        const stored = await this.chats.find(name).catch(() => undefined);
+        if (!stored || !awaitsReply(stored.chat) || stored.chat.status === 'resolved') {
+            this.log(`No reply in {${name}}: ${cause}`, 'warning');
+            await this.clearChatRecheck(name);
+            return;
+        }
+        const previous = this.chatRechecks.get(nameKey(name))?.schedule;
+        const conditions = this.chatReplyConditions();
+        const fingerprint = createHash('sha256').update(`${failureKey(cause)}\n${conditions}`).digest('hex').slice(0, 16);
+        const equivalent = previous?.fingerprint === fingerprint ? previous.equivalent + 1 : 0;
+        const rounds = (previous?.rounds ?? 0) + 1;
+        const delay = recoveryDelay(rounds, equivalent, Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || CHAT_REPLY_RECHECK_MS, Math.random, CHAT_REPLY_MAX_MS);
+        const now = Date.now();
+        const schedule: ChatReplyRecheck = {
+            rounds,
+            since: previous?.since ?? new Date(now).toISOString(),
+            scheduledAt: new Date(now).toISOString(),
+            nextAt: new Date(now + delay).toISOString(),
+            cause,
+            fingerprint,
+            conditions,
+            equivalent,
+            ...(agent ? { agent } : {}),
+        };
+        this.armChatRecheck(stored.chat.name, schedule);
+        await this.saveChatRechecks();
+        this.log(
+            `No reply in {${stored.chat.name}} (${cause}). Nobody needs to retry it: automatic recheck ${rounds} is due ${formatShortTime(Date.parse(schedule.nextAt), now, this.timeZone)}${equivalent ? ' (the same failure repeated, so it waits longer)' : ''}, sooner when tools change or you write again.`,
+            'warning',
+        );
+    }
+
+    /** Keeps a chat reply recheck and arms its timer (chats reply during pause, so it never waits for the agenda loop). */
+    private armChatRecheck(name: string, schedule: ChatReplyRecheck): void {
+        const key = nameKey(name);
+        clearTimeout(this.chatRechecks.get(key)?.timer);
+        const reason = `scheduled after ${schedule.rounds === 1 ? 'the failure' : `${schedule.rounds} failed replies`}`;
+        const timer = setTimeout(() => this.startChatRecheck(key, reason), Math.max(0, Date.parse(schedule.nextAt) - Date.now()));
+        timer.unref?.();
+        this.chatRechecks.set(key, { name, schedule, timer });
+        this.touch();
+    }
+
+    /** Starts a due (or brought-forward) chat reply recheck: the agent replies to the still unanswered message again. */
+    private startChatRecheck(key: string, reason: string): void {
+        const entry = this.chatRechecks.get(key);
+        if (!entry?.timer) return;
+        clearTimeout(entry.timer);
+        entry.timer = undefined;
+        this.touch();
+        if (this.stopRequested) return;
+        this.log(`Automatic recheck ${entry.schedule.rounds} of the reply in {${entry.name}} (${reason}).`);
+        this.queueChatReply(entry.name, entry.schedule.agent ? { agent: entry.schedule.agent } : {});
+    }
+
+    /** Changed tools bring waiting chat reply rechecks forward (never sooner than the minimum spacing after scheduling). */
+    private reviewChatRechecks(): void {
+        if (!this.chatRechecks.size) return;
+        const conditions = this.chatReplyConditions();
+        const spacing = Math.min(RECOVERY_MIN_SPACING_MS, Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || CHAT_REPLY_RECHECK_MS);
+        for (const [key, entry] of this.chatRechecks) {
+            if (entry.timer && entry.schedule.conditions !== conditions && Date.now() - Date.parse(entry.schedule.scheduledAt) >= spacing) this.startChatRecheck(key, 'its tools changed');
+        }
+    }
+
+    /** Forgets a chat's reply recheck once its reply exists (or no reply is owed anymore). */
+    private async clearChatRecheck(name: string): Promise<void> {
+        const entry = this.chatRechecks.get(nameKey(name));
+        if (!entry) return;
+        clearTimeout(entry.timer);
+        this.chatRechecks.delete(nameKey(name));
+        await this.saveChatRechecks();
+        this.touch();
+    }
+
+    /** Persists the chat reply rechecks (their rounds and next times survive restarts). */
+    private async saveChatRechecks(): Promise<void> {
+        await this.state.writeChatRechecks(Object.fromEntries([...this.chatRechecks.values()].map((entry) => [entry.name, entry.schedule]))).catch((error: unknown) => this.logOnce(`Chat reply rechecks could not be saved: ${errorMessage(error)}`, 'warning'));
     }
 
     /**
@@ -1898,7 +2029,7 @@ export class Agenda {
             queue: this.queueView,
             queueTotal: this.queueTotal,
             results: { completed: this.completed, failed: this.failed, recent: this.recentResults },
-            chats: { waiting: this.waitingChats(), unread: this.chatSummaries.reduce((sum, chat) => sum + chat.unread, 0), total: this.chatSummaries.length, recent: this.chatSummaries.slice(0, 30), replying: [...this.liveReplies.keys()] },
+            chats: { waiting: this.waitingChats(), unread: this.chatSummaries.reduce((sum, chat) => sum + chat.unread, 0), total: this.chatSummaries.length, recent: this.chatSummaries.slice(0, 30), replying: [...this.liveReplies.keys()], rechecks: this.chatRecheckViews() },
             blockers: this.blockers,
             errors: this.errors.slice(-10),
             activity: this.activity.slice(-120),
@@ -2041,6 +2172,7 @@ export class Agenda {
         this.browserReadiness = browsers;
         this.tools = toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers, inUse: this.toolsInUse(), retained: this.retainedTools() });
         if (!this.tools.waiting) this.clearBlocker('tools');
+        this.reviewChatRechecks();
         this.touch();
     }
 
@@ -2131,6 +2263,7 @@ export class Agenda {
         this.watchers.length = 0;
         clearTimeout(this.wakeTimer);
         clearTimeout(this.configTimer);
+        for (const entry of this.chatRechecks.values()) clearTimeout(entry.timer);
         this.sync.end();
         this.health?.stop();
     }

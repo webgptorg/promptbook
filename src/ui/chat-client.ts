@@ -1,6 +1,7 @@
 import { errorMessage } from '../common/errors.js';
 import { formatDuration } from '../common/duration.js';
-import { collapseThinking } from '../chats/chat-book.js';
+import { formatShortTime } from '../common/time.js';
+import { awaitsReply, collapseThinking } from '../chats/chat-book.js';
 import type { ChatAgentChoice, ChatDetail } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
 import { fit, truncate, wrap } from './ansi.js';
@@ -177,7 +178,11 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             if (live.text) for (const line of wrap(live.text, width - 4)) body.push(`  ${line}`);
             body.push('');
         }
-        if (!live && detail && detail.messages[detail.messages.length - 1]?.sender.replace(/^@/, '').toLowerCase() === 'user' && detail.summary.status === 'open') {
+        // A failed reply is rechecked automatically: its cause and next attempt, never a Retry question.
+        const recheck = detail?.recheck;
+        if (!live && recheck) {
+            body.push(style.muted(`${marks.wait} The reply failed (${truncate(recheck.cause, width - 40)}). Automatic recheck ${formatShortTime(Date.parse(recheck.nextAt), Date.now())}; writing again retries now.`));
+        } else if (!live && detail && awaitsReply(detail) && detail.summary.status === 'open') {
             body.push(style.muted(source.replies ? `${marks.wait} Waiting for ${detail.summary.agent ?? 'the agent'}'s reply…` : `${marks.wait} The reply is written when the project's service runs (\`ptbk start\`).`));
         }
         scroll = Math.max(0, Math.min(scroll, Math.max(0, body.length - available)));

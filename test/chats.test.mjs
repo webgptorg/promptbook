@@ -190,6 +190,49 @@ test('service chats: a force stop before the batched commit loses nothing; the n
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env: baseEnv })).code, 0);
 });
 
+test('chat replies: a failed reply is rechecked automatically without a Retry question, and unfinished progress never answers the user', async (t) => {
+    const { project, env: baseEnv } = await initializedProject(t, { check: CHECK });
+    const env = { ...baseEnv, PTBK_CHAT_REPLY_RECHECK_MS: '10000' };
+    // A reply interrupted before the last stop left only its unfinished progress: the message still gets its reply.
+    await mkdir(join(project, 'chats'), { recursive: true });
+    await writeFile(
+        join(project, 'chats', 'interrupted.book'),
+        'CHAT Interrupted question\nCHAT MEMBER @User\nCHAT MEMBER @Developer\n\nCHAT MESSAGE @User 2026-10-17T10:00:00+02:00\nStill there?\n\nCHAT MESSAGE @Developer 2026-10-17T10:00:05+02:00 progress\n- thinking: checking\n\n(unfinished reply: The service stopped.)\n',
+    );
+    await git(project, ['add', 'chats']);
+    await git(project, ['commit', '-qm', 'An interrupted reply']);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
+    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
+    const call = async (path, body) => {
+        const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+        return { status: response.status, data: await response.json() };
+    };
+    const replied = (detail, pattern) => detail.messages.some((message) => message.sender === '@Developer' && message.phase !== 'progress' && pattern.test(message.text));
+    await waitFor(async () => replied((await call(`api/chats/${encodeURIComponent('Interrupted question')}`)).data, /Fixture reply to: Still there\?/), { timeoutMs: 60_000, message: 'the startup reply after unfinished progress' });
+
+    const created = await call('api/chats', { agent: '@Developer', text: 'Hello FAIL_REPLY_ONCE' });
+    assert.equal(created.status, 200, JSON.stringify(created.data));
+    const path = `api/chats/${encodeURIComponent(created.data.name)}`;
+    const failed = await waitFor(async () => (await call(path)).data.recheck, { timeoutMs: 60_000, message: 'the scheduled recheck of the failed reply' });
+    assert.match(failed.cause, /Fixture outage/);
+    assert.equal(failed.rounds, 1);
+    assert.ok(Date.parse(failed.nextAt) > Date.now() - 1_000, 'the next attempt is announced');
+    assert.ok(Object.keys(JSON.parse(await readFile(join(project, '.ptbk', 'state', 'chat-replies.json'), 'utf8'))).includes(created.data.name), 'the recheck survives a restart');
+    const snapshot = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
+    assert.ok((snapshot.chats.rechecks ?? []).some((item) => item.chat === created.data.name), 'every client sees the waiting recheck');
+
+    const answered = await waitFor(async () => {
+        const detail = (await call(path)).data;
+        return replied(detail, /Fixture reply to: Hello FAIL_REPLY_ONCE/) ? detail : undefined;
+    }, { timeoutMs: 60_000, message: 'the automatic recheck to reply' });
+    assert.equal(answered.recheck, undefined, 'a successful reply ends the recheck');
+    assert.ok(answered.messages.some((message) => message.phase === 'progress' && /unfinished reply: .*Fixture outage/.test(message.text)), 'the failed turn stays visible as unfinished');
+    assert.ok(!answered.messages.some((message) => message.sender !== '@User' && /\bretry\b/i.test(message.text)), 'nobody is asked to retry');
+    assert.deepEqual(JSON.parse(await readFile(join(project, '.ptbk', 'state', 'chat-replies.json'), 'utf8')), {});
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+});
+
 test('browser profile sources: the managed global profile is the default; isolated, user and custom paths are explicit', () => {
     const project = { root: '/work/site', runtime: { root: '/work/site/.ptbk', browserProfile: '/work/site/.ptbk/browser/profile' } };
     const tool = (source, path, name = 'project-browser') => ({ type: 'BROWSER', variant: 'CHROME', name, isEnabled: true, isHeadless: true, profile: { source, ...(path ? { path } : {}) } });

@@ -1,3 +1,4 @@
+import type { ChatRecheckView } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
 import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
@@ -218,6 +219,8 @@ export type ChatsView = {
     readonly total: number;
     /** Chats whose agent is writing a reply now (their live progress is in the chat detail). */
     readonly replying?: readonly string[];
+    /** Chats whose failed reply waits for its automatic recheck. */
+    readonly rechecks?: readonly ChatRecheckView[];
     /** Recently active chats (bounded). */
     readonly recent: readonly ChatView[];
 };

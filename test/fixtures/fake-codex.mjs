@@ -27,7 +27,9 @@
  * (ROUTE_IMPOSSIBLE in the target reports no compatible combination). Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
  * containing CORRECTION adds a `PTBK_LEARN` note and one containing SLOW_REPLY reports a command and a reasoning summary,
- * then works for $FAKE_CODEX_SLOW_MS before its reply. Consultation turns (`# Consultation`) answer read-only.
+ * then works for $FAKE_CODEX_SLOW_MS before its reply. The first turn answering FAIL_REPLY_ONCE (per $FAKE_CODEX_LOG)
+ * reports a reasoning summary and then fails like a provider outage. Consultation turns (`# Consultation`) answer
+ * read-only.
  * Every executed turn is appended to $FAKE_CODEX_LOG (one JSON line) when set.
  */
 import { spawn } from 'node:child_process';
@@ -192,6 +194,14 @@ async function main() {
     } else if (chat) {
         const conversation = prompt.slice(prompt.indexOf('## Conversation so far'), prompt.indexOf('## How to answer'));
         const last = [...conversation.matchAll(/\*\*@User\*\* \([^)]*\):\n([^\n]*)/g)].pop()?.[1] ?? '';
+        // One provider outage per fixture log: the first turn shows progress, then fails (the reply is owed).
+        const outage = process.env.FAKE_CODEX_LOG ? `${process.env.FAKE_CODEX_LOG}.reply-outage` : undefined;
+        if (last.includes('FAIL_REPLY_ONCE') && outage && !existsSync(outage)) {
+            writeFileSync(outage, `${last}\n`);
+            print({ type: 'item.completed', item: { id: 'item_reason', type: 'reasoning', text: 'Looking it up.' } });
+            print({ type: 'turn.failed', error: { message: 'Fixture outage: the provider is unavailable.' } });
+            process.exit(1);
+        }
         let text = `Fixture reply to: ${last}`;
         if (last.includes('CREATE_TASK')) {
             const created = await callTool('create_task', { title: 'Task from chat', description: `Requested in a chat: ${last}`, agent: '@Developer', priority: 4 });

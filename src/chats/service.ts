@@ -30,6 +30,22 @@ export type ChatAgentChoice = {
 };
 
 /**
+ * A chat whose agent's reply failed and is rechecked automatically (nobody needs to ask for a retry).
+ *
+ * @private chats
+ */
+export type ChatRecheckView = {
+    /** The chat's name. */
+    readonly chat: string;
+    /** The last failure. */
+    readonly cause: string;
+    /** When the reply is attempted again (ISO); writing again or a tool change brings it forward. */
+    readonly nextAt: string;
+    /** Rechecks scheduled so far. */
+    readonly rounds: number;
+};
+
+/**
  * One chat with its complete messages, as shown by every client.
  *
  * @private chats
@@ -40,6 +56,8 @@ export type ChatDetail = {
     readonly tasks?: readonly ChatTaskCard[];
     /** The reply being written now: available progress and streamed text (the same for every client). */
     readonly live?: LiveReply;
+    /** A failed reply waiting for its automatic recheck. */
+    readonly recheck?: ChatRecheckView;
     readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final' }>;
 };
 

@@ -22,7 +22,7 @@ import { harnessPlugin } from '../harness/registry.js';
 import { harnessPluginId, harnessVariantOf } from '../tools/model.js';
 import { teamTools } from '../engine/team.js';
 import { appendUsage, chatUsageFile, usageRecords } from '../engine/usage.js';
-import { chatAgent, chatAgents, isHumanFacing } from './chat-book.js';
+import { awaitsReply, chatAgent, chatAgents, isHumanFacing } from './chat-book.js';
 import type { ChatStore, ChatWrite, StoredChat } from './store.js';
 import { conversationChats } from './task-chats.js';
 
@@ -254,9 +254,9 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const addressed = options.agent ? chatAgents(chat).find((member) => parseReferenceValue(member)?.normalized === parseReferenceValue(options.agent!)?.normalized) : undefined;
     const agentReference = addressed ?? mainReference;
     const isMain = agentReference === mainReference;
-    const last = chat.messages[chat.messages.length - 1];
-    // A follow-up turn answers user messages that arrived while the previous reply was being written.
-    if (!last || (last.senderKey !== 'user' && !options.followUp)) return { createdTasks: [] };
+    // A follow-up turn answers user messages that arrived while the previous reply was being written; a turn that was
+    // interrupted or failed left only unfinished progress, so its user message still gets a reply.
+    if (!chat.messages.length || (!awaitsReply(chat) && !options.followUp)) return { createdTasks: [] };
     const agent = await resolveEffectiveAgent(context.catalog, agentReference);
     const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { createdTasks: [], error: `${agentReference} cannot reply: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };

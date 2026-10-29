@@ -1,5 +1,12 @@
 # Unreleased
 
+## Chat replies: cause-aware automatic rechecks instead of a lost reply
+
+-   A failed chat reply was only a warning in the activity log: the user's message stayed unanswered until the next restart. A failed reply now gets a scheduled automatic recheck while the message still waits: the first after about a minute, then backing off with spreading up to one hour. The same failure under unchanged tools waits longest. A tool change (a new, repaired or signed-in instance, `ptbk tool …`, a ptbk.json/.env edit) brings it forward, and writing again retries at once. Rechecks run during a scheduling pause like every chat turn, never after stop. Nobody is asked to retry. The activity log, the terminal chat and the browser chat show the failure and the next attempt, and `ptbk status --json`/the snapshot list waiting rechecks under `chats.rechecks`.
+-   The schedule (rounds, last cause, next time) is kept in `.ptbk/state/chat-replies.json` and survives a restart. A restart keeps a pending recheck's time unless the tools changed meanwhile; a successful reply clears it.
+-   A reply that was interrupted or failed after showing progress left an "unfinished reply" progress message after the user's message. The engine treated that progress as an answer, so the user's message never got a reply, also not after a restart. Only an ordinary or final agent message now answers a message. Clients show "Waiting for … reply" in that case too.
+-   The fake Codex gains `FAIL_REPLY_ONCE` (one provider outage after progress). A new fixture covers the startup reply after unfinished progress, the visible and persisted recheck, the automatic reply and that no Retry question is asked.
+
 ## Harness sign-in in later tool setup, not only in init
 
 -   `ptbk tool add`, `modify` and `enable` now check a saved, enabled harness the way init does: as this terminal sees it and as the background service sees it after detachment or reboot. A native instance that is not signed in gets init's own attended sign-in (the same shared code, remote-compatible methods first over SSH, Ctrl+C scoped to the sign-in) **in its own account context**, so `--account-profile company` signs in that context instead of the default login. **Not now** keeps the tool saved but not usable. Without a terminal, or with `--json`, nothing waits: the state and the next step are printed (`Sign in from an interactive terminal with ptbk tool enable <name>`). Enabling an already enabled tool commits nothing and only checks it again, which is also the way back to sign-in after a lost login.
