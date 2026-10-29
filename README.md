@@ -24,7 +24,9 @@ Give Promptbook an ongoing responsibility, a goal and your rules. Its agents fin
 
 ## Quickstart
 
-With **Node.js 22.13+ in the 22.x line, or 24+**, **npm 10+**, Git and Chrome, Chromium or Edge already installed, use npm. Setup guides you through selecting a supported harness and signing in. Starting from a clean Ubuntu server instead? One command prepares everything: [Deploy to your own server](#deploy-to-your-own-server).
+If Node.js and npm are already installed, use the npm path below. On a clean Ubuntu VPS, use the [complete shell installation](#clean-ubuntu-vps).
+
+Requires **Node.js 22.13+ in the 22.x line, or 24+**, **npm 10+**, Git and Chrome, Chromium or Edge. Setup guides you through selecting a supported harness and signing in.
 
 ```sh
 npm install --global ptbk
@@ -32,6 +34,16 @@ mkdir my-agenda
 cd my-agenda
 ptbk init
 ```
+
+### Clean Ubuntu VPS
+
+On **Ubuntu 24.04 x86-64 with systemd**, run this in an interactive SSH terminal as root or an administrator with sudo:
+
+```sh
+curl -fsSL https://www.ptbk.io/install.sh | bash
+```
+
+You do not need Node.js, npm or Git installed first. The script uses the [shared server installer](deploy/ubuntu/install.sh), adds the prerequisites and published engine, then opens ordinary `ptbk init` as the `promptbook` user. [Inspect the entry script](https://github.com/webgptorg/ptbk-landing-page-aldaron/blob/main/public/install.sh) · [VPS guide](deploy/README.md#an-existing-vps-including-digitalocean-or-hetzner).
 
 Describe the work in the initializer. It prepares the project and starts the engine in the background.
 
@@ -48,13 +60,7 @@ The engine machine must stay available. By default, the engine resumes at login.
 
 ## Deploy to your own server
 
-**A clean Ubuntu 24.04 LTS x86-64 server** with systemd, outbound HTTPS and root or sudo access over SSH needs no preinstalled Node.js, npm, Git, Chrome or AI harness. Paste one command:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh && sudo bash install-promptbook.sh
-```
-
-It installs the missing prerequisites and the published engine, creates a dedicated non-sudo `promptbook` user and opens the setup assistant (`ptbk init`) as that user in the same terminal. Signing in to Codex or Claude Code needs no browser on the server: you finish it on your phone or computer. [Inspect the installer](deploy/ubuntu/install.sh) · [Server guide and options](deploy/README.md#one-command-on-an-existing-ubuntu-vps)
+**A clean Ubuntu 24.04 LTS x86-64 server** with systemd, outbound HTTPS and root or sudo access over SSH needs no preinstalled Node.js, npm, Git, Chrome or AI harness: use the [one-command installation](#clean-ubuntu-vps). It prepares the server through the [shared installer](deploy/ubuntu/install.sh) and opens `ptbk init` as a dedicated non-sudo `promptbook` user. Sign-in to Codex or Claude Code is finished on your phone or computer; see the [server guide](deploy/README.md#finish-setup-over-ssh).
 
 [![Set up a DigitalOcean Droplet](deploy/digitalocean/button.svg)](deploy/README.md#digitalocean)
 

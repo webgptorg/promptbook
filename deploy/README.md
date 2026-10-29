@@ -2,7 +2,7 @@
 
 [![Set up a DigitalOcean Droplet](digitalocean/button.svg)](#digitalocean)
 
-**Start with DigitalOcean:** the [Droplet guide](#digitalocean) includes a startup script to paste into the server creation form. [Azure](#azure) provides a direct deployment form; [AWS](#aws) uses a CloudFormation template upload. Every path keeps project data on a persistent disk and uses the same Ubuntu installer. Provider scripts only prepare the server (**server prepared; initialization pending**); [one command over SSH](#finish-setup-over-ssh) then continues into the attended setup and AI sign-in. A server you already have needs only [that one command](#one-command-on-an-existing-ubuntu-vps).
+**Start with DigitalOcean:** the [Droplet guide](#digitalocean) includes a startup script to paste into the server creation form. [Azure](#azure) provides a direct deployment form; [AWS](#aws) uses a CloudFormation template upload. Every path keeps project data on a persistent disk and uses the same Ubuntu installer. Provider scripts only prepare the server (**server prepared; initialization pending**); [one command over SSH](#finish-setup-over-ssh) then continues into the attended setup and AI sign-in. A server you already have needs only [that one command](#an-existing-vps-including-digitalocean-or-hetzner).
 
 ## DigitalOcean
 
@@ -47,41 +47,58 @@ This is a **guided deployment with a template-upload step**. A quick-create `tem
 
 If your client IP changes, edit the EC2 security-group SSH rule. A stopped/started instance may receive a new public IP; check its current address. The root EBS volume survives ordinary restarts and is retained after instance/stack deletion, including rollback. **Retained EBS disks remain paid**: find the volume in EC2, verify a private backup and delete it explicitly when no longer needed. Retention is not backup. Instance time, disk, public IPv4, transfer and snapshots have separate charges; stopping a VM does not remove them all.
 
-## One command on an existing Ubuntu VPS
+## An existing VPS, including DigitalOcean or Hetzner
 
-Use a fresh **Ubuntu 24.04 LTS x86-64** machine with systemd and outbound HTTPS, from DigitalOcean, Hetzner or any other provider, and an SSH (or provider console) session as root or a sudo administrator. Node.js, npm, Git, Chrome and an AI harness are **not** needed beforehand. Start with enough memory for your chosen harnesses and browser; the Azure default is a 2-vCPU/4-GB machine, not a guarantee for every workload. Paste:
+Use a fresh **Ubuntu 24.04 x86-64** machine with systemd and outbound HTTPS. Start with enough memory for your chosen harnesses and browser; the Azure default is a 2-vCPU/4-GB machine, not a guarantee for every workload. Connect as root or your normal SSH administrator with sudo and run:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh && sudo bash install-promptbook.sh
+curl -fsSL https://www.ptbk.io/install.sh | bash
 ```
 
-The first half downloads the [inspectable installer](ubuntu/install.sh); you can read `install-promptbook.sh` before running the second half. It prepares the missing prerequisites, creates the dedicated non-sudo `promptbook` user and then starts the setup assistant (`ptbk init`) **as that user in the same terminal**: no account switch, `cd`, second command or new SSH session. Continue with [the setup](#finish-setup-over-ssh). This installer does not support other Linux distributions, ARM servers, macOS or Windows; a computer with Node.js 22.13+/24+ and npm uses the [ordinary npm installation](../README.md#quickstart).
+This attended entry point installs the missing prerequisites and published engine through the shared installer, then automatically opens ordinary `ptbk init` as `promptbook` in `~/projects/my-agenda`. It preserves the terminal even when downloaded through a pipe. A failed preparation does not continue into init; an existing project opens its ordinary `ptbk` entry instead of being reinitialized. [Inspect the entry script](https://github.com/webgptorg/ptbk-landing-page-aldaron/blob/main/public/install.sh). Node.js, npm, Git, Chrome and an AI harness are **not** needed beforehand. This installer does not support other Linux distributions, ARM servers, macOS or Windows; a computer with Node.js 22.13+/24+ and npm uses the [ordinary npm installation](../README.md#quickstart).
 
-Options go after `sudo bash install-promptbook.sh`: `--version 0.119.0-38` installs an exact published version; `--path PTBK/project/my-agenda` names the project folder inside `/var/lib/promptbook` (init still asks you to confirm it); `--prepare-only` stops after the prerequisites; further `ptbk init` options follow `--` (for example `-- --non-interactive …` for unattended init with its decisions supplied).
+To inspect/run only system preparation or choose an exact engine version, keep the lower-level path:
 
-Without `--version`, the installer resolves npm's `latest` tag once and installs that exact version, recorded in `/opt/promptbook/installed-version`. Repeating the command reuses an installed engine and never upgrades it; an explicit different version fails rather than replacing it. It leaves an unrelated `ptbk` executable or a conflicting account unchanged and fails rather than overwriting them. A retry installs only what is still missing and preserves project files and configuration.
+```sh
+curl -fL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh
+less install-promptbook.sh
+sudo bash install-promptbook.sh
+```
+
+By default it only prepares the server and ends with **server prepared; initialization pending**. Options: `--version 0.119.0-38` (or the version as the sole argument) installs an exact published version. `--init` then starts the setup assistant as `promptbook` in the same terminal, through a fresh pseudo-terminal whose output stays out of the install log. With `--init`, `--path PTBK/project/my-agenda` names the project folder inside `/var/lib/promptbook` (init still asks you to confirm it; without it, init offers its shared projects folder), and further `ptbk init` options follow `--` (for example `-- --non-interactive …` with its decisions supplied). Without a usable terminal, `--init` stops with initialization pending (exit status 3) instead of waiting.
+
+Without `--version`, the installer resolves npm's `latest` tag once and installs that exact version, recorded in `/opt/promptbook/installed-version`. Repeating it reuses an installed engine and never upgrades it; an explicit different version fails rather than replacing it. It leaves an unrelated `ptbk` executable or a conflicting account (including a `promptbook` account with administrator rights) unchanged and fails rather than overwriting them. A retry installs only what is still missing and preserves project files and configuration.
 
 Your provider's firewall remains your responsibility on an existing VPS: allow SSH from your client and keep engine/browser ports private. This manual path does not provision a new server or change its inbound firewall. The Azure template configures its own SSH network rule.
 
 ## Finish setup over SSH
 
-Provider startup scripts end with **server prepared; initialization pending**: they install the prerequisites but never start an initializer or wait for a sign-in. Connect over SSH as your administrator and run the same one command; it reuses everything already installed and opens the setup assistant:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh && sudo bash install-promptbook.sh
-```
-
-The setup assistant runs as the `promptbook` user in your terminal. Describe the work, confirm the project folder (by default a new folder in `/var/lib/promptbook/PTBK/project/`), use the global CLI, select a supported AI harness and complete its sign-in, and keep **Headless** for the browser. Sign-in needs no browser or desktop on the server: OpenAI Codex shows a link and a one-time code (`codex login --device-auth`) to enter on your phone or computer, and Claude Code shows a link whose page gives you a code to paste back into the terminal. Device-code login may need enabling in your ChatGPT security settings or by your workspace administrator; the assistant also explains the SSH callback-forwarding alternative. Website logins that need a visible browser require an appropriate private remote desktop/browser setup. Do not run the engine as root or put credentials in templates or installer arguments.
+The one-command entry above already enters the initializer as the engine user. Provider startup scripts end with **server prepared; initialization pending**: they install the prerequisites but never start an initializer or wait for a sign-in. On such a host, run the same one-command entry over SSH; it reuses what is installed and opens the initializer. The manual commands below do the same step by step, also after the lower-level installer.
 
 The installer supplies the local Git service identity `Promptbook <promptbook@localhost>` only when no identity is configured for the dedicated user. This lets init save its first commit on a fresh machine. An existing identity is preserved; set your preferred `git config --global user.name` and `user.email` as `promptbook` if you want different authorship.
 
-If the command reports **initialization pending** because no interactive terminal was available, or the setup stops before it is complete, run the same command again: installed components and saved setup are kept, and no second engine, project or first task is created.
-
-The initializer prepares the project, starts the background engine and opens the terminal dashboard. Later, in a new SSH session:
-
 ```sh
 sudo -iu promptbook
-cd ~/PTBK/project/my-agenda   # your project folder
+cd ~/projects/my-agenda
+ptbk init --path "$PWD"
+```
+
+Use the global CLI, select a supported AI harness, complete its native sign-in and choose **Headless** for the browser.
+
+Native sign-in needs no graphical browser on the server: open the link on your computer or phone. The initializer offers these methods itself over SSH or without a display, and rechecks the sign-in for the background service; you can also run the login as `promptbook` first:
+
+- Codex: `codex login --device-auth`. Device-code login must be available/enabled for your account or workspace; use the [documented SSH callback fallback](https://developers.openai.com/codex/auth/#login-on-headless-devices) when necessary.
+- Claude Code: `claude auth login`, then use the displayed URL and paste a return code into the terminal if prompted. See [native authentication](https://code.claude.com/docs/en/authentication).
+
+Reuse the resulting native login in init; do not silently switch to API billing.
+
+The initializer reports any remaining missing access. Website login requiring a visible browser needs an appropriate private remote desktop/browser setup. The deployment does not bypass these requirements. Do not run the engine as root or put credentials in the ARM template or installer arguments.
+
+If setup stops before it is complete, run the same command again: installed components and saved setup are kept, and no second engine, project or first task is created.
+
+The initializer prepares the project and starts the background engine. In the same directory:
+
+```sh
 ptbk status
 ptbk dashboard
 # Close the dashboard, or use another SSH terminal, before opening chat:
@@ -94,7 +111,7 @@ Use the terminal dashboard over SSH. The engine's local browser dashboard and AP
 
 ## Data, backups, updates and removal
 
-The engine's home is `/var/lib/promptbook`; projects are folders in `/var/lib/promptbook/PTBK/project/` (installations before the one-command setup used `/var/lib/promptbook/projects/my-agenda`, which keeps working). Books, Git history, traces, ignored runtime/Wallet files, browser sessions, native harness sign-ins and user startup registrations stay on the persistent OS disk. They survive a normal reboot. **A persistent disk is not a backup.** Back up the whole home privately, including ignored files, not just Git. Preserve recovery material separately and use the normal Wallet restoration workflow when moving hosts. Never publish this backup or an entire home directory to Git.
+The engine's home is `/var/lib/promptbook`; the first project is `/var/lib/promptbook/projects/my-agenda`, and init offers further projects in `/var/lib/promptbook/PTBK/project/`. Books, Git history, traces, ignored runtime/Wallet files, browser sessions, native harness sign-ins and user startup registrations stay on the persistent OS disk. They survive a normal reboot. **A persistent disk is not a backup.** Back up the whole home privately, including ignored files, not just Git. Preserve recovery material separately and use the normal Wallet restoration workflow when moving hosts. Never publish this backup or an entire home directory to Git.
 
 Use the ordinary engine update workflow after backing up and stopping active projects. This bootstrap's centrally installed engine is root-owned; an administrator must perform package updates in `/opt/promptbook/engine` with the isolated Node runtime in PATH. Do not delete or reinitialize project folders to update. Harnesses installed by the `promptbook` user live in its writable `~/.local` npm prefix.
 

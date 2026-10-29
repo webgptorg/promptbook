@@ -28,6 +28,7 @@ jobs:
         run: |
           sudo bash deploy/ubuntu/install.sh --prepare-only | tee prepare.log
           grep -q 'Server prepared; initialization pending' prepare.log
+          sudo test -d /var/lib/promptbook/projects/my-agenda
           sudo test ! -e /var/lib/promptbook/PTBK
       - name: Retry and the default command reuse the installation and preserve user data
         run: |
@@ -36,33 +37,33 @@ jobs:
           sudo -iu promptbook git config --global user.name 'Deployment smoke owner'
           version=$(cat /opt/promptbook/installed-version)
           sudo bash deploy/ubuntu/install.sh --version "$version" --prepare-only
-          sudo bash deploy/ubuntu/install.sh --prepare-only | grep "Reusing the installed engine $version"
+          sudo bash deploy/ubuntu/install.sh | grep "Reusing the installed engine $version"
           sudo test -f /var/lib/promptbook/keep-me
           test "$(sudo -iu promptbook git config --global user.name)" = 'Deployment smoke owner'
-      - name: An attended run without a terminal stops with an incomplete handoff
+      - name: An init handoff without a terminal stops incomplete
         run: |
           set +e
-          sudo bash deploy/ubuntu/install.sh </dev/null >handoff.log 2>&1
+          sudo bash deploy/ubuntu/install.sh --init </dev/null >handoff.log 2>&1
           code=$?
           set -e
           cat handoff.log
           test "$code" = 3
           grep -q 'initialization pending' handoff.log
-          grep -q 'curl -fsSL .*install.sh -o install-promptbook.sh && sudo bash install-promptbook.sh' handoff.log
+          grep -qF 'curl -fsSL https://www.ptbk.io/install.sh | bash' handoff.log
           sudo test ! -e /var/lib/promptbook/PTBK
       - name: The bootstrap hands its live terminal to init as the engine user
         run: |
-          python3 test/fixtures/vps-handoff.py sudo bash deploy/ubuntu/install.sh --path PTBK/project/attended -- --intent 'Deployment smoke agenda' --installation global --no-harness --browser-profile isolated --browser-mode headless --no-commit-traces --ignore-trace-videos --no-record-video --no-auto-sync --no-start
+          python3 test/fixtures/vps-handoff.py sudo bash deploy/ubuntu/install.sh --init --path PTBK/project/attended -- --intent 'Deployment smoke agenda' --installation global --no-harness --browser-profile isolated --browser-mode headless --no-commit-traces --ignore-trace-videos --no-record-video --no-auto-sync --no-start
           test "$(sudo stat -c %U /var/lib/promptbook/PTBK/project/attended/ptbk.json)" = promptbook
           sudo grep -q 'Deployment smoke agenda' /var/lib/promptbook/PTBK/project/attended/specs/_initial.md
           ! sudo grep -q 'Deployment smoke agenda' /var/log/promptbook-install.log
       - name: Noninteractive handoff, boot registration and deliberate stop
         run: |
-          sudo bash deploy/ubuntu/install.sh --path PTBK/project/my-agenda -- --non-interactive --installation global --no-harness --browser-profile isolated --browser-mode headless --no-dashboard --raw
+          sudo bash deploy/ubuntu/install.sh --init --path projects/my-agenda -- --non-interactive --installation global --no-harness --browser-profile isolated --browser-mode headless --no-dashboard --raw
           sudo -iu promptbook bash -s <<'SMOKE'
             set -euxo pipefail
             test -w "$HOME/.local/share"
-            cd ~/PTBK/project/my-agenda
+            cd ~/projects/my-agenda
             test "$(stat -c %U ptbk.json)" = promptbook
             env XDG_CONFIG_HOME=/root/foreign-config XDG_DATA_HOME=/root/foreign-data XDG_CACHE_HOME=/root/foreign-cache ptbk status --raw
             test -n "$(find ~/.config/systemd/user -name "ptbk-agenda-*.service" -print -quit)"

@@ -65,29 +65,31 @@ test('bootstrap rejects npm package specs and shell input before any system chan
 
 test('bootstrap keeps an explicit project folder inside the engine home, before any system changes', { skip: process.platform === 'win32' }, () => {
     for (const path of ['/etc/promptbook', '/var/lib/promptbook', '/var/lib/promptbook/PTBK/project', '/var/lib/promptbook/.ssh', '../escape', '/var/lib/promptbook/PTBK/project/a/../../../x', '/tmp']) {
-        const result = spawnSync('bash', [installer, '--path', path], { encoding: 'utf8' });
+        const result = spawnSync('bash', [installer, '--init', '--path', path], { encoding: 'utf8' });
         assert.equal(result.status, 1, path);
         assert.match(result.stderr, /inside the engine user's home|without \. or \.\. segments/, path);
     }
-    const missing = spawnSync('bash', [installer, '--path'], { encoding: 'utf8' });
-    assert.match(missing.stderr, /needs a value/);
+    assert.match(spawnSync('bash', [installer, '--init', '--path'], { encoding: 'utf8' }).stderr, /needs a value/);
+    assert.match(spawnSync('bash', [installer, '--path', 'PTBK/project/a'], { encoding: 'utf8' }).stderr, /need --init/, 'preparation alone never takes a destination');
+    assert.match(spawnSync('bash', [installer, '--', '--non-interactive'], { encoding: 'utf8' }).stderr, /need --init/);
+    assert.match(spawnSync('bash', [installer, '--init', '--prepare-only'], { encoding: 'utf8' }).stderr, /not both/);
     // Valid input reaches the privilege check, the first point that could change the machine.
-    for (const args of [['--path', 'PTBK/project/my agenda'], ['--version', '1.2.3', '--path', '/var/lib/promptbook//PTBK/project/a/'], ['--prepare-only'], ['--', '--non-interactive', '--no-harness']]) {
+    for (const args of [[], ['--prepare-only'], ['0.119.0-38'], ['--init', '--path', 'PTBK/project/my agenda'], ['--version', '1.2.3', '--init', '--path', '/var/lib/promptbook//PTBK/project/a/'], ['--init', '--', '--non-interactive', '--no-harness']]) {
         const result = spawnSync('bash', [installer, ...args], { encoding: 'utf8' });
         if (process.getuid?.() !== 0) assert.match(result.stderr, /Run this installer with sudo/, args.join(' '));
     }
 });
 
-test('one command bootstraps a clean VPS into init; provider scripts only prepare it and name the same continuation', async () => {
+test('the shared installer prepares by default for the website entry and providers; --init hands the terminal to init', async () => {
     const script = await readFile(installer, 'utf8');
-    const continuation = 'curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh && sudo bash install-promptbook.sh';
-    assert.ok(script.includes(`continuation="curl -fsSL $installer_url -o install-promptbook.sh && sudo bash install-promptbook.sh"`));
-    assert.ok((await readFile(new URL('deploy/README.md', root), 'utf8')).includes(continuation));
-    assert.ok((await readFile(new URL('README.md', root), 'utf8')).includes(continuation));
+    const entry = 'curl -fsSL https://www.ptbk.io/install.sh | bash';
+    assert.ok(script.includes(`continuation='${entry}'`), 'pending preparation names the attended one-command entry');
+    assert.ok((await readFile(new URL('deploy/README.md', root), 'utf8')).includes(entry));
+    assert.ok((await readFile(new URL('README.md', root), 'utf8')).includes(entry));
+    assert.match(script, /"\$engine_home\/projects" "\$engine_home\/projects\/my-agenda"/, 'the website entry opens init in this prepared folder');
+    assert.match(script, /if \[\[ "\$hand_off" == false \]\]; then\n[^\n]*Server prepared; initialization pending[^\n]*\n\s*exit 0/, 'without --init only preparation happens');
     assert.match(script, /runuser --pty --login --shell \/bin\/bash "\$engine_user" --command "\$init_command" <\/dev\/tty/, 'init runs as the engine user on the live terminal');
-    assert.match(script, /PTBK_LOGIN_LOCATION=remote exec ptbk init/, 'the launcher supplies its remote sign-in context');
-    assert.match(script, /Server prepared; initialization pending/);
-    assert.doesNotMatch(script, /projects\/my-agenda/, 'no project folder is prepared outside init');
+    assert.match(script, /PTBK_LOGIN_LOCATION=remote exec ptbk init/, 'the handoff supplies its remote sign-in context');
     assert.match(await readFile(new URL('deploy/digitalocean/user-data.sh', root), 'utf8'), /bash "\$installer" --prepare-only\n$/);
     const aws = JSON.parse(await readFile(new URL('deploy/aws/cloudformation.json', root), 'utf8'));
     assert.match(aws.Resources.Engine.Properties.UserData['Fn::Base64']['Fn::Sub'], /bash "\$installer" --prepare-only\n$/);

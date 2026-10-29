@@ -1,28 +1,30 @@
 #!/usr/bin/env bash
-# One-command Promptbook onboarding for a clean Ubuntu 24.04 x86-64 VPS: prepares the prerequisites and the published
-# engine, then hands this terminal to the ordinary interactive `ptbk init` as the dedicated non-sudo engine user.
+# Shared installer of a clean Ubuntu 24.04 x86-64 VPS: prepares the prerequisites and the published engine for the
+# dedicated non-sudo engine user. The website's one-command entry (https://www.ptbk.io/install.sh) and provider
+# startup scripts run it for preparation only; `--init` also hands this terminal to the ordinary `ptbk init` as that user.
 # A thin bootstrap: destination, tools, sign-in, Git setup and the start belong to init. No AI credentials are accepted.
 set -Eeuo pipefail
 umask 022
 
-installer_url='https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh'
-continuation="curl -fsSL $installer_url -o install-promptbook.sh && sudo bash install-promptbook.sh"
+# The attended one-command entry: it reuses a prepared server and opens init as the engine user.
+continuation='curl -fsSL https://www.ptbk.io/install.sh | bash'
 engine_user=promptbook
 engine_home=/var/lib/promptbook
 log=/var/log/promptbook-install.log
 
 usage() {
     printf '%s\n' \
-        'Usage: sudo bash install.sh [--version <published-version>] [--path <project-folder>] [--prepare-only] [-- <ptbk init options>]' \
+        'Usage: sudo bash install.sh [--version <published-version>] [--prepare-only | --init [--path <project-folder>] [-- <ptbk init options>]]' \
         '' \
         'Prepares a dedicated non-sudo promptbook user, Node.js 24, npm, Git, Chrome, boot persistence and the published' \
-        'ptbk engine, then starts the setup assistant (ptbk init) as promptbook in this terminal.' \
+        'ptbk engine. Run ptbk init as promptbook afterwards, or use --init to start it in this terminal.' \
         '' \
         '  --version <v>    exact published version (default: npm latest, resolved once; an installed engine is reused)' \
-        '  --path <folder>  project folder inside /var/lib/promptbook, confirmed by init (default: init offers' \
+        '  --prepare-only   prerequisites only (the default; stated explicitly by unattended provider scripts)' \
+        '  --init           then start the setup assistant (ptbk init) as promptbook in this terminal' \
+        '  --path <folder>  with --init: project folder inside /var/lib/promptbook, confirmed by init (default: init offers' \
         '                   /var/lib/promptbook/PTBK/project/<name>)' \
-        '  --prepare-only   prerequisites only, for unattended provider scripts ("server prepared; initialization pending")' \
-        '  -- <options>     further ptbk init options, e.g. --non-interactive with its decisions' \
+        '  -- <options>     with --init: further ptbk init options, e.g. --non-interactive with its decisions' \
         '' \
         'No AI credentials are accepted by this script; harness sign-in happens attended in init.'
 }
@@ -35,11 +37,13 @@ fail() {
 requested_version=''
 project_path=''
 prepare_only=false
+hand_off=false
 init_args=()
 while (( $# )); do
     case "$1" in
         --help | -h) usage; exit 0 ;;
         --prepare-only) prepare_only=true ;;
+        --init) hand_off=true ;;
         --version | --path)
             (( $# >= 2 )) || fail "$1 needs a value."
             if [[ "$1" == --path ]]; then
@@ -52,7 +56,7 @@ while (( $# )); do
             shift
             ;;
         --) shift; init_args=("$@"); break ;;
-        -*) fail "Unknown option $1. Use latest or an exact published semantic version, --path, --prepare-only or -- followed by ptbk init options." ;;
+        -*) fail "Unknown option $1. Use latest or an exact published semantic version, --prepare-only, --init, --path or -- followed by ptbk init options." ;;
         *)
             [[ -z "$requested_version" ]] || fail 'Expected at most one published ptbk version.'
             requested_version="$1"
@@ -61,6 +65,8 @@ while (( $# )); do
     shift
 done
 requested_version="${requested_version:-latest}"
+if [[ "$prepare_only" == true && "$hand_off" == true ]]; then fail 'Use either --prepare-only or --init, not both.'; fi
+if [[ "$hand_off" == false && ( -n "$project_path" || ${#init_args[@]} -gt 0 ) ]]; then fail '--path and ptbk init options need --init.'; fi
 if [[ ! "$requested_version" =~ ^(latest|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
     fail 'Use latest or an exact published semantic version.'
 fi
@@ -174,7 +180,9 @@ if ! id "$engine_user" >/dev/null 2>&1; then
     useradd --create-home --home-dir "$engine_home" --shell /bin/bash "$engine_user"
 fi
 chmod 700 "$engine_home"
+# The first project folder the website entry opens init in (init's own shared projects folder stays available).
 install -d -m 700 -o "$engine_user" -g "$engine_user" \
+    "$engine_home/projects" "$engine_home/projects/my-agenda" \
     "$engine_home/.local" "$engine_home/.local/bin" "$engine_home/.local/share" \
     "$engine_home/.config" "$engine_home/.config/systemd" "$engine_home/.config/systemd/user" \
     "$engine_home/.cache"
@@ -221,8 +229,8 @@ printf '%s\n' "$resolved_version" > /opt/promptbook/installed-version
 printf '\nPrerequisites ready: ptbk %s, Node.js %s, %s, %s.\n' "$resolved_version" "$(node --version)" "$(git --version)" "$(google-chrome-stable --version 2>/dev/null || printf 'Chrome')"
 printf 'The engine runs as the non-sudo user %s (home %s). Lingering is enabled, so its project service can start at boot once init registers it.\n' "$engine_user" "$engine_home"
 
-if [[ "$prepare_only" == true ]]; then
-    printf '\nServer prepared; initialization pending. No agenda or AI account has been configured.\nContinue in an SSH terminal with:\n  %s\n' "$continuation"
+if [[ "$hand_off" == false ]]; then
+    printf '\nServer prepared; initialization pending. No agenda or AI account has been configured.\nOpen the setup assistant in an interactive SSH terminal with:\n  %s\nor run: sudo -iu %s, then cd ~/projects/my-agenda && ptbk init --path "$PWD"\n' "$continuation" "$engine_user"
     exit 0
 fi
 if [[ "$attended_terminal" == false && "$noninteractive_init" == false ]]; then
