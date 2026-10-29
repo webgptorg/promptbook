@@ -2,7 +2,7 @@
 
 ## Self-hosted server deployment
 
--   The VPS account owns every prepared application-data/config/cache directory, including intermediate directories. Its login profile scopes XDG paths to its own home rather than inheriting the SSH administrator's configuration path; the smoke test verifies writable data and actual startup registration.
+-   The VPS account owns every prepared application-data/config/cache directory, including intermediate directories. Its login profile and CLI launcher scope XDG paths to its own home rather than inheriting the SSH administrator's configuration path; the smoke test deliberately supplies foreign paths and verifies writable data and actual startup registration.
 
 -   Fresh server accounts receive a local Git service identity only when none is configured, so the first setup commit succeeds; existing identity is preserved. The Ubuntu smoke test executes its multiple commands through stdin rather than sudo's login-command quoting.
 
