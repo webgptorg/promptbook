@@ -39,10 +39,9 @@ jobs:
         run: |
           sudo -iu promptbook bash -s <<'SMOKE'
             set -euxo pipefail
-            test "$XDG_CONFIG_HOME" = "$HOME/.config"
             test -w "$HOME/.local/share"
             cd ~/projects/my-agenda
-            ptbk init --path "$PWD" --non-interactive --installation global --no-harness --browser-profile isolated --browser-mode headless --no-dashboard --raw
+            env XDG_CONFIG_HOME=/root/foreign-config XDG_DATA_HOME=/root/foreign-data XDG_CACHE_HOME=/root/foreign-cache ptbk init --path "$PWD" --non-interactive --installation global --no-harness --browser-profile isolated --browser-mode headless --no-dashboard --raw
             ptbk status --raw
             test -n "$(find ~/.config/systemd/user -name "ptbk-agenda-*.service" -print -quit)"
             test "$(loginctl show-user promptbook --property=Linger --value)" = yes

@@ -100,6 +100,12 @@ cat > /usr/local/bin/ptbk <<'LAUNCHER'
 #!/bin/sh
 # Promptbook VPS launcher
 export PATH="/opt/promptbook/node/bin:$HOME/.local/bin:$PATH"
+if [ "$(id -un)" = promptbook ]; then
+    export XDG_CONFIG_HOME=/var/lib/promptbook/.config
+    export XDG_DATA_HOME=/var/lib/promptbook/.local/share
+    export XDG_CACHE_HOME=/var/lib/promptbook/.cache
+    export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+fi
 exec /opt/promptbook/engine/bin/ptbk "$@"
 LAUNCHER
 chmod 755 /usr/local/bin/ptbk
