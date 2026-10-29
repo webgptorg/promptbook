@@ -46,7 +46,7 @@ import { HARNESS_PLUGINS, harnessPlugin } from '../../harness/registry.js';
 import { handOverCreated, intendedUser, missingDirectories, sharedProjectsRoot } from '../../common/user-home.js';
 import { kebabIdentifier } from '../../common/naming.js';
 import { WalletSubEngine } from '../../wallet/wallet.js';
-import { confirmRecoveryWords } from '../../ui/wallet-forms.js';
+import { confirmRecoveryWords, walletImportFlow } from '../../ui/wallet-forms.js';
 import { checkHarnessVersion, installHarness, loginHarness, updateHarness } from '../../harness/maintenance.js';
 import type { HarnessInspection, HarnessPlugin } from '../../harness/types.js';
 import type { ServiceSnapshot } from '../../engine/snapshot.js';
@@ -1247,6 +1247,24 @@ export async function initializeProject(context: CommandContext, options: { proj
                 notes.push('Wallet setup was discarded (nothing was saved); set it up later on the dashboard Wallet page.');
             }
         } else alreadyReady.push(`Wallet: ${wallet.view().summary}`);
+        // The same optional Bitwarden import as the Wallet page, so selected routine access needs no later visit.
+        if (wallet.readiness === 'ready' && terminal.interactive) {
+            const offer = await confirm(terminal, {
+                frame: { title: 'ptbk init', step: 'Wallet · import logins' },
+                question: 'Import website logins from a Bitwarden export now? You choose which ones; you can also import later on the Wallet page.',
+                defaultYes: false,
+                yesLabel: 'Yes, import from an unencrypted Bitwarden JSON export',
+                noLabel: 'No, not now',
+            });
+            if (offer === true) {
+                const outcome = await walletImportFlow(
+                    terminal,
+                    { preview: async (path) => await wallet.previewImport({ content: await readFile(path, 'utf8') }), apply: async (draft, select, replace) => await wallet.applyImport({ draft, select, replace }), cancel: async () => wallet.cancelImport() },
+                    'ptbk init',
+                );
+                if (outcome) (/^Nothing was imported|^The export has no/.test(outcome) ? notes : changed).push(`Wallet import: ${outcome}`);
+            }
+        }
     }
     await handOverCreated(createdDirectories, intendedUser(context.env)).catch((error: unknown) => unresolved.push(`The new project folder could not be handed over to its user: ${errorMessage(error)} → fix its ownership (chown) before running Promptbook without sudo`));
 

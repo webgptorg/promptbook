@@ -1,5 +1,6 @@
 import { emitKeypressEvents, type Key } from 'node:readline';
-import { CANCELLED, inputLine, type WizardFrame } from './prompts.js';
+import { CANCELLED, confirm, inputLine, selectMany, type WizardFrame } from './prompts.js';
+import type { WalletImportPreview } from '../wallet/wallet.js';
 import { FullScreen } from './screen.js';
 import { readConcealed, readOwnerCredential } from './secret.js';
 import type { TerminalProfile } from './terminal.js';
@@ -93,4 +94,69 @@ export async function walletRestoreForm(terminal: TerminalProfile): Promise<stri
     terminal.write('\nRestore the Wallet on this computer: enter the 12 words for recovery in order, separated by spaces.\n');
     const words = await readConcealed(terminal, '  12 words for recovery');
     return words.trim() || undefined;
+}
+
+/**
+ * The engine's Wallet import operations as a surface calls them (the dashboard through its engine, init in process).
+ *
+ * @private dashboard Wallet forms
+ */
+export type WalletImportOperations = {
+    readonly preview: (path: string) => Promise<WalletImportPreview>;
+    readonly apply: (draft: string, select: readonly string[], replace: readonly string[]) => Promise<{ readonly outcome: string }>;
+    readonly cancel: () => Promise<unknown>;
+};
+
+/**
+ * The one terminal import flow of init and the Wallet page: the path of an unencrypted Bitwarden JSON export
+ * (protected local input; its content never leaves the Wallet), a preview with individual, Select all and Select none
+ * selection (identical duplicates are kept, conflicts are replaced only on an explicit choice), then one import.
+ * Returns the outcome, or undefined when cancelled (nothing was saved).
+ *
+ * @private dashboard Wallet forms
+ */
+export async function walletImportFlow(terminal: TerminalProfile, operations: WalletImportOperations, frameTitle = 'ptbk dashboard'): Promise<string | undefined> {
+    const frame: WizardFrame = {
+        title: frameTitle,
+        step: 'Wallet · import logins from Bitwarden',
+        summary: ['In Bitwarden choose Export vault with the File format ".json" (not encrypted). The file contains your passwords: Promptbook reads it once, keeps no copy, and you delete it safely afterwards.'],
+    };
+    const path = await inputLine(terminal, { frame, question: 'Path of the exported JSON file:', validate: (value) => (value.trim() ? undefined : 'Enter the path of the export.') });
+    if (path === CANCELLED) return undefined;
+    let preview: WalletImportPreview;
+    try {
+        preview = await operations.preview(path.trim().replace(/^['"]|['"]$/g, ''));
+    } catch (error) {
+        return `Nothing was imported: ${(error as Error).message}`;
+    }
+    const skipped = preview.skipped.length ? [`Not imported (${preview.skipped.length}): ${preview.skipped.slice(0, 6).map((entry) => `${entry.label} — ${entry.reason}`).join('; ')}${preview.skipped.length > 6 ? '; …' : ''}`] : [];
+    if (!preview.candidates.length) {
+        await operations.cancel();
+        return `The export has no website logins to import.${skipped.length ? ` ${skipped[0]}` : ''}`;
+    }
+    const describe = (candidate: WalletImportPreview['candidates'][number]): string =>
+        `${candidate.origin} · ${candidate.account}${candidate.totp ? ' · TOTP generator' : ''}${candidate.state === 'duplicate' ? ' · identical to a saved login (kept)' : candidate.state === 'conflict' ? ' · differs from the saved login' : ''}`;
+    const selected = await selectMany(terminal, {
+        frame: { ...frame, summary: [...(frame.summary ?? []), ...skipped] },
+        question: 'Which logins should the Wallet import?',
+        choices: preview.candidates.map((candidate) => ({ value: candidate.key, label: candidate.label, description: describe(candidate), disabled: candidate.state === 'duplicate' })),
+        initial: preview.candidates.filter((candidate) => candidate.state === 'new').map((candidate) => candidate.key),
+        noneLabel: 'None selected (nothing is imported)',
+        bulk: true,
+    });
+    if (selected === CANCELLED || !selected.length) {
+        await operations.cancel();
+        return selected === CANCELLED ? undefined : 'Nothing was imported.';
+    }
+    const conflicts = preview.candidates.filter((candidate) => candidate.state === 'conflict' && selected.includes(candidate.key));
+    let replace: string[] = [];
+    if (conflicts.length) {
+        const answer = await confirm(terminal, { frame, question: `Replace the saved values of ${conflicts.length} login${conflicts.length === 1 ? '' : 's'} that differ from the export (${conflicts.map((candidate) => candidate.label).join(', ')})?`, defaultYes: false, yesLabel: 'Yes, use the exported values', noLabel: 'No, keep the saved logins' });
+        if (answer === CANCELLED) {
+            await operations.cancel();
+            return undefined;
+        }
+        if (answer) replace = conflicts.map((candidate) => candidate.key);
+    }
+    return (await operations.apply(preview.draft, selected, replace)).outcome;
 }

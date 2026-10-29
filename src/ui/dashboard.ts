@@ -29,11 +29,12 @@ import {
 import type { HistoryView } from '../project/history.js';
 import type { FileView, FolderView } from '../project/files.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
-import { recoveryWordLines, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
+import { recoveryWordLines, walletImportFlow, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
+import type { WalletImportPreview } from '../wallet/wallet.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import { TitleAnimation, type DashboardTitleContext } from './terminal-title.js';
-import { matchesFilter, windowAround } from './prompts.js';
+import { CANCELLED, inputLine, matchesFilter, windowAround } from './prompts.js';
 import { runBookEditor, type BookDraft, type BookSourceClient } from './book-editor.js';
 import { TASK_SORT_FIELDS, type TaskInventoryItem } from '../tasks/views.js';
 import { formatAgentReference } from '../book/references.js';
@@ -704,6 +705,67 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             else notify(unset ? 'Set up the Wallet first (S).' : 'Restore the Wallet on this computer first (R).');
         } else if (key === 'd' && focused?.kind === 'record') confirmThen(`Remove the saved login "${focused.account}" for ${focused.origin}?`, async () => void (await runWallet('wallet-remove', { id: focused.id })));
         else if (key === 'x' && focused?.kind === 'request') confirmThen(`Dismiss the login request for ${focused.origin}? The waiting work continues without it.`, async () => void (await runWallet('wallet-dismiss', { request: focused.id })));
+        else if (key === 'i') {
+            if (!wallet.management?.canImport) notify(unset ? 'Set up the Wallet first (S).' : 'Restore the Wallet on this computer first (R).');
+            else
+                void outside(() =>
+                    walletImportFlow(terminal, {
+                        preview: async (path) => (await source.wallet('wallet-import-preview', { path })) as WalletImportPreview,
+                        apply: async (draft, select, replace) => (await source.wallet('wallet-import-apply', { draft, select, replace })) as { outcome: string },
+                        cancel: async () => await source.wallet('wallet-import-cancel'),
+                    }),
+                ).then((outcome) => notify(outcome ?? 'Import cancelled; nothing was saved.'));
+        } else if (key === 'g') {
+            if (!wallet.management?.canRotate) notify('New words need a Wallet this computer unlocks.');
+            else void walletRotate();
+        } else if (key === 'z') {
+            if (!wallet.management?.canReset) notify(wallet.state === 'ready' ? 'Nothing is lost here: use G for new 12 words instead of a reset.' : 'There is no Wallet to reset.');
+            else void walletReset();
+        }
+    };
+
+    /**
+     * New 12 words for recovery while this computer's key works: every saved login is re-encrypted and kept; the new
+     * words are shown only inside the full-screen view and take effect when confirmed.
+     */
+    const walletRotate = async (): Promise<void> => {
+        confirmThen(
+            'Generate new 12 words for recovery? Every saved login stays; the old words stop opening this Wallet and other computers need the new words once.',
+            async () => {
+                const result = (await runWallet('wallet-rotate')) as { words?: readonly string[] } | undefined;
+                if (!result?.words?.length) return;
+                confirmThen(
+                    'Did you write down the NEW 12 words for recovery?',
+                    async () => void (await runWallet('wallet-rotate-confirm')),
+                    [...recoveryWordLines(result.words), '', style.muted('Y switches to these words (all logins are re-encrypted) · N keeps the current words.')],
+                    async () => void (await runWallet('wallet-rotate-cancel')),
+                );
+            },
+        );
+    };
+
+    /**
+     * Empty reset after total key loss: the all-data-loss warning, a typed RESET confirmation, then the new Wallet's
+     * words; the old data is replaced only when those are confirmed (declining at any step changes nothing).
+     */
+    const walletReset = async (): Promise<void> => {
+        const typed = await outside(async () => {
+            terminal.write(`\n${style.error('Reset the Wallet')}\nNo key on this computer and no 12 words can unlock this Wallet, so its old data cannot be recovered.\nResetting discards ALL of it for good: services and accounts, labels, usernames, passwords and TOTP generators.\n\n`);
+            const answer = await inputLine(terminal, { frame: { title: 'ptbk dashboard', step: 'Wallet · reset' }, question: 'Type RESET to discard every old Wallet login (anything else cancels):' });
+            return answer === CANCELLED ? undefined : answer.trim();
+        });
+        if (typed !== 'RESET') {
+            notify('Nothing was changed; the encrypted Wallet data is kept.');
+            return;
+        }
+        const result = (await runWallet('wallet-reset', { confirm: typed })) as { words?: readonly string[] } | undefined;
+        if (!result?.words?.length) return;
+        confirmThen(
+            'Did you write down the 12 words for the NEW empty Wallet?',
+            async () => void (await runWallet('wallet-setup-confirm')),
+            [...recoveryWordLines(result.words), '', style.warning('Y discards the old Wallet and creates the new empty one · N keeps the old encrypted data.')],
+            async () => void (await runWallet('wallet-setup-cancel')),
+        );
     };
 
     /** Runs a lifecycle action offered for the current state (same operations as the CLI commands). */

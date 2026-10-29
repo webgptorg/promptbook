@@ -270,7 +270,7 @@ export class ServiceHost {
     private async handleControl(method: string, params: Readonly<Record<string, unknown>>): Promise<unknown> {
         const agenda = this.agenda;
         // The authenticated local channel is the owner's terminal: it may show the 12 words for recovery during setup.
-        if (WALLET_ACTIONS.has(method)) return await applyWalletAction(agenda, method, params, { ownerSurface: true });
+        if (WALLET_ACTIONS.has(method)) return await applyWalletAction(agenda, method, params, { ownerSurface: true, trustedFiles: true });
         switch (method) {
             case 'identify':
                 return { instanceId: this.instanceId, projectRoot: this.options.project.root, pid: process.pid, mode: this.options.mode, version: ENGINE_VERSION, contract: CONTROL_CONTRACT, state: agenda.serviceState };

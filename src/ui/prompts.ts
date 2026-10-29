@@ -255,7 +255,7 @@ export async function confirm(terminal: TerminalProfile, options: { frame: Wizar
  */
 export async function selectMany<T>(
     terminal: TerminalProfile,
-    options: { frame: WizardFrame; question: string; choices: readonly Choice<T>[]; initial: readonly T[]; minimum?: number; noneLabel?: string; emptyWarning?: string },
+    options: { frame: WizardFrame; question: string; choices: readonly Choice<T>[]; initial: readonly T[]; minimum?: number; noneLabel?: string; emptyWarning?: string; /** Ctrl+A selects every enabled choice, Ctrl+U none. */ bulk?: boolean },
 ): Promise<T[] | typeof CANCELLED> {
     const { style } = terminal;
     const marks = symbols(terminal.unicode);
@@ -304,7 +304,7 @@ export async function selectMany<T>(
             const count = selected.size;
             lines.push('', `  ${count ? style.success(`${count} selected`) : style.muted(options.noneLabel ?? 'None selected')}${message ? `  ${style.warning(message)}` : ''}`);
             if (!count && options.emptyWarning) for (const line of wrap(`${marks.warn} ${options.emptyWarning}`, Math.max(20, width - 4))) lines.push(`  ${style.warning(line)}`);
-            lines.push(legend(terminal, ['↑↓ move', 'Space toggle', 'Enter confirm', 'type to filter', query ? 'Esc clear filter' : 'Esc back']));
+            lines.push(legend(terminal, ['↑↓ move', 'Space toggle', ...(options.bulk ? ['Ctrl+A all', 'Ctrl+U none'] : []), 'Enter confirm', 'type to filter', query ? 'Esc clear filter' : 'Esc back']));
             return { lines: lines.map((line) => fit(line, Math.max(10, width - 1)).trimEnd()) };
         },
         (event) => {
@@ -320,6 +320,14 @@ export async function selectMany<T>(
             }
             const list = rows();
             message = '';
+            if (options.bulk && event.ctrl && (event.name === 'a' || event.name === 'u')) {
+                for (const choice of options.choices) {
+                    if (choice.disabled) continue;
+                    if (event.name === 'a') selected.add(choice.value);
+                    else selected.delete(choice.value);
+                }
+                return undefined;
+            }
             if (event.name === 'backspace' && query) {
                 query = query.slice(0, -1);
                 focus = 0;

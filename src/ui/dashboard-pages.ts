@@ -386,7 +386,8 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 body.push(`${row()} ${action.origin}${action.account ? ` · ${action.account}` : ''} ${style.warning(`· ${problem}`)}${style.muted(` · ${action.tasks.length ? `for ${action.tasks.join(', ')}` : 'requested'} · since ${time(action.createdAt)}${action.requests > 1 ? ` · ${action.requests}×` : ''}`)}`);
             }
             if (!wallet.pending.length) body.push(style.muted('  Nothing waits for a login.'));
-            body.push('', style.bold(`Saved logins (${wallet.records.length})`));
+            body.push('', style.bold(`Saved logins (${wallet.lockedRecords ?? wallet.records.length})`));
+            if (wallet.lockedRecords) body.push(style.muted('  Their services, accounts and labels are encrypted too; they appear once this computer unlocks the Wallet.'));
             for (const record of wallet.records) {
                 body.push(`${row()} ${record.origin} · ${record.account}${record.lastUsedAt ? style.muted(` · used ${time(record.lastUsedAt)}`) : ''}${record.lastOutcome === 'rejected' ? style.warning(' · rejected by the site') : ''}`);
             }
@@ -397,10 +398,10 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             const keys =
                 wallet.state === 'empty' || wallet.state === 'setup'
                     ? ['S set up (shows 12 words for recovery once)']
-                    : wallet.state === 'locked'
-                      ? ['R restore with the 12 words for recovery']
+                    : wallet.state === 'locked' || wallet.state === 'unavailable'
+                      ? [...(wallet.state === 'locked' ? ['R restore with the 12 words for recovery'] : []), ...(wallet.management?.canReset ? ['Z reset (no key: all old logins are lost)'] : [])]
                       : wallet.state === 'ready'
-                        ? ['N add login', ...(focused ? [focused.kind === 'request' ? 'Enter add this login · X dismiss' : 'Enter update · D remove'] : [])]
+                        ? ['N add login', 'I import from Bitwarden', 'G new 12 words', ...(focused ? [focused.kind === 'request' ? 'Enter add this login · X dismiss' : 'Enter update · D remove'] : [])]
                         : [];
             return { title: 'Wallet', context: 'Website logins of this project, encrypted in .ptbk/wallet/ and applied for agents without showing them the credentials', body, anchor, legend: `${keys.join(' · ')}${keys.length ? ' · ' : ''}↑↓ choose · ${back}` };
         }

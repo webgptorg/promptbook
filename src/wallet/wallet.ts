@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { open as openFile, readFile } from 'node:fs/promises';
+import { open as openFile, readFile, rename, rm, stat } from 'node:fs/promises';
 import { hostname, userInfo } from 'node:os';
 import { join } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
@@ -8,6 +8,7 @@ import { Mutex } from '../common/mutex.js';
 import type { Project } from '../project/workspace.js';
 import { ENCRYPTION_FORMAT, createVerifier, deriveProjectRoot, domainKey, generateRecoveryWords, newProjectSalt, normalizeRecoveryWords, open, seal, verifyRoot, type Envelope } from './crypto.js';
 import { hostUnlock, type HostUnlock, type HostUnlockFacility } from './host-unlock.js';
+import { IMPORT_SOURCES, type ImportedLogin, type SkippedEntry } from './import.js';
 
 /**
  * Readiness of a project's Wallet: `empty` (never set up; nothing to unlock), `setup` (12 words for recovery are
@@ -69,6 +70,10 @@ export type WalletView = {
     /** The host facility protecting automatic unlock (nonsecret). */
     readonly facility?: HostUnlockFacility;
     readonly records: readonly WalletRecordView[];
+    /** Saved logins that stay encrypted because the Wallet is not unlocked here (their labels are encrypted too). */
+    readonly lockedRecords?: number;
+    /** Owner maintenance that applies now: import, new recovery words (a working key), or an empty reset (no key). */
+    readonly management?: { readonly canImport: boolean; readonly canRotate: boolean; readonly canReset: boolean };
     readonly pending: readonly WalletActionView[];
     readonly lastAction?: { readonly action: string; readonly outcome: string; readonly applied: boolean; readonly at: string };
 };
@@ -173,7 +178,8 @@ type HostBindings = {
 };
 
 /**
- * One saved login: nonsecret labels plus the encrypted `{ origin, username, password }`.
+ * One saved login in this engine's memory while the Wallet is unlocked: its labels for views and matching plus the
+ * encrypted credentials. On disk nothing of it is plaintext (see {@link SealedRecord}).
  */
 type StoredRecord = {
     readonly id: string;
@@ -194,12 +200,51 @@ type StoredAction = WalletActionView & { readonly state: 'pending' | 'resolved' 
 /**
  * Decrypted content of a record (only inside the Wallet and the trusted sign-in).
  */
-type Credentials = { readonly origin: string; readonly username: string; readonly password: string };
+type Credentials = { readonly origin: string; readonly username: string; readonly password: string; readonly totp?: string };
+
+/**
+ * The complete content of one record as it is encrypted on disk: service, account, label, times and secrets alike.
+ */
+type RecordContent = Credentials & { readonly label: string; readonly createdAt: string; readonly updatedAt: string; readonly lastUsedAt?: string; readonly lastOutcome?: 'signed-in' | 'rejected' };
+
+/**
+ * One record on disk (`records.json`, version 2): an id and its entirely encrypted content, with no plaintext account
+ * or origin index.
+ */
+type SealedRecord = { readonly id: string; readonly sealed: Envelope };
+
+/**
+ * A protected import preview of one login (never a password or generator secret).
+ *
+ * @private Wallet
+ */
+export type WalletImportCandidate = {
+    readonly key: string;
+    readonly label: string;
+    readonly origin: string;
+    /** Masked username. */
+    readonly account: string;
+    /** `new`, an identical `duplicate` (reused), or a `conflict` with different saved values (replaced only on request). */
+    readonly state: 'new' | 'duplicate' | 'conflict';
+    readonly totp: boolean;
+};
+
+/**
+ * A protected import preview: the selectable logins and the honestly skipped entries of one export.
+ *
+ * @private Wallet
+ */
+export type WalletImportPreview = { readonly draft: string; readonly source: string; readonly candidates: readonly WalletImportCandidate[]; readonly skipped: readonly SkippedEntry[] };
 
 /**
  * How long words shown for setup stay valid without confirmation (they are only in memory).
  */
 const SETUP_DRAFT_MS = 30 * 60_000;
+
+/**
+ * What an empty reset loses (shown before its separate destructive confirmation).
+ */
+const RESET_WARNING = 'Resetting discards ALL old Wallet data for good: the list of services and accounts, labels, usernames, passwords and TOTP generators. It cannot be recovered without the old 12 words or a computer that still unlocks it. Saved logins must be added or imported again.';
 
 /**
  * Settled login actions are kept this long (7 days; once-only resume of waiting work across restarts), then pruned.
@@ -332,8 +377,19 @@ export class WalletSubEngine {
     private key?: Buffer;
     private records: StoredRecord[] = [];
     private actions: StoredAction[] = [];
-    /** Words shown for setup, only in memory until confirmed (an interrupted setup leaves nothing behind). */
-    private draft?: { readonly words: readonly string[]; readonly salt: Buffer; readonly expiresAt: number };
+    /**
+     * Words shown for setup, only in memory until confirmed (an interrupted setup leaves nothing behind). A `reset`
+     * draft replaces an unrecoverable Wallet only when it is confirmed.
+     */
+    private draft?: { readonly words: readonly string[]; readonly salt: Buffer; readonly expiresAt: number; readonly reset?: boolean };
+    /** New words of a recovery-word replacement, only in memory until confirmed. */
+    private rotation?: { readonly words: readonly string[]; readonly salt: Buffer; readonly expiresAt: number };
+    /** A parsed import, only in memory until applied or cancelled (the export itself is never copied). */
+    private importDraft?: { readonly id: string; readonly source: string; readonly logins: readonly ImportedLogin[]; readonly skipped: readonly SkippedEntry[]; readonly expiresAt: number };
+    /** Records on disk while the Wallet is not unlocked (their content stays encrypted, so only the count is known). */
+    private lockedRecords = 0;
+    /** The records were read from the older format with plaintext labels: rewritten fully encrypted once unlocked. */
+    private legacyRecords = false;
     private lastAction?: WalletView['lastAction'];
 
     public constructor(private readonly options: WalletOptions) {
@@ -363,10 +419,12 @@ export class WalletSubEngine {
         await this.mutex.run(async () => {
             this.actions = await this.readActions();
             this.pruneActions();
+            await this.recoverGeneration();
             const metadata = await this.readMetadata();
             if (!metadata) return;
             this.metadata = metadata;
             await this.unlockWithHost(metadata);
+            if (this.state !== 'ready') this.lockedRecords = await this.recordCount(metadata);
         });
         this.options.onChange();
     }
@@ -438,6 +496,26 @@ export class WalletSubEngine {
         this.records = await this.readRecords(metadata);
         this.state = 'ready';
         this.problem = undefined;
+        this.lockedRecords = 0;
+        await this.migrateRecords();
+    }
+
+    /** Rewrites records of the older format (plaintext labels) entirely encrypted, once the Wallet is unlocked. */
+    private async migrateRecords(): Promise<void> {
+        if (!this.legacyRecords || this.state !== 'ready') return;
+        await this.writeRecords();
+        this.legacyRecords = false;
+        this.options.log('Wallet: saved logins are now encrypted completely (service, account and label included).');
+    }
+
+    /** Number of records on disk (readable without the key). */
+    private async recordCount(metadata: EncryptionMetadata): Promise<number> {
+        try {
+            const file = JSON.parse(await readFile(join(this.walletDirectory, 'records.json'), 'utf8')) as { projectKeyId?: string; records?: unknown[] };
+            return file.projectKeyId === metadata.projectKeyId && Array.isArray(file.records) ? file.records.length : 0;
+        } catch {
+            return 0;
+        }
     }
 
     /** Host bindings of this project (an unreadable file is treated as having none; it is replaced on restoration). */
@@ -450,14 +528,45 @@ export class WalletSubEngine {
         }
     }
 
-    /** Saved records (encrypted); records of another project key are not this vault's. */
+    /**
+     * Saved records, decrypted into memory with the unlocked key (their whole content is encrypted on disk); records of
+     * another project key are not this vault's. Records of the older format are recognized and migrated.
+     */
     private async readRecords(metadata: EncryptionMetadata): Promise<StoredRecord[]> {
+        let file: { projectKeyId?: string; records?: Array<StoredRecord | SealedRecord> };
         try {
-            const file = JSON.parse(await readFile(join(this.walletDirectory, 'records.json'), 'utf8')) as { projectKeyId?: string; records?: StoredRecord[] };
-            return file.projectKeyId === metadata.projectKeyId && Array.isArray(file.records) ? file.records : [];
+            file = JSON.parse(await readFile(join(this.walletDirectory, 'records.json'), 'utf8')) as typeof file;
         } catch {
             return [];
         }
+        if (file.projectKeyId !== metadata.projectKeyId || !Array.isArray(file.records)) return [];
+        const key = this.key;
+        if (!key) return [];
+        const records: StoredRecord[] = [];
+        for (const entry of file.records) {
+            if ('sealed' in entry) {
+                try {
+                    const content = JSON.parse(open(key, WALLET_DOMAIN, entry.sealed).toString('utf8')) as RecordContent;
+                    const credentials: Credentials = { origin: content.origin, username: content.username, password: content.password, ...(content.totp ? { totp: content.totp } : {}) };
+                    records.push({
+                        id: entry.id,
+                        origin: content.origin,
+                        account: content.label,
+                        createdAt: content.createdAt,
+                        updatedAt: content.updatedAt,
+                        ...(content.lastUsedAt ? { lastUsedAt: content.lastUsedAt } : {}),
+                        ...(content.lastOutcome ? { lastOutcome: content.lastOutcome } : {}),
+                        secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')),
+                    });
+                } catch {
+                    this.options.log(`Wallet: one saved login could not be decrypted and is not used (${entry.id}).`, 'warning');
+                }
+            } else {
+                records.push(entry);
+                this.legacyRecords = true;
+            }
+        }
+        return records;
     }
 
     /** Persisted login actions. */
@@ -476,10 +585,23 @@ export class WalletSubEngine {
         this.actions = this.actions.filter((action) => action.state === 'pending' || Date.parse(action.settledAt ?? action.createdAt) > cutoff);
     }
 
-    /** Writes the records atomically (owner-only). */
+    /**
+     * Writes the records atomically (owner-only), each entirely encrypted: service, account, label, times and secrets
+     * (no plaintext index).
+     */
     private async writeRecords(): Promise<void> {
         await ensureDirectory(this.walletDirectory);
-        await writeJsonAtomic(join(this.walletDirectory, 'records.json'), { format: ENCRYPTION_FORMAT, projectKeyId: this.metadata?.projectKeyId, records: this.records }, { mode: PRIVATE_FILE_MODE });
+        if (!this.key || !this.metadata) throw new PtbkError('The Wallet is not unlocked; nothing was saved.', { kind: 'setup' });
+        await writeJsonAtomic(join(this.walletDirectory, 'records.json'), this.sealedRecords(this.key, this.metadata.projectKeyId), { mode: PRIVATE_FILE_MODE });
+    }
+
+    /** The on-disk form of the records under a key (also for a new generation's key). */
+    private sealedRecords(key: Buffer, projectKeyId: string): { format: string; version: 2; projectKeyId: string; records: SealedRecord[] } {
+        const records = this.records.map((record): SealedRecord => {
+            const content: RecordContent = { ...this.credentials(record), label: record.account, createdAt: record.createdAt, updatedAt: record.updatedAt, ...(record.lastUsedAt ? { lastUsedAt: record.lastUsedAt } : {}), ...(record.lastOutcome ? { lastOutcome: record.lastOutcome } : {}) };
+            return { id: record.id, sealed: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(content), 'utf8')) };
+        });
+        return { format: ENCRYPTION_FORMAT, version: 2, projectKeyId, records };
     }
 
     /** Writes the login actions atomically (nonsecret). */
@@ -526,12 +648,15 @@ export class WalletSubEngine {
      * over an existing vault) and provisions this host's automatic unlock.
      */
     public async confirmSetup(): Promise<WalletOutcome> {
+        const reset = Boolean(this.draft?.reset);
         const outcome = await this.mutex.run(async (): Promise<WalletOutcome> => {
             const draft = this.draft;
             if (!draft || draft.expiresAt < Date.now()) {
                 this.draft = undefined;
                 return { action: 'wallet-setup-confirm', applied: false, outcome: 'No Wallet setup is waiting for confirmation (it expires after 30 minutes); start it again.' };
             }
+            // A confirmed reset replaces the unrecoverable Wallet only now, with the new words written down.
+            if (draft.reset) await this.discardUnrecoverable();
             const root = deriveProjectRoot(draft.words, draft.salt);
             try {
                 const metadata: EncryptionMetadata = {
@@ -574,6 +699,7 @@ export class WalletSubEngine {
             }
         });
         if (outcome.applied) this.options.log(`Wallet: set up with automatic unlock through ${this.unlock.facility}.`);
+        if (outcome.applied && reset) await this.recordAudit({ subject: 'Wallet - Reset to a new empty Wallet', body: 'Replaced a Wallet that no key or recovery words could unlock with a new, empty encrypted Wallet and new 12 words for recovery.\nThe old saved logins could not be read and were discarded. Words, keys and the encrypted vault are never committed.' });
         return this.remember(outcome);
     }
 
@@ -616,6 +742,8 @@ export class WalletSubEngine {
             this.records = await this.readRecords(metadata);
             this.state = 'ready';
             this.problem = undefined;
+            this.lockedRecords = 0;
+            await this.migrateRecords();
             const locked = this.actions.filter((action) => action.state === 'pending' && action.problem === 'locked');
             for (const action of locked) this.settle(action.id, 'resolved');
             if (locked.length) await this.writeActions();
@@ -624,6 +752,288 @@ export class WalletSubEngine {
         this.options.log('Wallet: restored on this computer with the 12 words for recovery.');
         if (outcome.applied) this.options.onSettled?.();
         return this.remember(outcome);
+    }
+
+    // ── Import (one shared protected importer; Bitwarden is the first source) ──
+
+    /**
+     * Parses an export the owner supplied through a protected local surface into a preview: selectable logins with
+     * their state against the saved ones (new, identical duplicate, conflict) and honestly skipped entries. The export
+     * stays in memory only; nothing is saved before the owner's selection is applied.
+     */
+    public async previewImport(input: { readonly source?: string; readonly content: string }): Promise<WalletImportPreview> {
+        return await this.mutex.run(async () => {
+            this.requireReady();
+            const source = IMPORT_SOURCES[input.source ?? 'bitwarden'];
+            if (!source) throw new PtbkError(`Importing from ${input.source} is not supported.`, { kind: 'unsupported', next: ['Use a Bitwarden JSON export.'] });
+            const extraction = source.extract(input.content, normalizeOrigin);
+            this.importDraft = { id: randomBytes(6).toString('hex'), source: extraction.source, logins: extraction.logins, skipped: extraction.skipped, expiresAt: Date.now() + SETUP_DRAFT_MS };
+            this.options.onChange();
+            return this.importPreview();
+        });
+    }
+
+    /** The preview of the current import draft, evaluated against the saved logins now. */
+    private importPreview(): WalletImportPreview {
+        const draft = this.importDraft!;
+        const seen = new Set<string>();
+        const candidates = draft.logins.map((login): WalletImportCandidate => {
+            const identity = `${login.origin}|${login.username.toLowerCase()}`;
+            const state = seen.has(identity) ? 'duplicate' : this.importState(login);
+            seen.add(identity);
+            return { key: login.key, label: login.label || walletLabel(login.origin, login.username), origin: login.origin, account: maskAccount(login.username), state, totp: Boolean(login.totp) };
+        });
+        return { draft: draft.id, source: draft.source, candidates, skipped: draft.skipped };
+    }
+
+    /** How an imported login relates to the saved ones: the same service and account decide identity, never the label. */
+    private importState(login: ImportedLogin): WalletImportCandidate['state'] {
+        const existing = this.matchingRecord(login.origin, login.username);
+        if (!existing) return 'new';
+        const saved = this.credentials(existing);
+        return saved.password === login.password && (saved.totp ?? '') === (login.totp ?? '') ? 'duplicate' : 'conflict';
+    }
+
+    /** The saved record of one service and account, if any. */
+    private matchingRecord(origin: string, username: string): StoredRecord | undefined {
+        return this.records.find((record) => originMatches(record.origin, origin) && this.usernameOf(record)?.toLowerCase() === username.toLowerCase());
+    }
+
+    /**
+     * Applies the owner's selection of one import draft in one revision-safe write: new logins are added, identical
+     * duplicates reused, conflicting ones replaced only when the owner chose replacement, everything else kept. One
+     * nonsecret audit summarizes the import; a selection that changes nothing creates none.
+     */
+    public async applyImport(input: { readonly draft: string; readonly select: readonly string[]; readonly replace?: readonly string[] }): Promise<WalletOutcome & { readonly imported: number; readonly reused: number; readonly skipped: number; readonly replaced: number }> {
+        const result = await this.mutex.run(async () => {
+            const key = this.requireReady();
+            const draft = this.importDraft;
+            if (!draft || draft.id !== input.draft || draft.expiresAt < Date.now()) throw new PtbkError('This import preview is no longer current (it expires after 30 minutes); read the export again.', { kind: 'conflict', effect: 'Nothing was imported.' });
+            const selected = new Set(input.select);
+            const replace = new Set(input.replace ?? []);
+            const now = new Date().toISOString();
+            const added: StoredRecord[] = [];
+            const changed: StoredRecord[] = [];
+            let reused = 0;
+            let skipped = 0;
+            const done = new Set<string>();
+            for (const login of draft.logins) {
+                if (!selected.has(login.key)) continue;
+                const identity = `${login.origin}|${login.username.toLowerCase()}`;
+                if (done.has(identity)) {
+                    reused++;
+                    continue;
+                }
+                done.add(identity);
+                const credentials: Credentials = { origin: login.origin, username: login.username, password: login.password, ...(login.totp ? { totp: login.totp } : {}) };
+                const existing = this.matchingRecord(login.origin, login.username);
+                const state = this.importState(login);
+                if (state === 'duplicate') reused++;
+                else if (state === 'conflict' && existing) {
+                    if (!replace.has(login.key)) {
+                        skipped++;
+                        continue;
+                    }
+                    const updated: StoredRecord = { ...existing, updatedAt: now, lastOutcome: undefined, secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')) };
+                    this.records = this.records.map((record) => (record.id === existing.id ? updated : record));
+                    changed.push(updated);
+                } else {
+                    const record: StoredRecord = { id: randomBytes(6).toString('hex'), origin: login.origin, account: login.label || walletLabel(login.origin, login.username), createdAt: now, updatedAt: now, secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')) };
+                    this.records = [...this.records, record];
+                    added.push(record);
+                }
+            }
+            this.importDraft = undefined;
+            if (added.length || changed.length) await this.writeRecords();
+            let settled = 0;
+            for (const record of [...added, ...changed]) {
+                for (const pending of this.actions.filter((action) => action.state === 'pending' && originMatches(action.origin, record.origin))) {
+                    this.settle(pending.id, 'resolved', record.id);
+                    settled++;
+                }
+            }
+            if (settled) await this.writeActions();
+            const count = (amount: number, noun: string): string => `${amount} ${noun}${amount === 1 ? '' : 's'}`;
+            const parts = [added.length ? `imported ${count(added.length, 'login')}` : '', changed.length ? `replaced ${changed.length}` : '', reused ? `reused ${reused} identical` : '', skipped ? `kept ${skipped} conflicting saved login${skipped === 1 ? '' : 's'}` : ''].filter(Boolean);
+            const outcome = parts.length ? `${draft.source}: ${parts.join(', ')}.${settled ? ` ${settled === 1 ? 'A waiting request was' : `${settled} waiting requests were`} resolved.` : ''} Delete the export file safely now; Promptbook kept no copy. Imported logins are used automatically, but a login is only verified when a website accepts it.` : `${draft.source}: nothing was imported.`;
+            const audit =
+                added.length || changed.length
+                    ? {
+                          subject: `Wallet - Import ${count(added.length + changed.length, 'login')} from ${draft.source}`,
+                          body: [
+                              `Imported into the encrypted project Wallet from a ${draft.source} export:`,
+                              ...[...added.map((record) => `- added "${record.account}" for ${record.origin}`), ...changed.map((record) => `- replaced "${record.account}" for ${record.origin}`)],
+                              ...(reused || skipped ? [`Reused ${reused} identical and kept ${skipped} conflicting saved login(s).`] : []),
+                              'The export, secret values and the encrypted vault are never committed.',
+                          ].join('\n'),
+                      }
+                    : undefined;
+            return { outcome: { action: 'wallet-import', applied: Boolean(added.length || changed.length), outcome, imported: added.length, reused, skipped, replaced: changed.length }, settled, audit };
+        });
+        if (result.outcome.applied) this.options.log(`Wallet: ${result.outcome.outcome}`);
+        if (result.settled) this.options.onSettled?.();
+        if (result.audit) await this.recordAudit(result.audit);
+        this.remember(result.outcome);
+        return result.outcome;
+    }
+
+    /** Discards an import preview (nothing was saved). */
+    public cancelImport(): WalletOutcome {
+        const had = Boolean(this.importDraft);
+        this.importDraft = undefined;
+        return this.remember({ action: 'wallet-import-cancel', applied: had, outcome: had ? 'Import cancelled; nothing was saved.' : 'No import was in progress.' });
+    }
+
+    // ── Recovery management: new words with a working key, or an empty reset after total key loss ──
+
+    /**
+     * Starts a recovery-word replacement while a valid key actually decrypts the Wallet (also when the old words are
+     * forgotten): every record is decrypted first, then fresh words are shown to the owner's protected surface only.
+     */
+    public async beginRotation(): Promise<{ readonly words: readonly string[] }> {
+        return await this.mutex.run(async () => {
+            this.requireReady();
+            // Finding an envelope is not enough: every saved login must decrypt with the current key.
+            for (const record of this.records) this.credentials(record);
+            if (!this.rotation || this.rotation.expiresAt < Date.now()) this.rotation = { words: generateRecoveryWords(), salt: newProjectSalt(), expiresAt: Date.now() + SETUP_DRAFT_MS };
+            this.options.onChange();
+            return { words: [...this.rotation.words] };
+        });
+    }
+
+    /** Abandons a word replacement (nothing changed; the old words keep working). */
+    public cancelRotation(): WalletOutcome {
+        const had = Boolean(this.rotation);
+        this.rotation = undefined;
+        return this.remember({ action: 'wallet-rotate-cancel', applied: had, outcome: had ? 'Kept the current 12 words for recovery; nothing changed.' : 'No word replacement was in progress.' });
+    }
+
+    /** `.ptbk/encryption/generation.json`: the journal of a generation switch in progress. */
+    private get generationJournal(): string {
+        return join(this.encryptionDirectory, 'generation.json');
+    }
+
+    /** The files of one Wallet generation, with the names of the prepared next generation. */
+    private generationFiles(): Array<{ readonly current: string; readonly next: string }> {
+        return [
+            { current: join(this.walletDirectory, 'records.json'), next: join(this.walletDirectory, 'records.next.json') },
+            { current: join(this.encryptionDirectory, 'hosts.json'), next: join(this.encryptionDirectory, 'hosts.next.json') },
+            { current: join(this.encryptionDirectory, 'project.json'), next: join(this.encryptionDirectory, 'project.next.json') },
+        ];
+    }
+
+    /**
+     * Completes or discards an interrupted generation switch, so the Wallet is always one coherent old or new
+     * generation: with its journal the fully prepared next files replace the current ones; without it, prepared files
+     * are removed (with their unused host secret).
+     */
+    private async recoverGeneration(): Promise<void> {
+        const journal = await readJsonIfExists<{ readonly replacedReference?: string }>(this.generationJournal).catch(() => undefined);
+        const files = this.generationFiles();
+        if (journal) {
+            for (const file of files) await rename(file.next, file.current).catch(() => undefined);
+            if (journal.replacedReference) await this.unlock.remove(journal.replacedReference).catch(() => undefined);
+            await rm(this.generationJournal, { force: true });
+            this.options.log('Wallet: completed an interrupted replacement of the recovery words.');
+            return;
+        }
+        const prepared = await readJsonIfExists<HostBindings>(files[1]!.next).catch(() => undefined);
+        if (!prepared && !(await Promise.all(files.map(async (file) => await stat(file.next).then(() => true, () => false)))).some(Boolean)) return;
+        const reference = prepared?.hosts[this.host]?.reference;
+        if (reference) await this.unlock.remove(reference).catch(() => undefined);
+        for (const file of files) await rm(file.next, { force: true });
+    }
+
+    /**
+     * Replaces the recovery words: a new root from the fresh words re-encrypts every record, the metadata and this
+     * computer's unlock consistently (a journaled switch survives interruption). Records, labels and generators are
+     * preserved; the old words no longer open the updated Wallet (older copies of the ciphertext are not revoked).
+     */
+    public async confirmRotation(): Promise<WalletOutcome> {
+        const outcome = await this.mutex.run(async (): Promise<WalletOutcome> => {
+            const draft = this.rotation;
+            if (!draft || draft.expiresAt < Date.now()) {
+                this.rotation = undefined;
+                return { action: 'wallet-rotate-confirm', applied: false, outcome: 'No word replacement is waiting for confirmation (it expires after 30 minutes); start it again.' };
+            }
+            this.requireReady();
+            const previous = this.metadata!;
+            const previousBinding = (await this.readBindings(previous))?.hosts[this.host];
+            const root = deriveProjectRoot(draft.words, draft.salt);
+            const reference = `ptbk-${randomBytes(4).toString('hex')}-${randomBytes(6).toString('hex')}`;
+            const secret = randomBytes(WRAPPING_KEY_BYTES);
+            try {
+                const metadata: EncryptionMetadata = { ...previous, projectKeyId: randomBytes(KEY_ID_BYTES).toString('hex'), createdAt: new Date().toISOString(), salt: draft.salt.toString('base64'), verifier: createVerifier(root, draft.salt) };
+                const key = domainKey(root, draft.salt, WALLET_DOMAIN);
+                const problem = await this.unlock.problem();
+                if (problem) throw new PtbkError(problem, { kind: 'setup', effect: 'The recovery words were not replaced; nothing changed.' });
+                await this.unlock.store(reference, secret);
+                const bindings: HostBindings = { projectKeyId: metadata.projectKeyId, hosts: { [this.host]: { facility: this.unlock.facility, reference, wrappedRoot: seal(secret, HOST_DOMAIN, root), at: new Date().toISOString() } } };
+                const [records, hosts, project] = this.generationFiles();
+                // Prepare the complete next generation, then switch under a journal (all or nothing, also after a crash).
+                await writeJsonAtomic(records!.next, this.sealedRecords(key, metadata.projectKeyId), { mode: PRIVATE_FILE_MODE });
+                await writeJsonAtomic(hosts!.next, bindings, { mode: PRIVATE_FILE_MODE });
+                await writeJsonAtomic(project!.next, metadata, { mode: PRIVATE_FILE_MODE });
+                await writeJsonAtomic(this.generationJournal, { replacedReference: previousBinding?.facility === this.unlock.facility ? previousBinding.reference : undefined, at: new Date().toISOString() }, { mode: PRIVATE_FILE_MODE });
+                for (const file of this.generationFiles()) await rename(file.next, file.current);
+                await rm(this.generationJournal, { force: true });
+                if (previousBinding?.facility === this.unlock.facility) await this.unlock.remove(previousBinding.reference).catch(() => undefined);
+                // The in-memory records follow the new key.
+                const reopened = this.records.map((record) => ({ ...record, secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(this.credentials(record)), 'utf8')) }));
+                this.metadata = metadata;
+                this.key = key;
+                this.records = reopened;
+                this.rotation = undefined;
+                return { action: 'wallet-rotate-confirm', applied: true, outcome: `The Wallet now uses the new 12 words for recovery; all ${this.records.length} saved login${this.records.length === 1 ? '' : 's'} are preserved and this computer still unlocks it automatically. The old words no longer open it. Other computers need the new words once.` };
+            } finally {
+                root.fill(0);
+                secret.fill(0);
+            }
+        });
+        if (outcome.applied) {
+            this.options.log('Wallet: replaced the 12 words for recovery (all saved logins re-encrypted).');
+            await this.recordAudit({ subject: 'Wallet - Replace the recovery words', body: 'Generated new 12 words for recovery and re-encrypted every saved login under them; this computer keeps its automatic unlock.\nThe words, keys, secret values and the encrypted vault are never committed.' });
+        }
+        return this.remember(outcome);
+    }
+
+    /**
+     * Starts an explicit empty reset of a Wallet no valid key can unlock (no working host unlock and no words): it
+     * requires the typed confirmation `RESET` after the all-data-loss warning and returns fresh words; the old Wallet is
+     * replaced only when the owner confirms those words (cancelling keeps the original ciphertext).
+     */
+    public async beginReset(input: { readonly confirm: string }): Promise<{ readonly words: readonly string[]; readonly warning: string }> {
+        return await this.mutex.run(async () => {
+            if (this.state === 'ready') throw new PtbkError('The Wallet can be unlocked here, so nothing is lost: generate new 12 words instead of resetting it.', { kind: 'conflict', effect: 'Nothing was changed.' });
+            if (this.state === 'empty' && !this.metadata) throw new PtbkError('There is no Wallet to reset; set it up instead.', { kind: 'usage', effect: 'Nothing was changed.' });
+            if (input.confirm !== 'RESET') throw new PtbkError(`Type RESET to confirm. ${RESET_WARNING}`, { kind: 'usage', effect: 'Nothing was changed.' });
+            const problem = await this.unlock.problem();
+            if (problem) throw new PtbkError(problem, { kind: 'setup', effect: 'Nothing was changed.' });
+            if (!this.draft?.reset || this.draft.expiresAt < Date.now()) this.draft = { words: generateRecoveryWords(), salt: newProjectSalt(), expiresAt: Date.now() + SETUP_DRAFT_MS, reset: true };
+            this.options.onChange();
+            return { words: [...this.draft.words], warning: RESET_WARNING };
+        });
+    }
+
+    /** Removes an unrecoverable Wallet's data (confirmed reset only); project Books, configuration and history stay. */
+    private async discardUnrecoverable(): Promise<void> {
+        const metadata = this.metadata ?? (await this.readMetadata().catch(() => undefined));
+        const binding = metadata ? (await this.readBindings(metadata))?.hosts[this.host] : undefined;
+        if (binding?.facility === this.unlock.facility) await this.unlock.remove(binding.reference).catch(() => undefined);
+        for (const file of this.generationFiles()) {
+            await rm(file.current, { force: true });
+            await rm(file.next, { force: true });
+        }
+        await rm(this.generationJournal, { force: true });
+        this.metadata = undefined;
+        this.key = undefined;
+        this.records = [];
+        this.lockedRecords = 0;
+        this.state = 'empty';
+        this.problem = undefined;
+        // Requests that waited for the lost Wallet now wait for a login to be added to the new one.
+        this.actions = this.actions.map((action) => (action.state === 'pending' && action.problem === 'locked' ? { ...action, problem: 'missing', reason: `A login for ${action.origin} is needed; the Wallet was reset and has none.` } : action));
+        await this.writeActions();
     }
 
     /** Requires a ready Wallet for record management. */
@@ -635,7 +1045,8 @@ export class WalletSubEngine {
 
     /** Decrypts a record; the encrypted origin must equal its label (a swapped ciphertext is refused). */
     private credentials(record: StoredRecord): Credentials {
-        const value = JSON.parse(open(this.requireReady(), WALLET_DOMAIN, record.secret).toString('utf8')) as Credentials;
+        if (!this.key) this.requireReady();
+        const value = JSON.parse(open(this.key!, WALLET_DOMAIN, record.secret).toString('utf8')) as Credentials;
         if (value.origin !== record.origin) throw new PtbkError(`The saved login for ${record.origin} does not belong to that website; it is not used.`, { kind: 'conflict' });
         return value;
     }
@@ -875,7 +1286,7 @@ export class WalletSubEngine {
                         ? `${count(pending.length, 'login request')} waiting · not set up yet`
                         : 'Not set up (no saved logins)'
                     : state === 'locked'
-                      ? `Locked on this computer${pending.length ? ` · ${count(pending.length, 'login request')} waiting` : ''}`
+                      ? `Locked on this computer${this.lockedRecords ? ` · ${count(this.lockedRecords, 'saved login')} (encrypted)` : ''}${pending.length ? ` · ${count(pending.length, 'login request')} waiting` : ''}`
                       : 'Unavailable on this computer';
         return {
             state,
@@ -883,6 +1294,8 @@ export class WalletSubEngine {
             ...(this.problem ? { problem: this.problem } : {}),
             ...(this.metadata ? { facility: this.unlock.facility } : {}),
             records: this.records.map(({ id, origin, account, updatedAt, lastUsedAt, lastOutcome }) => ({ id, origin, account, updatedAt, ...(lastUsedAt ? { lastUsedAt } : {}), ...(lastOutcome ? { lastOutcome } : {}) })),
+            ...(this.lockedRecords ? { lockedRecords: this.lockedRecords } : {}),
+            management: { canImport: state === 'ready', canRotate: state === 'ready', canReset: (state === 'locked' || state === 'unavailable') && Boolean(this.metadata || this.problem) },
             pending,
             ...(this.lastAction ? { lastAction: this.lastAction } : {}),
         };

@@ -1,5 +1,6 @@
 import type { ComposedSegment } from '../ui/composer.js';
-import { PtbkError } from '../common/errors.js';
+import { readFile } from 'node:fs/promises';
+import { PtbkError, errorMessage } from '../common/errors.js';
 import { parseSettingValue, SETTING_SPEC_BY_KEY } from '../project/config.js';
 import type { Agenda } from '../engine/agenda.js';
 import { formatBytes } from '../engine/health.js';
@@ -253,7 +254,7 @@ export async function applyToolAction(agenda: Agenda, params: Readonly<Record<st
  *
  * @private shared runtime controls
  */
-export async function applyWalletAction(agenda: Agenda, method: string, params: Readonly<Record<string, unknown>>, options: { readonly ownerSurface: boolean }): Promise<unknown> {
+export async function applyWalletAction(agenda: Agenda, method: string, params: Readonly<Record<string, unknown>>, options: { readonly ownerSurface: boolean; readonly trustedFiles?: boolean }): Promise<unknown> {
     const text = (key: string): string => (typeof params[key] === 'string' ? (params[key] as string) : '');
     const wallet = agenda.wallet;
     switch (method) {
@@ -275,6 +276,29 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
             return await wallet.remove(text('id'));
         case 'wallet-dismiss':
             return await wallet.dismiss(text('request'));
+        case 'wallet-import-preview': {
+            // The export contains secrets: only the owner's local surfaces supply it (a file path only on the trusted
+            // local control channel), and it is never saved, logged or attached anywhere.
+            const content = text('content') || (options.trustedFiles && text('path') ? await readFile(text('path'), 'utf8').catch((error: unknown) => {
+                throw new PtbkError(`The export file cannot be read: ${errorMessage(error)}`, { kind: 'usage', effect: 'Nothing was imported.' });
+            }) : '');
+            if (!content) throw new PtbkError('Choose the exported file to import.', { kind: 'usage', effect: 'Nothing was imported.' });
+            return await wallet.previewImport({ source: text('source') || undefined, content });
+        }
+        case 'wallet-import-apply':
+            return await wallet.applyImport({ draft: text('draft'), select: Array.isArray(params.select) ? params.select.map(String) : [], replace: Array.isArray(params.replace) ? params.replace.map(String) : [] });
+        case 'wallet-import-cancel':
+            return wallet.cancelImport();
+        case 'wallet-rotate':
+            if (!options.ownerSurface) throw new PtbkError('New 12 words for recovery are shown only in the dashboard (terminal or local browser), never to API clients.', { kind: 'usage', effect: 'Nothing was changed.' });
+            return await wallet.beginRotation();
+        case 'wallet-rotate-confirm':
+            return await wallet.confirmRotation();
+        case 'wallet-rotate-cancel':
+            return wallet.cancelRotation();
+        case 'wallet-reset':
+            if (!options.ownerSurface) throw new PtbkError('A Wallet reset is confirmed only in the dashboard (terminal or local browser), never through API clients.', { kind: 'usage', effect: 'Nothing was changed.' });
+            return await wallet.beginReset({ confirm: text('confirm') });
         default:
             throw new PtbkError(`Unknown Wallet action "${method}".`, { kind: 'usage' });
     }
@@ -285,4 +309,4 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
  *
  * @private shared runtime controls
  */
-export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-remove', 'wallet-dismiss']);
+export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-remove', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);

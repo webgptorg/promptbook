@@ -1637,7 +1637,12 @@
         if (wallet.state === 'empty' || wallet.state === 'setup') actions.append(h('button', { className: 'primary', onclick: walletSetup }, 'Set up the Wallet'));
         if (wallet.state === 'locked' || wallet.state === 'unavailable') actions.append(h('button', { className: 'primary', onclick: walletRestore }, 'Restore with 12 words for recovery'));
         if (wallet.state === 'ready') actions.append(h('button', { className: 'primary', onclick: () => walletLoginDialog({}) }, 'Add a login'));
+        const management = wallet.management || {};
+        if (management.canImport) actions.append(h('button', { onclick: walletImport }, 'Import from Bitwarden'));
+        if (management.canRotate) actions.append(h('button', { onclick: walletRotate }, 'Generate new 12 words'));
+        if (management.canReset) actions.append(h('button', { className: 'danger', onclick: walletReset }, 'Reset Wallet'));
         status.append(actions);
+        if (wallet.lockedRecords) status.append(h('p', { className: 'muted' }, `${wallet.lockedRecords} saved login${wallet.lockedRecords === 1 ? '' : 's'}: their services, accounts and labels are encrypted too and appear once this computer unlocks the Wallet.`));
         if (wallet.lastAction) status.append(h('p', { className: 'muted' }, `Last: ${wallet.lastAction.outcome}`));
         const requests = h('section', { className: 'card', 'aria-label': 'Login requests' }, h('h2', {}, `Login requests waiting (${wallet.pending.length})`));
         if (!wallet.pending.length) requests.append(h('p', { className: 'muted' }, 'Nothing waits for a login.'));
@@ -1766,6 +1771,104 @@
         );
         dialog.addEventListener('close', () => {
             if (!confirmed) void walletCall('wallet-setup-cancel');
+        });
+    }
+
+    /** Shows new 12 words in a dialog; `confirm` applies them, closing otherwise runs `cancel` (nothing changes). */
+    function walletWordsDialog(title, text, words, confirmLabel, confirm, cancel) {
+        let confirmed = false;
+        const list = h('ol', { className: 'recovery-words' }, words.map((word) => h('li', {}, word)));
+        const dialog = walletDialog(title, h('p', {}, text), list, h('div', { className: 'row' }, h('button', { className: 'primary', onclick: async () => ((confirmed = true), list.remove(), dialog.close(), await walletCall(confirm)) }, confirmLabel), h('button', { onclick: () => dialog.close() }, 'Cancel')));
+        dialog.addEventListener('close', () => {
+            if (!confirmed) void walletCall(cancel);
+        });
+    }
+
+    /** New 12 words while this computer's key works: every saved login is re-encrypted and kept. */
+    async function walletRotate() {
+        if (!window.confirm('Generate new 12 words for recovery? Every saved login stays; the old words stop opening this Wallet and other computers need the new words once.')) return;
+        const result = await walletCall('wallet-rotate');
+        if (result && result.words) walletWordsDialog('New 12 words for recovery', 'Write these NEW words on paper, in order, and keep them safe. The Wallet switches to them when you confirm; the old words then stop working.', result.words, 'I wrote them down — switch to the new words', 'wallet-rotate-confirm', 'wallet-rotate-cancel');
+    }
+
+    /** Empty reset after total key loss: the all-data-loss warning, a typed RESET, then the new Wallet's words. */
+    async function walletReset() {
+        const typed = window.prompt('No key on this computer and no 12 words can unlock this Wallet, so its old data cannot be recovered.\n\nResetting discards ALL of it for good: services and accounts, labels, usernames, passwords and TOTP generators.\n\nType RESET to continue (anything else cancels):');
+        if (typed !== 'RESET') {
+            toast('Nothing was changed; the encrypted Wallet data is kept.');
+            return;
+        }
+        const result = await walletCall('wallet-reset', { confirm: typed });
+        if (result && result.words) walletWordsDialog('12 words for the new empty Wallet', 'Write these words down. Confirming discards the old Wallet and creates a new empty one; cancelling keeps the old encrypted data.', result.words, 'I wrote them down — reset the Wallet', 'wallet-setup-confirm', 'wallet-setup-cancel');
+    }
+
+    /**
+     * Import from an unencrypted Bitwarden JSON export chosen through the browser's own file picker: its content goes
+     * only to this engine's protected Wallet (never saved or attached anywhere); the preview offers individual, Select
+     * all and Select none selection, and conflicts are replaced only when chosen.
+     */
+    function walletImport() {
+        const file = h('input', { type: 'file', accept: 'application/json,.json' });
+        let dialog;
+        let draft = null;
+        const body = h('div', {});
+        const choose = h(
+            'form',
+            {
+                method: 'dialog',
+                onsubmit: async (event) => {
+                    event.preventDefault();
+                    const chosen = file.files && file.files[0];
+                    if (!chosen) return;
+                    const content = await chosen.text();
+                    file.value = '';
+                    const preview = await walletCall('wallet-import-preview', { content });
+                    if (!preview || !preview.candidates) return;
+                    draft = preview.draft;
+                    showPreview(preview);
+                },
+            },
+            h('p', {}, 'In Bitwarden choose Export vault with the File format ".json" (not encrypted). The file contains your passwords: the Wallet reads it once and keeps no copy; delete it safely afterwards.'),
+            h('label', { className: 'field' }, h('span', {}, 'Bitwarden JSON export'), file),
+            h('div', { className: 'row' }, h('button', { type: 'submit', className: 'primary' }, 'Read the export'), h('button', { type: 'button', onclick: () => dialog.close() }, 'Cancel')),
+        );
+        const showPreview = (preview) => {
+            const boxes = [];
+            const rows = preview.candidates.map((candidate) => {
+                const box = h('input', { type: 'checkbox', checked: candidate.state === 'new', disabled: candidate.state === 'duplicate' });
+                const replace = candidate.state === 'conflict' ? h('input', { type: 'checkbox' }) : null;
+                boxes.push({ candidate, box, replace });
+                return h('li', {}, h('label', {}, box, ` ${candidate.label}`), h('div', { className: 'muted' }, `${candidate.origin} · ${candidate.account}${candidate.totp ? ' · TOTP generator' : ''}${candidate.state === 'duplicate' ? ' · identical to a saved login (kept)' : candidate.state === 'conflict' ? ' · differs from the saved login' : ''}`), replace ? h('label', { className: 'muted' }, replace, ' replace the saved values with the exported ones') : null);
+            });
+            const setAll = (value) => boxes.forEach((item) => (item.box.checked = !item.box.disabled && value));
+            body.replaceChildren(
+                h('div', { className: 'row' }, h('button', { type: 'button', onclick: () => setAll(true) }, 'Select all'), h('button', { type: 'button', onclick: () => setAll(false) }, 'Select none')),
+                h('ul', { className: 'list' }, ...rows),
+                preview.skipped.length ? h('p', { className: 'muted' }, `Not imported (${preview.skipped.length}): ${preview.skipped.map((entry) => `${entry.label} — ${entry.reason}`).join('; ')}`) : null,
+                h(
+                    'div',
+                    { className: 'row' },
+                    h(
+                        'button',
+                        {
+                            className: 'primary',
+                            onclick: async () => {
+                                const select = boxes.filter((item) => item.box.checked).map((item) => item.candidate.key);
+                                const replace = boxes.filter((item) => item.box.checked && item.replace && item.replace.checked).map((item) => item.candidate.key);
+                                const result = await walletCall('wallet-import-apply', { draft, select, replace });
+                                if (result) ((draft = null), dialog.close());
+                            },
+                        },
+                        'Import the selected logins',
+                    ),
+                    h('button', { type: 'button', onclick: () => dialog.close() }, 'Cancel'),
+                ),
+            );
+        };
+        body.append(choose);
+        dialog = walletDialog('Import logins from Bitwarden', body);
+        dialog.addEventListener('close', () => {
+            if (draft) void walletCall('wallet-import-cancel');
         });
     }
 

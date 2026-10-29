@@ -112,7 +112,16 @@ test('project encryption: standard 12-word vectors, derivation, domain separatio
         () => normalizeRecoveryWords([...generated.slice(0, 2), 'zzzqx', ...generated.slice(3)]),
         (error) => /Word 3 is not on the recovery word list/.test(error.message) && !error.message.includes('zzzqx'),
     );
-    assert.throws(() => normalizeRecoveryWords([...generated.slice(1), generated[0]]), /not a valid recovery set|not on the recovery/);
+    // A reordered set fails the checksum (one rotation in 16 may still pass the 4-bit checksum, so pick one that fails).
+    const reordered = Array.from({ length: 11 }, (_, index) => [...generated.slice(index + 1), ...generated.slice(0, index + 1)]).find((candidate) => {
+        try {
+            normalizeRecoveryWords(candidate);
+            return false;
+        } catch {
+            return true;
+        }
+    });
+    assert.throws(() => normalizeRecoveryWords(reordered), /not a valid recovery set|not on the recovery/);
     // Origins and labels.
     assert.equal(normalizeOrigin('example.com/login?next=1'), 'https://example.com');
     assert.ok(originMatches('https://example.com', 'https://www.example.com'));
@@ -452,4 +461,231 @@ test('Wallet acceptance: a task waits for a protected login (no chat), resumes o
         if (file.path.includes(`${join('.ptbk', 'wallet')}`) || file.path.includes(`${join('.ptbk', 'encryption')}`)) continue;
         for (const secret of ['acceptance password 7', ...recoveryRuns(words)]) assert.ok(!file.content.includes(secret), `${file.path} contains no secret`);
     }
+});
+
+/**
+ * A Wallet with an audit recorder (the audit commits it would create).
+ */
+function auditedWalletAt(root, home) {
+    const project = { root, runtime: { root: join(root, '.ptbk'), state: join(root, '.ptbk', 'state') } };
+    const audits = [];
+    const wallet = new WalletSubEngine({ project, env: { ...process.env, PTBK_HOME: home, PTBK_HOST_UNLOCK: 'insecure-test-file' }, onChange: () => undefined, log: () => undefined, audit: { isEnabled: () => true, commit: async (subject, body) => void audits.push({ subject, body }) } });
+    return { wallet, audits };
+}
+
+/**
+ * A Bitwarden JSON export with logins, duplicates, conflicts and unsupported entries.
+ */
+function bitwardenExport() {
+    const login = (id, name, username, password, uris, totp) => ({ id, type: 1, name, login: { username, password, totp: totp ?? null, uris: uris.map((uri) => ({ uri, match: null })) } });
+    return JSON.stringify({
+        encrypted: false,
+        folders: [],
+        items: [
+            login('a', 'Shop', 'jane@example.com', 'shop secret 1', ['https://shop.example.com/login', 'https://app.example.org'], 'otpauth://totp/Shop:jane?secret=JBSWY3DPEHPK3PXP'),
+            login('b', 'Existing same', 'jane@example.com', 'same password', ['https://example.com']),
+            login('c', 'Existing other', 'joe@example.com', 'changed password', ['https://example.com/account']),
+            { id: 'd', type: 2, name: 'A note', notes: 'private' },
+            login('e', 'No address', 'nobody', 'x', []),
+            login('f', 'Android only', 'app-user', 'y', ['androidapp://com.example.app']),
+        ],
+    });
+}
+
+test('Wallet records are encrypted completely; records of the older format are migrated once unlocked', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet records');
+    const home = join(root, 'computer');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    const { wallet } = auditedWalletAt(project, home);
+    await wallet.initialize();
+    const { words } = await wallet.beginSetup();
+    await wallet.confirmSetup();
+    await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'same password' });
+    const stored = await readFile(join(project, '.ptbk', 'wallet', 'records.json'), 'utf8');
+    assert.doesNotMatch(stored, /example\.com|jane|same password|ja…/, 'no plaintext service, account, label or secret');
+    assert.equal(JSON.parse(stored).version, 2);
+    // An older file with plaintext labels: it keeps working and is rewritten entirely encrypted.
+    const metadata = JSON.parse(await readFile(join(project, '.ptbk', 'encryption', 'project.json'), 'utf8'));
+    const salt = Buffer.from(metadata.salt, 'base64');
+    const key = domainKey(deriveProjectRoot(words, salt), salt, 'wallet');
+    const legacy = { format: metadata.format, projectKeyId: metadata.projectKeyId, records: [{ id: 'legacy1', origin: 'https://legacy.example.com', account: 'legacy.example.com · old', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', secret: seal(key, 'wallet', Buffer.from(JSON.stringify({ origin: 'https://legacy.example.com', username: 'old', password: 'legacy password' }))) }] };
+    await writeFile(join(project, '.ptbk', 'wallet', 'records.json'), JSON.stringify(legacy));
+    const reopened = auditedWalletAt(project, home);
+    await reopened.wallet.initialize();
+    assert.deepEqual(reopened.wallet.view().records.map((record) => record.account), ['legacy.example.com · old']);
+    assert.doesNotMatch(await readFile(join(project, '.ptbk', 'wallet', 'records.json'), 'utf8'), /legacy\.example\.com|old/, 'migrated to whole-record encryption');
+    const page = fakePage('https://legacy.example.com');
+    assert.equal((await reopened.wallet.login(page.page, {})).status, 'signed-in');
+    assert.equal(page.entered[0].password, 'legacy password');
+    // Locked on another computer: only the number of encrypted logins is known.
+    const copy = join(root, 'copy');
+    await cp(project, copy, { recursive: true });
+    const other = auditedWalletAt(copy, join(root, 'computer two'));
+    await other.wallet.initialize();
+    assert.equal(other.wallet.view().state, 'locked');
+    assert.deepEqual(other.wallet.view().records, [], 'no labels without a key');
+    assert.equal(other.wallet.view().lockedRecords, 1);
+    assert.match(other.wallet.view().summary, /1 saved login \(encrypted\)/);
+});
+
+test('Wallet import: one Bitwarden preview with individual/all/none selection, duplicates and conflicts, no secret in previews or audits', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet import');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    const { wallet, audits } = auditedWalletAt(project, join(root, 'computer'));
+    await wallet.initialize();
+    await assert.rejects(wallet.previewImport({ content: bitwardenExport() }), /Set up the Wallet first/, 'import never silently creates or resets a Wallet');
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'same password', label: 'Main' });
+    await wallet.save({ origin: 'https://example.com', username: 'joe@example.com', password: 'old password', label: 'Joe' });
+    const waiting = await wallet.login(fakePage('https://shop.example.com').page, { reason: 'checkout' });
+    assert.equal(waiting.status, 'waiting');
+    audits.length = 0;
+    await assert.rejects(wallet.previewImport({ content: JSON.stringify({ encrypted: true, encKeyValidation_DO_NOT_EDIT: 'x', data: 'y' }) }), /encrypted .*cannot be read here/);
+    await assert.rejects(wallet.previewImport({ content: 'not json' }), /not a Bitwarden JSON export/);
+    const preview = await wallet.previewImport({ content: bitwardenExport() });
+    assert.doesNotMatch(JSON.stringify(preview), /shop secret|same password|changed password|JBSWY3DP|jane@example\.com/, 'no secret or full username in the preview');
+    const state = (origin, label) => preview.candidates.find((candidate) => candidate.origin === origin && (!label || candidate.label === label))?.state;
+    assert.equal(state('https://shop.example.com'), 'new');
+    assert.equal(state('https://app.example.org'), 'new', 'every supported website of an item is kept, none is guessed');
+    assert.equal(state('https://example.com', 'Existing same'), 'duplicate');
+    assert.equal(state('https://example.com', 'Existing other'), 'conflict');
+    assert.ok(preview.candidates.find((candidate) => candidate.origin === 'https://shop.example.com').totp);
+    assert.deepEqual(preview.skipped.map((entry) => entry.label), ['A note', 'No address', 'Android only'], 'unsupported entries are reported honestly');
+    // None selected: nothing changes and no audit.
+    const none = await wallet.applyImport({ draft: preview.draft, select: [] });
+    assert.equal(none.applied, false);
+    assert.equal(audits.length, 0, 'a no-op selection creates no commit');
+    await assert.rejects(wallet.applyImport({ draft: preview.draft, select: [] }), /no longer current/, 'an applied preview cannot be replayed');
+    // All selected, the conflict kept: new logins added once, the duplicate reused, the conflicting saved login untouched.
+    const again = await wallet.previewImport({ content: bitwardenExport() });
+    const all = await wallet.applyImport({ draft: again.draft, select: again.candidates.map((candidate) => candidate.key) });
+    assert.deepEqual([all.imported, all.reused, all.skipped, all.replaced], [2, 1, 1, 0]);
+    assert.match(all.outcome, /Delete the export file safely now/);
+    assert.equal(wallet.view().records.length, 4);
+    assert.equal(wallet.action(waiting.action).state, 'resolved', 'the waiting login request is resolved by the import');
+    const joe = fakePage('https://example.com');
+    assert.equal((await wallet.login(joe.page, { account: 'Joe' })).status, 'signed-in');
+    assert.equal(joe.entered[0].password, 'old password', 'a conflict is never overwritten without the owner choosing it');
+    assert.equal(audits.length, 1, 'one nonsecret summary for the import');
+    assert.match(audits[0].subject, /^Wallet - Import 2 logins from Bitwarden$/);
+    assert.doesNotMatch(`${audits[0].subject}\n${audits[0].body}`, /shop secret|password 1|JBSWY|jane@example\.com/);
+    // Repeating the import with the conflict explicitly replaced: no duplicates, the chosen value is used.
+    const third = await wallet.previewImport({ content: bitwardenExport() });
+    const conflict = third.candidates.find((candidate) => candidate.state === 'conflict');
+    const replaced = await wallet.applyImport({ draft: third.draft, select: third.candidates.map((candidate) => candidate.key), replace: [conflict.key] });
+    assert.deepEqual([replaced.imported, replaced.replaced], [0, 1]);
+    assert.equal(wallet.view().records.length, 4, 'a repeated import adds nothing twice');
+    const joeAgain = fakePage('https://example.com');
+    await wallet.login(joeAgain.page, { account: 'Joe' });
+    assert.equal(joeAgain.entered[0].password, 'changed password');
+    assert.doesNotMatch(await readFile(join(project, '.ptbk', 'wallet', 'records.json'), 'utf8'), /shop\.example|changed password/);
+});
+
+test('Wallet recovery: new words re-encrypt everything with a working key; an interrupted switch completes; old words stop working', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet rotation');
+    const home = join(root, 'computer');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    const { wallet, audits } = auditedWalletAt(project, home);
+    await wallet.initialize();
+    const { words: oldWords } = await wallet.beginSetup();
+    await wallet.confirmSetup();
+    await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'kept password' });
+    const preview = await wallet.previewImport({ content: bitwardenExport() });
+    await wallet.applyImport({ draft: preview.draft, select: preview.candidates.filter((candidate) => candidate.origin === 'https://shop.example.com').map((candidate) => candidate.key) });
+    audits.length = 0;
+    const before = join(root, 'before');
+    await cp(project, before, { recursive: true });
+    // Prepared files without a journal (interrupted before the switch) are discarded: the old generation stays.
+    const early = join(root, 'early');
+    await cp(before, early, { recursive: true });
+    await writeFile(join(early, '.ptbk', 'wallet', 'records.next.json'), '{"partial":');
+    const kept = auditedWalletAt(early, home);
+    await kept.wallet.initialize();
+    assert.equal(kept.wallet.view().state, 'ready');
+    assert.equal(kept.wallet.view().records.length, 2);
+    await assert.rejects(stat(join(early, '.ptbk', 'wallet', 'records.next.json')));
+    // The old words are forgotten: this computer's working key is enough.
+    assert.deepEqual(wallet.view().management, { canImport: true, canRotate: true, canReset: false });
+    const { words: newWords } = await wallet.beginRotation();
+    assert.notDeepEqual(newWords, oldWords);
+    assert.equal(wallet.cancelRotation().applied, true, 'declining keeps the current words');
+    const { words } = await wallet.beginRotation();
+    const rotated = await wallet.confirmRotation();
+    assert.ok(rotated.applied, rotated.outcome);
+    assert.deepEqual(audits.map((audit) => audit.subject), ['Wallet - Replace the recovery words']);
+    assert.doesNotMatch(audits[0].body, new RegExp(words.join('|')));
+    assert.equal(wallet.view().records.length, 2, 'every record is preserved');
+    const rebooted = auditedWalletAt(project, home);
+    await rebooted.wallet.initialize();
+    assert.equal(rebooted.wallet.view().state, 'ready', 'this computer still unlocks it after a restart');
+    const shop = fakePage('https://shop.example.com');
+    assert.equal((await rebooted.wallet.login(shop.page, {})).status, 'signed-in');
+    assert.equal(shop.entered[0].password, 'shop secret 1');
+    // Another computer: the old words no longer open it, the new ones do.
+    const copy = join(root, 'copy');
+    await cp(project, copy, { recursive: true });
+    const other = auditedWalletAt(copy, join(root, 'computer two'));
+    await other.wallet.initialize();
+    await assert.rejects(other.wallet.restore(oldWords.join(' ')), /do not belong/);
+    assert.ok((await other.wallet.restore(words.join(' '))).applied);
+    assert.equal(other.wallet.view().records.length, 2);
+    // An interruption after the next generation was prepared and journaled completes on the next start.
+    const interrupted = join(root, 'interrupted');
+    await cp(before, interrupted, { recursive: true });
+    for (const [directory, name] of [['wallet', 'records'], ['encryption', 'hosts'], ['encryption', 'project']]) await cp(join(project, '.ptbk', directory, `${name}.json`), join(interrupted, '.ptbk', directory, `${name}.next.json`));
+    await writeFile(join(interrupted, '.ptbk', 'encryption', 'generation.json'), JSON.stringify({ at: new Date().toISOString() }));
+    const resumed = auditedWalletAt(interrupted, home);
+    await resumed.wallet.initialize();
+    assert.equal(resumed.wallet.view().state, 'ready');
+    assert.equal(resumed.wallet.view().records.length, 2, 'one coherent new generation');
+    await assert.rejects(stat(join(interrupted, '.ptbk', 'encryption', 'generation.json')));
+});
+
+test('Wallet reset after total key loss: strongly confirmed, declinable, empty and audited without old labels', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet reset');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    const first = auditedWalletAt(project, join(root, 'computer'));
+    await first.wallet.initialize();
+    await first.wallet.beginSetup();
+    await first.wallet.confirmSetup();
+    await first.wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'lost password', label: 'Lost login' });
+    // Another computer without the words: nothing can unlock it.
+    const { wallet, audits } = auditedWalletAt(project, join(root, 'computer two'));
+    await wallet.initialize();
+    assert.equal(wallet.view().state, 'locked');
+    assert.deepEqual(wallet.view().management, { canImport: false, canRotate: false, canReset: true });
+    await assert.rejects(wallet.beginRotation(), /locked|unlock/);
+    const waiting = await wallet.login(fakePage('https://example.com').page, {});
+    assert.equal(waiting.problem, 'locked');
+    const files = [join(project, '.ptbk', 'wallet', 'records.json'), join(project, '.ptbk', 'encryption', 'project.json')];
+    const original = await Promise.all(files.map(digest));
+    await assert.rejects(wallet.beginReset({ confirm: 'yes' }), /Type RESET to confirm\. Resetting discards ALL old Wallet data/);
+    const declined = await wallet.beginReset({ confirm: 'RESET' });
+    assert.equal(declined.words.length, 12);
+    assert.match(declined.warning, /usernames, passwords and TOTP generators/);
+    wallet.cancelSetup();
+    assert.deepEqual(await Promise.all(files.map(digest)), original, 'declining preserves the original ciphertext');
+    assert.equal(wallet.view().state, 'locked');
+    const { words } = await wallet.beginReset({ confirm: 'RESET' });
+    const reset = await wallet.confirmSetup();
+    assert.ok(reset.applied, reset.outcome);
+    assert.equal(wallet.view().state, 'ready');
+    assert.deepEqual(wallet.view().records, [], 'a new empty Wallet');
+    assert.equal(wallet.action(waiting.action).state, 'pending');
+    assert.match(wallet.view().pending[0].reason, /was reset and has none/, 'requests now wait for a login to be added');
+    assert.deepEqual(audits.map((audit) => audit.subject), ['Wallet - Reset to a new empty Wallet']);
+    assert.doesNotMatch(audits[0].body, /Lost login|example\.com/, 'the audit never reads old labels');
+    const reopened = auditedWalletAt(project, join(root, 'computer two'));
+    await reopened.wallet.initialize();
+    assert.equal(reopened.wallet.view().state, 'ready', 'the new Wallet unlocks automatically here');
+    const elsewhere = join(root, 'elsewhere');
+    await cp(project, elsewhere, { recursive: true });
+    const third = auditedWalletAt(elsewhere, join(root, 'computer three'));
+    await third.wallet.initialize();
+    assert.ok((await third.wallet.restore(words.join(' '))).applied, 'the new words open the new Wallet');
 });

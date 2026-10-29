@@ -33,6 +33,11 @@ const LONG_POLL_MS = 25_000;
 const MAX_BODY_BYTES = 64 * 1024;
 
 /**
+ * Largest authenticated Wallet request body (a password-manager export supplied by the local owner for import).
+ */
+const MAX_WALLET_BODY_BYTES = 16 * 1024 * 1024;
+
+/**
  * Static assets of the browser dashboard (served from the installation).
  */
 const STATIC_FILES: Readonly<Record<string, string>> = {
@@ -123,12 +128,12 @@ async function listen(server: Server, port: number | undefined): Promise<number>
 /**
  * Reads a JSON request body (bounded).
  */
-async function readJsonBody(request: IncomingMessage): Promise<Record<string, unknown>> {
+async function readJsonBody(request: IncomingMessage, limit = MAX_BODY_BYTES): Promise<Record<string, unknown>> {
     let size = 0;
     const chunks: Buffer[] = [];
     for await (const chunk of request) {
         size += (chunk as Buffer).length;
-        if (size > MAX_BODY_BYTES) throw new PtbkError('Request body too large.', { kind: 'usage' });
+        if (size > limit) throw new PtbkError('Request body too large.', { kind: 'usage' });
         chunks.push(chunk as Buffer);
     }
     if (!chunks.length) return {};
@@ -305,7 +310,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             sendJson(response, 405, { error: 'Method not allowed.' });
             return;
         }
-        const body = await readJsonBody(request);
+        const body = await readJsonBody(request, url.pathname === '/api/wallet' ? MAX_WALLET_BODY_BYTES : MAX_BODY_BYTES);
         if (url.pathname === '/api/control') {
             const action = String(body.action ?? '');
             if (!CONTROL_ACTIONS.has(action)) throw new PtbkError(`Unknown control action "${action}".`, { kind: 'usage' });
