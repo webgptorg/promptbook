@@ -16,6 +16,8 @@ Offer **Set up Wallet now?**, default No. Yes opens the same protected setup/rec
 
 Keep the familiar selected-harness featured/More flow and one **Browser profile** picker: dedicated global Promptbook profile (default), isolated project profile, user's existing Chrome profile, or custom path. Explain the difference between dedicated and personal identities and safe sharing; preserve previous choices. Headless is independent. Unified tools are an internal/configuration improvement, not a requirement to ask about advanced instance naming, account pools, multiple browsers or fallback chains in the normal wizard. Those are managed later.
 
+The [VPS launcher](vps-onboarding.md) enters this same experience in the current SSH terminal automatically. Keep input, keyboard navigation and the final dashboard handoff usable without a desktop on the server. Explain remote sign-in where needed instead of waiting silently for a browser window on the VPS; a headless project browser is a separate choice, not a harness login method.
+
 Harness selection must visibly warn when the selected set is empty, explaining that no model work can run and Router cannot receive its concrete initial selection. Preserve the user's current selection and offer the normal navigation to choose a harness; do not silently select one, claim successful readiness or hide the empty selection behind a later cryptic failure.
 
 There is **no check-command question**, script picker or validation-deferral screen. Missing validation receives the explicit informational placeholder described in [checks](checks.md); the wizard does not claim real tests passed. Existing real validation is preserved.
