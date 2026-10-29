@@ -1,5 +1,10 @@
 # Unreleased
 
+## Self-hosted server deployment
+
+-   README now offers a Deploy to Azure button backed by an ARM template for a persistent Ubuntu VPS, client-scoped SSH and a dedicated non-sudo engine user. The shared Ubuntu installer prepares Node.js 24, Git, Chrome and an exact published engine version; AI sign-in and agenda initialization remain attended.
+-   Added the matching VPS guide for Azure and existing Ubuntu servers, private-data/backup instructions, ordinary boot persistence without overriding manual Stop, template/input checks and an Ubuntu installation smoke workflow. The bilingual website links to the same template and guide.
+
 ## Release: full check before versioning
 
 -   `npm version …` (`npm run release:prerelease` and the other `release:*` scripts) now runs the full check in `preversion`: typecheck, tests and the packed-package test. The package test expects the current agent-work subject of the Expert bootstrap result (``ptbk: `<agent visual>` Review the initialized project — <date time>``) instead of the retired `PTBK: ` subject, and reads that commit's `Task-Name` trailer directly.
