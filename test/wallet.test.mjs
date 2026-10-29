@@ -278,7 +278,7 @@ function loginSite(password) {
 const LOGIN_PAGE = `<!doctype html><title>Sign in</title><h1>Sign in</h1><!--error-->
 <form method="post" action="/login"><input name="username" autocomplete="username" placeholder="Username"><input name="password" type="password" autocomplete="current-password"><button>Sign in</button></form>`;
 
-test('Wallet audit: each meaningful mutation is its own nonsecret (empty) commit, retried without repeating the change, and can be disabled', async (t) => {
+test('Wallet audit: each meaningful mutation is its own nonsecret (empty) commit, retried automatically without repeating the change, and can be disabled', async (t) => {
     const root = await temporaryDirectory(t, 'ptbk wallet audit');
     const project = join(root, 'project');
     await mkdir(project, { recursive: true });
@@ -308,6 +308,7 @@ test('Wallet audit: each meaningful mutation is its own nonsecret (empty) commit
                 }
                 await commitAudit({ projectRoot: project, repositoryRoot: project, subject, body, temporaryDirectory: runtime.temporary, env });
             },
+            retryMs: 200,
         },
     });
     await wallet.initialize();
@@ -325,9 +326,9 @@ test('Wallet audit: each meaningful mutation is its own nonsecret (empty) commit
     assert.equal(wallet.view().records.length, 1, 'the update itself succeeded');
     assert.match(logs.join('\n'), /audit commit .* is pending/);
     assert.equal(JSON.parse(await readFile(join(runtime.state, 'wallet-audit.json'), 'utf8')).length, 1);
-    await wallet.retryAudits();
+    // Neither another mutation nor a restart is needed: the pending audit is committed by its scheduled retry.
+    await waitFor(async () => JSON.parse(await readFile(join(runtime.state, 'wallet-audit.json'), 'utf8')).length === 0, { timeoutMs: 10_000, message: 'the scheduled audit retry' });
     assert.equal((await git(project, ['log', '-1', '--format=%s'])).trim(), 'ptbk: Wallet - Update login "example.com · ja…@example.com"', 'the pending audit is committed later');
-    assert.deepEqual(JSON.parse(await readFile(join(runtime.state, 'wallet-audit.json'), 'utf8')), []);
     await wallet.retryAudits();
     const count = Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim());
     isEnabled = false;

@@ -556,6 +556,7 @@ export class Agenda {
             audit: {
                 isEnabled: () => Boolean(this.settings && this.repositoryRoot && this.commitMode && setting<boolean>(this.settings, 'wallet.isAuditCommitted')),
                 commit: async (subject, body) => void (await this.commitAuditRecord(subject, body)),
+                retryMs: PERSISTENCE_RETRY_MS,
             },
         });
         // A finite maintenance host is not the ongoing engine and has no Health sub-engine of its own.

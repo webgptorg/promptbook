@@ -138,9 +138,10 @@ export type WalletOptions = {
     readonly unlock?: HostUnlock;
     /**
      * Nonsecret Git audit of meaningful mutations (`wallet.isAuditCommitted`, default on). `isEnabled` is read at each
-     * mutation; `commit` creates one scoped audit commit, empty when no file changes.
+     * mutation; `commit` creates one scoped audit commit, empty when no file changes. A failed commit is retried after
+     * `retryMs` (default one minute) until it succeeds.
      */
-    readonly audit?: { readonly isEnabled: () => boolean; readonly commit: (subject: string, body: string) => Promise<void> };
+    readonly audit?: { readonly isEnabled: () => boolean; readonly commit: (subject: string, body: string) => Promise<void>; readonly retryMs?: number };
 };
 
 /**
@@ -1127,6 +1128,9 @@ export class WalletSubEngine {
     /** Serializes audit persistence (independent of record mutations, which never wait for Git). */
     private readonly auditMutex = new Mutex();
 
+    /** The scheduled retry of pending audit commits. */
+    private auditRetry?: NodeJS.Timeout;
+
     /**
      * Records a successful mutation's nonsecret audit (when enabled) and commits every pending audit in order. A Git
      * failure keeps the audit pending for a later retry; the mutation itself is never repeated or undone.
@@ -1156,7 +1160,18 @@ export class WalletSubEngine {
             }
             await ensureDirectory(this.options.project.runtime.state);
             await writeJsonAtomic(this.auditFile, remaining);
+            if (remaining.length) this.scheduleAuditRetry();
         });
+    }
+
+    /** Retries pending audit commits later without waiting for another mutation or a restart (persistence only). */
+    private scheduleAuditRetry(): void {
+        if (this.auditRetry) return;
+        this.auditRetry = setTimeout(() => {
+            this.auditRetry = undefined;
+            void this.retryAudits().catch(() => undefined);
+        }, this.options.audit?.retryMs ?? 60_000);
+        this.auditRetry.unref?.();
     }
 
     /** Retries audit commits an earlier attempt or process could not create (e.g. after a hook failure). */
