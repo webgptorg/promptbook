@@ -24,6 +24,8 @@ Give Promptbook an ongoing responsibility, a goal and your rules. Its agents fin
 
 ## Quickstart
 
+If Node.js and npm are already installed, use the npm path below. On a clean Ubuntu VPS, use the [complete shell installation](#clean-ubuntu-vps).
+
 Requires **Node.js 22.13+ in the 22.x line, or 24+**, **npm 10+**, Git and Chrome, Chromium or Edge. Setup guides you through selecting a supported harness and signing in.
 
 ```sh
@@ -32,6 +34,16 @@ mkdir my-agenda
 cd my-agenda
 ptbk init
 ```
+
+### Clean Ubuntu VPS
+
+On **Ubuntu 24.04 x86-64 with systemd**, run this in an interactive SSH terminal as root or an administrator with sudo:
+
+```sh
+curl -fsSL https://www.ptbk.io/install.sh | bash
+```
+
+You do not need Node.js, npm or Git installed first. The script uses the [shared server installer](deploy/ubuntu/install.sh), adds the prerequisites and published engine, then opens ordinary `ptbk init` as the `promptbook` user. [Inspect the entry script](https://github.com/webgptorg/ptbk-landing-page-aldaron/blob/main/public/install.sh) · [VPS guide](deploy/README.md#an-existing-vps-including-digitalocean-or-hetzner).
 
 Describe the work in the initializer. It prepares the project and starts the engine in the background.
 

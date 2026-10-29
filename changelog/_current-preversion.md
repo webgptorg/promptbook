@@ -1,5 +1,9 @@
 # Unreleased
 
+## Installation documentation: complete VPS shell entry
+
+-   README and the VPS guide now link the attended website shell entry, which reuses the existing Ubuntu installer and hands the SSH terminal to ordinary init as `promptbook`. Preserved the lower-level version-selectable installer and provider bootstrap paths; added concise Codex/Claude native headless sign-in instructions. This does not change engine adapters or claim a complete live VPS installation test.
+
 ## Specification: harness login over SSH
 
 -   Defined shared adapter-owned remote native authentication, with Codex device-code login and Claude's supported URL/terminal-code flow, explicit unsupported/policy/error outcomes and no silent API-billing fallback. Init and later tool setup reuse service-user readiness checks without paid probes; added transient-code handling and acceptance scenarios. This specifies target behavior and does not claim the adapters already implement it.

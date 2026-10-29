@@ -49,7 +49,15 @@ If your client IP changes, edit the EC2 security-group SSH rule. A stopped/start
 
 ## An existing VPS, including DigitalOcean or Hetzner
 
-Use a fresh **Ubuntu 24.04 x86-64** machine with systemd and outbound HTTPS. Start with enough memory for your chosen harnesses and browser; the Azure default is a 2-vCPU/4-GB machine, not a guarantee for every workload. Connect as your normal SSH administrator and download, inspect, then run the same installer:
+Use a fresh **Ubuntu 24.04 x86-64** machine with systemd and outbound HTTPS. Start with enough memory for your chosen harnesses and browser; the Azure default is a 2-vCPU/4-GB machine, not a guarantee for every workload. Connect as root or your normal SSH administrator with sudo and run:
+
+```sh
+curl -fsSL https://www.ptbk.io/install.sh | bash
+```
+
+This attended entry point installs the missing prerequisites and published engine through the shared installer, then automatically opens ordinary `ptbk init` as `promptbook` in `~/projects/my-agenda`. It preserves the terminal even when downloaded through a pipe. A failed preparation does not continue into init; an existing project opens its ordinary `ptbk` entry instead of being reinitialized. [Inspect the entry script](https://github.com/webgptorg/ptbk-landing-page-aldaron/blob/main/public/install.sh).
+
+To inspect/run only system preparation or choose an exact engine version, keep the lower-level path:
 
 ```sh
 curl -fL https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/deploy/ubuntu/install.sh -o install-promptbook.sh
@@ -63,6 +71,8 @@ Your provider's firewall remains your responsibility on an existing VPS: allow S
 
 ## Finish setup over SSH
 
+The one-command entry above already enters the initializer as the engine user. The manual commands below are for hosts prepared by a provider startup script or the lower-level installer.
+
 The installer supplies the local Git service identity `Promptbook <promptbook@localhost>` only when no identity is configured for the dedicated user. This lets init save its first commit on a fresh machine. An existing identity is preserved; set your preferred `git config --global user.name` and `user.email` as `promptbook` if you want different authorship.
 
 ```sh
@@ -71,7 +81,16 @@ cd ~/projects/my-agenda
 ptbk init --path "$PWD"
 ```
 
-Use the global CLI, select a supported AI harness, complete its native sign-in and choose **Headless** for the browser. The initializer reports any remaining missing access. Provider login may require its documented device-login or SSH callback forwarding; website login requiring a visible browser needs an appropriate private remote desktop/browser setup. The deployment does not bypass these requirements. Do not run the engine as root or put credentials in the ARM template or installer arguments.
+Use the global CLI, select a supported AI harness, complete its native sign-in and choose **Headless** for the browser.
+
+For native sign-in on a server without a graphical browser, run the relevant login as `promptbook` and open its link on your computer or phone:
+
+- Codex: `codex login --device-auth`. Device-code login must be available/enabled for your account or workspace; use the [documented SSH callback fallback](https://developers.openai.com/codex/auth/#login-on-headless-devices) when necessary.
+- Claude Code: `claude auth login`, then use the displayed URL and paste a return code into the terminal if prompted. See [native authentication](https://code.claude.com/docs/en/authentication).
+
+Reuse the resulting native login in init; do not silently switch to API billing.
+
+The initializer reports any remaining missing access. Website login requiring a visible browser needs an appropriate private remote desktop/browser setup. The deployment does not bypass these requirements. Do not run the engine as root or put credentials in the ARM template or installer arguments.
 
 The initializer prepares the project and starts the background engine. In the same directory:
 
