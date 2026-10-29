@@ -2,9 +2,9 @@ import { open, readFile, realpath, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { ensureDirectory, isPathInside } from '../common/fs.js';
-import { isProcessAlive, runProcess } from '../common/process.js';
+import { isProcessAlive, runProcess, which, type ProcessResult } from '../common/process.js';
 import { compareVersions } from '../common/semver.js';
-import type { HarnessContext, HarnessInspection, HarnessPlugin } from './types.js';
+import type { HarnessContext, HarnessInspection, HarnessLoginMethod, HarnessPlugin, LoginLocation } from './types.js';
 
 /**
  * Outcome of a global maintenance operation, based on verification rather than command launch.
@@ -128,16 +128,134 @@ export async function installHarness(plugin: HarnessPlugin, context: HarnessCont
 }
 
 /**
- * Runs the harness's native interactive login in the current terminal and verifies the result.
+ * Where the human part of a native sign-in can happen, and why.
  *
  * @private harness maintenance
  */
-export async function loginHarness(plugin: HarnessPlugin, context: HarnessContext): Promise<MaintenanceResult> {
-    if (!plugin.loginArgs) return { id: plugin.id, outcome: 'unsupported', diagnostic: plugin.loginHint };
-    await runProcess(plugin.executable, plugin.loginArgs, { cwd: context.projectRoot, env: context.env, inheritStdio: true });
+export type LoginPlace = {
+    /** Local desktop or remote (SSH/browserless) host. */
+    readonly location: LoginLocation;
+    /** Human reason of the detection. */
+    readonly reason: string;
+};
+
+/**
+ * Detects the sign-in location: an explicit `PTBK_LOGIN_LOCATION` (`remote`/`local`, supplied e.g. by the VPS
+ * launcher, whose account switch drops the SSH variables), otherwise an SSH session or a Linux host without a display
+ * is remote. Terminal availability is a separate question: no display never makes redirected input interactive.
+ *
+ * @private harness maintenance
+ */
+export function loginLocation(env: NodeJS.ProcessEnv, platform: NodeJS.Platform = process.platform): LoginPlace {
+    const explicit = env.PTBK_LOGIN_LOCATION?.trim().toLowerCase();
+    if (explicit === 'remote') return { location: 'remote', reason: 'a remote server' };
+    if (explicit === 'local') return { location: 'local', reason: 'this computer' };
+    if (env.SSH_CONNECTION || env.SSH_CLIENT || env.SSH_TTY) return { location: 'remote', reason: 'an SSH session' };
+    if (platform === 'linux' && !env.DISPLAY && !env.WAYLAND_DISPLAY && !env.WSL_DISTRO_NAME) return { location: 'remote', reason: 'a server without a display' };
+    return { location: 'local', reason: 'this computer' };
+}
+
+/**
+ * Sign-in methods of the installed harness for a location: the adapter's own, or one generic method from `loginArgs`
+ * (not known to work without a browser on this machine).
+ *
+ * @private harness maintenance
+ */
+export async function harnessLoginMethods(plugin: HarnessPlugin, context: HarnessContext, location: LoginLocation): Promise<readonly HarnessLoginMethod[]> {
+    if (plugin.loginMethods) return await plugin.loginMethods(context, location);
+    if (!plugin.loginArgs) return [];
+    return [{ id: 'native', label: `Sign in now (${plugin.executable} ${plugin.loginArgs.join(' ')})`, args: plugin.loginArgs, remote: false, instructions: `Follow ${plugin.displayName}'s own sign-in in this terminal.`, terminal: 'inherit' }];
+}
+
+/**
+ * Verified outcome of one attended native sign-in.
+ *
+ * @private harness maintenance
+ */
+export type LoginResult = {
+    /** Harness identifier. */
+    readonly id: string;
+    /**
+     * Verified outcome: `authenticated` only after readiness was rechecked in the service's environment; `discovery`
+     * when this terminal is signed in but the service environment cannot find or use that sign-in.
+     */
+    readonly outcome: 'authenticated' | 'cancelled' | 'expired' | 'denied' | 'unsupported' | 'missing' | 'discovery' | 'failed';
+    /** Explanation (never containing a code or credential-bearing URL from the native output). */
+    readonly diagnostic: string;
+    /** Version after the sign-in. */
+    readonly version?: string;
+};
+
+/**
+ * Browser command used on a remote host when none is configured: it fails at once instead of letting `xdg-open` fall
+ * back to a terminal browser, so the native flow shows its URL for another device rather than waiting on this host.
+ */
+const NO_LOCAL_BROWSER = 'false';
+
+/**
+ * Runs one native sign-in method attended in the current terminal (Ctrl+C cancels the sign-in, not the caller), then
+ * rechecks readiness through the adapter's non-inference inspection, also in the service's effective environment.
+ * The native output is relayed live and only classified in memory; it is never persisted.
+ *
+ * @private harness maintenance
+ */
+export async function loginHarness(
+    plugin: HarnessPlugin,
+    context: HarnessContext,
+    method: HarnessLoginMethod,
+    options: { readonly location: LoginLocation; readonly service?: HarnessContext; readonly write?: (text: string) => void },
+): Promise<LoginResult> {
+    if (!(await which(plugin.executable, context.env))) return { id: plugin.id, outcome: 'missing', diagnostic: `\`${plugin.executable}\` was not found on PATH; install ${plugin.displayName} first.` };
+    const env = options.location === 'remote' && !context.env.BROWSER && process.platform !== 'win32' ? { ...context.env, BROWSER: NO_LOCAL_BROWSER } : context.env;
+    const ignore = (): void => undefined;
+    process.on('SIGINT', ignore);
+    let result: ProcessResult;
+    try {
+        result = await runProcess(plugin.executable, method.args, {
+            cwd: context.projectRoot,
+            env,
+            signal: context.signal,
+            ...(method.terminal === 'relay' ? { relayOutput: (chunk: string) => (options.write ?? ((text: string) => process.stdout.write(text)))(chunk) } : { inheritStdio: true }),
+        });
+    } finally {
+        process.off('SIGINT', ignore);
+    }
+    if (result.spawnError) return { id: plugin.id, outcome: 'missing', diagnostic: `${plugin.displayName} could not be started: ${result.spawnError}` };
+    if (result.cancelled || result.signal === 'SIGINT' || result.exitCode === 130) return { id: plugin.id, outcome: 'cancelled', diagnostic: `${plugin.displayName} sign-in was cancelled; nothing was changed.` };
     const inspection = await plugin.inspect(context);
-    if (inspection.usable && inspection.authenticated === true) return { id: plugin.id, outcome: 'authenticated', diagnostic: inspection.summary, version: inspection.version };
-    return { id: plugin.id, outcome: 'failed', diagnostic: `Login was not completed: ${inspection.summary}` };
+    if (!(inspection.usable && inspection.authenticated === true)) {
+        const failure = result.exitCode !== 0 ? plugin.classifyLogin?.(`${result.stdout}\n${result.stderr}`) : undefined;
+        if (failure) return { id: plugin.id, outcome: failure.outcome, diagnostic: failure.diagnostic, version: inspection.version };
+        return { id: plugin.id, outcome: 'failed', diagnostic: `Sign-in was not completed${result.exitCode ? ` (${plugin.executable} exited with ${result.exitCode})` : ''}: ${inspection.summary}`, version: inspection.version };
+    }
+    const problem = options.service ? await serviceReadinessProblem(plugin, options.service) : undefined;
+    if (problem) return { id: plugin.id, outcome: 'discovery', diagnostic: `Signed in here, but ${problem.summary}. ${problem.nextAction}`, version: inspection.version };
+    return { id: plugin.id, outcome: 'authenticated', diagnostic: inspection.summary, version: inspection.version };
+}
+
+/**
+ * A ready-looking instance that the background service could not use.
+ *
+ * @private harness maintenance
+ */
+export type ServiceReadinessProblem = {
+    /** What the service environment lacks. */
+    readonly summary: string;
+    /** Concrete repair. */
+    readonly nextAction: string;
+};
+
+/**
+ * Rechecks a ready instance through its non-inference inspection in the service's effective environment: an
+ * executable the service cannot find, or a sign-in only this terminal can see, is a discovery failure, not readiness.
+ *
+ * @private harness maintenance
+ */
+export async function serviceReadinessProblem(plugin: HarnessPlugin, service: HarnessContext): Promise<ServiceReadinessProblem | undefined> {
+    const inspection = await plugin.inspect(service);
+    if (!inspection.installed) return { summary: `the background service cannot find \`${plugin.executable}\` with its saved PATH`, nextAction: 'Install it for this user or fix PATH, then check again.' };
+    if (inspection.authenticated === false) return { summary: `the background service's environment does not see this sign-in (${inspection.summary})`, nextAction: 'Sign in as this user with the account settings the service uses, then check again.' };
+    return undefined;
 }
 
 /**

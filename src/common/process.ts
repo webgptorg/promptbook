@@ -114,6 +114,8 @@ export type RunProcessOptions = {
     readonly maxOutputBytes?: number;
     /** Inherit the terminal instead of capturing (interactive native login flows). */
     readonly inheritStdio?: boolean;
+    /** Keeps the terminal's input attached and relays every output chunk live, while still capturing it (attended flows). */
+    readonly relayOutput?: (chunk: string) => void;
     /** Keeps stdin open for a request/response protocol; the controller writes and ends it. */
     readonly stdinController?: (controls: { write: (text: string) => void; end: () => void }) => void;
     /** Terminates a process that produced no output for this long (unattended stall detection). */
@@ -372,10 +374,11 @@ export async function runProcess(command: string, args: readonly string[], optio
     const spawnOptions: SpawnOptions = {
         cwd: options.cwd,
         env,
-        stdio: options.inheritStdio ? 'inherit' : ['pipe', 'pipe', 'pipe'],
+        stdio: options.inheritStdio ? 'inherit' : options.relayOutput ? ['inherit', 'pipe', 'pipe'] : ['pipe', 'pipe', 'pipe'],
         windowsHide: true,
         windowsVerbatimArguments: invocation.windowsVerbatimArguments,
-        detached: process.platform !== 'win32' && !options.inheritStdio,
+        // Attended flows stay in the terminal's foreground process group (they read it and receive its Ctrl+C).
+        detached: process.platform !== 'win32' && !options.inheritStdio && !options.relayOutput,
     };
     return await new Promise<ProcessResult>((resolvePromise) => {
         const limit = options.maxOutputBytes ?? DEFAULT_MAX_OUTPUT_BYTES;
@@ -452,12 +455,14 @@ export async function runProcess(command: string, args: readonly string[], optio
         }
         child.stdout?.setEncoding('utf8').on('data', (chunk: string) => {
             lastOutputAt = Date.now();
+            options.relayOutput?.(chunk);
             stdout.push(chunk);
             const tail = chunk.split(/\r?\n/).pop();
             if (tail?.trim()) lastLine = tail;
         });
         child.stderr?.setEncoding('utf8').on('data', (chunk: string) => {
             lastOutputAt = Date.now();
+            options.relayOutput?.(chunk);
             stderr.push(chunk);
             const tail = chunk.split(/\r?\n/).pop();
             if (tail?.trim()) lastLine = tail;

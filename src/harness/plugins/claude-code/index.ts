@@ -1,5 +1,5 @@
 import { baseInspection, helpText, parseStreamJson, probe, withAuthentication } from '../../shared.js';
-import type { HarnessContext, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest } from '../../types.js';
+import type { HarnessContext, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginLocation } from '../../types.js';
 
 /**
  * Inspects installation and native login (`claude auth status --json`).
@@ -27,6 +27,30 @@ async function listModels(context: HarnessContext): Promise<string[]> {
     const help = await helpText(context, 'claude', ['--help']);
     const section = /--model <model>([\s\S]*?)(?:\n\s{2}-|\n\s*$)/.exec(help)?.[1] ?? '';
     return [...new Set([...section.matchAll(/'([a-z][a-z0-9.-]*)'/g)].map((match) => match[1]!))];
+}
+
+/**
+ * Native subscription sign-in of the installed Claude Code (`claude auth login`, never the API-billing `--console`
+ * login): its link can be opened on another device, and a return code is pasted at its own terminal prompt. Versions
+ * without `auth login` use the native `/login` interaction. There is no device-code flag to invent.
+ */
+async function loginMethods(context: HarnessContext, location: LoginLocation): Promise<HarnessLoginMethod[]> {
+    const help = await helpText(context, 'claude', ['auth', 'login', '--help']);
+    const remote = location === 'remote';
+    const away = remote ? ' Nothing needs to open on this server: open the link Claude Code shows on your phone or computer, sign in, and if the page shows a code, paste it here at Claude Code’s prompt.' : '';
+    if (!/auth login/i.test(help)) {
+        return [{ id: 'native', label: 'Start Claude Code and use /login', args: [], remote, instructions: `Claude Code starts in this terminal: type /login and follow it, then leave with /exit.${away}`, terminal: 'inherit' }];
+    }
+    return [
+        {
+            id: remote ? 'url-code' : 'browser',
+            label: remote ? 'Sign in on another device with Claude Code’s link and code (claude auth login)' : 'Sign in with your Claude account in the browser (claude auth login)',
+            args: help.includes('--claudeai') ? ['auth', 'login', '--claudeai'] : ['auth', 'login'],
+            remote: true,
+            instructions: remote ? `Claude Code signs in with your Claude subscription.${away}` : 'Claude Code opens the sign-in page in your browser; finish it there and return to this terminal (if it asks for a code, paste it here).',
+            terminal: 'inherit',
+        },
+    ];
 }
 
 /**
@@ -74,7 +98,8 @@ export const plugin: HarnessPlugin = {
     endpoints: { official: 'https://api.anthropic.com', custom: true },
     capabilities: { mcp: true, readOnly: true },
     loginArgs: ['auth', 'login'],
-    loginHint: 'Run `claude auth login` (or start `claude` once and use /login).',
+    loginHint: 'Run `claude auth login` (or start `claude` once and use /login); on a server, open its link on another device and paste the code it shows.',
+    loginMethods,
     selfUpdateArgs: ['update'],
     inspect,
     listModels,

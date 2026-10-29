@@ -226,6 +226,16 @@ export function restoreDiscoveryEnvironment(saved: Readonly<Record<string, strin
 }
 
 /**
+ * The environment a persistent service restores after detachment or reboot (saved discovery locations only, no
+ * ad hoc variables of this terminal), for checking that setup done here also works in the service.
+ *
+ * @private service records
+ */
+export function persistentServiceEnvironment(env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+    return restoreDiscoveryEnvironment(discoveryEnvironment(env), process.execPath, {});
+}
+
+/**
  * Ownership lock content.
  */
 type LockContent = { readonly pid: number; readonly instanceId: string; readonly kind: string; readonly at: string };

@@ -47,7 +47,8 @@ import { handOverCreated, intendedUser, missingDirectories, sharedProjectsRoot }
 import { kebabIdentifier } from '../../common/naming.js';
 import { WalletSubEngine } from '../../wallet/wallet.js';
 import { confirmRecoveryWords, walletImportFlow } from '../../ui/wallet-forms.js';
-import { checkHarnessVersion, installHarness, loginHarness, updateHarness } from '../../harness/maintenance.js';
+import { checkHarnessVersion, harnessLoginMethods, installHarness, loginHarness, loginLocation, serviceReadinessProblem, updateHarness } from '../../harness/maintenance.js';
+import { persistentServiceEnvironment } from '../../service/records.js';
 import type { HarnessInspection, HarnessPlugin } from '../../harness/types.js';
 import type { ServiceSnapshot } from '../../engine/snapshot.js';
 import { lookupService } from '../../service/control.js';
@@ -858,11 +859,14 @@ export async function initializeProject(context: CommandContext, options: { proj
      */
     const setUpHarnesses = async (selected: string[]): Promise<void> => {
         const projectRoot = await nearestExisting(state.root);
+        const place = loginLocation(context.env);
         for (const id of [...selected]) {
             const plugin = harnessPlugin(id)!;
             // The simple init instance: the native account context of the global installation (never an ambient API key).
             const nativeTool: HarnessToolRecord = { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
             const context2 = { projectRoot, env: instanceEnvironment(plugin, nativeTool, undefined, context.env), tool: nativeTool };
+            // The same instance as the background service will see it after detachment or reboot.
+            const service = { projectRoot, env: instanceEnvironment(plugin, nativeTool, undefined, persistentServiceEnvironment(context.env)), tool: nativeTool };
             let inspection = await plugin.inspect(context2);
             if (!inspection.installed) {
                 let install = flag(context, 'install-harnesses') === true;
@@ -878,31 +882,49 @@ export async function initializeProject(context: CommandContext, options: { proj
                     inspection = await plugin.inspect(context2);
                 }
             }
-            while (inspection.installed && inspection.authenticated === false && interactive) {
+            // A sign-in only this terminal can see (or an executable the service cannot find) is not readiness.
+            let serviceProblem = inspection.installed && inspection.authenticated !== false ? await serviceReadinessProblem(plugin, service) : undefined;
+            while (inspection.installed && (inspection.authenticated === false || serviceProblem) && interactive) {
                 shown.add('harnesses');
+                // Remote-compatible methods come first on an SSH/browserless host; the owner may still choose another.
+                const methods = await harnessLoginMethods(plugin, context2, place.location);
+                const ordered = place.location === 'remote' ? [...methods.filter((method) => method.remote), ...methods.filter((method) => !method.remote)] : [...methods];
+                const remoteReady = place.location === 'local' || ordered.some((method) => method.remote);
+                const situation =
+                    place.location === 'remote'
+                        ? remoteReady
+                            ? ` This is ${place.reason}: you finish sign-in in a browser on your phone or computer.`
+                            : ` This is ${place.reason}, and ${plugin.displayName} has no sign-in known to work without a browser here${ordered.length ? '; its own login may wait for a browser on this machine' : ''}.`
+                        : '';
                 const choice = answered(
                     await selectOne(terminal, {
                         frame: frame('harnesses', `${plugin.displayName} needs a login`, 'waiting-user'),
-                        question: `${plugin.displayName}: ${inspection.summary} ${plugin.loginHint}`,
+                        question: `${plugin.displayName}: ${serviceProblem ? `signed in, but ${serviceProblem.summary}. ${serviceProblem.nextAction}` : inspection.summary}${situation}${ordered.length ? '' : ` ${plugin.loginHint}`}`,
                         choices: [
-                            ...(plugin.loginArgs ? [{ value: 'login', label: `Log in now (runs ${plugin.executable} ${plugin.loginArgs.join(' ')})` }] : []),
+                            ...ordered.map((method, index) => ({ value: `method-${index}`, label: method.label })),
                             { value: 'recheck', label: 'I logged in another way — check again' },
                             { value: 'remove', label: `Remove ${plugin.displayName} from the selection` },
                             { value: 'defer', label: 'Defer (setup stays incomplete)' },
                         ],
-                        defaultValue: plugin.loginArgs ? 'login' : 'recheck',
+                        defaultValue: ordered.length && remoteReady && !serviceProblem ? 'method-0' : 'recheck',
                     }),
                 );
-                if (choice === 'login') {
-                    const result = await loginHarness(plugin, context2);
+                const method = choice.startsWith('method-') ? ordered[Number(choice.slice('method-'.length))] : undefined;
+                if (method) {
+                    say(method.instructions);
+                    say(style.muted(`Waiting for ${plugin.displayName} sign-in… Ctrl+C cancels it and returns here.`));
+                    const result = await loginHarness(plugin, context2, method, { location: place.location, service, write: (text) => terminal.write(text) });
                     say(`${result.outcome === 'authenticated' ? style.success(marks.ok) : style.warning(marks.warn)} ${result.diagnostic}`);
                 } else if (choice === 'remove') {
                     selected.splice(selected.indexOf(id), 1);
                     break;
                 } else if (choice === 'defer') break;
                 inspection = await plugin.inspect(context2);
+                serviceProblem = inspection.installed && inspection.authenticated !== false ? await serviceReadinessProblem(plugin, service) : undefined;
             }
             if (!selected.includes(id)) continue;
+            // Incomplete readiness keeps its reason for the completion summary and a later retry.
+            if (serviceProblem) inspection = { ...inspection, usable: false, summary: `Signed in, but ${serviceProblem.summary}.`, problem: 'error', nextAction: serviceProblem.nextAction };
             state.inspections.set(id, inspection);
         }
         const context2 = { projectRoot, env: context.env };

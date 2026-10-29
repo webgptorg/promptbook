@@ -1,6 +1,7 @@
 import { runProcess } from '../../../common/process.js';
+import { stripAnsi } from '../../../ui/ansi.js';
 import { baseInspection, helpText, numericUsage, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
-import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest, ParserState } from '../../types.js';
+import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginFailure, LoginLocation, ParserState } from '../../types.js';
 
 /**
  * Environment variables that could switch Codex to API billing.
@@ -73,6 +74,56 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
         };
     }
     return withAuthentication(inspection, false, 'none', plugin.loginHint, 'Installed but not logged in.');
+}
+
+/**
+ * Local port of the browser sign-in callback (`codex login`), forwarded over SSH when the browser is on another device.
+ */
+const LOGIN_CALLBACK_PORT = 1455;
+
+/**
+ * Sign-in methods of the installed Codex: device-code login (`--device-auth`, when this version has it) first on a
+ * remote host, the browser callback login first locally. Never an API key for a native ChatGPT login.
+ */
+async function loginMethods(context: HarnessContext, location: LoginLocation): Promise<HarnessLoginMethod[]> {
+    const help = await helpText(context, 'codex', ['login', '--help']);
+    const device: HarnessLoginMethod | undefined = help.includes('--device-auth')
+        ? {
+              id: 'device-code',
+              label: 'Sign in on another device with a one-time code (codex login --device-auth)',
+              args: ['login', '--device-auth'],
+              remote: true,
+              instructions:
+                  'Codex shows a link and a one-time code. Open the link on your phone or computer, sign in with ChatGPT and enter the code there; this terminal continues by itself. Device-code login may first need enabling in your ChatGPT security settings, or permission from your workspace administrator.',
+              terminal: 'relay',
+          }
+        : undefined;
+    if (location === 'local') {
+        const browser: HarnessLoginMethod = { id: 'browser', label: 'Sign in with ChatGPT in the browser (codex login)', args: ['login'], remote: false, instructions: 'Codex opens ChatGPT sign-in in your browser; finish it there and return to this terminal.', terminal: 'inherit' };
+        return device ? [browser, device] : [browser];
+    }
+    const forwarding: HarnessLoginMethod = {
+        id: 'callback-forwarding',
+        label: 'Sign in with your computer’s browser through SSH port forwarding (codex login)',
+        args: ['login'],
+        remote: true,
+        instructions: `${device ? '' : 'This Codex version has no device-code login (a newer version has it). '}First, in another terminal on your computer, forward the sign-in callback: ssh -N -L ${LOGIN_CALLBACK_PORT}:localhost:${LOGIN_CALLBACK_PORT} <your usual SSH login to this server>. Then open the URL Codex shows in your computer's browser and sign in with ChatGPT.`,
+        terminal: 'inherit',
+    };
+    return device ? [device, forwarding] : [forwarding];
+}
+
+/**
+ * Classifies the transient output of an unsuccessful Codex sign-in.
+ */
+function classifyLogin(output: string): LoginFailure | undefined {
+    const plain = stripAnsi(output);
+    if (/not enabled|disabled|not allowed|not permitted|administrator/i.test(plain)) {
+        return { outcome: 'unsupported', diagnostic: 'Device-code login is not enabled for this ChatGPT account or workspace. Enable it in your ChatGPT security settings or ask your workspace administrator, or sign in through SSH port forwarding. An API key is never used for this native tool.' };
+    }
+    if (/expired|timed out|time ?out/i.test(plain)) return { outcome: 'expired', diagnostic: 'The one-time code expired before sign-in finished; start the sign-in again for a new code.' };
+    if (/denied|declined|rejected/i.test(plain)) return { outcome: 'denied', diagnostic: 'Sign-in was denied on the ChatGPT page; nothing was changed.' };
+    return undefined;
 }
 
 /**
@@ -200,7 +251,9 @@ export const plugin: HarnessPlugin = {
     endpoints: { official: 'https://api.openai.com/v1', local: 'http://localhost:11434/v1', custom: true },
     capabilities: { mcp: true, readOnly: true },
     loginArgs: ['login'],
-    loginHint: 'Run `codex login` and sign in with your ChatGPT account.',
+    loginHint: 'Run `codex login` (on a server without a browser: `codex login --device-auth`) and sign in with your ChatGPT account.',
+    loginMethods,
+    classifyLogin,
     inspect,
     listModels: listCodexModels,
     buildInvocation,

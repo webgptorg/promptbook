@@ -77,6 +77,49 @@ export type HarnessContext = {
 };
 
 /**
+ * Where the human part of a native sign-in happens: `local` can open a browser on this machine; `remote` is an
+ * SSH/browserless host where the owner completes provider sign-in on another device.
+ *
+ * @private harness plugin contract
+ */
+export type LoginLocation = 'local' | 'remote';
+
+/**
+ * One native sign-in method supported by the installed harness version.
+ *
+ * @private harness plugin contract
+ */
+export type HarnessLoginMethod = {
+    /** Stable identifier (`device-code`, `url-code`, `browser`, `callback-forwarding`, `native`). */
+    readonly id: string;
+    /** Short choice label. */
+    readonly label: string;
+    /** Arguments after the executable. */
+    readonly args: readonly string[];
+    /** Completable without a browser on this machine (the owner signs in on another device). */
+    readonly remote: boolean;
+    /** The exact human step, shown before the native flow starts. */
+    readonly instructions: string;
+    /**
+     * How the native flow uses the terminal: `inherit` hands it over completely (e.g. a prompt for a pasted return
+     * code); `relay` keeps input attached and echoes output live, so the outcome can be classified from it in memory.
+     */
+    readonly terminal: 'inherit' | 'relay';
+};
+
+/**
+ * A classified unsuccessful sign-in, read from the transient output of a relayed native flow.
+ *
+ * @private harness plugin contract
+ */
+export type LoginFailure = {
+    /** What happened. */
+    readonly outcome: 'expired' | 'denied' | 'unsupported';
+    /** Explanation with the supported recovery. */
+    readonly diagnostic: string;
+};
+
+/**
  * MCP server that the harness should load (the ptbk bridge).
  *
  * @private harness plugin contract
@@ -247,6 +290,13 @@ export type HarnessPlugin = {
     readonly loginArgs?: readonly string[];
     /** Human login instruction. */
     readonly loginHint: string;
+    /**
+     * Native sign-in methods of the installed version, most suitable first for the location (absent: one generic
+     * method from `loginArgs`, not known to work without a browser on this machine).
+     */
+    readonly loginMethods?: (context: HarnessContext, location: LoginLocation) => Promise<readonly HarnessLoginMethod[]>;
+    /** Classifies the transient output of an unsuccessful relayed sign-in (expiry, denial, a disabled method). */
+    readonly classifyLogin?: (output: string) => LoginFailure | undefined;
     /** Native self-update arguments when not installed through npm. */
     readonly selfUpdateArgs?: readonly string[];
     /** Read-only inspection: installation, version, authentication, capabilities. */

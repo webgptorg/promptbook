@@ -41,8 +41,27 @@ if (args[0] === '--version') {
     print('codex-cli 9.9.9');
     process.exit(0);
 }
+// Native sign-in: with $FAKE_CODEX_AUTH_FILE, the login state is that file's existence. `login --device-auth` follows
+// $FAKE_CODEX_LOGIN_RESULT (success, expired, disabled or denied) and records its BROWSER/API-key environment in
+// $FAKE_CODEX_LOGIN_LOG; $FAKE_CODEX_NO_DEVICE_AUTH hides the flag like an older Codex.
+if (args[0] === 'login' && args.includes('--help')) {
+    print(`Manage login\n\nUsage: codex login [OPTIONS] [COMMAND]\n\nOptions:\n      --with-api-key\n${process.env.FAKE_CODEX_NO_DEVICE_AUTH ? '' : '      --device-auth\n'}  -h, --help`);
+    process.exit(0);
+}
+if (args[0] === 'login' && args[1] !== 'status') {
+    if (process.env.FAKE_CODEX_LOGIN_LOG) appendFileSync(process.env.FAKE_CODEX_LOGIN_LOG, `${JSON.stringify({ args, browser: process.env.BROWSER ?? null, apiKey: Boolean(process.env.OPENAI_API_KEY || process.env.CODEX_API_KEY) })}\n`);
+    print('Follow these steps to sign in with ChatGPT using device code authorization:\n\n1. Open this link in your browser and sign in to your account\n   https://auth.example.test/codex/device\n\n2. Enter this one-time code (expires in 15 minutes)\n   FAKE-C0DE');
+    const result = process.env.FAKE_CODEX_LOGIN_RESULT ?? 'success';
+    if (result === 'success') {
+        if (process.env.FAKE_CODEX_AUTH_FILE) writeFileSync(process.env.FAKE_CODEX_AUTH_FILE, 'signed in\n');
+        print('Successfully logged in');
+        process.exit(0);
+    }
+    process.stderr.write(`Error logging in with device code: ${{ expired: 'device auth timed out after 15 minutes', disabled: 'device code login is not enabled for this Codex server. Use the browser login or verify the server URL.', denied: 'device authorization was denied' }[result] ?? result}\n`);
+    process.exit(1);
+}
 if (args[0] === 'login' && args[1] === 'status') {
-    if (process.env.FAKE_CODEX_SIGNED_OUT) {
+    if (process.env.FAKE_CODEX_SIGNED_OUT || (process.env.FAKE_CODEX_AUTH_FILE && !existsSync(process.env.FAKE_CODEX_AUTH_FILE))) {
         process.stderr.write('Not logged in\n');
         process.exit(1);
     }
