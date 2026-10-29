@@ -34,7 +34,7 @@ The first definition whose **normalized declared name** matches wins. There is n
 
 Within a tier and path order, duplicates are **shadowed, not fatal by default**. Report competing paths, effective winner and potential category mismatches as diagnostics for [Fixer](../agents/core-agents/fixer.md) to inspect. A reference in an agent-only commitment such as FROM or TASK AGENT must resolve to the correct type; if the winning Book is a task/chat, report the mismatch instead of silently selecting a lower-priority agent. Missing, malformed or category-incompatible references never select a random fallback.
 
-Excluded from discovery: Git metadata, local `.ptbk/` runtime/browser profiles, `traces/` evidence and other explicit data-only regions; do not escape the project through symlinks or traverse nested project runtime. Include hidden supporting agents and ignored dependencies only in their stated tiers, without automatically selecting them for general work. Discovery must be read-only; expensive ignored-content scans may be deferred but their incompleteness must be disclosed. Cached matches must respect changed project files and Git ignore state.
+Excluded from discovery: Git metadata, local `.ptbk/` runtime/browser profiles, `traces/` evidence, `actions/` audit data and other explicit data-only regions; do not escape the project through symlinks or traverse nested project runtime. Include hidden supporting agents and ignored dependencies only in their stated tiers, without automatically selecting them for general work. Discovery must be read-only; expensive ignored-content scans may be deferred but their incompleteness must be disclosed. Cached matches must respect changed project files and Git ignore state.
 
 ## Typed meaning and graph edges
 

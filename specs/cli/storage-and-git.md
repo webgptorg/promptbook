@@ -8,6 +8,7 @@ This is the entry point for deciding where project information belongs and what 
 | --- | --- | --- |
 | Agent, task and chat Books; specifications; nonsecret saved configuration | Readable project sources, retaining chronology where required by [Book layering](../book-language/layering.md). | Scoped logical commits under [Git persistence](git-persistence.md). |
 | Available harness output, events, browser evidence and structured raw usage | Attributed durable evidence under root `traces/`; task directories use the literal source basename. | [Trace policy](trace-configuration.md); usage follows traces by default. |
+| External actions | One readable Markdown record per remote mutation under root `actions/<task-file-basename>/`. | Versioned independently of trace settings and final task success; see [action log](action-log.md). |
 | Wallet credentials, TOTP generators, encryption/recovery metadata | Persistent encrypted ignored `.ptbk/wallet/` and `.ptbk/encryption/`. | Never commit secret values, ciphertext vault files or recovery material. Only the nonsecret operation audit below is eligible. |
 | Historical price-list observations | Ignored `.ptbk/pricing/`, separate from usage records. | Not required to be committed; retain snapshots independently. |
 | Rebuildable totals, indexes and UI preferences | Ignored internal cache/presentation state under `.ptbk/`. | Do not commit derived caches or navigation. |
@@ -20,7 +21,7 @@ Private/personal agendas normally use a private remote or a local-only repositor
 
 Group compatible chat/authoring changes intelligently, while saving each accepted message and file immediately. Keep unrelated tasks and unfinished work out of each other's commits, including same-file interleaving. A detailed commit body can explain the work, decisions, external outcome and named task/chat provenance; the subject follows one common [format](git-persistence.md#commit-messages-and-history).
 
-A real operation can be meaningful without changing a versioned file. Permit an intentionally empty audit commit for completed external work or a Wallet mutation when there is no eligible file change. Identify the actual operation and nonsecret outcome in its subject/body. Do not manufacture empty commits for inspection, unchanged init, routine polling, navigation or no-ops. Git records an external action; reverting that record does not undo or authorize replay of the action.
+A real operation can be meaningful without changing a versioned file. Newly captured external task work must retain its [action record](action-log.md); an empty commit cannot replace it. Permit an intentionally empty audit commit for a meaningful Wallet/other operation without eligible versioned content. Identify the actual operation and nonsecret outcome in its subject/body. Do not manufacture empty commits for inspection, unchanged init, routine polling, navigation or no-ops. Git records an external action; reverting that record does not undo or authorize replay of the action.
 
 ## Wallet operation audit
 

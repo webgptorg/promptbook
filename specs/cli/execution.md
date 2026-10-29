@@ -19,3 +19,5 @@ After completion, claim further work only if lifecycle still permits it. Pausing
 Checkpoint a blocked task and release safe resources/capacity so independent work can proceed; retain any still-required file ownership visibly. Never mix unresolved edits into another result. A human wait is not permission to discard work. Start keeps supervising empty queues and recoverable/resource waits. Shared unsafe ownership blocks affected work, not automatically the whole engine; a network synchronization failure alone does not. File-lock deadlocks are explicitly [known and deferred](known-limitations.md).
 
 See [checks](checks.md), [Git persistence](git-persistence.md), [Git synchronization](git-synchronization.md), [recovery](recovery.md), [traces](traces.md) and [task origins](task-origins.md).
+
+External mutations additionally produce durable [action records](action-log.md) under `actions/<task-file-basename>/`, independent of trace inclusion and final task success. Save/commit performed effects promptly and reconcile uncertain outcomes before retry; reads/downloads create no actions.

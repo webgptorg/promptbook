@@ -110,7 +110,7 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 - **C10:** Append CHAT TITLE updates while stable opening names keep links valid. Task requests create ordinary work promptly; source chat/task save named links in both directions plus TASK ORIGIN. Live cards show starts/waits/outcomes and append each concise result once.
 - **C11:** A task agent joins the existing source chat via CHAT MEMBER before speaking under its own name. Question reply targets its author, explicit agent mention targets that participant, unaddressed input targets the main agent. Chat/task detail share one question and saved answer; attention clears on response, before processing/commit, while other questions remain pending.
 
-- **C12:** Tasks/chats/Wallet/tools/health use one attention presentation, exceptionally. Saved responses immediately clear their own questions; read/navigation does not answer. Recoverable waits leave independent work/supervision running. Exercise a month of ordinary authorized unattended operation without routine approval prompts.
+- **C12:** Tasks/chats/Wallet/tools/health use one attention presentation, exceptionally. Saved responses immediately clear their own questions; read/navigation does not answer. Recoverable waits leave independent work/supervision running. Exercise sustained ordinary authorized unattended operation without routine approval prompts.
 
 ## Service lifecycle and exclusive ownership
 
@@ -135,7 +135,7 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 
 ## Unattended operation and audit trails
 
-- **O01:** On an awake supported host with usable tools and an authorized recurring AI-news publishing agenda, simulate a month without dashboard/operator. Work and follow-ups continue without routine per-post approval; results and task-linked evidence remain inspectable. Respect pauses, schedules, target accounts and scope; do not invent activity during legitimate idle.
+- **O01:** On an awake supported host with usable tools and an authorized recurring AI-news publishing agenda, simulate a year without dashboard/operator, including supported service/interface changes. Work and follow-ups continue without routine per-post approval; results and task-linked evidence remain inspectable. Respect pauses, schedules, target accounts and scope; do not invent activity during legitimate idle.
 - **O02:** Inject network/provider failure, restart and hidden harness prompts. Recover/classify within bounded budgets without duplicate external effects or paid idle loops. Deterministic corrections precede ordinary Fixer judgment; genuine missing authority/login/unsafe ownership uses current agent consultation policy. Safe independent work continues when possible. An alive avoidably stalled service fails this scenario.
 - **E01:** Each canonical task has `traces/<task-file-basename>/` copied literally from its source filename without final .book, not normalized TASK name or generated ID. Test different declaration/path, preserved date/case/characters and custom source locations. Available output/events retain attempts/occurrences/names/revisions/chats/Git without fabricated private reasoning.
 - **E02:** Follow task/Git history to actual harness output and playable browser video in either display mode. Attribute each named tool/account/attempt and label gaps; exclude authentication data and unrelated desktop/project activity. Unsupported/failed capture is honest.
@@ -200,7 +200,7 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 
 - **N13:** Two independent agents may run tasks concurrently under shared capacity. A single agent with an active or waiting task cannot start a second task through another harness/account, but can answer chat. Recover the reservation before new claims; wait release of an execution slot is not release of task ownership.
 - **N14:** A new chat has implicit open state and no initial status line. Append actual status/title transitions and member joins at their chronological positions; latest valid status/title wins. Reading/no-ops do not append or answer. Restart/source editing and Git batches retain the same history.
-- **N15:** Runtime subjects use lowercase `ptbk: `, backtick-quoted textual agent visual only for real agent work, and a meaningful summary. System commits invent no agent/date. Bodies may describe detailed work. Completed external-only work can have an intentional empty audit commit; inspection/no-ops cannot. Compatible chat saves batch while file/message persistence remains immediate and unrelated work stays separate.
+- **N15:** Runtime subjects use lowercase `ptbk: `, backtick-quoted textual agent visual only for real agent work, and a meaningful summary. System commits invent no agent/date. Bodies may describe detailed work. Newly captured external task work has its Markdown action records; other eligible file-free operations can use an empty audit commit; inspection/no-ops cannot. Compatible chat saves batch while file/message persistence remains immediate and unrelated work stays separate.
 
 ## Usage and responsive dashboard
 
@@ -212,3 +212,8 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 - **N21:** Run sustained updates with a hidden/minimized/throttled terminal, then restore/resize. Coalesce obsolete frames, respect bounded output/backpressure and render current state promptly without replaying old screens, unbounded queue growth, lost messages/usage or an engine stall. Do not claim a confirmed cause for the reported freeze without evidence.
 
 See [storage and Git](storage-and-git.md), [core agents](../agents/core-agents.md), [Book layering](../book-language/layering.md) and [usage](usage.md) for the authoritative detail.
+
+## Autonomous recovery and external action audit additions
+
+- **A01:** Outages beyond immediate retry budgets use persistent cause-aware rechecks/authorized alternatives/Fixer, with no generic Retry question or duplicate effects. Clear requests when their actual cause resolves and continue independent work. Completed selected setup suffices without routine later configuration.
+- **A02:** Verify one Markdown per remote mutation, exact action/trace basename pairing, zero-action directories absent, reads/downloads excluded regardless of HTTP method, new-task capture without backfill and versioning with ignored traces/later task failure. Reconcile interrupted acknowledgements, retries, commit/push failure and revert without duplicate effects or lost uncertainty.

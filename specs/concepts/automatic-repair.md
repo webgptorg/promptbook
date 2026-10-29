@@ -28,6 +28,8 @@ A failed remote synchronization does not stop safe local work. Missing usable to
 
 Distinguish task-local problems from project-wide unsafe state. Continue independent work when ownership can be preserved; do not hide unsafe unresolved state to claim progress. Deliberate pause/stop and explicitly disabled tools remain intentional decisions, not errors to undo automatically. The user may also resolve problems manually; recognize the result and retire stale repair requests.
 
+Bound immediate attempts, not the lifetime of recoverable work. Exhausting a short retry burst selects a better remedy, scheduled cause-aware recheck or ordinary Fixer work; it never automatically asks User to retry. Network/service outages and supported interface changes are technical work inside existing authority. Ask only for useful missing input/authority or a necessary human-only step after autonomous remedies have been assessed. See [retries](../cli/retries.md).
+
 ## Acceptance outcomes
 
 Resolve unambiguous naming corrections without a human question and retain their scoped commit. Send a genuine ambiguity or difficult merge conflict to the normal Fixer; verify ordinary specialist/User consultations, learned preferences and no new communication mechanism. Exercise customized all/some/no-User consultation policies without resetting the Book. Recover from a transient fault without duplicate effects or repeated notifications. With no usable harness, keep the engine controllable and the repair pending; adding a usable tool enables recovery without a restart.
