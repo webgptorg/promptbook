@@ -48,11 +48,17 @@ The engine machine must stay available. By default, the engine resumes at login.
 
 ## Deploy to your own server
 
+[![Set up a DigitalOcean Droplet](deploy/digitalocean/button.svg)](deploy/README.md#digitalocean)
+
+**DigitalOcean:** create an Ubuntu Droplet with your SSH key and paste the prepared startup script. It installs the engine with persistent project storage and private dashboard access. [Open the DigitalOcean setup guide](deploy/README.md#digitalocean). The guide includes the required script-copy step; this is not a published Marketplace one-click image.
+
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwebgptorg%2Fpromptbook%2Freborn%2F2026-10%2Fdeploy%2Fazure%2Fazuredeploy.json)
 
 Create a **paid Ubuntu VPS in your own Azure account**, with a persistent disk, SSH restricted to your client IP, Node.js, Git, Chrome and the published engine. Review the provider's costs before confirming. Then connect over SSH, complete `ptbk init` and sign in to your chosen AI harness; the button prepares the server, while your agenda still needs setup.
 
 Already have an Ubuntu VPS on DigitalOcean, Hetzner or another provider? Use the same [server installer and setup guide](deploy/README.md). The engine runs as a dedicated user, keeps its dashboard private and can resume at boot after initialization. [All installation options](https://www.ptbk.io/en/open-source).
+
+**[AWS EC2 setup](deploy/README.md#aws):** upload the prepared CloudFormation template to create a persistent Ubuntu server with the same installer. All providers require paid resources and attended `ptbk init` / AI sign-in after server preparation.
 
 ## Built around your project
 

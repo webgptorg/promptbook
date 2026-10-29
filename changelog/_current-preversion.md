@@ -1,5 +1,17 @@
 # Unreleased
 
+## Specification: harness login over SSH
+
+-   Defined shared adapter-owned remote native authentication, with Codex device-code login and Claude's supported URL/terminal-code flow, explicit unsupported/policy/error outcomes and no silent API-billing fallback. Init and later tool setup reuse service-user readiness checks without paid probes; added transient-code handling and acceptance scenarios. This specifies target behavior and does not claim the adapters already implement it.
+
+## Specification: one-command VPS onboarding
+
+-   Defined the target clean-server path: one shell command prepares missing prerequisites and the published engine, preserves the SSH terminal and automatically enters ordinary init as the non-root engine user. Added retry, destination, unattended-provisioning and completion boundaries plus acceptance scenarios; aligned the installation specification with DigitalOcean, Azure and AWS and the bilingual local/VPS AI installation prompts. These are specification changes, not an implementation or release of the new installer handoff.
+
+## DigitalOcean-first cloud deployment
+
+-   Added the primary DigitalOcean Droplet button and startup script with required client IPv4 validation, key-only SSH and the shared Ubuntu installer. Added AWS EC2 CloudFormation setup with encrypted retained storage, SSH-only ingress and installer-success signaling. README and bilingual web distinguish the guided copy/upload steps from Azure's direct deployment form; AI sign-in remains attended.
+
 ## Wallet: whole-record encryption, Bitwarden import, new recovery words and reset
 
 -   Saved logins are now encrypted completely: service, account, label, times, password and TOTP generator are one encrypted record (`records.json` version 2), with no plaintext account or origin index. Records of the older format keep working and are rewritten fully encrypted the first time the Wallet is unlocked. A Wallet this computer cannot unlock shows only how many encrypted logins it holds.

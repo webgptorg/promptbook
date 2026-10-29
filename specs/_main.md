@@ -66,6 +66,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 - [Wallet import](cli/wallet-import.md): Shared extensible Bitwarden import in init/Wallet with individual/all/none selection.
 - [Wallet recovery management](cli/wallet-recovery.md): Preserve records with new words if a key remains, or explicitly reset empty after total key loss.
 - [Harnesses](cli/harnesses.md): Global executables, named authentication contexts, capabilities and authorized fallback.
+- [Remote harness authentication](cli/harness-authentication.md): Native Codex/Claude terminal login without a VPS browser, attended code/URL handling and service-user readiness.
 - [Harness adapters](cli/harness-plugins.md): Common typed setup/execution/evidence contracts and featured/More catalog.
 - [Harness updates](cli/harness-updates.md): Selected shared installations and safe maintenance.
 
@@ -73,7 +74,8 @@ Keep specifications in English, concise and focused on observable behavior, impo
 
 The Windows installer is an additional release artifact, not a second engine or a replacement for npm. It prepares missing prerequisites, installs the corresponding `ptbk` version and hands an ordinary user-owned project to the existing interactive init.
 
-- [Installation](cli/installation.md): Global/local package, Windows entry point and destination-specific dependency setup.
+- [Installation](cli/installation.md): Global/local package, prerequisite bootstraps, matching README/web guidance and local/VPS AI installation prompts.
+- [VPS onboarding](cli/vps-onboarding.md): One shell command from a clean supported server into ordinary interactive init, with the engine user's terminal and private persistent operation.
 - [Windows installer](cli/windows-installer.md): Thin prerequisite bootstrap, home-based first project and automatic terminal/init handoff.
 - [Checks and publication on GitHub Actions](cli/releasing.md): Required hosted validation, npm publication and matching Windows release artifact.
 - [Engine updates](cli/updates.md): Invoked installation, compatibility gate, preserved setup input and rerun.
