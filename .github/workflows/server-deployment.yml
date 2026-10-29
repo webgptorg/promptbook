@@ -39,6 +39,8 @@ jobs:
         run: |
           sudo -iu promptbook bash -s <<'SMOKE'
             set -euxo pipefail
+            test "$XDG_CONFIG_HOME" = "$HOME/.config"
+            test -w "$HOME/.local/share"
             cd ~/projects/my-agenda
             ptbk init --path "$PWD" --non-interactive --installation global --no-harness --browser-profile isolated --browser-mode headless --no-dashboard --raw
             ptbk status --raw
