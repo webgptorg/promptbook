@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.119.0-40",
+    "version": "0.119.0-41",
     "description": "Autonomous AI agendas on your machine. Readable agents, your choice of models, and Git history under your control.",
     "private": false,
     "sideEffects": false,
