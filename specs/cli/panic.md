@@ -18,9 +18,9 @@ Use verified [host discovery](global-dashboard.md), not process-name matching or
 
 Do not wait for tasks, checks, chat turns or graceful draining. An unresponsive engine or unavailable HTTP endpoint must not make emergency termination depend on an acknowledgement. Shared force stop handles verified owned termination and bounded best-effort cleanup; an uncatchable kill has no cleanup guarantee. Preserve available interruption evidence and never mark unfinished work complete.
 
-A successful panic records deliberate stopped intent and suppresses automatic respawn/startup, including watchdog/crash recovery, pending replacement starts and later OS reboot. Coordinate termination/persistence so the kill is not treated as a crash to undo. Ordinary per-engine force stop follows the same deliberate-stop rule.
+A successful panic records inactive work intent, terminates the current service and suppresses immediate watchdog/pending replacement. Keep enabled persistence registration: next OS startup restores these projects directly paused for control, never to execute queued tasks. Per-project force stop has the same contract.
 
-Projects remain registered as `stopped`. Opening a dashboard or rebooting does not undo this intent. A later explicit individual/bulk start re-enables operation through the ordinary launcher. Panic does not forget projects or delete their files, tools, sessions or recovery state.
+Projects remain registered as actually stopped after the command. Opening a dashboard never starts them. A later explicit Start can launch sooner; Start paused launches only availability, and Resume of a restored paused owner is subject to Health. Preserve all files, tools, sessions and recovery state.
 
 ## Results
 
@@ -32,4 +32,4 @@ No active engines is a successful zero-target result. Runtime/registry changes c
 
 Start projects through different installations/modes, including paused, draining and no-HTTP owners with active harness/browser children. Decline panic: nothing changes. Confirm and repeat with `--yes`: verified owned execution stops immediately without graceful completion, while unrelated Node/browser processes survive. Exercise unresponsive owners, stale/reused PIDs and one failed target without blocking others.
 
-After panic, observe retained stopped entries, wait for supervisor recovery and reboot: none automatically restarts. Explicit individual/bulk start works again without data deletion or duplicate owners. Verify ordinary force stop shares owned-process and deliberate-stop semantics. Reject `--soft`/`--pause`; noninteractive invocation without `--yes` never prompts/mutates. Report permissions, termination uncertainty and startup-suppression failure truthfully.
+After panic, verify no immediate supervisor/pending replacement, then reboot: registered persistent services are inspectable paused with zero queued claims until explicit Resume. Removed/no-persist entries do not auto-launch. Preserve owned termination and data; reject soft/pause variants and hidden noninteractive confirmation.
