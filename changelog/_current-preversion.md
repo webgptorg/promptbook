@@ -1,5 +1,11 @@
 # Unreleased
 
+## Specifications: useful attention and consistent inspection
+
+-   Require actual human input/action for attention, with autonomous technical/Health remedies and inspectable progress. Emphasize content work and mute supporting system work without changing scheduling or hiding human requests.
+-   Remove standalone Results/Activity; retain operational logs on System, outcomes/errors on tasks and the distinct Action log/Git History views.
+-   Expose hidden agent directories within protected Files boundaries, require shared Book syntax highlighting, and reconcile the main index and acceptance scenarios.
+
 ## Specifications: reversible initialization and project navigation
 
 -   Hold the project draft in memory with Back/progress/final review; create target files only after the final create-and-start confirmation.

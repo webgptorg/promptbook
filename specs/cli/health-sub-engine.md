@@ -19,7 +19,7 @@ At minimum observe and expose:
 
 Report RAM and swap separately even though the memory limit uses their combined available capacity. Unknown/unsupported measurements are explicit rather than fabricated.
 
-Disk and memory are the initial resource checks with configurable preventive thresholds. CPU and connectivity are still first-class health observations and can create warnings/attention when unhealthy, but do not invent automatic pause thresholds that are not specified here. Provider/tool-specific connectivity failures remain owned by their domains where applicable.
+Disk and memory are the initial resource checks with configurable preventive thresholds. CPU and connectivity are first-class observations and can create incidents/warnings, but active attention requires an actual needed human action under [minimal interruption](../concepts/minimal-interruption/decision-making.md). Do not invent automatic CPU/connectivity pause thresholds. Provider/tool-specific failures remain owned by their domains.
 
 ## Configured preventive limits
 
@@ -54,7 +54,7 @@ The Health page does not offer generic manual **Pause all / Resume** controls. T
 
 ## Health page and home tile
 
-The dashboard home screen has a compact Health tile. Healthy state is deliberately terse (for example, `System OK`/healthy summary). An incident replaces that with the most useful bounded problem summary, such as low free disk, low available memory or failed connectivity, and marks the tile through the shared attention system.
+The dashboard home screen has a compact Health tile. Healthy state is deliberately terse (for example, `System OK`/healthy summary). An incident replaces that with the most useful bounded problem summary, such as low free disk, low available memory or failed connectivity, and remains inspectable. Mark the tile through shared attention only if a concrete human action/decision is required after available authorized remedies; automatic remediation progress alone is not attention.
 
 Entering the Health page shows the full observed values, measurement freshness, affected filesystem/path, configured limits, RAM/swap breakdown, incident severity/reason, resulting scheduling impact and recommended next actions. Multiple health incidents may coexist.
 
@@ -67,7 +67,7 @@ Health may offer actions that are useful even before an incident exists:
 - clean **Promptbook-owned cache for this project/engine** with a preview/confirmation appropriate to destructive cleanup; never present arbitrary user files or unrelated system caches as safe Promptbook cleanup;
 - on supported Linux systems, inspect and offer creation/adjustment of swap when memory pressure makes it useful.
 
-Swap operations are primarily for Linux/VPS environments. They require explicit operator approval, report the planned size/path and privilege requirement, and must fail actionably rather than hiding a sudo/password prompt inside an unattended engine. Unsupported platforms show guidance instead of pretending the action exists.
+Swap operations are primarily for Linux/VPS environments. Ordinary authorized host remediation can proceed autonomously within existing privileges, project instructions and spending limits. Show the actual size/path, operation and outcome; newly needed privileges/authority require the relevant human action rather than a hidden sudo/password prompt. Manual UI actions retain appropriate preview/confirmation. Unsupported platforms show honest guidance.
 
 These operations belong to the Health sub-engine and are exposed consistently to applicable clients. The dashboard page does not shell out independently.
 
@@ -80,3 +80,5 @@ Run one engine with healthy resources: the home tile stays compact while the Hea
 Create simultaneous manual and health pause reasons. Clearing either one alone does not resume while the other remains. A soft health condition may be overridden; actual disk/memory exhaustion creates a non-overridable hard health pause. No configurable hard limit exists.
 
 Run multiple project engines on the same host and verify independent Health sub-engines without a global coordinator. Exercise project-cache cleanup and Linux swap actions from the page and through the shared domain operation; monitoring and auto-resolution continue with no dashboard attached.
+
+Autonomously reclaim only known-disposable owned cache or perform another authorized available remedy before asking the operator. Preserve Wallet/encryption/session/recovery data. Remediation and observation use the shared Health operations and do not erase manual pause intent or dispatch arbitrary queued work during pause. Exhausted disk with no safe remedy/provider access is a real human dependency; an outage/cable fault that cannot be repaired from this host may also require help. An incident that resolves automatically clears its stale attention without requiring a historical acknowledgement.

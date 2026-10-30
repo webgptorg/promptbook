@@ -14,7 +14,7 @@ Interactive project home state uses one clearly visible shared application heade
 
 Interactive home state contains a compact [Wallet](wallet.md) tile for readiness and protected pending login actions, using the same attention mechanism and no exposed secrets. A saved user response clears that question/action's attention promptly; independent work continues while others wait.
 
-Interactive home state also contains a compact Health summary from the [Health sub-engine](health-sub-engine.md). Healthy state is terse; low disk/memory, connectivity or other actionable health incidents mark Health for attention and their full measurements/remediation live on its page. Health-generated pause reasons remain distinct from manual pause reasons shown on System.
+Interactive home state also contains a compact Health summary from the [Health sub-engine](health-sub-engine.md). Healthy state is terse; low disk/memory and connectivity incidents remain observable, while only a concrete required human action marks Health for attention and their full measurements/remediation live on its page. Health-generated pause reasons remain distinct from manual pause reasons shown on System.
 
 Show a compact tools overview even when no usable tools exist, explaining exactly what to enable, add or repair. Details distinguish configured/enabled/usable/in-use instances and old retained uses from newly saved state. New tools and `.env`/configuration changes appear without restart. Show actual task harness instance/variant/model/thinking context, not the first configured provider or stale last-run data. Individual browser detail includes effective profile/path, health and recovery state with no credentials.
 
