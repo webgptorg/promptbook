@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md)
 
-The root command is `ptbk`. Bare interactive invocation offers exactly two context-dependent choices under [the bare-command picker](help.md#bare-command-picker): the focused default is **Initialize project**, **Start project** or **Open dashboard** according to the selected directory and verified engine state; **Open help** is always second. Selecting an action invokes its existing workflow; showing/cancelling the menu does not start or initialize anything. Bare noninteractive/redirected invocation shows technical help without prompting. Successful interactive init starts the background agenda and hands off after a brief cancellable countdown to the ordinary dashboard. An initialized/cloned/stopped project can be started explicitly.
+The root command is `ptbk`. Bare interactive invocation offers the context-dependent focused init/start/dashboard action under [the bare-command picker](help.md#bare-command-picker). When any known project exists, Open global dashboard is second and Open help third; with none, Help is second. Selecting an action invokes its existing workflow; showing/cancelling the menu changes nothing. Bare noninteractive/redirected invocation shows technical help without prompting. Successful interactive init creates/starts the background agenda after final confirmation and hands off after a brief cancellable countdown to the ordinary dashboard. An initialized/cloned/stopped project can be started explicitly.
 
 ## Commands
 

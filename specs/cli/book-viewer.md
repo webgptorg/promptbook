@@ -10,6 +10,10 @@ Incremental/indexed/windowed strategies are implementation choices, but do not s
 
 Read-only mode cannot mutate through hidden save handlers/editor keys. Editing retains Enter/newline, Ctrl+S/save-without-closing, nonblocking warnings and ordinary Fixer repair, without a second serializer or stricter grammar.
 
+## Shared syntax highlighting
+
+Highlight the foundational first-line AGENT/TASK/CHAT declaration and entity name, subsequent commitment keywords and valid references in every Book viewing/editing surface, including Agents, Tasks, Chats and Files. Use the same syntax/parser knowledge and source ranges in terminal/browser and read-only/editable modes, not independent regular-expression grammars. Respect literal/quoted content and preserve exact source. Highlighting complements accessible semantic styling rather than requiring color to understand the Book. New commitments such as TASK PURPOSE participate through the common knowledge.
+
 ## Acceptance outcomes
 
 View/edit short and very large Books with commitments, quoted controls, messages, Unicode and attachments. Navigate beginning/end/offscreen content, append reports while viewing, resize and save near the end. Verify matching interpretation, bounded responsive rendering/input, full-source preservation, conflict-safe saving and no read-only mutations.

@@ -8,7 +8,7 @@ Offer deliberate protected owner actions directly on Wallet, including when lock
 
 If existing host-protected binding or another valid available key actually decrypts the vault, allow **Generate new 12 words for recovery** even when the old words are forgotten. Verify decryption first; finding an envelope or knowing an account name is insufficient. Explain/confirm that the new phrase replaces the recovery path for the updated Wallet while its records are preserved.
 
-Generate fresh cryptographically random words with the existing derivation mechanism, derive a new root, and consistently re-encrypt all records/update metadata and the current-host wrapped envelope. Preserve origins, usernames, labels, passwords and TOTP generators. Provision the new host unlock and display words only through protected owner input; unattended reboot still works and no plaintext phrase/key is stored.
+Generate fresh cryptographically random words with the existing derivation mechanism, derive a new root, and consistently re-encrypt all records/update metadata and the current-host wrapped envelope. Preserve origins, usernames, labels, passwords, additional login fields and any retained legacy TOTP data. Provision the new host unlock and display words only through protected owner input; unattended reboot still works and no plaintext phrase/key is stored.
 
 New words unlock the updated generation and old words do not. Historical ciphertext copies are not retroactively revoked; never promise otherwise. Interrupted/failed replacement leaves a coherent recoverable old or new generation, not mismatched ciphertext/keys. Repeated completion/audit retries never silently rotate again.
 
@@ -16,7 +16,7 @@ New words unlock the updated generation and old words do not. Historical ciphert
 
 When no valid key/12 words can unlock it, clearly state that the old Wallet **cannot be recovered**. Offer **Reset Wallet** to create a new empty encrypted Wallet with fresh words and host unlock.
 
-Before replacement, show a strong loss warning and require a separate deliberate destructive confirmation, default Cancel. The warning covers **all old Wallet data**: account/service list, labels, usernames, passwords and TOTP generators. Unlock failure, opening Wallet or retrying login never implicitly resets it. Decline preserves original ciphertext.
+Before replacement, show a strong loss warning and require a separate deliberate destructive confirmation, default Cancel. The warning covers **all old Wallet data**: account/service list, labels, usernames, passwords, additional login fields and any retained legacy TOTP data. Unlock failure, opening Wallet or retrying login never implicitly resets it. Decline preserves original ciphertext.
 
 Keep full-record encryption: do not add a plaintext account/origin list or pretend it can be recovered without a key. Reset invalidates discarded cached key/credential material and reconciles pending login workflows so old records are not silently applied. Populate the new vault manually or through the ordinary Bitwarden importer; import is not verified service access.
 

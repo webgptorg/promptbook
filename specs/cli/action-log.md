@@ -29,3 +29,7 @@ Do not repeat a confirmed effect because checks, commit, push, task retry or sou
 Run a no-action task and one with several emails, a data-box submission, a Google document edit and a post. Verify zero/multiple Markdown files, exact basename mapping, attribution/content/outcomes and no read/download entries. Disable traces and fail a later check: performed actions remain saved and scoped-committed. No historical backfill occurs.
 
 Disconnect after sending before acknowledgement, restart/retry and fail Git persistence: reconcile without duplicate effects/records. Preserve uncertainty, independent work, secrets exclusion and source/rename/revert provenance.
+
+## Autonomous supporting effects
+
+The same external-effect audit applies to supporting/system work and engine-owned operations. An authorized helper-app publication or provider-side infrastructure resize must be recorded even though the project Git diff cannot reconstruct it. Preserve actual operation/executor attribution; use an honest system-operation association where no source-backed task exists, rather than inventing a Book or source filename. The audit is required independently of optional traces and notification policy. See [minimal interruption](../concepts/minimal-interruption/decision-making.md).

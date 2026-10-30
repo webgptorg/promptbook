@@ -4,13 +4,15 @@
 
 ## Bare-command picker
 
-Bare interactive `ptbk` detects the selected working directory's initialization and verified engine ownership before presenting **exactly two choices**. The first choice is focused by default; **Open help is always second**.
+Bare interactive `ptbk` checks the selected directory's initialization/verified engine state and the host's durable known-project registry. The focused first choice remains context-dependent:
 
-| Selected directory | First choice (default) | Second choice |
-| --- | --- | --- |
-| Not initialized as a Promptbook project | Initialize project (`ptbk init`) | Open help (`ptbk help`) |
-| Initialized, with no active engine | Start project (`ptbk start`) | Open help (`ptbk help`) |
-| Initialized, with an active engine | Open dashboard (`ptbk dashboard`) | Open help (`ptbk help`) |
+| Selected directory | First choice (default) |
+| --- | --- |
+| Not initialized | Initialize project (`ptbk init`) |
+| Initialized, with no active engine | Start project (`ptbk start`) |
+| Initialized, with an active engine | Open dashboard (`ptbk dashboard`) |
+
+If at least one project is registered, append **Open global dashboard** second and **Open help** third. Count known projects in any state, including stopped/paused, not only live engines or projects in CWD. With no known projects, omit the global item and keep Help second. The menu itself is read-only and uses the shared registry/discovery logic.
 
 Use the ordinary [project selection](workspace.md), defaulting to the invocation's CWD and honoring an explicit `--path`. A nonempty directory may still be uninitialized; missing/disabled tools alone do not make an initialized project uninitialized. Verify the actual owner across installations and equivalent paths. An engine in `pausing`, `pause` or `stopping` still exists and receives the dashboard choice, not another start/restart. Unknown/unreachable ownership is diagnosed rather than assumed stopped.
 

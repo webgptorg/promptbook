@@ -1,0 +1,12 @@
+# Authentication without unnecessary questions
+
+[Principle](_index.md) · [Wallet](../../cli/wallet.md) · [Credential tests](../../cli/wallet-testing.md)
+
+1. **Existing session:** open the service in the available browser profile and verify the relevant account. Reuse a suitable signed-in session before requesting Wallet or new credentials. Select offered stay-signed-in/trust-this-device options within the authorized account policy.
+2. **Several accounts:** the user provides company databoxes, employee social accounts, email senders or calendars. Inspect nonsecret Wallet service/account metadata and project context; verify candidate identities and use one or several relevant supplied accounts. Do not ask the user to choose a single account simply because several exist. Record verified useful account relationships through ordinary knowledge/learning.
+3. **Related login addresses:** an item stored for `accounts.google.com` should be discoverable while working on a related Google service. Service discovery handles verified related domains, subdomains and redirects instead of requiring exact string equality. Discovery is broader than permission to fill secrets: verify the actual login destination and service/account relationship before trusted application.
+4. **Accessible email code:** the agent already has access to the inbox receiving a login code. Read the applicable current message and complete the step autonomously through the protected Wallet workflow. Asking the user to copy it is a failure of this principle. An available authorized email-login/password-reset route can also remove a missing-password obstacle; preserve account ownership and the effects of any actual change.
+5. **Unavailable factor:** a code arrives on an inaccessible phone, or another device requires a physical confirmation. Request precisely that missing input/action in Wallet and keep unrelated work moving. Mobile SMS retrieval and Wallet-owned TOTP generation are future extensions, not current prerequisites.
+6. **Challenge and persistence:** attempt supported authorized CAPTCHA solving and retain session state instead of treating every challenge as human-only. Request takeover only for an actual remaining human dependency.
+
+Passwords, secret security answers and protected fields do not become ordinary agent-visible metadata. Using an accessible code is not permission to log it, commit it or store a one-time value as reusable credentials. The same login and verification logic serves new-item validation, an explicit item test and ordinary work.

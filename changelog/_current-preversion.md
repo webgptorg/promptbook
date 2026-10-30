@@ -4,6 +4,30 @@
 
 -   The test restarts the local HTTP server and then checks that the old credentials stop working. The new listener usually takes the same port, and `fetch` sometimes reused a keep-alive connection pooled for the closed listener, which failed with `ECONNRESET`. Under parallel load this happened in about one run in ten (13 of 120 runs, 12 at a time). In the full suite, which `npm run release:prerelease` runs, it failed the release check. The test now sends those checks over fresh connections (0 failures in 96 runs, 12 at a time). The engine is unaffected: nothing in it uses `fetch` against its own server.
 
+## Specifications: useful attention and consistent inspection
+
+-   Require actual human input/action for attention, with autonomous technical/Health remedies and inspectable progress. Emphasize content work and mute supporting system work without changing scheduling or hiding human requests.
+-   Remove standalone Results/Activity; retain operational logs on System, outcomes/errors on tasks and the distinct Action log/Git History views.
+-   Expose hidden agent directories within protected Files boundaries, require shared Book syntax highlighting, and reconcile the main index and acceptance scenarios.
+
+## Specifications: reversible initialization and project navigation
+
+-   Hold the project draft in memory with Back/progress/final review; create target files only after the final create-and-start confirmation.
+-   Default to Codex when no harness is available, require real adapter checks with at least one passing selection, and generate an editable semantic project/folder name in a separate pre-project call. Accept the small setup usage outside project totals.
+-   Add registered-project access to bare ptbk and New project in the global dashboard through the same initializer with a home-only destination variation; require reliable registration independently of launch CWD.
+
+## Specifications: autonomous Wallet use and one credential verifier
+
+-   Specify session reuse, nonsecret multi-account discovery, verified related login origins, additional reusable fields and autonomous retrieval of accessible factors.
+-   Share add/update, explicit per-item Test and ordinary login verification; retain incomplete records as unverified and only the latest redacted test outcome outside Git, without a test task or commit.
+-   Keep unavailable codes in protected Wallet input and move mobile SMS integration and Wallet-owned TOTP generation/import to future scope while preserving legacy encrypted data.
+
+## Specifications: autonomous decisions and contextual task purpose
+
+-   Define the foundational minimal-interruption knowledge directory, company-head analogy, decision rules and authentication/technical/content examples for common agent context and Tasker.
+-   Distinguish contextual CONTENT/SYSTEM purpose, descriptive core provenance and engine-owned definitions. Add optional TASK PURPOSE with source-preserved appended transitions and ordinary supporting-task relationships.
+-   Keep operator control, actual human-input attention, independent progress and external-effect audit explicit.
+
 ## Tests: the Wallet recovery fixture no longer fails on a common recovery word
 
 -   The fixture for replacing the recovery words checked that the audit commit contains none of the 12 new words, as a substring anywhere. The audit's fixed prose ("The words, keys, secret values…") contains words from the recovery word list, so a random phrase that included one of them failed the test. 19 of the 2,048 words occur in that text (for example `secret`, `key`, `auto` and `word`), so this happened in about one run in ten. It now checks for the phrase and for any two of its words in order, which still catches every disclosure of the words.

@@ -10,7 +10,7 @@ Open new initialization with one generous field asking what the user is working 
 
 After intent, offer the three [destinations](initialization.md#initial-input-and-destination) in order: shared home-based PTBK projects folder, current directory, new subfolder. Explain existing-work versus new-agenda use, reuse an explicit destination and show the resolved path before writes.
 
-Offer **Use the global CLI** first/preferred and local installation second, respecting an existing destination-local dependency. For a fresh selection, preselect installed and verified-ready harnesses; executable presence alone is insufficient. Let users deselect them and retain explicit/prior selections.
+Offer **Use the global CLI** first/preferred and local installation second, respecting an existing destination-local dependency. For a fresh selection, preselect detected installed/configured usable harnesses, or OpenAI Codex when none are available; executable presence alone is insufficient. Let users deselect them and retain explicit/prior selections.
 
 Offer **Set up Wallet now?**, default No. Yes opens the same protected setup/recovery-word flow as later Wallet management; No proceeds without it. Existing vaults are preserved. Chosen/reused Wallet setup offers the same optional [Bitwarden import](wallet-import.md), protected individual/Select all/Select none controls and honest unsupported/conflicting outcomes. Wallet No skips it. Use shared logic and finish selected routine access without a later required dashboard visit.
 
@@ -18,7 +18,7 @@ Keep the familiar selected-harness featured/More flow and one **Browser profile*
 
 The [VPS launcher](vps-onboarding.md) enters this same experience in the current SSH terminal automatically. Keep input, keyboard navigation and the final dashboard handoff usable without a desktop on the server. Show the selected adapter's real [remote-login instructions](harness-authentication.md), with a readable URL, where to enter its code and actual waiting/error/completion state. Preserve the same wizard through retry/cancellation and do not wait silently for a browser window on the VPS. A headless project browser remains separate from harness login.
 
-Harness selection must visibly warn when the selected set is empty, explaining that no model work can run and Router cannot receive its concrete initial selection. Preserve the user's current selection and offer the normal navigation to choose a harness; do not silently select one, claim successful readiness or hide the empty selection behind a later cryptic failure.
+Harness selection must show each real functional test's progress, checkmark or concrete failure. No working selected harness keeps the user in configuration; at least one working selected harness permits continuing while additional failures remain visible. Back navigation can return from Codex setup to selection, for example to choose Claude Code. Default Codex preselection is visible and editable, not a later hidden fallback.
 
 There is **no check-command question**, script picker or validation-deferral screen. Missing validation receives the explicit informational placeholder described in [checks](checks.md); the wizard does not claim real tests passed. Existing real validation is preserved.
 
@@ -31,6 +31,12 @@ Add **Automatic synchronization**, default off, reusing an existing decision. No
 Keep a dedicated **Traces** screen with three controls: commit traces, ignore videos in Git, and record browser videos. Explain privacy/storage and effective parent/video exclusions using [trace configuration](trace-configuration.md). Noninteractive mode supplies the same decisions without screens.
 
 Expert is the recognizable procedural visual guide, using the same [agent identity](../agents/visual-identity.md) as the dashboard. This is not a model call or evidence that bootstrap work is already executing. Restrained reactions can reflect actual progress, with decisions/errors above decoration. Preserve focus and drafts through resize and backward navigation.
+
+## Reversible review before creation
+
+Follow [draft and confirmation](initialization.md#draft-confirmation-and-project-creation): every preparatory step supports Back with retained applicable input, including return to the original brief. Before final confirmation, target files/directories do not change. Show meaningful Step X of Y with conditional totals throughout. After separate harness tests and semantic name generation, show a clearly final concise review with editable title/new-folder name and **Create and start project**. Installation/native-login prerequisites can already have effects outside the target; do not imply cancellation reverses them. The existing celebration/countdown occurs after creation and confirmed launch, not instead of this pre-write confirmation.
+
+From the global dashboard, retain the same visible destination step, limited to the shared projects home, with a brief instruction to use ptbk init for another location. Reuse every other wizard step and business operation.
 
 ## Finish, celebrate and hand off
 

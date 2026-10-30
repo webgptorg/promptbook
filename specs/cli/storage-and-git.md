@@ -10,7 +10,7 @@ This is the entry point for deciding where project information belongs and what 
 | Available harness output, events, browser evidence and structured raw usage | Attributed durable evidence under root `traces/`; task directories use the literal source basename. | [Trace policy](trace-configuration.md); usage follows traces by default. |
 | Project brief/history | Root `report.book`, a Chat of appended Chatter messages. | Normal scoped commits independently of trace settings. |
 | External actions | One readable Markdown record per remote mutation under root `actions/<task-file-basename>/`. | Versioned independently of trace settings and final task success; see [action log](action-log.md). |
-| Wallet credentials, TOTP generators, encryption/recovery metadata | Persistent encrypted ignored `.ptbk/wallet/` and `.ptbk/encryption/`. | Never commit secret values, ciphertext vault files or recovery material. Only the nonsecret operation audit below is eligible. |
+| Wallet credentials/additional fields, retained legacy factor data, encryption/recovery metadata | Persistent encrypted ignored `.ptbk/wallet/` and `.ptbk/encryption/`. | Never commit secret values, ciphertext vault files or recovery material. Only the nonsecret operation audit below is eligible. |
 | Historical price-list observations | Ignored `.ptbk/pricing/`, separate from usage records. | Not required to be committed; retain snapshots independently. |
 | Rebuildable totals, indexes and UI preferences | Ignored internal cache/presentation state under `.ptbk/`. | Do not commit derived caches or navigation. |
 | Locks, live ownership, pending recovery and sessions | Local runtime storage; some of it is persistent and must survive cleanup. | Ignored; never assume all of `.ptbk/` is disposable. |

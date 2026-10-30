@@ -60,3 +60,7 @@ Record a chat, task, retry, routing call and specialist consultation with differ
 Capture Tuesday usage, then a cheaper Wednesday list: Tuesday keeps Tuesday's rate. Supply corrected historical Tuesday pricing and recalculate without editing consumption or invoking an automatic backfill mechanism. Test failed price retrieval, missing historical coverage and provider-native token categories. Subscription quantities never silently become API charges or precise quota percentages. Every estimate/partial total is marked; technical price versions stay hidden.
 
 Toggle trace Git policy and rebuild an ignored aggregate cache from durable raw usage and independent price observations. View by agent, harness and aggregate with appropriate labels; opening or changing the dashboard never manufactures usage.
+
+## Accepted pre-project setup usage
+
+The small real harness checks and separate semantic project-name generation in [initialization](initialization.md#draft-confirmation-and-project-creation) happen before the project exists. They are intentionally not project tasks/runs and are excluded from this project's Usage totals. Do not invent project records or an exact reconciliation mechanism for them. Provider-side billing may include those calls. The saved ordinary Expert bootstrap and subsequent work are normal attributable project usage.
