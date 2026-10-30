@@ -159,13 +159,22 @@ export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERI
         }
 
         // Second priority: process todo prompts
-        const nextPrompt = findNextTodoPrompt(promptFiles);
+        const nextPrompt = findNextTodoPromptToVerify(promptFiles, skippedFiles);
         if (!nextPrompt) {
-            console.info(colors.green('\n✅ All prompts have been verified.'));
+            console.info(
+                colors.green(
+                    skippedFiles.size === 0
+                        ? '\n✅ All prompts have been verified.'
+                        : '\n✅ All prompts have been verified, except the skipped ones.',
+                ),
+            );
             break;
         }
 
         const outcome = await resolvePrompt(nextPrompt);
+        if (outcome.wasSkipped) {
+            skippedFiles.add(nextPrompt.file.path);
+        }
         await $commitVerificationOutcome(normalizedOptions.gitSync, commitScope, outcome);
         promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
     }
@@ -596,6 +605,16 @@ function displayPromptOverview(promptFiles: PromptFile[]): void {
 }
 
 /**
+ * Finds the next todo prompt to ask about, excluding files that have been skipped in this session.
+ */
+export function findNextTodoPromptToVerify(
+    promptFiles: PromptFile[],
+    skippedFiles: ReadonlySet<string>,
+): PromptSelection | undefined {
+    return findNextTodoPrompt(promptFiles.filter((file) => !skippedFiles.has(file.path)));
+}
+
+/**
  * Resolves a single prompt section by asking the user for its status.
  */
 async function resolvePrompt(selection: PromptSelection): Promise<PromptVerificationOutcome> {
@@ -607,8 +626,11 @@ async function resolvePrompt(selection: PromptSelection): Promise<PromptVerifica
         return { wasSkipped: false, commitMessage: buildArchiveCommitMessage(selection.file) };
     }
 
-    await appendRepairPrompt(selection.file, selection.section);
-    return { wasSkipped: false, commitMessage: buildRepairCommitMessage(selection.file) };
+    // Note: A `[ ]` section has not been run yet, so a `Fix` prompt for it would describe work that never happened.
+    //       The section stays in the queue unchanged and its file is skipped for the rest of this run,
+    //       otherwise the same section is offered again on every iteration of the loop
+    console.info(colors.gray('\n⏩ Kept in the queue, no changes made.'));
+    return { wasSkipped: true, commitMessage: null };
 }
 
 /**
@@ -629,9 +651,9 @@ async function promptForDecision(selection: PromptSelection): Promise<PromptDeci
                     // description: 'Move this file under prompts/done',
                 },
                 {
-                    title: '🛠️ Not done - add follow-up prompt',
+                    title: '⏩ Not done - keep it in the queue',
                     value: 'not-done',
-                    // description: 'Append a Fix prompt referencing the previous section',
+                    // description: 'Leave the prompt unchanged and skip this file for the rest of the run',
                 },
             ],
             initial: 0,

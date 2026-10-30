@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { parsePromptFile } from '../run-codex-prompts/prompts/parsePromptFile';
-import { partitionPromptFilesByIgnore } from './verify-prompts';
+import { findNextTodoPromptToVerify, partitionPromptFilesByIgnore } from './verify-prompts';
 
 describe('partitionPromptFilesByIgnore', () => {
     it('ignores prompt files when the filename matches case-insensitively', () => {
@@ -39,5 +39,31 @@ describe('partitionPromptFilesByIgnore', () => {
 
         expect(promptFiles).toEqual([unrelatedPromptFile]);
         expect(ignoredPromptFiles).toEqual([titleMatchedPromptFile]);
+    });
+});
+
+describe('findNextTodoPromptToVerify', () => {
+    it('does not offer a todo prompt again once its file was skipped in this run', () => {
+        const firstPromptFile = parsePromptFile(
+            join(process.cwd(), 'prompts', '2026-09-0100-demo.md'),
+            '[ ]\n\n[✨🧪] Demo\n\n- do something\n',
+        );
+        const secondPromptFile = parsePromptFile(
+            join(process.cwd(), 'prompts', '2026-09-0110-other.md'),
+            '[ ]\n\n[✨🧪] Other\n\n- do something else\n',
+        );
+        const skippedFiles = new Set<string>();
+
+        expect(findNextTodoPromptToVerify([firstPromptFile, secondPromptFile], skippedFiles)?.file).toBe(
+            firstPromptFile,
+        );
+
+        skippedFiles.add(firstPromptFile.path);
+        expect(findNextTodoPromptToVerify([firstPromptFile, secondPromptFile], skippedFiles)?.file).toBe(
+            secondPromptFile,
+        );
+
+        skippedFiles.add(secondPromptFile.path);
+        expect(findNextTodoPromptToVerify([firstPromptFile, secondPromptFile], skippedFiles)).toBeUndefined();
     });
 });
