@@ -1,5 +1,12 @@
 # Unreleased
 
+## Engine updates: a release this Node.js cannot run is never installed
+
+-   The updates specification asks to verify a release's compatibility before installation. The engine installed the selected release without looking at the Node.js it requires. A release declaring a newer Node.js (`engines.node`) than the host runs was installed and committed, then failed to start, and only the automatic rollback recovered. Now every install path reads the release's declared requirement first (`npm view ptbk@<version> engines`) and checks it against the running Node.js with the same range evaluation as `updates.versionRange`.
+-   The engine's self-update skips such a release without installing anything and selects the best remaining one the policy allows. For example, a running prerelease moves to the next prerelease of its line when its stable release needs a newer Node.js. The update view keeps the skip visible ("Skipped: ptbk B (requires Node.js R); this engine runs on Node.js N"). A skip applies only to the Node.js it was found on, so after a Node.js upgrade the engine reconsiders the release. If the registry cannot answer, the attempt is deferred briefly, never installed unverified.
+-   The start-time compatibility gate (a project configured by a newer engine) reports such a release as the real constraint, with "Upgrade Node.js to meet R". `ptbk init` no longer offers an early update to a release this Node.js cannot run, and adds a note saying why.
+-   Two new fixtures cover a skipped stable release with the compatible prerelease installed and verified instead, and the compatibility gate refusing without installing. The fake npm fixture serves per-release `engines`.
+
 ## System tasks: engine update runs appear among results
 
 -   The specification has ordinary and system tasks share "one task inventory, detail and event model". The inventory and detail already did. The results feed of the dashboards, `ptbk status` and the project brief did not: it showed ordinary task outcomes only, so a verified or failed engine update appeared only in the Tasks page and the activity log. Each finished update run is now also a result, labelled `system`, titled like its task (`Update Promptbook A → B`). It shows the verified result or the cause of the failure instead of an agent, newest first among the ordinary results. The session's completed and failed counts still count ordinary task outcomes only.

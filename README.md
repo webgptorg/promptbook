@@ -56,7 +56,7 @@ ptbk start         # resume the agenda
 
 The engine machine must stay available. By default, persistent project services return at OS startup: an agenda that was running can continue after checks; one you paused or stopped returns paused until you resume it. Its browser dashboard and API are available only on that computer through a loopback address, with no pairing step. [Local API access](specs/cli/api.md) · [Startup behavior](specs/cli/persistence.md)
 
-A background engine [updates itself](specs/cli/updates.md) when it has no other work: stable minor and patch releases of its major version, or a running prerelease to its stable release. It never installs a version your `ptbk.json` `updates` pin or range excludes, and you can switch it off on the dashboard's System page. Release signing and rollout delays are still being agreed with the platform, so your host access and backups still matter.
+A background engine [updates itself](specs/cli/updates.md) when it has no other work: stable minor and patch releases of its major version, or a running prerelease to its stable release. It never installs a version your `ptbk.json` `updates` pin or range excludes, or one that needs a newer Node.js than your host runs, and you can switch it off on the dashboard's System page. Release signing and rollout delays are still being agreed with the platform, so your host access and backups still matter.
 
 **Windows:** download the EXE from [GitHub Releases](https://github.com/webgptorg/promptbook/releases), or follow the [installation guide](https://www.ptbk.io/en/open-source).
 

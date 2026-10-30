@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
  * Deterministic fake `npm` for engine self-update fixtures. It reads `npm.json` next to itself
- * (`{ versions, installDelayMs?, failInstall?, brokenVersions? }`), logs every invocation to `npm.log` and supports only the
+ * (`{ versions, engines?, installDelayMs?, failInstall?, brokenVersions? }`), logs every invocation to `npm.log` and supports only the
  * ptbk package:
  *
  * - `npm view ptbk versions --json` prints the published versions;
+ * - `npm view ptbk@<version> engines --json` prints that release's `engines` from `engines[version]` (nothing when absent);
  * - `npm install … ptbk@<version>` in a project with `node_modules/ptbk` rewrites that installation's version and the
  *   project's dependency (keeping dependency vs devDependency) and writes a lock file, like a real local update. A
  *   version listed in `brokenVersions` gets a daemon worker that exits at once (a release that cannot start); any
@@ -19,6 +20,11 @@ const config = JSON.parse(readFileSync(join(here, 'npm.json'), 'utf8'));
 const args = process.argv.slice(2);
 appendFileSync(join(here, 'npm.log'), `${JSON.stringify({ cwd: process.cwd(), args })}\n`);
 
+if (args[0] === 'view' && args[1]?.startsWith('ptbk@') && args[2] === 'engines') {
+    const engines = config.engines?.[args[1].slice('ptbk@'.length)];
+    if (engines) process.stdout.write(JSON.stringify(engines));
+    process.exit(0);
+}
 if (args[0] === 'view' && args[1] === 'ptbk') {
     process.stdout.write(JSON.stringify(config.versions));
     process.exit(0);

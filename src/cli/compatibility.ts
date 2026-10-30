@@ -2,7 +2,7 @@ import { PtbkError } from '../common/errors.js';
 import { compareVersions } from '../common/semver.js';
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { interpretConfig, readProjectConfigFile, updatePolicyOf } from '../project/config.js';
-import { installEngineVersion, publishedEngineVersions } from '../project/self-update.js';
+import { checkReleaseRuntime, installEngineVersion, publishedEngineVersions } from '../project/self-update.js';
 import { selectCompatibleUpdate } from '../project/update-policy.js';
 import type { Project } from '../project/workspace.js';
 import { confirm } from '../ui/prompts.js';
@@ -30,6 +30,17 @@ export async function requireEngineUpdate(context: CommandContext, saved: string
     // The policy's own choice among compatible releases (a pin or range may exclude all of them).
     const allowed = selectCompatibleUpdate(ENGINE_VERSION, compatible, policy, saved);
     const update = async (version: string, how: string): Promise<never> => {
+        // Verified before installation: a release this Node.js cannot run is the real constraint, not an attempt.
+        const runtime = await checkReleaseRuntime(installation, version, context.env, 15_000);
+        if (runtime.incompatible || runtime.problem) {
+            throw new PtbkError(`This project was configured by ptbk ${saved}; the running ptbk ${ENGINE_VERSION} is older.`, {
+                kind: runtime.incompatible ? 'unsupported' : 'technical',
+                project: project.root,
+                reason: `An older engine never downgrades or rewrites a newer configuration, and ${runtime.incompatible ?? runtime.problem}.`,
+                effect: 'Nothing was installed, started or changed.',
+                next: runtime.incompatible ? [`Upgrade Node.js to meet ${runtime.requirement}, then rerun.`] : ['Rerun when the npm registry is reachable.'],
+            });
+        }
         terminal.write(`Updating this ${installation.scope} ptbk installation ${ENGINE_VERSION} → ${version} (${how})…\n`);
         await installEngineVersion(installation, version, { env: context.env, onOutput: (line) => terminal.write(`    ${line}\n`) });
         throw new PtbkError(`Updated this ${installation.scope} ptbk installation to ${version}.`, { kind: 'incomplete', effect: 'Nothing in the project was changed.', next: ['Run the same command again with the updated ptbk.'] });

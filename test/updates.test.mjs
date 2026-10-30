@@ -219,6 +219,24 @@ test('engine self-update: a low-priority system task updates the local installat
     assert.deepEqual([result?.kind, result?.outcome, result?.title], ['system', 'completed', `Update Promptbook ${FROM} → ${TARGET}`], 'the run shares the results feed with ordinary task outcomes');
 });
 
+test('engine self-update: a release this Node.js cannot run is skipped before installation and an older compatible one is installed', { timeout: 240_000 }, async (t) => {
+    if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
+    const compatible = '0.500.0-2';
+    const { project, env, bin, npmLog, status, control } = await locallyInstalledProject(t, { versions: [FROM, compatible, TARGET], engines: { [TARGET]: { node: '>=999' } } });
+    assert.equal((await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => (await status()).service?.state === 'running', { message: 'the engine to run' });
+    await control('update-check');
+    const updated = await waitFor(async () => {
+        const snapshot = await status().catch(() => undefined);
+        return snapshot?.engine?.version === compatible && snapshot.update?.lastOutcome?.outcome === 'verified' ? snapshot : undefined;
+    }, { timeoutMs: 120_000, message: 'the restarted engine to load the compatible release' });
+    const log = await npmLog();
+    assert.ok(log.some((entry) => entry.args[0] === 'view' && entry.args[1] === `ptbk@${TARGET}` && entry.args[2] === 'engines'), 'the requirement was read before installation');
+    assert.deepEqual(log.filter((entry) => entry.args[0] === 'install').map((entry) => entry.args.at(-1)), [`ptbk@${compatible}`], 'the incompatible release was never installed');
+    assert.equal(updated.update.target, undefined, 'nothing else is pending');
+    assert.match(updated.update.reason, /Skipped: ptbk 0\.500\.0 \(requires Node\.js >=999\)/, updated.update.reason);
+});
+
 test('engine self-update: a failed installation keeps the running version and schedules an automatic recheck', { timeout: 180_000 }, async (t) => {
     if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
     const { project, env, bin, npmLog, status, control } = await locallyInstalledProject(t, { versions: [FROM, TARGET], failInstall: true });
@@ -375,6 +393,17 @@ test('compatibility gate: an update the saved policy allows needs no confirmatio
     assert.equal(rerun.code, 0, rerun.output);
     const snapshot = JSON.parse((await run(bin, ['status', '--json'], { cwd: project, env })).output);
     assert.equal(snapshot.engine.version, TARGET);
+});
+
+test('compatibility gate: a required release this Node.js cannot run is reported as the real constraint and never installed', { timeout: 120_000 }, async (t) => {
+    if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
+    const { project, env, bin, npmLog } = await locallyInstalledProject(t, { versions: [FROM, TARGET], engines: { [TARGET]: { node: '>=999' } } });
+    await configuredByNewerEngine(project);
+    const refused = await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env });
+    assert.notEqual(refused.code, 0);
+    assert.match(refused.output, /ptbk 0\.500\.0 requires Node\.js >=999/, refused.output);
+    assert.match(refused.output, /Upgrade Node\.js/);
+    assert.ok(!(await npmLog()).some((entry) => entry.args[0] === 'install'), 'nothing was installed');
 });
 
 test('compatibility gate: a running engine that finds a newer configuration updates itself under its policy and restarts', { timeout: 180_000 }, async (t) => {

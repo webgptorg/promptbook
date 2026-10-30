@@ -381,6 +381,7 @@ export async function initializeProject(context: CommandContext, options: { proj
             const check = await updateCheck;
             if (!check?.newer || !check.latest) {
                 if (check?.unknownReason && interactive) notes.push(`Update check skipped: ${check.unknownReason}`);
+                else if (check?.incompatible && interactive) notes.push(`Update not offered: ${check.incompatible}.`);
                 steps.set('update', false);
                 return;
             }

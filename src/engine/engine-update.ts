@@ -7,7 +7,7 @@ import { isProcessAlive } from '../common/process.js';
 import { compareVersions } from '../common/semver.js';
 import { ENGINE_VERSION, detectInstallation, type InstallationInfo } from '../common/version.js';
 import { interpretConfig, readProjectConfigFile, updatePolicyOf } from '../project/config.js';
-import { installEngineVersion, publishedEngineVersions } from '../project/self-update.js';
+import { checkReleaseRuntime, installEngineVersion, publishedEngineVersions } from '../project/self-update.js';
 import { policyPermits, selectCompatibleUpdate, selectUpdate, type UpdatePolicy, type UpdateSelection } from '../project/update-policy.js';
 import { projectAt, type Project } from '../project/workspace.js';
 import { readKnownProjects } from '../service/known-projects.js';
@@ -132,6 +132,11 @@ type EngineUpdateRecord = {
     readonly lastOutcome?: EngineUpdateOutcome;
     /** Recent finished runs, oldest first (bounded; the attributable evidence of the definition's runs). */
     readonly runs?: readonly EngineUpdateOutcome[];
+    /**
+     * Releases whose declared Node.js requirement this host's Node.js (`node`) does not meet: skipped before
+     * installation, and reconsidered once the engine runs on another Node.js.
+     */
+    readonly incompatible?: readonly { readonly version: string; readonly requirement: string; readonly node: string }[];
 };
 
 /**
@@ -324,11 +329,33 @@ export class EngineUpdater {
     private selection(): UpdateSelection & { readonly policy: UpdatePolicy } {
         const { source: _source, ...policy } = this.options.policy();
         void _source;
-        if (!this.minimum) return { ...selectUpdate(this.current, this.record.published ?? [], policy), policy };
-        const selection = selectCompatibleUpdate(this.current, this.record.published ?? [], policy, this.minimum);
+        // A release this host's Node.js cannot run is never a candidate (an older compatible one still can be).
+        const skipped = new Set(this.skippedReleases().map((entry) => entry.version));
+        const published = (this.record.published ?? []).filter((version) => !skipped.has(version));
+        if (!this.minimum) return { ...selectUpdate(this.current, published, policy), policy };
+        const selection = selectCompatibleUpdate(this.current, published, policy, this.minimum);
         if (selection.target) return { ...selection, policy };
         const why = selection.reason.replace(/\.$/, '');
         return { reason: `This project's configuration needs ptbk ${this.minimum} or newer, but ${why.charAt(0).toLowerCase()}${why.slice(1)}. The project is kept as it is (never downgraded).`, constraint: selection.constraint ?? 'none', policy };
+    }
+
+    /** Published releases skipped because they declare a Node.js requirement this engine's Node.js does not meet. */
+    private skippedReleases(): readonly { readonly version: string; readonly requirement: string; readonly node: string }[] {
+        return (this.record.incompatible ?? []).filter((entry) => entry.node === process.versions.node && (this.record.published ?? []).includes(entry.version));
+    }
+
+    /**
+     * Verifies before installation that the target's declared Node.js requirement admits this host's Node.js. An
+     * incompatible release is remembered as skipped (the next selection may pick an older compatible one); an
+     * unanswered registry is a technical problem, never permission to install unverified.
+     */
+    private async verifyRuntime(target: string): Promise<{ readonly skipped: string } | { readonly problem: string } | undefined> {
+        const runtime = await checkReleaseRuntime(this.installation, target, this.options.env, LOOKUP_TIMEOUT_MS);
+        if (runtime.problem) return { problem: runtime.problem };
+        if (!runtime.incompatible || !runtime.requirement) return undefined;
+        const entry = { version: target, requirement: runtime.requirement, node: process.versions.node };
+        await this.save({ incompatible: [...(this.record.incompatible ?? []).filter((item) => item.version !== target), entry].slice(-RUN_HISTORY) });
+        return { skipped: `${runtime.incompatible}; it is skipped.` };
     }
 
     /** The shared view of every client. */
@@ -357,6 +384,9 @@ export class EngineUpdater {
             phase = this.record.failure && this.record.lastOutcome?.outcome === 'failed' ? 'failed' : 'idle';
             reason = this.record.lookupProblem ? `Release information is unknown: ${this.record.lookupProblem}` : this.record.checkedAt ? selection.reason : 'No release lookup yet.';
         }
+        // A newer release this Node.js cannot run stays visible as skipped instead of silently missing.
+        const skipped = target || limitation || this.running ? [] : this.skippedReleases();
+        if (skipped.length) reason = `${reason} Skipped: ${skipped.map((entry) => `ptbk ${entry.version} (requires Node.js ${entry.requirement})`).join(', ')}; this engine runs on Node.js ${process.versions.node}.`;
         return {
             policy,
             current: this.current,
@@ -602,6 +632,18 @@ export class EngineUpdater {
             const target = this.selection().target;
             if (!target) {
                 this.phase = 'idle';
+                return;
+            }
+            // The release must be able to run here before anything is replaced.
+            const runtime = await this.verifyRuntime(target);
+            if (runtime && 'skipped' in runtime) {
+                this.phase = 'idle';
+                this.options.log(`Engine update: ${runtime.skipped} ptbk ${this.current} stays in place.`, 'warning');
+                return;
+            }
+            if (runtime) {
+                this.phase = 'waiting';
+                await this.defer(runtime.problem);
                 return;
             }
             const blocker = await this.sharedBlocker(target);
