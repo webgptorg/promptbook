@@ -98,6 +98,23 @@ export class ServiceHost {
             },
             finalizeEvidence: async (task) => await this.browsers.scope(task.key).finishEvidence(),
             afterWork: async (task) => await this.browsers.endScope(task.key),
+            // A Wallet credential test signs in through its own scope of the project browser, in a fresh context.
+            walletLoginContext: async (origin) => {
+                const key = `wallet-test-${shortId()}`;
+                try {
+                    const login = await (await this.browsers.scope(key).acquire()).isolatedLogin(origin);
+                    return {
+                        page: login.page,
+                        dispose: async () => {
+                            await login.dispose();
+                            await this.browsers.endScope(key);
+                        },
+                    };
+                } catch (error) {
+                    await this.browsers.endScope(key);
+                    throw error;
+                }
+            },
             browsers: {
                 primary: () => (this.agenda.effectiveSettings ? this.browsers.primary() : undefined),
                 all: () => (this.agenda.effectiveSettings ? this.browsers.inspectAll() : []),

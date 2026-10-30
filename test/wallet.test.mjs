@@ -388,6 +388,68 @@ test('Wallet in the real browser: the agent requests a login, never sees the pas
     assert.match(result.text, /shows no login form/, 'an already signed-in session needs no Wallet login');
 });
 
+test('Wallet Test in the real browser: a separate login context follows the sign-in link and checks the credential itself, not the existing session, which stays signed in', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+    const teardown = [];
+    const root = await temporaryDirectory(t, 'ptbk wallet test browser', teardown);
+    await mkdir(join(root, '.ptbk', 'tmp'), { recursive: true });
+    const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
+    // The home page shows the account when signed in, otherwise only a "Sign in" link to the form.
+    const login = loginSite('right password 1');
+    const server = createServer((request, response) => {
+        if (request.method === 'GET' && request.url === '/') {
+            response.setHeader('content-type', 'text/html');
+            response.end(/session=ok/.test(request.headers.cookie ?? '') ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : '<title>Example</title><h1>Example</h1><a href="/signin">Sign in</a>');
+            return;
+        }
+        login.emit('request', request, response);
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const settings = { tools: [{ type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: true }], overriddenTools: new Set() };
+    const fleet = new BrowserFleet(project, () => settings, env);
+    teardown.push(async () => {
+        await fleet.close();
+        server.closeAllConnections();
+        server.close();
+    });
+    let contexts = 0;
+    const wallet = new WalletSubEngine({
+        project,
+        env,
+        onChange: () => undefined,
+        log: () => undefined,
+        loginContext: async (at) => {
+            const key = `wallet-test-${++contexts}`;
+            const isolated = await (await fleet.scope(key).acquire()).isolatedLogin(at);
+            return { page: isolated.page, dispose: async () => (await isolated.dispose(), await fleet.endScope(key)) };
+        },
+    });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: () => undefined }).map((tool) => [tool.name, tool]));
+    const call = async (name, input = {}) => await tools[name].handler(input);
+
+    // The ordinary browser is signed in already.
+    const { id } = await wallet.save({ origin, username: 'fixture-user', password: 'right password 1' });
+    await call('browser_open', { url: `${origin}/signin` });
+    assert.match((await call('wallet_login', {})).text, /^Signed in/);
+
+    // That session cannot vouch for a wrong saved password: the fresh context finds the form and the site rejects it.
+    await wallet.save({ origin, username: 'fixture-user', password: 'wrong password 9', id });
+    let tested = await wallet.test(id);
+    assert.equal(tested.verification.state, 'rejected', tested.verification.reason);
+    assert.ok(!tested.verification.reason.includes('wrong password 9'));
+
+    await wallet.save({ origin, username: 'fixture-user', password: 'right password 1', id });
+    tested = await wallet.test(id);
+    assert.equal(tested.verification.state, 'verified', tested.verification.reason);
+
+    // The existing session was neither signed out nor replaced.
+    assert.match((await call('browser_open', { url: origin })).text, /Welcome, fixture-user/);
+});
+
 test('Wallet acceptance: a task waits for a protected login (no chat), resumes once after it is saved and signs in; no secret reaches Git, traces, status or logs', { skip: await realBrowserSkip(), timeout: 300_000 }, async (t) => {
     const { project, env: baseEnv } = await initializedProject(t, { check: "process.exit(0);\n" });
     const browser = await findBrowserExecutable({ variant: 'CHROME' });
@@ -498,6 +560,128 @@ test('Wallet discovery: related service domains and nonsecret account metadata f
     assert.deepEqual(wallet.accounts('mail.google.com').accounts.map(({ origin, username, related: isRelated }) => ({ origin, username, isRelated })), [{ origin: 'https://accounts.google.com', username: 'jane@example.com', isRelated: true }]);
     assert.equal(wallet.accounts().accounts.length, 2);
     assert.doesNotMatch(JSON.stringify(wallet.accounts()), /secret/);
+});
+
+/**
+ * A scripted fresh login context for credential tests: `script()` gives the next page's behaviour; it records each
+ * opened origin, every entered credential and each disposal.
+ */
+function loginContexts(script) {
+    const opened = [];
+    const entered = [];
+    let disposed = 0;
+    const loginContext = async (origin) => {
+        const behaviour = script();
+        if (behaviour.unavailable) throw new Error(behaviour.unavailable);
+        opened.push(origin);
+        return {
+            page: {
+                browser: 'fresh-context',
+                inspect: async () => (await behaviour.before?.(), { origin, form: behaviour.form ?? 'password' }),
+                signIn: async (credentials) => (entered.push(credentials), { result: behaviour.result ?? 'signed-in', ...(behaviour.note ? { note: behaviour.note } : {}) }),
+            },
+            dispose: async () => void disposed++,
+        };
+    };
+    return { loginContext, opened, entered, disposed: () => disposed };
+}
+
+test('Wallet Test: exactly the selected login in a fresh context; verified, rejected and incomplete results are kept redacted across a restart, without an audit or commit', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet test');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    let behaviour = {};
+    const contexts = loginContexts(() => behaviour);
+    const audits = [];
+    const options = (extra = {}) => ({
+        project: { root: project, runtime: { root: join(project, '.ptbk'), state: join(project, '.ptbk', 'state') } },
+        env: { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' },
+        onChange: () => undefined,
+        log: () => undefined,
+        audit: { isEnabled: () => true, commit: async (subject) => void audits.push(subject) },
+        loginContext: contexts.loginContext,
+        ...extra,
+    });
+    const wallet = new WalletSubEngine(options());
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'jane secret 1' });
+    const joe = await wallet.save({ origin: 'https://example.com', username: 'joe@example.com', password: 'joe secret 2' });
+    const record = (id) => wallet.view().records.find((candidate) => candidate.id === id);
+    const [jane] = wallet.view().records;
+    const audited = audits.length;
+    assert.equal(record(joe.id).verification, undefined, 'a saved login is unverified until tested');
+
+    // Exactly the selected account is tested, in a fresh context opened at its website.
+    let tested = await wallet.test(joe.id);
+    assert.equal(tested.verification.state, 'verified');
+    assert.deepEqual(contexts.entered.map((credentials) => credentials.username), ['joe@example.com'], 'not every account of the service');
+    assert.deepEqual(contexts.opened, ['https://example.com']);
+    assert.equal(contexts.disposed(), 1, 'the separate login context is closed again');
+    assert.equal(record(joe.id).verification.state, 'verified');
+    assert.equal(record(joe.id).testing, undefined);
+
+    // A rejection is reported without any secret, even when the website repeats it.
+    behaviour = { result: 'rejected', note: 'the site said: "jane secret 1" is wrong' };
+    tested = await wallet.test(jane.id);
+    assert.equal(tested.verification.state, 'rejected');
+    assert.ok(!tested.verification.reason.includes('jane secret 1') && tested.verification.reason.includes('[redacted]'), tested.verification.reason);
+
+    // One test of a login at a time, with live progress while it runs.
+    let release;
+    behaviour = { before: () => new Promise((resolve) => (release = resolve)) };
+    const started = wallet.startTest(jane.id);
+    assert.match(started.outcome, /^Testing ".+" for https:\/\/example\.com in a separate login context/);
+    await waitFor(() => Boolean(release), { timeoutMs: 5_000, message: 'the running test' });
+    assert.match(record(jane.id).testing, /Looking for the login form/);
+    assert.throws(() => wallet.startTest(jane.id), /being tested already/);
+    release();
+    await waitFor(() => !record(jane.id).testing, { timeoutMs: 5_000, message: 'the background test' });
+    assert.equal(record(jane.id).verification.state, 'verified');
+
+    // Incomplete verification is never success or a proven bad password; the saved login stays as it is.
+    for (const [script, reason] of [
+        [{ form: 'none' }, /No login form was found/],
+        [{ result: 'challenge', note: 'a code from the authenticator app' }, /asks for another step \(a code from the authenticator app\)/],
+        [{ unavailable: 'net::ERR_NAME_NOT_RESOLVED' }, /could not be opened \(net::ERR_NAME_NOT_RESOLVED\)/],
+    ]) {
+        behaviour = script;
+        tested = await wallet.test(jane.id);
+        assert.equal(tested.verification.state, 'incomplete');
+        assert.match(tested.verification.reason, reason);
+        assert.match(tested.verification.reason, /stays unverified/);
+    }
+    assert.equal(wallet.view().records.length, 2, 'an incomplete test removes nothing');
+
+    // A login updated during its test keeps no result about the old values.
+    behaviour = { before: () => new Promise((resolve) => (release = resolve)) };
+    release = undefined;
+    const during = wallet.test(joe.id);
+    await waitFor(() => Boolean(release), { timeoutMs: 5_000, message: 'the running test' });
+    await wallet.save({ origin: 'https://example.com', username: 'joe@example.com', password: 'joe secret 3', id: joe.id });
+    release();
+    assert.match((await during).outcome, /changed or removed during the test, so this result was not kept/);
+    assert.equal(record(joe.id).verification, undefined, 'new values are unverified');
+
+    // Tests are no credential mutation: no audit (no commit) and no task; the latest result survives a restart.
+    assert.equal(audits.length, audited + 1, 'only the update was audited');
+    const reopened = new WalletSubEngine(options());
+    await reopened.initialize();
+    const kept = reopened.view().records.find((candidate) => candidate.id === jane.id).verification;
+    assert.equal(kept.state, 'incomplete');
+    assert.match(kept.reason, /could not be opened/);
+    for (const file of await filesBelow(project)) {
+        for (const text of ['jane secret 1', 'joe secret', 'could not be opened', 'incomplete', 'jane@example.com']) assert.ok(!file.content.includes(text), `${file.path} holds no plaintext test report or secret`);
+    }
+    await assert.rejects(readdir(join(project, 'tasks')), /ENOENT/, 'no task Book');
+
+    // Without a browser for a separate context, the test says so instead of reporting success.
+    const noBrowser = new WalletSubEngine(options({ loginContext: undefined }));
+    await noBrowser.initialize();
+    tested = await noBrowser.test(jane.id);
+    assert.equal(tested.verification.state, 'incomplete');
+    assert.match(tested.verification.reason, /No browser is available/);
 });
 
 /**

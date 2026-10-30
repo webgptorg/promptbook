@@ -468,7 +468,19 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             body.push('', style.bold(`Saved logins (${wallet.lockedRecords ?? wallet.records.length})`));
             if (wallet.lockedRecords) body.push(style.muted('  Their services, accounts and labels are encrypted too; they appear once this computer unlocks the Wallet.'));
             for (const record of wallet.records) {
-                body.push(`${row()} ${record.origin} · ${record.account}${record.lastUsedAt ? style.muted(` · used ${time(record.lastUsedAt)}`) : ''}${record.lastOutcome === 'rejected' ? style.warning(' · rejected by the site') : ''}`);
+                const verification = record.verification;
+                const tested = record.testing
+                    ? style.warning(` · testing: ${record.testing}…`)
+                    : verification?.state === 'verified'
+                      ? style.success(` · verified ${time(verification.at)}`)
+                      : verification?.state === 'rejected'
+                        ? style.error(` · test rejected ${time(verification.at)}`)
+                        : verification
+                          ? style.warning(` · unverified (test incomplete ${time(verification.at)})`)
+                          : style.muted(' · unverified');
+                body.push(`${row()} ${record.origin} · ${record.account}${record.lastUsedAt ? style.muted(` · used ${time(record.lastUsedAt)}`) : ''}${record.lastOutcome === 'rejected' ? style.warning(' · rejected by the site') : ''}${tested}`);
+                // The concise reason of an unsuccessful latest test stays visible with its login.
+                if (!record.testing && verification && verification.state !== 'verified') body.push(style.muted(`      ${verification.reason}`));
             }
             if (!wallet.records.length) body.push(style.muted(wallet.state === 'ready' ? '  No saved logins; press N to add one.' : '  None.'));
             if (wallet.lastAction) body.push('', style.muted(`Last: ${wallet.lastAction.outcome}`));
@@ -480,7 +492,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                     : wallet.state === 'locked' || wallet.state === 'unavailable'
                       ? [...(wallet.state === 'locked' ? ['R restore with the 12 words for recovery'] : []), ...(wallet.management?.canReset ? ['Z reset (no key: all old logins are lost)'] : [])]
                       : wallet.state === 'ready'
-                        ? ['N add login', 'I import from Bitwarden', 'G new 12 words', ...(focused ? [focused.kind === 'request' ? 'Enter add this login · X dismiss' : 'Enter update · D remove'] : [])]
+                        ? ['N add login', 'I import from Bitwarden', 'G new 12 words', ...(focused ? [focused.kind === 'request' ? 'Enter add this login · X dismiss' : 'Enter update · T test · D remove'] : [])]
                         : [];
             return { title: 'Wallet', context: 'Website logins of this project, encrypted in .ptbk/wallet/ and applied for agents without showing them the credentials', body, anchor, legend: `${keys.join(' · ')}${keys.length ? ' · ' : ''}↑↓ choose · ${back}` };
         }

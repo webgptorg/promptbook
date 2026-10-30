@@ -640,6 +640,19 @@ button:disabled {
     display: block;
 }
 
+/* A list line's state (such as a Wallet login's latest credential test) keeps its meaning color. */
+.list .why.ok {
+    color: var(--success);
+}
+
+.list .why.warn {
+    color: var(--warning);
+}
+
+.list .why.bad {
+    color: var(--danger);
+}
+
 /* Supporting system work: muted presentation, never a different schedule. */
 .list li.supporting .title {
     color: var(--muted);

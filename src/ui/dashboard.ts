@@ -700,7 +700,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             notify('Nothing was saved.');
             return;
         }
-        await runWallet('wallet-save', { ...login, ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) });
+        // Saving is verified by the same credential test as T (its result follows separately on the page).
+        await runWallet('wallet-save', { ...login, test: true, ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) });
     };
 
     /**
@@ -742,7 +743,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         } else if (key === 'n') {
             if (wallet.state === 'ready') void walletLogin(focused?.kind === 'request' ? { origin: focused.origin, action: focused.id } : {});
             else notify(unset ? 'Set up the Wallet first (S).' : 'Restore the Wallet on this computer first (R).');
-        } else if (key === 'd' && focused?.kind === 'record') confirmThen(`Remove the saved login "${focused.account}" for ${focused.origin}?`, async () => void (await runWallet('wallet-remove', { id: focused.id })));
+        } else if (key === 't' && focused?.kind === 'record') void runWallet('wallet-test', { id: focused.id });
+        else if (key === 'd' && focused?.kind === 'record') confirmThen(`Remove the saved login "${focused.account}" for ${focused.origin}?`, async () => void (await runWallet('wallet-remove', { id: focused.id })));
         else if (key === 'x' && focused?.kind === 'request') confirmThen(`Dismiss the login request for ${focused.origin}? The waiting work continues without it.`, async () => void (await runWallet('wallet-dismiss', { request: focused.id })));
         else if (key === 'i') {
             if (!wallet.management?.canImport) notify(unset ? 'Set up the Wallet first (S).' : 'Restore the Wallet on this computer first (R).');

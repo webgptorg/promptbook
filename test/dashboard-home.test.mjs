@@ -207,6 +207,15 @@ test('the Wallet tile and page show readiness, requests and labels with the comm
     const empty = pageBody(pageForTile('wallet'), { ...context, snapshot: snapshot({ wallet: { state: 'empty', summary: 'Not set up (no saved logins)', records: [], pending: [] } }) });
     assert.match(empty.legend, /S set up \(shows 12 words for recovery once\)/);
     assert.doesNotMatch(`${text}\n${empty.body.join('\n')}`, /seed|mnemonic|BIP|passphrase/i, 'no technical jargon in the Wallet UI');
+    // Each saved login shows its latest credential test (or live progress); the focused one offers Test.
+    assert.match(text, /ja…@example\.com · used .* · unverified$/m, 'never tested: unverified');
+    const tested = (record) => pageBody({ ...pageForTile('wallet'), focus: 1 }, { ...context, snapshot: snapshot({ wallet: { ...wallet, records: [{ ...wallet.records[0], ...record }] } }) });
+    const rejected = tested({ verification: { state: 'rejected', at, reason: 'The website rejected this login; update it.' } });
+    assert.match(rejected.body.map(stripAnsi).join('\n'), /· test rejected .*\n\s+The website rejected this login; update it\./);
+    assert.match(rejected.legend, /Enter update · T test · D remove/);
+    assert.match(tested({ verification: { state: 'verified', at, reason: 'The website accepted this login.' } }).body.map(stripAnsi).join('\n'), /· verified /);
+    assert.match(tested({ verification: { state: 'incomplete', at, reason: 'No login form was found.' } }).body.map(stripAnsi).join('\n'), /unverified \(test incomplete .*\)\n\s+No login form was found\./);
+    assert.match(tested({ testing: 'Signing in with this saved login' }).body.map(stripAnsi).join('\n'), /· testing: Signing in with this saved login…/);
 });
 
 test('Usage tile and page: a seven-day summary with grouping-specific labels, visible billing mode and certainty, no price internals', () => {

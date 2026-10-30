@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
+import { redact } from '../common/redact.js';
 import type { Project } from '../project/workspace.js';
 import { ENCRYPTION_FORMAT, createVerifier, deriveProjectRoot, domainKey, generateRecoveryWords, newProjectSalt, normalizeRecoveryWords, open, seal, verifyRoot, type Envelope } from './crypto.js';
 import { hostUnlock, type HostUnlock, type HostUnlockFacility } from './host-unlock.js';
@@ -33,7 +34,29 @@ export type WalletRecordView = {
     readonly lastUsedAt?: string;
     /** Result of the last automatic sign-in with it. */
     readonly lastOutcome?: 'signed-in' | 'rejected';
+    /** The latest explicit credential test (absent: never tested, i.e. unverified). */
+    readonly verification?: WalletVerification;
+    /** The step of a credential test running now, for live progress. */
+    readonly testing?: string;
 };
+
+/**
+ * The latest credential test of one saved login, redacted (historical evidence, not a guarantee that a session stays
+ * valid): `verified` when the website accepted exactly this credential in a fresh login context, `rejected` when it
+ * refused it, `incomplete` when the test could not finish (a missing factor, no login form found, a cancelled test or
+ * an unavailable website or browser; the saved login stays as it is, unverified).
+ *
+ * @private Wallet
+ */
+export type WalletVerification = { readonly state: 'verified' | 'rejected' | 'incomplete'; readonly at: string; readonly reason: string };
+
+/**
+ * A separate, fresh login context (no existing sessions) opened at a website for a credential test; disposing it
+ * leaves existing sessions untouched.
+ *
+ * @private Wallet
+ */
+export type LoginContext = { readonly page: SignInPage; readonly dispose: () => Promise<void> };
 
 /**
  * Nonsecret view of one pending login request (a protected secret-input action owned by the Wallet).
@@ -144,6 +167,8 @@ export type WalletOptions = {
      * `retryMs` (default one minute) until it succeeds.
      */
     readonly audit?: { readonly isEnabled: () => boolean; readonly commit: (subject: string, body: string) => Promise<void>; readonly retryMs?: number };
+    /** Opens a separate, fresh login context at a website for a credential test (absent: tests cannot run here). */
+    readonly loginContext?: (origin: string) => Promise<LoginContext>;
 };
 
 /**
@@ -192,6 +217,7 @@ type StoredRecord = {
     readonly updatedAt: string;
     readonly lastUsedAt?: string;
     readonly lastOutcome?: 'signed-in' | 'rejected';
+    readonly verification?: WalletVerification;
     readonly secret: Envelope;
 };
 
@@ -214,7 +240,7 @@ type Credentials = {
 /**
  * The complete content of one record as it is encrypted on disk: service, account, label, times and secrets alike.
  */
-type RecordContent = Credentials & { readonly label: string; readonly createdAt: string; readonly updatedAt: string; readonly lastUsedAt?: string; readonly lastOutcome?: 'signed-in' | 'rejected' };
+type RecordContent = Credentials & { readonly label: string; readonly createdAt: string; readonly updatedAt: string; readonly lastUsedAt?: string; readonly lastOutcome?: 'signed-in' | 'rejected'; readonly verification?: WalletVerification };
 
 /**
  * One record on disk (`records.json`, version 2): an id and its entirely encrypted content, with no plaintext account
@@ -441,6 +467,8 @@ function hostIdentity(): string {
  */
 export class WalletSubEngine {
     private readonly mutex = new Mutex();
+    /** Credential tests running now, with their current step (live progress, never persisted). */
+    private readonly testing = new Map<string, string>();
     private readonly unlock: HostUnlock;
     private readonly host = hostIdentity();
     private state: WalletState = 'empty';
@@ -629,6 +657,7 @@ export class WalletSubEngine {
                         updatedAt: content.updatedAt,
                         ...(content.lastUsedAt ? { lastUsedAt: content.lastUsedAt } : {}),
                         ...(content.lastOutcome ? { lastOutcome: content.lastOutcome } : {}),
+                        ...(content.verification ? { verification: content.verification } : {}),
                         secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')),
                     });
                 } catch {
@@ -671,7 +700,7 @@ export class WalletSubEngine {
     /** The on-disk form of the records under a key (also for a new generation's key). */
     private sealedRecords(key: Buffer, projectKeyId: string): { format: string; version: 2; projectKeyId: string; records: SealedRecord[] } {
         const records = this.records.map((record): SealedRecord => {
-            const content: RecordContent = { ...this.credentials(record), label: record.account, createdAt: record.createdAt, updatedAt: record.updatedAt, ...(record.lastUsedAt ? { lastUsedAt: record.lastUsedAt } : {}), ...(record.lastOutcome ? { lastOutcome: record.lastOutcome } : {}) };
+            const content: RecordContent = { ...this.credentials(record), label: record.account, createdAt: record.createdAt, updatedAt: record.updatedAt, ...(record.lastUsedAt ? { lastUsedAt: record.lastUsedAt } : {}), ...(record.lastOutcome ? { lastOutcome: record.lastOutcome } : {}), ...(record.verification ? { verification: record.verification } : {}) };
             return { id: record.id, sealed: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(content), 'utf8')) };
         });
         return { format: ENCRYPTION_FORMAT, version: 2, projectKeyId, records };
@@ -909,7 +938,7 @@ export class WalletSubEngine {
                         skipped++;
                         continue;
                     }
-                    const updated: StoredRecord = { ...existing, updatedAt: now, lastOutcome: undefined, secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')) };
+                    const updated: StoredRecord = { ...existing, updatedAt: now, lastOutcome: undefined, verification: undefined, secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')) };
                     this.records = this.records.map((record) => (record.id === existing.id ? updated : record));
                     changed.push(updated);
                 } else {
@@ -1132,8 +1161,8 @@ export class WalletSubEngine {
      * Saves (adds or updates) a login from protected owner input. The password is write-only: it is encrypted at once
      * and never returned. Pending requests for that website are resolved, so waiting work resumes.
      */
-    public async save(input: { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string; readonly id?: string; readonly action?: string }): Promise<WalletOutcome> {
-        const result = await this.mutex.run(async (): Promise<{ outcome: WalletOutcome; settled: number; audit: Omit<PendingAudit, 'at'> }> => {
+    public async save(input: { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string; readonly id?: string; readonly action?: string }): Promise<WalletOutcome & { readonly id?: string }> {
+        const result = await this.mutex.run(async (): Promise<{ outcome: WalletOutcome; id: string; settled: number; audit: Omit<PendingAudit, 'at'> }> => {
             const key = this.requireReady();
             const action = input.action ? this.actions.find((candidate) => candidate.id === input.action) : undefined;
             const origin = normalizeOrigin(input.origin || action?.origin || '');
@@ -1148,7 +1177,8 @@ export class WalletSubEngine {
                 account: input.label?.trim() || (existing && !input.label ? existing.account : walletLabel(origin, username)),
                 createdAt: existing?.createdAt ?? now,
                 updatedAt: now,
-                secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ origin, username, password: input.password } satisfies Credentials), 'utf8')),
+                // New values are unverified until tested; retained legacy factor data is preserved.
+                secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ origin, username, password: input.password, ...(existing && this.legacyFactor(existing) ? { totp: this.legacyFactor(existing) } : {}) } satisfies Credentials), 'utf8')),
             };
             this.records = existing ? this.records.map((candidate) => (candidate.id === existing.id ? record : candidate)) : [...this.records, record];
             await this.writeRecords();
@@ -1159,6 +1189,7 @@ export class WalletSubEngine {
             }
             if (settled) await this.writeActions();
             return {
+                id: record.id,
                 outcome: { action: 'wallet-save', applied: true, outcome: `${existing ? 'Updated' : 'Saved'} the login "${record.account}" for ${origin}.${settled ? ` ${settled === 1 ? 'The waiting request was' : `${settled} waiting requests were`} resolved; the work resumes.` : ''}` },
                 settled,
                 audit: auditOf(existing ? 'Update' : 'Add', record, settled ? `Resolved ${settled === 1 ? 'one waiting login request' : `${settled} waiting login requests`}.` : undefined),
@@ -1167,7 +1198,111 @@ export class WalletSubEngine {
         this.options.log(`Wallet: ${result.outcome.outcome}`);
         if (result.settled) this.options.onSettled?.();
         await this.recordAudit(result.audit);
-        return this.remember(result.outcome);
+        return { ...this.remember(result.outcome), id: result.id };
+    }
+
+    /**
+     * Starts the credential test of one saved login in the background and returns at once: a real sign-in can take
+     * longer than a control request may wait, so its live progress and result appear in the Wallet view instead.
+     */
+    public startTest(id: string): WalletOutcome {
+        const record = this.testable(id);
+        void this.test(id).catch((error: unknown) => this.options.log(`Wallet test: ${errorMessage(error)}`));
+        return { action: 'wallet-test', applied: false, outcome: `Testing "${record.account}" for ${record.origin} in a separate login context; its result appears with the login.` };
+    }
+
+    /** The record a credential test may start for now (a ready Wallet, an existing login, no test of it running). */
+    private testable(id: string): StoredRecord {
+        this.requireReady();
+        const record = this.records.find((candidate) => candidate.id === id);
+        if (!record) throw new PtbkError('This saved login no longer exists.', { kind: 'not-found' });
+        if (this.testing.has(id)) throw new PtbkError(`"${record.account}" is being tested already.`, { kind: 'conflict' });
+        return record;
+    }
+
+    /** Retained legacy TOTP data of a record (preserved through updates, never generated). */
+    private legacyFactor(record: StoredRecord): string | undefined {
+        try {
+            return this.credentials(record).totp;
+        } catch {
+            return undefined;
+        }
+    }
+
+    /**
+     * Tests exactly one saved login through a real sign-in in a separate, fresh login context with the same trusted
+     * sign-in as ordinary login (an existing session cannot prove that this credential works, and it is not signed out).
+     * The latest redacted result is kept with the encrypted record; the test is not a task, trace, audit or commit
+     * (it is no credential mutation), and an incomplete test leaves the saved login as it is, unverified.
+     */
+    public async test(id: string): Promise<WalletOutcome & { readonly verification: WalletVerification }> {
+        const record = this.testable(id);
+        // Claimed synchronously, so one login is never tested twice at once.
+        this.testing.set(id, 'Starting');
+        const secrets: string[] = [];
+        try {
+            const [state, reason] = await this.verify(
+                record,
+                (text) => {
+                    this.testing.set(id, text);
+                    this.options.onChange();
+                },
+                secrets,
+            );
+            // The secret never reaches the kept report, even through a website's or browser's message.
+            const verification: WalletVerification = { state, at: new Date().toISOString(), reason: secrets.reduce((text, secret) => text.split(secret).join('[redacted]'), redact(reason)) };
+            // A login changed or removed meanwhile keeps no result about values it no longer holds.
+            const kept = await this.mutex.run(async () => {
+                if (!this.records.some((candidate) => candidate.id === id && candidate.updatedAt === record.updatedAt)) return false;
+                this.records = this.records.map((candidate) => (candidate.id === id ? { ...candidate, verification } : candidate));
+                await this.writeRecords();
+                return true;
+            });
+            this.testing.delete(id);
+            const outcome = { action: 'wallet-test', applied: state === 'verified', outcome: `${record.account} (${record.origin}): ${verification.reason}${kept ? '' : ' The login was changed or removed during the test, so this result was not kept.'}` };
+            this.options.log(`Wallet test: ${outcome.outcome}`);
+            return { ...this.remember(outcome), verification };
+        } finally {
+            if (this.testing.delete(id)) this.options.onChange();
+        }
+    }
+
+    /**
+     * The sign-in of one credential test in a fresh login context: its state and an unredacted reason (`secrets`
+     * receives the values the caller must strip from it).
+     */
+    private async verify(record: StoredRecord, step: (text: string) => void, secrets: string[]): Promise<readonly [WalletVerification['state'], string]> {
+        step(`Opening ${record.origin} in a separate login context`);
+        if (!this.options.loginContext) return ['incomplete', 'No browser is available for a separate login test here; the login stays unverified.'];
+        let context: LoginContext;
+        try {
+            context = await this.options.loginContext(record.origin);
+        } catch (error) {
+            return ['incomplete', `The test browser could not be opened (${errorMessage(error)}); the login stays unverified.`];
+        }
+        try {
+            step('Looking for the login form');
+            const inspected = await context.page.inspect();
+            if (inspected.form === 'none') return ['incomplete', `No login form was found on ${inspected.origin || record.origin} (also after following its sign-in link); the login stays unverified.`];
+            const credentials = this.credentials(record);
+            secrets.push(credentials.password);
+            step('Signing in with this saved login');
+            const attempt = await context.page.signIn(credentials).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
+            switch (attempt.result) {
+                case 'signed-in':
+                    return ['verified', `The website accepted this login${attempt.note ? ` (${attempt.note})` : ''}.`];
+                case 'rejected':
+                    return ['rejected', `The website rejected this login${attempt.note ? ` (${attempt.note})` : ''}; update it.`];
+                case 'challenge':
+                    return ['incomplete', `The website asks for another step (${attempt.note ?? 'a code or an approval'}); the password was accepted only if that step follows it, so the login stays unverified.`];
+                case 'no-form':
+                    return ['incomplete', `The login form could not be completed${attempt.note ? ` (${attempt.note})` : ''}; the login stays unverified.`];
+            }
+        } catch (error) {
+            return ['incomplete', `The test did not finish (${errorMessage(error)}); the login stays unverified.`];
+        } finally {
+            await context.dispose().catch(() => undefined);
+        }
     }
 
     /** The username of a record (undefined when it cannot be decrypted). */
@@ -1408,7 +1543,16 @@ export class WalletSubEngine {
             summary,
             ...(this.problem ? { problem: this.problem } : {}),
             ...(this.metadata ? { facility: this.unlock.facility } : {}),
-            records: this.records.map(({ id, origin, account, updatedAt, lastUsedAt, lastOutcome }) => ({ id, origin, account, updatedAt, ...(lastUsedAt ? { lastUsedAt } : {}), ...(lastOutcome ? { lastOutcome } : {}) })),
+            records: this.records.map(({ id, origin, account, updatedAt, lastUsedAt, lastOutcome, verification }) => ({
+                id,
+                origin,
+                account,
+                updatedAt,
+                ...(lastUsedAt ? { lastUsedAt } : {}),
+                ...(lastOutcome ? { lastOutcome } : {}),
+                ...(verification ? { verification } : {}),
+                ...(this.testing.has(id) ? { testing: this.testing.get(id)! } : {}),
+            })),
             ...(this.lockedRecords ? { lockedRecords: this.lockedRecords } : {}),
             management: { canImport: state === 'ready', canRotate: state === 'ready', canReset: (state === 'locked' || state === 'unavailable') && Boolean(this.metadata || this.problem) },
             pending,

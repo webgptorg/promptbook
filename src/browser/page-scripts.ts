@@ -437,6 +437,24 @@ export function submitLoginScript(): string {
 }
 
 /**
+ * Follows the page's evident sign-in link or button (`Sign in`, `Log in`, `Login`, by visible text or accessible name)
+ * when the page shows no login form; `false` when there is none.
+ *
+ * @private browser page scripts
+ */
+export function followSignInLinkScript(): string {
+    return `(() => {
+        const pattern = /^\\s*(sign|log)\\s*-?\\s*in\\b|^\\s*login\\b/i;
+        const visible = (element) => { const box = element.getBoundingClientRect(); return box.width > 0 && box.height > 0; };
+        for (const element of document.querySelectorAll('a[href], button, [role="button"], [role="link"]')) {
+            const name = (element.getAttribute('aria-label') || element.textContent || '').trim();
+            if (pattern.test(name) && visible(element)) { element.click(); return true; }
+        }
+        return false;
+    })()`;
+}
+
+/**
  * Clears every password field of the page and removes the Wallet's marks, so no entered secret stays readable after a
  * Wallet sign-in (also when the site rejected it).
  *

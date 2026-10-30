@@ -1,5 +1,13 @@
 # Unreleased
 
+## Wallet: Test one saved login through a real sign-in
+
+-   Each saved login on the Wallet page (terminal and web) offers **Test** next to Update and Remove (`T` in the terminal). Only that one account is tested, not every account of the service. The test opens the website in a separate, fresh browser login context with no existing sessions, follows an evident "Sign in" link when the page shows no form, and signs in with the same trusted Wallet sign-in and verified-result check as ordinary work. An existing signed-in session therefore cannot make a wrong password look valid, and that session is neither signed out nor replaced.
+-   Adding or updating a login from the Wallet page runs the same test after saving. Saving and verifying are separate outcomes: the login is kept whatever the test finds.
+-   Progress is shown live with the login. Afterwards it shows **verified**, **test rejected** or **unverified (test incomplete)** with the time and a concise reason, for example when no login form was found, the site asks for another step such as a code, or the website or browser is unavailable. A temporary outage is never reported as a bad password, and a login never tested reads as unverified. The latest result is stored inside the login's encrypted record (ignored local Wallet state, never in Git), with passwords and other secrets redacted, and it survives a restart. Updating the login clears it, and a result about values changed during the test is dropped.
+-   A test is not a task, run or credential mutation: it creates no task Book, trace, Wallet audit or commit.
+-   Not covered yet: entering a missing factor or approving a device action during a test (the test ends as incomplete instead), additional reusable login fields, and testing the protected in-memory draft during `ptbk init` (Wallet setup still happens after the final confirmation).
+
 ## Wallet: account discovery for agents, related service domains and TOTP generation out of scope
 
 -   Agents get a `wallet_accounts` tool that lists saved logins as intentionally nonsecret metadata (service, label, username or email), optionally for one site. Work can pick the right account from context instead of asking. Passwords and codes never leave the Wallet, and the records stay fully encrypted with no plaintext index.

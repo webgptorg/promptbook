@@ -269,9 +269,16 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
             return wallet.cancelSetup();
         case 'wallet-restore':
             return await wallet.restore(text('words'));
-        case 'wallet-save':
+        case 'wallet-save': {
             // `request` names the pending login request being answered (`action` is the operation itself over HTTP).
-            return await wallet.save({ origin: text('origin'), username: text('username'), password: text('password'), label: text('label') || undefined, id: text('id') || undefined, action: text('request') || undefined });
+            const saved = await wallet.save({ origin: text('origin'), username: text('username'), password: text('password'), label: text('label') || undefined, id: text('id') || undefined, action: text('request') || undefined });
+            // Adding or updating from the Wallet page is verified by the same credential test (its outcome follows
+            // separately; saving never waits for it or depends on it).
+            if (params.test === true && saved.id) wallet.startTest(saved.id);
+            return saved;
+        }
+        case 'wallet-test':
+            return wallet.startTest(text('id'));
         case 'wallet-remove':
             return await wallet.remove(text('id'));
         case 'wallet-dismiss':
@@ -309,4 +316,4 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
  *
  * @private shared runtime controls
  */
-export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-remove', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);
+export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-test', 'wallet-remove', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);

@@ -1782,14 +1782,32 @@
                     h(
                         'li',
                         {},
-                        h('span', { className: 'title' }, `${record.origin} · ${record.account}`, h('span', { className: 'why' }, `${record.lastUsedAt ? `used ${time(record.lastUsedAt)}` : 'not used yet'}${record.lastOutcome === 'rejected' ? ' · rejected by the site' : ''}`)),
-                        h('span', { className: 'row' }, h('button', { onclick: () => walletLoginDialog({ origin: record.origin, label: record.account, id: record.id }) }, 'Update'), h('button', { className: 'danger', onclick: () => walletCall('wallet-remove', { id: record.id }, `Remove the saved login "${record.account}" for ${record.origin}?`) }, 'Remove')),
+                        h('span', { className: 'title' }, `${record.origin} · ${record.account}`, h('span', { className: 'why' }, `${record.lastUsedAt ? `used ${time(record.lastUsedAt)}` : 'not used yet'}${record.lastOutcome === 'rejected' ? ' · rejected by the site' : ''}`), walletVerification(record)),
+                        h(
+                            'span',
+                            { className: 'row' },
+                            h('button', { onclick: () => walletLoginDialog({ origin: record.origin, label: record.account, id: record.id }) }, 'Update'),
+                            h('button', { disabled: Boolean(record.testing) || wallet.state !== 'ready', onclick: () => walletCall('wallet-test', { id: record.id }) }, 'Test'),
+                            h('button', { className: 'danger', onclick: () => walletCall('wallet-remove', { id: record.id }, `Remove the saved login "${record.account}" for ${record.origin}?`) }, 'Remove'),
+                        ),
                     ),
                 ),
             ),
         );
         records.append(h('p', { className: 'muted' }, 'Agents never receive passwords: the Wallet signs in for them. Passwords, the 12 words for recovery and keys are never shown here.'));
         return pageFrame('wallet', 'Encrypted website logins of this project, applied for agents without showing them the credentials', status, requests, records);
+    }
+
+    /**
+     * The latest credential test of a saved login: live progress while it runs, otherwise its redacted result and time
+     * (historical evidence) or "unverified" when it was never tested.
+     */
+    function walletVerification(record) {
+        const verification = record.verification;
+        if (record.testing) return h('span', { className: 'why warn', role: 'status' }, `Testing: ${record.testing}…`);
+        if (!verification) return h('span', { className: 'why' }, 'Unverified: not tested yet.');
+        const label = verification.state === 'verified' ? 'Verified' : verification.state === 'rejected' ? 'Test rejected' : 'Unverified (test incomplete)';
+        return h('span', { className: `why ${verification.state === 'verified' ? 'ok' : verification.state === 'rejected' ? 'bad' : 'warn'}` }, `${label} ${time(verification.at)} · ${verification.reason}`);
     }
 
     /** Calls a Wallet operation (optionally confirmed) and reports its outcome (never a secret). */
@@ -2059,7 +2077,8 @@
                 autocomplete: 'off',
                 onsubmit: async (event) => {
                     event.preventDefault();
-                    const body = { origin: origin.value, username: username.value, password: password.value, label: label.value, ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) };
+                    // Saving is verified by the same credential test as the Test button (its result follows separately).
+                    const body = { origin: origin.value, username: username.value, password: password.value, label: label.value, test: true, ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) };
                     password.value = '';
                     const result = await walletCall('wallet-save', body);
                     body.password = '';

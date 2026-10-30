@@ -68,7 +68,7 @@ import {
 import { HarnessPool } from './harnesses.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
-import { WalletSubEngine } from '../wallet/wallet.js';
+import { WalletSubEngine, type LoginContext } from '../wallet/wallet.js';
 import { readOperatorIntent, saveOperatorIntent, type ManualPauseCause } from './operator-intent.js';
 import { EngineUpdater } from './engine-update.js';
 import { SyncCoordinator, type SyncOutcome } from './sync.js';
@@ -148,6 +148,8 @@ export type AgendaOptions = {
     readonly afterWork?: (task: Task) => Promise<void>;
     /** Named browser tools owned by the service: inspections for the dashboard pages and the names held by work. */
     readonly browsers?: { readonly primary: () => BrowserDetailView | undefined; readonly all: () => BrowserDetailView[]; readonly inUse: () => string[] };
+    /** Opens a separate, fresh login context of the project browser for a Wallet credential test. */
+    readonly walletLoginContext?: (origin: string) => Promise<LoginContext>;
 };
 
 /**
@@ -601,6 +603,7 @@ export class Agenda {
                 commit: async (subject, body) => void (await this.commitAuditRecord(subject, body)),
                 retryMs: PERSISTENCE_RETRY_MS,
             },
+            ...(options.walletLoginContext ? { loginContext: options.walletLoginContext } : {}),
         });
         this.updater = new EngineUpdater({
             project: options.project,

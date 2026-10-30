@@ -24,6 +24,7 @@ import {
     entryTargetScript,
     focusForEntryScript,
     focusLoginFieldScript,
+    followSignInLinkScript,
     isFileInputScript,
     loginFormScript,
     programmaticClickScript,
@@ -1238,6 +1239,40 @@ export class TaskBrowser {
             },
             signIn: async (credentials) => await this.walletSignIn(credentials),
         };
+    }
+
+    /**
+     * Opens a website in a separate, fresh browser context of this browser (none of the profile's cookies or sessions)
+     * for a Wallet credential test, following an evident sign-in link when the start page shows no login form. The
+     * context is discarded afterwards, so existing sessions stay signed in and undisturbed.
+     */
+    public async isolatedLogin(origin: string): Promise<{ readonly page: SignInPage; readonly dispose: () => Promise<void> }> {
+        const connection = await this.browser.connect();
+        const browserContextId = String((await connection.send('Target.createBrowserContext', {})).browserContextId);
+        const dispose = async (): Promise<void> => {
+            if (this.targetId) this.ownTabs.delete(this.targetId);
+            this.sessionId = undefined;
+            this.targetId = undefined;
+            await connection.send('Target.disposeBrowserContext', { browserContextId }).catch(() => undefined);
+        };
+        try {
+            const targetId = String((await connection.send('Target.createTarget', { url: 'about:blank', browserContextId })).targetId);
+            this.ownTabs.add(targetId);
+            await this.attachPage(connection, targetId);
+            await this.open(origin);
+            // A landing page without the form: follow its visible sign-in link (at most twice).
+            for (let hop = 0; hop < 2; hop++) {
+                const scan = await this.scanLogin();
+                if (scan.password || scan.username) break;
+                if (!(await this.evaluate<boolean>(followSignInLinkScript()).catch(() => false))) break;
+                await delay(SUBMIT_SETTLE_MS);
+                await this.settle(15_000);
+            }
+            return { page: this.walletPage(), dispose };
+        } catch (error) {
+            await dispose();
+            throw error;
+        }
     }
 
     /** Scans the login fields (retried while a navigation replaces the page). */
