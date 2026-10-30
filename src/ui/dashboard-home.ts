@@ -30,7 +30,6 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
     agents: 'Agents',
     tools: 'Tools',
     wallet: 'Wallet',
-    results: 'Results',
     usage: 'Usage',
     actions: 'Action log',
     history: 'History',
@@ -45,7 +44,8 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
  * @private terminal dashboard home
  */
 export function homeTiles(snapshot: ServiceSnapshot): HomeTile[] {
-    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'actions', 'history', 'files', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
+    // No standalone Results/Activity tile: System keeps the operational log, each task its own outcomes.
+    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
 }
 
 /**
@@ -315,16 +315,6 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
                 ...(tools.waiting ? [style.warning(`new work waits: ${tools.waiting.reason}`)] : []),
                 ...tools.problems.slice(0, 1).map((problem) => style.warning(problem)),
                 ...(inUse.length ? [style.muted(`in use: ${inUse.join(', ')}`)] : []),
-            ];
-        }
-        case 'results': {
-            const last = snapshot.results.recent[0];
-            const activity = snapshot.activity[snapshot.activity.length - 1];
-            const error = snapshot.errors[snapshot.errors.length - 1];
-            return [
-                `${style.success(`${marks.ok} ${snapshot.results.completed}`)} ${style.muted('completed')}  ${snapshot.results.failed ? style.error(`${marks.fail} ${snapshot.results.failed}`) : style.muted(`${marks.fail} 0`)} ${style.muted('failed')}`,
-                ...(last ? [`${last.outcome.startsWith('completed') ? style.success(marks.ok) : last.outcome === 'failed' ? style.error(marks.fail) : style.warning(marks.wait)} ${last.title}`] : []),
-                ...(error ? [style.warning(`last error: ${error.summary}`)] : activity ? [style.muted(`${time(activity.at)} ${activity.text}`)] : []),
             ];
         }
         case 'usage': {

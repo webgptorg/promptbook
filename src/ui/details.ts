@@ -354,8 +354,11 @@ export function healthDetailLines(health: HealthView, style?: Style): string[] {
     if (!health.incidents.length) lines.push(muted('No health incident; new background work is not limited by Health.'));
     for (const incident of health.incidents) {
         const tone = incident.severity === 'hard' ? fail : incident.severity === 'soft' ? warn : muted;
-        const impact = incident.pauses ? 'pauses new background work' : incident.overriddenAt ? `overridden ${time(incident.overriddenAt)} — work continues below the limit` : 'attention only (no pause)';
+        const impact = incident.pauses ? 'pauses new background work' : incident.overriddenAt ? `overridden ${time(incident.overriddenAt)} — work continues below the limit` : 'observed only (no pause)';
         lines.push(`${tone(`${incident.severity.toUpperCase().padEnd(7)} ${incident.summary}`)}`, muted(`        since ${time(incident.openedAt)} · ${impact}${incident.severity === 'hard' ? ' · cannot be overridden' : ''}`));
+        // What was done by itself, and only then what a person must do (the attention request).
+        if (incident.remedy) lines.push(muted(`        automatic: ${incident.remedy}`));
+        if (incident.needsAction) lines.push(warn(`        needs you: ${incident.needsAction}`));
     }
     if (health.lastAction) lines.push('', `Last action ${time(health.lastAction.at)} ${health.lastAction.action}: ${health.lastAction.outcome}`);
     return lines;

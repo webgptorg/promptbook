@@ -148,7 +148,15 @@ type Incident = {
     overriddenAt?: string;
     /** Consecutive samples in which the condition no longer held. */
     recovered: number;
+    /** What the sub-engine did about it by itself (an autonomous remedy is attempted once per incident). */
+    remedy?: string;
 };
+
+/**
+ * How long a pausing memory incident may last before it needs a person (memory often frees by itself; no autonomous
+ * remedy exists without new privileges).
+ */
+const MEMORY_ATTENTION_AFTER_MS = 15 * 60_000;
 
 /**
  * One entry of the Promptbook-owned project cache (`.ptbk/tmp/`).
@@ -451,6 +459,37 @@ export class HealthSubEngine {
         this.incidents.push(incident);
         const effect = severity === 'warning' ? '' : severity === 'hard' ? ' New background work is paused until it is resolved (no override).' : ' New background work is paused; it resumes automatically, or override it on the Health page.';
         this.options.log(`Health: ${summary}.${effect}`, severity === 'warning' ? 'warning' : 'error');
+        if (resource === 'disk' && severity !== 'warning') void this.remedyDisk(incident);
+    }
+
+    /**
+     * The autonomous remedy of low disk, before anyone is asked: reclaim the known-disposable Promptbook-owned project
+     * cache (never Wallet, encryption, sessions, browser profiles or recovery data). Attempted once per incident.
+     */
+    private async remedyDisk(incident: Incident): Promise<void> {
+        if (incident.remedy) return;
+        incident.remedy = 'Cleaning the owned project cache…';
+        const preview = await this.cachePreview().catch(() => undefined);
+        if (!preview || !preview.removableBytes) {
+            incident.remedy = 'No disposable Promptbook cache to reclaim.';
+            this.options.onChange();
+            return;
+        }
+        const cleaned = await this.cleanCache().catch(() => undefined);
+        incident.remedy = cleaned ? `Automatically cleaned the owned project cache (${formatBytes(cleaned.freedBytes)} freed).` : 'Cleaning the owned project cache failed.';
+        this.options.onChange();
+    }
+
+    /**
+     * The concrete human action an open incident needs now, or undefined while it is only observed or autonomous
+     * remedies are still running: warnings never ask; low disk asks once the owned cache was reclaimed and capacity is
+     * still short; memory asks when exhausted or when a pausing shortage persists.
+     */
+    private neededAction(incident: Incident): string | undefined {
+        if (incident.severity === 'warning' || incident.overriddenAt) return undefined;
+        if (incident.resource === 'disk') return incident.remedy && !incident.remedy.endsWith('…') ? 'Free disk space or add capacity on this host; no safe automatic cleanup remains.' : undefined;
+        if (incident.resource === 'memory' && (incident.severity === 'hard' || Date.now() - Date.parse(incident.openedAt) >= MEMORY_ATTENTION_AFTER_MS)) return 'Free memory or add capacity (on Linux the Health page can add swap).';
+        return undefined;
     }
 
     /** Applies the disk, memory and CPU incident rules to the latest sample. */
@@ -657,6 +696,8 @@ export class HealthSubEngine {
             openedAt: incident.openedAt,
             ...(incident.overriddenAt ? { overriddenAt: incident.overriddenAt } : {}),
             pauses: incident.severity === 'hard' || (incident.severity === 'soft' && !incident.overriddenAt),
+            ...(incident.remedy ? { remedy: incident.remedy } : {}),
+            ...(this.neededAction(incident) ? { needsAction: this.neededAction(incident) } : {}),
         }));
         const rank = { hard: 0, soft: 1, warning: 2 } as const;
         const worst = [...incidents].sort((a, b) => Number(!a.pauses) - Number(!b.pauses) || rank[a.severity] - rank[b.severity])[0];

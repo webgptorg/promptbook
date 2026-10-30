@@ -111,7 +111,7 @@ test('health: actual exhaustion is a hard pause without override; zero disables 
     assert.deepEqual(health.pauseReasons(), [], 'hard conditions clear by themselves once resolved');
 });
 
-test('health: CPU and connectivity raise attention without pausing; project cache cleanup previews and keeps recent entries', async (t) => {
+test('health: CPU and connectivity are observed without pausing; project cache cleanup previews and keeps recent entries', async (t) => {
     const directory = await temporaryDirectory(t);
     const { health, state } = scripted(directory);
     state.load5 = 12;
@@ -150,6 +150,27 @@ test('health: CPU and connectivity raise attention without pausing; project cach
     const swap = await health.swapPlan();
     assert.equal(swap.supported, process.platform === 'linux', 'swap remediation exists only on Linux; elsewhere guidance');
     assert.ok(swap.note);
+});
+
+test('health: low disk first reclaims the owned cache by itself; only an incident without a remaining remedy needs a person', async (t) => {
+    const directory = await temporaryDirectory(t);
+    const { health, state } = scripted(directory);
+    const cache = join(directory, '.ptbk', 'tmp');
+    await mkdir(cache, { recursive: true });
+    await writeFile(join(cache, 'prompt-old.md'), 'x'.repeat(8192));
+    const past = new Date(Date.now() - 3_600_000);
+    await utimes(join(cache, 'prompt-old.md'), past, past);
+    state.disk = 300;
+    await health.sampleNow();
+    await waitFor(async () => !(await readFile(join(cache, 'prompt-old.md')).then(() => true, () => false)), { timeoutMs: 5_000 });
+    await waitFor(() => /Automatically cleaned/.test(health.view().incidents[0]?.remedy ?? ''), { timeoutMs: 5_000 });
+    const [incident] = health.view().incidents;
+    assert.match(incident.remedy, /8\.0 KiB freed|freed/);
+    assert.match(incident.needsAction, /Free disk space/, 'capacity is still short after the autonomous remedy: one actionable request');
+    // CPU and connectivity are observed, never a request on their own.
+    state.load5 = 12;
+    await health.sampleNow();
+    assert.equal(health.view().incidents.find((item) => item.resource === 'cpu').needsAction, undefined);
 });
 
 test('health: a soft health pause stops new claims, composes with a manual pause and resumes only when every reason is gone', async (t) => {

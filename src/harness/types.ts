@@ -41,6 +41,8 @@ export type HarnessInspection = {
     readonly problem?: 'missing' | 'signed-out' | 'unsupported' | 'error';
     /** Concrete next action for a problem. */
     readonly nextAction?: string;
+    /** Unusable only until this time (epoch ms) after an observed quota/rate limit; the engine rechecks by itself. */
+    readonly recheckAt?: number;
     /** Observation time. */
     readonly checkedAt: number;
 };

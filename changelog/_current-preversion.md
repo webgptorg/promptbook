@@ -1,5 +1,12 @@
 # Unreleased
 
+## Dashboard attention: only for a real human dependency; no standalone Results page
+
+-   A tile now gets attention only when a concrete decision, input or action from a person is needed. Before, any failure or warning raised it: the latest runtime error, a failed or recovering task, a tool configuration problem that Fixer repairs anyway, a quota wait that clears by itself, a pending configuration migration that is retried, a failed local HTTP listener, a sync conflict Fixer was already asked to resolve, a CPU or connectivity warning. These stay inspectable on their pages.
+-   What still asks: waiting chats and task questions, Wallet requests, a blocker the engine cannot resolve by itself (blockers now carry an `automatic` marker for retries, scheduled repairs and known resets), a missing, disabled or signed-out harness (a wait that only expects a known quota reset does not ask), a browser whose automatic recovery is exhausted, a synchronization with no destination, and a Health incident whose autonomous remedies are exhausted.
+-   Health remedies low disk by itself: when a disk incident opens, it cleans the known-disposable Promptbook cache (`.ptbk/tmp/`; Wallet, encryption, sessions and profiles are never touched) and shows what it did on the incident. Only if capacity is still short does the incident ask for help. A pausing memory shortage asks when memory is exhausted or after 15 minutes. CPU and connectivity are observed only.
+-   The Results/Activity tile and page are gone from the terminal and browser dashboards. System now carries the operational log (runtime events, recent errors, automatic repair progress), and each task's detail shows its own latest outcome. Action log and History keep their own meanings.
+
 ## Task purpose: CONTENT/SYSTEM classification, muted supporting work and agent knowledge
 
 -   Tasks can now carry `TASK PURPOSE CONTENT`, `TASK PURPOSE SYSTEM` or `TASK PURPOSE UNDEFINED`. A change is appended to the Book and the last valid value wins, so earlier values stay in the source. A task without one stays valid. Fenced or escaped text is not metadata, an unchanged purpose writes nothing, and an unknown value is only a warning that keeps the earlier valid value. Before this, the parser treated `TASK PURPOSE CONTENT` as an unknown `TASK …` control and blocked the task.

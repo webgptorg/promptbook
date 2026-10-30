@@ -243,6 +243,8 @@ export type BlockerView = {
     readonly reason: string;
     readonly action?: string;
     readonly recheckAt?: string;
+    /** The engine resolves it by itself (a retry, a scheduled repair or a known reset): inspectable, never attention. */
+    readonly automatic?: boolean;
 };
 
 /**
@@ -367,6 +369,10 @@ export type HealthIncidentView = {
     readonly overriddenAt?: string;
     /** Whether it currently contributes a pause reason. */
     readonly pauses: boolean;
+    /** What the Health sub-engine already did about it by itself (e.g. cleaned the owned cache). */
+    readonly remedy?: string;
+    /** A concrete human action is needed now (autonomous remedies are exhausted); only then it is attention. */
+    readonly needsAction?: string;
 };
 
 /**
@@ -516,6 +522,8 @@ export type ToolView = {
     readonly state: 'usable' | 'unavailable' | 'disabled' | 'unknown';
     readonly summary: string;
     readonly nextAction?: string;
+    /** Unavailable only until this time (ISO) after a quota/rate limit; the engine rechecks it by itself. */
+    readonly recheckAt?: string;
     /** Held by active work right now. */
     readonly inUse: boolean;
     /** Active work keeps an acquired old configuration of this (changed/disabled/removed) tool. */
@@ -533,8 +541,8 @@ export type ToolView = {
  */
 export type ToolsView = {
     readonly items: readonly ToolView[];
-    /** What new work waits for (no enabled usable browser/harness), with the concrete action. */
-    readonly waiting?: { readonly reason: string; readonly action: string };
+    /** What new work waits for (no enabled usable browser/harness), with the concrete action; `automatic` when it only waits for known rechecks (no human action). */
+    readonly waiting?: { readonly reason: string; readonly action: string; readonly automatic?: boolean };
     /** Configuration problems of `tools` (collisions, unknown variants, inline secrets) awaiting repair. */
     readonly problems: readonly string[];
 };
@@ -572,7 +580,7 @@ export type SyncView = {
  *
  * @private shared status view model
  */
-export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'results' | 'usage' | 'actions' | 'history' | 'files' | 'connection' | 'sync';
+export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'usage' | 'actions' | 'history' | 'files' | 'connection' | 'sync';
 
 /**
  * Why a domain needs the operator's attention: `key` identifies the current actionable items (a changed key is a new

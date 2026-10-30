@@ -2360,9 +2360,10 @@ export class Agenda {
                 title: 'Invalid configuration',
                 reason: configErrors.map((error) => `${error.location}: ${error.message}`).join('; '),
                 action: loaded.migration.kind === 'older-engine' ? (setting<boolean>(loaded, 'updates.isAutoUpdateEnabled') ? 'The engine updates itself when its update policy allows a compatible release; otherwise update ptbk and restart the service.' : 'Update ptbk (automatic updates are off in ptbk.json), then restart the service.') : 'Fix ptbk.json.',
+                ...(loaded.migration.kind === 'older-engine' && setting<boolean>(loaded, 'updates.isAutoUpdateEnabled') ? { automatic: true } : {}),
             });
         } else if (loaded.migration.kind === 'migrate' && this.configurationPending) {
-            blockers.push({ kind: 'configuration', title: 'Configuration migration pending', reason: this.configurationPending, action: 'See the reason; ptbk retries automatically.' });
+            blockers.push({ kind: 'configuration', title: 'Configuration migration pending', reason: this.configurationPending, action: 'See the reason; ptbk retries automatically.', automatic: true });
         }
         this.blockers = [...blockers, ...this.blockers.filter((blocker) => !['workspace', 'configuration'].includes(blocker.kind))];
     }
@@ -2511,7 +2512,7 @@ export class Agenda {
         // Unfinished work that cannot be routed for lack of tools is a running resource wait (never a plain idle).
         if (waitingForTools && (candidates.length || evaluated.some((item) => isUnfinished(item.readiness)))) {
             // A running engine waiting for resources (not a pause or stop): controls, refresh and rechecks stay alive.
-            this.setBlocker({ kind: 'tools', title: 'Waiting for tools', reason: waitingForTools.reason, action: waitingForTools.action, recheckAt: new Date(Date.now() + TOOLS_RECHECK_MS).toISOString() });
+            this.setBlocker({ kind: 'tools', title: 'Waiting for tools', reason: waitingForTools.reason, action: waitingForTools.action, recheckAt: new Date(Date.now() + TOOLS_RECHECK_MS).toISOString(), ...(waitingForTools.automatic ? { automatic: true } : {}) });
             await this.wait(TOOLS_RECHECK_MS, { kind: 'tools', reason: `Waiting for tools: ${waitingForTools.reason}`, action: waitingForTools.action, skippable: false });
             return;
         }
@@ -3209,7 +3210,8 @@ export class Agenda {
         const broken = [...new Set(definition.diagnostics.filter((diagnostic) => diagnostic.severity === 'error' && diagnostic.path).map((diagnostic) => diagnostic.path))];
         const books = broken.join(', ');
         const action = broken.length ? `Fix the problems in ${books} (${router} inherits them); Fixer repairs them automatically.` : `Give agents/.core/${router.toLowerCase()}.book ${example}; Fixer repairs it automatically.`;
-        this.setBlocker({ kind: 'setup', title: `${router} cannot route`, reason, action, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
+        // Fixer repairs it through the common repair path; it is inspectable, not a question for the operator.
+        this.setBlocker({ kind: 'setup', title: `${router} cannot route`, reason, action, recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString(), automatic: true });
         this.logOnce(`${reason}. Routing waits for repair (no Router chain is created).`, 'warning');
         await this.scheduleRepair({
             key: `router-bootstrap`,

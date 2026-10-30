@@ -942,23 +942,16 @@
         );
     }
 
-    function renderActivity(snapshot) {
-        const card = h('section', { className: 'card activity', 'aria-label': 'Results and activity' });
-        card.append(h('h2', {}, h('span', {}, 'Results and activity'), h('span', {}, `✔ ${snapshot.results.completed} · ✖ ${snapshot.results.failed}`)));
-        if (snapshot.results.recent.length) {
-            card.append(
-                h(
-                    'ul',
-                    { className: 'list' },
-                    snapshot.results.recent.slice(0, 6).map((result) =>
-                        // A system task's run (an engine update) is labelled and shows its verified result or cause.
-                        h('li', {}, h('span', { className: 'title' }, result.kind === 'system' ? [pill('system', ''), ' '] : null, result.title, h('span', { className: 'why' }, `${result.kind === 'system' ? result.summary : result.agent || ''} ${result.commit ? `· ${result.commit.slice(0, 8)}` : ''} · ${time(result.endedAt)}`)), pill(result.outcome, result.outcome.startsWith('completed') ? 'ok' : result.outcome === 'failed' ? 'bad' : 'warn')),
-                    ),
-                ),
-            );
-        }
+    /**
+     * The general operational log on the System page: runtime events, current/last errors and automatic repair
+     * progress. Inspectable without attention; each task keeps its own outcome in Tasks.
+     */
+    function renderOperationalLog(snapshot) {
+        const card = h('section', { className: 'card activity', 'aria-label': 'Operational log' });
+        card.append(h('h2', {}, h('span', {}, 'Operational log'), h('span', { className: 'muted' }, `${snapshot.activity.length} events`)));
         const log = h('div', { className: 'log', role: 'log', 'aria-live': 'off' }, snapshot.activity.slice(-150).map((line) => h('div', { className: line.level }, `${time(line.at)}  ${line.text}`)));
         card.append(log);
+        if (snapshot.errors.length) card.append(h('h3', {}, 'Recent errors'), h('ul', { className: 'list' }, snapshot.errors.slice(-5).map((error) => h('li', {}, h('span', { className: 'title' }, error.summary, h('span', { className: 'why' }, `${time(error.at)}${error.next ? ` · next: ${error.next}` : ''}`))))));
         requestAnimationFrame(() => {
             log.scrollTop = log.scrollHeight;
         });
@@ -1010,9 +1003,10 @@
     }
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
-    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'results', 'usage', 'actions', 'history', 'files', 'connection', 'sync'];
+    // No standalone Results/Activity tile: System keeps the operational log, each task its own outcomes.
+    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'connection', 'sync'];
 
-    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', results: 'Results and activity', usage: 'Usage', actions: 'Action log', history: 'History', files: 'Files', connection: 'Connection', sync: 'Synchronization' };
+    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', usage: 'Usage', actions: 'Action log', history: 'History', files: 'Files', connection: 'Connection', sync: 'Synchronization' };
 
     /** Loads the History window (read-only: the engine never fetches or changes Git for it). */
     async function loadHistory() {
@@ -1450,11 +1444,6 @@
                 const count = (type) => `${tools.items.filter((item) => item.type === type && item.state === 'usable').length}/${tools.items.filter((item) => item.type === type).length}`;
                 return [`Harnesses ${count('HARNESS')} · Browsers ${count('BROWSER')}`, tools.waiting ? h('span', { className: 'warn' }, `New work waits: ${tools.waiting.reason}`) : null];
             }
-            case 'results': {
-                const last = snapshot.results.recent[0];
-                const error = snapshot.errors[snapshot.errors.length - 1];
-                return [`✔ ${snapshot.results.completed} completed · ✖ ${snapshot.results.failed} failed`, last ? h('span', { className: 'muted' }, last.title) : null, error ? h('span', { className: 'warn' }, `Last error: ${error.summary}`) : null];
-            }
             case 'history': {
                 const last = snapshot.history && snapshot.history.last;
                 return last ? [h('span', {}, last.summary), h('span', { className: 'muted' }, time(last.at))] : [h('span', { className: 'muted' }, 'Git messages and topology')];
@@ -1584,7 +1573,7 @@
                         onclick: () => openPage(domain),
                         onfocus: () => (state.focus = domain),
                     },
-                    h('span', { className: 'tile-title' }, attention ? h('span', { className: 'mark', 'aria-hidden': 'true' }, '▲') : null, TITLES[domain] === 'Results and activity' ? 'Results' : TITLES[domain], attention && !attention.seen ? h('span', { className: 'new-label' }, 'new') : null),
+                    h('span', { className: 'tile-title' }, attention ? h('span', { className: 'mark', 'aria-hidden': 'true' }, '▲') : null, TITLES[domain], attention && !attention.seen ? h('span', { className: 'new-label' }, 'new') : null),
                     ...tileSummary(snapshot, domain)
                         .filter(Boolean)
                         .slice(0, lines)
@@ -1670,7 +1659,7 @@
             ),
             renderSettings(snapshot),
         );
-        return pageFrame('system', 'Engine identity, lifecycle, every active pause reason, manual controls and automatic updates', controls, pause, engine, snapshot.update ? renderEngineUpdate(snapshot.update) : null);
+        return pageFrame('system', 'Engine identity, lifecycle, every active pause reason, manual controls, automatic updates and the operational log', controls, pause, engine, snapshot.update ? renderEngineUpdate(snapshot.update) : null, renderOperationalLog(snapshot));
     }
 
     /** The Health page: UI over the per-engine Health sub-engine (no generic manual Pause/Resume here). */
@@ -1699,13 +1688,16 @@
         const incidents = h('section', { className: 'card', 'aria-label': 'Incidents' }, h('h2', {}, `Incidents (${health.incidents.length})`));
         if (!health.incidents.length) incidents.append(h('p', { className: 'muted' }, 'No health incident; new background work is not limited by Health.'));
         for (const incident of health.incidents) {
-            const impact = incident.pauses ? 'pauses new background work' : incident.overriddenAt ? `overridden ${time(incident.overriddenAt)} — work continues below the limit` : 'attention only (no pause)';
+            const impact = incident.pauses ? 'pauses new background work' : incident.overriddenAt ? `overridden ${time(incident.overriddenAt)} — work continues below the limit` : 'observed only (no pause)';
             incidents.append(
                 h(
                     'div',
                     { className: `notice ${incident.severity === 'hard' ? 'error' : ''}` },
                     h('strong', {}, `${incident.severity.toUpperCase()} · ${incident.summary}`),
                     h('div', { className: 'muted' }, `since ${time(incident.openedAt)} · ${impact}${incident.severity === 'hard' ? ' · cannot be overridden; it clears once the condition is gone' : ''}`),
+                    // What was done by itself, and only then what a person must do (the attention request).
+                    incident.remedy ? h('div', { className: 'muted' }, `Automatic: ${incident.remedy}`) : null,
+                    incident.needsAction ? h('div', {}, h('strong', {}, 'Needs you: '), incident.needsAction) : null,
                     incident.severity === 'soft' && incident.pauses
                         ? h('button', { className: 'danger', onclick: () => control('health-override', `Continue below the recommended limit?\n\n${incident.summary}\n\nNew background work will start although this resource is below its configured preventive limit. The override applies only to this incident and does not change ptbk.json; after recovery a new drop pauses again.`, { incident: incident.id }) }, 'Override this incident')
                         : null,
@@ -2256,6 +2248,12 @@
         );
     }
 
+    /** The latest outcome of a task in this session, from the shared snapshot (null when it has none). */
+    function taskResultLine(item) {
+        const result = state.snapshot && state.snapshot.results.recent.find((candidate) => candidate.ref === item.ref);
+        return result ? h('span', { className: 'why' }, `Last result: ${result.outcome} ${time(result.endedAt)} · ${result.summary}${result.commit ? ` · ${result.commit.slice(0, 8)}` : ''}`) : null;
+    }
+
     /** Clears the viewer's task filter: every task (distant and completed ones included) is shown again. */
     function clearTaskFilter() {
         clearTimeout(taskFindTimer);
@@ -2305,6 +2303,8 @@
                                   item.definition ? h('span', { className: 'why' }, `Run of "${item.definition}"${item.retry ? ` · retry ${item.retry} after failed runs` : ''}${item.runs && item.runs.length ? ` · last run ${item.runs[0].title} ${item.runs[0].outcome} ${time(item.runs[0].at)}` : ''}`) : null,
                               )
                             : h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.core ? ' (core)' : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}${item.purpose ? ` · ${item.purpose}` : ''}`)),
+                        // Each task keeps its own latest outcome or error (there is no separate results page).
+                        taskResultLine(item),
                         // The task's question is the one in its chat: answering opens that conversation.
                         item.waitingChat ? h('button', { className: 'primary', onclick: () => openChat(item.waitingChat) }, 'Answer') : null,
                         // Only a task with a project source has a Book to edit (an engine-owned task has none).
@@ -2375,8 +2375,6 @@
                 return renderAgentsPage(snapshot);
             case 'tools':
                 return pageFrame('tools', 'Named tools · saved changes are committed immediately and apply to new work at once', renderTools(snapshot), detailPanel('browser', 'Browser details — named browsers, profiles, health, recovery', renderBrowserDetails(snapshot)));
-            case 'results':
-                return pageFrame('results', 'Outcomes of this session and the bounded runtime activity log', renderActivity(snapshot));
             case 'usage':
                 return renderUsagePage(snapshot);
             case 'actions':

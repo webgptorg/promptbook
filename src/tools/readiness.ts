@@ -122,6 +122,7 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
         let state: ToolView['state'];
         let summary: string;
         let nextAction: string | undefined;
+        let recheckAt: number | undefined;
         if (!tool.isEnabled) {
             state = 'disabled';
             summary = 'Disabled (configuration and credentials are kept).';
@@ -130,6 +131,7 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
             const inspection = pool.inspectionOf(tool.name);
             state = !inspection ? 'unknown' : inspection.usable ? 'usable' : 'unavailable';
             summary = inspection?.summary ?? 'Not inspected yet.';
+            recheckAt = inspection?.usable ? undefined : inspection?.recheckAt;
             nextAction = inspection?.usable
                 ? undefined
                 : tool.authentication === 'NATIVE' && inspection?.installed && inspection.authenticated === false
@@ -152,6 +154,7 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
             state,
             summary,
             ...(nextAction ? { nextAction } : {}),
+            ...(recheckAt ? { recheckAt: new Date(recheckAt).toISOString() } : {}),
             inUse: Boolean(input.inUse?.has(tool.name)),
             ...(input.retained?.has(tool.name) ? { retained: true } : {}),
             ...(settings.overriddenTools.has(tool.name) ? { overridden: true } : {}),
@@ -174,12 +177,15 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
 export function baselineWait(items: readonly ToolView[]): ToolsView['waiting'] {
     const missing: string[] = [];
     const actions: string[] = [];
+    // Only a wait for known rechecks (every enabled tool of a missing type is rate limited) resolves without a person.
+    let automatic = true;
     for (const type of ['HARNESS', 'BROWSER'] as const) {
         const ofType = items.filter((item) => item.type === type && !item.retained);
         if (ofType.some((item) => item.state === 'usable')) continue;
         if (ofType.some((item) => item.state === 'unknown')) continue;
         const label = type === 'HARNESS' ? 'harness' : 'browser';
         const enabled = ofType.filter((item) => item.isEnabled);
+        if (!enabled.length || enabled.some((item) => !item.recheckAt)) automatic = false;
         if (!ofType.length) {
             missing.push(`no ${label} tool is configured`);
             actions.push(type === 'HARNESS' ? 'ptbk tool add HARNESS --variant OPENAI_CODEX --name openai-codex' : 'ptbk tool add BROWSER --variant CHROME --name project-browser');
@@ -193,7 +199,7 @@ export function baselineWait(items: readonly ToolView[]): ToolsView['waiting'] {
         }
     }
     if (!missing.length) return undefined;
-    return { reason: `${missing.join('; ')}.`.replace(/^./, (letter) => letter.toUpperCase()), action: actions.join(' · ') || 'ptbk tool list' };
+    return { reason: `${missing.join('; ')}.`.replace(/^./, (letter) => letter.toUpperCase()), action: actions.join(' · ') || 'ptbk tool list', ...(automatic ? { automatic: true } : {}) };
 }
 
 /**

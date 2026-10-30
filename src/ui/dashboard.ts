@@ -924,11 +924,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             } else if (event.name === 'up' || event.name === 'down' || event.name === 'pageup' || event.name === 'pagedown') {
                 const step = event.name === 'pageup' || event.name === 'pagedown' ? room : 1;
                 page.scroll = Math.max(0, page.scroll + (event.name === 'up' || event.name === 'pageup' ? -step : step));
-                if (page.kind === 'results') page.follow = false;
             } else if (event.name === 'home') page.scroll = 0;
             else if (event.name === 'end') {
                 page.scroll = Number.MAX_SAFE_INTEGER;
-                if (page.kind === 'results') page.follow = true;
             } else if (event.name === 'enter') {
                 if (page.kind === 'tools') {
                     const tool = toolsOf(snapshot)[page.focus];

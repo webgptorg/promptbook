@@ -87,7 +87,6 @@ export type DashboardPage =
     | { readonly kind: 'agents'; scroll: number; focus: number; selected?: string; detail: boolean; sort: TeamSortField }
     | { readonly kind: 'chats'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; filter: TaskFilter; detail: boolean; showSupporting: boolean }
-    | { readonly kind: 'results'; scroll: number; follow: boolean }
     | { readonly kind: 'usage'; scroll: number; focus: number; selected?: string; grouping: UsagePageGrouping; inclusive: boolean; filter: UsageFilter; view?: UsageSummary; problem?: string }
     | { readonly kind: 'actions'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'action'; scroll: number; readonly path: string; content?: string; links?: ActionLinks; problem?: string }
@@ -186,8 +185,6 @@ export function pageForTile(tile: HomeTile): DashboardPage {
             return { kind: 'chats', scroll: 0, focus: 0 };
         case 'tasks':
             return { kind: 'tasks', scroll: 0, focus: 0, sort: 'smart', descending: false, filter: {}, detail: false, showSupporting: false };
-        case 'results':
-            return { kind: 'results', scroll: Number.MAX_SAFE_INTEGER, follow: true };
         case 'usage':
             return { kind: 'usage', scroll: 0, focus: 0, grouping: lastUsageView.grouping, inclusive: lastUsageView.inclusive, filter: lastUsageView.filter };
         case 'actions':
@@ -379,6 +376,12 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 '',
                 style.bold(`Effective settings (${snapshot.settings.length})`),
                 ...snapshot.settings.map((setting) => `  ${setting.key.padEnd(SETTING_KEY_WIDTH)} ${setting.value}${style.muted(` · ${setting.source}${setting.application !== 'live' ? ` · applies ${setting.application}` : ''}`)}`),
+                '',
+                // The general operational log: runtime events, current/last errors and automatic repair progress.
+                // Inspectable here without attention; each task keeps its own outcome in Tasks.
+                style.bold(`Operational log (${snapshot.activity.length})`),
+                ...(snapshot.activity.length ? snapshot.activity.map((line) => `${style.muted(time(line.at))} ${line.level === 'error' ? style.error(line.text) : line.level === 'warning' ? style.warning(line.text) : line.text}`) : [style.muted('No runtime events yet.')]),
+                ...(snapshot.errors.length ? ['', style.bold('Recent errors'), ...snapshot.errors.slice(-5).flatMap((error) => [`${style.muted(time(error.at))} ${style.error(error.summary)}`, ...(error.next ? [style.muted(`      next: ${error.next}`)] : [])])] : []),
             ];
             const update = snapshot.update;
             const updateKeys = update ? `A turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}${update.isSupported ? ' · C check for a release now' : ''} · ` : '';
@@ -646,6 +649,9 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                         ...(item.definition ? [`    ${style.muted('Runs  ')} of the definition "${item.definition}"${item.retry ? ` · this is retry ${item.retry} after failed runs` : ''}${item.runs?.length ? '' : style.muted(' · none finished yet')}`] : []),
                         ...(item.runs ?? []).slice(0, 3).map((run) => `      ${run.outcome === 'completed' ? style.success(marks.ok) : style.error(marks.fail)} ${style.muted(formatShortTime(Date.parse(run.at)))} ${truncate(`${run.title} — ${run.detail}`, width - 24)}`),
                     );
+                    // Each task keeps its own latest outcome or error (there is no separate results page).
+                    const result = snapshot.results.recent.find((candidate) => candidate.ref === item.ref);
+                    if (result) body.push(`    ${style.muted('Result')} ${result.outcome.startsWith('completed') ? style.success(result.outcome) : result.outcome === 'failed' ? style.error(result.outcome) : style.warning(result.outcome)} ${style.muted(formatShortTime(Date.parse(result.endedAt)))} ${truncate(result.summary, width - 30)}${result.commit ? style.muted(` · ${result.commit.slice(0, 8)}`) : ''}`);
                     // The task's pending question is the same one its chat shows; answering here answers it there.
                     const question = item.waitingChat ? snapshot.chats.waiting.find((chat) => chat.name === item.waitingChat) : undefined;
                     if (question?.awaiting) body.push(`    ${style.warning(`${marks.warn} ${question.awaiting.sender} asks:`)} ${question.awaiting.text.split('\n').filter(Boolean).at(-1) ?? ''}`, `    ${style.muted(`A answers in {${question.title ?? question.name}}`)}`);
@@ -662,17 +668,6 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 anchor,
                 legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}${items[page.focus]?.source ? 'E edit source · ' : ''}S sort (${TASK_SORT_FIELDS.length}) · D reverse · F find · R status · G agent · K kind · P purpose · W ${page.showSupporting ? 'hide' : 'show'} system work${filtered ? ' · X clear filter' : ''} · T Tasker · ${back}`,
             };
-        }
-        case 'results': {
-            const body = [`${style.muted('This session:')} ${style.success(`${marks.ok} ${snapshot.results.completed} completed`)}  ${snapshot.results.failed ? style.error(`${marks.fail} ${snapshot.results.failed} failed`) : style.muted(`${marks.fail} 0 failed`)}`, '', style.bold('Recent results')];
-            for (const result of snapshot.results.recent) body.push(`${result.outcome.startsWith('completed') ? style.success(marks.ok) : result.outcome === 'failed' ? style.error(marks.fail) : style.warning(marks.wait)} ${result.kind === 'system' ? `${style.accent('[system]')} ` : ''}${result.title}${style.muted(`${result.agent ? ` · ${result.agent}` : ''}${result.kind === 'system' ? ` · ${result.summary}` : ''}${result.commit ? ` · ${result.commit.slice(0, 8)}` : ''}`)}`);
-            if (!snapshot.results.recent.length) body.push(style.muted('No results yet.'));
-            body.push('', style.bold(`Activity (${snapshot.activity.length})`));
-            for (const line of snapshot.activity) {
-                const colored = line.level === 'error' ? style.error : line.level === 'warning' ? style.warning : (text: string): string => text;
-                body.push(`${style.muted(formatShortTime(Date.parse(line.at)))} ${colored(line.text)}`);
-            }
-            return { title: 'Results and activity', context: 'Outcomes of this session and the bounded runtime activity log', body, ...(page.follow ? { anchor: body.length - 1 } : {}), legend: `↑↓ PgUp PgDn scroll · End follow${page.follow ? 'ing' : ''} · ${back}` };
         }
         case 'usage': {
             const filtered = Object.keys(page.filter).length > 0;

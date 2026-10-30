@@ -3,20 +3,21 @@ import type { DashboardDomain, DomainAttention, ServiceSnapshot } from './snapsh
 /**
  * Every dashboard domain that can need the operator's attention.
  */
-const DOMAINS: readonly DashboardDomain[] = ['work', 'system', 'health', 'wallet', 'chats', 'tasks', 'agents', 'tools', 'results', 'connection', 'sync'];
+const DOMAINS: readonly DashboardDomain[] = ['work', 'health', 'wallet', 'chats', 'tasks', 'tools', 'sync'];
 
 /**
- * Whether one domain has a new actionable event, failure, warning or human request, derived from its own state.
- * `key` identifies the current actionable items, so a changed key is a new event for every viewer.
+ * Whether one domain needs a concrete human decision, input or action now, derived from its own state. Failures,
+ * warnings, completed results, unread history and repairs in progress stay inspectable on their pages without
+ * attention. `key` identifies the current requests, so a changed key is a new request for every viewer.
  */
 function attentionOf(snapshot: Omit<ServiceSnapshot, 'attention'>, domain: DashboardDomain): DomainAttention | undefined {
     switch (domain) {
-        case 'work':
-            return snapshot.blockers.length ? { key: snapshot.blockers.map((blocker) => `${blocker.kind}:${blocker.title}`).join('|'), tone: 'error' } : undefined;
-        case 'system':
-            return snapshot.configuration?.pending ? { key: `configuration:${snapshot.configuration.pending}`, tone: 'warning' } : undefined;
+        case 'work': {
+            const blockers = snapshot.blockers.filter((blocker) => !blocker.automatic && blocker.kind !== 'recovery');
+            return blockers.length ? { key: blockers.map((blocker) => `${blocker.kind}:${blocker.title}`).join('|'), tone: 'error' } : undefined;
+        }
         case 'health': {
-            const incidents = snapshot.health?.incidents ?? [];
+            const incidents = (snapshot.health?.incidents ?? []).filter((incident) => incident.needsAction);
             if (!incidents.length) return undefined;
             return { key: incidents.map((incident) => incident.id).join('|'), tone: incidents.some((incident) => incident.severity === 'hard') ? 'error' : 'warning' };
         }
@@ -30,24 +31,21 @@ function attentionOf(snapshot: Omit<ServiceSnapshot, 'attention'>, domain: Dashb
         case 'chats':
             return snapshot.chats.waiting.length ? { key: snapshot.chats.waiting.map((chat) => `${chat.name}:${chat.messages}`).join('|'), tone: 'warning' } : undefined;
         case 'tasks': {
-            const stuck = snapshot.queue.filter((item) => ['needs-recovery', 'failed'].includes(item.readiness));
-            return stuck.length ? { key: stuck.map((item) => `${item.ref}:${item.readiness}`).join('|'), tone: 'warning' } : undefined;
+            // A task question is a genuine human request, conspicuous whatever the task's purpose; failed or
+            // recovering tasks are inspectable history and repair, not questions.
+            const asking = snapshot.queue.filter((item) => item.readiness === 'awaiting-user');
+            return asking.length ? { key: asking.map((item) => `${item.ref}:${item.readiness}`).join('|'), tone: 'warning' } : undefined;
         }
         case 'tools': {
-            const failing = [...(snapshot.browsers ?? []), ...(snapshot.browser && !snapshot.browsers?.length ? [snapshot.browser] : [])].filter((browser) => browser.state === 'failed' || browser.recovery?.state === 'blocked');
-            const problems = [...(snapshot.tools?.waiting ? [`waiting:${snapshot.tools.waiting.reason}`] : []), ...(snapshot.tools?.problems ?? []), ...failing.map((browser) => `browser:${browser.name}:${browser.lastFailure?.at ?? ''}`)];
-            return problems.length ? { key: problems.join('|'), tone: failing.length ? 'error' : 'warning' } : undefined;
-        }
-        case 'results': {
-            const error = snapshot.errors[snapshot.errors.length - 1];
-            return error ? { key: `${error.at}:${error.summary}`, tone: 'warning' } : undefined;
-        }
-        case 'connection': {
-            const local = snapshot.connection.local;
-            return local.state === 'failed' ? { key: `${local.state}:${local.error ?? ''}`, tone: 'warning' } : undefined;
+            // Only what a person must do: no usable tool without a known recheck (sign in, enable or add one), or a
+            // browser whose automatic recovery is exhausted. Tool records with problems go to Fixer.
+            const blocked = [...(snapshot.browsers ?? []), ...(snapshot.browser && !snapshot.browsers?.length ? [snapshot.browser] : [])].filter((browser) => browser.recovery?.state === 'blocked');
+            const requests = [...(snapshot.tools?.waiting && !snapshot.tools.waiting.automatic ? [`waiting:${snapshot.tools.waiting.reason}`] : []), ...blocked.map((browser) => `browser:${browser.name}:${browser.lastFailure?.at ?? ''}`)];
+            return requests.length ? { key: requests.join('|'), tone: blocked.length ? 'error' : 'warning' } : undefined;
         }
         case 'sync':
-            return snapshot.sync && ['failed', 'conflict'].includes(snapshot.sync.state) ? { key: `${snapshot.sync.state}:${snapshot.sync.reason ?? ''}`, tone: snapshot.sync.state === 'conflict' ? 'error' : 'warning' } : undefined;
+            // A conflict goes to Fixer and failed attempts retry with backoff; a missing destination needs a person.
+            return snapshot.sync?.state === 'unconfigured' ? { key: `${snapshot.sync.state}:${snapshot.sync.reason ?? ''}`, tone: 'warning' } : undefined;
         default:
             return undefined;
     }
