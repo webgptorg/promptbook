@@ -44,15 +44,18 @@ test('core preparation: init/start create every missing role once and record bas
     assert.match(await project.read('.core/router.book'), /MODEL harness=OPENAI_CODEX/, 'an existing Router keeps its MODEL');
 });
 
-test('core preparation: an older unchanged Adam receives the new rule; a changed CLOSED Adam is held and reported once; reopened or overlapping edits go to Fixer', async (t) => {
-    const [previous] = ADAM_PREVIOUS_BOOKS;
+test('core preparation: older unchanged Adams receive the new rules; a changed CLOSED Adam is held and reported once; reopened or overlapping edits go to Fixer', async (t) => {
+    // Keep the overlapping-edit fixture on the historical template whose changed CLOSED line borders the additions.
+    const previous = ADAM_PREVIOUS_BOOKS.find((book) => !book.includes('KNOWLEDGE Minimal interruption.'));
     assert.ok(previous && previous !== ADAM_BOOK);
     assert.match(ADAM_BOOK, /^RULE In prose you write, use the ordinary hyphen "-" instead of long typographic dashes/m);
 
-    const unchanged = await projectWith(t, { '.core/adam.book': previous });
-    const updated = await prepareCoreAgents(unchanged.root, 'agents', { runtimeRoot: unchanged.runtimeRoot });
-    assert.equal(updated.updated.length, 1);
-    assert.equal(await unchanged.read('.core/adam.book'), ADAM_BOOK, 'an unchanged older default is updated directly');
+    for (const baseline of ADAM_PREVIOUS_BOOKS) {
+        const unchanged = await projectWith(t, { '.core/adam.book': baseline });
+        const updated = await prepareCoreAgents(unchanged.root, 'agents', { runtimeRoot: unchanged.runtimeRoot });
+        assert.equal(updated.updated.length, 1);
+        assert.equal(await unchanged.read('.core/adam.book'), ADAM_BOOK, 'every unchanged older default is updated directly');
+    }
 
     const closedSource = previous.replace('PERSONA', 'RULE Project rule: answer in Czech.\nPERSONA') + 'RULE Learned: always link the issue.\n';
     const learned = await projectWith(t, { '.core/adam.book': closedSource });

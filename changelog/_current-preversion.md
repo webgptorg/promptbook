@@ -1,5 +1,9 @@
 # Unreleased
 
+## Adam: shared writing rules
+
+- Adam now supplies English rules for factual accuracy, preserving the author's meaning and voice, and direct writing without stock AI phrasing. Newly initialized agents receive them through ordinary inheritance; Adam keeps its general role without a writing-specific goal or a fixed output language. The repository's own Adam uses the same rules, and the previous default is retained for safe template updates that preserve project customizations.
+
 ## Action log: the GitHub repository created by initialization is recorded
 
 -   When `ptbk init` creates the project's GitHub repository, it now saves a confirmed external-action record under `actions/.engine/initialization/` and commits it (`Action - Create repository · GitHub`) before publishing. The record names the engine-owned operation (**System operation: Initialization**) instead of an invented task or source file. The Action log lists it as `engine · Initialization`. Before, this remote effect left no audit record.
