@@ -119,6 +119,8 @@ export type WalletLoginResult =
     | { readonly status: 'no-login-form'; readonly origin: string }
     | { readonly status: 'challenge'; readonly origin: string; readonly account: string; readonly note?: string }
     | { readonly status: 'ambiguous'; readonly origin: string; readonly accounts: readonly string[] }
+    /** No login of this origin, but of a related service domain: sign in on that login's own page instead. */
+    | { readonly status: 'related'; readonly origin: string; readonly logins: readonly { readonly origin: string; readonly account: string }[] }
     | { readonly status: 'waiting'; readonly origin: string; readonly action: string; readonly problem: WalletActionView['problem']; readonly reason: string }
     | { readonly status: 'failed'; readonly reason: string };
 
@@ -201,7 +203,13 @@ type StoredAction = WalletActionView & { readonly state: 'pending' | 'resolved' 
 /**
  * Decrypted content of a record (only inside the Wallet and the trusted sign-in).
  */
-type Credentials = { readonly origin: string; readonly username: string; readonly password: string; readonly totp?: string };
+type Credentials = {
+    readonly origin: string;
+    readonly username: string;
+    readonly password: string;
+    /** Retained legacy TOTP generator data (preserved, never generated or newly imported: that is future scope). */
+    readonly totp?: string;
+};
 
 /**
  * The complete content of one record as it is encrypted on disk: service, account, label, times and secrets alike.
@@ -227,7 +235,8 @@ export type WalletImportCandidate = {
     readonly account: string;
     /** `new`, an identical `duplicate` (reused), or a `conflict` with different saved values (replaced only on request). */
     readonly state: 'new' | 'duplicate' | 'conflict';
-    readonly totp: boolean;
+    /** Source fields that are not imported (e.g. a TOTP generator: Wallet-owned TOTP generation is future scope). */
+    readonly unsupported: readonly string[];
 };
 
 /**
@@ -245,7 +254,7 @@ const SETUP_DRAFT_MS = 30 * 60_000;
 /**
  * What an empty reset loses (shown before its separate destructive confirmation).
  */
-const RESET_WARNING = 'Resetting discards ALL old Wallet data for good: the list of services and accounts, labels, usernames, passwords and TOTP generators. It cannot be recovered without the old 12 words or a computer that still unlocks it. Saved logins must be added or imported again.';
+const RESET_WARNING = 'Resetting discards ALL old Wallet data for good: the list of services and accounts, labels, usernames, passwords, additional login fields and any retained legacy TOTP data. It cannot be recovered without the old 12 words or a computer that still unlocks it. Saved logins must be added or imported again.';
 
 /**
  * Settled login actions are kept this long (7 days; once-only resume of waiting work across restarts), then pruned.
@@ -317,6 +326,69 @@ export function originMatches(saved: string, actual: string): boolean {
     }
     const host = (url: URL): string => url.host.toLowerCase().replace(/^www\./, '');
     return a.protocol === b.protocol && host(a) === host(b);
+}
+
+/**
+ * Second-level labels under which a two-letter country domain registers names (`example.co.uk`).
+ */
+const COUNTRY_SECOND_LEVELS = new Set(['ac', 'co', 'com', 'edu', 'gob', 'gov', 'ltd', 'mil', 'ne', 'net', 'nic', 'or', 'org', 'plc', 'sch']);
+
+/**
+ * Hosting domains whose subdomains belong to different owners: each subdomain is its own site.
+ */
+const SHARED_HOSTING_DOMAINS = [
+    'github.io',
+    'gitlab.io',
+    'herokuapp.com',
+    'vercel.app',
+    'netlify.app',
+    'pages.dev',
+    'workers.dev',
+    'web.app',
+    'firebaseapp.com',
+    'appspot.com',
+    'azurewebsites.net',
+    'cloudfront.net',
+    'blogspot.com',
+    'onrender.com',
+    'fly.dev',
+    'glitch.me',
+    'wordpress.com',
+    'wixsite.com',
+    'myshopify.com',
+    's3.amazonaws.com',
+];
+
+/**
+ * The site (registrable domain) of a host: its last two labels, three under a country second level (`co.uk`) or a
+ * shared hosting domain. IP addresses and single-label hosts such as `localhost` have none.
+ */
+function siteOf(hostname: string): string | undefined {
+    const name = hostname.toLowerCase().replace(/\.$/, '');
+    if (!name.includes('.') || name.includes(':') || /^[\d.]+$/.test(name)) return undefined;
+    const labels = name.split('.');
+    const shared = SHARED_HOSTING_DOMAINS.find((domain) => name === domain || name.endsWith(`.${domain}`));
+    if (shared) return labels.slice(-(shared.split('.').length + 1)).join('.');
+    const country = labels.length >= 3 && labels[labels.length - 1]!.length === 2 && COUNTRY_SECOND_LEVELS.has(labels[labels.length - 2]!);
+    return labels.slice(country ? -3 : -2).join('.');
+}
+
+/**
+ * Whether two origins are related service domains of one site over the same scheme (a subdomain, the bare domain or a
+ * sibling such as `accounts.google.com` for `mail.google.com`). Only for **discovery** of a stored login: secrets are
+ * still entered only on a page of the login's own origin ({@link originMatches}).
+ *
+ * @private Wallet
+ */
+export function originsRelated(a: string, b: string): boolean {
+    try {
+        const first = new URL(a);
+        const second = new URL(b);
+        const site = siteOf(first.hostname);
+        return first.protocol === second.protocol && site !== undefined && site === siteOf(second.hostname);
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -782,7 +854,7 @@ export class WalletSubEngine {
             const identity = `${login.origin}|${login.username.toLowerCase()}`;
             const state = seen.has(identity) ? 'duplicate' : this.importState(login);
             seen.add(identity);
-            return { key: login.key, label: login.label || walletLabel(login.origin, login.username), origin: login.origin, account: maskAccount(login.username), state, totp: Boolean(login.totp) };
+            return { key: login.key, label: login.label || walletLabel(login.origin, login.username), origin: login.origin, account: maskAccount(login.username), state, unsupported: login.unsupported ?? [] };
         });
         return { draft: draft.id, source: draft.source, candidates, skipped: draft.skipped };
     }
@@ -792,7 +864,7 @@ export class WalletSubEngine {
         const existing = this.matchingRecord(login.origin, login.username);
         if (!existing) return 'new';
         const saved = this.credentials(existing);
-        return saved.password === login.password && (saved.totp ?? '') === (login.totp ?? '') ? 'duplicate' : 'conflict';
+        return saved.password === login.password ? 'duplicate' : 'conflict';
     }
 
     /** The saved record of one service and account, if any. */
@@ -826,8 +898,10 @@ export class WalletSubEngine {
                     continue;
                 }
                 done.add(identity);
-                const credentials: Credentials = { origin: login.origin, username: login.username, password: login.password, ...(login.totp ? { totp: login.totp } : {}) };
                 const existing = this.matchingRecord(login.origin, login.username);
+                // Retained legacy factor data of a replaced login is preserved, never discarded by an import.
+                const legacy = existing ? this.credentials(existing).totp : undefined;
+                const credentials: Credentials = { origin: login.origin, username: login.username, password: login.password, ...(legacy ? { totp: legacy } : {}) };
                 const state = this.importState(login);
                 if (state === 'duplicate') reused++;
                 else if (state === 'conflict' && existing) {
@@ -856,7 +930,9 @@ export class WalletSubEngine {
             if (settled) await this.writeActions();
             const count = (amount: number, noun: string): string => `${amount} ${noun}${amount === 1 ? '' : 's'}`;
             const parts = [added.length ? `imported ${count(added.length, 'login')}` : '', changed.length ? `replaced ${changed.length}` : '', reused ? `reused ${reused} identical` : '', skipped ? `kept ${skipped} conflicting saved login${skipped === 1 ? '' : 's'}` : ''].filter(Boolean);
-            const outcome = parts.length ? `${draft.source}: ${parts.join(', ')}.${settled ? ` ${settled === 1 ? 'A waiting request was' : `${settled} waiting requests were`} resolved.` : ''} Delete the export file safely now; Promptbook kept no copy. Imported logins are used automatically, but a login is only verified when a website accepts it.` : `${draft.source}: nothing was imported.`;
+            const unsupported = draft.logins.filter((login) => selected.has(login.key) && login.unsupported?.length).length;
+            const notImported = unsupported ? ` TOTP generators were not imported for ${count(unsupported, 'login')} (not supported yet; a code is entered when a login needs it).` : '';
+            const outcome = parts.length ? `${draft.source}: ${parts.join(', ')}.${notImported}${settled ? ` ${settled === 1 ? 'A waiting request was' : `${settled} waiting requests were`} resolved.` : ''} Delete the export file safely now; Promptbook kept no copy. Imported logins are used automatically, but a login is only verified when a website accepts it.` : `${draft.source}: nothing was imported.${notImported}`;
             const audit =
                 added.length || changed.length
                     ? {
@@ -1228,7 +1304,7 @@ export class WalletSubEngine {
      * suitable login (missing, rejected, or a locked Wallet) one pending request for protected owner input is created.
      * The agent only ever receives the redacted outcome.
      */
-    public async login(page: SignInPage, request: { readonly account?: string; readonly reason?: string; readonly task?: string }): Promise<WalletLoginResult> {
+    public async login(page: SignInPage, request: { readonly account?: string; readonly reason?: string; readonly task?: string; /** The related service domains' logins turned out not to apply to this site. */ readonly ignoreRelated?: boolean }): Promise<WalletLoginResult> {
         const inspected = await page.inspect();
         let origin: string;
         try {
@@ -1251,9 +1327,15 @@ export class WalletSubEngine {
                 if (this.state === 'locked' || this.state === 'unavailable') return await waitFor('locked', `A login for ${origin}${account ? ` (${account})` : ''} is needed${purpose}, but the Wallet is locked on this computer.`);
                 return await waitFor('missing', `A login for ${origin}${account ? ` (${account})` : ''} is needed${purpose}; the Wallet has none.`);
             }
-            const candidates = this.records.filter((record) => originMatches(record.origin, origin));
-            const matching = account ? candidates.filter((record) => record.account.toLowerCase() === account.toLowerCase() || this.usernameOf(record)?.toLowerCase() === account.toLowerCase()) : candidates;
-            if (!matching.length) return await waitFor('missing', `A login for ${origin}${account ? ` (${account})` : ''} is needed${purpose}; the Wallet has none.`);
+            const accountMatches = (record: StoredRecord): boolean => !account || record.account.toLowerCase() === account.toLowerCase() || this.usernameOf(record)?.toLowerCase() === account.toLowerCase();
+            const matching = this.records.filter((record) => originMatches(record.origin, origin) && accountMatches(record));
+            if (!matching.length) {
+                // Discovery across related service domains: an already stored login is never requested again; the agent
+                // signs in on that login's own page (secrets are only entered on their own origin).
+                const related = request.ignoreRelated ? [] : this.records.filter((record) => !originMatches(record.origin, origin) && originsRelated(record.origin, origin) && accountMatches(record));
+                if (related.length) return { status: 'related', origin, logins: related.map((record) => ({ origin: record.origin, account: record.account })) };
+                return await waitFor('missing', `A login for ${origin}${account ? ` (${account})` : ''} is needed${purpose}; the Wallet has none.`);
+            }
             if (matching.length > 1) return { status: 'ambiguous', origin, accounts: matching.map((record) => record.account) };
             const record = matching[0]!;
             const pendingRejection = this.actions.find((action) => action.state === 'pending' && action.problem === 'rejected' && originMatches(action.origin, origin));
@@ -1284,6 +1366,24 @@ export class WalletSubEngine {
                     return { status: 'failed', reason: `The login form of ${origin} could not be filled${attempt.note ? `: ${attempt.note}` : ''}.` };
             }
         });
+    }
+
+    /**
+     * Intentionally nonsecret metadata of the saved logins for agents (service, label and username or email) through
+     * this trusted operation, so work can choose the right account without asking; passwords and factors never leave
+     * the Wallet and the stored records stay fully encrypted. With a site, only logins of that website or a related
+     * service domain.
+     */
+    public accounts(site?: string): { readonly state: WalletState; readonly accounts: readonly { readonly origin: string; readonly label: string; readonly username?: string; readonly related?: boolean }[] } {
+        const origin = site === undefined ? undefined : normalizeOrigin(site);
+        if (this.state !== 'ready' || !this.key) return { state: this.readiness, accounts: [] };
+        const accounts = this.records
+            .filter((record) => !origin || originMatches(record.origin, origin) || originsRelated(record.origin, origin))
+            .map((record) => {
+                const username = this.usernameOf(record);
+                return { origin: record.origin, label: record.account, ...(username ? { username } : {}), ...(origin && !originMatches(record.origin, origin) ? { related: true } : {}) };
+            });
+        return { state: 'ready', accounts };
     }
 
     /** The nonsecret view for snapshots, pages and the API. */

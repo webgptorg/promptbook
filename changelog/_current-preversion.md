@@ -1,5 +1,11 @@
 # Unreleased
 
+## Wallet: account discovery for agents, related service domains and TOTP generation out of scope
+
+-   Agents get a `wallet_accounts` tool that lists saved logins as intentionally nonsecret metadata (service, label, username or email), optionally for one site. Work can pick the right account from context instead of asking. Passwords and codes never leave the Wallet, and the records stay fully encrypted with no plaintext index.
+-   Login discovery recognizes related service domains of one site, so a Google service finds an `accounts.google.com` login. Instead of creating another request for an already stored login, `wallet_login` points the agent to that login's own sign-in page. Secrets are still entered only on a page of the login's own origin. Subdomains of shared hosting such as `github.io` are separate sites. If the related login does not apply, the agent can request a new one explicitly (`ignoreRelated`).
+-   Wallet-owned TOTP generation and import are future scope. A Bitwarden import no longer takes TOTP generators: the preview and outcome report them as not imported instead of implying a usable factor. Generator data already stored in existing records is preserved, also when an import replaces such a login. The reset warning names additional login fields and retained legacy TOTP data.
+
 ## Initialization: real harness checks, semantic naming, final review and New project from the global dashboard
 
 -   Init now ends with an unmistakable final review: project title, destination, harnesses (with their check results) and every setup choice, plus **Create and start project**. The title and a new folder's name can be edited there. Esc goes back through every step, and cancelling at any point leaves the destination untouched; only global prerequisites such as a harness installation or sign-in may already have happened, and the cancel message says so. The step counter now counts the review.

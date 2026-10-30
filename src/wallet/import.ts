@@ -14,8 +14,11 @@ export type ImportedLogin = {
     readonly origin: string;
     readonly username: string;
     readonly password: string;
-    /** A TOTP generator (secret or `otpauth://` URI), when the source has one. */
-    readonly totp?: string;
+    /**
+     * Source fields that are not imported, named for an honest report (never their values): for example a TOTP
+     * generator, since Wallet-owned TOTP generation/import is future scope.
+     */
+    readonly unsupported?: readonly string[];
 };
 
 /**
@@ -102,9 +105,10 @@ export const BITWARDEN_SOURCE: ImportSource = {
                 skipped.push({ label: shown, reason: invalid.length ? `no website address (${invalid.slice(0, 2).join(', ')} is not a website)` : 'no website address' });
                 return;
             }
-            const totp = item.login?.totp?.trim() || undefined;
+            // A TOTP generator is reported, not imported: its value never leaves this function.
+            const unsupported = item.login?.totp?.trim() ? ['TOTP generator'] : [];
             // Every supported website of the item is its own login (no similarly named service is guessed).
-            for (const origin of origins) logins.push({ key: `${item.id ?? index}|${origin}`, label, origin, username, password, ...(totp ? { totp } : {}) });
+            for (const origin of origins) logins.push({ key: `${item.id ?? index}|${origin}`, label, origin, username, password, ...(unsupported.length ? { unsupported } : {}) });
         });
         return { source: 'Bitwarden', logins, skipped };
     },

@@ -1,7 +1,7 @@
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { Mutex } from '../common/mutex.js';
 import type { BridgeTool, ToolResult } from '../engine/bridge.js';
-import type { SignInPage, WalletLoginResult } from '../wallet/wallet.js';
+import type { SignInPage, WalletLoginResult, WalletSubEngine } from '../wallet/wallet.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import type { BrowserScope } from './fleet.js';
 import type { PointerTarget } from './browser.js';
@@ -45,7 +45,9 @@ function pointerArgument(input: Readonly<Record<string, unknown>>): PointerTarge
  * @private project browser
  */
 export type AgentWallet = {
-    readonly login: (page: SignInPage, request: { readonly account?: string; readonly reason?: string }) => Promise<WalletLoginResult>;
+    readonly login: (page: SignInPage, request: { readonly account?: string; readonly reason?: string; readonly ignoreRelated?: boolean }) => Promise<WalletLoginResult>;
+    /** Nonsecret metadata of the saved logins (service, label, username/email), optionally for one site. */
+    readonly accounts: WalletSubEngine['accounts'];
     /** The task now waits for a protected Wallet action (it checkpoints when its turn ends). */
     readonly onWait: (action: string) => void;
 };
@@ -61,6 +63,8 @@ function walletMessage(result: WalletLoginResult): string {
             return `The Wallet entered the saved login "${result.account}" for ${result.origin}, and the site now asks for another step (${result.note ?? 'for example a CAPTCHA, a two-factor code or an approval'}). Complete technical steps such as a CAPTCHA yourself; use browser_request_user_action only for what genuinely needs the human (a code or approval only the account owner receives). You are not signed in until the site shows the access you need.`;
         case 'no-login-form':
             return `The current page of ${result.origin} shows no login form. If the site is already signed in, just continue; otherwise open its login page and call wallet_login again.`;
+        case 'related':
+            return `The Wallet has no login for ${result.origin} itself, but for the related service domain${result.logins.length === 1 ? '' : 's'} ${result.logins.map((login) => `${login.origin} ("${login.account}")`).join(', ')}. Open that site's own sign-in page (usually through this site's Sign in link, which leads there) and call wallet_login again on it; never ask for the credentials. If that login does not apply to this site, call wallet_login here again with ignoreRelated set to true.`;
         case 'ambiguous':
             return `The Wallet has several logins for ${result.origin}: ${result.accounts.map((account) => `"${account}"`).join(', ')}. Call wallet_login again with account set to the one the task requires.`;
         case 'waiting':
@@ -209,14 +213,32 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
             ? [
                   tool(
                       {
+                          name: 'wallet_accounts',
+                          description:
+                              "List the project's saved Wallet logins as nonsecret metadata (service, label, username or email) to decide which account the work should use without asking; with site, only that website and its related service domains (e.g. accounts.google.com for mail.google.com). Passwords and codes are never available; sign in with wallet_login.",
+                          properties: { site: { type: 'string', description: 'Website address to filter by (optional).' } },
+                      },
+                      async (input) => {
+                          const listed = wallet.accounts(typeof input.site === 'string' && input.site.trim() ? input.site : undefined);
+                          if (listed.state !== 'ready') return `The Wallet is ${listed.state} on this computer, so its logins cannot be listed now; wallet_login creates a protected request for the owner when a login is needed.`;
+                          if (!listed.accounts.length) return 'The Wallet has no saved login for this.';
+                          return listed.accounts.map((login) => `- ${login.origin}: "${login.label}"${login.username ? ` (${login.username})` : ''}${login.related ? ' — related service domain' : ''}`).join('\n');
+                      },
+                  ),
+                  tool(
+                      {
                           name: 'wallet_login',
                           description:
                               "When the website open in your current tab requires signing in (and is not signed in already): the project's Wallet signs in with a saved login of that page's actual origin, without showing you the credentials. Open the site's login page first. If no saved login fits (or it was rejected), the Wallet asks the owner through its protected interface; never ask for usernames or passwords in a chat and never type them yourself.",
-                          properties: { account: { type: 'string', description: 'Account the task requires (label or username), when the task names one.' }, reason: { type: 'string', description: 'Why the task needs this login (shown to the owner).' } },
+                          properties: {
+                              account: { type: 'string', description: 'Account the task requires (label or username), when the task names one.' },
+                              reason: { type: 'string', description: 'Why the task needs this login (shown to the owner).' },
+                              ignoreRelated: { type: 'boolean', description: "Set to true only after a related service domain's login (reported earlier) turned out not to apply to this site." },
+                          },
                       },
                       async (input) => {
                           const instance = await browser(input);
-                          const result = await wallet.login(instance.walletPage(), { account: typeof input.account === 'string' ? input.account : undefined, reason: typeof input.reason === 'string' ? input.reason : undefined });
+                          const result = await wallet.login(instance.walletPage(), { account: typeof input.account === 'string' ? input.account : undefined, reason: typeof input.reason === 'string' ? input.reason : undefined, ignoreRelated: input.ignoreRelated === true });
                           if (result.status === 'waiting') wallet.onWait(result.action);
                           const message = walletMessage(result);
                           return result.status === 'signed-in' ? `${message}\n\n${await instance.read()}` : { text: message, isError: result.status === 'failed' };

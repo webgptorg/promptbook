@@ -2163,7 +2163,7 @@
                 const box = h('input', { type: 'checkbox', checked: candidate.state === 'new', disabled: candidate.state === 'duplicate' });
                 const replace = candidate.state === 'conflict' ? h('input', { type: 'checkbox' }) : null;
                 boxes.push({ candidate, box, replace });
-                return h('li', {}, h('label', {}, box, ` ${candidate.label}`), h('div', { className: 'muted' }, `${candidate.origin} · ${candidate.account}${candidate.totp ? ' · TOTP generator' : ''}${candidate.state === 'duplicate' ? ' · identical to a saved login (kept)' : candidate.state === 'conflict' ? ' · differs from the saved login' : ''}`), replace ? h('label', { className: 'muted' }, replace, ' replace the saved values with the exported ones') : null);
+                return h('li', {}, h('label', {}, box, ` ${candidate.label}`), h('div', { className: 'muted' }, `${candidate.origin} · ${candidate.account}${candidate.unsupported?.length ? ` · not imported: ${candidate.unsupported.join(', ')} (not supported yet)` : ''}${candidate.state === 'duplicate' ? ' · identical to a saved login (kept)' : candidate.state === 'conflict' ? ' · differs from the saved login' : ''}`), replace ? h('label', { className: 'muted' }, replace, ' replace the saved values with the exported ones') : null);
             });
             const setAll = (value) => boxes.forEach((item) => (item.box.checked = !item.box.disabled && value));
             body.replaceChildren(

@@ -169,7 +169,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
         );
         if (input.tools.wallet) {
             rules.push(
-                'If a website is already signed in, keep using that session. When it requires signing in, open its login page and call `wallet_login`: the project Wallet signs in with a saved login without showing it to you, or asks the owner for it through its protected interface. Never ask for usernames or passwords in a chat, never type or read them yourself, and when `wallet_login` reports a waiting request, end your turn with status waiting-for-user.',
+                'If a website is already signed in, keep using that session (check that it is the right account). `wallet_accounts` lists the saved logins as nonsecret metadata (service, label, username or email), so choose the account from context instead of asking. When a site requires signing in, open its login page and call `wallet_login`: the project Wallet signs in with a saved login without showing it to you (also pointing you to a stored login of a related service domain such as accounts.google.com), or asks the owner for it through its protected interface. Never ask for usernames or passwords in a chat, never type or read them yourself, and when `wallet_login` reports a waiting request, end your turn with status waiting-for-user.',
             );
         }
     }

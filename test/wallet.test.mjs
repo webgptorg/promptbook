@@ -468,6 +468,38 @@ test('Wallet acceptance: a task waits for a protected login (no chat), resumes o
     }
 });
 
+test('Wallet discovery: related service domains and nonsecret account metadata for agents; secrets are entered only on their own origin', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet discovery');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    const { wallet } = walletAt(project, join(root, 'computer'));
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    await wallet.save({ origin: 'https://accounts.google.com', username: 'jane@example.com', password: 'google secret' });
+    await wallet.save({ origin: 'https://jane.github.io', username: 'jane', password: 'pages secret' });
+
+    // A Google service discovers the accounts.google.com login instead of requesting it again; nothing is entered here.
+    const mail = fakePage('https://mail.google.com');
+    const related = await wallet.login(mail.page, { reason: 'read the inbox' });
+    assert.equal(related.status, 'related');
+    assert.deepEqual(related.logins.map((login) => login.origin), ['https://accounts.google.com']);
+    assert.equal(mail.entered.length, 0, 'secrets are never entered on another origin');
+    assert.equal(wallet.view().pending.length, 0, 'an already stored login is not requested again');
+    const accounts = fakePage('https://accounts.google.com');
+    assert.equal((await wallet.login(accounts.page, {})).status, 'signed-in', 'on its own origin the login is applied');
+
+    // Subdomains of shared hosting belong to different owners: not related.
+    const other = fakePage('https://someone-else.github.io');
+    assert.equal((await wallet.login(other.page, {})).status, 'waiting');
+    assert.equal(other.entered.length, 0);
+
+    // Agents may list labels, usernames and emails (never secrets) to choose an account without asking.
+    assert.deepEqual(wallet.accounts('mail.google.com').accounts.map(({ origin, username, related: isRelated }) => ({ origin, username, isRelated })), [{ origin: 'https://accounts.google.com', username: 'jane@example.com', isRelated: true }]);
+    assert.equal(wallet.accounts().accounts.length, 2);
+    assert.doesNotMatch(JSON.stringify(wallet.accounts()), /secret/);
+});
+
 /**
  * A Wallet with an audit recorder (the audit commits it would create).
  */
@@ -545,7 +577,10 @@ test('Wallet import: one Bitwarden preview with individual/all/none selection, d
     await wallet.confirmSetup();
     await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'same password', label: 'Main' });
     await wallet.save({ origin: 'https://example.com', username: 'joe@example.com', password: 'old password', label: 'Joe' });
-    const waiting = await wallet.login(fakePage('https://shop.example.com').page, { reason: 'checkout' });
+    // The example.com logins are discovered for the related shop.example.com first; only when they do not apply there is
+    // a new login requested.
+    assert.equal((await wallet.login(fakePage('https://shop.example.com').page, { reason: 'checkout' })).status, 'related');
+    const waiting = await wallet.login(fakePage('https://shop.example.com').page, { reason: 'checkout', ignoreRelated: true });
     assert.equal(waiting.status, 'waiting');
     audits.length = 0;
     await assert.rejects(wallet.previewImport({ content: JSON.stringify({ encrypted: true, encKeyValidation_DO_NOT_EDIT: 'x', data: 'y' }) }), /encrypted .*cannot be read here/);
@@ -557,7 +592,7 @@ test('Wallet import: one Bitwarden preview with individual/all/none selection, d
     assert.equal(state('https://app.example.org'), 'new', 'every supported website of an item is kept, none is guessed');
     assert.equal(state('https://example.com', 'Existing same'), 'duplicate');
     assert.equal(state('https://example.com', 'Existing other'), 'conflict');
-    assert.ok(preview.candidates.find((candidate) => candidate.origin === 'https://shop.example.com').totp);
+    assert.deepEqual(preview.candidates.find((candidate) => candidate.origin === 'https://shop.example.com').unsupported, ['TOTP generator'], 'a TOTP generator is reported as not imported, never claimed usable');
     assert.deepEqual(preview.skipped.map((entry) => entry.label), ['A note', 'No address', 'Android only'], 'unsupported entries are reported honestly');
     // None selected: nothing changes and no audit.
     const none = await wallet.applyImport({ draft: preview.draft, select: [] });
@@ -569,6 +604,7 @@ test('Wallet import: one Bitwarden preview with individual/all/none selection, d
     const all = await wallet.applyImport({ draft: again.draft, select: again.candidates.map((candidate) => candidate.key) });
     assert.deepEqual([all.imported, all.reused, all.skipped, all.replaced], [2, 1, 1, 0]);
     assert.match(all.outcome, /Delete the export file safely now/);
+    assert.match(all.outcome, /TOTP generators were not imported for 2 logins \(not supported yet/, 'one item with two websites');
     assert.equal(wallet.view().records.length, 4);
     assert.equal(wallet.action(waiting.action).state, 'resolved', 'the waiting login request is resolved by the import');
     const joe = fakePage('https://example.com');
@@ -673,7 +709,7 @@ test('Wallet reset after total key loss: strongly confirmed, declinable, empty a
     await assert.rejects(wallet.beginReset({ confirm: 'yes' }), /Type RESET to confirm\. Resetting discards ALL old Wallet data/);
     const declined = await wallet.beginReset({ confirm: 'RESET' });
     assert.equal(declined.words.length, 12);
-    assert.match(declined.warning, /usernames, passwords and TOTP generators/);
+    assert.match(declined.warning, /usernames, passwords, additional login fields and any retained legacy TOTP data/);
     wallet.cancelSetup();
     assert.deepEqual(await Promise.all(files.map(digest)), original, 'declining preserves the original ciphertext');
     assert.equal(wallet.view().state, 'locked');

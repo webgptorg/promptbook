@@ -93,7 +93,7 @@ export class ServiceHost {
                     context.onUserChat,
                     () => this.agenda.effectiveSettings.tools.flatMap((tool) => (tool.type === 'BROWSER' && tool.isEnabled ? [{ name: tool.name, description: tool.description, profile: describeProfileSource(tool.profile.source, tool.profile.path), isHeadless: tool.isHeadless }] : [])),
                     // A login request for the task's page only: the agent never reads a Wallet record.
-                    { login: async (page, request) => await this.agenda.wallet.login(page, { ...request, task: task.title }), onWait: context.onWalletWait },
+                    { login: async (page, request) => await this.agenda.wallet.login(page, { ...request, task: task.title }), accounts: (site) => this.agenda.wallet.accounts(site), onWait: context.onWalletWait },
                 );
             },
             finalizeEvidence: async (task) => await this.browsers.scope(task.key).finishEvidence(),

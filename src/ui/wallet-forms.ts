@@ -135,7 +135,7 @@ export async function walletImportFlow(terminal: TerminalProfile, operations: Wa
         return `The export has no website logins to import.${skipped.length ? ` ${skipped[0]}` : ''}`;
     }
     const describe = (candidate: WalletImportPreview['candidates'][number]): string =>
-        `${candidate.origin} · ${candidate.account}${candidate.totp ? ' · TOTP generator' : ''}${candidate.state === 'duplicate' ? ' · identical to a saved login (kept)' : candidate.state === 'conflict' ? ' · differs from the saved login' : ''}`;
+        `${candidate.origin} · ${candidate.account}${candidate.unsupported?.length ? ` · not imported: ${candidate.unsupported.join(', ')} (not supported yet)` : ''}${candidate.state === 'duplicate' ? ' · identical to a saved login (kept)' : candidate.state === 'conflict' ? ' · differs from the saved login' : ''}`;
     const selected = await selectMany(terminal, {
         frame: { ...frame, summary: [...(frame.summary ?? []), ...skipped] },
         question: 'Which logins should the Wallet import?',
