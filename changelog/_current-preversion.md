@@ -1,5 +1,11 @@
 # Unreleased
 
+## Quota limits wait for the reset the provider reports
+
+-   A quota or rate limit always meant a flat 15-minute wait, even when the provider said "try again in 2 days 3 hours" (the work then failed again and again) or "try again in 6.5s". The reset a provider reports is now understood: relative waits (`try again in 2 days 3 hours`, `1m30s`, `Retry-After: 30`, `"retryDelay": "41s"`), wall-clock resets with an optional date and time zone (`resets 3am`, `will reset at 5pm (America/New_York)`, `try again at Nov 3rd, 2026 2:28 PM`) and timestamps (ISO, Claude Code's `limit reached|<epoch>`). Without an authorized same-variant fallback, the task resumes at that reset (at least 30 seconds, at most a week, after which it is rechecked); without a stated reset the 15-minute backoff stays. Tool inspection says when the instance is rechecked.
+-   Chat routing, chat replies, Chatter's brief and team consultations now mark an exhausted instance the same way as tasks (one shared `markQuota`), so the next selection uses a fallback or waits instead of probing the exhausted account again.
+-   The fake Codex gains `QUOTA_RESET`; its quota markers now apply only to the task's own turns, not to prompts that merely list the task's title. New tests cover the message forms (under several host time zones in development) and a task that waits exactly until the reported reset without another call.
+
 ## External actions: a reverted record no longer hides a performed effect
 
 -   When an external-action record was removed from the project (a `git revert` of its audit commit, or a deletion), the next attempt of the task no longer saw that action in its prompt and could repeat the email, post or submission. The local recovery intent still knew the outcome, so the prompt now lists such an action with its id and says that its record was removed and the effect was not undone. Reconciling it by that id restores the same record instead of creating a duplicate. Such intents are no longer pruned after 30 days, since they are the remaining evidence of the effect.

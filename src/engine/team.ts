@@ -152,6 +152,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
             instanceInspection?.executablePath ?? plugin.executable,
         );
         await context.trace?.event('consultation-finished', { advisor: advisor.name, outcome: result.outcome, diagnostic: result.diagnostic, model: result.model ?? null });
+        if (result.outcome === 'quota') context.pool.markQuota(instance.name, result);
         if (context.usage) {
             const scope = context.scope ?? 'task';
             await appendUsage(

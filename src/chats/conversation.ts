@@ -210,6 +210,7 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
     )
         .then(async () => await context.chats.attachEvidence(stored.chat.name, [usageFile]))
         .catch(() => undefined);
+    if (result.outcome === 'quota') context.pool.markQuota(instance.name, result);
     if (result.outcome !== 'completed') return { error: `${routerAgentDefinition.name} could not route the chat: ${result.diagnostic}` };
     const report = parseAgentReport(result.messages);
     if (!report || report.status !== 'done') return { error: `${routerAgentDefinition.name} gave no usable routing${report?.reason ? `: ${report.reason}` : ''}.` };
@@ -419,6 +420,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
             attribution: { agent: agent.name, owner: parseReferenceValue(mainReference)?.name ?? mainReference, initiator: 'User', work: { kind: 'chat', chat: chat.name, source: stored.relativePath } },
         }),
     ).catch((error: unknown) => context.onActivity?.(`Usage evidence of {${chat.name}} could not be saved: ${errorMessage(error)}`));
+    if (result.outcome === 'quota') context.pool.markQuota(instance.name, result);
     if (result.outcome !== 'completed' || !result.finalMessage.trim()) {
         const error = result.outcome === 'completed' ? `${agent.name} gave no reply.` : result.diagnostic;
         await context.chats.attachEvidence(chat.name, [usageFile]).catch(() => undefined);
@@ -524,6 +526,7 @@ export async function composeProjectBrief(context: Pick<ConversationContext, 'pr
             attribution: { agent: agent.name, owner: agent.name, initiator: 'engine', work: { kind: 'chat', chat: 'Report', source: input.reportPath } },
         }),
     ).catch(() => undefined);
+    if (result.outcome === 'quota') context.pool.markQuota(instance.name, result);
     if (result.outcome !== 'completed') return { error: result.diagnostic };
     const text = result.finalMessage.replace(LEARN_MARKER, '').replace(TITLE_MARKER, '').replace(/^PTBK_RESULT .*$/m, '').trim();
     return text ? { text } : { error: `${agent.name} wrote no brief.` };

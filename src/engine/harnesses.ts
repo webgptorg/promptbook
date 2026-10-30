@@ -43,6 +43,18 @@ export function instanceEnvironment(plugin: HarnessPlugin, tool: HarnessToolReco
 }
 
 /**
+ * Wait after a quota/rate limit or authentication failure when the provider gives no reset time.
+ *
+ * @private harness availability
+ */
+export const QUOTA_BACKOFF_MS = 15 * 60_000;
+
+/**
+ * Shortest wait after a quota/rate limit, also when the provider reports an earlier reset.
+ */
+const QUOTA_MIN_WAIT_MS = 30_000;
+
+/**
  * A runtime quota or authentication failure, scoped to its connection identity and bounded by time.
  */
 type UnavailableMark = { readonly kind: 'quota' | 'authentication'; readonly reason: string; readonly until: number; readonly identity: string };
@@ -320,6 +332,17 @@ export class HarnessPool {
         const current = this.instance(name);
         if (!current || identity !== this.fingerprint(current)) return;
         this.unavailable.set(name, { kind, reason, until: Date.now() + forMs, identity });
+    }
+
+    /**
+     * Records an observed quota/rate limit of one run on its instance, shared by tasks, chat replies, briefs and
+     * consultations: until the provider's reported reset when it stated one (no failing probes before it, no needless
+     * wait after it), otherwise the default backoff. Returns that wait.
+     */
+    public markQuota(name: string, result: { readonly diagnostic: string; readonly quotaResetAt?: number }, context?: HarnessContext): number {
+        const waitMs = result.quotaResetAt ? Math.max(QUOTA_MIN_WAIT_MS, result.quotaResetAt - Date.now()) : QUOTA_BACKOFF_MS;
+        this.markUnavailable(name, 'quota', `Quota/rate limit: ${result.diagnostic}`, waitMs, context);
+        return waitMs;
     }
 
     /** Marks a variant or instance for recheck (e.g. after an authentication failure). */

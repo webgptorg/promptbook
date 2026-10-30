@@ -23,7 +23,7 @@ import { parseBook } from '../book/parse.js';
 import { normalizeAgentName } from '../book/references.js';
 import { ToolBridge, type BridgeTool } from './bridge.js';
 import { createLearningTask, isTeacher } from './generated.js';
-import type { HarnessPool } from './harnesses.js';
+import { QUOTA_BACKOFF_MS, type HarnessPool } from './harnesses.js';
 import { buildTaskPrompt } from './prompt.js';
 import type { ChatStore } from '../chats/store.js';
 import { taskChats } from '../chats/task-chats.js';
@@ -205,11 +205,6 @@ export type ExecutionOutcome =
  * @private task execution
  */
 export const HANDOVER_ATTEMPTS = 2;
-
-/**
- * Initial quota backoff when the provider gives no reset time.
- */
-const QUOTA_BACKOFF_MS = 15 * 60_000;
 
 /**
  * Maximal time of one harness turn.
@@ -700,11 +695,12 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             }
             if (lastResult.outcome === 'quota') {
                 // The exhausted instance is skipped by the next selection: an authorized same-variant fallback serves the
-                // retry promptly instead of waiting through this account's reset.
-                if (selection.tool) environment.pool.markUnavailable(selection.tool, 'quota', `Quota/rate limit: ${lastResult.diagnostic}`, QUOTA_BACKOFF_MS, acquiredContext);
+                // retry promptly instead of waiting through this account's reset. The provider's reported reset, when
+                // stated, sets the wait (no failing probes before it, no needless wait after it).
+                const retryAfterMs = selection.tool ? environment.pool.markQuota(selection.tool, lastResult, acquiredContext) : QUOTA_BACKOFF_MS;
                 await save({ attempt: attempt - 1 });
-                await trace.event('waiting', { reason: 'provider quota', tool: selection.tool ?? null, diagnostic: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS });
-                return { kind: 'quota', reason: lastResult.diagnostic, retryAfterMs: QUOTA_BACKOFF_MS, tool: selection.tool };
+                await trace.event('waiting', { reason: 'provider quota', tool: selection.tool ?? null, diagnostic: lastResult.diagnostic, retryAfterMs, reportedReset: lastResult.quotaResetAt ? new Date(lastResult.quotaResetAt).toISOString() : null });
+                return { kind: 'quota', reason: lastResult.diagnostic, retryAfterMs, tool: selection.tool };
             }
             const report = parseAgentReport(lastResult.messages);
             if (pending.chat && (!report || report.status === 'waiting-for-user')) {

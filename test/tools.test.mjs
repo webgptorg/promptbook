@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { parseQuotaReset } from '../dist/harness/quota-reset.js';
 import { drive, findGenerated, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
 
 /**
@@ -24,6 +25,37 @@ async function status(project, env) {
 async function savedTools(project) {
     return JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8')).tools;
 }
+
+test('quota resets: the wait a provider reports is understood in its usual forms; nothing is invented', () => {
+    const now = Date.UTC(2026, 9, 30, 10, 0, 0);
+    const minutes = 60_000;
+    const cases = [
+        ["You've hit your usage limit. Upgrade to Pro (https://openai.com/chatgpt/pricing), or try again in 2 days 3 hours 5 minutes.", now + (2 * 24 * 60 + 3 * 60 + 5) * minutes],
+        ['Rate limit reached for gpt-4o in organization org-x on tokens per min (TPM): Limit 30000, Used 29000. Please try again in 6.5s.', now + 6_500],
+        ['Please try again in 1m30s.', now + 90_000],
+        [`Claude AI usage limit reached|${now / 1000 + 7200}`, now + 120 * minutes],
+        ['Claude usage limit reached. Your limit will reset at 5pm (America/New_York).', Date.UTC(2026, 9, 30, 21, 0)],
+        ['5-hour limit reached ∙ resets 3am (Europe/Prague)', Date.UTC(2026, 9, 31, 2, 0)],
+        ["You've hit your usage limit. Try again at Nov 3rd, 2026 2:28 PM.", new Date(2026, 10, 3, 14, 28).getTime()],
+        ['Quota exceeded for quota metric. {"retryDelay": "41s"}', now + 41_000],
+        ['429 Too Many Requests. Retry-After: 30', now + 30_000],
+        ['Rate limited; the limit resets at 2026-10-30T12:00:00Z.', Date.UTC(2026, 9, 30, 12, 0)],
+        ['Monthly quota exhausted; it resets in 30 days.', now + 7 * 24 * 60 * minutes],
+    ];
+    for (const [text, expected] of cases) assert.equal(parseQuotaReset(text, now), expected, text);
+    for (const text of ["You've hit your usage limit. Try again later.", 'insufficient_quota', 'Claude AI usage limit reached|1000000000', 'Rate limit: try again at 10']) {
+        assert.equal(parseQuotaReset(text, now), undefined, `${text} states no future reset`);
+    }
+});
+
+test('quota resets: without a fallback, a task waits exactly until the reset its provider reported, without probing before it', async (t) => {
+    const { project, env, log } = await initializedProject(t, { check: CHECK });
+    await ptbk(['add', 'Summarize the news QUOTA_RESET', '--agent', 'Developer', '--raw'], { cwd: project, env });
+    const run = await drive(project, env, async ({ output }) => /resumes in 2d 3h/.test(output), { message: 'the reported reset as the wait' });
+    assert.match(run.output, /try again in 2 days 3 hours.*; "Summarize the news QUOTA_RESET[^"]*" resumes in 2d 3h/);
+    const turns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((turn) => turn.title.startsWith('Summarize the news'));
+    assert.equal(turns.length, 1, 'no further paid probe before the reset');
+});
 
 test('tool management (stopped project): canonical records, scoped commits, protections, secrets only in .env', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });

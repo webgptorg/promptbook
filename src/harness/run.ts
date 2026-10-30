@@ -1,4 +1,5 @@
 import { runProcess } from '../common/process.js';
+import { parseQuotaReset } from './quota-reset.js';
 import type { HarnessEvent, HarnessPlugin, HarnessRunRequest, ParserState, UsageObservation } from './types.js';
 
 /**
@@ -38,6 +39,8 @@ export type HarnessRunResult = {
     readonly errors: readonly string[];
     /** Human diagnostic of the outcome. */
     readonly diagnostic: string;
+    /** When the provider said an exhausted quota/rate limit resets (epoch ms), for a `quota` outcome that states it. */
+    readonly quotaResetAt?: number;
     /** Raw stdout (bounded). */
     readonly stdout: string;
     /** Raw stderr (bounded). */
@@ -159,7 +162,10 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
     if (result.exitCode !== 0 || turnFailed) {
         const classified = classifyFailure(failureText);
         const reason = (turnFailed ?? errors[errors.length - 1] ?? result.stderr.trim().split('\n').slice(-3).join(' ')) || `exit code ${String(result.exitCode)}`;
-        if (classified === 'quota') return { ...base, outcome: 'quota', diagnostic: `${plugin.displayName} reported a quota/rate limit: ${reason}` };
+        if (classified === 'quota') {
+            const quotaResetAt = parseQuotaReset(failureText);
+            return { ...base, outcome: 'quota', diagnostic: `${plugin.displayName} reported a quota/rate limit: ${reason}`, ...(quotaResetAt ? { quotaResetAt } : {}) };
+        }
         if (classified === 'authentication') return { ...base, outcome: 'authentication', diagnostic: `${plugin.displayName} reported missing authentication: ${reason}` };
         return { ...base, outcome: 'failed', diagnostic: `${plugin.displayName} failed: ${reason}` };
     }

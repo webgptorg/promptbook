@@ -13,6 +13,7 @@
  *                      name (Promptbook must reject it), on a repair attempt it gets its own dated name
  *   SLOW_WORK       → works for $FAKE_CODEX_SLOW_MS (default 6 s) before finishing (lifecycle draining)
  *   QUOTA_NATIVE    → a native (ChatGPT) run fails with a usage limit; an API-key run (CODEX_API_KEY) succeeds
+ *   QUOTA_RESET     → a native run fails with a usage limit that states its reset ("try again in 2 days 3 hours")
  *   LIST_BROWSERS   → after the work (and any SLOW_WORK wait) lists the browser tools through the bridge into
  *                     output/browsers.txt (a tool added meanwhile must be visible to this same task)
  *   CLAIM_SHARED    → claims output/shared.txt through the `claim_files` tool, appends the task name to it and then
@@ -180,7 +181,13 @@ async function main() {
     print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
     print({ type: 'turn.started' });
     // Routing work only names the target: its markers apply to the target's own execution.
-    if (prompt.includes('QUOTA_NATIVE') && !api && !prompt.includes('## Assignment work')) {
+    // Quota markers apply to the task's own turns, not to other prompts that merely list its title (e.g. a brief).
+    const taskTurn = !prompt.includes('## Assignment work') && !brief && !chat && !prompt.startsWith('# Consultation');
+    if (prompt.includes('QUOTA_RESET') && !api && taskTurn) {
+        print({ type: 'turn.failed', error: { message: "You've hit your usage limit. Upgrade to Pro, or try again in 2 days 3 hours." } });
+        process.exit(1);
+    }
+    if (prompt.includes('QUOTA_NATIVE') && !api && taskTurn) {
         print({ type: 'turn.failed', error: { message: "You've hit your usage limit. Try again later." } });
         process.exit(1);
     }
