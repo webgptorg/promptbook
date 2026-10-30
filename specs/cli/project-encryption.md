@@ -4,7 +4,7 @@
 
 ## Scope and lazy setup
 
-Each project has its own encryption root and encrypted local data. Encrypt the entire Wallet record, including service/origin, account/username and label as well as passwords/TOTP parameters; do not add a plaintext account index for recovery. Start with **Wallet credentials and TOTP generators only**. The key hierarchy can protect other domains later, but this version does not encrypt all Books, traces, configuration, browser profiles or existing `.env` keys.
+Each project has its own encryption root and encrypted local data. Encrypt the entire Wallet record, including service/origin, account/username and label as well as passwords/TOTP parameters; do not add a plaintext account index for recovery. Start with **Wallet credentials only**, including supported additional fields and any retained legacy protected factor data; Wallet-owned TOTP generation/import is future scope. The key hierarchy can protect other domains later, but this version does not encrypt all Books, traces, configuration, browser profiles or existing `.env` keys.
 
 Initialize encryption lazily on first Wallet use requiring storage, or through init's optional **Set up Wallet now?** choice (default No). Both call the same protected setup operation. Generate **12 random recovery words** and show them only in the owner's protected setup surface, with simple guidance to write them down and keep them safely for recovery of encrypted data. Do not add routine unlock/reconfirmation to every use or reboot. Choosing No leaves an empty project without a phrase prompt; choosing Yes deliberately opens the same protected flow. Interrupted first setup preserves a recoverable state and never overwrites an existing vault/key.
 

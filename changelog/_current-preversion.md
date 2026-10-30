@@ -1,5 +1,11 @@
 # Unreleased
 
+## Specifications: autonomous Wallet use and one credential verifier
+
+-   Specify session reuse, nonsecret multi-account discovery, verified related login origins, additional reusable fields and autonomous retrieval of accessible factors.
+-   Share add/update, explicit per-item Test and ordinary login verification; retain incomplete records as unverified and only the latest redacted test outcome outside Git, without a test task or commit.
+-   Keep unavailable codes in protected Wallet input and move mobile SMS integration and Wallet-owned TOTP generation/import to future scope while preserving legacy encrypted data.
+
 ## Specifications: autonomous decisions and contextual task purpose
 
 -   Define the foundational minimal-interruption knowledge directory, company-head analogy, decision rules and authentication/technical/content examples for common agent context and Tasker.
