@@ -120,8 +120,10 @@ test('loopback HTTP boundary: local bootstrap and controls, rebinding/proxy reje
     };
     let server = await startHttpServer(options);
     t.after(() => server.close());
-    const requestStatus = (headers) => new Promise((resolve, reject) => {
-        const request = httpRequest(`${server.url}api/session`, { headers: { 'X-PTBK-Client': 'dashboard', ...headers } }, (response) => {
+    // A fresh connection per request: after the restart below, fetch can reuse a pooled keep-alive socket to the
+    // closed listener on the same port, which resets instead of reaching the new one.
+    const requestStatus = (path, headers) => new Promise((resolve, reject) => {
+        const request = httpRequest(`${server.url}${path}`, { agent: false, headers }, (response) => {
             response.resume();
             resolve(response.statusCode);
         });
@@ -131,7 +133,7 @@ test('loopback HTTP boundary: local bootstrap and controls, rebinding/proxy reje
     assert.match(server.url, /^http:\/\/127\.0\.0\.1:\d+\/$/);
     assert.equal((await fetch(`${server.url}api/session`)).status, 401);
     for (const headers of [{ Host: 'evil.example' }, { Origin: 'https://evil.example' }, { Origin: 'http://localhost:1' }, { 'X-Forwarded-Host': new URL(server.url).host }, { 'X-Forwarded-Proto': 'https' }, { Forwarded: 'for=127.0.0.1' }, { 'Sec-Fetch-Site': 'cross-site' }, { 'Sec-Fetch-Site': 'same-site' }]) {
-        assert.equal(await requestStatus(headers), 409, JSON.stringify(headers));
+        assert.equal(await requestStatus('api/session', { 'X-PTBK-Client': 'dashboard', ...headers }), 409, JSON.stringify(headers));
     }
     const bootstrap = await fetch(`${server.url}api/session`, { headers: { 'X-PTBK-Client': 'dashboard', Origin: server.url.slice(0, -1) } });
     assert.equal(bootstrap.status, 200);
@@ -160,8 +162,8 @@ test('loopback HTTP boundary: local bootstrap and controls, rebinding/proxy reje
     assert.equal((await fetch(`${server.url}api/qr`, { headers: apiHeaders })).status, 405);
     await server.close();
     server = await startHttpServer({ ...options, token: 'replacement-local-process-credential' });
-    assert.equal((await fetch(`${server.url}api/state`, { headers: apiHeaders })).status, 401);
-    assert.equal((await fetch(`${server.url}api/state`, { headers: browserHeaders })).status, 401);
+    assert.equal(await requestStatus('api/state', apiHeaders), 401);
+    assert.equal(await requestStatus('api/state', browserHeaders), 401);
 });
 
 test('local origin validation accepts default HTTP port spelling and still rejects a different listener', async () => {

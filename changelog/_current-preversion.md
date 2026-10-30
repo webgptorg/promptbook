@@ -1,5 +1,9 @@
 # Unreleased
 
+## Release check: the loopback HTTP boundary test no longer resets after its restart
+
+-   The test restarts the local HTTP server and then checks that the old credentials stop working. The new listener usually takes the same port, and `fetch` sometimes reused a keep-alive connection pooled for the closed listener, which failed with `ECONNRESET`. Under parallel load this happened in about one run in ten (13 of 120 runs, 12 at a time). In the full suite, which `npm run release:prerelease` runs, it failed the release check. The test now sends those checks over fresh connections (0 failures in 96 runs, 12 at a time). The engine is unaffected: nothing in it uses `fetch` against its own server.
+
 ## Tests: the Wallet recovery fixture no longer fails on a common recovery word
 
 -   The fixture for replacing the recovery words checked that the audit commit contains none of the 12 new words, as a substring anywhere. The audit's fixed prose ("The words, keys, secret values…") contains words from the recovery word list, so a random phrase that included one of them failed the test. 19 of the 2,048 words occur in that text (for example `secret`, `key`, `auto` and `word`), so this happened in about one run in ten. It now checks for the phrase and for any two of its words in order, which still catches every disclosure of the words.
