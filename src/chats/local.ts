@@ -2,7 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import { PtbkError } from '../common/errors.js';
 import { hashFileIfExists, toProjectRelative } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
-import { formatAgentReference, toReference } from '../book/references.js';
+import { formatAgentReference } from '../book/references.js';
 import { AgentCatalog, learningPolicyOf } from '../project/agents.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
 import { commitPaths, inspectGit } from '../project/git.js';
@@ -18,7 +18,7 @@ import { replyInChat } from './conversation.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat } from './service.js';
 import { ChatStore } from './store.js';
 import { ChatCommitBatcher } from './batcher.js';
-import { chatOrigin } from './chat-tasks.js';
+import { chatTaskCommitments } from './chat-tasks.js';
 
 /**
  * Chats of a project whose service is not running: every write takes the project lock briefly and is saved at once;
@@ -120,10 +120,7 @@ export class LocalChats {
                     await this.locked(async () => {
                         await this.reload();
                         const title = generatedName(input.title, { taken: this.catalog.index.names(), timeZone: setting<string>(this.settings, 'timezone') });
-                        const commitments: string[] = [];
-                        if (input.agent) commitments.push(`TASK AGENT ${toReference(input.agent)}`);
-                        if (input.priority !== undefined) commitments.push(`TASK PRIORITY ${input.priority}`);
-                        commitments.push(`TASK ORIGIN ${chatOrigin(input.chat)}`, `LINK ${formatAgentReference(input.chat)}`);
+                        const commitments = chatTaskCommitments(input);
                         const path = await newTaskPath(this.catalog.index.rootPath('tasks'), input.title, Date.now(), setting<string>(this.settings, 'timezone'));
                         await writeFile(path, renderTaskBook({ title, description: input.description || undefined, commitments }), { flag: 'wx' });
                         if (this.repositoryRoot && setting<boolean>(this.settings, 'execution.isCommitEnabled')) await this.commit([path], `Add task - ${title}`, { 'Task-Name': title, 'Chat-Name': input.chat });

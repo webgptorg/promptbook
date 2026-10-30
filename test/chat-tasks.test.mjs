@@ -3,7 +3,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { parseChatBook } from '../dist/chats/chat-book.js';
-import { chatOrigin, chatOriginOf, routeUserMessage } from '../dist/chats/chat-tasks.js';
+import { chatOrigin, chatOriginOf, chatTaskCommitments, routeUserMessage } from '../dist/chats/chat-tasks.js';
 import { committed, drive, generated, initializedProject, ptbk } from './helpers.mjs';
 
 /**
@@ -39,6 +39,8 @@ test('chat routing: a reply goes to its question, a mention to that participant,
     assert.equal(chatOrigin('Discuss CSV export — 2026-10-25 23:40:00'), 'Chat {Discuss CSV export — 2026-10-25 23:40:00}');
     assert.equal(chatOriginOf('Chat {Discuss CSV export — 2026-10-25 23:40:00}'), 'Discuss CSV export — 2026-10-25 23:40:00');
     assert.equal(chatOriginOf('learning from chat {X}'), undefined);
+    assert.deepEqual(chatTaskCommitments({ title: 'Install the parser', description: '', agent: 'Developer', priority: 2, purpose: 'system', chat: 'Talk to Tasker' }), ['TASK AGENT @Developer', 'TASK PRIORITY 2', 'TASK PURPOSE SYSTEM', 'TASK ORIGIN Chat {Talk to Tasker}', 'LINK {Talk to Tasker}']);
+    assert.deepEqual(chatTaskCommitments({ title: 'File VAT', description: '', chat: 'VAT' }), ['TASK ORIGIN Chat @VAT', 'LINK @VAT'], 'an undefined purpose writes nothing');
 });
 
 test('chat-created work: linked both ways, its agent joins and asks in the source chat, the reply clears attention at once and the result is reported there once', async (t) => {

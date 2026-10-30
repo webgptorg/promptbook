@@ -36,7 +36,7 @@ import { ChatStore, type ChatSummary, type ChatWrite } from '../chats/store.js';
 import { ChatCommitBatcher } from '../chats/batcher.js';
 import { awaitsReply, isHumanFacing } from '../chats/chat-book.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, type ChatAgentChoice, type ChatDetail, type ChatRecheckView } from '../chats/service.js';
-import { chatOrigin, chatOriginOf, questionAuthor, type ChatTaskCard } from '../chats/chat-tasks.js';
+import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
 import { composeProjectBrief, replyInChat, type LiveReply } from '../chats/conversation.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
 import type { Project } from '../project/workspace.js';
@@ -1585,13 +1585,10 @@ export class Agenda {
      * `TASK ORIGIN Chat {chat}` and a LINK back, and the chat links the task's final name. It returns at once; the task
      * runs later under the ordinary rules (and waits during pause).
      */
-    private async createChatTask(input: { readonly title: string; readonly description: string; readonly agent?: string; readonly priority?: number; readonly chat: string }): Promise<string> {
+    private async createChatTask(input: ChatTaskInput): Promise<string> {
         if (!input.title) throw new PtbkError('A task needs a name.', { kind: 'usage' });
         const title = generatedName(input.title, { taken: await this.takenNames(), timeZone: this.timeZone });
-        const commitments: string[] = [];
-        if (input.agent) commitments.push(`TASK AGENT ${toReference(input.agent)}`);
-        if (input.priority !== undefined) commitments.push(`TASK PRIORITY ${input.priority}`);
-        commitments.push(`TASK ORIGIN ${chatOrigin(input.chat)}`, `LINK ${formatAgentReference(input.chat)}`);
+        const commitments = chatTaskCommitments(input);
         const path = await newTaskPath(this.tasksDirectory, input.title, Date.now(), this.timeZone);
         // The final name (rechecked at publication) is what the chat reports and links.
         const published = await this.addTaskFile(path, renderTaskBook({ title, description: input.description || undefined, commitments }), `Add task - ${title}`, this.commitMode, [title]);

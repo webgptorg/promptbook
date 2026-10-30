@@ -22,7 +22,9 @@ import { harnessPlugin } from '../harness/registry.js';
 import { harnessPluginId, harnessVariantOf } from '../tools/model.js';
 import { teamTools } from '../engine/team.js';
 import { appendUsage, chatUsageFile, usageRecords } from '../engine/usage.js';
+import { parseTaskPurpose } from '../tasks/purpose.js';
 import { awaitsReply, chatAgent, chatAgents, isHumanFacing } from './chat-book.js';
+import type { ChatTaskInput } from './chat-tasks.js';
 import type { ChatStore, ChatWrite, StoredChat } from './store.js';
 import { conversationChats } from './task-chats.js';
 
@@ -60,7 +62,7 @@ export type ConversationContext = {
     readonly env: NodeJS.ProcessEnv;
     readonly signal?: AbortSignal;
     /** Creates and commits an ordinary task through normal authoring (linked to the chat); returns its name. */
-    readonly createTask: (input: { readonly title: string; readonly description: string; readonly agent?: string; readonly priority?: number; readonly chat: string }) => Promise<string>;
+    readonly createTask: (input: ChatTaskInput) => Promise<string>;
     /** Schedules an ordinary Teacher task from a chat correction (deduplicated by the host). */
     readonly scheduleLearning?: (input: { readonly chat: string; readonly agent: string; readonly note: string }) => Promise<string | undefined>;
     /** The established execution of a task whose agent asked in this chat (its question needs no new routing). */
@@ -286,6 +288,12 @@ export async function replyInChat(context: ConversationContext, chatName: string
                           description: { type: 'string', description: 'Intended result and constraints' },
                           agent: { type: 'string', description: 'Optional responsible agent, e.g. @Developer' },
                           priority: { type: 'number' },
+                          purpose: {
+                              type: 'string',
+                              enum: ['content', 'system'],
+                              description:
+                                  "Relative to this project: content is what the project is about, system is supporting or service work that enables it (judge from the project's goals, not from keywords or who executes it). Omit it when the context does not support a useful judgment; never ask the user to classify.",
+                          },
                       },
                       required: ['title', 'description'],
                   },
@@ -296,6 +304,8 @@ export async function replyInChat(context: ConversationContext, chatName: string
                               description: String(input.description ?? '').trim(),
                               agent: typeof input.agent === 'string' && input.agent.trim() ? input.agent.trim() : undefined,
                               priority: typeof input.priority === 'number' && input.priority >= 0 ? input.priority : undefined,
+                              // An unusable value is left out rather than failing the task: undefined purpose is valid.
+                              purpose: typeof input.purpose === 'string' ? (parseTaskPurpose(input.purpose) ?? undefined) : undefined,
                               chat: chat.name,
                           });
                           created.push(name);

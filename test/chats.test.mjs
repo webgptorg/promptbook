@@ -51,7 +51,7 @@ test('ptbk chat without a service: agent chosen first, messages saved at once an
     assert.equal(new Set(all.map((item) => item.chat.key)).size, 2, 'thread names stay distinct under normalization');
 
     const name = stored.chat.name;
-    const asked = await ptbk(['chat', '--open', name, 'Please plan it. CREATE_TASK', '--raw'], { cwd: project, env });
+    const asked = await ptbk(['chat', '--open', name, 'Please plan it. CREATE_TASK SUPPORTING_WORK', '--raw'], { cwd: project, env });
     assert.equal(asked.code, 0, asked.output);
     const taskFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('task-from-chat') && !file.includes('-assign-'));
     assert.ok(taskFile, 'the agent created an ordinary task through create_task');
@@ -60,6 +60,7 @@ test('ptbk chat without a service: agent chosen first, messages saved at once an
     assert.match(taskName, generated('Task from chat'));
     assert.match(task, /^GOAL Requested in a chat/m);
     assert.match(task, /^TASK AGENT @Developer$/m);
+    assert.match(task, /^TASK PURPOSE SYSTEM$/m, 'the purpose its author gave through create_task');
     assert.ok(task.includes(`LINK {${name}}`), task);
     const taskCommit = (await messages(project)).find((message) => message.startsWith(`ptbk: Add task - ${taskName}`));
     assert.ok(taskCommit, 'the task has its own authoring commit');

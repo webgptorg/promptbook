@@ -31,7 +31,7 @@
  * first $FAKE_CODEX_FAIL_BRIEFS of them (per $FAKE_CODEX_LOG) fail like a provider outage instead.
  * Router turns (`## Assignment work`, tasks and chat routing) choose the first listed agent's example combination
  * (ROUTE_IMPOSSIBLE in the target reports no compatible combination). Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
- * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
+ * through the `create_task` tool (with system purpose when it also contains SUPPORTING_WORK), one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
  * containing CORRECTION adds a `PTBK_LEARN` note and one containing SLOW_REPLY reports a command and a reasoning summary,
  * then works for $FAKE_CODEX_SLOW_MS before its reply. The first turn answering FAIL_REPLY_ONCE (per $FAKE_CODEX_LOG)
  * reports a reasoning summary and then fails like a provider outage. Consultation turns (`# Consultation`) answer
@@ -242,7 +242,7 @@ async function main() {
         }
         let text = `Fixture reply to: ${last}`;
         if (last.includes('CREATE_TASK')) {
-            const created = await callTool('create_task', { title: 'Task from chat', description: `Requested in a chat: ${last}`, agent: '@Developer', priority: 4 });
+            const created = await callTool('create_task', { title: 'Task from chat', description: `Requested in a chat: ${last}`, agent: '@Developer', priority: 4, ...(last.includes('SUPPORTING_WORK') ? { purpose: 'system' } : {}) });
             text += `\n${created}`;
         }
         if (last.includes('CONSULT_TEAM')) {

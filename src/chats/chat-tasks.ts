@@ -1,5 +1,6 @@
-import { findAgentReferences, formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
+import { findAgentReferences, formatAgentReference, normalizeAgentName, parseReferenceValue, toReference } from '../book/references.js';
 import type { ActiveRecord } from '../engine/state.js';
+import type { TaskPurpose } from '../tasks/purpose.js';
 import { chatAgent, chatAgents, type ChatBook } from './chat-book.js';
 
 /**
@@ -9,6 +10,37 @@ import { chatAgent, chatAgents, type ChatBook } from './chat-book.js';
  */
 export function chatOrigin(chat: string): string {
     return `Chat ${formatAgentReference(chat)}`;
+}
+
+/**
+ * A task an agent creates in a chat through its `create_task` tool (Talk to Tasker included).
+ *
+ * @private chat/task relationships
+ */
+export type ChatTaskInput = {
+    readonly title: string;
+    readonly description: string;
+    readonly agent?: string;
+    readonly priority?: number;
+    /** Project-relative purpose the author gave it (absent: undefined, which is valid). */
+    readonly purpose?: TaskPurpose;
+    readonly chat: string;
+};
+
+/**
+ * The commitments of a task created in a chat: the agent, priority and purpose its author gave, `TASK ORIGIN Chat
+ * {chat}` and a LINK back. One construction for the running engine and a chat without a service.
+ *
+ * @private chat/task relationships
+ */
+export function chatTaskCommitments(input: ChatTaskInput): string[] {
+    return [
+        ...(input.agent ? [`TASK AGENT ${toReference(input.agent)}`] : []),
+        ...(input.priority !== undefined ? [`TASK PRIORITY ${input.priority}`] : []),
+        ...(input.purpose ? [`TASK PURPOSE ${input.purpose.toUpperCase()}`] : []),
+        `TASK ORIGIN ${chatOrigin(input.chat)}`,
+        `LINK ${formatAgentReference(input.chat)}`,
+    ];
 }
 
 /**

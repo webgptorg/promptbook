@@ -1,5 +1,10 @@
 # Unreleased
 
+## Task purpose: tasks created in a chat, including by Tasker, can carry their purpose
+
+-   The chat agents' `create_task` tool takes an optional `purpose` (`content` or `system`, relative to this project). The new task is written with `TASK PURPOSE CONTENT` or `TASK PURPOSE SYSTEM`. Before, Talk to Tasker, the main way to author tasks, could not record a purpose, although Tasker's instructions ask it to classify new work where useful.
+-   Leaving it out keeps the purpose undefined, which is valid, and an unusable value is ignored rather than failing the task. The running engine and `ptbk chat` without a service build the new task's commitments the same way.
+
 ## Task purpose: engine-authored routing and repair tasks are system work
 
 -   The tasks the engine writes for Router to choose an executor (`Assign routing: …`) and for Fixer to repair the project's own setup now carry `TASK PURPOSE SYSTEM`. Fixer's tasks cover the project health check, impossible execution requirements, Router's execution setup, core template reconciliation and synchronization conflicts. In any project this is supporting work, so the default task views show it muted in the lower supporting group instead of between content tasks. Before, these tasks were unclassified.
