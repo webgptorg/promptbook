@@ -113,6 +113,11 @@ export type HealthProbes = {
     readonly sample: (paths: readonly string[]) => Promise<HostSample>;
     /** One reachability probe, or undefined when connectivity checks are switched off. */
     readonly connectivity?: () => Promise<ConnectivityProbe>;
+    /**
+     * The host's swap plan instead of the real one. Replaced probes without it never change the real host's swap
+     * automatically.
+     */
+    readonly swapPlan?: () => Promise<SwapPlan>;
 };
 
 /**
@@ -153,8 +158,8 @@ type Incident = {
 };
 
 /**
- * How long a pausing memory incident may last before it needs a person (memory often frees by itself; no autonomous
- * remedy exists without new privileges).
+ * How long a pausing memory incident may last before it needs a person (memory often frees by itself, and swap added
+ * automatically needs a few samples to show).
  */
 const MEMORY_ATTENTION_AFTER_MS = 15 * 60_000;
 
@@ -362,6 +367,8 @@ export class HealthSubEngine {
     private probing?: Promise<void>;
     private lastAction?: HealthView['lastAction'];
     private counter = 0;
+    /** An automatic memory remedy is running (one attempt serves every memory incident of the shortage). */
+    private remedyingMemory = false;
 
     public constructor(private readonly options: HealthOptions) {
         this.probes = options.probes ?? hostProbes(options.env);
@@ -481,14 +488,54 @@ export class HealthSubEngine {
     }
 
     /**
+     * The autonomous remedy of a memory shortage, before anyone is asked: on Linux, with the privileges this engine
+     * already has (root or passwordless sudo) and no active swap, add the planned swap file through the same operation
+     * as the Health page's action. It never prompts for a password, overwrites an existing file or edits `/etc/fstab`.
+     * Memory incidents opened by the same shortage share one attempt; other platforms manage swap themselves.
+     */
+    private async remedyMemory(): Promise<void> {
+        const waiting = this.incidents.filter((incident) => incident.resource === 'memory' && incident.remedy === undefined);
+        // Replaced host probes (tests) never change the real host's swap.
+        if (this.remedyingMemory || !waiting.length || (this.options.probes && !this.options.probes.swapPlan)) return;
+        this.remedyingMemory = true;
+        const note = (text: string): void => {
+            for (const incident of waiting) incident.remedy = text;
+            this.options.onChange();
+        };
+        try {
+            const plan = await this.swapPlan().catch(() => undefined);
+            if (!plan?.supported) return;
+            const active = (plan.current ?? []).reduce((sum, area) => sum + area.sizeMiB, 0);
+            const { proposal } = plan;
+            if (active > 0) return note(`${formatMiB(active)} of swap is already active; no further automatic memory remedy.`);
+            if (!proposal) return note(plan.note);
+            if (proposal.privilege === 'missing') return note('Adding swap needs administrator privileges (root or passwordless sudo) that this engine does not have.');
+            if (await stat(proposal.path).then(() => true, () => false)) return note(`${proposal.path} already exists; it is never overwritten automatically.`);
+            note(`Adding a ${formatMiB(proposal.sizeMiB)} swap file at ${proposal.path}…`);
+            try {
+                await this.createSwap(proposal, 'automatically');
+                const outcome = `Automatically enabled ${formatMiB(proposal.sizeMiB)} of swap at ${proposal.path} (kept after a reboot only with the /etc/fstab line: ${proposal.persistLine}).`;
+                this.record('health-swap', { applied: true, outcome });
+                note(outcome);
+            } catch (error) {
+                const reason = error instanceof PtbkError ? error.details.reason : undefined;
+                note(`Adding swap automatically failed: ${errorMessage(error)}${reason ? ` ${reason}` : ''}`);
+            }
+        } finally {
+            this.remedyingMemory = false;
+        }
+    }
+
+    /**
      * The concrete human action an open incident needs now, or undefined while it is only observed or autonomous
      * remedies are still running: warnings never ask; low disk asks once the owned cache was reclaimed and capacity is
      * still short; memory asks when exhausted or when a pausing shortage persists.
      */
     private neededAction(incident: Incident): string | undefined {
-        if (incident.severity === 'warning' || incident.overriddenAt) return undefined;
+        // A condition that already stopped holding (after a remedy, for example) is recovering, not a request.
+        if (incident.severity === 'warning' || incident.overriddenAt || incident.recovered > 0) return undefined;
         if (incident.resource === 'disk') return incident.remedy && !incident.remedy.endsWith('…') ? 'Free disk space or add capacity on this host; no safe automatic cleanup remains.' : undefined;
-        if (incident.resource === 'memory' && (incident.severity === 'hard' || Date.now() - Date.parse(incident.openedAt) >= MEMORY_ATTENTION_AFTER_MS)) return 'Free memory or add capacity (on Linux the Health page can add swap).';
+        if (incident.resource === 'memory' && !incident.remedy?.endsWith('…') && (incident.severity === 'hard' || Date.now() - Date.parse(incident.openedAt) >= MEMORY_ATTENTION_AFTER_MS)) return 'Free memory or add capacity (on Linux the Health page can add swap).';
         return undefined;
     }
 
@@ -511,6 +558,7 @@ export class HealthSubEngine {
             const parts = `RAM ${formatMiB(sample.memory.ramAvailableMiB)} + swap ${formatMiB(sample.memory.swapFreeMiB)}`;
             this.track('memory', 'hard', available < HARD_MEMORY_MIB, available >= HARD_MEMORY_MIB * 2, `Memory exhausted: ${formatMiB(available)} available (${parts})`);
             this.track('memory', 'soft', limits.memory > 0 && available < limits.memory, limits.memory === 0 || available >= limits.memory + margin(limits.memory), `Low available memory: ${formatMiB(available)} (${parts}; limit ${formatMiB(limits.memory)})`);
+            void this.remedyMemory();
         }
         const { cpu } = sample;
         if (cpu.load5 !== undefined) {
@@ -616,6 +664,7 @@ export class HealthSubEngine {
 
     /** How swap can be inspected or added on this host (Linux only; elsewhere guidance). */
     public async swapPlan(): Promise<SwapPlan> {
+        if (this.probes.swapPlan) return await this.probes.swapPlan();
         if (process.platform === 'darwin') return { supported: false, note: 'macOS manages swap automatically with dynamic swap files; free disk space lets it grow. No manual swap action is needed.' };
         if (process.platform === 'win32') return { supported: false, note: 'Windows manages the paging file; adjust it in System Properties › Advanced › Performance › Virtual memory.' };
         if (process.platform !== 'linux') return { supported: false, note: 'Swap management is not supported on this platform.' };
@@ -667,6 +716,15 @@ export class HealthSubEngine {
                 next: [`Run as an administrator: ${proposal.commands.map((command) => `sudo ${command}`).join(' && ')}`, `To keep it after a reboot, add to /etc/fstab: ${proposal.persistLine}`],
             });
         }
+        await this.createSwap(proposal);
+        return this.record('health-swap', { applied: true, outcome: `Enabled ${formatMiB(proposal.sizeMiB)} of swap at ${proposal.path}. Keep it after reboot with the /etc/fstab line: ${proposal.persistLine}` });
+    }
+
+    /**
+     * Creates and enables a planned swap file with the plan's privilege (root, or `sudo -n`, which never prompts):
+     * the one operation behind the Health page's action and the automatic memory remedy.
+     */
+    private async createSwap(proposal: NonNullable<SwapPlan['proposal']>, how?: 'automatically'): Promise<void> {
         for (const command of proposal.commands) {
             const [program, ...args] = command.split(' ');
             const invocation = proposal.privilege === 'sudo' ? ['sudo', ['-n', program!, ...args]] as const : [program!, args] as const;
@@ -680,9 +738,8 @@ export class HealthSubEngine {
                 throw new PtbkError(`Swap setup failed at \`${command}\`.`, { kind: 'technical', reason: (result.stderr || result.stdout || result.spawnError || '').trim().slice(0, 500), effect: 'Earlier steps may have been applied; nothing else was changed.', next: ['Inspect `swapon --show` and the swap file, then retry or finish it manually.'] });
             }
         }
-        this.options.log(`Health: enabled a ${formatMiB(proposal.sizeMiB)} swap file at ${proposal.path} (add "${proposal.persistLine}" to /etc/fstab to keep it after a reboot).`, 'info');
+        this.options.log(`Health: ${how ? `${how} ` : ''}enabled a ${formatMiB(proposal.sizeMiB)} swap file at ${proposal.path} (add "${proposal.persistLine}" to /etc/fstab to keep it after a reboot).`, 'info');
         void this.sampleNow();
-        return this.record('health-swap', { applied: true, outcome: `Enabled ${formatMiB(proposal.sizeMiB)} of swap at ${proposal.path}. Keep it after reboot with the /etc/fstab line: ${proposal.persistLine}` });
     }
 
     /** The shared Health view (terminal, browser and API). */
@@ -716,7 +773,7 @@ export class HealthSubEngine {
             incidents,
             remediation: {
                 cache: { path: toProjectRelative(this.options.project.root, this.cacheDirectory) },
-                swap: { supported: process.platform === 'linux', note: process.platform === 'linux' ? 'Inspect or add a swap file (needs root or passwordless sudo; never prompts).' : process.platform === 'darwin' ? 'macOS manages swap automatically.' : 'Swap is managed by the operating system.' },
+                swap: { supported: process.platform === 'linux', note: process.platform === 'linux' ? 'Inspect or add a swap file (needs root or passwordless sudo; never prompts). Under memory pressure without any swap, Health adds it by itself when it has those privileges.' : process.platform === 'darwin' ? 'macOS manages swap automatically.' : 'Swap is managed by the operating system.' },
             },
             ...(this.lastAction ? { lastAction: this.lastAction } : {}),
         };

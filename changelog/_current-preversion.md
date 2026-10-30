@@ -1,5 +1,11 @@
 # Unreleased
 
+## Health: a memory shortage on Linux adds swap by itself
+
+-   When available memory falls below `limit.memory` or runs out on Linux, and no swap is active, the Health sub-engine now adds the planned swap file by itself. It does this only with privileges the engine already has (it runs as root, or `sudo -n` works). It uses the same operation as the Health page's swap action, before anyone is asked. Before, swap was only ever added after the operator pressed that action.
+-   It never prompts for a password, overwrites an existing file, adds swap next to swap that is already active, or writes `/etc/fstab`. The Health page shows the size, path and outcome as the incident's automatic remedy, with the `/etc/fstab` line that keeps the swap after a reboot. When it cannot act, the remedy says why, for example missing administrator privileges or swap that is already active.
+-   One attempt serves the soft and the hard memory incident of the same shortage. Memory asks for help with the same rules as before, but never while the remedy is running. An incident whose condition already stopped holding is recovering and no longer asks for an action, which also removes a short false request right after a successful disk cleanup.
+
 ## Action log: the GitHub repository created by initialization is recorded
 
 -   When `ptbk init` creates the project's GitHub repository, it now saves a confirmed external-action record under `actions/.engine/initialization/` and commits it (`Action - Create repository · GitHub`) before publishing. The record names the engine-owned operation (**System operation: Initialization**) instead of an invented task or source file. The Action log lists it as `engine · Initialization`. Before, this remote effect left no audit record.

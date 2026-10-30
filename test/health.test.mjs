@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, utimes, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, utimes, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { HealthSubEngine } from '../dist/engine/health.js';
@@ -7,9 +8,10 @@ import { projectAt } from '../dist/project/workspace.js';
 import { findGenerated, git, initializedProject, ptbk, subjects, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /**
- * A Health sub-engine over scripted host samples (no real measurement, no timers).
+ * A Health sub-engine over scripted host samples (no real measurement, no timers); `probes` adds scripted host probes
+ * such as a swap plan.
  */
-function scripted(directory, options = {}) {
+function scripted(directory, options = {}, probes = {}) {
     const state = { disk: 10_000, memory: 8_000, load5: 0.5, reachable: true, limits: { disk: 500, memory: 512, source: 'engine defaults' }, ...options };
     const log = [];
     let pauseChanges = 0;
@@ -28,6 +30,7 @@ function scripted(directory, options = {}) {
                 cpu: { cores: 4, load1: state.load5, load5: state.load5, load15: state.load5, state: state.load5 / 4 >= 2 ? 'high' : 'normal' },
             }),
             connectivity: async () => ({ reachable: state.reachable, target: 'example.test:443', ...(state.reachable ? {} : { error: 'offline' }) }),
+            ...probes,
         },
     });
     return { health, state, log, pauseChanges: () => pauseChanges };
@@ -171,6 +174,60 @@ test('health: low disk first reclaims the owned cache by itself; only an inciden
     state.load5 = 12;
     await health.sampleNow();
     assert.equal(health.view().incidents.find((item) => item.resource === 'cpu').needsAction, undefined);
+});
+
+test('health: a memory shortage adds swap by itself with privileges the engine already has; otherwise it asks once', { skip: process.platform === 'win32' }, async (t) => {
+    const directory = await temporaryDirectory(t);
+    // Planned commands are split on spaces, so the stand-in swap file lives outside the fixture directory.
+    const swapfile = join(tmpdir(), `ptbk-swapfile-${process.pid}-${Date.now()}`);
+    t.after(async () => await rm(swapfile, { force: true }));
+    const plan = { current: [], privilege: 'root' };
+    let plans = 0;
+    const { health, state, log } = scripted(directory, {}, {
+        swapPlan: async () => {
+            plans++;
+            return {
+                supported: true,
+                note: 'No swap is active.',
+                current: plan.current,
+                // Harmless stand-ins for fallocate/mkswap/swapon: the planned commands are what the remedy runs.
+                proposal: { path: swapfile, sizeMiB: 1024, commands: [`touch ${swapfile}`], persistLine: `${swapfile} none swap sw 0 0`, privilege: plan.privilege },
+            };
+        },
+    });
+
+    state.memory = 3;
+    await health.sampleNow();
+    await waitFor(() => /Automatically enabled 1\.0 GiB of swap/.test(health.view().incidents[0]?.remedy ?? ''), { timeoutMs: 5_000 });
+    assert.equal(await readFile(swapfile, 'utf8'), '', 'the planned swap file was created through the shared operation');
+    const remedied = health.view().incidents.filter((incident) => incident.resource === 'memory');
+    assert.equal(remedied.length, 2, 'the hard and the soft incident of one shortage');
+    assert.ok(remedied.every((incident) => /Automatically enabled/.test(incident.remedy)), 'both share one attempt');
+    assert.equal(plans, 1, 'one plan, one swap file');
+    assert.match(remedied.find((incident) => incident.severity === 'hard').needsAction ?? '', /Free memory/, 'still exhausted after the remedy: one actionable request');
+    assert.equal(health.view().lastAction.action, 'health-swap');
+    assert.ok(log.some((entry) => /automatically enabled a 1\.0 GiB swap file/.test(entry.text)));
+
+    // The added swap shows: recovering incidents ask nothing and then close.
+    state.memory = 9000;
+    await health.sampleNow();
+    assert.ok(health.view().incidents.every((incident) => !incident.needsAction), 'a recovering incident is no request');
+    await health.sampleNow();
+    assert.deepEqual(health.view().incidents, []);
+
+    // Without the privileges, nothing is attempted and the reason says why; existing swap is never added to again.
+    plan.privilege = 'missing';
+    state.memory = 3;
+    await health.sampleNow();
+    await waitFor(() => /administrator privileges/.test(health.view().incidents[0]?.remedy ?? ''), { timeoutMs: 5_000 });
+    state.memory = 9000;
+    await health.sampleNow();
+    await health.sampleNow();
+    plan.privilege = 'root';
+    plan.current = [{ path: swapfile, sizeMiB: 1024, usedMiB: 1000 }];
+    state.memory = 3;
+    await health.sampleNow();
+    await waitFor(() => /already active/.test(health.view().incidents[0]?.remedy ?? ''), { timeoutMs: 5_000 });
 });
 
 test('health: a soft health pause stops new claims, composes with a manual pause and resumes only when every reason is gone', async (t) => {
