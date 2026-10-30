@@ -964,13 +964,46 @@
     /** Local HTTP connection details; opening this viewer never starts an engine. */
     function renderConnection(snapshot) {
         const { local } = snapshot.connection;
-        return h('section', { className: 'card connection', 'aria-label': 'Connection' },
+        const card = h('section', { className: 'card connection', 'aria-label': 'Connection' },
             h('h2', {}, 'Connection'),
             h('dl', { className: 'kv' }, h('dt', {}, 'Local'), h('dd', {},
                 pill(local.state, local.state === 'ready' ? 'ok' : ''),
                 local.url ? h('div', {}, h('a', { href: local.url }, local.url)) : null,
                 local.error ? h('div', { className: 'muted' }, local.error) : null)),
             h('p', { className: 'muted' }, 'Available on this computer only.'));
+        const update = snapshot.update;
+        return update ? h('div', {}, card, renderEngineUpdate(update)) : card;
+    }
+
+    /** Calls the engine's shared update operation (`policy` commits its own ptbk.json change; `check` only looks up). */
+    async function updateAction(body, pending) {
+        toast(pending);
+        try {
+            const view = await api('/api/update', { method: 'POST', body });
+            toast(body.action === 'policy' ? `Automatic engine updates are ${view.policy.isAutoUpdateEnabled ? 'on' : 'off'} (saved in ptbk.json and committed).` : view.target ? `ptbk ${view.target} is available; it installs when the engine has free hands.` : view.reason);
+        } catch (error) {
+            toast(`Failed: ${error.message}`);
+        }
+    }
+
+    /** The engine-owned update policy switch and its system-task progress (progress itself is a task in Tasks). */
+    function renderEngineUpdate(update) {
+        const major = update.current.replace(/^v/, '').split('.')[0];
+        const tone = update.phase === 'failed' || update.phase === 'recovering' ? 'warn' : '';
+        const rows = [
+            ['Automatic', h('span', {}, pill(update.policy.isAutoUpdateEnabled ? 'on' : 'off', update.policy.isAutoUpdateEnabled ? 'ok' : 'warn'), h('span', { className: 'muted' }, ` updates.isAutoUpdateEnabled (${update.policy.source})`))],
+            ['Allowed', update.policy.versionRange ? `updates.versionRange ${update.policy.versionRange}` : `stable minor/patch releases within major ${major}${update.current.includes('-') ? '; this prerelease advances to its stable release' : ''}`],
+            ['Running', `ptbk ${update.current} (${update.installation.scope} installation)`],
+            ['Latest', update.latest ? `${update.latest}${update.checkedAt ? ` · checked ${time(update.checkedAt)}` : ''}` : update.lookupProblem ? `unknown (${update.lookupProblem})` : 'not looked up yet'],
+            ['Status', h('span', { className: tone }, update.reason)],
+        ];
+        if (update.lastOutcome) rows.push(['Last', `${update.lastOutcome.outcome} ${update.lastOutcome.from} → ${update.lastOutcome.to} · ${time(update.lastOutcome.at)} · ${update.lastOutcome.detail}`]);
+        return h('section', { className: 'card', 'aria-label': 'Engine updates' },
+            h('h2', {}, h('span', {}, 'Engine updates'), h('span', { className: 'row' },
+                h('button', { className: update.policy.isAutoUpdateEnabled ? '' : 'primary', onclick: () => updateAction({ action: 'policy', isAutoUpdateEnabled: !update.policy.isAutoUpdateEnabled }, `Turning automatic engine updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}…`) }, `Turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}`),
+                update.isSupported ? h('button', { onclick: () => updateAction({ action: 'check' }, 'Looking up engine releases…') }, 'Check now') : null)),
+            h('dl', { className: 'kv' }, rows.flatMap(([label, value]) => [h('dt', {}, label), h('dd', {}, value)])),
+            update.target ? h('p', { className: 'muted' }, 'A pending update is a low-priority system task in Tasks; ordinary work goes first and a manual pause or stop holds it.') : null);
     }
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
@@ -1975,7 +2008,10 @@
                     h(
                         'li',
                         {},
-                        h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}`)),
+                        // An engine-defined system task shows its kind and actual executor instead of a project source.
+                        item.kind === 'system'
+                            ? h('span', { className: 'title' }, pill('system', ''), ' ', item.title, h('span', { className: 'why' }, `${item.reason} · ${item.executor || 'the engine'}${item.priorityText ? ` · ${item.priorityText} priority` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''}`))
+                            : h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}`)),
                         // The task's question is the one in its chat: answering opens that conversation.
                         item.waitingChat ? h('button', { className: 'primary', onclick: () => openChat(item.waitingChat) }, 'Answer') : null,
                         pill(item.readiness, tone[item.readiness]),
@@ -2050,7 +2086,7 @@
             case 'files':
                 return renderFilesPage();
             case 'connection':
-                return pageFrame('connection', 'Local dashboard access on this computer', renderConnection(snapshot));
+                return pageFrame('connection', snapshot.update ? 'Local dashboard access on this computer and the engine’s automatic updates' : 'Local dashboard access on this computer', renderConnection(snapshot));
             case 'sync':
                 return pageFrame('sync', 'Git autosync through the engine’s one coordinator', renderSync(snapshot));
             default:

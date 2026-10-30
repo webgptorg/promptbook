@@ -31,6 +31,10 @@ export type TaskInventoryItem = {
     readonly origin?: string;
     /** The chat holding this task's pending question (the same question and answer as in that chat). */
     readonly waitingChat?: string;
+    /** `system`: an engine-defined task without a project Book (e.g. the engine's self-update); ordinary when absent. */
+    readonly kind?: 'ordinary' | 'system';
+    /** The actual executor of a system task (its engine implementation), shown instead of an agent. */
+    readonly executor?: string;
 };
 
 /**

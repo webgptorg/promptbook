@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { chmod, copyFile, cp, mkdir, readFile, symlink, unlink, writeFile } from 'node:fs/promises';
+import { delimiter, join } from 'node:path';
 import { test } from 'node:test';
 import { interpretConfig, parseConfigText, updatePolicyOf } from '../dist/project/config.js';
 import { parseVersionRange, policyPermits, rangeAdmits, selectUpdate } from '../dist/project/update-policy.js';
+import { projectAt } from '../dist/project/workspace.js';
+import { ControlClient } from '../dist/service/control.js';
+import { readProcessRecord } from '../dist/service/records.js';
+import { ROOT, fakeHarness, git, initRepository, subjects, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /**
  * The default policy (automatic updates on, no range).
@@ -81,4 +88,148 @@ test('update policy: saved in ptbk.json under updates, default on, explicit fals
     assert.ok(!wallet.diagnostics.some((diagnostic) => diagnostic.location.includes('wallet')), 'wallet is a known section too');
     const invalid = interpretConfig(parseConfigText(JSON.stringify({ updates: { versionRange: 'newest please' } })));
     assert.ok(invalid.diagnostics.some((diagnostic) => diagnostic.location === 'ptbk.json › updates.versionRange' && diagnostic.severity === 'error'));
+});
+
+/**
+ * Version of the simulated local installation before the update.
+ */
+const FROM = '0.500.0-1';
+
+/**
+ * The release the default policy selects for {@link FROM}: its own stable release.
+ */
+const TARGET = '0.500.0';
+
+/**
+ * Runs a CLI (the copied local installation) and returns its exit code and output.
+ */
+function run(bin, args, options) {
+    return new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [bin, ...args], { cwd: options.cwd, env: options.env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+        let output = '';
+        child.stdout.setEncoding('utf8').on('data', (chunk) => (output += chunk));
+        child.stderr.setEncoding('utf8').on('data', (chunk) => (output += chunk));
+        child.on('error', reject);
+        child.on('close', (code) => resolve({ code, output }));
+    });
+}
+
+/**
+ * A project whose `node_modules/ptbk` is a copy of the built engine at {@link FROM}, with a fake `npm` first on PATH.
+ */
+async function locallyInstalledProject(t, npm) {
+    const beforeRemoval = [];
+    const directory = await temporaryDirectory(t, 'ptbk self-update', beforeRemoval);
+    const harness = await fakeHarness(t, directory);
+    const project = join(directory, 'host project');
+    await initRepository(project);
+    const installation = join(project, 'node_modules', 'ptbk');
+    await cp(join(ROOT, 'bin'), join(installation, 'bin'), { recursive: true });
+    await cp(join(ROOT, 'dist'), join(installation, 'dist'), { recursive: true });
+    const manifest = JSON.parse(await readFile(join(ROOT, 'package.json'), 'utf8'));
+    await writeFile(join(installation, 'package.json'), JSON.stringify({ ...manifest, version: FROM }, null, 4));
+    const modules = join(installation, 'node_modules');
+    await symlink(join(ROOT, 'node_modules'), modules, 'junction');
+    beforeRemoval.push(() => unlink(modules));
+    await writeFile(join(project, 'package.json'), `${JSON.stringify({ name: 'host-project', private: true, dependencies: { ptbk: FROM } }, null, 2)}\n`);
+    await writeFile(join(project, '.gitignore'), 'node_modules/\n');
+    await writeFile(join(project, 'check.mjs'), 'process.exit(0);\n');
+    await git(project, ['add', 'package.json', '.gitignore', 'check.mjs']);
+    await git(project, ['commit', '--quiet', '-m', 'Host project with a local ptbk']);
+    const tools = join(directory, 'fake npm');
+    await mkdir(tools, { recursive: true });
+    await copyFile(join(ROOT, 'test', 'fixtures', 'fake-npm.mjs'), join(tools, 'fake-npm.mjs'));
+    await writeFile(join(tools, 'npm.json'), JSON.stringify(npm));
+    await writeFile(join(tools, 'npm'), `#!/bin/sh\nexec "${process.execPath}" "${join(tools, 'fake-npm.mjs')}" "$@"\n`);
+    await chmod(join(tools, 'npm'), 0o755);
+    const pathKey = Object.keys(harness.env).find((key) => key.toUpperCase() === 'PATH') ?? 'PATH';
+    const env = { ...harness.env, [pathKey]: `${tools}${delimiter}${harness.env[pathKey]}` };
+    const bin = join(installation, 'bin', 'ptbk.js');
+    beforeRemoval.push(() => run(bin, ['stop', '--force', '--raw'], { cwd: project, env }));
+    const init = await run(bin, ['init', '--path', project, '--non-interactive', '--harness', 'openai-codex', '--check', 'node check.mjs', '--no-start', '--raw'], { cwd: project, env });
+    assert.ok([0, 3].includes(init.code), init.output);
+    const configPath = join(project, 'ptbk.json');
+    const config = JSON.parse(await readFile(configPath, 'utf8'));
+    config.discovery = { ...config.discovery, isEnabled: false };
+    await writeFile(configPath, `${JSON.stringify(config, null, 4)}\n`);
+    await git(project, ['commit', '-q', '-m', 'No goal discovery', '--', 'ptbk.json']);
+    const npmLog = async () => (await readFile(join(tools, 'npm.log'), 'utf8').catch(() => '')).trim().split('\n').filter(Boolean).map((line) => JSON.parse(line));
+    const status = async () => JSON.parse((await run(bin, ['status', '--json'], { cwd: project, env })).output);
+    const control = async (method, params = {}) => {
+        const record = await readProcessRecord(projectAt(project));
+        return await new ControlClient(projectAt(project), record).request(method, params, 60_000);
+    };
+    return { project, env, bin, npmLog, status, control };
+}
+
+test('engine self-update: a low-priority system task updates the local installation, keeps a pause accepted meanwhile and verifies the restart', { timeout: 240_000 }, async (t) => {
+    if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
+    const { project, env, bin, npmLog, status, control } = await locallyInstalledProject(t, { versions: ['0.499.0', FROM, '0.500.0-2', TARGET, '0.500.1-0', '1.0.0'], installDelayMs: 2500 });
+    assert.equal((await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => (await status()).service?.state === 'running', { message: 'the engine to run' });
+    assert.equal((await status()).update.installation.scope, 'local');
+
+    // A manual pause holds the system task like any background work: the release is known but nothing is installed.
+    assert.equal((await run(bin, ['pause', '--raw'], { cwd: project, env })).code, 0);
+    const found = await control('update-check');
+    assert.equal(found.target, TARGET, 'a running prerelease moves to its stable release, not to 0.500.1-0 or 1.0.0');
+    const pending = await status();
+    const system = pending.queue.find((item) => item.ref === 'system:engine-update');
+    assert.equal(system?.kind, 'system');
+    assert.equal(system.source, '', 'no fictitious project Book');
+    assert.match(system.executor, /engine/);
+    const inventory = await control('task-inventory');
+    assert.ok(inventory.some((item) => item.ref === 'system:engine-update' && item.kind === 'system'), 'the same task inventory lists the system task');
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    assert.ok(!(await npmLog()).some((entry) => entry.args[0] === 'install'), 'paused: no installation');
+
+    // Resumed with free hands the update installs; a pause accepted during the installation survives the restart.
+    assert.equal((await run(bin, ['resume', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => (await status()).update?.phase === 'installing', { message: 'the installation to start' });
+    assert.equal((await run(bin, ['pause', '--raw'], { cwd: project, env })).code, 0);
+    const updated = await waitFor(async () => {
+        const snapshot = await status().catch(() => undefined);
+        return snapshot?.engine?.version === TARGET && snapshot.update?.lastOutcome?.outcome === 'verified' ? snapshot : undefined;
+    }, { timeoutMs: 120_000, message: 'the restarted engine to load the update' });
+    assert.equal(updated.service.state, 'pause', 'the pause accepted during maintenance is kept by the update restart');
+    assert.equal(updated.update.lastOutcome.from, FROM);
+
+    const install = (await npmLog()).filter((entry) => entry.args[0] === 'install');
+    assert.equal(install.length, 1, 'one installation');
+    assert.deepEqual(install[0].args, ['install', '--save-exact', '--save-prod', `ptbk@${TARGET}`], 'the dependency placement is kept');
+    assert.equal(JSON.parse(await readFile(join(project, 'package.json'), 'utf8')).dependencies.ptbk, TARGET);
+    const history = await subjects(project);
+    assert.ok(history.includes(`ptbk: Update Promptbook engine ${FROM} → ${TARGET}`), history.join('\n'));
+    const changed = (await git(project, ['show', '--name-only', '--format=', `HEAD~${history.indexOf(`ptbk: Update Promptbook engine ${FROM} → ${TARGET}`)}`])).trim().split('\n');
+    assert.deepEqual(changed.sort(), ['package-lock.json', 'package.json'], 'a scoped system commit of the package files only');
+    assert.equal(JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8')).promptbookVersion, TARGET, 'the new engine migrated the configuration');
+    assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'nothing is left uncommitted');
+    assert.ok(!(await status()).queue.some((item) => item.ref === 'system:engine-update'), 'nothing is pending anymore');
+});
+
+test('engine self-update: a failed installation keeps the running version and schedules an automatic recheck', { timeout: 180_000 }, async (t) => {
+    if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
+    const { project, env, bin, npmLog, status, control } = await locallyInstalledProject(t, { versions: [FROM, TARGET], failInstall: true });
+    assert.equal((await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => (await status()).service?.state === 'running', { message: 'the engine to run' });
+    await control('update-check');
+    const failed = await waitFor(async () => {
+        const snapshot = await status();
+        return snapshot.update?.lastOutcome?.outcome === 'failed' ? snapshot : undefined;
+    }, { message: 'the failed update' });
+    assert.equal(failed.engine.version, FROM);
+    assert.equal(failed.service.state, 'running', 'a failed update neither stops nor pauses the engine');
+    assert.equal(failed.update.phase, 'recovering');
+    assert.ok(Date.parse(failed.update.nextAttemptAt) > Date.now() + 30 * 60_000, 'a cause-aware recheck, not a tight loop');
+    assert.equal((await npmLog()).filter((entry) => entry.args[0] === 'install').length, 2, 'bounded technical attempts');
+    assert.equal(JSON.parse(await readFile(join(project, 'node_modules', 'ptbk', 'package.json'), 'utf8')).version, FROM);
+    assert.equal(failed.queue.find((item) => item.ref === 'system:engine-update')?.readiness, 'waiting-until');
+    assert.ok(!(await subjects(project)).some((subject) => subject.includes('Update Promptbook engine')));
+
+    // Turning automatic updates off is the shared policy operation with its own commit.
+    const off = await control('update-policy', { isAutoUpdateEnabled: false });
+    assert.equal(off.policy.isAutoUpdateEnabled, false);
+    assert.equal(JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8')).updates.isAutoUpdateEnabled, false);
+    assert.ok((await subjects(project)).includes('ptbk: Turn automatic engine updates off'));
+    assert.ok(!(await status()).queue.some((item) => item.ref === 'system:engine-update'), 'a disabled policy has no pending update');
 });

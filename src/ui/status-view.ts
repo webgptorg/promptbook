@@ -258,7 +258,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     // Agents, Chats and Tasks: three separate inventories (not three labels of the active task).
     const readinessTone = (readiness: string): ((text: string) => string) =>
         readiness === 'ready' || readiness === 'active' ? style.success : ['blocked', 'failed', 'needs-recovery', 'incompatible'].includes(readiness) ? style.error : readiness === 'awaiting-user' || readiness.includes('assign') ? style.warning : style.muted;
-    const taskItems: TaskInventoryItem[] = snapshot.queue.map((item) => ({ ref: item.ref, title: item.title, readiness: item.readiness, reason: item.reason, priority: item.priority, agent: item.agent, until: item.until, source: item.source, doneCount: 0 }));
+    const taskItems: TaskInventoryItem[] = snapshot.queue.map((item) => ({ ref: item.ref, title: item.title, readiness: item.readiness, reason: item.reason, priority: item.priority, agent: item.agent, until: item.until, source: item.source, doneCount: 0, ...(item.kind ? { kind: item.kind, executor: item.executor } : {}) }));
     const queuedBy = (agent: string): number => taskItems.filter((item) => item.agent && item.agent.replace(/^@|^\{|\}$/g, '').toLowerCase() === agent.toLowerCase() && !['done', 'retired'].includes(item.readiness)).length;
     const agentLines = (inner: number): string[] => {
         const lines = snapshot.agents.slice(0, PANEL_ITEMS).map((agent) => {
@@ -276,7 +276,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         return lines;
     };
     const taskLines = (inner: number): string[] => {
-        const lines = taskItems.slice(0, PANEL_ITEMS).map((item) => truncate(`${readinessTone(item.readiness)(item.readiness.padEnd(READINESS_WIDTH).slice(0, READINESS_WIDTH))} ${item.title}`, inner));
+        const lines = taskItems.slice(0, PANEL_ITEMS).map((item) => truncate(`${readinessTone(item.readiness)(item.readiness.padEnd(READINESS_WIDTH).slice(0, READINESS_WIDTH))} ${item.kind === 'system' ? style.muted('[system] ') : ''}${item.title}`, inner));
         if (!taskItems.length) lines.push(style.muted('No tasks.'));
         if (taskItems.length > PANEL_ITEMS) lines.push(style.muted(`… ${taskItems.length - PANEL_ITEMS} more (ptbk list)`));
         return lines;

@@ -4,6 +4,7 @@ import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
 import type { WalletView } from '../wallet/wallet.js';
 import type { ActionLogView } from './action-log.js';
+import type { EngineUpdateView } from './engine-update.js';
 import type { ReportView } from './report.js';
 import type { UsageRow, UsageTotals } from './usage.js';
 
@@ -165,6 +166,10 @@ export type QueueItemView = {
     readonly source: string;
     readonly until?: string;
     readonly origin?: string;
+    /** `system`: an engine-defined task without a project Book; ordinary when absent. */
+    readonly kind?: 'ordinary' | 'system';
+    /** The actual executor of a system task. */
+    readonly executor?: string;
 };
 
 /**
@@ -640,6 +645,8 @@ export type ServiceSnapshot = {
     readonly usage?: UsageOverview;
     /** Saved configuration version and pending configuration work. */
     readonly configuration?: { readonly promptbookVersion?: string; readonly pending?: string };
+    /** The engine-owned self-update: policy, installation, available release and its system-task progress (absent from older engines). */
+    readonly update?: EngineUpdateView;
     readonly wait?: WaitView;
     readonly queue: readonly QueueItemView[];
     readonly queueTotal: number;

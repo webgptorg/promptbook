@@ -341,6 +341,17 @@ export class ServiceHost {
                 return await agenda.actions.read(String(params.path ?? ''));
             case 'settings':
                 return await applySettings(agenda, params);
+            case 'update-view':
+                return agenda.engineUpdate;
+            case 'update-check':
+                return await agenda.checkEngineUpdate();
+            case 'update-policy':
+                if (typeof params.isAutoUpdateEnabled !== 'boolean') throw new PtbkError('update-policy needs a boolean isAutoUpdateEnabled.', { kind: 'usage' });
+                await agenda.setAutoUpdate(params.isAutoUpdateEnabled);
+                return agenda.engineUpdate;
+            case 'update-restart':
+                // Another engine replaced the shared installation this engine runs from.
+                return agenda.requestUpdateRestart();
             case 'add-task':
                 return await agenda.addTaskFile(
                     String(params.path),

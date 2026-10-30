@@ -966,8 +966,29 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     void runAction('sync-now');
                 }
                 return;
-            case 'connection':
+            case 'connection': {
+                // The engine's shared update policy operation (its own scoped commit), as the browser and the App use it.
+                const update = snapshot.update;
+                if (!update) return;
+                if (key === 'a') {
+                    const enabled = !update.policy.isAutoUpdateEnabled;
+                    notify(`Turning automatic engine updates ${enabled ? 'on' : 'off'}…`);
+                    void source
+                        .action('update-policy', { isAutoUpdateEnabled: enabled })
+                        .then(() => notify(`Automatic engine updates are ${enabled ? 'on' : 'off'} (saved in ptbk.json and committed).`))
+                        .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
+                } else if (key === 'c' && update.isSupported) {
+                    notify('Looking up engine releases…');
+                    void source
+                        .action('update-check')
+                        .then((value) => {
+                            const view = value as unknown as NonNullable<ServiceSnapshot['update']>;
+                            notify(view.target ? `ptbk ${view.target} is available; it installs when the engine has free hands.` : view.reason);
+                        })
+                        .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
+                }
                 return;
+            }
             case 'commit': {
                 // Verified provenance links only (a name that no longer resolves stays historical).
                 const task = page.detail?.links.tasks.find((item) => item.path);
@@ -1000,7 +1021,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 if (key === 's') page.sort = TASK_SORT_FIELDS[(TASK_SORT_FIELDS.indexOf(page.sort) + 1) % TASK_SORT_FIELDS.length]!;
                 else if (key === 'd') page.descending = !page.descending;
                 else if (key === 't') void chatWith('Tasker');
-                else if (key === 'e' && task) void openBook({ path: task.source });
+                // Only a task with a project source has a Book to edit (a system task has none).
+                else if (key === 'e' && task?.source) void openBook({ path: task.source });
                 // One question, one answer: the task's pending question opens in its chat.
                 else if (key === 'a' && task?.waitingChat) {
                     void openChat({ kind: 'existing', name: task.waitingChat });

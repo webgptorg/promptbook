@@ -575,9 +575,15 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             items.forEach((item, index) => {
                 const when = item.until ? `next ${formatShortTime(Date.parse(item.until))}` : item.lastDone ? `done ${formatShortTime(Date.parse(item.lastDone))}` : '';
                 if (index === page.focus) anchor = body.length;
-                body.push(`${pointer(index === page.focus)} ${style.muted(item.readiness.padEnd(16).slice(0, 16))} ${item.title}${style.muted(`${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · P${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${when ? ` · ${when}` : ''}`)}`);
+                const system = item.kind === 'system';
+                body.push(`${pointer(index === page.focus)} ${style.muted(item.readiness.padEnd(16).slice(0, 16))} ${system ? `${style.accent('[system]')} ` : ''}${item.title}${style.muted(`${item.agent ? ` · ${item.agent}` : ''}${item.priority && !system ? ` · P${item.priority}` : ''}${system && item.priorityText ? ` · ${item.priorityText} priority` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${when ? ` · ${when}` : ''}`)}`);
                 if (index === page.focus && page.detail) {
-                    body.push(`    ${style.muted('Status')} ${item.readiness} — ${item.reason}`, `    ${style.muted('Source')} ${item.source}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}`, ...(item.model ? [`    ${style.muted('MODEL ')} ${item.model.replace(/\n/g, ' | ')}`] : []));
+                    body.push(
+                        `    ${style.muted('Status')} ${item.readiness} — ${item.reason}`,
+                        // A system task is engine-defined: its actual executor instead of a (nonexistent) source Book.
+                        system ? `    ${style.muted('Kind  ')} system task · executor ${item.executor ?? 'the engine'}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}` : `    ${style.muted('Source')} ${item.source}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}`,
+                        ...(item.model ? [`    ${style.muted('MODEL ')} ${item.model.replace(/\n/g, ' | ')}`] : []),
+                    );
                     // The task's pending question is the same one its chat shows; answering here answers it there.
                     const question = item.waitingChat ? snapshot.chats.waiting.find((chat) => chat.name === item.waitingChat) : undefined;
                     if (question?.awaiting) body.push(`    ${style.warning(`${marks.warn} ${question.awaiting.sender} asks:`)} ${question.awaiting.text.split('\n').filter(Boolean).at(-1) ?? ''}`, `    ${style.muted(`A answers in {${question.title ?? question.name}}`)}`);
@@ -589,7 +595,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 context: `${items.length} tasks · ${page.sort === 'smart' ? 'smart order: current, coming up, recent, distant, history' : `sorted by ${page.sort}`}${page.descending ? ' (reversed)' : ''} · viewer order only, never scheduling`,
                 body,
                 anchor,
-                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}E edit source · S sort (${TASK_SORT_FIELDS.length}) · D reverse · T Tasker · ${back}`,
+                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}${items[page.focus]?.source ? 'E edit source · ' : ''}S sort (${TASK_SORT_FIELDS.length}) · D reverse · T Tasker · ${back}`,
             };
         }
         case 'results': {
@@ -649,13 +655,41 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             const body: string[] = [];
             if (local.url) body.push(`${local.state === 'ready' ? style.success('Local') : style.muted('Local')} ${style.muted('(this computer only)')}`, ...breakLink(local.url));
             else body.push(`${style.muted('Local')} ${local.state}${local.error ? `: ${local.error}` : ''}`);
-            return { title: 'Connection', context: 'Local dashboard access on this computer', body, legend: `↑↓ scroll · ${back}` };
+            const update = snapshot.update;
+            if (update) body.push('', ...engineUpdateLines(update, style, time));
+            return {
+                title: 'Connection',
+                context: update ? 'Local dashboard access on this computer and the engine’s automatic updates' : 'Local dashboard access on this computer',
+                body,
+                legend: `${update ? `A turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}${update.isSupported ? ' · C check for a release now' : ''} · ` : ''}↑↓ scroll · ${back}`,
+            };
         }
         case 'sync': {
             if (!snapshot.sync) return { title: 'Synchronization', context: 'Automatic synchronization is off (isAutoSync false).', body: [style.muted('Nothing to show while autosync is disabled.')], legend: back };
             return { title: 'Synchronization', context: 'Git autosync with the tracked remote (shared coordinator; never a second scheduler)', body: syncDetailLines(snapshot.sync, style), legend: `G synchronize now · ↑↓ scroll · ${back}` };
         }
     }
+}
+
+/**
+ * The engine-owned update policy and its system-task progress (the Connection page owns the on/off switch; progress
+ * itself is an ordinary system task in the task views, never a lifecycle state).
+ *
+ * @private terminal dashboard pages
+ */
+export function engineUpdateLines(update: NonNullable<ServiceSnapshot['update']>, style: TerminalProfile['style'], time: (iso: string) => string): string[] {
+    const major = update.current.replace(/^v/, '').split('.')[0];
+    const lines = [
+        style.bold('Engine updates'),
+        `${style.muted('Automatic ')} ${update.policy.isAutoUpdateEnabled ? style.success('on') : style.warning('off')}${style.muted(` · updates.isAutoUpdateEnabled (${update.policy.source})`)}`,
+        `${style.muted('Allowed   ')} ${update.policy.versionRange ? `updates.versionRange ${update.policy.versionRange}` : `stable minor/patch releases within major ${major}${/-/.test(update.current) ? `; this prerelease advances to its stable release` : ''}`}`,
+        `${style.muted('Running   ')} ptbk ${update.current} ${style.muted(`(${update.installation.scope} installation)`)}`,
+        `${style.muted('Latest    ')} ${update.latest ?? style.muted(update.lookupProblem ? `unknown (${update.lookupProblem})` : 'not looked up yet')}${update.checkedAt ? style.muted(` · checked ${time(update.checkedAt)}`) : ''}${update.nextLookupAt ? style.muted(` · next ${time(update.nextLookupAt)}`) : ''}`,
+        `${style.muted('Status    ')} ${update.phase === 'failed' || update.phase === 'recovering' ? style.warning(update.reason) : update.phase === 'unsupported' ? style.muted(update.reason) : update.reason}`,
+    ];
+    if (update.lastOutcome) lines.push(`${style.muted('Last      ')} ${update.lastOutcome.outcome === 'verified' ? style.success('verified') : style.warning('failed')} ${update.lastOutcome.from} → ${update.lastOutcome.to}${style.muted(` · ${time(update.lastOutcome.at)} · ${update.lastOutcome.detail}`)}`);
+    if (update.target) lines.push(style.muted('  A pending update is a low-priority system task in Tasks; ordinary work goes first and a manual pause or stop holds it.'));
+    return lines;
 }
 
 /**

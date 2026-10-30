@@ -251,6 +251,21 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             }
             return;
         }
+        if (url.pathname === '/api/update' && method === 'GET') {
+            // The engine-owned self-update: policy, installation and system-task progress (reading never looks up or installs).
+            sendJson(response, 200, agenda.engineUpdate);
+            return;
+        }
+        if (url.pathname === '/api/update' && method === 'POST') {
+            // The same policy operation as the terminal dashboard (its own scoped commit); `check` only looks up releases.
+            const body = (await readJsonBody(request)) as { action?: string; isAutoUpdateEnabled?: unknown };
+            if (body.action === 'check') sendJson(response, 200, await agenda.checkEngineUpdate());
+            else if (body.action === 'policy' && typeof body.isAutoUpdateEnabled === 'boolean') {
+                await agenda.setAutoUpdate(body.isAutoUpdateEnabled);
+                sendJson(response, 200, agenda.engineUpdate);
+            } else sendJson(response, 400, { error: 'Use action check, or action policy with a boolean isAutoUpdateEnabled.' });
+            return;
+        }
         // Read-only project inspection: Git history (never fetched or changed) and confined nonhidden project files.
         const inspection: Record<string, () => Promise<unknown>> = {
             '/api/history': async () => await agenda.history({ limit: Number(url.searchParams.get('limit') ?? 200) || 200, skip: Number(url.searchParams.get('skip') ?? 0) || 0 }),
