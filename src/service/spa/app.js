@@ -1191,7 +1191,7 @@
                 ' ',
                 outcomeBadge(item.outcome),
                 item.pending ? h('span', { className: 'warn' }, ' · not committed yet') : null,
-                h('div', { className: 'muted' }, [item.at ? time(item.at) : '', item.target ? `→ ${item.target}` : '', item.agent || '', item.taskName || item.task].filter(Boolean).join(' · ')),
+                h('div', { className: 'muted' }, [item.at ? time(item.at) : '', item.target ? `→ ${item.target}` : '', ...(item.system ? [`engine · ${item.system}`] : [item.agent || '', item.taskName || item.task])].filter(Boolean).join(' · ')),
                 open && open.path === item.path ? h('pre', { className: 'log', 'aria-label': `Record ${item.path}` }, open.loading ? 'Loading…' : open.error ? `The record could not be read: ${open.error}` : open.content) : null,
                 open && open.path === item.path && open.links ? actionLinks(open.links) : null,
             ),

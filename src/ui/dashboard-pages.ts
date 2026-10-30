@@ -572,7 +572,8 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             if (!actions) return { title: 'Action log', context: 'This engine does not report external actions yet.', body: [style.muted('Not available.')], legend: back };
             const body = actions.recent.map((item, index) => {
                 const head = `${pointer(index === page.focus)} ${style.muted(item.at ? formatShortTime(Date.parse(item.at)) : '—')} ${item.operation}${item.service ? style.muted(` · ${item.service}`) : ''}${item.target ? style.muted(` → ${item.target}`) : ''} ${outcomeText(item.outcome, style)}${item.pending ? style.warning(' · not committed') : ''}`;
-                return `${head}${style.muted(` · ${item.agent ?? 'unknown agent'} · ${item.taskName ?? item.task}`)}`;
+                // An engine-owned operation has no task: it is named as itself, never as an agent or task.
+                return `${head}${style.muted(` · ${item.system ? `engine · ${item.system}` : `${item.agent ?? 'unknown agent'} · ${item.taskName ?? item.task}`}`)}`;
             });
             if (!actions.recent.length) body.push(style.muted('No external action has been recorded. Records are captured from now on; earlier tasks may have external work without a record.'));
             if (actions.total > actions.recent.length) body.push('', style.muted(`… ${actions.total - actions.recent.length} older record(s) are in actions/ (Files).`));

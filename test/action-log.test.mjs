@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { ActionLog, parseActionRecord, renderActionRecord } from '../dist/engine/action-log.js';
+import { ActionLog, parseActionRecord, renderActionRecord, saveEngineAction } from '../dist/engine/action-log.js';
 import { projectAt } from '../dist/project/workspace.js';
 import { actionDirectoryOf, traceDirectoryOf } from '../dist/tasks/identity.js';
 import { drive, findGenerated, git, initializedProject, messages, ptbk, rawSubjects, subjects, temporaryDirectory } from './helpers.mjs';
@@ -116,4 +116,15 @@ test('action records: one committed Markdown per remote mutation, independent of
     await assert.rejects(readdir(join(project, actionDirectoryOf(quiet))), 'a task without external actions has no action directory');
     const touching = (await git(project, ['log', '--format=%s', '--', 'actions'])).trim().split('\n');
     assert.ok(touching.every((subject) => / Action - /.test(subject)), `only scoped action audits touch actions/: ${touching.join(' | ')}`);
+});
+
+test('action records: an engine-owned operation records its effect under actions/.engine/ without an invented task', async (t) => {
+    const directory = await temporaryDirectory(t, 'ptbk engine action');
+    const path = await saveEngineAction({ root: directory }, { system: 'Initialization', operation: 'Create repository', service: 'GitHub', account: 'owner', target: 'github.com/owner/project', content: 'Created the private repository.', observed: '`gh repo create` succeeded.', reference: 'https://github.com/owner/project', timeZone: 'UTC' });
+    assert.match(path, /^actions\/\.engine\/initialization\/\d{4}-\d{2}-\d{2}-\d{4}-create-repository-github\.md$/);
+    const content = await readFile(join(directory, path), 'utf8');
+    assert.match(content, /^- \*\*System operation:\*\* Initialization$/m);
+    assert.doesNotMatch(content, /\*\*(Task|Task source|Evidence|Agent):\*\*/, 'no invented task, source, evidence or agent');
+    const summary = parseActionRecord(path, content);
+    assert.deepEqual({ system: summary.system, taskName: summary.taskName, source: summary.source, outcome: summary.outcome, reference: summary.reference }, { system: 'Initialization', taskName: undefined, source: undefined, outcome: 'confirmed', reference: 'https://github.com/owner/project' });
 });

@@ -1,10 +1,11 @@
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { errorMessage } from '../common/errors.js';
 import { readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
 import { runProcess } from '../common/process.js';
 import { createRedactor } from '../common/redact.js';
+import { saveEngineAction } from '../engine/action-log.js';
 import { redactUrl } from '../engine/sync.js';
-import { git } from './git.js';
+import { commitPaths, git } from './git.js';
 import type { Project } from './workspace.js';
 
 /**
@@ -33,9 +34,40 @@ export type PublicationOutcome = { readonly ok: boolean; readonly message: strin
 const DIAGNOSTIC_LINES = 2;
 
 /**
- * Record of a repository this setup created (a retry reuses it instead of creating a duplicate).
+ * Record of a repository this setup requested or created (a retry reuses it instead of creating a duplicate). It is
+ * saved before the request, so a lost acknowledgement is reconciled from the repository's existence, never repeated.
  */
-type PublicationRecord = { readonly version: 1; readonly provider: 'github'; readonly repository: string; readonly visibility: string; readonly createdAt: string };
+type PublicationRecord = {
+    readonly version: 1;
+    readonly provider: 'github';
+    readonly repository: string;
+    readonly visibility: string;
+    /** `requested` until the creation was observed (older records have no state: created). */
+    readonly state?: 'requested' | 'created';
+    readonly requestedAt?: string;
+    readonly createdAt?: string;
+    /** Project-relative external-action record of the creation. */
+    readonly action?: string;
+};
+
+/**
+ * Saves and commits the external-action record of a repository this setup created (an engine-owned operation, not a
+ * task). A failed commit keeps the record saved; the next engine start commits it. Returns its path.
+ */
+async function recordRepositoryCreation(project: Project, repositoryRoot: string, input: { readonly repository: string; readonly visibility: string; readonly account?: string; readonly observed: string }, env: NodeJS.ProcessEnv): Promise<string> {
+    const path = await saveEngineAction(project, {
+        system: 'Initialization',
+        operation: 'Create repository',
+        service: 'GitHub',
+        account: input.account,
+        target: `github.com/${input.repository}`,
+        content: `Created the ${input.visibility} repository github.com/${input.repository} as this project's synchronization destination (ptbk init).`,
+        observed: input.observed,
+        reference: `https://github.com/${input.repository}`,
+    });
+    await commitPaths({ projectRoot: project.root, repositoryRoot, paths: [resolve(project.root, path)], subject: 'Action - Create repository · GitHub', temporaryDirectory: project.runtime.temporary, env }).catch(() => undefined);
+    return path;
+}
 
 /**
  * The repository's configured origin URL, if any.
@@ -111,11 +143,23 @@ export async function publishProject(project: Project, repositoryRoot: string, c
         if (exists && record?.repository !== repository) {
             return { ok: false, message: `github.com/${repository} already exists and was not created by this setup; it is not reused implicitly. Choose another name, or supply it explicitly as another origin.` };
         }
+        const visibility = record?.repository === repository ? record.visibility : choice.visibility;
         if (!exists) {
             if (account.problem) return { ok: false, message: account.problem };
+            // The intent is saved before the consequential request.
+            await writeJsonAtomic(recordPath, { version: 1, provider: 'github', repository, visibility: choice.visibility, state: 'requested', requestedAt: new Date().toISOString() } satisfies PublicationRecord);
             const created = await runProcess('gh', ['repo', 'create', repository, `--${choice.visibility}`], { cwd: repositoryRoot, env, timeoutMs: 60_000 });
-            if (created.exitCode !== 0) return { ok: false, message: `Creating github.com/${repository} failed: ${(created.stderr.trim() || created.stdout.trim()).split('\n').pop() ?? ''}` };
-            await writeJsonAtomic(recordPath, { version: 1, provider: 'github', repository, visibility: choice.visibility, createdAt: new Date().toISOString() } satisfies PublicationRecord);
+            if (created.exitCode !== 0) {
+                // A lost acknowledgement is checked against the service before anything is retried.
+                const after = await runProcess('gh', ['repo', 'view', repository, '--json', 'url'], { cwd: repositoryRoot, env, timeoutMs: 30_000 });
+                if (after.exitCode !== 0) return { ok: false, message: `Creating github.com/${repository} failed: ${(created.stderr.trim() || created.stdout.trim()).split('\n').pop() ?? ''}` };
+            }
+            const action = await recordRepositoryCreation(project, repositoryRoot, { repository, visibility: choice.visibility, account: account.login, observed: created.exitCode === 0 ? '`gh repo create` succeeded.' : 'The request reported a failure, but the repository exists afterwards.' }, env);
+            await writeJsonAtomic(recordPath, { version: 1, provider: 'github', repository, visibility: choice.visibility, state: 'created', createdAt: new Date().toISOString(), action } satisfies PublicationRecord);
+        } else if (record?.state === 'requested') {
+            // An earlier request's acknowledgement was lost: the repository exists, so the creation is recorded, not repeated.
+            const action = await recordRepositoryCreation(project, repositoryRoot, { repository, visibility, account: account.login, observed: 'Reconciled: the repository exists after an earlier request whose acknowledgement was lost.' }, env);
+            await writeJsonAtomic(recordPath, { ...record, state: 'created', createdAt: new Date().toISOString(), action } satisfies PublicationRecord);
         }
         const url = `https://github.com/${repository}.git`;
         if (origin && origin !== url && origin !== `git@github.com:${repository}.git`) return { ok: false, message: `origin already points to ${redactUrl(origin)}; it was not replaced.` };
@@ -124,7 +168,7 @@ export async function publishProject(project: Project, repositoryRoot: string, c
             if (added.exitCode !== 0) return { ok: false, message: `Could not add origin: ${added.stderr.trim()}` };
         }
         const pushed = await pushBranch(repositoryRoot, branch, env);
-        return { ...pushed, message: pushed.ok ? `${exists ? 'Reused' : 'Created'} the ${record?.visibility ?? choice.visibility} repository github.com/${repository} and published ${branch}.` : pushed.message, destination: `github.com/${repository}` };
+        return { ...pushed, message: pushed.ok ? `${exists ? 'Reused' : 'Created'} the ${visibility} repository github.com/${repository} and published ${branch}.` : pushed.message, destination: `github.com/${repository}` };
     } catch (error) {
         return { ok: false, message: errorMessage(error) };
     }

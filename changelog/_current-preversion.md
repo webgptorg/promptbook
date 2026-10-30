@@ -1,5 +1,10 @@
 # Unreleased
 
+## Action log: the GitHub repository created by initialization is recorded
+
+-   When `ptbk init` creates the project's GitHub repository, it now saves a confirmed external-action record under `actions/.engine/initialization/` and commits it (`Action - Create repository · GitHub`) before publishing. The record names the engine-owned operation (**System operation: Initialization**) instead of an invented task or source file. The Action log lists it as `engine · Initialization`. Before, this remote effect left no audit record.
+-   The setup now saves its intent before the creation request. If the request reports a failure but the repository exists afterwards, or a rerun finds a repository an earlier request created without an acknowledgement, the creation is recorded and reused, never requested again.
+
 ## Tasks: a discovered technical prerequisite pauses the task until it is done
 
 -   An agent that finds a technical prerequisite its task cannot continue without (for example an accounting task that needs an XML parser) can call the new `create_prerequisite_task` tool and end its turn with the new status `waiting-for-task`. Before, the only way out was to report the task as blocked, which failed it, or to do the supporting work inside the content task.

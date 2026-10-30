@@ -43,6 +43,11 @@ export type ActionSubject = {
     readonly attempt: string;
     /** Project-relative trace directory of the task. */
     readonly trace: string;
+    /**
+     * Engine-owned operation that performed the action where no source-backed task exists (e.g. `Initialization`):
+     * `taskName`, `source` and `trace` are then empty, never an invented Book or source filename.
+     */
+    readonly system?: string;
 };
 
 /**
@@ -86,6 +91,8 @@ export type ActionSummary = {
     readonly task: string;
     readonly taskName?: string;
     readonly source?: string;
+    /** Engine-owned operation of a record without a task (its directory is under `actions/.engine/`). */
+    readonly system?: string;
     readonly operation: string;
     readonly service?: string;
     readonly account?: string;
@@ -410,7 +417,7 @@ export class ActionLog {
             const content = await readFile(absolute, 'utf8').catch(() => undefined);
             if (content === undefined) continue;
             const summary = parseActionRecord(path, content);
-            const subject: ActionSubject = { taskName: summary.taskName ?? summary.task, source: summary.source ?? '', agent: summary.agent ?? '', attempt: 'recovered', trace: summary.evidence ?? '' };
+            const subject: ActionSubject = { taskName: summary.taskName ?? (summary.system ? '' : summary.task), source: summary.source ?? '', agent: summary.agent ?? '', attempt: 'recovered', trace: summary.evidence ?? '', ...(summary.system ? { system: summary.system } : {}) };
             if ((await this.persist(path, { subject, operation: summary.operation, service: summary.service ?? 'unknown service' })) === 'committed') recovered++;
         }
         return recovered;
@@ -575,6 +582,57 @@ function newActionId(): string {
 }
 
 /**
+ * Directory of the records of engine-owned operations (no task source): `actions/.engine/<operation>/`. The dot keeps
+ * it apart from every task's `actions/<task-file-basename>/`.
+ *
+ * @private external action log
+ */
+export function engineActionDirectory(system: string): string {
+    return `${ACTIONS_DIRECTORY}/.engine/${slugify(system, 40)}`;
+}
+
+/**
+ * Saves the confirmed record of an external action an engine-owned operation performed itself (for example the GitHub
+ * repository initialization created), attributed honestly to that operation. Returns its project-relative path; the
+ * caller commits it (a record left uncommitted is committed by the next engine start, never repeated).
+ *
+ * @private external action log
+ */
+export async function saveEngineAction(
+    project: Pick<Project, 'root'>,
+    input: { readonly system: string; readonly operation: string; readonly service: string; readonly account?: string; readonly target?: string; readonly content: string; readonly observed: string; readonly reference?: string; readonly timeZone?: string },
+): Promise<string> {
+    const now = formatIsoWithOffset(Date.now(), input.timeZone);
+    const directory = engineActionDirectory(input.system);
+    const base = `${now.slice(0, 16).replace('T', '-').replace(':', '')}-${slugify(`${input.operation} ${input.service}`, 60)}`;
+    const existing = new Set(await readdir(resolve(project.root, directory)).catch(() => [] as string[]));
+    let name = `${base}.md`;
+    for (let index = 2; existing.has(name); index++) name = `${base}-${index}.md`;
+    const path = `${directory}/${name}`;
+    const redact = createRedactor();
+    const intent: ActionIntent = {
+        version: 1,
+        id: newActionId(),
+        subject: { taskName: '', source: '', agent: '', attempt: input.system, trace: '', system: input.system },
+        operation: input.operation,
+        service: input.service,
+        account: input.account,
+        target: input.target,
+        content: redact(input.content),
+        startedAt: now,
+        outcome: 'confirmed',
+        observed: redact(input.observed),
+        reference: input.reference,
+        record: path,
+        history: [`${now} — confirmed: ${redact(input.observed).replace(/\s+/g, ' ').slice(0, 200)} (${input.system})`],
+        closed: true,
+    };
+    await ensureDirectory(resolve(project.root, directory));
+    await writeFile(resolve(project.root, path), renderActionRecord(intent));
+    return path;
+}
+
+/**
  * Renders the readable Markdown record of an action (metadata as labelled fields, then content, outcome and history).
  *
  * @private external action log
@@ -587,14 +645,15 @@ export function renderActionRecord(intent: ActionIntent, revision?: string): str
         ...field('Outcome', intent.outcome ?? 'uncertain'),
         ...field('Recorded', intent.history.length ? intent.history[intent.history.length - 1]!.split(' — ')[0] : intent.startedAt),
         ...field('Agent', intent.subject.agent),
+        ...field('System operation', intent.subject.system),
         ...field('Task', intent.subject.taskName),
-        ...field('Task source', `${intent.subject.source}${revision ? ` (revision ${revision.slice(0, 12)})` : ''}`),
+        ...field('Task source', intent.subject.source ? `${intent.subject.source}${revision ? ` (revision ${revision.slice(0, 12)})` : ''}` : undefined),
         ...field('Occurrence', intent.subject.occurrence),
         ...field('Service', intent.service),
         ...field('Account', intent.account),
         ...field('Target', intent.target),
         ...field('External reference', intent.reference),
-        ...field('Evidence', `${intent.subject.trace}/`),
+        ...field('Evidence', intent.subject.trace ? `${intent.subject.trace}/` : undefined),
         ...field('Action ID', intent.id),
         '',
         '## What was sent or changed',
@@ -634,6 +693,7 @@ export function parseActionRecord(path: string, content: string): ActionSummary 
         task,
         taskName: fields.get('task'),
         source: fields.get('task source')?.replace(/ \(revision [0-9a-f]+\)$/, ''),
+        system: fields.get('system operation'),
         operation: operation?.trim() || path.split('/').pop()!.replace(/\.md$/, ''),
         service: fields.get('service') ?? service?.trim(),
         account: fields.get('account'),
