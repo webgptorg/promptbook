@@ -795,7 +795,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             else void walletRotate();
         } else if (key === 'z') {
             if (!wallet.management?.canReset) notify(wallet.state === 'ready' ? 'Nothing is lost here: use G for new 12 words instead of a reset.' : 'There is no Wallet to reset.');
-            else void walletReset();
+            else void walletReset(wallet.management.resetWarning ?? 'Resetting discards ALL old Wallet data for good.');
         }
     };
 
@@ -823,9 +823,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
      * Empty reset after total key loss: the all-data-loss warning, a typed RESET confirmation, then the new Wallet's
      * words; the old data is replaced only when those are confirmed (declining at any step changes nothing).
      */
-    const walletReset = async (): Promise<void> => {
+    const walletReset = async (warning: string): Promise<void> => {
         const typed = await outside(async () => {
-            terminal.write(`\n${style.error('Reset the Wallet')}\nNo key on this computer and no 12 words can unlock this Wallet, so its old data cannot be recovered.\nResetting discards ALL of it for good: services and accounts, labels, usernames, passwords and TOTP generators.\n\n`);
+            terminal.write(`\n${style.error('Reset the Wallet')}\nNo key on this computer and no 12 words can unlock this Wallet, so its old data cannot be recovered.\n${warning}\n\n`);
             const answer = await inputLine(terminal, { frame: { title: 'ptbk dashboard', step: 'Wallet · reset' }, question: 'Type RESET to discard every old Wallet login (anything else cancels):' });
             return answer === CANCELLED ? undefined : answer.trim();
         });

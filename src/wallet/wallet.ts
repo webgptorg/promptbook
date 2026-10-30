@@ -116,8 +116,11 @@ export type WalletView = {
     readonly records: readonly WalletRecordView[];
     /** Saved logins that stay encrypted because the Wallet is not unlocked here (their labels are encrypted too). */
     readonly lockedRecords?: number;
-    /** Owner maintenance that applies now: import, new recovery words (a working key), or an empty reset (no key). */
-    readonly management?: { readonly canImport: boolean; readonly canRotate: boolean; readonly canReset: boolean };
+    /**
+     * Owner maintenance that applies now: import, new recovery words (a working key), or an empty reset (no key), with
+     * the engine's all-data-loss warning every client shows before the reset is confirmed.
+     */
+    readonly management?: { readonly canImport: boolean; readonly canRotate: boolean; readonly canReset: boolean; readonly resetWarning?: string };
     readonly pending: readonly WalletActionView[];
     readonly lastAction?: { readonly action: string; readonly outcome: string; readonly applied: boolean; readonly at: string };
 };
@@ -1830,7 +1833,10 @@ export class WalletSubEngine {
                 };
             }),
             ...(this.lockedRecords ? { lockedRecords: this.lockedRecords } : {}),
-            management: { canImport: state === 'ready', canRotate: state === 'ready', canReset: (state === 'locked' || state === 'unavailable') && Boolean(this.metadata || this.problem) },
+            management: (() => {
+                const canReset = (state === 'locked' || state === 'unavailable') && Boolean(this.metadata || this.problem);
+                return { canImport: state === 'ready', canRotate: state === 'ready', canReset, ...(canReset ? { resetWarning: RESET_WARNING } : {}) };
+            })(),
             pending,
             ...(this.lastAction ? { lastAction: this.lastAction } : {}),
         };

@@ -1,5 +1,9 @@
 # Unreleased
 
+## Wallet: the reset warning in both dashboards is the engine's own
+
+-   **Reset Wallet** in the terminal and web dashboards now shows the engine's all-data-loss warning, which the Wallet view carries while a reset is possible. It names the services and accounts, labels, usernames, passwords, additional login fields and any retained legacy TOTP data. Before, both dashboards showed their own older copy, which named "TOTP generators" and left out additional login fields.
+
 ## Task purpose: tasks created in a chat, including by Tasker, can carry their purpose
 
 -   The chat agents' `create_task` tool takes an optional `purpose` (`content` or `system`, relative to this project). The new task is written with `TASK PURPOSE CONTENT` or `TASK PURPOSE SYSTEM`. Before, Talk to Tasker, the main way to author tasks, could not record a purpose, although Tasker's instructions ask it to classify new work where useful.

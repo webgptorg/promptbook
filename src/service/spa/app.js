@@ -1754,7 +1754,8 @@
         const management = wallet.management || {};
         if (management.canImport) actions.append(h('button', { onclick: walletImport }, 'Import from Bitwarden'));
         if (management.canRotate) actions.append(h('button', { onclick: walletRotate }, 'Generate new 12 words'));
-        if (management.canReset) actions.append(h('button', { className: 'danger', onclick: walletReset }, 'Reset Wallet'));
+        // The warning is the engine's own text, the same in every client.
+        if (management.canReset) actions.append(h('button', { className: 'danger', onclick: () => walletReset(management.resetWarning || 'Resetting discards ALL old Wallet data for good.') }, 'Reset Wallet'));
         status.append(actions);
         if (wallet.lockedRecords) status.append(h('p', { className: 'muted' }, `${wallet.lockedRecords} saved login${wallet.lockedRecords === 1 ? '' : 's'}: their services, accounts and labels are encrypted too and appear once this computer unlocks the Wallet.`));
         if (wallet.lastAction) status.append(h('p', { className: 'muted' }, `Last: ${wallet.lastAction.outcome}`));
@@ -2218,9 +2219,9 @@
         if (result && result.words) walletWordsDialog('New 12 words for recovery', 'Write these NEW words on paper, in order, and keep them safe. The Wallet switches to them when you confirm; the old words then stop working.', result.words, 'I wrote them down — switch to the new words', 'wallet-rotate-confirm', 'wallet-rotate-cancel');
     }
 
-    /** Empty reset after total key loss: the all-data-loss warning, a typed RESET, then the new Wallet's words. */
-    async function walletReset() {
-        const typed = window.prompt('No key on this computer and no 12 words can unlock this Wallet, so its old data cannot be recovered.\n\nResetting discards ALL of it for good: services and accounts, labels, usernames, passwords and TOTP generators.\n\nType RESET to continue (anything else cancels):');
+    /** Empty reset after total key loss: the engine's all-data-loss warning, a typed RESET, then the new Wallet's words. */
+    async function walletReset(warning) {
+        const typed = window.prompt(`No key on this computer and no 12 words can unlock this Wallet, so its old data cannot be recovered.\n\n${warning}\n\nType RESET to continue (anything else cancels):`);
         if (typed !== 'RESET') {
             toast('Nothing was changed; the encrypted Wallet data is kept.');
             return;

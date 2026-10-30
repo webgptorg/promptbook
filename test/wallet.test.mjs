@@ -1224,7 +1224,9 @@ test('Wallet reset after total key loss: strongly confirmed, declinable, empty a
     const { wallet, audits } = auditedWalletAt(project, join(root, 'computer two'));
     await wallet.initialize();
     assert.equal(wallet.view().state, 'locked');
-    assert.deepEqual(wallet.view().management, { canImport: false, canRotate: false, canReset: true });
+    const { resetWarning, ...management } = wallet.view().management;
+    assert.deepEqual(management, { canImport: false, canRotate: false, canReset: true });
+    assert.match(resetWarning, /services and accounts, labels, usernames, passwords, additional login fields and any retained legacy TOTP data/, 'every client shows the engine\'s one all-data-loss warning');
     await assert.rejects(wallet.beginRotation(), /locked|unlock/);
     const waiting = await wallet.login(fakePage('https://example.com').page, {});
     assert.equal(waiting.problem, 'locked');
