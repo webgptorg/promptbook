@@ -1,5 +1,9 @@
 # Unreleased
 
+## Files: core-agent Books in agents/.core can be browsed
+
+-   Files hid every dot directory, so `agents/.core/` (Adam, Router, Tasker, Teacher, Fixer and Chatter) could not be opened from the terminal or browser dashboard. A hidden directory directly inside the configured agents directory is now listed and opened when it holds agent Books. Hidden files inside it, hidden folders without Books, protected names (`.git`, `.ptbk`, `.env` …) and every other hidden path stay refused, with the same traversal and symlink confinement.
+
 ## Dashboard attention: only for a real human dependency; no standalone Results page
 
 -   A tile now gets attention only when a concrete decision, input or action from a person is needed. Before, any failure or warning raised it: the latest runtime error, a failed or recovering task, a tool configuration problem that Fixer repairs anyway, a quota wait that clears by itself, a pending configuration migration that is retried, a failed local HTTP listener, a sync conflict Fixer was already asked to resolve, a CPU or connectivity warning. These stay inspectable on their pages.

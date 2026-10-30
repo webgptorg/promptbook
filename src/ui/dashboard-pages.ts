@@ -591,7 +591,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             });
             if (!view.entries.length) body.push(style.muted('This folder has no visible entries.'));
             if (view.truncated) body.push('', style.muted('… more entries are not listed.'));
-            return { title: `Files › ${location}`, context: 'Read-only · hidden and protected paths (.git, .ptbk, .env …) are never shown', body, anchor: page.focus, legend: `↑↓ choose · Enter open · ${back}` };
+            return { title: `Files › ${location}`, context: 'Read-only · hidden and protected paths (.git, .ptbk, .env …) are never shown; agent Book folders such as agents/.core are', body, anchor: page.focus, legend: `↑↓ choose · Enter open · ${back}` };
         }
         case 'file': {
             if (page.problem) return { title: `Files › ${page.path}`, context: 'Read-only', body: [style.warning(page.problem)], legend: back };

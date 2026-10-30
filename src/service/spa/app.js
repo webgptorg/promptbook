@@ -1140,7 +1140,7 @@
                   file.truncated ? h('p', { className: 'warn' }, 'Only the beginning of this file is shown; the rest stays on disk.') : null,
               )
             : null;
-        return pageFrame('files', 'Read-only · hidden and protected paths (.git, .ptbk, .env …) are never shown', crumbs, files.error ? h('p', { className: 'warn' }, files.error) : null, files.loading ? h('p', { className: 'muted' }, 'Loading…') : null, list, viewer);
+        return pageFrame('files', 'Read-only · hidden and protected paths (.git, .ptbk, .env …) are never shown; agent Book folders such as agents/.core are', crumbs, files.error ? h('p', { className: 'warn' }, files.error) : null, files.loading ? h('p', { className: 'muted' }, 'Loading…') : null, list, viewer);
     }
 
     /** An external action's outcome as a styled word (partial and uncertain stay explicit). */

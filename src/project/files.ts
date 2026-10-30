@@ -90,6 +90,35 @@ function hiddenName(name: string): boolean {
 }
 
 /**
+ * Where Files looks for hidden agent directories.
+ *
+ * @private project files
+ */
+export type FilesOptions = {
+    /** The project's agents directory (`paths.agents`, default `agents`). */
+    readonly agentsDirectory?: string;
+};
+
+/**
+ * Dot names that stay protected even below the agents directory (repository, runtime state and secrets).
+ */
+const PROTECTED_NAME = /^\.(git|ptbk|env)(\b|$)|^\.(ssh|gnupg|npmrc|netrc)$/i;
+
+/**
+ * The narrow exception to hidden paths: a hidden directory directly inside the agents directory that holds agent
+ * Books (such as `agents/.core/`), so core-agent sources can be inspected. Hidden files, protected names and hidden
+ * entries deeper inside stay hidden.
+ */
+async function isAgentBookDirectory(parent: string, name: string, parentPath: string, options: FilesOptions): Promise<boolean> {
+    const agents = (options.agentsDirectory ?? 'agents').replace(/\\/g, '/').replace(/^\.\/|^\/+|\/+$/g, '');
+    if (parentPath !== agents || !hiddenName(name) || PROTECTED_NAME.test(name)) return false;
+    const directory = join(parent, name);
+    const info = await lstat(directory).catch(() => undefined);
+    if (!info?.isDirectory()) return false;
+    return (await readdir(directory).catch(() => [] as string[])).some((entry) => !hiddenName(entry) && extname(entry).toLowerCase() === '.book');
+}
+
+/**
  * Kind of a file by its name.
  *
  * @private project files
@@ -106,12 +135,19 @@ export function fileKind(name: string): FileKind {
 }
 
 /**
- * Resolves a project-relative path inside the project, refusing hidden segments, escapes and links that lead outside.
+ * Resolves a project-relative path inside the project, refusing hidden segments (except an agent Book directory),
+ * escapes and links that lead outside.
  */
-async function confined(projectRoot: string, path: string): Promise<{ readonly absolute: string; readonly relativePath: string }> {
+async function confined(projectRoot: string, path: string, options: FilesOptions = {}): Promise<{ readonly absolute: string; readonly relativePath: string }> {
     const normalized = path.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
     const segments = normalized ? normalized.split('/') : [];
-    if (segments.some((segment) => segment === '..' || hiddenName(segment))) throw new PtbkError(`${path} is not an accessible project path.`, { kind: 'usage', next: ['Files shows nonhidden project content only.'] });
+    const refuse = (): never => {
+        throw new PtbkError(`${path} is not an accessible project path.`, { kind: 'usage', next: ['Files shows nonhidden project content (and agent Book folders such as agents/.core) only.'] });
+    };
+    for (const [index, segment] of segments.entries()) {
+        if (segment === '..') refuse();
+        if (hiddenName(segment) && !(await isAgentBookDirectory(resolve(projectRoot, ...segments.slice(0, index)), segment, segments.slice(0, index).join('/'), options))) refuse();
+    }
     const absolute = resolve(projectRoot, ...segments);
     const root = await realpath(projectRoot);
     const real = await realpath(absolute).catch(() => undefined);
@@ -126,8 +162,8 @@ async function confined(projectRoot: string, path: string): Promise<{ readonly a
  *
  * @private project files
  */
-export async function accessibleProjectPath(projectRoot: string, path: string): Promise<string | undefined> {
-    return (await confined(projectRoot, path).catch(() => undefined))?.relativePath || undefined;
+export async function accessibleProjectPath(projectRoot: string, path: string, options: FilesOptions = {}): Promise<string | undefined> {
+    return (await confined(projectRoot, path, options).catch(() => undefined))?.relativePath || undefined;
 }
 
 /**
@@ -136,11 +172,13 @@ export async function accessibleProjectPath(projectRoot: string, path: string): 
  *
  * @private project files
  */
-export async function listFolder(projectRoot: string, path = ''): Promise<FolderView> {
-    const { absolute, relativePath } = await confined(projectRoot, path);
+export async function listFolder(projectRoot: string, path = '', options: FilesOptions = {}): Promise<FolderView> {
+    const { absolute, relativePath } = await confined(projectRoot, path, options);
     if (!(await stat(absolute)).isDirectory()) throw new PtbkError(`${relativePath} is not a folder.`, { kind: 'usage' });
     const root = await realpath(projectRoot);
-    const names = (await readdir(absolute)).filter((name) => !hiddenName(name)).sort((a, b) => a.localeCompare(b));
+    const names: string[] = [];
+    for (const name of await readdir(absolute)) if (!hiddenName(name) || (await isAgentBookDirectory(absolute, name, relativePath, options))) names.push(name);
+    names.sort((a, b) => a.localeCompare(b));
     const entries: FileEntry[] = [];
     for (const name of names.slice(0, MAX_ENTRIES)) {
         const child = join(absolute, name);
@@ -168,8 +206,8 @@ export async function listFolder(projectRoot: string, path = ''): Promise<Folder
  *
  * @private project files
  */
-export async function readProjectFile(projectRoot: string, path: string): Promise<FileView> {
-    const { absolute, relativePath } = await confined(projectRoot, path);
+export async function readProjectFile(projectRoot: string, path: string, options: FilesOptions = {}): Promise<FileView> {
+    const { absolute, relativePath } = await confined(projectRoot, path, options);
     const info = await stat(absolute);
     if (!info.isFile()) throw new PtbkError(`${relativePath} is not a file.`, { kind: 'usage' });
     const name = relativePath.split('/').pop() ?? relativePath;

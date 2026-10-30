@@ -103,4 +103,20 @@ test('Files: confined nonhidden browsing with readable formatting; hidden, escap
     const page = pageBody({ kind: 'files', scroll: 0, focus: 0, path: '', view: root }, { snapshot: {}, terminal: terminal(), frame: 0, owning: false });
     assert.match(page.body.map(stripAnsi).join('\n'), /escape\.txt → outside the project \(not followed\)/);
     assert.match(page.context, /hidden and protected paths/);
+
+    // The narrow exception: hidden agent Book folders such as agents/.core are navigable; nothing else hidden is.
+    await mkdir(join(project, 'agents', '.core'), { recursive: true });
+    await mkdir(join(project, 'agents', '.cache'), { recursive: true });
+    await mkdir(join(project, 'agents', '.ptbk'), { recursive: true });
+    await writeFile(join(project, 'agents', '.core', 'adam.book'), 'AGENT Adam\nFROM @Void\n');
+    await writeFile(join(project, 'agents', '.core', '.secret'), 'token\n');
+    await writeFile(join(project, 'agents', '.cache', 'notes.txt'), 'no books here\n');
+    await writeFile(join(project, 'agents', '.ptbk', 'x.book'), 'AGENT X\n');
+    await writeFile(join(project, 'agents', '.env'), 'KEY=secret\n');
+    await writeFile(join(project, 'agents', 'writer.book'), 'AGENT Writer\n');
+    assert.deepEqual((await listFolder(project, 'agents')).entries.map((entry) => entry.name), ['.core', 'writer.book'], 'only the hidden folder holding agent Books');
+    assert.deepEqual((await listFolder(project, 'agents/.core')).entries.map((entry) => entry.name), ['adam.book'], 'hidden files inside stay hidden');
+    assert.match((await readProjectFile(project, 'agents/.core/adam.book')).text, /AGENT Adam/);
+    for (const path of ['agents/.core/.secret', 'agents/.cache/notes.txt', 'agents/.ptbk/x.book', 'agents/.env', 'docs/.core/adam.book', 'agents/.core/../../.env']) await assert.rejects(readProjectFile(project, path), /not an accessible project path|no longer exists/, path);
+    assert.deepEqual((await listFolder(project, 'team', { agentsDirectory: 'team' }).catch(() => ({ entries: [] }))).entries, [], 'the configured agents directory decides where the exception applies');
 });

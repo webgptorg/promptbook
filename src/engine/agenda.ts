@@ -3707,14 +3707,19 @@ export class Agenda {
         return { ...detail, links: { tasks, chats } };
     }
 
-    /** One nonhidden project folder for Files (confined, read-only). */
+    /** One nonhidden project folder for Files (confined, read-only; agent Book folders such as agents/.core are shown). */
     public async files(path: string): Promise<FolderView> {
-        return await listFolder(this.options.project.root, path);
+        return await listFolder(this.options.project.root, path, { agentsDirectory: this.agentsDirectory() });
     }
 
     /** One project file for Files (bounded, confined, read-only; formatting is presentation only). */
     public async file(path: string): Promise<FileView> {
-        return await readProjectFile(this.options.project.root, path);
+        return await readProjectFile(this.options.project.root, path, { agentsDirectory: this.agentsDirectory() });
+    }
+
+    /** The configured agents directory (project-relative). */
+    private agentsDirectory(): string {
+        return this.settings ? setting<string>(this.settings, 'paths.agents') : 'agents';
     }
 
     // ── Project brief (Chatter's report feed) ────────────────────────────────
