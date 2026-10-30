@@ -4188,7 +4188,17 @@ export class Agenda {
         const parked = await this.state.readParked();
         // Rechecks of tasks no longer checkpointed (acknowledged, retried, resumed) no longer wake the loop.
         for (const runId of [...this.recoveryDue.keys()]) if (!parked.some((record) => record.runId === runId)) this.recoveryDue.delete(runId);
+        let queue: Awaited<ReturnType<Agenda['readQueue']>> | undefined;
         for (const record of parked) {
+            // A question or recheck whose task was completed, retired, marked failed or removed meanwhile is no longer
+            // needed: the checkpoint is retired with that reason (the question stays in the chat's history).
+            if (!record.worktree && (record.phase === 'awaiting-user' || record.phase === 'failed')) {
+                const closed = await this.closedTaskReason(record, (queue ??= await this.readQueue()).tasks);
+                if (closed) {
+                    await this.retireCheckpoint(record, closed);
+                    return true;
+                }
+            }
             if (record.worktree) {
                 // A result of an older engine's task worktree waits for its merge: complete it once its commit is part
                 // of the project branch. Unmerged work stays checkpointed and explained, never deleted or resumed here.
@@ -4227,6 +4237,48 @@ export class Agenda {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Why a checkpointed task verifiably no longer needs its question or recheck: its source marks it completed, retired
+     * or failed, or the source was removed and the task exists nowhere else. An unclear source (e.g. a Markdown task
+     * renamed while edited) keeps the checkpoint.
+     */
+    private async closedTaskReason(record: ActiveRecord, tasks: readonly Task[]): Promise<string | undefined> {
+        const key = record.taskKey || nameKey(record.taskTitle);
+        if (!(await pathExists(resolve(this.options.project.root, record.sourcePath)))) {
+            return tasks.some((task) => task.key === key) ? undefined : `its task source ${record.sourcePath} was removed`;
+        }
+        const inSource = tasks.filter((task) => task.source.relativePath === record.sourcePath);
+        // A task Book holds one task, whatever its current title; a Markdown file is matched by the task's name.
+        const task = inSource.find((candidate) => candidate.key === key) ?? (record.sourcePath.endsWith('.book') && inSource.length === 1 ? inSource[0] : undefined);
+        if (task?.status === 'done') return `{${task.title}} was completed`;
+        if (task?.status === 'retired') return `{${task.title}} was retired`;
+        if (task?.status === 'failed') return `{${task.title}} was marked failed`;
+        return undefined;
+    }
+
+    /**
+     * Retires a checkpoint its task no longer needs: the checkpoint and its file ownership are released, and a question
+     * still waiting in its chat is closed with the reason in every client, while the question stays in the history.
+     */
+    private async retireCheckpoint(record: ActiveRecord, reason: string): Promise<void> {
+        const chat = record.phase === 'awaiting-user' ? record.waitingChat : record.recoveryChat;
+        const answered = chat ? (await this.chatReplyOf(chat, record.awaitedMessages, record.phase === 'failed' ? RECOVERY_CHOICES : undefined, record.answerMessage).catch(() => ({ answered: true }))).answered : true;
+        await this.state.dropParked(record.taskTitle);
+        this.recoveryDue.delete(record.runId);
+        this.ownership.release(record.runId);
+        if (chat && !answered) {
+            // Another question waiting in the same chat keeps it waiting for the owner.
+            const others = (await this.state.readParked()).some((other) => other.waitingChat === chat || other.recoveryChat === chat);
+            const agent = record.handover?.agent ?? record.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
+            await this.chats
+                .append(chat, { sender: formatAgentReference(referenceName(agent)), text: `No reply is needed anymore: ${reason}. The question stays here for reference.` }, { ...(others ? {} : { status: record.phase === 'failed' ? 'resolved' : 'open' }), trailers: { 'Task-Name': record.taskTitle } })
+                .catch((error: unknown) => this.log(`The question in {${chat}} could not be closed: ${errorMessage(error)}`, 'warning'));
+        }
+        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpoint-retired', { runId: record.runId, phase: record.phase, reason, chat: chat ?? null }, { local: true }).catch(() => undefined);
+        this.log(`"${record.taskTitle}" no longer waits: ${reason}.${chat && !answered ? ` Its question in {${chat}} is closed.` : ''}`);
+        await this.refreshChats();
     }
 
     // ── Views ────────────────────────────────────────────────────────────────

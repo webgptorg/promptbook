@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { TextEditor } from '../dist/ui/composer.js';
@@ -9,7 +9,7 @@ import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../dist/project/s
 import { distinctName, nameKeyPath, traceDirectoryConflicts, traceDirectoryOf } from '../dist/tasks/identity.js';
 import { ChatStore } from '../dist/chats/store.js';
 import { taskChats } from '../dist/chats/task-chats.js';
-import { committed, drive, findGenerated, generated, git, initializedProject, messages, ptbk, subjects, temporaryDirectory, withoutVisual } from './helpers.mjs';
+import { committed, drive, findGenerated, generated, git, initializedProject, messages, ptbk, subjects, temporaryDirectory, waitFor, withoutVisual } from './helpers.mjs';
 
 /**
  * The full message of the newest commit whose subject matches a generated name.
@@ -230,6 +230,42 @@ test('initial input: verbatim text and attachments with working relative links; 
     assert.match(content, /No sample roles were created for this agenda: create the specialist agents it actually needs/, 'the first task establishes relevant specialists');
     await assert.rejects(readFile(join(project, 'agents', 'developer.book'), 'utf8'), 'a supplied intent keeps no irrelevant sample roles');
     assert.match(await readFile(join(project, 'agents', '.core', 'chatter.book'), 'utf8'), /^AGENT Chatter$/m, 'every core role is still prepared');
+});
+
+test('a waiting question is closed with its reason when its task is completed or removed meanwhile; the question stays in the chat', async (t) => {
+    const { project, env } = await initializedProject(t, { check: CHECK });
+    await ptbk(['add', 'Choose a color ASK_USER', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
+    await ptbk(['add', 'Choose a size ASK_USER', '--agent', 'Planner', '--priority', '8', '--raw'], { cwd: project, env });
+    const waiting = async () => JSON.parse((await ptbk(['answer', '--json'], { cwd: project, env })).stdout);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const asked = await waitFor(async () => {
+        const chats = await waiting();
+        return chats.length === 2 ? chats : undefined;
+    }, { message: 'both questions', timeoutMs: 90_000 });
+    const chatOf = (title) => asked.find((chat) => chat.links.some((link) => link.includes(title)));
+    // The task Books themselves (Router's assignment Books mention the same words).
+    const book = async (slug) => join(project, 'tasks', (await readdir(join(project, 'tasks'))).find((name) => new RegExp(`^\\d{4}-\\d{2}-\\d{2}-\\d{4}-${slug}`).test(name)));
+    // The owner completes one task in its Book and deletes the other one (both without answering).
+    const color = await book('choose-a-color');
+    await writeFile(color, `${(await readFile(color, 'utf8')).trimEnd()}\nTASK DONE 2026-10-30T10:00:00+01:00\n`);
+    await rm(await book('choose-a-size'));
+    await waitFor(async () => (await waiting()).length === 0, { message: 'both questions closed', timeoutMs: 60_000 });
+    const status = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
+    assert.equal(status.chats.waiting.length, 0);
+    assert.equal(status.attention.chats, undefined, 'no stale attention remains');
+    assert.doesNotMatch((await ptbk(['recover', '--raw'], { cwd: project, env })).stdout, /checkpointed/, 'no checkpoint is kept for them');
+    const store = new ChatStore((await import('../dist/project/workspace.js')).projectAt(project), { timeZone: 'UTC' });
+    for (const [title, reason] of [
+        ['Choose a color ASK_USER', /^No reply is needed anymore: \{Choose a color ASK_USER — [^}]+\} was completed\./],
+        ['Choose a size ASK_USER', /^No reply is needed anymore: its task source tasks\/.*choose-a-size.*\.book was removed\./],
+    ]) {
+        const stored = await store.find(chatOf(title).name);
+        const [question, closing] = stored.chat.messages.slice(-2);
+        assert.match(question.text, /Which color should the fixture use\?/, 'the question stays in the history');
+        assert.match(closing.text, reason, title);
+        assert.notEqual(stored.chat.status, 'waiting-for-user');
+    }
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 });
 
 test('a task waiting for the user is checkpointed so independent work continues; the answer resumes it', async (t) => {

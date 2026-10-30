@@ -1,5 +1,10 @@
 # Unreleased
 
+## A waiting question closes itself when its task no longer needs it
+
+-   A task waiting for the owner's answer (or a failed task waiting for its automatic recheck) kept its checkpoint, file ownership and "waiting for you" chat after the owner completed, retired or failed the task in its Book, or deleted the Book. Nothing could ever answer it usefully, so the attention stayed forever. The engine now verifies the task source: once the task is marked `TASK DONE`, `TASK STATUS retired` or `failed`, or its source is gone and the task exists nowhere else, the checkpoint is retired and its files are released. The task's agent closes the still-unanswered question in the chat with the reason (e.g. "No reply is needed anymore: {…} was completed."), the question stays in the history, and every client drops the attention. Another question waiting in the same chat keeps it waiting; an unclear source (such as a Markdown task renamed while edited) keeps the checkpoint. A pending Wallet login request is left alone, since other work may still need that login.
+-   A new fixture lets two tasks ask, then completes one in its Book and deletes the other: both questions close with their reasons, no attention or checkpoint remains, and the questions stay readable.
+
 ## Project brief: cause-aware rechecks and its own commit retry
 
 -   A failed brief generation (Chatter is a core agent) used to wait a fixed 30 minutes and an explicit **Refresh** that failed was dropped. It now follows the shared retry policy of tasks and chat replies: a persisted automatic recheck (first after 15 minutes, then backing off with spreading up to 24 hours; the same failure under unchanged tools waits longest), brought forward by changed tools or a newer Refresh. The Refresh stays requested until a brief is actually written, and a recheck whose brief is no longer owed is retired. Nobody is asked to retry. The agenda loop now also wakes for a due recheck instead of its 10-minute idle tick.
