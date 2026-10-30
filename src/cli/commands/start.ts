@@ -33,7 +33,7 @@ function describeProblems(problems: readonly ReadinessProblem[]): string {
  */
 async function ensureReady(context: CommandContext, project: Project, overrides: Record<string, unknown>, cliHarnesses: readonly string[] | undefined, cliBrowser = browserOverrides(context)): Promise<boolean> {
     let settings = await loadSettings(project, { env: context.env, cli: overrides, cliHarnesses, cliBrowser });
-    if (settings.migration.kind === 'older-engine') await requireEngineUpdate(context, settings.migration.saved);
+    if (settings.migration.kind === 'older-engine') await requireEngineUpdate(context, settings.migration.saved, project);
     let readiness = await assessReadiness(project, settings, context.env);
     if (readiness.ready) return true;
     const { terminal } = context;

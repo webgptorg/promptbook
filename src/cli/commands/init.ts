@@ -523,7 +523,7 @@ export async function initializeProject(context: CommandContext, options: { proj
             }
             answers.set('destination', `Destination: ${state.root}${state.nested ? ` (${state.nested.strategy} child)` : ''}`);
             const compatibility = planConfigurationMigration((await readProjectConfigFile(projectAt(state.root))).raw);
-            if (compatibility.kind === 'older-engine') await requireEngineUpdate(context, compatibility.saved);
+            if (compatibility.kind === 'older-engine') await requireEngineUpdate(context, compatibility.saved, projectAt(state.root));
             await predictPath();
             // A changed destination may already record its purpose.
             if (!state.purposeRecorded && (await recordedPurpose(state.root))) {

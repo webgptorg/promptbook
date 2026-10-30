@@ -1,5 +1,12 @@
 # Unreleased
 
+## Newer project configurations: updates follow the saved policy
+
+-   A project configured by a newer ptbk no longer only says "update ptbk". `ptbk start`/`ptbk init` with an older local or global installation now read the project's saved `updates` policy: when it already allows a release at least as new as the configuration, that exact installation is updated without another confirmation (interactive or not), and the invocation ends with "Run the same command again with the updated ptbk", because the loaded code never changes in place. With automatic updates off, an interactive Yes may still update it, while an unattended run only reports it. A pin or range that excludes every compatible release, an unsupported installation (development checkout, npx) or an unknown registry is reported as the real constraint. The project is never downgraded or rewritten by the older engine.
+-   A running background engine that finds its configuration saved by a newer ptbk (a pull, another machine) no longer waits forever behind the configuration blocker. It looks up releases at once, selects the newest compatible one under the policy (a prerelease below the required version falls back to its stable line), and runs the ordinary self-update task as soon as it has free hands. The blocker names the constraint when the policy allows nothing.
+-   `ptbk update` and the engine share one lookup and installation path (`publishedEngineVersions`, `installEngineVersion`).
+-   New fixtures cover the CLI gate with automatic updates off and on, and a running engine that updates itself after a newer configuration is committed.
+
 ## Engine-owned automatic updates as a low-priority system task
 
 -   A running background engine now updates itself, as the specification's engine-owned self-update asks. Every 6 hours (first a minute after start; offline means unknown and is looked up again after an hour) it looks up ptbk releases and selects one under the project's `updates` policy. The update is a **system task**: it appears in the same task inventory, queue, Tasks page and `ptbk status` with a `system` label, its actual executor (the engine, no agent) and the lowest priority, and it has no project Book (no source actions). It runs only when the engine has free hands: running, no active task or chat turn and nothing else eligible. Ordinary work keeps deferring it without a deadline, and a manual pause or stop holds it.

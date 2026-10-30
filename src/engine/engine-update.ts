@@ -1,13 +1,14 @@
 import { open, readFile, rm } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { promptbookAppData } from '../common/app-data.js';
 import { errorMessage } from '../common/errors.js';
 import { ensureDirectory, pathExists, readJsonIfExists, sha256, writeJsonAtomic } from '../common/fs.js';
-import { isProcessAlive, runProcess } from '../common/process.js';
+import { isProcessAlive } from '../common/process.js';
 import { compareVersions } from '../common/semver.js';
 import { ENGINE_VERSION, detectInstallation, type InstallationInfo } from '../common/version.js';
 import { interpretConfig, readProjectConfigFile, updatePolicyOf } from '../project/config.js';
-import { policyPermits, selectUpdate, type UpdatePolicy, type UpdateSelection } from '../project/update-policy.js';
+import { installEngineVersion, publishedEngineVersions } from '../project/self-update.js';
+import { policyPermits, selectCompatibleUpdate, selectUpdate, type UpdatePolicy, type UpdateSelection } from '../project/update-policy.js';
 import { projectAt, type Project } from '../project/workspace.js';
 import { readKnownProjects } from '../service/known-projects.js';
 import { readRegistry, verifyEngine } from '../service/discovery.js';
@@ -150,6 +151,8 @@ export type EngineUpdaterOptions = {
     readonly log: (text: string, level?: 'info' | 'warning' | 'error') => void;
     /** Notifies views of a change. */
     readonly changed: () => void;
+    /** Wakes the agenda loop (a lookup it did not start found something to decide). */
+    readonly wake?: () => void;
     /** Commits project files changed by the update as a system operation (`ptbk: …`, no agent); undefined when nothing was committed. */
     readonly commit: (paths: readonly string[], summary: string) => Promise<string | undefined>;
     /** Test seams: the running installation and version. */
@@ -176,6 +179,8 @@ export class EngineUpdater {
     private readonly startedAt = Date.now();
     private readonly installation: InstallationInfo;
     private readonly current: string;
+    /** The version the saved configuration requires (`promptbookVersion` newer than this engine), if any. */
+    private minimum?: string;
 
     public constructor(private readonly options: EngineUpdaterOptions) {
         this.installation = options.installation ?? detectInstallation();
@@ -232,11 +237,27 @@ export class EngineUpdater {
         await this.fail(detail, run.from, run.target);
     }
 
-    /** The current selection under the live policy and the last known published versions. */
+    /**
+     * The project's saved configuration needs at least this version (an older engine never downgrades it): an update the
+     * saved policy already allows is the fix and needs no confirmation; anything else is reported as the real constraint.
+     */
+    public requireAtLeast(version: string | undefined): void {
+        if (version === this.minimum) return;
+        this.minimum = version;
+        // Look up at once instead of waiting for the regular interval.
+        if (version) void this.lookupIfDue(true)?.then(() => this.options.wake?.());
+        this.options.changed();
+    }
+
+    /** The current selection under the live policy and the last known published versions (compatible with the minimum). */
     private selection(): UpdateSelection & { readonly policy: UpdatePolicy } {
         const { source: _source, ...policy } = this.options.policy();
         void _source;
-        return { ...selectUpdate(this.current, this.record.published ?? [], policy), policy };
+        if (!this.minimum) return { ...selectUpdate(this.current, this.record.published ?? [], policy), policy };
+        const selection = selectCompatibleUpdate(this.current, this.record.published ?? [], policy, this.minimum);
+        if (selection.target) return { ...selection, policy };
+        const why = selection.reason.replace(/\.$/, '');
+        return { reason: `This project's configuration needs ptbk ${this.minimum} or newer, but ${why.charAt(0).toLowerCase()}${why.slice(1)}. The project is kept as it is (never downgraded).`, constraint: selection.constraint ?? 'none', policy };
     }
 
     /** The shared view of every client. */
@@ -335,25 +356,10 @@ export class EngineUpdater {
         });
     }
 
-    /** Bounded registry lookup of every published version (offline is unknown). */
-    private async publishedVersions(): Promise<{ readonly versions?: readonly string[]; readonly problem?: string }> {
-        const result = await runProcess('npm', ['view', 'ptbk', 'versions', '--json'], { cwd: this.installation.root, env: this.options.env, timeoutMs: LOOKUP_TIMEOUT_MS });
-        if (result.spawnError) return { problem: result.spawnError };
-        if (result.timedOut) return { problem: 'the registry did not answer in time' };
-        if (result.exitCode !== 0) return { problem: result.stderr.trim().split('\n').slice(-2).join(' ') || `npm exited with ${String(result.exitCode)}` };
-        try {
-            const parsed = JSON.parse(result.stdout) as unknown;
-            const versions = (Array.isArray(parsed) ? parsed : [parsed]).filter((version): version is string => typeof version === 'string' && compareVersions(version, version) !== undefined);
-            return versions.length ? { versions } : { problem: 'the registry returned no versions' };
-        } catch {
-            return { problem: 'the registry answer was not readable' };
-        }
-    }
-
     /** One lookup: remembers newer published versions and announces a newly selected target. */
     private async lookup(): Promise<void> {
         const previous = this.selection().target;
-        const found = await this.publishedVersions();
+        const found = await publishedEngineVersions(this.installation, this.options.env, LOOKUP_TIMEOUT_MS);
         const now = Date.now();
         if (!found.versions) {
             await this.save({ checkedAt: new Date(now).toISOString(), lookupProblem: found.problem, nextLookupAt: new Date(now + LOOKUP_RETRY_MS).toISOString() });
@@ -394,22 +400,13 @@ export class EngineUpdater {
 
     /** Installs one exact version into exactly the running installation (dependency placement preserved). */
     private async install(version: string): Promise<void> {
-        const target = `ptbk@${version}`;
-        const { installation } = this;
-        const relay = (line: string): void => {
-            if (line.trim()) this.runningReason = `Installing ptbk ${version}: ${line.trim().slice(0, 160)}`;
-        };
-        let result;
-        if (installation.scope === 'local' && installation.ownerProject) {
-            const manifest = await readJsonIfExists<{ devDependencies?: Record<string, string> }>(join(installation.ownerProject, 'package.json')).catch(() => undefined);
-            const development = Boolean(manifest?.devDependencies?.ptbk);
-            result = await runProcess('npm', ['install', '--save-exact', development ? '--save-dev' : '--save-prod', target], { cwd: installation.ownerProject, env: this.options.env, timeoutMs: INSTALL_TIMEOUT_MS, onStdoutLine: relay, onStderrLine: relay });
-        } else {
-            // The prefix of exactly this global installation, never whichever global prefix npm is configured with.
-            const prefix = process.platform === 'win32' ? dirname(dirname(installation.root)) : dirname(dirname(dirname(installation.root)));
-            result = await runProcess('npm', ['install', '--global', '--prefix', prefix, target], { cwd: prefix, env: this.options.env, timeoutMs: INSTALL_TIMEOUT_MS, onStdoutLine: relay, onStderrLine: relay });
-        }
-        if (result.exitCode !== 0) throw new Error(result.spawnError ?? (result.timedOut ? 'npm did not finish in time' : result.stderr.trim().split('\n').slice(-3).join(' ') || `npm exited with ${String(result.exitCode)}`));
+        await installEngineVersion(this.installation, version, {
+            env: this.options.env,
+            timeoutMs: INSTALL_TIMEOUT_MS,
+            onOutput: (line) => {
+                if (line.trim()) this.runningReason = `Installing ptbk ${version}: ${line.trim().slice(0, 160)}`;
+            },
+        });
     }
 
     /** Reinstalls `version` when the installation on disk is no longer exactly it (a failed or interrupted replacement). */

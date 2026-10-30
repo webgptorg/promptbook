@@ -608,6 +608,7 @@ export class Agenda {
             policy: () => (this.settings ? { ...updatePolicyOf(this.settings), source: this.settings.sources['updates.isAutoUpdateEnabled'] ?? 'default' } : { isAutoUpdateEnabled: true, source: 'default' }),
             log: (text, level) => this.log(text, level),
             changed: () => this.touch(),
+            wake: () => this.wake(),
             // Changed versioned package files are a scoped system operation commit (no agent, no Task-Name).
             commit: async (paths, summary) => (this.commitMode && this.repositoryRoot ? await this.commitAuthoring(paths, summary) : undefined),
         });
@@ -2325,7 +2326,12 @@ export class Agenda {
         // Tool records with problems only make those tools unusable (Fixer repairs them); other errors stop new work.
         const configErrors = loaded.diagnostics.filter((diagnostic) => diagnostic.severity === 'error' && !diagnostic.location.includes('tools') && !diagnostic.location.startsWith('--'));
         if (configErrors.length) {
-            blockers.push({ kind: 'configuration', title: 'Invalid configuration', reason: configErrors.map((error) => `${error.location}: ${error.message}`).join('; '), action: loaded.migration.kind === 'older-engine' ? 'Update ptbk, then restart the service.' : 'Fix ptbk.json.' });
+            blockers.push({
+                kind: 'configuration',
+                title: 'Invalid configuration',
+                reason: configErrors.map((error) => `${error.location}: ${error.message}`).join('; '),
+                action: loaded.migration.kind === 'older-engine' ? (setting<boolean>(loaded, 'updates.isAutoUpdateEnabled') ? 'The engine updates itself when its update policy allows a compatible release; otherwise update ptbk and restart the service.' : 'Update ptbk (automatic updates are off in ptbk.json), then restart the service.') : 'Fix ptbk.json.',
+            });
         } else if (loaded.migration.kind === 'migrate' && this.configurationPending) {
             blockers.push({ kind: 'configuration', title: 'Configuration migration pending', reason: this.configurationPending, action: 'See the reason; ptbk retries automatically.' });
         }
@@ -2437,9 +2443,18 @@ export class Agenda {
         await this.refreshContext();
         await this.refreshChats();
         this.capacity.drain();
+        // A configuration saved by a newer engine: the update its saved policy already allows is the fix (no confirmation);
+        // otherwise the project is kept as it is and the real constraint is reported.
+        const required = this.settings.migration.kind === 'older-engine' ? this.settings.migration.saved : undefined;
+        this.updater.requireAtLeast(required);
         if (this.blockers.some((blocker) => blocker.kind === 'workspace' || blocker.kind === 'configuration')) {
             const blocker = this.blockers.find((item) => item.kind === 'workspace' || item.kind === 'configuration')!;
-            await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason: `${blocker.title}: ${blocker.reason}`, action: blocker.action, skippable: false });
+            if (required && this.claimable && !this.units.size && this.updater.isDue) {
+                await this.runEngineUpdate();
+                return;
+            }
+            const constraint = required && !this.updater.isDue ? ` Engine update: ${this.updater.view().reason}` : '';
+            await this.wait(Math.min(BLOCKER_RECHECK_MS, Math.max(1_000, (this.updater.wakeAt() ?? Infinity) - Date.now())), { kind: 'setup', reason: `${blocker.title}: ${blocker.reason}${constraint}`, action: blocker.action, skippable: false });
             return;
         }
         // Shared harness executables are only updated while nothing runs them.

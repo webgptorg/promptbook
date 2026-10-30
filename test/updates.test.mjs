@@ -233,3 +233,49 @@ test('engine self-update: a failed installation keeps the running version and sc
     assert.ok((await subjects(project)).includes('ptbk: Turn automatic engine updates off'));
     assert.ok(!(await status()).queue.some((item) => item.ref === 'system:engine-update'), 'a disabled policy has no pending update');
 });
+
+/**
+ * Saves a configuration as a newer engine would have left it (committed, like a pulled change).
+ */
+async function configuredByNewerEngine(project, changes = {}) {
+    const path = join(project, 'ptbk.json');
+    const config = JSON.parse(await readFile(path, 'utf8'));
+    await writeFile(path, `${JSON.stringify({ ...config, promptbookVersion: TARGET, ...changes }, null, 4)}\n`);
+    await git(project, ['commit', '-q', '-m', 'Configuration of a newer engine', '--', 'ptbk.json']);
+}
+
+test('compatibility gate: an update the saved policy allows needs no confirmation; a disabled policy is reported, never overridden', { timeout: 180_000 }, async (t) => {
+    if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
+    const { project, env, bin, npmLog } = await locallyInstalledProject(t, { versions: [FROM, TARGET, '0.500.1-0', '1.0.0'] });
+    await configuredByNewerEngine(project, { updates: { isAutoUpdateEnabled: false } });
+    const refused = await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env });
+    assert.notEqual(refused.code, 0);
+    assert.match(refused.output, /configured by ptbk 0\.500\.0; the running ptbk 0\.500\.0-1 is older/);
+    assert.match(refused.output, /Automatic updates are off/, refused.output);
+    assert.ok(!(await npmLog()).some((entry) => entry.args[0] === 'install'), 'a disabled policy is never overridden unattended');
+
+    await configuredByNewerEngine(project, { updates: { isAutoUpdateEnabled: true } });
+    const updated = await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env });
+    assert.notEqual(updated.code, 0, 'the loaded code never pretends to have changed: the invocation ends');
+    assert.match(updated.output, /Updated this local ptbk installation to 0\.500\.0/, updated.output);
+    assert.match(updated.output, /Run the same command again/);
+    assert.deepEqual((await npmLog()).filter((entry) => entry.args[0] === 'install').map((entry) => entry.args.at(-1)), [`ptbk@${TARGET}`]);
+    const rerun = await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env });
+    assert.equal(rerun.code, 0, rerun.output);
+    const snapshot = JSON.parse((await run(bin, ['status', '--json'], { cwd: project, env })).output);
+    assert.equal(snapshot.engine.version, TARGET);
+});
+
+test('compatibility gate: a running engine that finds a newer configuration updates itself under its policy and restarts', { timeout: 180_000 }, async (t) => {
+    if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
+    const { project, env, bin, status } = await locallyInstalledProject(t, { versions: [FROM, TARGET] });
+    assert.equal((await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => (await status()).service?.state === 'running', { message: 'the engine to run' });
+    await configuredByNewerEngine(project);
+    const updated = await waitFor(async () => {
+        const snapshot = await status().catch(() => undefined);
+        return snapshot?.engine?.version === TARGET && snapshot.update?.lastOutcome?.outcome === 'verified' ? snapshot : undefined;
+    }, { timeoutMs: 120_000, message: 'the engine to update itself to the configuration’s version' });
+    assert.equal(updated.service.state, 'running');
+    assert.ok(!updated.blockers.some((blocker) => blocker.kind === 'configuration'), 'the configuration is compatible again');
+});

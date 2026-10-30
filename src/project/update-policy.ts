@@ -242,3 +242,19 @@ export function selectUpdate(current: string, published: readonly string[], poli
 export function policyPermits(policy: UpdatePolicy, current: string, target: string): boolean {
     return selectUpdate(current, [target], policy).target === target;
 }
+
+/**
+ * The automatic update that makes this engine compatible with a configuration saved by a newer engine (`minimum`):
+ * {@link selectUpdate} among releases at or above `minimum`. A running prerelease below `minimum` must leave its line
+ * anyway, so its stable releases are then evaluated from its base release under the same policy. Disabled updates,
+ * pins and ranges keep their meaning; no release below `minimum` is ever selected.
+ *
+ * @private engine self-update
+ */
+export function selectCompatibleUpdate(current: string, published: readonly string[], policy: UpdatePolicy, minimum: string): UpdateSelection {
+    const compatible = published.filter((version) => (compareVersions(version, minimum) ?? -1) >= 0);
+    const direct = selectUpdate(current, compatible, policy);
+    if (direct.target || direct.constraint !== 'none' || !isPrerelease(current)) return direct;
+    const stable = selectUpdate(baseRelease(current), compatible, policy);
+    return stable.target ? stable : direct;
+}
