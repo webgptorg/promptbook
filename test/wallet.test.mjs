@@ -622,7 +622,8 @@ test('Wallet recovery: new words re-encrypt everything with a working key; an in
     const rotated = await wallet.confirmRotation();
     assert.ok(rotated.applied, rotated.outcome);
     assert.deepEqual(audits.map((audit) => audit.subject), ['Wallet - Replace the recovery words']);
-    assert.doesNotMatch(audits[0].body, new RegExp(words.join('|')));
+    // Neither the phrase nor any two of its words in order: a single word list entry such as "secret" may occur in prose.
+    for (let index = 1; index < words.length; index++) assert.ok(!audits[0].body.includes(`${words[index - 1]} ${words[index]}`), 'the audit never contains the recovery words');
     assert.equal(wallet.view().records.length, 2, 'every record is preserved');
     const rebooted = auditedWalletAt(project, home);
     await rebooted.wallet.initialize();

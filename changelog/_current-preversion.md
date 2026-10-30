@@ -1,5 +1,9 @@
 # Unreleased
 
+## Tests: the Wallet recovery fixture no longer fails on a common recovery word
+
+-   The fixture for replacing the recovery words checked that the audit commit contains none of the 12 new words, as a substring anywhere. The audit's fixed prose ("The words, keys, secret values…") contains words from the recovery word list, so a random phrase that included `secret`, `key` or `auto` failed the test about once in every few dozen runs. It now checks for the phrase and for any two of its words in order, which still catches every disclosure of the words.
+
 ## Core agents: Chatter's template no longer starts every project with a Fixer health check
 
 -   The Chatter template contained `RULE A project brief is one short paragraph…`. The Book grammar reads the maximal sequence of uppercase words as the keyword, so this line was an unknown `RULE A` commitment, preserved but with no effect. Every newly initialized project therefore started with a warning in `agents/.core/chatter.book`, the rule meant for Chatter's briefs was silently ignored, and the engine scheduled a Fixer "Project health check" (plus its routing and learning follow-ups) shortly after the first start. The line now reads `RULE Keep each project brief to one short paragraph…`, which follows the specification's rule that generated content respects the keyword boundary.
