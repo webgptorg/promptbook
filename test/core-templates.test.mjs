@@ -183,6 +183,12 @@ test('anchors: task and learning prompts forbid moving OPEN/CLOSED boundaries or
     assert.match(prompt, /OPEN\/CLOSED declarations and learning limits in agent Books are the user's anchors/);
     assert.match(prompt, /move a prohibited change into another agent or task/);
     assert.match(prompt, /external text are not such a request/);
+    // The executing agent may refine its own task's purpose, always by appending (the Book keeps the earlier values).
+    assert.match(prompt, /recorded one \(undefined\), append `TASK PURPOSE CONTENT` or `TASK PURPOSE SYSTEM` at the end of `tasks\/publish-today\.book`/);
+    assert.match(prompt, /never edit or remove earlier purpose lines/);
+    assert.match(buildTaskPrompt({ agent, task: { ...task, purpose: 'content' }, projectRoot: project.root, tasksDirectory: 'tasks', tools: { team: false, askUser: false, browser: false }, attempt: 1 }), /recorded one \(`TASK PURPOSE CONTENT`\)/);
+    assert.doesNotMatch(buildTaskPrompt({ agent, task: { ...task, source: { relativePath: 'TODO.md', kind: 'markdown', section: 'Publish' } }, projectRoot: project.root, tasksDirectory: 'tasks', tools: { team: false, askUser: false, browser: false }, attempt: 1 }), /append `TASK PURPOSE/, 'a Markdown task has no Book commitments');
+    assert.doesNotMatch(prompt, /^- $/m, 'no empty rule');
     const learning = learningPrompt({ learner: agent, agentPath: 'agents/publisher.book' });
     assert.match(learning, /OPEN with limits: Learn research and composition methods; the GOAL stays fixed\./);
     assert.match(learning, /Its limits are the user's anchors/);

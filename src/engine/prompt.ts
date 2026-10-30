@@ -139,6 +139,9 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     const rules = [
         'Work only inside the project directory. Promptbook records the result: do not commit, amend, push, reset, stash or rewrite Git history.',
         'Do not add `TASK DONE` or change the completion state of this task; Promptbook stamps completion after verifying your result.',
+        task.source.kind === 'book'
+            ? `When the work shows that this task's purpose relative to this project differs from its recorded one (${task.purpose ? `\`TASK PURPOSE ${task.purpose.toUpperCase()}\`` : 'undefined'}), append \`TASK PURPOSE CONTENT\` or \`TASK PURPOSE SYSTEM\` at the end of \`${task.source.relativePath}\`, after a short \`TASK NOTE\` with the reason when it is not obvious; never edit or remove earlier purpose lines, and change nothing when it already fits. For a technical prerequisite of content work, create a separate supporting task with system purpose instead of relabelling this one.`
+            : '',
         `To create follow-up work, ${taskBookInstructions(input.tasksDirectory, input.creationStamp ?? creationTimestamp())}`,
         'Do not edit `traces/` or `actions/` (Promptbook-owned audit evidence and external-action records) and never treat files there as task or agent definitions.',
         'You run unattended. Resolve ordinary choices yourself from the task, the project instructions, established rules and the permissions already granted; do not stop to confirm routine or already authorized actions (for example each post of an authorized recurring publication).',
@@ -178,7 +181,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
             'Every request that changes state outside the repository (sending an email or message, publishing a post, submitting a form or document, creating, updating or deleting a remote record or document) is an external action: call `begin_external_action` right before it and `record_external_action` with the observed outcome right after it (confirmed, partial, uncertain, or not-performed if nothing changed). Reading, searching and downloading are not external actions. Record meaningful operations, not every click. Never infer success from a timeout or from finishing the task; when an acknowledgement is lost, check the service before any retry and update the same record by its id. Never repeat an effect that is already recorded as confirmed. Do not put passwords, tokens or codes in a record.',
         );
     }
-    parts.push(`## How to work\n\n${rules.map((rule) => `- ${rule}`).join('\n')}`);
+    parts.push(`## How to work\n\n${rules.filter(Boolean).map((rule) => `- ${rule}`).join('\n')}`);
     if (input.actions) parts.push(`## External actions of this task\n\n${input.actions}`);
     if (input.feedback) {
         // A first attempt with feedback continues an earlier run (retry, recovery or Fixer's takeover).
