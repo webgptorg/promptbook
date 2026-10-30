@@ -2,7 +2,7 @@
 
 [Project model](../concepts/project-model.md) · [Syntax](../book-language/syntax.md)
 
-An ordinary source-backed task is bounded work stored in one `.book` document. It starts with **`TASK <name>`**, the foundational commitment that declares both kind and name using the common Book syntax. The name content is its identity; TASK, its folder and its filename are not part of that identity. There is no separate generated task ID. Plain name headers and ENTITY TASK are legacy conversion inputs, not canonical new authoring. Engine-defined [system tasks](system-tasks.md) share scheduling and observation but need not have a project Book; work performed by core agents remains ordinary task work.
+An ordinary source-backed task is bounded work stored in one `.book` document. It starts with **`TASK <name>`**, the foundational commitment that declares both kind and name using the common Book syntax. The name content is its identity; TASK, its folder and its filename are not part of that identity. There is no separate generated task ID. Plain name headers and ENTITY TASK are legacy conversion inputs, not canonical new authoring. Engine-defined [system tasks](system-tasks.md) share scheduling and observation but need not have a project Book; work performed by core agents remains ordinary task work with descriptive core provenance. Project-relative [TASK PURPOSE](../book-language/commitments/task-purpose.md) is independent of both definition ownership and agent provenance.
 
 ```book
 TASK Improve CSV export — 2026-10-18 01:25:00
@@ -23,3 +23,7 @@ Subsequent commitments build the task's work, constraints and metadata. Put desc
 `ptbk add` saves and commits a new unfinished task before dispatch. Creation is not completion. An accepted task or occurrence appends `TASK DONE <timestamp>` in its **one result commit**, together with checked changes, follow-ups and eligible traces. Result subject follows the [agent-work format](git-persistence.md#commit-messages-and-history): lowercase `ptbk: `, the responsible agent's backtick-quoted textual visual and meaningful task subject; body preserves the assignment and a `Task-Name: <name>` trailer instead of a Task-ID. Follow-ups receive their own creation-time-decorated names and normal scheduling. The initial Expert bootstrap is an ordinary task under these rules. Retries and recurring occurrences retain the same task name instead of refreshing its date.
 
 See [task identity](task-identity.md), [relationships](task-relationships.md), [recurrence](recurrence.md), [authoring](authoring.md) and [Git persistence](git-persistence.md).
+
+## Purpose and supporting work
+
+The author classifies new work as CONTENT or SYSTEM where context supports it, or leaves it undefined. Router and the executing agent may refine it. Append changed TASK PURPOSE commitments, preserving earlier values in the Book and using the last valid value; this differs from MODEL's in-place refinement contract. A discovered technical prerequisite normally becomes a separate linked system-purpose task, preserving the original content goal. Follow [contextual purpose knowledge](../concepts/minimal-interruption/work-purpose.md) rather than classify by keywords or executor alone.

@@ -18,7 +18,7 @@ Width and **height** both affect layout. A narrower/shorter terminal reduces col
 
 Arrow keys move focus; the selected tile has a double-line border and bold heading with reserved geometry, so neither its dimensions nor content positions change. Focus is independent from attention. A newly actionable tile may blink/pulse or otherwise stand out without moving focus. If the operator is clearly active in this viewer and continues working elsewhere, the transient animation settles while the unresolved tile remains statically marked. Do not age out unseen attention merely because the dashboard sat unattended. Reduced motion preserves the distinction without animation.
 
-Chats awaiting a human, health/resource failures, tool/provider problems and future actionable domains use this common attention presentation. The operator may ignore or address them in any order.
+Chats and domains with a concrete required human decision/input/action use this common attention presentation. Health/tool failures and automatic recovery remain inspectable without attention merely because they occurred. The operator may ignore or address them in any order.
 
 ## Dashboard pages
 

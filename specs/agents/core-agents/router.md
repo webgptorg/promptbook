@@ -20,7 +20,7 @@ A recurring task keeps its committed assignment across occurrences. No periodic 
 
 ## Bootstrap and conversations
 
-Initialize Router with an already concrete MODEL from an enabled selected harness. With several initially selected harnesses, use the first suitable one in `tools` order and that plugin's coded model/thinking defaults, without another question. Resolve its endpoint from that tool. Router must not need to route itself. Detect incomplete bootstrap or cyclic self-assignment and report a recoverable setup problem through the common retry/repair path; never create an infinite Router chain or livelock.
+Initialize Router with an already concrete MODEL from an enabled selected harness. With several initially selected harnesses, use the first suitable one that passed init's real functional check in `tools` order and that plugin's coded model/thinking defaults, without another question. Resolve its endpoint from that tool. Router must not need to route itself. Detect incomplete bootstrap or cyclic self-assignment and report a recoverable setup problem through the common retry/repair path; never create an infinite Router chain or livelock.
 
 For a user-led chat, the selected participant already determines the agent. If its parameters are incomplete, route after the first User message and before the first agent reply, and record MODEL at that chronological position in the chat Book. Fully specified agent parameters require no new selection. Current chats keep that choice; switching MODEL during a chat is future work. An agent-originated question from an already executing task uses its established execution context.
 
@@ -29,3 +29,7 @@ Chat and the Router work necessary to serve it remain available during other tas
 ## Acceptance outcomes
 
 Resolve partial and alternative MODEL constraints, commit one refined value and retain its prior value only in Git. Exercise an impossible intersection, future-task routing behind urgent work, recurring reuse and Tasker invalidation. Initialize a directly runnable Router, then remove its parameters and verify a bounded diagnostic rather than recursion. Route a first chat message while another task runs and during pause without dispatching queued work.
+
+## Independent task purpose
+
+Router may refine [TASK PURPOSE](../../book-language/commitments/task-purpose.md) using the project-relative [purpose knowledge and examples](../../concepts/minimal-interruption/work-purpose.md), available in its normal context. Append a changed purpose commitment instead of replacing its source history. This does not change the existing in-place MODEL refinement rule, grant authority, alter task priority or require a routing call for every unclassified task. Core provenance alone does not decide purpose or visual prominence.

@@ -8,7 +8,7 @@ Provide a shared source-adapter/import/selection operation, initially **Bitwarde
 
 The export contains secrets: keep it outside ordinary chat/composer attachments, project sources, Git, traces, logs, browser observations and model context. Process only inside trusted Wallet, retain no ordinary plaintext working copy and advise the owner to remove the original safely after use; do not silently delete an owner-supplied original. Detect unsupported/encrypted/account-restricted exports and explain the supported path before any Wallet mutation; never claim decryption without support.
 
-Import supported login origins/account identity, editable labels, username/password and available supported TOTP-generator parameters. Retain relevant supported origins rather than arbitrarily choosing a similarly named service. Report unsupported item kinds/fields, invalid origins/factors and skips truthfully. Importing a credential does not verify login or make an unsupported factor available; reuse normal Wallet origin matching and trusted application.
+Import supported login origins/account identity, editable labels, username/password and supported reusable additional login fields. Wallet-owned TOTP-generator import/generation is future scope; preserve existing data and report unsupported generator fields rather than claim a usable factor was imported. Retain relevant supported origins rather than arbitrarily choosing a similarly named service. Report unsupported item kinds/fields, invalid origins/factors and skips truthfully. Importing a credential does not verify login or make an unsupported factor available; reuse normal Wallet origin matching and trusted application.
 
 ## Selection, existing data and persistence
 
@@ -22,8 +22,10 @@ Use shared revision-safe Wallet writes with recoverable batch application. Unloc
 
 Wallet offers Import credentials/source selection. After init's optional Set up Wallet now Yes (or reused setup), offer exactly this import and individual/all/none selection. Wallet No skips it; choosing no import is valid. Reinit preserves existing data/decisions. Reset can reuse the same import afterwards.
 
-Correctly completed attended initialization with required selected integrations/access must suffice for continuing work, without mandatory later dashboard configuration. Show skipped/unsupported/missing access honestly and never require importing the entire vault. Preview/import makes no paid readiness calls and cannot launch the agenda early.
+Correctly completed attended initialization with required selected integrations/access must suffice for continuing work, without mandatory later dashboard configuration. Show skipped/unsupported/missing access honestly and never require importing the entire vault. Preview/import alone does not claim verified login or launch the agenda early; selected add/update verification reuses the shared credential test and new-project init retains its in-memory draft boundary.
 
 ## Acceptance outcomes
 
-Import subsets/all/none through init and Wallet with one implementation. Exercise cancel, repeats, multiple origins/accounts, TOTP, malformed/unsupported/encrypted exports, conflicts, concurrent edits and interrupted writes/audits. Preserve old records and accurate outcomes, exclude source/secrets from ordinary surfaces/Git/agent context, and finish chosen routine setup without later configuration or invented login success.
+Import subsets/all/none through init and Wallet with one implementation. Exercise cancel, repeats, multiple origins/accounts, unsupported TOTP-generator fields, malformed/unsupported/encrypted exports, conflicts, concurrent edits and interrupted writes/audits. Preserve old records and accurate outcomes, exclude source/secrets from ordinary surfaces/Git/agent context, and finish chosen routine setup without later configuration or invented login success.
+
+During new-project initialization, preview/selection and pending imports remain in the protected in-memory draft until [final confirmation](initialization.md#draft-confirmation-and-project-creation); cancellation before that point creates no project-local vault/files. Use the same importer with staged persistence, not a copied init implementation.

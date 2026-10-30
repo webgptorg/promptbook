@@ -34,7 +34,7 @@ For the selected named browser tool, show saved and effective variant, profile s
 
 Show real redacted failure evidence, automatic recovery attempts/outcomes and next retry where known. Recheck, retry startup, restart, kill and open-test-GitHub-tab actions target its **actual profile connection pool**, calling the same [browser recovery](browser.md) as automatic repair. Label deferred safe-boundary actions; preserve sessions, task checkpoints and external-effect evidence, and never kill unrelated browsers or restart the entire engine as ordinary browser repair. Show connected engines/active tabs and that restart/kill affects all users of this selected pool. There is no master/slave engine; the last managed disconnection closes the process. Manual headful login remains possible, but no new remote desktop or generic Open browser action is required.
 
-Significant failures set attention on the Tools/Browser path of the home screen; verbose evidence stays here.
+Only a concrete required human decision/input/action sets Tools/Browser attention. Significant failures and automatic recovery stay inspectable here without attention merely because they occurred.
 
 ## Wallet page
 
@@ -50,7 +50,7 @@ The Chats page lists all conversations, unread/actionable states and new Chatter
 
 The Tasks page uses the [complete task view](task-views.md), with smart default order and user-selected sorting independent of engine scheduling. Tasker remains the task-authoring entry.
 
-The Results/Activity page may scroll through longer runtime history. The home tile contains only bounded totals/recent outcome/error information.
+Remove the standalone Results/Activity tile, page and attention source. Keep the general operational event/error/recovery log on System and each task's outcomes, errors and execution evidence in its own detail. Historic failure or completion alone does not request attention. Action log remains the external-effect audit and History remains Git history.
 
 ## Usage page
 
@@ -86,7 +86,7 @@ Do **not** put generic manual Pause/Resume or a "Pause all" control on Health. M
 
 ## Action log, History, Files and report
 
-Provide distinct compact tiles/full pages, independently of autosync: [Action log](action-log-ui.md) reads external Markdown mutations/outcomes and verified task/evidence links; [History](history.md) reads Git messages and available branch/merge topology, with recognized agent formatting and verified links; [Files](files.md) is confined read-only nonhidden project browsing with formatted Markdown/JSON/Book and supported images. Video playback is deferred. These complement runtime Activity, not three names for one log. Shared readers preserve selection/scroll and never create audits, reports, commits or provider calls. Book viewing/editing shares its long-document core.
+Provide distinct compact tiles/full pages, independently of autosync: [Action log](action-log-ui.md) reads external Markdown mutations/outcomes and verified task/evidence links; [History](history.md) reads Git messages and available branch/merge topology, with recognized agent formatting and verified links; [Files](files.md) is confined read-only project browsing with the narrow hidden-agent-directory exception with formatted Markdown/JSON/Book and supported images. Video playback is deferred. These complement the operational log on System and per-task outcomes; they are not names for one log. Shared readers preserve selection/scroll and never create audits, reports, commits or provider calls. Book viewing/editing shares its long-document core.
 
 The full-width [brief](project-report-ui.md) above the home grid reads only the last complete Chatter message. Discuss creates a new seeded chat; Refresh explicitly requests shared generation. Earlier briefs remain inspectable in `report.book` through Files.
 
@@ -95,3 +95,5 @@ The Wallet page additionally offers [Import credentials](wallet-import.md), init
 ## Acceptance outcomes
 
 Open every applicable page by keyboard and return without mutation. The root grid is not rendered as background clutter while a page is open. Long inventories and logs scroll while context/actions remain usable. Verify actual execution metadata with multiple instances/consultations and unknown model data. Add/enable a tool from another terminal during active work and observe immediate availability. Test browser recovery without secret disclosure or unrelated kills. Toggle autosync: its tile/page appears only when enabled. System and Health pages remain distinct.
+
+System's scrollable operational log retains runtime events, last/current errors and automatic-repair progress formerly shown in Results. Task details retain their own results/errors even when supporting work is muted. General progress, unread outcomes and resolved historical incidents do not request attention; only actual remaining human dependencies use the shared mechanism.

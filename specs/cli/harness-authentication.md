@@ -8,7 +8,7 @@ The target [version-zero App](../app/integration.md) reuses these adapter operat
 
 ## Shared login behavior
 
-Init and later tool setup call the same adapter-owned authentication/readiness operations. Reuse a ready instance without another sign-in or paid inference probe. Native subscription and explicitly selected API authentication retain their distinct [account and billing rules](harnesses.md#codex-account-login-and-billing).
+Init and later tool setup call the same adapter-owned authentication/readiness operations. Reuse a ready native authentication instance without another sign-in; init still performs its separate minimal real functional inference check. Native subscription and explicitly selected API authentication retain their distinct [account and billing rules](harnesses.md#codex-account-login-and-billing).
 
 The VPS launcher supplies its remote context. Ordinary init/setup also recognizes SSH/no-display environments and selects a supported terminal-compatible flow without a mandatory VPS-mode question. Allow explicit choice when detection is unsuitable; local desktops retain ordinary native login. Display availability and terminal availability are separate: redirected input does not become interactive merely because no display exists.
 
@@ -38,7 +38,7 @@ After login, recheck the selected instance through its real non-inference readin
 
 - Signed-out Codex over SSH without a display offers device login completable on another device. A disabled policy has an honest supported recovery; an ambient API key never changes native billing.
 - Signed-out Claude exposes its real URL and supported terminal code return without a VPS browser or shared clipboard. No unsupported device-auth flag is invoked.
-- Existing ready native login is reused without paid probes. Administrator-only credentials, inaccessible stores and daemon PATH failures are not accepted as engine-account readiness.
+- Existing ready native login is reused without another sign-in; the distinct real inference test is still required for new initialization. Administrator-only credentials, inaccessible stores and daemon PATH failures are not accepted as engine-account readiness.
 - Expiry, denial or cancellation preserves incomplete setup and its reason; retry continues the same wizard, while removal requires explicit deselection. No duplicate first task or worker results.
 - Unsupported remote login is explained promptly; local desktop login and explicit method choice still work. Noninteractive setup never waits on unseen human input.
 - Readiness is verified after login in service context. Persisted output/Git contain no tokens, returned sign-in codes or credential-bearing URLs; successful init reaches the ordinary terminal dashboard.

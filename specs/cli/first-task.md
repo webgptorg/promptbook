@@ -16,7 +16,7 @@ For deliberately blank input, the same Expert task retains useful default noncor
 
 ## Normal execution
 
-Save the task with the setup artifacts before the service may claim it. Successful init automatically starts the background agenda, which begins eligible work without an open dashboard or another command. Init itself does not call a model or execute the bootstrap inline; the daemon does not wait for the wizard to become a dashboard.
+Save the task with the setup artifacts before the service may claim it. Successful init automatically starts the background agenda, which begins eligible work without an open dashboard or another command. Init makes only the separate preparatory harness-check/name calls and does not execute the bootstrap inline; the daemon does not wait for the wizard to become a dashboard.
 
 Use normal routing constraints, selected harnesses, checks, repairs, completion stamps, [traces](traces.md) and result commits. Do not mark the task complete because initialization or daemon launch succeeded. The task's accepted changes, completion and generated follow-ups share its ordinary result commit. Follow-ups receive their own generated names and use normal scheduling; they do not need a second initialization or separate work-launch action.
 

@@ -37,3 +37,7 @@ Root [`report.book`](../cli/project-report.md) preserves every new brief as anot
 ## Acceptance outcomes
 
 Create a chat without a status line: it is open. Append waiting, open and resolved transitions around actual messages and recover the last valid state after restart. Join a task agent mid-conversation and change the title: all additions remain at their chronological positions. Literal control-looking message text changes no effective status. Editing an agent instruction remains possible without claiming all Books are immutable event logs.
+
+## Task purpose transitions
+
+[TASK PURPOSE](commitments/task-purpose.md) follows chronological source layering: append a changed CONTENT/SYSTEM/UNDEFINED value and use the last valid value, preserving earlier commitments in the Book. This explicit rule does not change MODEL's existing in-place refinement or make all Book fields append-only. Literal/example text and no-op reads produce no transition.
