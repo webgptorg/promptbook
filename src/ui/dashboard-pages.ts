@@ -126,7 +126,7 @@ export type DashboardPage =
  */
 export function walletItems(
     wallet: WalletView,
-): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string; readonly problem: WalletView['pending'][number]['problem'] } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string; readonly testing: boolean; readonly testAwaits?: 'code' | 'approval' }> {
+): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string; readonly problem: WalletView['pending'][number]['problem'] } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string; readonly testing: boolean; readonly testAwaits?: 'code' | 'approval' | 'takeover' }> {
     return [
         ...wallet.pending.map((action) => ({ kind: 'request' as const, id: action.id, origin: action.origin, problem: action.problem, ...(action.account ? { account: action.account } : {}) })),
         ...wallet.records.map((record) => ({ kind: 'record' as const, id: record.id, origin: record.origin, account: record.account, testing: record.testing !== undefined, ...(record.testAwaits ? { testAwaits: record.testAwaits } : {}) })),

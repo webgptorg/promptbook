@@ -630,6 +630,72 @@ test('Wallet approval in the real browser: a page waiting for an approval on ano
     assert.match(declined.verification.reason, /declined or expired/);
 });
 
+test('Wallet CAPTCHA in the real browser: nothing is submitted into an unsolved CAPTCHA (no false rejection); solved, the login is entered; a headless test cannot be taken over', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+    const teardown = [];
+    const root = await temporaryDirectory(t, 'ptbk wallet captcha browser', teardown);
+    await mkdir(join(root, '.ptbk', 'tmp'), { recursive: true });
+    const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
+    // The login form carries a challenge widget; the site decides only with its response filled in.
+    const form = '<!doctype html><title>Sign in</title><h1>Sign in</h1><form method="post" action="/login"><input name="username" autocomplete="username"><input name="password" type="password" autocomplete="current-password"><div class="g-recaptcha" style="width:304px;height:78px;border:1px solid #ccc">I am not a robot</div><textarea name="g-recaptcha-response" style="display:none"></textarea><button>Sign in</button></form>';
+    const posts = [];
+    const server = createServer((request, response) => {
+        let body = '';
+        request.on('data', (chunk) => (body += chunk));
+        request.on('end', () => {
+            const fields = new URLSearchParams(body);
+            response.setHeader('content-type', 'text/html');
+            if (request.method === 'POST' && request.url === '/login') {
+                posts.push(fields.get('g-recaptcha-response'));
+                response.end(fields.get('g-recaptcha-response') && fields.get('password') === 'right password 1' ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : form);
+            } else response.end(form);
+        });
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const settings = { tools: [{ type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: true }], overriddenTools: new Set() };
+    const fleet = new BrowserFleet(project, () => settings, env);
+    teardown.push(async () => {
+        await fleet.close();
+        server.closeAllConnections();
+        server.close();
+    });
+    let contexts = 0;
+    const wallet = new WalletSubEngine({
+        project,
+        env,
+        onChange: () => undefined,
+        log: () => undefined,
+        loginContext: async (at) => {
+            const key = `wallet-test-${++contexts}`;
+            const isolated = await (await fleet.scope(key).acquire()).isolatedLogin(at);
+            return { page: isolated.page, dispose: async () => (await isolated.dispose(), await fleet.endScope(key)) };
+        },
+    });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: () => undefined }).map((tool) => [tool.name, tool]));
+    const call = async (name, input = {}) => await tools[name].handler(input);
+    const { id } = await wallet.save({ origin, username: 'fixture-user', password: 'right password 1' });
+
+    // The agent is told to solve it first; nothing was submitted, so the saved login is not taken as rejected.
+    await call('browser_open', { url: origin });
+    assert.match((await call('wallet_login', {})).text, /asks for another step \(the site asks to solve a CAPTCHA\).*call wallet_login again/s);
+    assert.deepEqual(posts, []);
+    assert.equal(wallet.view().pending.length, 0, 'no request to update the login');
+    await call('browser_evaluate', { script: 'document.querySelector("[name=g-recaptcha-response]").value = "solved-token"' });
+    const signedIn = await call('wallet_login', {});
+    assert.match(signedIn.text, /^Signed in/, signedIn.text);
+    assert.deepEqual(posts, ['solved-token']);
+
+    // A headless test has no window to solve it in: incomplete with the reason, never a bad password.
+    const tested = await wallet.test(id);
+    assert.equal(tested.verification.state, 'incomplete', tested.verification.reason);
+    assert.match(tested.verification.reason, /asks to solve a CAPTCHA, and the test browser shows no window to take over \(it runs headless\)/);
+    assert.deepEqual(posts, ['solved-token'], 'the test submitted nothing into the unsolved CAPTCHA');
+});
+
 test('Wallet additional login fields in the real browser: a required unknown field is requested before submitting, then the saved fields fill the form and a security question after the password', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
     const teardown = [];
     const root = await temporaryDirectory(t, 'ptbk wallet fields browser', teardown);
@@ -1057,6 +1123,63 @@ test('Wallet Test at an approval step: it waits while the page waits, and ends i
     assert.equal(verified.verification.state, 'verified', verified.verification.reason);
     assert.match(verified.verification.reason, /after the sign-in was approved/);
     assert.equal(record().testing, undefined);
+});
+
+test('Wallet Test with a CAPTCHA: the owner solves it in the test\'s browser window, then the test signs in again with the saved login; cancellable', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet test takeover');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    // A login form with a CAPTCHA the owner solves (`solve`); only then the sign-in reaches the site.
+    let current;
+    const signIns = [];
+    const loginContext = async (origin) => {
+        let form = 'captcha';
+        current = { solve: () => (form = 'password') };
+        return {
+            page: {
+                browser: 'fresh-context',
+                inspect: async () => ({ origin, form }),
+                signIn: async (credentials) => {
+                    if (form === 'captcha') return { result: 'challenge', note: 'the site asks to solve a CAPTCHA' };
+                    signIns.push(credentials.password);
+                    form = 'none';
+                    return { result: 'signed-in' };
+                },
+                takeOver: async () => 'project-browser',
+            },
+            dispose: async () => undefined,
+        };
+    };
+    const wallet = new WalletSubEngine({
+        project: { root: project, runtime: { root: join(project, '.ptbk'), state: join(project, '.ptbk', 'state') } },
+        env: { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' },
+        onChange: () => undefined,
+        log: () => undefined,
+        loginContext,
+        testCodeWaitMs: 5_000,
+    });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const { id } = await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'jane secret' });
+    const record = () => wallet.view().records.find((candidate) => candidate.id === id);
+
+    const running = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'takeover', { timeoutMs: 5_000, message: 'the takeover step' });
+    assert.match(record().testing, /Solve the CAPTCHA of https:\/\/example\.com in the browser window "project-browser"/);
+    assert.deepEqual(signIns, [], 'nothing was entered into the unsolved CAPTCHA');
+    current.solve();
+    const verified = await running;
+    assert.equal(verified.verification.state, 'verified', verified.verification.reason);
+    assert.deepEqual(signIns, ['jane secret'], 'the saved login, not the owner\'s typing, is what the test signs in with');
+    assert.equal(record().testAwaits, undefined);
+
+    const cancelling = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'takeover', { timeoutMs: 5_000, message: 'the takeover step' });
+    assert.equal(wallet.cancelTest(id).applied, true);
+    const cancelled = await cancelling;
+    assert.equal(cancelled.verification.state, 'incomplete');
+    assert.match(cancelled.verification.reason, /cancelled while waiting for the CAPTCHA/);
 });
 
 test('Wallet additional login fields: encrypted with the login, kept through updates and restarts, filled for sign-in, requested when a form needs more and imported from Bitwarden', async (t) => {

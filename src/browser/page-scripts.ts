@@ -389,6 +389,11 @@ export type LoginScan = {
      * another device, number matching): a short page whose wording asks for such an approval.
      */
     readonly approval: boolean;
+    /**
+     * The page shows a CAPTCHA widget (reCAPTCHA, hCaptcha, Turnstile and similar) whose response is still empty, so a
+     * submission would not reach the website's decision about the login. Invisible widgets and badges do not count.
+     */
+    readonly captcha: boolean;
 };
 
 /**
@@ -447,7 +452,14 @@ export function loginFormScript(): string {
         // that merely mentions approvals among its content).
         const text = !password && !username && !code && !fields.length && document.body ? (document.body.innerText || '').slice(0, 4000) : '';
         const approval = text.length > 0 && text.length < 3000 && /(approve|confirm|allow)[^.!?\\n]{0,60}(sign.?in|log.?in|request|it.?s (really )?you)|(check|open)[^.!?\\n]{0,30}(phone|mobile|device|authenticator|app)\\b|(sent|pushed)[^.!?\\n]{0,40}(notification|push|prompt)|waiting for (your )?(approval|confirmation)|(tap|select) the number/i.test(text);
-        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields, approval };
+        // An unsolved CAPTCHA: a visible widget of challenge size whose response field is still empty.
+        const widgets = [...document.querySelectorAll('.g-recaptcha, .h-captcha, .cf-turnstile, iframe[src*="recaptcha"], iframe[src*="hcaptcha"], iframe[src*="challenges.cloudflare.com"]')].filter((element) => {
+            const box = element.getBoundingClientRect();
+            return box.width >= 150 && box.height >= 64 && !element.closest('.grecaptcha-badge') && element.getAttribute('data-size') !== 'invisible' && !/size=invisible/.test(element.getAttribute('src') || '');
+        });
+        const responses = [...document.querySelectorAll('[name="g-recaptcha-response"], [name="h-captcha-response"], [name="cf-turnstile-response"]')];
+        const captcha = widgets.length > 0 && (!responses.length || responses.some((element) => !element.value));
+        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields, approval, captcha };
     })()`;
 }
 

@@ -67,7 +67,7 @@ function walletMessage(result: WalletLoginResult): string {
         case 'signed-in':
             return `Signed in to ${result.origin} with the saved login "${result.account}" (the Wallet entered it; the credentials are not available to you).${result.note ? ` ${result.note}.` : ''} Verify the page shows what the task needs.`;
         case 'challenge':
-            return `The Wallet entered the saved login "${result.account}" for ${result.origin}, and the site now asks for another step (${result.note ?? 'for example a CAPTCHA, a two-factor code or an approval'}). Complete technical steps such as a CAPTCHA yourself, and choose "stay signed in" or "trust this device" when offered. ${CODE_GUIDANCE} Use browser_request_user_action only for an approval only the account owner can give. You are not signed in until the site shows the access you need.`;
+            return `The Wallet entered the saved login "${result.account}" for ${result.origin}, and the site now asks for another step (${result.note ?? 'for example a CAPTCHA, a two-factor code or an approval'}). Complete technical steps such as a CAPTCHA yourself (the Wallet enters the login only into a form without an unsolved CAPTCHA: when the login form is shown after you solved it, call wallet_login again), and choose "stay signed in" or "trust this device" when offered. ${CODE_GUIDANCE} Use browser_request_user_action only for an approval only the account owner can give. You are not signed in until the site shows the access you need.`;
         case 'no-login-form':
             return `The current page of ${result.origin} shows no login form. If the site is already signed in, just continue; otherwise open its login page and call wallet_login again.`;
         case 'related':

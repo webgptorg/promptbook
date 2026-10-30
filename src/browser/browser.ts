@@ -70,6 +70,11 @@ const SUBMIT_SETTLE_MS = 1500;
 const APPROVAL_ASKED: SignInAttempt = { result: 'challenge', note: 'the site asks to approve this sign-in in its app or on another device' };
 
 /**
+ * A login page with an unsolved CAPTCHA: the website decides about the login only after it is solved.
+ */
+const CAPTCHA_ASKED: SignInAttempt = { result: 'challenge', note: 'the site asks to solve a CAPTCHA' };
+
+/**
  * Upper bound of repeated key presses in one call.
  */
 const MAX_KEY_REPEAT = 100;
@@ -435,6 +440,11 @@ export class ProjectBrowser {
     /** Whether this engine is connected. */
     public get connected(): boolean {
         return Boolean(this.connection);
+    }
+
+    /** Whether the connected browser shows windows a person can use (not headless). */
+    public get headful(): boolean {
+        return Boolean(this.connection) && this.health.actualMode === 'headful';
     }
 
     /** The headless-fallback note shown with page readings. */
@@ -1241,8 +1251,9 @@ export class TaskBrowser {
             browser: this.name,
             inspect: async () => {
                 const scan = await this.scanLogin();
-                return { origin: scan.origin, form: scan.password ? 'password' : scan.username ? 'username' : scan.otp ? 'code' : scan.approval ? 'approval' : 'none' };
+                return { origin: scan.origin, form: scan.captcha ? 'captcha' : scan.password ? 'password' : scan.username ? 'username' : scan.otp ? 'code' : scan.approval ? 'approval' : 'none' };
             },
+            takeOver: async () => (this.browser.headful ? (await this.bringToFront(), this.name) : undefined),
             signIn: async (credentials) => await this.walletSignIn(credentials),
             enterCode: async (origin, code) => await this.walletEnterCode(origin, code),
         };
@@ -1318,7 +1329,8 @@ export class TaskBrowser {
      * another site never receives them), a two-step login gets the username first, additional fields of the form are
      * filled from the saved ones with a matching label, and the result is verified on the resulting page rather than
      * assumed from the submission. A required field no saved one answers stops before submitting (no false rejection);
-     * a page waiting for an approval elsewhere is a further step, not a signed-in session.
+     * so does an unsolved CAPTCHA, and one shown after a submission is a further step like a page waiting for an
+     * approval elsewhere: neither is a rejection or a signed-in session.
      */
     private async walletSignIn(credentials: SignInCredentials): Promise<SignInAttempt> {
         await this.recorder.pause('Wallet sign-in (credentials are not recorded)');
@@ -1336,6 +1348,7 @@ export class TaskBrowser {
                 return missing;
             };
             const asks = (missing: readonly string[]): SignInAttempt => ({ result: 'challenge', note: `the login form asks for ${missing.map((label) => `"${label}"`).join(', ')}`, missingFields: missing });
+            if (scan.captcha) return CAPTCHA_ASKED;
             if (!scan.password && !scan.username) return { result: 'no-form', note: 'no login form is shown' };
             const moved = elsewhere(scan);
             if (moved) return moved;
@@ -1348,6 +1361,7 @@ export class TaskBrowser {
                 await additional(scan, true);
                 await this.submitLogin();
                 scan = await this.scanLogin();
+                if (scan.captcha) return CAPTCHA_ASKED;
                 if (!scan.password) return scan.otp ? { result: 'challenge', note: 'the site asks for a one-time code' } : scan.approval ? APPROVAL_ASKED : scan.username ? { result: 'rejected', note: 'the site did not accept the username' } : { result: 'no-form', note: 'no password field followed the username' };
                 const away = elsewhere(scan);
                 if (away) return away;
@@ -1358,6 +1372,7 @@ export class TaskBrowser {
             await additional(scan, true);
             await this.submitLogin();
             let after = await this.scanLogin();
+            if (after.captcha) return CAPTCHA_ASKED;
             if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
             if (after.otp) return { result: 'challenge', note: 'the site asks for a one-time code' };
             if (after.approval) return APPROVAL_ASKED;
@@ -1369,6 +1384,7 @@ export class TaskBrowser {
                 await additional(after, true);
                 await this.submitLogin();
                 after = await this.scanLogin();
+                if (after.captcha) return CAPTCHA_ASKED;
                 if (after.fields.length && originMatches(credentials.origin, after.origin)) return { result: 'rejected', note: 'the site asked for its sign-in question again' };
                 if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
                 if (after.otp) return { result: 'challenge', note: 'the site asks for a one-time code' };
@@ -1392,9 +1408,11 @@ export class TaskBrowser {
             const scan = await this.scanLogin();
             if (!originMatches(origin, scan.origin)) return { result: 'no-form', note: `the page moved to ${scan.origin}` };
             if (!scan.otp) return { result: 'no-form', note: 'no one-time code field is shown' };
+            if (scan.captcha) return CAPTCHA_ASKED;
             await this.enterLoginField('code', code);
             await this.submitLogin();
             const after = await this.scanLogin();
+            if (after.captcha) return CAPTCHA_ASKED;
             if (after.otp && originMatches(origin, after.origin)) return { result: 'rejected', note: 'the site asks for a code again' };
             if (after.password && originMatches(origin, after.origin)) return { result: 'rejected', note: 'the site returned to its login form' };
             if (after.approval) return APPROVAL_ASKED;

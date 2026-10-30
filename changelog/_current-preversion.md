@@ -1,5 +1,11 @@
 # Unreleased
 
+## Wallet: a CAPTCHA is solved before the login is entered; a Wallet test can be taken over to solve it
+
+-   The Wallet now recognizes an unsolved CAPTCHA (reCAPTCHA, hCaptcha, Turnstile and similar widgets whose response is still empty; invisible widgets and badges do not count). It enters a login, additional field or one-time code only into a form without one. Before, it submitted into the unsolved CAPTCHA. The site then showed its login form again, which counted as a **rejected password**: a Wallet test reported **test rejected**, and ordinary work created a request to update a login that was fine. A CAPTCHA page after a submission no longer counts as signed in either.
+-   In ordinary work, `wallet_login` reports the CAPTCHA as a further step. The agent solves it as before, then calls `wallet_login` again, and the Wallet enters the login.
+-   A Wallet **Test** that meets a CAPTCHA brings its login window forward when the project browser shows windows, and waits up to ten minutes. The progress reads "Solve the CAPTCHA of … in the browser window …". Once it is solved, the test signs in again with the saved login, never with what was typed in the window, and checks the result. The test can be cancelled while it waits. A headless browser has no window to take over, so the test ends as unverified (incomplete) with that reason, never as a bad password.
+
 ## Wallet: a sign-in waiting for an approval on another device is no longer taken as signed in
 
 -   After the password or a one-time code, some websites wait until the sign-in is approved in their app or on another device. The Wallet now recognizes such a page: a short page without any field to fill whose wording asks for that approval. Before, any page without a login form counted as a successful sign-in, so a **Test** reported such a login as **verified** although nothing had been proven, and ordinary work was told it was signed in.
@@ -65,7 +71,7 @@
 -   Progress is shown live with the login. Afterwards it shows **verified**, **test rejected** or **unverified (test incomplete)** with the time and a concise reason, for example when no login form was found, the site asks for another step such as a code, or the website or browser is unavailable. A temporary outage is never reported as a bad password, and a login never tested reads as unverified. The latest result is stored inside the login's encrypted record (ignored local Wallet state, never in Git), with passwords and other secrets redacted, and it survives a restart. Updating the login clears it, and a result about values changed during the test is dropped.
 -   A test is not a task, run or credential mutation: it creates no task Book, trace, Wallet audit or commit.
 -   When the website asks for a one-time code after the password, the test waits with its login for up to ten minutes: **Enter the code** on the web, or Enter on the login in the terminal (masked input). The code is entered once into the test's own login context and never stored or kept in the result. A refused code asks for the current one, up to three codes. A running test can be cancelled (`X` in the terminal, **Cancel test** on the web). A missing code or a cancellation ends the test as unverified (incomplete), never as a bad password.
--   Not covered yet: taking over the browser during a test, and codes the test obtains from an inbox by itself (the test runs without an agent).
+-   Not covered yet: codes the test obtains from an inbox by itself (the test runs without an agent).
 
 ## Wallet: one-time codes through protected owner input, never a chat
 
