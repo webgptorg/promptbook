@@ -11,7 +11,7 @@ import { WALLET_WAIT } from '../tasks/eligibility.js';
  *
  * @private runtime state
  */
-export type ActivePhase = 'claimed' | 'executing' | 'awaiting-user' | 'checking' | 'finalizing' | 'committing' | 'committed' | 'synchronizing' | 'failed';
+export type ActivePhase = 'claimed' | 'executing' | 'awaiting-user' | 'awaiting-task' | 'checking' | 'finalizing' | 'committing' | 'committed' | 'synchronizing' | 'failed';
 
 /**
  * Kind of automatic/explicit work.
@@ -191,6 +191,11 @@ export type ActiveRecord = {
     readonly waitingChat?: string;
     /** Pending Wallet login request (protected owner input) this run waits for, instead of a chat reply. */
     readonly waitingWallet?: string;
+    /**
+     * Prerequisite tasks (names) this run created and waits for in the `awaiting-task` phase: it resumes once they are
+     * completed (no person is asked; its task Book also declares them through `TASK DEPENDS ON`).
+     */
+    readonly waitingTasks?: readonly string[];
     /** Message count of that chat when the question was asked: a later User message is the reply. */
     readonly awaitedMessages?: number;
     /**
@@ -250,17 +255,20 @@ export function isolationBranch(runId: string): string {
 }
 
 /**
- * Readiness contributions of checkpointed tasks, keyed by normalized task name: the chat each one waits on, or (for
- * work left in an older engine's task worktree, which is no question for the user) a recovery explanation.
+ * Readiness contributions of checkpointed tasks, keyed by normalized task name: the chat each one waits on, the
+ * prerequisite tasks it waits for (no question for anyone), or (for work left in an older engine's task worktree, which
+ * is no question for the user) a recovery explanation.
  *
  * @private runtime state
  */
-export function parkedReadiness(records: readonly ActiveRecord[]): { readonly awaitingUser: Map<string, string>; readonly integrations: Map<string, string> } {
+export function parkedReadiness(records: readonly ActiveRecord[]): { readonly awaitingUser: Map<string, string>; readonly integrations: Map<string, string>; readonly prerequisites: Map<string, readonly string[]> } {
     const awaitingUser = new Map<string, string>();
     const integrations = new Map<string, string>();
+    const prerequisites = new Map<string, readonly string[]>();
     for (const record of records) {
         const key = record.taskKey || normalizeAgentName(record.taskTitle);
-        if (record.phase === 'synchronizing' && record.worktree) integrations.set(key, `Its isolated result waits on ${isolationBranch(record.runId)} for a visible merge into the project branch; the task completes once it is merged.`);
+        if (record.phase === 'awaiting-task' && !record.worktree) prerequisites.set(key, record.waitingTasks ?? []);
+        else if (record.phase === 'synchronizing' && record.worktree) integrations.set(key, `Its isolated result waits on ${isolationBranch(record.runId)} for a visible merge into the project branch; the task completes once it is merged.`);
         else if (record.worktree) {
             integrations.set(key, `It was running in a task worktree of an older engine (${record.worktree}, branch ${isolationBranch(record.runId)}); task worktrees were removed. Merge or discard that branch yourself, then run \`ptbk recover ${record.taskRef} --action retry\` or \`--action acknowledge\`.`);
         } else if (record.phase === 'failed' && record.recovery && !record.recoveryChat) {
@@ -268,7 +276,7 @@ export function parkedReadiness(records: readonly ActiveRecord[]): { readonly aw
             integrations.set(key, `Failed: ${record.recovery.cause} Automatic recheck ${record.recovery.rounds} is due ${record.recovery.nextAt} (sooner when its source, tools or check change); no reply is needed.`);
         } else awaitingUser.set(key, record.waitingWallet && record.phase === 'awaiting-user' ? WALLET_WAIT : (record.waitingChat ?? record.recoveryChat ?? 'checkpoint'));
     }
-    return { awaitingUser, integrations };
+    return { awaitingUser, integrations, prerequisites };
 }
 
 /**

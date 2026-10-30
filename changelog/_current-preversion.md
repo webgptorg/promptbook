@@ -1,5 +1,13 @@
 # Unreleased
 
+## Tasks: a discovered technical prerequisite pauses the task until it is done
+
+-   An agent that finds a technical prerequisite its task cannot continue without (for example an accounting task that needs an XML parser) can call the new `create_prerequisite_task` tool and end its turn with the new status `waiting-for-task`. Before, the only way out was to report the task as blocked, which failed it, or to do the supporting work inside the content task.
+-   The prerequisite is committed at once as an ordinary task of its own, separate from the waiting task's result. It has `TASK PURPOSE SYSTEM` (or CONTENT when the agent says so), `TASK PARENT` naming the waiting task, an optional `TASK AGENT` and the waiting task's priority, so it is not starved. The waiting task gets `TASK DEPENDS ON {prerequisite}` in its own Book and keeps its own purpose.
+-   The waiting task is checkpointed with its changed files and recorded external actions. Views show it as waiting for its dependency, never as a question for the user. Its agent may start the prerequisite despite the one-started-task-per-agent rule, because it belongs to the same chain. Other tasks for that agent still queue.
+-   When the prerequisite is completed, the task continues from where it stopped, also after a restart. It is told that its confirmed external actions are done and not to repeat them. If the prerequisite is retired, marked failed or removed instead, the task resumes and is told so. A prerequisite that is still being recovered keeps the task waiting.
+-   Fixed: a task Book or brief that the engine published while another task was capturing its changes was sometimes reported as "changed while several tasks worked and no task claimed or reported it", although the engine committed it itself.
+
 ## Initialization: Wallet setup and import are part of the draft
 
 -   Choosing **Set up Wallet now?** in `ptbk init` (and the global dashboard's New project) now shows the 12 words for recovery and the optional Bitwarden import inside the wizard, before the final review. Before, both ran after **Create and start project**, so the project was already written when they asked their questions.

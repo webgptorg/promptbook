@@ -59,6 +59,8 @@ export type EligibilityContext = {
     readonly activeKeys?: ReadonlySet<string>;
     /** Chat waiting for the user, per task name key. */
     readonly awaitingUser: ReadonlyMap<string, string>;
+    /** Prerequisite tasks a checkpointed run created and waits for, per task name key (it resumes, never restarts). */
+    readonly prerequisites?: ReadonlyMap<string, readonly string[]>;
     /** Runtime recovery/failure blockers per task name key. */
     readonly recovery: ReadonlyMap<string, string>;
     /** Task source files that are not committed (only relevant with automatic commits). */
@@ -143,6 +145,17 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
     const chat = context.awaitingUser.get(task.key);
     if (chat === WALLET_WAIT) return { kind: 'awaiting-user', reason: 'Waiting for a website login the owner adds in the Wallet.', chat };
     if (chat) return { kind: 'awaiting-user', reason: `Waiting for your reply in the chat {${chat}}.`, chat };
+    const prerequisites = context.prerequisites?.get(task.key);
+    if (prerequisites) {
+        // A checkpointed run continues where it stopped once the supporting work it created is complete.
+        const unfinished = prerequisites.flatMap((reference) => {
+            const found = findTask(tasks, reference).task;
+            return found && !isComplete(found) && found.status !== 'retired' && found.status !== 'failed' ? [found.ref] : [];
+        });
+        return unfinished.length
+            ? { kind: 'waiting-dependency', reason: `Checkpointed until its prerequisite ${unfinished.join(', ')} is completed; it then continues where it stopped.`, on: unfinished }
+            : { kind: 'waiting-dependency', reason: 'Its prerequisites are settled; it continues where it stopped.', on: [] };
+    }
     const waitingOn: string[] = [];
     for (const reference of task.dependsOn) {
         const found = findTask(tasks, reference);

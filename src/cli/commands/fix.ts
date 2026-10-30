@@ -81,7 +81,7 @@ export default async function fix(context: CommandContext): Promise<number> {
             return EXIT.success;
         }
         terminal.write(`The repair did not complete: ${outcome.kind}${'reason' in outcome ? ` — ${outcome.reason}` : ''}. Inspect with \`ptbk recover\`.\n`);
-        return outcome.kind === 'awaiting-user' || outcome.kind === 'awaiting-wallet' ? EXIT.incomplete : EXIT.failure;
+        return outcome.kind === 'awaiting-user' || outcome.kind === 'awaiting-wallet' || outcome.kind === 'awaiting-task' ? EXIT.incomplete : EXIT.failure;
     } finally {
         await host.shutdown();
     }

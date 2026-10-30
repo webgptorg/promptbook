@@ -50,7 +50,7 @@ import { describePriority } from '../tasks/priority.js';
 import { findTask, readTaskQueue } from '../tasks/sources.js';
 import { agentView, type BadgeActivity } from '../ui/badges.js';
 import type { BridgeTool } from './bridge.js';
-import { HANDOVER_ATTEMPTS, captureSnapshot, executeWork, type ExecutionEnvironment, type ExecutionOutcome, type WorkItem } from './executor.js';
+import { HANDOVER_ATTEMPTS, captureSnapshot, executeWork, type ExecutionEnvironment, type ExecutionOutcome, type PrerequisiteInput, type WorkItem } from './executor.js';
 import {
     applyAssignment,
     assignmentPrompt,
@@ -1600,6 +1600,22 @@ export class Agenda {
         return name;
     }
 
+    /**
+     * Publishes a technical prerequisite an executing task discovered as an ordinary task of its own (committed at once,
+     * never part of the waiting task's result), linked to that task as its parent and inheriting its priority.
+     */
+    private async createPrerequisiteTask(input: PrerequisiteInput): Promise<string> {
+        const title = generatedName(input.title, { taken: await this.takenNames(), timeZone: this.timeZone });
+        const parent = formatAgentReference(input.parent);
+        const commitments: string[] = [];
+        if (input.agent) commitments.push(`TASK AGENT ${toReference(input.agent)}`);
+        if (input.priority) commitments.push(`TASK PRIORITY ${input.priority}`);
+        commitments.push(`TASK PURPOSE ${input.purpose.toUpperCase()}`, `TASK PARENT ${parent}`, `TASK ORIGIN prerequisite of ${parent}`);
+        const path = await newTaskPath(this.tasksDirectory, input.title, Date.now(), this.timeZone);
+        const published = await this.addTaskFile(path, renderTaskBook({ title, description: input.goal, commitments }), `Add task - ${title}`, this.commitMode, [title]);
+        return published.names[0] ?? title;
+    }
+
     /** Schedules one Teacher task for a chat correction, unless equivalent teaching work is still unresolved. */
     private async scheduleChatLearning(input: { readonly chat: string; readonly agent: string; readonly note: string }): Promise<string | undefined> {
         const learner = await this.catalog.resolve(formatAgentReference(input.agent));
@@ -2556,13 +2572,13 @@ export class Agenda {
                 }
                 const agent = candidate.readiness.kind === 'needs-assignment' ? router : this.routedAgents.get(candidate.task.key);
                 const agentKey = agent ? normalizeAgentName(parseReferenceValue(agent)?.name ?? agent) : undefined;
-                const holder = agentKey ? reserved.get(agentKey) : undefined;
-                if (agent && holder !== undefined) {
-                    blockedByAgents.push({ agent, holder });
+                const reservation = agentKey ? reserved.get(agentKey) : undefined;
+                if (agent && reservation && !reservation.prerequisites.has(candidate.task.key)) {
+                    blockedByAgents.push({ agent, holder: reservation.holder });
                     continue;
                 }
                 if (!this.launch({ label: candidate.task.title, key: candidate.task.key }, async (unit) => await this.startTask(candidate, unit))) break;
-                if (agentKey) reserved.set(agentKey, candidate.task.title);
+                if (agentKey) reserved.set(agentKey, { holder: candidate.task.title, prerequisites: new Set() });
                 launched++;
             }
             this.queuedWork = candidates.length - launched;
@@ -2621,7 +2637,7 @@ export class Agenda {
      */
     private async handleRecordedRuns(): Promise<boolean> {
         let changed = false;
-        for (const record of await this.state.readActiveRecords()) {
+        for (let record of await this.state.readActiveRecords()) {
             if (this.runIsLive(record.runId)) continue;
             if (record.worktree) {
                 this.log(`"${record.taskTitle}" was running in a task worktree of an older engine (${record.worktree}); task worktrees were removed, so it is kept for you to merge or discard (ptbk recover).`, 'warning');
@@ -2640,6 +2656,16 @@ export class Agenda {
                 await this.checkpoint(record);
                 changed = true;
                 continue;
+            }
+            if (record.phase === 'awaiting-task') {
+                const settled = await this.prerequisitesSettled(record);
+                if (!settled) {
+                    await this.checkpoint(record);
+                    changed = true;
+                    continue;
+                }
+                record = { ...record, feedback: settled };
+                await this.state.writeActive(record);
             }
             if (!this.claimable || this.claimedKeys.has(record.taskKey || nameKey(record.taskTitle))) continue;
             this.resumeAfter.delete(record.runId);
@@ -2742,7 +2768,7 @@ export class Agenda {
         // Checkpointed tasks wait for their person (a chat) until resumed, even once answered (resumption restores them first).
         const parkedRecords = await this.state.readParked();
         this.waitingWork = parkedRecords.length;
-        const { awaitingUser, integrations } = parkedReadiness(parkedRecords);
+        const { awaitingUser, integrations, prerequisites } = parkedReadiness(parkedRecords);
         const uncommitted = new Set<string>();
         if (this.commitMode && this.repositoryRoot) {
             const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot }, new Set());
@@ -2776,6 +2802,7 @@ export class Agenda {
             timeZone: this.timeZone,
             activeKeys: new Set([...active.map((record) => record.taskKey || normalizeAgentName(record.taskTitle)), ...this.claimedKeys]),
             awaitingUser,
+            prerequisites,
             recovery: new Map([...Object.entries(blockers).map(([key, blocker]) => [key, blocker.reason] as const), ...integrations]),
             uncommittedSources: uncommitted,
             activation: (task) => activations[task.key] ?? Date.now(),
@@ -2843,16 +2870,18 @@ export class Agenda {
     private routedAgents = new Map<string, string>();
 
     /**
-     * Agents holding a started unfinished task (normalized agent → that task's title): every active run and every
-     * checkpointed one (waiting for the user, Wallet, a resource or a decision). A wait releases its execution slot,
-     * never this reservation; it is rebuilt from the persisted records, so it survives restarts. Chat turns are not
-     * tasks and never reserve an agent.
+     * Agents holding a started unfinished task (normalized agent → that task's title and the prerequisites it waits
+     * for): every active run and every checkpointed one (waiting for the user, Wallet, a resource, a decision or its
+     * prerequisite tasks). A wait releases its execution slot, never this reservation; it is rebuilt from the persisted
+     * records, so it survives restarts. Chat turns are not tasks and never reserve an agent. The supporting work a
+     * checkpointed task waits for is part of its chain, not a second independent task of that agent.
      */
-    private async agentReservations(): Promise<Map<string, string>> {
-        const reserved = new Map<string, string>();
+    private async agentReservations(): Promise<Map<string, { readonly holder: string; readonly prerequisites: ReadonlySet<string> }>> {
+        const reserved = new Map<string, { readonly holder: string; readonly prerequisites: ReadonlySet<string> }>();
         for (const record of [...(await this.state.readActiveRecords()), ...(await this.state.readParked())]) {
             const agent = record.routing?.agent;
-            if (agent) reserved.set(normalizeAgentName(parseReferenceValue(agent)?.name ?? agent), record.taskTitle);
+            const prerequisites = new Set(record.phase === 'awaiting-task' ? (record.waitingTasks ?? []).map((name) => nameKey(name)) : []);
+            if (agent) reserved.set(normalizeAgentName(parseReferenceValue(agent)?.name ?? agent), { holder: record.taskTitle, prerequisites });
         }
         return reserved;
     }
@@ -3012,6 +3041,7 @@ export class Agenda {
                 own: (paths) => void this.ownership.tryAcquire(unit.owner, label, paths),
                 edited: (paths) => this.reportedEdits(unit, label, paths),
                 claimFiles: async (paths) => await this.claimFiles(unit, label, paths),
+                createPrerequisite: async (input) => await this.createPrerequisiteTask(input),
                 turn: (state) => (state === 'begin' ? this.turns.begin(unit.owner) : this.turns.end(unit.owner)),
                 ownedFiles: () => this.ownership.owned(unit.owner),
                 foreignChanges: () => this.foreignChanges(unit),
@@ -3491,7 +3521,8 @@ export class Agenda {
                 if (record) await this.checkpoint(record);
                 break;
             }
-            case 'awaiting-wallet': {
+            case 'awaiting-wallet':
+            case 'awaiting-task': {
                 const record = await this.state.readActive(item.runId);
                 if (record) await this.checkpoint(record);
                 break;
@@ -4304,6 +4335,31 @@ export class Agenda {
         return this.tools;
     }
 
+    /**
+     * Feedback for a run waiting for its prerequisite tasks once all of them are settled (completed, retired, marked
+     * failed or removed), or `undefined` while one still needs work. Failure recovery of a prerequisite keeps the wait:
+     * the dependency is real, and its problem is surfaced on the prerequisite itself.
+     */
+    private async prerequisitesSettled(record: ActiveRecord): Promise<string | undefined> {
+        const tasks = (await this.readQueue()).tasks;
+        const completed: string[] = [];
+        const other: string[] = [];
+        for (const name of record.waitingTasks ?? []) {
+            const task = findTask(tasks, formatAgentReference(name)).task;
+            if (!task) other.push(`{${name}} was removed`);
+            else if (task.status === 'done' || (isRecurring(task) && task.doneStamps.length > 0)) completed.push(`{${task.title}}`);
+            else if (task.status === 'retired' || task.status === 'failed') other.push(`{${task.title}} was ${task.status === 'retired' ? 'retired' : 'marked failed'}`);
+            else return undefined;
+        }
+        return [
+            completed.length ? `The prerequisite ${completed.join(', ')} you created was completed and committed.` : '',
+            other.length ? `The prerequisite ${other.join(', ')} without being completed; continue without it if the task allows it, otherwise report the task as blocked with the reason.` : '',
+            'Continue this task from the current state of the files and its recorded external actions; do not repeat completed steps or confirmed actions.',
+        ]
+            .filter(Boolean)
+            .join(' ');
+    }
+
     /** Whether a run waits for a Wallet login request that is still pending (an unknown request never blocks). */
     private walletPending(record: ActiveRecord): boolean {
         return record.phase === 'awaiting-user' && Boolean(record.waitingWallet) && this.wallet.action(record.waitingWallet!)?.state === 'pending';
@@ -4318,11 +4374,16 @@ export class Agenda {
         const files = this.ownership.owned(record.runId);
         const parked = { ...record, ownedFiles: files.length ? files : record.ownedFiles };
         await this.state.park(parked);
-        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat, ...(record.waitingWallet ? { wallet: record.waitingWallet } : {}), ownedFiles: parked.ownedFiles ?? [] });
+        await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat, ...(record.waitingWallet ? { wallet: record.waitingWallet } : {}), ...(record.waitingTasks ? { tasks: record.waitingTasks } : {}), ownedFiles: parked.ownedFiles ?? [] });
         const kept = parked.ownedFiles?.length ? ` It keeps its changes in ${parked.ownedFiles.slice(0, 4).join(', ')}${parked.ownedFiles.length > 4 ? ', …' : ''}; other work on those files waits.` : '';
         const waiting = record.waitingWallet ? this.wallet.action(record.waitingWallet) : undefined;
         const needed = `${waiting?.problem === 'code' ? 'a one-time code' : 'a login'}${waiting?.origin ? ` for ${waiting.origin}` : ''}`;
-        const until = record.waitingWallet ? `${needed} is ${waiting?.problem === 'code' ? 'entered' : 'added'} in the Wallet (protected input, never in a chat)` : `you reply in {${record.waitingChat ?? record.recoveryChat}}`;
+        const until =
+            record.phase === 'awaiting-task'
+                ? `its prerequisite ${(record.waitingTasks ?? []).map((name) => `{${name}}`).join(', ')} is completed (no reply is needed)`
+                : record.waitingWallet
+                  ? `${needed} is ${waiting?.problem === 'code' ? 'entered' : 'added'} in the Wallet (protected input, never in a chat)`
+                  : `you reply in {${record.waitingChat ?? record.recoveryChat}}`;
         this.log(`"${record.taskTitle}" is checkpointed until ${until}; independent work continues.${kept}`);
         return true;
     }
@@ -4354,7 +4415,7 @@ export class Agenda {
         for (const record of parked) {
             // A question or recheck whose task was completed, retired, marked failed or removed meanwhile is no longer
             // needed: the checkpoint is retired with that reason (the question stays in the chat's history).
-            if (!record.worktree && (record.phase === 'awaiting-user' || record.phase === 'failed')) {
+            if (!record.worktree && (record.phase === 'awaiting-user' || record.phase === 'awaiting-task' || record.phase === 'failed')) {
                 const closed = await this.closedTaskReason(record, (queue ??= await this.readQueue()).tasks);
                 if (closed) {
                     await this.retireCheckpoint(record, closed);
@@ -4389,6 +4450,14 @@ export class Agenda {
                     await this.startRecheck(record, recovery, changed ? 'its source, tools or check changed' : `scheduled after ${recovery.rounds === 1 ? 'the failure' : `${recovery.rounds} failed rounds`}`);
                     return true;
                 }
+            }
+            if (record.phase === 'awaiting-task') {
+                // Resumed at its phase once the supporting work is settled; the run's kept changes are its own.
+                const settled = await this.prerequisitesSettled(record);
+                if (!settled) continue;
+                await this.state.unpark({ ...record, feedback: settled, preSnapshot: await this.resumedPreSnapshot(record), instanceId: this.options.instanceId });
+                this.log(`Resuming "${record.taskTitle}": its prerequisite ${(record.waitingTasks ?? []).map((name) => `{${name}}`).join(', ')} is settled.`);
+                return true;
             }
             const chat = record.phase === 'awaiting-user' ? record.waitingChat : record.recoveryChat;
             if (chat && !(await this.chatReplyOf(chat, record.awaitedMessages, record.phase === 'failed' ? RECOVERY_CHOICES : undefined, record.answerMessage)).answered) continue;

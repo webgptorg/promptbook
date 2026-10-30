@@ -260,6 +260,38 @@ test('a user question waits in a chat while the engine keeps running; the answer
     assert.match(content, /\(blue\)/);
 });
 
+test('a discovered technical prerequisite becomes linked system work; the content task waits and continues where it stopped', async (t) => {
+    const { project, env, log } = await initializedProject(t, { check: CHECK });
+    await ptbk(['add', 'Import the ledger NEEDS_PREREQUISITE', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
+    const run = await drive(project, env, async () => committed(project, 'Import the ledger NEEDS_PREREQUISITE'), { message: 'the resumed task', timeoutMs: 120_000 });
+    assert.equal(run.code, 0, run.output);
+    // The generated name keeps no all-uppercase first word (`Xml parser …`).
+    assert.match(run.output, /is checkpointed until its prerequisite \{Xml parser for the ledger — [^}]+\} is completed \(no reply is needed\)/);
+    assert.match(run.output, /Resuming "Import the ledger NEEDS_PREREQUISITE — [^"]+": its prerequisite/);
+
+    const subjectsNow = await subjects(project);
+    const index = (title, prefix) => subjectsNow.findIndex((subject) => generated(title, prefix).test(subject));
+    assert.ok(index('Xml parser for the ledger', 'ptbk: Add task - ') >= 0, 'the prerequisite is committed on its own');
+    assert.ok(index('Import the ledger NEEDS_PREREQUISITE', 'ptbk: ') >= 0 && index('Xml parser for the ledger', 'ptbk: ') > index('Import the ledger NEEDS_PREREQUISITE', 'ptbk: '), 'the prerequisite completed before the waiting task (subjects are newest first)');
+    const books = await readdir(join(project, 'tasks'));
+    const read = async (slug) => await readFile(join(project, 'tasks', books.find((name) => new RegExp(`^[0-9-]+-${slug}\\.book$`).test(name))), 'utf8');
+    const prerequisite = await read('xml-parser-for-the-ledger');
+    assert.match(prerequisite, /^TASK AGENT @Developer$/m);
+    assert.match(prerequisite, /^TASK PRIORITY 9$/m, 'it inherits the waiting task’s priority');
+    assert.match(prerequisite, /^TASK PURPOSE SYSTEM$/m);
+    assert.match(prerequisite, /^TASK PARENT \{Import the ledger NEEDS_PREREQUISITE — [^}]+\}$/m);
+    assert.match(prerequisite, /^TASK DONE /m);
+    const original = await read('import-the-ledger-needs-prerequisite');
+    assert.match(original, /^TASK DEPENDS ON \{Xml parser for the ledger — [^}]+\}$/m, 'the dependency is real Book data');
+    assert.doesNotMatch(original, /^TASK PURPOSE SYSTEM/m, 'the content task is not relabelled');
+    assert.match(original, /^TASK DONE /m);
+    assert.equal(await readFile(join(project, 'output', 'ledger.txt'), 'utf8'), 'partial: the ledger needs an XML parser\nresumed; email already sent: true\n', 'it continued from its kept partial work');
+    const turns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((turn) => !turn.assignment && !turn.learning && /^(Import the ledger|Xml parser)/.test(turn.title));
+    assert.deepEqual(turns.map((turn) => turn.title.replace(/ — .*$/, '')), ['Import the ledger NEEDS_PREREQUISITE', 'Xml parser for the ledger', 'Import the ledger NEEDS_PREREQUISITE']);
+    const actions = await readdir(join(project, 'actions'), { recursive: true });
+    assert.equal(actions.filter((name) => name.endsWith('.md')).length, 1, 'the email is recorded once and never repeated');
+});
+
 test('explicit --no-commit creates no commits and reports uncommitted results', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     const before = await subjects(project);

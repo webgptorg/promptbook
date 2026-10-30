@@ -20,6 +20,10 @@
  *                     keeps working for $FAKE_CODEX_SLOW_MS (concurrent same-file work waits for the claim)
  *   WALLET_LOGIN    → opens $FAKE_LOGIN_URL in the project browser and calls `wallet_login`: a waiting Wallet request
  *                     ends the turn waiting-for-user, a sign-in writes the page heading to output/wallet.txt
+ *   NEEDS_PREREQUISITE (in the task's name) → sends a confirmed email (external action), writes partial work to
+ *                     output/ledger.txt, creates the prerequisite "XML parser for the ledger" through
+ *                     `create_prerequisite_task` and reports waiting-for-task; resumed after it, it completes the work
+ *                     and notes whether the email is already recorded (it never sends it again)
  *   EXTERNAL_ACTIONS → attempt 1 records a confirmed email, an uncertain (lost acknowledgement) post and an intent
  *                     without an outcome through the action tools, then writes BROKEN output (the check fails); a
  *                     repair attempt reconciles the post from the prompt's action records by its id, without resending
@@ -269,6 +273,22 @@ async function main() {
         message(`Cannot do it.\nPTBK_RESULT ${JSON.stringify({ status: 'blocked', summary: 'blocked', reason: 'fixture blocker' })}`);
     } else if (prompt.includes('NO_REPORT') && attempt === 1) {
         message('I did something but forgot the report.');
+    } else if (title.includes('NEEDS_PREREQUISITE')) {
+        mkdirSync(join(process.cwd(), 'output'), { recursive: true });
+        const file = join(process.cwd(), 'output', 'ledger.txt');
+        if (!/prerequisite .* was completed/.test(prompt)) {
+            const id = /intent (act-[a-z0-9]+)/.exec(await callTool('begin_external_action', { operation: 'Send email', service: 'Gmail', target: 'accountant@example.test', content: 'The ledger import has started.' }))?.[1];
+            await callTool('record_external_action', { id, outcome: 'confirmed', observed: 'Shown in the Sent folder.' });
+            writeFileSync(file, 'partial: the ledger needs an XML parser\n');
+            print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'add' }] } });
+            const created = await callTool('create_prerequisite_task', { title: 'XML parser for the ledger', goal: 'Parse the XML ledger export into rows.', agent: '@Developer' });
+            message(`${created}\nPTBK_RESULT ${JSON.stringify({ status: 'waiting-for-task', summary: 'waiting for the XML parser' })}`);
+        } else {
+            const actions = prompt.includes('## External actions of this task') ? prompt.slice(prompt.indexOf('## External actions of this task')) : '';
+            writeFileSync(file, `${readFileSync(file, 'utf8')}resumed; email already sent: ${/confirmed: Send email/.test(actions)}\n`);
+            print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: [{ path: file, kind: 'update' }] } });
+            done('Imported the ledger');
+        }
     } else if (prompt.includes('ASK_USER') && !prompt.includes('## Conversation with the user')) {
         const text = await callTool('ask_user', { question: 'Which color should the fixture use?', choices: ['red', 'blue'], reason: 'The task does not say which color to use.', attempted: 'Checked the task and project instructions.' });
         message(`${text}\nPTBK_RESULT ${JSON.stringify({ status: 'waiting-for-user', summary: 'asked the user' })}`);

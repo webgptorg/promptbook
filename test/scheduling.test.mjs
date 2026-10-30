@@ -7,6 +7,7 @@ import { parsePriority } from '../dist/tasks/priority.js';
 import { recurrenceState } from '../dist/tasks/recurrence.js';
 import { readTaskBook } from '../dist/tasks/book-task.js';
 import { evaluateQueue, selectNext } from '../dist/tasks/eligibility.js';
+import { parkedReadiness } from '../dist/engine/state.js';
 
 test('durations: compound, ISO, words; calendar units and zero intervals are rejected', () => {
     assert.equal(parseDuration('30m').ms, 1_800_000);
@@ -129,4 +130,22 @@ test('eligibility: priority order, future work never blocks, dependencies and cy
     assert.equal(kinds.f, 'blocked');
     assert.equal(kinds.g, 'needs-assignment');
     assert.equal(selectNext(evaluated).task.key, 'g');
+});
+
+test('eligibility: a task checkpointed for its prerequisite waits on it without asking anyone and is never restarted', async () => {
+    const read = (name, body) => readTaskBook({ source: `TASK ${name}\n${body}`, path: `/p/tasks/${name}.book`, relativePath: `tasks/${name}.book`, order: name.charCodeAt(0), timeZone: 'UTC' });
+    const parked = (waitingTasks) => [{ version: 1, runId: 'r1', taskRef: '{ledger}', taskKey: 'ledger', taskTitle: 'ledger', sourcePath: 'tasks/ledger.book', kind: 'task', phase: 'awaiting-task', waitingTasks, attempt: 1, technicalRetries: 0, routing: { agent: '@Developer', harness: 'openai-codex' }, preSnapshot: {}, createdPaths: [], completionApplied: false, noCommit: false, instanceId: 'i', startedAt: '', updatedAt: '', history: [] }];
+    const evaluate = async (tasks, waitingTasks) => {
+        const { awaitingUser, integrations, prerequisites } = parkedReadiness(parked(waitingTasks));
+        assert.equal(awaitingUser.size + integrations.size, 0, 'no question and no recovery');
+        const evaluated = await evaluateQueue(tasks, { now: Date.parse('2026-10-30T00:00:00Z'), timeZone: 'UTC', awaitingUser, prerequisites, recovery: integrations, uncommittedSources: new Set(['/p/tasks/ledger.book']), activation: () => 0, route: async () => ({ kind: 'routable' }), assignmentFor: new Map() });
+        return evaluated.find((item) => item.task.key === 'ledger').readiness;
+    };
+    const waiting = await evaluate([read('ledger', 'TASK AGENT @Developer\nTASK DEPENDS ON {parser}'), read('parser', 'TASK AGENT @Developer\nTASK PURPOSE SYSTEM')], ['parser']);
+    assert.equal(waiting.kind, 'waiting-dependency');
+    assert.deepEqual(waiting.on, ['@parser']);
+    assert.match(waiting.reason, /continues where it stopped/);
+    const settled = await evaluate([read('ledger', 'TASK AGENT @Developer\nTASK DEPENDS ON {parser}'), read('parser', 'TASK AGENT @Developer\nTASK DONE 2026-10-30')], ['parser']);
+    assert.equal(settled.kind, 'waiting-dependency', 'its own run resumes it; a new run never starts beside the checkpoint');
+    assert.deepEqual(settled.on, []);
 });

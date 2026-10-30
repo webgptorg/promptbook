@@ -11,8 +11,8 @@ export const RESULT_MARKER = 'PTBK_RESULT';
  * @private completion protocol
  */
 export type AgentReport = {
-    /** Reported state. */
-    readonly status: 'done' | 'blocked' | 'waiting-for-user';
+    /** Reported state (`waiting-for-task`: checkpointed until a prerequisite task it created completes). */
+    readonly status: 'done' | 'blocked' | 'waiting-for-user' | 'waiting-for-task';
     /** One-sentence summary. */
     readonly summary: string;
     /** How the requested outcome was verified. */
@@ -43,7 +43,7 @@ export function parseAgentReport(messages: readonly string[]): AgentReport | und
             const json = extractJsonObject(text.slice(start + RESULT_MARKER.length));
             if (!json) continue;
             const status = json.status;
-            if (status !== 'done' && status !== 'blocked' && status !== 'waiting-for-user') continue;
+            if (status !== 'done' && status !== 'blocked' && status !== 'waiting-for-user' && status !== 'waiting-for-task') continue;
             return {
                 status,
                 summary: typeof json.summary === 'string' ? json.summary : '',

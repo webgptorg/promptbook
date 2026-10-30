@@ -77,7 +77,7 @@ export type TaskPromptInput = {
     /** Project check command. */
     readonly check?: string;
     /** Whether the ptbk MCP tools are available. */
-    readonly tools: { readonly team: boolean; readonly askUser: boolean; readonly browser: boolean; readonly claimFiles?: boolean; readonly wallet?: boolean; readonly actions?: boolean };
+    readonly tools: { readonly team: boolean; readonly askUser: boolean; readonly browser: boolean; readonly claimFiles?: boolean; readonly wallet?: boolean; readonly actions?: boolean; readonly prerequisite?: boolean };
     /** External actions this task already recorded or left unresolved (reconcile before repeating). */
     readonly actions?: string;
     /** Feedback from the previous attempt (repair). */
@@ -140,7 +140,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
         'Work only inside the project directory. Promptbook records the result: do not commit, amend, push, reset, stash or rewrite Git history.',
         'Do not add `TASK DONE` or change the completion state of this task; Promptbook stamps completion after verifying your result.',
         task.source.kind === 'book'
-            ? `When the work shows that this task's purpose relative to this project differs from its recorded one (${task.purpose ? `\`TASK PURPOSE ${task.purpose.toUpperCase()}\`` : 'undefined'}), append \`TASK PURPOSE CONTENT\` or \`TASK PURPOSE SYSTEM\` at the end of \`${task.source.relativePath}\`, after a short \`TASK NOTE\` with the reason when it is not obvious; never edit or remove earlier purpose lines, and change nothing when it already fits. For a technical prerequisite of content work, create a separate supporting task with system purpose instead of relabelling this one.`
+            ? `When the work shows that this task's purpose relative to this project differs from its recorded one (${task.purpose ? `\`TASK PURPOSE ${task.purpose.toUpperCase()}\`` : 'undefined'}), append \`TASK PURPOSE CONTENT\` or \`TASK PURPOSE SYSTEM\` at the end of \`${task.source.relativePath}\`, after a short \`TASK NOTE\` with the reason when it is not obvious; never edit or remove earlier purpose lines, and change nothing when it already fits. For a technical prerequisite of content work, create a separate supporting task with system purpose instead of relabelling this one.${input.tools.prerequisite ? ' When this task cannot continue without it, create it with `create_prerequisite_task`.' : ''}`
             : '',
         `To create follow-up work, ${taskBookInstructions(input.tasksDirectory, input.creationStamp ?? creationTimestamp())}`,
         'Do not edit `traces/` or `actions/` (Promptbook-owned audit evidence and external-action records) and never treat files there as task or agent definitions.',
@@ -161,6 +161,11 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
             `Only when you are genuinely blocked on something you cannot safely resolve (required login/2FA, missing authority, a consequential ambiguity the task does not settle), call the \`ask_user\` tool with the minimal question, the \`reason\` and what you \`attempted\` (optionally with \`choices\`), then end your turn with status \`waiting-for-user\`. Do not wait for the answer inside your turn; the task resumes automatically with the answer.`,
         );
     } else rules.push('The user is not available for questions in this run; decide reasonably or report `blocked` with a reason.');
+    if (input.tools.prerequisite) {
+        rules.push(
+            'When you discover a technical prerequisite this task really cannot continue without (separate supporting work such as a missing parser or integration), do not take it over into this task and do not relabel this task: call the `create_prerequisite_task` tool of the `ptbk` MCP server and end your turn with status `waiting-for-task`. Promptbook commits it as an ordinary linked task, records the dependency and continues this task from its current state once the prerequisite is completed (recorded external actions stay done; never repeat them). Leave the work the prerequisite needs out of files you changed. Independent follow-up work is an ordinary new task Book instead and blocks nothing.',
+        );
+    }
     if (input.tools.claimFiles) {
         rules.push(
             'Other tasks may be working in this same project directory at the same time. Before you change, create or delete any file, claim it with the `claim_files` tool of the `ptbk` MCP server (several paths at once are fine, also when you discover more files later). It returns when you own them; never change a file another task holds (the tool tells you), and never edit or revert changes in files you did not claim.',
@@ -189,7 +194,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
         parts.push(`${heading}\n\nThe previous attempt was not accepted. Continue from the current state of the files and fix this:\n\n${input.feedback}`);
     }
     parts.push(
-        `## Completion report (required)\n\nEnd your final message with exactly one line:\n\n${RESULT_MARKER} {"status":"done","summary":"<one sentence>","evidence":"<how you verified the requested outcome>"}\n\nUse \`"status":"blocked"\` with a \`"reason"\` when you cannot complete the task safely, or \`"status":"waiting-for-user"\` after asking the user.`,
+        `## Completion report (required)\n\nEnd your final message with exactly one line:\n\n${RESULT_MARKER} {"status":"done","summary":"<one sentence>","evidence":"<how you verified the requested outcome>"}\n\nUse \`"status":"blocked"\` with a \`"reason"\` when you cannot complete the task safely, or \`"status":"waiting-for-user"\` after asking the user${input.tools.prerequisite ? ', or \`"status":"waiting-for-task"\` after creating a prerequisite task' : ''}.`,
     );
     return `${parts.join('\n\n')}\n`;
 }

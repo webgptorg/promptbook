@@ -97,6 +97,11 @@ export type ExecutionHooks = {
     readonly edited?: (paths: readonly string[]) => void;
     /** Claims files before the agent changes them (the `claim_files` tool); waits while another run owns one. */
     readonly claimFiles?: (paths: readonly string[]) => Promise<{ readonly ok: boolean; readonly message: string }>;
+    /**
+     * Publishes (and commits) an ordinary supporting task this run depends on, linked to it as its parent, and returns
+     * its final name (the `create_prerequisite_task` tool).
+     */
+    readonly createPrerequisite?: (input: PrerequisiteInput) => Promise<string>;
     /** Marks the beginning and end of a harness turn (attribution of unclaimed changes). */
     readonly turn?: (state: 'begin' | 'end') => void;
     /** Project-relative files this run owns now (persisted in its recovery record). */
@@ -182,6 +187,26 @@ export type WorkItem = {
 };
 
 /**
+ * A technical prerequisite an executing task discovered: separate supporting work it really depends on.
+ *
+ * @private task execution
+ */
+export type PrerequisiteInput = {
+    /** Readable task name (the creation stamp is added). */
+    readonly title: string;
+    /** Intended result and constraints. */
+    readonly goal: string;
+    /** Responsible agent, when known. */
+    readonly agent?: string;
+    /** Purpose relative to the project (supporting work is normally `system`). */
+    readonly purpose: 'content' | 'system';
+    /** The waiting task (its `TASK PARENT`). */
+    readonly parent: string;
+    /** The waiting task's priority wording, inherited so the prerequisite is not starved. */
+    readonly priority?: string;
+};
+
+/**
  * Terminal outcome of executing one work item.
  *
  * @private task execution
@@ -191,6 +216,8 @@ export type ExecutionOutcome =
     | { readonly kind: 'awaiting-user'; readonly chat: string }
     /** Checkpointed until the owner resolves a Wallet login request (protected input, never a chat). */
     | { readonly kind: 'awaiting-wallet'; readonly action: string; readonly origin?: string }
+    /** Checkpointed until the prerequisite tasks this run created are completed (nobody is asked). */
+    | { readonly kind: 'awaiting-task'; readonly tasks: readonly string[] }
     | { readonly kind: 'failed'; readonly reason: string; readonly trace?: string }
     | { readonly kind: 'setup'; readonly reason: string; readonly next?: string; readonly tool?: string }
     | { readonly kind: 'quota'; readonly reason: string; readonly retryAfterMs: number; readonly tool?: string }
@@ -420,10 +447,11 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     await trace.provenance({ runId: record.runId, occurrence: record.occurrence, section: task.source.section });
     const agent: EffectiveAgent = item.route.agent;
     const budget: ConsultationBudget = { calls: 0 };
-    const pending: { chat?: { chat: string; awaited: number }; wallet?: string } = {};
+    const pending: { chat?: { chat: string; awaited: number }; wallet?: string; prerequisites: string[] } = { prerequisites: [] };
     const resetPending = (): void => {
         pending.chat = undefined;
         pending.wallet = undefined;
+        pending.prerequisites = [];
     };
     // Task-scoped chat Books (consultations) belong to this run's result: nobody else may attribute them.
     // A question is asked in the chat the task came from (its executing agent joins it), else in a linked chat.
@@ -497,6 +525,11 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 : `The owner dismissed the Wallet login request${request ? ` for ${request.origin}` : ''}. Continue without that login if the task allows it; otherwise report the task as blocked with the reason.`;
         await save({ phase: 'executing', waitingWallet: undefined, feedback });
     }
+    // The supervisor resumes a prerequisite wait once its tasks are settled (and states their outcome as feedback).
+    if (record.phase === 'awaiting-task') {
+        await trace.event('prerequisites-settled', { runId: record.runId, tasks: record.waitingTasks ?? [] });
+        await save({ phase: 'executing', waitingTasks: undefined, feedback: record.feedback ?? `The prerequisite tasks ${(record.waitingTasks ?? []).map((name) => `{${name}}`).join(', ')} are settled. Continue this task from the current state.` });
+    }
 
     if (record.phase === 'failed') return { kind: 'failed', reason: record.failure ?? 'The task needs recovery.', trace: trace.reference };
     if (record.phase === 'committed' || record.phase === 'synchronizing') {
@@ -554,6 +587,20 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), onWalletWait: (action) => (pending.wallet = action), trace, attempt: attemptLabel, occurrence: record.occurrence }) ?? []),
                 );
                 if (hooks.claimFiles) tools.push(claimFilesTool(hooks.claimFiles));
+                if (hooks.createPrerequisite) {
+                    tools.push(
+                        prerequisiteTool(hooks.createPrerequisite, task, async (name) => {
+                            pending.prerequisites.push(name);
+                            // The dependency is real Book data: the waiting task declares it (part of its own result).
+                            if (task.source.kind === 'book') {
+                                await writeFile(task.source.path, appendCommitment(await readFile(task.source.path, 'utf8'), 'TASK DEPENDS ON', `{${name}}`));
+                                hooks.own?.([task.source.path]);
+                            }
+                            await trace.event('prerequisite-created', { runId: record.runId, task: name });
+                            hooks.emit({ type: 'activity', text: `"${task.title}" created its prerequisite {${name}}.` });
+                        }),
+                    );
+                }
             }
             const prompt = buildTaskPrompt({
                 agent,
@@ -562,7 +609,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 tasksDirectory: toProjectRelative(project.root, environment.tasksDirectory),
                 context: context !== undefined && contextFile ? { name: contextFile, content: context } : undefined,
                 check: check ?? undefined,
-                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), browser: tools.some((tool) => tool.name.startsWith('browser_')), claimFiles: tools.some((tool) => tool.name === 'claim_files'), wallet: tools.some((tool) => tool.name === 'wallet_login'), actions: tools.some((tool) => tool.name === 'record_external_action') },
+                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), prerequisite: tools.some((tool) => tool.name === 'create_prerequisite_task'), browser: tools.some((tool) => tool.name.startsWith('browser_')), claimFiles: tools.some((tool) => tool.name === 'claim_files'), wallet: tools.some((tool) => tool.name === 'wallet_login'), actions: tools.some((tool) => tool.name === 'record_external_action') },
                 actions: tools.some((tool) => tool.name === 'record_external_action') ? await hooks.actionContext?.() : undefined,
                 feedback: record.feedback,
                 attempt,
@@ -719,6 +766,14 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 await finishResult('awaiting-user', `Waiting for a website login${origin ? ` for ${origin}` : ''} that the owner adds in the Wallet.`);
                 return { kind: 'awaiting-wallet', action: pending.wallet, origin };
             }
+            if (pending.prerequisites.length && lastResult.outcome === 'completed' && (!report || report.status === 'waiting-for-task')) {
+                // The original task keeps its goal and phase: it continues where it stopped once the supporting work is done.
+                const waitingTasks = [...new Set([...(record.waitingTasks ?? []), ...pending.prerequisites])];
+                await save({ phase: 'awaiting-task', waitingTasks, attempt: attempt - 1, feedback: undefined });
+                hooks.emit({ type: 'activity', text: `"${task.title}" waits for its prerequisite ${waitingTasks.map((name) => `{${name}}`).join(', ')}; independent work continues.` });
+                await trace.event('awaiting-task', { runId: record.runId, tasks: waitingTasks });
+                return { kind: 'awaiting-task', tasks: waitingTasks };
+            }
             if (lastResult.outcome !== 'completed') {
                 const technical = record.technicalRetries + 1;
                 if (technical > technicalBudget) return await fail(`${lastResult.diagnostic} (technical retries exhausted)`);
@@ -743,6 +798,10 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             if (report.status === 'blocked') return await fail(`${agent.name} reported the task as blocked: ${report.reason ?? report.summary}`);
             if (report.status === 'waiting-for-user') {
                 await save({ feedback: 'You reported waiting-for-user without calling ask_user. Ask through the tool only for a genuine blocker, or complete the task.' });
+                continue;
+            }
+            if (report.status === 'waiting-for-task') {
+                await save({ feedback: 'You reported waiting-for-task without creating a prerequisite through create_prerequisite_task. Create the supporting task this task really depends on, or complete the task.' });
                 continue;
             }
             if (item.validateReport) {
@@ -936,6 +995,48 @@ async function ownedHashes(environment: ExecutionEnvironment, paths: readonly st
     const hashes: Record<string, string | null> = {};
     for (const path of paths) hashes[path] = (await hashFileIfExists(resolve(environment.project.root, path))) ?? null;
     return hashes;
+}
+
+/**
+ * The `create_prerequisite_task` tool: separate linked supporting work the task cannot continue without. The task keeps
+ * its own goal and purpose; it is checkpointed after the turn and continues where it stopped once the prerequisite is
+ * completed.
+ */
+function prerequisiteTool(create: NonNullable<ExecutionHooks['createPrerequisite']>, task: Task, onCreated: (name: string) => Promise<void>): BridgeTool {
+    return {
+        name: 'create_prerequisite_task',
+        description:
+            'Create a separate supporting task (for example a missing parser or integration) that this task cannot continue without. Promptbook commits it as an ordinary task linked to this one, records that this task depends on it, and continues this task where it stopped once the prerequisite is completed. After calling it, end your turn with status waiting-for-task. Keep the work the prerequisite needs out of files you changed (they stay yours meanwhile). Not for independent follow-up work.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                title: { type: 'string', description: 'Readable, distinct task name' },
+                goal: { type: 'string', description: 'Intended result and constraints of the supporting work' },
+                agent: { type: 'string', description: 'Optional responsible agent, e.g. @Developer' },
+                purpose: { type: 'string', enum: ['system', 'content'], description: 'Relative to this project; supporting work is normally system' },
+            },
+            required: ['title', 'goal'],
+        },
+        handler: async (input) => {
+            const title = typeof input.title === 'string' ? input.title.trim() : '';
+            const goal = typeof input.goal === 'string' ? input.goal.trim() : '';
+            if (!title || !goal) return { text: 'Give the prerequisite a title and a goal.', isError: true };
+            try {
+                const name = await create({
+                    title,
+                    goal,
+                    agent: typeof input.agent === 'string' && input.agent.trim() ? input.agent.trim() : undefined,
+                    purpose: input.purpose === 'content' ? 'content' : 'system',
+                    parent: task.title,
+                    priority: task.priority.raw,
+                });
+                await onCreated(name);
+                return { text: `Created the prerequisite task {${name}} (committed and linked to this task). End your turn with status waiting-for-task; this task continues from its current state once {${name}} is completed.` };
+            } catch (error) {
+                return { text: `The prerequisite was not created: ${errorMessage(error)}`, isError: true };
+            }
+        },
+    };
 }
 
 /**
