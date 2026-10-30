@@ -11,6 +11,7 @@
 -   The trusted sign-in fills the fields the login form asks for from the saved ones with a matching label, also on a sign-in question step after the password. A masked answer field there is no longer mistaken for the login form returning (a false "rejected").
 -   When a form requires a field the login does not have, nothing is submitted. One protected Wallet request names exactly the missing fields (`Enter` on the request in the terminal, **Add the fields** on the web), and the agent is told never to ask for them in a chat. The owner's values are saved with the login and the waiting work signs in again. A credential test reports such a field as incomplete, never as a bad password.
 -   Bitwarden import takes text and hidden custom fields as additional login fields. Boolean and linked custom fields are reported as not imported, and a replaced login keeps its other saved fields.
+-   The Wallet's own sign-in now chooses an offered **Remember me**, **Stay signed in**, **Keep me signed in** or **Trust this device** option of the login or code form before submitting, so later work needs no new sign-in or factor. Other checkboxes, such as newsletter consent, are left alone. Before, only the agent was told to choose these options.
 
 ## Wallet: Test one saved login through a real sign-in
 

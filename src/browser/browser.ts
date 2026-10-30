@@ -30,6 +30,7 @@ import {
     programmaticClickScript,
     readPageScript,
     setValueScript,
+    staySignedInScript,
     submitFormScript,
     submitLoginScript,
     viewportScript,
@@ -1295,8 +1296,12 @@ export class TaskBrowser {
         await connection.send('Input.insertText', { text: value }, sessionId);
     }
 
-    /** Submits the login form and waits for the page to settle. */
+    /**
+     * Submits the login form and waits for the page to settle; an offered "stay signed in" or "trust this device" option
+     * is chosen first, so later work needs no new sign-in or factor.
+     */
     private async submitLogin(): Promise<void> {
+        await this.evaluate<number>(staySignedInScript()).catch(() => 0);
         if (!(await this.evaluate<boolean>(submitLoginScript()).catch(() => false))) await this.key(parseKeyPress('Enter'));
         await delay(SUBMIT_SETTLE_MS);
         await this.settle(15_000);

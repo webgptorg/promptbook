@@ -476,6 +476,32 @@ export function submitLoginScript(): string {
 }
 
 /**
+ * Chooses the login form's offered "stay signed in" / "remember me" / "trust this device" option (an unchecked visible
+ * checkbox of the form of a marked field, by its label), so later work needs no new sign-in or factor. Returns how many
+ * were chosen.
+ *
+ * @private browser page scripts
+ */
+export function staySignedInScript(): string {
+    return `(() => {
+        const field = document.querySelector('[data-ptbk-wallet="password"]') || document.querySelector('[data-ptbk-wallet="username"]') || document.querySelector('[data-ptbk-wallet="code"]') || document.querySelector('[data-ptbk-wallet^="field-"]');
+        const scope = (field && field.form) || null;
+        if (!scope) return 0;
+        const pattern = /remember\\s*me|stay\\s*(signed|logged)\\s*in|keep\\s*me\\s*(signed|logged)\\s*in|trust\\s*(this|my)?\\s*(device|browser|computer)|(don.?t|do not)\\s*ask\\s*(again|me again)/i;
+        let chosen = 0;
+        for (const box of scope.querySelectorAll('input[type="checkbox"]')) {
+            const label = ((box.id && document.querySelector('label[for="' + CSS.escape(box.id) + '"]')) || box.closest('label') || {}).textContent || box.getAttribute('aria-label') || box.name || '';
+            const style = getComputedStyle(box);
+            const shown = style.visibility !== 'hidden' && style.display !== 'none';
+            if (box.checked || box.disabled || !shown || !pattern.test(label)) continue;
+            box.click();
+            if (box.checked) chosen++;
+        }
+        return chosen;
+    })()`;
+}
+
+/**
  * Follows the page's evident sign-in link or button (`Sign in`, `Log in`, `Login`, by visible text or accessible name)
  * when the page shows no login form; `false` when there is none.
  *

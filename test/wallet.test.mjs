@@ -504,7 +504,7 @@ test('Wallet one-time code in the real browser: the owner\'s code is typed into 
     const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
     const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
     // After the password, the site asks for a code (sent elsewhere); only 246810 completes the sign-in.
-    const form = (error = '') => `<!doctype html><title>Verify</title><h1>Two-step verification</h1>${error}<form method="post" action="/verify"><input name="otp" autocomplete="one-time-code" inputmode="numeric"><button>Verify</button></form>`;
+    const form = (error = '') => `<!doctype html><title>Verify</title><h1>Two-step verification</h1>${error}<form method="post" action="/verify"><input name="otp" autocomplete="one-time-code" inputmode="numeric"><label><input type="checkbox" name="trust"> Trust this device</label><button>Verify</button></form>`;
     const server = createServer((request, response) => {
         let body = '';
         request.on('data', (chunk) => (body += chunk));
@@ -512,7 +512,7 @@ test('Wallet one-time code in the real browser: the owner\'s code is typed into 
             const fields = new URLSearchParams(body);
             response.setHeader('content-type', 'text/html');
             if (request.method === 'POST' && request.url === '/login') response.end(fields.get('password') === 'right password 1' ? form() : LOGIN_PAGE);
-            else if (request.method === 'POST' && request.url === '/verify') response.end(fields.get('otp') === '246810' ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : form('<p>Wrong code</p>'));
+            else if (request.method === 'POST' && request.url === '/verify') response.end(fields.get('otp') === '246810' && fields.get('trust') === 'on' ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : form('<p>Wrong code or device not trusted</p>'));
             else response.end(LOGIN_PAGE);
         });
     });
@@ -555,9 +555,10 @@ test('Wallet additional login fields in the real browser: a required unknown fie
     const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
     const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
     // The login form also requires a date of birth; after the password the site asks its security question.
-    const login = (error = '') => `<!doctype html><title>Sign in</title><h1>Sign in</h1>${error}<form method="post" action="/login"><input name="username" autocomplete="username" placeholder="Username"><input name="password" type="password" autocomplete="current-password"><label for="dob">Date of birth</label><input id="dob" name="dob" required><button>Sign in</button></form>`;
+    const login = (error = '') => `<!doctype html><title>Sign in</title><h1>Sign in</h1>${error}<form method="post" action="/login"><input name="username" autocomplete="username" placeholder="Username"><input name="password" type="password" autocomplete="current-password"><label for="dob">Date of birth</label><input id="dob" name="dob" required><label><input type="checkbox" name="remember"> Remember me</label><label><input type="checkbox" name="newsletter"> Send me offers</label><button>Sign in</button></form>`;
     const question = (error = '') => `<!doctype html><title>Question</title>${error}<form method="post" action="/question"><label>Answer to your security question <input name="answer" type="password" required></label><button>Continue</button></form>`;
     const posts = [];
+    const bodies = [];
     const server = createServer((request, response) => {
         let body = '';
         request.on('data', (chunk) => (body += chunk));
@@ -565,6 +566,7 @@ test('Wallet additional login fields in the real browser: a required unknown fie
             const fields = new URLSearchParams(body);
             response.setHeader('content-type', 'text/html');
             if (request.method === 'POST') posts.push(request.url);
+            if (request.method === 'POST') bodies.push(fields);
             if (request.method === 'POST' && request.url === '/login') response.end(fields.get('password') === 'right password 2' && fields.get('dob') === '02.01.1990' ? question() : login('<p>Wrong details</p>'));
             else if (request.method === 'POST' && request.url === '/question') response.end(fields.get('answer') === 'blue heron' ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : question('<p>Wrong answer</p>'));
             else response.end(login());
@@ -611,6 +613,8 @@ test('Wallet additional login fields in the real browser: a required unknown fie
     assert.ok(!result.isError, result.text);
     assert.match(result.text, /Welcome, fixture-user/);
     assert.deepEqual(posts, ['/login', '/login', '/question']);
+    assert.equal(bodies[0].get('remember'), 'on', 'the offered "Remember me" is chosen');
+    assert.equal(bodies[0].get('newsletter'), null, 'other checkboxes are left alone');
     assert.ok(!/02\.01\.1990|blue heron|right password/.test(result.text), 'the agent never sees the values');
 });
 
