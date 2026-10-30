@@ -2010,7 +2010,16 @@
                         {},
                         // An engine-defined system task shows its kind and actual executor instead of a project source.
                         item.kind === 'system'
-                            ? h('span', { className: 'title' }, pill('system', ''), ' ', item.title, h('span', { className: 'why' }, `${item.reason} · ${item.executor || 'the engine'}${item.priorityText ? ` · ${item.priorityText} priority` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''}`))
+                            ? h(
+                                  'span',
+                                  { className: 'title' },
+                                  pill('system', ''),
+                                  ' ',
+                                  item.title,
+                                  // Definition, this run's retry and the latest finished run stay distinct.
+                                  h('span', { className: 'why' }, `${item.reason} · ${item.executor || 'the engine'}${item.priorityText ? ` · ${item.priorityText} priority` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''}`),
+                                  item.definition ? h('span', { className: 'why' }, `Run of "${item.definition}"${item.retry ? ` · retry ${item.retry} after failed runs` : ''}${item.runs && item.runs.length ? ` · last run ${item.runs[0].title} ${item.runs[0].outcome} ${time(item.runs[0].at)}` : ''}`) : null,
+                              )
                             : h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}`)),
                         // The task's question is the one in its chat: answering opens that conversation.
                         item.waitingChat ? h('button', { className: 'primary', onclick: () => openChat(item.waitingChat) }, 'Answer') : null,

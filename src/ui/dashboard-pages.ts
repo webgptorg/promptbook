@@ -4,7 +4,7 @@ import type { CachePreview, SwapPlan } from '../engine/health.js';
 import { formatBytes, formatMiB } from '../engine/health.js';
 import type { CurrentWorkView, ServiceSnapshot } from '../engine/snapshot.js';
 import { TASK_SORT_FIELDS, sortTasks, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
-import { terminalSafe, wrap } from './ansi.js';
+import { terminalSafe, truncate, wrap } from './ansi.js';
 import { activityLabel, framedBadge, inlineBadge, type BadgeActivity } from './badges.js';
 import {
     browserDetailLines,
@@ -586,6 +586,9 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                         // A system task is engine-defined: its actual executor instead of a (nonexistent) source Book.
                         system ? `    ${style.muted('Kind  ')} system task · executor ${item.executor ?? 'the engine'}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}` : `    ${style.muted('Source')} ${item.source}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}`,
                         ...(item.model ? [`    ${style.muted('MODEL ')} ${item.model.replace(/\n/g, ' | ')}`] : []),
+                        // Definition, this run and its retry stay distinct; finished runs are the system task's own evidence.
+                        ...(item.definition ? [`    ${style.muted('Runs  ')} of the definition "${item.definition}"${item.retry ? ` · this is retry ${item.retry} after failed runs` : ''}${item.runs?.length ? '' : style.muted(' · none finished yet')}`] : []),
+                        ...(item.runs ?? []).slice(0, 3).map((run) => `      ${run.outcome === 'completed' ? style.success(marks.ok) : style.error(marks.fail)} ${style.muted(formatShortTime(Date.parse(run.at)))} ${truncate(`${run.title} — ${run.detail}`, width - 24)}`),
                     );
                     // The task's pending question is the same one its chat shows; answering here answers it there.
                     const question = item.waitingChat ? snapshot.chats.waiting.find((chat) => chat.name === item.waitingChat) : undefined;

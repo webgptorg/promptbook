@@ -180,6 +180,13 @@ test('engine self-update: a low-priority system task updates the local installat
     assert.match(system.executor, /engine/);
     const inventory = await control('task-inventory');
     assert.ok(inventory.some((item) => item.ref === 'system:engine-update' && item.kind === 'system'), 'the same task inventory lists the system task');
+    // The CLI lists and details the same system task: its definition, executor and no source.
+    const listed = JSON.parse((await run(bin, ['list', '--json'], { cwd: project, env })).output);
+    assert.ok(listed.systemTasks.some((item) => item.ref === 'system:engine-update'), 'ptbk list shows the pending update');
+    const detail = JSON.parse((await run(bin, ['list', 'system:engine-update', '--json'], { cwd: project, env })).output);
+    assert.equal(detail.kind, 'system');
+    assert.equal(detail.definition, 'Engine self-update', 'the run names its durable engine definition');
+    assert.equal(detail.retry, undefined, 'a first attempt is not a retry');
     await new Promise((resolve) => setTimeout(resolve, 1500));
     assert.ok(!(await npmLog()).some((entry) => entry.args[0] === 'install'), 'paused: no installation');
 
@@ -205,6 +212,9 @@ test('engine self-update: a low-priority system task updates the local installat
     assert.equal(JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8')).promptbookVersion, TARGET, 'the new engine migrated the configuration');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'nothing is left uncommitted');
     assert.ok(!(await status()).queue.some((item) => item.ref === 'system:engine-update'), 'nothing is pending anymore');
+    const finished = (await control('task-inventory')).find((item) => item.ref === 'system:engine-update');
+    assert.equal(finished?.readiness, 'done');
+    assert.deepEqual(finished.runs.map((item) => [item.title, item.outcome]), [[`${FROM} → ${TARGET}`, 'completed']], 'the verified run is the system task evidence');
 });
 
 test('engine self-update: a failed installation keeps the running version and schedules an automatic recheck', { timeout: 180_000 }, async (t) => {
@@ -224,6 +234,10 @@ test('engine self-update: a failed installation keeps the running version and sc
     assert.equal((await npmLog()).filter((entry) => entry.args[0] === 'install').length, 2, 'bounded technical attempts');
     assert.equal(JSON.parse(await readFile(join(project, 'node_modules', 'ptbk', 'package.json'), 'utf8')).version, FROM);
     assert.equal(failed.queue.find((item) => item.ref === 'system:engine-update')?.readiness, 'waiting-until');
+    const retried = (await control('task-inventory')).find((item) => item.ref === 'system:engine-update');
+    assert.equal(retried.retry, 1, 'the pending run is the first retry after one failed run');
+    assert.equal(retried.runs[0].outcome, 'failed');
+    assert.match(retried.runs[0].detail, /failed/);
     assert.ok(!(await subjects(project)).some((subject) => subject.includes('Update Promptbook engine')));
 
     // Turning automatic updates off is the shared policy operation with its own commit.

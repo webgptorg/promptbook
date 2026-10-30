@@ -12,7 +12,7 @@ import { policyPermits, selectCompatibleUpdate, selectUpdate, type UpdatePolicy,
 import { projectAt, type Project } from '../project/workspace.js';
 import { readKnownProjects } from '../service/known-projects.js';
 import { readRegistry, verifyEngine } from '../service/discovery.js';
-import type { TaskInventoryItem } from '../tasks/views.js';
+import type { TaskInventoryItem, TaskRunView } from '../tasks/views.js';
 import type { QueueItemView } from './snapshot.js';
 
 /**
@@ -21,6 +21,13 @@ import type { QueueItemView } from './snapshot.js';
  * @private engine self-update
  */
 export const ENGINE_UPDATE_REF = 'system:engine-update';
+
+/**
+ * The durable engine definition every update run belongs to (it has no project Book).
+ *
+ * @private engine self-update
+ */
+export const ENGINE_UPDATE_DEFINITION = 'Engine self-update';
 
 /**
  * Effective priority of the self-update system task: below every ordinary task (default priority 0).
@@ -75,6 +82,11 @@ const SHARED_RECHECK_MS = 10 * 60_000;
 const RECENT_OUTCOME_MS = 7 * 24 * 3_600_000;
 
 /**
+ * Finished runs kept as the system task's own evidence (it has no project trace directory).
+ */
+const RUN_HISTORY = 10;
+
+/**
  * Engine phases in which another engine of a shared installation is not executing loaded code for work.
  */
 const FREE_PHASES = new Set(['idle', 'paused', 'awaiting-user', 'blocked', 'waiting', 'stopped', 'finished']);
@@ -85,6 +97,11 @@ const FREE_PHASES = new Set(['idle', 'paused', 'awaiting-user', 'blocked', 'wait
  * @private engine self-update
  */
 export type EngineUpdatePhase = 'idle' | 'waiting' | 'checking' | 'installing' | 'restarting' | 'verified' | 'failed' | 'recovering' | 'unsupported';
+
+/**
+ * One finished update run: its versions, verified or failed outcome and the result or cause.
+ */
+type EngineUpdateOutcome = { readonly at: string; readonly from: string; readonly to: string; readonly outcome: 'verified' | 'failed'; readonly detail: string };
 
 /**
  * Durable record of the system task (`.ptbk/state/engine-update.json`): what the last lookup found, the run in
@@ -109,7 +126,9 @@ type EngineUpdateRecord = {
     readonly nextAttemptAt?: string;
     /** A temporary condition the next attempt waits for (shared installation busy, another update running). */
     readonly deferral?: { readonly reason: string; readonly until: string };
-    readonly lastOutcome?: { readonly at: string; readonly from: string; readonly to: string; readonly outcome: 'verified' | 'failed'; readonly detail: string };
+    readonly lastOutcome?: EngineUpdateOutcome;
+    /** Recent finished runs, oldest first (bounded; the attributable evidence of the definition's runs). */
+    readonly runs?: readonly EngineUpdateOutcome[];
 };
 
 /**
@@ -225,7 +244,7 @@ export class EngineUpdater {
         if (compareVersions(this.current, run.target) === 0) {
             this.phase = 'verified';
             this.options.log(`Engine update verified: ptbk ${run.from} → ${run.target} is loaded and serving this project.`);
-            await this.save({ run: undefined, failures: 0, failure: undefined, nextAttemptAt: undefined, deferral: undefined, lastOutcome: { at: now, from: run.from, to: run.target, outcome: 'verified', detail: `Installed into the ${run.scope} installation and restarted.` } });
+            await this.save({ run: undefined, failures: 0, failure: undefined, nextAttemptAt: undefined, deferral: undefined, ...this.finished({ at: now, from: run.from, to: run.target, outcome: 'verified', detail: `Installed into the ${run.scope} installation and restarted.` }) });
             return;
         }
         if (run.phase === 'installing' && compareVersions(this.current, run.from) === 0) {
@@ -309,19 +328,34 @@ export class EngineUpdater {
 
     /**
      * The system task in the shared task inventory: a pending/running update, or the last outcome as recent history.
-     * It has no source (no Book actions) and names its actual executor.
+     * It has no source (no Book actions) and names its actual executor. The title names the current run; the
+     * definition, the retry after failed runs and the recent runs keep definition, run and retry distinct.
      */
     public inventoryItem(): TaskInventoryItem | undefined {
         const view = this.view();
-        const common = { ref: ENGINE_UPDATE_REF, priority: ENGINE_UPDATE_PRIORITY, priorityText: 'lowest (system)', source: '', kind: 'system' as const, executor: 'Promptbook engine (deterministic update, no agent)', origin: 'system: engine self-update' };
+        const runs: TaskRunView[] = (this.record.runs ?? (this.record.lastOutcome ? [this.record.lastOutcome] : []))
+            .map((run) => ({ at: run.at, title: `${run.from} → ${run.to}`, outcome: run.outcome === 'verified' ? ('completed' as const) : ('failed' as const), detail: run.detail }))
+            .reverse();
+        const common = {
+            ref: ENGINE_UPDATE_REF,
+            priority: ENGINE_UPDATE_PRIORITY,
+            priorityText: 'lowest (system)',
+            source: '',
+            kind: 'system' as const,
+            executor: 'Promptbook engine (deterministic update, no agent)',
+            origin: 'system: engine self-update',
+            definition: ENGINE_UPDATE_DEFINITION,
+            ...(runs.length ? { runs } : {}),
+        };
         if (view.target || this.running) {
             const target = view.target ?? this.record.run?.target ?? '';
             const readiness = this.running ? 'active' : view.phase === 'recovering' ? 'waiting-until' : 'not-ready';
-            return { ...common, title: `Update Promptbook ${view.current} → ${target}`, readiness, reason: view.reason, doneCount: 0, ...(view.phase === 'recovering' && view.nextAttemptAt ? { until: view.nextAttemptAt } : {}) };
+            const retry = this.record.failures ?? 0;
+            return { ...common, title: `Update Promptbook ${view.current} → ${target}`, readiness, reason: view.reason, doneCount: runs.filter((run) => run.outcome === 'completed').length, ...(retry ? { retry } : {}), ...(view.phase === 'recovering' && view.nextAttemptAt ? { until: view.nextAttemptAt } : {}) };
         }
         const last = view.lastOutcome;
         if (last && Date.now() - Date.parse(last.at) <= RECENT_OUTCOME_MS) {
-            return { ...common, title: `Update Promptbook ${last.from} → ${last.to}`, readiness: last.outcome === 'verified' ? 'done' : 'failed', reason: last.detail, lastDone: last.at, doneCount: last.outcome === 'verified' ? 1 : 0 };
+            return { ...common, title: `Update Promptbook ${last.from} → ${last.to}`, readiness: last.outcome === 'verified' ? 'done' : 'failed', reason: last.detail, lastDone: last.at, doneCount: runs.filter((run) => run.outcome === 'completed').length };
         }
         return undefined;
     }
@@ -421,12 +455,17 @@ export class EngineUpdater {
         return (await this.installedVersion()) === version ? undefined : `The installation does not report ptbk ${version} after restoring it.`;
     }
 
+    /** Record changes of one finished run: the last outcome and the bounded run history. */
+    private finished(outcome: EngineUpdateOutcome): Pick<EngineUpdateRecord, 'lastOutcome' | 'runs'> {
+        return { lastOutcome: outcome, runs: [...(this.record.runs ?? []), outcome].slice(-RUN_HISTORY) };
+    }
+
     /** Records a failed run with its cause-aware recheck (backing off; never a question). */
     private async fail(detail: string, from: string, to: string): Promise<void> {
         const failures = (this.record.failures ?? 0) + 1;
         const delay = RECHECK_DELAYS_MS[Math.min(failures, RECHECK_DELAYS_MS.length) - 1]!;
         this.phase = 'failed';
-        await this.save({ run: undefined, failures, failure: detail, nextAttemptAt: new Date(Date.now() + delay).toISOString(), deferral: undefined, lastOutcome: { at: new Date().toISOString(), from, to, outcome: 'failed', detail } });
+        await this.save({ run: undefined, failures, failure: detail, nextAttemptAt: new Date(Date.now() + delay).toISOString(), deferral: undefined, ...this.finished({ at: new Date().toISOString(), from, to, outcome: 'failed', detail }) });
     }
 
     /** Defers the next attempt for a temporary condition (not a failure). */

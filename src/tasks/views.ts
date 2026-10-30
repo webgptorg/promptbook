@@ -35,6 +35,27 @@ export type TaskInventoryItem = {
     readonly kind?: 'ordinary' | 'system';
     /** The actual executor of a system task (its engine implementation), shown instead of an agent. */
     readonly executor?: string;
+    /** The durable definition this item's run belongs to when the title names one run (a system task's engine definition). */
+    readonly definition?: string;
+    /** Which retry the pending run is after consecutive failed runs of the definition (absent for a first attempt). */
+    readonly retry?: number;
+    /** Recent finished runs of the definition, newest first (a system task keeps them without a project trace directory). */
+    readonly runs?: readonly TaskRunView[];
+};
+
+/**
+ * One finished run of a task definition as views show it.
+ *
+ * @private task views
+ */
+export type TaskRunView = {
+    /** When the run finished (ISO). */
+    readonly at: string;
+    /** What the run did, e.g. `0.119.0 → 0.120.0`. */
+    readonly title: string;
+    readonly outcome: 'completed' | 'failed';
+    /** The verified result or the cause of the failure. */
+    readonly detail: string;
 };
 
 /**

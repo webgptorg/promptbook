@@ -1,5 +1,11 @@
 # Unreleased
 
+## System tasks: ptbk list, definition, retries and runs
+
+-   `ptbk list` now includes the running engine's system tasks, as the specification's "one task inventory, detail and event model" for CLI, dashboard and App asks. Before, the pending self-update appeared on the dashboards and the API but never in the CLI listing. They come from the engine's own inventory, because a system task has no project Book. They follow ordinary work with a `[system]` label, their executor and their retry, and JSON lists them under `systemTasks` (ordinary tasks carry `kind: "ordinary"`). `ptbk list system:engine-update` shows the kind, executor, definition, priority, readiness, next attempt, retry and recent runs. It shows no source, trace directory or task commits, because there are none. With no running compatible engine the listing is unchanged.
+-   The self-update keeps its durable definition, the current run and the retries distinct. Inventory items carry `definition` ("Engine self-update"), `retry` (which retry the pending run is after consecutive failed runs) and `runs` (the 10 most recent finished runs, newest first, each with versions, verified/failed outcome and result or cause). They are kept in `.ptbk/state/engine-update.json` as the system task's own evidence, without inventing a source-named trace directory. The terminal Tasks detail and the browser Tasks page show them.
+-   The self-update fixtures now also check `ptbk list` and its detail, the verified run in the run history and the first retry after a failed installation.
+
 ## Chats: the user can join an agent-only thread later
 
 -   The chat specification's general thread model does not require User at creation. Previously every chat without User was refused as a consultation record. Now only a bounded TEAM consultation record (exactly two agents, scoped to a task or conversation by a link) keeps its two actual agents and refuses user messages. Any other agent-only or one-agent reporting thread accepts the user's message: `CHAT MEMBER @User` is appended at that point of the chronology, before the message, without rewriting earlier members or authorship. Membership and message are saved in one write and one commit, and the main agent then replies as usual.

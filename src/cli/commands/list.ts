@@ -8,11 +8,13 @@ import { loadSettings } from '../../project/config.js';
 import { commitsOfTask, inspectGit } from '../../project/git.js';
 import type { Project } from '../../project/workspace.js';
 import { previewQueue } from '../../engine/preview.js';
+import { lookupService } from '../../service/control.js';
 import type { RecordingStatus } from '../../browser/recording.js';
 import { findTask } from '../../tasks/sources.js';
 import { legacyTraceDirectoryOf, traceBasenameOf, traceDirectoryOf } from '../../tasks/identity.js';
 import type { Task } from '../../tasks/model.js';
 import { describePriority } from '../../tasks/priority.js';
+import type { TaskInventoryItem } from '../../tasks/views.js';
 import { fit, stringWidth, truncate } from '../../ui/ansi.js';
 import { renderPanel } from '../../ui/panels.js';
 import { selectedProject, printJson, tasksOverride } from '../common.js';
@@ -69,7 +71,43 @@ async function inspectTask(context: CommandContext, project: Project, task: Task
 }
 
 /**
- * `ptbk list`: read-only queue with the same readiness explanations as execution.
+ * Engine-defined system tasks (e.g. the self-update) from the running engine's task inventory: they have no project
+ * Book, so only the engine that defines them knows them. None when no compatible engine answers; never starts one.
+ */
+async function liveSystemTasks(project: Project): Promise<TaskInventoryItem[]> {
+    const lookup = await lookupService(project).catch(() => undefined);
+    if (lookup?.state !== 'running' || !lookup.engine.compatible) return [];
+    const inventory = await lookup.client.request<TaskInventoryItem[]>('task-inventory', {}, 10_000).catch(() => []);
+    return inventory.filter((item) => item.kind === 'system');
+}
+
+/**
+ * Read-only inspection of one system task: kind, actual executor, definition, retry and recent runs. It has no
+ * source, no trace directory and no task commits; its evidence is its own run history.
+ */
+function inspectSystemTask(context: CommandContext, item: TaskInventoryItem): number {
+    if (flag(context, 'json')) {
+        printJson(item);
+        return EXIT.success;
+    }
+    const lines = [
+        `Task: ${item.title} (${item.ref})`,
+        `Kind: system task (engine-defined, no project Book) · executor ${item.executor ?? 'the engine'}`,
+        ...(item.definition ? [`Definition: ${item.definition}${item.origin ? ` (origin ${item.origin})` : ''}`] : []),
+        `Priority: ${item.priorityText ?? item.priority}`,
+        `Readiness: ${item.readiness} — ${item.reason}`,
+        ...(item.until ? [`Next attempt: ${formatShortTime(Date.parse(item.until))}`] : []),
+        ...(item.retry ? [`Retry: ${item.retry} after failed runs`] : []),
+        `Runs: ${item.runs?.length ? '' : 'none finished yet'}`,
+        ...(item.runs ?? []).map((run) => `  ${formatShortTime(Date.parse(run.at))} ${run.outcome} ${run.title} — ${run.detail}`),
+    ];
+    context.terminal.write(`${lines.join('\n')}\n`);
+    return EXIT.success;
+}
+
+/**
+ * `ptbk list`: read-only queue with the same readiness explanations as execution, including the running engine's
+ * system tasks.
  *
  * @private command
  */
@@ -80,13 +118,20 @@ export default async function list(context: CommandContext): Promise<number> {
     const [reference] = context.positionals;
     if (reference) {
         const found = findTask(preview.evaluated.map((item) => item.task), reference);
-        if (!found.task) throw new PtbkError(`No task matches "${reference}".`, { kind: 'not-found', next: ['Run `ptbk list --all` to see task references.'] });
+        if (!found.task) {
+            const system = (await liveSystemTasks(project)).find((item) => item.ref.toLowerCase() === reference.trim().toLowerCase());
+            if (system) return inspectSystemTask(context, system);
+            throw new PtbkError(`No task matches "${reference}".`, { kind: 'not-found', next: ['Run `ptbk list --all` to see task references.'] });
+        }
         const readiness = preview.evaluated.find((item) => item.task === found.task)!.readiness;
         return await inspectTask(context, project, found.task, readiness);
     }
     const all = flag(context, 'all') === true;
     const readyOnly = flag(context, 'ready') === true;
-    const items = preview.evaluated.filter((item) => (all || !['done', 'retired'].includes(item.readiness.kind)) && (!readyOnly || item.readiness.kind === 'ready' || item.readiness.kind === 'needs-assignment'));
+    const shown = (kind: string): boolean => (all || !['done', 'retired'].includes(kind)) && (!readyOnly || kind === 'ready' || kind === 'needs-assignment');
+    const items = preview.evaluated.filter((item) => shown(item.readiness.kind));
+    // The same inventory as the dashboards: system tasks follow ordinary work (they have the lowest priority).
+    const systemItems = (await liveSystemTasks(project)).filter((item) => shown(item.readiness));
     if (flag(context, 'json')) {
         printJson({
             project: project.root,
@@ -112,17 +157,20 @@ export default async function list(context: CommandContext): Promise<number> {
                     model: route?.kind === 'routable' ? route.selection.model : undefined,
                     modelRequirement: task.routing.model.explicit ? formatModelContent(task.routing.model) : undefined,
                     origin: task.origin,
+                    kind: 'ordinary',
                     done: task.doneStamps,
                 };
             }),
+            systemTasks: systemItems,
         });
         return EXIT.success;
     }
     const { terminal } = context;
     const { style } = terminal;
     if (!terminal.pretty) {
-        const lines = [`Tasks in ${project.root} (${items.length})`];
+        const lines = [`Tasks in ${project.root} (${items.length + systemItems.length})`];
         for (const { task, readiness } of items) lines.push(`[${readiness.kind}] ${task.title} (${task.ref}) priority ${describePriority(task.priority)} — ${readiness.reason}`);
+        for (const item of systemItems) lines.push(`[${item.readiness}] [system] ${item.title} (${item.ref}) priority ${item.priorityText ?? item.priority} — ${item.reason}`);
         for (const problem of preview.problems) lines.push(`Problem: ${problem}`);
         terminal.write(`${lines.join('\n')}\n`);
         return EXIT.success;
@@ -130,7 +178,7 @@ export default async function list(context: CommandContext): Promise<number> {
     const width = Math.min(terminal.columns(), 140);
     const kindWidth = 17;
     const lines: string[] = [];
-    if (!items.length) lines.push(style.muted(readyOnly ? 'No task can start now.' : 'No unfinished tasks. Add one with `ptbk add`.'));
+    if (!items.length && !systemItems.length) lines.push(style.muted(readyOnly ? 'No task can start now.' : 'No unfinished tasks. Add one with `ptbk add`.'));
     for (const { task, readiness } of items) {
         const tone = readiness.kind === 'ready' ? style.success : ['blocked', 'failed', 'needs-recovery'].includes(readiness.kind) ? style.error : ['done', 'retired', 'placeholder', 'not-ready'].includes(readiness.kind) ? style.muted : style.warning;
         const priority = task.priority.value ? style.accent(`P${task.priority.value} `) : '';
@@ -141,8 +189,15 @@ export default async function list(context: CommandContext): Promise<number> {
         lines.push(style.muted(`${' '.repeat(kindWidth + 1)}${task.ref}${routing}${when}`));
         lines.push(`${' '.repeat(kindWidth + 1)}${truncate(readiness.reason, width - kindWidth - 6)}`);
     }
+    for (const item of systemItems) {
+        const tone = item.readiness === 'active' ? style.success : item.readiness === 'failed' ? style.error : item.readiness === 'done' ? style.muted : style.warning;
+        lines.push(`${tone(fit(item.readiness, kindWidth))} ${style.accent('[system]')} ${style.bold(truncate(item.title, width - kindWidth - 19))}`);
+        const when = item.until ? ` · ${formatShortTime(Date.parse(item.until))}` : '';
+        lines.push(style.muted(`${' '.repeat(kindWidth + 1)}${item.ref} · ${item.executor ?? 'the engine'}${item.retry ? ` · retry ${item.retry}` : ''}${when}`));
+        lines.push(`${' '.repeat(kindWidth + 1)}${truncate(item.reason, width - kindWidth - 6)}`);
+    }
     for (const problem of preview.problems) lines.push(style.error(`Problem: ${problem}`));
     const ready = items.filter((item) => item.readiness.kind === 'ready').length;
-    terminal.write(`${renderPanel({ title: `Tasks (${items.length})`, titleRight: `${ready} ready`, lines, width: Math.max(width, stringWidth('Tasks') + 20), unicode: terminal.unicode, style }).join('\n')}\n`);
+    terminal.write(`${renderPanel({ title: `Tasks (${items.length + systemItems.length})`, titleRight: `${ready} ready`, lines, width: Math.max(width, stringWidth('Tasks') + 20), unicode: terminal.unicode, style }).join('\n')}\n`);
     return EXIT.success;
 }
