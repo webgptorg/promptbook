@@ -1,7 +1,7 @@
 import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
-import { ensureDirectory, isPathInside, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
+import { ensureDirectory, isPathInside, pathExists, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
 import { shortId, slugify } from '../common/ids.js';
 import { createRedactor, REDACTED } from '../common/redact.js';
 import { formatIsoWithOffset } from '../common/time.js';
@@ -396,15 +396,20 @@ export class ActionLog {
 
     /**
      * What a task already recorded or left unresolved: given to each attempt so earlier effects are reconciled before
-     * any send, submission or publication is repeated.
+     * any send, submission or publication is repeated. A record removed from the project (e.g. by a Git revert) still
+     * describes an effect that happened, so its local intent keeps it listed.
      */
     public async taskContext(source: string, exceptId?: string): Promise<string | undefined> {
         const directory = actionDirectoryOf(source);
         const records = (await this.scan()).filter((summary) => summary.path.startsWith(`${directory}/`));
-        const open = (await this.intents()).filter((intent) => intent.subject.source === source && !intent.closed && !intent.record && intent.id !== exceptId);
-        if (!records.length && !open.length) return undefined;
+        const intents = (await this.intents()).filter((intent) => intent.subject.source === source && intent.id !== exceptId);
+        const open = intents.filter((intent) => !intent.closed && !intent.record);
+        const saved = new Set(records.map((summary) => summary.path));
+        const removed = intents.filter((intent) => intent.record && !saved.has(intent.record) && intent.outcome !== 'not-performed');
+        if (!records.length && !open.length && !removed.length) return undefined;
         const lines = [
             ...records.slice(0, 30).map((summary) => `- ${summary.outcome}: ${summary.operation}${summary.service ? ` on ${summary.service}` : ''}${summary.target ? ` → ${summary.target}` : ''}${summary.at ? ` (${summary.at})` : ''} — \`${summary.path}\`${summary.id ? `, id ${summary.id}` : ''}`),
+            ...removed.map((intent) => `- ${intent.outcome ?? 'uncertain'}: ${intent.operation} on ${intent.service}${intent.target ? ` → ${intent.target}` : ''} (${intent.startedAt}, id ${intent.id}) — its record \`${intent.record}\` was removed from the project (e.g. by a Git revert), which did not undo the effect`),
             ...open.map((intent) => `- intent without a reported outcome: ${intent.operation} on ${intent.service}${intent.target ? ` → ${intent.target}` : ''} (begun ${intent.startedAt}, id ${intent.id}) — it may or may not have happened`),
         ];
         return `External actions this task already recorded (reconcile them with the service before repeating anything; update a record with its id instead of creating a duplicate):\n${lines.join('\n')}`;
@@ -473,10 +478,15 @@ export class ActionLog {
         return { summary: parseActionRecord(relativePath, content), content };
     }
 
-    /** Removes local intents of settled actions older than a bound (records stay versioned). */
+    /**
+     * Removes local intents of settled actions older than a bound (records stay versioned). An intent whose record was
+     * removed from the project is kept: it is the remaining evidence that the effect happened.
+     */
     public async prune(maxAgeMs = 30 * 24 * 3_600_000): Promise<void> {
         for (const intent of await this.intents()) {
-            if (intent.closed && Date.now() - Date.parse(intent.startedAt) > maxAgeMs) await rm(join(this.intentDirectory, `${intent.id}.json`), { force: true });
+            if (!intent.closed || Date.now() - Date.parse(intent.startedAt) <= maxAgeMs) continue;
+            if (intent.record && intent.outcome !== 'not-performed' && !(await pathExists(resolve(this.options.project.root, intent.record)))) continue;
+            await rm(join(this.intentDirectory, `${intent.id}.json`), { force: true });
         }
     }
 

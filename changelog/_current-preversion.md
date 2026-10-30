@@ -1,5 +1,10 @@
 # Unreleased
 
+## External actions: a reverted record no longer hides a performed effect
+
+-   When an external-action record was removed from the project (a `git revert` of its audit commit, or a deletion), the next attempt of the task no longer saw that action in its prompt and could repeat the email, post or submission. The local recovery intent still knew the outcome, so the prompt now lists such an action with its id and says that its record was removed and the effect was not undone. Reconciling it by that id restores the same record instead of creating a duplicate. Such intents are no longer pruned after 30 days, since they are the remaining evidence of the effect.
+-   A new test removes a confirmed record, checks the prompt context before and after pruning, and restores the record through reconciliation.
+
 ## A waiting question closes itself when its task no longer needs it
 
 -   A task waiting for the owner's answer (or a failed task waiting for its automatic recheck) kept its checkpoint, file ownership and "waiting for you" chat after the owner completed, retired or failed the task in its Book, or deleted the Book. Nothing could ever answer it usefully, so the attention stayed forever. The engine now verifies the task source: once the task is marked `TASK DONE`, `TASK STATUS retired` or `failed`, or its source is gone and the task exists nowhere else, the checkpoint is retired and its files are released. The task's agent closes the still-unanswered question in the chat with the reason (e.g. "No reply is needed anymore: {…} was completed."), the question stays in the history, and every client drops the attention. Another question waiting in the same chat keeps it waiting; an unclear source (such as a Markdown task renamed while edited) keeps the checkpoint. A pending Wallet login request is left alone, since other work may still need that login.

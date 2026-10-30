@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { parseActionRecord, renderActionRecord } from '../dist/engine/action-log.js';
+import { ActionLog, parseActionRecord, renderActionRecord } from '../dist/engine/action-log.js';
+import { projectAt } from '../dist/project/workspace.js';
 import { actionDirectoryOf, traceDirectoryOf } from '../dist/tasks/identity.js';
-import { drive, findGenerated, git, initializedProject, messages, ptbk, rawSubjects, subjects } from './helpers.mjs';
+import { drive, findGenerated, git, initializedProject, messages, ptbk, rawSubjects, subjects, temporaryDirectory } from './helpers.mjs';
 
 /**
  * Fails the check while any output contains BROKEN.
@@ -45,6 +46,24 @@ test('action records: the Markdown record round-trips its readable metadata', ()
     );
     assert.equal(actionDirectoryOf('tasks/2026-10-29 Newsletter.book'), 'actions/2026-10-29 Newsletter', 'the same literal basename as traces');
     assert.equal(actionDirectoryOf('tasks/2026-10-29 Newsletter.book').slice('actions/'.length), traceDirectoryOf('tasks/2026-10-29 Newsletter.book').slice('traces/'.length));
+});
+
+test('action records: an effect whose record was removed (e.g. by a Git revert) stays in the next attempt’s context and its evidence is not pruned', async (t) => {
+    const directory = await temporaryDirectory(t, 'ptbk actions');
+    const log = new ActionLog({ project: projectAt(directory), env: {}, timeZone: () => 'UTC', persist: async () => 'uncommitted', onChange: () => undefined, log: () => undefined });
+    const subject = { taskName: 'Send the newsletter', source: 'tasks/2026-10-30-0900-send-the-newsletter.book', agent: '@Developer', attempt: '1', trace: 'traces/2026-10-30-0900-send-the-newsletter/' };
+    const saved = await log.record(subject, { operation: 'Send email', service: 'Gmail', target: 'team@example.com', outcome: 'confirmed', observed: 'Sent.' });
+    const path = /^Saved (\S+) /.exec(saved.text)[1];
+    const id = /, id (act-[a-z0-9]+)/.exec(await log.taskContext(subject.source))[1];
+    await rm(join(directory, path));
+    const context = await log.taskContext(subject.source);
+    assert.match(context, new RegExp(`^- confirmed: Send email on Gmail → team@example\\.com \\(.*, id ${id}\\) — its record \`${path}\` was removed from the project`, 'm'), 'the effect is still known, so it is reconciled instead of repeated');
+    await log.prune(0);
+    assert.match(await log.taskContext(subject.source), /was removed from the project/, 'the only remaining evidence is not pruned');
+    // Reconciling it by its id restores the same record (no duplicate).
+    await log.record({ ...subject, attempt: '2' }, { id, outcome: 'confirmed', observed: 'The sent message is in the mailbox.' });
+    assert.deepEqual(await readdir(join(directory, 'actions', '2026-10-30-0900-send-the-newsletter')), [path.split('/').pop()]);
+    assert.doesNotMatch(await log.taskContext(subject.source), /was removed/);
 });
 
 test('action records: one committed Markdown per remote mutation, independent of ignored traces and a failed check; reconciled without duplicates', async (t) => {
