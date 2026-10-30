@@ -1429,7 +1429,18 @@
     function renderBrief(snapshot) {
         const report = snapshot.report;
         const brief = report && report.brief;
-        const status = report ? (report.generating ? 'updating…' : report.requestedAt ? `refresh requested${report.waiting ? ` — ${report.waiting}` : ''}` : '') : '';
+        // A failed update and a pending commit are recovered automatically: their cause and next attempt, never a Retry question.
+        const status = report
+            ? report.generating
+                ? 'updating…'
+                : [
+                      report.requestedAt ? `refresh requested${report.waiting ? ` — ${report.waiting}` : ''}` : '',
+                      report.recheck ? `the last update failed (${report.recheck.cause}); automatic retry ${time(report.recheck.nextAt)}` : '',
+                      report.isCommitPending ? 'saved, but its commit is pending (retried automatically)' : '',
+                  ]
+                      .filter(Boolean)
+                      .join(' · ')
+            : '';
         const text = brief ? brief.text : report ? (report.state === 'unreadable' ? `The project brief cannot be read (${report.problem || 'report.book'}).` : 'No project brief yet. Refresh asks Chatter for one.') : 'This engine does not report a project brief.';
         return h(
             'section',

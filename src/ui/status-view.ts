@@ -21,7 +21,7 @@ function flow(items: readonly string[], width: number, separator: string): strin
 }
 import { activityLabel, framedBadge, inlineBadge } from './badges.js';
 import type { TaskInventoryItem } from '../tasks/views.js';
-import { browserDetailLines, executionDetailLines, executionOneLine, healthDetailLines, healthOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary, pauseReasonLines, syncCompactLines, syncDetailLines, toolRow, toolsCompactLines } from './details.js';
+import { briefRecoveryParts, browserDetailLines, executionDetailLines, executionOneLine, healthDetailLines, healthOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary, pauseReasonLines, syncCompactLines, syncDetailLines, toolRow, toolsCompactLines } from './details.js';
 import { renderPanel, sideBySide, type PanelTone } from './panels.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
@@ -76,7 +76,7 @@ export type StatusViewOptions = {
 export function briefLine(snapshot: Pick<ServiceSnapshot, 'report'>): string {
     const report = snapshot.report;
     if (!report) return 'not reported by this engine.';
-    const state = [report.generating ? 'a new brief is being written' : '', report.requestedAt && !report.generating ? `a refresh is requested${report.waiting ? ` (${report.waiting})` : ''}` : ''].filter(Boolean).join('; ');
+    const state = [report.generating ? 'a new brief is being written' : '', report.requestedAt && !report.generating ? `a refresh is requested${report.waiting ? ` (${report.waiting})` : ''}` : '', ...briefRecoveryParts(report, true)].filter(Boolean).join('; ');
     if (report.brief) return `${report.brief.text.replace(/\s+/g, ' ')} (${report.brief.at}${state ? `; ${state}` : ''})`;
     if (report.state === 'unreadable') return `report.book cannot be read: ${report.problem ?? 'unknown problem'}.`;
     return `no brief yet${state ? ` (${state})` : ' (Chatter writes the first one once there is work to report)'}.`;
@@ -193,7 +193,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         ...renderPanel({
             title: 'Project brief',
             titleRight: brief ? `${formatShortTime(Date.parse(brief.at))}${snapshot.report?.generating ? ' · updating' : ''}` : undefined,
-            lines: brief ? wrap(brief.text, total - 4) : [style.muted(briefLine(snapshot))],
+            lines: brief ? [...wrap(brief.text, total - 4), ...briefRecoveryParts(snapshot.report!, true).flatMap((part) => wrap(style.muted(part), total - 4))] : [style.muted(briefLine(snapshot))],
             width: total,
             unicode,
             style,

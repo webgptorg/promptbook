@@ -79,12 +79,12 @@ export type AttemptRecord = {
 };
 
 /**
- * The persisted cause-aware recovery of a failed task: how many rounds ran, the last cause, the remedies already tried
- * and when the next automatic recheck is due.
+ * One cause-aware automatic recheck after an exhausted immediate budget, shared by every domain that schedules them
+ * (tasks, chat replies, Chatter's brief): how many rounds ran, the last cause and when the next attempt is due.
  *
  * @private runtime state
  */
-export type RecoverySchedule = {
+export type RecheckSchedule = {
     /** Rechecks scheduled so far. */
     readonly rounds: number;
     /** First failure of this recovery (ISO). */
@@ -95,9 +95,7 @@ export type RecoverySchedule = {
     readonly nextAt: string;
     /** The last failure. */
     readonly cause: string;
-    /** Remedies already tried (newest last, bounded). */
-    readonly remedies: readonly string[];
-    /** Fingerprint of the last failure together with its conditions (task source, tools, check). */
+    /** Fingerprint of the last failure together with its conditions. */
     readonly fingerprint: string;
     /** Fingerprint of the conditions alone: a change brings the recheck forward. */
     readonly conditions: string;
@@ -106,36 +104,31 @@ export type RecoverySchedule = {
 };
 
 /**
- * The cause-aware automatic recheck of a failed chat reply (`.ptbk/state/chat-replies.json`, by chat name): the user's
- * message keeps its owed reply across restarts without anybody being asked to retry it.
+ * The persisted cause-aware recovery of a failed task: the shared recheck schedule (its conditions are the task source,
+ * tools and check) plus the remedies already tried.
  *
  * @private runtime state
  */
-export type ChatReplyRecheck = {
-    /** Rechecks scheduled so far. */
-    readonly rounds: number;
-    /** First failed reply of this recovery (ISO). */
-    readonly since: string;
-    /** When this round was scheduled (ISO). */
-    readonly scheduledAt: string;
-    /** Next automatic recheck (ISO). */
-    readonly nextAt: string;
-    /** The last failure. */
-    readonly cause: string;
-    /** Fingerprint of the last failure together with its conditions (tools). */
-    readonly fingerprint: string;
-    /** Fingerprint of the conditions alone: a change brings the recheck forward. */
-    readonly conditions: string;
-    /** Consecutive rounds that ended in an equivalent failure under unchanged conditions. */
-    readonly equivalent: number;
+export type RecoverySchedule = RecheckSchedule & {
+    /** Remedies already tried (newest last, bounded). */
+    readonly remedies: readonly string[];
+};
+
+/**
+ * The cause-aware automatic recheck of a failed chat reply (`.ptbk/state/chat-replies.json`, by chat name): the user's
+ * message keeps its owed reply across restarts without anybody being asked to retry it. Its conditions are the tools.
+ *
+ * @private runtime state
+ */
+export type ChatReplyRecheck = RecheckSchedule & {
     /** The participant the user addressed in the failed turn (otherwise the chat's main agent replies). */
     readonly agent?: string;
 };
 
 /**
  * Bookkeeping of Chatter's project brief (`.ptbk/state/report.json`): the situation the last brief covered (so an
- * unchanged project causes no paid generation), an explicit Refresh waiting for background scheduling, and the last
- * failed generation (bounded retry).
+ * unchanged project causes no paid generation), an explicit Refresh waiting for background scheduling, the
+ * cause-aware recheck of a failed generation and a saved brief whose commit is still owed.
  *
  * @private runtime state
  */
@@ -144,10 +137,12 @@ export type ReportState = {
     readonly significant?: string;
     /** Fingerprint of recent results the last brief covered. */
     readonly results?: string;
-    /** Explicit Refresh request (ISO), until a generation covers it. */
+    /** Explicit Refresh request (ISO), until a successful generation covers it. */
     readonly requestedAt?: string;
-    /** Last failed generation (ISO). */
-    readonly failedAt?: string;
+    /** Automatic recheck of a failed generation (its conditions are the tools); cleared by a written brief. */
+    readonly recheck?: RecheckSchedule;
+    /** `report.book` holds a saved brief whose commit failed: only the commit is retried, never the generation. */
+    readonly isCommitPending?: boolean;
 };
 
 /**

@@ -22,7 +22,8 @@
  *   EXTERNAL_ACTIONS → attempt 1 records a confirmed email, an uncertain (lost acknowledgement) post and an intent
  *                     without an outcome through the action tools, then writes BROKEN output (the check fails); a
  *                     repair attempt reconciles the post from the prompt's action records by its id, without resending
- * Project brief turns (`# Project brief`) reply with one fixture paragraph counting the digest's completed results.
+ * Project brief turns (`# Project brief`) reply with one fixture paragraph counting the digest's completed results; the
+ * first $FAKE_CODEX_FAIL_BRIEFS of them (per $FAKE_CODEX_LOG) fail like a provider outage instead.
  * Router turns (`## Assignment work`, tasks and chat routing) choose the first listed agent's example combination
  * (ROUTE_IMPOSSIBLE in the target reports no compatible combination). Chat turns (`# Conversation`) reply read-only; a user message containing CREATE_TASK makes the agent create a task
  * through the `create_task` tool, one containing CONSULT_TEAM consults @Developer through the `consult` tool and one
@@ -188,6 +189,13 @@ async function main() {
     if (prompt.startsWith('# Consultation')) {
         message('Fixture advice: keep it simple.');
     } else if (brief) {
+        const outages = process.env.FAKE_CODEX_LOG ? `${process.env.FAKE_CODEX_LOG}.brief-outages` : undefined;
+        const failed = outages && existsSync(outages) ? readFileSync(outages, 'utf8').split('\n').filter(Boolean).length : 0;
+        if (outages && failed < Number(process.env.FAKE_CODEX_FAIL_BRIEFS ?? 0)) {
+            appendFileSync(outages, 'outage\n');
+            print({ type: 'turn.failed', error: { message: 'Fixture outage: the provider is unavailable.' } });
+            process.exit(1);
+        }
         // A brief is one paragraph from the engine's digest (the number of recent results proves it read the situation).
         const results = (prompt.match(/^- \S+ completed: /gm) ?? []).length;
         message(`Fixture brief number ${(prompt.match(/## Previous brief/) ? 2 : 1)}: ${results} recent result(s) are done and nothing needs your attention.`);

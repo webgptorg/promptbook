@@ -97,7 +97,7 @@ import type {
     UsageOverview,
     WaitView,
 } from './snapshot.js';
-import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ChatReplyRecheck, type RecoverySchedule, type ResultRecord, type RoutingSelection } from './state.js';
+import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ChatReplyRecheck, type RecheckSchedule, type RecoverySchedule, type ResultRecord, type RoutingSelection } from './state.js';
 import { TaskTrace, sourceRevision } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
 import { finishWorktree, isIntegrated } from './isolation.js';
@@ -307,6 +307,36 @@ function failureKey(failure: string): string {
 }
 
 /**
+ * Fingerprint of a failure together with its conditions: equal fingerprints are an equivalent failure (no new evidence).
+ */
+function recheckFingerprint(failure: { readonly cause: string; readonly conditions: string }): string {
+    return createHash('sha256').update(`${failureKey(failure.cause)}\n${failure.conditions}`).digest('hex').slice(0, 16);
+}
+
+/**
+ * The next round of a cause-aware recheck after a failure, shared by tasks, chat replies and Chatter's brief: the
+ * failure's fingerprint under its conditions, how often an equivalent failure repeated under unchanged conditions and
+ * the spread, capped delay of {@link recoveryDelay}.
+ *
+ * @private agenda supervisor
+ */
+export function nextRecheck(previous: RecheckSchedule | undefined, failure: { readonly cause: string; readonly conditions: string }, delays: { readonly base: number; readonly max: number }, now: number = Date.now()): RecheckSchedule {
+    const fingerprint = recheckFingerprint(failure);
+    const equivalent = previous?.fingerprint === fingerprint ? previous.equivalent + 1 : 0;
+    const rounds = (previous?.rounds ?? 0) + 1;
+    return {
+        rounds,
+        since: previous?.since ?? new Date(now).toISOString(),
+        scheduledAt: new Date(now).toISOString(),
+        nextAt: new Date(now + recoveryDelay(rounds, equivalent, delays.base, Math.random, delays.max)).toISOString(),
+        cause: failure.cause,
+        fingerprint,
+        conditions: failure.conditions,
+        equivalent,
+    };
+}
+
+/**
  * Longest wait of the `claim_files` tool for a file another run holds (the agent then works on other files).
  */
 const CLAIM_WAIT_MS = 10 * 60_000;
@@ -344,9 +374,10 @@ const REPORT_INTERVAL_MS = 6 * 3_600_000;
 const REPORT_EVENT_SPACING_MS = 30 * 60_000;
 
 /**
- * Wait after a failed brief generation before the next attempt.
+ * First delay of the cause-aware recheck of a failed brief generation; later rounds back off up to
+ * {@link RECOVERY_MAX_MS} (also for repeated equivalent failures, so an unavailable provider causes no paid idle loop).
  */
-const REPORT_RETRY_MS = 30 * 60_000;
+const REPORT_RECHECK_MS = 15 * 60_000;
 
 /**
  * Summary of the manual pause reason by its cause (shown wherever pause reasons are listed).
@@ -497,6 +528,12 @@ export class Agenda {
     private reportGenerating = false;
     /** An explicit Refresh waiting for background scheduling (ISO). */
     private reportRequest?: string;
+    /** The cause-aware automatic recheck of a failed brief (persisted in `.ptbk/state/report.json`). */
+    private reportRecheck?: RecheckSchedule;
+    /** A saved brief whose commit failed (only the commit is retried, never the generation). */
+    private reportCommitPending = false;
+    /** Timer of the next retry of a failed brief commit. */
+    private reportCommitTimer?: NodeJS.Timeout;
     /** The newest commit of the current branch (History tile), refreshed at a bounded rate. */
     private lastCommit?: { readonly sha: string; readonly at: string; readonly summary: string; readonly kind: string };
     /** When the last commit was read (epoch ms). */
@@ -661,7 +698,11 @@ export class Agenda {
         }
         await this.actions.refresh().catch(() => undefined);
         await this.actions.prune().catch(() => undefined);
-        this.reportRequest = (await this.state.readReport().catch(() => undefined))?.requestedAt;
+        const report = await this.state.readReport().catch(() => undefined);
+        this.reportRequest = report?.requestedAt;
+        this.reportRecheck = report?.recheck;
+        // A brief saved but not committed before the last stop: only its commit resumes, never the generation.
+        if (report?.isCommitPending) await this.persistReport(join(project.root, REPORT_FILE));
         await this.refreshReportView();
         await this.sync.begin();
         await confinePath(project.root, this.tasksDirectory);
@@ -686,7 +727,7 @@ export class Agenda {
         if (this.options.mode !== 'maintenance') {
             // User messages written while no service ran (or interrupted replies) still get their agent's reply, once.
             const rechecks = await this.state.readChatRechecks();
-            const conditions = this.chatReplyConditions();
+            const conditions = this.toolConditions();
             for (const stored of await this.chats.list().catch(() => [])) {
                 if (!isHumanFacing(stored.chat) || !awaitsReply(stored.chat) || stored.chat.status === 'resolved') continue;
                 // An answer a task waits for resumes the task; a clarifying question in a still-waiting chat gets a reply.
@@ -1362,8 +1403,10 @@ export class Agenda {
             .catch((error: unknown) => this.log(`The reply in {${name}} failed: ${errorMessage(error)}`, 'warning'));
     }
 
-    /** Fingerprint of what a chat reply recheck depends on: the tools (a new or repaired tool brings it forward). */
-    private chatReplyConditions(): string {
+    /**
+     * Fingerprint of what a chat reply or brief recheck depends on: the tools (a new or repaired tool brings it forward).
+     */
+    private toolConditions(): string {
         const tools = this.tools.items.map((item) => `${item.name}:${item.isEnabled ? item.state : 'disabled'}`).sort();
         return createHash('sha256').update(JSON.stringify({ tools })).digest('hex').slice(0, 16);
     }
@@ -1382,24 +1425,12 @@ export class Agenda {
             await this.clearChatRecheck(name);
             return;
         }
-        const previous = this.chatRechecks.get(nameKey(name))?.schedule;
-        const conditions = this.chatReplyConditions();
-        const fingerprint = createHash('sha256').update(`${failureKey(cause)}\n${conditions}`).digest('hex').slice(0, 16);
-        const equivalent = previous?.fingerprint === fingerprint ? previous.equivalent + 1 : 0;
-        const rounds = (previous?.rounds ?? 0) + 1;
-        const delay = recoveryDelay(rounds, equivalent, Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || CHAT_REPLY_RECHECK_MS, Math.random, CHAT_REPLY_MAX_MS);
         const now = Date.now();
         const schedule: ChatReplyRecheck = {
-            rounds,
-            since: previous?.since ?? new Date(now).toISOString(),
-            scheduledAt: new Date(now).toISOString(),
-            nextAt: new Date(now + delay).toISOString(),
-            cause,
-            fingerprint,
-            conditions,
-            equivalent,
+            ...nextRecheck(this.chatRechecks.get(nameKey(name))?.schedule, { cause, conditions: this.toolConditions() }, { base: Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || CHAT_REPLY_RECHECK_MS, max: CHAT_REPLY_MAX_MS }, now),
             ...(agent ? { agent } : {}),
         };
+        const { rounds, equivalent } = schedule;
         this.armChatRecheck(stored.chat.name, schedule);
         await this.saveChatRechecks();
         this.log(
@@ -1434,7 +1465,7 @@ export class Agenda {
     /** Changed tools bring waiting chat reply rechecks forward (never sooner than the minimum spacing after scheduling). */
     private reviewChatRechecks(): void {
         if (!this.chatRechecks.size) return;
-        const conditions = this.chatReplyConditions();
+        const conditions = this.toolConditions();
         const spacing = Math.min(RECOVERY_MIN_SPACING_MS, Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || CHAT_REPLY_RECHECK_MS);
         for (const [key, entry] of this.chatRechecks) {
             if (entry.timer && entry.schedule.conditions !== conditions && Date.now() - Date.parse(entry.schedule.scheduledAt) >= spacing) this.startChatRecheck(key, 'its tools changed');
@@ -2265,6 +2296,7 @@ export class Agenda {
         clearTimeout(this.wakeTimer);
         clearTimeout(this.configTimer);
         for (const entry of this.chatRechecks.values()) clearTimeout(entry.timer);
+        clearTimeout(this.reportCommitTimer);
         this.sync.end();
         this.health?.stop();
     }
@@ -2420,8 +2452,9 @@ export class Agenda {
         const earliest = (times: readonly number[]): number | undefined => times.filter((until) => until > Date.now()).reduce<number | undefined>((first, until) => (first === undefined || until < first ? until : first), undefined);
         const nextTime = earliest([...waiting, ...(this.nextKnownTime ? [this.nextKnownTime] : [])]);
         this.nextKnownTime = nextTime;
-        // Internal retries (resumable runs, deferred claims) also wake the loop, without being presented as scheduled work.
-        const wakeAt = earliest([...(nextTime ? [nextTime] : []), ...this.resumeAfter.values(), ...this.claimDeferred.values(), ...this.recoveryDue.values()]);
+        // Internal retries (resumable runs, deferred claims, a failed brief's recheck) also wake the loop, without being
+        // presented as scheduled work.
+        const wakeAt = earliest([...(nextTime ? [nextTime] : []), ...this.resumeAfter.values(), ...this.claimDeferred.values(), ...this.recoveryDue.values(), ...(this.reportRecheck ? [Date.parse(this.reportRecheck.nextAt)] : [])]);
         const blocked = evaluated.filter((item) => ['blocked', 'needs-recovery', 'failed'].includes(item.readiness.kind));
         const reason = this.executing
             ? `${this.units.size} unit${this.units.size === 1 ? '' : 's'} working; no other eligible work now.`
@@ -3545,10 +3578,28 @@ export class Agenda {
         this.touch();
     }
 
-    /** The shared report state of snapshots: the saved brief, its generation and an explicit request waiting. */
+    /**
+     * The shared report state of snapshots: the saved brief, its generation, an explicit request waiting, the automatic
+     * recheck of a failed generation and a saved brief whose commit is still pending.
+     */
     public reportSnapshot(): ReportView {
-        const waiting = this.reportRequest && !this.reportGenerating ? (this.claimable ? 'Waiting for a free slot or a usable harness.' : 'Background work is paused; the brief is written when it resumes.') : undefined;
-        return { ...this.reportView, ...(this.reportGenerating ? { generating: true } : {}), ...(this.reportRequest ? { requestedAt: this.reportRequest } : {}), ...(waiting ? { waiting } : {}) };
+        const recheck = this.reportRecheck && !this.reportGenerating ? this.reportRecheck : undefined;
+        const waiting =
+            this.reportRequest && !this.reportGenerating
+                ? !this.claimable
+                    ? 'Background work is paused; the brief is written when it resumes.'
+                    : recheck && Date.parse(recheck.nextAt) > Date.now()
+                      ? 'it waits for the automatic retry of the failed update'
+                      : 'Waiting for a free slot or a usable harness.'
+                : undefined;
+        return {
+            ...this.reportView,
+            ...(this.reportGenerating ? { generating: true } : {}),
+            ...(this.reportRequest ? { requestedAt: this.reportRequest } : {}),
+            ...(waiting ? { waiting } : {}),
+            ...(recheck ? { recheck: { cause: recheck.cause, nextAt: recheck.nextAt, rounds: recheck.rounds } } : {}),
+            ...(this.reportCommitPending ? { isCommitPending: true } : {}),
+        };
     }
 
     /** What a brief covers: significant conditions and recent results (an unchanged project needs no new brief). */
@@ -3569,21 +3620,61 @@ export class Agenda {
     /**
      * Whether Chatter should write a brief now: an explicit Refresh, the first brief once there is something to report,
      * a significant change after a short spacing, or new results after the regular cadence. Nothing changed means no
-     * generation (no paid idle work); a failure waits before the next attempt.
+     * generation (no paid idle work). A failed generation waits for its cause-aware recheck, which changed tools or a
+     * newer explicit Refresh bring forward; a recheck whose brief is no longer owed is retired.
      */
     private async reportDue(): Promise<boolean> {
         if (this.reportGenerating || this.options.mode === 'maintenance' || !this.pool.usable().length) return false;
         if ((await this.catalog.resolve(REPORT_AUTHOR)).kind !== 'agent') return false;
         const state = await this.state.readReport();
         const now = Date.now();
-        if (state.failedAt && now - Date.parse(state.failedAt) < (Number(this.options.env.PTBK_REPORT_INTERVAL_MS) || REPORT_RETRY_MS)) return false;
+        const recheck = this.reportRecheck;
+        if (recheck && Date.parse(recheck.nextAt) > now) {
+            const scheduled = Date.parse(recheck.scheduledAt);
+            const requested = this.reportRequest !== undefined && Date.parse(this.reportRequest) > scheduled;
+            const changed = recheck.conditions !== this.toolConditions() && now - scheduled >= Math.min(RECOVERY_MIN_SPACING_MS, this.reportRecheckBase());
+            if (!requested && !changed) return false;
+        }
         if (this.reportRequest) return true;
         const current = this.reportFingerprints();
         const last = this.reportView.brief ? Date.parse(this.reportView.brief.at) : undefined;
-        if (last === undefined || Number.isNaN(last)) return this.recentResults.length > 0;
         const interval = Number(this.options.env.PTBK_REPORT_INTERVAL_MS);
-        if (current.significant !== state.significant && now - last >= (interval || REPORT_EVENT_SPACING_MS)) return true;
-        return current.results !== state.results && now - last >= (interval || REPORT_INTERVAL_MS);
+        const due =
+            last === undefined || Number.isNaN(last)
+                ? this.recentResults.length > 0
+                : (current.significant !== state.significant && now - last >= (interval || REPORT_EVENT_SPACING_MS)) || (current.results !== state.results && now - last >= (interval || REPORT_INTERVAL_MS));
+        if (!due && recheck) await this.writeReportRecheck(undefined);
+        return due;
+    }
+
+    /** First delay of a failed brief's recheck (`PTBK_REPORT_RECHECK_MS` overrides it, e.g. for fixtures). */
+    private reportRecheckBase(): number {
+        return Number(this.options.env.PTBK_REPORT_RECHECK_MS) || REPORT_RECHECK_MS;
+    }
+
+    /** Keeps (or clears) the recheck of a failed brief, persisted with the pending explicit request across restarts. */
+    private async writeReportRecheck(recheck: RecheckSchedule | undefined): Promise<void> {
+        this.reportRecheck = recheck;
+        await this.state.writeReport({ ...(await this.state.readReport()), requestedAt: this.reportRequest, recheck });
+        this.touch();
+    }
+
+    /**
+     * A brief could not be written: the saved brief stays readable, an explicit Refresh stays requested and a
+     * cause-aware automatic recheck is scheduled (spread, capped backoff; the longest wait for an equivalent failure
+     * under unchanged tools), so an unavailable provider causes no paid idle loop. Nobody is asked to retry it.
+     */
+    private async reportFailed(cause: string, requested: string | undefined): Promise<void> {
+        this.reportRequest ??= requested;
+        // A generation interrupted by stopping is no failure: a pending request is written after the restart.
+        if (this.stopRequested || this.ownedWork.signal.aborted) return;
+        const now = Date.now();
+        const recheck = nextRecheck(this.reportRecheck, { cause, conditions: this.toolConditions() }, { base: this.reportRecheckBase(), max: RECOVERY_MAX_MS }, now);
+        await this.writeReportRecheck(recheck);
+        this.log(
+            `The project brief was not written (${cause}); the saved brief stays. Nobody needs to retry it: automatic recheck ${recheck.rounds} is due ${formatShortTime(Date.parse(recheck.nextAt), now, this.timeZone)}${recheck.equivalent ? ' (the same failure repeated, so it waits longer)' : ''}, sooner when tools change or on Refresh.`,
+            'warning',
+        );
     }
 
     /** The engine's facts Chatter turns into a brief (the shared status, never a secret). */
@@ -3624,17 +3715,16 @@ export class Agenda {
                 { agent, digest: this.reportDigest(), previous: this.reportView.brief, reportPath: join(this.options.project.root, REPORT_FILE) },
             );
             if (!composed.text) {
-                this.log(`The project brief was not written: ${composed.error ?? 'no text'}; the saved brief stays and generation is retried later.`, 'warning');
-                await this.state.writeReport({ ...(await this.state.readReport()), failedAt: new Date().toISOString(), requestedAt: undefined });
+                await this.reportFailed(composed.error ?? 'Chatter wrote no text', requested);
                 return;
             }
             const path = await appendBrief(this.options.project.root, { text: composed.text, at: formatIsoWithOffset(Date.now(), this.timeZone) });
-            await this.state.writeReport({ significant: covered.significant, results: covered.results });
+            this.reportRecheck = undefined;
+            await this.state.writeReport({ significant: covered.significant, results: covered.results, ...(this.reportCommitPending ? { isCommitPending: true } : {}) });
             await this.persistReport(path);
             this.log(`${referenceName(agent)} wrote a new project brief${requested ? ' (requested)' : ''}.`);
         } catch (error) {
-            this.log(`The project brief could not be written: ${errorMessage(error)}`, 'warning');
-            await this.state.writeReport({ ...(await this.state.readReport()), failedAt: new Date().toISOString() }).catch(() => undefined);
+            await this.reportFailed(errorMessage(error), requested).catch(() => undefined);
         } finally {
             this.reportGenerating = false;
             await this.refreshReportView();
@@ -3642,21 +3732,44 @@ export class Agenda {
         }
     }
 
-    /** Commits `report.book` (and its usage evidence when traces are committed) as Chatter's scoped report commit. */
+    /**
+     * Commits `report.book` (and its usage evidence when traces are committed) as Chatter's scoped report commit. A
+     * failed commit keeps the brief saved and retries only the commit on its own schedule (also after a restart), never
+     * the generation.
+     */
     private async persistReport(path: string): Promise<void> {
         this.authoredPaths.add(path);
         if (!this.repositoryRoot || !this.commitMode) {
             await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, path)]: null });
+            await this.setReportCommitPending(false);
             return;
         }
+        clearTimeout(this.reportCommitTimer);
+        this.reportCommitTimer = undefined;
         try {
             const evidence = setting<boolean>(this.settings, 'traces.isCommitted') ? await stageableFiles(this.options.project.root, 'traces/.chats/report') : [];
             await this.commitAuthoring([path, ...evidence], agentSubject(REPORT_AUTHOR, `Chat - ${REPORT_NAME}`), { 'Chat-Name': REPORT_NAME });
             this.authoredPaths.delete(path);
+            await this.setReportCommitPending(false);
         } catch (error) {
-            // The brief stays saved; the next report commit includes it.
-            this.log(`The project brief is saved, but its commit failed: ${errorMessage(error)}`, 'warning');
+            this.log(`The project brief is saved, but its commit failed (${errorMessage(error)}); only the commit is retried.`, 'warning');
+            await this.setReportCommitPending(true);
+            if (this.stopRequested) return;
+            this.reportCommitTimer = setTimeout(() => {
+                this.reportCommitTimer = undefined;
+                void this.persistReport(path);
+            }, PERSISTENCE_RETRY_MS);
+            this.reportCommitTimer.unref?.();
         }
+    }
+
+    /** Records whether a saved brief still waits for its commit (it survives restarts). */
+    private async setReportCommitPending(pending: boolean): Promise<void> {
+        const { isCommitPending, ...rest } = await this.state.readReport();
+        if (this.reportCommitPending === pending && Boolean(isCommitPending) === pending) return;
+        this.reportCommitPending = pending;
+        await this.state.writeReport({ ...rest, ...(pending ? { isCommitPending: true } : {}) }).catch((error: unknown) => this.logOnce(`The pending brief commit could not be recorded: ${errorMessage(error)}`, 'warning'));
+        this.touch();
     }
 
     /**
@@ -3665,12 +3778,15 @@ export class Agenda {
      */
     public async requestReport(): Promise<{ readonly applied: boolean; readonly outcome: string }> {
         if (this.reportGenerating) return { applied: true, outcome: 'A brief is being written now; this request is covered by it.' };
-        const already = Boolean(this.reportRequest);
-        this.reportRequest ??= new Date().toISOString();
-        await this.state.writeReport({ ...(await this.state.readReport()), requestedAt: this.reportRequest, failedAt: undefined });
+        // After a failed generation, a new explicit Refresh is newer than its recheck and brings it forward.
+        const failed = Boolean(this.reportRecheck);
+        const already = Boolean(this.reportRequest) && !failed;
+        if (!this.reportRequest || failed) this.reportRequest = new Date().toISOString();
+        await this.state.writeReport({ ...(await this.state.readReport()), requestedAt: this.reportRequest });
         this.wake();
         this.touch();
         if (!this.claimable) return { applied: true, outcome: `${already ? 'A refresh is already requested' : 'Refresh requested'}; the service is paused, so Chatter writes it when background work resumes.` };
+        if (failed) return { applied: true, outcome: 'Refresh requested; Chatter tries again now instead of waiting for the automatic recheck of the failed brief.' };
         return { applied: true, outcome: already ? 'A refresh is already requested.' : 'Refresh requested; Chatter writes the brief shortly.' };
     }
 
@@ -3701,11 +3817,10 @@ export class Agenda {
     }
 
     /** Compares a failure with the previous recovery round: the same cause under unchanged conditions is no new evidence. */
-    private async assessFailure(record: ActiveRecord): Promise<{ readonly cause: string; readonly conditions: string; readonly fingerprint: string; readonly equivalent: boolean }> {
+    private async assessFailure(record: ActiveRecord): Promise<{ readonly cause: string; readonly conditions: string; readonly equivalent: boolean }> {
         const cause = record.failure ?? 'unknown reason';
         const conditions = await this.recoveryConditions(record);
-        const fingerprint = createHash('sha256').update(`${failureKey(cause)}\n${conditions}`).digest('hex').slice(0, 16);
-        return { cause, conditions, fingerprint, equivalent: record.recovery?.fingerprint === fingerprint };
+        return { cause, conditions, equivalent: record.recovery?.fingerprint === recheckFingerprint({ cause, conditions }) };
     }
 
     /**
@@ -3715,23 +3830,11 @@ export class Agenda {
      */
     private async scheduleRecovery(record: ActiveRecord, assessment: Awaited<ReturnType<Agenda['assessFailure']>>): Promise<void> {
         const previous = record.recovery;
-        const equivalent = assessment.equivalent && previous ? previous.equivalent + 1 : 0;
-        const rounds = (previous?.rounds ?? 0) + 1;
-        const delay = recoveryDelay(rounds, equivalent, Number(this.options.env.PTBK_RECOVERY_RECHECK_MS) || RECOVERY_RECHECK_MS);
-        const nextAt = new Date(Date.now() + delay).toISOString();
+        const schedule = nextRecheck(previous, assessment, { base: Number(this.options.env.PTBK_RECOVERY_RECHECK_MS) || RECOVERY_RECHECK_MS, max: RECOVERY_MAX_MS });
+        const { rounds, equivalent, nextAt } = schedule;
         const agent = referenceName(record.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent'));
         const tried = `${record.handover ? `${referenceName(record.handover.from)}, then ${record.handover.agent},` : agent} used ${record.attempt} attempt(s) and ${record.technicalRetries} technical retr${record.technicalRetries === 1 ? 'y' : 'ies'}: ${assessment.cause}`;
-        const recovery: RecoverySchedule = {
-            rounds,
-            since: previous?.since ?? new Date().toISOString(),
-            scheduledAt: new Date().toISOString(),
-            nextAt,
-            cause: assessment.cause,
-            remedies: [...(previous?.remedies ?? []), tried].slice(-6),
-            fingerprint: assessment.fingerprint,
-            conditions: assessment.conditions,
-            equivalent,
-        };
+        const recovery: RecoverySchedule = { ...schedule, remedies: [...(previous?.remedies ?? []), tried].slice(-6) };
         const files = this.ownership.owned(record.runId);
         await this.state.park({ ...record, recovery, ownedFiles: files.length ? files : record.ownedFiles });
         this.recoveryDue.set(record.runId, Date.parse(nextAt));

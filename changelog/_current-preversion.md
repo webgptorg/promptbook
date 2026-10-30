@@ -1,5 +1,12 @@
 # Unreleased
 
+## Project brief: cause-aware rechecks and its own commit retry
+
+-   A failed brief generation (Chatter is a core agent) used to wait a fixed 30 minutes and an explicit **Refresh** that failed was dropped. It now follows the shared retry policy of tasks and chat replies: a persisted automatic recheck (first after 15 minutes, then backing off with spreading up to 24 hours; the same failure under unchanged tools waits longest), brought forward by changed tools or a newer Refresh. The Refresh stays requested until a brief is actually written, and a recheck whose brief is no longer owed is retired. Nobody is asked to retry. The agenda loop now also wakes for a due recheck instead of its 10-minute idle tick.
+-   A brief whose commit failed (e.g. a rejecting hook) used to wait for the next brief, possibly hours or never. Only its commit is retried now, every two minutes and at the next start (`.ptbk/state/report.json` remembers it); the brief is never generated again for that.
+-   The terminal home, `ptbk status` and the browser brief show the failed update's cause and the next automatic attempt, and a saved brief whose commit is still pending; the snapshot carries them as `report.recheck` and `report.isCommitPending`.
+-   Tasks, chat replies and the brief now share one recheck schedule (`RecheckSchedule`, `nextRecheck`). The fake Codex gains `FAKE_CODEX_FAIL_BRIEFS`; a new fixture covers two failed briefs with growing rechecks, a Refresh that brings the recheck forward, a hook rejecting the brief's commit and the commit completed after a restart without a new generation.
+
 ## Release check: date-independent dashboard fixtures
 
 -   Two dashboard-home fixtures (Action log tile, project brief) hardcoded a 2026-10-29 timestamp and expected the same-day short clock form, so `npm test`, and with it `npm run release:prerelease`, failed on every other day. They now use the current time.

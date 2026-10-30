@@ -5,7 +5,7 @@ import type { DashboardDomain, DomainAttention, ServiceSnapshot } from '../engin
 import type { UsageTotals } from '../engine/usage.js';
 import { fit, stringWidth, truncate, wrap } from './ansi.js';
 import { activityLabel, inlineBadge } from './badges.js';
-import { hasManualPause, healthPauseReasons, lifecycleActions } from './details.js';
+import { briefRecoveryParts, hasManualPause, healthPauseReasons, lifecycleActions } from './details.js';
 import { renderPanel, sideBySide, type PanelTone } from './panels.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
@@ -515,7 +515,7 @@ export function briefText(snapshot: Pick<ServiceSnapshot, 'report'>, terminal: T
     const { style } = terminal;
     const report = snapshot.report;
     const brief = report?.brief;
-    const state = report?.generating ? 'updating…' : report?.requestedAt ? 'refresh requested' : '';
+    const state = report?.generating ? 'updating…' : [report?.requestedAt ? 'refresh requested' : '', ...(report ? briefRecoveryParts(report, false) : [])].filter(Boolean).join(' · ');
     const text = brief
         ? `${style.muted(formatShortTime(Date.parse(brief.at)))} ${brief.text.replace(/\s+/g, ' ')}${state ? style.muted(` · ${state}`) : ''}`
         : style.muted(report ? (report.state === 'unreadable' ? `The project brief cannot be read (${report.problem ?? 'report.book'}).` : `No project brief yet${state ? ` (${state})` : ''} · J R asks Chatter for one.`) : 'This engine does not report a project brief.');

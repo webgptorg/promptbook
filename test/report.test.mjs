@@ -100,3 +100,52 @@ test('project brief: Chatter appends briefs independently of viewers; status rea
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
     assert.match((await ptbk(['status', '--raw'], { cwd: project, env })).stdout, /^Brief: Fixture brief number 2: /m, 'status reads the saved brief with the service stopped');
 });
+
+test('project brief: a failed brief gets cause-aware automatic rechecks instead of a Retry question; a failed commit resumes only the commit, also after a restart', async (t) => {
+    const { project, env: baseEnv, log } = await initializedProject(t, { check: CHECK });
+    // Two provider outages (the first brief and its first recheck); the regular cadence is far away.
+    const env = { ...baseEnv, PTBK_REPORT_INTERVAL_MS: '600000', PTBK_REPORT_RECHECK_MS: '3000', FAKE_CODEX_FAIL_BRIEFS: '2' };
+    // A hook rejects the first commit of the brief once (like a signing or policy problem).
+    const marker = join(project, '..', 'reject-brief-once');
+    await writeFile(marker, '');
+    await writeFile(join(project, '.git', 'hooks', 'pre-commit'), `#!/bin/sh\nif git diff --cached --name-only | grep -qx report.book && [ -f "${marker}" ]; then rm -f "${marker}"; echo 'Fixture hook rejects the brief once.' >&2; exit 1; fi\n`, { mode: 0o755 });
+    const briefTurns = async () => (await readFile(log, 'utf8')).split('\n').filter((line) => line.includes('"brief":true')).length;
+
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const first = await waitFor(async () => (await status(project, env)).report?.recheck, { message: 'the recheck of the failed first brief', timeoutMs: 90_000 });
+    assert.match(first.cause, /Fixture outage/, 'the actual cause is shown');
+    // The recheck runs by itself; the same failure under unchanged tools backs off instead of repeating at once.
+    const second = await waitFor(async () => {
+        const recheck = (await status(project, env)).report?.recheck;
+        return recheck?.rounds === 2 ? recheck : undefined;
+    }, { message: 'the second automatic recheck', timeoutMs: 30_000 });
+    assert.ok(Date.parse(second.nextAt) - Date.parse(first.nextAt) >= 9_000, `the second round waits longer (${first.nextAt} → ${second.nextAt})`);
+    const failing = await status(project, env);
+    assert.equal(failing.report.state, 'missing', 'no brief is invented');
+    assert.equal(failing.chats.waiting.length, 0, 'nobody is asked to retry');
+    assert.equal(await briefTurns(), 2);
+    assert.match((await ptbk(['status', '--raw'], { cwd: project, env })).stdout, /^Brief: no brief yet \(the last update failed \(.*Fixture outage.*\); automatic retry /m);
+
+    // An explicit Refresh is newer than the waiting recheck and brings it forward.
+    const { lookupService } = await import('../dist/service/control.js');
+    const requested = await (await lookupService(projectAt(project))).client.request('report-refresh');
+    assert.match(requested.outcome, /tries again now/);
+    const written = await waitFor(async () => {
+        const report = (await status(project, env)).report;
+        return report?.brief && report.isCommitPending ? report : undefined;
+    }, { message: 'the brief saved with its commit pending', timeoutMs: 30_000 });
+    assert.match(written.brief.text, /^Fixture brief number 1: /);
+    assert.equal(written.recheck, undefined, 'a written brief ends the recheck');
+    assert.equal(await briefTurns(), 3, 'one generation per attempt, no paid loop');
+    assert.notEqual((await git(project, ['status', '--porcelain', '--', 'report.book'])).trim(), '', 'the rejected brief stays saved, uncommitted');
+    assert.match((await ptbk(['status', '--raw'], { cwd: project, env })).stdout, /^Brief: Fixture brief number 1: .*saved, but its commit is pending/m);
+
+    // A restart resumes only the commit (no new generation).
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => (await git(project, ['status', '--porcelain', '--', 'report.book'])).trim() === '', { message: 'the brief committed after the restart', timeoutMs: 30_000 });
+    assert.ok((await messages(project)).some((message) => /^ptbk: Chat - Report\n/.test(message) && /^Chat-Name: Report$/m.test(message)), 'Chatter’s scoped report commit');
+    await waitFor(async () => (await status(project, env)).report?.isCommitPending === undefined, { message: 'no pending commit anymore' });
+    assert.equal(await briefTurns(), 3, 'the brief is not generated again');
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+});

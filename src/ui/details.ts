@@ -1,5 +1,6 @@
 import { formatShortTime } from '../common/time.js';
 import { formatMiB } from '../engine/health.js';
+import type { ReportView } from '../engine/report.js';
 import type { BrowserDetailView, ExecutionContextView, ExecutionDetailView, HealthView, PauseReasonView, ServiceSnapshot, SyncView, ToolView, ToolsView } from '../engine/snapshot.js';
 import type { Style } from './ansi.js';
 
@@ -358,4 +359,18 @@ export function healthDetailLines(health: HealthView, style?: Style): string[] {
     }
     if (health.lastAction) lines.push('', `Last action ${time(health.lastAction.at)} ${health.lastAction.action}: ${health.lastAction.outcome}`);
     return lines;
+}
+
+/**
+ * The automatic recovery of the project brief in short phrases: a failed update with its cause (when `detailed`) and
+ * the next automatic attempt, and a saved brief whose commit is still pending. Nobody needs to retry either.
+ *
+ * @private project brief view
+ */
+export function briefRecoveryParts(report: Pick<ReportView, 'recheck' | 'isCommitPending'>, detailed: boolean): string[] {
+    const recheck = report.recheck;
+    return [
+        recheck ? `${detailed ? `the last update failed (${recheck.cause}); ` : 'update failed, '}automatic retry ${formatShortTime(Date.parse(recheck.nextAt))}` : '',
+        report.isCommitPending ? (detailed ? 'saved, but its commit is pending (retried automatically)' : 'commit pending') : '',
+    ].filter(Boolean);
 }

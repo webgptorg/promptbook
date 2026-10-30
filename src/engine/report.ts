@@ -56,6 +56,10 @@ export type ReportView = {
     readonly requestedAt?: string;
     /** Why the requested or automatic generation waits, when it does. */
     readonly waiting?: string;
+    /** The last generation failed: its cause and the next automatic attempt (nobody needs to retry it). */
+    readonly recheck?: { readonly cause: string; readonly nextAt: string; readonly rounds: number };
+    /** The latest brief is saved, but its commit failed; only the commit is retried. */
+    readonly isCommitPending?: boolean;
 };
 
 /**
