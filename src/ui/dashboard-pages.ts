@@ -608,7 +608,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
         }
         case 'results': {
             const body = [`${style.muted('This session:')} ${style.success(`${marks.ok} ${snapshot.results.completed} completed`)}  ${snapshot.results.failed ? style.error(`${marks.fail} ${snapshot.results.failed} failed`) : style.muted(`${marks.fail} 0 failed`)}`, '', style.bold('Recent results')];
-            for (const result of snapshot.results.recent) body.push(`${result.outcome.startsWith('completed') ? style.success(marks.ok) : result.outcome === 'failed' ? style.error(marks.fail) : style.warning(marks.wait)} ${result.title}${style.muted(`${result.agent ? ` · ${result.agent}` : ''}${result.commit ? ` · ${result.commit.slice(0, 8)}` : ''}`)}`);
+            for (const result of snapshot.results.recent) body.push(`${result.outcome.startsWith('completed') ? style.success(marks.ok) : result.outcome === 'failed' ? style.error(marks.fail) : style.warning(marks.wait)} ${result.kind === 'system' ? `${style.accent('[system]')} ` : ''}${result.title}${style.muted(`${result.agent ? ` · ${result.agent}` : ''}${result.kind === 'system' ? ` · ${result.summary}` : ''}${result.commit ? ` · ${result.commit.slice(0, 8)}` : ''}`)}`);
             if (!snapshot.results.recent.length) body.push(style.muted('No results yet.'));
             body.push('', style.bold(`Activity (${snapshot.activity.length})`));
             for (const line of snapshot.activity) {

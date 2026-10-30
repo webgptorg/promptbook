@@ -951,7 +951,8 @@
                     'ul',
                     { className: 'list' },
                     snapshot.results.recent.slice(0, 6).map((result) =>
-                        h('li', {}, h('span', { className: 'title' }, result.title, h('span', { className: 'why' }, `${result.agent || ''} ${result.commit ? `· ${result.commit.slice(0, 8)}` : ''} · ${time(result.endedAt)}`)), pill(result.outcome, result.outcome.startsWith('completed') ? 'ok' : result.outcome === 'failed' ? 'bad' : 'warn')),
+                        // A system task's run (an engine update) is labelled and shows its verified result or cause.
+                        h('li', {}, h('span', { className: 'title' }, result.kind === 'system' ? [pill('system', ''), ' '] : null, result.title, h('span', { className: 'why' }, `${result.kind === 'system' ? result.summary : result.agent || ''} ${result.commit ? `· ${result.commit.slice(0, 8)}` : ''} · ${time(result.endedAt)}`)), pill(result.outcome, result.outcome.startsWith('completed') ? 'ok' : result.outcome === 'failed' ? 'bad' : 'warn')),
                     ),
                 ),
             );

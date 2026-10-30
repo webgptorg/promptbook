@@ -2149,7 +2149,8 @@ export class Agenda {
             update: this.updater.view(),
             wait: this.waitView,
             ...this.queueWithSystemTasks(),
-            results: { completed: this.completed, failed: this.failed, recent: this.recentResults },
+            // System task runs share the results feed with ordinary outcomes (newest first, same bound).
+            results: { completed: this.completed, failed: this.failed, recent: [...this.recentResults, ...this.updater.resultViews()].sort((a, b) => Date.parse(b.endedAt) - Date.parse(a.endedAt)).slice(0, 20) },
             chats: { waiting: this.waitingChats(), unread: this.chatSummaries.reduce((sum, chat) => sum + chat.unread, 0), total: this.chatSummaries.length, recent: this.chatSummaries.slice(0, 30), replying: [...this.liveReplies.keys()], rechecks: this.chatRecheckViews() },
             blockers: this.blockers,
             errors: this.errors.slice(-10),

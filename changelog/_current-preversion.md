@@ -1,5 +1,10 @@
 # Unreleased
 
+## System tasks: engine update runs appear among results
+
+-   The specification has ordinary and system tasks share "one task inventory, detail and event model". The inventory and detail already did. The results feed of the dashboards, `ptbk status` and the project brief did not: it showed ordinary task outcomes only, so a verified or failed engine update appeared only in the Tasks page and the activity log. Each finished update run is now also a result, labelled `system`, titled like its task (`Update Promptbook A → B`). It shows the verified result or the cause of the failure instead of an agent, newest first among the ordinary results. The session's completed and failed counts still count ordinary task outcomes only.
+-   The engine update fixtures check the shared result for both a verified and a failed run.
+
 ## Task views: filter by status, agent, kind and text
 
 -   The task views specification asks for "ordinary user-selected sorting and filtering by the available fields". Sorting already existed; now the complete task inventory can also be filtered by status (readiness), responsible agent, kind (ordinary or system) and text. Text is case-insensitive and is found in the title, source, agent, status reason or origin. All given fields must match, and `@Name`, `{Name}` and `Name` are the same agent. Like sorting, filtering only changes the view, never scheduling, and clearing it brings back every task, including distant and completed ones.

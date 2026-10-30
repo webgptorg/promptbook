@@ -215,6 +215,8 @@ test('engine self-update: a low-priority system task updates the local installat
     const finished = (await control('task-inventory')).find((item) => item.ref === 'system:engine-update');
     assert.equal(finished?.readiness, 'done');
     assert.deepEqual(finished.runs.map((item) => [item.title, item.outcome]), [[`${FROM} → ${TARGET}`, 'completed']], 'the verified run is the system task evidence');
+    const result = (await status()).results.recent.find((item) => item.ref === 'system:engine-update');
+    assert.deepEqual([result?.kind, result?.outcome, result?.title], ['system', 'completed', `Update Promptbook ${FROM} → ${TARGET}`], 'the run shares the results feed with ordinary task outcomes');
 });
 
 test('engine self-update: a failed installation keeps the running version and schedules an automatic recheck', { timeout: 180_000 }, async (t) => {
@@ -231,6 +233,7 @@ test('engine self-update: a failed installation keeps the running version and sc
     assert.equal(failed.service.state, 'running', 'a failed update neither stops nor pauses the engine');
     assert.equal(failed.update.phase, 'recovering');
     assert.ok(Date.parse(failed.update.nextAttemptAt) > Date.now() + 30 * 60_000, 'a cause-aware recheck, not a tight loop');
+    assert.equal(failed.results.recent.find((item) => item.ref === 'system:engine-update')?.outcome, 'failed', 'the failed run is a result with its cause');
     assert.equal((await npmLog()).filter((entry) => entry.args[0] === 'install').length, 2, 'bounded technical attempts');
     assert.equal(JSON.parse(await readFile(join(project, 'node_modules', 'ptbk', 'package.json'), 'utf8')).version, FROM);
     assert.equal(failed.queue.find((item) => item.ref === 'system:engine-update')?.readiness, 'waiting-until');

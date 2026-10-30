@@ -13,7 +13,7 @@ import { projectAt, type Project } from '../project/workspace.js';
 import { readKnownProjects } from '../service/known-projects.js';
 import { readRegistry, verifyEngine } from '../service/discovery.js';
 import type { TaskInventoryItem, TaskRunView } from '../tasks/views.js';
-import type { QueueItemView } from './snapshot.js';
+import type { QueueItemView, ResultView } from './snapshot.js';
 
 /**
  * Inventory reference of the engine's self-update system task (it has no project Book).
@@ -410,6 +410,16 @@ export class EngineUpdater {
             return { ...common, title: `Update Promptbook ${last.from} → ${last.to}`, readiness: last.outcome === 'verified' ? 'done' : 'failed', reason: last.detail, lastDone: last.at, doneCount: runs.filter((run) => run.outcome === 'completed').length };
         }
         return undefined;
+    }
+
+    /**
+     * Finished runs as results, newest first: the system task shares the results feed with ordinary task outcomes
+     * (one event model), attributed to its definition instead of an agent or a trace.
+     */
+    public resultViews(): ResultView[] {
+        return (this.record.runs ?? (this.record.lastOutcome ? [this.record.lastOutcome] : []))
+            .map((run) => ({ ref: ENGINE_UPDATE_REF, title: `Update Promptbook ${run.from} → ${run.to}`, outcome: run.outcome === 'verified' ? 'completed' : 'failed', summary: run.detail, endedAt: run.at, attempts: 1, kind: 'system' }))
+            .reverse();
     }
 
     /** The system task in the queue summary (only while pending or running). */
