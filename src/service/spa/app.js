@@ -971,8 +971,7 @@
                 local.url ? h('div', {}, h('a', { href: local.url }, local.url)) : null,
                 local.error ? h('div', { className: 'muted' }, local.error) : null)),
             h('p', { className: 'muted' }, 'Available on this computer only.'));
-        const update = snapshot.update;
-        return update ? h('div', {}, card, renderEngineUpdate(update)) : card;
+        return card;
     }
 
     /** Calls the engine's shared update operation (`policy` commits its own ptbk.json change; `check` only looks up). */
@@ -986,7 +985,7 @@
         }
     }
 
-    /** The engine-owned update policy switch and its system-task progress (progress itself is a task in Tasks). */
+    /** The engine-owned update policy switch on the System page and its progress (progress itself is a task in Tasks). */
     function renderEngineUpdate(update) {
         const major = update.current.replace(/^v/, '').split('.')[0];
         const tone = update.phase === 'failed' || update.phase === 'recovering' ? 'warn' : '';
@@ -1614,7 +1613,7 @@
             ),
             renderSettings(snapshot),
         );
-        return pageFrame('system', 'Engine identity, lifecycle, every active pause reason and manual controls', controls, pause, engine);
+        return pageFrame('system', 'Engine identity, lifecycle, every active pause reason, manual controls and automatic updates', controls, pause, engine, snapshot.update ? renderEngineUpdate(snapshot.update) : null);
     }
 
     /** The Health page: UI over the per-engine Health sub-engine (no generic manual Pause/Resume here). */
@@ -2086,7 +2085,7 @@
             case 'files':
                 return renderFilesPage();
             case 'connection':
-                return pageFrame('connection', snapshot.update ? 'Local dashboard access on this computer and the engine’s automatic updates' : 'Local dashboard access on this computer', renderConnection(snapshot));
+                return pageFrame('connection', 'Local dashboard access on this computer', renderConnection(snapshot));
             case 'sync':
                 return pageFrame('sync', 'Git autosync through the engine’s one coordinator', renderSync(snapshot));
             default:

@@ -937,9 +937,30 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         const text = event.text;
         const key = text.toLowerCase();
         switch (page.kind) {
-            case 'system':
-                lifecycleKey(key);
+            case 'system': {
+                if (lifecycleKey(key)) return;
+                // The engine's shared update policy operation (its own scoped commit), as the browser and the App use it.
+                const update = snapshot.update;
+                if (!update) return;
+                if (key === 'a') {
+                    const enabled = !update.policy.isAutoUpdateEnabled;
+                    notify(`Turning automatic engine updates ${enabled ? 'on' : 'off'}…`);
+                    void source
+                        .action('update-policy', { isAutoUpdateEnabled: enabled })
+                        .then(() => notify(`Automatic engine updates are ${enabled ? 'on' : 'off'} (saved in ptbk.json and committed).`))
+                        .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
+                } else if (key === 'c' && update.isSupported) {
+                    notify('Looking up engine releases…');
+                    void source
+                        .action('update-check')
+                        .then((value) => {
+                            const view = value as unknown as NonNullable<ServiceSnapshot['update']>;
+                            notify(view.target ? `ptbk ${view.target} is available; it installs when the engine has free hands.` : view.reason);
+                        })
+                        .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
+                }
                 return;
+            }
             case 'work':
                 if (key === 's') void runAction('skip-wait');
                 else if (key === 't') openPage({ kind: 'tools', scroll: 0, focus: 0 });
@@ -966,29 +987,6 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     void runAction('sync-now');
                 }
                 return;
-            case 'connection': {
-                // The engine's shared update policy operation (its own scoped commit), as the browser and the App use it.
-                const update = snapshot.update;
-                if (!update) return;
-                if (key === 'a') {
-                    const enabled = !update.policy.isAutoUpdateEnabled;
-                    notify(`Turning automatic engine updates ${enabled ? 'on' : 'off'}…`);
-                    void source
-                        .action('update-policy', { isAutoUpdateEnabled: enabled })
-                        .then(() => notify(`Automatic engine updates are ${enabled ? 'on' : 'off'} (saved in ptbk.json and committed).`))
-                        .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
-                } else if (key === 'c' && update.isSupported) {
-                    notify('Looking up engine releases…');
-                    void source
-                        .action('update-check')
-                        .then((value) => {
-                            const view = value as unknown as NonNullable<ServiceSnapshot['update']>;
-                            notify(view.target ? `ptbk ${view.target} is available; it installs when the engine has free hands.` : view.reason);
-                        })
-                        .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
-                }
-                return;
-            }
             case 'commit': {
                 // Verified provenance links only (a name that no longer resolves stays historical).
                 const task = page.detail?.links.tasks.find((item) => item.path);

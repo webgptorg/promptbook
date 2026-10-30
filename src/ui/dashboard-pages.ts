@@ -325,11 +325,14 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 `${style.muted('Commits   ')} ${service.commitMode === 'commit' ? 'automatic' : style.warning('NO-COMMIT mode (results stay uncommitted)')}`,
                 `${style.muted('Persistent')} ${service.persistent === null ? 'n/a' : service.persistent ? 'yes (restored at OS startup)' : style.warning('no')}${service.persistenceNote ? style.muted(` · ${service.persistenceNote}`) : ''}`,
                 `${style.muted('Config    ')} promptbookVersion ${snapshot.configuration?.promptbookVersion ?? style.muted('unknown')}${snapshot.configuration?.pending ? style.warning(` · pending: ${snapshot.configuration.pending}`) : ''}`,
+                ...(snapshot.update ? ['', ...engineUpdateLines(snapshot.update, style, time)] : []),
                 '',
                 style.bold(`Effective settings (${snapshot.settings.length})`),
                 ...snapshot.settings.map((setting) => `  ${setting.key.padEnd(SETTING_KEY_WIDTH)} ${setting.value}${style.muted(` · ${setting.source}${setting.application !== 'live' ? ` · applies ${setting.application}` : ''}`)}`),
             ];
-            return { title: 'System', context: 'Engine identity, lifecycle, every active pause reason and manual controls', body, legend: `${actions.map((action) => `${action.key} ${action.label}`).join(' · ')}${actions.length ? ' · ' : ''}↑↓ scroll · ${back}` };
+            const update = snapshot.update;
+            const updateKeys = update ? `A turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}${update.isSupported ? ' · C check for a release now' : ''} · ` : '';
+            return { title: 'System', context: 'Engine identity, lifecycle, every active pause reason, manual controls and automatic updates', body, legend: `${actions.map((action) => `${action.key} ${action.label}`).join(' · ')}${actions.length ? ' · ' : ''}${updateKeys}↑↓ scroll · ${back}` };
         }
         case 'health': {
             const health = snapshot.health;
@@ -655,14 +658,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             const body: string[] = [];
             if (local.url) body.push(`${local.state === 'ready' ? style.success('Local') : style.muted('Local')} ${style.muted('(this computer only)')}`, ...breakLink(local.url));
             else body.push(`${style.muted('Local')} ${local.state}${local.error ? `: ${local.error}` : ''}`);
-            const update = snapshot.update;
-            if (update) body.push('', ...engineUpdateLines(update, style, time));
-            return {
-                title: 'Connection',
-                context: update ? 'Local dashboard access on this computer and the engine’s automatic updates' : 'Local dashboard access on this computer',
-                body,
-                legend: `${update ? `A turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}${update.isSupported ? ' · C check for a release now' : ''} · ` : ''}↑↓ scroll · ${back}`,
-            };
+            return { title: 'Connection', context: 'Local dashboard access on this computer', body, legend: `↑↓ scroll · ${back}` };
         }
         case 'sync': {
             if (!snapshot.sync) return { title: 'Synchronization', context: 'Automatic synchronization is off (isAutoSync false).', body: [style.muted('Nothing to show while autosync is disabled.')], legend: back };
@@ -672,7 +668,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
 }
 
 /**
- * The engine-owned update policy and its system-task progress (the Connection page owns the on/off switch; progress
+ * The engine-owned update policy and its system-task progress (the System page owns the on/off switch; progress
  * itself is an ordinary system task in the task views, never a lifecycle state).
  *
  * @private terminal dashboard pages

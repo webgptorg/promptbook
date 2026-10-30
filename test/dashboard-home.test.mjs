@@ -141,6 +141,14 @@ test('pages replace the home grid, keep context and legend fixed and scroll thei
     assert.match(system, /Manual pause \(System\)/);
     assert.match(system, /Health soft — Low free disk/);
     assert.match(system, /ptbk 0\.119\.0-33/, 'technical metadata lives on System');
+    // The engine update policy switch lives on System (progress is a system task in Tasks), not on Connection.
+    const update = { policy: { isAutoUpdateEnabled: true, source: 'default' }, current: '0.119.0-33', installation: { scope: 'local', path: '/p/node_modules/ptbk' }, phase: 'idle', reason: 'ptbk 0.119.0-33 is the newest allowed release.', latest: '0.119.0-33', isSupported: true };
+    const withUpdate = { ...context, snapshot: snapshot({ update }) };
+    const systemPage = pageBody(pageForTile('system'), withUpdate);
+    assert.match(systemPage.body.map(stripAnsi).join('\n'), /Engine updates[\s\S]*Automatic +on · updates\.isAutoUpdateEnabled \(default\)/);
+    assert.match(systemPage.legend, /A turn automatic updates off · C check for a release now/);
+    const connectionPage = pageBody({ kind: 'connection', scroll: 0 }, withUpdate);
+    assert.doesNotMatch(`${connectionPage.body.map(stripAnsi).join('\n')}\n${connectionPage.legend}`, /Engine updates|automatic updates/);
     const healthPage = pageBody(pageForTile('health'), context);
     assert.doesNotMatch(healthPage.legend, /\bP\b|Pause|Resume/, 'Health offers no generic manual Pause/Resume');
     assert.match(healthPage.legend, /K clean cache/);
