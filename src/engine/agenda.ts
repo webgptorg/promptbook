@@ -2738,7 +2738,7 @@ export class Agenda {
             ...(recentFailures.length ? ['', 'Recent failed tasks (context):', ...recentFailures.map((result) => `- {${result.title}}: ${result.summary.slice(0, 200)}`)] : []),
         ].join('\n');
         const path = await newTaskPath(this.tasksDirectory, 'project health check', Date.now(), this.timeZone);
-        await this.addTaskFile(path, renderTaskBook({ title, description, commitments: ['TASK AGENT @Fixer', `TASK ORIGIN ${HEALTH_ORIGIN}`] }), `Add task - ${title}`, this.commitMode, [title]);
+        await this.addTaskFile(path, renderTaskBook({ title, description, commitments: ['TASK AGENT @Fixer', 'TASK PURPOSE SYSTEM', `TASK ORIGIN ${HEALTH_ORIGIN}`] }), `Add task - ${title}`, this.commitMode, [title]);
         await this.state.writeHealth({ fingerprint, scheduledAt: new Date().toISOString(), task: title });
         this.log(`Fixer will check ${findings.length} project health finding(s) in {${title}}.`);
         return true;
@@ -4245,7 +4245,7 @@ export class Agenda {
                     `Integrate the remote changes with a visible merge: run \`git merge --no-ff --no-commit ${conflict.upstream}\`, resolve each conflict so that both intents are kept (inspect \`git log ${conflict.branch}...${conflict.upstream}\`), consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m "ptbk: Merge ${conflict.upstream} into ${conflict.branch} (conflicts resolved by Fixer)"\`. This merge commit is the one exception to "do not commit yourself".`,
                     'Never rebase, reset, amend, force-push or discard either side. If the conflict cannot be resolved safely, abort the merge (`git merge --abort`) and explain why.',
                 ].join('\n\n'),
-                commitments: ['TASK AGENT @Fixer', `TASK ORIGIN ${origin}`],
+                commitments: ['TASK AGENT @Fixer', 'TASK PURPOSE SYSTEM', `TASK ORIGIN ${origin}`],
             }),
             { flag: 'wx' },
         );

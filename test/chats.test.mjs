@@ -111,6 +111,7 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
     const healthFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('project-health-check') && !file.includes('learn') && !file.includes('assign'));
     const health = await readFile(join(project, 'tasks', healthFile), 'utf8');
     assert.match(health, /^TASK AGENT @Fixer$/m);
+    assert.match(health, /^TASK PURPOSE SYSTEM$/m, 'an engine-authored repair is supporting system work');
     assert.match(health, /agents\/twins\/two\.book/, 'the finding names the shadowed source');
     assert.match(healthCommit, generated('Project health check', 'ptbk: Add task - '));
     await waitFor(async () => (await subjects(project)).includes(healthCommit.replace('ptbk: Add task - ', 'ptbk: ')), { timeoutMs: 90_000, message: 'Fixer to execute its health check' });

@@ -110,7 +110,8 @@ export async function createAssignmentTask(options: {
     const content = renderTaskBook({
         title: name,
         description: `Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of ${ref}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.`,
-        commitments: [`TASK AGENT ${formatAgentReference(options.router)}`, `TASK PRIORITY ${options.priority}`, `TASK PARENT ${ref}`, `TASK ORIGIN ${ASSIGNMENT_ORIGIN} ${ref}`],
+        // Choosing an executor enables the target's work: supporting system work in any project (presentation only).
+        commitments: [`TASK AGENT ${formatAgentReference(options.router)}`, `TASK PRIORITY ${options.priority}`, 'TASK PURPOSE SYSTEM', `TASK PARENT ${ref}`, `TASK ORIGIN ${ASSIGNMENT_ORIGIN} ${ref}`],
     });
     await writeFile(path, content, { flag: 'wx' });
     return { path, name, targetRef: ref };
@@ -365,7 +366,8 @@ export async function createRepairTask(options: {
 }): Promise<CreatedTask> {
     const path = await newTaskPath(options.tasksDirectory, options.title, Date.now(), options.timeZone);
     const name = generatedName(options.title, { taken: options.taken, timeZone: options.timeZone });
-    const commitments = ['TASK AGENT @Fixer', ...(options.model ? renderModelLines({ rows: [options.model], explicit: true }) : []), `TASK ORIGIN ${options.origin}`, ...options.links.map((link) => `LINK ${link}`)];
+    // A repair of the project's own setup is supporting system work, whatever the project is about.
+    const commitments = ['TASK AGENT @Fixer', ...(options.model ? renderModelLines({ rows: [options.model], explicit: true }) : []), 'TASK PURPOSE SYSTEM', `TASK ORIGIN ${options.origin}`, ...options.links.map((link) => `LINK ${link}`)];
     await writeFile(path, renderTaskBook({ title: name, description: options.description, commitments }), { flag: 'wx' });
     return { path, name };
 }

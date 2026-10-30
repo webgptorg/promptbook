@@ -1,5 +1,10 @@
 # Unreleased
 
+## Task purpose: engine-authored routing and repair tasks are system work
+
+-   The tasks the engine writes for Router to choose an executor (`Assign routing: …`) and for Fixer to repair the project's own setup now carry `TASK PURPOSE SYSTEM`. Fixer's tasks cover the project health check, impossible execution requirements, Router's execution setup, core template reconciliation and synchronization conflicts. In any project this is supporting work, so the default task views show it muted in the lower supporting group instead of between content tasks. Before, these tasks were unclassified.
+-   This changes presentation only: scheduling, priority and permissions stay as they were. A question on such a task stays conspicuous. Tasks whose purpose depends on the project keep an undefined purpose until Tasker, Router or the working agent classifies them: Teacher learning, goal discovery, failing-check fixes and the initial Expert task.
+
 ## Health: a memory shortage on Linux adds swap by itself
 
 -   When available memory falls below `limit.memory` or runs out on Linux, and no swap is active, the Health sub-engine now adds the planned swap file by itself. It does this only with privileges the engine already has (it runs as root, or `sudo -n` works). It uses the same operation as the Health page's swap action, before anyone is asked. Before, swap was only ever added after the operator pressed that action.

@@ -46,6 +46,8 @@ test('daemon lifecycle: one service, repeated start reports it, add is executed 
     const target = findGenerated(history, 'Write the welcome page', 'ptbk: ');
     const assignment = history.find((subject) => subject.startsWith(`ptbk: Assign routing: ${target.slice('ptbk: '.length)}`));
     assert.ok(assignment && history.indexOf(assignment) > history.indexOf(target), 'assignment precedes its target');
+    const assignmentFile = (await readdir(join(project, 'tasks'))).find((file) => file.includes('-assign-') && file.includes('welcome-page'));
+    assert.match(await readFile(join(project, 'tasks', assignmentFile), 'utf8'), /^TASK PURPOSE SYSTEM$/m, 'choosing an executor is supporting system work');
     assert.ok(history.filter((subject) => subject !== 'Fixture check').every((subject) => subject.startsWith('ptbk: ') && !subject.startsWith('ptbk: PTBK:')));
     const stopped = await ptbk(['stop', '--after-task', '--raw'], { cwd: project, env });
     assert.equal(stopped.code, 0, stopped.output);
