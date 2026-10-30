@@ -445,10 +445,11 @@
             thread.scrollTop = thread.scrollHeight;
         });
         const busy = state.busy.has(summary.name);
-        if (summary.humanFacing) {
+        if (summary.humanFacing || summary.joinable) {
             if (summary.awaiting && summary.awaiting.choices && summary.awaiting.choices.length && summary.status === 'waiting-for-user') {
                 card.append(h('div', { className: 'choices', role: 'group', 'aria-label': 'Offered answers' }, summary.awaiting.choices.map((choice) => h('button', { className: 'primary', disabled: busy, onclick: () => sendMessage(summary.name, choice, messages.length) }, choice))));
             }
+            if (!summary.humanFacing) card.append(h('p', { className: 'muted' }, 'An agent thread: your first message adds you as a participant.'));
             card.append(composer(`chat:${summary.name}`, `Message to ${summary.agent || 'the agent'}`, (text) => sendMessage(summary.name, text, messages.length), busy));
         } else card.append(h('p', { className: 'muted' }, 'A task-internal consultation between agents (read-only).'));
         return card;

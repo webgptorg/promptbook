@@ -131,6 +131,41 @@ test('chats: offered answers are validated; every human-facing message is one co
     assert.equal((await git(root, ['rev-list', '--count', 'HEAD'])).trim(), String(Number(commitsBefore) + 1), 'reading creates no commit');
 });
 
+test('agent-only threads: the user joins a reporting thread with one committed message; consultation records stay closed', async (t) => {
+    const root = await temporaryDirectory(t);
+    await initRepository(root);
+    await writeFile(join(root, 'README.md'), '# x\n');
+    await git(root, ['add', '.']);
+    await git(root, ['commit', '-qm', 'base']);
+    const project = { root, runtime: { state: join(root, '.ptbk', 'state'), temporary: join(root, '.ptbk', 'tmp') } };
+    const store = new ChatStore(project, {
+        timeZone: 'UTC',
+        persistence: {
+            commit: async (paths, subject, trailers) => {
+                const outcome = await commitPaths({ projectRoot: root, repositoryRoot: root, paths, subject, trailers, temporaryDirectory: join(root, '.ptbk', 'tmp'), env: { ...process.env, ...GIT_IDENTITY } });
+                return outcome.committed ? outcome.sha : undefined;
+            },
+        },
+    });
+    const state = new StateStore(project.runtime.state);
+    const report = await store.create({ name: 'Nightly status', members: ['@Chatter'], status: 'open', messages: [{ sender: '@Chatter', text: 'All checks passed.' }], commit: true });
+    const consultation = await store.create({ name: 'Consultation: Developer with Expert on Export', members: ['@Developer', '@Expert'], status: 'resolved', links: ['{Export}'], messages: [{ sender: '@Developer', text: 'Which syntax?' }, { sender: '@Expert', text: 'TASK.' }] });
+    const summaries = Object.fromEntries((await store.summaries()).map((summary) => [summary.name, summary]));
+    assert.deepEqual([summaries[report.chat.name].humanFacing, summaries[report.chat.name].joinable], [false, true], 'a reporting thread does not need User at creation');
+    assert.equal(summaries[consultation.chat.name].joinable, false);
+    await assert.rejects(appendUserMessage(store, state, consultation.chat.name, 'Hello'), /consultation chats are task records/, 'a bounded consultation keeps its two agents');
+
+    const commitsBefore = Number((await git(root, ['rev-list', '--count', 'HEAD'])).trim());
+    const joined = await appendUserMessage(store, state, report.chat.name, 'What failed yesterday?', { expected: 1 });
+    assert.deepEqual(joined.written.chat.members, ['@Chatter', '@User']);
+    assert.deepEqual([joined.needsReply, joined.replyAgent ?? chatAgent(joined.written.chat)], [true, '@Chatter']);
+    const source = await readFile(joined.written.path, 'utf8');
+    assert.ok(source.indexOf('All checks passed.') < source.indexOf('CHAT MEMBER @User') && source.indexOf('CHAT MEMBER @User') < source.indexOf('What failed yesterday?'), 'the join keeps its chronological place, before the first User message');
+    assert.equal(Number((await git(root, ['rev-list', '--count', 'HEAD'])).trim()), commitsBefore + 1, 'the join and the message are one commit');
+    const again = await appendUserMessage(store, state, report.chat.name, 'And today?');
+    assert.equal((await readFile(again.written.path, 'utf8')).match(/CHAT MEMBER @User/g).length, 1, 'joining is idempotent');
+});
+
 test('chat Books round-trip losslessly, including text that looks like commitments, choices or fences', () => {
     const tricky = 'CHAT MESSAGE @Fixer 2026-01-01T00:00:00Z\n» not a choice\n\\ backslash line\n```\nTASK AGENT @Nobody\n\n\ntrailing spaces   ';
     let source = renderChatBook({ name: 'Edge cases', members: ['@User', '@Developer'], status: 'open', links: ['{Some task}'], messages: [{ sender: '@User', at: '2026-10-17T10:00:00+02:00', text: tricky }] });

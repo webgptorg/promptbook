@@ -1,5 +1,11 @@
 # Unreleased
 
+## Chats: the user can join an agent-only thread later
+
+-   The chat specification's general thread model does not require User at creation. Previously every chat without User was refused as a consultation record. Now only a bounded TEAM consultation record (exactly two agents, scoped to a task or conversation by a link) keeps its two actual agents and refuses user messages. Any other agent-only or one-agent reporting thread accepts the user's message: `CHAT MEMBER @User` is appended at that point of the chronology, before the message, without rewriting earlier members or authorship. Membership and message are saved in one write and one commit, and the main agent then replies as usual.
+-   Chat summaries carry `joinable`. The browser shows the composer for such a thread with a note that the first message adds the user as a participant.
+-   A new test covers joining a reporting thread (one commit, chronological join, idempotent) and the closed consultation record.
+
 ## README: automatic updates and anchors as they work now
 
 -   The README no longer calls engine-owned updates and anchors unimplemented target behavior. It says a background engine updates itself when it has no other work, within the project's `updates` policy (stable minor/patch, a running prerelease to its stable release, never past a pin or range), and that the switch is on the System page. Release signing and rollout delays are still being agreed, so host access and backups still matter. The Book example gains an `OPEN` line with limits, explained as an anchor that agents cannot change themselves and that does not make every AI output correct.

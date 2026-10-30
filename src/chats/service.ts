@@ -5,7 +5,7 @@ import { formatAgentReference, normalizeAgentName, toReference } from '../book/r
 import type { AgentCatalog } from '../project/agents.js';
 import { CHATTER_NAME } from '../project/defaults.js';
 import type { ActiveRecord, StateStore } from '../engine/state.js';
-import { isHumanFacing } from './chat-book.js';
+import { isConsultationRecord, isHumanFacing } from './chat-book.js';
 import { routeUserMessage, type ChatTaskCard } from './chat-tasks.js';
 import type { LiveReply } from './conversation.js';
 import type { ChatStore, ChatSummary, ChatWrite } from './store.js';
@@ -167,7 +167,10 @@ export async function appendUserMessage(
 ): Promise<{ readonly written: ChatWrite; readonly waitingTask?: ActiveRecord; readonly answered: boolean; readonly needsReply: boolean; readonly replyAgent?: string }> {
     const stored = await store.find(name);
     if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found', next: ['List chats with `ptbk chat --list`.'] });
-    if (!isHumanFacing(stored.chat)) throw new PtbkError('Agent↔agent consultation chats are task records; you cannot write into them.', { kind: 'usage' });
+    if (isConsultationRecord(stored.chat)) throw new PtbkError('Agent↔agent consultation chats are task records; you cannot write into them.', { kind: 'usage' });
+    // Another agent-only or reporting thread: the user joins at this point of its chronology (prior authorship and
+    // members stay as they are), in the same write as this first message.
+    const join = isHumanFacing(stored.chat) ? undefined : ['@User'];
     const active = await state.readActiveRecords();
     const parked = await state.readParked();
     // Questions of runs waiting in this chat (an answer, or a recovery decision after a failure).
@@ -188,6 +191,7 @@ export async function appendUserMessage(
         expectedMessages: options.expected,
         trailers: target ? { 'Task-Name': target.taskTitle } : undefined,
         segments: options.segments,
+        join,
     });
     // Durable correlation: the answered run takes exactly this message; for every other waiting run it is not an
     // answer (their awaited position moves past it).

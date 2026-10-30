@@ -322,6 +322,17 @@ export function isHumanFacing(chat: Pick<ChatBook, 'members'>): boolean {
 }
 
 /**
+ * Whether an agent-only chat is the record of a bounded TEAM consultation: exactly two agent participants scoped to a
+ * task or conversation by a link. Such a record keeps its two actual agents; any other agent-only or reporting thread
+ * lets the user join later.
+ *
+ * @private chats
+ */
+export function isConsultationRecord(chat: Pick<ChatBook, 'members' | 'links'>): boolean {
+    return !isHumanFacing(chat) && chatAgents(chat).length === 2 && chat.links.length > 0;
+}
+
+/**
  * Whether the user's latest message still waits for an agent reply. Progress of an interrupted or failed turn (left
  * explicitly unfinished) does not answer it; only an ordinary or final message does.
  *

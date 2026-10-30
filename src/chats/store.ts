@@ -12,7 +12,7 @@ import { generatedName } from '../tasks/identity.js';
 import { formatModelRow, type ModelRow } from '../book/model.js';
 import { MAX_ATTACHMENT_BYTES, materializeAttachments } from '../ui/attachments.js';
 import type { ComposedSegment } from '../ui/composer.js';
-import { appendChatCommitments, appendChatMessage, appendChatModel, chatAgent, chatDisplayTitle, hasMember, isHumanFacing, parseChatBook, renderChatBook, replaceChatMessage, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
+import { appendChatCommitments, appendChatMessage, appendChatModel, chatAgent, chatDisplayTitle, hasMember, isConsultationRecord, isHumanFacing, parseChatBook, renderChatBook, replaceChatMessage, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
 
 /**
  * How chat operations are versioned: saved to the Book at once, then committed in a bounded batch (`schedule`) or as
@@ -52,6 +52,8 @@ export type ChatSummary = {
     readonly agent?: string;
     readonly status: ChatStatus;
     readonly humanFacing: boolean;
+    /** An agent-only thread the user may join with a message (not a bounded consultation record). */
+    readonly joinable: boolean;
     readonly links: readonly string[];
     readonly messages: number;
     readonly last?: { readonly sender: string; readonly at: string; readonly preview: string };
@@ -218,6 +220,8 @@ export class ChatStore {
             readonly segments?: readonly ComposedSegment[];
             /** Evidence files of the turn (e.g. its raw usage) versioned with the message when trace policy allows it. */
             readonly evidence?: readonly string[];
+            /** Participants joining right before this message (`CHAT MEMBER`, idempotent), saved in the same write. */
+            readonly join?: readonly string[];
         } = {},
     ): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
@@ -232,7 +236,9 @@ export class ChatStore {
             }
             if (!message.text.trim() && !options.segments?.some((segment) => segment.type === 'attachment')) throw new PtbkError('A chat message cannot be empty.', { kind: 'usage' });
             const assets = await this.materialize(stored.path, stored.chat.messages.length + 1, options.segments, message.text);
-            const source = await readFile(stored.path, 'utf8');
+            const original = await readFile(stored.path, 'utf8');
+            const joining = (options.join ?? []).filter((member) => !hasMember(stored.chat, member));
+            const source = joining.length ? appendChatCommitments(original, joining.map((member) => `CHAT MEMBER ${member}`)) : original;
             const updated = appendChatMessage(source, { ...message, text: assets.text, at: this.now() }, options.status);
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
@@ -406,6 +412,7 @@ export function summarize(chat: ChatBook, relativePath: string, seen: number): C
         agent: chatAgent(chat),
         status: chat.status,
         humanFacing: isHumanFacing(chat),
+        joinable: !isHumanFacing(chat) && !isConsultationRecord(chat),
         links: chat.links,
         messages: chat.messages.length,
         last: last ? { sender: last.sender, at: last.at, preview: last.text.replace(/\s+/g, ' ').slice(0, 160) } : undefined,
