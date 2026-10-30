@@ -1123,11 +1123,26 @@
         render(state.snapshot);
         try {
             const record = await api(`/api/actions/record?path=${encodeURIComponent(path)}`);
-            if (state.actionRecord && state.actionRecord.path === path) state.actionRecord = { path, content: record.content };
+            if (state.actionRecord && state.actionRecord.path === path) state.actionRecord = { path, content: record.content, links: record.links || {} };
         } catch (error) {
             if (state.actionRecord && state.actionRecord.path === path) state.actionRecord = { path, error: error.message };
         }
         render(state.snapshot);
+    }
+
+    /**
+     * Verified links of an opened action record: its task Book and evidence in Files (only when they exist in the
+     * project) and its receipt (only a plain http(s) URL). Following them never retries the action.
+     */
+    function actionLinks(links) {
+        // Files is loading the target before the page switches, so it never falls back to the project root.
+        const show = (path, kind) => (openFiles(path, kind), openPage('files'));
+        const items = [
+            links.task ? h('button', { onclick: () => show(links.task, 'file') }, 'Task Book') : null,
+            links.evidence ? h('button', { onclick: () => show(links.evidence, 'folder') }, 'Evidence') : null,
+            links.receipt ? h('a', { href: links.receipt, target: '_blank', rel: 'noopener noreferrer' }, 'Receipt') : null,
+        ].filter(Boolean);
+        return items.length ? h('div', { className: 'row', role: 'group', 'aria-label': 'Record links' }, ...items) : null;
     }
 
     /** The Action log page: saved records of external task actions, separate from runtime activity, traces and Git history. */
@@ -1145,6 +1160,7 @@
                 item.pending ? h('span', { className: 'warn' }, ' · not committed yet') : null,
                 h('div', { className: 'muted' }, [item.at ? time(item.at) : '', item.target ? `→ ${item.target}` : '', item.agent || '', item.taskName || item.task].filter(Boolean).join(' · ')),
                 open && open.path === item.path ? h('pre', { className: 'log', 'aria-label': `Record ${item.path}` }, open.loading ? 'Loading…' : open.error ? `The record could not be read: ${open.error}` : open.content) : null,
+                open && open.path === item.path && open.links ? actionLinks(open.links) : null,
             ),
         );
         const summary = `${actions.total} recorded · saved Markdown in actions/, independent of traces${actions.pending ? ` · ${actions.pending} not committed` : ''}${actions.unresolved ? ` · ${actions.unresolved} without a reported outcome` : ''}`;

@@ -244,6 +244,14 @@ test('Action log tile and page: saved external actions with explicit partial/unc
     assert.match(body, /Send email · Gmail → reader@example\.test confirmed/);
     const empty = pageBody(pageForTile('actions'), { snapshot: snapshot({ actions: { total: 0, recent: [], pending: 0, unresolved: 0 } }), terminal: view, frame: 0, owning: false }).body.map(stripAnsi).join('\n');
     assert.match(empty, /earlier tasks may have external work without a record/, 'empty prospective history is not a claim that nothing happened');
+    // An opened record offers only its verified links: the task Book and evidence, and the receipt in its context.
+    const opened = (links) => pageBody({ kind: 'action', scroll: 0, path: record({}).path, content: '# Send email', links }, { snapshot: snapshot({ actions }), terminal: view, frame: 0, owning: false });
+    const linked = opened({ task: 'tasks/2026-10-29-news.book', evidence: 'traces/2026-10-29-news', receipt: 'https://mail.example.test/sent/42' });
+    assert.match(linked.legend, /E open the task Book · T open the evidence/);
+    assert.match(linked.context, /receipt https:\/\/mail\.example\.test\/sent\/42/);
+    const unverified = opened({});
+    assert.doesNotMatch(unverified.legend, /task Book|evidence/, 'a task or evidence no longer in the project is not offered');
+    assert.doesNotMatch(unverified.context, /receipt/);
 });
 
 test('project brief beneath the identity: the saved paragraph with its time, labelled clipping and honest absence', () => {

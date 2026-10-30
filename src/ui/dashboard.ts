@@ -27,6 +27,7 @@ import {
     type CommitDetailView,
 } from './dashboard-pages.js';
 import type { HistoryView } from '../project/history.js';
+import type { ActionLinks } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
 import { recoveryWordLines, walletImportFlow, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
@@ -424,6 +425,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         void source.inspect('action-read', { path }).then(
             (record) => {
                 page.content = (record as { content: string }).content;
+                page.links = (record as { links?: ActionLinks }).links;
                 draw();
             },
             (error: unknown) => {
@@ -975,9 +977,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 return;
             }
             case 'action': {
-                // The record's task Book (a verified link from its saved provenance); viewing never retries the action.
-                const source = snapshot.actions?.recent.find((item) => item.path === page.path)?.source;
-                if (key === 'e' && source) void openBook({ path: source });
+                // Verified links of the record (its task Book, its evidence in Files); viewing never retries the action.
+                const evidence = page.links?.evidence;
+                if (key === 'e' && page.links?.task) void openBook({ path: page.links.task });
+                else if (key === 't' && evidence) openInspected<Extract<DashboardPage, { kind: 'files' }>>({ kind: 'files', scroll: 0, focus: 0, path: evidence }, 'files-list', { path: evidence }, (target, value) => (target.view = value as FolderView));
                 return;
             }
             case 'chats':

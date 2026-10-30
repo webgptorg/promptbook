@@ -5,6 +5,7 @@ import { ensureDirectory, isPathInside, pathExists, readJsonIfExists, writeJsonA
 import { shortId, slugify } from '../common/ids.js';
 import { createRedactor, REDACTED } from '../common/redact.js';
 import { formatIsoWithOffset } from '../common/time.js';
+import { accessibleProjectPath } from '../project/files.js';
 import type { Project } from '../project/workspace.js';
 import { ACTIONS_DIRECTORY, actionDirectoryOf } from '../tasks/identity.js';
 import type { BridgeTool, ToolResult } from './bridge.js';
@@ -134,6 +135,27 @@ const SECRET_URL_PARAMETERS = /([?&#](?:access_token|refresh_token|id_token|toke
  * Line of one metadata field in a record.
  */
 const FIELD_LINE = /^- \*\*(.+?):\*\* (.*)$/;
+
+/**
+ * Verified navigation targets of one record: its task Book and evidence only when Files can open them now, and its
+ * receipt only as a plain http(s) URL without credentials.
+ *
+ * @private external action log
+ */
+export type ActionLinks = { readonly task?: string; readonly evidence?: string; readonly receipt?: string };
+
+/**
+ * A receipt that is safe to offer as a link: a plain http(s) URL without embedded credentials or whitespace.
+ */
+function safeReceipt(reference: string | undefined): string | undefined {
+    if (!reference || !/^https?:\/\/[^\s<>"'`]+$/i.test(reference)) return undefined;
+    try {
+        const url = new URL(reference);
+        return url.username || url.password ? undefined : url.href;
+    } catch {
+        return undefined;
+    }
+}
 
 /**
  * Persistence of one saved record through the engine's scoped Git boundaries.
@@ -466,16 +488,20 @@ export class ActionLog {
     }
 
     /**
-     * Reads one saved record (confined to `actions/`; read-only, never a retry or provider call).
+     * Reads one saved record with its verified links (confined to `actions/`; read-only, never a retry or provider call).
      */
-    public async read(path: string): Promise<{ readonly summary: ActionSummary; readonly content: string }> {
+    public async read(path: string): Promise<{ readonly summary: ActionSummary; readonly content: string; readonly links: ActionLinks }> {
         const absolute = resolve(this.options.project.root, path);
         const root = resolve(this.options.project.root, ACTIONS_DIRECTORY);
         if (!isPathInside(root, absolute) || !absolute.endsWith('.md')) throw new PtbkError(`${path} is not an external action record.`, { kind: 'usage' });
         const content = await readFile(absolute, 'utf8').catch(() => undefined);
         if (content === undefined) throw new PtbkError(`The action record ${path} no longer exists.`, { kind: 'not-found' });
         const relativePath = relative(this.options.project.root, absolute).split(sep).join('/');
-        return { summary: parseActionRecord(relativePath, content), content };
+        const summary = parseActionRecord(relativePath, content);
+        const task = summary.source ? await accessibleProjectPath(this.options.project.root, summary.source) : undefined;
+        const evidence = summary.evidence ? await accessibleProjectPath(this.options.project.root, summary.evidence) : undefined;
+        const receipt = safeReceipt(summary.reference);
+        return { summary, content, links: { ...(task ? { task } : {}), ...(evidence ? { evidence } : {}), ...(receipt ? { receipt } : {}) } };
     }
 
     /**

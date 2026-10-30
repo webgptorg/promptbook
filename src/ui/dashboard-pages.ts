@@ -23,6 +23,7 @@ import type { UsageTotals } from '../engine/usage.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { WalletView } from '../wallet/wallet.js';
 import type { HistoryDetail, HistoryView } from '../project/history.js';
+import type { ActionLinks } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 
 /**
@@ -89,7 +90,7 @@ export type DashboardPage =
     | { readonly kind: 'results'; scroll: number; follow: boolean }
     | { readonly kind: 'usage'; scroll: number; grouping: UsagePageGrouping; inclusive: boolean }
     | { readonly kind: 'actions'; scroll: number; focus: number; selected?: string }
-    | { readonly kind: 'action'; scroll: number; readonly path: string; content?: string; problem?: string }
+    | { readonly kind: 'action'; scroll: number; readonly path: string; content?: string; links?: ActionLinks; problem?: string }
     | { readonly kind: 'history'; scroll: number; focus: number; selected?: string; view?: HistoryView; problem?: string }
     | { readonly kind: 'commit'; scroll: number; readonly sha: string; detail?: CommitDetailView; problem?: string }
     | { readonly kind: 'files'; scroll: number; focus: number; selected?: string; readonly path: string; view?: FolderView; problem?: string }
@@ -475,9 +476,10 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             const body = page.problem ? [style.warning(page.problem)] : page.content === undefined ? [style.muted('Loading…')] : page.content.split(/\r?\n/).flatMap((line) => wrap(terminalSafe(line), Math.max(20, width - 2)));
             return {
                 title: `Action log › ${item?.operation ?? page.path.split('/').pop()}`,
-                context: `${page.path}${item?.pending ? ' · saved, not committed yet' : ''}`,
+                context: `${page.path}${item?.pending ? ' · saved, not committed yet' : ''}${page.links?.receipt ? ` · receipt ${terminalSafe(page.links.receipt)}` : ''}`,
                 body,
-                legend: `↑↓ scroll · ${item?.source ? 'E open the task Book · ' : ''}${back}`,
+                // Only verified links: a task Book or evidence no longer in the project is not offered.
+                legend: `↑↓ scroll · ${page.links?.task ? 'E open the task Book · ' : ''}${page.links?.evidence ? 'T open the evidence · ' : ''}${back}`,
             };
         }
         case 'history': {

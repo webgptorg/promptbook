@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readdir, readFile, rm } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { ActionLog, parseActionRecord, renderActionRecord } from '../dist/engine/action-log.js';
@@ -64,6 +64,22 @@ test('action records: an effect whose record was removed (e.g. by a Git revert) 
     await log.record({ ...subject, attempt: '2' }, { id, outcome: 'confirmed', observed: 'The sent message is in the mailbox.' });
     assert.deepEqual(await readdir(join(directory, 'actions', '2026-10-30-0900-send-the-newsletter')), [path.split('/').pop()]);
     assert.doesNotMatch(await log.taskContext(subject.source), /was removed/);
+});
+
+test('action records: reading a record offers only verified links (existing task Book and evidence, a plain http(s) receipt)', async (t) => {
+    const directory = await temporaryDirectory(t, 'ptbk action links');
+    const log = new ActionLog({ project: projectAt(directory), env: {}, timeZone: () => 'UTC', persist: async () => 'uncommitted', onChange: () => undefined, log: () => undefined });
+    await mkdir(join(directory, 'tasks'), { recursive: true });
+    await mkdir(join(directory, 'traces', '2026-10-30-0900-post-news'), { recursive: true });
+    await writeFile(join(directory, 'tasks', '2026-10-30-0900-post-news.book'), 'TASK Post news\n');
+    const subject = (source, trace) => ({ taskName: 'Post news', source, agent: '@Developer', attempt: '1', trace });
+    const path = async (result) => /^Saved (\S+) /.exec(result.text)[1];
+    const linked = await path(await log.record(subject('tasks/2026-10-30-0900-post-news.book', 'traces/2026-10-30-0900-post-news/'), { operation: 'Publish post', service: 'LinkedIn', outcome: 'confirmed', reference: 'https://www.linkedin.test/posts/42' }));
+    assert.deepEqual((await log.read(linked)).links, { task: 'tasks/2026-10-30-0900-post-news.book', evidence: 'traces/2026-10-30-0900-post-news', receipt: 'https://www.linkedin.test/posts/42' });
+    for (const reference of ['javascript:alert(1)', 'https://user:secret@example.test/receipt', 'Submission 2026/118']) {
+        const unverified = await path(await log.record(subject('tasks/2026-10-30-0900-gone.book', '.ptbk/hidden/'), { operation: 'Submit form', service: 'Example', outcome: 'confirmed', reference }));
+        assert.deepEqual((await log.read(unverified)).links, {}, `no task, hidden evidence and no safe receipt for ${reference}`);
+    }
 });
 
 test('action records: one committed Markdown per remote mutation, independent of ignored traces and a failed check; reconciled without duplicates', async (t) => {

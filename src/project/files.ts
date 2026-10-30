@@ -121,6 +121,16 @@ async function confined(projectRoot: string, path: string): Promise<{ readonly a
 }
 
 /**
+ * The normalized project-relative path when Files can open it (inside the project, no hidden segment, not leading
+ * outside through a link, existing), otherwise undefined: the check behind a verified navigation link.
+ *
+ * @private project files
+ */
+export async function accessibleProjectPath(projectRoot: string, path: string): Promise<string | undefined> {
+    return (await confined(projectRoot, path).catch(() => undefined))?.relativePath || undefined;
+}
+
+/**
  * Lists one project folder for Files: nonhidden entries only, folders first, real names, sizes and times; a link that
  * leads outside the project is shown but never followed. Read-only.
  *

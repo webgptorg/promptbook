@@ -1,5 +1,10 @@
 # Unreleased
 
+## Action log: verified task, evidence and receipt links
+
+-   An opened external-action record now offers its verified links, as the Action log page specification asks: the task Book and the evidence folder only while Files can open them in the project (no hidden path, nothing leading outside), and the receipt only as a plain http(s) URL without embedded credentials. The engine's shared reader (`GET /api/actions/record`, `action-read`) returns them as `links`. The browser page shows **Task Book** and **Evidence** (opened in Files, as the History page does) and a **Receipt** link that opens in a new tab; the terminal record page keeps `E` for the task Book, adds `T` for the evidence in Files and shows the receipt in its context line. Following a link never retries the action.
+-   New tests cover the verified, missing, hidden and unsafe cases in the reader and the terminal page's offered links.
+
 ## Quota limits wait for the reset the provider reports
 
 -   A quota or rate limit always meant a flat 15-minute wait, even when the provider said "try again in 2 days 3 hours" (the work then failed again and again) or "try again in 6.5s". The reset a provider reports is now understood: relative waits (`try again in 2 days 3 hours`, `1m30s`, `Retry-After: 30`, `"retryDelay": "41s"`), wall-clock resets with an optional date and time zone (`resets 3am`, `will reset at 5pm (America/New_York)`, `try again at Nov 3rd, 2026 2:28 PM`) and timestamps (ISO, Claude Code's `limit reached|<epoch>`). Without an authorized same-variant fallback, the task resumes at that reset (at least 30 seconds, at most a week, after which it is rechecked); without a stated reset the 15-minute backoff stays. Tool inspection says when the instance is rechecked.
