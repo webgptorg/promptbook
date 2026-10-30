@@ -164,3 +164,89 @@ export function sortTasks(items: readonly TaskInventoryItem[], field: TaskSortFi
     }
     return descending ? sorted.reverse() : sorted;
 }
+
+/**
+ * A viewer-selected filter of the task inventory: every given field must match (absent fields match everything).
+ *
+ * @private task views
+ */
+export type TaskFilter = {
+    /** Case-insensitive text found in the title, source, agent, reason or origin. */
+    readonly text?: string;
+    /** Exact readiness kind, e.g. `ready`, `waiting-until` or `done`. */
+    readonly readiness?: string;
+    /** Responsible agent by name (`@Name`, `{Name}` and `Name` are the same agent). */
+    readonly agent?: string;
+    /** Ordinary project tasks or engine-defined system tasks. */
+    readonly kind?: 'ordinary' | 'system';
+};
+
+/**
+ * Normalized agent name of a written reference.
+ */
+function agentKey(agent: string): string {
+    return agent.trim().replace(/^@|^\{|\}$/g, '').toLowerCase();
+}
+
+/**
+ * Filters the complete inventory by a viewer's choices. A presentation only, like sorting: it never changes
+ * scheduling, and clearing the filter makes every task (distant and completed ones included) reachable again.
+ *
+ * @private task views
+ */
+export function filterTasks(items: readonly TaskInventoryItem[], filter: TaskFilter): TaskInventoryItem[] {
+    const text = filter.text?.trim().toLowerCase();
+    const agent = filter.agent?.trim() ? agentKey(filter.agent) : undefined;
+    return items.filter(
+        (item) =>
+            (!filter.readiness || item.readiness === filter.readiness) &&
+            (!agent || (item.agent !== undefined && agentKey(item.agent) === agent)) &&
+            (!filter.kind || (item.kind ?? 'ordinary') === filter.kind) &&
+            (!text || [item.title, item.source, item.agent, item.reason, item.origin].some((field) => field?.toLowerCase().includes(text))),
+    );
+}
+
+/**
+ * Whether a filter selects anything at all (an empty filter shows the complete inventory).
+ *
+ * @private task views
+ */
+export function isTaskFilterActive(filter: TaskFilter): boolean {
+    return Boolean(filter.text?.trim() || filter.readiness || filter.agent?.trim() || filter.kind);
+}
+
+/**
+ * Human description of an active filter (empty when nothing is filtered).
+ *
+ * @private task views
+ */
+export function describeTaskFilter(filter: TaskFilter): string {
+    return [filter.readiness ? `status ${filter.readiness}` : '', filter.agent?.trim() ? `agent ${filter.agent.trim()}` : '', filter.kind ? `${filter.kind} tasks` : '', filter.text?.trim() ? `"${filter.text.trim()}"` : ''].filter(Boolean).join(', ');
+}
+
+/**
+ * The filter values present in the complete inventory (so a viewer only ever picks a value that selects something).
+ *
+ * @private task views
+ */
+export type TaskFilterChoices = {
+    readonly readiness: readonly string[];
+    readonly agents: readonly string[];
+    readonly kinds: readonly ('ordinary' | 'system')[];
+};
+
+/**
+ * Collects the readiness kinds, responsible agents and task kinds present in the complete (unfiltered) inventory.
+ *
+ * @private task views
+ */
+export function taskFilterChoices(items: readonly TaskInventoryItem[]): TaskFilterChoices {
+    const agents = new Map<string, string>();
+    for (const item of items) if (item.agent && !agents.has(agentKey(item.agent))) agents.set(agentKey(item.agent), item.agent);
+    const kinds = new Set(items.map((item) => item.kind ?? 'ordinary'));
+    return {
+        readiness: [...new Set(items.map((item) => item.readiness))].sort(),
+        agents: [...agents.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, agent]) => agent),
+        kinds: (['ordinary', 'system'] as const).filter((kind) => kinds.has(kind)),
+    };
+}

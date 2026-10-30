@@ -93,6 +93,16 @@ test('local HTTP dashboard and API: bootstrap, authenticated controls and loopba
     assert.ok(Array.isArray(sorted.tasks));
     assert.deepEqual(sorted.tasks.map((task) => task.title), [...sorted.tasks.map((task) => task.title)].sort((a, b) => b.localeCompare(a)));
     assert.equal((await fetch(`${base}api/tasks?sort=bogus`, { headers: browserHeaders })).status, 400);
+    // Filtering is a view over the complete inventory: `total` and `choices` always describe the unfiltered one.
+    assert.equal(sorted.total, sorted.tasks.length);
+    assert.ok(Array.isArray(sorted.choices.readiness) && Array.isArray(sorted.choices.agents));
+    const none = await (await fetch(`${base}api/tasks?text=${encodeURIComponent('no task is called this')}`, { headers: browserHeaders })).json();
+    assert.deepEqual([none.tasks, none.total], [[], sorted.tasks.length]);
+    for (const readiness of sorted.choices.readiness) {
+        const matching = await (await fetch(`${base}api/tasks?readiness=${encodeURIComponent(readiness)}`, { headers: browserHeaders })).json();
+        assert.ok(matching.tasks.length > 0 && matching.tasks.every((task) => task.readiness === readiness), readiness);
+    }
+    assert.equal((await fetch(`${base}api/tasks?kind=bogus`, { headers: browserHeaders })).status, 400);
     const control = (headers) => fetch(`${base}api/control`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ action: 'pause' }) });
     assert.equal((await control({})).status, 401, 'missing local capability');
     assert.equal((await control({ 'X-PTBK-CSRF': 'wrong' })).status, 401);

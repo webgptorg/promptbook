@@ -38,7 +38,7 @@
         /** Meaningful interactions with this page (keys, clicks) since it opened. */
         interactions: 0,
         /** The complete task inventory in the viewer's chosen order (loaded on the Tasks page). */
-        tasks: { items: null, sort: 'smart', descending: false, revision: -1 },
+        tasks: { items: null, sort: 'smart', descending: false, filter: { text: '', readiness: '', agent: '', kind: '' }, total: 0, choices: null, revision: -1, request: 0 },
         /** Health remediation preview and swap plan shown on the Health page. */
         healthCache: null,
         healthSwap: null,
@@ -2126,13 +2126,22 @@
         }
     }
 
-    /** Loads the complete task inventory in the viewer's order (the engine applies the shared sort). */
+    /** Loads the complete task inventory in the viewer's order and filter (the engine applies the shared ones). */
     async function loadTasks(force) {
         if (!force && state.tasks.revision === state.revision) return;
         state.tasks.revision = state.revision;
         try {
-            const result = await api(`/api/tasks?sort=${encodeURIComponent(state.tasks.sort)}${state.tasks.descending ? '&descending=1' : ''}`);
+            const query = new URLSearchParams({ sort: state.tasks.sort });
+            if (state.tasks.descending) query.set('descending', '1');
+            for (const [field, value] of Object.entries(state.tasks.filter)) if (value.trim()) query.set(field, value.trim());
+            const request = ++state.tasks.request;
+            const result = await api(`/api/tasks?${query}`);
+            // A slower answer to an earlier filter never replaces the current one.
+            if (request !== state.tasks.request) return;
             state.tasks.items = result.tasks;
+            // An older engine filters nothing and reports neither the total nor the choices.
+            state.tasks.total = typeof result.total === 'number' ? result.total : result.tasks.length;
+            state.tasks.choices = result.choices || null;
         } catch (error) {
             toast(`Tasks unavailable: ${error.message}`);
         }
@@ -2148,7 +2157,54 @@
         showNewChatAgents();
     }
 
-    /** The Tasks page: the complete inventory with smart default order and user-selected sorting. */
+    /** Whether the viewer's task filter selects anything (an empty filter shows the complete inventory). */
+    function isTaskFilterActive() {
+        return Object.values(state.tasks.filter).some((value) => value.trim());
+    }
+
+    /** Changes one field of the viewer's task filter and reloads the inventory (typed text waits for a pause). */
+    let taskFindTimer = null;
+    function setTaskFilter(field, value) {
+        state.tasks.filter = { ...state.tasks.filter, [field]: value };
+        clearTimeout(taskFindTimer);
+        if (field === 'text') taskFindTimer = setTimeout(() => loadTasks(true), 250);
+        else loadTasks(true);
+    }
+
+    /** Filter controls of the Tasks page: text and the status, agent and kind values present in the inventory. */
+    function taskFilterControls() {
+        const choices = state.tasks.choices;
+        const filter = state.tasks.filter;
+        const find = h('input', { type: 'search', 'data-draft': 'tasks:find', 'aria-label': 'Find tasks', placeholder: 'Find in title, source, agent or status…', autocomplete: 'off' });
+        find.value = filter.text;
+        find.addEventListener('input', () => setTaskFilter('text', find.value));
+        /** One select over the present values, with "any" first; a chosen value stays listed even after it vanishes. */
+        const select = (field, label, any, values) => {
+            const options = [...new Set([...(values || []), ...(filter[field] ? [filter[field]] : [])])];
+            const element = h('select', { 'aria-label': label }, h('option', { value: '' }, any), options.map((value) => h('option', { value }, value)));
+            element.value = filter[field];
+            element.addEventListener('change', () => setTaskFilter(field, element.value));
+            return element;
+        };
+        return h(
+            'div',
+            { className: 'row task-filters' },
+            find,
+            select('readiness', 'Status', 'Any status', choices && choices.readiness),
+            select('agent', 'Agent', 'Any agent', choices && choices.agents),
+            select('kind', 'Kind', 'Ordinary and system', choices && choices.kinds),
+            isTaskFilterActive() ? h('button', { onclick: clearTaskFilter }, 'Clear filter') : null,
+        );
+    }
+
+    /** Clears the viewer's task filter: every task (distant and completed ones included) is shown again. */
+    function clearTaskFilter() {
+        clearTimeout(taskFindTimer);
+        state.tasks.filter = { text: '', readiness: '', agent: '', kind: '' };
+        loadTasks(true);
+    }
+
+    /** The Tasks page: the complete inventory with smart default order and user-selected sorting and filtering. */
     function renderTasksPage() {
         const card = h('section', { className: 'card queue', 'aria-label': 'Tasks' });
         const sort = h('select', { 'aria-label': 'Sort by' }, ['smart', 'priority', 'time', 'status', 'agent', 'name'].map((field) => h('option', { value: field }, field === 'smart' ? 'smart (current, coming up, recent, history)' : field)));
@@ -2157,7 +2213,9 @@
         const direction = h('button', { onclick: () => ((state.tasks.descending = !state.tasks.descending), loadTasks(true)) }, state.tasks.descending ? 'Descending' : 'Ascending');
         // Talking to Tasker is the main authoring action (the ordinary chat); sorting is only a view.
         const tasker = h('button', { className: 'primary', onclick: () => chatWithAgent('Tasker') }, 'Talk to Tasker');
-        card.append(h('h2', {}, h('span', {}, `All tasks (${state.tasks.items ? state.tasks.items.length : '…'})`), h('span', { className: 'row' }, tasker, h('label', {}, 'Sort ', sort), direction)));
+        const filtered = isTaskFilterActive();
+        const count = !state.tasks.items ? 'All tasks (…)' : filtered ? `Tasks (${state.tasks.items.length} of ${state.tasks.total})` : `All tasks (${state.tasks.items.length})`;
+        card.append(h('h2', {}, h('span', {}, count), h('span', { className: 'row' }, tasker, h('label', {}, 'Sort ', sort), direction)), taskFilterControls());
         if (!state.tasks.items) {
             card.append(h('p', { className: 'muted' }, 'Loading the task inventory…'));
             return pageFrame('tasks', 'Every task in every state', card);
@@ -2193,8 +2251,10 @@
                 ),
             ),
         );
-        if (!state.tasks.items.length) card.append(h('p', { className: 'muted' }, 'No tasks yet. Talk to Tasker to create one.'));
-        return pageFrame('tasks', 'Viewer order only — sorting never changes engine scheduling', card);
+        // Filtering is a view only: clearing it makes every task reachable again.
+        if (!state.tasks.items.length && filtered) card.append(h('p', { className: 'muted' }, `No task matches the filter. `, h('button', { className: 'link', onclick: clearTaskFilter }, `Clear it to show all ${state.tasks.total} tasks`), '.'));
+        else if (!state.tasks.items.length) card.append(h('p', { className: 'muted' }, 'No tasks yet. Talk to Tasker to create one.'));
+        return pageFrame('tasks', 'Viewer order and filter only — they never change engine scheduling', card);
     }
 
     /** The Agents page: every agent with its actual activity, queue and a direct chat. */

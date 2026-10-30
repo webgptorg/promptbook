@@ -8,7 +8,7 @@ import type { Agenda } from '../engine/agenda.js';
 import { secretToken } from '../common/ids.js';
 import { applyChatAction, applySettings, applyToolAction, applyWalletAction, CONTROL_ACTIONS, WALLET_ACTIONS, type ControlOutcome } from './actions.js';
 import { assertLocalRequest, authenticateLocalRequest } from './auth.js';
-import { TASK_SORT_FIELDS, sortTasks, type TaskSortField } from '../tasks/views.js';
+import { TASK_SORT_FIELDS, filterTasks, sortTasks, taskFilterChoices, type TaskFilter, type TaskSortField } from '../tasks/views.js';
 
 /**
  * First port tried when none is configured.
@@ -301,11 +301,15 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             return;
         }
         if (url.pathname === '/api/tasks' && method === 'GET') {
-            // The complete inventory in every state; `sort` applies the shared viewer orders (never scheduling).
+            // The complete inventory in every state; `sort` and the filter fields apply the shared viewer choices
+            // (never scheduling); `total` counts the unfiltered inventory and `choices` lists the values present in it.
             const sort = url.searchParams.get('sort');
+            const kind = url.searchParams.get('kind') ?? undefined;
             const tasks = await agenda.taskInventory();
             if (sort && !(TASK_SORT_FIELDS as readonly string[]).includes(sort)) throw new PtbkError(`Unknown task sort "${sort}".`, { kind: 'usage', next: [`Use one of ${TASK_SORT_FIELDS.join(', ')}.`] });
-            sendJson(response, 200, { tasks: sort ? sortTasks(tasks, sort as TaskSortField, url.searchParams.get('descending') === '1') : tasks });
+            if (kind && kind !== 'ordinary' && kind !== 'system') throw new PtbkError(`Unknown task kind "${kind}".`, { kind: 'usage', next: ['Use kind=ordinary or kind=system.'] });
+            const filtered = filterTasks(tasks, { text: url.searchParams.get('text') ?? undefined, readiness: url.searchParams.get('readiness') ?? undefined, agent: url.searchParams.get('agent') ?? undefined, kind: kind as TaskFilter['kind'] });
+            sendJson(response, 200, { tasks: sort ? sortTasks(filtered, sort as TaskSortField, url.searchParams.get('descending') === '1') : filtered, total: tasks.length, choices: taskFilterChoices(tasks) });
             return;
         }
         if (url.pathname === '/api/books' && method === 'GET') {

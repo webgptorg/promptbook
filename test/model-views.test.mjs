@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { parseBook } from '../dist/book/parse.js';
 import { UNCONSTRAINED, constraintAllows, describeModel, determinedRow, formatModelContent, intersectModels, isImpossible, modelOfDocument, parseModelRow } from '../dist/book/model.js';
-import { smartTaskOrder, sortTasks } from '../dist/tasks/views.js';
+import { describeTaskFilter, filterTasks, isTaskFilterActive, smartTaskOrder, sortTasks, taskFilterChoices } from '../dist/tasks/views.js';
 import { RichInput } from '../dist/ui/rich-input.js';
 
 /** Every harness has a thinking control in these checks. */
@@ -69,6 +69,24 @@ test('task views: the smart order puts current decisions first, then coming work
     assert.deepEqual(sortTasks(items, 'name', false, now).map((entry) => entry.title).slice(0, 2), ['Far future', 'Old done']);
     assert.equal(sortTasks(items, 'priority', true, now)[0].title, 'Ready high', 'descending reverses the chosen field');
     assert.equal(items[0].title, 'Old done', 'sorting is a presentation and never reorders the inventory itself');
+});
+
+test('task views: user-selected filters by status, agent, kind and text never hide a task once cleared', () => {
+    const item = (title, readiness, extra = {}) => ({ ref: `{${title}}`, title, readiness, reason: '', priority: 0, doneCount: 0, source: `tasks/${title}.book`, ...extra });
+    const items = [
+        item('Write docs', 'ready', { agent: '@Developer' }),
+        item('Old report', 'done', { agent: '{Writer}', lastDone: '2025-01-01T00:00:00Z', doneCount: 1 }),
+        item('Ship release', 'waiting-until', { agent: 'Developer', until: '2099-01-01T00:00:00Z', reason: 'Not before the release date' }),
+        item('Update the engine 0.1.0 → 0.2.0', 'waiting-until', { kind: 'system', source: '', executor: 'the engine' }),
+    ];
+    assert.deepEqual(filterTasks(items, { agent: 'developer' }).map((entry) => entry.title), ['Write docs', 'Ship release'], '@Name, {Name} and Name are the same agent');
+    assert.deepEqual(filterTasks(items, { readiness: 'waiting-until', kind: 'ordinary' }).map((entry) => entry.title), ['Ship release'], 'every given field must match');
+    assert.deepEqual(filterTasks(items, { kind: 'system' }).map((entry) => entry.title), ['Update the engine 0.1.0 → 0.2.0']);
+    assert.deepEqual(filterTasks(items, { text: 'RELEASE DATE' }).map((entry) => entry.title), ['Ship release'], 'text matches the status reason case-insensitively');
+    assert.equal(filterTasks(items, {}).length, items.length, 'an empty filter keeps the complete inventory, completed history included');
+    assert.equal(isTaskFilterActive({ text: '  ' }), false);
+    assert.equal(describeTaskFilter({ readiness: 'done', agent: 'Writer' }), 'status done, agent Writer');
+    assert.deepEqual(taskFilterChoices(items), { readiness: ['done', 'ready', 'waiting-until'], agents: ['@Developer', '{Writer}'], kinds: ['ordinary', 'system'] });
 });
 
 test('rich input: one implementation with flow and source policies (Enter submits or inserts a line, Ctrl+S saves)', async () => {

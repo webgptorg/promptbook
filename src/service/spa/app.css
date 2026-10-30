@@ -457,6 +457,7 @@ body.home-view .app {
 textarea,
 input[type='text'],
 input[type='password'],
+input[type='search'],
 select {
     width: 100%;
     font: inherit;
@@ -513,6 +514,22 @@ button:disabled {
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+}
+
+/* Task filters: the search grows, the selects keep their natural width (all wrap on narrow screens). */
+.task-filters {
+    margin: 0 0 12px;
+}
+
+.task-filters input[type='search'] {
+    flex: 1 1 14em;
+    width: auto;
+    min-width: 0;
+}
+
+.task-filters select {
+    width: auto;
+    max-width: 100%;
 }
 
 .agent {

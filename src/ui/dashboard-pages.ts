@@ -3,7 +3,7 @@ import { formatShortTime } from '../common/time.js';
 import type { CachePreview, SwapPlan } from '../engine/health.js';
 import { formatBytes, formatMiB } from '../engine/health.js';
 import type { CurrentWorkView, ServiceSnapshot } from '../engine/snapshot.js';
-import { TASK_SORT_FIELDS, sortTasks, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
+import { TASK_SORT_FIELDS, describeTaskFilter, filterTasks, isTaskFilterActive, sortTasks, type TaskFilter, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
 import { terminalSafe, truncate, wrap } from './ansi.js';
 import { activityLabel, framedBadge, inlineBadge, type BadgeActivity } from './badges.js';
 import {
@@ -86,7 +86,7 @@ export type DashboardPage =
     | { readonly kind: 'tool'; scroll: number; readonly name: string }
     | { readonly kind: 'agents'; scroll: number; focus: number; selected?: string; detail: boolean; sort: TeamSortField }
     | { readonly kind: 'chats'; scroll: number; focus: number; selected?: string }
-    | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; detail: boolean }
+    | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; filter: TaskFilter; detail: boolean }
     | { readonly kind: 'results'; scroll: number; follow: boolean }
     | { readonly kind: 'usage'; scroll: number; grouping: UsagePageGrouping; inclusive: boolean }
     | { readonly kind: 'actions'; scroll: number; focus: number; selected?: string }
@@ -146,7 +146,7 @@ export function pageForTile(tile: HomeTile): DashboardPage {
         case 'chats':
             return { kind: 'chats', scroll: 0, focus: 0 };
         case 'tasks':
-            return { kind: 'tasks', scroll: 0, focus: 0, sort: 'smart', descending: false, detail: false };
+            return { kind: 'tasks', scroll: 0, focus: 0, sort: 'smart', descending: false, filter: {}, detail: false };
         case 'results':
             return { kind: 'results', scroll: Number.MAX_SAFE_INTEGER, follow: true };
         case 'usage':
@@ -230,7 +230,7 @@ export function teamOrder(snapshot: ServiceSnapshot, sort: TeamSortField, invent
  * @private terminal dashboard pages
  */
 export function taskOrder(context: Pick<PageContext, 'snapshot' | 'inventory'>, page: Extract<DashboardPage, { kind: 'tasks' }>): TaskInventoryItem[] {
-    return sortTasks([...(context.inventory ?? [])], page.sort, page.descending, Date.parse(context.snapshot.observedAt));
+    return sortTasks(filterTasks(context.inventory ?? [], page.filter), page.sort, page.descending, Date.parse(context.snapshot.observedAt));
 }
 
 /**
@@ -595,13 +595,15 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                     if (question?.awaiting) body.push(`    ${style.warning(`${marks.warn} ${question.awaiting.sender} asks:`)} ${question.awaiting.text.split('\n').filter(Boolean).at(-1) ?? ''}`, `    ${style.muted(`A answers in {${question.title ?? question.name}}`)}`);
                 }
             });
-            if (!items.length) body.push(style.muted('No tasks yet; press T to talk to Tasker.'));
+            // Filtering is a view only: clearing it makes every task (distant and completed ones included) reachable again.
+            const filtered = isTaskFilterActive(page.filter);
+            if (!items.length) body.push(style.muted(filtered ? `No task matches ${describeTaskFilter(page.filter)}; X clears the filter and shows all ${context.inventory.length} tasks.` : 'No tasks yet; press T to talk to Tasker.'));
             return {
                 title: 'Tasks',
-                context: `${items.length} tasks · ${page.sort === 'smart' ? 'smart order: current, coming up, recent, distant, history' : `sorted by ${page.sort}`}${page.descending ? ' (reversed)' : ''} · viewer order only, never scheduling`,
+                context: `${filtered ? `${items.length} of ${context.inventory.length} tasks · filtered by ${describeTaskFilter(page.filter)}` : `${items.length} tasks`} · ${page.sort === 'smart' ? 'smart order: current, coming up, recent, distant, history' : `sorted by ${page.sort}`}${page.descending ? ' (reversed)' : ''} · viewer order only, never scheduling`,
                 body,
                 anchor,
-                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}${items[page.focus]?.source ? 'E edit source · ' : ''}S sort (${TASK_SORT_FIELDS.length}) · D reverse · T Tasker · ${back}`,
+                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}${items[page.focus]?.source ? 'E edit source · ' : ''}S sort (${TASK_SORT_FIELDS.length}) · D reverse · F find · R status · G agent · K kind${filtered ? ' · X clear filter' : ''} · T Tasker · ${back}`,
             };
         }
         case 'results': {

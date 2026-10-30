@@ -1,5 +1,12 @@
 # Unreleased
 
+## Task views: filter by status, agent, kind and text
+
+-   The task views specification asks for "ordinary user-selected sorting and filtering by the available fields". Sorting already existed; now the complete task inventory can also be filtered by status (readiness), responsible agent, kind (ordinary or system) and text. Text is case-insensitive and is found in the title, source, agent, status reason or origin. All given fields must match, and `@Name`, `{Name}` and `Name` are the same agent. Like sorting, filtering only changes the view, never scheduling, and clearing it brings back every task, including distant and completed ones.
+-   Terminal dashboard, Tasks page: **F** finds text (an empty search clears it). **R**, **G** and **K** cycle the status, agent and kind filters through the values present in the inventory and back to all. **X** clears the filter. The page shows "N of M tasks · filtered by …", and an empty result says how to get every task back.
+-   Browser dashboard, Tasks page: a search field plus status, agent and kind selects listing the present values, and **Clear filter**. The heading shows "Tasks (N of M)", and an empty result has a link that clears the filter. A slower answer to an earlier filter never replaces the current one.
+-   `GET /api/tasks` accepts `text`, `readiness`, `agent` and `kind` next to `sort`/`descending`. It also returns `total` (the unfiltered count) and `choices` (the statuses, agents and kinds present). An unknown `kind` is a usage error (400).
+
 ## Engine updates: other engines of an installation load only a verified version
 
 -   An engine that replaced a shared installation asked the installation's other live engines to restart before its own restart had proven that the new version starts. A release that could not start then took every project on that installation down, while the automatic rollback restored only the updating project. Now the other engines are asked only after the replacement is verified as serving its own project. Each keeps its manual pause, and engines already on that version are skipped. A release that cannot start is restored before any other project loads it.

@@ -35,9 +35,9 @@ import type { WalletImportPreview } from '../wallet/wallet.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import { TitleAnimation, type DashboardTitleContext } from './terminal-title.js';
-import { CANCELLED, inputLine, matchesFilter, windowAround } from './prompts.js';
+import { CANCELLED, composeText, inputLine, matchesFilter, windowAround } from './prompts.js';
 import { runBookEditor, type BookDraft, type BookSourceClient } from './book-editor.js';
-import { TASK_SORT_FIELDS, type TaskInventoryItem } from '../tasks/views.js';
+import { TASK_SORT_FIELDS, taskFilterChoices, type TaskInventoryItem } from '../tasks/views.js';
 import { formatAgentReference } from '../book/references.js';
 
 /**
@@ -635,6 +635,17 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         if (result) await runTool({ operation: result.operation, secret: result.secret });
     };
 
+    /** Asks for the Tasks page's text filter outside the live view (empty clears it; cancelling keeps the current one). */
+    const findTasks = async (page: Extract<DashboardPage, { kind: 'tasks' }>): Promise<void> => {
+        const text = await outside(async () => {
+            const value = await composeText(terminal, { frame: { title: 'ptbk dashboard', step: 'Tasks · find', summary: ['Shows the tasks whose title, source, agent, status reason or origin contain the text; empty shows every task.'] }, question: 'Find tasks containing:', initial: page.filter.text ?? '', singleLine: true });
+            return value === CANCELLED ? undefined : value.trim();
+        });
+        if (text === undefined) return;
+        page.filter = { ...page.filter, text: text || undefined };
+        draw();
+    };
+
     /** Asks for confirmation before a consequential action (`cancel` runs when it is declined). */
     const confirmThen = (question: string, run: () => Promise<void>, details?: readonly string[], cancel?: () => Promise<void>): void => {
         overlay = { kind: 'confirm', question, run, details, ...(cancel ? { cancel } : {}) };
@@ -1016,8 +1027,18 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             }
             case 'tasks': {
                 const task = taskOrder(context, page)[page.focus];
+                // Filters cycle through the values present in the complete inventory, then back to every task.
+                const choices = taskFilterChoices(context.inventory ?? []);
+                const cycle = <T extends string>(values: readonly T[], current: T | undefined): T | undefined => values[current === undefined ? 0 : values.indexOf(current) + 1];
                 if (key === 's') page.sort = TASK_SORT_FIELDS[(TASK_SORT_FIELDS.indexOf(page.sort) + 1) % TASK_SORT_FIELDS.length]!;
                 else if (key === 'd') page.descending = !page.descending;
+                else if (key === 'f') {
+                    void findTasks(page);
+                    return;
+                } else if (key === 'r') page.filter = { ...page.filter, readiness: cycle(choices.readiness, page.filter.readiness) };
+                else if (key === 'g') page.filter = { ...page.filter, agent: cycle(choices.agents, page.filter.agent) };
+                else if (key === 'k') page.filter = { ...page.filter, kind: cycle(choices.kinds, page.filter.kind) };
+                else if (key === 'x') page.filter = {};
                 else if (key === 't') void chatWith('Tasker');
                 // Only a task with a project source has a Book to edit (a system task has none).
                 else if (key === 'e' && task?.source) void openBook({ path: task.source });
