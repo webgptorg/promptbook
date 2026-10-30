@@ -1,5 +1,9 @@
 # Unreleased
 
+## Specification: version-zero remote App integration
+
+-   Added the App-first VPS/pairing/init target, real native harness-login handoff, simple Wallet and onboarding files, attributed multi-party plain-text chat, native project lifecycle and honest unavailability. Kept the host service limited to registry/process control; recorded protected fallback options, deferred features and the joint technical-contract handoff. Linked existing local API/VPS/login/chat contracts, added concise README context and corrected its paused OS-startup behavior. No engine, App, installer or website implementation is changed.
+
 ## Specification: engine-owned automatic updates
 
 -   Defined default-on project update policy for stable minor/patch versions, progression from an existing prerelease to its stable release and no automatic prerelease re-entry. Updates are low-priority system tasks, respect shared-installation pins and manual lifecycle intent, include scoped migrations/audit and attempt autonomous recovery. Retained the separate attended init update path; concrete release verification, replacement and rollout design remains to be agreed. Specification only.

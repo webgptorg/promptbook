@@ -10,6 +10,8 @@ Explain ownership concretely: the engine runs on the owner's computer or server;
 
 The application and the engine have distinct responsibilities. The engine owns the work and keeps running without an open client. The upcoming commercial application provides convenient remote control through an end-to-end encrypted relay connection. Its intended zero-trust content boundary means the relay is not trusted to decrypt working content. The self-hosted engine currently serves its dashboard/API only on loopback. Do not imply that an external model or connected service cannot receive the inputs sent to it by the engine.
 
+Link the [version-zero App contract](../app/integration.md) for installation/pairing and scope rather than implying all terminal pages already exist remotely. Describe default-on [engine-owned updates](../cli/updates.md) as target behavior until implemented and verified: stable minor/patch, the current-prerelease exception and user-selected pins. The owner's host/access/backups still matter. Explain [anchors](anchoring.md) as user-fixed rules whose meaning autonomous agents cannot change, without promising that every unqualified AI output is correct.
+
 ## Match the audience
 
 The website presents the complete application, engine and support offering. Its main action collects nonbinding interest; the partner path addresses agencies, freelancers and others deploying for clients. Its quieter installation link leads to localized self-hosting instructions.

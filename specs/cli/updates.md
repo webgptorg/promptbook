@@ -19,7 +19,7 @@ Range constraints and release-channel eligibility are both enforced. A broad ran
 
 When the current prerelease's stable base version is published, prefer that stable transition over remaining on its prerelease line. Do not cross into a different prerelease base merely to skip the stable transition. Evaluate broad range limits against the candidate's base release with this explicit prerelease rule; an exact pin remains exact. An operator can deliberately select a prerelease again, after which the same transition rule applies. Disabling automatic updates and pinning a version are distinct choices. Advanced explicit ranges may allow a major upgrade; the default never does. No mandatory manual-approval mode for every individual release is introduced.
 
-The terminal dashboard and remote App invoke the same engine policy operations. The nult/zero-version App needs only the automatic-update on/off switch; version display is useful but optional, advanced range forms and historical-version selection are not release requirements. An explicit policy change commits its own configuration change and cannot be silently overwritten by a platform account, relay or older client.
+The terminal dashboard and remote App invoke the same engine policy operations. The version-zero App needs only the automatic-update on/off switch; version display is useful but optional, advanced range forms and historical-version selection are not release requirements. An explicit policy change commits its own configuration change and cannot be silently overwritten by a platform account, relay or older client.
 
 ## A low-priority system task
 

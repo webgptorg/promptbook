@@ -4,6 +4,8 @@
 
 The active engine exposes an independently usable authenticated HTTP API for project inspection/control. It requires neither browser app nor terminal dashboard. Zero, one or many clients use the same scheduling, lifecycle, management and recovery operations; neither clients nor page rendering create another worker.
 
+This file specifies the **existing local API surface**. The target remote App's first-release scope and future encrypted/authenticated transport are defined in [App integration](../app/integration.md), using the same domain operations without publishing this local listener. The App need not reproduce every local editor or management operation. Its shared task model includes engine-defined system tasks and separate task runs; transport IDs, rename mapping and concrete schemas remain a joint contract decision, without changing Book-name identity by assumption.
+
 Start enables loopback HTTP in either process mode on a free or explicitly selected port and reports actual address/conflicts. No-server disables HTTP/SPA but not local engine control/discovery. No provider is contacted and no software is installed to expose the dashboard.
 
 ## Observed state and shared operations

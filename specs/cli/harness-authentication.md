@@ -4,6 +4,8 @@
 
 Selected harnesses can be initialized through an attended terminal on a VPS without opening a browser on that server. The owner may use a browser on a phone or computer for provider consent and sign-in. This is remote-compatible native authentication, not unattended login, project-browser automation or a change of billing method.
 
+The target [version-zero App](../app/integration.md) reuses these adapter operations during initial setup. Expose a straightforward protected App interaction where possible; otherwise surface the actual CLI/dashboard login through the agreed protected fallback. No full later harness/browser-management UI is required for that App. Preserve real service-user readiness and transient secret handling whichever client presents the attended step.
+
 ## Shared login behavior
 
 Init and later tool setup call the same adapter-owned authentication/readiness operations. Reuse a ready instance without another sign-in or paid inference probe. Native subscription and explicitly selected API authentication retain their distinct [account and billing rules](harnesses.md#codex-account-login-and-billing).

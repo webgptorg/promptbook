@@ -30,7 +30,7 @@ History is append-only for automatic engine operations. Never rebase, amend, squ
 
 ## Concurrent operations and task results
 
-Each completed task/occurrence has one result commit containing its accepted changes, formatter/check changes, completion, follow-ups and eligible artifacts in **`traces/<task-file-basename>/`**, including finalized selected video. This literal source filename without final `.book`/`.md` is independent of Task-Name. Failed attempts remain evidence, not successful result commits. A separate later integration merge is not a second task execution/result.
+Each completed ordinary source-backed task/occurrence has one result commit containing its accepted changes, formatter/check changes, completion, follow-ups and eligible artifacts in **`traces/<task-file-basename>/`**, including finalized selected video. This literal source filename without final `.book`/`.md` is independent of Task-Name. Failed attempts remain evidence, not successful result commits. A separate later integration merge is not a second task execution/result.
 
 A tool may be added/modified in another terminal during an active task: commit that tool operation immediately, make newly available resources usable by the task, and commit the task result later. Preserve the intervening commit and configuration. Coordinate file/index ownership at the required granularity; never stage the active task's unfinished work in the tool commit or restore an obsolete `ptbk.json` snapshot when the task ends. Same-file concurrent edits require reconciliation, not blanket replacement. A safe tool operation need not wait for the whole task to finish merely to keep commits separate.
 
