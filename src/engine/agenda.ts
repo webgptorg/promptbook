@@ -2313,6 +2313,22 @@ export class Agenda {
         }
     }
 
+    /**
+     * Keeps the task views current while a pause stops the loop from evaluating: tasks created or edited meanwhile (by
+     * the user, a client, a chat or a save's repair) appear in the inventory and queue as pending work. Only the Book
+     * catalog and readiness are reloaded, without configuration maintenance or claims, so nothing starts.
+     */
+    private async refreshTaskViews(): Promise<void> {
+        if (!this.pauseActive || !this.settings) return;
+        try {
+            this.catalog = await AgentCatalog.load(this.options.project.root, setting<string>(this.settings, 'paths.agents'), setting<string>(this.settings, 'paths.tasks'));
+            await this.evaluate();
+            this.touch();
+        } catch (error) {
+            this.logOnce(`The paused task views could not be refreshed: ${errorMessage(error)}`, 'warning');
+        }
+    }
+
     /** Reloads settings, agents, repository facts, tool readiness and configuration compatibility. */
     private async refreshContext(initial = false): Promise<void> {
         let loaded = await this.loadEffectiveSettings();
@@ -2375,6 +2391,7 @@ export class Agenda {
                         if (configuration) void this.refreshLive().then(() => this.wake());
                         else {
                             void this.refreshChats();
+                            void this.refreshTaskViews();
                             this.wake();
                         }
                     }, 750);
@@ -2847,7 +2864,7 @@ export class Agenda {
      * Problematic content is saved with its warnings and handed to ordinary Fixer repair (pending under pause).
      */
     public async bookSave(input: { readonly path: string; readonly text: string; readonly revision: string; readonly segments?: readonly ComposedSegment[] }): Promise<BookSaveOutcome> {
-        return await this.publication.run(async () => {
+        const outcome = await this.publication.run(async (): Promise<BookSaveOutcome> => {
             const current = await readBookSource(this.options.project.root, this.catalog, { path: input.path });
             if (!current.editable) throw new PtbkError(`${current.path} cannot be edited here.`, { kind: 'usage', reason: current.reason });
             if (current.revision !== input.revision) {
@@ -2876,11 +2893,19 @@ export class Agenda {
             if (this.commitMode) commit = await this.commitAuthoring([absolute, ...assets], `Edit ${saved.kind === 'invalid' ? 'Book' : saved.kind} - ${saved.name || current.path}`, saved.kind === 'task' ? { 'Task-Name': saved.name } : saved.kind === 'chat' ? { 'Chat-Name': saved.name } : {});
             else for (const path of [absolute, ...assets]) await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, path)]: null });
             this.log(`Saved ${current.path}${commit ? ` (${commit.slice(0, 8)})` : ' (uncommitted)'}${saved.diagnostics.length ? ` with ${saved.diagnostics.length} warning(s)` : ''}.`, saved.diagnostics.length ? 'warning' : 'info');
-            // Detected problems go to the ordinary, deduplicated Fixer repair (created now, executed when work may run).
-            const repair = saved.diagnostics.length ? await this.scheduleHealthCheck(await this.evaluate(), { explicit: true }) : false;
-            this.wake();
-            return { path: current.path, saved: true, commit, revision: saved.revision, diagnostics: saved.diagnostics, repair };
+            return { path: current.path, saved: true, commit, revision: saved.revision, diagnostics: saved.diagnostics };
         });
+        if (!outcome.saved) return outcome;
+        // Detected problems go to the ordinary, deduplicated Fixer repair (created now, executed when work may run). Its
+        // task is a publication of its own, so it is created after the save's publication ends; the save itself stands.
+        const repair = outcome.diagnostics.length
+            ? await this.scheduleHealthCheck(await this.evaluate(), { explicit: true }).catch((error: unknown) => {
+                  this.log(`The repair of ${outcome.path} could not be scheduled yet: ${errorMessage(error)}`, 'warning');
+                  return false;
+              })
+            : false;
+        this.wake();
+        return { ...outcome, repair };
     }
 
     /** Normalized names of every Book plus queued tasks (new generated tasks and chats get distinct names). */

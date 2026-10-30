@@ -139,6 +139,57 @@ test('local HTTP dashboard and API: bootstrap, authenticated controls and loopba
     await assert.rejects(readFile(join(project, '.ptbk', 'auth', 'pairing.json')), 'startup does not create pairing state');
 });
 
+test('Book source editing over the API: problematic content saves with a warning and one Fixer repair pending under pause; stale revisions conflict', async (t) => {
+    const { project, env } = await initializedProject(t, { check: CHECK });
+    const started = await ptbk(['start', '--no-persist', '--paused', '--raw'], { cwd: project, env });
+    assert.equal(started.code, 0, started.output);
+    const { http } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
+    const { csrf } = await (await fetch(`${http.url}api/session`, { headers: { 'X-PTBK-Client': 'dashboard' } })).json();
+    const api = async (path, body) => {
+        const response = await fetch(`${http.url}${path}`, {
+            method: body ? 'POST' : 'GET',
+            headers: { 'X-PTBK-Client': 'dashboard', 'X-PTBK-CSRF': csrf, 'Content-Type': 'application/json' },
+            body: body ? JSON.stringify(body) : undefined,
+            signal: AbortSignal.timeout(30_000),
+        });
+        return { status: response.status, data: await response.json() };
+    };
+    const source = (await api(`api/books?ref=${encodeURIComponent('@Fixer')}`)).data;
+    assert.equal(source.path, 'agents/.core/fixer.book');
+    assert.equal(source.editable, true);
+
+    // An unknown commitment is a warning, never a refused or hanging save; Fixer gets one ordinary repair task.
+    const text = `${source.text}FOOBAR something unknown\n`;
+    const saved = await api('api/books', { path: source.path, text, revision: source.revision });
+    assert.equal(saved.status, 200, JSON.stringify(saved.data));
+    assert.equal(saved.data.saved, true);
+    assert.ok(saved.data.diagnostics.length > 0);
+    assert.equal(saved.data.repair, true);
+    assert.equal(await readFile(join(project, source.path), 'utf8'), text, 'the exact saved source is kept');
+    assert.ok((await subjects(project)).includes('ptbk: Edit agent - Fixer'));
+    const repairs = await waitFor(async () => {
+        const found = (await api('api/tasks')).data.tasks.filter((task) => /Project health check/.test(task.title));
+        return found.length ? found : undefined;
+    }, { timeoutMs: 20_000, message: 'the repair task in the inventory' });
+    assert.equal(repairs.length, 1, 'one repair task');
+    assert.notEqual(repairs[0].readiness, 'active', 'paused: the repair waits like other work');
+
+    // A save based on the old revision is a conflict and writes nothing; an unchanged save creates no commit.
+    const stale = await api('api/books', { path: source.path, text: `${text}RULE Late.\n`, revision: source.revision });
+    assert.equal(stale.status, 409, JSON.stringify(stale.data));
+    assert.equal(await readFile(join(project, source.path), 'utf8'), text);
+    const commits = (await subjects(project)).length;
+    const unchanged = await api('api/books', { path: source.path, text, revision: saved.data.revision });
+    assert.equal(unchanged.data.unchanged, true);
+    assert.equal((await subjects(project)).length, commits);
+
+    // Later saves still publish (nothing stays locked) and the existing repair is not duplicated.
+    const again = await api('api/books', { path: source.path, text: `${text}BARBAZ another unknown\n`, revision: saved.data.revision });
+    assert.equal(again.status, 200, JSON.stringify(again.data));
+    assert.equal(again.data.repair, false, 'Fixer already has the repair task');
+    assert.equal((await api('api/tasks')).data.tasks.filter((task) => /Project health check/.test(task.title)).length, 1);
+});
+
 test('attached raw dashboard observes the running service and leaving it does not stop the service', async (t) => {
     const { project, env } = await initializedProject(t, { check: CHECK });
     await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });

@@ -1,5 +1,11 @@
 # Unreleased
 
+## Book editing: a save with problems no longer hangs; paused task views stay current
+
+-   Saving a Book with detected problems (an unknown commitment, an invalid MODEL) through the shared editor operation hung forever after its commit. This affected the terminal Book editor, `POST /api/books` and the control channel. The save held the engine's publication lock while creating Fixer's repair task, which needs the same lock. Every later publication (task additions, other saves) then waited behind it until a restart. The repair task is now created after the save's own publication ends, and a failure to schedule it is logged without turning the saved file into a failed save. The specification's outcome now holds: the exact source is saved and committed with a visible warning, and one ordinary Fixer repair task is created, which waits while the engine is paused.
+-   While paused, the engine's task inventory and queue (dashboards, `/api/tasks`, `task-inventory`) no longer go stale. A task created or edited meanwhile (by the user, a client, a chat or a save's repair) did not appear until resume, while `ptbk list` already showed it. A source change during a pause now reloads the Book catalog and re-evaluates readiness for the views only: no configuration maintenance and no claims, so nothing starts.
+-   A new fixture saves a problematic Book over the API of a paused engine and checks the warning, the exact source and commit, one pending repair task, a 409 conflict for a stale revision, an unchanged save without a commit, and a later save that still publishes without duplicating the repair.
+
 ## Engine updates: a release that cannot start is rolled back automatically
 
 -   The specification asks that a replacement be verified as a usable service, and that a failed update be recovered autonomously rather than left for the owner. Before, the restarted engine reported the update verified as soon as its version loaded, before its control endpoint existed. If the new version then could not start, nothing restored the previous one: a `--no-persist` service stayed down, and a persistent one restarted paused into the same broken code again and again.
