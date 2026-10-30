@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { coreReconciliationDescription, prepareCoreAgents, threeWayMerge } from '../dist/project/core-templates.js';
 import { buildTaskPrompt } from '../dist/engine/prompt.js';
 import { learningPrompt } from '../dist/engine/generated.js';
 import { AgentCatalog, resolveEffectiveAgent } from '../dist/project/agents.js';
-import { ADAM_BOOK, ADAM_PREVIOUS_BOOKS, CORE_AGENTS, FIXER_BOOK, FIXER_PREVIOUS_BOOKS, TASKER_BOOK } from '../dist/project/defaults.js';
+import { ADAM_BOOK, ADAM_PREVIOUS_BOOKS, CHATTER_PREVIOUS_BOOKS, CORE_AGENTS, FIXER_BOOK, FIXER_PREVIOUS_BOOKS, TASKER_BOOK } from '../dist/project/defaults.js';
+import { parseBook } from '../dist/book/parse.js';
 import { temporaryDirectory } from './helpers.mjs';
 
 /**
@@ -107,6 +108,28 @@ test('core preparation: an exact earlier Fixer template receives the cause-aware
     assert.deepEqual(result.conflicts, []);
     assert.equal(await project.read('.core/fixer.book'), FIXER_BOOK);
     assert.match(FIXER_BOOK, /exhausted retry budget is no reason to ask User/);
+});
+
+test('core templates follow the Book grammar: no core role starts with a problem Fixer would have to repair', () => {
+    for (const agent of CORE_AGENTS) {
+        const text = agent.content({ teammates: ['@Developer', '@Fixer'], routerModel: 'harness=OPENAI_CODEX model=fake-model-1' });
+        assert.deepEqual(parseBook(text).diagnostics, [], `${agent.file} parses without diagnostics`);
+    }
+});
+
+test('core preparation: an exact earlier Chatter template (its unknown `RULE A` line) is updated without a baseline', async (t) => {
+    const project = await projectWith(t);
+    await prepareCoreAgents(project.root, 'agents', { runtimeRoot: project.runtimeRoot });
+    const current = await project.read('.core/chatter.book');
+    const teammates = [...current.matchAll(/@[A-Z][A-Za-z]*/g)].map((match) => match[0]).filter((reference) => reference !== '@Expert');
+    const previous = CHATTER_PREVIOUS_BOOKS[0](teammates);
+    assert.match(previous, /^RULE A project brief/m);
+    // A copy without the ignored baselines (e.g. a fresh clone) still recognizes the exact earlier template.
+    await rm(project.runtimeRoot, { recursive: true, force: true });
+    await writeFile(join(project.root, 'agents', '.core', 'chatter.book'), previous);
+    const result = await prepareCoreAgents(project.root, 'agents', { runtimeRoot: project.runtimeRoot });
+    assert.deepEqual([result.conflicts, result.held ?? []], [[], []]);
+    assert.equal(await project.read('.core/chatter.book'), current);
 });
 
 test('core preparation: OPEN limits are anchors; the project\'s own limits or a moved declaration go to Fixer, never into an automatic merge', async (t) => {

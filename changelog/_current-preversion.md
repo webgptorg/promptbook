@@ -1,5 +1,11 @@
 # Unreleased
 
+## Core agents: Chatter's template no longer starts every project with a Fixer health check
+
+-   The Chatter template contained `RULE A project brief is one short paragraph…`. The Book grammar reads the maximal sequence of uppercase words as the keyword, so this line was an unknown `RULE A` commitment, preserved but with no effect. Every newly initialized project therefore started with a warning in `agents/.core/chatter.book`, the rule meant for Chatter's briefs was silently ignored, and the engine scheduled a Fixer "Project health check" (plus its routing and learning follow-ups) shortly after the first start. The line now reads `RULE Keep each project brief to one short paragraph…`, which follows the specification's rule that generated content respects the keyword boundary.
+-   Existing projects whose Chatter Book is still that exact template are updated by the ordinary core-template reconciliation. The previous text is kept as a verifiable earlier template, so a copy without the ignored baselines is recognized as well. Customized Chatter Books follow the usual three-way update (CLOSED ones are held).
+-   This spurious health-check work also made the panic fixture flaky: its final force stop could interrupt the health check's commit and leave the project dirty. A new test parses every core template and requires no diagnostics; another updates the exact earlier Chatter template without a baseline.
+
 ## Usage: breakdowns by task, chat and tool, and filters that combine
 
 -   The usage specification asks for "aggregation/filtering by agent, task, chat, work kind, tool, harness, model, account, project and time, including combinations, and self-only versus inclusive scope". The shared usage view could only group by agent, harness, model, kind of work or day over a time window. It had no breakdown by task, chat or tool, and no filtering at all. Now it also groups by **task**, **chat** and **tool**, and filters by agent, task, chat, kind of work, tool, harness and model. Filters combine, so every given one must match.
