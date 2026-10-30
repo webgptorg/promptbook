@@ -1798,10 +1798,10 @@
      * The Book source viewer/editor: a modal outside the live-updating page over the engine's shared Book operations
      * (`/api/books`), showing the literal source with the engine's detected problems. Enter only inserts a line and
      * Ctrl+S (⌘S) saves without closing. Problematic content still saves (Fixer gets a repair task); a save based on
-     * another revision is a conflict that keeps the draft. Engine-owned Expert and viewed-only Books are read-only.
-     * Closing keeps an unsaved draft for the next opening.
+     * another revision is a conflict that keeps the draft. Engine-owned Expert is read-only. Closing keeps an unsaved
+     * draft for the next opening.
      */
-    async function openBook(target, options = {}) {
+    async function openBook(target) {
         let source;
         try {
             source = await api(`/api/books?${target.path ? `path=${encodeURIComponent(target.path)}` : `ref=${encodeURIComponent(target.reference)}`}`);
@@ -1809,8 +1809,8 @@
             toast(`Cannot open the Book: ${error.message}`);
             return;
         }
-        const editable = source.editable && !options.readOnly;
-        const reason = options.readOnly && source.editable ? 'Opened for viewing; edit it from its Agents or Tasks page.' : source.reason;
+        const editable = source.editable;
+        const reason = source.reason;
         let draft = editable ? state.bookDrafts.get(source.path) : undefined;
         // A stale draft is offered as the content, but its base revision makes the save a visible conflict.
         let revision = draft ? draft.revision : source.revision;
@@ -2139,6 +2139,15 @@
         if (state.page === 'tasks') render(state.snapshot);
     }
 
+    /** Opens a new chat with one agent preselected in the ordinary new-chat entry and shared composer. */
+    function chatWithAgent(name) {
+        state.newChatAgent = name;
+        state.newChat = name.toLowerCase() === 'chatter' ? 'chatter' : 'all';
+        state.chat = null;
+        openPage('chats');
+        showNewChatAgents();
+    }
+
     /** The Tasks page: the complete inventory with smart default order and user-selected sorting. */
     function renderTasksPage() {
         const card = h('section', { className: 'card queue', 'aria-label': 'Tasks' });
@@ -2146,7 +2155,9 @@
         sort.value = state.tasks.sort;
         sort.addEventListener('change', () => ((state.tasks.sort = sort.value), loadTasks(true)));
         const direction = h('button', { onclick: () => ((state.tasks.descending = !state.tasks.descending), loadTasks(true)) }, state.tasks.descending ? 'Descending' : 'Ascending');
-        card.append(h('h2', {}, h('span', {}, `All tasks (${state.tasks.items ? state.tasks.items.length : '…'})`), h('span', { className: 'row' }, h('label', {}, 'Sort ', sort), direction)));
+        // Talking to Tasker is the main authoring action (the ordinary chat); sorting is only a view.
+        const tasker = h('button', { className: 'primary', onclick: () => chatWithAgent('Tasker') }, 'Talk to Tasker');
+        card.append(h('h2', {}, h('span', {}, `All tasks (${state.tasks.items ? state.tasks.items.length : '…'})`), h('span', { className: 'row' }, tasker, h('label', {}, 'Sort ', sort), direction)));
         if (!state.tasks.items) {
             card.append(h('p', { className: 'muted' }, 'Loading the task inventory…'));
             return pageFrame('tasks', 'Every task in every state', card);
@@ -2182,7 +2193,7 @@
                 ),
             ),
         );
-        if (!state.tasks.items.length) card.append(h('p', { className: 'muted' }, 'No tasks yet. Ask Tasker in a new chat to create one.'));
+        if (!state.tasks.items.length) card.append(h('p', { className: 'muted' }, 'No tasks yet. Talk to Tasker to create one.'));
         return pageFrame('tasks', 'Viewer order only — sorting never changes engine scheduling', card);
     }
 
@@ -2200,7 +2211,7 @@
                         'li',
                         {},
                         h('span', { className: 'title row' }, badge(agent, true), agent.name, h('span', { className: 'why' }, `${ACTIVITY_LABEL[agent.activity] || agent.activity}${queued(agent) ? ` · ${queued(agent)} queued` : ''}${agent.role === 'engine' ? ' · engine-provided' : agent.role === 'core' ? ' · core' : ''}`)),
-                        h('button', { onclick: () => ((state.newChatAgent = agent.name), (state.newChat = agent.name.toLowerCase() === 'chatter' ? 'chatter' : 'all'), (state.chat = null), openPage('chats'), showNewChatAgents()) }, 'Chat'),
+                        h('button', { onclick: () => chatWithAgent(agent.name) }, 'Chat'),
                         // The agent's Book: an editable project source, or the engine-owned Expert read-only.
                         h('button', { onclick: () => void openBook({ reference: agentReference(agent.name) }) }, 'Book'),
                     ),
