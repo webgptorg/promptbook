@@ -1,5 +1,9 @@
 # Unreleased
 
+## Documentation: pre-Reborn archive
+
+-   Add a short README link to the pinned legacy `0.114.0-51` source archive so it remains discoverable after Reborn becomes `main`.
+
 ## Release check: the loopback HTTP boundary test no longer resets after its restart
 
 -   The test restarts the local HTTP server and then checks that the old credentials stop working. The new listener usually takes the same port, and `fetch` sometimes reused a keep-alive connection pooled for the closed listener, which failed with `ECONNRESET`. Under parallel load this happened in about one run in ten (13 of 120 runs, 12 at a time). In the full suite, which `npm run release:prerelease` runs, it failed the release check. The test now sends those checks over fresh connections (0 failures in 96 runs, 12 at a time). The engine is unaffected: nothing in it uses `fetch` against its own server.
