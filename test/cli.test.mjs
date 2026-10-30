@@ -112,7 +112,7 @@ test('help, about and version never initialize or touch a project', async (t) =>
     assert.deepEqual(await readdir(directory), []);
 });
 
-test('bare picker: exactly two choices — the focused action of the directory state, then Help — and no side effects', async (t) => {
+test('bare picker: the focused action of the directory state, the global dashboard when any project is known, then Help — and no side effects', async (t) => {
     const { bareChoices, bareContext } = await import('../dist/cli/action-picker.js');
     const { projectAt } = await import('../dist/project/workspace.js');
     const directory = await temporaryDirectory(t);
@@ -128,6 +128,11 @@ test('bare picker: exactly two choices — the focused action of the directory s
     for (const state of ['running', 'pausing', 'pause', 'stopping']) {
         assert.deepEqual(labels({ kind: 'live', project: stopped.project, version: version, state }), ['Open dashboard', 'Open help'], `${state} is a live engine: dashboard, never another start or restart`);
     }
+    // Registered projects in any state (stopped ones included) put the global dashboard second and Help third.
+    const known = (context) => bareChoices(context, { knownProjects: 2 }).map((choice) => choice.label);
+    assert.deepEqual(known(empty), ['Initialize project', 'Open global dashboard', 'Open help']);
+    assert.deepEqual(known(stopped), ['Start project', 'Open global dashboard', 'Open help']);
+    assert.deepEqual(bareChoices(stopped, { knownProjects: 0 }).map((choice) => choice.label), ['Start project', 'Open help'], 'with none known, Help stays second');
     assert.deepEqual((await readdir(directory)).sort(), ['notes.txt', 'ptbk.json'], 'inspecting the directory changes nothing');
 });
 test('remote dashboard commands and options are removed from help and rejected before startup', async (t) => {

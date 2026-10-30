@@ -1,5 +1,9 @@
 # Unreleased
 
+## Bare ptbk: Open global dashboard when any project is known
+
+-   Bare interactive `ptbk` now offers **Open global dashboard** second (and Open help third) whenever the host's known-project registry has an entry, stopped and paused projects included. With no known project the menu stays Initialize/Start/Open dashboard plus Help. The registry is only read, so showing or cancelling the menu still changes nothing.
+
 ## Files: core-agent Books in agents/.core can be browsed
 
 -   Files hid every dot directory, so `agents/.core/` (Adam, Router, Tasker, Teacher, Fixer and Chatter) could not be opened from the terminal or browser dashboard. A hidden directory directly inside the configured agents directory is now listed and opened when it holds agent Books. Hidden files inside it, hidden folders without Books, protected names (`.git`, `.ptbk`, `.env` …) and every other hidden path stay refused, with the same traversal and symlink confinement.

@@ -3,6 +3,7 @@ import { pathExists } from '../common/fs.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { projectAt, type Project } from '../project/workspace.js';
 import { lookupService, type ServiceLookup } from '../service/control.js';
+import { readKnownProjects } from '../service/known-projects.js';
 import type { EngineSummary } from '../service/discovery.js';
 import { CANCELLED, selectOne, type Choice } from '../ui/prompts.js';
 import { createTerminalProfile } from '../ui/terminal.js';
@@ -12,11 +13,12 @@ import { parseInvocation } from './parser.js';
 import type { CommandSpec } from './spec.js';
 
 /**
- * Actions offered by bare interactive `ptbk`: one focused lifecycle action and Help.
+ * Actions offered by bare interactive `ptbk`: one focused lifecycle action, the global dashboard when any project is
+ * known, and Help.
  *
  * @private bare-command picker
  */
-export type PickedAction = 'init' | 'start' | 'dashboard' | 'help';
+export type PickedAction = 'init' | 'start' | 'dashboard' | 'global' | 'help';
 
 /**
  * The selected directory's initialization and verified engine ownership, which decide the focused choice.
@@ -49,16 +51,19 @@ export async function bareContext(project: Project): Promise<BareContext> {
 }
 
 /**
- * Exactly two choices: the focused action of the directory's state (Initialize project, Start project or Open
- * dashboard), then Open help. Restart is never offered here and the three lifecycle actions never appear together.
+ * The choices: the focused action of the directory's state (Initialize project, Start project or Open dashboard),
+ * then Open global dashboard when any project is registered on this host (in any state), then Open help. Restart is
+ * never offered here and the three lifecycle actions never appear together.
  *
  * @private bare-command picker
  */
-export function bareChoices(context: Exclude<BareContext, { kind: 'unknown' }>): readonly [Choice<PickedAction>, Choice<PickedAction>] {
+export function bareChoices(context: Exclude<BareContext, { kind: 'unknown' }>, options: { readonly knownProjects?: number } = {}): readonly [Choice<PickedAction>, ...Choice<PickedAction>[]] {
     const help: Choice<PickedAction> = { value: 'help', label: 'Open help', description: '`ptbk help`: every command and option' };
-    if (context.kind === 'uninitialized') return [{ value: 'init', label: 'Initialize project', description: '`ptbk init`: describe your project and set it up here' }, help];
-    if (context.kind === 'stopped') return [{ value: 'start', label: 'Start project', description: '`ptbk start`: run the agenda in the background, then open its dashboard' }, help];
-    return [{ value: 'dashboard', label: 'Open dashboard', description: `\`ptbk dashboard\`: watch and control the ${context.state ?? 'running'} engine` }, help];
+    const known = options.knownProjects ?? 0;
+    const rest: Choice<PickedAction>[] = [...(known ? [{ value: 'global' as const, label: 'Open global dashboard', description: `\`ptbk dashboard --global\`: every known project on this host (${known})` }] : []), help];
+    if (context.kind === 'uninitialized') return [{ value: 'init', label: 'Initialize project', description: '`ptbk init`: describe your project and set it up here' }, ...rest];
+    if (context.kind === 'stopped') return [{ value: 'start', label: 'Start project', description: '`ptbk start`: run the agenda in the background, then open its dashboard' }, ...rest];
+    return [{ value: 'dashboard', label: 'Open dashboard', description: `\`ptbk dashboard\`: watch and control the ${context.state ?? 'running'} engine` }, ...rest];
 }
 
 /**
@@ -83,8 +88,9 @@ function rawOption(argv: readonly string[], name: string): string | undefined {
 }
 
 /**
- * Bare interactive `ptbk`: exactly two choices for the selected directory (`--path`, else the current directory) —
- * the focused action of its verified state and Open help. Showing or cancelling it changes nothing. Before acting the
+ * Bare interactive `ptbk`: the focused action of the selected directory's verified state (`--path`, else the current
+ * directory), Open global dashboard when the host's registry knows any project, and Open help. Showing or cancelling it
+ * changes nothing (the registry is only read). Before acting the
  * state is revalidated, so a concurrent init/start cannot lead to a duplicate engine or a silent initialization; the
  * selection then runs the existing command workflow unchanged (start keeps its dashboard handoff and opt-outs).
  *
@@ -108,7 +114,8 @@ export async function runActionPicker(commands: readonly CommandSpec[], options:
                 next: ['Run `ptbk status` to inspect it (it may still be starting).', 'If it stays unreachable, `ptbk stop --force` terminates that verified engine.'],
             });
         }
-        const choices = bareChoices(context);
+        const known = await readKnownProjects().catch(() => ({ entries: [] }));
+        const choices = bareChoices(context, { knownProjects: known.entries.length });
         const picked = await selectOne(terminal, {
             frame: { title: `Promptbook · ptbk ${ENGINE_VERSION}`, step: contextLine(context), guide: { name: 'Expert', activity: 'idle', note: note ?? 'What would you like to do?' } },
             question: 'What do you want to do?',
@@ -120,6 +127,12 @@ export async function runActionPicker(commands: readonly CommandSpec[], options:
         if (picked === 'help') {
             process.stdout.write(renderTopLevelHelp(commands, createTerminalProfile({ raw: false, nonInteractive: true })));
             return EXIT.success;
+        }
+        if (picked === 'global') {
+            const argv = ['dashboard', '--global', ...options.argv.filter((token) => token === '--interactive' || token === '--no-terminal-title')];
+            const invocation = parseInvocation(argv, commands);
+            if (invocation.kind !== 'command' || !invocation.spec.run) return EXIT.failure;
+            return await invocation.spec.run(createCommandContext({ path: invocation.path, spec: invocation.spec, options: invocation.options, explicit: invocation.explicit, positionals: invocation.positionals, argv }));
         }
         // The state may have changed while the menu was open (another terminal initialized or started the project).
         const current = await bareContext(project);
