@@ -1,5 +1,11 @@
 # Unreleased
 
+## Wallet: a sign-in waiting for an approval on another device is no longer taken as signed in
+
+-   After the password or a one-time code, some websites wait until the sign-in is approved in their app or on another device. The Wallet now recognizes such a page: a short page without any field to fill whose wording asks for that approval. Before, any page without a login form counted as a successful sign-in, so a **Test** reported such a login as **verified** although nothing had been proven, and ordinary work was told it was signed in.
+-   The Wallet test now waits at that step with its login, up to ten minutes as for a code. The progress reads "Waiting for you to approve this sign-in where … asked"; there is nothing to enter, and the test can be cancelled. Once the website continues to its signed-in page, the login is **verified**. Approval not given in time, a declined or expired approval, or a cancellation ends the test as unverified (incomplete), never as a bad password. A code followed by an approval, or an approval followed by a code, is handled in one test.
+-   In ordinary work, `wallet_login` reports the approval as a further step. Called again on the approval page, it tells the agent that there is nothing to enter, that the page usually continues once approved, and that only the account owner can give the approval (through `browser_request_user_action`).
+
 ## Task purpose: status and the Tasks tiles show content work first
 
 -   `ptbk status`, `ptbk status --json` and the live snapshot behind both dashboards now carry each source-backed task's effective purpose. Before, only engine-owned tasks had one there, so supporting system work written in task Books, such as Router's `Assign routing: …` tasks, appeared unmuted between content tasks.
@@ -59,7 +65,7 @@
 -   Progress is shown live with the login. Afterwards it shows **verified**, **test rejected** or **unverified (test incomplete)** with the time and a concise reason, for example when no login form was found, the site asks for another step such as a code, or the website or browser is unavailable. A temporary outage is never reported as a bad password, and a login never tested reads as unverified. The latest result is stored inside the login's encrypted record (ignored local Wallet state, never in Git), with passwords and other secrets redacted, and it survives a restart. Updating the login clears it, and a result about values changed during the test is dropped.
 -   A test is not a task, run or credential mutation: it creates no task Book, trace, Wallet audit or commit.
 -   When the website asks for a one-time code after the password, the test waits with its login for up to ten minutes: **Enter the code** on the web, or Enter on the login in the terminal (masked input). The code is entered once into the test's own login context and never stored or kept in the result. A refused code asks for the current one, up to three codes. A running test can be cancelled (`X` in the terminal, **Cancel test** on the web). A missing code or a cancellation ends the test as unverified (incomplete), never as a bad password.
--   Not covered yet: approving a device action or taking over the browser during a test, and codes the test obtains from an inbox by itself (the test runs without an agent).
+-   Not covered yet: taking over the browser during a test, and codes the test obtains from an inbox by itself (the test runs without an agent).
 
 ## Wallet: one-time codes through protected owner input, never a chat
 

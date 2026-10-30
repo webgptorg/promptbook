@@ -74,6 +74,8 @@ function walletMessage(result: WalletLoginResult): string {
             return `The Wallet has no login for ${result.origin} itself, but for the related service domain${result.logins.length === 1 ? '' : 's'} ${result.logins.map((login) => `${login.origin} ("${login.account}")`).join(', ')}. Open that site's own sign-in page (usually through this site's Sign in link, which leads there) and call wallet_login again on it; never ask for the credentials. If that login does not apply to this site, call wallet_login here again with ignoreRelated set to true.`;
         case 'code-needed':
             return `${result.origin} asks for a one-time code. ${CODE_GUIDANCE}`;
+        case 'approval-needed':
+            return `${result.origin} waits for this sign-in to be approved in its app or on another device; the Wallet has nothing to enter. Check the page again shortly: it usually continues by itself once approved. If it does not, use browser_request_user_action for this approval, which only the account owner can give.`;
         case 'code-entered':
             return `The Wallet entered the one-time code the owner supplied, and ${result.origin} accepted it${result.note ? ` (${result.note})` : ''}. Verify the page shows what the task needs.`;
         case 'ambiguous':

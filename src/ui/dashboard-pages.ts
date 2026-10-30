@@ -126,7 +126,7 @@ export type DashboardPage =
  */
 export function walletItems(
     wallet: WalletView,
-): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string; readonly problem: WalletView['pending'][number]['problem'] } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string; readonly testing: boolean; readonly testAwaits?: 'code' }> {
+): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string; readonly problem: WalletView['pending'][number]['problem'] } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string; readonly testing: boolean; readonly testAwaits?: 'code' | 'approval' }> {
     return [
         ...wallet.pending.map((action) => ({ kind: 'request' as const, id: action.id, origin: action.origin, problem: action.problem, ...(action.account ? { account: action.account } : {}) })),
         ...wallet.records.map((record) => ({ kind: 'record' as const, id: record.id, origin: record.origin, account: record.account, testing: record.testing !== undefined, ...(record.testAwaits ? { testAwaits: record.testAwaits } : {}) })),
@@ -513,7 +513,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                               'I import from Bitwarden',
                               'G new 12 words',
                               ...(focused
-                                  ? [focused.kind === 'request' ? (focused.problem === 'code' ? 'Enter type the code · X dismiss' : focused.problem === 'field' ? 'Enter add the fields · X dismiss' : 'Enter add this login · X dismiss') : focused.testAwaits ? 'Enter type the code · X cancel the test' : focused.testing ? 'X cancel the test · D remove' : 'Enter update · T test · D remove']
+                                  ? [focused.kind === 'request' ? (focused.problem === 'code' ? 'Enter type the code · X dismiss' : focused.problem === 'field' ? 'Enter add the fields · X dismiss' : 'Enter add this login · X dismiss') : focused.testAwaits === 'code' ? 'Enter type the code · X cancel the test' : focused.testing ? 'X cancel the test · D remove' : 'Enter update · T test · D remove']
                                   : []),
                           ]
                         : [];

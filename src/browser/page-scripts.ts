@@ -384,6 +384,11 @@ export type LoginScan = {
      * fields of a form whose label looks like a sign-in question count (a step after the password).
      */
     readonly fields: readonly { readonly marker: string; readonly label: string; readonly required: boolean }[];
+    /**
+     * The page has no field to fill and waits for the sign-in to be approved elsewhere (a prompt in the service's app,
+     * another device, number matching): a short page whose wording asks for such an approval.
+     */
+    readonly approval: boolean;
 };
 
 /**
@@ -438,7 +443,11 @@ export function loginFormScript(): string {
             element.setAttribute('data-ptbk-wallet', 'field-' + index);
             return { marker: 'field-' + index, label: describe(element), required: required(element) };
         });
-        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields };
+        // Waiting for an approval elsewhere: only on a short page without any field to fill (never a signed-in page
+        // that merely mentions approvals among its content).
+        const text = !password && !username && !code && !fields.length && document.body ? (document.body.innerText || '').slice(0, 4000) : '';
+        const approval = text.length > 0 && text.length < 3000 && /(approve|confirm|allow)[^.!?\\n]{0,60}(sign.?in|log.?in|request|it.?s (really )?you)|(check|open)[^.!?\\n]{0,30}(phone|mobile|device|authenticator|app)\\b|(sent|pushed)[^.!?\\n]{0,40}(notification|push|prompt)|waiting for (your )?(approval|confirmation)|(tap|select) the number/i.test(text);
+        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields, approval };
     })()`;
 }
 

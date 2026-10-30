@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { open as openFile, readFile, rename, rm, stat } from 'node:fs/promises';
 import { hostname, userInfo } from 'node:os';
 import { join } from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
@@ -48,8 +49,11 @@ export type WalletRecordView = {
     readonly verification?: WalletVerification;
     /** The step of a credential test running now, for live progress. */
     readonly testing?: string;
-    /** The running test waits at the website's one-time code step for the owner's protected input. */
-    readonly testAwaits?: 'code';
+    /**
+     * The running test waits for the owner: at the website's one-time code step for their protected input (`code`), or
+     * for their approval of the sign-in in the service's app or on another device (`approval`, nothing to enter).
+     */
+    readonly testAwaits?: 'code' | 'approval';
     /** Labels of its additional login fields (their values stay encrypted and are never shown). */
     readonly fields?: readonly { readonly label: string; readonly uncertain?: boolean }[];
 };
@@ -140,8 +144,11 @@ export type WalletOutcome = { readonly action: string; readonly applied: boolean
  */
 export type SignInPage = {
     readonly browser: string;
-    /** Origin of the page now open, and whether it shows a login form (`code`: only a one-time code field). */
-    readonly inspect: () => Promise<{ readonly origin: string; readonly form: 'password' | 'username' | 'code' | 'none' }>;
+    /**
+     * Origin of the page now open, and whether it shows a login form (`code`: only a one-time code field; `approval`: no
+     * field, the page waits for the sign-in to be approved in the service's app or on another device).
+     */
+    readonly inspect: () => Promise<{ readonly origin: string; readonly form: 'password' | 'username' | 'code' | 'approval' | 'none' }>;
     /**
      * Enters the credentials of their origin (only while the page is on it; not recorded, never returned), submits and
      * verifies the resulting session.
@@ -186,6 +193,8 @@ export type WalletLoginResult =
     | { readonly status: 'code-needed'; readonly origin: string }
     /** The Wallet entered the owner's one-time code and the site accepted it. */
     | { readonly status: 'code-entered'; readonly origin: string; readonly note?: string }
+    /** The page waits for the sign-in to be approved in the service's app or on another device: nothing to enter. */
+    | { readonly status: 'approval-needed'; readonly origin: string }
     | { readonly status: 'waiting'; readonly origin: string; readonly action: string; readonly problem: WalletActionView['problem']; readonly reason: string }
     | { readonly status: 'failed'; readonly reason: string };
 
@@ -216,7 +225,7 @@ export type WalletOptions = {
      * draft for the whole wizard, until the final project-creation confirmation or until the process ends.
      */
     readonly draftLifetimeMs?: number;
-    /** How long a credential test waits for the owner's one-time code at a code step (default ten minutes). */
+    /** How long a credential test waits for the owner's one-time code or approval at such a step (default ten minutes). */
     readonly testCodeWaitMs?: number;
 };
 
@@ -331,9 +340,14 @@ export type WalletImportPreview = { readonly draft: string; readonly source: str
 const SETUP_DRAFT_MS = 30 * 60_000;
 
 /**
- * How long a credential test waits at a one-time code step for the owner's code.
+ * How long a credential test waits at a one-time code step for the owner's code, or for their approval of the sign-in.
  */
 const TEST_CODE_WAIT_MS = 10 * 60_000;
+
+/**
+ * How often a credential test waiting for an approval looks whether the website has moved on.
+ */
+const TEST_APPROVAL_POLL_MS = 2_000;
 
 /**
  * Codes a credential test enters before it ends as incomplete (a refused code asks for the current one).
@@ -539,6 +553,8 @@ export class WalletSubEngine {
     private readonly testing = new Map<string, string>();
     /** Credential tests waiting at a code step: each takes the owner's code once (undefined ends the wait). */
     private readonly testWaits = new Map<string, (code: string | undefined) => void>();
+    /** Credential tests waiting for the owner to approve the sign-in where the website asked (nothing to enter). */
+    private readonly testApprovals = new Set<string>();
     /** Credential tests the owner cancelled while they run. */
     private readonly testCancelled = new Set<string>();
     /** One-time codes the owner supplied, by origin: used once within their validity, held in memory only. */
@@ -1423,26 +1439,72 @@ export class WalletSubEngine {
     }
 
     /**
-     * The one-time code step of a credential test: the attending owner enters the code the website sent through the
-     * protected Wallet input (a refused code asks for the current one); another kind of step stays incomplete.
+     * The further steps of a credential test after the password: the attending owner approves the sign-in where the
+     * website asked, or enters the one-time code it sent through the protected Wallet input (a refused code asks for the
+     * current one); a code may be followed by an approval and the other way round. Another kind of step stays incomplete.
      */
-    private async testCodeStep(record: StoredRecord, page: SignInPage, step: (text: string) => void, secrets: string[], note?: string): Promise<readonly [WalletVerification['state'], string]> {
-        const inspected = await page.inspect().catch(() => undefined);
-        if (inspected?.form !== 'code' || !page.enterCode) return ['incomplete', `The website asks for another step (${note ?? 'a code or an approval'}); the password was accepted only if that step follows it, so the login stays unverified.`];
+    private async testFactorStep(record: StoredRecord, page: SignInPage, step: (text: string) => void, secrets: string[], note?: string): Promise<readonly [WalletVerification['state'], string]> {
         const minutes = Math.round((this.options.testCodeWaitMs ?? TEST_CODE_WAIT_MS) / 60_000);
+        const within = minutes ? ` within ${minutes} minute${minutes === 1 ? '' : 's'}` : '';
+        for (let steps = 0; steps < 3; steps++) {
+            const inspected = await page.inspect().catch(() => undefined);
+            if (inspected?.form === 'approval') {
+                const approved = await this.testApproval(record, page, step);
+                if (approved === 'cancelled') return ['incomplete', 'The test was cancelled at its approval step; the login stays unverified.'];
+                if (approved === 'approval') return ['incomplete', `The sign-in was not approved${within}; the password was accepted, but the login stays unverified.`];
+                if (approved === 'none') return ['verified', 'The website accepted this login after the sign-in was approved.'];
+                if (approved !== 'code') return ['incomplete', 'The website returned to its login form at the approval step (the approval was declined or expired); the login stays unverified.'];
+                continue;
+            }
+            if (inspected?.form !== 'code' || !page.enterCode) return ['incomplete', `The website asks for another step (${note ?? 'a code or an approval'}); the password was accepted only if that step follows it, so the login stays unverified.`];
+            const coded = await this.testCode(record, page, page.enterCode, step, secrets, within);
+            if (coded) return coded;
+        }
+        return ['incomplete', 'The website kept asking for further steps; the login stays unverified.'];
+    }
+
+    /**
+     * The one-time code step of a credential test: the outcome, or undefined when the website accepted the code and
+     * asks to approve the sign-in next.
+     */
+    private async testCode(record: StoredRecord, page: SignInPage, enterCode: NonNullable<SignInPage['enterCode']>, step: (text: string) => void, secrets: string[], within: string): Promise<readonly [WalletVerification['state'], string] | undefined> {
         for (let attempt = 1; attempt <= TEST_CODE_ATTEMPTS; attempt++) {
             step(attempt === 1 ? 'Waiting for the one-time code the website sent; enter it with this login' : 'The website did not accept the code; enter the current one');
             const code = await this.awaitTestCode(record.id);
             if (code === undefined) {
-                return ['incomplete', this.testCancelled.has(record.id) ? 'The test was cancelled at its one-time code step; the login stays unverified.' : `No one-time code was entered${minutes ? ` within ${minutes} minute${minutes === 1 ? '' : 's'}` : ''}; the login stays unverified.`];
+                return ['incomplete', this.testCancelled.has(record.id) ? 'The test was cancelled at its one-time code step; the login stays unverified.' : `No one-time code was entered${within}; the login stays unverified.`];
             }
             secrets.push(code);
             step('Entering the one-time code');
-            const entered = await page.enterCode(record.origin, code).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
+            const entered = await enterCode(record.origin, code).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
             if (entered.result === 'signed-in') return ['verified', `The website accepted this login and the one-time code${entered.note ? ` (${entered.note})` : ''}.`];
+            if (entered.result === 'challenge' && (await page.inspect().catch(() => undefined))?.form === 'approval') return undefined;
             if (entered.result !== 'rejected') return ['incomplete', `The one-time code could not be entered${entered.note ? ` (${entered.note})` : ''}; the login stays unverified.`];
         }
         return ['incomplete', `The website did not accept ${TEST_CODE_ATTEMPTS} entered one-time codes; the password was accepted, but the login stays unverified.`];
+    }
+
+    /**
+     * The approval step of a credential test: the attending owner approves the sign-in in the service's app or on another
+     * device while the test watches the page (nothing is entered). The page's next state (`approval`: not approved in
+     * time), or `cancelled`.
+     */
+    private async testApproval(record: StoredRecord, page: SignInPage, step: (text: string) => void): Promise<'cancelled' | 'password' | 'username' | 'code' | 'approval' | 'none'> {
+        const wait = this.options.testCodeWaitMs ?? TEST_CODE_WAIT_MS;
+        const until = Date.now() + wait;
+        this.testApprovals.add(record.id);
+        step(`Waiting for you to approve this sign-in where ${record.origin} asked (in its app or on another device)`);
+        try {
+            for (;;) {
+                if (this.testCancelled.has(record.id)) return 'cancelled';
+                const form = (await page.inspect().catch(() => undefined))?.form ?? 'approval';
+                if (form !== 'approval' || Date.now() >= until) return form;
+                await sleep(Math.min(TEST_APPROVAL_POLL_MS, Math.max(10, wait / 10)));
+            }
+        } finally {
+            this.testApprovals.delete(record.id);
+            this.options.onChange();
+        }
     }
 
     /**
@@ -1478,7 +1540,7 @@ export class WalletSubEngine {
                     return ['rejected', `The website rejected this login${attempt.note ? ` (${attempt.note})` : ''}; update it.`];
                 case 'challenge':
                     if (attempt.missingFields?.length) return ['incomplete', `The login form asks for ${attempt.missingFields.map((label) => `"${label}"`).join(', ')}, which this login does not have; add ${attempt.missingFields.length === 1 ? 'it' : 'them'} when you update the login. The login stays unverified.`];
-                    return await this.testCodeStep(record, context.page, step, secrets, attempt.note);
+                    return await this.testFactorStep(record, context.page, step, secrets, attempt.note);
                 case 'no-form':
                     return ['incomplete', `The login form could not be completed${attempt.note ? ` (${attempt.note})` : ''}; the login stays unverified.`];
             }
@@ -1645,6 +1707,7 @@ export class WalletSubEngine {
             return { status: 'failed', reason: 'The current tab shows no website; open the login page of the site first.' };
         }
         if (inspected.form === 'none') return { status: 'no-login-form', origin };
+        if (inspected.form === 'approval') return { status: 'approval-needed', origin };
         const account = request.account?.trim() || undefined;
         const purpose = request.reason?.trim() ? ` (${request.reason.trim().slice(0, 200)})` : '';
         return await this.mutex.run(async (): Promise<WalletLoginResult> => {
@@ -1827,7 +1890,7 @@ export class WalletSubEngine {
                     ...(lastOutcome ? { lastOutcome } : {}),
                     ...(verification ? { verification } : {}),
                     ...(this.testing.has(id) ? { testing: this.testing.get(id)! } : {}),
-                    ...(this.testWaits.has(id) ? { testAwaits: 'code' as const } : {}),
+                    ...(this.testWaits.has(id) ? { testAwaits: 'code' as const } : this.testApprovals.has(id) ? { testAwaits: 'approval' as const } : {}),
                     // Only the labels: field values stay encrypted like the password.
                     ...(fields.length ? { fields: fields.map((field) => ({ label: field.label, ...(field.uncertain ? { uncertain: true } : {}) })) } : {}),
                 };

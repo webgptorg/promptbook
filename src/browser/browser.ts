@@ -65,6 +65,11 @@ const TYPE_SETTLE_MS = 300;
 const SUBMIT_SETTLE_MS = 1500;
 
 /**
+ * A sign-in that now waits for an approval in the service's app or on another device (not yet signed in).
+ */
+const APPROVAL_ASKED: SignInAttempt = { result: 'challenge', note: 'the site asks to approve this sign-in in its app or on another device' };
+
+/**
  * Upper bound of repeated key presses in one call.
  */
 const MAX_KEY_REPEAT = 100;
@@ -1236,7 +1241,7 @@ export class TaskBrowser {
             browser: this.name,
             inspect: async () => {
                 const scan = await this.scanLogin();
-                return { origin: scan.origin, form: scan.password ? 'password' : scan.username ? 'username' : scan.otp ? 'code' : 'none' };
+                return { origin: scan.origin, form: scan.password ? 'password' : scan.username ? 'username' : scan.otp ? 'code' : scan.approval ? 'approval' : 'none' };
             },
             signIn: async (credentials) => await this.walletSignIn(credentials),
             enterCode: async (origin, code) => await this.walletEnterCode(origin, code),
@@ -1312,7 +1317,8 @@ export class TaskBrowser {
      * Signs in with credentials of one origin: a field is entered only while the page is on that origin (a redirect to
      * another site never receives them), a two-step login gets the username first, additional fields of the form are
      * filled from the saved ones with a matching label, and the result is verified on the resulting page rather than
-     * assumed from the submission. A required field no saved one answers stops before submitting (no false rejection).
+     * assumed from the submission. A required field no saved one answers stops before submitting (no false rejection);
+     * a page waiting for an approval elsewhere is a further step, not a signed-in session.
      */
     private async walletSignIn(credentials: SignInCredentials): Promise<SignInAttempt> {
         await this.recorder.pause('Wallet sign-in (credentials are not recorded)');
@@ -1342,7 +1348,7 @@ export class TaskBrowser {
                 await additional(scan, true);
                 await this.submitLogin();
                 scan = await this.scanLogin();
-                if (!scan.password) return scan.otp ? { result: 'challenge', note: 'the site asks for a one-time code' } : scan.username ? { result: 'rejected', note: 'the site did not accept the username' } : { result: 'no-form', note: 'no password field followed the username' };
+                if (!scan.password) return scan.otp ? { result: 'challenge', note: 'the site asks for a one-time code' } : scan.approval ? APPROVAL_ASKED : scan.username ? { result: 'rejected', note: 'the site did not accept the username' } : { result: 'no-form', note: 'no password field followed the username' };
                 const away = elsewhere(scan);
                 if (away) return away;
             }
@@ -1354,6 +1360,7 @@ export class TaskBrowser {
             let after = await this.scanLogin();
             if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
             if (after.otp) return { result: 'challenge', note: 'the site asks for a one-time code' };
+            if (after.approval) return APPROVAL_ASKED;
             // A sign-in question after the password (security answer, date of birth, …): answered from the saved
             // fields once, on the login's own site only.
             if (after.fields.length && !elsewhere(after)) {
@@ -1365,6 +1372,7 @@ export class TaskBrowser {
                 if (after.fields.length && originMatches(credentials.origin, after.origin)) return { result: 'rejected', note: 'the site asked for its sign-in question again' };
                 if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
                 if (after.otp) return { result: 'challenge', note: 'the site asks for a one-time code' };
+                if (after.approval) return APPROVAL_ASKED;
             }
             return { result: 'signed-in' };
         } finally {
@@ -1375,7 +1383,8 @@ export class TaskBrowser {
 
     /**
      * Enters a one-time code the owner supplied into the page's code field, only while the page is on its origin
-     * (not recorded), and verifies the result: the code field shown again means the site did not accept it.
+     * (not recorded), and verifies the result: the code field shown again means the site did not accept it, and an
+     * approval asked for next is a further step.
      */
     private async walletEnterCode(origin: string, code: string): Promise<SignInAttempt> {
         await this.recorder.pause('Wallet one-time code entry (the code is not recorded)');
@@ -1388,6 +1397,7 @@ export class TaskBrowser {
             const after = await this.scanLogin();
             if (after.otp && originMatches(origin, after.origin)) return { result: 'rejected', note: 'the site asks for a code again' };
             if (after.password && originMatches(origin, after.origin)) return { result: 'rejected', note: 'the site returned to its login form' };
+            if (after.approval) return APPROVAL_ASKED;
             return { result: 'signed-in' };
         } finally {
             await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);

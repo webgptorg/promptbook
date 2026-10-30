@@ -548,6 +548,88 @@ test('Wallet one-time code in the real browser: the owner\'s code is typed into 
     assert.ok(!result.text.includes('246810'), 'the agent never sees the code');
 });
 
+test('Wallet approval in the real browser: a page waiting for an approval on another device is a further step, never a signed-in session; the attended test waits for the approval', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+    const teardown = [];
+    const root = await temporaryDirectory(t, 'ptbk wallet approval browser', teardown);
+    await mkdir(join(root, '.ptbk', 'tmp'), { recursive: true });
+    const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
+    // After the right password, the site waits until the sign-in is approved on the phone (`decision`), reloading itself.
+    let decision;
+    const server = createServer((request, response) => {
+        let body = '';
+        request.on('data', (chunk) => (body += chunk));
+        request.on('end', () => {
+            const fields = new URLSearchParams(body);
+            if (request.method === 'POST' && request.url === '/login' && fields.get('password') === 'right password 1') {
+                response.writeHead(302, { Location: '/approve' });
+                response.end();
+                return;
+            }
+            if (request.url === '/approve' && decision) {
+                response.writeHead(302, decision === 'approved' ? { Location: '/', 'Set-Cookie': 'session=ok; Path=/' } : { Location: '/' });
+                response.end();
+                return;
+            }
+            response.setHeader('content-type', 'text/html');
+            if (request.url === '/approve') response.end('<!doctype html><meta http-equiv="refresh" content="1"><title>Approve sign-in</title><h1>Check your phone</h1><p>We sent a notification to your phone. Open the Example app and approve this sign-in.</p>');
+            else response.end(/session=ok/.test(request.headers.cookie ?? '') ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : LOGIN_PAGE);
+        });
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const settings = { tools: [{ type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: true }], overriddenTools: new Set() };
+    const fleet = new BrowserFleet(project, () => settings, env);
+    teardown.push(async () => {
+        await fleet.close();
+        server.closeAllConnections();
+        server.close();
+    });
+    let contexts = 0;
+    const wallet = new WalletSubEngine({
+        project,
+        env,
+        onChange: () => undefined,
+        log: () => undefined,
+        loginContext: async (at) => {
+            const key = `wallet-test-${++contexts}`;
+            const isolated = await (await fleet.scope(key).acquire()).isolatedLogin(at);
+            return { page: isolated.page, dispose: async () => (await isolated.dispose(), await fleet.endScope(key)) };
+        },
+    });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: () => undefined }).map((tool) => [tool.name, tool]));
+    const call = async (name, input = {}) => await tools[name].handler(input);
+    const { id } = await wallet.save({ origin, username: 'fixture-user', password: 'right password 1' });
+    const record = () => wallet.view().records.find((candidate) => candidate.id === id);
+
+    // Ordinary login: the approval page is a further step for the account owner, not a signed-in session.
+    await call('browser_open', { url: origin });
+    assert.match((await call('wallet_login', {})).text, /asks for another step \(the site asks to approve this sign-in in its app or on another device\)/);
+    assert.match((await call('wallet_login', {})).text, /waits for this sign-in to be approved .*nothing to enter/);
+
+    // The attended test waits for the owner's approval, then sees the access.
+    const approving = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'approval', { timeoutMs: 60_000, message: 'the approval step' });
+    assert.match(record().testing, /Waiting for you to approve this sign-in where http:\/\/127\.0\.0\.1:\d+ asked/);
+    decision = 'approved';
+    const approved = await approving;
+    assert.equal(approved.verification.state, 'verified', approved.verification.reason);
+    assert.match(approved.verification.reason, /after the sign-in was approved/);
+    assert.equal(record().testAwaits, undefined);
+
+    // A declined approval is no proof and no bad password.
+    decision = undefined;
+    const declining = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'approval', { timeoutMs: 60_000, message: 'the approval step' });
+    decision = 'declined';
+    const declined = await declining;
+    assert.equal(declined.verification.state, 'incomplete', declined.verification.reason);
+    assert.match(declined.verification.reason, /declined or expired/);
+});
+
 test('Wallet additional login fields in the real browser: a required unknown field is requested before submitting, then the saved fields fill the form and a security question after the password', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
     const teardown = [];
     const root = await temporaryDirectory(t, 'ptbk wallet fields browser', teardown);
@@ -914,6 +996,67 @@ test('Wallet Test at a one-time code step: the attending owner enters the code t
     assert.equal(record().testing, undefined);
     assert.equal(wallet.cancelTest(id).applied, false, 'nothing runs any more');
     assert.equal(wallet.view().records.length, 1, 'the saved login stays');
+});
+
+test('Wallet Test at an approval step: it waits while the page waits, and ends incomplete when not approved in time or cancelled; a code may come first', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet test approval');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    // A site whose steps after the password are scripted per test: `steps` is what the page shows next.
+    let steps = [];
+    const loginContext = async (origin) => {
+        let step = 'password';
+        return {
+            page: {
+                browser: 'fresh-context',
+                inspect: async () => ({ origin, form: step }),
+                signIn: async () => ((step = steps.shift()), { result: 'challenge', note: step === 'code' ? 'the site asks for a one-time code' : 'the site asks to approve this sign-in in its app or on another device' }),
+                enterCode: async () => ((step = steps.shift()), step === 'approval' ? { result: 'challenge' } : { result: 'signed-in' }),
+            },
+            approve: () => (step = 'none'),
+            dispose: async () => undefined,
+        };
+    };
+    let current;
+    const wallet = new WalletSubEngine({
+        project: { root: project, runtime: { root: join(project, '.ptbk'), state: join(project, '.ptbk', 'state') } },
+        env: { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' },
+        onChange: () => undefined,
+        log: () => undefined,
+        loginContext: async (origin) => (current = await loginContext(origin)),
+        testCodeWaitMs: 400,
+    });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const { id } = await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'jane secret' });
+    const record = () => wallet.view().records.find((candidate) => candidate.id === id);
+
+    // Not approved in time: incomplete, never verified from a page without a form.
+    steps = ['approval'];
+    const late = await wallet.test(id);
+    assert.equal(late.verification.state, 'incomplete');
+    assert.match(late.verification.reason, /not approved; the password was accepted, but the login stays unverified/);
+
+    // Cancelled while waiting.
+    steps = ['approval'];
+    const cancelling = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'approval', { timeoutMs: 5_000, message: 'the approval step' });
+    assert.throws(() => wallet.supplyTestCode({ id, code: '1' }), /not waiting for a one-time code/, 'an approval takes no code');
+    assert.equal(wallet.cancelTest(id).applied, true);
+    assert.match((await cancelling).verification.reason, /cancelled at its approval step/);
+
+    // A code first, then an approval on the phone.
+    steps = ['code', 'approval'];
+    const both = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'code', { timeoutMs: 5_000, message: 'the code step' });
+    wallet.supplyTestCode({ id, code: '424242' });
+    await waitFor(() => record().testAwaits === 'approval', { timeoutMs: 5_000, message: 'the approval after the code' });
+    current.approve();
+    const verified = await both;
+    assert.equal(verified.verification.state, 'verified', verified.verification.reason);
+    assert.match(verified.verification.reason, /after the sign-in was approved/);
+    assert.equal(record().testing, undefined);
 });
 
 test('Wallet additional login fields: encrypted with the login, kept through updates and restarts, filled for sign-in, requested when a form needs more and imported from Bitwarden', async (t) => {
