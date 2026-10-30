@@ -4,7 +4,7 @@ import { parseBook, singleValue } from '../dist/book/parse.js';
 import { appendCommitment, setControlCommitment } from '../dist/book/edit.js';
 import { convertLegacyBook } from '../dist/book/convert.js';
 import { matchCommitmentKeyword } from '../dist/book/commitments.js';
-import { findAgentReferences, formatAgentReference, invalidReferenceMessage, normalizeAgentName, nonAgentOf, parseReferenceValue, toReference } from '../dist/book/references.js';
+import { findAgentReferences, formatAgentReference, invalidReferenceMessage, normalizeAgentName, systemAgentOf, parseReferenceValue, toReference } from '../dist/book/references.js';
 import { declarationName, renderCommitment, renderDeclaration } from '../dist/book/write.js';
 import { generatedName } from '../dist/tasks/identity.js';
 import { readTaskBook, splitTaskReferences } from '../dist/tasks/book-task.js';
@@ -112,13 +112,13 @@ test('TASK DEPENDS ON keeps a braced multiword name together', () => {
     assert.deepEqual(splitTaskReferences('{Discuss CSV export}, @Deploy #legacy tasks/c.book {{Not A Reference}}'), ['{Discuss CSV export}', '@Deploy', '#legacy', 'tasks/c.book', '{{Not A Reference}}']);
 });
 
-test('non-agents: Void/Null/0, User and Expert are reserved', () => {
-    assert.equal(nonAgentOf('void'), 'Void');
-    assert.equal(nonAgentOf('null'), 'Void');
-    assert.equal(nonAgentOf('0'), 'Void');
-    assert.equal(nonAgentOf('user'), 'User');
-    assert.equal(nonAgentOf('expert'), 'Expert');
-    assert.equal(nonAgentOf('adam'), undefined);
+test('system agents: Void/Null/0, User and Expert are reserved', () => {
+    assert.equal(systemAgentOf('void'), 'Void');
+    assert.equal(systemAgentOf('null'), 'Void');
+    assert.equal(systemAgentOf('0'), 'Void');
+    assert.equal(systemAgentOf('user'), 'User');
+    assert.equal(systemAgentOf('expert'), 'Expert');
+    assert.equal(systemAgentOf('adam'), undefined);
 });
 
 test('task Books: TASK declares the name, GOAL the work; malformed controls block; done stamps complete one-time tasks', () => {

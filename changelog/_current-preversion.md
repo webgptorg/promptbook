@@ -1,5 +1,9 @@
 # Unreleased
 
+## System agents replace non-agents in code and messages
+
+-   Void/Null, User and Expert are now called **system agents** everywhere the engine speaks, matching the renamed specification. The error for a task assigned to User or Void reads "… is an engine system agent and cannot perform tasks." The resolver kind is `system-agent` (`systemAgentOf`, `SystemAgentName`); their built-in behavior is unchanged.
+
 ## History: a commit's task link opens the task in the browser
 
 -   The browser History page showed a commit's verified `Task-Name` link only as a path, while the terminal page opens it with `E`. The commit detail now offers **Open**, which shows the task Book in Files (as the Action log's Task Book does); a task no longer in the project stays an honest historical state without a link.

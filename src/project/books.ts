@@ -2,7 +2,7 @@ import { readFile, realpath } from 'node:fs/promises';
 import { join, resolve, sep } from 'node:path';
 import { isPathInside, listDirectory, sha256, toProjectRelative } from '../common/fs.js';
 import { parseBook, type BookDocument, type EntityKind } from '../book/parse.js';
-import { invalidReferenceMessage, nonAgentOf, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
+import { invalidReferenceMessage, systemAgentOf, normalizeAgentName, parseReferenceValue, type SystemAgentName } from '../book/references.js';
 import { inspectGit, listIgnoredEntries, listProjectFiles } from './git.js';
 import { RUNTIME_DIRECTORY_NAME } from './workspace.js';
 
@@ -96,7 +96,7 @@ export type BookDiagnostic = {
  * @private Book index
  */
 export type NameResolution =
-    | { readonly kind: 'non-agent'; readonly name: NonAgentName }
+    | { readonly kind: 'system-agent'; readonly name: SystemAgentName }
     | { readonly kind: 'book'; readonly entry: BookEntry; readonly shadowed: readonly BookEntry[] }
     | { readonly kind: 'missing'; readonly incomplete?: string }
     | { readonly kind: 'invalid'; readonly reason: string };
@@ -253,7 +253,7 @@ export class BookIndex {
             this.diagnostics.push({ path: relativePath, line: document.headerLine + 1, message: 'The Book name is empty after normalization.', severity: 'error' });
             return;
         }
-        const reserved = nonAgentOf(entry.normalized);
+        const reserved = systemAgentOf(entry.normalized);
         if (reserved) {
             this.diagnostics.push({ path: relativePath, line: document.headerLine + 1, message: `"${document.name}" is reserved for the engine-supplied ${reserved}; this file cannot replace it.`, severity: 'error' });
             return;
@@ -324,8 +324,8 @@ export class BookIndex {
     public async resolve(reference: string): Promise<NameResolution> {
         const parsed = parseReferenceValue(reference);
         if (!parsed) return { kind: 'invalid', reason: invalidReferenceMessage(reference) };
-        const nonAgent = nonAgentOf(parsed.normalized);
-        if (nonAgent) return { kind: 'non-agent', name: nonAgent };
+        const systemAgent = systemAgentOf(parsed.normalized);
+        if (systemAgent) return { kind: 'system-agent', name: systemAgent };
         let matches = this.entries.filter((entry) => entry.normalized === parsed.normalized);
         if (!matches.length) {
             await this.loadIgnoredTier();

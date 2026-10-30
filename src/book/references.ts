@@ -1,14 +1,14 @@
 /**
- * Engine-supplied non-agents.
+ * Engine-supplied system agents.
  *
  * @private Book language
  */
-export type NonAgentName = 'Void' | 'User' | 'Expert';
+export type SystemAgentName = 'Void' | 'User' | 'Expert';
 
 /**
- * Normalized spellings of every non-agent (Void has the aliases Null and `0`).
+ * Normalized spellings of every system agent (Void has the aliases Null and `0`).
  */
-const NON_AGENT_BY_NORMALIZED: ReadonlyMap<string, NonAgentName> = new Map([
+const SYSTEM_AGENT_BY_NORMALIZED: ReadonlyMap<string, SystemAgentName> = new Map([
     ['void', 'Void'],
     ['null', 'Void'],
     ['0', 'Void'],
@@ -33,12 +33,12 @@ export function normalizeAgentName(name: string): string {
 }
 
 /**
- * Resolves a normalized name to a non-agent, if reserved.
+ * Resolves a normalized name to a system agent, if reserved.
  *
  * @private Book language
  */
-export function nonAgentOf(normalized: string): NonAgentName | undefined {
-    return NON_AGENT_BY_NORMALIZED.get(normalized);
+export function systemAgentOf(normalized: string): SystemAgentName | undefined {
+    return SYSTEM_AGENT_BY_NORMALIZED.get(normalized);
 }
 
 /**

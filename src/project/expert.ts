@@ -6,7 +6,7 @@ import { COMMITMENTS } from '../book/commitments.js';
 /**
  * Directory of the specification shipped with the running engine (Expert's reference material).
  *
- * @private Expert non-agent
+ * @private Expert system agent
  */
 export const EXPERT_DOCUMENTATION_DIRECTORY = join(ENGINE_ROOT, 'dist', 'expert');
 
@@ -15,7 +15,7 @@ export const EXPERT_DOCUMENTATION_DIRECTORY = join(ENGINE_ROOT, 'dist', 'expert'
  *
  * Expert is never materialized into the project; its knowledge always matches the running engine.
  *
- * @private Expert non-agent
+ * @private Expert system agent
  */
 export async function expertInstructions(): Promise<string> {
     const commitments = COMMITMENTS.map(

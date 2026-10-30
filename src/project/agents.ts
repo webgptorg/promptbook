@@ -1,12 +1,12 @@
 import { withdrawnKeyword } from '../book/commitments.js';
 import { UNCONSTRAINED, intersectModels, modelOfDocument, type ModelConstraint } from '../book/model.js';
 import { commitmentsOf, singleValue, type BookDocument } from '../book/parse.js';
-import { findAgentReferences, invalidReferenceMessage, normalizeAgentName, parseReferenceValue, type NonAgentName } from '../book/references.js';
+import { findAgentReferences, invalidReferenceMessage, normalizeAgentName, parseReferenceValue, type SystemAgentName } from '../book/references.js';
 import { BookIndex, type BookDiagnostic as BookIndexDiagnostic, type BookEntry, type BookTier } from './books.js';
 import { expertInstructions } from './expert.js';
 
 /**
- * Lookup tier of a project agent definition (tier 1 are the engine non-agents); see `BookTier`.
+ * Lookup tier of a project agent definition (tier 1 are the engine system agents); see `BookTier`.
  *
  * @private agent resolution
  */
@@ -38,7 +38,7 @@ export type AgentDiagnostic = BookIndexDiagnostic & {
  * @private agent resolution
  */
 export type AgentResolution =
-    | { readonly kind: 'non-agent'; readonly name: NonAgentName }
+    | { readonly kind: 'system-agent'; readonly name: SystemAgentName }
     | { readonly kind: 'agent'; readonly definition: AgentDefinition; readonly shadowed: readonly BookEntry[] }
     | { readonly kind: 'wrong-kind'; readonly entry: BookEntry }
     | { readonly kind: 'missing'; readonly incomplete?: string }
@@ -115,7 +115,7 @@ export class AgentCatalog {
 export function describeResolution(reference: string, resolution: AgentResolution): string | undefined {
     switch (resolution.kind) {
         case 'agent':
-        case 'non-agent':
+        case 'system-agent':
             return undefined;
         case 'wrong-kind':
             return `${reference} names the ${resolution.entry.kind} ${resolution.entry.relativePath}, not an agent (the first Book with that name wins).`;
@@ -206,7 +206,7 @@ export function learningPolicyOf(document: BookDocument): LearningPolicy {
 export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: string): Promise<EffectiveAgent> {
     const diagnostics: AgentDiagnostic[] = [];
     const resolution = await catalog.resolve(reference);
-    if (resolution.kind === 'non-agent') {
+    if (resolution.kind === 'system-agent') {
         if (resolution.name === 'Expert') {
             return {
                 name: 'Expert',
@@ -220,7 +220,7 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
                 diagnostics,
             };
         }
-        diagnostics.push({ path: '', line: 0, message: `${resolution.name} is an engine non-agent and cannot perform tasks.`, severity: 'error' });
+        diagnostics.push({ path: '', line: 0, message: `${resolution.name} is an engine system agent and cannot perform tasks.`, severity: 'error' });
         return { name: resolution.name, normalized: normalizeAgentName(resolution.name), chain: [], instructions: [], goals: [], team: [], learning: { open: false }, model: UNCONSTRAINED, diagnostics };
     }
     if (resolution.kind !== 'agent') {
@@ -271,7 +271,7 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
             break;
         }
         const parent = await catalog.resolve(parentReference);
-        if (parent.kind === 'non-agent') {
+        if (parent.kind === 'system-agent') {
             if (parent.name === 'Void') break;
             if (parent.name === 'User') {
                 diagnostics.push({ path: current.relativePath, line: (from.commitment?.startLine ?? 0) + 1, message: 'User cannot be an inheritance parent (FROM @User is invalid).', severity: 'error' });

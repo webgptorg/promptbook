@@ -127,8 +127,8 @@ export async function chatDetail(store: ChatStore, name: string): Promise<ChatDe
 export async function createUserChat(store: ChatStore, catalog: AgentCatalog, agent: string, text: string, options: { readonly name?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
     const reference = toReference(agent);
     const resolution = await catalog.resolve(reference);
-    if (resolution.kind === 'non-agent' && resolution.name !== 'Expert') throw new PtbkError(`You cannot chat with ${resolution.name}; choose a project agent or @Expert.`, { kind: 'usage' });
-    if (resolution.kind !== 'agent' && resolution.kind !== 'non-agent') {
+    if (resolution.kind === 'system-agent' && resolution.name !== 'Expert') throw new PtbkError(`You cannot chat with ${resolution.name}; choose a project agent or @Expert.`, { kind: 'usage' });
+    if (resolution.kind !== 'agent' && resolution.kind !== 'system-agent') {
         throw new PtbkError(`Cannot chat with ${agent}: ${resolution.kind === 'wrong-kind' ? `${resolution.entry.relativePath} is a ${resolution.entry.kind}, not an agent` : `no such agent (${resolution.kind})`}.`, { kind: 'usage', next: ['Run `ptbk chat` without --agent to choose one.'] });
     }
     const name = resolution.kind === 'agent' ? resolution.definition.name : 'Expert';

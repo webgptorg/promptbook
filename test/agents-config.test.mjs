@@ -21,7 +21,7 @@ async function files(root, entries) {
     }
 }
 
-test('agent lookup: non-agents, agents/ tier, other Books, then ignored node_modules; collisions and shadowing', async (t) => {
+test('agent lookup: system agents, agents/ tier, other Books, then ignored node_modules; collisions and shadowing', async (t) => {
     const root = await temporaryDirectory(t);
     await initRepository(root);
     await files(root, {
@@ -41,7 +41,7 @@ test('agent lookup: non-agents, agents/ tier, other Books, then ignored node_mod
         'agents/team/reviewer.book': 'AGENT Reviewer\nRULE Review.\n',
     });
     const catalog = await AgentCatalog.load(root);
-    assert.equal((await catalog.resolve('{Expert}')).kind, 'non-agent');
+    assert.equal((await catalog.resolve('{Expert}')).kind, 'system-agent');
     const front = await catalog.resolve('@FrontendDeveloper');
     assert.equal(front.kind, 'agent');
     assert.equal(front.definition.relativePath, 'agents/front.book');
@@ -60,7 +60,7 @@ test('agent lookup: non-agents, agents/ tier, other Books, then ignored node_mod
     assert.equal(wrongKind.kind, 'wrong-kind', 'a task name is never silently treated as an agent');
     assert.equal(wrongKind.entry.relativePath, 'tasks/task.book');
     assert.ok(catalog.diagnostics.some((diagnostic) => /reserved/.test(diagnostic.message)));
-    assert.equal((await catalog.resolve('@User')).kind, 'non-agent');
+    assert.equal((await catalog.resolve('@User')).kind, 'system-agent');
     const old = await catalog.resolve('{Old Style}');
     assert.equal(old.kind, 'invalid', 'a plain name line in agents/ is former syntax, not an implicit agent');
     assert.ok(catalog.diagnostics.some((diagnostic) => diagnostic.path === 'agents/old.book' && /ptbk migrate/.test(diagnostic.message)));
@@ -203,7 +203,7 @@ test('reference examples: @ and brace forms everywhere, normalized names, built-
         'node_modules/pkg/designer.book': 'AGENT Design System Keeper\nRULE only in a dependency\n',
     });
     const catalog = await AgentCatalog.load(root);
-    for (const reference of ['@Void', '@Null', '{Void}', '{Null}', '@Expert', '{Expert}', '@User', '{User}']) assert.equal((await catalog.resolve(reference)).kind, 'non-agent', reference);
+    for (const reference of ['@Void', '@Null', '{Void}', '{Null}', '@Expert', '{Expert}', '@User', '{User}']) assert.equal((await catalog.resolve(reference)).kind, 'system-agent', reference);
     assert.equal((await catalog.resolve('@Adam')).definition.relativePath, (await catalog.resolve('{Adam}')).definition.relativePath, '@Adam and {Adam} are the same reference');
     for (const reference of ['{Frontend Developer}', '{FrontendDeveloper}', '{frontend Developer}', '{Frontend_Developer}', '{-Fronténd Developer}', '@FrontendDeveloper']) {
         const resolved = await catalog.resolve(reference);

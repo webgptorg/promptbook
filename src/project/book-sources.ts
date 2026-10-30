@@ -71,8 +71,8 @@ export async function readBookSource(projectRoot: string, catalog: AgentCatalog,
     if (input.path) path = await confinePath(projectRoot, resolve(projectRoot, input.path));
     else if (input.reference) {
         const resolution = await catalog.index.resolve(input.reference);
-        if (resolution.kind === 'non-agent') {
-            if (resolution.name !== 'Expert') throw new PtbkError(`${resolution.name} is an engine non-agent without a source.`, { kind: 'usage' });
+        if (resolution.kind === 'system-agent') {
+            if (resolution.name !== 'Expert') throw new PtbkError(`${resolution.name} is an engine system agent without a source.`, { kind: 'usage' });
             const text = await expertInstructions();
             return { path: 'engine', name: 'Expert', kind: 'engine', text, revision: sha256(text), editable: false, reason: 'Expert is engine-owned (updated with ptbk itself); inherit it with FROM @Expert to customize.', diagnostics: [] };
         }

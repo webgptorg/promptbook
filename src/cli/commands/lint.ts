@@ -53,7 +53,7 @@ export default async function lint(context: CommandContext): Promise<number> {
         }
         if (task.routing.agent && task.status !== 'done') {
             const resolution = await catalog.resolve(task.routing.agent);
-            if (resolution.kind !== 'agent' && !(resolution.kind === 'non-agent' && resolution.name === 'Expert')) {
+            if (resolution.kind !== 'agent' && !(resolution.kind === 'system-agent' && resolution.name === 'Expert')) {
                 findings.push({ severity: 'error', location: task.source.relativePath, message: `TASK AGENT ${task.routing.agent} does not resolve to a project agent (${resolution.kind}).` });
             }
         }
