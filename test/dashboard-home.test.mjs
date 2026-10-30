@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { headerRows, homeLayout, homeTiles, renderHome, renderPage, tileAttention } from '../dist/ui/dashboard-home.js';
+import { headerRows, homeLayout, homeTiles, renderHome, renderPage, tileAttention, tileLines } from '../dist/ui/dashboard-home.js';
+import { renderStatusPretty, renderStatusRaw } from '../dist/ui/status-view.js';
 import { keepSelection, pageBody, pageForTile } from '../dist/ui/dashboard-pages.js';
 import { stringWidth, stripAnsi } from '../dist/ui/ansi.js';
 import { createTerminalProfile } from '../dist/ui/terminal.js';
@@ -109,6 +110,20 @@ test('attention is independent from focus and distinguishable from it; reduced m
     for (const domain of ['work', 'tasks', 'tools', 'system']) assert.equal(tileAttention(quiet, domain), undefined, `${domain}: inspectable without attention`);
     assert.ok(tileAttention(snapshot({ queue: [{ ref: 'q', title: 'Asks', readiness: 'awaiting-user', reason: 'x', priority: 0, source: 'tasks/q.book' }] }), 'tasks'), 'a task question is a genuine human request');
     assert.ok(tileAttention(snapshot({ blockers: [{ kind: 'harness', title: 'OpenAI Codex needs setup', reason: 'Signed out' }] }), 'work'), 'a sign-in only the operator can do');
+});
+
+test('content work comes first: the Tasks tile and status show supporting system work after it, muted', () => {
+    const queue = [
+        { ref: 'assign', title: 'Assign the welcome page', readiness: 'ready', reason: 'x', priority: 0, source: 'tasks/assign.book', purpose: 'system' },
+        { ref: 'write', title: 'Write the welcome page', readiness: 'ready', reason: 'x', priority: 0, source: 'tasks/write.book', purpose: 'content' },
+    ];
+    const view = snapshot({ queue });
+    assert.match(tileLines(view, 'tasks', terminal(120, 30), 0).map(stripAnsi).join('\n'), /next Write the welcome page/, 'ready content work is "next" ahead of an earlier system task');
+    const onlySystem = snapshot({ queue: [queue[0]] });
+    assert.match(tileLines(onlySystem, 'tasks', terminal(120, 30), 0).map(stripAnsi).join('\n'), /next Assign the welcome page/, 'system work is "next" when nothing else is ready');
+    const pretty = renderStatusPretty(view, terminal(120, 40)).map(stripAnsi).join('\n');
+    assert.ok(pretty.indexOf('Write the welcome page') < pretty.indexOf('Assign the welcome page'), 'status lists content work before supporting system work');
+    assert.match(renderStatusRaw(view), /Assign the welcome page \(assign\).*· system work/, 'the raw status names the purpose');
 });
 
 test('focus is a double-line border and bold heading that never changes tile geometry', () => {

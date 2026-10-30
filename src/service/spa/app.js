@@ -1432,7 +1432,8 @@
                 return [waiting.length ? h('strong', { className: 'warn' }, `${waiting.length} waiting for you`) : h('span', { className: 'muted' }, 'Nobody waits for you'), first ? `${first.awaiting ? first.awaiting.sender : first.agent || 'An agent'}: ${(first.awaiting ? first.awaiting.text : first.name).split('\n')[0]}` : null, h('span', { className: 'muted' }, `${snapshot.chats.total} chats${snapshot.chats.unread ? ` · ${snapshot.chats.unread} unread` : ''}`)];
             }
             case 'tasks': {
-                const next = snapshot.queue.find((item) => item.readiness === 'ready') || snapshot.queue[0];
+                // Content work is emphasized: supporting system work is "next" only when nothing else is ready.
+                const next = snapshot.queue.find((item) => item.readiness === 'ready' && item.purpose !== 'system') || snapshot.queue.find((item) => item.readiness === 'ready') || snapshot.queue[0];
                 return [h('strong', {}, `${snapshot.queueTotal} unfinished`), next ? h('span', {}, h('span', { className: 'muted' }, 'next '), next.title) : h('span', { className: 'muted' }, 'No unfinished tasks.')];
             }
             case 'agents': {

@@ -2854,6 +2854,8 @@ export class Agenda {
                     source: item.task.source.relativePath,
                     until: item.readiness.kind === 'waiting-until' ? new Date(item.readiness.until).toISOString() : undefined,
                     origin: item.task.origin,
+                    // Presentation only: views mute supporting system work.
+                    ...(item.task.purpose ? { purpose: item.task.purpose } : {}),
                 };
             });
         this.touch();

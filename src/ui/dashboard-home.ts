@@ -289,7 +289,8 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
                 [count(['blocked', 'failed', 'needs-recovery', 'incompatible', 'not-ready', 'placeholder']), 'blocked'],
                 [count(['waiting-until', 'waiting-dependency']), 'later'],
             ].filter(([value]) => value) as Array<[number, string]>;
-            const next = snapshot.queue.find((item) => item.readiness === 'ready') ?? snapshot.queue[0];
+            // Content work is emphasized: supporting system work is "next" only when nothing else is ready.
+            const next = snapshot.queue.find((item) => item.readiness === 'ready' && item.purpose !== 'system') ?? snapshot.queue.find((item) => item.readiness === 'ready') ?? snapshot.queue[0];
             return [
                 `${style.bold(String(snapshot.queueTotal))} unfinished${parts.length ? style.muted(` · ${parts.map(([value, label]) => `${value} ${label}`).join(' · ')}`) : ''}`,
                 ...(next ? [`${style.muted('next')} ${next.title}`] : [style.muted('No unfinished tasks.')]),

@@ -20,7 +20,7 @@ function flow(items: readonly string[], width: number, separator: string): strin
     return lines;
 }
 import { activityLabel, framedBadge, inlineBadge } from './badges.js';
-import type { TaskInventoryItem } from '../tasks/views.js';
+import { groupSupportingWork, type TaskInventoryItem } from '../tasks/views.js';
 import { briefRecoveryParts, browserDetailLines, executionDetailLines, executionOneLine, healthDetailLines, healthOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary, pauseReasonLines, syncCompactLines, syncDetailLines, toolRow, toolsCompactLines } from './details.js';
 import { renderPanel, sideBySide, type PanelTone } from './panels.js';
 import { symbols, type TerminalProfile } from './terminal.js';
@@ -137,7 +137,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     for (const blocker of snapshot.blockers) lines.push(`  BLOCKED: ${blocker.title}: ${blocker.reason}${blocker.action ? ` Action: ${blocker.action}` : ''}${blocker.recheckAt ? ` (recheck ${blocker.recheckAt})` : ''}`);
     lines.push('', `QUEUE (${snapshot.queueTotal})`);
     if (!snapshot.queue.length) lines.push('- no unfinished tasks');
-    for (const item of snapshot.queue.slice(0, 20)) lines.push(`- [${item.readiness}] ${item.title} (${item.ref})${item.agent ? ` ${item.agent}` : ''} — ${item.reason}`);
+    for (const item of snapshot.queue.slice(0, 20)) lines.push(`- [${item.readiness}] ${item.title} (${item.ref})${item.agent ? ` ${item.agent}` : ''}${item.purpose ? ` · ${item.purpose} work` : ''} — ${item.reason}`);
     if (snapshot.queue.length > 20) lines.push(`- … ${snapshot.queue.length - 20} more (ptbk list)`);
     lines.push('', `RESULTS: ${snapshot.results.completed} completed, ${snapshot.results.failed} failed`);
     for (const result of snapshot.results.recent.slice(0, 5)) lines.push(`- ${result.outcome}: ${result.title}${result.commit ? ` (${result.commit.slice(0, 8)})` : ''}`);
@@ -258,7 +258,11 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     // Agents, Chats and Tasks: three separate inventories (not three labels of the active task).
     const readinessTone = (readiness: string): ((text: string) => string) =>
         readiness === 'ready' || readiness === 'active' ? style.success : ['blocked', 'failed', 'needs-recovery', 'incompatible'].includes(readiness) ? style.error : readiness === 'awaiting-user' || readiness.includes('assign') ? style.warning : style.muted;
-    const taskItems: TaskInventoryItem[] = snapshot.queue.map((item) => ({ ref: item.ref, title: item.title, readiness: item.readiness, reason: item.reason, priority: item.priority, agent: item.agent, until: item.until, source: item.source, doneCount: 0, ...(item.kind ? { kind: item.kind, executor: item.executor } : {}) }));
+    // Content and unclassified work first; supporting system work follows muted (presentation only).
+    const taskItems: TaskInventoryItem[] = groupSupportingWork(
+        snapshot.queue.map((item) => ({ ref: item.ref, title: item.title, readiness: item.readiness, reason: item.reason, priority: item.priority, agent: item.agent, until: item.until, source: item.source, doneCount: 0, ...(item.kind ? { kind: item.kind, executor: item.executor } : {}), ...(item.purpose ? { purpose: item.purpose } : {}) })),
+        { showSupporting: true },
+    ).items;
     const queuedBy = (agent: string): number => taskItems.filter((item) => item.agent && item.agent.replace(/^@|^\{|\}$/g, '').toLowerCase() === agent.toLowerCase() && !['done', 'retired'].includes(item.readiness)).length;
     const agentLines = (inner: number): string[] => {
         const lines = snapshot.agents.slice(0, PANEL_ITEMS).map((agent) => {

@@ -1,5 +1,11 @@
 # Unreleased
 
+## Task purpose: status and the Tasks tiles show content work first
+
+-   `ptbk status`, `ptbk status --json` and the live snapshot behind both dashboards now carry each source-backed task's effective purpose. Before, only engine-owned tasks had one there, so supporting system work written in task Books, such as Router's `Assign routing: …` tasks, appeared unmuted between content tasks.
+-   The pretty status lists content and unclassified tasks first, and supporting system work after them in muted text. The raw status names the purpose (`· system work`).
+-   The Tasks tile in the terminal and web dashboards shows a ready content or unclassified task as "next" ahead of ready supporting system work. System work is "next" only when nothing else is ready.
+
 ## Wallet: the reset warning in both dashboards is the engine's own
 
 -   **Reset Wallet** in the terminal and web dashboards now shows the engine's all-data-loss warning, which the Wallet view carries while a reset is possible. It names the services and accounts, labels, usernames, passwords, additional login fields and any retained legacy TOTP data. Before, both dashboards showed their own older copy, which named "TOTP generators" and left out additional login fields.
