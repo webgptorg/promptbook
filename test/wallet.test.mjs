@@ -452,6 +452,10 @@ test('Wallet acceptance: a task waits for a protected login (no chat), resumes o
     assert.ok(usage.data.rows.find((row) => row.label === 'Developer')?.units >= 2, JSON.stringify(usage.data.rows));
     assert.equal(usage.data.total.units, usage.data.rows.reduce((sum, row) => sum + row.units, 0), 'self-scope rows partition the total');
     assert.equal((await call('api/usage?group=price-list')).status, 400);
+    // Filters combine with any breakdown: one agent's work by task equals that agent's row.
+    const filtered = await call('api/usage?group=task&agent=Developer');
+    assert.deepEqual([filtered.status, filtered.data.filter], [200, { agent: 'Developer' }]);
+    assert.equal(filtered.data.total.units, usage.data.rows.find((row) => row.label === 'Developer').units);
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 
     // No password, username or word anywhere outside the ciphertext: Git history, traces, state, logs, output.

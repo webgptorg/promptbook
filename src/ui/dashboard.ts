@@ -18,6 +18,9 @@ import {
     taskOrder,
     teamOrder,
     toolsOf,
+    usageNeedsQuery,
+    usagePageData,
+    type UsagePageGrouping,
     walletItems,
     TEAM_SORT_FIELDS,
     type DashboardPage,
@@ -27,6 +30,7 @@ import {
     type CommitDetailView,
 } from './dashboard-pages.js';
 import type { HistoryView } from '../project/history.js';
+import type { UsageSummary } from '../engine/usage.js';
 import type { ActionLinks } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
@@ -385,6 +389,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         }
         // History and Files read on opening (the History tile's latest commit tells when to reread).
         if (page.kind === 'history' && !page.view) void loadHistory(page);
+        if (page.kind === 'usage') loadUsage(page);
         if (page.kind === 'files' && !page.view && page.path === '') {
             void source.inspect('files-list', { path: '' }).then(
                 (value) => {
@@ -398,6 +403,27 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             );
         }
         draw();
+    };
+
+    /**
+     * Reads the shared usage summary a Usage page's grouping, scope and filter need (the snapshot carries only the
+     * unfiltered overview); a newer choice made meanwhile wins, and a failure is shown on the page.
+     */
+    const loadUsage = (page: Extract<DashboardPage, { kind: 'usage' }>): void => {
+        page.problem = undefined;
+        if (!usageNeedsQuery(page)) return;
+        const request = { group: page.grouping, scope: page.inclusive ? 'inclusive' : 'self', ...page.filter };
+        void source.inspect('usage-summary', request).then(
+            (value) => {
+                const view = value as UsageSummary;
+                if (view.grouping === page.grouping && view.scope === request.scope && JSON.stringify(view.filter) === JSON.stringify(page.filter)) page.view = view;
+                draw();
+            },
+            (error: unknown) => {
+                page.problem = errorMessage(error);
+                draw();
+            },
+        );
     };
 
     /**
@@ -884,7 +910,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         keepSelection(page, context);
         const keys = pageItemKeys(page, context);
         const count = keys.length;
-        const list = ['work', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'actions', 'history', 'files'].includes(page.kind);
+        const list = ['work', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'usage', 'actions', 'history', 'files'].includes(page.kind);
         const room = Math.max(1, terminal.rows() - 5);
         if (event.type === 'key') {
             if (event.name === 'escape') {
@@ -939,6 +965,22 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     else if (item?.kind === 'record') void walletLogin({ origin: item.origin, label: item.account, id: item.id });
                     return;
                 }
+                if (page.kind === 'usage') {
+                    // Narrowing to the focused row combines with the current filter and moves on to the next breakdown.
+                    const row = usagePageData(snapshot, page)?.rows[page.focus];
+                    if (!row?.filter) return;
+                    page.filter = { ...page.filter, ...row.filter };
+                    // Every grouping is also a filter field: the next breakdown is one not narrowed already (work of
+                    // one task is rarely in a chat and the other way round).
+                    const narrowed = (grouping: UsagePageGrouping): boolean => grouping in page.filter || (grouping === 'chat' && Boolean(page.filter.task)) || (grouping === 'task' && Boolean(page.filter.chat));
+                    page.grouping = [...USAGE_PAGE_GROUPINGS.slice(USAGE_PAGE_GROUPINGS.indexOf(page.grouping) + 1), ...USAGE_PAGE_GROUPINGS].find((grouping) => !narrowed(grouping)) ?? page.grouping;
+                    Object.assign(page, { focus: 0, selected: undefined, scroll: 0 });
+                    lastUsageView.grouping = page.grouping;
+                    lastUsageView.filter = page.filter;
+                    loadUsage(page);
+                    draw();
+                    return;
+                }
                 if (page.kind === 'agents' || page.kind === 'tasks') page.detail = !page.detail;
             }
             draw();
@@ -985,11 +1027,14 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             case 'usage':
                 // Viewer-local presentation choices, remembered for the next visit in this dashboard.
                 if (key === 'g') page.grouping = USAGE_PAGE_GROUPINGS[(USAGE_PAGE_GROUPINGS.indexOf(page.grouping) + 1) % USAGE_PAGE_GROUPINGS.length]!;
-                else if (key === 'i' && page.grouping === 'agent') page.inclusive = !page.inclusive;
+                else if (key === 'i' && (['agent', 'task', 'chat'].includes(page.grouping) || page.filter.agent || page.filter.task || page.filter.chat)) page.inclusive = !page.inclusive;
+                else if (key === 'x' && Object.keys(page.filter).length) page.filter = {};
                 else return;
                 lastUsageView.grouping = page.grouping;
                 lastUsageView.inclusive = page.inclusive;
-                page.scroll = 0;
+                lastUsageView.filter = page.filter;
+                Object.assign(page, { focus: 0, selected: undefined, scroll: 0 });
+                loadUsage(page);
                 draw();
                 return;
             case 'sync':

@@ -7,6 +7,7 @@ import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js';
 import type { ConnectionView } from '../engine/snapshot.js';
+import { parseUsageRequest } from '../engine/usage.js';
 import { browserTools } from '../browser/agent-tools.js';
 import { BrowserFleet } from '../browser/fleet.js';
 import { describeProfileSource } from '../tools/model.js';
@@ -327,6 +328,8 @@ export class ServiceHost {
                 return await agenda.requestReport();
             case 'report-discuss':
                 return await agenda.discussReport({ at: typeof params.at === 'string' ? params.at : undefined });
+            case 'usage-summary':
+                return await agenda.usageSummary(parseUsageRequest((name) => params[name]));
             case 'history-list':
                 return await agenda.history({ limit: typeof params.limit === 'number' ? params.limit : undefined, skip: typeof params.skip === 'number' ? params.skip : undefined });
             case 'history-commit':

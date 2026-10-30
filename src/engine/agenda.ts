@@ -22,7 +22,7 @@ import { appendBrief, findBrief, readLatestBrief, REPORT_AUTHOR, REPORT_FILE, RE
 import { classifySubject, readCommit, readHistory, type HistoryDetail, type HistoryView } from '../project/history.js';
 import { listFolder, readProjectFile, type FileView, type FolderView } from '../project/files.js';
 import { coreReconciliationDescription, prepareCoreAgents, type CorePreparation } from '../project/core-templates.js';
-import { readUsage, summarizeUsage, type UsageGrouping, type UsageRow, type UsageSummary } from './usage.js';
+import { readUsage, summarizeUsage, type UsageFilter, type UsageGrouping, type UsageRow, type UsageSummary } from './usage.js';
 import { readPriceObservations } from './pricing.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
@@ -2214,7 +2214,7 @@ export class Agenda {
      * The shared usage view over durable raw usage and the independent price observations (terminal, browser and API
      * derive the same results). It only reads evidence: no usage is manufactured and no paid probe runs.
      */
-    public async usageSummary(options: { readonly days?: number; readonly grouping?: UsageGrouping; readonly scope?: 'self' | 'inclusive' } = {}): Promise<UsageSummary> {
+    public async usageSummary(options: { readonly days?: number; readonly grouping?: UsageGrouping; readonly scope?: 'self' | 'inclusive'; readonly filter?: UsageFilter } = {}): Promise<UsageSummary> {
         const [records, prices] = await Promise.all([readUsage(this.options.project), readPriceObservations(this.options.project)]);
         return summarizeUsage(records, { ...options, prices });
     }

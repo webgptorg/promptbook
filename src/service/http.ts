@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import type { UsageGrouping } from '../engine/usage.js';
+import { parseUsageRequest } from '../engine/usage.js';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
@@ -225,14 +225,8 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         }
         if (url.pathname === '/api/usage' && method === 'GET') {
             // A read-only view over durable raw usage and independent price observations (never writes usage).
-            const grouping = url.searchParams.get('group') ?? 'none';
-            const scope = url.searchParams.get('scope') ?? 'self';
-            const days = Number(url.searchParams.get('days') ?? 7);
-            if (!['none', 'agent', 'harness', 'model', 'work', 'day'].includes(grouping) || !['self', 'inclusive'].includes(scope) || !Number.isFinite(days) || days <= 0 || days > 3660) {
-                sendJson(response, 400, { error: 'Use group=none|agent|harness|model|work|day, scope=self|inclusive and days between 1 and 3660.' });
-                return;
-            }
-            sendJson(response, 200, await agenda.usageSummary({ days, grouping: grouping as UsageGrouping, scope: scope as 'self' | 'inclusive' }));
+            // Groupings and filters combine (agent, task, chat, work, tool, harness, model); the engine validates them.
+            sendJson(response, 200, await agenda.usageSummary(parseUsageRequest((name) => url.searchParams.get(name))));
             return;
         }
         if (url.pathname === '/api/report' && method === 'GET') {

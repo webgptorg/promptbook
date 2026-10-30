@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { appendUsage, chatUsageFile, normalizeUsage, readUsage, summarizeUsage, taskUsageFile, usageRecords, usageUnits } from '../dist/engine/usage.js';
+import { appendUsage, chatUsageFile, normalizeUsage, parseUsageRequest, readUsage, summarizeUsage, taskUsageFile, usageRecords, usageUnits } from '../dist/engine/usage.js';
 import { priceOf, readPriceObservations, recordPriceObservation } from '../dist/engine/pricing.js';
 import { temporaryDirectory } from './helpers.mjs';
 
@@ -53,6 +53,33 @@ test('usage views: self and inclusive agent views overlap while the project tota
     assert.deepEqual(inclusive.total.coverage, { reported: 2, unavailable: 1, costReported: 0 }, 'unavailable usage is visible, not zero');
     assert.deepEqual(inclusive.total.billing, { subscription: 1, api: 2, unknown: 0 });
     assert.deepEqual(summarizeUsage(records, { grouping: 'harness', now }).rows.map((row) => row.label).sort(), ['claude-code (claude-code)', 'openai-codex (openai-codex)']);
+});
+
+test('usage views: filters by agent, task, chat, kind, tool, harness and model combine; missing attribution stays explicit', () => {
+    const now = Date.parse('2026-10-28T12:00:00Z');
+    const observed = (input) => [{ at: TUESDAY, usage: { input_tokens: input, output_tokens: 1 }, semantics: 'cumulative' }];
+    const records = [
+        ...run({ agent: 'Developer', initiator: 'User', observations: observed(1000) }),
+        ...run({ agent: 'Developer', initiator: 'User', model: 'gpt-other', work: { kind: 'task', task: 'Fix the login' }, observations: observed(300) }),
+        ...run({ agent: 'Lawyer', initiator: 'Developer', harness: 'claude-code', work: { kind: 'consultation' }, parent: { kind: 'task', name: 'Write the page', agent: 'Developer' }, observations: observed(500) }),
+        ...run({ agent: 'Chatter', initiator: 'User', work: { kind: 'chat', chat: 'Talk' }, observations: observed(70) }),
+    ];
+    const byTask = summarizeUsage(records, { grouping: 'task', now });
+    assert.deepEqual(byTask.rows.map((row) => [row.label, row.input, row.filter]), [['Write the page', 1000, { task: 'Write the page' }], ['not in a task', 570, undefined], ['Fix the login', 300, { task: 'Fix the login' }]], 'work outside a task is its own explicit row');
+    const inclusiveTask = summarizeUsage(records, { grouping: 'task', scope: 'inclusive', now });
+    assert.equal(inclusiveTask.rows.find((row) => row.label === 'Write the page').input, 1500, 'the inclusive view of a task contains its consultation');
+    const developer = summarizeUsage(records, { grouping: 'model', filter: { agent: '@developer' }, now });
+    assert.deepEqual(developer.filter, { agent: '@developer' });
+    assert.equal(developer.total.input, 1300, 'the filter selects the executing agent; the total counts each consumption once');
+    assert.deepEqual(developer.rows.map((row) => [row.label, row.filter]), [['gpt-test', { model: 'gpt-test' }], ['gpt-other', { model: 'gpt-other' }]]);
+    assert.equal(summarizeUsage(records, { filter: { agent: 'Developer' }, scope: 'inclusive', now }).total.input, 1800, 'inclusive scope adds the work the agent initiated');
+    const combined = summarizeUsage(records, { grouping: 'tool', filter: { agent: 'Developer', model: 'gpt-other', work: 'task' }, now });
+    assert.deepEqual([combined.total.input, combined.rows.map((row) => row.label)], [300, ['openai-codex']], 'filters combine');
+    assert.deepEqual(summarizeUsage(records, { grouping: 'chat', filter: { harness: 'openai-codex' }, now }).rows.map((row) => row.label), ['not in a chat', 'Talk']);
+    assert.equal(summarizeUsage(records, { filter: { task: 'No such task' }, now }).total.units, 0);
+    const request = parseUsageRequest((name) => ({ group: 'task', scope: 'inclusive', agent: ' Developer ', model: '', days: 30 })[name]);
+    assert.deepEqual(request, { days: 30, grouping: 'task', scope: 'inclusive', filter: { agent: 'Developer' } }, 'empty filter fields are ignored');
+    assert.throws(() => parseUsageRequest((name) => ({ group: 'account' })[name]), /group=none\|agent/);
 });
 
 test('historical pricing: a cheaper Wednesday list never reprices Tuesday; corrected Tuesday rates recalculate without editing usage', async (t) => {

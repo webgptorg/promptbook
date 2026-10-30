@@ -19,7 +19,7 @@ import {
     toolRow,
 } from './details.js';
 import { billingMix, compactCount, outcomeText, type HomeTile } from './dashboard-home.js';
-import type { UsageTotals } from '../engine/usage.js';
+import type { UsageFilter, UsageRow, UsageSummary, UsageTotals } from '../engine/usage.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { WalletView } from '../wallet/wallet.js';
 import type { HistoryDetail, HistoryView } from '../project/history.js';
@@ -88,7 +88,7 @@ export type DashboardPage =
     | { readonly kind: 'chats'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; filter: TaskFilter; detail: boolean }
     | { readonly kind: 'results'; scroll: number; follow: boolean }
-    | { readonly kind: 'usage'; scroll: number; grouping: UsagePageGrouping; inclusive: boolean }
+    | { readonly kind: 'usage'; scroll: number; focus: number; selected?: string; grouping: UsagePageGrouping; inclusive: boolean; filter: UsageFilter; view?: UsageSummary; problem?: string }
     | { readonly kind: 'actions'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'action'; scroll: number; readonly path: string; content?: string; links?: ActionLinks; problem?: string }
     | { readonly kind: 'history'; scroll: number; focus: number; selected?: string; view?: HistoryView; problem?: string }
@@ -112,7 +112,7 @@ export function walletItems(wallet: WalletView): Array<{ readonly kind: 'request
  *
  * @private terminal dashboard pages
  */
-export const USAGE_PAGE_GROUPINGS = ['agent', 'harness', 'model', 'work'] as const;
+export const USAGE_PAGE_GROUPINGS = ['agent', 'harness', 'model', 'work', 'task', 'chat', 'tool'] as const;
 
 /**
  * A grouping of the Usage page.
@@ -126,7 +126,46 @@ export type UsagePageGrouping = (typeof USAGE_PAGE_GROUPINGS)[number];
  *
  * @private terminal dashboard pages
  */
-export const lastUsageView: { grouping: UsagePageGrouping; inclusive: boolean } = { grouping: 'agent', inclusive: false };
+export const lastUsageView: { grouping: UsagePageGrouping; inclusive: boolean; filter: UsageFilter } = { grouping: 'agent', inclusive: false, filter: {} };
+
+/**
+ * Whether a Usage page needs the engine's on-demand summary (a filter, or a grouping the snapshot does not carry).
+ *
+ * @private terminal dashboard pages
+ */
+export function usageNeedsQuery(page: Extract<DashboardPage, { kind: 'usage' }>): boolean {
+    return Object.keys(page.filter).length > 0 || !['agent', 'harness', 'model', 'work'].includes(page.grouping);
+}
+
+/**
+ * The usage numbers a Usage page shows: the snapshot's live seven-day overview, or the on-demand summary matching its
+ * grouping, scope and filter (undefined while that is loading).
+ *
+ * @private terminal dashboard pages
+ */
+export function usagePageData(snapshot: ServiceSnapshot, page: Extract<DashboardPage, { kind: 'usage' }>): { readonly days: number; readonly from: string; readonly total: UsageTotals; readonly rows: readonly UsageRow[] } | undefined {
+    if (!usageNeedsQuery(page)) {
+        const usage = snapshot.usage;
+        if (!usage) return undefined;
+        const grouping = page.grouping as 'agent' | 'harness' | 'model' | 'work';
+        return { days: usage.days, from: usage.from, total: usage.total, rows: grouping === 'agent' ? (page.inclusive ? usage.breakdowns.agentInclusive : usage.breakdowns.agent) : usage.breakdowns[grouping] };
+    }
+    const view = page.view;
+    const scope = page.inclusive ? 'inclusive' : 'self';
+    if (!view || view.grouping !== page.grouping || view.scope !== scope || JSON.stringify(view.filter) !== JSON.stringify(page.filter)) return undefined;
+    return view;
+}
+
+/**
+ * Human description of a usage filter, e.g. `agent Developer, task Write docs`.
+ *
+ * @private terminal dashboard pages
+ */
+export function describeUsageFilter(filter: UsageFilter): string {
+    return Object.entries(filter)
+        .map(([field, value]) => `${field === 'work' ? 'kind' : field} ${value}`)
+        .join(', ');
+}
 
 /**
  * A fresh page for a home tile.
@@ -150,7 +189,7 @@ export function pageForTile(tile: HomeTile): DashboardPage {
         case 'results':
             return { kind: 'results', scroll: Number.MAX_SAFE_INTEGER, follow: true };
         case 'usage':
-            return { kind: 'usage', scroll: 0, grouping: lastUsageView.grouping, inclusive: lastUsageView.inclusive };
+            return { kind: 'usage', scroll: 0, focus: 0, grouping: lastUsageView.grouping, inclusive: lastUsageView.inclusive, filter: lastUsageView.filter };
         case 'actions':
             return { kind: 'actions', scroll: 0, focus: 0 };
         case 'history':
@@ -618,9 +657,13 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             return { title: 'Results and activity', context: 'Outcomes of this session and the bounded runtime activity log', body, ...(page.follow ? { anchor: body.length - 1 } : {}), legend: `↑↓ PgUp PgDn scroll · End follow${page.follow ? 'ing' : ''} · ${back}` };
         }
         case 'usage': {
-            const usage = snapshot.usage;
-            if (!usage) return { title: 'Usage', context: 'Model usage of this project', body: [style.muted('This engine does not report usage yet (another ptbk version, or the first summary is still being prepared).')], legend: back };
-            const rows = page.grouping === 'agent' ? (page.inclusive ? usage.breakdowns.agentInclusive : usage.breakdowns.agent) : usage.breakdowns[page.grouping];
+            const filtered = Object.keys(page.filter).length > 0;
+            const data = usagePageData(snapshot, page);
+            if (!data) {
+                const waiting = page.problem ? style.error(`The usage summary could not be read: ${page.problem}`) : usageNeedsQuery(page) ? style.muted('Loading the usage summary…') : style.muted('This engine does not report usage yet (another ptbk version, or the first summary is still being prepared).');
+                return { title: 'Usage', context: filtered ? `Model usage · filtered by ${describeUsageFilter(page.filter)}` : 'Model usage of this project', body: [waiting], legend: `${filtered ? 'X clear filter · ' : ''}${back}` };
+            }
+            const rows = data.rows;
             const tokens = (row: UsageTotals): string => `${compactCount(row.input)} in · ${compactCount(row.output)} out${row.cachedInput ? ` · ${compactCount(row.cachedInput)} cached` : ''}${row.reasoning ? ` · ${compactCount(row.reasoning)} reasoning` : ''}`;
             const money = (row: UsageTotals): string[] => [
                 ...(row.coverage.costReported ? [`$${row.reportedCostUsd.toFixed(2)} reported by providers`] : []),
@@ -628,28 +671,35 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 ...(row.calculated.subscriptionEquivalentUsd ? [`$${row.calculated.subscriptionEquivalentUsd.toFixed(2)} token-price equivalent of subscription work`] : []),
             ];
             const certainty = (row: UsageTotals): string => [billingMix(row), row.coverage.unavailable ? `${row.coverage.unavailable} without reported usage` : '', row.calculated.unpriced && row.coverage.reported ? `${row.calculated.unpriced} not priced` : ''].filter(Boolean).join(' · ');
-            const heading = { agent: page.inclusive ? 'By agent, including work it initiated (rows overlap)' : 'By executing agent', harness: 'By harness (tool)', model: 'By model', work: 'By kind of work' }[page.grouping];
+            const scoped = page.grouping === 'agent' || page.grouping === 'task' || page.grouping === 'chat';
+            const heading = { agent: 'By executing agent', harness: 'By harness (tool)', model: 'By model', work: 'By kind of work', task: 'By task', chat: 'By chat', tool: 'By tool' }[page.grouping];
             const body = [
-                `${style.muted('Last')} ${usage.days} days ${style.muted(`(${formatShortTime(Date.parse(usage.from))} – now)`)}`,
-                `${style.bold('Total')}  ${usage.total.units ? tokens(usage.total) : 'no model usage'}${style.muted(` · ${usage.total.units} run${usage.total.units === 1 ? '' : 's'}`)}`,
-                ...money(usage.total).map((line) => `       ${line}`),
-                `       ${style.muted(certainty(usage.total))}`,
+                `${style.muted('Last')} ${data.days} days ${style.muted(`(${formatShortTime(Date.parse(data.from))} – now)`)}`,
+                ...(filtered ? [`${style.muted('Only')} ${describeUsageFilter(page.filter)}${style.muted(page.inclusive ? ' (including work it initiated)' : '')}`] : []),
+                `${style.bold('Total')}  ${data.total.units ? tokens(data.total) : 'no model usage'}${style.muted(` · ${data.total.units} run${data.total.units === 1 ? '' : 's'}`)}`,
+                ...money(data.total).map((line) => `       ${line}`),
+                `       ${style.muted(certainty(data.total))}`,
                 '',
-                style.bold(heading),
+                style.bold(scoped && page.inclusive ? `${heading}, including work it initiated (rows overlap)` : heading),
             ];
+            let anchor = 0;
             const labelWidth = Math.min(28, Math.max(8, ...rows.map((row) => row.label.length)));
-            for (const row of rows) {
-                body.push(`${row.label.padEnd(labelWidth)}  ${tokens(row)}${style.muted(` · ${row.units} run${row.units === 1 ? '' : 's'}`)}`);
+            rows.forEach((row, index) => {
+                if (index === page.focus) anchor = body.length;
+                // A row of missing attribution is shown as such and cannot be narrowed further (never guessed).
+                body.push(`${pointer(index === page.focus)} ${(row.filter ? row.label : style.muted(row.label)).padEnd(labelWidth)}  ${tokens(row)}${style.muted(` · ${row.units} run${row.units === 1 ? '' : 's'}`)}`);
                 const details = [...money(row), certainty(row)].filter(Boolean);
-                if (details.length) body.push(style.muted(`${' '.repeat(labelWidth)}  ${details.join(' · ')}`));
-            }
-            if (!rows.length) body.push(style.muted('Nothing in this period.'));
+                if (details.length) body.push(style.muted(`  ${' '.repeat(labelWidth)}  ${details.join(' · ')}`));
+            });
+            if (!rows.length) body.push(style.muted(filtered ? 'Nothing matches this filter in this period; X clears it.' : 'Nothing in this period.'));
             body.push('', style.muted('Totals count every consumption once and come from durable raw usage (traces/…/usage.jsonl). Missing usage is shown, never counted as zero.'));
+            const next = USAGE_PAGE_GROUPINGS[(USAGE_PAGE_GROUPINGS.indexOf(page.grouping) + 1) % USAGE_PAGE_GROUPINGS.length];
             return {
                 title: 'Usage',
-                context: `Model usage over the last ${usage.days} days · billing mode and certainty stay visible`,
+                context: `Model usage over the last ${data.days} days${filtered ? ` · filtered by ${describeUsageFilter(page.filter)}` : ''} · billing mode and certainty stay visible`,
                 body,
-                legend: `G group by ${page.grouping === 'agent' ? 'harness' : page.grouping === 'harness' ? 'model' : page.grouping === 'model' ? 'work' : 'agent'}${page.grouping === 'agent' ? ` · I ${page.inclusive ? 'own work only' : 'include initiated work'}` : ''} · ↑↓ scroll · ${back}`,
+                anchor,
+                legend: `↑↓ choose · ${rows[page.focus]?.filter ? 'Enter only this · ' : ''}G group by ${next}${scoped || page.filter.agent || page.filter.task || page.filter.chat ? ` · I ${page.inclusive ? 'own work only' : 'include initiated work'}` : ''}${filtered ? ' · X clear filter' : ''} · ${back}`,
             };
         }
         case 'connection': {
@@ -710,6 +760,8 @@ export function pageItemKeys(page: DashboardPage, context: Pick<PageContext, 'sn
             return activeWork(context.snapshot).map((item) => item.unit ?? item.taskRef);
         case 'tasks':
             return taskOrder(context, page).map((item) => item.ref);
+        case 'usage':
+            return (usagePageData(context.snapshot, page)?.rows ?? []).map((row) => row.label);
         case 'wallet':
             return context.snapshot.wallet ? walletItems(context.snapshot.wallet).map((item) => `${item.kind}:${item.id}`) : [];
         case 'actions':

@@ -1,6 +1,7 @@
 import { appendFile, readdir, readFile } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import { normalizeAgentName, parseReferenceValue } from '../book/references.js';
+import { PtbkError } from '../common/errors.js';
 import { ensureDirectory } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
 import type { AuthenticationKind, UsageObservation } from '../harness/types.js';
@@ -323,7 +324,29 @@ export async function readUsage(project: Pick<Project, 'root'>): Promise<UsageRe
  *
  * @private raw usage
  */
-export type UsageGrouping = 'none' | 'agent' | 'harness' | 'model' | 'work' | 'day';
+export type UsageGrouping = 'none' | 'agent' | 'harness' | 'model' | 'work' | 'day' | 'task' | 'chat' | 'tool';
+
+/**
+ * Every grouping of the shared usage view (validation of API and control requests).
+ *
+ * @private raw usage
+ */
+export const USAGE_GROUPINGS: readonly UsageGrouping[] = ['none', 'agent', 'harness', 'model', 'work', 'day', 'task', 'chat', 'tool'];
+
+/**
+ * Dimensions a usage view can be filtered by; every given one must match, so filters combine.
+ *
+ * @private raw usage
+ */
+export const USAGE_FILTER_FIELDS = ['agent', 'task', 'chat', 'work', 'tool', 'harness', 'model'] as const;
+
+/**
+ * A combination of usage filters (absent fields match everything). With inclusive scope `agent`, `task` and `chat`
+ * also match the work they initiated or contain (a consultation inside a task, delegated work of an agent).
+ *
+ * @private raw usage
+ */
+export type UsageFilter = { readonly [field in (typeof USAGE_FILTER_FIELDS)[number]]?: string };
 
 /**
  * Totals of a set of consumption units, keeping billing mode and certainty visible.
@@ -353,7 +376,11 @@ export type UsageTotals = {
  *
  * @private raw usage
  */
-export type UsageRow = UsageTotals & { readonly label: string };
+export type UsageRow = UsageTotals & {
+    readonly label: string;
+    /** The filter selecting exactly this row's work (absent for a row of missing attribution, which is never guessed). */
+    readonly filter?: UsageFilter;
+};
 
 /**
  * The lightweight usage view (shared by terminal, browser and API).
@@ -366,6 +393,8 @@ export type UsageSummary = {
     readonly days: number;
     readonly grouping: UsageGrouping;
     readonly scope: 'self' | 'inclusive';
+    /** The combined filter applied before grouping (empty: all work). */
+    readonly filter: UsageFilter;
     /** Every underlying consumption counted exactly once. */
     readonly total: UsageTotals;
     readonly rows: readonly UsageRow[];
@@ -413,6 +442,71 @@ function agentKey(name: string | undefined): string | undefined {
 }
 
 /**
+ * A usage view request as every surface sends it (HTTP query or control parameters).
+ *
+ * @private raw usage
+ */
+export type UsageRequest = { readonly days: number; readonly grouping: UsageGrouping; readonly scope: 'self' | 'inclusive'; readonly filter: UsageFilter };
+
+/**
+ * Reads and validates a usage view request: `days` (1–3660, default 7), `group`, `scope` and the filter fields.
+ *
+ * @private raw usage
+ */
+export function parseUsageRequest(read: (name: string) => unknown): UsageRequest {
+    const text = (name: string): string | undefined => {
+        const value = read(name);
+        return typeof value === 'string' && value.trim() ? value.trim() : typeof value === 'number' ? String(value) : undefined;
+    };
+    const grouping = text('group') ?? 'none';
+    const scope = text('scope') ?? 'self';
+    const days = Number(text('days') ?? 7);
+    if (!(USAGE_GROUPINGS as readonly string[]).includes(grouping) || !['self', 'inclusive'].includes(scope) || !Number.isFinite(days) || days <= 0 || days > 3660) {
+        throw new PtbkError(`Use group=${USAGE_GROUPINGS.join('|')}, scope=self|inclusive and days between 1 and 3660.`, { kind: 'usage' });
+    }
+    const filter = Object.fromEntries(USAGE_FILTER_FIELDS.flatMap((field) => (text(field) ? [[field, text(field)!]] : []))) as UsageFilter;
+    return { days, grouping: grouping as UsageGrouping, scope: scope as 'self' | 'inclusive', filter };
+}
+
+/**
+ * Agents a unit belongs to: the executing agent, plus with inclusive scope its initiator and parent agent.
+ */
+function unitAgents(unit: UsageUnit, scope: 'self' | 'inclusive'): string[] {
+    const own = [unit.attribution.agent];
+    if (scope === 'inclusive') own.push(...[unit.attribution.initiator, unit.attribution.parent?.agent].filter((name): name is string => Boolean(name) && name !== 'User' && name !== 'engine'));
+    const seen = new Set<string>();
+    return own.filter((name) => {
+        const key = agentKey(name)!;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+/**
+ * Tasks or chats a unit belongs to: its own work, plus with inclusive scope the parent work containing it.
+ */
+function unitWork(unit: UsageUnit, kind: 'task' | 'chat', scope: 'self' | 'inclusive'): string[] {
+    const own = unit.attribution.work[kind];
+    const parent = scope === 'inclusive' && unit.attribution.parent?.kind === kind ? unit.attribution.parent.name : undefined;
+    return [...new Set([own, parent].filter((name): name is string => Boolean(name)))];
+}
+
+/**
+ * Whether a unit matches every given field of a filter.
+ */
+function matchesUsageFilter(unit: UsageUnit, filter: UsageFilter, scope: 'self' | 'inclusive'): boolean {
+    if (filter.agent && !unitAgents(unit, scope).some((name) => agentKey(name) === agentKey(filter.agent))) return false;
+    if (filter.task && !unitWork(unit, 'task', scope).includes(filter.task)) return false;
+    if (filter.chat && !unitWork(unit, 'chat', scope).includes(filter.chat)) return false;
+    if (filter.work && unit.attribution.work.kind !== filter.work) return false;
+    if (filter.tool && unit.tool !== filter.tool) return false;
+    if (filter.harness && unit.harness !== filter.harness) return false;
+    if (filter.model && unit.model !== filter.model) return false;
+    return true;
+}
+
+/**
  * Summarizes raw usage for a time window, grouped by one dimension. With `inclusive` scope an agent's row also
  * contains the work it initiated (consultations, delegated work); such rows overlap by design, while the total
  * counts every underlying consumption once. Opening a view never writes or manufactures usage.
@@ -421,7 +515,7 @@ function agentKey(name: string | undefined): string | undefined {
  */
 export function summarizeUsage(
     records: readonly UsageRecord[],
-    options: { readonly days?: number; readonly grouping?: UsageGrouping; readonly scope?: 'self' | 'inclusive'; readonly now?: number; readonly prices?: readonly PriceObservation[] } = {},
+    options: { readonly days?: number; readonly grouping?: UsageGrouping; readonly scope?: 'self' | 'inclusive'; readonly filter?: UsageFilter; readonly now?: number; readonly prices?: readonly PriceObservation[] } = {},
 ): UsageSummary {
     const prices = options.prices ?? [];
     const days = options.days ?? 7;
@@ -430,34 +524,42 @@ export function summarizeUsage(
     const to = new Date(now).toISOString();
     const grouping = options.grouping ?? 'none';
     const scope = options.scope ?? 'self';
-    const units = usageUnits(records).filter((unit) => unit.at >= from && unit.at <= to);
-    const labels = (unit: UsageUnit): string[] => {
+    const filter = Object.fromEntries(Object.entries(options.filter ?? {}).filter(([, value]) => typeof value === 'string' && value.trim()).map(([field, value]) => [field, value!.trim()])) as UsageFilter;
+    const units = usageUnits(records).filter((unit) => unit.at >= from && unit.at <= to && matchesUsageFilter(unit, filter, scope));
+    // Each label with the filter that selects it; missing attribution is its own explicit row without a filter.
+    const labels = (unit: UsageUnit): { readonly label: string; readonly filter?: UsageFilter }[] => {
         switch (grouping) {
-            case 'agent': {
-                const own = [unit.attribution.agent];
-                if (scope === 'inclusive') own.push(...[unit.attribution.initiator, unit.attribution.parent?.agent].filter((name): name is string => Boolean(name) && name !== 'User' && name !== 'engine'));
-                const seen = new Set<string>();
-                return own.filter((name) => {
-                    const key = agentKey(name)!;
-                    if (seen.has(key)) return false;
-                    seen.add(key);
-                    return true;
-                });
-            }
+            case 'agent':
+                return unitAgents(unit, scope).map((agent) => ({ label: agent, filter: { agent } }));
             case 'harness':
-                return [unit.tool ? `${unit.harness} (${unit.tool})` : unit.harness];
+                return [{ label: unit.tool ? `${unit.harness} (${unit.tool})` : unit.harness, filter: { harness: unit.harness, ...(unit.tool ? { tool: unit.tool } : {}) } }];
             case 'model':
-                return [unit.model ?? 'model not reported'];
+                return [unit.model ? { label: unit.model, filter: { model: unit.model } } : { label: 'model not reported' }];
             case 'work':
-                return [unit.attribution.work.kind];
+                return [{ label: unit.attribution.work.kind, filter: { work: unit.attribution.work.kind } }];
+            case 'task':
+            case 'chat': {
+                const names = unitWork(unit, grouping, scope);
+                return names.length ? names.map((name) => ({ label: name, filter: { [grouping]: name } })) : [{ label: `not in a ${grouping}` }];
+            }
+            case 'tool':
+                return [unit.tool ? { label: unit.tool, filter: { tool: unit.tool } } : { label: 'tool not recorded' }];
             case 'day':
-                return [unit.at.slice(0, 10)];
+                return [{ label: unit.at.slice(0, 10) }];
             case 'none':
                 return [];
         }
     };
-    const groups = new Map<string, UsageUnit[]>();
-    for (const unit of units) for (const label of labels(unit)) groups.set(label, [...(groups.get(label) ?? []), unit]);
-    const rows = [...groups.entries()].map(([label, members]) => ({ label, ...totals(members, prices) })).sort((a, b) => b.input + b.output - (a.input + a.output) || b.units - a.units || a.label.localeCompare(b.label));
-    return { from, to, days, grouping, scope, total: totals(units, prices), rows };
+    const groups = new Map<string, { filter?: UsageFilter; members: UsageUnit[] }>();
+    for (const unit of units) {
+        for (const { label, filter: selecting } of labels(unit)) {
+            const group = groups.get(label) ?? { ...(selecting ? { filter: selecting } : {}), members: [] };
+            group.members.push(unit);
+            groups.set(label, group);
+        }
+    }
+    const rows = [...groups.entries()]
+        .map(([label, group]) => ({ label, ...(group.filter ? { filter: group.filter } : {}), ...totals(group.members, prices) }))
+        .sort((a, b) => b.input + b.output - (a.input + a.output) || b.units - a.units || a.label.localeCompare(b.label));
+    return { from, to, days, grouping, scope, filter, total: totals(units, prices), rows };
 }

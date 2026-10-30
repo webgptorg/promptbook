@@ -1224,54 +1224,106 @@
             .join(' · ') || 'no runs';
     }
 
-    /** The last Usage view of this viewer (a local convenience; storage may be unavailable). */
+    /** Breakdowns of the Usage page; each is also a filter field of the shared usage view. */
+    const USAGE_GROUPINGS = { agent: 'Agent', harness: 'Harness', model: 'Model', work: 'Kind of work', task: 'Task', chat: 'Chat', tool: 'Tool' };
+
+    /** The Usage view of this viewer, kept in memory and restored from the last visit (storage may be unavailable). */
     function usageView() {
+        if (state.usageView) return state.usageView;
+        let saved = {};
         try {
-            const saved = JSON.parse(localStorage.getItem('ptbk-usage-view') || '{}');
-            return { grouping: ['agent', 'harness', 'model', 'work'].includes(saved.grouping) ? saved.grouping : 'agent', inclusive: saved.inclusive === true };
+            saved = JSON.parse(localStorage.getItem('ptbk-usage-view') || '{}') || {};
         } catch {
-            return { grouping: 'agent', inclusive: false };
+            // Private windows may refuse storage; the default view still works.
         }
+        const filter = saved.filter && typeof saved.filter === 'object' ? Object.fromEntries(Object.entries(saved.filter).filter(([field, value]) => field in USAGE_GROUPINGS && typeof value === 'string')) : {};
+        state.usageView = { grouping: saved.grouping in USAGE_GROUPINGS ? saved.grouping : 'agent', inclusive: saved.inclusive === true, filter };
+        return state.usageView;
     }
 
-    /** Remembers the Usage view locally (never a project setting). */
+    /** Changes the Usage view, remembers it locally (never a project setting) and loads what it needs. */
     function rememberUsageView(view) {
+        state.usageView = view;
         try {
             localStorage.setItem('ptbk-usage-view', JSON.stringify(view));
         } catch {
             // Private windows may refuse storage; the view still works.
         }
+        render(state.snapshot);
+        loadUsage(true);
+    }
+
+    /** Whether the Usage view needs the engine's on-demand summary (a filter, or a breakdown the snapshot lacks). */
+    function usageNeedsQuery(view) {
+        return Object.keys(view.filter).length > 0 || !['agent', 'harness', 'model', 'work'].includes(view.grouping);
+    }
+
+    /** Loads the shared usage summary for the current view (again when the engine's overview was recomputed). */
+    async function loadUsage(force) {
+        const view = usageView();
+        if (!usageNeedsQuery(view)) return;
+        const computedAt = state.snapshot && state.snapshot.usage ? state.snapshot.usage.computedAt : '';
+        if (!force && state.usageResult && state.usageResult.computedAt === computedAt) return;
+        const query = new URLSearchParams({ group: view.grouping, scope: view.inclusive ? 'inclusive' : 'self', ...view.filter });
+        const request = (state.usageRequest = (state.usageRequest || 0) + 1);
+        try {
+            const summary = await api(`/api/usage?${query}`);
+            // A slower answer to an earlier view never replaces the current one.
+            if (request === state.usageRequest) state.usageResult = { key: query.toString(), computedAt, summary, problem: null };
+        } catch (error) {
+            if (request === state.usageRequest) state.usageResult = { key: query.toString(), computedAt, summary: null, problem: error.message };
+        }
+        if (state.page === 'usage') render(state.snapshot);
     }
 
     /** The Usage page: a simple seven-day summary with the chosen breakdown; billing mode and certainty stay visible. */
     function renderUsagePage(snapshot) {
-        const usage = snapshot.usage;
-        if (!usage) return pageFrame('usage', 'Model usage of this project', h('p', { className: 'muted' }, 'This engine does not report usage yet.'));
         const view = usageView();
-        const rows = view.grouping === 'agent' ? (view.inclusive ? usage.breakdowns.agentInclusive : usage.breakdowns.agent) : usage.breakdowns[view.grouping];
-        const tokens = (row) => `${compactCount(row.input)} in · ${compactCount(row.output)} out${row.cachedInput ? ` · ${compactCount(row.cachedInput)} cached` : ''}${row.reasoning ? ` · ${compactCount(row.reasoning)} reasoning` : ''}`;
-        const money = (row) => [row.coverage.costReported ? `$${row.reportedCostUsd.toFixed(2)} reported by providers` : '', row.calculated.apiUsd ? `$${row.calculated.apiUsd.toFixed(2)} API${row.calculated.estimated ? ' (partly estimated)' : ''}` : '', row.calculated.subscriptionEquivalentUsd ? `$${row.calculated.subscriptionEquivalentUsd.toFixed(2)} token-price equivalent of subscription work` : ''].filter(Boolean).join(' · ');
-        const choose = (changes) => {
-            rememberUsageView({ ...view, ...changes });
-            render(state.snapshot);
+        const query = new URLSearchParams({ group: view.grouping, scope: view.inclusive ? 'inclusive' : 'self', ...view.filter }).toString();
+        const loaded = state.usageResult && state.usageResult.key === query ? state.usageResult : null;
+        const filters = Object.entries(view.filter);
+        const describe = filters.map(([field, value]) => `${field === 'work' ? 'kind' : field} ${value}`).join(', ');
+        const choose = (changes) => rememberUsageView({ ...view, ...changes });
+        // Narrowing to a row combines with the current filter and moves on to the next breakdown not narrowed yet.
+        const narrow = (filter) => {
+            const combined = { ...view.filter, ...filter };
+            const order = Object.keys(USAGE_GROUPINGS);
+            // Work of one task is rarely in a chat and the other way round.
+            const narrowed = (grouping) => grouping in combined || (grouping === 'chat' && combined.task) || (grouping === 'task' && combined.chat);
+            const next = [...order.slice(order.indexOf(view.grouping) + 1), ...order].find((grouping) => !narrowed(grouping)) || view.grouping;
+            choose({ filter: combined, grouping: next });
         };
-        const groupings = { agent: 'Agent', harness: 'Harness', model: 'Model', work: 'Kind of work' };
+        const scoped = ['agent', 'task', 'chat'].includes(view.grouping) || view.filter.agent || view.filter.task || view.filter.chat;
         const controls = h(
             'div',
             { className: 'row', role: 'group', 'aria-label': 'Group usage by' },
-            ...Object.entries(groupings).map(([value, label]) => h('button', { className: value === view.grouping ? 'primary' : '', 'aria-pressed': String(value === view.grouping), onclick: () => choose({ grouping: value }) }, label)),
-            view.grouping === 'agent' ? h('button', { 'aria-pressed': String(view.inclusive), onclick: () => choose({ inclusive: !view.inclusive }) }, view.inclusive ? 'Own work only' : 'Include initiated work') : null,
+            ...Object.entries(USAGE_GROUPINGS).map(([value, label]) => h('button', { className: value === view.grouping ? 'primary' : '', 'aria-pressed': String(value === view.grouping), onclick: () => choose({ grouping: value }) }, label)),
+            scoped ? h('button', { 'aria-pressed': String(view.inclusive), onclick: () => choose({ inclusive: !view.inclusive }) }, view.inclusive ? 'Own work only' : 'Include initiated work') : null,
         );
+        const filterBar = filters.length ? h('div', { className: 'row', role: 'group', 'aria-label': 'Usage filter' }, h('span', {}, `Only ${describe}${view.inclusive ? ' (including work it initiated)' : ''}`), h('button', { onclick: () => choose({ filter: {} }) }, 'Clear filter')) : null;
+        const usage = usageNeedsQuery(view) ? (loaded && loaded.summary) || null : snapshot.usage;
+        if (!usage) {
+            const waiting = loaded && loaded.problem ? `The usage summary could not be read: ${loaded.problem}` : usageNeedsQuery(view) ? 'Loading the usage summary…' : 'This engine does not report usage yet.';
+            return pageFrame('usage', 'Model usage of this project', controls, filterBar, h('p', { className: 'muted' }, waiting));
+        }
+        const rows = usageNeedsQuery(view) ? usage.rows : view.grouping === 'agent' ? (view.inclusive ? usage.breakdowns.agentInclusive : usage.breakdowns.agent) : usage.breakdowns[view.grouping];
+        const tokens = (row) => `${compactCount(row.input)} in · ${compactCount(row.output)} out${row.cachedInput ? ` · ${compactCount(row.cachedInput)} cached` : ''}${row.reasoning ? ` · ${compactCount(row.reasoning)} reasoning` : ''}`;
+        const money = (row) => [row.coverage.costReported ? `$${row.reportedCostUsd.toFixed(2)} reported by providers` : '', row.calculated.apiUsd ? `$${row.calculated.apiUsd.toFixed(2)} API${row.calculated.estimated ? ' (partly estimated)' : ''}` : '', row.calculated.subscriptionEquivalentUsd ? `$${row.calculated.subscriptionEquivalentUsd.toFixed(2)} token-price equivalent of subscription work` : ''].filter(Boolean).join(' · ');
         const total = h('section', { className: 'card', 'aria-label': 'Total' }, h('h2', {}, `Last ${usage.days} days`), h('p', {}, usage.total.units ? `${tokens(usage.total)} · ${usage.total.units} runs` : 'No model usage.'), money(usage.total) ? h('p', {}, money(usage.total)) : null, h('p', { className: 'muted' }, billingMix(usage.total)));
         const table = h(
             'section',
             { className: 'card', 'aria-label': 'Breakdown' },
-            h('h2', {}, view.grouping === 'agent' && view.inclusive ? 'By agent, including work it initiated (rows overlap)' : `By ${groupings[view.grouping].toLowerCase()}`),
+            h('h2', {}, scoped && view.inclusive ? `By ${USAGE_GROUPINGS[view.grouping].toLowerCase()}, including work it initiated (rows overlap)` : `By ${USAGE_GROUPINGS[view.grouping].toLowerCase()}`),
             rows.length
-                ? h('ul', { className: 'list' }, ...rows.map((row) => h('li', {}, h('strong', {}, row.label), h('span', {}, ` ${tokens(row)} · ${row.units} runs`), h('div', { className: 'muted' }, [money(row), billingMix(row)].filter(Boolean).join(' · ')))))
-                : h('p', { className: 'muted' }, 'Nothing in this period.'),
+                ? h(
+                      'ul',
+                      { className: 'list' },
+                      // A row of missing attribution is shown as such and cannot be narrowed further (never guessed).
+                      ...rows.map((row) => h('li', {}, row.filter ? h('button', { className: 'link', title: `Only ${row.label}`, onclick: () => narrow(row.filter) }, h('strong', {}, row.label)) : h('strong', { className: 'muted' }, row.label), h('span', {}, ` ${tokens(row)} · ${row.units} runs`), h('div', { className: 'muted' }, [money(row), billingMix(row)].filter(Boolean).join(' · ')))),
+                  )
+                : h('p', { className: 'muted' }, filters.length ? 'Nothing matches this filter in this period.' : 'Nothing in this period.'),
         );
-        return pageFrame('usage', 'Totals count every consumption once, from durable raw usage; missing usage is shown, never counted as zero', controls, total, table);
+        return pageFrame('usage', 'Totals count every consumption once, from durable raw usage; missing usage is shown, never counted as zero', controls, filterBar, total, table);
     }
 
     /** Interactions after a new attention item appeared that show the operator is active here (it then settles). */
@@ -1296,6 +1348,7 @@
         state.page = domain;
         history.pushState({ page: domain }, '', `#/${domain}`);
         if (domain === 'tasks') loadTasks(true);
+        if (domain === 'usage') loadUsage(true);
         render(state.snapshot);
         window.scrollTo(0, 0);
     }
@@ -2386,6 +2439,7 @@
                 state.revision = snapshot.revision;
                 updateAttention(snapshot);
                 if (state.page === 'tasks') loadTasks(false);
+                if (state.page === 'usage') loadUsage(false);
                 render(snapshot);
                 // New messages in the open chat arrive without stealing focus or drafts.
                 if (state.chat && state.chat.detail) {
@@ -2430,6 +2484,7 @@
             state.page = routeFromHash();
             // Back/Forward into Tasks loads the current inventory, as opening the page does.
             if (state.page === 'tasks') loadTasks(true);
+            if (state.page === 'usage') loadUsage(true);
             render(state.snapshot);
         });
         // The home grid follows the viewport (also when only its height changes).
