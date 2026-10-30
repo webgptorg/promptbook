@@ -1768,7 +1768,7 @@
                     { className: 'notice' },
                     h('strong', {}, `${action.origin}${action.account ? ` · ${action.account}` : ''} · ${problem}`),
                     h('div', { className: 'muted' }, `${action.reason} ${action.tasks.length ? `For ${action.tasks.join(', ')}.` : ''} Since ${time(action.createdAt)}${action.requests > 1 ? ` · requested ${action.requests}×` : ''}.`),
-                    h('div', { className: 'row' }, action.problem === 'code' ? h('button', { className: 'primary', onclick: () => walletCodeDialog(action) }, 'Enter the code') : wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletLoginDialog({ origin: action.origin, action: action.id }) }, 'Add this login') : null, h('button', { onclick: () => walletCall('wallet-dismiss', { request: action.id }, `Dismiss the login request for ${action.origin}? The waiting work continues without it.`) }, 'Dismiss')),
+                    h('div', { className: 'row' }, action.problem === 'code' ? h('button', { className: 'primary', onclick: () => walletCodeDialog(action) }, 'Enter the code') : action.problem === 'field' && wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletFieldDialog(action) }, 'Add the fields') : wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletLoginDialog({ origin: action.origin, action: action.id }) }, 'Add this login') : null, h('button', { onclick: () => walletCall('wallet-dismiss', { request: action.id }, `Dismiss the login request for ${action.origin}? The waiting work continues without it.`) }, 'Dismiss')),
                 ),
             );
         }
@@ -1782,11 +1782,17 @@
                     h(
                         'li',
                         {},
-                        h('span', { className: 'title' }, `${record.origin} · ${record.account}`, h('span', { className: 'why' }, `${record.lastUsedAt ? `used ${time(record.lastUsedAt)}` : 'not used yet'}${record.lastOutcome === 'rejected' ? ' · rejected by the site' : ''}`), walletVerification(record)),
+                        h(
+                            'span',
+                            { className: 'title' },
+                            `${record.origin} · ${record.account}`,
+                            h('span', { className: 'why' }, `${record.lastUsedAt ? `used ${time(record.lastUsedAt)}` : 'not used yet'}${record.lastOutcome === 'rejected' ? ' · rejected by the site' : ''}${record.fields && record.fields.length ? ` · also fills ${record.fields.map((item) => `${item.label}${item.uncertain ? ' (may change)' : ''}`).join(', ')}` : ''}`),
+                            walletVerification(record),
+                        ),
                         h(
                             'span',
                             { className: 'row' },
-                            h('button', { onclick: () => walletLoginDialog({ origin: record.origin, label: record.account, id: record.id }) }, 'Update'),
+                            h('button', { onclick: () => walletLoginDialog({ origin: record.origin, label: record.account, id: record.id, fields: record.fields }) }, 'Update'),
                             record.testAwaits === 'code' ? h('button', { className: 'primary', onclick: () => walletCodeDialog({ origin: record.origin, test: record.id }) }, 'Enter the code') : null,
                             record.testing ? h('button', { onclick: () => walletCall('wallet-test-cancel', { id: record.id }) }, 'Cancel test') : h('button', { disabled: wallet.state !== 'ready', onclick: () => walletCall('wallet-test', { id: record.id }) }, 'Test'),
                             h('button', { className: 'danger', onclick: () => walletCall('wallet-remove', { id: record.id }, `Remove the saved login "${record.account}" for ${record.origin}?`) }, 'Remove'),
@@ -2070,6 +2076,17 @@
         const username = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', required: true });
         const password = h('input', { type: 'password', autocomplete: 'new-password', required: true });
         const label = h('input', { type: 'text', value: initial.label || '', autocomplete: 'off', placeholder: 'optional; default: website · masked account' });
+        // Additional login fields (date of birth, security answer, …): a saved one stays unless changed or removed.
+        const extras = [];
+        const extraList = h('div', {});
+        const addExtra = (name, saved) => {
+            const nameInput = h('input', { type: 'text', value: name || '', autocomplete: 'off', placeholder: 'e.g. Date of birth', readOnly: Boolean(saved) });
+            const valueInput = h('input', { type: 'password', autocomplete: 'off', placeholder: saved ? 'saved; type to change' : '' });
+            const remove = h('input', { type: 'checkbox' });
+            extras.push({ nameInput, valueInput, remove, saved });
+            extraList.append(h('div', { className: 'row' }, nameInput, walletCredentialField('Value', valueInput), saved ? h('label', {}, remove, ' Remove') : null));
+        };
+        for (const saved of initial.fields || []) addExtra(saved.label, true);
         let dialog;
         const form = h(
             'form',
@@ -2079,10 +2096,13 @@
                 onsubmit: async (event) => {
                     event.preventDefault();
                     // Saving is verified by the same credential test as the Test button (its result follows separately).
-                    const body = { origin: origin.value, username: username.value, password: password.value, label: label.value, test: true, ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) };
+                    const fields = extras.filter((extra) => extra.nameInput.value.trim() && (extra.remove.checked || extra.valueInput.value)).map((extra) => ({ label: extra.nameInput.value.trim(), value: extra.remove.checked ? '' : extra.valueInput.value }));
+                    const body = { origin: origin.value, username: username.value, password: password.value, label: label.value, test: true, ...(fields.length ? { fields } : {}), ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) };
                     password.value = '';
+                    for (const extra of extras) extra.valueInput.value = '';
                     const result = await walletCall('wallet-save', body);
                     body.password = '';
+                    body.fields = undefined;
                     if (result) dialog.close();
                 },
             },
@@ -2091,6 +2111,7 @@
             walletCredentialField('Username or email', username),
             walletCredentialField('Password', password),
             field('Label (editable name of this login)', label),
+            h('fieldset', {}, h('legend', {}, 'Additional login fields'), h('p', { className: 'muted' }, 'Only when the website asks for more than the username and password, for example a date of birth or a security answer. Values are saved encrypted and never shown.'), extraList, h('button', { type: 'button', onclick: () => addExtra('', false) }, 'Add a field')),
             h('div', { className: 'row' }, h('button', { type: 'submit', className: 'primary' }, 'Save login'), h('button', { type: 'button', onclick: () => ((password.value = ''), dialog.close()) }, 'Cancel')),
         );
         dialog = walletDialog(initial.id ? 'Update a website login' : 'Add a website login', form);
@@ -2125,6 +2146,37 @@
         );
         dialog = walletDialog('Enter a one-time code', form);
         code.focus();
+    }
+
+    /**
+     * Protected entry of the additional login fields a website's form asked for: saved encrypted with the login (marked
+     * uncertain when they may change) and filled for later sign-ins; never shown again.
+     */
+    function walletFieldDialog(action) {
+        const inputs = (action.fields || []).map((label) => ({ label, input: h('input', { type: 'password', autocomplete: 'off' }) }));
+        const uncertain = h('input', { type: 'checkbox' });
+        let dialog;
+        const form = h(
+            'form',
+            {
+                method: 'dialog',
+                autocomplete: 'off',
+                onsubmit: async (event) => {
+                    event.preventDefault();
+                    const body = { request: action.id, fields: inputs.filter((item) => item.input.value).map((item) => ({ label: item.label, value: item.input.value, uncertain: uncertain.checked })) };
+                    for (const item of inputs) item.input.value = '';
+                    const result = await walletCall('wallet-field', body);
+                    body.fields = [];
+                    if (result) dialog.close();
+                },
+            },
+            h('p', { className: 'muted' }, `The login form of ${action.origin} asks for more than the username and password. The Wallet saves these values encrypted with the login and fills them for later sign-ins; agents never see them.`),
+            ...inputs.map((item) => walletCredentialField(item.label, item.input)),
+            h('label', {}, uncertain, ' Not sure these stay the same for later logins (saved, marked uncertain)'),
+            h('div', { className: 'row' }, h('button', { type: 'submit', className: 'primary' }, 'Save the fields'), h('button', { type: 'button', onclick: () => (inputs.forEach((item) => (item.input.value = '')), dialog.close()) }, 'Cancel')),
+        );
+        dialog = walletDialog('Add login fields', form);
+        if (inputs[0]) inputs[0].input.focus();
     }
 
     /** First setup: the 12 words for recovery are shown once in a dialog and the Wallet is created after confirmation. */

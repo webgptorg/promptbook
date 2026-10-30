@@ -79,6 +79,7 @@ function walletMessage(result: WalletLoginResult): string {
         case 'ambiguous':
             return `The Wallet has several logins for ${result.origin}: ${result.accounts.map((account) => `"${account}"`).join(', ')}. Call wallet_login again with account set to the one the task requires.`;
         case 'waiting':
+            if (result.problem === 'field') return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for these values in a chat. End your turn now with status waiting-for-user: the task resumes once they are added, then open the login page again and call wallet_login (the Wallet fills them; you never see them).`;
             if (result.problem === 'code') return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for the code in a chat. End your turn now with status waiting-for-user: the task resumes once the code is entered, then call wallet_login again on the same code page (the Wallet enters the code; you never see it).`;
             return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for the username or password in a chat. End your turn now with status waiting-for-user: the task resumes once the login is added, then open the login page again and call wallet_login.`;
         case 'failed':

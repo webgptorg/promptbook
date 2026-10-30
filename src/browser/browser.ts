@@ -36,7 +36,7 @@ import {
     type LoginScan,
     type PageReading,
 } from './page-scripts.js';
-import { originMatches, type SignInAttempt, type SignInPage } from '../wallet/wallet.js';
+import { fieldAnswers, originMatches, type SignInAttempt, type SignInCredentials, type SignInPage } from '../wallet/wallet.js';
 
 /**
  * Window size of a headless browser (a desktop layout, as a person at a desktop sees websites).
@@ -1289,9 +1289,9 @@ export class TaskBrowser {
     }
 
     /** Enters one marked login field by trusted text input. */
-    private async enterLoginField(field: 'username' | 'password' | 'code', value: string): Promise<void> {
+    private async enterLoginField(field: 'username' | 'password' | 'code' | `field-${number}`, value: string): Promise<void> {
         const { connection, sessionId } = await this.active();
-        if (!(await this.evaluate<boolean>(focusLoginFieldScript(field)))) throw new PtbkError(`The ${field} field of the login form disappeared.`, { kind: 'technical' });
+        if (!(await this.evaluate<boolean>(focusLoginFieldScript(field)))) throw new PtbkError(`The ${field.startsWith('field-') ? 'additional' : field} field of the login form disappeared.`, { kind: 'technical' });
         await connection.send('Input.insertText', { text: value }, sessionId);
     }
 
@@ -1305,30 +1305,62 @@ export class TaskBrowser {
 
     /**
      * Signs in with credentials of one origin: a field is entered only while the page is on that origin (a redirect to
-     * another site never receives them), a two-step login gets the username first, and the result is verified on the
-     * resulting page rather than assumed from the submission.
+     * another site never receives them), a two-step login gets the username first, additional fields of the form are
+     * filled from the saved ones with a matching label, and the result is verified on the resulting page rather than
+     * assumed from the submission. A required field no saved one answers stops before submitting (no false rejection).
      */
-    private async walletSignIn(credentials: { readonly origin: string; readonly username: string; readonly password: string }): Promise<SignInAttempt> {
+    private async walletSignIn(credentials: SignInCredentials): Promise<SignInAttempt> {
         await this.recorder.pause('Wallet sign-in (credentials are not recorded)');
         try {
             let scan = await this.scanLogin();
             const elsewhere = (current: LoginScan): SignInAttempt | undefined => (originMatches(credentials.origin, current.origin) ? undefined : { result: 'no-form', note: `the page moved to ${current.origin}, which this login does not belong to` });
+            /** Fills the form's additional fields the saved ones answer; the labels of required unanswered ones. */
+            const additional = async (current: LoginScan, enter: boolean): Promise<readonly string[]> => {
+                const missing: string[] = [];
+                for (const field of current.fields) {
+                    const saved = credentials.fields?.find((candidate) => fieldAnswers(candidate.label, field.label));
+                    if (saved && enter) await this.enterLoginField(field.marker as `field-${number}`, saved.value);
+                    else if (!saved && field.required) missing.push(field.label || 'an unnamed required field');
+                }
+                return missing;
+            };
+            const asks = (missing: readonly string[]): SignInAttempt => ({ result: 'challenge', note: `the login form asks for ${missing.map((label) => `"${label}"`).join(', ')}`, missingFields: missing });
             if (!scan.password && !scan.username) return { result: 'no-form', note: 'no login form is shown' };
             const moved = elsewhere(scan);
             if (moved) return moved;
+            if (!scan.password) {
+                const missing = await additional(scan, false);
+                if (missing.length) return asks(missing);
+            }
             if (scan.username) await this.enterLoginField('username', credentials.username);
             if (!scan.password) {
+                await additional(scan, true);
                 await this.submitLogin();
                 scan = await this.scanLogin();
                 if (!scan.password) return scan.otp ? { result: 'challenge', note: 'the site asks for a one-time code' } : scan.username ? { result: 'rejected', note: 'the site did not accept the username' } : { result: 'no-form', note: 'no password field followed the username' };
                 const away = elsewhere(scan);
                 if (away) return away;
             }
+            const missing = await additional(scan, false);
+            if (missing.length) return asks(missing);
             await this.enterLoginField('password', credentials.password);
+            await additional(scan, true);
             await this.submitLogin();
-            const after = await this.scanLogin();
+            let after = await this.scanLogin();
             if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
             if (after.otp) return { result: 'challenge', note: 'the site asks for a one-time code' };
+            // A sign-in question after the password (security answer, date of birth, …): answered from the saved
+            // fields once, on the login's own site only.
+            if (after.fields.length && !elsewhere(after)) {
+                const unanswered = await additional(after, false);
+                if (unanswered.length) return asks(unanswered);
+                await additional(after, true);
+                await this.submitLogin();
+                after = await this.scanLogin();
+                if (after.fields.length && originMatches(credentials.origin, after.origin)) return { result: 'rejected', note: 'the site asked for its sign-in question again' };
+                if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
+                if (after.otp) return { result: 'challenge', note: 'the site asks for a one-time code' };
+            }
             return { result: 'signed-in' };
         } finally {
             await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);

@@ -6,6 +6,7 @@ import type { Agenda } from '../engine/agenda.js';
 import { formatBytes } from '../engine/health.js';
 import { defaultChatAgent } from '../chats/service.js';
 import type { ToolOperation, ToolOperationOutcome } from '../tools/operations.js';
+import type { LoginField } from '../wallet/wallet.js';
 
 /**
  * Runtime actions shared by every channel (CLI, terminal, browser, API): the engine's lifecycle operations, wait
@@ -256,6 +257,14 @@ export async function applyToolAction(agenda: Agenda, params: Readonly<Record<st
  */
 export async function applyWalletAction(agenda: Agenda, method: string, params: Readonly<Record<string, unknown>>, options: { readonly ownerSurface: boolean; readonly trustedFiles?: boolean }): Promise<unknown> {
     const text = (key: string): string => (typeof params[key] === 'string' ? (params[key] as string) : '');
+    // Additional login fields from protected owner input (values are write-only like passwords).
+    const fields = (): LoginField[] | undefined => {
+        if (params.fields === undefined) return undefined;
+        if (!Array.isArray(params.fields) || params.fields.some((field) => !field || typeof field !== 'object' || typeof (field as { label?: unknown }).label !== 'string' || typeof (field as { value?: unknown }).value !== 'string')) {
+            throw new PtbkError('Additional login fields need a label and a value each.', { kind: 'usage', effect: 'Nothing was saved.' });
+        }
+        return (params.fields as Array<{ label: string; value: string; uncertain?: unknown }>).map((field) => ({ label: field.label, value: field.value, ...(field.uncertain === true ? { uncertain: true } : {}) }));
+    };
     const wallet = agenda.wallet;
     switch (method) {
         case 'wallet':
@@ -271,7 +280,7 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
             return await wallet.restore(text('words'));
         case 'wallet-save': {
             // `request` names the pending login request being answered (`action` is the operation itself over HTTP).
-            const saved = await wallet.save({ origin: text('origin'), username: text('username'), password: text('password'), label: text('label') || undefined, id: text('id') || undefined, action: text('request') || undefined });
+            const saved = await wallet.save({ origin: text('origin'), username: text('username'), password: text('password'), label: text('label') || undefined, id: text('id') || undefined, action: text('request') || undefined, fields: fields() });
             // Adding or updating from the Wallet page is verified by the same credential test (its outcome follows
             // separately; saving never waits for it or depends on it).
             if (params.test === true && saved.id) wallet.startTest(saved.id);
@@ -285,6 +294,8 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
             return wallet.cancelTest(text('id'));
         case 'wallet-code':
             return await wallet.supplyCode({ request: text('request'), code: text('code') });
+        case 'wallet-field':
+            return await wallet.supplyFields({ request: text('request'), fields: fields() ?? [] });
         case 'wallet-remove':
             return await wallet.remove(text('id'));
         case 'wallet-dismiss':
@@ -322,4 +333,4 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
  *
  * @private shared runtime controls
  */
-export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-test', 'wallet-test-code', 'wallet-test-cancel', 'wallet-code', 'wallet-remove', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);
+export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-test', 'wallet-test-code', 'wallet-test-cancel', 'wallet-code', 'wallet-field', 'wallet-remove', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);

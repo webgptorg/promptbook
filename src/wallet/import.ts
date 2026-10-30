@@ -1,4 +1,5 @@
 import { PtbkError } from '../common/errors.js';
+import type { LoginField } from './wallet.js';
 
 /**
  * One importable login from an external password manager, with its secrets (kept only inside the Wallet's memory until
@@ -14,6 +15,8 @@ export type ImportedLogin = {
     readonly origin: string;
     readonly username: string;
     readonly password: string;
+    /** Additional reusable login fields from the source (text and hidden custom fields). */
+    readonly fields?: readonly LoginField[];
     /**
      * Source fields that are not imported, named for an honest report (never their values): for example a TOTP
      * generator, since Wallet-owned TOTP generation/import is future scope.
@@ -42,6 +45,11 @@ export type ImportExtraction = { readonly source: string; readonly logins: reado
  * @private Wallet import
  */
 export type ImportSource = { readonly id: string; readonly name: string; readonly extract: (content: string, normalizeOrigin: (input: string) => string) => ImportExtraction };
+
+/**
+ * Additional fields imported per login (the Wallet keeps at most this many per saved login).
+ */
+const MAX_IMPORTED_FIELDS = 12;
 
 /**
  * Bitwarden item types (only logins are imported).
@@ -75,7 +83,13 @@ export const BITWARDEN_SOURCE: ImportSource = {
         const logins: ImportedLogin[] = [];
         const skipped: SkippedEntry[] = [];
         data.items.forEach((raw, index) => {
-            const item = (raw ?? {}) as { id?: string; type?: number; name?: string; login?: { username?: string | null; password?: string | null; totp?: string | null; uris?: Array<{ uri?: string | null }> | null } | null };
+            const item = (raw ?? {}) as {
+                id?: string;
+                type?: number;
+                name?: string;
+                login?: { username?: string | null; password?: string | null; totp?: string | null; uris?: Array<{ uri?: string | null }> | null } | null;
+                fields?: Array<{ name?: string | null; value?: string | null; type?: number | null }> | null;
+            };
             const label = typeof item.name === 'string' ? item.name.trim() : '';
             const shown = label || `item ${index + 1}`;
             if (item.type !== 1) {
@@ -107,8 +121,20 @@ export const BITWARDEN_SOURCE: ImportSource = {
             }
             // A TOTP generator is reported, not imported: its value never leaves this function.
             const unsupported = item.login?.totp?.trim() ? ['TOTP generator'] : [];
+            // Text and hidden custom fields (date of birth, security answer, …) are additional login fields; boolean and
+            // linked fields carry no reusable value of their own and are reported by name.
+            const fields: LoginField[] = [];
+            for (const field of item.fields ?? []) {
+                const name = field?.name?.trim();
+                if (!name || !field?.value) continue;
+                if (field.type === 0 || field.type === 1) {
+                    if (fields.some((existing) => existing.label.toLowerCase() === name.toLowerCase())) continue;
+                    if (fields.length < MAX_IMPORTED_FIELDS) fields.push({ label: name.slice(0, 80), value: field.value.slice(0, 1_000) });
+                    else unsupported.push(`custom field "${name.slice(0, 40)}" (more than ${MAX_IMPORTED_FIELDS} fields)`);
+                } else unsupported.push(`custom field "${name.slice(0, 40)}" (${field.type === 2 ? 'boolean' : field.type === 3 ? 'linked' : 'unknown type'})`);
+            }
             // Every supported website of the item is its own login (no similarly named service is guessed).
-            for (const origin of origins) logins.push({ key: `${item.id ?? index}|${origin}`, label, origin, username, password, ...(unsupported.length ? { unsupported } : {}) });
+            for (const origin of origins) logins.push({ key: `${item.id ?? index}|${origin}`, label, origin, username, password, ...(fields.length ? { fields } : {}), ...(unsupported.length ? { unsupported } : {}) });
         });
         return { source: 'Bitwarden', logins, skipped };
     },

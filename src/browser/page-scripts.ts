@@ -373,11 +373,23 @@ export function viewportScript(): string {
  *
  * @private browser page scripts
  */
-export type LoginScan = { readonly origin: string; readonly username: boolean; readonly password: boolean; readonly otp: boolean };
+export type LoginScan = {
+    readonly origin: string;
+    readonly username: boolean;
+    readonly password: boolean;
+    readonly otp: boolean;
+    /**
+     * Other empty fields of the login form (date of birth, security answer, customer number, …), marked `field-<n>`,
+     * with their visible label and whether the form requires them. Without a username or password field, only required
+     * fields of a form whose label looks like a sign-in question count (a step after the password).
+     */
+    readonly fields: readonly { readonly marker: string; readonly label: string; readonly required: boolean }[];
+};
 
 /**
  * Finds the visible login fields of the current page (top document) for the Wallet and marks them: the password field
- * and the username field before it in its form, or a lone username field of a two-step login. Values are never read.
+ * and the username field before it in its form, or a lone username field of a two-step login, plus the form's other
+ * empty fields with their labels. Values are never read.
  *
  * @private browser page scripts
  */
@@ -390,7 +402,18 @@ export function loginFormScript(): string {
         const otpLike = (element) => /one-time-code/i.test(element.autocomplete || '') || /otp|totp|2fa|mfa|two.?factor|verification.?code|security.?code/i.test(label(element));
         for (const marked of document.querySelectorAll('[data-ptbk-wallet]')) marked.removeAttribute('data-ptbk-wallet');
         const inputs = [...document.querySelectorAll('input')].filter(visible);
-        const passwords = inputs.filter((element) => element.type === 'password' && !otpLike(element));
+        // The visible name of a field: its label element, aria label(l)ing, a wrapping label, then placeholder or name.
+        const describe = (element) => {
+            const byFor = element.id ? document.querySelector('label[for="' + CSS.escape(element.id) + '"]') : null;
+            const labelled = (element.getAttribute('aria-labelledby') || '').split(/\\s+/).filter(Boolean).map((id) => (document.getElementById(id) || {}).textContent || '').join(' ');
+            const wrapping = element.closest('label');
+            return ((byFor && byFor.textContent) || labelled || element.getAttribute('aria-label') || (wrapping && wrapping.textContent) || element.placeholder || element.name || element.id || '').replace(/\\s+/g, ' ').trim().slice(0, 80);
+        };
+        // A masked answer to a sign-in question (security answer, memorable word) without a text field before it is an
+        // additional field of a step after the password, not the login password itself.
+        const precededByText = (element) => [...(element.form || document).querySelectorAll('input')].some((other) => other !== element && visible(other) && textual(other) && other.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING);
+        const questionLike = (element) => /answer|question|memorable|birth/i.test(describe(element)) && !precededByText(element);
+        const passwords = inputs.filter((element) => element.type === 'password' && !otpLike(element) && !questionLike(element));
         const password = passwords.find((element) => element.autocomplete !== 'new-password') || passwords[0];
         let username = null;
         if (password) {
@@ -402,7 +425,20 @@ export function loginFormScript(): string {
         if (username) username.setAttribute('data-ptbk-wallet', 'username');
         const code = inputs.find(otpLike);
         if (code) code.setAttribute('data-ptbk-wallet', 'code');
-        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code) };
+        const fillable = (element) => !element.value && !element.hasAttribute('data-ptbk-wallet') && ['text', 'email', 'tel', 'password', 'number', 'date', ''].includes((element.getAttribute('type') || '').toLowerCase()) && !otpLike(element);
+        const required = (element) => element.required || element.getAttribute('aria-required') === 'true';
+        const anchor = password || username;
+        const question = /birth|answer|question|security|memorable|secret|\\bpin\\b|customer|client|member|account.?number|passcode|postal|zip/i;
+        const extra = anchor
+            ? [...(anchor.form || document).querySelectorAll('input')].filter((element) => visible(element) && fillable(element))
+            : code
+              ? []
+              : inputs.filter((element) => element.form && fillable(element) && required(element) && question.test(describe(element)));
+        const fields = extra.slice(0, 12).map((element, index) => {
+            element.setAttribute('data-ptbk-wallet', 'field-' + index);
+            return { marker: 'field-' + index, label: describe(element), required: required(element) };
+        });
+        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields };
     })()`;
 }
 
@@ -411,9 +447,10 @@ export function loginFormScript(): string {
  *
  * @private browser page scripts
  */
-export function focusLoginFieldScript(field: 'username' | 'password' | 'code'): string {
+export function focusLoginFieldScript(field: 'username' | 'password' | 'code' | `field-${number}`): string {
+    const marker = /^field-\d+$/.test(field) ? field : field === 'password' ? 'password' : field === 'code' ? 'code' : 'username';
     return `(() => {
-        const element = document.querySelector('[data-ptbk-wallet="${field === 'password' ? 'password' : field === 'code' ? 'code' : 'username'}"]');
+        const element = document.querySelector('[data-ptbk-wallet="${marker}"]');
         if (!element) return false;
         element.focus();
         if (element.select) element.select();
@@ -428,7 +465,7 @@ export function focusLoginFieldScript(field: 'username' | 'password' | 'code'): 
  */
 export function submitLoginScript(): string {
     return `(() => {
-        const field = document.querySelector('[data-ptbk-wallet="password"]') || document.querySelector('[data-ptbk-wallet="username"]') || document.querySelector('[data-ptbk-wallet="code"]');
+        const field = document.querySelector('[data-ptbk-wallet="password"]') || document.querySelector('[data-ptbk-wallet="username"]') || document.querySelector('[data-ptbk-wallet="code"]') || document.querySelector('[data-ptbk-wallet^="field-"]');
         const form = field && field.form;
         if (!form) return false;
         const button = form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
@@ -465,7 +502,7 @@ export function followSignInLinkScript(): string {
 export function clearLoginFieldsScript(): string {
     return `(() => {
         const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-        for (const element of document.querySelectorAll('input[type="password"], [data-ptbk-wallet="password"], [data-ptbk-wallet="code"]')) {
+        for (const element of document.querySelectorAll('input[type="password"], [data-ptbk-wallet="password"], [data-ptbk-wallet="code"], [data-ptbk-wallet^="field-"]')) {
             if (!element.value) continue;
             setter.call(element, '');
             element.dispatchEvent(new Event('input', { bubbles: true }));

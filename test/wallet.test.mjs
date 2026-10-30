@@ -548,6 +548,72 @@ test('Wallet one-time code in the real browser: the owner\'s code is typed into 
     assert.ok(!result.text.includes('246810'), 'the agent never sees the code');
 });
 
+test('Wallet additional login fields in the real browser: a required unknown field is requested before submitting, then the saved fields fill the form and a security question after the password', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+    const teardown = [];
+    const root = await temporaryDirectory(t, 'ptbk wallet fields browser', teardown);
+    await mkdir(join(root, '.ptbk', 'tmp'), { recursive: true });
+    const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
+    // The login form also requires a date of birth; after the password the site asks its security question.
+    const login = (error = '') => `<!doctype html><title>Sign in</title><h1>Sign in</h1>${error}<form method="post" action="/login"><input name="username" autocomplete="username" placeholder="Username"><input name="password" type="password" autocomplete="current-password"><label for="dob">Date of birth</label><input id="dob" name="dob" required><button>Sign in</button></form>`;
+    const question = (error = '') => `<!doctype html><title>Question</title>${error}<form method="post" action="/question"><label>Answer to your security question <input name="answer" type="password" required></label><button>Continue</button></form>`;
+    const posts = [];
+    const server = createServer((request, response) => {
+        let body = '';
+        request.on('data', (chunk) => (body += chunk));
+        request.on('end', () => {
+            const fields = new URLSearchParams(body);
+            response.setHeader('content-type', 'text/html');
+            if (request.method === 'POST') posts.push(request.url);
+            if (request.method === 'POST' && request.url === '/login') response.end(fields.get('password') === 'right password 2' && fields.get('dob') === '02.01.1990' ? question() : login('<p>Wrong details</p>'));
+            else if (request.method === 'POST' && request.url === '/question') response.end(fields.get('answer') === 'blue heron' ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : question('<p>Wrong answer</p>'));
+            else response.end(login());
+        });
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const settings = { tools: [{ type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: true }], overriddenTools: new Set() };
+    const fleet = new BrowserFleet(project, () => settings, env);
+    teardown.push(async () => {
+        await fleet.close();
+        server.closeAllConnections();
+        server.close();
+    });
+    const wallet = new WalletSubEngine({ project, env, onChange: () => undefined, log: () => undefined });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const waits = [];
+    const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: (action) => waits.push(action) }).map((tool) => [tool.name, tool]));
+    const call = async (name, input = {}) => await tools[name].handler(input);
+    await wallet.save({ origin, username: 'fixture-user', password: 'right password 2' });
+
+    // The required date of birth is unknown: one protected request, and the form is not submitted (no false rejection).
+    await call('browser_open', { url: origin });
+    let result = await call('wallet_login', {});
+    assert.match(result.text, /asks for "Date of birth".*never ask for these values in a chat/s);
+    assert.deepEqual(posts, [], 'nothing was submitted');
+    assert.equal(wallet.view().pending[0].problem, 'field');
+    assert.deepEqual(wallet.view().pending[0].fields, ['Date of birth']);
+    assert.equal(wallet.view().records[0].lastOutcome, undefined, 'not marked as rejected');
+    await wallet.supplyFields({ request: waits[0], fields: [{ label: 'Date of birth', value: '02.01.1990' }] });
+    assert.equal(wallet.view().pending.length, 0);
+
+    // Now the form is filled completely; the security question after the password is requested the same way.
+    await call('browser_open', { url: origin });
+    result = await call('wallet_login', {});
+    assert.match(result.text, /asks for "Answer to your security question"/);
+    assert.deepEqual(posts, ['/login']);
+    await wallet.supplyFields({ request: waits[1], fields: [{ label: 'Answer to your security question', value: 'blue heron', uncertain: true }] });
+    assert.deepEqual(wallet.view().records[0].fields, [{ label: 'Date of birth' }, { label: 'Answer to your security question', uncertain: true }]);
+    await call('browser_open', { url: origin });
+    result = await call('wallet_login', {});
+    assert.ok(!result.isError, result.text);
+    assert.match(result.text, /Welcome, fixture-user/);
+    assert.deepEqual(posts, ['/login', '/login', '/question']);
+    assert.ok(!/02\.01\.1990|blue heron|right password/.test(result.text), 'the agent never sees the values');
+});
+
 test('Wallet acceptance: a task waits for a protected login (no chat), resumes once after it is saved and signs in; no secret reaches Git, traces, status or logs', { skip: await realBrowserSkip(), timeout: 300_000 }, async (t) => {
     const { project, env: baseEnv } = await initializedProject(t, { check: "process.exit(0);\n" });
     const browser = await findBrowserExecutable({ variant: 'CHROME' });
@@ -844,6 +910,86 @@ test('Wallet Test at a one-time code step: the attending owner enters the code t
     assert.equal(record().testing, undefined);
     assert.equal(wallet.cancelTest(id).applied, false, 'nothing runs any more');
     assert.equal(wallet.view().records.length, 1, 'the saved login stays');
+});
+
+test('Wallet additional login fields: encrypted with the login, kept through updates and restarts, filled for sign-in, requested when a form needs more and imported from Bitwarden', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet fields');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    const { wallet, audits } = auditedWalletAt(project, join(root, 'computer'));
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const { id } = await wallet.save({ origin: 'https://bank.example', username: 'jane', password: 'bank secret', fields: [{ label: 'Date of birth', value: '02.01.1990' }] });
+    assert.deepEqual(wallet.view().records[0].fields, [{ label: 'Date of birth' }], 'only labels are visible');
+    assert.doesNotMatch(JSON.stringify(wallet.view()), /02\.01\.1990/);
+    assert.match(audits.at(-1).body, /With 1 additional login field \(values encrypted\)/);
+    assert.doesNotMatch(audits.at(-1).body, /02\.01\.1990/);
+    // A password update keeps the field; an empty value removes one; an equal label replaces it.
+    await wallet.save({ id, origin: 'https://bank.example', username: 'jane', password: 'bank secret 2', fields: [{ label: 'Customer number', value: 'C-77' }] });
+    await wallet.save({ id, origin: 'https://bank.example', username: 'jane', password: 'bank secret 2', fields: [{ label: 'customer  NUMBER', value: '' }, { label: 'date of birth', value: '03.01.1990', uncertain: true }] });
+    assert.deepEqual(wallet.view().records[0].fields, [{ label: 'date of birth', uncertain: true }]);
+    await assert.rejects(wallet.save({ id, origin: 'https://bank.example', username: 'jane', password: 'x', fields: [{ label: ' ', value: 'v' }] }), /needs a name/);
+    // Kept encrypted across a restart.
+    assert.doesNotMatch(await readFile(join(project, '.ptbk', 'wallet', 'records.json'), 'utf8'), /03\.01\.1990|date of birth/i);
+    const reopened = auditedWalletAt(project, join(root, 'computer')).wallet;
+    await reopened.initialize();
+    const signIns = [];
+    const page = (result) => ({ browser: 'b', inspect: async () => ({ origin: 'https://bank.example', form: 'password' }), signIn: async (credentials) => (signIns.push(credentials), result) });
+    assert.equal((await reopened.login(page({ result: 'signed-in' }), {})).status, 'signed-in');
+    assert.deepEqual(signIns[0].fields, [{ label: 'date of birth', value: '03.01.1990', uncertain: true }], 'the trusted sign-in receives the saved fields');
+
+    // A form that needs a field the login lacks: one protected request for exactly that, then the waiting work resumes.
+    const waiting = await reopened.login(page({ result: 'challenge', note: 'the login form asks for "Security answer"', missingFields: ['Security answer'] }), { task: 'Pay invoice' });
+    assert.equal(waiting.status, 'waiting');
+    assert.equal(waiting.problem, 'field');
+    const pending = reopened.view().pending[0];
+    assert.deepEqual([pending.fields, pending.login, pending.tasks], [['Security answer'], id, ['Pay invoice']]);
+    assert.notEqual(reopened.view().records[0].lastOutcome, 'rejected', 'a missing field is no rejection');
+    await assert.rejects(reopened.supplyFields({ request: pending.id, fields: [{ label: 'Security answer', value: '' }] }), /Enter "Security answer"/);
+    assert.match((await reopened.supplyFields({ request: pending.id, fields: [{ label: 'Security answer', value: 'heron' }] })).outcome, /Added 1 additional login field/);
+    assert.equal(reopened.view().pending.length, 0);
+    await reopened.login(page({ result: 'signed-in' }), {});
+    assert.deepEqual(signIns.at(-1).fields.map((field) => field.label), ['date of birth', 'Security answer']);
+
+    // A credential test reports the missing field honestly instead of a bad password.
+    const tester = new WalletSubEngine({
+        project: { root: project, runtime: { root: join(project, '.ptbk'), state: join(project, '.ptbk', 'state') } },
+        env: { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' },
+        onChange: () => undefined,
+        log: () => undefined,
+        loginContext: async () => ({ page: page({ result: 'challenge', missingFields: ['Memorable word'] }), dispose: async () => undefined }),
+    });
+    await tester.initialize();
+    const tested = await tester.test(id);
+    assert.equal(tested.verification.state, 'incomplete');
+    assert.match(tested.verification.reason, /asks for "Memorable word", which this login does not have/);
+
+    // Bitwarden text and hidden custom fields are imported with the login; boolean and linked ones are reported.
+    const exported = JSON.stringify({
+        encrypted: false,
+        items: [
+            {
+                id: 'x',
+                type: 1,
+                name: 'Shop',
+                login: { username: 'joe', password: 'shop secret', uris: [{ uri: 'https://shop.example' }] },
+                fields: [
+                    { name: 'PIN', value: '4711', type: 1 },
+                    { name: 'Customer number', value: 'K-1', type: 0 },
+                    { name: 'Remember me', value: 'true', type: 2 },
+                    { name: 'Email', value: null, type: 3 },
+                ],
+            },
+        ],
+    });
+    const preview = await reopened.previewImport({ content: exported });
+    assert.deepEqual(preview.candidates[0].fields, ['PIN', 'Customer number']);
+    assert.deepEqual(preview.candidates[0].unsupported, ['custom field "Remember me" (boolean)']);
+    assert.doesNotMatch(JSON.stringify(preview), /4711|K-1/);
+    await reopened.applyImport({ draft: preview.draft, select: [preview.candidates[0].key] });
+    const shop = reopened.view().records.find((record) => record.origin === 'https://shop.example');
+    assert.deepEqual(shop.fields, [{ label: 'PIN' }, { label: 'Customer number' }]);
 });
 
 /**

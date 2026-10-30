@@ -34,7 +34,7 @@ import type { UsageSummary } from '../engine/usage.js';
 import type { ActionLinks } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
-import { recoveryWordLines, walletCodeForm, walletImportFlow, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
+import { recoveryWordLines, walletCodeForm, walletFieldForm, walletImportFlow, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
 import type { WalletImportPreview } from '../wallet/wallet.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
@@ -695,7 +695,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
 
     /** Adds (or updates) a login through concealed input; a focused pending request supplies the website. */
     const walletLogin = async (initial: { readonly origin?: string; readonly label?: string; readonly action?: string; readonly id?: string } = {}): Promise<void> => {
-        const login = await outside(() => walletLoginForm(terminal, { origin: initial.origin, label: initial.label, step: initial.id ? 'Wallet · update a website login' : undefined }));
+        const saved = initial.id ? snapshot.wallet?.records.find((record) => record.id === initial.id)?.fields?.map((field) => field.label) : undefined;
+        const login = await outside(() => walletLoginForm(terminal, { origin: initial.origin, label: initial.label, step: initial.id ? 'Wallet · update a website login' : undefined, ...(saved ? { fields: saved } : {}) }));
         if (!login) {
             notify('Nothing was saved.');
             return;
@@ -712,6 +713,18 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             return;
         }
         await runWallet('wallet-test-code', { id: record.id, code });
+    };
+
+    /** Completes a saved login with the additional fields its website asked for (concealed input; saved encrypted). */
+    const walletFields = async (request: { readonly id: string; readonly origin: string }): Promise<void> => {
+        const pending = snapshot.wallet?.pending.find((action) => action.id === request.id);
+        if (!pending) return;
+        const fields = await outside(() => walletFieldForm(terminal, pending));
+        if (!fields) {
+            notify('Nothing was saved.');
+            return;
+        }
+        await runWallet('wallet-field', { request: request.id, fields });
     };
 
     /** Answers a pending one-time code request through concealed input (the code is used once, never stored). */
@@ -983,6 +996,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 if (page.kind === 'wallet') {
                     const item = snapshot.wallet?.state === 'ready' ? walletItems(snapshot.wallet)[page.focus] : undefined;
                     if (item?.kind === 'request' && item.problem === 'code') void walletCode(item);
+                    else if (item?.kind === 'request' && item.problem === 'field') void walletFields(item);
                     else if (item?.kind === 'request') void walletLogin({ origin: item.origin, action: item.id });
                     else if (item?.kind === 'record' && item.testAwaits === 'code') void walletTestCode(item);
                     else if (item?.kind === 'record') void walletLogin({ origin: item.origin, label: item.account, id: item.id });

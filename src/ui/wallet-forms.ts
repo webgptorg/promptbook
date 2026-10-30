@@ -1,6 +1,6 @@
 import { emitKeypressEvents, type Key } from 'node:readline';
 import { CANCELLED, confirm, inputLine, selectMany, type WizardFrame } from './prompts.js';
-import type { WalletImportPreview } from '../wallet/wallet.js';
+import type { LoginField, WalletActionView, WalletImportPreview } from '../wallet/wallet.js';
 import { FullScreen } from './screen.js';
 import { readConcealed, readOwnerCredential } from './secret.js';
 import type { TerminalProfile } from './terminal.js';
@@ -64,16 +64,18 @@ export async function confirmRecoveryWords(terminal: TerminalProfile, words: rea
  *
  * @private dashboard Wallet forms
  */
-export type WalletLoginForm = { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string };
+export type WalletLoginForm = { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string; readonly fields?: readonly LoginField[] };
 
 /**
  * Asks for a website login: the website, the username (visible by default) and an optional label in the open, the
  * password masked with typing feedback; Ctrl+R shows or hides the current field.
- * `initial` prefills a pending request's website (or an updated record's); returns undefined when cancelled.
+ * Optional additional login fields (date of birth, security answer, …) follow, their values masked too.
+ * `initial` prefills a pending request's website (or an updated record's, whose saved fields stay unless changed);
+ * returns undefined when cancelled.
  *
  * @private dashboard Wallet forms
  */
-export async function walletLoginForm(terminal: TerminalProfile, initial: { readonly origin?: string; readonly label?: string; readonly step?: string } = {}): Promise<WalletLoginForm | undefined> {
+export async function walletLoginForm(terminal: TerminalProfile, initial: { readonly origin?: string; readonly label?: string; readonly step?: string; readonly fields?: readonly string[] } = {}): Promise<WalletLoginForm | undefined> {
     const frame: WizardFrame = { title: 'ptbk dashboard', step: initial.step ?? 'Wallet · add a website login', summary: ['The username starts visible and the password masked. Ctrl+R shows or hides the field being entered; saved passwords cannot be revealed.'] };
     const origin = await inputLine(terminal, { frame, question: 'Website (for example https://example.com):', initial: initial.origin, validate: (value) => (value.trim() ? undefined : 'Enter the website.') });
     if (origin === CANCELLED) return undefined;
@@ -83,7 +85,53 @@ export async function walletLoginForm(terminal: TerminalProfile, initial: { read
     if (!password) return undefined;
     const label = await inputLine(terminal, { frame, question: 'Label of this login (optional; "-" for the default: website · masked account):', initial: initial.label ?? '-' });
     if (label === CANCELLED) return undefined;
-    return { origin: origin.trim(), username: username.trim(), password, ...(label.trim() && label.trim() !== '-' ? { label: label.trim() } : {}) };
+    const fields = await additionalFieldsForm(terminal, frame, initial.fields ?? []);
+    if (fields === undefined) return undefined;
+    return { origin: origin.trim(), username: username.trim(), password, ...(label.trim() && label.trim() !== '-' ? { label: label.trim() } : {}), ...(fields.length ? { fields } : {}) };
+}
+
+/**
+ * Asks for optional additional login fields: a name in the open, then its value masked. An empty name finishes; for an
+ * already saved field, an empty value removes it. Returns undefined when cancelled.
+ */
+async function additionalFieldsForm(terminal: TerminalProfile, frame: WizardFrame, saved: readonly string[]): Promise<LoginField[] | undefined> {
+    const fields: LoginField[] = [];
+    for (;;) {
+        const name = await inputLine(terminal, {
+            frame: { ...frame, summary: [...(frame.summary ?? []), ...(saved.length ? [`Saved additional fields (kept unless you change them): ${saved.join(', ')}.`] : [])] },
+            question: 'Additional login field the website asks for, for example "Date of birth" or "Security answer" (optional; empty to finish):',
+        });
+        if (name === CANCELLED) return undefined;
+        if (!name.trim()) return fields;
+        const value = await readOwnerCredential(terminal, `  ${name.trim()}${saved.some((label) => label.toLowerCase() === name.trim().toLowerCase()) ? ' (empty removes it)' : ''}`);
+        fields.push({ label: name.trim(), value });
+    }
+}
+
+/**
+ * Asks for the additional login fields a website's form requested for a pending field request (each value masked),
+ * and whether they stay the same for later logins (an uncertain value is kept too, marked). Returns undefined when
+ * nothing was entered.
+ *
+ * @private dashboard Wallet forms
+ */
+export async function walletFieldForm(terminal: TerminalProfile, request: Pick<WalletActionView, 'origin' | 'fields'>): Promise<LoginField[] | undefined> {
+    terminal.write(`\nThe login form of ${request.origin} asks for more than the username and password. The Wallet saves these values encrypted with the login and fills them for later sign-ins; agents never see them.\n`);
+    const values: Array<{ readonly label: string; readonly value: string }> = [];
+    for (const label of request.fields ?? []) {
+        const value = await readOwnerCredential(terminal, `  ${label}`);
+        if (value) values.push({ label, value });
+    }
+    if (!values.length) return undefined;
+    const lasting = await confirm(terminal, {
+        frame: { title: 'ptbk dashboard', step: 'Wallet · additional login fields' },
+        question: 'Do these values stay the same for later logins?',
+        defaultYes: true,
+        yesLabel: 'Yes, they stay the same (saved)',
+        noLabel: 'Not sure (saved, marked uncertain)',
+    });
+    if (lasting === CANCELLED) return undefined;
+    return values.map((field) => ({ ...field, ...(lasting ? {} : { uncertain: true }) }));
 }
 
 /**

@@ -466,7 +466,16 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 return pointer(focused);
             };
             for (const action of wallet.pending) {
-                const problem = action.problem === 'rejected' ? 'the saved login was rejected' : action.problem === 'locked' ? 'restore the Wallet first' : action.problem === 'code' ? 'a one-time code is needed' : 'no saved login';
+                const problem =
+                    action.problem === 'rejected'
+                        ? 'the saved login was rejected'
+                        : action.problem === 'locked'
+                          ? 'restore the Wallet first'
+                          : action.problem === 'code'
+                            ? 'a one-time code is needed'
+                            : action.problem === 'field'
+                              ? `the login form asks for ${(action.fields ?? []).join(', ') || 'more fields'}`
+                              : 'no saved login';
                 body.push(`${row()} ${action.origin}${action.account ? ` · ${action.account}` : ''} ${style.warning(`· ${problem}`)}${style.muted(` · ${action.tasks.length ? `for ${action.tasks.join(', ')}` : 'requested'} · since ${time(action.createdAt)}${action.requests > 1 ? ` · ${action.requests}×` : ''}`)}`);
             }
             if (!wallet.pending.length) body.push(style.muted('  Nothing waits for a login.'));
@@ -484,6 +493,8 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                           ? style.warning(` · unverified (test incomplete ${time(verification.at)})`)
                           : style.muted(' · unverified');
                 body.push(`${row()} ${record.origin} · ${record.account}${record.lastUsedAt ? style.muted(` · used ${time(record.lastUsedAt)}`) : ''}${record.lastOutcome === 'rejected' ? style.warning(' · rejected by the site') : ''}${tested}`);
+                // Only the names of additional fields: their values stay encrypted like the password.
+                if (record.fields?.length) body.push(style.muted(`      Also fills: ${record.fields.map((field) => `${field.label}${field.uncertain ? ' (may change)' : ''}`).join(', ')}`));
                 // The concise reason of an unsuccessful latest test stays visible with its login.
                 if (!record.testing && verification && verification.state !== 'verified') body.push(style.muted(`      ${verification.reason}`));
             }
@@ -502,7 +513,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                               'I import from Bitwarden',
                               'G new 12 words',
                               ...(focused
-                                  ? [focused.kind === 'request' ? (focused.problem === 'code' ? 'Enter type the code · X dismiss' : 'Enter add this login · X dismiss') : focused.testAwaits ? 'Enter type the code · X cancel the test' : focused.testing ? 'X cancel the test · D remove' : 'Enter update · T test · D remove']
+                                  ? [focused.kind === 'request' ? (focused.problem === 'code' ? 'Enter type the code · X dismiss' : focused.problem === 'field' ? 'Enter add the fields · X dismiss' : 'Enter add this login · X dismiss') : focused.testAwaits ? 'Enter type the code · X cancel the test' : focused.testing ? 'X cancel the test · D remove' : 'Enter update · T test · D remove']
                                   : []),
                           ]
                         : [];

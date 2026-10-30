@@ -22,6 +22,16 @@ import { IMPORT_SOURCES, type ImportedLogin, type SkippedEntry } from './import.
 export type WalletState = 'empty' | 'setup' | 'ready' | 'locked' | 'unavailable';
 
 /**
+ * One additional reusable login field of a saved login, such as a date of birth, a security answer or a customer number:
+ * encrypted with its record like the password and never shown to agents or in views. `uncertain` keeps a value whose
+ * validity for later logins is not known (so it need not be asked again), without making it ordinary metadata.
+ * One-time codes are never login fields.
+ *
+ * @private Wallet
+ */
+export type LoginField = { readonly label: string; readonly value: string; readonly uncertain?: boolean };
+
+/**
  * Nonsecret view of one saved login (never its username or password; the account is a label or a masked username).
  *
  * @private Wallet
@@ -40,6 +50,8 @@ export type WalletRecordView = {
     readonly testing?: string;
     /** The running test waits at the website's one-time code step for the owner's protected input. */
     readonly testAwaits?: 'code';
+    /** Labels of its additional login fields (their values stay encrypted and are never shown). */
+    readonly fields?: readonly { readonly label: string; readonly uncertain?: boolean }[];
 };
 
 /**
@@ -72,9 +84,13 @@ export type WalletActionView = {
     readonly account?: string;
     /**
      * `missing`: no saved login; `rejected`: the saved login was refused by the site; `locked`: the Wallet needs
-     * restoration first; `code`: the site asks for a one-time code only the owner can provide (used once, never stored).
+     * restoration first; `code`: the site asks for a one-time code only the owner can provide (used once, never stored);
+     * `field`: the site's login form asks for additional fields the saved login does not have yet.
      */
-    readonly problem: 'missing' | 'rejected' | 'locked' | 'code';
+    readonly problem: 'missing' | 'rejected' | 'locked' | 'code' | 'field';
+    /** For a `field` request: the labels the site asks for and the saved login they complete. */
+    readonly fields?: readonly string[];
+    readonly login?: string;
     readonly reason: string;
     /** Tasks waiting for it. */
     readonly tasks: readonly string[];
@@ -127,7 +143,7 @@ export type SignInPage = {
      * Enters the credentials of their origin (only while the page is on it; not recorded, never returned), submits and
      * verifies the resulting session.
      */
-    readonly signIn: (credentials: { readonly origin: string; readonly username: string; readonly password: string }) => Promise<SignInAttempt>;
+    readonly signIn: (credentials: SignInCredentials) => Promise<SignInAttempt>;
     /**
      * Enters a one-time code into the page's code field (only while the page is on `origin`; not recorded), submits
      * and verifies the result: `rejected` when the site asks for a code again. Absent: codes cannot be entered here.
@@ -136,11 +152,20 @@ export type SignInPage = {
 };
 
 /**
- * Verified result of entering credentials on a page.
+ * What the trusted sign-in enters on a page of `origin`: the username, the password and the additional login fields the
+ * form asks for.
  *
  * @private Wallet
  */
-export type SignInAttempt = { readonly result: 'signed-in' | 'rejected' | 'challenge' | 'no-form'; readonly note?: string };
+export type SignInCredentials = { readonly origin: string; readonly username: string; readonly password: string; readonly fields?: readonly LoginField[] };
+
+/**
+ * Verified result of entering credentials on a page. A `challenge` with `missingFields` names required fields of the
+ * login form that no saved field matches (nothing was submitted, so it is no rejection).
+ *
+ * @private Wallet
+ */
+export type SignInAttempt = { readonly result: 'signed-in' | 'rejected' | 'challenge' | 'no-form'; readonly note?: string; readonly missingFields?: readonly string[] };
 
 /**
  * What the agent learns from a login request: a redacted outcome plus nonsecret context.
@@ -254,6 +279,8 @@ type Credentials = {
     readonly origin: string;
     readonly username: string;
     readonly password: string;
+    /** Additional reusable login fields. */
+    readonly fields?: readonly LoginField[];
     /** Retained legacy TOTP generator data (preserved, never generated or newly imported: that is future scope). */
     readonly totp?: string;
 };
@@ -284,6 +311,8 @@ export type WalletImportCandidate = {
     readonly state: 'new' | 'duplicate' | 'conflict';
     /** Source fields that are not imported (e.g. a TOTP generator: Wallet-owned TOTP generation is future scope). */
     readonly unsupported: readonly string[];
+    /** Labels of the additional login fields imported with it (never their values). */
+    readonly fields?: readonly string[];
 };
 
 /**
@@ -708,7 +737,7 @@ export class WalletSubEngine {
             if ('sealed' in entry) {
                 try {
                     const content = JSON.parse(open(key, WALLET_DOMAIN, entry.sealed).toString('utf8')) as RecordContent;
-                    const credentials: Credentials = { origin: content.origin, username: content.username, password: content.password, ...(content.totp ? { totp: content.totp } : {}) };
+                    const credentials: Credentials = { origin: content.origin, username: content.username, password: content.password, ...(content.fields?.length ? { fields: content.fields } : {}), ...(content.totp ? { totp: content.totp } : {}) };
                     records.push({
                         id: entry.id,
                         origin: content.origin,
@@ -945,7 +974,7 @@ export class WalletSubEngine {
             const identity = `${login.origin}|${login.username.toLowerCase()}`;
             const state = seen.has(identity) ? 'duplicate' : this.importState(login);
             seen.add(identity);
-            return { key: login.key, label: login.label || walletLabel(login.origin, login.username), origin: login.origin, account: maskAccount(login.username), state, unsupported: login.unsupported ?? [] };
+            return { key: login.key, label: login.label || walletLabel(login.origin, login.username), origin: login.origin, account: maskAccount(login.username), state, unsupported: login.unsupported ?? [], ...(login.fields?.length ? { fields: login.fields.map((field) => field.label) } : {}) };
         });
         return { draft: draft.id, source: draft.source, candidates, skipped: draft.skipped };
     }
@@ -990,9 +1019,18 @@ export class WalletSubEngine {
                 }
                 done.add(identity);
                 const existing = this.matchingRecord(login.origin, login.username);
-                // Retained legacy factor data of a replaced login is preserved, never discarded by an import.
+                // Retained legacy factor data of a replaced login is preserved, never discarded by an import, and its
+                // additional fields stay unless the export brings a field of the same name.
                 const legacy = existing ? this.credentials(existing).totp : undefined;
-                const credentials: Credentials = { origin: login.origin, username: login.username, password: login.password, ...(legacy ? { totp: legacy } : {}) };
+                const kept = existing ? this.fieldsOf(existing) : [];
+                let fields: readonly LoginField[];
+                try {
+                    fields = mergeLoginFields(kept, login.fields ?? []);
+                } catch {
+                    // Together they exceed what one login keeps: the saved fields are preserved.
+                    fields = kept;
+                }
+                const credentials: Credentials = { origin: login.origin, username: login.username, password: login.password, ...(fields.length ? { fields } : {}), ...(legacy ? { totp: legacy } : {}) };
                 const state = this.importState(login);
                 if (state === 'duplicate') reused++;
                 else if (state === 'conflict' && existing) {
@@ -1223,7 +1261,7 @@ export class WalletSubEngine {
      * Saves (adds or updates) a login from protected owner input. The password is write-only: it is encrypted at once
      * and never returned. Pending requests for that website are resolved, so waiting work resumes.
      */
-    public async save(input: { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string; readonly id?: string; readonly action?: string }): Promise<WalletOutcome & { readonly id?: string }> {
+    public async save(input: { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string; readonly id?: string; readonly action?: string; readonly fields?: readonly LoginField[] }): Promise<WalletOutcome & { readonly id?: string }> {
         const result = await this.mutex.run(async (): Promise<{ outcome: WalletOutcome; id: string; settled: number; audit: Omit<PendingAudit, 'at'> }> => {
             const key = this.requireReady();
             const action = input.action ? this.actions.find((candidate) => candidate.id === input.action) : undefined;
@@ -1232,6 +1270,8 @@ export class WalletSubEngine {
             if (!username) throw new PtbkError('Enter the username (or email) of the login.', { kind: 'usage', effect: 'Nothing was saved.' });
             if (!input.password) throw new PtbkError('Enter the password of the login.', { kind: 'usage', effect: 'Nothing was saved.' });
             const existing = (input.id ? this.records.find((record) => record.id === input.id) : undefined) ?? this.records.find((record) => originMatches(record.origin, origin) && this.usernameOf(record)?.toLowerCase() === username.toLowerCase());
+            // Additional fields of an updated login stay unless the owner changed or removed them.
+            const fields = mergeLoginFields(existing ? this.fieldsOf(existing) : [], input.fields ?? []);
             const now = new Date().toISOString();
             const record: StoredRecord = {
                 id: existing?.id ?? randomBytes(6).toString('hex'),
@@ -1240,7 +1280,7 @@ export class WalletSubEngine {
                 createdAt: existing?.createdAt ?? now,
                 updatedAt: now,
                 // New values are unverified until tested; retained legacy factor data is preserved.
-                secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ origin, username, password: input.password, ...(existing && this.legacyFactor(existing) ? { totp: this.legacyFactor(existing) } : {}) } satisfies Credentials), 'utf8')),
+                secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ origin, username, password: input.password, ...(fields.length ? { fields } : {}), ...(existing && this.legacyFactor(existing) ? { totp: this.legacyFactor(existing) } : {}) } satisfies Credentials), 'utf8')),
             };
             this.records = existing ? this.records.map((candidate) => (candidate.id === existing.id ? record : candidate)) : [...this.records, record];
             await this.writeRecords();
@@ -1255,7 +1295,7 @@ export class WalletSubEngine {
                 id: record.id,
                 outcome: { action: 'wallet-save', applied: true, outcome: `${existing ? 'Updated' : 'Saved'} the login "${record.account}" for ${origin}.${settled ? ` ${settled === 1 ? 'The waiting request was' : `${settled} waiting requests were`} resolved; the work resumes.` : ''}` },
                 settled,
-                audit: auditOf(existing ? 'Update' : 'Add', record, settled ? `Resolved ${settled === 1 ? 'one waiting login request' : `${settled} waiting login requests`}.` : undefined),
+                audit: auditOf(existing ? 'Update' : 'Add', record, [fields.length ? `With ${fields.length} additional login field${fields.length === 1 ? '' : 's'} (values encrypted).` : '', settled ? `Resolved ${settled === 1 ? 'one waiting login request' : `${settled} waiting login requests`}.` : ''].filter(Boolean).join('\n') || undefined),
             };
         });
         this.options.log(`Wallet: ${result.outcome.outcome}`);
@@ -1281,6 +1321,15 @@ export class WalletSubEngine {
         if (!record) throw new PtbkError('This saved login no longer exists.', { kind: 'not-found' });
         if (this.testing.has(id)) throw new PtbkError(`"${record.account}" is being tested already.`, { kind: 'conflict' });
         return record;
+    }
+
+    /** The additional login fields of a record (none when it cannot be decrypted). */
+    private fieldsOf(record: StoredRecord): readonly LoginField[] {
+        try {
+            return this.credentials(record).fields ?? [];
+        } catch {
+            return [];
+        }
     }
 
     /** Retained legacy TOTP data of a record (preserved through updates, never generated). */
@@ -1425,6 +1474,7 @@ export class WalletSubEngine {
                 case 'rejected':
                     return ['rejected', `The website rejected this login${attempt.note ? ` (${attempt.note})` : ''}; update it.`];
                 case 'challenge':
+                    if (attempt.missingFields?.length) return ['incomplete', `The login form asks for ${attempt.missingFields.map((label) => `"${label}"`).join(', ')}, which this login does not have; add ${attempt.missingFields.length === 1 ? 'it' : 'them'} when you update the login. The login stays unverified.`];
                     return await this.testCodeStep(record, context.page, step, secrets, attempt.note);
                 case 'no-form':
                     return ['incomplete', `The login form could not be completed${attempt.note ? ` (${attempt.note})` : ''}; the login stays unverified.`];
@@ -1549,14 +1599,16 @@ export class WalletSubEngine {
      * Creates (or joins) the one pending login request of a website/account: repeated and concurrent requests of the
      * same login share it, and every waiting task is listed.
      */
-    private async request(input: { readonly origin: string; readonly account?: string; readonly problem: WalletActionView['problem']; readonly reason: string; readonly task?: string; readonly browser: string }): Promise<StoredAction> {
+    private async request(input: { readonly origin: string; readonly account?: string; readonly problem: WalletActionView['problem']; readonly reason: string; readonly task?: string; readonly browser: string; readonly fields?: readonly string[]; readonly login?: string }): Promise<StoredAction> {
         const existing = this.actions.find((action) => action.state === 'pending' && originMatches(action.origin, input.origin) && (action.account ?? '').toLowerCase() === (input.account ?? '').toLowerCase());
+        const asked = input.fields ? { fields: input.fields, ...(input.login ? { login: input.login } : {}) } : {};
         let action: StoredAction;
         if (existing) {
-            action = { ...existing, problem: input.problem, reason: input.reason, requests: existing.requests + 1, tasks: input.task && !existing.tasks.includes(input.task) ? [...existing.tasks, input.task] : existing.tasks };
+            const { fields: _fields, login: _login, ...earlier } = existing;
+            action = { ...earlier, ...asked, problem: input.problem, reason: input.reason, requests: existing.requests + 1, tasks: input.task && !existing.tasks.includes(input.task) ? [...existing.tasks, input.task] : existing.tasks };
             this.actions = this.actions.map((candidate) => (candidate.id === existing.id ? action : candidate));
         } else {
-            action = { id: randomBytes(5).toString('hex'), origin: input.origin, ...(input.account ? { account: input.account } : {}), problem: input.problem, reason: input.reason, tasks: input.task ? [input.task] : [], browser: input.browser, createdAt: new Date().toISOString(), requests: 1, state: 'pending' };
+            action = { id: randomBytes(5).toString('hex'), origin: input.origin, ...(input.account ? { account: input.account } : {}), problem: input.problem, ...asked, reason: input.reason, tasks: input.task ? [input.task] : [], browser: input.browser, createdAt: new Date().toISOString(), requests: 1, state: 'pending' };
             this.actions = [...this.actions, action];
             this.options.log(`Wallet: ${input.reason} Add it on the Wallet page.`, 'warning');
         }
@@ -1593,8 +1645,8 @@ export class WalletSubEngine {
         const account = request.account?.trim() || undefined;
         const purpose = request.reason?.trim() ? ` (${request.reason.trim().slice(0, 200)})` : '';
         return await this.mutex.run(async (): Promise<WalletLoginResult> => {
-            const waitFor = async (problem: WalletActionView['problem'], reason: string): Promise<WalletLoginResult> => {
-                const action = await this.request({ origin, account, problem, reason, task: request.task, browser: page.browser });
+            const waitFor = async (problem: WalletActionView['problem'], reason: string, asked?: { readonly fields: readonly string[]; readonly login: string }): Promise<WalletLoginResult> => {
+                const action = await this.request({ origin, account, problem, reason, task: request.task, browser: page.browser, ...asked });
                 return { status: 'waiting', origin, action: action.id, problem, reason };
             };
             if (inspected.form === 'code') return await this.codeStep(page, origin, request.requestCode === true, purpose, waitFor);
@@ -1630,6 +1682,11 @@ export class WalletSubEngine {
             const update = (changes: Partial<StoredRecord>): void => {
                 this.records = this.records.map((candidate) => (candidate.id === record.id ? { ...candidate, ...changes } : candidate));
             };
+            // Required fields of the form that no saved field answers: nothing was submitted, so the owner adds them.
+            if (attempt.result === 'challenge' && attempt.missingFields?.length) {
+                const labels = attempt.missingFields.map((label) => `"${label}"`).join(', ');
+                return await waitFor('field', `The login form of ${origin} asks for ${labels}${purpose}, which the saved login "${record.account}" does not have; add ${attempt.missingFields.length === 1 ? 'it' : 'them'} in the Wallet.`, { fields: attempt.missingFields, login: record.id });
+            }
             switch (attempt.result) {
                 case 'signed-in':
                 case 'challenge':
@@ -1686,6 +1743,36 @@ export class WalletSubEngine {
     }
 
     /**
+     * Completes a saved login with the additional fields its website's login form asked for, from protected owner input
+     * (encrypted with the record, kept for later logins; `uncertain` marks a value that may not stay valid). The waiting
+     * work resumes and signs in again.
+     */
+    public async supplyFields(input: { readonly request: string; readonly fields: readonly LoginField[] }): Promise<WalletOutcome> {
+        const result = await this.mutex.run(async () => {
+            const key = this.requireReady();
+            const action = this.actions.find((candidate) => candidate.id === input.request && candidate.state === 'pending' && candidate.problem === 'field');
+            if (!action) throw new PtbkError('This field request is no longer waiting.', { kind: 'not-found', effect: 'Nothing was saved.' });
+            const record = this.records.find((candidate) => candidate.id === action.login);
+            if (!record) throw new PtbkError('The saved login of this request no longer exists; add the login again.', { kind: 'not-found', effect: 'Nothing was saved.' });
+            const supplied = input.fields.filter((field) => field.value);
+            if (!supplied.length) throw new PtbkError(`Enter ${(action.fields ?? []).map((label) => `"${label}"`).join(', ') || 'the requested field'}.`, { kind: 'usage', effect: 'Nothing was saved.' });
+            const credentials = this.credentials(record);
+            const fields = mergeLoginFields(credentials.fields ?? [], supplied);
+            const updated: StoredRecord = { ...record, updatedAt: new Date().toISOString(), verification: undefined, secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ ...credentials, fields } satisfies Credentials), 'utf8')) };
+            this.records = this.records.map((candidate) => (candidate.id === record.id ? updated : candidate));
+            await this.writeRecords();
+            this.settle(action.id, 'resolved', record.id);
+            await this.writeActions();
+            const count = `${supplied.length} additional login field${supplied.length === 1 ? '' : 's'}`;
+            return { outcome: { action: 'wallet-field', applied: true, outcome: `Added ${count} to "${record.account}" for ${record.origin}; the waiting work signs in again.` }, audit: auditOf('Update', updated, `Added ${count} (values encrypted) that the website's login form asked for.`) };
+        });
+        this.options.log(`Wallet: ${result.outcome.outcome}`);
+        this.options.onSettled?.();
+        await this.recordAudit(result.audit);
+        return this.remember(result.outcome);
+    }
+
+    /**
      * Intentionally nonsecret metadata of the saved logins for agents (service, label and username or email) through
      * this trusted operation, so work can choose the right account without asking; passwords and factors never leave
      * the Wallet and the stored records stay fully encrypted. With a site, only logins of that website or a related
@@ -1725,23 +1812,79 @@ export class WalletSubEngine {
             summary,
             ...(this.problem ? { problem: this.problem } : {}),
             ...(this.metadata ? { facility: this.unlock.facility } : {}),
-            records: this.records.map(({ id, origin, account, updatedAt, lastUsedAt, lastOutcome, verification }) => ({
-                id,
-                origin,
-                account,
-                updatedAt,
-                ...(lastUsedAt ? { lastUsedAt } : {}),
-                ...(lastOutcome ? { lastOutcome } : {}),
-                ...(verification ? { verification } : {}),
-                ...(this.testing.has(id) ? { testing: this.testing.get(id)! } : {}),
-                ...(this.testWaits.has(id) ? { testAwaits: 'code' as const } : {}),
-            })),
+            records: this.records.map((record): WalletRecordView => {
+                const { id, origin, account, updatedAt, lastUsedAt, lastOutcome, verification } = record;
+                const fields = this.fieldsOf(record);
+                return {
+                    id,
+                    origin,
+                    account,
+                    updatedAt,
+                    ...(lastUsedAt ? { lastUsedAt } : {}),
+                    ...(lastOutcome ? { lastOutcome } : {}),
+                    ...(verification ? { verification } : {}),
+                    ...(this.testing.has(id) ? { testing: this.testing.get(id)! } : {}),
+                    ...(this.testWaits.has(id) ? { testAwaits: 'code' as const } : {}),
+                    // Only the labels: field values stay encrypted like the password.
+                    ...(fields.length ? { fields: fields.map((field) => ({ label: field.label, ...(field.uncertain ? { uncertain: true } : {}) })) } : {}),
+                };
+            }),
             ...(this.lockedRecords ? { lockedRecords: this.lockedRecords } : {}),
             management: { canImport: state === 'ready', canRotate: state === 'ready', canReset: (state === 'locked' || state === 'unavailable') && Boolean(this.metadata || this.problem) },
             pending,
             ...(this.lastAction ? { lastAction: this.lastAction } : {}),
         };
     }
+}
+
+/**
+ * Most additional login fields one saved login keeps.
+ */
+const MAX_LOGIN_FIELDS = 12;
+
+/**
+ * The comparable form of a field label ("Date of birth (DD.MM.YYYY)" → "date of birth dd mm yyyy").
+ *
+ * @private Wallet
+ */
+export function normalizeFieldLabel(label: string): string {
+    return label
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+}
+
+/**
+ * Whether a saved field answers a field the page labels `asked`: the same label, or one containing the other
+ * ("Date of birth" answers "Date of birth (DD.MM.YYYY)").
+ *
+ * @private Wallet
+ */
+export function fieldAnswers(saved: string, asked: string): boolean {
+    const a = normalizeFieldLabel(saved);
+    const b = normalizeFieldLabel(asked);
+    return Boolean(a && b) && (a === b || ` ${b} `.includes(` ${a} `) || ` ${a} `.includes(` ${b} `));
+}
+
+/**
+ * Applies owner changes to additional login fields: a change replaces the field of the same label, an empty value
+ * removes it, other fields stay.
+ *
+ * @private Wallet
+ */
+export function mergeLoginFields(existing: readonly LoginField[], changes: readonly LoginField[]): LoginField[] {
+    let fields = [...existing];
+    for (const change of changes) {
+        const label = change.label.replace(/\s+/g, ' ').trim();
+        if (!label) throw new PtbkError('Every additional login field needs a name.', { kind: 'usage', effect: 'Nothing was saved.' });
+        if (label.length > 80 || change.value.length > 1_000) throw new PtbkError(`The additional field "${label.slice(0, 40)}" is too long.`, { kind: 'usage', effect: 'Nothing was saved.' });
+        fields = fields.filter((field) => normalizeFieldLabel(field.label) !== normalizeFieldLabel(label));
+        if (change.value) fields.push({ label, value: change.value, ...(change.uncertain ? { uncertain: true } : {}) });
+    }
+    if (fields.length > MAX_LOGIN_FIELDS) throw new PtbkError(`A saved login keeps at most ${MAX_LOGIN_FIELDS} additional fields.`, { kind: 'usage', effect: 'Nothing was saved.' });
+    return fields;
 }
 
 /**
