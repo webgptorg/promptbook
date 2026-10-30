@@ -7,6 +7,7 @@ import { ENGINE_VERSION } from '../common/version.js';
 import { HARNESS_VARIANTS, THINKING_LEVELS, enabledToolsOf, harnessPluginId, harnessVariantOf, type BrowserToolRecord, type HarnessToolRecord, type ProfileSource, type ThinkingLevel, type ToolRecord } from '../tools/model.js';
 import { parseTools, type ConfigCorrection, type ConfigProblem } from '../tools/normalize.js';
 import { applyConfigurationMigration, planConfigurationMigration, retireRemoteDashboardSettings, type MigrationPlan } from './migrations.js';
+import { parseVersionRange, type UpdatePolicy } from './update-policy.js';
 import type { Project } from './workspace.js';
 
 export { THINKING_LEVELS, type ThinkingLevel };
@@ -28,7 +29,7 @@ export type SettingApplication = 'live' | 'next-task' | 'restart';
 /**
  * Value type of a setting.
  */
-type SettingType = 'boolean' | 'string' | 'nullable-string' | 'integer' | 'positive-integer' | 'duration' | 'enum' | 'port';
+type SettingType = 'boolean' | 'string' | 'nullable-string' | 'integer' | 'positive-integer' | 'duration' | 'enum' | 'port' | 'version-range';
 
 /**
  * Specification of one scalar setting.
@@ -121,6 +122,20 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
     { key: 'server.port', type: 'port', default: undefined, description: 'Local HTTP port (automatic from 3000 when omitted).', application: 'restart' },
     { key: 'service.isPersistent', type: 'boolean', default: true, description: 'Restart automatically after crashes and reboots.', application: 'restart' },
     { key: 'service.harnessUpdates', type: 'enum', values: ['auto', 'off'], default: 'auto', description: 'Automatic harness updates.', application: 'live' },
+    {
+        key: 'updates.isAutoUpdateEnabled',
+        type: 'boolean',
+        default: true,
+        description: 'Automatic engine updates: a low-priority system task installs a release the policy allows into the running installation when this engine is idle, then restarts it (manual pause/stop still applies).',
+        application: 'live',
+    },
+    {
+        key: 'updates.versionRange',
+        type: 'version-range',
+        default: undefined,
+        description: 'Allowed engine versions for automatic updates: an npm-style range or an exact pin (omitted: stable minor/patch releases within the current major; a running prerelease advances to its stable release).',
+        application: 'live',
+    },
     { key: 'discovery.isEnabled', type: 'boolean', default: true, description: 'Goal discovery when the backlog is empty.', application: 'live' },
     { key: 'discovery.cooldown', type: 'duration', default: 6 * 3_600_000, description: 'Wait after a no-work enquiry.', application: 'live' },
     { key: 'learning.isEnabled', type: 'boolean', default: true, description: 'Teacher follow-ups for open agents.', application: 'next-task' },
@@ -287,6 +302,10 @@ export function parseSettingValue(spec: SettingSpec, raw: unknown): { ok: true; 
             if (!parsed.ok) return { ok: false, message: parsed.reason };
             return { ok: true, value: parsed.ms };
         }
+        case 'version-range':
+            if (raw === null || raw === '') return { ok: true, value: undefined };
+            if (typeof raw === 'string' && parseVersionRange(raw)) return { ok: true, value: raw.trim() };
+            return { ok: false, message: 'expected an npm-style version range (such as ^0.119.0 or >=0.119.0 <1.0.0) or an exact version' };
         case 'enum': {
             const value = matchEnum(raw, spec.values!);
             if (value) return { ok: true, value };
@@ -351,7 +370,7 @@ export const SUPERSEDED_ROUTING_KEYS = ['harness', 'model', 'thinkingLevel', 'pr
 /**
  * Known top-level keys of `ptbk.json` (canonical spellings).
  */
-const KNOWN_TOP_LEVEL_KEYS = ['$schema', 'promptbookVersion', 'isAutoSync', 'tools', 'paths', 'routing', 'execution', 'traces', 'server', 'service', 'discovery', 'learning', 'team', 'limit', 'timezone', 'initialized'];
+const KNOWN_TOP_LEVEL_KEYS = ['$schema', 'promptbookVersion', 'isAutoSync', 'tools', 'paths', 'routing', 'execution', 'traces', 'wallet', 'server', 'service', 'updates', 'discovery', 'learning', 'team', 'limit', 'timezone', 'initialized'];
 
 /**
  * Known property names per configuration object path (for tolerant key canonicalization).
@@ -777,4 +796,14 @@ export async function updateProjectConfig(project: Project, changes: { readonly 
     if (file.text === text) return false;
     await writeFileAtomic(project.configPath, text);
     return true;
+}
+
+/**
+ * The effective engine update policy of a project (`updates`).
+ *
+ * @private project configuration
+ */
+export function updatePolicyOf(settings: EffectiveSettings): UpdatePolicy {
+    const versionRange = setting<string | undefined>(settings, 'updates.versionRange');
+    return { isAutoUpdateEnabled: setting<boolean>(settings, 'updates.isAutoUpdateEnabled'), ...(versionRange ? { versionRange } : {}) };
 }

@@ -1,5 +1,11 @@
 # Unreleased
 
+## Engine update policy in ptbk.json
+
+-   `ptbk.json` gains the engine update policy from the specification: `updates.isAutoUpdateEnabled` (default `true`) and an optional `updates.versionRange` (an npm-style range such as `~0.119.0` or `>=0.119.0 <2`, or an exact pin such as `0.119.0`). Both are ordinary settings: shown with their source, changeable through the shared settings operation (its own scoped commit) and preserved through init, migration and restart. No init question is added.
+-   One pure selection (`selectUpdate`) decides what an automatic update may install. Without a range a stable installation takes the newest stable minor/patch of its major, including `0.119.0` → `0.120.0` (not the narrower caret meaning in major zero), and never a prerelease or a new major. A running prerelease advances on its own line (`0.119.0-39` → `-40`) and prefers its stable `0.119.0` once published, without crossing into another prerelease base. An exact pin never moves away; explicit ranges are evaluated against the candidate's base release, so a broad range does not opt a stable installation into prereleases. `policyPermits` checks the same rules for every project of a shared installation.
+-   `wallet` was reported as an unknown top-level key of `ptbk.json` although `wallet.isAuditCommitted` is a setting; it is known now (as is `updates`).
+
 ## System agents replace non-agents in code and messages
 
 -   Void/Null, User and Expert are now called **system agents** everywhere the engine speaks, matching the renamed specification. The error for a task assigned to User or Void reads "… is an engine system agent and cannot perform tasks." The resolver kind is `system-agent` (`systemAgentOf`, `SystemAgentName`); their built-in behavior is unchanged.
