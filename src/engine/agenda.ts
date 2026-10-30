@@ -821,6 +821,15 @@ export class Agenda {
             this.log(`${created.length ? `Added missing core agent(s): ${list(created)}. ` : ''}${updated.length ? `Applied engine template updates, keeping project changes: ${list(updated)}. ` : ''}${commit ? `(${commit.slice(0, 8)})` : ''}`.trim());
             await this.refreshContext();
         }
+        // A changed CLOSED core Book is the user's anchor: its template update is held and reported once, never sent
+        // to Fixer.
+        const unreported = prepared.held.filter((book) => !book.isReported);
+        if (unreported.length) {
+            this.log(
+                `A newer engine template was not applied to ${unreported.map((book) => toProjectRelative(this.options.project.root, book.path)).join(', ')}: the project changed ${unreported.length === 1 ? 'this CLOSED Book' : 'these CLOSED Books'}, and CLOSED anchors ${unreported.length === 1 ? 'it' : 'them'} against automatic rewriting. Edit ${unreported.length === 1 ? 'it' : 'them'} yourself (or ask for the change in a chat) to adopt the template.`,
+            );
+            await prepared.markHeldReported();
+        }
         await this.reconcileCoreTemplates(prepared, agentsDirectory);
     }
 

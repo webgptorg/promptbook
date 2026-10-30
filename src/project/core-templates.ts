@@ -1,11 +1,12 @@
 import { join } from 'node:path';
 import { writeFile } from 'node:fs/promises';
+import { parseBook } from '../book/parse.js';
 import { formatAgentReference } from '../book/references.js';
 import { ensureDirectory, readJsonIfExists, readTextIfExists, writeJsonAtomic } from '../common/fs.js';
 import { shortHash } from '../common/ids.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { nameKey } from '../tasks/model.js';
-import { AgentCatalog } from './agents.js';
+import { AgentCatalog, learningPolicyOf } from './agents.js';
 import { CORE_AGENTS, ROUTER_NAME, type CoreBookInput } from './defaults.js';
 
 /**
@@ -23,10 +24,11 @@ type CoreBaseline = {
 };
 
 /**
- * `.ptbk/core-templates.json`: baselines by core file (relative to the agents directory). Persistent ignored project
- * metadata, not a cache: cleanup never removes it.
+ * `.ptbk/core-templates.json`: baselines by core file (relative to the agents directory) and, under `held`, the
+ * fingerprint of the newer template already reported as held for a CLOSED Book. Persistent ignored project metadata,
+ * not a cache: cleanup never removes it.
  */
-type CoreBaselines = { readonly version: 1; readonly baselines: Readonly<Record<string, CoreBaseline>> };
+type CoreBaselines = { readonly version: 1; readonly baselines: Readonly<Record<string, CoreBaseline>>; readonly held?: Readonly<Record<string, string>> };
 
 /**
  * Why a core Book needs Fixer's judgment instead of a deterministic update.
@@ -40,12 +42,33 @@ export type CoreConflict = {
     readonly name: string;
     /** Absolute path of the project Book. */
     readonly path: string;
-    /** `overlap`: local and upstream changes touch the same lines; `unknown-baseline`: no verifiable baseline. */
-    readonly reason: 'overlap' | 'unknown-baseline';
+    /**
+     * `overlap`: local and upstream changes touch the same lines; `unknown-baseline`: no verifiable baseline;
+     * `anchored`: the project's OPEN limits are its own, or the update would change its OPEN/CLOSED declaration, so a
+     * deterministic merge cannot show that the anchored meaning is preserved.
+     */
+    readonly reason: 'overlap' | 'unknown-baseline' | 'anchored';
     /** The old baseline when known. */
     readonly baseline?: string;
     /** The new engine template. */
     readonly template: string;
+};
+
+/**
+ * A changed CLOSED core Book whose newer engine template is held: CLOSED is the user's anchor, so neither the merge nor
+ * Fixer rewrites it. The user adopts the template by ordinary editing (or a clear chat instruction).
+ *
+ * @private core agent preparation
+ */
+export type CoreHeld = {
+    /** Core file relative to the agents directory. */
+    readonly file: string;
+    /** Role name. */
+    readonly name: string;
+    /** Absolute path of the project Book. */
+    readonly path: string;
+    /** This template was already reported as held (it is reported once). */
+    readonly isReported: boolean;
 };
 
 /**
@@ -60,6 +83,10 @@ export type CorePreparation = {
     readonly updated: readonly string[];
     /** Books whose update needs Fixer (their files are left unchanged and their baselines stay old). */
     readonly conflicts: readonly CoreConflict[];
+    /** Changed CLOSED Books whose template update is held (unchanged files, old baselines, no Fixer work). */
+    readonly held: readonly CoreHeld[];
+    /** Remembers that the currently held templates were reported, so each is reported once. */
+    readonly markHeldReported: () => Promise<void>;
     /**
      * Records the new templates of reconciled conflicts as their baselines (after Fixer's reconciliation finished), so
      * repeated preparation is a no-op and the same update is never repeated.
@@ -133,6 +160,15 @@ function baselinesPath(runtimeRoot: string): string {
 }
 
 /**
+ * The effective OPEN/CLOSED declaration of a Book with its limits (whitespace-normalized; none means plain OPEN): the
+ * learning boundary a template update must not move.
+ */
+function learningDeclarationOf(source: string): string {
+    const last = [...parseBook(source).commitments].reverse().find((commitment) => commitment.keyword === 'OPEN' || commitment.keyword === 'CLOSED');
+    return last ? `${last.keyword} ${last.body}`.replace(/\s+/g, ' ').trim() : 'OPEN';
+}
+
+/**
  * The single MODEL line content of an existing Router (its effective bootstrap input when no baseline is known).
  */
 function routerModelOf(source: string): string | undefined {
@@ -148,6 +184,11 @@ function routerModelOf(source: string): string | undefined {
  * file stays unchanged). It never calls a model, never resets a customized Book and records a new baseline only after
  * a successful update. Repeated preparation against the same templates changes nothing.
  *
+ * Template updates preserve the project's [anchors](specs/concepts/anchoring.md): an unchanged engine default is the
+ * engine's own text and is updated, but a changed Book is the user's definition. A changed CLOSED Book is held (no
+ * merge, no Fixer). A changed OPEN Book whose limits are its own, or whose OPEN/CLOSED declaration the merge would
+ * move, goes to Fixer as an `anchored` conflict instead of an automatic merge.
+ *
  * @private core agent preparation
  */
 export async function prepareCoreAgents(
@@ -162,6 +203,10 @@ export async function prepareCoreAgents(
     const updated: string[] = [];
     const conflicts: CoreConflict[] = [];
     const conflictInputs = new Map<string, CoreBookInput>();
+    const held: CoreHeld[] = [];
+    const heldMarks: Record<string, string> = {};
+    // Held templates already reported and still held (a template that is no longer held is forgotten).
+    const reported: Record<string, string> = {};
     let changed = false;
     const record = (file: string, template: string, input: CoreBookInput): void => {
         baselines[file] = { template, input, engineVersion: ENGINE_VERSION, recordedAt: new Date().toISOString() };
@@ -207,8 +252,22 @@ export async function prepareCoreAgents(
             record(agent.file, template, input);
             continue;
         }
-        const merges = bases.map((base) => ({ base, merged: threeWayMerge(base, current, template) }));
-        const clean = merges.find((candidate) => candidate.merged.clean);
+        // An exact earlier template is an unchanged engine default; anything else is the project's own definition.
+        const modified = !bases.includes(current);
+        const policy = learningPolicyOf(parseBook(current));
+        if (modified && !policy.open) {
+            const mark = shortHash(template, 16);
+            heldMarks[agent.file] = mark;
+            if (saved?.held?.[agent.file] === mark) reported[agent.file] = mark;
+            held.push({ file: agent.file, name: agent.name, path, isReported: reported[agent.file] === mark });
+            continue;
+        }
+        const declaration = learningDeclarationOf(current);
+        // Limits that differ from every template's declaration were written by the project: only judgment can show
+        // that an upstream change keeps their meaning.
+        const ownLimits = modified && policy.open && policy.limits !== undefined && bases.every((base) => learningDeclarationOf(base) !== declaration);
+        const merges = ownLimits ? [] : bases.map((base) => ({ base, merged: threeWayMerge(base, current, template) }));
+        const clean = merges.find((candidate) => candidate.merged.clean && (!modified || learningDeclarationOf(candidate.merged.text) === declaration));
         if (clean?.merged.clean) {
             if (clean.merged.text !== current) {
                 await writeFile(path, clean.merged.text);
@@ -217,18 +276,24 @@ export async function prepareCoreAgents(
             record(agent.file, template, input);
             continue;
         }
-        conflicts.push({ file: agent.file, name: agent.name, path, reason: known ? 'overlap' : 'unknown-baseline', ...(known ? { baseline: known.template } : {}), template });
+        const anchored = ownLimits || merges.some((candidate) => candidate.merged.clean);
+        conflicts.push({ file: agent.file, name: agent.name, path, reason: anchored ? 'anchored' : known ? 'overlap' : 'unknown-baseline', ...(known ? { baseline: known.template } : {}), template });
         conflictInputs.set(agent.file, input);
     }
     const save = async (): Promise<void> => {
         await ensureDirectory(options.runtimeRoot);
-        await writeJsonAtomic(metadataPath, { version: 1, baselines } satisfies CoreBaselines);
+        await writeJsonAtomic(metadataPath, { version: 1, baselines, ...(Object.keys(reported).length ? { held: reported } : {}) } satisfies CoreBaselines);
     };
-    if (changed) await save();
+    if (changed || JSON.stringify(saved?.held ?? {}) !== JSON.stringify(reported)) await save();
     return {
         created,
         updated,
         conflicts,
+        held,
+        markHeldReported: async () => {
+            Object.assign(reported, heldMarks);
+            await save();
+        },
         fingerprint: shortHash(conflicts.map((conflict) => `${conflict.file}\0${conflict.template}`).join('\0'), 16),
         resolve: async (files) => {
             for (const conflict of conflicts) {
@@ -251,7 +316,9 @@ export function coreReconciliationDescription(conflicts: readonly CoreConflict[]
             `### ${conflict.name} (\`${agentsDirectory}/${conflict.file}\`)`,
             conflict.reason === 'overlap'
                 ? 'The project changed the same part of this Book that the new engine template changes.'
-                : 'No verifiable template baseline is recorded for this Book (it predates template tracking), and it differs from the engine templates.',
+                : conflict.reason === 'anchored'
+                  ? 'The project changed this Book and its OPEN/CLOSED declaration or limits are anchors: the project wrote its own limits, or the new template would change the declaration. Adopt only upstream changes that keep the anchored meaning.'
+                  : 'No verifiable template baseline is recorded for this Book (it predates template tracking), and it differs from the engine templates.',
             ...(conflict.baseline ? ['Old engine template (the baseline):', '```book', conflict.baseline.trimEnd(), '```'] : []),
             'New engine template:',
             '```book',
@@ -261,6 +328,7 @@ export function coreReconciliationDescription(conflicts: readonly CoreConflict[]
     );
     return [
         'The engine updated its default core agent templates, but these project Books could not be updated automatically. Reconcile each one: adopt the useful upstream changes while preserving every project-specific and learned instruction, customized TEAM membership and consultation policy. Do not duplicate commitments that are already present and do not reset the Book to the template.',
+        'Each Book\'s OPEN/CLOSED declaration and its limits are the user\'s anchors: keep them exactly as the project has them, do not weaken or reword a fixed goal, rule or restriction they protect, and never move an upstream change into another Book (agent or task) to get around them. A newer template is not permission to change an anchor.',
         'Resolve justified overlaps yourself under the current project policy; ask User only when their decision is actually needed. Keeping the project version unchanged is a valid outcome when the upstream change does not fit this project.',
         ...parts,
         `Reference: ${formatAgentReference('Expert')} knows the current Book syntax.`,

@@ -427,6 +427,7 @@ export function learningPrompt(options: { learner: EffectiveAgent; agentPath: st
         `You improve the Book of **${options.learner.name}** at \`${options.agentPath}\`. Its learning permission: ${policy}.`,
         'Use only the evidence actually available: the original task, its result commit, the trace below and the current files. Never turn an inference or missing evidence into a learned fact.',
         'Edit only that Book. Do not change its OPEN/CLOSED declaration or limits, do not broaden its permissions, and do not edit inherited or core definitions.',
+        'Its limits are the user\'s anchors: evolve only what they leave open (methods, knowledge), never remove or reword a restriction or a goal/rule they fix, and never move a change they prohibit into another agent or task.',
         'Keep improvements concise (knowledge, rules or style that would have helped). If nothing is justified, change nothing and say why in the summary.',
         options.evidence ? `\nEvidence:\n\n\`\`\`\`text\n${options.evidence}\n\`\`\`\`` : '',
     ].join('\n');
