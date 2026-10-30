@@ -10,7 +10,7 @@ Materialize a missing `agents/.core/chatter.book` with `AGENT Chatter` during or
 
 At creation, include TEAM access to all other agents materialized/selected for that initialization, including the other core roles and specialists; Chatter must not consult itself. It can also consult the built-in Expert for engine-specific questions. Keep these relationships readable and editable. Users may add other teammates or change policy later. Reinitialization or engine upgrade adds a missing Chatter without resetting any existing customized core/specialist Book or rewriting an existing Chatter's team.
 
-Core hiding still applies to ordinary automatic discovery, but new human-chat entry explicitly promotes Chatter as its first/default choice. This does not make Chatter a non-agent or grant it broader access.
+Core hiding still applies to ordinary automatic discovery, but new human-chat entry explicitly promotes Chatter as its first/default choice. This does not make Chatter a system agent or grant it broader access.
 
 ## Conversation and delegation
 

@@ -15,6 +15,8 @@ The engine expects six editable project roles under `agents/.core/`. Each has a 
 
 Their opening commitments are `AGENT <role name>`; core names do not acquire task/chat date-time decoration. A core has ordinary Book, routing, TEAM, learning, Git and runtime behavior. Being required does not grant a special inference mechanism or extra authority.
 
+Core identifies engine-prepared project roles, not another runtime permission or task category. Their tasks remain ordinary tasks; do not introduce core tasks. Automatic template reconciliation must preserve the user's [anchors](../concepts/anchoring.md) and learning limits, rather than treating a newer template as permission to change them.
+
 Initialize each missing role individually with a small comprehensible boilerplate, not an embedded encyclopedia. Existing Books belong to the project: preserve learned/customized content through the shared three-way update policy below, never reset or bulk-regenerate them. Adding a required Chatter preserves all previously present roles. Invalid/colliding sources use the normal resolver and [automatic repair](../concepts/automatic-repair.md), not silent overwriting.
 
 Initial policies: Adam is the common inheritance foundation (`FROM @Void`, initially CLOSED); Router and Tasker inherit Adam. Initialize Router with a concrete MODEL from the first suitable selected harness and its plugin defaults so it never needs self-routing. Teacher inherits Expert and must remain CLOSED against recursive teaching. Fixer is OPEN, has User and Expert in its initial TEAM, and has a simple general problem-solving goal. Chatter uses ordinary Adam inheritance/default OPEN learning and focuses on user conversation. These are individual Book policies, not restrictions imposed on every core agent.
@@ -25,7 +27,7 @@ At Chatter creation, its readable TEAM relationships include all other initializ
 
 Core roles are excluded from ordinary automatic goal discovery, while remaining selectable, assignable and referenceable. The explicit dashboard Agents/team inventory includes them all. **New human-chat entry also promotes a core role:** promote Chatter as the default first choice and offer Choose another agent to open the full valid target list, including other cores and Expert. This does not make all core agents ordinary goal-discovery candidates. Hidden status is not access control.
 
-Expert is a comprehensive version-matched engine-defined non-agent, never a project core file. See [Fixer](core-agents/fixer.md), [Chatter](core-agents/chatter.md), [Teacher](core-agents/teacher.md), [inheritance](../book-language/inheritance.md) and [non-agents](non-agents.md).
+Expert is a comprehensive version-matched engine-defined system agent, never a project core file. See [Fixer](core-agents/fixer.md), [Chatter](core-agents/chatter.md), [Teacher](core-agents/teacher.md), [inheritance](../book-language/inheritance.md) and [system agents](system-agents.md).
 
 ## Shared preparation and template updates
 

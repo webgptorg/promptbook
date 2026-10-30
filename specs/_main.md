@@ -128,6 +128,9 @@ The Windows installer is an additional release artifact, not a second engine or 
 
 ## Agents and work
 
+- [Anchoring](concepts/anchoring.md): User-fixed meaning and learning boundaries within autonomous project evolution.
+- [System agents](agents/system-agents.md): Engine-owned references, distinct from editable core/content agents.
+- [Ordinary and system tasks](cli/system-tasks.md): Shared scheduling, inventory and runs without a separate core-task category.
 - [Agent context](cli/agent-context.md): Effective role, task and project instructions.
 - [Agent visual identity](agents/visual-identity.md): Mascots, name identity and truthful activity.
 - [Router](agents/core-agents/router.md): Ordinary assignment, concrete bootstrap, priority-aware future routing and first-message chat routing.

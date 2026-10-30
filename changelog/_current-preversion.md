@@ -1,5 +1,9 @@
 # Unreleased
 
+## Specification: anchors and system work
+
+-   Renamed non-agents to system agents across the specification; clarified project-owned core roles without adding core tasks. Defined engine-owned system tasks sharing ordinary scheduling, inventory and run observation. Added user-defined anchors and OPEN/CLOSED boundaries across learning, repair and template reconciliation, plus client-independent autonomy. These are target contracts, not runtime implementation changes.
+
 ## Release check: date-independent dashboard fixtures
 
 -   Two dashboard-home fixtures (Action log tile, project brief) hardcoded a 2026-10-29 timestamp and expected the same-day short clock form, so `npm test`, and with it `npm run release:prerelease`, failed on every other day. They now use the current time.

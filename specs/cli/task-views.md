@@ -4,6 +4,8 @@
 
 The Tasks panel can browse **all** project tasks: running, ready, blocked, waiting, scheduled, recurring, completed and historical. Use a bounded scrollable list, with circular keyboard navigation from the last item to the first and back. Filtering, pagination or compact rendering cannot make distant/completed tasks inaccessible. Show status, responsible agent, meaningful timing, recurrence, effective priority and actionable blockers, with full source/detail access.
 
+Include [system tasks](system-tasks.md) in the same inventory/details with a kind label and actual executor. Distinguish a task definition from its occurrences/runs; offer source actions only where a project source exists. A core agent's task is ordinary work, not a third kind.
+
 Offer ordinary user-selected sorting and filtering by the available fields, including direction. Preserve each viewer's current selection and presentation while data refreshes. These choices are a view over the engine's complete inventory; they do not change task priorities, scheduling, persisted definitions or execution order.
 
 ## Smart default order

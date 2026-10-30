@@ -23,7 +23,7 @@ Automatically created task/chat names follow [generated-name policy](../cli/gene
 
 Resolve a name in the selected project directory, not another current directory, package installation or arbitrary parent. Use the same algorithm regardless of the source entity kind. No source wins by matching the reference's original case, accents, separators or filename more closely; **normalize before comparing** and use only precedence to select the winner. Ask in this order and stop at the first match:
 
-1. **Is it a built-in (non-)agent?** `@Void`/`@Null` (also legacy `0`), `@Expert` and `@User`, equally `{Void}`, `{Null}`, `{Expert}` and `{User}`, are reserved, unshadowable, Book-like [non-agent](../agents/non-agents.md) references supplied by the running engine.
+1. **Is it a built-in system agent?** `@Void`/`@Null` (also legacy `0`), `@Expert` and `@User`, equally `{Void}`, `{Null}`, `{Expert}` and `{User}`, are reserved, unshadowable, Book-like [system agent](../agents/system-agents.md) references supplied by the running engine.
 2. **The `agents/` folder:** every Book in the agents directory (`paths.agents`, `agents/` by default), recursively, including hidden supporting definitions such as `agents/.core/`. Shallow before deep, then by stable lexical path.
 3. **The rest of the project not ignored by Git:** `tasks/`, `chats/` and every other location. Shallow before deep (depth below `tasks/` or `chats/` for Books inside them, otherwise below the project root), then `tasks/`, `chats/`, other locations, then stable lexical path.
 4. **Git-ignored project content:** only after both nonignored tiers, search eligible ignored `.book` definitions, including generated artifacts and `node_modules`, with the same depth, folder and path order.
@@ -40,7 +40,7 @@ Excluded from discovery: Git metadata, local `.ptbk/` runtime/browser profiles, 
 
 A reference can point from **any Book kind to any other** through LINK or appropriate domain commitments. These edges are **directed**: A referring to B does not require writing an inverse reference in B. Views can show both references made and references received. Multiple chats may refer to one task, and one chat may refer to multiple tasks; no relationship requires a task to exist. A link alone does not imply execution order, consultation, conversation participants, write authority or task assignment. [Chat-created tasks](../cli/chat-tasks.md) intentionally persist both directions and origin metadata; general LINK remains directed. CHAT TITLE is a changing label, never a name for resolution.
 
-Specific commitments impose additional semantics: FROM requires an agent or supported non-agent parent; TEAM describes consultation; TASK AGENT assigns an agent; TASK PARENT/TASK DEPENDS ON require a task; CHAT MEMBER chooses a participant. Literal examples, Markdown code blocks, incidental email addresses and malformed text must not be treated as active relationships.
+Specific commitments impose additional semantics: FROM requires an agent or supported system agent parent; TEAM describes consultation; TASK AGENT assigns an agent; TASK PARENT/TASK DEPENDS ON require a task; CHAT MEMBER chooses a participant. Literal examples, Markdown code blocks, incidental email addresses and malformed text must not be treated as active relationships.
 
 ## Examples
 

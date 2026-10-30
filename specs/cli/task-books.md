@@ -2,7 +2,7 @@
 
 [Project model](../concepts/project-model.md) · [Syntax](../book-language/syntax.md)
 
-A task is bounded work stored in one `.book` document. It starts with **`TASK <name>`**, the foundational commitment that declares both kind and name using the common Book syntax. The name content is its identity; TASK, its folder and its filename are not part of that identity. There is no separate generated task ID. Plain name headers and ENTITY TASK are legacy conversion inputs, not canonical new authoring.
+An ordinary source-backed task is bounded work stored in one `.book` document. It starts with **`TASK <name>`**, the foundational commitment that declares both kind and name using the common Book syntax. The name content is its identity; TASK, its folder and its filename are not part of that identity. There is no separate generated task ID. Plain name headers and ENTITY TASK are legacy conversion inputs, not canonical new authoring. Engine-defined [system tasks](system-tasks.md) share scheduling and observation but need not have a project Book; work performed by core agents remains ordinary task work.
 
 ```book
 TASK Improve CSV export — 2026-10-18 01:25:00
