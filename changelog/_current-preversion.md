@@ -5,6 +5,7 @@
 -   The Wallet now recognizes an unsolved CAPTCHA (reCAPTCHA, hCaptcha, Turnstile and similar widgets whose response is still empty; invisible widgets and badges do not count). It enters a login, additional field or one-time code only into a form without one. Before, it submitted into the unsolved CAPTCHA. The site then showed its login form again, which counted as a **rejected password**: a Wallet test reported **test rejected**, and ordinary work created a request to update a login that was fine. A CAPTCHA page after a submission no longer counts as signed in either.
 -   In ordinary work, `wallet_login` reports the CAPTCHA as a further step. The agent solves it as before, then calls `wallet_login` again, and the Wallet enters the login.
 -   A Wallet **Test** that meets a CAPTCHA brings its login window forward when the project browser shows windows, and waits up to ten minutes. The progress reads "Solve the CAPTCHA of … in the browser window …". Once it is solved, the test signs in again with the saved login, never with what was typed in the window, and checks the result. The test can be cancelled while it waits. A headless browser has no window to take over, so the test ends as unverified (incomplete) with that reason, never as a bad password.
+-   While a test waits for the owner (a code, an approval or a takeover), the web dashboard now shows its step without the trailing "…" of ongoing activity, as the terminal already did.
 
 ## Wallet: a sign-in waiting for an approval on another device is no longer taken as signed in
 

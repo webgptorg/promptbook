@@ -1813,7 +1813,8 @@
      */
     function walletVerification(record) {
         const verification = record.verification;
-        if (record.testing) return h('span', { className: 'why warn', role: 'status' }, `Testing: ${record.testing}…`);
+        // Waiting for the owner (a code, an approval or a takeover) is no ongoing activity.
+        if (record.testing) return h('span', { className: 'why warn', role: 'status' }, `Testing: ${record.testing}${record.testAwaits ? '' : '…'}`);
         if (!verification) return h('span', { className: 'why' }, 'Unverified: not tested yet.');
         const label = verification.state === 'verified' ? 'Verified' : verification.state === 'rejected' ? 'Test rejected' : 'Unverified (test incomplete)';
         return h('span', { className: `why ${verification.state === 'verified' ? 'ok' : verification.state === 'rejected' ? 'bad' : 'warn'}` }, `${label} ${time(verification.at)} · ${verification.reason}`);
