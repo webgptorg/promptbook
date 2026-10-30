@@ -12,5 +12,6 @@ The same syntax and parser apply to every entity kind. The first commitment esta
 - [Inheritance](inheritance.md): Agent-only FROM, implicit Adam and termination.
 - [Commitments](commitments/_index.md): One document per canonical commitment.
 - [Generated names](../cli/generated-names.md): Preventive task/chat naming, separate from language validity and filenames.
+- [VS Code extension](vscode.md): Editor support built and released with the same engine vocabulary.
 
 [Agents](../agents/_index.md), [Task Books](../cli/task-books.md) and [Chats](../cli/chats.md) define distinct semantics; common syntax does not make a chat executable or a task inheritable. Plain name headers and `ENTITY` belong to [explicit legacy conversion](../cli/migration.md), not canonical authoring or folder-based type inference.

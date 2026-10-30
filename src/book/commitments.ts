@@ -126,6 +126,15 @@ const KEYWORD_LOOKUP: ReadonlyMap<string, CommitmentDefinition> = new Map([
 ]);
 
 /**
+ * Every accepted spelling, including aliases and compound withdrawals, for editors using the shared vocabulary.
+ *
+ * @private Book language
+ */
+export function commitmentKeywords(): string[] {
+    return [...KEYWORD_LOOKUP.keys()];
+}
+
+/**
  * The commitment kind a compound withdrawal names (`DELETE RULE` → `RULE`), if any.
  *
  * @private Book language

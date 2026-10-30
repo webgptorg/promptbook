@@ -41,3 +41,7 @@ dist-installer/
 # >>> ptbk traces (managed from ptbk.json "traces"; change those settings instead)
 /traces/
 # <<< ptbk traces
+
+# Generated VS Code extension and packaged release artifacts
+/dist-vscode/
+*.vsix

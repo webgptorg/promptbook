@@ -39,6 +39,10 @@
 -   It never prompts for a password, overwrites an existing file, adds swap next to swap that is already active, or writes `/etc/fstab`. The Health page shows the size, path and outcome as the incident's automatic remedy, with the `/etc/fstab` line that keeps the swap after a reboot. When it cannot act, the remedy says why, for example missing administrator privileges or swap that is already active.
 -   One attempt serves the soft and the hard memory incident of the same shortage. Memory asks for help with the same rules as before, but never while the remedy is running. An incident whose condition already stopped holding is recovering and no longer asks for an action, which also removes a short false request right after a successful disk cleanup.
 
+## Adam: shared writing rules
+
+- Adam now supplies English rules for factual accuracy, preserving the author's meaning and voice, and direct writing without stock AI phrasing. Newly initialized agents receive them through ordinary inheritance; Adam keeps its general role without a writing-specific goal or a fixed output language. The repository's own Adam uses the same rules, and the previous default is retained for safe template updates that preserve project customizations.
+
 ## Action log: the GitHub repository created by initialization is recorded
 
 -   When `ptbk init` creates the project's GitHub repository, it now saves a confirmed external-action record under `actions/.engine/initialization/` and commits it (`Action - Create repository · GitHub`) before publishing. The record names the engine-owned operation (**System operation: Initialization**) instead of an invented task or source file. The Action log lists it as `engine · Initialization`. Before, this remote effect left no audit record.
@@ -825,3 +829,9 @@
 -   **Bare `ptbk` offers actions.** In an interactive terminal it shows **Initialize project**, **Start engine** and **Open dashboard** with the version and current project; choosing one runs that command, and cancelling starts nothing. Redirected or noninteractive invocation still prints technical help.
 -   **`ptbk about`** is a compact product box rather than a command reference: the shared product introduction, the actual engine version and installation, the website and GitHub. Raw output keeps the same copy and facts as plain text.
 -   **Init hands off to the dashboard.** After a confirmed background start, interactive init shows a short countdown (Enter opens now, Esc or Ctrl+C skips) and then attaches the ordinary dashboard to the service that was just started, without another start or worker; leaving it keeps the engine running. Raw and noninteractive init return directly. An empty harness selection is warned about visibly (no model work can run and Router gets no concrete initial MODEL) and needs a second Enter to confirm.
+
+## Book language extension built with the engine
+
+- The existing `Promptbook.book-extension` now lives in `extensions/vscode` in this repository. Syntax highlighting, completion, hover, diagnostics, outline, folding and reference navigation use the current engine parser and vocabulary. Historical BookC previews remain read-only.
+- Normal builds stage the extension; `npm run package:vscode` creates a versioned VSIX and checksum. The Marketplace version derives automatically from the engine version while remaining newer than the legacy 1.x releases.
+- CI checks the extension, and every official engine release attaches its matching VSIX/checksum and publishes the existing Marketplace listing from the same release tag, using Trusted Publishing or the repository’s VSCE credential.

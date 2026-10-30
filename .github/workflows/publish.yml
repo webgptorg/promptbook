@@ -106,3 +106,32 @@ jobs:
       - name: Publish and verify the installer on the GitHub Release
         shell: pwsh
         run: node scripts/publish-windows-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
+  vscode-extension:
+    # Wait for installer release creation to avoid two jobs racing to create the same GitHub Release.
+    # Still publish the extension if the installer failed, provided npm publication itself succeeded.
+    if: ${{ always() && !cancelled() && github.repository == 'webgptorg/promptbook' && needs.publish.result == 'success' }}
+    needs: [publish, windows-installer]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VSCE_PAT: ${{ secrets.VSCE_PAT || secrets.VSCE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run release:validate
+      - run: npm run package:vscode
+      - name: Publish matching VSIX to GitHub Release and existing Marketplace listing
+        run: npm run release:vscode

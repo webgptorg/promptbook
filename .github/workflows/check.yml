@@ -32,6 +32,29 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+  vscode-extension:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck:vscode
+      - run: npm run test:vscode
+      - run: npm run package:vscode
+      - uses: actions/upload-artifact@v6
+        with:
+          name: book-extension
+          path: |
+            dist-vscode/*.vsix
+            dist-vscode/*.sha256
+          if-no-files-found: error
   windows-installer:
     # The Windows installer's bootstrap is validated on every check: script syntax, prerequisite detection with an
     # isolated PATH (no Node.js/npm/Git visible: everything planned, nothing installed), and a real run with the
