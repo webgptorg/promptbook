@@ -1,6 +1,7 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { installedDependencyProblems } from './installed-dependencies.mjs';
 
 /** Executes read-only Git checks in the release checkout, without a shell. */
 const execute = promisify(execFile);
@@ -19,4 +20,11 @@ if (!gitTaggingDisabled) {
     if (!branch.trim()) throw new Error('Release versioning requires a named Git branch.');
     const { stdout: status } = await execute('git', ['status', '--porcelain=v1', '--untracked-files=normal'], { cwd: repositoryRoot });
     if (status.trim()) throw new Error('Commit or remove pending tracked and untracked changes before running npm version. No release version was changed.');
+}
+
+// The release checks run against the installed packages: a lockfile changed by a pull or merge without a following
+// install fails them late with unrelated-looking errors, so the actual cause is named before any check runs.
+const dependencyProblems = await installedDependencyProblems(repositoryRoot);
+if (dependencyProblems.length) {
+    throw new Error(`The installed packages do not match package-lock.json:\n- ${dependencyProblems.join('\n- ')}\nRun npm ci (or npm install, committing a changed lockfile) before npm version. No release version was changed.`);
 }

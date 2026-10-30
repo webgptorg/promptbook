@@ -1,5 +1,9 @@
 # Unreleased
 
+## Releasing: stale installed packages stop a release at once, with the cause
+
+-   `npm version …` (and so `npm run release:prerelease`) now checks before any release check that the installed direct dependencies match `package-lock.json`, and that the lockfile matches `package.json`. Otherwise it stops at once, names each affected package and asks for `npm ci`. No version is changed. Before, a pull or merge that added packages without a following install failed the release minutes later inside `check:full`. The VS Code extension's new type library, for example, failed as `TS2688: Cannot find type definition file for 'vscode'`.
+
 ## Wallet: a CAPTCHA is solved before the login is entered; a Wallet test can be taken over to solve it
 
 -   The Wallet now recognizes an unsolved CAPTCHA (reCAPTCHA, hCaptcha, Turnstile and similar widgets whose response is still empty; invisible widgets and badges do not count). It enters a login, additional field or one-time code only into a form without one. Before, it submitted into the unsolved CAPTCHA. The site then showed its login form again, which counted as a **rejected password**: a Wallet test reported **test rejected**, and ordinary work created a request to update a login that was fine. A CAPTCHA page after a submission no longer counts as signed in either.
