@@ -1,5 +1,10 @@
 # Unreleased
 
+## Engine updates: other engines of an installation load only a verified version
+
+-   An engine that replaced a shared installation asked the installation's other live engines to restart before its own restart had proven that the new version starts. A release that could not start then took every project on that installation down, while the automatic rollback restored only the updating project. Now the other engines are asked only after the replacement is verified as serving its own project. Each keeps its manual pause, and engines already on that version are skipped. A release that cannot start is restored before any other project loads it.
+-   A new fixture runs a second project from the first project's installation. A broken release leaves that engine running, unpaused and never restarted; a working release is loaded by it after verification, keeping its pause.
+
 ## Browser dashboard: view and edit Book sources
 
 -   The browser dashboard can now open and edit the real source of a project Book, as the dashboard specification asks for the browser too ("Book viewing/editing shares a core"). Before, only the terminal could (its `E` key), and the browser showed Books only as plain text in Files. It uses the existing shared operations (`GET`/`POST /api/books`), so parsing, diagnostics, revision checks, ownership, scoped commits and Fixer repair stay in the engine.

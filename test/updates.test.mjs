@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { chmod, copyFile, cp, mkdir, readFile, symlink, unlink, writeFile } from 'node:fs/promises';
-import { delimiter, join } from 'node:path';
+import { delimiter, dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { interpretConfig, parseConfigText, updatePolicyOf } from '../dist/project/config.js';
 import { parseVersionRange, policyPermits, rangeAdmits, selectUpdate } from '../dist/project/update-policy.js';
@@ -272,6 +272,75 @@ test('engine self-update: a version that cannot start is replaced by the restore
     assert.equal(item?.retry, 1);
     assert.equal(item.runs[0].outcome, 'failed');
 });
+
+/**
+ * A second project whose engine runs from the host project's installation (a stand-in for a shared global one), with
+ * automatic updates and goal discovery off, started in the background.
+ */
+async function peerProject(host) {
+    const peer = join(dirname(host.project), 'peer project');
+    await initRepository(peer);
+    await writeFile(join(peer, 'check.mjs'), 'process.exit(0);\n');
+    await git(peer, ['add', 'check.mjs']);
+    await git(peer, ['commit', '--quiet', '-m', 'Peer project']);
+    const init = await run(join(ROOT, 'bin', 'ptbk.js'), ['init', '--path', peer, '--non-interactive', '--installation', 'global', '--harness', 'openai-codex', '--check', 'node check.mjs', '--no-start', '--raw'], { cwd: peer, env: host.env });
+    assert.ok([0, 3].includes(init.code), init.output);
+    const path = join(peer, 'ptbk.json');
+    const config = JSON.parse(await readFile(path, 'utf8'));
+    await writeFile(path, `${JSON.stringify({ ...config, discovery: { ...config.discovery, isEnabled: false }, updates: { isAutoUpdateEnabled: false } }, null, 4)}\n`);
+    await git(peer, ['commit', '-q', '-m', 'Peer policy', '--', 'ptbk.json']);
+    const stop = () => run(host.bin, ['stop', '--force', '--raw'], { cwd: peer, env: host.env });
+    assert.equal((await run(host.bin, ['start', '--no-persist', '--raw'], { cwd: peer, env: host.env })).code, 0);
+    const status = async () => JSON.parse((await run(host.bin, ['status', '--json'], { cwd: peer, env: host.env })).output);
+    await waitFor(async () => (await status().catch(() => undefined))?.service?.state === 'running', { message: 'the peer engine to run' });
+    return { peer, status, stop, instance: async () => (await readProcessRecord(projectAt(peer)))?.instanceId };
+}
+
+test('engine self-update: other engines of the installation restart only into a verified version', { timeout: 300_000 }, async (t) => {
+    if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
+    const host = await locallyInstalledProject(t, { versions: [FROM, TARGET], brokenVersions: [TARGET] });
+    assert.equal((await run(host.bin, ['start', '--no-persist', '--raw'], { cwd: host.project, env: host.env })).code, 0);
+    await waitFor(async () => (await host.status()).service?.state === 'running', { message: 'the engine to run' });
+    const peer = await peerProject(host);
+    try {
+        await sharedInstallationUpdates(host, peer);
+    } finally {
+        await peer.stop();
+    }
+});
+
+/**
+ * The shared-installation scenario: a broken release never reaches the peer; a verified one does, keeping its pause.
+ */
+async function sharedInstallationUpdates(host, peer) {
+    const before = await peer.instance();
+
+    // A release that cannot start is restored before any other engine is asked to load it.
+    await host.control('update-check');
+    await waitFor(async () => {
+        const snapshot = await host.status().catch(() => undefined);
+        return snapshot?.engine?.version === FROM && snapshot.update?.lastOutcome?.outcome === 'failed' ? snapshot : undefined;
+    }, { timeoutMs: 120_000, message: 'the restored previous version' });
+    const untouched = await peer.status();
+    assert.equal(untouched.service.state, 'running', 'the other project keeps working, neither stopped nor paused');
+    assert.equal(untouched.engine.version, FROM);
+    assert.equal(await peer.instance(), before, 'the other engine was never restarted into the broken release');
+
+    // A release that starts and serves its project is then loaded by the other engine too, keeping its pause.
+    await writeFile(join(dirname(host.project), 'fake npm', 'npm.json'), JSON.stringify({ versions: [FROM, TARGET] }));
+    assert.equal((await run(host.bin, ['pause', '--raw'], { cwd: peer.peer, env: host.env })).code, 0);
+    await writeFile(join(host.project, '.ptbk', 'state', 'engine-update.json'), JSON.stringify({ version: 1 }));
+    assert.equal((await run(host.bin, ['restart', '--raw'], { cwd: host.project, env: host.env })).code, 0);
+    await waitFor(async () => (await host.status().catch(() => undefined))?.service?.state === 'running', { timeoutMs: 60_000, message: 'the restarted engine' });
+    await host.control('update-check');
+    const restarted = await waitFor(async () => {
+        const snapshot = await peer.status().catch(() => undefined);
+        // A stopped service reports the CLI's version: only a live engine proves what it loaded.
+        return snapshot?.engine?.version === TARGET && snapshot.service?.state !== 'stopped' ? snapshot : undefined;
+    }, { timeoutMs: 120_000, message: 'the other engine to load the verified version' });
+    assert.equal((await host.status()).update.lastOutcome.outcome, 'verified');
+    assert.equal(restarted.service.state, 'pause', 'its manual pause is kept');
+}
 
 /**
  * Saves a configuration as a newer engine would have left it (committed, like a pulled change).

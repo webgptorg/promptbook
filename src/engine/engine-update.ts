@@ -275,6 +275,26 @@ export class EngineUpdater {
         this.phase = 'verified';
         this.options.log(`Engine update verified: ptbk ${run.from} → ${run.target} is loaded and serving this project.`);
         await this.save({ run: undefined, failures: 0, failure: undefined, nextAttemptAt: undefined, deferral: undefined, ...this.finished({ at: new Date().toISOString(), from: run.from, to: run.target, outcome: 'verified', detail: `Installed into the ${run.scope} installation, restarted and serving the project.` }) });
+        void this.restartPeers();
+    }
+
+    /**
+     * Asks the other live engines of this installation, still running older loaded code, to restart into the verified
+     * version once their active work settles (each keeps its manual pause). A release that cannot start is restored
+     * before any of them is asked, so it never takes the other projects down.
+     */
+    private async restartPeers(): Promise<void> {
+        const peers = await readRegistry(this.options.env).then((registry) => registry.entries.filter((entry) => entry.installation === this.installation.root && entry.projectRoot !== this.options.project.root)).catch(() => []);
+        for (const peer of peers) {
+            if (peer.engineVersion && compareVersions(peer.engineVersion, this.current) === 0) continue;
+            const engine = await verifyEngine(peer, this.options.env).catch(() => undefined);
+            if (engine?.status !== 'live') continue;
+            // Engines that predate the update restart keep their loaded version until their own next start.
+            await engine.client
+                .request('update-restart', {}, 5000)
+                .then(() => this.options.log(`Asked the engine of ${peer.projectRoot} to restart into ptbk ${this.current}.`))
+                .catch(() => this.options.log(`${peer.projectRoot} keeps ptbk ${peer.engineVersion ?? 'its version'} loaded until its next start.`));
+        }
     }
 
     /** Commits the owner project's package files of a local installation as a system operation (undefined when nothing was committed). */
@@ -623,13 +643,8 @@ export class EngineUpdater {
             await this.save({ run: { ...this.record.run!, phase: 'restarting' } });
             this.phase = 'restarting';
             this.runningReason = `Restarting to load ptbk ${target}.`;
+            // Other engines of this installation restart only once the replacement serves this project (confirmServing).
             this.options.log(`Engine update: ptbk ${target} is installed; restarting to load it (a manual pause is kept).`);
-            for (const peer of (await readRegistry(this.options.env)).entries.filter((entry) => entry.installation === this.installation.root && entry.projectRoot !== this.options.project.root)) {
-                const engine = await verifyEngine(peer, this.options.env).catch(() => undefined);
-                if (engine?.status !== 'live') continue;
-                // Engines that predate the update restart keep their loaded version until their own next start.
-                await engine.client.request('update-restart', {}, 5000).catch(() => this.options.log(`${peer.projectRoot} keeps ptbk ${peer.engineVersion} loaded until its next start.`));
-            }
             hooks.restart();
         } catch (error) {
             const run = this.record.run;
