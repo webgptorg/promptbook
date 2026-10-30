@@ -1,5 +1,11 @@
 # Unreleased
 
+## Specifications: reversible initialization and project navigation
+
+-   Hold the project draft in memory with Back/progress/final review; create target files only after the final create-and-start confirmation.
+-   Default to Codex when no harness is available, require real adapter checks with at least one passing selection, and generate an editable semantic project/folder name in a separate pre-project call. Accept the small setup usage outside project totals.
+-   Add registered-project access to bare ptbk and New project in the global dashboard through the same initializer with a home-only destination variation; require reliable registration independently of launch CWD.
+
 ## Specifications: autonomous Wallet use and one credential verifier
 
 -   Specify session reuse, nonsecret multi-account discovery, verified related login origins, additional reusable fields and autonomous retrieval of accessible factors.

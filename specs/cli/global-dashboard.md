@@ -30,6 +30,12 @@ With no known projects, show an empty state and keep monitoring. With known proj
 
 Opening a live row attaches to its [project dashboard](terminal.md) without `cd`, lifecycle changes or lock acquisition; returning leaves it untouched. A stopped row offers explicit Start through the shared launcher, not implicit startup from inspection/selection. Diagnose missing paths/installations and incompatible/unreachable owners rather than substituting another target. Q/Ctrl+C closes only the viewer.
 
+## New project through the shared initializer
+
+Provide a discoverable **New project** action and keyboard shortcut, including in the empty state. Invoke the exact same [initializer](initialization.md#draft-confirmation-and-project-creation) as ptbk init under [DRY](../coding-standards/shared-logic.md), not another wizard or initialization implementation. Keep its location step visible but limit this entry to a new child in the shared projects home; explain that another location requires ptbk init. All other intent, harness/default/test, naming, Wallet, progress/back navigation and final create-and-start behavior is shared. Cancellation before confirmation leaves no new project/directory/registry entry. Successful creation registers and starts normally; preserve sensible navigation back to the global view.
+
+Registration/discovery must reliably expose a newly initialized/running project even if its actual project directory differs from the launching CWD. Include fresh Ubuntu/DigitalOcean initialization as an acceptance scenario: a usable project dashboard cannot coexist with an unexplained absent global entry under ordinary supported use. Verify registration/discovery using the actual initialized path; do not present an unverified root-cause explanation as a requirement or confirmed diagnosis.
+
 ## Individual and bulk controls
 
 Provide discoverable individual controls, including Start paused, and bulk actions over all applicable known projects. Invoke shared project/domain operations, not duplicated UI lifecycle/persistence logic.
