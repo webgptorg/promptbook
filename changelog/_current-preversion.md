@@ -1,5 +1,11 @@
 # Unreleased
 
+## Specifications: autonomous decisions and contextual task purpose
+
+-   Define the foundational minimal-interruption knowledge directory, company-head analogy, decision rules and authentication/technical/content examples for common agent context and Tasker.
+-   Distinguish contextual CONTENT/SYSTEM purpose, descriptive core provenance and engine-owned definitions. Add optional TASK PURPOSE with source-preserved appended transitions and ordinary supporting-task relationships.
+-   Keep operator control, actual human-input attention, independent progress and external-effect audit explicit.
+
 ## Browser dashboard: view and edit Book sources
 
 -   The browser dashboard can now open and edit the real source of a project Book, as the dashboard specification asks for the browser too ("Book viewing/editing shares a core"). Before, only the terminal could (its `E` key), and the browser showed Books only as plain text in Files. It uses the existing shared operations (`GET`/`POST /api/books`), so parsing, diagnostics, revision checks, ownership, scoped commits and Fixer repair stay in the engine.

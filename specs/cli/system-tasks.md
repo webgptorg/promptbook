@@ -1,10 +1,10 @@
-# Ordinary and system tasks
+# Source-backed and engine-owned tasks
 
 [Main specification](../_main.md) · [Task Books](task-books.md) · [Eligibility](eligibility.md) · [Engine updates](updates.md)
 
-There are **ordinary tasks** and **system tasks**. Ordinary project tasks have the source-backed Book/Markdown representations defined elsewhere. A system task's definition belongs to the engine and need not have a project Book. Self-update is a system task. Its implementation may be deterministic engine code rather than an LLM-backed agent; this is not a fourth project entity or a second scheduler.
+Task definitions can be **source-backed** ordinary project Books/Markdown or **engine-owned**, such as self-update. An engine-owned definition need not have a project Book and its executor may be deterministic code rather than an LLM-backed agent. This is definition ownership, not the project-relative [SYSTEM/CONTENT purpose](../concepts/minimal-interruption/work-purpose.md). The earlier narrow term "system task" for engine-owned definitions must not obscure source-backed tasks that perform supporting system work. Both use the existing common scheduler.
 
-Do not introduce a third **core task** category. A task performed by Router, Teacher, Fixer, Chatter or another core agent remains ordinary agent work. Core provenance, executor and purpose can be shown without creating a different task kind. Core agents themselves are ordinary editable project agents whose required initial presence is prepared by the engine.
+**Core task** is a descriptive provenance term: only core agents perform that work. It is not a third definition kind, scheduler or grant of authority. Core agents are ordinary editable project roles expected/prepared by the engine. Core provenance and content/system purpose are independent: core agents can do content work, and noncore agents can do system work. Keep these properties distinguishable in task inventory/detail. Engine-owned maintenance is normally system-purpose work.
 
 ## Shared scheduling and observation
 
@@ -20,4 +20,4 @@ The engine-owned definition need not be committed to each project. Actual change
 
 Use ordinary [cause-aware recovery](retries.md) and reconcile uncertain effects before retry. Do not mark a task/run complete merely because a helper started, a connection disappeared or an install command returned without verifying the resulting state.
 
-Acceptance: list an ordinary recurring task and a pending update through the same inventory/details/events; distinguish definitions, runs and retries. Higher-priority work can defer the update indefinitely without blocking ordinary intake. No core-task type, project update Book, invented agent or separate scheduler is introduced; effects on versioned files retain scoped system audit commits.
+Acceptance: list an ordinary recurring task and a pending update through the same inventory/details/events; distinguish definitions, runs and retries. Higher-priority work can defer the update indefinitely without blocking ordinary intake. Core provenance is descriptive; no extra execution type, project update Book, invented agent or separate scheduler is introduced; effects on versioned files retain scoped system audit commits.

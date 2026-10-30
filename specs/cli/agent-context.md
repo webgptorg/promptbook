@@ -9,3 +9,5 @@ Distinguish engine authority, agent instructions, task requirements and external
 Observe source changes between tasks. A running task uses a consistent definition snapshot, including its actual engine-supplied Expert context where applicable. Detect concurrent source edits before finalization rather than silently replacing them.
 
 See [Book language](../book-language/_index.md), [references](../book-language/references.md), [TEAM](team.md) and [traces](traces.md).
+
+The [minimal-interruption knowledge base](../concepts/minimal-interruption/_index.md) supplies common decision guidance. Make the applicable rules/examples available to Tasker, Router and working agents through ordinary effective instructions/KNOWLEDGE, rather than rely on a developer-only documentation link or introduce an independent classification service. Preserve the distinction between project-relative purpose, core provenance and engine-owned definitions.

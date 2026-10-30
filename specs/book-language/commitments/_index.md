@@ -49,6 +49,7 @@ Exactly one of these starts a Book. Its content is the entity's name; subsequent
 
 ## Task commitments
 
+- [TASK PURPOSE](task-purpose.md): Project-relative content/system work with source-preserved transitions.
 - [TASK AGENT](task-agent.md)
 - [TASK PRIORITY](task-priority.md)
 - [TASK AFTER](task-after.md)
