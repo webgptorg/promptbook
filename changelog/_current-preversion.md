@@ -1,5 +1,13 @@
 # Unreleased
 
+## Initialization: real harness checks, semantic naming, final review and New project from the global dashboard
+
+-   Init now ends with an unmistakable final review: project title, destination, harnesses (with their check results) and every setup choice, plus **Create and start project**. The title and a new folder's name can be edited there. Esc goes back through every step, and cancelling at any point leaves the destination untouched; only global prerequisites such as a harness installation or sign-in may already have happened, and the cancel message says so. The step counter now counts the review.
+-   Every selected harness of a new project is tested with a real request through its normal noninteractive execution, in a temporary directory outside the project (`ptbk ping` uses the same adapter operation). At least one must answer. Failed additional harnesses stay listed with their concrete cause but do not block. With none working, interactive init stays in harness selection with the failures shown, and unattended init stops without creating anything. When no usable harness is detected, OpenAI Codex is preselected instead of an empty selection.
+-   After the checks, one working harness proposes a project title and a safe folder name from the meaning of the brief, not its first words. The title heads the new README. A blank brief gets an honest neutral name. An unexpected naming failure stops init before anything is created. These preparatory calls are not project tasks, runs, traces or Usage; their small provider usage is accepted outside project totals.
+-   The global dashboard has **N new project**, also in the empty state. It runs the same initializer with the destination limited to a new folder in the shared projects home (use `ptbk init` for another location), then returns to the table with the new project selected and running.
+-   Every initialized project is now registered for the global dashboard, also when its setup is incomplete. Registration uses the canonical path and is verified by reading the registry back, so a project is found wherever init was launched from.
+
 ## Book highlighting: one parser for every Book surface
 
 -   Books are now syntax-highlighted wherever they are viewed or edited: the terminal and browser Book editors and the read-only Files viewers. Highlighted are the first-line `AGENT`/`TASK`/`CHAT` declaration and its name, every commitment keyword (new keywords such as `TASK PURPOSE CONTENT` included automatically), unknown keywords as warnings, valid `@Agent`/`{Agent Name}` references, and fenced literal blocks, where control-looking text never becomes a keyword.

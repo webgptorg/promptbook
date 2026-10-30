@@ -5,7 +5,7 @@ import { errorMessage } from '../common/errors.js';
 import { ensureDirectory, writeJsonAtomic } from '../common/fs.js';
 import { shortHash } from '../common/ids.js';
 import { ENGINE_ROOT } from '../common/version.js';
-import type { Project } from '../project/workspace.js';
+import { canonicalPath, type Project } from '../project/workspace.js';
 
 /**
  * Version of the durable known-project registry (kept interoperable across engine versions).
@@ -72,10 +72,18 @@ export function knownProjectsDirectory(env: NodeJS.ProcessEnv = process.env): st
 }
 
 /**
+ * The registry form of a project root: its canonical path, so one project has one entry however it was reached (a
+ * symlinked launch directory, a relative path or another spelling).
+ */
+function registryRoot(projectRoot: string): string {
+    return canonicalPath(projectRoot);
+}
+
+/**
  * File of one project's entry (one canonical project, one file).
  */
 function entryPath(projectRoot: string, env: NodeJS.ProcessEnv): string {
-    return join(knownProjectsDirectory(env), `${shortHash(projectRoot, 16)}.json`);
+    return join(knownProjectsDirectory(env), `${shortHash(registryRoot(projectRoot), 16)}.json`);
 }
 
 /**
@@ -86,7 +94,7 @@ function entryPath(projectRoot: string, env: NodeJS.ProcessEnv): string {
 export async function readKnownProject(projectRoot: string, env: NodeJS.ProcessEnv = process.env): Promise<KnownProject | undefined> {
     try {
         const entry = JSON.parse(await readFile(entryPath(projectRoot, env), 'utf8')) as KnownProject;
-        return entry?.version === KNOWN_PROJECT_VERSION && entry.projectRoot === projectRoot ? entry : undefined;
+        return entry?.version === KNOWN_PROJECT_VERSION && entry.projectRoot === registryRoot(projectRoot) ? entry : undefined;
     } catch {
         return undefined;
     }
@@ -105,7 +113,7 @@ export async function registerKnownProject(project: Project, details: { readonly
     const now = new Date().toISOString();
     const entry: KnownProject = {
         version: KNOWN_PROJECT_VERSION,
-        projectRoot: project.root,
+        projectRoot: registryRoot(project.root),
         projectName: project.name,
         registeredAt: existing?.registeredAt ?? now,
         updatedAt: now,
@@ -153,6 +161,24 @@ export async function readKnownProjects(env: NodeJS.ProcessEnv = process.env): P
         }
     }
     return { entries: entries.sort((a, b) => a.projectName.localeCompare(b.projectName) || a.projectRoot.localeCompare(b.projectRoot)) };
+}
+
+/**
+ * Registers a project (after init) and verifies that discovery, the global dashboard's own listing, finds it at its
+ * actual initialized path wherever the command was launched from. A problem is returned, never silently ignored.
+ *
+ * @private known-project registry
+ */
+export async function ensureKnownProject(project: Project, env: NodeJS.ProcessEnv = process.env): Promise<{ readonly problem?: string }> {
+    try {
+        await registerKnownProject(project, {}, env);
+        const listed = await readKnownProjects(env);
+        const root = registryRoot(project.root);
+        if (listed.entries.some((entry) => entry.projectRoot === root)) return {};
+        return { problem: listed.problem ?? `${root} is not listed in ${knownProjectsDirectory(env)} after registration` };
+    } catch (error) {
+        return { problem: errorMessage(error) };
+    }
 }
 
 /**

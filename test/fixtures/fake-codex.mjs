@@ -32,7 +32,8 @@
  * then works for $FAKE_CODEX_SLOW_MS before its reply. The first turn answering FAIL_REPLY_ONCE (per $FAKE_CODEX_LOG)
  * reports a reasoning summary and then fails like a provider outage. Consultation turns (`# Consultation`) answer
  * read-only.
- * Every executed turn is appended to $FAKE_CODEX_LOG (one JSON line) when set.
+ * Every executed turn is appended to $FAKE_CODEX_LOG (one JSON line) when set; initialization's preparatory check and
+ * naming calls are not turns (see main).
  */
 import { spawn } from 'node:child_process';
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -168,6 +169,24 @@ async function callTool(name, toolArguments) {
 
 async function main() {
     const prompt = readFileSync(0, 'utf8');
+    // Preparatory calls of initialization (not project turns, never logged): the real functional check answers PONG
+    // ($FAKE_CODEX_CHECK_FAIL fails it like a broken sandbox) and project naming answers a fixture name derived from the
+    // brief's meaning marker NAME_ME:<title> ($FAKE_CODEX_NAME_FAIL fails it).
+    if (prompt.startsWith('# Harness check') || prompt.startsWith('# Project name')) {
+        const check = prompt.startsWith('# Harness check');
+        if (process.env.FAKE_CODEX_PREPARATION_LOG) appendFileSync(process.env.FAKE_CODEX_PREPARATION_LOG, `${JSON.stringify({ kind: check ? 'check' : 'name', cwd: process.cwd(), home: process.env.CODEX_HOME ?? null })}\n`);
+        print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
+        print({ type: 'turn.started' });
+        if (check ? process.env.FAKE_CODEX_CHECK_FAIL : process.env.FAKE_CODEX_NAME_FAIL) {
+            print({ type: 'turn.failed', error: { message: check ? 'sandbox: landlock is not supported by this kernel' : 'unexpected provider error' } });
+            process.exit(1);
+        }
+        const title = /NAME_ME:([^\n]+)/.exec(prompt)?.[1]?.trim() ?? 'Fixture Project';
+        const text = check ? 'PONG' : JSON.stringify({ title, folder: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') });
+        print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text } });
+        print({ type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 0, output_tokens: 2 } });
+        process.exit(0);
+    }
     const reference = /- Reference: (\{[^{}]+\}|\S+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
     const stamp = /TASK <readable title> — ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:]{8})/.exec(prompt)?.[1] ?? '2026-01-01 00:00:00';
     const title = /- Name: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';

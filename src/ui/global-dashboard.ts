@@ -293,11 +293,18 @@ async function mapBounded<T, R>(items: readonly T[], limit: number, run: (item: 
  * user, including stopped ones, across installations and versions, from any directory. It stays open with zero
  * projects, attaches to a live project's ordinary dashboard without `cd`, a new worker or a lock and returns to the
  * table, and offers individual and bulk Start/Stop/Force stop/Pause/Resume and stopped-entry removal through the shared
- * operations (never a viewer per project). Leaving closes only this viewer.
+ * operations (never a viewer per project). `N` (also in the empty state) runs the caller's New project, the shared
+ * initializer, outside this screen and returns to the table with the created project selected. Leaving closes only
+ * this viewer.
  *
  * @private global dashboard
  */
-export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row: GlobalRow) => Promise<string | undefined>, env: NodeJS.ProcessEnv = process.env): Promise<void> {
+export async function runGlobalDashboard(
+    terminal: TerminalProfile,
+    attach: (row: GlobalRow) => Promise<string | undefined>,
+    env: NodeJS.ProcessEnv = process.env,
+    options: { readonly create?: () => Promise<{ readonly message: string; readonly projectRoot?: string }> } = {},
+): Promise<void> {
     if (!terminal.pretty || !terminal.interactive) {
         await runPlainGlobalDashboard(terminal, env);
         return;
@@ -371,7 +378,7 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         const table: string[] = [];
         let anchor = 0;
         if (!observed) table.push(style.muted('Looking for projects…'));
-        else if (!rows.length) table.push(style.muted('No known projects yet. Still watching — a project initialized or started later (ptbk init, ptbk start) appears here.'));
+        else if (!rows.length) table.push(style.muted(`No known projects yet.${options.create ? ' N creates a new project.' : ''} Still watching — a project initialized or started later (ptbk init, ptbk start) appears here.`));
         else if (!active) table.push(style.muted('No active engines. Stopped projects stay listed; S starts the selected one.'));
         for (const row of rows) {
             if (row.key === selected) anchor = table.length;
@@ -396,7 +403,7 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
                 ? style.accent(fitLegend(['All projects:', 'S start stopped', 'Shift+S start stopped paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove stopped', 'Esc cancel'], width, '  '))
                 : modal?.kind === 'confirm'
                   ? style.warning(` ${truncate(modal.prompt, width - 2)}`)
-                  : style.muted(fitLegend(['↑↓ select', 'Enter attach', 'S start', 'Shift+S start paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove', 'A all projects…', 'Q close (engines keep running)'], width));
+                  : style.muted(fitLegend(['↑↓ select', 'Enter attach', ...(options.create ? ['N new project'] : []), 'S start', 'Shift+S start paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove', 'A all projects…', 'Q close (engines keep running)'], width));
         lines.push(legend);
         if (feedback && !modal) lines.push(` ${style.accent(marks.arrow)} ${truncate(feedback, width - 4)}`);
         screen.draw(lines);
@@ -528,6 +535,37 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         draw();
     };
 
+    /**
+     * New project through the caller's shared initializer, in the ordinary terminal (like attaching), then back here.
+     */
+    const create = async (): Promise<void> => {
+        if (!options.create) return;
+        attached = true;
+        title.stop();
+        keyboard.stop();
+        screen.leave();
+        let outcome: { readonly message: string; readonly projectRoot?: string };
+        try {
+            outcome = await options.create();
+        } catch (error) {
+            outcome = { message: `New project failed: ${errorMessage(error)}` };
+        }
+        attached = false;
+        if (closed) return;
+        terminal.title.invalidate();
+        title.start();
+        feedback = outcome.message;
+        if (outcome.projectRoot) {
+            selected = outcome.projectRoot;
+            autoSelect = false;
+        }
+        screen.enter();
+        screen.invalidate();
+        keyboard.start();
+        refreshSoon();
+        draw();
+    };
+
     const onKey = (event: KeyEvent): void => {
         if (attached) return;
         if (event.type === 'key' && event.name === 'c' && event.ctrl) {
@@ -567,6 +605,7 @@ export async function runGlobalDashboard(terminal: TerminalProfile, attach: (row
         const key = event.text.toLowerCase();
         const action = actionOfKey(event.text);
         if (key === 'q') close();
+        else if (key === 'n' && options.create) void create();
         else if (key === 'a') {
             modal = { kind: 'bulk' };
             draw();

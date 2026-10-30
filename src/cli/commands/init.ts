@@ -43,6 +43,7 @@ import {
 import { prepareCoreAgents } from '../../project/core-templates.js';
 import { canonicalPath, projectAt, type Project } from '../../project/workspace.js';
 import { HARNESS_PLUGINS, harnessPlugin } from '../../harness/registry.js';
+import { functionalCheck, proposeProjectName, type FunctionalCheck, type PreparatoryCall } from '../../harness/preparation.js';
 import { handOverCreated, intendedUser, missingDirectories, sharedProjectsRoot } from '../../common/user-home.js';
 import { kebabIdentifier } from '../../common/naming.js';
 import { WalletSubEngine } from '../../wallet/wallet.js';
@@ -53,7 +54,7 @@ import { persistentServiceEnvironment } from '../../service/records.js';
 import type { HarnessInspection, HarnessPlugin } from '../../harness/types.js';
 import type { ServiceSnapshot } from '../../engine/snapshot.js';
 import { lookupService } from '../../service/control.js';
-import { registerKnownProject } from '../../service/known-projects.js';
+import { ensureKnownProject } from '../../service/known-projects.js';
 import { launchDaemon } from '../../service/launcher.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
 import { wrap } from '../../ui/ansi.js';
@@ -78,6 +79,8 @@ import { liveSnapshot } from '../service-view.js';
 export type InitResult = {
     readonly outcome: 'ready' | 'incomplete' | 'updated-engine' | 'cancelled';
     readonly project?: Project;
+    /** The (generated or edited) title of a new project, when one was named. */
+    readonly title?: string;
     readonly changed: readonly string[];
     readonly alreadyReady: readonly string[];
     readonly unresolved: readonly string[];
@@ -93,7 +96,8 @@ export type InitResult = {
 };
 
 /**
- * Raised when the user abandons the wizard (Ctrl+C); completed steps are kept, nothing further is applied.
+ * Raised when the user abandons the wizard (Ctrl+C) before the final confirmation: the in-memory draft is discarded
+ * and nothing is applied to the destination.
  */
 class WizardCancelled extends Error {}
 
@@ -118,7 +122,7 @@ function answered<T>(value: T | typeof CANCELLED): T {
 /**
  * User-facing wizard steps, in order.
  */
-type StepId = 'intent' | 'update' | 'destination' | 'installation' | 'harnesses' | 'browser' | 'traces' | 'wallet' | 'sync' | 'finish';
+type StepId = 'intent' | 'update' | 'destination' | 'installation' | 'harnesses' | 'browser' | 'traces' | 'wallet' | 'sync' | 'review';
 
 /**
  * Titles of the user-facing steps.
@@ -133,7 +137,7 @@ const STEP_TITLES: Readonly<Record<StepId, string>> = {
     traces: 'Traces',
     wallet: 'Wallet',
     sync: 'Automatic synchronization',
-    finish: 'Set up and start',
+    review: 'Review, create and start',
 };
 
 /**
@@ -262,6 +266,17 @@ function projectFolderProblem(value: string): string | undefined {
 }
 
 /**
+ * The harness preselected when no installed and usable one is detected, so accepting the defaults never leads to an
+ * empty selection (visible and editable, never a hidden fallback).
+ */
+const DEFAULT_HARNESS = 'openai-codex';
+
+/**
+ * A neutral editable title of a project whose brief is blank (no purpose is invented).
+ */
+const NEUTRAL_TITLE = 'My project';
+
+/**
  * Harness variants that are installed **and ready** (verified login or configuration, usable now), inspected in
  * parallel without any model call. An executable alone, a signed-out or an unverifiable variant is not ready.
  */
@@ -277,14 +292,18 @@ async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Prom
 }
 
 /**
- * Wizard/unattended initialization shared by `ptbk init` and the setup step of `ptbk start`.
+ * Wizard/unattended initialization shared by `ptbk init`, the global dashboard's New project and the setup step of
+ * `ptbk start` (one initializer; only the destination step's allowed locations differ).
  *
- * It completes technical setup, preserves the initial input in `specs/_initial.md`, saves one ordinary Expert task and
- * commits setup; starting the agenda is the caller's job (`ptbk init` starts it, `ptbk start` continues its own start).
+ * Every question builds an in-memory draft with Back navigation; the destination is neither created nor written before
+ * the final confirmation (only global prerequisites such as a harness installation or native login, and the separate
+ * preparatory harness checks and naming call, happen before it). Confirmation completes technical setup, preserves
+ * the initial input in `specs/_initial.md`, saves one ordinary Expert task and commits setup; starting the agenda is
+ * the caller's job (`ptbk init` starts it, `ptbk start` continues its own start).
  *
  * @private command
  */
-export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean } = {}): Promise<InitResult> {
+export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean } = {}): Promise<InitResult> {
     const { terminal } = context;
     const interactive = terminal.interactive;
     const style = terminal.style;
@@ -297,8 +316,8 @@ export async function initializeProject(context: CommandContext, options: { proj
     const notes: string[] = [];
     const missingDecisions: string[] = [];
     const title = options.fromStart ? 'ptbk start · setup' : 'ptbk init';
-    const steps = new StepTracker(['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'wallet', 'sync', 'finish']);
-    const stepOrder: readonly StepId[] = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'wallet', 'sync', 'finish'];
+    const steps = new StepTracker(['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'wallet', 'sync', 'review']);
+    const stepOrder: readonly StepId[] = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'wallet', 'sync', 'review'];
     const frame = (id: StepId, note?: string, activity: BadgeActivity = 'working'): WizardFrame => ({
         title,
         step: steps.label(id),
@@ -311,7 +330,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     if (!terminal.pretty) terminal.write(`${title} (ptbk ${ENGINE_VERSION})\n`);
 
     const base = resolve(context.cwd, options.projectRoot ?? option<string>(context, 'path') ?? '.');
-    const explicitDestination = Boolean(options.projectRoot || option<string>(context, 'subfolder') || context.explicit.has('path'));
+    const explicitDestination = !options.homeOnly && Boolean(options.projectRoot || option<string>(context, 'subfolder') || context.explicit.has('path'));
     const flaggedIntent = await intentFromFlags(context);
     const selfUpdate = option<string>(context, 'self-update');
     // Checked in the background while the user describes the project (bounded, best-effort).
@@ -335,10 +354,22 @@ export async function initializeProject(context: CommandContext, options: { proj
         wallet?: boolean;
         /** Automatic synchronization: the saved choice and, for a new opt-in, the explicit destination. */
         sync?: { enabled: boolean; choice?: PublicationChoice; reused: boolean };
-    } = { purposeRecorded: false, root: option<string>(context, 'subfolder') ? resolve(base, option<string>(context, 'subfolder')!) : base, inspections: new Map() };
+        /** Whether the destination has no project configuration yet (a new initialization). */
+        newProject: boolean;
+        /** Latest real functional check per selected harness of a new project (passes are reused after Back). */
+        checks: Map<string, FunctionalCheck>;
+        /** The project title of a new project (generated, neutral or edited in the final review). */
+        title?: string;
+        /** The latest generated name and the brief/harness it was generated for (a changed brief names it again). */
+        proposal?: { readonly key: string; readonly title: string; readonly folder: string };
+        /** Whether the user edited the folder name in the final review (no longer replaced by the proposal). */
+        folderChosen?: boolean;
+        /** Whether the destination folder is a new child named by the wizard (editable in the final review). */
+        folderEditable: boolean;
+    } = { purposeRecorded: false, root: option<string>(context, 'subfolder') ? resolve(base, option<string>(context, 'subfolder')!) : base, inspections: new Map(), newProject: false, checks: new Map(), folderEditable: false };
     const shown = new Set<StepId>();
 
-    const stepFunctions: Record<Exclude<StepId, 'finish'>, () => Promise<void>> = {
+    const stepFunctions: Record<StepId, () => Promise<void>> = {
         // 1. The user's intent comes first: preserved verbatim, attachments included.
         intent: async () => {
             state.purposeRecorded = await recordedPurpose(state.root);
@@ -426,48 +457,50 @@ export async function initializeProject(context: CommandContext, options: { proj
         // 3. Destination (the shared home-based projects folder first) and the versioning boundary of a new child.
         destination: async () => {
             for (;;) {
-                if (!explicitDestination && interactive) {
-                    shown.add('destination');
+                if ((!explicitDestination && interactive) || options.homeOnly) {
                     const user = intendedUser(context.env);
                     const sharedRoot = sharedProjectsRoot(context.env);
+                    if (options.homeOnly && user.problem) throw new PtbkError('The shared projects folder cannot be determined.', { kind: 'setup', reason: user.problem, effect: 'Nothing was created.', next: ['Run `ptbk init` in the intended folder instead.'] });
                     if (user.problem) notes.push(`${user.problem} The shared projects folder is not offered; choose the destination explicitly.`);
                     const initializedHere = await pathExists(projectAt(base).configPath);
-                    const destination = answered(
-                        await selectOne(terminal, {
-                            frame: frame('destination', 'start a new agenda anywhere, or add Promptbook to existing work'),
-                            question: 'Where should the project live?',
-                            choices: [
-                                ...(user.problem ? [] : [{ value: 'shared' as const, label: 'New project in the shared Promptbook projects folder', description: `${sharedRoot}${sep}<name> — a new agenda without choosing a location` }]),
-                                { value: 'current' as const, label: 'Current directory', description: `${base} — add Promptbook to the work here` },
-                                { value: 'subfolder' as const, label: 'New subfolder of the current directory', description: 'create a new project folder here' },
-                            ],
-                            defaultValue: state.destinationKind ?? (initializedHere || user.problem ? 'current' : 'shared'),
-                            escapeLabel: 'Esc back',
-                        }),
-                    );
+                    // The global dashboard's New project keeps this step visible but limited to the shared projects home.
+                    const destination = !interactive
+                        ? ('shared' as const)
+                        : answered(
+                              await selectOne(terminal, {
+                                  frame: frame('destination', options.homeOnly ? 'new projects from the global dashboard live in your projects home' : 'start a new agenda anywhere, or add Promptbook to existing work'),
+                                  question: options.homeOnly ? 'Where should the project live? (for another location, run `ptbk init` there)' : 'Where should the project live?',
+                                  choices: [
+                                      ...(user.problem ? [] : [{ value: 'shared' as const, label: 'New project in the shared Promptbook projects folder', description: `${sharedRoot}${sep}<name> — a new agenda without choosing a location` }]),
+                                      ...(options.homeOnly
+                                          ? []
+                                          : [
+                                                { value: 'current' as const, label: 'Current directory', description: `${base} — add Promptbook to the work here` },
+                                                { value: 'subfolder' as const, label: 'New subfolder of the current directory', description: 'create a new project folder here' },
+                                            ]),
+                                  ],
+                                  defaultValue: options.homeOnly ? 'shared' : (state.destinationKind ?? (initializedHere || user.problem ? 'current' : 'shared')),
+                                  escapeLabel: 'Esc back',
+                              }),
+                          );
+                    if (interactive) shown.add('destination');
                     state.destinationKind = destination;
                     if (destination === 'shared') {
-                        const suggested = state.root !== base && dirname(state.root) === sharedRoot ? basename(state.root) : await freeProjectFolder(sharedRoot, projectFolderName(state.intent?.segments));
-                        const name = answered(
-                            await inputLine(terminal, {
-                                frame: frame('destination', `one folder per project in ${sharedRoot}`),
-                                question: `Folder name of the new project (in ${sharedRoot}):`,
-                                initial: suggested,
-                                validate: (value) => projectFolderProblem(value),
-                            }),
-                        );
-                        const target = join(sharedRoot, name.trim());
-                        const occupied = (await isDirectory(target)) && !(await isFreshDirectory(target));
-                        if (occupied || ((await pathExists(target)) && !(await isDirectory(target)))) {
-                            notes.push(`${target} already exists and is not empty; choose another name.`);
-                            say(style.warning(`${target} already exists and is not empty; choose another name.`));
-                            continue;
+                        // A provisional free child: the folder name is proposed from the brief's meaning after the harness
+                        // checks and can be edited in the final review (nothing is created before confirmation).
+                        state.folderEditable = true;
+                        if (state.root === base || dirname(state.root) !== sharedRoot) {
+                            state.root = join(sharedRoot, await freeProjectFolder(sharedRoot, state.proposal?.folder ?? projectFolderName(state.intent?.segments)));
+                            state.folderChosen = false;
                         }
-                        state.root = target;
                     } else if (destination === 'subfolder') {
                         const name = answered(await inputLine(terminal, { frame: frame('destination'), question: 'Name (or relative path) of the new folder:', initial: state.root !== base && !relative(base, state.root).startsWith('..') ? relative(base, state.root) : undefined, validate: (value) => (!value ? 'Enter a folder name.' : undefined) }));
                         state.root = resolve(base, name);
-                    } else state.root = base;
+                        state.folderEditable = false;
+                    } else {
+                        state.root = base;
+                        state.folderEditable = false;
+                    }
                 } else if (interactive && !options.fromStart) {
                     // An explicit destination (e.g. the Windows installer's `--path` handoff) is reused rather than chosen
                     // again, but still shown for confirmation before anything is written.
@@ -522,7 +555,8 @@ export async function initializeProject(context: CommandContext, options: { proj
                 }
                 break;
             }
-            answers.set('destination', `Destination: ${state.root}${state.nested ? ` (${state.nested.strategy} child)` : ''}`);
+            answers.set('destination', `Destination: ${state.folderEditable ? `${dirname(state.root)}${sep}<name>` : state.root}${state.nested ? ` (${state.nested.strategy} child)` : ''}`);
+            state.newProject = !(await pathExists(projectAt(state.root).configPath));
             const compatibility = planConfigurationMigration((await readProjectConfigFile(projectAt(state.root))).raw);
             if (compatibility.kind === 'older-engine') await requireEngineUpdate(context, compatibility.saved, projectAt(state.root));
             await predictPath();
@@ -589,23 +623,55 @@ export async function initializeProject(context: CommandContext, options: { proj
                     return;
                 } else {
                     shown.add('harnesses');
-                    // A fresh selection starts with every installed and ready harness (no paid probes); earlier choices win.
-                    state.selected ??= await readyHarnesses(await nearestExisting(state.root), context.env);
+                    // A fresh selection starts with every installed and usable harness, or OpenAI Codex when there is none
+                    // (visible and editable); earlier choices win.
+                    if (state.selected === undefined) {
+                        const ready = await readyHarnesses(await nearestExisting(state.root), context.env);
+                        state.selected = ready.length ? ready : [DEFAULT_HARNESS];
+                    }
+                    const failed = [...state.checks].filter(([, check]) => !check.ok);
                     selected = answered(
                         await selectMany(terminal, {
-                            frame: frame('harnesses', 'pick the coding agents that will do the work'),
-                            question: 'Which harnesses should run this project? (installed globally, shared with other projects; ready ones are preselected)',
-                            choices: HARNESS_PLUGINS.map((plugin) => ({ value: plugin.id, label: plugin.displayName, featured: plugin.featured || state.selected!.includes(plugin.id), description: plugin.featured ? undefined : plugin.npmPackage })),
+                            frame: frame('harnesses', failed.length ? 'no selected harness works yet — fix one or choose another' : 'pick the coding agents that will do the work', failed.length ? 'blocked' : 'working'),
+                            question: `Which harnesses should run this project? (installed globally, shared with other projects; usable ones are preselected, otherwise OpenAI Codex${state.newProject ? '; each is tested with a real request' : ''})`,
+                            choices: HARNESS_PLUGINS.map((plugin) => {
+                                const check = state.checks.get(plugin.id);
+                                // A failed real check stays visible with its concrete cause.
+                                const description = check ? `${check.ok ? marks.ok : marks.fail} ${check.summary}` : plugin.featured ? undefined : plugin.npmPackage;
+                                return { value: plugin.id, label: plugin.displayName, featured: plugin.featured || state.selected!.includes(plugin.id) || Boolean(check), description };
+                            }),
                             initial: state.selected,
-                            noneLabel: 'None selected (setup stays incomplete)',
-                            emptyWarning: 'No harness is selected: no model work can run, and Router cannot receive its concrete initial MODEL. Nothing is selected for you; choose one with Space, or continue and add one later (ptbk tool add HARNESS …).',
+                            ...(state.newProject ? { minimum: 1 } : {}),
+                            noneLabel: state.newProject ? 'None selected (a new project needs at least one working harness)' : 'None selected (setup stays incomplete)',
+                            emptyWarning: state.newProject
+                                ? 'No harness is selected: a new project needs at least one harness that passes its real check. Choose one with Space.'
+                                : 'No harness is selected: no model work can run, and Router cannot receive its concrete initial MODEL. Nothing is selected for you; choose one with Space, or continue and add one later (ptbk tool add HARNESS …).',
                         }),
                     );
                 }
                 try {
                     await setUpHarnesses(selected);
                     state.selected = selected;
-                    answers.set('harnesses', `Harnesses: ${selected.length ? selected.map((id) => harnessPlugin(id)!.displayName).join(', ') : 'none'}`);
+                    // A new project needs at least one selected harness that answers a real request; additional failures
+                    // stay visible but do not block. Without a working one, the user stays in harness configuration.
+                    if (state.newProject && selected.length && !(await checkHarnesses(selected))) {
+                        if (interactive && !harnessFlags) {
+                            state.selected = selected;
+                            continue;
+                        }
+                        throw new PtbkError('No selected harness passed its real functional check.', {
+                            kind: 'setup',
+                            project: state.root,
+                            reason: selected.map((id) => `${harnessPlugin(id)!.displayName}: ${state.checks.get(id)?.summary ?? 'not checked'}`).join('\n'),
+                            effect: 'Nothing was created or changed in the destination.',
+                            next: ['Fix the reported cause (sign in, install or repair the harness) or select another harness, then run `ptbk init` again.'],
+                        });
+                    }
+                    const checkMark = (id: string): string => {
+                        const check = state.checks.get(id);
+                        return check ? ` ${check.ok ? marks.ok : `${marks.fail} (${check.summary})`}` : '';
+                    };
+                    answers.set('harnesses', `Harnesses: ${selected.length ? selected.map((id) => `${harnessPlugin(id)!.displayName}${checkMark(id)}`).join(', ') : 'none'}`);
                     if (!shown.has('harnesses') && selected.every((id) => state.inspections.get(id)?.usable)) steps.set('harnesses', false);
                     return;
                 } catch (error) {
@@ -833,6 +899,111 @@ export async function initializeProject(context: CommandContext, options: { proj
             state.sync = { enabled: true, choice, reused: false };
             answers.set('sync', `Synchronization: ${choice.kind === 'existing' ? `existing origin ${redactUrl(origin ?? '')}` : choice.kind === 'origin' ? `origin ${redactUrl(choice.url)}` : `GitHub ${choice.owner ? `${choice.owner}/` : ''}${choice.name} (${choice.visibility})`}`);
         },
+        // 10. Naming (a separate preparatory call), then the unmistakable last step: nothing in the destination is
+        // created or changed before this confirmation.
+        review: async () => {
+            // Unattended init with missing decisions stops before anything is named or applied.
+            if (missingDecisions.length) return;
+            await nameProject();
+            if (!interactive) return;
+            shown.add('review');
+            const start = flag(context, 'start') !== false;
+            for (;;) {
+                const summary = [
+                    ...(state.title !== undefined ? [`Title: ${state.title}`] : []),
+                    `Destination: ${state.root}${state.folderEditable ? ' (new folder)' : ''}${state.nested ? ` (${state.nested.strategy} child)` : ''}`,
+                    ...stepOrder.filter((id) => id !== 'destination' && answers.has(id)).map((id) => answers.get(id)!),
+                ];
+                const choice = answered(
+                    await selectOne(terminal, {
+                        frame: { ...frame('review', 'last step: nothing is created until you confirm', 'waiting-user'), summary },
+                        question: state.newProject ? `Create ${state.title ?? 'the project'}${start ? ' and start its agenda' : ''}?` : `Apply this setup${start ? ' and start the agenda' : ''}?`,
+                        choices: [
+                            { value: 'create' as const, label: state.newProject ? (start ? 'Create and start project' : 'Create project (--no-start)') : start ? 'Apply setup and start' : 'Apply setup (--no-start)' },
+                            ...(state.title !== undefined ? [{ value: 'title' as const, label: 'Edit the title', description: state.title }] : []),
+                            ...(state.folderEditable ? [{ value: 'folder' as const, label: 'Edit the folder name', description: state.root }] : []),
+                        ],
+                        defaultValue: 'create' as const,
+                        escapeLabel: 'Esc back',
+                    }),
+                );
+                if (choice === 'create') return;
+                // Esc in an edit returns to this review, not to the previous step.
+                const edited = await inputLine(terminal, {
+                    frame: frame('review', choice === 'title' ? 'the project title (shown in its README)' : `one new folder in ${dirname(state.root)}`),
+                    question: choice === 'title' ? 'Project title:' : `Folder name (in ${dirname(state.root)}):`,
+                    initial: choice === 'title' ? state.title : basename(state.root),
+                    validate: (value) => (choice === 'title' ? (value.trim() ? undefined : 'Enter a title.') : projectFolderProblem(value)),
+                });
+                if (edited === CANCELLED) {
+                    if (wasInterrupted()) throw new WizardCancelled('cancelled');
+                    continue;
+                }
+                if (choice === 'title') state.title = edited.replace(/\s+/g, ' ').trim();
+                else {
+                    const target = join(dirname(state.root), edited.trim());
+                    if ((await pathExists(target)) && !((await isDirectory(target)) && (await isFreshDirectory(target)))) {
+                        say(style.warning(`${target} already exists and is not empty; choose another name.`));
+                        continue;
+                    }
+                    state.root = target;
+                    state.folderChosen = true;
+                }
+            }
+        },
+    };
+
+    /**
+     * The preparatory call context of a selected harness: its native instance in the environment the background engine
+     * started by this init receives (the restored service environment is verified separately during setup), with the
+     * plugin's coded default model.
+     */
+    const preparatoryCall = async (id: string): Promise<PreparatoryCall> => {
+        const plugin = harnessPlugin(id)!;
+        const nativeTool: HarnessToolRecord = { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
+        const env = instanceEnvironment(plugin, nativeTool, undefined, context.env);
+        const catalog = plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: await nearestExisting(state.root), env, tool: nativeTool }).catch(() => []) : [];
+        const row = pluginDefaultRow(plugin, catalog);
+        return { plugin, inspection: state.inspections.get(id)!, env, model: row.model, thinkingLevel: row.thinking };
+    };
+
+    /**
+     * Names a new project after its harness checks: one working selected harness proposes a title and a safe folder name
+     * from the brief's meaning (a distinct preparatory call, not a project task). A blank brief, or no working harness,
+     * gets an honest neutral editable name instead. A failed naming call is an unexpected error: nothing is created.
+     */
+    const nameProject = async (): Promise<void> => {
+        if (!state.newProject) return;
+        const brief = (state.intent?.segments ?? []).map((segment) => (segment.type === 'text' ? segment.text : `[${segment.kind}: ${segment.name}]`)).join('');
+        const namer = (state.selected ?? []).find((id) => state.checks.get(id)?.ok);
+        const key = `${namer ?? ''}\u0000${brief}`;
+        if (state.proposal?.key !== key) {
+            let proposal: { title: string; folder: string };
+            // An existing or explicitly named folder keeps its own name as the neutral title.
+            if (!brief.trim() || !namer) proposal = { title: state.folderEditable ? NEUTRAL_TITLE : basename(state.root), folder: brief.trim() ? projectFolderName(state.intent?.segments) : 'my-project' };
+            else {
+                const plugin = harnessPlugin(namer)!;
+                say(style.muted(`Naming the project with ${plugin.displayName}${marks.ellipsis}`));
+                try {
+                    proposal = await proposeProjectName(await preparatoryCall(namer), brief);
+                } catch (error) {
+                    throw new PtbkError('The project could not be named.', {
+                        kind: 'internal',
+                        phase: 'project naming',
+                        harness: namer,
+                        reason: errorMessage(error),
+                        effect: 'Nothing was created and nothing was started.',
+                        next: ['Run `ptbk init` again.'],
+                    });
+                }
+                say(`${style.success(marks.ok)} Proposed: ${proposal.title} (${proposal.folder})`);
+            }
+            state.proposal = { key, ...proposal };
+            state.title = proposal.title;
+            state.folderChosen = false;
+        }
+        // Only a new child folder named by the wizard is renamed; an explicitly selected directory never is.
+        if (state.folderEditable && !state.folderChosen) state.root = join(dirname(state.root), await freeProjectFolder(dirname(state.root), state.proposal.folder));
     };
 
     /**
@@ -854,6 +1025,27 @@ export async function initializeProject(context: CommandContext, options: { proj
         steps.set('traces', !(tracesSaved || tracesFlagged));
         steps.set('wallet', !(await pathExists(join(destination.runtime.root, 'encryption', 'project.json'))));
         steps.set('sync', !(typeof raw.isAutoSync === 'boolean' || flag(context, 'auto-sync') !== undefined || flag(context, 'auto-pull') || flag(context, 'auto-push')));
+    };
+
+    /**
+     * The real functional check of every selected harness of a new project, with visible progress and results. A
+     * harness that already passed is not called again; a failure is retried. True when at least one works.
+     */
+    const checkHarnesses = async (selected: readonly string[]): Promise<boolean> => {
+        for (const id of selected) {
+            if (state.checks.get(id)?.ok) continue;
+            const plugin = harnessPlugin(id)!;
+            const inspection = state.inspections.get(id);
+            let check: FunctionalCheck;
+            if (!inspection?.installed || !inspection.usable) check = { ok: false, summary: inspection?.summary ?? 'Not inspected.', durationMs: 0 };
+            else {
+                say(style.muted(`Testing ${plugin.displayName} with a real request${marks.ellipsis}`));
+                check = await functionalCheck(await preparatoryCall(id));
+            }
+            state.checks.set(id, check);
+            say(`${check.ok ? style.success(marks.ok) : style.error(marks.fail)} ${plugin.displayName}: ${check.summary}`);
+        }
+        return selected.some((id) => state.checks.get(id)?.ok);
     };
 
     /**
@@ -962,7 +1154,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     };
 
     // Questions, with Esc going back to the previous screen.
-    const order: Array<Exclude<StepId, 'finish'>> = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'wallet', 'sync'];
+    const order: StepId[] = ['intent', 'update', 'destination', 'installation', 'harnesses', 'browser', 'traces', 'wallet', 'sync', 'review'];
     for (let index = 0; index < order.length; ) {
         const id = order[index]!;
         // Named after the destination folder, which the destination step may change.
@@ -990,7 +1182,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     }
 
     // ── Apply technical setup (no more questions) ────────────────────────────
-    if (interactive && terminal.pretty) terminal.write(`\n${style.muted(steps.label('finish'))}\n`);
+    if (interactive && terminal.pretty) terminal.write(`\n${style.muted(state.newProject ? 'Creating the project…' : 'Applying the setup…')}\n`);
     let root = state.root;
     const fresh = !(await isDirectory(root)) || (await isFreshDirectory(root));
     // Directories this init creates (e.g. the shared projects folder and the new project in it): under sudo they are
@@ -1026,7 +1218,11 @@ export async function initializeProject(context: CommandContext, options: { proj
     for (const id of selected) {
         const plugin = harnessPlugin(id)!;
         const inspection = state.inspections.get(id);
-        if (inspection?.usable) alreadyReady.push(`${plugin.displayName}: ${inspection.summary}`);
+        const check = state.checks.get(id);
+        // A tested harness reports its real check; a failed additional one is identified without blocking the working one.
+        if (check?.ok) alreadyReady.push(`${plugin.displayName}: ${check.summary}`);
+        else if (check) notes.push(`${plugin.displayName} did not pass its real functional check: ${check.summary}${inspection?.nextAction ? ` → ${inspection.nextAction}` : ''}`);
+        else if (inspection?.usable) alreadyReady.push(`${plugin.displayName}: ${inspection.summary}`);
         else unresolved.push(`${plugin.displayName}: ${inspection?.summary ?? 'not inspected'}${inspection?.nextAction ? ` → ${inspection.nextAction}` : ''}`);
     }
     if (!selected.length && !(configBefore && enabledHarnesses(configBefore).length)) notes.push('No harness is selected: the agenda runs but waits for tools until one is added (`ptbk tool add HARNESS …`).');
@@ -1045,16 +1241,17 @@ export async function initializeProject(context: CommandContext, options: { proj
     // boilerplate of a blank start; a supplied intent gets relevant specialists from the ordinary first task instead
     // of sample roles. Existing user-owned agents are never touched.
     if (!state.intent || blankIntent(state.intent.segments)) for (const path of await ensureDefaultRoles(root, agentsDirectory)) createdPaths.push(path);
-    // Router starts directly runnable: the first suitable selected harness with its plugin's coded defaults.
+    // Router starts directly runnable: the first selected harness that passed its real check, with its plugin's coded
+    // defaults.
     const routerModel = async (): Promise<string | undefined> => {
-        const id = selected.find((candidate) => state.inspections.get(candidate)?.usable) ?? selected[0] ?? (configBefore ? enabledHarnesses(configBefore)[0] : undefined);
+        const id = selected.find((candidate) => state.checks.get(candidate)?.ok) ?? selected.find((candidate) => state.inspections.get(candidate)?.usable) ?? selected[0] ?? (configBefore ? enabledHarnesses(configBefore)[0] : undefined);
         const plugin = id ? harnessPlugin(id) : undefined;
         if (!plugin) return undefined;
         const catalog = plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env: context.env }).catch(() => []) : [];
         return formatModelRow(pluginDefaultRow(plugin, catalog));
     };
     // The same core preparation as start: missing roles are created, clean template updates applied; conflicts stay
-    // for the engine's ordinary Fixer work (init itself makes no model calls).
+    // for the engine's ordinary Fixer work (init makes no project model calls).
     const cores = await prepareCoreAgents(root, agentsDirectory, { runtimeRoot: project.runtime.root, routerModel });
     createdPaths.push(...cores.created, ...cores.updated);
     for (const path of await ensureTemplates(root, tasksDirectory)) createdPaths.push(path);
@@ -1062,7 +1259,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     await ensureDirectory(join(root, 'specs'));
     await ensureDirectory(join(root, 'traces'));
     if (fresh && !(await pathExists(join(root, 'README.md')))) {
-        await writeFile(join(root, 'README.md'), sampleReadme({ name: project.name }));
+        await writeFile(join(root, 'README.md'), sampleReadme({ name: state.title ?? project.name }));
         createdPaths.push(join(root, 'README.md'));
     }
 
@@ -1281,7 +1478,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     const readiness = await assessReadiness(project, await loadSettings(project, { env: context.env }), context.env);
     for (const problem of readiness.problems) if (!unresolved.some((item) => item.startsWith(problem.message.slice(0, 30)))) unresolved.push(`${problem.message} → ${problem.action}`);
     const ready = readiness.ready && !unresolved.length;
-    return { outcome: ready ? 'ready' : 'incomplete', project, changed, alreadyReady, unresolved, notes, commit: commitSha, firstTask, publication, synchronization: state.sync?.enabled ?? false };
+    return { outcome: ready ? 'ready' : 'incomplete', project, ...(state.title !== undefined ? { title: state.title } : {}), changed, alreadyReady, unresolved, notes, commit: commitSha, firstTask, publication, synchronization: state.sync?.enabled ?? false };
 }
 
 /**
@@ -1316,6 +1513,43 @@ async function startService(context: CommandContext, project: Project): Promise<
     } catch (error) {
         return { kind: 'failed', reason: errorMessage(error) };
     }
+}
+
+/**
+ * After setup: registers the initialized project for the global dashboard (verified through discovery at its actual
+ * path, independent of the launch directory) and performs the ordinary background start of a ready project. Shared by
+ * `ptbk init` and the global dashboard's New project.
+ */
+async function registerAndStart(context: CommandContext, result: InitResult): Promise<StartOutcome | undefined> {
+    if (!result.project || (result.outcome !== 'ready' && result.outcome !== 'incomplete')) return undefined;
+    // Every initialized project is known to this host: the global dashboard lists it even while stopped or incomplete.
+    const known = await ensureKnownProject(result.project, context.env);
+    if (known.problem) context.terminal.write(`${context.terminal.style.warning('Note:')} the project could not be registered for \`ptbk dashboard --global\`: ${known.problem}\n`);
+    if (result.outcome !== 'ready') return undefined;
+    return flag(context, 'start') === false ? { kind: 'skipped', reason: 'not started (--no-start)' } : await startService(context, result.project);
+}
+
+/**
+ * The global dashboard's New project: the same initializer as `ptbk init` (every step, Back navigation and the final
+ * create-and-start review), with the destination limited to a new child of the shared projects home. Cancellation
+ * before confirmation leaves nothing behind. Returns a one-line outcome for the global view and the created project.
+ *
+ * @private command
+ */
+export async function newProjectFromGlobalDashboard(context: CommandContext): Promise<{ readonly message: string; readonly projectRoot?: string }> {
+    let result: InitResult;
+    try {
+        result = await initializeProject(context, { homeOnly: true });
+    } catch (error) {
+        if (error instanceof WizardCancelled) return { message: 'New project cancelled; nothing was created.' };
+        return { message: `New project failed: ${errorMessage(error)}` };
+    }
+    if (result.outcome === 'updated-engine') return { message: 'Promptbook was updated; run New project again with the new version.' };
+    const service = await registerAndStart(context, result);
+    const name = result.title ?? result.project?.name ?? 'The project';
+    if (result.outcome !== 'ready') return { message: `${name} was created, but setup is incomplete: ${result.unresolved[0] ?? 'see ptbk init'}.`, projectRoot: result.project?.root };
+    if (service?.kind === 'failed') return { message: `${name} was created, but its engine did not start: ${service.reason}`, projectRoot: result.project?.root };
+    return { message: `${name} was created${service?.kind === 'started' || service?.kind === 'reused' ? ' and its agenda is running' : ''}${result.firstTask ? '; Expert starts on it in the background' : ''}.`, projectRoot: result.project?.root };
 }
 
 /**
@@ -1400,18 +1634,15 @@ export default async function init(context: CommandContext): Promise<number> {
         result = await initializeProject(context);
     } catch (error) {
         if (error instanceof WizardCancelled) {
-            context.terminal.write(`${context.terminal.style.warning('Initialization cancelled.')} Completed steps were kept and nothing was started; run \`ptbk init\` to resume.\n`);
+            // Cancelling the draft never reaches the destination; only global prerequisites (a harness installation or
+            // sign-in) may already have happened, and they are not presented as rolled back.
+            context.terminal.write(`${context.terminal.style.warning('Initialization cancelled.')} Nothing was created or changed in the destination and nothing was started (global harness installations or sign-ins made meanwhile stay); run \`ptbk init\` to start again.\n`);
             return EXIT.incomplete;
         }
         throw error;
     }
     if (result.outcome === 'updated-engine') return EXIT.success;
-    let service: StartOutcome | undefined;
-    if (result.outcome === 'ready' && result.project) {
-        // A successfully initialized project is known to this host (the global dashboard lists it even while stopped).
-        await registerKnownProject(result.project, {}, context.env).catch((error: unknown) => context.terminal.write(`${context.terminal.style.warning('Note:')} the project could not be registered for \`ptbk dashboard --global\`: ${errorMessage(error)}\n`));
-        service = flag(context, 'start') === false ? { kind: 'skipped', reason: 'not started (--no-start)' } : await startService(context, result.project);
-    }
+    const service = await registerAndStart(context, result);
     const success = result.outcome === 'ready' && (service?.kind === 'started' || service?.kind === 'reused');
     if (success) await celebrate(context.terminal, result.firstTask ? 'All set — Expert starts on your project in the background.' : 'All set — your agenda is running in the background.');
     renderInitSummary(context, { result, service });

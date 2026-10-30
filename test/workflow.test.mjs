@@ -115,6 +115,40 @@ test('unattended init without required decisions fails before any change', async
     await assert.rejects(readdir(empty));
 });
 
+test('new init: every selected harness answers a real request and one names the project from its meaning, outside the project; a failed check or naming writes nothing', async (t) => {
+    const { directory, env } = await initializedProject(t);
+    const log = join(directory, 'preparation.log');
+    const base = { ...env, FAKE_CODEX_PREPARATION_LOG: log };
+    const init = (path, intent, extra = {}) => ptbk(['init', '--path', path, '--non-interactive', '--installation', 'global', '--harness', 'openai-codex', '--no-start', '--intent', intent, '--raw'], { cwd: directory, env: { ...base, ...extra } });
+    const turns = async () => (await readFile(env.FAKE_CODEX_LOG, 'utf8').catch(() => '')).split('\n').filter(Boolean).length;
+    const turnsBefore = await turns();
+
+    // A relative destination: registration and discovery use the actual initialized path, not the launch directory.
+    const created = await init('birds', 'Please create a project for me. NAME_ME:Local Bird Newsletter');
+    assert.equal(created.code, 0, created.output);
+    assert.match(created.stdout, /OpenAI Codex: Answered a real request/);
+    assert.match(await readFile(join(directory, 'birds', 'README.md'), 'utf8'), /^# Local Bird Newsletter\n/, 'the generated title, not the first words of the brief');
+    const calls = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
+    assert.deepEqual(calls.map((call) => call.kind), ['check', 'name'], 'a real check, then a separate naming call');
+    for (const call of calls) assert.ok(!call.cwd.startsWith(directory), `a temporary non-project directory (${call.cwd})`);
+    assert.equal(await turns(), turnsBefore, 'preparatory calls are no project turns (no task, run, trace or project usage)');
+    const { readKnownProjects } = await import('../dist/service/known-projects.js');
+    assert.ok((await readKnownProjects(env)).entries.some((entry) => entry.projectRoot === join(directory, 'birds')), 'registered for the global dashboard');
+
+    // No working selected harness: nothing is created in the destination.
+    const failed = await init('broken', 'NAME_ME:Broken', { FAKE_CODEX_CHECK_FAIL: '1' });
+    assert.notEqual(failed.code, 0);
+    assert.match(failed.output, /No selected harness passed its real functional check/);
+    assert.match(failed.output, /landlock is not supported/, 'the concrete cause');
+    await assert.rejects(readdir(join(directory, 'broken')));
+
+    // An unexpected naming failure after a successful check is a clear error; the project is not created or started.
+    const unnamed = await init('unnamed', 'Something meaningful', { FAKE_CODEX_NAME_FAIL: '1' });
+    assert.notEqual(unnamed.code, 0);
+    assert.match(unnamed.output, /could not be named/);
+    await assert.rejects(readdir(join(directory, 'unnamed')));
+});
+
 test('the Expert bootstrap and an ordinary task: result, TASK DONE, Task-Name trailers, local traces and the learning follow-up', async (t) => {
     const { project, env } = await initializedProject(t);
     const bootstrap = await drive(project, env, async () => committed(project, 'Review the initialized project'), { message: 'the Expert bootstrap result' });
