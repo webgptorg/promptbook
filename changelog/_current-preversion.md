@@ -1,3 +1,7 @@
+-   Fixed `ptbk coder verify` looping forever on a `[ ]` prompt that never ran: answering "Not done" appended
+    another identical `Fix` section and offered the same section again. "Not done" now keeps the prompt in the queue
+    unchanged and skips its file for the rest of the run. Added a regression test. Fixes #325.
+
 -   Moved the shared `ptbk coder run` / `server` / `fix` workspace lock into
     `.promptbook/ptbk-coder/ptbk-coder-workspace.lock` at the checkout root, preserving atomic ownership,
     nested-job protection and cleanup without reading or modifying workspace locks in Git metadata.
