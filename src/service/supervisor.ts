@@ -1,9 +1,10 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { openSync } from 'node:fs';
 import { engineModule } from '../common/version.js';
+import { restoreFailedUpdateLaunch } from '../engine/engine-update.js';
 import { installPausedStart } from '../engine/operator-intent.js';
 import { projectAt } from '../project/workspace.js';
-import { readLaunchMetadata, RESTART_EXIT_CODE, rotateServiceLog, servicePaths } from './records.js';
+import { readLaunchMetadata, restoreDiscoveryEnvironment, RESTART_EXIT_CODE, rotateServiceLog, servicePaths } from './records.js';
 
 /**
  * Daemon supervisor entry: `node dist/service/supervisor.js <projectRoot>`.
@@ -11,7 +12,8 @@ import { readLaunchMetadata, RESTART_EXIT_CODE, rotateServiceLog, servicePaths }
  * Runs detached from the launching terminal and restarts the worker after an unexpected exit (with backoff) while
  * persistence is enabled and no intentional stop was recorded. An unexpected exit cannot be told apart reliably from an
  * intentional termination, so the replacement only restores availability: it starts paused and never resumes work by
- * itself.
+ * itself. A worker that exits after an engine update restart, before it served the project, is part of that update:
+ * the previous version is restored and started again with the latest manual intent.
  */
 
 /**
@@ -67,7 +69,14 @@ async function supervise(): Promise<void> {
             backoff = 1000;
             continue;
         }
+        // The engine's own update restart loaded a version that could not start: restore the previous one (once).
         const launch = await readLaunchMetadata(project);
+        const update = await restoreFailedUpdateLaunch(project, code, launch ? restoreDiscoveryEnvironment(launch.env, launch.nodePath) : process.env).catch((error: unknown) => ({ restored: false, detail: String((error as Error)?.message ?? error) }));
+        if (update) process.stdout.write(`${new Date().toISOString()} engine update: ${update.detail}\n`);
+        if (update?.restored) {
+            if (terminating || (await readLaunchMetadata(project))?.intentionallyStopped) return;
+            continue;
+        }
         if (!launch?.persistent || launch.intentionallyStopped) return;
         if (Date.now() - started > HEALTHY_RUN_MS) backoff = 1000;
         process.stdout.write(`${new Date().toISOString()} worker exited with ${String(code)}; restarting paused in ${Math.round(backoff / 1000)}s\n`);

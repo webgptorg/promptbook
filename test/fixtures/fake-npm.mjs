@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
  * Deterministic fake `npm` for engine self-update fixtures. It reads `npm.json` next to itself
- * (`{ versions, installDelayMs?, failInstall? }`), logs every invocation to `npm.log` and supports only the ptbk package:
+ * (`{ versions, installDelayMs?, failInstall?, brokenVersions? }`), logs every invocation to `npm.log` and supports only the
+ * ptbk package:
  *
  * - `npm view ptbk versions --json` prints the published versions;
  * - `npm install … ptbk@<version>` in a project with `node_modules/ptbk` rewrites that installation's version and the
- *   project's dependency (keeping dependency vs devDependency) and writes a lock file, like a real local update.
+ *   project's dependency (keeping dependency vs devDependency) and writes a lock file, like a real local update. A
+ *   version listed in `brokenVersions` gets a daemon worker that exits at once (a release that cannot start); any
+ *   other version gets the original worker back.
  */
-import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,6 +34,12 @@ if (args[0] === 'install' && spec) {
     const manifestPath = join(process.cwd(), 'node_modules', 'ptbk', 'package.json');
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     writeFileSync(manifestPath, JSON.stringify({ ...manifest, version }, null, 4));
+    const worker = join(process.cwd(), 'node_modules', 'ptbk', 'dist', 'service', 'worker.js');
+    const original = `${worker}.fake-npm-original`;
+    if ((config.brokenVersions ?? []).includes(version)) {
+        if (!existsSync(original)) copyFileSync(worker, original);
+        writeFileSync(worker, "process.stderr.write('fake broken release: the worker cannot start\\n');\nprocess.exit(1);\n");
+    } else if (existsSync(original)) copyFileSync(original, worker);
     const packagePath = join(process.cwd(), 'package.json');
     const project = JSON.parse(readFileSync(packagePath, 'utf8'));
     const field = args.includes('--save-dev') ? 'devDependencies' : 'dependencies';

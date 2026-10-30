@@ -888,6 +888,8 @@ export class Agenda {
      */
     public async run(): Promise<AgendaSummary> {
         this.touch();
+        // The host serves this engine now (control endpoint and process record): an update restart into it is verified.
+        await this.updater.confirmServing();
         this.startWatching();
         // The first health sample precedes the first claim, so a preventive pause applies before any work starts.
         await this.health?.sampleNow();

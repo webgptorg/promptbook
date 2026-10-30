@@ -248,6 +248,31 @@ test('engine self-update: a failed installation keeps the running version and sc
     assert.ok(!(await status()).queue.some((item) => item.ref === 'system:engine-update'), 'a disabled policy has no pending update');
 });
 
+test('engine self-update: a version that cannot start is replaced by the restored previous version and rechecked', { timeout: 180_000 }, async (t) => {
+    if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
+    const { project, env, bin, npmLog, status, control } = await locallyInstalledProject(t, { versions: [FROM, TARGET], brokenVersions: [TARGET] });
+    assert.equal((await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => (await status()).service?.state === 'running', { message: 'the engine to run' });
+    await control('update-check');
+    const recovered = await waitFor(async () => {
+        const snapshot = await status().catch(() => undefined);
+        return snapshot?.engine?.version === FROM && snapshot.update?.lastOutcome?.outcome === 'failed' ? snapshot : undefined;
+    }, { timeoutMs: 120_000, message: 'the restored previous version to serve the project' });
+    assert.equal(recovered.service.state, 'running', 'the restored engine keeps working; no unexpected-loss pause and no question');
+    assert.ok(recovered.update.lastOutcome.detail.includes(`ptbk ${TARGET} exited with code 1 before it served the project; ptbk ${FROM} was restored`), recovered.update.lastOutcome.detail);
+    assert.ok(Date.parse(recovered.update.nextAttemptAt) > Date.now() + 30 * 60_000, 'a cause-aware recheck, not an immediate reinstall');
+    const installs = (await npmLog()).filter((entry) => entry.args[0] === 'install').map((entry) => entry.args.at(-1));
+    assert.deepEqual(installs, [`ptbk@${TARGET}`, `ptbk@${FROM}`], 'the target, then the restored previous version');
+    assert.equal(JSON.parse(await readFile(join(project, 'node_modules', 'ptbk', 'package.json'), 'utf8')).version, FROM);
+    assert.equal(JSON.parse(await readFile(join(project, 'package.json'), 'utf8')).dependencies.ptbk, FROM);
+    const history = await subjects(project);
+    assert.ok(history.includes(`ptbk: Restore Promptbook engine ${FROM} after ${TARGET} failed to start`), history.join('\n'));
+    assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'nothing is left uncommitted');
+    const item = (await control('task-inventory')).find((entry) => entry.ref === 'system:engine-update');
+    assert.equal(item?.retry, 1);
+    assert.equal(item.runs[0].outcome, 'failed');
+});
+
 /**
  * Saves a configuration as a newer engine would have left it (committed, like a pulled change).
  */

@@ -118,8 +118,11 @@ type EngineUpdateRecord = {
     readonly nextLookupAt?: string;
     /** When the currently selected target was first discovered. */
     readonly discoveredAt?: string;
-    /** The replacement in progress (it survives the restart that loads the new version). */
-    readonly run?: { readonly from: string; readonly target: string; readonly installation: string; readonly scope: string; readonly phase: 'installing' | 'restarting'; readonly startedAt: string };
+    /**
+     * The replacement in progress (it survives the restart that loads the new version). `launchFailure` is set by the
+     * supervisor when the restarted version exited before it served the project and the previous one was restored.
+     */
+    readonly run?: { readonly from: string; readonly target: string; readonly installation: string; readonly scope: string; readonly phase: 'installing' | 'restarting'; readonly startedAt: string; readonly launchFailure?: string };
     /** Consecutive failed runs, their last cause and the next automatic recheck. */
     readonly failures?: number;
     readonly failure?: string;
@@ -200,6 +203,8 @@ export class EngineUpdater {
     private readonly current: string;
     /** The version the saved configuration requires (`promptbookVersion` newer than this engine), if any. */
     private minimum?: string;
+    /** The update restart that loaded this version, verified once this engine actually serves the project. */
+    private loadedRun?: NonNullable<EngineUpdateRecord['run']>;
 
     public constructor(private readonly options: EngineUpdaterOptions) {
         this.installation = options.installation ?? detectInstallation();
@@ -232,28 +237,55 @@ export class EngineUpdater {
     }
 
     /**
-     * Loads the record and settles a replacement that was in progress when the previous process ended: the restart
-     * into the target is verified by the version this process actually loaded.
+     * Loads the record and settles a replacement that was in progress when the previous process ended. The restart into
+     * the target is only verified once this process actually serves the project ({@link confirmServing}); a restored
+     * previous version records the failed launch and commits its restored package files.
      */
     public async load(): Promise<void> {
         const saved = await readJsonIfExists<EngineUpdateRecord>(this.path).catch(() => undefined);
         if (saved?.version === 1) this.record = saved;
         const run = this.record.run;
         if (!run) return;
-        const now = new Date().toISOString();
         if (compareVersions(this.current, run.target) === 0) {
-            this.phase = 'verified';
-            this.options.log(`Engine update verified: ptbk ${run.from} → ${run.target} is loaded and serving this project.`);
-            await this.save({ run: undefined, failures: 0, failure: undefined, nextAttemptAt: undefined, deferral: undefined, ...this.finished({ at: now, from: run.from, to: run.target, outcome: 'verified', detail: `Installed into the ${run.scope} installation and restarted.` }) });
+            this.loadedRun = run;
+            this.phase = 'restarting';
             return;
         }
         if (run.phase === 'installing' && compareVersions(this.current, run.from) === 0) {
             // The previous process ended during the installation: check what is on disk and repair it before work.
             await this.restoreIfBroken(run.from);
         }
-        const detail = run.phase === 'restarting' ? `The restart loaded ptbk ${this.current} instead of ${run.target}.` : `The installation of ptbk ${run.target} was interrupted.`;
+        if (run.launchFailure && compareVersions(this.current, run.from) === 0) {
+            const sha = await this.commitPackageFiles(`Restore Promptbook engine ${run.from} after ${run.target} failed to start`);
+            if (sha) this.options.log(`Committed the restored package files (${sha.slice(0, 8)}).`);
+        }
+        const detail = run.launchFailure ?? (run.phase === 'restarting' ? `The restart loaded ptbk ${this.current} instead of ${run.target}.` : `The installation of ptbk ${run.target} was interrupted.`);
         this.options.log(`Engine update did not complete: ${detail} It is rechecked automatically.`, 'warning');
         await this.fail(detail, run.from, run.target);
+    }
+
+    /**
+     * The replacement serves the project (its control endpoint and process record exist and the agenda runs): only now
+     * is the update restart that loaded it verified. A replacement that exits earlier is restored by the supervisor.
+     */
+    public async confirmServing(): Promise<void> {
+        const run = this.loadedRun;
+        if (!run) return;
+        this.loadedRun = undefined;
+        this.phase = 'verified';
+        this.options.log(`Engine update verified: ptbk ${run.from} → ${run.target} is loaded and serving this project.`);
+        await this.save({ run: undefined, failures: 0, failure: undefined, nextAttemptAt: undefined, deferral: undefined, ...this.finished({ at: new Date().toISOString(), from: run.from, to: run.target, outcome: 'verified', detail: `Installed into the ${run.scope} installation, restarted and serving the project.` }) });
+    }
+
+    /** Commits the owner project's package files of a local installation as a system operation (undefined when nothing was committed). */
+    private async commitPackageFiles(summary: string): Promise<string | undefined> {
+        if (this.installation.scope !== 'local' || !this.installation.ownerProject) return undefined;
+        const paths: string[] = [];
+        for (const name of ['package.json', 'package-lock.json', 'npm-shrinkwrap.json']) if (await pathExists(join(this.installation.ownerProject, name))) paths.push(join(this.installation.ownerProject, name));
+        return await this.options.commit(paths, summary).catch((error: unknown) => {
+            this.options.log(`The package files could not be committed yet: ${errorMessage(error)}`, 'warning');
+            return undefined;
+        });
     }
 
     /**
@@ -586,15 +618,8 @@ export class EngineUpdater {
                     return;
                 }
             }
-            if (this.installation.scope === 'local' && this.installation.ownerProject) {
-                const paths: string[] = [];
-                for (const name of ['package.json', 'package-lock.json', 'npm-shrinkwrap.json']) if (await pathExists(join(this.installation.ownerProject, name))) paths.push(join(this.installation.ownerProject, name));
-                const sha = await this.options.commit(paths, `Update Promptbook engine ${from} → ${target}`).catch((error: unknown) => {
-                    this.options.log(`The updated package files could not be committed yet: ${errorMessage(error)}`, 'warning');
-                    return undefined;
-                });
-                if (sha) this.options.log(`Committed the updated package files (${sha.slice(0, 8)}).`);
-            }
+            const sha = await this.commitPackageFiles(`Update Promptbook engine ${from} → ${target}`);
+            if (sha) this.options.log(`Committed the updated package files (${sha.slice(0, 8)}).`);
             await this.save({ run: { ...this.record.run!, phase: 'restarting' } });
             this.phase = 'restarting';
             this.runningReason = `Restarting to load ptbk ${target}.`;
@@ -617,4 +642,41 @@ export class EngineUpdater {
             this.options.changed();
         }
     }
+}
+
+/**
+ * Supervisor side of an update restart whose new version exited before it served the project: the previous version
+ * is reinstalled into the same installation, so the supervisor can start functional code again (with the latest manual
+ * intent, not as an unexpected loss). The replacement then records the failed run and its automatic recheck. Returns
+ * undefined when no update restart was pending (ordinary crash handling applies), including a second exit after the
+ * restore, so it never loops.
+ *
+ * @private engine self-update
+ */
+export async function restoreFailedUpdateLaunch(project: Project, exitCode: number | null, env: NodeJS.ProcessEnv, installation: InstallationInfo = detectInstallation()): Promise<{ readonly restored: boolean; readonly detail: string } | undefined> {
+    const path = join(project.runtime.state, 'engine-update.json');
+    const record = await readJsonIfExists<EngineUpdateRecord>(path).catch(() => undefined);
+    const run = record?.version === 1 ? record.run : undefined;
+    if (!record || !run || run.phase !== 'restarting' || run.launchFailure || run.installation !== installation.root) return undefined;
+    const installed = async (): Promise<string | undefined> => {
+        const manifest = await readJsonIfExists<{ name?: string; version?: string }>(join(installation.root, 'package.json')).catch(() => undefined);
+        return manifest?.name === 'ptbk' ? manifest.version : undefined;
+    };
+    const exited = `ptbk ${run.target} exited${exitCode === null ? '' : ` with code ${exitCode}`} before it served the project`;
+    let problem: string | undefined;
+    if ((await installed()) !== run.from) {
+        for (let attempt = 1; attempt <= TECHNICAL_ATTEMPTS; attempt++) {
+            try {
+                await installEngineVersion(installation, run.from, { env, timeoutMs: INSTALL_TIMEOUT_MS });
+                problem = undefined;
+                break;
+            } catch (error) {
+                problem = errorMessage(error);
+            }
+        }
+        if (!problem && (await installed()) !== run.from) problem = `the installation does not report ptbk ${run.from} afterwards`;
+    }
+    const detail = problem ? `${exited}; restoring ptbk ${run.from} failed: ${problem}.` : `${exited}; ptbk ${run.from} was restored into the ${run.scope} installation.`;
+    await writeJsonAtomic(path, { ...record, run: { ...run, launchFailure: detail } });
+    return { restored: !problem, detail };
 }
