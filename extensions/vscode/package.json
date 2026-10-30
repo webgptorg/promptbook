@@ -1,0 +1,117 @@
+{
+    "name": "book-extension",
+    "displayName": "Promptbook .book language support",
+    "publisher": "Promptbook",
+    "description": "Book language tools built with the Promptbook engine: highlighting, completion, hover, outline and diagnostics.",
+    "author": "Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)",
+    "license": "BUSL-1.1",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "keywords": [
+        "promptbook",
+        "book",
+        "agents",
+        "tasks",
+        "ai"
+    ],
+    "homepage": "https://ptbk.io/",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/webgptorg/promptbook.git",
+        "directory": "extensions/vscode"
+    },
+    "bugs": {
+        "url": "https://github.com/webgptorg/promptbook/issues"
+    },
+    "icon": "icons/book-icon.png",
+    "galleryBanner": {
+        "color": "#007ACC",
+        "theme": "dark"
+    },
+    "pricing": "Free",
+    "main": "./out/extension.cjs",
+    "files": [
+        "out/**",
+        "syntaxes/**",
+        "snippets/**",
+        "icons/**",
+        "language-configuration.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.md",
+        "THIRD_PARTY_NOTICES.txt"
+    ],
+    "activationEvents": [
+        "onLanguage:book",
+        "onCustomEditor:bookc.preview"
+    ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": true
+        },
+        "virtualWorkspaces": true
+    },
+    "contributes": {
+        "languages": [
+            {
+                "id": "book",
+                "aliases": [
+                    "Book",
+                    "BOOK"
+                ],
+                "extensions": [
+                    ".book",
+                    ".book.md",
+                    ".ptbk",
+                    ".ptbk.md"
+                ],
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "light": "./icons/book-icon.png",
+                    "dark": "./icons/book-icon.png"
+                }
+            },
+            {
+                "id": "bookc",
+                "aliases": [
+                    "BookC",
+                    "BOOKC"
+                ],
+                "extensions": [
+                    ".bookc"
+                ]
+            }
+        ],
+        "grammars": [
+            {
+                "language": "book",
+                "scopeName": "text.book",
+                "path": "./syntaxes/book.tmLanguage.json"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "book",
+                "path": "./snippets/book.json"
+            }
+        ],
+        "customEditors": [
+            {
+                "viewType": "bookc.preview",
+                "displayName": "BookC Preview (legacy)",
+                "selector": [
+                    {
+                        "filenamePattern": "*.bookc"
+                    }
+                ],
+                "priority": "default"
+            }
+        ]
+    },
+    "version": "0.0.0",
+    "type": "module"
+}

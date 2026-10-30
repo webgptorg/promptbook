@@ -1,0 +1,15 @@
+# VS Code extension
+
+[Book language](./_index.md) · [Extension development and publishing](../../extensions/vscode/README.md)
+
+The Book language extension lives in `extensions/vscode` in the Promptbook repository and retains the existing Marketplace identity **Promptbook.book-extension**. The historical `webgptorg/book-extension` repository is reference material only; its release automation is not modified by this migration.
+
+Syntax highlighting, applicable commitment completions, keyword explanations, document outline, folding, source diagnostics and reference navigation use the engine's parser, commitment vocabulary, MODEL validation, reference rules and highlighting ranges directly. Editor operations run locally without starting the engine or a harness, acquiring provider credentials, executing tasks or rewriting Books. Syntax and MODEL problems appear as diagnostics without blocking saving. Project-wide scheduling, runtime-only identities and effective inherited instructions remain engine concerns.
+
+All four source extensions (`.book`, `.book.md`, `.ptbk`, `.ptbk.md`) remain recognized. Go to Definition uses normalized declaration names in the current workspace folder, preserving multiple matches and excluding fenced code, inline code, escaped lines, email addresses and double braces. Historical `.bookc` files keep a read-only JSON preview with scripts and network access disabled and bounded archive/expanded-entry sizes.
+
+The normal engine build stages the extension. `npm run package:vscode` produces a VSIX and SHA-256 checksum separately from the single public `ptbk` npm package. Every official engine release validates and builds the extension from the same immutable release tag, attaches the matching VSIX/checksum to that GitHub Release and publishes the existing Marketplace listing. A failed Marketplace publication is visible and independently retryable; it does not republish npm. An already published version is accepted only after its actual downloadable extension payload has been verified.
+
+Marketplace versions are generated from engine versions rather than maintained separately. `M.m.p-n` maps to `(M+2).m.(p*100000+n)`; stable `M.m.p` uses `n=99999`. Numeric prerelease counters must be `0..99998`, and fields must fit signed 32-bit integers. This keeps new releases above the legacy 1.x extension and stable releases above their prereleases. The complete engine version also appears in `package.json` as `promptbook.version`. Numeric engine prereleases use the ordinary Marketplace channel, matching the engine's default npm installation policy. Unsupported version formats fail explicitly.
+
+Publishing uses a policy on the existing Marketplace publisher that trusts `webgptorg/promptbook` and `.github/workflows/publish.yml`, without a GitHub environment. If an authorized repository `VSCE_PAT` or `VSCE_TOKEN` secret is present, it can be used instead. Secrets never enter source files or VSIX assets. Creating the publisher policy is a one-time account configuration, separate from a successful local build.

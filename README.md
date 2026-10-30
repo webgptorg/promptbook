@@ -91,6 +91,8 @@ RULE Ask before publishing outside the agreed release policy.
 OPEN Learn better methods; the GOAL and both RULEs stay as written.
 ```
 
+Edit these files with [Book language support for VS Code](https://marketplace.visualstudio.com/items?itemName=promptbook.book-extension), [built and released with the engine](extensions/vscode/README.md).
+
 `OPEN` with its limits, or `CLOSED`, is an [anchor](specs/concepts/anchoring.md): a user-fixed rule whose meaning the agents cannot change themselves, even while their methods evolve. You can still change it. Anchors limit what agents may rewrite; they do not make every AI output correct.
 
 Set real project checks in `ptbk.json`; the initializer's placeholder is informational. Git tracks file changes, not every external action. External models and services receive the inputs you authorize.

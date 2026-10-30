@@ -1,0 +1,32 @@
+{
+    "Agent": {
+        "prefix": "agent",
+        "body": [
+            "AGENT ${1:Developer}",
+            "PERSONA ${2:You maintain the project.}",
+            "GOAL ${3:Keep the project reliable.}",
+            "$0"
+        ],
+        "description": "Agent Book"
+    },
+    "Task": {
+        "prefix": "task",
+        "body": [
+            "TASK ${1:Improve the project}",
+            "GOAL ${2:Describe the intended result.}",
+            "TASK AGENT @${3:Developer}",
+            "$0"
+        ],
+        "description": "Task Book"
+    },
+    "Chat": {
+        "prefix": "chat",
+        "body": [
+            "CHAT ${1:Discuss the project}",
+            "CHAT MEMBER @User",
+            "CHAT MEMBER @${2:Developer}",
+            "$0"
+        ],
+        "description": "Chat Book"
+    }
+}

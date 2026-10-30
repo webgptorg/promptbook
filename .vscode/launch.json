@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Book extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/dist-vscode/extension"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/dist-vscode/extension/out/**/*.cjs"
+            ],
+            "preLaunchTask": "Build Book extension"
+        }
+    ]
+}

@@ -21,13 +21,13 @@
     "scripts": {
         "start": "npm run build && node bin/ptbk.js",
         "ptbk": "npm run build && node bin/ptbk.js",
-        "build": "node scripts/build.mjs",
+        "build": "node scripts/build.mjs && npm run build:vscode",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "test": "npm run build && node scripts/test.mjs",
         "test:package": "npm run build && node scripts/test-package.mjs",
         "check": "npm run check:light",
         "check:light": "npm run typecheck",
-        "check:full": "npm run typecheck && npm test && npm run test:package",
+        "check:full": "npm run typecheck && npm run typecheck:vscode && npm test && npm run test:vscode && npm run test:package && npm run package:vscode",
         "preversion": "node scripts/preversion.mjs && npm run check:full && npm run release:validate",
         "postversion": "node scripts/postversion.mjs",
         "prepack": "npm run build",
@@ -39,7 +39,12 @@
         "release:minor": "npm version minor",
         "release:major": "npm version major",
         "release:prerelease": "npm version prerelease",
-        "release:preminor": "npm version preminor"
+        "release:preminor": "npm version preminor",
+        "build:vscode": "node scripts/build-vscode.mjs",
+        "typecheck:vscode": "tsc -p extensions/vscode/tsconfig.json",
+        "test:vscode": "npm run build:vscode && node --test extensions/vscode/test/language.test.mjs extensions/vscode/test/package.test.mjs",
+        "package:vscode": "npm run build:vscode && node scripts/package-vscode.mjs",
+        "release:vscode": "node scripts/publish-vscode.mjs"
     },
     "engines": {
         "node": "^22.13.0 || >=24",
@@ -48,9 +53,13 @@
     "devDependencies": {
         "@eslint/js": "10.0.1",
         "@types/node": "22.20.5",
+        "@types/vscode": "1.85.0",
+        "@vscode/vsce": "4.1.0",
         "cspell": "9.0.2",
+        "esbuild": "0.28.2",
         "eslint": "10.12.0",
         "globals": "16.5.0",
+        "jszip": "3.10.2",
         "typescript": "6.0.3",
         "typescript-eslint": "8.71.1"
     },
