@@ -216,6 +216,10 @@ test('the Wallet tile and page show readiness, requests and labels with the comm
     assert.match(tested({ verification: { state: 'verified', at, reason: 'The website accepted this login.' } }).body.map(stripAnsi).join('\n'), /· verified /);
     assert.match(tested({ verification: { state: 'incomplete', at, reason: 'No login form was found.' } }).body.map(stripAnsi).join('\n'), /unverified \(test incomplete .*\)\n\s+No login form was found\./);
     assert.match(tested({ testing: 'Signing in with this saved login' }).body.map(stripAnsi).join('\n'), /· testing: Signing in with this saved login…/);
+    // A one-time code request asks for the code itself, not for a login.
+    const code = pageBody(pageForTile('wallet'), { ...context, snapshot: snapshot({ wallet: { ...wallet, pending: [{ ...wallet.pending[0], problem: 'code', reason: 'https://news.example asks for a one-time code that only the owner can provide.' }] } }) });
+    assert.match(code.body.map(stripAnsi).join('\n'), /https:\/\/news\.example · a one-time code is needed/);
+    assert.match(code.legend, /Enter type the code · X dismiss/);
 });
 
 test('Usage tile and page: a seven-day summary with grouping-specific labels, visible billing mode and certainty, no price internals', () => {

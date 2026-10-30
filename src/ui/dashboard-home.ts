@@ -267,7 +267,7 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
             const first = wallet.pending[0];
             return [
                 tone(wallet.summary),
-                ...(first ? [style.warning(`${marks.warn} login for ${first.origin.replace(/^https?:\/\//, '')}${first.problem === 'rejected' ? ' (rejected)' : ''}`)] : []),
+                ...(first ? [style.warning(`${marks.warn} login for ${first.origin.replace(/^https?:\/\//, '')}${first.problem === 'rejected' ? ' (rejected)' : first.problem === 'code' ? ' (one-time code)' : ''}`)] : []),
                 style.muted(wallet.state === 'locked' ? 'W open · restore it there' : 'W open'),
             ];
         }

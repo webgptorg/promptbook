@@ -279,6 +279,8 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
         }
         case 'wallet-test':
             return wallet.startTest(text('id'));
+        case 'wallet-code':
+            return await wallet.supplyCode({ request: text('request'), code: text('code') });
         case 'wallet-remove':
             return await wallet.remove(text('id'));
         case 'wallet-dismiss':
@@ -316,4 +318,4 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
  *
  * @private shared runtime controls
  */
-export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-test', 'wallet-remove', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);
+export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-test', 'wallet-code', 'wallet-remove', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);

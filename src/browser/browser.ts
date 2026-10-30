@@ -1235,9 +1235,10 @@ export class TaskBrowser {
             browser: this.name,
             inspect: async () => {
                 const scan = await this.scanLogin();
-                return { origin: scan.origin, form: scan.password ? 'password' : scan.username ? 'username' : 'none' };
+                return { origin: scan.origin, form: scan.password ? 'password' : scan.username ? 'username' : scan.otp ? 'code' : 'none' };
             },
             signIn: async (credentials) => await this.walletSignIn(credentials),
+            enterCode: async (origin, code) => await this.walletEnterCode(origin, code),
         };
     }
 
@@ -1288,7 +1289,7 @@ export class TaskBrowser {
     }
 
     /** Enters one marked login field by trusted text input. */
-    private async enterLoginField(field: 'username' | 'password', value: string): Promise<void> {
+    private async enterLoginField(field: 'username' | 'password' | 'code', value: string): Promise<void> {
         const { connection, sessionId } = await this.active();
         if (!(await this.evaluate<boolean>(focusLoginFieldScript(field)))) throw new PtbkError(`The ${field} field of the login form disappeared.`, { kind: 'technical' });
         await connection.send('Input.insertText', { text: value }, sessionId);
@@ -1328,6 +1329,28 @@ export class TaskBrowser {
             const after = await this.scanLogin();
             if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
             if (after.otp) return { result: 'challenge', note: 'the site asks for a one-time code' };
+            return { result: 'signed-in' };
+        } finally {
+            await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
+            await this.recorder.resume();
+        }
+    }
+
+    /**
+     * Enters a one-time code the owner supplied into the page's code field, only while the page is on its origin
+     * (not recorded), and verifies the result: the code field shown again means the site did not accept it.
+     */
+    private async walletEnterCode(origin: string, code: string): Promise<SignInAttempt> {
+        await this.recorder.pause('Wallet one-time code entry (the code is not recorded)');
+        try {
+            const scan = await this.scanLogin();
+            if (!originMatches(origin, scan.origin)) return { result: 'no-form', note: `the page moved to ${scan.origin}` };
+            if (!scan.otp) return { result: 'no-form', note: 'no one-time code field is shown' };
+            await this.enterLoginField('code', code);
+            await this.submitLogin();
+            const after = await this.scanLogin();
+            if (after.otp && originMatches(origin, after.origin)) return { result: 'rejected', note: 'the site asks for a code again' };
+            if (after.password && originMatches(origin, after.origin)) return { result: 'rejected', note: 'the site returned to its login form' };
             return { result: 'signed-in' };
         } finally {
             await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);

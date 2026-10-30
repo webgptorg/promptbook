@@ -34,7 +34,7 @@ import type { UsageSummary } from '../engine/usage.js';
 import type { ActionLinks } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
-import { recoveryWordLines, walletImportFlow, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
+import { recoveryWordLines, walletCodeForm, walletImportFlow, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
 import type { WalletImportPreview } from '../wallet/wallet.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
@@ -704,6 +704,16 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         await runWallet('wallet-save', { ...login, test: true, ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) });
     };
 
+    /** Answers a pending one-time code request through concealed input (the code is used once, never stored). */
+    const walletCode = async (request: { readonly id: string; readonly origin: string }): Promise<void> => {
+        const code = await outside(() => walletCodeForm(terminal, request.origin));
+        if (!code) {
+            notify('Nothing was entered.');
+            return;
+        }
+        await runWallet('wallet-code', { request: request.id, code });
+    };
+
     /**
      * First Wallet setup: the 12 words for recovery are shown once inside the full-screen view (never printed to the
      * terminal's scrollback) and the Wallet is created only after the owner confirms writing them down.
@@ -745,7 +755,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             else notify(unset ? 'Set up the Wallet first (S).' : 'Restore the Wallet on this computer first (R).');
         } else if (key === 't' && focused?.kind === 'record') void runWallet('wallet-test', { id: focused.id });
         else if (key === 'd' && focused?.kind === 'record') confirmThen(`Remove the saved login "${focused.account}" for ${focused.origin}?`, async () => void (await runWallet('wallet-remove', { id: focused.id })));
-        else if (key === 'x' && focused?.kind === 'request') confirmThen(`Dismiss the login request for ${focused.origin}? The waiting work continues without it.`, async () => void (await runWallet('wallet-dismiss', { request: focused.id })));
+        else if (key === 'x' && focused?.kind === 'request') confirmThen(`Dismiss the ${focused.problem === 'code' ? 'code' : 'login'} request for ${focused.origin}? The waiting work continues without it.`, async () => void (await runWallet('wallet-dismiss', { request: focused.id })));
         else if (key === 'i') {
             if (!wallet.management?.canImport) notify(unset ? 'Set up the Wallet first (S).' : 'Restore the Wallet on this computer first (R).');
             else
@@ -961,7 +971,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 }
                 if (page.kind === 'wallet') {
                     const item = snapshot.wallet?.state === 'ready' ? walletItems(snapshot.wallet)[page.focus] : undefined;
-                    if (item?.kind === 'request') void walletLogin({ origin: item.origin, action: item.id });
+                    if (item?.kind === 'request' && item.problem === 'code') void walletCode(item);
+                    else if (item?.kind === 'request') void walletLogin({ origin: item.origin, action: item.id });
                     else if (item?.kind === 'record') void walletLogin({ origin: item.origin, label: item.account, id: item.id });
                     return;
                 }

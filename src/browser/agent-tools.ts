@@ -45,12 +45,19 @@ function pointerArgument(input: Readonly<Record<string, unknown>>): PointerTarge
  * @private project browser
  */
 export type AgentWallet = {
-    readonly login: (page: SignInPage, request: { readonly account?: string; readonly reason?: string; readonly ignoreRelated?: boolean }) => Promise<WalletLoginResult>;
+    readonly login: (page: SignInPage, request: { readonly account?: string; readonly reason?: string; readonly ignoreRelated?: boolean; readonly requestCode?: boolean }) => Promise<WalletLoginResult>;
     /** Nonsecret metadata of the saved logins (service, label, username/email), optionally for one site. */
     readonly accounts: WalletSubEngine['accounts'];
     /** The task now waits for a protected Wallet action (it checkpoints when its turn ends). */
     readonly onWait: (action: string) => void;
 };
+
+/**
+ * How an agent completes a one-time code step: autonomously from a channel it can already read, otherwise through the
+ * Wallet's protected owner input (never a chat).
+ */
+const CODE_GUIDANCE =
+    "For a one-time code: when it arrives in an email or another channel you can already read, get it there and enter it yourself (a code is used once, it is no credential). Otherwise call wallet_login again on this page with requestCode set to true: the owner enters the code in the Wallet's protected input; never ask for it in a chat.";
 
 /**
  * What the agent learns from a Wallet login request (redacted: never a username or password).
@@ -60,14 +67,19 @@ function walletMessage(result: WalletLoginResult): string {
         case 'signed-in':
             return `Signed in to ${result.origin} with the saved login "${result.account}" (the Wallet entered it; the credentials are not available to you).${result.note ? ` ${result.note}.` : ''} Verify the page shows what the task needs.`;
         case 'challenge':
-            return `The Wallet entered the saved login "${result.account}" for ${result.origin}, and the site now asks for another step (${result.note ?? 'for example a CAPTCHA, a two-factor code or an approval'}). Complete technical steps such as a CAPTCHA yourself; use browser_request_user_action only for what genuinely needs the human (a code or approval only the account owner receives). You are not signed in until the site shows the access you need.`;
+            return `The Wallet entered the saved login "${result.account}" for ${result.origin}, and the site now asks for another step (${result.note ?? 'for example a CAPTCHA, a two-factor code or an approval'}). Complete technical steps such as a CAPTCHA yourself, and choose "stay signed in" or "trust this device" when offered. ${CODE_GUIDANCE} Use browser_request_user_action only for an approval only the account owner can give. You are not signed in until the site shows the access you need.`;
         case 'no-login-form':
             return `The current page of ${result.origin} shows no login form. If the site is already signed in, just continue; otherwise open its login page and call wallet_login again.`;
         case 'related':
             return `The Wallet has no login for ${result.origin} itself, but for the related service domain${result.logins.length === 1 ? '' : 's'} ${result.logins.map((login) => `${login.origin} ("${login.account}")`).join(', ')}. Open that site's own sign-in page (usually through this site's Sign in link, which leads there) and call wallet_login again on it; never ask for the credentials. If that login does not apply to this site, call wallet_login here again with ignoreRelated set to true.`;
+        case 'code-needed':
+            return `${result.origin} asks for a one-time code. ${CODE_GUIDANCE}`;
+        case 'code-entered':
+            return `The Wallet entered the one-time code the owner supplied, and ${result.origin} accepted it${result.note ? ` (${result.note})` : ''}. Verify the page shows what the task needs.`;
         case 'ambiguous':
             return `The Wallet has several logins for ${result.origin}: ${result.accounts.map((account) => `"${account}"`).join(', ')}. Call wallet_login again with account set to the one the task requires.`;
         case 'waiting':
+            if (result.problem === 'code') return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for the code in a chat. End your turn now with status waiting-for-user: the task resumes once the code is entered, then call wallet_login again on the same code page (the Wallet enters the code; you never see it).`;
             return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for the username or password in a chat. End your turn now with status waiting-for-user: the task resumes once the login is added, then open the login page again and call wallet_login.`;
         case 'failed':
             return `The Wallet could not sign in: ${result.reason}`;
@@ -234,14 +246,15 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
                               account: { type: 'string', description: 'Account the task requires (label or username), when the task names one.' },
                               reason: { type: 'string', description: 'Why the task needs this login (shown to the owner).' },
                               ignoreRelated: { type: 'boolean', description: "Set to true only after a related service domain's login (reported earlier) turned out not to apply to this site." },
+                              requestCode: { type: 'boolean', description: 'On a one-time code page: set to true when you cannot obtain the code yourself from an email or channel you can read; the owner then enters it in protected Wallet input.' },
                           },
                       },
                       async (input) => {
                           const instance = await browser(input);
-                          const result = await wallet.login(instance.walletPage(), { account: typeof input.account === 'string' ? input.account : undefined, reason: typeof input.reason === 'string' ? input.reason : undefined, ignoreRelated: input.ignoreRelated === true });
+                          const result = await wallet.login(instance.walletPage(), { account: typeof input.account === 'string' ? input.account : undefined, reason: typeof input.reason === 'string' ? input.reason : undefined, ignoreRelated: input.ignoreRelated === true, requestCode: input.requestCode === true });
                           if (result.status === 'waiting') wallet.onWait(result.action);
                           const message = walletMessage(result);
-                          return result.status === 'signed-in' ? `${message}\n\n${await instance.read()}` : { text: message, isError: result.status === 'failed' };
+                          return result.status === 'signed-in' || result.status === 'code-entered' ? `${message}\n\n${await instance.read()}` : { text: message, isError: result.status === 'failed' };
                       },
                   ),
               ]
@@ -249,7 +262,7 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
         tool(
             {
                 name: 'browser_request_user_action',
-                description: `Only for a step that genuinely needs the human after you tried it with full access to the browser (a code or approval only the account owner receives, consent only they may give, a challenge you could not solve${wallet ? '; a missing username/password goes through wallet_login instead' : ', credentials you do not have'}): ask the human to act in the project browser. Attempt CAPTCHAs and other technical steps yourself first. Never use it to ask for browser control or permissions. Then end your turn with status waiting-for-user.`,
+                description: `Only for a step that genuinely needs the human after you tried it with full access to the browser (a code or approval only the account owner receives, consent only they may give, a challenge you could not solve${wallet ? '; a missing username/password or a one-time code goes through wallet_login instead' : ', credentials you do not have'}): ask the human to act in the project browser. Attempt CAPTCHAs and other technical steps yourself first. Never use it to ask for browser control or permissions. Then end your turn with status waiting-for-user.`,
                 properties: { reason: { type: 'string' } },
                 required: ['reason'],
             },

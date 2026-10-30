@@ -86,6 +86,18 @@ export async function walletLoginForm(terminal: TerminalProfile, initial: { read
 }
 
 /**
+ * Asks for the one-time code a website sent for a pending code request (masked with typing feedback, Ctrl+R shows it);
+ * returns undefined when nothing was entered. The code is used once and never stored.
+ *
+ * @private dashboard Wallet forms
+ */
+export async function walletCodeForm(terminal: TerminalProfile, origin: string): Promise<string | undefined> {
+    terminal.write(`\nEnter the one-time code ${origin} sent you. The Wallet enters it once for the waiting work; agents never see it and it is not saved.\n`);
+    const code = await readOwnerCredential(terminal, '  One-time code');
+    return code.trim() || undefined;
+}
+
+/**
  * Asks for the 12 words for recovery (hidden while typed); returns undefined when nothing was entered.
  *
  * @private dashboard Wallet forms

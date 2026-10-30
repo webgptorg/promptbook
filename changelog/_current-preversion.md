@@ -8,6 +8,11 @@
 -   A test is not a task, run or credential mutation: it creates no task Book, trace, Wallet audit or commit.
 -   Not covered yet: entering a missing factor or approving a device action during a test (the test ends as incomplete instead), additional reusable login fields, and testing the protected in-memory draft during `ptbk init` (Wallet setup still happens after the final confirmation).
 
+## Wallet: one-time codes through protected owner input, never a chat
+
+-   When a site asks for a one-time code after the Wallet signed in, the agent first gets it itself from an email or another channel it can already read. A code is used once and is not a credential. Only when it cannot does `wallet_login` with `requestCode` create one protected Wallet request, with the ordinary Wallet attention, and the task waits for it. The agent is no longer told to ask for such codes through a browser user-action chat.
+-   The owner enters the code on the Wallet page: Enter on the request in the terminal (masked input), or **Enter the code** on the web. The Wallet holds it in memory only, never writing, logging or showing it to agents, and the waiting work resumes. The next `wallet_login` on that site's code page types it into the code field once, within ten minutes, and verifies that the site accepted it. A refused code asks again instead of being retried. Saving a password never answers a code request.
+
 ## Wallet: account discovery for agents, related service domains and TOTP generation out of scope
 
 -   Agents get a `wallet_accounts` tool that lists saved logins as intentionally nonsecret metadata (service, label, username or email), optionally for one site. Work can pick the right account from context instead of asking. Passwords and codes never leave the Wallet, and the records stay fully encrypted with no plaintext index.

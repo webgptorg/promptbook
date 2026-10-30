@@ -1768,7 +1768,7 @@
                     { className: 'notice' },
                     h('strong', {}, `${action.origin}${action.account ? ` · ${action.account}` : ''} · ${problem}`),
                     h('div', { className: 'muted' }, `${action.reason} ${action.tasks.length ? `For ${action.tasks.join(', ')}.` : ''} Since ${time(action.createdAt)}${action.requests > 1 ? ` · requested ${action.requests}×` : ''}.`),
-                    h('div', { className: 'row' }, wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletLoginDialog({ origin: action.origin, action: action.id }) }, 'Add this login') : null, h('button', { onclick: () => walletCall('wallet-dismiss', { request: action.id }, `Dismiss the login request for ${action.origin}? The waiting work continues without it.`) }, 'Dismiss')),
+                    h('div', { className: 'row' }, action.problem === 'code' ? h('button', { className: 'primary', onclick: () => walletCodeDialog(action) }, 'Enter the code') : wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletLoginDialog({ origin: action.origin, action: action.id }) }, 'Add this login') : null, h('button', { onclick: () => walletCall('wallet-dismiss', { request: action.id }, `Dismiss the login request for ${action.origin}? The waiting work continues without it.`) }, 'Dismiss')),
                 ),
             );
         }
@@ -2094,6 +2094,32 @@
         );
         dialog = walletDialog(initial.id ? 'Update a website login' : 'Add a website login', form);
         (initial.origin ? username : origin).focus();
+    }
+
+    /** Protected entry of a one-time code for a pending code request: used once by the waiting work, never stored. */
+    function walletCodeDialog(action) {
+        const code = h('input', { type: 'password', autocomplete: 'one-time-code', inputMode: 'numeric', required: true });
+        let dialog;
+        const form = h(
+            'form',
+            {
+                method: 'dialog',
+                autocomplete: 'off',
+                onsubmit: async (event) => {
+                    event.preventDefault();
+                    const body = { request: action.id, code: code.value };
+                    code.value = '';
+                    const result = await walletCall('wallet-code', body);
+                    body.code = '';
+                    if (result) dialog.close();
+                },
+            },
+            h('p', { className: 'muted' }, `Enter the one-time code ${action.origin} sent you. The Wallet enters it once for the waiting work; agents never see it and it is not saved.`),
+            walletCredentialField('One-time code', code),
+            h('div', { className: 'row' }, h('button', { type: 'submit', className: 'primary' }, 'Enter the code'), h('button', { type: 'button', onclick: () => ((code.value = ''), dialog.close()) }, 'Cancel')),
+        );
+        dialog = walletDialog('Enter a one-time code', form);
+        code.focus();
     }
 
     /** First setup: the 12 words for recovery are shown once in a dialog and the Wallet is created after confirmation. */

@@ -4318,8 +4318,9 @@ export class Agenda {
         await this.state.park(parked);
         await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpointed', { phase: record.phase, chat: record.waitingChat ?? record.recoveryChat, ...(record.waitingWallet ? { wallet: record.waitingWallet } : {}), ownedFiles: parked.ownedFiles ?? [] });
         const kept = parked.ownedFiles?.length ? ` It keeps its changes in ${parked.ownedFiles.slice(0, 4).join(', ')}${parked.ownedFiles.length > 4 ? ', …' : ''}; other work on those files waits.` : '';
-        const origin = record.waitingWallet ? this.wallet.action(record.waitingWallet)?.origin : undefined;
-        const until = record.waitingWallet ? `a login${origin ? ` for ${origin}` : ''} is added in the Wallet (protected input, never in a chat)` : `you reply in {${record.waitingChat ?? record.recoveryChat}}`;
+        const waiting = record.waitingWallet ? this.wallet.action(record.waitingWallet) : undefined;
+        const needed = `${waiting?.problem === 'code' ? 'a one-time code' : 'a login'}${waiting?.origin ? ` for ${waiting.origin}` : ''}`;
+        const until = record.waitingWallet ? `${needed} is ${waiting?.problem === 'code' ? 'entered' : 'added'} in the Wallet (protected input, never in a chat)` : `you reply in {${record.waitingChat ?? record.recoveryChat}}`;
         this.log(`"${record.taskTitle}" is checkpointed until ${until}; independent work continues.${kept}`);
         return true;
     }

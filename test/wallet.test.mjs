@@ -450,6 +450,104 @@ test('Wallet Test in the real browser: a separate login context follows the sign
     assert.match((await call('browser_open', { url: origin })).text, /Welcome, fixture-user/);
 });
 
+test('Wallet one-time codes: obtained by the agent where it can, otherwise one protected owner request; entered once, never stored, never answered by a password', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet code');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    let settled = 0;
+    const wallet = new WalletSubEngine({ project: { root: project, runtime: { root: join(project, '.ptbk') } }, env: { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' }, onChange: () => undefined, onSettled: () => void settled++, log: () => undefined });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const codes = [];
+    let accepts = (code) => code === '424242';
+    const page = { browser: 'test-browser', inspect: async () => ({ origin: 'https://bank.example', form: 'code' }), signIn: async () => ({ result: 'no-form' }), enterCode: async (origin, code) => (codes.push({ origin, code }), { result: accepts(code) ? 'signed-in' : 'rejected' }) };
+
+    // First the agent is told to fetch the code itself from a channel it can read; no request is created yet.
+    assert.equal((await wallet.login(page, { reason: 'download statements' })).status, 'code-needed');
+    assert.equal(wallet.view().pending.length, 0);
+
+    // It cannot: one protected request, which a saved password does not answer.
+    let result = await wallet.login(page, { reason: 'download statements', requestCode: true, task: 'Statements' });
+    assert.equal(result.status, 'waiting');
+    assert.equal(result.problem, 'code');
+    assert.equal((await wallet.login(page, { requestCode: true, task: 'Statements' })).action, result.action, 'repeated requests share one request');
+    await wallet.save({ origin: 'https://bank.example', username: 'jane', password: 'bank secret' });
+    assert.deepEqual(wallet.view().pending.map((action) => action.problem), ['code'], 'a password is no code');
+    await assert.rejects(wallet.supplyCode({ request: result.action, code: '  ' }), /Enter the one-time code/);
+
+    // The owner's code resumes the work and is entered exactly once.
+    const supplied = await wallet.supplyCode({ request: result.action, code: '424 242' });
+    assert.match(supplied.outcome, /ready; the waiting work enters it once/);
+    assert.ok(!supplied.outcome.includes('424'));
+    assert.equal(wallet.view().pending.length, 0);
+    assert.equal(wallet.action(result.action).state, 'resolved', 'the waiting task resumes');
+    assert.ok(settled >= 1);
+    assert.equal((await wallet.login(page, {})).status, 'code-entered');
+    assert.deepEqual(codes, [{ origin: 'https://bank.example', code: '424242' }]);
+    assert.equal((await wallet.login(page, {})).status, 'code-needed', 'a code is used once, it is no credential');
+
+    // A code the site refuses asks again instead of retrying it.
+    result = await wallet.login(page, { requestCode: true });
+    await wallet.supplyCode({ request: result.action, code: '111111' });
+    result = await wallet.login(page, {});
+    assert.equal(result.status, 'waiting');
+    assert.match(result.reason, /did not accept the one-time code/);
+    await assert.rejects(wallet.supplyCode({ request: 'unknown', code: '1' }), /no longer waiting/);
+    for (const file of await filesBelow(project)) assert.ok(!file.content.includes('424242') && !file.content.includes('111111'), `${file.path} holds no code`);
+});
+
+test('Wallet one-time code in the real browser: the owner\'s code is typed into the site\'s code step and verified', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+    const teardown = [];
+    const root = await temporaryDirectory(t, 'ptbk wallet code browser', teardown);
+    await mkdir(join(root, '.ptbk', 'tmp'), { recursive: true });
+    const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
+    // After the password, the site asks for a code (sent elsewhere); only 246810 completes the sign-in.
+    const form = (error = '') => `<!doctype html><title>Verify</title><h1>Two-step verification</h1>${error}<form method="post" action="/verify"><input name="otp" autocomplete="one-time-code" inputmode="numeric"><button>Verify</button></form>`;
+    const server = createServer((request, response) => {
+        let body = '';
+        request.on('data', (chunk) => (body += chunk));
+        request.on('end', () => {
+            const fields = new URLSearchParams(body);
+            response.setHeader('content-type', 'text/html');
+            if (request.method === 'POST' && request.url === '/login') response.end(fields.get('password') === 'right password 1' ? form() : LOGIN_PAGE);
+            else if (request.method === 'POST' && request.url === '/verify') response.end(fields.get('otp') === '246810' ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : form('<p>Wrong code</p>'));
+            else response.end(LOGIN_PAGE);
+        });
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const settings = { tools: [{ type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: true }], overriddenTools: new Set() };
+    const fleet = new BrowserFleet(project, () => settings, env);
+    teardown.push(async () => {
+        await fleet.close();
+        server.closeAllConnections();
+        server.close();
+    });
+    const wallet = new WalletSubEngine({ project, env, onChange: () => undefined, log: () => undefined });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const waits = [];
+    const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: (action) => waits.push(action) }).map((tool) => [tool.name, tool]));
+    const call = async (name, input = {}) => await tools[name].handler(input);
+    await wallet.save({ origin, username: 'fixture-user', password: 'right password 1' });
+    await call('browser_open', { url: origin });
+    let result = await call('wallet_login', {});
+    assert.match(result.text, /asks for another step \(the site asks for a one-time code\)/);
+    assert.match(result.text, /requestCode/);
+    result = await call('wallet_login', { requestCode: true, reason: 'read the dashboard' });
+    assert.match(result.text, /never ask for the code in a chat/);
+    assert.equal(waits.length, 1);
+    await wallet.supplyCode({ request: waits[0], code: '246810' });
+    result = await call('wallet_login', {});
+    assert.ok(!result.isError, result.text);
+    assert.match(result.text, /entered the one-time code the owner supplied/);
+    assert.match(result.text, /Welcome, fixture-user/);
+    assert.ok(!result.text.includes('246810'), 'the agent never sees the code');
+});
+
 test('Wallet acceptance: a task waits for a protected login (no chat), resumes once after it is saved and signs in; no secret reaches Git, traces, status or logs', { skip: await realBrowserSkip(), timeout: 300_000 }, async (t) => {
     const { project, env: baseEnv } = await initializedProject(t, { check: "process.exit(0);\n" });
     const browser = await findBrowserExecutable({ variant: 'CHROME' });

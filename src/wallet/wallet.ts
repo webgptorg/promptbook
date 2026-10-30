@@ -68,8 +68,11 @@ export type WalletActionView = {
     readonly origin: string;
     /** Account the work needs (nonsecret context from the task), when given. */
     readonly account?: string;
-    /** `missing`: no saved login; `rejected`: the saved login was refused by the site; `locked`: the Wallet needs restoration first. */
-    readonly problem: 'missing' | 'rejected' | 'locked';
+    /**
+     * `missing`: no saved login; `rejected`: the saved login was refused by the site; `locked`: the Wallet needs
+     * restoration first; `code`: the site asks for a one-time code only the owner can provide (used once, never stored).
+     */
+    readonly problem: 'missing' | 'rejected' | 'locked' | 'code';
     readonly reason: string;
     /** Tasks waiting for it. */
     readonly tasks: readonly string[];
@@ -116,13 +119,18 @@ export type WalletOutcome = { readonly action: string; readonly applied: boolean
  */
 export type SignInPage = {
     readonly browser: string;
-    /** Origin of the page now open, and whether it shows a login form. */
-    readonly inspect: () => Promise<{ readonly origin: string; readonly form: 'password' | 'username' | 'none' }>;
+    /** Origin of the page now open, and whether it shows a login form (`code`: only a one-time code field). */
+    readonly inspect: () => Promise<{ readonly origin: string; readonly form: 'password' | 'username' | 'code' | 'none' }>;
     /**
      * Enters the credentials of their origin (only while the page is on it; not recorded, never returned), submits and
      * verifies the resulting session.
      */
     readonly signIn: (credentials: { readonly origin: string; readonly username: string; readonly password: string }) => Promise<SignInAttempt>;
+    /**
+     * Enters a one-time code into the page's code field (only while the page is on `origin`; not recorded), submits
+     * and verifies the result: `rejected` when the site asks for a code again. Absent: codes cannot be entered here.
+     */
+    readonly enterCode?: (origin: string, code: string) => Promise<SignInAttempt>;
 };
 
 /**
@@ -144,6 +152,10 @@ export type WalletLoginResult =
     | { readonly status: 'ambiguous'; readonly origin: string; readonly accounts: readonly string[] }
     /** No login of this origin, but of a related service domain: sign in on that login's own page instead. */
     | { readonly status: 'related'; readonly origin: string; readonly logins: readonly { readonly origin: string; readonly account: string }[] }
+    /** The site asks for a one-time code and the owner supplied none: the agent gets it from a channel it can read, or requests it. */
+    | { readonly status: 'code-needed'; readonly origin: string }
+    /** The Wallet entered the owner's one-time code and the site accepted it. */
+    | { readonly status: 'code-entered'; readonly origin: string; readonly note?: string }
     | { readonly status: 'waiting'; readonly origin: string; readonly action: string; readonly problem: WalletActionView['problem']; readonly reason: string }
     | { readonly status: 'failed'; readonly reason: string };
 
@@ -286,6 +298,11 @@ const RESET_WARNING = 'Resetting discards ALL old Wallet data for good: the list
  * Settled login actions are kept this long (7 days; once-only resume of waiting work across restarts), then pruned.
  */
 const SETTLED_RETENTION_MS = 604_800_000;
+
+/**
+ * How long a one-time code the owner supplied stays usable (sites' codes expire within minutes anyway).
+ */
+const CODE_VALIDITY_MS = 10 * 60_000;
 
 /**
  * Hex digits of the nonsecret host identity.
@@ -469,6 +486,8 @@ export class WalletSubEngine {
     private readonly mutex = new Mutex();
     /** Credential tests running now, with their current step (live progress, never persisted). */
     private readonly testing = new Map<string, string>();
+    /** One-time codes the owner supplied, by origin: used once within their validity, held in memory only. */
+    private readonly codes = new Map<string, { readonly code: string; readonly expires: number }>();
     private readonly unlock: HostUnlock;
     private readonly host = hostIdentity();
     private state: WalletState = 'empty';
@@ -1183,7 +1202,8 @@ export class WalletSubEngine {
             this.records = existing ? this.records.map((candidate) => (candidate.id === existing.id ? record : candidate)) : [...this.records, record];
             await this.writeRecords();
             let settled = 0;
-            for (const pending of this.actions.filter((candidate) => candidate.state === 'pending' && (candidate.id === input.action || originMatches(candidate.origin, origin)))) {
+            // A one-time code request stays: a saved password does not answer it.
+            for (const pending of this.actions.filter((candidate) => candidate.state === 'pending' && candidate.problem !== 'code' && (candidate.id === input.action || originMatches(candidate.origin, origin)))) {
                 this.settle(pending.id, 'resolved', record.id);
                 settled++;
             }
@@ -1409,9 +1429,9 @@ export class WalletSubEngine {
     }
 
     /** The state of a login action waiting work refers to (undefined: unknown, never blocks). */
-    public action(id: string): { readonly state: 'pending' | 'resolved' | 'dismissed'; readonly origin: string } | undefined {
+    public action(id: string): { readonly state: 'pending' | 'resolved' | 'dismissed'; readonly origin: string; readonly problem: WalletActionView['problem'] } | undefined {
         const action = this.actions.find((candidate) => candidate.id === id);
-        return action ? { state: action.state, origin: action.origin } : undefined;
+        return action ? { state: action.state, origin: action.origin, problem: action.problem } : undefined;
     }
 
     /**
@@ -1439,7 +1459,18 @@ export class WalletSubEngine {
      * suitable login (missing, rejected, or a locked Wallet) one pending request for protected owner input is created.
      * The agent only ever receives the redacted outcome.
      */
-    public async login(page: SignInPage, request: { readonly account?: string; readonly reason?: string; readonly task?: string; /** The related service domains' logins turned out not to apply to this site. */ readonly ignoreRelated?: boolean }): Promise<WalletLoginResult> {
+    public async login(
+        page: SignInPage,
+        request: {
+            readonly account?: string;
+            readonly reason?: string;
+            readonly task?: string;
+            /** The related service domains' logins turned out not to apply to this site. */
+            readonly ignoreRelated?: boolean;
+            /** The site asks for a one-time code the agent cannot obtain itself: the owner enters it in protected input. */
+            readonly requestCode?: boolean;
+        },
+    ): Promise<WalletLoginResult> {
         const inspected = await page.inspect();
         let origin: string;
         try {
@@ -1455,6 +1486,7 @@ export class WalletSubEngine {
                 const action = await this.request({ origin, account, problem, reason, task: request.task, browser: page.browser });
                 return { status: 'waiting', origin, action: action.id, problem, reason };
             };
+            if (inspected.form === 'code') return await this.codeStep(page, origin, request.requestCode === true, purpose, waitFor);
             // A host facility that was not available at startup (for example a credential store still locked) is
             // tried again before anyone is asked.
             if (this.state !== 'ready' && this.metadata) await this.unlockWithHost(this.metadata);
@@ -1501,6 +1533,45 @@ export class WalletSubEngine {
                     return { status: 'failed', reason: `The login form of ${origin} could not be filled${attempt.note ? `: ${attempt.note}` : ''}.` };
             }
         });
+    }
+
+    /**
+     * The one-time code step of a sign-in: the owner's supplied code is entered once (and dropped either way); without
+     * one the agent obtains the code from a channel it can already read, or a protected request asks the owner.
+     */
+    private async codeStep(page: SignInPage, origin: string, requestCode: boolean, purpose: string, waitFor: (problem: WalletActionView['problem'], reason: string) => Promise<WalletLoginResult>): Promise<WalletLoginResult> {
+        const key = [...this.codes.keys()].find((candidate) => originMatches(candidate, origin));
+        const held = key ? this.codes.get(key) : undefined;
+        if (key) this.codes.delete(key);
+        if (held && held.expires > Date.now() && page.enterCode) {
+            const attempt = await page.enterCode(origin, held.code).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
+            if (attempt.result === 'signed-in') return { status: 'code-entered', origin, ...(attempt.note ? { note: attempt.note } : {}) };
+            if (attempt.result === 'rejected') return await waitFor('code', `${origin} did not accept the one-time code${purpose}; enter the current one in the Wallet.`);
+            return { status: 'failed', reason: `The one-time code could not be entered on ${origin}${attempt.note ? `: ${attempt.note}` : ''}.` };
+        }
+        if (!requestCode) return { status: 'code-needed', origin };
+        return await waitFor('code', `${origin} asks for a one-time code${purpose} that only the owner can provide.`);
+    }
+
+    /**
+     * Takes the one-time code for a pending code request from protected owner input. It is held in memory only (never
+     * written, logged or shown to agents), entered once by the next sign-in on that website within ten minutes, and is
+     * no reusable credential (no audit). The waiting work resumes.
+     */
+    public async supplyCode(input: { readonly request: string; readonly code: string }): Promise<WalletOutcome> {
+        const result = await this.mutex.run(async (): Promise<WalletOutcome> => {
+            const action = this.actions.find((candidate) => candidate.id === input.request && candidate.state === 'pending' && candidate.problem === 'code');
+            if (!action) throw new PtbkError('This code request is no longer waiting.', { kind: 'not-found', effect: 'Nothing was entered.' });
+            const code = input.code.replace(/\s+/g, '');
+            if (!code || code.length > 64) throw new PtbkError('Enter the one-time code the website sent.', { kind: 'usage', effect: 'Nothing was entered.' });
+            this.codes.set(action.origin, { code, expires: Date.now() + CODE_VALIDITY_MS });
+            this.settle(action.id, 'resolved');
+            await this.writeActions();
+            return { action: 'wallet-code', applied: true, outcome: `The one-time code for ${action.origin} is ready; the waiting work enters it once and resumes.` };
+        });
+        this.options.log(`Wallet: ${result.outcome}`);
+        this.options.onSettled?.();
+        return this.remember(result);
     }
 
     /**

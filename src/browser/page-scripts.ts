@@ -400,7 +400,9 @@ export function loginFormScript(): string {
             password.setAttribute('data-ptbk-wallet', 'password');
         } else username = inputs.find((element) => userLike(element) && !otpLike(element)) || null;
         if (username) username.setAttribute('data-ptbk-wallet', 'username');
-        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: inputs.some(otpLike) };
+        const code = inputs.find(otpLike);
+        if (code) code.setAttribute('data-ptbk-wallet', 'code');
+        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code) };
     })()`;
 }
 
@@ -409,9 +411,9 @@ export function loginFormScript(): string {
  *
  * @private browser page scripts
  */
-export function focusLoginFieldScript(field: 'username' | 'password'): string {
+export function focusLoginFieldScript(field: 'username' | 'password' | 'code'): string {
     return `(() => {
-        const element = document.querySelector('[data-ptbk-wallet="${field === 'password' ? 'password' : 'username'}"]');
+        const element = document.querySelector('[data-ptbk-wallet="${field === 'password' ? 'password' : field === 'code' ? 'code' : 'username'}"]');
         if (!element) return false;
         element.focus();
         if (element.select) element.select();
@@ -426,7 +428,7 @@ export function focusLoginFieldScript(field: 'username' | 'password'): string {
  */
 export function submitLoginScript(): string {
     return `(() => {
-        const field = document.querySelector('[data-ptbk-wallet="password"]') || document.querySelector('[data-ptbk-wallet="username"]');
+        const field = document.querySelector('[data-ptbk-wallet="password"]') || document.querySelector('[data-ptbk-wallet="username"]') || document.querySelector('[data-ptbk-wallet="code"]');
         const form = field && field.form;
         if (!form) return false;
         const button = form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
@@ -463,7 +465,7 @@ export function followSignInLinkScript(): string {
 export function clearLoginFieldsScript(): string {
     return `(() => {
         const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-        for (const element of document.querySelectorAll('input[type="password"], [data-ptbk-wallet="password"]')) {
+        for (const element of document.querySelectorAll('input[type="password"], [data-ptbk-wallet="password"], [data-ptbk-wallet="code"]')) {
             if (!element.value) continue;
             setter.call(element, '');
             element.dispatchEvent(new Event('input', { bubbles: true }));
