@@ -1,5 +1,9 @@
 # Unreleased
 
+## README: automatic updates and anchors as they work now
+
+-   The README no longer calls engine-owned updates and anchors unimplemented target behavior. It says a background engine updates itself when it has no other work, within the project's `updates` policy (stable minor/patch, a running prerelease to its stable release, never past a pin or range), and that the switch is on the System page. Release signing and rollout delays are still being agreed, so host access and backups still matter. The Book example gains an `OPEN` line with limits, explained as an anchor that agents cannot change themselves and that does not make every AI output correct.
+
 ## Anchors: OPEN/CLOSED and learning limits bind every automatic path
 
 -   Core-template reconciliation now preserves the project's anchors, as the specification's anchoring asks. An unchanged engine default still follows the newer template. A core Book the project changed and declared `CLOSED` (Adam and Teacher by default) is **held**: no merge and no Fixer reconciliation, and the engine reports it once per template ("A newer engine template was not applied to … Edit it yourself (or ask for the change in a chat)"). A changed `OPEN` Book whose limits the project wrote itself, or whose OPEN/CLOSED declaration a merge would move, goes to Fixer as an `anchored` conflict instead of an automatic merge. The template's own limits (Fixer's default `OPEN …`) are not treated as the project's, so an ordinary learned Fixer is still merged. Before, a changed CLOSED Adam received upstream lines through the clean merge.

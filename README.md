@@ -56,6 +56,8 @@ ptbk start         # resume the agenda
 
 The engine machine must stay available. By default, persistent project services return at OS startup: an agenda that was running can continue after checks; one you paused or stopped returns paused until you resume it. Its browser dashboard and API are available only on that computer through a loopback address, with no pairing step. [Local API access](specs/cli/api.md) · [Startup behavior](specs/cli/persistence.md)
 
+A background engine [updates itself](specs/cli/updates.md) when it has no other work: stable minor and patch releases of its major version, or a running prerelease to its stable release. It never installs a version your `ptbk.json` `updates` pin or range excludes, and you can switch it off on the dashboard's System page. Release signing and rollout delays are still being agreed with the platform, so your host access and backups still matter.
+
 **Windows:** download the EXE from [GitHub Releases](https://github.com/webgptorg/promptbook/releases), or follow the [installation guide](https://www.ptbk.io/en/open-source).
 
 ## Deploy to your own server
@@ -86,7 +88,10 @@ AGENT Product caretaker
 GOAL Keep the product reliable and easy to maintain.
 RULE Run the project's checks before reporting a fix.
 RULE Ask before publishing outside the agreed release policy.
+OPEN Learn better methods; the GOAL and both RULEs stay as written.
 ```
+
+`OPEN` with its limits, or `CLOSED`, is an [anchor](specs/concepts/anchoring.md): a user-fixed rule whose meaning the agents cannot change themselves, even while their methods evolve. You can still change it. Anchors limit what agents may rewrite; they do not make every AI output correct.
 
 Set real project checks in `ptbk.json`; the initializer's placeholder is informational. Git tracks file changes, not every external action. External models and services receive the inputs you authorize.
 
@@ -94,7 +99,7 @@ Set real project checks in `ptbk.json`; the initializer's placeholder is informa
 
 This repository is the **self-hosted engine**. The upcoming **Promptbook app** adds convenient remote control through an end-to-end encrypted relay connection, separate from the engine's local dashboard. [Register interest](https://www.ptbk.io/en) or [deploy Promptbook for your clients](https://www.ptbk.io/en/partnership).
 
-The [first-App specification](specs/app/integration.md) focuses on App-started VPS setup, project chat and native start/pause/stop controls. It also defines later extensions without claiming they are shipped. [Engine-owned automatic updates](specs/cli/updates.md) and [user-fixed rules for evolving agents](specs/concepts/anchoring.md) are target behavior; these documentation changes do not implement them.
+The [first-App specification](specs/app/integration.md) focuses on App-started VPS setup, project chat and native start/pause/stop controls. It also defines later extensions without claiming they are shipped.
 
 [Command reference](specs/cli/cli.md) · [Book language](specs/book-language/_index.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
