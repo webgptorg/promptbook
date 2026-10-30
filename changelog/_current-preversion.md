@@ -1,5 +1,9 @@
 # Unreleased
 
+## Specification: engine-owned automatic updates
+
+-   Defined default-on project update policy for stable minor/patch versions, progression from an existing prerelease to its stable release and no automatic prerelease re-entry. Updates are low-priority system tasks, respect shared-installation pins and manual lifecycle intent, include scoped migrations/audit and attempt autonomous recovery. Retained the separate attended init update path; concrete release verification, replacement and rollout design remains to be agreed. Specification only.
+
 ## Specification: anchors and system work
 
 -   Renamed non-agents to system agents across the specification; clarified project-owned core roles without adding core tasks. Defined engine-owned system tasks sharing ordinary scheduling, inventory and run observation. Added user-defined anchors and OPEN/CLOSED boundaries across learning, repair and template reconciliation, plus client-independent autonomy. These are target contracts, not runtime implementation changes.

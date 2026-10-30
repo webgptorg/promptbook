@@ -47,3 +47,5 @@
 **Wallet import:** Protected shared source/selection flow, initially Bitwarden JSON, in optional init and Wallet with individual/all/none selection. **New recovery words:** Preserve/re-encrypt contents when a key remains. **Reset Wallet:** Explicit all-data-loss-confirmed empty encrypted replacement when no key remains; account metadata stays encrypted. See [import](cli/wallet-import.md) and [recovery](cli/wallet-recovery.md).
 
 **Anchor:** User-defined invariant whose meaning agents cannot change themselves. OPEN/CLOSED and learning limits permit evolution of unprotected methods without rewriting the restrictions; the user may deliberately change them. See [anchoring](concepts/anchoring.md).
+
+**Engine self-update:** Low-priority engine-owned system task under project `updates` policy, default on for stable minor/patch within the same major; current prereleases can advance until their stable release without later automatic prerelease re-entry. Shared-global pins constrain every user of that installation. Migration/recovery is part of the operation, not a global control-service scheduler. See [updates](cli/updates.md).
