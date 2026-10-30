@@ -11,7 +11,7 @@ Use one semantic-version comparator for engine/project compatibility and migrati
 Let C be the saved configuration version and E the executing engine version:
 
 - **E = C:** no version migration or version-only commit. Independent deterministic normalization can still repair a noncanonical setting.
-- **E < C:** before starting project work or modifying its configuration, explain both versions and offer to update the invoked installation through the ordinary [update workflow](updates.md). Preserve the project, do not downgrade it or pretend it is compatible. After updating, rerun with the new engine. Unattended use reports the required action without a hidden prompt.
+- **E < C:** before starting project work or modifying its configuration, explain both versions and use the ordinary [update workflow](updates.md). An already permitted automatic update needs no redundant approval; a disabled/pinned-out/unavailable update reports its actual constraint without downgrading the project. A running engine uses controlled replacement; early attended init retains its explicit rerun behavior. Never pretend already-loaded code changed in place or leave a hidden unattended prompt.
 - **E > C:** perform the ordered migration pass below before affected new work.
 
 Read-only inspection can report compatibility and required migrations but never writes or commits them. Reloaded configuration is also checked, not only initial process startup. If a running older engine encounters a newer configuration, preserve active work and controls, stop taking incompatible new work and request the engine update; do not overwrite the newer format.
@@ -31,6 +31,8 @@ A step deterministically transforms its assigned project behavior. It must not a
 Use an automatic `ptbk: ` subject describing migration from C to E; the body can identify the applied migration targets. This is the runtime engine's commit convention, distinct from commits that edit these specification documents. No empty commit is needed when E and C are already equal and nothing else changes.
 
 ## Safety and recovery
+
+An authorized automatic engine update includes the necessary deterministic migrations, with no new per-migration or "irreversible migration" confirmation. Before transformation, capture the versioned content being changed in scoped Git history, preserving authorized user edits. Ignored files, secrets and external effects require their own protection and cannot be recovered by assuming Git contains them. Migration definition/execution belongs to the engine; any effects on project sources remain audited system changes. See [updates](updates.md#verification-migration-audit-and-recovery).
 
 Coordinate migration with other configuration writers and project Git ownership. Preserve unrelated settings, explicit false values, custom paths, staging and work in progress. Prepare the complete result before exposing changed configuration or Books to new work. A failed step must not advertise an advanced version, expose a partially migrated project to work, discard the original or commit a partial success.
 

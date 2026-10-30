@@ -1,8 +1,10 @@
-# Non-agents
+# System agents
 
 [Agents](_index.md)
 
-Non-agents exist as engine-defined references without project files. They must not be materialized as core agents, edited as local Books or shadowed by a project agent's normalized name.
+System agents exist as engine-defined references without project files. They must not be materialized as core agents, edited as local Books or shadowed by a project agent's normalized name.
+
+This is the product term replacing "non-agents". Distinguish ordinary content agents, engine-prepared but project-owned core agents and engine-owned system agents. These describe definition ownership; they do not create three incompatible agent protocols or imply that every built-in reference makes an LLM call.
 
 | Reference | FROM | TEAM |
 | --- | --- | --- |

@@ -30,6 +30,10 @@ Recovery may retain a particular active use's effective settings without restori
 
 `wallet.isAuditCommitted` defaults to `true`; false disables only the separate nonsecret Wallet mutation audit, not storage or automatic use. Preserve explicit false on resume/reinit. Do not add an init question for this setting. Vault files remain ignored in both cases. See [storage and Git](storage-and-git.md#wallet-operation-audit).
 
+## Engine update policy
+
+`updates.isAutoUpdateEnabled` defaults to `true`. Optional `updates.versionRange` is an npm-style allowed range or exact pin. Omission allows stable minor/patch within the current major, including zero-major minors. A currently selected prerelease may advance on its existing prerelease line until its stable release; stable installations never enter prereleases automatically. Range and prerelease rules, exact pins, shared-global restrictions and policy audit are defined together in [engine updates](updates.md). Do not derive update permission from `promptbookVersion`, which records migration state rather than the allowed future range. Policy saves use the shared engine operation and a scoped commit; no extra init question is required.
+
 ## Health limits
 
 `limit` contains the project-specific preventive resource thresholds used by the [Health sub-engine](health-sub-engine.md):

@@ -12,6 +12,8 @@ Several threads can have identical participants/display titles while retaining d
 
 Human-facing chats support **User and one or more agents**, including Chatter, specialists/core roles and Expert where meaningful. Internal bounded TEAM consultations retain their two actual agents and task/conversation scope. User cannot converse with itself; Void/Null are not speakers.
 
+The general thread model also permits agent-only conversations, one-agent reporting and a user joining later; it does not require User at creation. Add participants chronologically without rewriting prior authorship. The [first remote App](../app/integration.md#chats-agents-and-tasks) can present plain text while preserving these semantics, titles, events and streaming; simple rendering must not collapse every author into one anonymous assistant.
+
 Each participant has a separate `CHAT MEMBER` commitment. The initially selected agent is the main conversational agent (the first agent member). A new contributing task agent joins by appending its member commitment **before** its first message; preserve prior members/chronology and the main agent. Agents do not each automatically answer every arrival.
 
 Repeated `CHAT MESSAGE <sender-reference> <timestamp>` commitments preserve actual author, full text, attachments, options and source order using the common Book grammar. Optional phase `progress` or `final` after the timestamp distinguishes interim updates and a final reply; ordinary messages need no phase. Preserve originating-turn/question/task correlation durably without turning timestamps or transport keys into entity IDs. Literal control-looking text remains lossless and cannot change the containing Book.

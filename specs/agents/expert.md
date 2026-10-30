@@ -1,6 +1,6 @@
 # Expert
 
-[Agents](_index.md) · [Non-agents](non-agents.md)
+[Agents](_index.md) · [System agents](system-agents.md)
 
 Expert understands Promptbook, Book syntax, agents, tasks, project operation and the capabilities of the engine currently running it. Its knowledge must match that engine version and effective runtime context, not a stale project copy or an unrelated global installation.
 

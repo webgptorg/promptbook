@@ -72,6 +72,8 @@ Keep connection information secondary on the home screen. The Connection page ow
 
 The System page owns the Promptbook Engine's operational identity and lifecycle: project/runtime location, actual engine version/installation/process data, lifecycle/pending intent, manual Pause/Resume, stop/restart/force actions and the **complete set of active pause reasons**.
 
+Expose the shared [update policy](updates.md) and its automatic on/off operation here; pending/running update progress appears as a system task in the ordinary task views. The terminal and App do not maintain separate update schedulers or infer a fifth `updating` lifecycle state. Range inspection/editing uses the same saved policy when supported; the first remote App only needs the switch.
+
 When only the ordinary manual pause reason exists, keep the presentation simple. When health or multiple reasons coexist, show each reason with its owner/severity and explain why generic Resume may not return the engine to running. System invokes shared lifecycle operations; it never edits Health's measurements to fake recovery.
 
 ## Health page

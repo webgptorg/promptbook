@@ -16,6 +16,8 @@ References between any entities form a directed graph, not a hierarchy: chats/ta
 
 Every resolved name selects exactly one Book. Conflicting/copied definitions are not merged; collisions are visible maintenance issues without automatically invalidating ordinary resolution. [Generated task/chat names](../cli/generated-names.md) proactively include creation date/time and normalized checks, without new identity fields or language validity restrictions. Task [trace directories](../cli/traces.md) separately copy the literal source filename without its extension; that storage convenience is not logical identity.
 
+These are the three **project Book entities**. The engine can also define [system tasks](../cli/system-tasks.md), such as self-update, without a project Book. They share task scheduling/observation rather than adding a fourth Book entity; tasks performed by core agents remain ordinary tasks.
+
 ## Work and conversation
 
 Agents converse without necessarily creating tasks; a later message can create several. Tasks can involve many linked chats and bounded TEAM consultations. Human-facing chats support User and one or more agents; internal two-agent consultations retain task/conversation scope. Task agents can join an originating chat before asking questions or reporting results. Chat primarily coordinates and creates tasks for substantial execution under [chat/task relationships](../cli/chat-tasks.md).
@@ -34,6 +36,6 @@ The separate [global dashboard](../cli/global-dashboard.md) discovers all access
 
 ## Illustrative analogy (not product vocabulary)
 
-A company follows a general framework, requires some common roles and can employ specialists. Engine non-agents resemble that framework, editable core agents the required roles, and other project agents specialists. This illustrates ownership/evolution, not legal entities, permissions or employment categories; [agent definitions](../agents/_index.md) are normative.
+A company follows a general framework, requires some common roles and can employ specialists. Engine system agents resemble that framework, editable core agents the required roles, and other project agents specialists. This illustrates ownership/evolution, not legal entities, permissions or employment categories; [agent definitions](../agents/_index.md) are normative.
 
 Likewise, Expert resembles a built-in runtime function while a core Book resembles a small extensible starter program. This does not prescribe an implementation language. See [engine/project evolution](engine-and-project.md).

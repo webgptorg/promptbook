@@ -4,6 +4,8 @@
 
 ## Literal source-filename mapping
 
+This mapping applies to tasks with actual project sources. An engine-defined [system task](system-tasks.md) without a Book retains attributable definition/run evidence without fabricating a project filename or source-named trace directory.
+
 For a canonical Task Book, the root audit directory is **`traces/<task-file-basename>/`**. Take the actual source filename, remove only its final `.book` extension and use the remaining text **literally, one to one**, as the directory name. For legacy Markdown sources remove the final `.md` instead. Do not derive this component from the opening TASK name, normalize it, slugify it again, strip a date, change case/diacritics, add a hash or allocate an ID.
 
 For example, `tasks/2026-10-19-1205-browser-repair.book` maps to `traces/2026-10-19-1205-browser-repair/`, even if its declaration is `TASK Restore the browser — 2026-10-19 12:05:00`. A custom task-source directory changes neither the filename nor the project-root `traces/` destination. This storage convention makes the source file and evidence directory immediately pairable; it does **not** replace the normalized declared name as the task's logical identity.

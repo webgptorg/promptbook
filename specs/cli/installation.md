@@ -37,3 +37,5 @@ Choosing local installation performs that installation, creating or updating pac
 The noninteractive equivalent supplies this decision in advance. Repeating an already-satisfied installation step does not reinstall or rewrite package files. [Self-update](updates.md) is a separate earlier decision about the invoked installation.
 
 Projects may use different versions simultaneously. Local invocations and their background processes keep the selected installation across restarts instead of silently switching to a global or downloaded version. See [workspace](workspace.md), [initialization](initialization.md) and [startup persistence](persistence.md).
+
+Running engines own default-on [automatic updates](updates.md) as low-priority system tasks, separate from installation/bootstrap and normal Restart. Local copies update independently. A shared global copy must satisfy every associated project's allowed range/pin, including an exact pin that blocks replacement for everyone using it; the host control service supplies information rather than update decisions.

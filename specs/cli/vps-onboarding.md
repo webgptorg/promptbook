@@ -4,6 +4,8 @@
 
 An owner connected to a clean supported VPS can paste one shell command and reach Promptbook's ordinary interactive initialization. Missing Node.js/npm must not turn this into a separate prerequisite tutorial. The command prepares the machine, installs the engine and automatically hands control to the existing wizard; after successful setup, ordinary init starts the engine and opens its terminal dashboard.
 
+This is the standalone attended terminal entry. The target [App-started flow](../app/integration.md#the-first-installation-and-initialization) reuses installation/setup operations but first connects the simple host service and continues project onboarding in the App. Keep one init/authentication implementation with an appropriate client handoff, not two separate initializers or duplicate first tasks. The currently published standalone command does not imply App pairing is implemented.
+
 ## Supported starting point
 
 The initial supported clean-server target is Ubuntu 24.04 LTS on x86-64 with systemd, outbound HTTPS and an interactive shell reached through SSH or the provider's console. The owner has root or suitable sudo access for installation. Do not imply that the Ubuntu installer supports every Linux distribution, ARM, Windows or macOS; local-machine guidance uses the appropriate supported installation path.

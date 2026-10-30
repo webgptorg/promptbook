@@ -31,6 +31,17 @@
 -   A brief whose commit failed (e.g. a rejecting hook) used to wait for the next brief, possibly hours or never. Only its commit is retried now, every two minutes and at the next start (`.ptbk/state/report.json` remembers it); the brief is never generated again for that.
 -   The terminal home, `ptbk status` and the browser brief show the failed update's cause and the next automatic attempt, and a saved brief whose commit is still pending; the snapshot carries them as `report.recheck` and `report.isCommitPending`.
 -   Tasks, chat replies and the brief now share one recheck schedule (`RecheckSchedule`, `nextRecheck`). The fake Codex gains `FAKE_CODEX_FAIL_BRIEFS`; a new fixture covers two failed briefs with growing rechecks, a Refresh that brings the recheck forward, a hook rejecting the brief's commit and the commit completed after a restart without a new generation.
+## Specification: version-zero remote App integration
+
+-   Added the App-first VPS/pairing/init target, real native harness-login handoff, simple Wallet and onboarding files, attributed multi-party plain-text chat, native project lifecycle and honest unavailability. Kept the host service limited to registry/process control; recorded protected fallback options, deferred features and the joint technical-contract handoff. Linked existing local API/VPS/login/chat contracts, added concise README context and corrected its paused OS-startup behavior. No engine, App, installer or website implementation is changed.
+
+## Specification: engine-owned automatic updates
+
+-   Defined default-on project update policy for stable minor/patch versions, progression from an existing prerelease to its stable release and no automatic prerelease re-entry. Updates are low-priority system tasks, respect shared-installation pins and manual lifecycle intent, include scoped migrations/audit and attempt autonomous recovery. Retained the separate attended init update path; concrete release verification, replacement and rollout design remains to be agreed. Specification only.
+
+## Specification: anchors and system work
+
+-   Renamed non-agents to system agents across the specification; clarified project-owned core roles without adding core tasks. Defined engine-owned system tasks sharing ordinary scheduling, inventory and run observation. Added user-defined anchors and OPEN/CLOSED boundaries across learning, repair and template reconciliation, plus client-independent autonomy. These are target contracts, not runtime implementation changes.
 
 ## Release check: date-independent dashboard fixtures
 

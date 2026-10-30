@@ -10,4 +10,6 @@ Teacher reviews the evidence actually available: task outputs, checks, actions, 
 
 A closed agent receives no automatic teaching changes. Recheck the current learning policy before applying an update; closing an agent also protects it from an already queued learning task. OPEN does not authorize changing its own limits, expanding tool permissions or weakening project safeguards. An inherited instruction's origin must remain distinguishable from the local definition being taught.
 
-Non-agents have no editable project source to teach. Teacher itself must be closed. Deduplicate follow-ups and preserve their relationship across retries/restart. See [consistency](consistency.md) and [traces](../cli/traces.md).
+The same constraints preserve [anchors](../concepts/anchoring.md): automatic learning, repair and core-template reconciliation may evolve unprotected methods, but cannot change the meaning of a user-fixed goal/rule or rewrite its own restrictions. The user retains ordinary authorized editing.
+
+System agents have no editable project source to teach. Teacher itself must be closed. Deduplicate follow-ups and preserve their relationship across retries/restart. See [consistency](consistency.md) and [traces](../cli/traces.md).

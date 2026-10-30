@@ -6,7 +6,7 @@ An agent is a persistent role, goal, instructions and learned project knowledge,
 
 - [Core agents](core-agents.md): Minimal editable required roles Adam, Router, Tasker, Teacher, Fixer and Chatter; one specification per role in `core-agents/`.
 - [Chatter](core-agents/chatter.md): Project spokesperson and brief author, with human conversation, specialist TEAM consultation and ordinary tasks.
-- [Non-agents](non-agents.md) and [Expert](expert.md): Engine-defined references/behavior, not project Books.
+- [System agents](system-agents.md) and [Expert](expert.md): Engine-defined references/behavior, not project Books.
 - [Fixer](core-agents/fixer.md): Ordinary OPEN general problem solver, expected for system-routed problems and customizable like other agents.
 - [Automatic repair principle](../concepts/automatic-repair.md): First-class cross-system recovery and minimal unnecessary user decisions, not a special Fixer implementation/channel.
 - [Router](core-agents/router.md): Automatic task assignment.

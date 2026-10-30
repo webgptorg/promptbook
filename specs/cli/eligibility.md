@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md)
 
-A task is eligible for its own execution only when its source is valid, it is unfinished and enabled, required predecessors are complete, its not-before condition is satisfied, routing is usable and no other project task owns execution. Placeholders and unsupported control syntax cannot become ready work.
+A task is eligible for its own execution only when its definition is valid, it is unfinished and enabled, required predecessors are complete, its not-before and other declared conditions are satisfied, its executor is usable and shared [capacity/ownership](concurrency.md) permits execution. Source-backed tasks additionally require usable agent routing; deterministic [system tasks](system-tasks.md) need neither a fictitious Book nor Router/MODEL. Placeholders and unsupported control syntax cannot become ready work.
 
 Select higher priorities first, with stable source/reference order for ties. A future high-priority task must not block an eligible lower-priority task. Numeric and natural-language [TASK PRIORITY](../book-language/commitments/task-priority.md) values share an understandable ordering; unresolved interpretation is visible rather than guessed differently by each interface.
 
