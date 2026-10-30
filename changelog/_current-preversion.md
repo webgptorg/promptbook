@@ -1,5 +1,9 @@
 # Unreleased
 
+## History: a commit's task link opens the task in the browser
+
+-   The browser History page showed a commit's verified `Task-Name` link only as a path, while the terminal page opens it with `E`. The commit detail now offers **Open**, which shows the task Book in Files (as the Action log's Task Book does); a task no longer in the project stays an honest historical state without a link.
+
 ## Action log: verified task, evidence and receipt links
 
 -   An opened external-action record now offers its verified links, as the Action log page specification asks: the task Book and the evidence folder only while Files can open them in the project (no hidden path, nothing leading outside), and the receipt only as a plain http(s) URL without embedded credentials. The engine's shared reader (`GET /api/actions/record`, `action-read`) returns them as `links`. The browser page shows **Task Book** and **Evidence** (opened in Files, as the History page does) and a **Receipt** link that opens in a new tab; the terminal record page keeps `E` for the task Book, adds `T` for the evidence in Files and shows the receipt in its context line. Following a link never retries the action.

@@ -1037,7 +1037,9 @@
                                   'div',
                                   { className: 'commit-detail' },
                                   h('p', { className: 'muted' }, `${detail.sha} · ${detail.author} <${detail.email}> · ${detail.at}${detail.parents.length > 1 ? ` · merge of ${detail.parents.map((parent) => parent.slice(0, 10)).join(', ')}` : ''}`),
-                                  ...detail.links.tasks.map((task) => h('p', {}, `Task {${task.name}} `, h('span', { className: task.path ? 'ok' : 'muted' }, task.path ? task.path : '(no longer in the project)'))),
+                                  ...detail.links.tasks.map((task) =>
+                                      h('p', {}, `Task {${task.name}} `, ...(task.path ? [h('span', { className: 'ok' }, `${task.path} `), h('button', { onclick: () => (openFiles(task.path, 'file'), openPage('files')) }, 'Open')] : [h('span', { className: 'muted' }, '(no longer in the project)')])),
+                                  ),
                                   ...detail.links.chats.map((chat) => h('p', {}, `Chat {${chat.name}} `, chat.exists && chat.name !== 'Report' ? h('button', { onclick: () => (openPage('chats'), openChat(chat.name)) }, 'Open') : h('span', { className: 'muted' }, chat.exists ? 'report.book' : '(no longer in the project)'))),
                                   h('pre', { className: 'log' }, detail.message),
                               )
