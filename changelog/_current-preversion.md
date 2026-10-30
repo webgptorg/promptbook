@@ -1,12 +1,17 @@
 # Unreleased
 
+## Initialization: Wallet setup and import are part of the draft
+
+-   Choosing **Set up Wallet now?** in `ptbk init` (and the global dashboard's New project) now shows the 12 words for recovery and the optional Bitwarden import inside the wizard, before the final review. Before, both ran after **Create and start project**, so the project was already written when they asked their questions.
+-   The words, the key material and the selected logins stay only in the wizard's memory. Nothing is written until the final confirmation, and the target folder does not exist before it. After confirmation the Wallet is created in the final folder (also when the review renamed it) with the words already written down, and the selected logins are saved. No more questions follow the confirmation. Going back keeps the confirmed words and the import selection. Answering No, choosing a destination that already has a Wallet, or cancelling discards them.
+
 ## Wallet: Test one saved login through a real sign-in
 
 -   Each saved login on the Wallet page (terminal and web) offers **Test** next to Update and Remove (`T` in the terminal). Only that one account is tested, not every account of the service. The test opens the website in a separate, fresh browser login context with no existing sessions, follows an evident "Sign in" link when the page shows no form, and signs in with the same trusted Wallet sign-in and verified-result check as ordinary work. An existing signed-in session therefore cannot make a wrong password look valid, and that session is neither signed out nor replaced.
 -   Adding or updating a login from the Wallet page runs the same test after saving. Saving and verifying are separate outcomes: the login is kept whatever the test finds.
 -   Progress is shown live with the login. Afterwards it shows **verified**, **test rejected** or **unverified (test incomplete)** with the time and a concise reason, for example when no login form was found, the site asks for another step such as a code, or the website or browser is unavailable. A temporary outage is never reported as a bad password, and a login never tested reads as unverified. The latest result is stored inside the login's encrypted record (ignored local Wallet state, never in Git), with passwords and other secrets redacted, and it survives a restart. Updating the login clears it, and a result about values changed during the test is dropped.
 -   A test is not a task, run or credential mutation: it creates no task Book, trace, Wallet audit or commit.
--   Not covered yet: entering a missing factor or approving a device action during a test (the test ends as incomplete instead), additional reusable login fields, and testing the protected in-memory draft during `ptbk init` (Wallet setup still happens after the final confirmation).
+-   Not covered yet: entering a missing factor or approving a device action during a test (the test ends as incomplete instead), and additional reusable login fields.
 
 ## Wallet: one-time codes through protected owner input, never a chat
 

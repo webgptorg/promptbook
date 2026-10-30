@@ -181,6 +181,11 @@ export type WalletOptions = {
     readonly audit?: { readonly isEnabled: () => boolean; readonly commit: (subject: string, body: string) => Promise<void>; readonly retryMs?: number };
     /** Opens a separate, fresh login context at a website for a credential test (absent: tests cannot run here). */
     readonly loginContext?: (origin: string) => Promise<LoginContext>;
+    /**
+     * How long a setup or import draft stays valid without confirmation (default 30 minutes). Initialization holds its
+     * draft for the whole wizard, until the final project-creation confirmation or until the process ends.
+     */
+    readonly draftLifetimeMs?: number;
 };
 
 /**
@@ -511,19 +516,37 @@ export class WalletSubEngine {
     /** The records were read from the older format with plaintext labels: rewritten fully encrypted once unlocked. */
     private legacyRecords = false;
     private lastAction?: WalletView['lastAction'];
+    /** The project whose `.ptbk/` holds this Wallet (moves only while nothing is written, see `relocate`). */
+    private project: Project;
 
     public constructor(private readonly options: WalletOptions) {
         this.unlock = options.unlock ?? hostUnlock(options.env);
+        this.project = options.project;
     }
 
     /** `.ptbk/encryption/`. */
     private get encryptionDirectory(): string {
-        return join(this.options.project.runtime.root, 'encryption');
+        return join(this.project.runtime.root, 'encryption');
     }
 
     /** `.ptbk/wallet/`. */
     private get walletDirectory(): string {
-        return join(this.options.project.runtime.root, 'wallet');
+        return join(this.project.runtime.root, 'wallet');
+    }
+
+    /** When a draft started now expires. */
+    private draftExpiry(): number {
+        return Date.now() + (this.options.draftLifetimeMs ?? SETUP_DRAFT_MS);
+    }
+
+    /**
+     * Binds a Wallet that has not been set up yet (its setup and import drafts only in memory) to its final project
+     * folder. Initialization stages the Wallet before the new folder's name is final and creates it only after the
+     * project-creation confirmation.
+     */
+    public relocate(project: Project): void {
+        if (this.metadata || this.state !== 'empty') throw new PtbkError('Only a Wallet that is not set up yet can move to another project folder.', { kind: 'conflict', effect: 'Nothing was changed.' });
+        this.project = project;
     }
 
     /** Readiness. */
@@ -751,7 +774,7 @@ export class WalletSubEngine {
                 this.options.onChange();
                 throw new PtbkError(problem, { kind: 'setup', effect: 'The Wallet was not set up; other work continues.' });
             }
-            if (!this.draft || this.draft.expiresAt < Date.now()) this.draft = { words: generateRecoveryWords(), salt: newProjectSalt(), expiresAt: Date.now() + SETUP_DRAFT_MS };
+            if (!this.draft || this.draft.expiresAt < Date.now()) this.draft = { words: generateRecoveryWords(), salt: newProjectSalt(), expiresAt: this.draftExpiry() };
             this.options.onChange();
             return { words: [...this.draft.words] };
         });
@@ -880,15 +903,17 @@ export class WalletSubEngine {
     /**
      * Parses an export the owner supplied through a protected local surface into a preview: selectable logins with
      * their state against the saved ones (new, identical duplicate, conflict) and honestly skipped entries. The export
-     * stays in memory only; nothing is saved before the owner's selection is applied.
+     * stays in memory only; nothing is saved before the owner's selection is applied. A setup waiting for confirmation
+     * (initialization's draft) can preview too: its new Wallet has no saved logins, and the selection is applied once
+     * the setup is confirmed.
      */
     public async previewImport(input: { readonly source?: string; readonly content: string }): Promise<WalletImportPreview> {
         return await this.mutex.run(async () => {
-            this.requireReady();
+            if (this.readiness !== 'setup') this.requireReady();
             const source = IMPORT_SOURCES[input.source ?? 'bitwarden'];
             if (!source) throw new PtbkError(`Importing from ${input.source} is not supported.`, { kind: 'unsupported', next: ['Use a Bitwarden JSON export.'] });
             const extraction = source.extract(input.content, normalizeOrigin);
-            this.importDraft = { id: randomBytes(6).toString('hex'), source: extraction.source, logins: extraction.logins, skipped: extraction.skipped, expiresAt: Date.now() + SETUP_DRAFT_MS };
+            this.importDraft = { id: randomBytes(6).toString('hex'), source: extraction.source, logins: extraction.logins, skipped: extraction.skipped, expiresAt: this.draftExpiry() };
             this.options.onChange();
             return this.importPreview();
         });
@@ -1020,7 +1045,7 @@ export class WalletSubEngine {
             this.requireReady();
             // Finding an envelope is not enough: every saved login must decrypt with the current key.
             for (const record of this.records) this.credentials(record);
-            if (!this.rotation || this.rotation.expiresAt < Date.now()) this.rotation = { words: generateRecoveryWords(), salt: newProjectSalt(), expiresAt: Date.now() + SETUP_DRAFT_MS };
+            if (!this.rotation || this.rotation.expiresAt < Date.now()) this.rotation = { words: generateRecoveryWords(), salt: newProjectSalt(), expiresAt: this.draftExpiry() };
             this.options.onChange();
             return { words: [...this.rotation.words] };
         });
@@ -1134,7 +1159,7 @@ export class WalletSubEngine {
             if (input.confirm !== 'RESET') throw new PtbkError(`Type RESET to confirm. ${RESET_WARNING}`, { kind: 'usage', effect: 'Nothing was changed.' });
             const problem = await this.unlock.problem();
             if (problem) throw new PtbkError(problem, { kind: 'setup', effect: 'Nothing was changed.' });
-            if (!this.draft?.reset || this.draft.expiresAt < Date.now()) this.draft = { words: generateRecoveryWords(), salt: newProjectSalt(), expiresAt: Date.now() + SETUP_DRAFT_MS, reset: true };
+            if (!this.draft?.reset || this.draft.expiresAt < Date.now()) this.draft = { words: generateRecoveryWords(), salt: newProjectSalt(), expiresAt: this.draftExpiry(), reset: true };
             this.options.onChange();
             return { words: [...this.draft.words], warning: RESET_WARNING };
         });
@@ -1353,7 +1378,7 @@ export class WalletSubEngine {
 
     /** `.ptbk/state/wallet-audit.json`: audits of successful mutations whose commit is still pending. */
     private get auditFile(): string {
-        return join(this.options.project.runtime.state, 'wallet-audit.json');
+        return join(this.project.runtime.state, 'wallet-audit.json');
     }
 
     /** Serializes audit persistence (independent of record mutations, which never wait for Git). */
@@ -1389,7 +1414,7 @@ export class WalletSubEngine {
                     remaining.push({ ...entry, failure });
                 }
             }
-            await ensureDirectory(this.options.project.runtime.state);
+            await ensureDirectory(this.project.runtime.state);
             await writeJsonAtomic(this.auditFile, remaining);
             if (remaining.length) this.scheduleAuditRetry();
         });

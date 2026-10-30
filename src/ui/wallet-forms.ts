@@ -28,16 +28,17 @@ export function recoveryWordLines(words: readonly string[]): string[] {
 
 /**
  * Shows the 12 words for recovery on the terminal's alternate screen (never in the scrollback) and asks whether they
- * were written down: Y confirms, N or Esc discards them. The screen is restored either way.
+ * were written down: Y confirms, N or Esc discards them. The screen is restored either way. `confirmation` describes
+ * what Y does (initialization creates the Wallet only with the project).
  *
  * @private dashboard Wallet forms
  */
-export async function confirmRecoveryWords(terminal: TerminalProfile, words: readonly string[]): Promise<boolean> {
+export async function confirmRecoveryWords(terminal: TerminalProfile, words: readonly string[], confirmation = 'Y creates the Wallet (this computer then unlocks it automatically)'): Promise<boolean> {
     const screen = new FullScreen();
     const stdin = process.stdin;
     screen.enter();
     try {
-        screen.draw(['', `  ${terminal.style.bold('Set up the Wallet')}`, '', ...recoveryWordLines(words).map((line) => `  ${line}`), '', `  ${terminal.style.muted('Y creates the Wallet (this computer then unlocks it automatically) · N discards these words.')}`]);
+        screen.draw(['', `  ${terminal.style.bold('Set up the Wallet')}`, '', ...recoveryWordLines(words).map((line) => `  ${line}`), '', `  ${terminal.style.muted(`${confirmation} · N discards these words.`)}`]);
         return await new Promise<boolean>((resolve) => {
             const onKey = (_character: string | undefined, key: Key): void => {
                 const name = key?.name;

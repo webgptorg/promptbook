@@ -352,6 +352,11 @@ export async function initializeProject(context: CommandContext, options: { proj
         traces?: { commit: boolean; ignoreVideos: boolean; recordVideo: boolean };
         /** Optional Wallet setup now (default No; the same protected operation as later Wallet setup). */
         wallet?: boolean;
+        /**
+         * The staged Wallet: words the owner already wrote down and an optional import selection, held only in this
+         * process's memory and created in the project after the final confirmation.
+         */
+        walletDraft?: { readonly engine: WalletSubEngine; import?: { readonly draft: string; readonly select: readonly string[]; readonly replace: readonly string[] } };
         /** Automatic synchronization: the saved choice and, for a new opt-in, the explicit destination. */
         sync?: { enabled: boolean; choice?: PublicationChoice; reused: boolean };
         /** Whether the destination has no project configuration yet (a new initialization). */
@@ -767,9 +772,11 @@ export async function initializeProject(context: CommandContext, options: { proj
             );
             answers.set('traces', `Traces: ${state.traces.commit ? 'committed' : 'local only'}, videos ${state.traces.recordVideo ? `recorded${state.traces.commit && !state.traces.ignoreVideos ? ' and committed' : ' locally'}` : 'off'}`);
         },
-        // 8. Optional Wallet setup, default No; an existing vault is never recreated.
+        // 8. Optional Wallet setup, default No; an existing vault is never recreated. Its words and an optional import
+        // selection stay in this draft's memory; the Wallet is created only after the final confirmation.
         wallet: async () => {
             if (!interactive || (await pathExists(join(projectAt(state.root).runtime.root, 'encryption', 'project.json')))) {
+                discardWalletDraft();
                 state.wallet = false;
                 steps.set('wallet', false);
                 return;
@@ -779,12 +786,17 @@ export async function initializeProject(context: CommandContext, options: { proj
                 await confirm(terminal, {
                     frame: frame('wallet', 'website logins your agents may need'),
                     question: 'Set up Wallet now? It keeps website logins encrypted in this project and signs agents in without ever showing them a password. You can also set it up later on the dashboard.',
-                    defaultYes: false,
-                    yesLabel: 'Yes, set it up now (shows 12 words for recovery once)',
+                    defaultYes: state.wallet === true,
+                    yesLabel: state.walletDraft ? 'Yes, keep the Wallet whose 12 words you wrote down' : 'Yes, set it up now (shows 12 words for recovery once)',
                     noLabel: 'No, later',
                 }),
             );
-            answers.set('wallet', `Wallet: ${state.wallet ? 'set up at the end' : 'later'}`);
+            if (!state.wallet) {
+                discardWalletDraft();
+                answers.set('wallet', 'Wallet: later');
+                return;
+            }
+            await stageWallet();
         },
         // 9. Automatic synchronization: one opt-in decision, default off; "no" asks nothing further.
         sync: async () => {
@@ -951,6 +963,72 @@ export async function initializeProject(context: CommandContext, options: { proj
                 }
             }
         },
+    };
+
+    /** Forgets a staged Wallet (nothing of it was ever written). */
+    const discardWalletDraft = (): void => {
+        state.walletDraft?.engine.cancelImport();
+        state.walletDraft?.engine.cancelSetup();
+        state.walletDraft = undefined;
+    };
+
+    /**
+     * Stages the Wallet in the draft through the same protected operations as later Wallet setup and import: the 12
+     * words are shown once and confirmed, and an optional Bitwarden import is previewed and selected. Both stay in
+     * memory; the Wallet and the selected logins are written only after the final confirmation.
+     */
+    const stageWallet = async (): Promise<void> => {
+        if (!state.walletDraft) {
+            const engine = new WalletSubEngine({ project: projectAt(state.root), env: context.env, onChange: () => undefined, log: () => undefined, draftLifetimeMs: Number.POSITIVE_INFINITY });
+            let words: readonly string[];
+            try {
+                await engine.initialize();
+                ({ words } = await engine.beginSetup());
+            } catch (error) {
+                state.wallet = false;
+                notes.push(`The Wallet was not set up: ${errorMessage(error)} → set it up later on the dashboard Wallet page.`);
+                answers.set('wallet', 'Wallet: later (not available on this computer)');
+                return;
+            }
+            if (!(await confirmRecoveryWords(terminal, words, 'Y keeps these words; the Wallet is created with the project'))) {
+                engine.cancelSetup();
+                state.wallet = false;
+                answers.set('wallet', 'Wallet: later (the 12 words were discarded)');
+                return;
+            }
+            state.walletDraft = { engine };
+        }
+        const draft = state.walletDraft;
+        const selected = draft.import?.select.length;
+        const offer = answered(
+            await confirm(terminal, {
+                frame: frame('wallet', 'website logins your agents may need'),
+                question: selected
+                    ? `${selected} login${selected === 1 ? ' is' : 's are'} selected for import when the project is created. Choose the logins from a Bitwarden export again?`
+                    : 'Import website logins from a Bitwarden export now? You choose which ones; they are saved when the project is created. You can also import later on the Wallet page.',
+                defaultYes: false,
+                yesLabel: selected ? 'Yes, read an export again' : 'Yes, import from an unencrypted Bitwarden JSON export',
+                noLabel: selected ? 'No, keep this selection' : 'No, not now',
+            }),
+        );
+        if (offer) {
+            draft.import = undefined;
+            const outcome = await walletImportFlow(
+                terminal,
+                {
+                    preview: async (path) => await draft.engine.previewImport({ content: await readFile(path, 'utf8') }),
+                    apply: async (id, select, replace) => {
+                        draft.import = { draft: id, select, replace };
+                        return { outcome: `${select.length} login${select.length === 1 ? '' : 's'} selected; imported when the project is created.` };
+                    },
+                    cancel: async () => draft.engine.cancelImport(),
+                },
+                title,
+            );
+            if (outcome) say(outcome);
+        }
+        const count = draft.import?.select.length;
+        answers.set('wallet', `Wallet: created with the project${count ? `, ${count} imported login${count === 1 ? '' : 's'}` : ''}`);
     };
 
     /**
@@ -1438,38 +1516,22 @@ export async function initializeProject(context: CommandContext, options: { proj
         (publication.ok ? alreadyReady : notes).push(publication.ok ? publication.message : `Remote publication did not succeed: ${publication.message}`);
     }
 
-    // Optional Wallet setup through the same protected operation as later Wallet management (never a second vault).
-    if (state.wallet) {
-        const wallet = new WalletSubEngine({ project, env: context.env, onChange: () => undefined, log: () => undefined });
-        await wallet.initialize();
-        if (wallet.readiness === 'empty' || wallet.readiness === 'setup') {
-            const { words } = await wallet.beginSetup();
-            if (await confirmRecoveryWords(terminal, words)) {
-                const outcome = await wallet.confirmSetup();
-                (outcome.applied ? changed : unresolved).push(outcome.applied ? 'Set up the Wallet (this computer unlocks it automatically)' : `Wallet setup: ${outcome.outcome} → set it up later on the Wallet page`);
-            } else {
-                wallet.cancelSetup();
-                notes.push('Wallet setup was discarded (nothing was saved); set it up later on the dashboard Wallet page.');
+    // The Wallet staged in the draft is created only now, with the words the owner already wrote down, then the selected
+    // import is saved (the same protected operations as later Wallet management; no more questions).
+    if (state.walletDraft) {
+        const { engine, import: selection } = state.walletDraft;
+        try {
+            engine.relocate(project);
+            const outcome = await engine.confirmSetup();
+            (outcome.applied ? changed : unresolved).push(outcome.applied ? 'Set up the Wallet (this computer unlocks it automatically)' : `Wallet setup: ${outcome.outcome} → set it up later on the Wallet page`);
+            if (outcome.applied && selection) {
+                const imported = await engine.applyImport(selection);
+                (imported.applied ? changed : notes).push(`Wallet import: ${imported.outcome}`);
             }
-        } else alreadyReady.push(`Wallet: ${wallet.view().summary}`);
-        // The same optional Bitwarden import as the Wallet page, so selected routine access needs no later visit.
-        if (wallet.readiness === 'ready' && terminal.interactive) {
-            const offer = await confirm(terminal, {
-                frame: { title: 'ptbk init', step: 'Wallet · import logins' },
-                question: 'Import website logins from a Bitwarden export now? You choose which ones; you can also import later on the Wallet page.',
-                defaultYes: false,
-                yesLabel: 'Yes, import from an unencrypted Bitwarden JSON export',
-                noLabel: 'No, not now',
-            });
-            if (offer === true) {
-                const outcome = await walletImportFlow(
-                    terminal,
-                    { preview: async (path) => await wallet.previewImport({ content: await readFile(path, 'utf8') }), apply: async (draft, select, replace) => await wallet.applyImport({ draft, select, replace }), cancel: async () => wallet.cancelImport() },
-                    'ptbk init',
-                );
-                if (outcome) (/^Nothing was imported|^The export has no/.test(outcome) ? notes : changed).push(`Wallet import: ${outcome}`);
-            }
+        } catch (error) {
+            unresolved.push(`Wallet: ${errorMessage(error)} → set it up or import later on the Wallet page`);
         }
+        state.walletDraft = undefined;
     }
     await handOverCreated(createdDirectories, intendedUser(context.env)).catch((error: unknown) => unresolved.push(`The new project folder could not be handed over to its user: ${errorMessage(error)} → fix its ownership (chown) before running Promptbook without sudo`));
 

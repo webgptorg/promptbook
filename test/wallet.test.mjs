@@ -907,6 +907,34 @@ test('Wallet import: one Bitwarden preview with individual/all/none selection, d
     assert.doesNotMatch(await readFile(join(project, '.ptbk', 'wallet', 'records.json'), 'utf8'), /shop\.example|changed password/);
 });
 
+test('Wallet staged in an initialization draft: words and an import selection stay in memory until the project folder is final, then one setup saves both', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet staged');
+    const proposed = join(root, 'proposed-name');
+    const final = join(root, 'edited-name');
+    const env = { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
+    const at = (path) => ({ root: path, runtime: { root: join(path, '.ptbk'), state: join(path, '.ptbk', 'state') } });
+    const wallet = new WalletSubEngine({ project: at(proposed), env, onChange: () => undefined, log: () => undefined, draftLifetimeMs: Number.POSITIVE_INFINITY });
+    await wallet.initialize();
+    const { words } = await wallet.beginSetup();
+    // The owner previews and selects an import while the setup still waits for the project-creation confirmation.
+    const preview = await wallet.previewImport({ content: bitwardenExport() });
+    assert.ok(preview.candidates.every((candidate) => candidate.state !== 'conflict'), 'a new Wallet has no saved logins to conflict with');
+    await assert.rejects(wallet.applyImport({ draft: preview.draft, select: preview.candidates.map((candidate) => candidate.key) }), /Set up the Wallet first/, 'nothing is saved before the setup is confirmed');
+    assert.equal(await stat(proposed).then(() => true, () => false), false, 'the draft writes no project folder');
+    // The final review renamed the new folder: the staged Wallet follows it, then is created with the same words.
+    wallet.relocate(at(final));
+    assert.equal((await wallet.confirmSetup()).applied, true);
+    const imported = await wallet.applyImport({ draft: preview.draft, select: preview.candidates.map((candidate) => candidate.key) });
+    assert.equal(imported.imported, 4);
+    assert.equal(await stat(proposed).then(() => true, () => false), false);
+    assert.throws(() => wallet.relocate(at(proposed)), /not set up yet/, 'a created Wallet never moves');
+    const metadata = JSON.parse(await readFile(join(final, '.ptbk', 'encryption', 'project.json'), 'utf8'));
+    assert.ok(verifyRoot(deriveProjectRoot(words, Buffer.from(metadata.salt, 'base64')), Buffer.from(metadata.salt, 'base64'), metadata.verifier), 'the words shown in the draft open the created Wallet');
+    const reopened = walletAt(final, join(root, 'computer')).wallet;
+    await reopened.initialize();
+    assert.equal(reopened.view().records.length, 4);
+});
+
 test('Wallet recovery: new words re-encrypt everything with a working key; an interrupted switch completes; old words stop working', async (t) => {
     const root = await temporaryDirectory(t, 'ptbk wallet rotation');
     const home = join(root, 'computer');
