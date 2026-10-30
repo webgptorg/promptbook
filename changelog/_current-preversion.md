@@ -1,6 +1,9 @@
+-   Published the pre-Reborn maintenance release `0.114.0-51` under npm tag `legacy`, preserving Reborn as `latest`.
+    Release publication can be started by creating `legacy-release/<version>` and produces a pinned GitHub archive.
+
 -   Fixed `ptbk coder verify` looping forever on a `[ ]` prompt that never ran: answering "Not done" appended
     another identical `Fix` section and offered the same section again. "Not done" now keeps the prompt in the queue
-    unchanged and skips its file for the rest of the run. Added a regression test. Fixes #325.
+    unchanged and skips its file for the rest of the run. Added a regression test. Addresses the loop in #325.
 
 -   Moved the shared `ptbk coder run` / `server` / `fix` workspace lock into
     `.promptbook/ptbk-coder/ptbk-coder-workspace.lock` at the checkout root, preserving atomic ownership,
