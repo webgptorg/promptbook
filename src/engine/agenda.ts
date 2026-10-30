@@ -1917,6 +1917,8 @@ export class Agenda {
             }
             if (owner) continue;
             const absolute = resolve(this.options.project.root, path);
+            // Engine authoring published meanwhile (after the run's exclusions were taken, before Git status returned).
+            if (this.authoredPaths.has(absolute)) continue;
             const modified = await stat(absolute).then((stats) => stats.mtimeMs).catch(() => undefined);
             const named = reported.includes(path) || reported.includes(absolute);
             if ((this.turns.attributable(unit.owner, unit.startedAt, modified) || named) && this.ownership.tryAcquire(unit.owner, label, [path]).ok) {
