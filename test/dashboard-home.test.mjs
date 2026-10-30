@@ -208,7 +208,7 @@ test('Usage tile and page: a seven-day summary with grouping-specific labels, vi
         to: new Date().toISOString(),
         computedAt: new Date().toISOString(),
         total: totals(),
-        breakdowns: { agent: [{ label: 'Developer', ...totals() }], agentInclusive: [{ label: 'Developer', ...totals({ input: 20000 }) }, { label: 'Lawyer', ...totals({ units: 1 }) }], harness: [{ label: 'openai-codex (codex)', ...totals() }], model: [{ label: 'gpt-test', ...totals() }], work: [{ label: 'task', ...totals() }] },
+        breakdowns: { agent: [{ label: 'Developer', filter: { agent: 'Developer' }, ...totals() }], agentInclusive: [{ label: 'Developer', ...totals({ input: 20000 }) }, { label: 'Lawyer', ...totals({ units: 1 }) }], harness: [{ label: 'openai-codex (codex)', ...totals() }], model: [{ label: 'gpt-test', ...totals() }], work: [{ label: 'task', ...totals() }] },
     };
     const view = terminal(120, 40);
     const tile = renderHome(snapshot({ usage }), view, { focus: 'usage', attention: new Map(), frame: 0, legend: '' }).map(stripAnsi).join('\n');
@@ -219,7 +219,9 @@ test('Usage tile and page: a seven-day summary with grouping-specific labels, vi
     const page = pageForTile('usage');
     const byAgent = pageBody(page, context).body.map(stripAnsi).join('\n');
     assert.match(byAgent, /^By executing agent$/m);
-    assert.match(byAgent, /^Developer +12k in · 3\.4k out/m);
+    // Rows are a selectable list (the focused one is marked); Enter narrows the view to it.
+    assert.match(byAgent, /^[❯>] Developer +12k in · 3\.4k out/m);
+    assert.match(pageBody(page, context).legend, /Enter only this · G group by harness/);
     assert.match(byAgent, /2 subscription · 1 API/, 'billing mode stays visible');
     assert.match(byAgent, /1 without reported usage/, 'missing usage is visible, not zero');
     assert.match(byAgent, /\$0\.42 API \(partly estimated\)/);
@@ -228,10 +230,10 @@ test('Usage tile and page: a seven-day summary with grouping-specific labels, vi
     assert.doesNotMatch(byAgent, /openai-codex/, 'an agent view does not force a harness column');
     const inclusive = pageBody({ ...page, inclusive: true }, context).body.map(stripAnsi).join('\n');
     assert.match(inclusive, /including work it initiated \(rows overlap\)/);
-    assert.match(inclusive, /^Lawyer/m);
+    assert.match(inclusive, /^[❯> ] Lawyer/m);
     const byHarness = pageBody({ ...page, grouping: 'harness' }, context).body.map(stripAnsi).join('\n');
-    assert.match(byHarness, /^openai-codex \(codex\)/m);
-    assert.doesNotMatch(byHarness, /^Developer/m);
+    assert.match(byHarness, /^[❯> ] openai-codex \(codex\)/m);
+    assert.doesNotMatch(byHarness, /^[❯> ] Developer/m);
 });
 
 test('Action log tile and page: saved external actions with explicit partial/uncertain outcomes and pending persistence', () => {
