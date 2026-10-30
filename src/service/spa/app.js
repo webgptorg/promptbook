@@ -1787,7 +1787,8 @@
                             'span',
                             { className: 'row' },
                             h('button', { onclick: () => walletLoginDialog({ origin: record.origin, label: record.account, id: record.id }) }, 'Update'),
-                            h('button', { disabled: Boolean(record.testing) || wallet.state !== 'ready', onclick: () => walletCall('wallet-test', { id: record.id }) }, 'Test'),
+                            record.testAwaits === 'code' ? h('button', { className: 'primary', onclick: () => walletCodeDialog({ origin: record.origin, test: record.id }) }, 'Enter the code') : null,
+                            record.testing ? h('button', { onclick: () => walletCall('wallet-test-cancel', { id: record.id }) }, 'Cancel test') : h('button', { disabled: wallet.state !== 'ready', onclick: () => walletCall('wallet-test', { id: record.id }) }, 'Test'),
                             h('button', { className: 'danger', onclick: () => walletCall('wallet-remove', { id: record.id }, `Remove the saved login "${record.account}" for ${record.origin}?`) }, 'Remove'),
                         ),
                     ),
@@ -2096,7 +2097,10 @@
         (initial.origin ? username : origin).focus();
     }
 
-    /** Protected entry of a one-time code for a pending code request: used once by the waiting work, never stored. */
+    /**
+     * Protected entry of a one-time code for a pending code request (used once by the waiting work) or for a running
+     * credential test (`action.test`: entered once into its login context); never stored.
+     */
     function walletCodeDialog(action) {
         const code = h('input', { type: 'password', autocomplete: 'one-time-code', inputMode: 'numeric', required: true });
         let dialog;
@@ -2107,14 +2111,15 @@
                 autocomplete: 'off',
                 onsubmit: async (event) => {
                     event.preventDefault();
-                    const body = { request: action.id, code: code.value };
+                    // A pending code request of waiting work, or a running credential test of one login.
+                    const body = action.test ? { id: action.test, code: code.value } : { request: action.id, code: code.value };
                     code.value = '';
-                    const result = await walletCall('wallet-code', body);
+                    const result = await walletCall(action.test ? 'wallet-test-code' : 'wallet-code', body);
                     body.code = '';
                     if (result) dialog.close();
                 },
             },
-            h('p', { className: 'muted' }, `Enter the one-time code ${action.origin} sent you. The Wallet enters it once for the waiting work; agents never see it and it is not saved.`),
+            h('p', { className: 'muted' }, `Enter the one-time code ${action.origin} sent you. ${action.test ? 'The test enters it once into its own login context; it is not saved.' : 'The Wallet enters it once for the waiting work; agents never see it and it is not saved.'}`),
             walletCredentialField('One-time code', code),
             h('div', { className: 'row' }, h('button', { type: 'submit', className: 'primary' }, 'Enter the code'), h('button', { type: 'button', onclick: () => ((code.value = ''), dialog.close()) }, 'Cancel')),
         );

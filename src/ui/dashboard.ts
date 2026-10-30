@@ -704,6 +704,16 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         await runWallet('wallet-save', { ...login, test: true, ...(initial.action ? { request: initial.action } : {}), ...(initial.id ? { id: initial.id } : {}) });
     };
 
+    /** Gives a running credential test the one-time code it waits for (concealed input; entered once, never stored). */
+    const walletTestCode = async (record: { readonly id: string; readonly origin: string }): Promise<void> => {
+        const code = await outside(() => walletCodeForm(terminal, record.origin, 'The test enters it once into its own login context; it is not saved.'));
+        if (!code) {
+            notify('Nothing was entered; the test keeps waiting for the code.');
+            return;
+        }
+        await runWallet('wallet-test-code', { id: record.id, code });
+    };
+
     /** Answers a pending one-time code request through concealed input (the code is used once, never stored). */
     const walletCode = async (request: { readonly id: string; readonly origin: string }): Promise<void> => {
         const code = await outside(() => walletCodeForm(terminal, request.origin));
@@ -754,6 +764,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             if (wallet.state === 'ready') void walletLogin(focused?.kind === 'request' ? { origin: focused.origin, action: focused.id } : {});
             else notify(unset ? 'Set up the Wallet first (S).' : 'Restore the Wallet on this computer first (R).');
         } else if (key === 't' && focused?.kind === 'record') void runWallet('wallet-test', { id: focused.id });
+        else if (key === 'x' && focused?.kind === 'record' && focused.testing) void runWallet('wallet-test-cancel', { id: focused.id });
         else if (key === 'd' && focused?.kind === 'record') confirmThen(`Remove the saved login "${focused.account}" for ${focused.origin}?`, async () => void (await runWallet('wallet-remove', { id: focused.id })));
         else if (key === 'x' && focused?.kind === 'request') confirmThen(`Dismiss the ${focused.problem === 'code' ? 'code' : 'login'} request for ${focused.origin}? The waiting work continues without it.`, async () => void (await runWallet('wallet-dismiss', { request: focused.id })));
         else if (key === 'i') {
@@ -973,6 +984,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     const item = snapshot.wallet?.state === 'ready' ? walletItems(snapshot.wallet)[page.focus] : undefined;
                     if (item?.kind === 'request' && item.problem === 'code') void walletCode(item);
                     else if (item?.kind === 'request') void walletLogin({ origin: item.origin, action: item.id });
+                    else if (item?.kind === 'record' && item.testAwaits === 'code') void walletTestCode(item);
                     else if (item?.kind === 'record') void walletLogin({ origin: item.origin, label: item.account, id: item.id });
                     return;
                 }

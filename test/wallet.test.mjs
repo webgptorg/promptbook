@@ -782,6 +782,70 @@ test('Wallet Test: exactly the selected login in a fresh context; verified, reje
     assert.match(tested.verification.reason, /No browser is available/);
 });
 
+test('Wallet Test at a one-time code step: the attending owner enters the code through protected input, a refused code asks again, and a test can be cancelled', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet test code');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    // A site that asks for a code after the password and accepts only `accepted`.
+    let accepted = '424242';
+    const codes = [];
+    const loginContext = async (origin) => {
+        let step = 'password';
+        return {
+            page: {
+                browser: 'fresh-context',
+                inspect: async () => ({ origin, form: step }),
+                signIn: async () => ((step = 'code'), { result: 'challenge', note: 'the site asks for a one-time code' }),
+                enterCode: async (_origin, code) => (codes.push(code), code === accepted ? ((step = 'none'), { result: 'signed-in' }) : { result: 'rejected', note: 'the site asks for a code again' }),
+            },
+            dispose: async () => undefined,
+        };
+    };
+    const wallet = new WalletSubEngine({
+        project: { root: project, runtime: { root: join(project, '.ptbk'), state: join(project, '.ptbk', 'state') } },
+        env: { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' },
+        onChange: () => undefined,
+        log: () => undefined,
+        loginContext,
+        testCodeWaitMs: 300,
+    });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const { id } = await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'jane secret' });
+    const record = () => wallet.view().records.find((candidate) => candidate.id === id);
+    assert.throws(() => wallet.supplyTestCode({ id, code: '1' }), /not waiting for a one-time code/);
+
+    // The owner enters a wrong code, then the current one: the test is verified and no code is kept anywhere.
+    const running = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'code', { timeoutMs: 5_000, message: 'the code step' });
+    assert.match(record().testing, /Waiting for the one-time code/);
+    assert.equal(wallet.view().pending.length, 0, 'an attended test asks on the login itself, not through a request of waiting work');
+    wallet.supplyTestCode({ id, code: '111 111' });
+    await waitFor(() => record().testAwaits === 'code' && /did not accept the code/.test(record().testing), { timeoutMs: 5_000, message: 'the second code step' });
+    wallet.supplyTestCode({ id, code: '424242' });
+    const verified = await running;
+    assert.equal(verified.verification.state, 'verified');
+    assert.match(verified.verification.reason, /accepted this login and the one-time code/);
+    assert.deepEqual(codes, ['111111', '424242']);
+    for (const file of await filesBelow(project)) assert.ok(!file.content.includes('424242') && !file.content.includes('111111'), `${file.path} keeps no code`);
+
+    // No code in time: incomplete, never a bad password.
+    const timedOut = await wallet.test(id);
+    assert.equal(timedOut.verification.state, 'incomplete');
+    assert.match(timedOut.verification.reason, /No one-time code was entered; the login stays unverified/);
+
+    // The owner cancels at the code step.
+    accepted = 'other';
+    const cancelled = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'code', { timeoutMs: 5_000, message: 'the code step' });
+    assert.equal(wallet.cancelTest(id).applied, true);
+    assert.match((await cancelled).verification.reason, /cancelled at its one-time code step/);
+    assert.equal(record().testing, undefined);
+    assert.equal(wallet.cancelTest(id).applied, false, 'nothing runs any more');
+    assert.equal(wallet.view().records.length, 1, 'the saved login stays');
+});
+
 /**
  * A Wallet with an audit recorder (the audit commits it would create).
  */

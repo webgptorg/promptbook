@@ -11,7 +11,8 @@
 -   Adding or updating a login from the Wallet page runs the same test after saving. Saving and verifying are separate outcomes: the login is kept whatever the test finds.
 -   Progress is shown live with the login. Afterwards it shows **verified**, **test rejected** or **unverified (test incomplete)** with the time and a concise reason, for example when no login form was found, the site asks for another step such as a code, or the website or browser is unavailable. A temporary outage is never reported as a bad password, and a login never tested reads as unverified. The latest result is stored inside the login's encrypted record (ignored local Wallet state, never in Git), with passwords and other secrets redacted, and it survives a restart. Updating the login clears it, and a result about values changed during the test is dropped.
 -   A test is not a task, run or credential mutation: it creates no task Book, trace, Wallet audit or commit.
--   Not covered yet: entering a missing factor or approving a device action during a test (the test ends as incomplete instead), and additional reusable login fields.
+-   When the website asks for a one-time code after the password, the test waits with its login for up to ten minutes: **Enter the code** on the web, or Enter on the login in the terminal (masked input). The code is entered once into the test's own login context and never stored or kept in the result. A refused code asks for the current one, up to three codes. A running test can be cancelled (`X` in the terminal, **Cancel test** on the web). A missing code or a cancellation ends the test as unverified (incomplete), never as a bad password.
+-   Not covered yet: approving a device action or taking over the browser during a test, codes the test obtains from an inbox by itself (the test runs without an agent), and additional reusable login fields.
 
 ## Wallet: one-time codes through protected owner input, never a chat
 

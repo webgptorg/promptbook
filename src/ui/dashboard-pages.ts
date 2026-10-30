@@ -124,8 +124,13 @@ export type DashboardPage =
  *
  * @private terminal dashboard pages
  */
-export function walletItems(wallet: WalletView): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string; readonly problem: WalletView['pending'][number]['problem'] } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string }> {
-    return [...wallet.pending.map((action) => ({ kind: 'request' as const, id: action.id, origin: action.origin, problem: action.problem, ...(action.account ? { account: action.account } : {}) })), ...wallet.records.map((record) => ({ kind: 'record' as const, id: record.id, origin: record.origin, account: record.account }))];
+export function walletItems(
+    wallet: WalletView,
+): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string; readonly problem: WalletView['pending'][number]['problem'] } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string; readonly testing: boolean; readonly testAwaits?: 'code' }> {
+    return [
+        ...wallet.pending.map((action) => ({ kind: 'request' as const, id: action.id, origin: action.origin, problem: action.problem, ...(action.account ? { account: action.account } : {}) })),
+        ...wallet.records.map((record) => ({ kind: 'record' as const, id: record.id, origin: record.origin, account: record.account, testing: record.testing !== undefined, ...(record.testAwaits ? { testAwaits: record.testAwaits } : {}) })),
+    ];
 }
 
 /**
@@ -470,7 +475,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             for (const record of wallet.records) {
                 const verification = record.verification;
                 const tested = record.testing
-                    ? style.warning(` · testing: ${record.testing}…`)
+                    ? style.warning(` · testing: ${record.testing}${record.testAwaits ? '' : '…'}`)
                     : verification?.state === 'verified'
                       ? style.success(` · verified ${time(verification.at)}`)
                       : verification?.state === 'rejected'
@@ -492,7 +497,14 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                     : wallet.state === 'locked' || wallet.state === 'unavailable'
                       ? [...(wallet.state === 'locked' ? ['R restore with the 12 words for recovery'] : []), ...(wallet.management?.canReset ? ['Z reset (no key: all old logins are lost)'] : [])]
                       : wallet.state === 'ready'
-                        ? ['N add login', 'I import from Bitwarden', 'G new 12 words', ...(focused ? [focused.kind === 'request' ? (focused.problem === 'code' ? 'Enter type the code · X dismiss' : 'Enter add this login · X dismiss') : 'Enter update · T test · D remove'] : [])]
+                        ? [
+                              'N add login',
+                              'I import from Bitwarden',
+                              'G new 12 words',
+                              ...(focused
+                                  ? [focused.kind === 'request' ? (focused.problem === 'code' ? 'Enter type the code · X dismiss' : 'Enter add this login · X dismiss') : focused.testAwaits ? 'Enter type the code · X cancel the test' : focused.testing ? 'X cancel the test · D remove' : 'Enter update · T test · D remove']
+                                  : []),
+                          ]
                         : [];
             return { title: 'Wallet', context: 'Website logins of this project, encrypted in .ptbk/wallet/ and applied for agents without showing them the credentials', body, anchor, legend: `${keys.join(' · ')}${keys.length ? ' · ' : ''}↑↓ choose · ${back}` };
         }

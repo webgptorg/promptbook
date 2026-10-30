@@ -38,6 +38,8 @@ export type WalletRecordView = {
     readonly verification?: WalletVerification;
     /** The step of a credential test running now, for live progress. */
     readonly testing?: string;
+    /** The running test waits at the website's one-time code step for the owner's protected input. */
+    readonly testAwaits?: 'code';
 };
 
 /**
@@ -186,6 +188,8 @@ export type WalletOptions = {
      * draft for the whole wizard, until the final project-creation confirmation or until the process ends.
      */
     readonly draftLifetimeMs?: number;
+    /** How long a credential test waits for the owner's one-time code at a code step (default ten minutes). */
+    readonly testCodeWaitMs?: number;
 };
 
 /**
@@ -293,6 +297,16 @@ export type WalletImportPreview = { readonly draft: string; readonly source: str
  * How long words shown for setup stay valid without confirmation (they are only in memory).
  */
 const SETUP_DRAFT_MS = 30 * 60_000;
+
+/**
+ * How long a credential test waits at a one-time code step for the owner's code.
+ */
+const TEST_CODE_WAIT_MS = 10 * 60_000;
+
+/**
+ * Codes a credential test enters before it ends as incomplete (a refused code asks for the current one).
+ */
+const TEST_CODE_ATTEMPTS = 3;
 
 /**
  * What an empty reset loses (shown before its separate destructive confirmation).
@@ -491,6 +505,10 @@ export class WalletSubEngine {
     private readonly mutex = new Mutex();
     /** Credential tests running now, with their current step (live progress, never persisted). */
     private readonly testing = new Map<string, string>();
+    /** Credential tests waiting at a code step: each takes the owner's code once (undefined ends the wait). */
+    private readonly testWaits = new Map<string, (code: string | undefined) => void>();
+    /** Credential tests the owner cancelled while they run. */
+    private readonly testCancelled = new Set<string>();
     /** One-time codes the owner supplied, by origin: used once within their validity, held in memory only. */
     private readonly codes = new Map<string, { readonly code: string; readonly expires: number }>();
     private readonly unlock: HostUnlock;
@@ -1308,8 +1326,71 @@ export class WalletSubEngine {
             this.options.log(`Wallet test: ${outcome.outcome}`);
             return { ...this.remember(outcome), verification };
         } finally {
+            this.testCancelled.delete(id);
             if (this.testing.delete(id)) this.options.onChange();
         }
+    }
+
+    /**
+     * Takes the one-time code a running credential test waits for from protected owner input: entered once into the
+     * test's own login context, never written, logged, kept in the result or shown to agents.
+     */
+    public supplyTestCode(input: { readonly id: string; readonly code: string }): WalletOutcome {
+        const waiting = this.testWaits.get(input.id);
+        if (!waiting) throw new PtbkError('This login test is not waiting for a one-time code.', { kind: 'not-found', effect: 'Nothing was entered.' });
+        const code = input.code.replace(/\s+/g, '');
+        if (!code || code.length > 64) throw new PtbkError('Enter the one-time code the website sent.', { kind: 'usage', effect: 'Nothing was entered.' });
+        waiting(code);
+        const record = this.records.find((candidate) => candidate.id === input.id);
+        return this.remember({ action: 'wallet-test-code', applied: true, outcome: `The test of "${record?.account ?? 'this login'}" enters the code once and checks the result.` });
+    }
+
+    /** Cancels a running credential test: it ends as incomplete and the saved login stays as it is. */
+    public cancelTest(id: string): WalletOutcome {
+        if (!this.testing.has(id)) return this.remember({ action: 'wallet-test-cancel', applied: false, outcome: 'No test of this login is running.' });
+        this.testCancelled.add(id);
+        this.testWaits.get(id)?.(undefined);
+        return this.remember({ action: 'wallet-test-cancel', applied: true, outcome: 'The test is cancelled; the login stays unverified.' });
+    }
+
+    /** Waits for the owner's code of a test at a code step (undefined: cancelled or not entered in time). */
+    private async awaitTestCode(id: string): Promise<string | undefined> {
+        if (this.testCancelled.has(id)) return undefined;
+        return await new Promise<string | undefined>((resolve) => {
+            const finish = (code: string | undefined): void => {
+                clearTimeout(timer);
+                this.testWaits.delete(id);
+                this.options.onChange();
+                resolve(code);
+            };
+            const timer = setTimeout(() => finish(undefined), this.options.testCodeWaitMs ?? TEST_CODE_WAIT_MS);
+            timer.unref?.();
+            this.testWaits.set(id, finish);
+            this.options.onChange();
+        });
+    }
+
+    /**
+     * The one-time code step of a credential test: the attending owner enters the code the website sent through the
+     * protected Wallet input (a refused code asks for the current one); another kind of step stays incomplete.
+     */
+    private async testCodeStep(record: StoredRecord, page: SignInPage, step: (text: string) => void, secrets: string[], note?: string): Promise<readonly [WalletVerification['state'], string]> {
+        const inspected = await page.inspect().catch(() => undefined);
+        if (inspected?.form !== 'code' || !page.enterCode) return ['incomplete', `The website asks for another step (${note ?? 'a code or an approval'}); the password was accepted only if that step follows it, so the login stays unverified.`];
+        const minutes = Math.round((this.options.testCodeWaitMs ?? TEST_CODE_WAIT_MS) / 60_000);
+        for (let attempt = 1; attempt <= TEST_CODE_ATTEMPTS; attempt++) {
+            step(attempt === 1 ? 'Waiting for the one-time code the website sent; enter it with this login' : 'The website did not accept the code; enter the current one');
+            const code = await this.awaitTestCode(record.id);
+            if (code === undefined) {
+                return ['incomplete', this.testCancelled.has(record.id) ? 'The test was cancelled at its one-time code step; the login stays unverified.' : `No one-time code was entered${minutes ? ` within ${minutes} minute${minutes === 1 ? '' : 's'}` : ''}; the login stays unverified.`];
+            }
+            secrets.push(code);
+            step('Entering the one-time code');
+            const entered = await page.enterCode(record.origin, code).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
+            if (entered.result === 'signed-in') return ['verified', `The website accepted this login and the one-time code${entered.note ? ` (${entered.note})` : ''}.`];
+            if (entered.result !== 'rejected') return ['incomplete', `The one-time code could not be entered${entered.note ? ` (${entered.note})` : ''}; the login stays unverified.`];
+        }
+        return ['incomplete', `The website did not accept ${TEST_CODE_ATTEMPTS} entered one-time codes; the password was accepted, but the login stays unverified.`];
     }
 
     /**
@@ -1325,12 +1406,17 @@ export class WalletSubEngine {
         } catch (error) {
             return ['incomplete', `The test browser could not be opened (${errorMessage(error)}); the login stays unverified.`];
         }
+        const cancelled = (): readonly [WalletVerification['state'], string] | undefined => (this.testCancelled.has(record.id) ? ['incomplete', 'The test was cancelled; the login stays unverified.'] : undefined);
         try {
+            const early = cancelled();
+            if (early) return early;
             step('Looking for the login form');
             const inspected = await context.page.inspect();
             if (inspected.form === 'none') return ['incomplete', `No login form was found on ${inspected.origin || record.origin} (also after following its sign-in link); the login stays unverified.`];
             const credentials = this.credentials(record);
             secrets.push(credentials.password);
+            const before = cancelled();
+            if (before) return before;
             step('Signing in with this saved login');
             const attempt = await context.page.signIn(credentials).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
             switch (attempt.result) {
@@ -1339,7 +1425,7 @@ export class WalletSubEngine {
                 case 'rejected':
                     return ['rejected', `The website rejected this login${attempt.note ? ` (${attempt.note})` : ''}; update it.`];
                 case 'challenge':
-                    return ['incomplete', `The website asks for another step (${attempt.note ?? 'a code or an approval'}); the password was accepted only if that step follows it, so the login stays unverified.`];
+                    return await this.testCodeStep(record, context.page, step, secrets, attempt.note);
                 case 'no-form':
                     return ['incomplete', `The login form could not be completed${attempt.note ? ` (${attempt.note})` : ''}; the login stays unverified.`];
             }
@@ -1648,6 +1734,7 @@ export class WalletSubEngine {
                 ...(lastOutcome ? { lastOutcome } : {}),
                 ...(verification ? { verification } : {}),
                 ...(this.testing.has(id) ? { testing: this.testing.get(id)! } : {}),
+                ...(this.testWaits.has(id) ? { testAwaits: 'code' as const } : {}),
             })),
             ...(this.lockedRecords ? { lockedRecords: this.lockedRecords } : {}),
             management: { canImport: state === 'ready', canRotate: state === 'ready', canReset: (state === 'locked' || state === 'unavailable') && Boolean(this.metadata || this.problem) },
