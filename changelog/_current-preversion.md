@@ -1,5 +1,10 @@
 # Unreleased
 
+## Book highlighting: one parser for every Book surface
+
+-   Books are now syntax-highlighted wherever they are viewed or edited: the terminal and browser Book editors and the read-only Files viewers. Highlighted are the first-line `AGENT`/`TASK`/`CHAT` declaration and its name, every commitment keyword (new keywords such as `TASK PURPOSE CONTENT` included automatically), unknown keywords as warnings, valid `@Agent`/`{Agent Name}` references, and fenced literal blocks, where control-looking text never becomes a keyword.
+-   Every surface uses the same ranges, computed by the engine's Book parser (`/api/books` and `/api/files/file` include them, and unsaved browser edits are re-highlighted through `POST /api/books/highlight`), so no client has a grammar of its own. The source is never changed: the browser editor paints the ranges under its transparent textarea text, and the terminal editor styles the same text it measures.
+
 ## Bare ptbk: Open global dashboard when any project is known
 
 -   Bare interactive `ptbk` now offers **Open global dashboard** second (and Open help third) whenever the host's known-project registry has an entry, stopped and paused projects included. With no known project the menu stays Initialize/Start/Open dashboard plus Help. The registry is only read, so showing or cancelling the menu still changes nothing.

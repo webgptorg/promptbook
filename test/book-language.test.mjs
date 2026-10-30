@@ -9,6 +9,8 @@ import { declarationName, renderCommitment, renderDeclaration } from '../dist/bo
 import { generatedName } from '../dist/tasks/identity.js';
 import { readTaskBook, splitTaskReferences } from '../dist/tasks/book-task.js';
 import { appendTaskPurpose } from '../dist/tasks/purpose.js';
+import { highlightBook, highlightKinds } from '../dist/book/highlight.js';
+import { TextEditor } from '../dist/ui/composer.js';
 
 test('typed declarations: AGENT, TASK and CHAT open a Book and give kind and name with one grammar, without location hints', () => {
     const agent = parseBook('\n\nAGENT Frontend Developer\nPERSONA You build interfaces.\nGOAL Ship it.');
@@ -168,6 +170,38 @@ test('TASK PURPOSE: appended transitions with the last valid value effective; li
     assert.equal(unknown.purpose, 'system', 'an unknown value keeps the earlier valid one');
     assert.deepEqual(unknown.diagnostics.map((diagnostic) => diagnostic.severity), ['warning'], 'and is nonblocking');
     assert.equal(read(`${base}TASK PURPOSE content\n`).purpose, 'content');
+});
+
+test('shared Book highlighting: declaration and name, keywords (TASK PURPOSE included), references and literal blocks from the one parser', () => {
+    const source = 'TASK Prepare export - 2026-10-30\nGOAL Ask {Frontend Developer} and @Writer.\nTASK PURPOSE CONTENT\nTASK SOMETHING odd\n```\nRULE not a keyword @Nobody\n```\n\\RULE escaped\n';
+    const spans = highlightBook(source);
+    const text = (span) => source.split('\n')[span.line].slice(span.start, span.end);
+    assert.deepEqual(spans.map((span) => [span.kind, text(span)]), [
+        ['declaration', 'TASK'],
+        ['name', 'Prepare export - 2026-10-30'],
+        ['keyword', 'GOAL'],
+        ['reference', '{Frontend Developer}'],
+        ['reference', '@Writer'],
+        ['keyword', 'TASK PURPOSE CONTENT'],
+        ['unknown', 'TASK SOMETHING'],
+        ['literal', '```'],
+        ['literal', 'RULE not a keyword @Nobody'],
+        ['literal', '```'],
+    ]);
+    const kinds = highlightKinds(source);
+    assert.equal(kinds.length, source.length, 'one kind per source offset; the source is never changed');
+    assert.equal(kinds[source.indexOf('escaped')], undefined, 'an escaped line is content, not a keyword');
+    assert.deepEqual(highlightBook(''), []);
+});
+
+test('terminal Book editor: the shared ranges style whole runs while widths and the cursor follow the plain text', () => {
+    const editor = new TextEditor('AGENT Writer\nRULE Ask @Lawyer.');
+    const kinds = highlightKinds(editor.rawText);
+    const stylers = { declaration: (text) => `[D:${text}]`, name: (text) => `[N:${text}]`, keyword: (text) => `[K:${text}]`, reference: (text) => `[R:${text}]` };
+    const layout = editor.layout(40, 10, (offset) => stylers[kinds[offset]]);
+    assert.deepEqual(layout.lines, ['[D:AGENT] [N:Writer]', '[K:RULE] Ask [R:@Lawyer].']);
+    assert.deepEqual(layout.cursor, { row: 1, column: 'RULE Ask @Lawyer.'.length });
+    assert.deepEqual(editor.layout(40, 10).lines, ['AGENT Writer', 'RULE Ask @Lawyer.'], 'without styling: the plain text');
 });
 
 test('generated names: readable title plus creation date/time, distinct after normalization, representable after the keyword', () => {

@@ -1,7 +1,8 @@
 import { errorMessage } from '../common/errors.js';
 import type { BookSaveOutcome } from '../engine/agenda.js';
 import type { BookSource } from '../project/book-sources.js';
-import { fit, truncate } from './ansi.js';
+import { highlightKinds, type BookHighlightKind } from '../book/highlight.js';
+import { bookHighlightStyle, fit, truncate } from './ansi.js';
 import type { ComposedSegment } from './composer.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { renderPanel } from './panels.js';
@@ -79,6 +80,22 @@ export async function runBookEditor(
     const done = new Promise<void>((resolve) => {
         finish = resolve;
     });
+    // Shared Book highlighting from the one parser, recomputed only when the text changed (long sources stay fluid).
+    let highlighted: { readonly text: string; readonly kinds: readonly (BookHighlightKind | undefined)[] } | undefined;
+    const styleAt = (): ((offset: number) => ((text: string) => string) | undefined) | undefined => {
+        if (!terminal.style.enabled) return undefined;
+        const text = input.editor.rawText;
+        if (highlighted?.text !== text) highlighted = { text, kinds: highlightKinds(text) };
+        const { kinds } = highlighted;
+        // One styler per kind, so the editor can merge equally styled characters into runs.
+        const stylers = new Map<BookHighlightKind, (text: string) => string>();
+        return (offset) => {
+            const kind = kinds[offset];
+            if (!kind) return undefined;
+            if (!stylers.has(kind)) stylers.set(kind, bookHighlightStyle(kind, terminal.style));
+            return stylers.get(kind);
+        };
+    };
     const draw = (): void => {
         if (closed) return;
         if (!options.embedded) terminal.title.update({ mode: 'Book', detail: source.name || source.path });
@@ -105,7 +122,7 @@ export async function runBookEditor(
         const attaching = input.attaching;
         const attachLines = attaching ? [`  ${style.bold('Attach file:')} ${attaching.layout(width - 18, 1).lines[0] ?? ''}`] : [];
         const available = Math.max(3, height - header.length - warningPanel.length - statusLines.length - attachLines.length - 3);
-        const layout = input.editor.layout(width - 4, available);
+        const layout = input.editor.layout(width - 4, available, styleAt());
         const body = layout.lines.map((line) => `  ${line}`);
         while (body.length < available) body.push('');
         const top = header.length + warningPanel.length;

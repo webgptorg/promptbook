@@ -4,7 +4,8 @@ import type { CachePreview, SwapPlan } from '../engine/health.js';
 import { formatBytes, formatMiB } from '../engine/health.js';
 import type { CurrentWorkView, ServiceSnapshot } from '../engine/snapshot.js';
 import { TASK_SORT_FIELDS, describeTaskFilter, filterTasks, groupSupportingWork, isSupportingWork, isTaskFilterActive, sortTasks, type TaskFilter, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
-import { terminalSafe, truncate, wrap } from './ansi.js';
+import { highlightKinds } from '../book/highlight.js';
+import { bookHighlightStyle, terminalSafe, truncate, wrap } from './ansi.js';
 import { activityLabel, framedBadge, inlineBadge, type BadgeActivity } from './badges.js';
 import {
     browserDetailLines,
@@ -45,7 +46,28 @@ export function fileLines(view: FileView, terminal: TerminalProfile, width: numb
     if (view.kind === 'image') return [`${view.mime ?? 'Image'} · ${size}`, style.muted('This terminal view shows file information only; the browser dashboard displays the image.')];
     if (view.kind === 'video') return [`Video · ${size}`, style.muted('Video playback is not part of Files; the file is identified only.')];
     if (view.kind === 'binary' || view.text === undefined) return [`Binary file · ${size}`, style.muted('Not shown as text.')];
-    const lines = view.text.replace(/\r\n?/g, '\n').split('\n');
+    const text = view.text.replace(/\r\n?/g, '\n');
+    const lines = text.split('\n');
+    // Books use the shared highlighting from the one Book parser (the same ranges as every other Book surface).
+    if (view.kind === 'book') {
+        const kinds = highlightKinds(text);
+        let offset = 0;
+        const body = lines.flatMap((raw) => {
+            const start = offset;
+            offset += raw.length + 1;
+            let styled = '';
+            for (let index = 0; index < raw.length; ) {
+                const kind = kinds[start + index];
+                let end = index + 1;
+                while (end < raw.length && kinds[start + end] === kind) end++;
+                const piece = terminalSafe(raw.slice(index, end));
+                styled += kind && style.enabled ? bookHighlightStyle(kind, style)(piece) : piece;
+                index = end;
+            }
+            return wrap(styled, width);
+        });
+        return view.truncated ? [...body, '', style.warning(`Only the beginning of this ${size} file is shown; the rest stays on disk.`)] : body;
+    }
     const body = lines.flatMap((raw) => {
         const line = terminalSafe(raw);
         if (view.kind === 'markdown') {

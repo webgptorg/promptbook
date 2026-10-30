@@ -927,6 +927,72 @@ details summary {
     padding: 10px 12px;
 }
 
+/* Shared Book highlighting: the textarea's own text becomes transparent only while the engine supplies ranges. */
+.book-editor {
+    flex: 1;
+    min-height: 200px;
+    display: grid;
+}
+
+.book-editor > * {
+    grid-area: 1 / 1;
+    align-self: stretch;
+    min-width: 0;
+    min-height: 0;
+}
+
+.book-highlight {
+    margin: 0;
+    overflow: hidden;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    tab-size: 4;
+    white-space: pre;
+    /* Extra end padding: the layer has no scrollbars, so it must scroll at least as far as the textarea. */
+    padding: 10px 40px 40px 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    pointer-events: none;
+}
+
+.book-editor:not(.highlighted) .book-highlight {
+    display: none;
+}
+
+.book-editor.highlighted .book-source {
+    color: transparent;
+    caret-color: var(--text);
+    background: transparent;
+}
+
+.hl-declaration {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.hl-name {
+    font-weight: 700;
+}
+
+.hl-keyword {
+    color: var(--accent);
+}
+
+.hl-unknown {
+    color: var(--warning);
+}
+
+.hl-reference {
+    color: var(--success);
+}
+
+.hl-literal {
+    color: var(--muted);
+}
+
 .book-problems {
     max-height: 140px;
     overflow: auto;

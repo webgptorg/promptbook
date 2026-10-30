@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import { highlightBook } from '../book/highlight.js';
 import { parseUsageRequest } from '../engine/usage.js';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -265,7 +266,11 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             '/api/history': async () => await agenda.history({ limit: Number(url.searchParams.get('limit') ?? 200) || 200, skip: Number(url.searchParams.get('skip') ?? 0) || 0 }),
             '/api/history/commit': async () => await agenda.historyCommit(url.searchParams.get('sha') ?? ''),
             '/api/files': async () => await agenda.files(url.searchParams.get('path') ?? ''),
-            '/api/files/file': async () => await agenda.file(url.searchParams.get('path') ?? ''),
+            // A Book carries the shared highlight ranges of the one parser (clients never re-parse Book syntax).
+            '/api/files/file': async () => {
+                const file = await agenda.file(url.searchParams.get('path') ?? '');
+                return file.kind === 'book' && file.text !== undefined ? { ...file, highlight: highlightBook(file.text) } : file;
+            },
         };
         const inspect = method === 'GET' ? inspection[url.pathname] : undefined;
         if (inspect) {
@@ -323,7 +328,8 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         if (url.pathname === '/api/books' && method === 'GET') {
             const reference = url.searchParams.get('ref') ?? undefined;
             const path = url.searchParams.get('path') ?? undefined;
-            sendJson(response, 200, await agenda.bookSource({ reference, path }));
+            const source = await agenda.bookSource({ reference, path });
+            sendJson(response, 200, { ...source, highlight: highlightBook(source.text) });
             return;
         }
         // Chats are selected by their normalized name (URL-encoded), never by a generated ID.
@@ -375,6 +381,11 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             else if (chatMatch[2] === 'messages') sendJson(response, 200, await applyChatAction(agenda, 'chat-send', { name: chatName, text: body.text, expected: body.expected }, via));
             else if (chatMatch[2] === 'read') sendJson(response, 200, await applyChatAction(agenda, 'chat-read', { name: chatName }, via));
             else sendJson(response, 405, { error: 'Method not allowed.' });
+            return;
+        }
+        if (url.pathname === '/api/books/highlight') {
+            // Highlighting of an unsaved editor text: read-only, from the same parser as every other Book surface.
+            sendJson(response, 200, { highlight: highlightBook(String(body.text ?? '')) });
             return;
         }
         if (url.pathname === '/api/books') {

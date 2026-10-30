@@ -325,19 +325,40 @@ export class TextEditor {
         }
     }
 
+    /** The text with attachment tokens as their placeholder characters (offsets match the edited characters). */
+    public get rawText(): string {
+        return this.characters.join('');
+    }
+
     /**
-     * Wraps the text to a width and locates the cursor; long content scrolls to keep the cursor visible.
+     * Wraps the text to a width and locates the cursor; long content scrolls to keep the cursor visible. `styleAt`
+     * optionally styles the character at a UTF-16 offset of `rawText` (e.g. Book highlighting); widths are measured on
+     * the plain text.
      */
-    public layout(width: number, maxRows: number): { lines: string[]; cursor: { row: number; column: number }; hiddenAbove: number; hiddenBelow: number } {
+    public layout(width: number, maxRows: number, styleAt?: (offset: number) => ((text: string) => string) | undefined): { lines: string[]; cursor: { row: number; column: number }; hiddenAbove: number; hiddenBelow: number } {
         const usable = Math.max(4, width);
         const rows: string[] = [];
+        const styledRows: string[] = [];
         let cursorRow = 0;
         let cursorColumn = 0;
         let row = '';
+        let styledRow = '';
         let rowWidth = 0;
+        let offset = 0;
+        // Consecutive characters with the same style are styled as one run (one escape sequence, not one per character).
+        let run = '';
+        let runStyle: ((text: string) => string) | undefined;
+        const closeRun = (): void => {
+            styledRow += run && runStyle ? runStyle(run) : run;
+            run = '';
+            runStyle = undefined;
+        };
         const flush = (): void => {
+            closeRun();
             rows.push(row);
+            styledRows.push(styledRow);
             row = '';
+            styledRow = '';
             rowWidth = 0;
         };
         for (let index = 0; index <= this.characters.length; index++) {
@@ -348,17 +369,24 @@ export class TextEditor {
             }
             if (index === this.characters.length) break;
             let character = this.characters[index]!;
+            const at = offset;
+            offset += character.length;
             if (character === '\n') {
                 flush();
                 continue;
             }
-            if (isToken(character)) {
+            const token = isToken(character);
+            if (token) {
                 const item = this.items.get(character);
                 character = truncate(item ? itemLabel(item) : '[?]', usable);
             }
             const characterWidth = stringWidth(character);
             if (rowWidth + characterWidth > usable) flush();
             row += character;
+            const styled = token ? undefined : styleAt?.(at);
+            if (styled !== runStyle) closeRun();
+            runStyle = styled;
+            run += character;
             rowWidth += characterWidth;
         }
         flush();
@@ -366,7 +394,7 @@ export class TextEditor {
         let top = 0;
         if (rows.length > visible) top = Math.min(Math.max(0, cursorRow - visible + 1), rows.length - visible);
         return {
-            lines: rows.slice(top, top + visible).map((line) => truncate(line, usable)),
+            lines: styleAt ? styledRows.slice(top, top + visible) : rows.slice(top, top + visible).map((line) => truncate(line, usable)),
             cursor: { row: cursorRow - top, column: cursorColumn },
             hiddenAbove: top,
             hiddenBelow: Math.max(0, rows.length - top - visible),

@@ -1136,7 +1136,8 @@
                   file.kind === 'image' && !file.image ? h('p', { className: 'muted' }, 'The image is too large to display here.') : null,
                   file.kind === 'video' ? h('p', { className: 'muted' }, 'Video playback is not part of Files; the file is identified only.') : null,
                   file.kind === 'binary' ? h('p', { className: 'muted' }, 'Binary file; not shown as text.') : null,
-                  typeof file.text === 'string' ? h('pre', { className: 'log' }, file.text) : null,
+                  // A Book shows the shared highlighting (ranges from the engine's one Book parser).
+                  typeof file.text === 'string' ? h('pre', { className: file.highlight ? 'log book-view' : 'log' }, file.highlight ? highlightedBook(file.text, file.highlight) : file.text) : null,
                   file.truncated ? h('p', { className: 'warn' }, 'Only the beginning of this file is shown; the rest stays on disk.') : null,
               )
             : null;
@@ -1841,6 +1842,33 @@
     }
 
     /**
+     * Book text with the engine's shared highlight ranges (from the one Book parser; never re-parsed here). Ranges of an
+     * older text are clipped to the current lines, so the shown text is always exactly the current one.
+     */
+    function highlightedBook(text, spans) {
+        const byLine = new Map();
+        for (const span of spans || []) {
+            if (!byLine.has(span.line)) byLine.set(span.line, []);
+            byLine.get(span.line).push(span);
+        }
+        const lines = text.split('\n');
+        return lines.map((line, index) => {
+            const nodes = [];
+            let at = 0;
+            for (const span of byLine.get(index) || []) {
+                const start = Math.max(at, Math.min(span.start, line.length));
+                const end = Math.min(span.end, line.length);
+                if (end <= start) continue;
+                if (start > at) nodes.push(line.slice(at, start));
+                nodes.push(h('span', { className: `hl-${span.kind}` }, line.slice(start, end)));
+                at = end;
+            }
+            if (at < line.length) nodes.push(line.slice(at));
+            return [nodes, index < lines.length - 1 ? '\n' : ''];
+        });
+    }
+
+    /**
      * The Book source viewer/editor: a modal outside the live-updating page over the engine's shared Book operations
      * (`/api/books`), showing the literal source with the engine's detected problems. Enter only inserts a line and
      * Ctrl+S (⌘S) saves without closing. Problematic content still saves (Fixer gets a repair task); a save based on
@@ -1868,6 +1896,36 @@
         let closed = false;
         const field = h('textarea', { className: 'book-source', 'aria-label': `Source of ${source.name || source.path}`, spellcheck: 'false', wrap: 'off', readonly: !editable });
         field.value = draft ? draft.text : baseline;
+        // Shared syntax highlighting: a decorative layer under the transparent text of the textarea, painted with
+        // the current text and the latest ranges the engine computed (an older engine sends none: plain textarea).
+        const layer = h('pre', { className: 'book-highlight', 'aria-hidden': 'true' });
+        const editor = h('div', { className: `book-editor${source.highlight ? ' highlighted' : ''}` }, layer, field);
+        let spans = source.highlight || [];
+        let highlightTimer = null;
+        const paint = () => {
+            if (!source.highlight) return;
+            layer.replaceChildren(...highlightedBook(field.value, spans).flat(Infinity));
+            layer.scrollTop = field.scrollTop;
+            layer.scrollLeft = field.scrollLeft;
+        };
+        const rehighlight = () => {
+            clearTimeout(highlightTimer);
+            if (!source.highlight) return;
+            highlightTimer = setTimeout(async () => {
+                const text = field.value;
+                const result = await api('/api/books/highlight', { method: 'POST', body: { text } }).catch(() => null);
+                if (result && field.value === text) {
+                    spans = result.highlight;
+                    paint();
+                }
+            }, 150);
+        };
+        field.addEventListener('scroll', () => {
+            layer.scrollTop = field.scrollTop;
+            layer.scrollLeft = field.scrollLeft;
+        });
+        paint();
+        if (field.value !== baseline) rehighlight();
         const dirty = () => editable && field.value !== baseline;
         // The kept draft follows the latest saved revision, also when a save finishes after the editor was closed.
         const keepDraft = () => {
@@ -1892,6 +1950,8 @@
                 baseline = source.text.replace(/\r\n/g, '\n');
                 field.value = baseline;
                 revision = source.revision;
+                spans = source.highlight || [];
+                paint();
                 notice = 'Loaded the current source.';
                 show();
             },
@@ -1933,11 +1993,13 @@
             h('h2', {}, h('span', {}, `${kind}: ${source.name || '(unnamed)'}`), h('span', { className: 'row' }, saveButton, discard, h('button', { onclick: () => dialog.close() }, 'Close'))),
             status,
             problems,
-            field,
+            editor,
             h('p', { className: 'muted' }, editable ? 'Enter adds a line · Ctrl+S (⌘S) saves without closing · Esc closes and keeps unsaved changes' : 'Read-only · Esc closes'),
         );
         field.addEventListener('input', () => {
             if (notice && !busy) notice = '';
+            paint();
+            rehighlight();
             show();
         });
         dialog.addEventListener('keydown', (event) => {

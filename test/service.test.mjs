@@ -167,6 +167,9 @@ test('Book source editing over the API: problematic content saves with a warning
     const source = (await api(`api/books?ref=${encodeURIComponent('@Fixer')}`)).data;
     assert.equal(source.path, 'agents/.core/fixer.book');
     assert.equal(source.editable, true);
+    assert.deepEqual(source.highlight[0], { line: 0, start: 0, end: 5, kind: 'declaration' }, 'the editor gets the shared highlighting ranges');
+    const unsaved = await api('api/books/highlight', { text: 'AGENT Fixer\nRULE Ask @Writer.\n' });
+    assert.deepEqual(unsaved.data.highlight.map((span) => span.kind), ['declaration', 'name', 'keyword', 'reference'], 'unsaved text is highlighted by the same parser');
 
     // An unknown commitment is a warning, never a refused or hanging save; Fixer gets one ordinary repair task.
     const text = `${source.text}FOOBAR something unknown\n`;

@@ -116,7 +116,10 @@ test('Files: confined nonhidden browsing with readable formatting; hidden, escap
     await writeFile(join(project, 'agents', 'writer.book'), 'AGENT Writer\n');
     assert.deepEqual((await listFolder(project, 'agents')).entries.map((entry) => entry.name), ['.core', 'writer.book'], 'only the hidden folder holding agent Books');
     assert.deepEqual((await listFolder(project, 'agents/.core')).entries.map((entry) => entry.name), ['adam.book'], 'hidden files inside stay hidden');
-    assert.match((await readProjectFile(project, 'agents/.core/adam.book')).text, /AGENT Adam/);
+    const core = await readProjectFile(project, 'agents/.core/adam.book');
+    assert.match(core.text, /AGENT Adam/);
+    const styled = { ...terminal(), style: { ...terminal().style, enabled: true, accent: (text) => `<a>${text}</a>`, bold: (text) => `<b>${text}</b>`, info: (text) => `<i>${text}</i>` } };
+    assert.deepEqual(fileLines(core, styled, 80).slice(0, 2), ['<b><a>AGENT</a></b> <b>Adam</b>', '<a>FROM</a> <i>@Void</i>'], 'Files shows agent Books with the shared highlighting');
     for (const path of ['agents/.core/.secret', 'agents/.cache/notes.txt', 'agents/.ptbk/x.book', 'agents/.env', 'docs/.core/adam.book', 'agents/.core/../../.env']) await assert.rejects(readProjectFile(project, path), /not an accessible project path|no longer exists/, path);
     assert.deepEqual((await listFolder(project, 'team', { agentsDirectory: 'team' }).catch(() => ({ entries: [] }))).entries, [], 'the configured agents directory decides where the exception applies');
 });

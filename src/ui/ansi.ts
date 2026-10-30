@@ -218,3 +218,26 @@ export function createStyle(enabled: boolean): Style {
         color256: (code: number, text: string) => (enabled && text ? `\x1b[38;5;${code}m${text}\x1b[39m` : text),
     };
 }
+
+/**
+ * The terminal presentation of a Book highlight kind (meaning never depends on color alone: keywords stay readable
+ * uppercase text and the source is shown exactly).
+ *
+ * @private terminal UI
+ */
+export function bookHighlightStyle(kind: import('../book/highlight.js').BookHighlightKind, style: Style): (text: string) => string {
+    switch (kind) {
+        case 'declaration':
+            return (text) => style.bold(style.accent(text));
+        case 'name':
+            return style.bold;
+        case 'keyword':
+            return style.accent;
+        case 'unknown':
+            return style.warning;
+        case 'reference':
+            return style.info;
+        case 'literal':
+            return style.muted;
+    }
+}
