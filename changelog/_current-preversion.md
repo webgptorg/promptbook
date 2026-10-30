@@ -2,7 +2,7 @@
 
 ## Tests: the Wallet recovery fixture no longer fails on a common recovery word
 
--   The fixture for replacing the recovery words checked that the audit commit contains none of the 12 new words, as a substring anywhere. The audit's fixed prose ("The words, keys, secret values…") contains words from the recovery word list, so a random phrase that included `secret`, `key` or `auto` failed the test about once in every few dozen runs. It now checks for the phrase and for any two of its words in order, which still catches every disclosure of the words.
+-   The fixture for replacing the recovery words checked that the audit commit contains none of the 12 new words, as a substring anywhere. The audit's fixed prose ("The words, keys, secret values…") contains words from the recovery word list, so a random phrase that included one of them failed the test. 19 of the 2,048 words occur in that text (for example `secret`, `key`, `auto` and `word`), so this happened in about one run in ten. It now checks for the phrase and for any two of its words in order, which still catches every disclosure of the words.
 
 ## Core agents: Chatter's template no longer starts every project with a Fixer health check
 
