@@ -1,5 +1,13 @@
 # Unreleased
 
+## Browser dashboard: view and edit Book sources
+
+-   The browser dashboard can now open and edit the real source of a project Book, as the dashboard specification asks for the browser too ("Book viewing/editing shares a core"). Before, only the terminal could (its `E` key), and the browser showed Books only as plain text in Files. It uses the existing shared operations (`GET`/`POST /api/books`), so parsing, diagnostics, revision checks, ownership, scoped commits and Fixer repair stay in the engine.
+-   The editor is a modal outside the live-updating page, so snapshot refreshes never reset its text, cursor or scroll. It shows the kind, name, path and revision, the engine's detected problems (click a line number to select that line) and the literal source in a monospace field. Enter only inserts a line, Ctrl+S (⌘S) saves without closing, and saving stays allowed with warnings. The outcome says whether it was saved and committed, the number of warnings and whether Fixer got a repair task. CRLF sources keep their line endings.
+-   Closing with unsaved changes keeps the draft for the next opening. A draft whose Book changed meanwhile is restored but saves as a visible conflict, and **Load current source** reconciles it. A save still running when the editor closes updates the kept draft and reports its outcome. Engine-owned Expert opens read-only.
+-   Entry points match the terminal's: **Book** on every agent (Agents), **Source** on every task with a project source (Tasks; system tasks have none), **Edit** beside a commit's verified task link (History), **Task Book** of an action record (Action log) and **Open in the Book editor** for a `.book` file in Files.
+-   Browser Back/Forward into the Tasks page now loads the current inventory. Before, it showed the previous list, or "Loading…", until the next snapshot change.
+
 ## Book editing: a save with problems no longer hangs; paused task views stay current
 
 -   Saving a Book with detected problems (an unknown commitment, an invalid MODEL) through the shared editor operation hung forever after its commit. This affected the terminal Book editor, `POST /api/books` and the control channel. The save held the engine's publication lock while creating Fixer's repair task, which needs the same lock. Every later publication (task additions, other saves) then waited behind it until a restart. The repair task is now created after the save's own publication ends, and a failure to schedule it is logged without turning the saved file into a failed save. The specification's outcome now holds: the exact source is saved and committed with a visible warning, and one ordinary Fixer repair task is created, which waits while the engine is paused.

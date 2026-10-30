@@ -52,6 +52,8 @@
         toolAck: null,
         /** Whether the add form lists every harness variant (featured first, then More). */
         showAllVariants: false,
+        /** Unsaved Book editor drafts by source path: { text, revision } (closing the editor never loses them). */
+        bookDrafts: new Map(),
     };
 
     /** Creates a DOM element; text children are always inserted as text (never parsed as HTML). */
@@ -1071,7 +1073,7 @@
                                   { className: 'commit-detail' },
                                   h('p', { className: 'muted' }, `${detail.sha} · ${detail.author} <${detail.email}> · ${detail.at}${detail.parents.length > 1 ? ` · merge of ${detail.parents.map((parent) => parent.slice(0, 10)).join(', ')}` : ''}`),
                                   ...detail.links.tasks.map((task) =>
-                                      h('p', {}, `Task {${task.name}} `, ...(task.path ? [h('span', { className: 'ok' }, `${task.path} `), h('button', { onclick: () => (openFiles(task.path, 'file'), openPage('files')) }, 'Open')] : [h('span', { className: 'muted' }, '(no longer in the project)')])),
+                                      h('p', {}, `Task {${task.name}} `, ...(task.path ? [h('span', { className: 'ok' }, `${task.path} `), h('button', { onclick: () => (openFiles(task.path, 'file'), openPage('files')) }, 'Open'), ' ', h('button', { onclick: () => void openBook({ path: task.path }) }, 'Edit')] : [h('span', { className: 'muted' }, '(no longer in the project)')])),
                                   ),
                                   ...detail.links.chats.map((chat) => h('p', {}, `Chat {${chat.name}} `, chat.exists && chat.name !== 'Report' ? h('button', { onclick: () => (openPage('chats'), openChat(chat.name)) }, 'Open') : h('span', { className: 'muted' }, chat.exists ? 'report.book' : '(no longer in the project)'))),
                                   h('pre', { className: 'log' }, detail.message),
@@ -1134,7 +1136,7 @@
                   'section',
                   { className: 'card', 'aria-label': `File ${file.path}` },
                   h('h2', {}, file.path),
-                  h('p', { className: 'muted' }, `${file.kind} · ${file.size} bytes · read-only`),
+                  h('p', { className: 'muted' }, `${file.kind} · ${file.size} bytes · read-only`, file.kind === 'book' ? ' ' : null, file.kind === 'book' ? h('button', { onclick: () => void openBook({ path: file.path }) }, 'Open in the Book editor') : null),
                   file.image ? h('img', { src: file.image, alt: file.name, className: 'file-image' }) : null,
                   file.kind === 'image' && !file.image ? h('p', { className: 'muted' }, 'The image is too large to display here.') : null,
                   file.kind === 'video' ? h('p', { className: 'muted' }, 'Video playback is not part of Files; the file is identified only.') : null,
@@ -1173,7 +1175,7 @@
         // Files is loading the target before the page switches, so it never falls back to the project root.
         const show = (path, kind) => (openFiles(path, kind), openPage('files'));
         const items = [
-            links.task ? h('button', { onclick: () => show(links.task, 'file') }, 'Task Book') : null,
+            links.task ? h('button', { onclick: () => void openBook({ path: links.task }) }, 'Task Book') : null,
             links.evidence ? h('button', { onclick: () => show(links.evidence, 'folder') }, 'Evidence') : null,
             links.receipt ? h('a', { href: links.receipt, target: '_blank', rel: 'noopener noreferrer' }, 'Receipt') : null,
         ].filter(Boolean);
@@ -1765,6 +1767,156 @@
         return dialog;
     }
 
+    /** A written agent reference for a name (`@Name`, or `{Name}` when the name needs braces), as the engine formats it. */
+    function agentReference(name) {
+        return /^[\p{L}\p{N}][\p{L}\p{N}_-]*$/u.test(name) && !/[-_]$/.test(name) ? `@${name}` : `{${name}}`;
+    }
+
+    /** The engine's detected problems of a Book as a list; clicking one moves the cursor to its line. */
+    function bookProblems(diagnostics, field) {
+        if (!diagnostics.length) return [];
+        const goTo = (line) => {
+            const lines = field.value.split('\n');
+            const offset = lines.slice(0, Math.max(0, line - 1)).reduce((sum, text) => sum + text.length + 1, 0);
+            field.focus();
+            field.setSelectionRange(offset, offset + (lines[line - 1] || '').length);
+        };
+        return [
+            h('p', { className: 'warn' }, `Detected problems (${diagnostics.length}) — saving stays allowed; Fixer repairs them`),
+            h(
+                'ul',
+                { className: 'book-problems' },
+                diagnostics.slice(0, 20).map((diagnostic) =>
+                    h('li', {}, h('span', { className: diagnostic.severity === 'error' ? 'bad' : 'warn' }, diagnostic.severity === 'error' ? '✗ ' : '▲ '), diagnostic.line ? h('button', { className: 'link', onclick: () => goTo(diagnostic.line) }, `line ${diagnostic.line}`) : null, diagnostic.line ? ': ' : '', diagnostic.message),
+                ),
+                diagnostics.length > 20 ? h('li', { className: 'muted' }, `… ${diagnostics.length - 20} more`) : null,
+            ),
+        ];
+    }
+
+    /**
+     * The Book source viewer/editor: a modal outside the live-updating page over the engine's shared Book operations
+     * (`/api/books`), showing the literal source with the engine's detected problems. Enter only inserts a line and
+     * Ctrl+S (⌘S) saves without closing. Problematic content still saves (Fixer gets a repair task); a save based on
+     * another revision is a conflict that keeps the draft. Engine-owned Expert and viewed-only Books are read-only.
+     * Closing keeps an unsaved draft for the next opening.
+     */
+    async function openBook(target, options = {}) {
+        let source;
+        try {
+            source = await api(`/api/books?${target.path ? `path=${encodeURIComponent(target.path)}` : `ref=${encodeURIComponent(target.reference)}`}`);
+        } catch (error) {
+            toast(`Cannot open the Book: ${error.message}`);
+            return;
+        }
+        const editable = source.editable && !options.readOnly;
+        const reason = options.readOnly && source.editable ? 'Opened for viewing; edit it from its Agents or Tasks page.' : source.reason;
+        let draft = editable ? state.bookDrafts.get(source.path) : undefined;
+        // A stale draft is offered as the content, but its base revision makes the save a visible conflict.
+        let revision = draft ? draft.revision : source.revision;
+        // Line endings are edited as LF and restored to the source's own style on save.
+        const crlf = source.text.includes('\r\n');
+        let baseline = source.text.replace(/\r\n/g, '\n');
+        let notice = draft ? (draft.revision === source.revision ? 'Restored your unsaved draft.' : 'Restored your unsaved draft; the Book changed meanwhile, so saving reports a conflict to reconcile.') : '';
+        let busy = false;
+        let closed = false;
+        const field = h('textarea', { className: 'book-source', 'aria-label': `Source of ${source.name || source.path}`, spellcheck: 'false', wrap: 'off', readonly: !editable });
+        field.value = draft ? draft.text : baseline;
+        const dirty = () => editable && field.value !== baseline;
+        // The kept draft follows the latest saved revision, also when a save finishes after the editor was closed.
+        const keepDraft = () => {
+            if (dirty()) state.bookDrafts.set(source.path, { text: field.value, revision });
+            else if (editable) state.bookDrafts.delete(source.path);
+        };
+        const status = h('p', { className: 'muted', role: 'status' });
+        const problems = h('div', {});
+        const saveButton = editable ? h('button', { className: 'primary', onclick: () => void save() }, 'Save') : null;
+        // Reconciling a stale draft: load the current source instead (the draft is dropped only on this choice).
+        const discard = h('button', {
+            onclick: async () => {
+                if (dirty() && !window.confirm('Discard your unsaved changes and load the current source?')) return;
+                try {
+                    source = await api(`/api/books?path=${encodeURIComponent(source.path)}`);
+                } catch (error) {
+                    notice = `Cannot reload: ${error.message}`;
+                    return show();
+                }
+                state.bookDrafts.delete(source.path);
+                draft = undefined;
+                baseline = source.text.replace(/\r\n/g, '\n');
+                field.value = baseline;
+                revision = source.revision;
+                notice = 'Loaded the current source.';
+                show();
+            },
+        }, 'Load current source');
+        const show = () => {
+            status.textContent = `${source.path}${editable ? ` · revision ${revision.slice(0, 8)}${dirty() ? ' · unsaved changes' : ''}` : ` · read-only${reason ? ` — ${reason}` : ''}`}${notice ? ` · ${notice}` : ''}`;
+            problems.replaceChildren(...bookProblems(source.diagnostics, field));
+            if (saveButton) saveButton.disabled = busy;
+            discard.hidden = !editable || (!draft && !notice.startsWith('Not saved'));
+        };
+        const save = async () => {
+            if (busy) return;
+            busy = true;
+            notice = 'Saving…';
+            show();
+            const edited = field.value;
+            try {
+                const outcome = await api('/api/books', { method: 'POST', body: { path: source.path, text: crlf ? edited.replace(/\n/g, '\r\n') : edited, revision } });
+                revision = outcome.revision;
+                source = { ...source, revision: outcome.revision, diagnostics: outcome.diagnostics };
+                baseline = edited;
+                draft = undefined;
+                keepDraft();
+                if (closed) toast(`Saved ${source.path}${outcome.commit ? ` (${outcome.commit.slice(0, 8)})` : ''}.`);
+                notice = outcome.unchanged ? 'Nothing changed; no commit.' : `Saved${outcome.commit ? ` and committed ${outcome.commit.slice(0, 8)}` : ' (not committed)'}${outcome.diagnostics.length ? ` with ${outcome.diagnostics.length} warning(s)${outcome.repair ? '; Fixer got a repair task' : '; Fixer already has a repair task'}` : ''}.`;
+            } catch (error) {
+                // Disk, permission, conflict or persistence failures keep the draft; they are not content warnings.
+                notice = `Not saved: ${error.message}`;
+                if (closed) toast(`${source.path} was not saved (${error.message}); your draft is kept.`);
+            } finally {
+                busy = false;
+                show();
+            }
+        };
+        const kind = source.kind === 'engine' ? 'Expert (engine-owned)' : source.kind === 'invalid' ? 'Book source' : `${source.kind[0].toUpperCase()}${source.kind.slice(1)} source`;
+        const dialog = h(
+            'dialog',
+            { className: 'book-dialog', 'aria-label': `${kind}: ${source.name || source.path}` },
+            h('h2', {}, h('span', {}, `${kind}: ${source.name || '(unnamed)'}`), h('span', { className: 'row' }, saveButton, discard, h('button', { onclick: () => dialog.close() }, 'Close'))),
+            status,
+            problems,
+            field,
+            h('p', { className: 'muted' }, editable ? 'Enter adds a line · Ctrl+S (⌘S) saves without closing · Esc closes and keeps unsaved changes' : 'Read-only · Esc closes'),
+        );
+        field.addEventListener('input', () => {
+            if (notice && !busy) notice = '';
+            show();
+        });
+        dialog.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 's') {
+                event.preventDefault();
+                if (editable) void save();
+                else {
+                    notice = reason || 'This Book is read-only here.';
+                    show();
+                }
+            }
+        });
+        dialog.addEventListener('close', () => {
+            closed = true;
+            keepDraft();
+            if (dirty() && !busy) toast(`Unsaved changes to ${source.path} are kept; open the Book again to continue.`);
+            dialog.remove();
+        });
+        show();
+        document.body.append(dialog);
+        dialog.showModal();
+        field.focus();
+        field.setSelectionRange(0, 0);
+    }
+
     /**
      * An owner-entry field with a native keyboard-accessible visibility button, starting in the input's own state
      * (username visible, password masked with the browser's typing feedback); never loads saved values.
@@ -2023,6 +2175,8 @@
                             : h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}`)),
                         // The task's question is the one in its chat: answering opens that conversation.
                         item.waitingChat ? h('button', { className: 'primary', onclick: () => openChat(item.waitingChat) }, 'Answer') : null,
+                        // Only a task with a project source has a Book to edit (a system task has none).
+                        item.kind !== 'system' && item.source ? h('button', { onclick: () => void openBook({ path: item.source }) }, 'Source') : null,
                         pill(item.readiness, tone[item.readiness]),
                     ),
                 ),
@@ -2047,6 +2201,8 @@
                         {},
                         h('span', { className: 'title row' }, badge(agent, true), agent.name, h('span', { className: 'why' }, `${ACTIVITY_LABEL[agent.activity] || agent.activity}${queued(agent) ? ` · ${queued(agent)} queued` : ''}${agent.role === 'engine' ? ' · engine-provided' : agent.role === 'core' ? ' · core' : ''}`)),
                         h('button', { onclick: () => ((state.newChatAgent = agent.name), (state.newChat = agent.name.toLowerCase() === 'chatter' ? 'chatter' : 'all'), (state.chat = null), openPage('chats'), showNewChatAgents()) }, 'Chat'),
+                        // The agent's Book: an editable project source, or the engine-owned Expert read-only.
+                        h('button', { onclick: () => void openBook({ reference: agentReference(agent.name) }) }, 'Book'),
                     ),
                 ),
             ),
@@ -2200,6 +2356,8 @@
         if (state.page) history.replaceState({ page: state.page }, '', `#/${state.page}`);
         window.addEventListener('popstate', () => {
             state.page = routeFromHash();
+            // Back/Forward into Tasks loads the current inventory, as opening the page does.
+            if (state.page === 'tasks') loadTasks(true);
             render(state.snapshot);
         });
         // The home grid follows the viewport (also when only its height changes).

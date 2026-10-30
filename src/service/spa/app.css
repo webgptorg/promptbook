@@ -847,6 +847,86 @@ details summary {
     padding-left: 28px;
 }
 
+/* Book editor: the literal source in a modal outside the live-updating page. */
+.book-dialog {
+    width: min(1100px, calc(100% - 32px));
+    height: min(900px, calc(100vh - 48px));
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+}
+
+.book-dialog[open] {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.book-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.book-dialog h2 {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 16px;
+}
+
+.book-dialog p {
+    margin: 0;
+}
+
+.book-source {
+    flex: 1;
+    min-height: 200px;
+    width: 100%;
+    resize: none;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    tab-size: 4;
+    white-space: pre;
+    overflow: auto;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.book-problems {
+    max-height: 140px;
+    overflow: auto;
+    margin: 4px 0 0;
+    padding-left: 4px;
+    list-style: none;
+    font-size: 13px;
+}
+
+button.link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+}
+
+@media (max-width: 600px) {
+    .book-dialog {
+        width: calc(100% - 16px);
+        height: calc(100vh - 16px);
+        padding: 10px;
+    }
+}
+
 /* History: the real topology lanes stay monospace beside the readable messages. */
 .list.history .graph {
     font-family: var(--mono, ui-monospace, monospace);
