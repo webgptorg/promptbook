@@ -175,16 +175,16 @@ test('engine self-update: a low-priority system task updates the local installat
     assert.equal(found.target, TARGET, 'a running prerelease moves to its stable release, not to 0.500.1-0 or 1.0.0');
     const pending = await status();
     const system = pending.queue.find((item) => item.ref === 'system:engine-update');
-    assert.equal(system?.kind, 'system');
+    assert.equal(system?.kind, 'engine');
     assert.equal(system.source, '', 'no fictitious project Book');
     assert.match(system.executor, /engine/);
     const inventory = await control('task-inventory');
-    assert.ok(inventory.some((item) => item.ref === 'system:engine-update' && item.kind === 'system'), 'the same task inventory lists the system task');
+    assert.ok(inventory.some((item) => item.ref === 'system:engine-update' && item.kind === 'engine'), 'the same task inventory lists the system task');
     // The CLI lists and details the same system task: its definition, executor and no source.
     const listed = JSON.parse((await run(bin, ['list', '--json'], { cwd: project, env })).output);
     assert.ok(listed.systemTasks.some((item) => item.ref === 'system:engine-update'), 'ptbk list shows the pending update');
     const detail = JSON.parse((await run(bin, ['list', 'system:engine-update', '--json'], { cwd: project, env })).output);
-    assert.equal(detail.kind, 'system');
+    assert.equal(detail.kind, 'engine');
     assert.equal(detail.definition, 'Engine self-update', 'the run names its durable engine definition');
     assert.equal(detail.retry, undefined, 'a first attempt is not a retry');
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -216,7 +216,7 @@ test('engine self-update: a low-priority system task updates the local installat
     assert.equal(finished?.readiness, 'done');
     assert.deepEqual(finished.runs.map((item) => [item.title, item.outcome]), [[`${FROM} → ${TARGET}`, 'completed']], 'the verified run is the system task evidence');
     const result = (await status()).results.recent.find((item) => item.ref === 'system:engine-update');
-    assert.deepEqual([result?.kind, result?.outcome, result?.title], ['system', 'completed', `Update Promptbook ${FROM} → ${TARGET}`], 'the run shares the results feed with ordinary task outcomes');
+    assert.deepEqual([result?.kind, result?.outcome, result?.title], ['engine', 'completed', `Update Promptbook ${FROM} → ${TARGET}`], 'the run shares the results feed with ordinary task outcomes');
 });
 
 test('engine self-update: a release this Node.js cannot run is skipped before installation and an older compatible one is installed', { timeout: 240_000 }, async (t) => {

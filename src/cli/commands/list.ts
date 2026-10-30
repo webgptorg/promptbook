@@ -71,18 +71,18 @@ async function inspectTask(context: CommandContext, project: Project, task: Task
 }
 
 /**
- * Engine-defined system tasks (e.g. the self-update) from the running engine's task inventory: they have no project
+ * Engine-owned tasks (e.g. the self-update) from the running engine's task inventory: they have no project
  * Book, so only the engine that defines them knows them. None when no compatible engine answers; never starts one.
  */
 async function liveSystemTasks(project: Project): Promise<TaskInventoryItem[]> {
     const lookup = await lookupService(project).catch(() => undefined);
     if (lookup?.state !== 'running' || !lookup.engine.compatible) return [];
     const inventory = await lookup.client.request<TaskInventoryItem[]>('task-inventory', {}, 10_000).catch(() => []);
-    return inventory.filter((item) => item.kind === 'system');
+    return inventory.filter((item) => item.kind === 'engine');
 }
 
 /**
- * Read-only inspection of one system task: kind, actual executor, definition, retry and recent runs. It has no
+ * Read-only inspection of one engine-owned task: kind, actual executor, definition, retry and recent runs. It has no
  * source, no trace directory and no task commits; its evidence is its own run history.
  */
 function inspectSystemTask(context: CommandContext, item: TaskInventoryItem): number {
@@ -92,7 +92,8 @@ function inspectSystemTask(context: CommandContext, item: TaskInventoryItem): nu
     }
     const lines = [
         `Task: ${item.title} (${item.ref})`,
-        `Kind: system task (engine-defined, no project Book) · executor ${item.executor ?? 'the engine'}`,
+        `Kind: engine-owned task (no project Book) · executor ${item.executor ?? 'the engine'}`,
+        `Purpose: ${item.purpose ?? 'undefined'}`,
         ...(item.definition ? [`Definition: ${item.definition}${item.origin ? ` (origin ${item.origin})` : ''}`] : []),
         `Priority: ${item.priorityText ?? item.priority}`,
         `Readiness: ${item.readiness} — ${item.reason}`,
@@ -107,7 +108,7 @@ function inspectSystemTask(context: CommandContext, item: TaskInventoryItem): nu
 
 /**
  * `ptbk list`: read-only queue with the same readiness explanations as execution, including the running engine's
- * system tasks.
+ * engine-owned tasks.
  *
  * @private command
  */
@@ -130,7 +131,7 @@ export default async function list(context: CommandContext): Promise<number> {
     const readyOnly = flag(context, 'ready') === true;
     const shown = (kind: string): boolean => (all || !['done', 'retired'].includes(kind)) && (!readyOnly || kind === 'ready' || kind === 'needs-assignment');
     const items = preview.evaluated.filter((item) => shown(item.readiness.kind));
-    // The same inventory as the dashboards: system tasks follow ordinary work (they have the lowest priority).
+    // The same inventory as the dashboards: engine-owned tasks follow ordinary work (they have the lowest priority).
     const systemItems = (await liveSystemTasks(project)).filter((item) => shown(item.readiness));
     if (flag(context, 'json')) {
         printJson({
@@ -158,6 +159,7 @@ export default async function list(context: CommandContext): Promise<number> {
                     modelRequirement: task.routing.model.explicit ? formatModelContent(task.routing.model) : undefined,
                     origin: task.origin,
                     kind: 'ordinary',
+                    purpose: task.purpose,
                     done: task.doneStamps,
                 };
             }),
@@ -170,7 +172,7 @@ export default async function list(context: CommandContext): Promise<number> {
     if (!terminal.pretty) {
         const lines = [`Tasks in ${project.root} (${items.length + systemItems.length})`];
         for (const { task, readiness } of items) lines.push(`[${readiness.kind}] ${task.title} (${task.ref}) priority ${describePriority(task.priority)} — ${readiness.reason}`);
-        for (const item of systemItems) lines.push(`[${item.readiness}] [system] ${item.title} (${item.ref}) priority ${item.priorityText ?? item.priority} — ${item.reason}`);
+        for (const item of systemItems) lines.push(`[${item.readiness}] [engine] ${item.title} (${item.ref}) priority ${item.priorityText ?? item.priority} — ${item.reason}`);
         for (const problem of preview.problems) lines.push(`Problem: ${problem}`);
         terminal.write(`${lines.join('\n')}\n`);
         return EXIT.success;
@@ -182,16 +184,18 @@ export default async function list(context: CommandContext): Promise<number> {
     for (const { task, readiness } of items) {
         const tone = readiness.kind === 'ready' ? style.success : ['blocked', 'failed', 'needs-recovery'].includes(readiness.kind) ? style.error : ['done', 'retired', 'placeholder', 'not-ready'].includes(readiness.kind) ? style.muted : style.warning;
         const priority = task.priority.value ? style.accent(`P${task.priority.value} `) : '';
-        lines.push(`${tone(fit(readiness.kind, kindWidth))} ${priority}${style.bold(truncate(task.title, width - kindWidth - 10))}`);
+        // Supporting system work is muted (presentation only; its scheduling is unchanged).
+        const title = truncate(task.title, width - kindWidth - 10);
+        lines.push(`${tone(fit(readiness.kind, kindWidth))} ${priority}${task.purpose === 'system' && readiness.kind !== 'awaiting-user' ? style.muted(title) : style.bold(title)}`);
         const route = preview.routes.get(task.ref);
         const routing = route?.kind === 'routable' ? ` · ${route.selection.agent} on ${route.selection.harness}${route.selection.model ? ` ${route.selection.model}` : ''}` : '';
         const when = readiness.kind === 'waiting-until' ? ` · ${formatShortTime(readiness.until)}` : '';
-        lines.push(style.muted(`${' '.repeat(kindWidth + 1)}${task.ref}${routing}${when}`));
+        lines.push(style.muted(`${' '.repeat(kindWidth + 1)}${task.ref}${routing}${when}${task.purpose ? ` · ${task.purpose}` : ''}`));
         lines.push(`${' '.repeat(kindWidth + 1)}${truncate(readiness.reason, width - kindWidth - 6)}`);
     }
     for (const item of systemItems) {
         const tone = item.readiness === 'active' ? style.success : item.readiness === 'failed' ? style.error : item.readiness === 'done' ? style.muted : style.warning;
-        lines.push(`${tone(fit(item.readiness, kindWidth))} ${style.accent('[system]')} ${style.bold(truncate(item.title, width - kindWidth - 19))}`);
+        lines.push(`${tone(fit(item.readiness, kindWidth))} ${style.muted(`[engine] ${truncate(item.title, width - kindWidth - 19)}`)}`);
         const when = item.until ? ` · ${formatShortTime(Date.parse(item.until))}` : '';
         lines.push(style.muted(`${' '.repeat(kindWidth + 1)}${item.ref} · ${item.executor ?? 'the engine'}${item.retry ? ` · retry ${item.retry}` : ''}${when}`));
         lines.push(`${' '.repeat(kindWidth + 1)}${truncate(item.reason, width - kindWidth - 6)}`);

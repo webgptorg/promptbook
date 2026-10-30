@@ -6,6 +6,7 @@ import { formatModelRow, modelOfDocument, parseModelRow, type ModelConstraint } 
 import { commitmentsOf, parseBook, singleValue, type BookDocument } from '../book/parse.js';
 import { nameKey, nameReference, type DeclaredStatus, type Task, type TaskDiagnostic } from './model.js';
 import { parsePriority } from './priority.js';
+import { taskPurposeOf } from './purpose.js';
 
 /**
  * Control commitments a task recognizes.
@@ -30,6 +31,7 @@ const TASK_CONTROLS = new Set([
     'TASK RUNNER',
     'TASK NOTE',
     'TASK ORIGIN',
+    'TASK PURPOSE',
 ]);
 
 /**
@@ -90,8 +92,11 @@ export function readTaskBook(options: TaskBookOptions): Task | undefined {
  */
 function taskFromDocument(document: BookDocument, options: TaskBookOptions): Task {
     const diagnostics: TaskDiagnostic[] = document.diagnostics
-        .filter((diagnostic) => !/later `TASK` line/.test(diagnostic.message))
+        // An unknown purpose value gets its own nonblocking diagnostic below.
+        .filter((diagnostic) => !/later `TASK` line/.test(diagnostic.message) && !/^Unknown commitment `TASK PURPOSE\b/.test(diagnostic.message))
         .map((diagnostic) => ({ line: diagnostic.line, message: diagnostic.message, severity: diagnostic.severity }));
+    const purpose = taskPurposeOf(document);
+    diagnostics.push(...purpose.diagnostics);
     const single = (keyword: string): string | undefined => {
         const result = singleValue(document, keyword);
         if (result.conflict) diagnostics.push({ line: result.conflict.line, message: result.conflict.message, severity: 'error' });
@@ -102,6 +107,7 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
         return result.value;
     };
     for (const commitment of document.commitments) {
+        if (commitment.definition.unknown && /^TASK PURPOSE\b/.test(commitment.keyword)) continue;
         if (commitment.definition.unknown && /^TASK /.test(commitment.keyword)) {
             diagnostics.push({ line: commitment.startLine + 1, message: `Unsupported task control \`${commitment.written}\`; it cannot be ignored, so the task is blocked.`, severity: 'error' });
         } else if (commitment.definition.scope === 'task' && commitment.definition.kind !== 'declaration' && !TASK_CONTROLS.has(commitment.keyword)) {
@@ -177,6 +183,7 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
             runners: commitmentsOf(document, 'TASK RUNNER').flatMap((commitment) => runnerSelectors(commitment.value)),
         },
         origin: single('TASK ORIGIN'),
+        ...(purpose.purpose ? { purpose: purpose.purpose } : {}),
         notes: commitmentsOf(document, 'TASK NOTE').map((note) => note.body),
         placeholder,
         diagnostics,

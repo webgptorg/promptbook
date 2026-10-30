@@ -22,6 +22,7 @@ import { appendBrief, findBrief, readLatestBrief, REPORT_AUTHOR, REPORT_FILE, RE
 import { classifySubject, readCommit, readHistory, type HistoryDetail, type HistoryView } from '../project/history.js';
 import { listFolder, readProjectFile, type FileView, type FolderView } from '../project/files.js';
 import { coreReconciliationDescription, prepareCoreAgents, type CorePreparation } from '../project/core-templates.js';
+import { isCoreAgent } from '../project/defaults.js';
 import { readUsage, summarizeUsage, type UsageFilter, type UsageGrouping, type UsageRow, type UsageSummary } from './usage.js';
 import { readPriceObservations } from './pricing.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
@@ -2782,6 +2783,7 @@ export class Agenda {
         }));
         this.inventory = evaluated.map(({ task, readiness }) => {
             const resolution = routeCache.get(task.ref);
+            const agent = resolution?.kind === 'routable' ? resolution.selection.agent : task.routing.agent;
             return {
                 ref: task.ref,
                 title: task.title,
@@ -2789,7 +2791,7 @@ export class Agenda {
                 reason: readiness.reason,
                 priority: task.priority.value,
                 priorityText: task.priority.raw ? describePriority(task.priority) : undefined,
-                agent: resolution?.kind === 'routable' ? resolution.selection.agent : task.routing.agent,
+                agent,
                 model: task.routing.model.explicit ? formatModelContent(task.routing.model) : undefined,
                 until: readiness.kind === 'waiting-until' ? new Date(readiness.until).toISOString() : readiness.kind === 'needs-assignment' && readiness.ahead?.until ? new Date(readiness.ahead.until).toISOString() : undefined,
                 repeat: task.repeatRaw,
@@ -2797,6 +2799,9 @@ export class Agenda {
                 doneCount: task.doneStamps.length,
                 source: task.source.relativePath,
                 origin: task.origin,
+                // Purpose and core provenance are independent descriptive properties (presentation only).
+                ...(task.purpose ? { purpose: task.purpose } : {}),
+                ...(agent && isCoreAgent(agent) ? { core: true } : {}),
                 ...(readiness.kind === 'awaiting-user' && readiness.chat !== 'checkpoint' && readiness.chat !== WALLET_WAIT ? { waitingChat: readiness.chat } : {}),
             } satisfies TaskInventoryItem;
         });

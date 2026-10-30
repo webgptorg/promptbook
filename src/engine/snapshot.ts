@@ -166,9 +166,11 @@ export type QueueItemView = {
     readonly source: string;
     readonly until?: string;
     readonly origin?: string;
-    /** `system`: an engine-defined task without a project Book; ordinary when absent. */
-    readonly kind?: 'ordinary' | 'system';
-    /** The actual executor of a system task. */
+    /** `engine`: an engine-owned task without a project Book; source-backed ordinary when absent. */
+    readonly kind?: 'ordinary' | 'engine';
+    /** Effective project-relative purpose (presentation only). */
+    readonly purpose?: 'content' | 'system';
+    /** The actual executor of an engine-owned task. */
     readonly executor?: string;
 };
 

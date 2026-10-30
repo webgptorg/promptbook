@@ -640,6 +640,16 @@ button:disabled {
     display: block;
 }
 
+/* Supporting system work: muted presentation, never a different schedule. */
+.list li.supporting .title {
+    color: var(--muted);
+}
+
+.list li.group-heading {
+    font-size: 12px;
+    padding-top: 14px;
+}
+
 .log {
     max-height: 280px;
     overflow: auto;

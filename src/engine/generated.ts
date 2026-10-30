@@ -11,6 +11,7 @@ import { LEGACY_EXECUTION_CONTROLS } from '../tasks/book-task.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
 import { generatedName } from '../tasks/identity.js';
 import type { Task } from '../tasks/model.js';
+import { appendTaskPurpose, parseTaskPurpose, type TaskPurpose } from '../tasks/purpose.js';
 import type { HarnessPool } from './harnesses.js';
 import { completeWithDefaults, routeConcrete, type RoutingContext } from './routing.js';
 import { taskBookInstructions } from './prompt.js';
@@ -178,7 +179,7 @@ async function agentCandidates(target: RoutingTarget, context: RoutingContext): 
  *
  * @private generated work
  */
-export type RoutingTarget = Pick<Task, 'routing' | 'priority'>;
+export type RoutingTarget = Pick<Task, 'routing' | 'priority'> & Partial<Pick<Task, 'source' | 'purpose'>>;
 
 /**
  * Router instructions for a human-led chat's first reply: the fixed conversational agent, its MODEL and the chat's,
@@ -233,6 +234,9 @@ export async function assignmentPrompt(options: { target: Task; context: Routing
         `The task's MODEL requirement: ${describeModel(target.routing.model)}${target.routing.legacyControls ? ' (from former TASK controls)' : ''}. Choose a combination that satisfies both the agent's MODEL and the task's MODEL; fields on one line apply together, lines are alternatives.`,
         target.routing.runners.length ? `Selector hints from the source (any of): ${target.routing.runners.map((selector) => `\`${selector}\``).join(' ')}.` : '',
         target.priority.raw && !target.priority.resolved ? `Its priority is written as "${target.priority.raw}"; interpret it as a nonnegative number (higher runs first, 0 is ordinary).` : '',
+        target.source.kind === 'book'
+            ? `Its TASK PURPOSE is ${target.purpose ? target.purpose.toUpperCase() : 'undefined'}. When the project's goals clearly support a different classification relative to this project (CONTENT: what the project is about; SYSTEM: supporting/service work enabling it; see the work-purpose knowledge in your context), add \`"purpose":"content"\` or \`"purpose":"system"\` with a short \`"purposeReason"\`; otherwise omit it (undefined is valid). Purpose is presentation only: it changes no priority, permission or executor, and never decide it from keywords or the executor alone.`
+            : '',
         '',
         target.routing.agent ? 'Responsible agent:' : 'Available project agents:',
         ...(agentLines.length ? agentLines : ['- (none usable)']),
@@ -255,7 +259,7 @@ export async function assignmentPrompt(options: { target: Task; context: Routing
  * @private generated work
  */
 export type AssignmentDecision =
-    | { readonly kind: 'route'; readonly agent?: string; readonly model: ModelRow; readonly priority?: number; readonly notes: readonly string[] }
+    | { readonly kind: 'route'; readonly agent?: string; readonly model: ModelRow; readonly priority?: number; readonly purpose?: { readonly value: TaskPurpose; readonly reason?: string }; readonly notes: readonly string[] }
     | { readonly kind: 'impossible'; readonly reason: string };
 
 /**
@@ -318,12 +322,16 @@ export async function validateAssignment(data: Readonly<Record<string, unknown>>
         priority = number;
         notes.push(`Priority "${target.priority.raw}" interpreted by Router as ${number}.`);
     }
-    return { ok: true, decision: { kind: 'route', agent: recordAgent, model: refined, priority, notes } };
+    // An optional purpose refinement; an unusable value is ignored rather than failing an otherwise valid routing.
+    const purposeValue = typeof data.purpose === 'string' ? parseTaskPurpose(data.purpose) : null;
+    const purpose = purposeValue && target.source?.kind === 'book' && purposeValue !== target.purpose ? { value: purposeValue, ...(typeof data.purposeReason === 'string' && data.purposeReason.trim() ? { reason: data.purposeReason.trim() } : {}) } : undefined;
+    return { ok: true, decision: { kind: 'route', agent: recordAgent, model: refined, priority, ...(purpose ? { purpose } : {}), notes } };
 }
 
 /**
  * Writes a validated Router decision into the target Book: TASK AGENT where missing and one refined MODEL replacing
- * the less specific one (and any former TASK HARNESS/MODEL/THINKING LEVEL); earlier values stay in Git only.
+ * the less specific one (and any former TASK HARNESS/MODEL/THINKING LEVEL); earlier values stay in Git only. A
+ * refined purpose is different: it is appended, so the Book itself keeps its earlier values.
  *
  * @private generated work
  */
@@ -334,6 +342,7 @@ export async function applyAssignment(target: Task, decision: Extract<Assignment
     source = replaceCommitments(source, ['MODEL', ...LEGACY_EXECUTION_CONTROLS], renderModelLines({ rows: [decision.model], explicit: true }), { after: 'TASK AGENT' });
     if (decision.priority !== undefined) source = setControlCommitment(source, 'TASK PRIORITY', String(decision.priority));
     for (const note of decision.notes) source = appendCommitment(source, 'TASK NOTE', note);
+    if (decision.purpose) source = appendTaskPurpose(source, decision.purpose.value, decision.purpose.reason ? `Router: ${decision.purpose.reason}` : undefined);
     await writeFile(target.source.path, source);
 }
 

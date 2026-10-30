@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { parseBook } from '../dist/book/parse.js';
 import { UNCONSTRAINED, constraintAllows, describeModel, determinedRow, formatModelContent, intersectModels, isImpossible, modelOfDocument, parseModelRow } from '../dist/book/model.js';
-import { describeTaskFilter, filterTasks, isTaskFilterActive, smartTaskOrder, sortTasks, taskFilterChoices } from '../dist/tasks/views.js';
+import { describeTaskFilter, filterTasks, groupSupportingWork, isTaskFilterActive, smartTaskOrder, sortTasks, taskFilterChoices } from '../dist/tasks/views.js';
 import { RichInput } from '../dist/ui/rich-input.js';
 
 /** Every harness has a thinking control in these checks. */
@@ -77,16 +77,37 @@ test('task views: user-selected filters by status, agent, kind and text never hi
         item('Write docs', 'ready', { agent: '@Developer' }),
         item('Old report', 'done', { agent: '{Writer}', lastDone: '2025-01-01T00:00:00Z', doneCount: 1 }),
         item('Ship release', 'waiting-until', { agent: 'Developer', until: '2099-01-01T00:00:00Z', reason: 'Not before the release date' }),
-        item('Update the engine 0.1.0 → 0.2.0', 'waiting-until', { kind: 'system', source: '', executor: 'the engine' }),
+        item('Update the engine 0.1.0 → 0.2.0', 'waiting-until', { kind: 'engine', purpose: 'system', source: '', executor: 'the engine' }),
     ];
     assert.deepEqual(filterTasks(items, { agent: 'developer' }).map((entry) => entry.title), ['Write docs', 'Ship release'], '@Name, {Name} and Name are the same agent');
     assert.deepEqual(filterTasks(items, { readiness: 'waiting-until', kind: 'ordinary' }).map((entry) => entry.title), ['Ship release'], 'every given field must match');
-    assert.deepEqual(filterTasks(items, { kind: 'system' }).map((entry) => entry.title), ['Update the engine 0.1.0 → 0.2.0']);
+    assert.deepEqual(filterTasks(items, { kind: 'engine' }).map((entry) => entry.title), ['Update the engine 0.1.0 → 0.2.0']);
+    assert.deepEqual(filterTasks(items, { purpose: 'undefined' }).length, 3, 'unclassified tasks are selectable without inferring a purpose');
     assert.deepEqual(filterTasks(items, { text: 'RELEASE DATE' }).map((entry) => entry.title), ['Ship release'], 'text matches the status reason case-insensitively');
     assert.equal(filterTasks(items, {}).length, items.length, 'an empty filter keeps the complete inventory, completed history included');
     assert.equal(isTaskFilterActive({ text: '  ' }), false);
     assert.equal(describeTaskFilter({ readiness: 'done', agent: 'Writer' }), 'status done, agent Writer');
-    assert.deepEqual(taskFilterChoices(items), { readiness: ['done', 'ready', 'waiting-until'], agents: ['@Developer', '{Writer}'], kinds: ['ordinary', 'system'] });
+    assert.deepEqual(taskFilterChoices(items), { readiness: ['done', 'ready', 'waiting-until'], agents: ['@Developer', '{Writer}'], kinds: ['ordinary', 'engine'], purposes: ['system', 'undefined'] });
+});
+
+test('task views: supporting system work is a lower collapsed group; content and unclassified work stay first and a human request on system work stays visible', () => {
+    const item = (title, readiness, extra = {}) => ({ ref: `{${title}}`, title, readiness, reason: '', priority: 0, doneCount: 0, source: `tasks/${title}.book`, ...extra });
+    const ordered = [
+        item('Install the XML parser', 'active', { purpose: 'system', agent: '@Developer' }),
+        item('File VAT', 'ready', { purpose: 'content', agent: '@Accountant' }),
+        item('Teach a domain distinction', 'ready', { purpose: 'content', agent: '@Teacher', core: true }),
+        item('Route the parser task', 'awaiting-user', { purpose: 'system', agent: '@Router', core: true }),
+        item('Unclassified note', 'ready'),
+        item('Update Promptbook 1 → 2', 'not-ready', { kind: 'engine', purpose: 'system', source: '' }),
+    ];
+    const hidden = groupSupportingWork(ordered, { showSupporting: false });
+    assert.deepEqual(hidden.items.map((entry) => entry.title), ['File VAT', 'Teach a domain distinction', 'Route the parser task', 'Unclassified note'], 'content work by a core agent stays prominent; a question on system work stays conspicuous');
+    assert.equal(hidden.supporting, 2);
+    assert.equal(hidden.firstSupporting, undefined, 'collapsed by default');
+    const shown = groupSupportingWork(ordered, { showSupporting: true });
+    assert.deepEqual(shown.items.slice(shown.firstSupporting).map((entry) => entry.title), ['Install the XML parser', 'Update Promptbook 1 → 2'], 'shown below, in the same chosen order');
+    assert.equal(groupSupportingWork(ordered, { showSupporting: false, filter: { purpose: 'system' } }).items.length, ordered.length, 'a purpose filter lists exactly what it asks for');
+    assert.equal(ordered[0].title, 'Install the XML parser', 'a presentation never reorders the inventory itself');
 });
 
 test('rich input: one implementation with flow and source policies (Enter submits or inserts a line, Ctrl+S saves)', async () => {

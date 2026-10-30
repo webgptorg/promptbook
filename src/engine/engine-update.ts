@@ -423,7 +423,9 @@ export class EngineUpdater {
             priority: ENGINE_UPDATE_PRIORITY,
             priorityText: 'lowest (system)',
             source: '',
-            kind: 'system' as const,
+            kind: 'engine' as const,
+            // Engine-owned maintenance is supporting work of every project.
+            purpose: 'system' as const,
             executor: 'Promptbook engine (deterministic update, no agent)',
             origin: 'system: engine self-update',
             definition: ENGINE_UPDATE_DEFINITION,
@@ -448,7 +450,7 @@ export class EngineUpdater {
      */
     public resultViews(): ResultView[] {
         return (this.record.runs ?? (this.record.lastOutcome ? [this.record.lastOutcome] : []))
-            .map((run) => ({ ref: ENGINE_UPDATE_REF, title: `Update Promptbook ${run.from} → ${run.to}`, outcome: run.outcome === 'verified' ? 'completed' : 'failed', summary: run.detail, endedAt: run.at, attempts: 1, kind: 'system' }))
+            .map((run) => ({ ref: ENGINE_UPDATE_REF, title: `Update Promptbook ${run.from} → ${run.to}`, outcome: run.outcome === 'verified' ? 'completed' : 'failed', summary: run.detail, endedAt: run.at, attempts: 1, kind: 'engine' }))
             .reverse();
     }
 
@@ -456,7 +458,7 @@ export class EngineUpdater {
     public queueItem(): QueueItemView | undefined {
         const item = this.inventoryItem();
         if (!item || item.readiness === 'done' || item.readiness === 'failed') return undefined;
-        return { ref: item.ref, title: item.title, readiness: item.readiness, reason: item.reason, priority: item.priority, priorityText: item.priorityText, source: '', origin: item.origin, kind: 'system', executor: item.executor, ...(item.until ? { until: item.until } : {}) };
+        return { ref: item.ref, title: item.title, readiness: item.readiness, reason: item.reason, priority: item.priority, priorityText: item.priorityText, source: '', origin: item.origin, kind: 'engine', purpose: 'system', executor: item.executor, ...(item.until ? { until: item.until } : {}) };
     }
 
     /** When the next release lookup is due (undefined when lookups do not apply). */

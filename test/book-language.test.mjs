@@ -8,6 +8,7 @@ import { findAgentReferences, formatAgentReference, invalidReferenceMessage, nor
 import { declarationName, renderCommitment, renderDeclaration } from '../dist/book/write.js';
 import { generatedName } from '../dist/tasks/identity.js';
 import { readTaskBook, splitTaskReferences } from '../dist/tasks/book-task.js';
+import { appendTaskPurpose } from '../dist/tasks/purpose.js';
 
 test('typed declarations: AGENT, TASK and CHAT open a Book and give kind and name with one grammar, without location hints', () => {
     const agent = parseBook('\n\nAGENT Frontend Developer\nPERSONA You build interfaces.\nGOAL Ship it.');
@@ -146,6 +147,27 @@ test('task Books: TASK declares the name, GOAL the work; malformed controls bloc
     const legacy = read('Plain name in the tasks folder\n\nThe folder once supplied the kind.');
     assert.equal(legacy.title, 'Plain name in the tasks folder', 'former syntax is listed, never dispatched');
     assert.ok(legacy.diagnostics.some((diagnostic) => diagnostic.severity === 'error' && /ptbk migrate/.test(diagnostic.message)));
+});
+
+test('TASK PURPOSE: appended transitions with the last valid value effective; literal text, no-ops and unknown values change nothing', () => {
+    const read = (source) => readTaskBook({ source, path: '/p/tasks/a.book', relativePath: 'tasks/a.book', order: 0, timeZone: 'UTC' });
+    const base = 'TASK Prepare accounting export - 2026-10-30 09:30:00\nGOAL Prepare the agreed export.\n';
+    assert.equal(read(base).purpose, undefined, 'existing Books stay valid without a purpose');
+    let source = appendTaskPurpose(base, undefined);
+    assert.equal(source, base, 'an unclassified task stays unclassified without writing UNDEFINED');
+    source = appendTaskPurpose(source, 'content');
+    assert.equal(appendTaskPurpose(source, 'content'), source, 'an unchanged purpose appends nothing');
+    source = appendTaskPurpose(source, 'system', 'This project only needs the export as internal service infrastructure.');
+    assert.match(source, /TASK PURPOSE CONTENT\nTASK NOTE This project only needs the export as internal service infrastructure.\nTASK PURPOSE SYSTEM\n$/, 'the earlier value stays in the Book');
+    const task = read(source);
+    assert.equal(task.purpose, 'system');
+    assert.deepEqual(task.diagnostics, []);
+    assert.equal(read(`${source}TASK PURPOSE UNDEFINED\n`).purpose, undefined, 'UNDEFINED removes the earlier classification');
+    assert.equal(read(`${source}\`\`\`\nTASK PURPOSE CONTENT\n\`\`\`\n`).purpose, 'system', 'literal content is not metadata');
+    const unknown = read(`${source}TASK PURPOSE OTHER\n`);
+    assert.equal(unknown.purpose, 'system', 'an unknown value keeps the earlier valid one');
+    assert.deepEqual(unknown.diagnostics.map((diagnostic) => diagnostic.severity), ['warning'], 'and is nonblocking');
+    assert.equal(read(`${base}TASK PURPOSE content\n`).purpose, 'content');
 });
 
 test('generated names: readable title plus creation date/time, distinct after normalization, representable after the keyword', () => {

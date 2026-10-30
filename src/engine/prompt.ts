@@ -102,7 +102,7 @@ export function taskBookInstructions(tasksDirectory: string, creationStamp: stri
     return [
         `write each new task as its own Book at the top level of \`${tasksDirectory}/\`, named \`${creationStamp.slice(0, 10)}-<short-slug>.book\`.`,
         `Start it with \`TASK <readable title> — ${creationStamp}\` (the creation date/time is part of the task's name; do not begin the title with an all-uppercase word),`,
-        'then `GOAL <intended result and constraints>` (more lines may follow), then optional `TASK AGENT @Name`, `TASK PRIORITY <n>`, `TASK AFTER <ISO date>` and `LINK {Other Book name}`.',
+        'then `GOAL <intended result and constraints>` (more lines may follow), then optional `TASK AGENT @Name`, `TASK PRIORITY <n>`, `TASK AFTER <ISO date>`, `TASK PURPOSE CONTENT|SYSTEM` (relative to this project: CONTENT is what the project is about, SYSTEM supporting work enabling it; omit it when the context does not support a useful judgment) and `LINK {Other Book name}`.',
         'Every name must differ from all existing agents, tasks and chats (ignoring case, accents and separators); never mark new tasks done.',
     ].join(' ');
 }

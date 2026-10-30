@@ -1083,9 +1083,11 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 } else if (key === 'r') page.filter = { ...page.filter, readiness: cycle(choices.readiness, page.filter.readiness) };
                 else if (key === 'g') page.filter = { ...page.filter, agent: cycle(choices.agents, page.filter.agent) };
                 else if (key === 'k') page.filter = { ...page.filter, kind: cycle(choices.kinds, page.filter.kind) };
+                else if (key === 'p') page.filter = { ...page.filter, purpose: cycle(choices.purposes, page.filter.purpose) };
+                else if (key === 'w') page.showSupporting = !page.showSupporting;
                 else if (key === 'x') page.filter = {};
                 else if (key === 't') void chatWith('Tasker');
-                // Only a task with a project source has a Book to edit (a system task has none).
+                // Only a task with a project source has a Book to edit (an engine-owned task has none).
                 else if (key === 'e' && task?.source) void openBook({ path: task.source });
                 // One question, one answer: the task's pending question opens in its chat.
                 else if (key === 'a' && task?.waitingChat) {

@@ -38,7 +38,7 @@
         /** Meaningful interactions with this page (keys, clicks) since it opened. */
         interactions: 0,
         /** The complete task inventory in the viewer's chosen order (loaded on the Tasks page). */
-        tasks: { items: null, sort: 'smart', descending: false, filter: { text: '', readiness: '', agent: '', kind: '' }, total: 0, choices: null, revision: -1, request: 0 },
+        tasks: { items: null, sort: 'smart', descending: false, filter: { text: '', readiness: '', agent: '', kind: '', purpose: '' }, showSupporting: false, supporting: 0, firstSupporting: null, total: 0, choices: null, revision: -1, request: 0 },
         /** Health remediation preview and swap plan shown on the Health page. */
         healthCache: null,
         healthSwap: null,
@@ -1006,7 +1006,7 @@
                 h('button', { className: update.policy.isAutoUpdateEnabled ? '' : 'primary', onclick: () => updateAction({ action: 'policy', isAutoUpdateEnabled: !update.policy.isAutoUpdateEnabled }, `Turning automatic engine updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}…`) }, `Turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}`),
                 update.isSupported ? h('button', { onclick: () => updateAction({ action: 'check' }, 'Looking up engine releases…') }, 'Check now') : null)),
             h('dl', { className: 'kv' }, rows.flatMap(([label, value]) => [h('dt', {}, label), h('dd', {}, value)])),
-            update.target ? h('p', { className: 'muted' }, 'A pending update is a low-priority system task in Tasks; ordinary work goes first and a manual pause or stop holds it.') : null);
+            update.target ? h('p', { className: 'muted' }, 'A pending update is a low-priority engine-owned task in Tasks; ordinary work goes first and a manual pause or stop holds it.') : null);
     }
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
@@ -2188,6 +2188,8 @@
             const query = new URLSearchParams({ sort: state.tasks.sort });
             if (state.tasks.descending) query.set('descending', '1');
             for (const [field, value] of Object.entries(state.tasks.filter)) if (value.trim()) query.set(field, value.trim());
+            // The engine groups supporting system work below content work (collapsed unless shown).
+            query.set('supporting', state.tasks.showSupporting ? 'show' : 'hide');
             const request = ++state.tasks.request;
             const result = await api(`/api/tasks?${query}`);
             // A slower answer to an earlier filter never replaces the current one.
@@ -2196,6 +2198,8 @@
             // An older engine filters nothing and reports neither the total nor the choices.
             state.tasks.total = typeof result.total === 'number' ? result.total : result.tasks.length;
             state.tasks.choices = result.choices || null;
+            state.tasks.supporting = result.supporting || 0;
+            state.tasks.firstSupporting = typeof result.firstSupporting === 'number' ? result.firstSupporting : null;
         } catch (error) {
             toast(`Tasks unavailable: ${error.message}`);
         }
@@ -2225,7 +2229,7 @@
         else loadTasks(true);
     }
 
-    /** Filter controls of the Tasks page: text and the status, agent and kind values present in the inventory. */
+    /** Filter controls of the Tasks page: text and the status, agent, kind and purpose values present in the inventory. */
     function taskFilterControls() {
         const choices = state.tasks.choices;
         const filter = state.tasks.filter;
@@ -2246,7 +2250,8 @@
             find,
             select('readiness', 'Status', 'Any status', choices && choices.readiness),
             select('agent', 'Agent', 'Any agent', choices && choices.agents),
-            select('kind', 'Kind', 'Ordinary and system', choices && choices.kinds),
+            select('kind', 'Kind', 'Source-backed and engine-owned', choices && choices.kinds),
+            select('purpose', 'Purpose', 'Any purpose', choices && choices.purposes),
             isTaskFilterActive() ? h('button', { onclick: clearTaskFilter }, 'Clear filter') : null,
         );
     }
@@ -2254,7 +2259,7 @@
     /** Clears the viewer's task filter: every task (distant and completed ones included) is shown again. */
     function clearTaskFilter() {
         clearTimeout(taskFindTimer);
-        state.tasks.filter = { text: '', readiness: '', agent: '', kind: '' };
+        state.tasks.filter = { text: '', readiness: '', agent: '', kind: '', purpose: '' };
         loadTasks(true);
     }
 
@@ -2267,9 +2272,11 @@
         const direction = h('button', { onclick: () => ((state.tasks.descending = !state.tasks.descending), loadTasks(true)) }, state.tasks.descending ? 'Descending' : 'Ascending');
         // Talking to Tasker is the main authoring action (the ordinary chat); sorting is only a view.
         const tasker = h('button', { className: 'primary', onclick: () => chatWithAgent('Tasker') }, 'Talk to Tasker');
+        // Supporting system work is muted and grouped lower; this shows or collapses that group (presentation only).
+        const supporting = state.tasks.supporting ? h('button', { 'aria-pressed': String(state.tasks.showSupporting), onclick: () => ((state.tasks.showSupporting = !state.tasks.showSupporting), loadTasks(true)) }, state.tasks.showSupporting ? 'Hide system work' : `Show system work (${state.tasks.supporting})`) : null;
         const filtered = isTaskFilterActive();
         const count = !state.tasks.items ? 'All tasks (…)' : filtered ? `Tasks (${state.tasks.items.length} of ${state.tasks.total})` : `All tasks (${state.tasks.items.length})`;
-        card.append(h('h2', {}, h('span', {}, count), h('span', { className: 'row' }, tasker, h('label', {}, 'Sort ', sort), direction)), taskFilterControls());
+        card.append(h('h2', {}, h('span', {}, count), h('span', { className: 'row' }, tasker, supporting, h('label', {}, 'Sort ', sort), direction)), taskFilterControls());
         if (!state.tasks.items) {
             card.append(h('p', { className: 'muted' }, 'Loading the task inventory…'));
             return pageFrame('tasks', 'Every task in every state', card);
@@ -2279,35 +2286,38 @@
             h(
                 'ul',
                 { className: 'list' },
-                state.tasks.items.map((item) =>
+                state.tasks.items.flatMap((item, index) => [
+                    index === state.tasks.firstSupporting ? h('li', { className: 'group-heading muted' }, `Supporting system work (${state.tasks.supporting}) — muted, scheduled as usual`) : null,
                     h(
                         'li',
-                        {},
-                        // An engine-defined system task shows its kind and actual executor instead of a project source.
-                        item.kind === 'system'
+                        // Supporting system work is muted; a human request on it stays conspicuous.
+                        { className: item.purpose === 'system' && item.readiness !== 'awaiting-user' ? 'supporting' : '' },
+                        // An engine-owned task shows its kind and actual executor instead of a project source.
+                        item.kind === 'engine'
                             ? h(
                                   'span',
                                   { className: 'title' },
-                                  pill('system', ''),
+                                  pill('engine', ''),
                                   ' ',
                                   item.title,
                                   // Definition, this run's retry and the latest finished run stay distinct.
                                   h('span', { className: 'why' }, `${item.reason} · ${item.executor || 'the engine'}${item.priorityText ? ` · ${item.priorityText} priority` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''}`),
                                   item.definition ? h('span', { className: 'why' }, `Run of "${item.definition}"${item.retry ? ` · retry ${item.retry} after failed runs` : ''}${item.runs && item.runs.length ? ` · last run ${item.runs[0].title} ${item.runs[0].outcome} ${time(item.runs[0].at)}` : ''}`) : null,
                               )
-                            : h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}`)),
+                            : h('span', { className: 'title' }, item.title, h('span', { className: 'why' }, `${item.reason}${item.agent ? ` · ${item.agent}` : ''}${item.core ? ' (core)' : ''}${item.priority ? ` · priority ${item.priority}` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${item.until ? ` · next ${time(item.until)}` : item.lastDone ? ` · done ${time(item.lastDone)}` : ''} · ${item.source}${item.purpose ? ` · ${item.purpose}` : ''}`)),
                         // The task's question is the one in its chat: answering opens that conversation.
                         item.waitingChat ? h('button', { className: 'primary', onclick: () => openChat(item.waitingChat) }, 'Answer') : null,
-                        // Only a task with a project source has a Book to edit (a system task has none).
-                        item.kind !== 'system' && item.source ? h('button', { onclick: () => void openBook({ path: item.source }) }, 'Source') : null,
+                        // Only a task with a project source has a Book to edit (an engine-owned task has none).
+                        item.kind !== 'engine' && item.source ? h('button', { onclick: () => void openBook({ path: item.source }) }, 'Source') : null,
                         pill(item.readiness, tone[item.readiness]),
                     ),
-                ),
+                ]),
             ),
         );
+        if (state.tasks.supporting && state.tasks.firstSupporting === null && !state.tasks.filter.purpose) card.append(h('p', { className: 'muted' }, `${state.tasks.supporting} supporting system task${state.tasks.supporting === 1 ? '' : 's'} hidden. `, h('button', { className: 'link', onclick: () => ((state.tasks.showSupporting = true), loadTasks(true)) }, 'Show system work'), '.'));
         // Filtering is a view only: clearing it makes every task reachable again.
         if (!state.tasks.items.length && filtered) card.append(h('p', { className: 'muted' }, `No task matches the filter. `, h('button', { className: 'link', onclick: clearTaskFilter }, `Clear it to show all ${state.tasks.total} tasks`), '.'));
-        else if (!state.tasks.items.length) card.append(h('p', { className: 'muted' }, 'No tasks yet. Talk to Tasker to create one.'));
+        else if (!state.tasks.items.length && !state.tasks.supporting) card.append(h('p', { className: 'muted' }, 'No tasks yet. Talk to Tasker to create one.'));
         return pageFrame('tasks', 'Viewer order and filter only — they never change engine scheduling', card);
     }
 

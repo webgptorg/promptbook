@@ -3,7 +3,7 @@ import { formatShortTime } from '../common/time.js';
 import type { CachePreview, SwapPlan } from '../engine/health.js';
 import { formatBytes, formatMiB } from '../engine/health.js';
 import type { CurrentWorkView, ServiceSnapshot } from '../engine/snapshot.js';
-import { TASK_SORT_FIELDS, describeTaskFilter, filterTasks, isTaskFilterActive, sortTasks, type TaskFilter, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
+import { TASK_SORT_FIELDS, describeTaskFilter, filterTasks, groupSupportingWork, isSupportingWork, isTaskFilterActive, sortTasks, type TaskFilter, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
 import { terminalSafe, truncate, wrap } from './ansi.js';
 import { activityLabel, framedBadge, inlineBadge, type BadgeActivity } from './badges.js';
 import {
@@ -86,7 +86,7 @@ export type DashboardPage =
     | { readonly kind: 'tool'; scroll: number; readonly name: string }
     | { readonly kind: 'agents'; scroll: number; focus: number; selected?: string; detail: boolean; sort: TeamSortField }
     | { readonly kind: 'chats'; scroll: number; focus: number; selected?: string }
-    | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; filter: TaskFilter; detail: boolean }
+    | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; filter: TaskFilter; detail: boolean; showSupporting: boolean }
     | { readonly kind: 'results'; scroll: number; follow: boolean }
     | { readonly kind: 'usage'; scroll: number; focus: number; selected?: string; grouping: UsagePageGrouping; inclusive: boolean; filter: UsageFilter; view?: UsageSummary; problem?: string }
     | { readonly kind: 'actions'; scroll: number; focus: number; selected?: string }
@@ -185,7 +185,7 @@ export function pageForTile(tile: HomeTile): DashboardPage {
         case 'chats':
             return { kind: 'chats', scroll: 0, focus: 0 };
         case 'tasks':
-            return { kind: 'tasks', scroll: 0, focus: 0, sort: 'smart', descending: false, filter: {}, detail: false };
+            return { kind: 'tasks', scroll: 0, focus: 0, sort: 'smart', descending: false, filter: {}, detail: false, showSupporting: false };
         case 'results':
             return { kind: 'results', scroll: Number.MAX_SAFE_INTEGER, follow: true };
         case 'usage':
@@ -264,12 +264,23 @@ export function teamOrder(snapshot: ServiceSnapshot, sort: TeamSortField, invent
 }
 
 /**
- * The viewer's current task order.
+ * The viewer's current task presentation: filtered and ordered, content and unclassified work first, supporting
+ * system work as a lower group collapsed unless shown.
+ *
+ * @private terminal dashboard pages
+ */
+export function taskPresentation(context: Pick<PageContext, 'snapshot' | 'inventory'>, page: Extract<DashboardPage, { kind: 'tasks' }>): ReturnType<typeof groupSupportingWork> {
+    const ordered = sortTasks(filterTasks(context.inventory ?? [], page.filter), page.sort, page.descending, Date.parse(context.snapshot.observedAt));
+    return groupSupportingWork(ordered, { showSupporting: page.showSupporting, filter: page.filter });
+}
+
+/**
+ * The viewer's current task order (the rows the focus moves through).
  *
  * @private terminal dashboard pages
  */
 export function taskOrder(context: Pick<PageContext, 'snapshot' | 'inventory'>, page: Extract<DashboardPage, { kind: 'tasks' }>): TaskInventoryItem[] {
-    return sortTasks(filterTasks(context.inventory ?? [], page.filter), page.sort, page.descending, Date.parse(context.snapshot.observedAt));
+    return taskPresentation(context, page).items;
 }
 
 /**
@@ -611,19 +622,25 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
         }
         case 'tasks': {
             if (!context.inventory) return { title: 'Tasks', context: 'Loading the complete task inventory…', body: [style.muted('Loading…')], legend: back };
-            const items = taskOrder(context, page);
+            const presentation = taskPresentation(context, page);
+            const items = presentation.items;
             const body: string[] = [];
             let anchor = 0;
             items.forEach((item, index) => {
                 const when = item.until ? `next ${formatShortTime(Date.parse(item.until))}` : item.lastDone ? `done ${formatShortTime(Date.parse(item.lastDone))}` : '';
+                if (index === presentation.firstSupporting) body.push('', style.muted(`Supporting system work (${presentation.supporting}) · muted, scheduled as usual · W hides it`));
                 if (index === page.focus) anchor = body.length;
-                const system = item.kind === 'system';
-                body.push(`${pointer(index === page.focus)} ${style.muted(item.readiness.padEnd(16).slice(0, 16))} ${system ? `${style.accent('[system]')} ` : ''}${item.title}${style.muted(`${item.agent ? ` · ${item.agent}` : ''}${item.priority && !system ? ` · P${item.priority}` : ''}${system && item.priorityText ? ` · ${item.priorityText} priority` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${when ? ` · ${when}` : ''}`)}`);
+                const engine = item.kind === 'engine';
+                // Supporting system work is muted; a human request on it stays conspicuous.
+                const title = isSupportingWork(item) ? style.muted(item.title) : item.title;
+                body.push(`${pointer(index === page.focus)} ${style.muted(item.readiness.padEnd(16).slice(0, 16))} ${engine ? `${style.muted('[engine]')} ` : ''}${title}${style.muted(`${item.agent ? ` · ${item.agent}` : ''}${item.priority && !engine ? ` · P${item.priority}` : ''}${engine && item.priorityText ? ` · ${item.priorityText} priority` : ''}${item.repeat ? ` · every ${item.repeat}` : ''}${when ? ` · ${when}` : ''}`)}`);
                 if (index === page.focus && page.detail) {
                     body.push(
                         `    ${style.muted('Status')} ${item.readiness} — ${item.reason}`,
-                        // A system task is engine-defined: its actual executor instead of a (nonexistent) source Book.
-                        system ? `    ${style.muted('Kind  ')} system task · executor ${item.executor ?? 'the engine'}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}` : `    ${style.muted('Source')} ${item.source}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}`,
+                        // An engine-owned task has its actual executor instead of a (nonexistent) source Book.
+                        engine ? `    ${style.muted('Kind  ')} engine-owned task · executor ${item.executor ?? 'the engine'}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}` : `    ${style.muted('Source')} ${item.source}${item.origin ? style.muted(` · origin ${item.origin}`) : ''}`,
+                        // Ownership, purpose and core provenance are independent properties.
+                        `    ${style.muted('Purpose')} ${item.purpose ?? 'undefined'}${item.core ? style.muted(' · core agent work') : ''}`,
                         ...(item.model ? [`    ${style.muted('MODEL ')} ${item.model.replace(/\n/g, ' | ')}`] : []),
                         // Definition, this run and its retry stay distinct; finished runs are the system task's own evidence.
                         ...(item.definition ? [`    ${style.muted('Runs  ')} of the definition "${item.definition}"${item.retry ? ` · this is retry ${item.retry} after failed runs` : ''}${item.runs?.length ? '' : style.muted(' · none finished yet')}`] : []),
@@ -636,13 +653,14 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             });
             // Filtering is a view only: clearing it makes every task (distant and completed ones included) reachable again.
             const filtered = isTaskFilterActive(page.filter);
-            if (!items.length) body.push(style.muted(filtered ? `No task matches ${describeTaskFilter(page.filter)}; X clears the filter and shows all ${context.inventory.length} tasks.` : 'No tasks yet; press T to talk to Tasker.'));
+            if (!items.length && !presentation.supporting) body.push(style.muted(filtered ? `No task matches ${describeTaskFilter(page.filter)}; X clears the filter and shows all ${context.inventory.length} tasks.` : 'No tasks yet; press T to talk to Tasker.'));
+            if (presentation.supporting && presentation.firstSupporting === undefined) body.push('', style.muted(`Supporting system work: ${presentation.supporting} task${presentation.supporting === 1 ? '' : 's'} (W shows ${presentation.supporting === 1 ? 'it' : 'them'})`));
             return {
                 title: 'Tasks',
-                context: `${filtered ? `${items.length} of ${context.inventory.length} tasks · filtered by ${describeTaskFilter(page.filter)}` : `${items.length} tasks`} · ${page.sort === 'smart' ? 'smart order: current, coming up, recent, distant, history' : `sorted by ${page.sort}`}${page.descending ? ' (reversed)' : ''} · viewer order only, never scheduling`,
+                context: `${filtered ? `${items.length} of ${context.inventory.length} tasks · filtered by ${describeTaskFilter(page.filter)}` : `${items.length} tasks${presentation.supporting && presentation.firstSupporting === undefined ? ` + ${presentation.supporting} supporting` : ''}`} · ${page.sort === 'smart' ? 'smart order: current, coming up, recent, distant, history' : `sorted by ${page.sort}`}${page.descending ? ' (reversed)' : ''} · viewer order only, never scheduling`,
                 body,
                 anchor,
-                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}${items[page.focus]?.source ? 'E edit source · ' : ''}S sort (${TASK_SORT_FIELDS.length}) · D reverse · F find · R status · G agent · K kind${filtered ? ' · X clear filter' : ''} · T Tasker · ${back}`,
+                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}${items[page.focus]?.source ? 'E edit source · ' : ''}S sort (${TASK_SORT_FIELDS.length}) · D reverse · F find · R status · G agent · K kind · P purpose · W ${page.showSupporting ? 'hide' : 'show'} system work${filtered ? ' · X clear filter' : ''} · T Tasker · ${back}`,
             };
         }
         case 'results': {

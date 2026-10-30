@@ -276,7 +276,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         return lines;
     };
     const taskLines = (inner: number): string[] => {
-        const lines = taskItems.slice(0, PANEL_ITEMS).map((item) => truncate(`${readinessTone(item.readiness)(item.readiness.padEnd(READINESS_WIDTH).slice(0, READINESS_WIDTH))} ${item.kind === 'system' ? style.muted('[system] ') : ''}${item.title}`, inner));
+        const lines = taskItems.slice(0, PANEL_ITEMS).map((item) => truncate(`${readinessTone(item.readiness)(item.readiness.padEnd(READINESS_WIDTH).slice(0, READINESS_WIDTH))} ${item.kind === 'engine' ? style.muted('[engine] ') : ''}${item.purpose === 'system' && item.readiness !== 'awaiting-user' ? style.muted(item.title) : item.title}`, inner));
         if (!taskItems.length) lines.push(style.muted('No tasks.'));
         if (taskItems.length > PANEL_ITEMS) lines.push(style.muted(`… ${taskItems.length - PANEL_ITEMS} more (ptbk list)`));
         return lines;

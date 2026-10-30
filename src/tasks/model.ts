@@ -1,5 +1,6 @@
 import { UNCONSTRAINED, type ModelConstraint } from '../book/model.js';
 import { formatAgentReference, normalizeAgentName } from '../book/references.js';
+import type { TaskPurpose } from './purpose.js';
 
 /**
  * Format of the file that defines a task.
@@ -134,6 +135,8 @@ export type Task = {
     readonly routing: TaskRouting;
     /** Provenance. */
     readonly origin?: string;
+    /** Effective project-relative purpose (the last valid `TASK PURPOSE`); undefined when unclassified. */
+    readonly purpose?: TaskPurpose;
     /** TASK NOTE texts. */
     readonly notes: readonly string[];
     /** Contains the unwritten-placeholder `@@@`. */

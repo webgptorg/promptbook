@@ -40,6 +40,13 @@ export type CommitmentDefinition = {
 };
 
 /**
+ * Values of `TASK PURPOSE` (written uppercase, so each value is part of the complete keyword).
+ *
+ * @private Book language
+ */
+export const TASK_PURPOSE_VALUES = ['CONTENT', 'SYSTEM', 'UNDEFINED'] as const;
+
+/**
  * Every recognized commitment.
  *
  * @private Book language
@@ -97,6 +104,14 @@ export const COMMITMENTS: readonly CommitmentDefinition[] = [
     { keyword: 'TASK RUNNER', aliases: [], scope: 'task', kind: 'repeatable-control', description: 'Opaque any-of routing selectors from Markdown.' },
     { keyword: 'TASK NOTE', aliases: [], scope: 'task', kind: 'instruction', description: 'Explanatory task metadata.' },
     { keyword: 'TASK ORIGIN', aliases: [], scope: 'task', kind: 'control', description: 'Provenance of the task.' },
+    {
+        keyword: 'TASK PURPOSE',
+        // The uppercase values join the keyword under the boundary rule, so each complete spelling is an alias.
+        aliases: TASK_PURPOSE_VALUES.map((value) => `TASK PURPOSE ${value}`),
+        scope: 'task',
+        kind: 'repeatable-control',
+        description: 'Project-relative purpose `TASK PURPOSE CONTENT|SYSTEM|UNDEFINED`, appended at each actual change (earlier values stay in the Book; the last valid one is effective). Presentation only: no priority, permission or executor.',
+    },
 ];
 
 /**

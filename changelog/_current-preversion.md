@@ -1,5 +1,13 @@
 # Unreleased
 
+## Task purpose: CONTENT/SYSTEM classification, muted supporting work and agent knowledge
+
+-   Tasks can now carry `TASK PURPOSE CONTENT`, `TASK PURPOSE SYSTEM` or `TASK PURPOSE UNDEFINED`. A change is appended to the Book and the last valid value wins, so earlier values stay in the source. A task without one stays valid. Fenced or escaped text is not metadata, an unchanged purpose writes nothing, and an unknown value is only a warning that keeps the earlier valid value. Before this, the parser treated `TASK PURPOSE CONTENT` as an unknown `TASK …` control and blocked the task.
+-   Tasker writes a purpose when it creates a task and the project context supports one. Router can report a refined purpose with its routing decision, and the engine appends it with a short note. That decision never changes the routing choice, priority or permissions.
+-   The task inventory shows purpose and descriptive core provenance (work by a core agent) separately from definition ownership. The former `system` kind for engine-owned definitions such as the self-update is now `engine`, and the API still accepts `kind=system`. Engine-owned maintenance has system purpose.
+-   The terminal and browser Tasks views put content and unclassified work first. Supporting system work is muted, grouped lower and collapsed by default; `W` or the "Show system work" button shows it, and a new purpose filter (`P`, `purpose=` in `/api/tasks`) selects by purpose. A pending human question on system work stays in the main list. `ptbk list` mutes system-purpose tasks and shows their purpose. None of this changes scheduling.
+-   Adam, which every agent inherits, now carries the minimal-interruption principle as an ordinary rule plus two KNOWLEDGE entries: the company-head analogy, technical, authentication and real-limit examples, and the project-relative content/system distinction. Tasker and Router have matching rules. Their previous templates are recorded, so unchanged older Books update directly.
+
 ## Documentation: pre-Reborn archive
 
 -   Add a short README link to the pinned legacy `0.114.0-51` source archive so it remains discoverable after Reborn becomes `main`.

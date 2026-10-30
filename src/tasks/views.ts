@@ -1,3 +1,5 @@
+import type { TaskPurpose } from './purpose.js';
+
 /**
  * One task of the complete inventory as views show it (every state, including completed and historical work).
  *
@@ -31,9 +33,13 @@ export type TaskInventoryItem = {
     readonly origin?: string;
     /** The chat holding this task's pending question (the same question and answer as in that chat). */
     readonly waitingChat?: string;
-    /** `system`: an engine-defined task without a project Book (e.g. the engine's self-update); ordinary when absent. */
-    readonly kind?: 'ordinary' | 'system';
-    /** The actual executor of a system task (its engine implementation), shown instead of an agent. */
+    /** Definition ownership: `engine` for an engine-owned task without a project Book (e.g. the engine's self-update); source-backed ordinary when absent. */
+    readonly kind?: TaskKind;
+    /** Effective project-relative purpose (the last valid `TASK PURPOSE`); unclassified when absent. Presentation only. */
+    readonly purpose?: TaskPurpose;
+    /** Descriptive core provenance: the work is performed exclusively by core agents (not an execution kind). */
+    readonly core?: boolean;
+    /** The actual executor of an engine-owned task (its engine implementation), shown instead of an agent. */
     readonly executor?: string;
     /** The durable definition this item's run belongs to when the title names one run (a system task's engine definition). */
     readonly definition?: string;
@@ -42,6 +48,13 @@ export type TaskInventoryItem = {
     /** Recent finished runs of the definition, newest first (a system task keeps them without a project trace directory). */
     readonly runs?: readonly TaskRunView[];
 };
+
+/**
+ * Definition ownership of a task: a source-backed ordinary project task or an engine-owned definition.
+ *
+ * @private task views
+ */
+export type TaskKind = 'ordinary' | 'engine';
 
 /**
  * One finished run of a task definition as views show it.
@@ -177,8 +190,10 @@ export type TaskFilter = {
     readonly readiness?: string;
     /** Responsible agent by name (`@Name`, `{Name}` and `Name` are the same agent). */
     readonly agent?: string;
-    /** Ordinary project tasks or engine-defined system tasks. */
-    readonly kind?: 'ordinary' | 'system';
+    /** Source-backed ordinary project tasks or engine-owned definitions. */
+    readonly kind?: TaskKind;
+    /** Effective purpose (`undefined` selects unclassified tasks). */
+    readonly purpose?: TaskPurpose | 'undefined';
 };
 
 /**
@@ -202,6 +217,7 @@ export function filterTasks(items: readonly TaskInventoryItem[], filter: TaskFil
             (!filter.readiness || item.readiness === filter.readiness) &&
             (!agent || (item.agent !== undefined && agentKey(item.agent) === agent)) &&
             (!filter.kind || (item.kind ?? 'ordinary') === filter.kind) &&
+            (!filter.purpose || (item.purpose ?? 'undefined') === filter.purpose) &&
             (!text || [item.title, item.source, item.agent, item.reason, item.origin].some((field) => field?.toLowerCase().includes(text))),
     );
 }
@@ -212,7 +228,7 @@ export function filterTasks(items: readonly TaskInventoryItem[], filter: TaskFil
  * @private task views
  */
 export function isTaskFilterActive(filter: TaskFilter): boolean {
-    return Boolean(filter.text?.trim() || filter.readiness || filter.agent?.trim() || filter.kind);
+    return Boolean(filter.text?.trim() || filter.readiness || filter.agent?.trim() || filter.kind || filter.purpose);
 }
 
 /**
@@ -221,7 +237,15 @@ export function isTaskFilterActive(filter: TaskFilter): boolean {
  * @private task views
  */
 export function describeTaskFilter(filter: TaskFilter): string {
-    return [filter.readiness ? `status ${filter.readiness}` : '', filter.agent?.trim() ? `agent ${filter.agent.trim()}` : '', filter.kind ? `${filter.kind} tasks` : '', filter.text?.trim() ? `"${filter.text.trim()}"` : ''].filter(Boolean).join(', ');
+    return [
+        filter.readiness ? `status ${filter.readiness}` : '',
+        filter.agent?.trim() ? `agent ${filter.agent.trim()}` : '',
+        filter.kind ? `${filter.kind === 'engine' ? 'engine-owned' : 'source-backed'} tasks` : '',
+        filter.purpose ? `${filter.purpose === 'undefined' ? 'unclassified' : filter.purpose} purpose` : '',
+        filter.text?.trim() ? `"${filter.text.trim()}"` : '',
+    ]
+        .filter(Boolean)
+        .join(', ');
 }
 
 /**
@@ -232,7 +256,8 @@ export function describeTaskFilter(filter: TaskFilter): string {
 export type TaskFilterChoices = {
     readonly readiness: readonly string[];
     readonly agents: readonly string[];
-    readonly kinds: readonly ('ordinary' | 'system')[];
+    readonly kinds: readonly TaskKind[];
+    readonly purposes: readonly (TaskPurpose | 'undefined')[];
 };
 
 /**
@@ -244,9 +269,36 @@ export function taskFilterChoices(items: readonly TaskInventoryItem[]): TaskFilt
     const agents = new Map<string, string>();
     for (const item of items) if (item.agent && !agents.has(agentKey(item.agent))) agents.set(agentKey(item.agent), item.agent);
     const kinds = new Set(items.map((item) => item.kind ?? 'ordinary'));
+    const purposes = new Set(items.map((item) => item.purpose ?? 'undefined'));
     return {
         readiness: [...new Set(items.map((item) => item.readiness))].sort(),
         agents: [...agents.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, agent]) => agent),
-        kinds: (['ordinary', 'system'] as const).filter((kind) => kinds.has(kind)),
+        kinds: (['ordinary', 'engine'] as const).filter((kind) => kinds.has(kind)),
+        purposes: (['content', 'system', 'undefined'] as const).filter((purpose) => purposes.has(purpose)),
     };
+}
+
+/**
+ * Whether a task belongs to the muted supporting-work group: system-purpose work (engine-owned maintenance or an
+ * agent's technical work alike), unless a genuine human request is pending on it, which stays conspicuous.
+ *
+ * @private task views
+ */
+export function isSupportingWork(item: TaskInventoryItem): boolean {
+    return item.purpose === 'system' && item.readiness !== 'awaiting-user';
+}
+
+/**
+ * The default presentation of an ordered inventory: content and unclassified work keep their order, supporting
+ * system work follows as a lower group that is collapsed unless the viewer shows it (or filters by purpose).
+ * Presentation only: scheduling, priorities and prerequisites are untouched.
+ *
+ * @private task views
+ */
+export function groupSupportingWork(ordered: readonly TaskInventoryItem[], options: { readonly showSupporting: boolean; readonly filter?: TaskFilter }): { readonly items: TaskInventoryItem[]; readonly supporting: number; readonly firstSupporting?: number } {
+    if (options.filter?.purpose) return { items: [...ordered], supporting: 0 };
+    const main = ordered.filter((item) => !isSupportingWork(item));
+    const supporting = ordered.filter(isSupportingWork);
+    if (!options.showSupporting || !supporting.length) return { items: main, supporting: supporting.length };
+    return { items: [...main, ...supporting], supporting: supporting.length, firstSupporting: main.length };
 }
