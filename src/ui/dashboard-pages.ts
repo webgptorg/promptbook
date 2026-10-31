@@ -297,7 +297,7 @@ const ACTIVITY_RANK: Readonly<Record<BadgeActivity, number>> = { working: 0, 'wa
  * @private terminal dashboard pages
  */
 export function queueOf(inventory: readonly TaskInventoryItem[] | undefined, name: string): TaskInventoryItem[] {
-    return (inventory ?? []).filter((item) => item.agent?.replace(/^@|^\{|\}$/g, '').toLowerCase() === name.toLowerCase() && !['done', 'retired'].includes(item.readiness));
+    return (inventory ?? []).filter((item) => item.agent?.replace(/^@|^\{|\}$/g, '').toLowerCase() === name.toLowerCase() && !['done', 'cancelled', 'retired'].includes(item.readiness));
 }
 
 /**

@@ -105,7 +105,7 @@ function smartGroup(item: TaskInventoryItem, now: number): number {
     if (CURRENT_KINDS.has(item.readiness)) return 0;
     if (item.readiness === 'waiting-until') return until !== undefined && until - now > NEAR_MS ? 3 : 1;
     if (item.readiness === 'waiting-dependency' || item.readiness === 'not-ready' || item.readiness === 'placeholder') return 1;
-    if (item.readiness === 'done' || item.readiness === 'retired') return item.lastDone && now - Date.parse(item.lastDone) <= NEAR_MS ? 2 : 4;
+    if (item.readiness === 'done' || item.readiness === 'retired' || item.readiness === 'cancelled') return item.lastDone && now - Date.parse(item.lastDone) <= NEAR_MS ? 2 : 4;
     return 1;
 }
 

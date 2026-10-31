@@ -12,7 +12,7 @@ export type RecurrenceState =
     | { readonly kind: 'retired' };
 
 /**
- * Latest known completion time of a task (unknown stamps are ignored).
+ * Latest time an occurrence of a task ended, successfully or by cancelling that run (unknown stamps are ignored).
  *
  * @private recurrence
  */
@@ -22,6 +22,7 @@ export function lastCompletion(task: Task, timeZone: string): number | undefined
         const parsed = parseDateTime(stamp.split(/\s+/)[0] ?? '', timeZone);
         if (parsed.ok) latest = Math.max(latest ?? parsed.epochMs, parsed.epochMs);
     }
+    for (const closed of task.closedOccurrences ?? []) latest = Math.max(latest ?? closed, closed);
     return latest;
 }
 
@@ -34,12 +35,14 @@ export function lastCompletion(task: Task, timeZone: string): number | undefined
  * @private recurrence
  */
 export function recurrenceState(task: Task, now: number, activation: number, timeZone: string): RecurrenceState {
-    if (task.status === 'retired') return { kind: 'retired' };
+    if (task.status === 'retired' || task.status === 'cancelled') return { kind: 'retired' };
     const interval = task.repeatMs!;
     const anchor = task.after ?? activation;
     if (now < anchor) return { kind: 'waiting', until: anchor };
     const latestSlotAtOrBefore = (time: number): number => anchor + Math.floor((time - anchor) / interval) * interval;
     const done = lastCompletion(task, timeZone);
+    // A reopened occurrence continues its own slot instead of adding another run to the schedule.
+    if (task.reopenedOccurrence && done !== undefined) return { kind: 'due', slot: latestSlotAtOrBefore(Math.max(done, anchor)), catchUp: false };
     if (done === undefined || done < anchor) {
         const slot = latestSlotAtOrBefore(now);
         return { kind: 'due', slot, catchUp: slot > anchor };

@@ -33,14 +33,14 @@ export function appendCommitment(source: string, keyword: string, value: string)
 }
 
 /**
- * Sets a single-value control commitment: replaces the keyword line of its first occurrence (keeping continuation
- * text) or appends it when absent.
+ * Sets a single-value control commitment: replaces the keyword line of its last occurrence, which is the effective one
+ * (keeping continuation text), or appends it when absent.
  *
  * @private Book language
  */
 export function setControlCommitment(source: string, keyword: string, value: string): string {
     const document = parseBook(source);
-    const existing = document.commitments.find((commitment) => commitment.keyword === keyword);
+    const existing = document.commitments.filter((commitment) => commitment.keyword === keyword).at(-1);
     if (!existing) return appendCommitment(source, keyword, value);
     const lines = [...document.lines];
     lines[existing.startLine] = commitmentLine(existing.written === keyword ? keyword : existing.written, value);

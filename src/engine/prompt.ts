@@ -4,7 +4,9 @@ import { isCheckPlaceholder } from '../project/config.js';
 import type { EffectiveAgent, EffectiveInstruction } from '../project/agents.js';
 import { teamReferences } from '../project/agents.js';
 import type { Task } from '../tasks/model.js';
+import { taskInstructionSource } from '../tasks/book-task.js';
 import { traceDirectoryOf } from '../tasks/identity.js';
+import { applicableChanges } from '../tasks/task-direction.js';
 import { RESULT_MARKER } from './result.js';
 
 /**
@@ -90,7 +92,14 @@ export type TaskPromptInput = {
     readonly conversations?: ReadonlyArray<{ readonly chat: string; readonly messages: ReadonlyArray<{ readonly sender: string; readonly text: string }> }>;
     /** Current creation date/time text for names of new task Books (`YYYY-MM-DD HH:MM:SS`). */
     readonly creationStamp?: string;
+    /** When the current run began (epoch ms), so amendments of future runs stay out of it. */
+    readonly runStartedAt?: number;
 };
+
+/**
+ * Readable label of an amendment scope in the prompt.
+ */
+const CHANGE_SCOPE_LABELS = { task: 'whole task', occurrence: 'this run only', future: 'this and later runs' } as const;
 
 /**
  * How an agent writes a new task Book: the canonical `TASK <name>` declaration with a generated name, the description
@@ -124,10 +133,19 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
         const content = input.context.content.length > MAX_CONTEXT_CHARACTERS ? `${input.context.content.slice(0, MAX_CONTEXT_CHARACTERS)}\n\n[… truncated; read ${input.context.name} for the rest]` : input.context.content;
         parts.push(`## Project instructions (${input.context.name})\n\n${content}`);
     }
-    const taskSource = task.text.replace(/^TASK DONE .*$/gm, '').trim();
+    const taskSource = taskInstructionSource(task);
     parts.push(
         `## Your task\n\n- Name: ${task.title}\n- Reference: ${task.ref} (the task's name is its identity; audit trail in \`${traceDirectoryOf(task.source.relativePath)}/\` (named after the source file), written by Promptbook)\n- Source: \`${task.source.relativePath}\`${task.source.kind === 'markdown' ? ` (section ${task.source.section})` : ''}\n\n\`\`\`\`text\n${taskSource}\n\`\`\`\``,
     );
+    const changes = applicableChanges(task, { startedAt: input.runStartedAt });
+    if (changes.length) {
+        parts.push(
+            `## Changes to this task\n\nThese amendments were accepted after the instructions above were written. Apply them in order: each overrides only what it explicitly changes, and everything else above stays in force.\n\n${changes
+                .map((change, index) => `${index + 1}. (${change.at}, ${CHANGE_SCOPE_LABELS[change.scope]}${change.chat ? `, from the chat ${change.chat}` : ''}) ${change.text.replace(/\n/g, '\n   ')}`)
+                .join('\n')}`,
+        );
+    }
+    if (task.reopened) parts.push('## Reopened work\n\nThis task was completed earlier and has been reopened as the same work. Earlier results and completions stay as history: continue from the current state instead of starting over, and never repeat external actions already performed.');
     if (input.conversations?.length) {
         parts.push(
             `## Conversation with the user\n\n${input.conversations
@@ -138,7 +156,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     if (input.extra) parts.push(input.extra);
     const rules = [
         'Work only inside the project directory. Promptbook records the result: do not commit, amend, push, reset, stash or rewrite Git history.',
-        'Do not add `TASK DONE` or change the completion state of this task; Promptbook stamps completion after verifying your result.',
+        'Do not add `TASK DONE`, `TASK REOPEN` or `TASK CHANGE` or change the completion state of this task; Promptbook stamps completion after verifying your result.',
         task.source.kind === 'book'
             ? `When the work shows that this task's purpose relative to this project differs from its recorded one (${task.purpose ? `\`TASK PURPOSE ${task.purpose.toUpperCase()}\`` : 'undefined'}), append \`TASK PURPOSE CONTENT\` or \`TASK PURPOSE SYSTEM\` at the end of \`${task.source.relativePath}\`, after a short \`TASK NOTE\` with the reason when it is not obvious; never edit or remove earlier purpose lines, and change nothing when it already fits. For a technical prerequisite of content work, create a separate supporting task with system purpose instead of relabelling this one.${input.tools.prerequisite ? ' When this task cannot continue without it, create it with `create_prerequisite_task`.' : ''}`
             : '',

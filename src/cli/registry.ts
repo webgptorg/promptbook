@@ -593,7 +593,7 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
             {
                 title: 'Filter',
                 options: [
-                    { name: 'all', type: 'boolean', description: 'Include completed and retired tasks.' },
+                    { name: 'all', type: 'boolean', description: 'Include completed, cancelled and retired tasks.' },
                     { name: 'ready', type: 'boolean', description: 'Only tasks that can start now.' },
                     JSON_OPTION,
                 ],

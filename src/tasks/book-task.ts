@@ -1,12 +1,13 @@
 import { parseInterval } from '../common/duration.js';
 import { sha256 } from '../common/fs.js';
 import { formatIsoWithOffset, parseDateTime } from '../common/time.js';
-import { appendCommitment, setControlCommitment } from '../book/edit.js';
+import { appendCommitment, replaceCommitments, setControlCommitment } from '../book/edit.js';
 import { formatModelRow, modelOfDocument, parseModelRow, type ModelConstraint } from '../book/model.js';
 import { commitmentsOf, parseBook, singleValue, type BookDocument } from '../book/parse.js';
-import { nameKey, nameReference, type DeclaredStatus, type Task, type TaskDiagnostic } from './model.js';
+import { nameKey, nameReference, type Task, type TaskDiagnostic } from './model.js';
 import { parsePriority } from './priority.js';
 import { taskPurposeOf } from './purpose.js';
+import { taskDirectionOf } from './task-direction.js';
 
 /**
  * Control commitments a task recognizes.
@@ -25,6 +26,8 @@ const TASK_CONTROLS = new Set([
     'TASK DUE DATE',
     'TASK DONE',
     'TASK STATUS',
+    'TASK CHANGE',
+    'TASK REOPEN',
     'TASK REPEAT',
     'TASK DEPENDS ON',
     'TASK PARENT',
@@ -33,11 +36,6 @@ const TASK_CONTROLS = new Set([
     'TASK ORIGIN',
     'TASK PURPOSE',
 ]);
-
-/**
- * Valid `TASK STATUS` values.
- */
-const STATUS_VALUES = new Set(['todo', 'not-ready', 'failed', 'retired']);
 
 /**
  * Splits a reference list (`{Multi word task}, @other #a tasks/c.book`); a `{…}` reference keeps its spaces.
@@ -118,41 +116,22 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
     const key = nameKey(document.name);
     if (!key) diagnostics.push({ line: document.headerLine + 1, message: 'The task name is empty after normalization.', severity: 'error' });
     const model = taskModel(document, single, diagnostics);
-    const priorityRaw = single('TASK PRIORITY');
-    const priority = parsePriority(priorityRaw);
-    if (priority.error) diagnostics.push({ line: 0, message: priority.error, severity: 'error' });
-    const afterRaw = single('TASK AFTER');
-    let after: number | undefined;
-    if (afterRaw !== undefined) {
-        const parsed = parseDateTime(afterRaw, options.timeZone);
-        if (parsed.ok) after = parsed.epochMs;
-        else diagnostics.push({ line: 0, message: `TASK AFTER: ${parsed.reason}`, severity: 'error' });
-    }
-    const due = single('TASK DUE DATE');
-    if (due !== undefined && !parseDateTime(due, options.timeZone).ok) diagnostics.push({ line: 0, message: `TASK DUE DATE "${due}" is not a valid date.`, severity: 'warning' });
-    const repeatRaw = single('TASK REPEAT');
-    let repeatMs: number | undefined;
-    if (repeatRaw !== undefined) {
-        const parsed = parseInterval(repeatRaw);
-        if (parsed.ok) repeatMs = parsed.ms;
-        else diagnostics.push({ line: 0, message: `TASK REPEAT: ${parsed.reason}`, severity: 'error' });
-    }
+    const direction = taskDirectionOf(document, options.timeZone);
+    diagnostics.push(...direction.diagnostics);
+    const priority = parsePriority(direction.controls['TASK PRIORITY']);
+    const afterRaw = direction.controls['TASK AFTER'];
+    const afterParsed = afterRaw !== undefined ? parseDateTime(afterRaw, options.timeZone) : undefined;
+    const after = afterParsed?.ok ? afterParsed.epochMs : undefined;
+    const due = direction.controls['TASK DUE DATE'];
+    const repeatRaw = direction.controls['TASK REPEAT'];
+    const repeatParsed = repeatRaw !== undefined ? parseInterval(repeatRaw) : undefined;
+    const repeatMs = repeatParsed?.ok ? repeatParsed.ms : undefined;
     const doneStamps = commitmentsOf(document, 'TASK DONE').map((commitment) => commitment.value);
     for (const stamp of doneStamps) {
         if (stamp !== 'unknown' && !/^unknown\b/.test(stamp) && !parseDateTime(stamp.split(/\s+/)[0] ?? '', options.timeZone).ok) {
             diagnostics.push({ line: 0, message: `TASK DONE "${stamp}" is not a timestamp with timezone (or \`unknown\`).`, severity: 'error' });
         }
     }
-    const statusRaw = single('TASK STATUS');
-    let status: DeclaredStatus = 'todo';
-    if (statusRaw !== undefined) {
-        const normalized = statusRaw.trim().toLowerCase();
-        if (!STATUS_VALUES.has(normalized)) {
-            diagnostics.push({ line: 0, message: `TASK STATUS "${statusRaw}" is not one of todo, not-ready, failed, retired.`, severity: 'error' });
-            status = 'not-ready';
-        } else status = normalized as DeclaredStatus;
-    }
-    if (status === 'todo' && doneStamps.length && repeatMs === undefined) status = 'done';
     const text = options.source;
     const description = commitmentsOf(document, 'GOAL')
         .map((goal) => goal.body)
@@ -166,8 +145,14 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
         description: description || (document.legacy?.introduction?.text ?? ''),
         rules: commitmentsOf(document, 'RULE').map((rule) => rule.body),
         source: { kind: 'book', path: options.path, relativePath: options.relativePath, fileHash: sha256(options.source), order: options.order },
-        status,
+        status: direction.status,
+        ...(direction.statusScope ? { statusScope: direction.statusScope } : {}),
         doneStamps,
+        changes: direction.changes,
+        cycle: direction.cycle,
+        reopened: direction.reopened,
+        ...(direction.reopenedOccurrence ? { reopenedOccurrence: true } : {}),
+        ...(direction.closedOccurrences.length ? { closedOccurrences: direction.closedOccurrences } : {}),
         priority,
         after,
         afterRaw,
@@ -177,7 +162,7 @@ function taskFromDocument(document: BookDocument, options: TaskBookOptions): Tas
         dependsOn: commitmentsOf(document, 'TASK DEPENDS ON').flatMap((commitment) => splitTaskReferences(commitment.value)),
         parent: single('TASK PARENT'),
         routing: {
-            agent: single('TASK AGENT'),
+            agent: direction.controls['TASK AGENT'],
             model: model.constraint,
             ...(model.legacy ? { legacyControls: true } : {}),
             runners: commitmentsOf(document, 'TASK RUNNER').flatMap((commitment) => runnerSelectors(commitment.value)),
@@ -238,6 +223,17 @@ function taskModel(document: BookDocument, single: (keyword: string) => string |
     }
     diagnostics.push({ line, message: `${legacy.join(', ')} are former controls; \`MODEL ${row.row}\` replaces them (the project migration converts them).`, severity: 'warning' });
     return { constraint: { rows: [parseModelRow(row.row).row!], explicit: true }, legacy: true };
+}
+
+/**
+ * The instructions of a task as an agent reads them: the source without its completion and amendment history, which the
+ * prompt renders separately and only as far as it applies to the current work.
+ *
+ * @private task Books
+ */
+export function taskInstructionSource(task: Pick<Task, 'source' | 'text'>): string {
+    if (task.source.kind !== 'book') return task.text.replace(/^TASK DONE .*$/gm, '').trim();
+    return replaceCommitments(task.text, ['TASK DONE', 'TASK CHANGE', 'TASK REOPEN'], []).trim();
 }
 
 /**

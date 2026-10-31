@@ -616,6 +616,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 extra: item.extraPrompt,
                 conversations,
                 creationStamp: creationTimestamp(Date.now(), environment.timeZone),
+                runStartedAt: Date.parse(record.startedAt),
             });
             const bridge = tools.length ? await ToolBridge.start(tools) : undefined;
             const promptDirectory = await ensureDirectory(project.runtime.temporary);

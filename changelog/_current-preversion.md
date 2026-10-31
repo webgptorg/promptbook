@@ -1,5 +1,13 @@
 # Unreleased
 
+## Tasks: a task can be changed, reopened or cancelled by appending to its Book
+
+-   A new `TASK CHANGE <timestamp> <task|occurrence|future> [<chat>]` line adds an amendment under the original instructions, which stay in the Book. Agents receive only the amendments that apply to their run: an `occurrence` change ends with that run, and a `future` change waits for the next run
+-   Scheduling values under a `TASK CHANGE`, such as `TASK AGENT`, `TASK PRIORITY`, `TASK AFTER`, `TASK DUE DATE` and `TASK REPEAT`, replace the earlier value while the earlier line stays. Two different values with no change between them are still reported as a conflict, and an invalid new value keeps the old one
+-   A new `TASK REOPEN <timestamp> [<chat>]` line starts the same task again and keeps its earlier `TASK DONE` lines as history. `TASK STATUS todo` alone no longer looks like a way to reopen finished work
+-   `TASK STATUS` now also accepts `cancelled`, which ends unfinished work without counting as success, so tasks that depend on it keep waiting. `TASK STATUS` can be repeated, and the last valid value counts
+-   A recurring task can drop one run by cancelling it under an `occurrence` change, and its schedule carries on. One finished run can also be reopened, which reuses that run instead of adding another
+
 ## Wallet: adding a website login in the terminal can finish again
 
 -   The dashboard's form for adding a website login could never finish. At its last step, the optional additional fields, leaving the field empty was refused with "A value is required", and Esc discarded the whole login with the typed password. An empty field now finishes the form and saves the login. Logins saved in the browser were not affected

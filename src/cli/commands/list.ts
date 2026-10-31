@@ -129,7 +129,7 @@ export default async function list(context: CommandContext): Promise<number> {
     }
     const all = flag(context, 'all') === true;
     const readyOnly = flag(context, 'ready') === true;
-    const shown = (kind: string): boolean => (all || !['done', 'retired'].includes(kind)) && (!readyOnly || kind === 'ready' || kind === 'needs-assignment');
+    const shown = (kind: string): boolean => (all || !['done', 'cancelled', 'retired'].includes(kind)) && (!readyOnly || kind === 'ready' || kind === 'needs-assignment');
     const items = preview.evaluated.filter((item) => shown(item.readiness.kind));
     // The same inventory as the dashboards: engine-owned tasks follow ordinary work (they have the lowest priority).
     const systemItems = (await liveSystemTasks(project)).filter((item) => shown(item.readiness));
@@ -182,7 +182,7 @@ export default async function list(context: CommandContext): Promise<number> {
     const lines: string[] = [];
     if (!items.length && !systemItems.length) lines.push(style.muted(readyOnly ? 'No task can start now.' : 'No unfinished tasks. Add one with `ptbk add`.'));
     for (const { task, readiness } of items) {
-        const tone = readiness.kind === 'ready' ? style.success : ['blocked', 'failed', 'needs-recovery'].includes(readiness.kind) ? style.error : ['done', 'retired', 'placeholder', 'not-ready'].includes(readiness.kind) ? style.muted : style.warning;
+        const tone = readiness.kind === 'ready' ? style.success : ['blocked', 'failed', 'needs-recovery'].includes(readiness.kind) ? style.error : ['done', 'retired', 'cancelled', 'placeholder', 'not-ready'].includes(readiness.kind) ? style.muted : style.warning;
         const priority = task.priority.value ? style.accent(`P${task.priority.value} `) : '';
         // Supporting system work is muted (presentation only; its scheduling is unchanged).
         const title = truncate(task.title, width - kindWidth - 10);

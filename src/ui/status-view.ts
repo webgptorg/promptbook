@@ -263,7 +263,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         snapshot.queue.map((item) => ({ ref: item.ref, title: item.title, readiness: item.readiness, reason: item.reason, priority: item.priority, agent: item.agent, until: item.until, source: item.source, doneCount: 0, ...(item.kind ? { kind: item.kind, executor: item.executor } : {}), ...(item.purpose ? { purpose: item.purpose } : {}) })),
         { showSupporting: true },
     ).items;
-    const queuedBy = (agent: string): number => taskItems.filter((item) => item.agent && item.agent.replace(/^@|^\{|\}$/g, '').toLowerCase() === agent.toLowerCase() && !['done', 'retired'].includes(item.readiness)).length;
+    const queuedBy = (agent: string): number => taskItems.filter((item) => item.agent && item.agent.replace(/^@|^\{|\}$/g, '').toLowerCase() === agent.toLowerCase() && !['done', 'cancelled', 'retired'].includes(item.readiness)).length;
     const agentLines = (inner: number): string[] => {
         const lines = snapshot.agents.slice(0, PANEL_ITEMS).map((agent) => {
             const queued = queuedBy(agent.name);

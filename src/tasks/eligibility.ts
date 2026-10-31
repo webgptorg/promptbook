@@ -31,6 +31,7 @@ export type Readiness =
     | { readonly kind: 'placeholder'; readonly reason: string }
     | { readonly kind: 'needs-recovery'; readonly reason: string }
     | { readonly kind: 'failed'; readonly reason: string }
+    | { readonly kind: 'cancelled'; readonly reason: string }
     | { readonly kind: 'done'; readonly reason: string }
     | { readonly kind: 'retired'; readonly reason: string };
 
@@ -81,6 +82,7 @@ export type EligibilityContext = {
  * Whether a prerequisite counts as complete.
  */
 function isComplete(task: Task): boolean {
+    if (task.status === 'cancelled' || task.status === 'failed') return false;
     if (isRecurring(task)) return task.doneStamps.length > 0;
     return task.status === 'done';
 }
@@ -114,6 +116,7 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
     }
     if (context.activeKeys?.has(task.key)) return { kind: 'active', reason: 'Currently executing.' };
     if (task.status === 'retired') return { kind: 'retired', reason: 'Recurring work retired.' };
+    if (task.status === 'cancelled') return { kind: 'cancelled', reason: 'Cancelled without success; reopening it needs `TASK REOPEN` and `TASK STATUS todo`.' };
     if (task.status === 'done') return { kind: 'done', reason: `Completed ${task.doneStamps[task.doneStamps.length - 1] ?? ''}`.trim() };
     if (hasBlockingDiagnostics(task)) {
         return {
@@ -150,7 +153,7 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
         // A checkpointed run continues where it stopped once the supporting work it created is complete.
         const unfinished = prerequisites.flatMap((reference) => {
             const found = findTask(tasks, reference).task;
-            return found && !isComplete(found) && found.status !== 'retired' && found.status !== 'failed' ? [found.ref] : [];
+            return found && !isComplete(found) && found.status !== 'retired' && found.status !== 'failed' && found.status !== 'cancelled' ? [found.ref] : [];
         });
         return unfinished.length
             ? { kind: 'waiting-dependency', reason: `Checkpointed until its prerequisite ${unfinished.join(', ')} is completed; it then continues where it stopped.`, on: unfinished }
@@ -160,7 +163,8 @@ export async function evaluateTask(task: Task, tasks: readonly Task[], context: 
     for (const reference of task.dependsOn) {
         const found = findTask(tasks, reference);
         if (!found.task) return { kind: 'blocked', reason: `Dependency ${reference} was not found.`, next: 'Fix the TASK DEPENDS ON reference (dependencies name tasks).' };
-        if (!isComplete(found.task)) waitingOn.push(found.task.ref);
+        // Failed or cancelled work never satisfies a dependency, whatever its earlier completions.
+        if (!isComplete(found.task)) waitingOn.push(found.task.status === 'cancelled' || found.task.status === 'failed' ? `${found.task.ref} (${found.task.status})` : found.task.ref);
     }
     if (task.dependsOn.length && inDependencyCycle(task, tasks)) return { kind: 'blocked', reason: 'The task is part of a dependency cycle.', next: 'Remove one TASK DEPENDS ON in the cycle.' };
     // A task that cannot run yet may still be routed ahead of its own start (it keeps its date and dependencies).
@@ -223,8 +227,9 @@ const KIND_RANK: Readonly<Record<Readiness['kind'], number>> = {
     'not-ready': 10,
     placeholder: 11,
     failed: 12,
-    done: 13,
-    retired: 14,
+    cancelled: 13,
+    done: 14,
+    retired: 15,
 };
 
 /**
@@ -263,7 +268,7 @@ export function sourceTraceConflicts(tasks: readonly Task[]): Map<string, string
  * @private task eligibility
  */
 export function isUnfinished(readiness: Readiness): boolean {
-    return !['done', 'retired', 'placeholder'].includes(readiness.kind);
+    return !['done', 'retired', 'cancelled', 'placeholder'].includes(readiness.kind);
 }
 
 /**

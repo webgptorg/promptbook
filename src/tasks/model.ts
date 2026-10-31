@@ -14,7 +14,41 @@ export type TaskSourceKind = 'book' | 'markdown';
  *
  * @private task model
  */
-export type DeclaredStatus = 'todo' | 'not-ready' | 'failed' | 'retired' | 'done' | 'needs-recovery';
+export type DeclaredStatus = 'todo' | 'not-ready' | 'failed' | 'cancelled' | 'retired' | 'done' | 'needs-recovery';
+
+/**
+ * What a `TASK CHANGE` amends: the definition and applicable work (`task`), one selected run (`occurrence`) or only
+ * subsequent runs (`future`).
+ *
+ * @private task model
+ */
+export type TaskChangeScope = 'task' | 'occurrence' | 'future';
+
+/**
+ * One valid chronological amendment of a task.
+ *
+ * @private task model
+ */
+export type TaskChange = {
+    /** Stable identity of the amendment within its Book (timestamps alone are not unique). */
+    readonly id: string;
+    /** Exact content the identity is derived from. */
+    readonly identity: string;
+    /** 1-based source line. */
+    readonly line: number;
+    /** Timestamp as written. */
+    readonly at: string;
+    /** Timestamp as epoch milliseconds. */
+    readonly epochMs: number;
+    /** What it amends. */
+    readonly scope: TaskChangeScope;
+    /** Source-chat reference, when given. */
+    readonly chat?: string;
+    /** The requested change in natural language. */
+    readonly text: string;
+    /** Completed work cycles before it, which selects the occurrence it was written in. */
+    readonly cycle: number;
+};
 
 /**
  * A located problem in a task source.
@@ -113,8 +147,20 @@ export type Task = {
     readonly source: TaskSource;
     /** Declared state. */
     readonly status: DeclaredStatus;
-    /** Completion stamps (ISO strings or `unknown`). */
+    /** Scope of the amendment that set the status (task-wide when absent); a future-scoped status leaves a current run alone. */
+    readonly statusScope?: TaskChangeScope;
+    /** Completion stamps (ISO strings or `unknown`); historical after a later reopening. */
     readonly doneStamps: readonly string[];
+    /** Valid amendments in source order. */
+    readonly changes: readonly TaskChange[];
+    /** Completed work cycles so far. */
+    readonly cycle: number;
+    /** The work was reopened and has not been completed since. */
+    readonly reopened: boolean;
+    /** A completed occurrence of a recurring task was reopened and is due again. */
+    readonly reopenedOccurrence?: boolean;
+    /** When occurrences of a recurring task were closed without success (epoch ms). */
+    readonly closedOccurrences?: readonly number[];
     /** Interpreted priority. */
     readonly priority: TaskPriority;
     /** Earliest start (epoch ms), when valid. */

@@ -8,7 +8,7 @@ import { confinePath, ensureDirectory, pathExists, toProjectRelative } from '../
 import { Mutex } from '../common/mutex.js';
 import { creationTimestamp, formatIsoWithOffset, formatShortTime } from '../common/time.js';
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
-import { setControlCommitment } from '../book/edit.js';
+import { appendCommitment } from '../book/edit.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue, referenceName, toReference } from '../book/references.js';
 import { isCheckPlaceholder, loadSettings, setting, SETTING_SPECS, serializeSettingValue, updatePolicyOf, updateProjectConfig, type BrowserOverrides, type EffectiveSettings, type LoadedSettings } from '../project/config.js';
 import { AgentCatalog, learningPolicyOf, resolveEffectiveAgent, validateAgents, type AgentDefinition } from '../project/agents.js';
@@ -860,7 +860,7 @@ export class Agenda {
         const previous = (await this.state.readRepairs())[key];
         if (previous?.fingerprint === shortHash(prepared.fingerprint, 16)) {
             const task = (await this.readQueue()).tasks.find((candidate) => nameKey(candidate.title) === nameKey(previous.task));
-            if (!task || task.status === 'done' || task.status === 'retired') {
+            if (!task || task.status === 'done' || task.status === 'retired' || task.status === 'cancelled') {
                 await prepared.resolve(prepared.conflicts.map((conflict) => conflict.file));
                 this.log(`Core template updates were reconciled by {${previous.task}}.`);
             }
@@ -1630,7 +1630,7 @@ export class Agenda {
         const learner = await this.catalog.resolve(formatAgentReference(input.agent));
         if (learner.kind !== 'agent' || !learningPolicyOf(learner.definition.document).open) return undefined;
         const chatKey = nameKey(input.chat);
-        const pending = (await this.readQueue()).tasks.find((task) => !['done', 'failed', 'retired'].includes(task.status) && workKindOf(task) === 'learning' && parseReferenceValue(originTarget(task) ?? '')?.normalized === chatKey);
+        const pending = (await this.readQueue()).tasks.find((task) => !['done', 'failed', 'cancelled', 'retired'].includes(task.status) && workKindOf(task) === 'learning' && parseReferenceValue(originTarget(task) ?? '')?.normalized === chatKey);
         if (pending) return undefined;
         const created = await createChatLearningTask({ tasksDirectory: this.tasksDirectory, chat: input.chat, agent: learner.definition.name, agentPath: learner.definition.relativePath, note: input.note, timeZone: this.timeZone, taken: await this.takenNames() });
         if (this.commitMode) await this.commitAuthoring([created.path], `Add task - ${created.name}`, { 'Task-Name': created.name, 'Chat-Name': input.chat });
@@ -2848,9 +2848,9 @@ export class Agenda {
                 ...(readiness.kind === 'awaiting-user' && readiness.chat !== 'checkpoint' && readiness.chat !== WALLET_WAIT ? { waitingChat: readiness.chat } : {}),
             } satisfies TaskInventoryItem;
         });
-        this.queueTotal = evaluated.filter((item) => item.readiness.kind !== 'done' && item.readiness.kind !== 'retired').length;
+        this.queueTotal = evaluated.filter((item) => item.readiness.kind !== 'done' && item.readiness.kind !== 'retired' && item.readiness.kind !== 'cancelled').length;
         this.queueView = evaluated
-            .filter((item) => item.readiness.kind !== 'done' && item.readiness.kind !== 'retired')
+            .filter((item) => item.readiness.kind !== 'done' && item.readiness.kind !== 'retired' && item.readiness.kind !== 'cancelled')
             .slice(0, 60)
             .map((item) => {
                 const resolution = routeCache.get(item.task.ref);
@@ -3300,7 +3300,7 @@ export class Agenda {
         const repairs = await this.state.readRepairs();
         const fingerprint = shortHash(input.fingerprint, 16);
         const queue = await this.readQueue();
-        const unfinished = queue.tasks.some((task) => task.origin === input.origin && !['done', 'failed', 'retired'].includes(task.status));
+        const unfinished = queue.tasks.some((task) => task.origin === input.origin && !['done', 'failed', 'cancelled', 'retired'].includes(task.status));
         if (unfinished || repairs[input.key]?.fingerprint === fingerprint) return undefined;
         const created = await createRepairTask({ tasksDirectory: this.tasksDirectory, title: input.title, description: input.description, origin: input.origin, links: input.links, model: input.model, timeZone: this.timeZone, taken: await this.takenNames() });
         await this.state.writeRepairs({ ...repairs, [input.key]: { fingerprint, task: created.name, at: new Date().toISOString() } });
@@ -4138,7 +4138,7 @@ export class Agenda {
         try {
             const source = await readFile(path, 'utf8');
             const updated = path.endsWith('.book')
-                ? setControlCommitment(source, 'TASK STATUS', 'failed')
+                ? appendCommitment(source, 'TASK STATUS', 'failed')
                 : setMarkdownControl(source, { hash: record.sectionHash }, '!', `failed ${formatIsoWithOffset(Date.now(), this.timeZone)}: ${(record.failure ?? '').slice(0, 160)}`);
             await writeFile(path, updated);
             await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('failure-acknowledged', { runId: record.runId, failure: record.failure, chat: record.recoveryChat });
@@ -4279,7 +4279,7 @@ export class Agenda {
     private async scheduleSyncConflict(conflict: { readonly upstream: string; readonly branch: string; readonly files: readonly string[]; readonly incoming: number }): Promise<void> {
         const origin = 'maintenance: synchronization conflict';
         const queue = await this.readQueue();
-        if (queue.tasks.some((task) => task.origin === origin && !task.doneStamps.length && task.status !== 'done' && task.status !== 'failed')) return;
+        if (queue.tasks.some((task) => task.origin === origin && !task.doneStamps.length && task.status !== 'done' && task.status !== 'failed' && task.status !== 'cancelled')) return;
         const fixer = await this.catalog.resolve('@Fixer');
         if (fixer.kind !== 'agent') {
             this.logOnce(`Synchronization conflict with ${conflict.upstream} (${conflict.files.join(', ')}): Fixer is unavailable, so the conflict stays visible until it is resolved manually.`, 'warning');
@@ -4386,7 +4386,7 @@ export class Agenda {
     }
 
     /**
-     * Feedback for a run waiting for its prerequisite tasks once all of them are settled (completed, retired, marked
+     * Feedback for a run waiting for its prerequisite tasks once all of them are settled (completed, retired, cancelled, marked
      * failed or removed), or `undefined` while one still needs work. Failure recovery of a prerequisite keeps the wait:
      * the dependency is real, and its problem is surfaced on the prerequisite itself.
      */
@@ -4398,7 +4398,7 @@ export class Agenda {
             const task = findTask(tasks, formatAgentReference(name)).task;
             if (!task) other.push(`{${name}} was removed`);
             else if (task.status === 'done' || (isRecurring(task) && task.doneStamps.length > 0)) completed.push(`{${task.title}}`);
-            else if (task.status === 'retired' || task.status === 'failed') other.push(`{${task.title}} was ${task.status === 'retired' ? 'retired' : 'marked failed'}`);
+            else if (task.status === 'retired' || task.status === 'cancelled' || task.status === 'failed') other.push(`{${task.title}} was ${task.status === 'retired' ? 'retired' : task.status === 'cancelled' ? 'cancelled' : 'marked failed'}`);
             else return undefined;
         }
         return [
@@ -4521,8 +4521,8 @@ export class Agenda {
     }
 
     /**
-     * Why a checkpointed task verifiably no longer needs its question or recheck: its source marks it completed, retired
-     * or failed, or the source was removed and the task exists nowhere else. An unclear source (e.g. a Markdown task
+     * Why a checkpointed task verifiably no longer needs its question or recheck: its source marks it completed, retired,
+     * cancelled or failed, or the source was removed and the task exists nowhere else. An unclear source (e.g. a Markdown task
      * renamed while edited) keeps the checkpoint.
      */
     private async closedTaskReason(record: ActiveRecord, tasks: readonly Task[]): Promise<string | undefined> {
@@ -4534,7 +4534,10 @@ export class Agenda {
         // A task Book holds one task, whatever its current title; a Markdown file is matched by the task's name.
         const task = inSource.find((candidate) => candidate.key === key) ?? (record.sourcePath.endsWith('.book') && inSource.length === 1 ? inSource[0] : undefined);
         if (task?.status === 'done') return `{${task.title}} was completed`;
+        // A future-scoped transition leaves the current occurrence to finish.
+        if (task?.statusScope === 'future') return undefined;
         if (task?.status === 'retired') return `{${task.title}} was retired`;
+        if (task?.status === 'cancelled') return `{${task.title}} was cancelled`;
         if (task?.status === 'failed') return `{${task.title}} was marked failed`;
         return undefined;
     }
