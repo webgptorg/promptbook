@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { appendUsage, chatUsageFile, normalizeUsage, parseUsageRequest, readUsage, summarizeUsage, taskUsageFile, usageRecords, usageUnits } from '../dist/engine/usage.js';
-import { priceOf, readPriceObservations, recordPriceObservation } from '../dist/engine/pricing.js';
-import { temporaryDirectory } from './helpers.mjs';
+import { observePriceLists, priceOf, ratesFromCatalog, readPriceObservations, recordPriceObservation } from '../dist/engine/pricing.js';
+import { harnessPlugin } from '../dist/harness/registry.js';
+import { drive, git, initializedProject, temporaryDirectory } from './helpers.mjs';
 
 const TUESDAY = '2026-10-27T10:00:00.000Z';
 
@@ -112,4 +114,93 @@ test('raw usage files: task evidence next to the trace, chat evidence of its own
     assert.deepEqual(records.map((record) => record.attribution.agent).sort(), ['Chatter', 'Developer']);
     summarizeUsage(records);
     assert.equal(await readFile(taskFile, 'utf8'), before, 'views only read the raw records');
+});
+
+/**
+ * A local stand-in for the public price catalog: `body()` is served on every request, and `requests` counts them.
+ */
+async function priceCatalogServer(t, body) {
+    const counter = { requests: 0 };
+    const server = createServer((_, response) => {
+        counter.requests++;
+        const text = body();
+        response.writeHead(text === undefined ? 503 : 200, { 'content-type': 'application/json' });
+        response.end(text ?? 'unavailable');
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    t.after(() => server.close());
+    return { counter, url: `http://127.0.0.1:${server.address().port}/prices.json` };
+}
+
+const CATALOG = {
+    'gpt-test': { litellm_provider: 'openai', mode: 'responses', input_cost_per_token: 2e-6, output_cost_per_token: 8e-6, cache_read_input_token_cost: 5e-7 },
+    'claude-test': { litellm_provider: 'anthropic', mode: 'chat', input_cost_per_token: 3e-6, output_cost_per_token: 1.5e-5, cache_read_input_token_cost: 3e-7, cache_creation_input_token_cost: 3.75e-6 },
+    'gemini/gemini-test': { litellm_provider: 'gemini', mode: 'chat', input_cost_per_token: 1e-6, output_cost_per_token: 4e-6 },
+    'text-embedding-test': { litellm_provider: 'openai', mode: 'embedding', input_cost_per_token: 1e-7, output_cost_per_token: 0 },
+    'gpt-image-test': { litellm_provider: 'openai', mode: 'image_generation', input_cost_per_image: 0.04 },
+    'gpt-incomplete': { litellm_provider: 'openai', mode: 'chat', input_cost_per_token: 1e-6 },
+    'bedrock/claude-test': { litellm_provider: 'bedrock', mode: 'chat', input_cost_per_token: 9e-6, output_cost_per_token: 9e-6 },
+    sample_spec: { litellm_provider: 'one of https://docs.litellm.ai/docs/providers', input_cost_per_token: 0 },
+};
+
+test('price lists: each adapter reads its own current rates from the catalog, under the model names it reports', () => {
+    assert.deepEqual(ratesFromCatalog(CATALOG, harnessPlugin('openai-codex').priceList), { 'gpt-test': { input: 2, output: 8, cachedInput: 0.5 } }, 'only complete text-model entries of its provider');
+    assert.deepEqual(ratesFromCatalog(CATALOG, harnessPlugin('claude-code').priceList), { 'claude-test': { input: 3, output: 15, cachedInput: 0.3, cacheWrite: 3.75 } });
+    assert.deepEqual(ratesFromCatalog(CATALOG, harnessPlugin('gemini').priceList), { 'gemini-test': { input: 1, output: 4 } }, 'the catalog section is not part of the reported name');
+    assert.deepEqual(Object.keys(ratesFromCatalog(CATALOG, harnessPlugin('opencode').priceList)).sort(), ['anthropic/claude-test', 'google/gemini-test', 'openai/gpt-test'], 'OpenCode reports provider/model');
+    assert.equal(harnessPlugin('github-copilot').priceList, undefined, 'Copilot bills requests, not tokens: no invented token prices');
+    assert.deepEqual(ratesFromCatalog('not a catalog', harnessPlugin('claude-code').priceList), {});
+});
+
+test('price lists: observations are due daily, kept only when rates change, and a failure costs nothing', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk price lists');
+    const project = { root, runtime: { root: join(root, '.ptbk') } };
+    const plugins = [harnessPlugin('openai-codex'), harnessPlugin('github-copilot')];
+    let served = JSON.stringify(CATALOG);
+    const { counter, url } = await priceCatalogServer(t, () => served);
+    const observe = async (now) => await observePriceLists(project, plugins, { env: { PTBK_PRICE_LISTS: url }, now });
+    const day = 24 * 3_600_000;
+    const start = Date.parse('2026-10-27T08:00:00Z');
+
+    assert.deepEqual(await observePriceLists(project, plugins, { env: { PTBK_PRICE_LISTS: 'off' }, now: start }), { kind: 'off' });
+    assert.deepEqual(await readPriceObservations(project), [], 'switched off: nothing is fetched or written');
+    assert.equal(counter.requests, 0);
+
+    assert.deepEqual(await observe(start), { kind: 'observed', recorded: ['openai-codex'], unchanged: [] });
+    const [first] = await readPriceObservations(project);
+    assert.deepEqual([first.harness, first.observedAt, first.currency, first.source], ['openai-codex', '2026-10-27T08:00:00.000Z', 'USD', url]);
+    assert.deepEqual((await observe(start + day - 1)).kind, 'not-due', 'the schedule is saved, so a restart does not fetch again');
+    assert.equal(counter.requests, 1);
+
+    assert.deepEqual(await observe(start + day), { kind: 'observed', recorded: [], unchanged: ['openai-codex'] }, 'identical rates add no observation');
+    assert.equal((await readPriceObservations(project)).length, 1);
+
+    served = JSON.stringify({ 'gpt-test': { ...CATALOG['gpt-test'], input_cost_per_token: 1e-6 } });
+    assert.deepEqual((await observe(start + 2 * day)).recorded, ['openai-codex'], 'a changed rate is a new observation; earlier ones stay');
+    const observations = await readPriceObservations(project);
+    assert.deepEqual(observations.map((observation) => observation.rates['gpt-test'].input), [2, 1]);
+    const [tuesday] = usageUnits(run({ agent: 'Developer', startedAt: '2026-10-28T10:00:00Z', observations: [{ at: '2026-10-28T10:00:00Z', usage: { input_tokens: 1_000_000, output_tokens: 0 }, semantics: 'cumulative' }] }));
+    assert.deepEqual(priceOf(tuesday, observations), { amount: 2, currency: 'USD', certainty: 'observed' }, 'usage before the change keeps the rate of its time');
+
+    served = undefined;
+    const failed = await observe(start + 3 * day);
+    assert.equal(failed.kind, 'unavailable');
+    assert.match(failed.reason, /503/);
+    assert.equal((await readPriceObservations(project)).length, 2, 'a failed fetch records nothing');
+    assert.equal((await observe(start + 3 * day + 3_600_000)).kind, 'not-due', 'retried at a bounded distance, not on every loop');
+    served = JSON.stringify(CATALOG);
+    assert.equal((await observe(start + 3 * day + 3 * 3_600_000)).kind, 'observed', 'and observed again once it returns');
+    served = '{ not json';
+    assert.equal((await observe(start + 5 * day)).kind, 'unavailable', 'a malformed list is an unavailable one');
+});
+
+test('price lists: a running engine keeps the observations of its enabled harnesses, without waiting for them', async (t) => {
+    const { counter, url } = await priceCatalogServer(t, () => JSON.stringify(CATALOG));
+    const { project, env } = await initializedProject(t);
+    const engineEnv = { ...env, PTBK_PRICE_LISTS: url };
+    await drive(project, engineEnv, async () => await readFile(join(project, '.ptbk', 'pricing', 'openai-codex.jsonl'), 'utf8').catch(() => false));
+    const [observation] = await readPriceObservations({ runtime: { root: join(project, '.ptbk') } });
+    assert.deepEqual([observation.harness, observation.rates['gpt-test']], ['openai-codex', { input: 2, output: 8, cachedInput: 0.5 }]);
+    assert.equal(counter.requests, 1);
+    assert.equal(await git(project, ['status', '--short', '--', '.ptbk']), '', 'price observations stay in ignored runtime storage');
 });

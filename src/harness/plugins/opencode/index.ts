@@ -101,6 +101,13 @@ export const plugin: HarnessPlugin = {
     modelCatalog: 'complete',
     endpoints: { official: 'https://opencode.ai', custom: false },
     capabilities: { mcp: true, readOnly: false },
+    priceList: {
+        providers: [
+            { catalog: 'anthropic', modelPrefixes: ['anthropic/'] },
+            { catalog: 'openai', modelPrefixes: ['openai/'] },
+            { catalog: 'gemini', modelPrefixes: ['google/'] },
+        ],
+    },
     loginArgs: ['auth', 'login'],
     loginHint: 'Run `opencode auth login` to store provider credentials.',
     selfUpdateArgs: ['upgrade'],

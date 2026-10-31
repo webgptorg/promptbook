@@ -1,5 +1,12 @@
 # Unreleased
 
+## Usage: calculated costs now use real current prices
+
+-   The engine now reads each harness's current token prices once a day and keeps them under `.ptbk/pricing/`. Before, nothing ever downloaded a price list, so the Usage page could never show a calculated API cost or a token-price equivalent outside hand-written fixtures
+-   OpenAI Codex, Claude Code, Gemini CLI, Qwen Code, Cline and OpenCode each name the provider sections they are billed under, in the public [LiteLLM price catalog](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json). GitHub Copilot bills requests rather than tokens, so its usage stays unpriced instead of getting invented rates. A model the catalog does not price in plain per-token rates also stays unpriced, for example tiered models
+-   A new observation is saved only when the rates changed. Earlier usage keeps the rate of its time. Usage from before the first observation is labelled as an estimate
+-   The download runs in the background and contains no project data. An unavailable list records nothing, logs one note and is retried after three hours. It does not delay work or touch usage. Set `PTBK_PRICE_LISTS=off` to switch it off, or to a URL to use another catalog with the same format
+
 ## Init: selected Wallet logins can be tested before the project is created
 
 -   After you choose logins from a Bitwarden export in `ptbk init`, you can test them with a real sign-in, using the same check as **Test** on the Wallet page. The question defaults to No

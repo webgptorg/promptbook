@@ -250,6 +250,7 @@ export const plugin: HarnessPlugin = {
     modelCatalog: 'complete',
     endpoints: { official: 'https://api.openai.com/v1', local: 'http://localhost:11434/v1', custom: true },
     capabilities: { mcp: true, readOnly: true },
+    priceList: { providers: [{ catalog: 'openai' }] },
     loginArgs: ['login'],
     loginHint: 'Run `codex login` (on a server without a browser: `codex login --device-auth`) and sign in with your ChatGPT account.',
     loginMethods,

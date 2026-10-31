@@ -97,6 +97,7 @@ export const plugin: HarnessPlugin = {
     modelCatalog: 'partial',
     endpoints: { official: 'https://api.anthropic.com', custom: true },
     capabilities: { mcp: true, readOnly: true },
+    priceList: { providers: [{ catalog: 'anthropic' }] },
     loginArgs: ['auth', 'login'],
     loginHint: 'Run `claude auth login` (or start `claude` once and use /login); on a server, open its link on another device and paste the code it shows.',
     loginMethods,

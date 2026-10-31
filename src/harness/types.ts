@@ -246,6 +246,21 @@ export type HarnessEndpoints = {
 };
 
 /**
+ * Where a harness's current token prices are published: the provider sections of the shared public price catalog its
+ * models are billed under.
+ *
+ * @private harness plugin contract
+ */
+export type HarnessPriceList = {
+    readonly providers: ReadonlyArray<{
+        /** The provider's section of the catalog (`anthropic`). */
+        readonly catalog: string;
+        /** How this harness reports the provider's models (`anthropic/` before the model; default: the bare name). */
+        readonly modelPrefixes?: readonly string[];
+    }>;
+};
+
+/**
  * The common integration contract implemented by every harness folder.
  *
  * @private harness plugin contract
@@ -288,6 +303,8 @@ export type HarnessPlugin = {
     readonly endpoints: HarnessEndpoints;
     /** Static capabilities (may be refined by inspection). */
     readonly capabilities: HarnessCapabilities;
+    /** Where the current token prices of its models are published (absent: none, its usage stays unpriced). */
+    readonly priceList?: HarnessPriceList;
     /** Native interactive login arguments (inherit the terminal). */
     readonly loginArgs?: readonly string[];
     /** Human login instruction. */

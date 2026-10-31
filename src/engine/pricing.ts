@@ -1,6 +1,8 @@
-import { appendFile, readdir, readFile } from 'node:fs/promises';
+import { appendFile, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { errorMessage } from '../common/errors.js';
 import { ensureDirectory } from '../common/fs.js';
+import type { HarnessPlugin, HarnessPriceList } from '../harness/types.js';
 import type { Project } from '../project/workspace.js';
 import type { UsageCategories, UsageUnit } from './usage.js';
 
@@ -48,6 +50,55 @@ export type PriceObservation = {
 export type RateCertainty = 'effective' | 'observed' | 'estimated';
 
 /**
+ * The shared public catalog of current token prices (the adapters choose their sections of it).
+ * `PTBK_PRICE_LISTS` overrides it or turns the fetching `off`.
+ */
+const PRICE_CATALOG_URL = 'https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json';
+
+/**
+ * How long one catalog download may take.
+ */
+const PRICE_FETCH_TIMEOUT_MS = 20_000;
+
+/**
+ * Largest catalog accepted (it is only ever read as data).
+ */
+const PRICE_CATALOG_MAX_BYTES = 32 * 1024 * 1024;
+
+/**
+ * How often the current price lists are observed.
+ */
+const PRICE_OBSERVATION_INTERVAL_MS = 24 * 3_600_000;
+
+/**
+ * When to try again after an unavailable catalog.
+ */
+const PRICE_RETRY_INTERVAL_MS = 3 * 3_600_000;
+
+/**
+ * Catalog fields of each rate, in currency units per token.
+ */
+const CATALOG_RATE_FIELDS: Readonly<Record<keyof ModelRates, string>> = {
+    input: 'input_cost_per_token',
+    output: 'output_cost_per_token',
+    cachedInput: 'cache_read_input_token_cost',
+    cacheWrite: 'cache_creation_input_token_cost',
+    reasoning: 'output_cost_per_reasoning_token',
+};
+
+/**
+ * Catalog entries that are text models (absent: not declared); embedding, image or audio prices are other units.
+ */
+const CATALOG_TEXT_MODES: ReadonlySet<unknown> = new Set([undefined, 'chat', 'responses', 'completion']);
+
+/**
+ * What one observation pass did.
+ *
+ * @private historical pricing
+ */
+export type PriceListOutcome = { readonly kind: 'not-due' | 'off' } | { readonly kind: 'observed'; readonly recorded: readonly string[]; readonly unchanged: readonly string[] } | { readonly kind: 'unavailable'; readonly reason: string };
+
+/**
  * Directory of the price observations.
  */
 function pricingDirectory(project: Pick<Project, 'runtime'>): string {
@@ -86,6 +137,88 @@ export async function readPriceObservations(project: Pick<Project, 'runtime'>): 
         }
     }
     return observations;
+}
+
+/**
+ * The rates per million tokens of a harness's models in the public catalog: only complete text-model entries of its
+ * provider sections, under the names the harness reports. Anything else in the catalog is ignored.
+ *
+ * @private historical pricing
+ */
+export function ratesFromCatalog(catalog: unknown, list: HarnessPriceList): Record<string, ModelRates> {
+    const rates: Record<string, ModelRates> = {};
+    if (typeof catalog !== 'object' || catalog === null) return rates;
+    for (const [name, entry] of Object.entries(catalog as Record<string, Record<string, unknown>>).sort(([a], [b]) => a.localeCompare(b))) {
+        if (typeof entry !== 'object' || entry === null || !CATALOG_TEXT_MODES.has(entry.mode)) continue;
+        const provider = list.providers.find((candidate) => candidate.catalog === entry.litellm_provider);
+        if (!provider) continue;
+        const model: { -readonly [Category in keyof ModelRates]: number } = {};
+        for (const [category, field] of Object.entries(CATALOG_RATE_FIELDS) as ReadonlyArray<[keyof ModelRates, string]>) {
+            const perToken = entry[field];
+            if (typeof perToken === 'number' && Number.isFinite(perToken) && perToken >= 0) model[category] = Math.round(perToken * 1e12) / 1e6;
+        }
+        if (model.input === undefined || model.output === undefined) continue;
+        const bare = name.startsWith(`${provider.catalog}/`) ? name.slice(provider.catalog.length + 1) : name;
+        for (const prefix of provider.modelPrefixes ?? ['']) rates[`${prefix}${bare}`] = model;
+    }
+    return rates;
+}
+
+/**
+ * Downloads the catalog (bounded in time and size).
+ */
+async function fetchPriceCatalog(url: string): Promise<unknown> {
+    const response = await fetch(url, { signal: AbortSignal.timeout(PRICE_FETCH_TIMEOUT_MS), redirect: 'follow' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const text = await response.text();
+    if (text.length > PRICE_CATALOG_MAX_BYTES) throw new Error('the price list is unexpectedly large');
+    return JSON.parse(text) as unknown;
+}
+
+/**
+ * Observes the current price list of each given harness once it is due, keeping a new timestamped observation only
+ * when its rates changed since the last one (`rateAt` finds the same rate either way, and a year of identical lists
+ * adds nothing). A failure records nothing and never touches usage: its prices stay unknown until a later attempt.
+ *
+ * @private historical pricing
+ */
+export async function observePriceLists(project: Pick<Project, 'runtime'>, plugins: readonly HarnessPlugin[], options: { readonly env?: NodeJS.ProcessEnv; readonly now?: number } = {}): Promise<PriceListOutcome> {
+    const configured = options.env?.PTBK_PRICE_LISTS?.trim();
+    if (configured === 'off') return { kind: 'off' };
+    const now = options.now ?? Date.now();
+    const listed = plugins.filter((plugin) => plugin.priceList);
+    const directory = pricingDirectory(project);
+    const scheduleFile = join(directory, 'next-observation.json');
+    const nextAt = await readFile(scheduleFile, 'utf8').then(
+        (text) => Date.parse((JSON.parse(text) as { at?: string }).at ?? ''),
+        () => NaN,
+    );
+    if (!listed.length || nextAt > now) return { kind: 'not-due' };
+    await ensureDirectory(directory);
+    const schedule = async (delay: number): Promise<void> => await writeFile(scheduleFile, `${JSON.stringify({ at: new Date(now + delay).toISOString() })}\n`);
+    let catalog: unknown;
+    try {
+        catalog = await fetchPriceCatalog(configured || PRICE_CATALOG_URL);
+    } catch (error) {
+        await schedule(PRICE_RETRY_INTERVAL_MS);
+        return { kind: 'unavailable', reason: errorMessage(error) };
+    }
+    const observations = await readPriceObservations(project);
+    const recorded: string[] = [];
+    const unchanged: string[] = [];
+    for (const plugin of listed) {
+        const rates = ratesFromCatalog(catalog, plugin.priceList!);
+        if (!Object.keys(rates).length) continue;
+        const latest = observations.filter((observation) => observation.harness === plugin.id).sort((a, b) => a.observedAt.localeCompare(b.observedAt)).pop();
+        if (latest && JSON.stringify(latest.rates) === JSON.stringify(rates)) {
+            unchanged.push(plugin.id);
+            continue;
+        }
+        await recordPriceObservation(project, { harness: plugin.id, observedAt: new Date(now).toISOString(), source: configured || PRICE_CATALOG_URL, currency: 'USD', rates });
+        recorded.push(plugin.id);
+    }
+    await schedule(PRICE_OBSERVATION_INTERVAL_MS);
+    return { kind: 'observed', recorded, unchanged };
 }
 
 /**

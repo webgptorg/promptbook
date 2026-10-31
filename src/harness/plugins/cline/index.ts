@@ -59,6 +59,13 @@ export const plugin: HarnessPlugin = {
     modelCatalog: 'partial',
     endpoints: { official: 'https://api.cline.bot', custom: false },
     capabilities: { mcp: false, readOnly: false },
+    priceList: {
+        providers: [
+            { catalog: 'anthropic', modelPrefixes: ['', 'anthropic/'] },
+            { catalog: 'openai', modelPrefixes: ['', 'openai/'] },
+            { catalog: 'gemini', modelPrefixes: ['', 'google/'] },
+        ],
+    },
     loginArgs: ['auth'],
     loginHint: 'Run `cline auth` to configure a provider.',
     selfUpdateArgs: ['--update'],

@@ -24,7 +24,7 @@ import { listFolder, readProjectFile, type FileView, type FolderView } from '../
 import { coreReconciliationDescription, prepareCoreAgents, type CorePreparation } from '../project/core-templates.js';
 import { isCoreAgent } from '../project/defaults.js';
 import { readUsage, summarizeUsage, type UsageFilter, type UsageGrouping, type UsageRow, type UsageSummary } from './usage.js';
-import { readPriceObservations } from './pricing.js';
+import { observePriceLists, readPriceObservations } from './pricing.js';
 import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.js';
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
@@ -239,6 +239,11 @@ const IDLE_RECHECK_MS = 10 * 60_000;
  * Interval of automatic harness update checks.
  */
 const HARNESS_MAINTENANCE_INTERVAL_MS = 12 * 3_600_000;
+
+/**
+ * How often the agenda looks at whether a price-list observation is due (its schedule survives restarts).
+ */
+const PRICE_CHECK_SPACING_MS = 3_600_000;
 
 /**
  * Shortest interval between two Fixer health checks (also after diagnostics change).
@@ -508,6 +513,10 @@ export class Agenda {
     private connection: ConnectionView = { local: { state: 'disabled' } };
     private readonly startedAt = new Date().toISOString();
     private lastHarnessMaintenance = 0;
+    /** Whether a price-list observation is running in the background. */
+    private observingPrices = false;
+    /** No need to look at the schedule again before this time. */
+    private nextPriceCheck = 0;
     private readonly watchers: FSWatcher[] = [];
     private wakeTimer?: NodeJS.Timeout;
     private configTimer?: NodeJS.Timeout;
@@ -2511,6 +2520,7 @@ export class Agenda {
         }
         // Shared harness executables are only updated while nothing runs them.
         if (!this.units.size) await this.maintainHarnesses();
+        this.maintainPriceLists();
         if (await this.handleRecordedRuns()) return;
         if (await this.resumeParked()) return;
         this.blockers = this.blockers.filter((blocker) => blocker.kind !== 'recovery' && (blocker.kind !== 'persistence' || this.resumeAfter.size > 0));
@@ -4166,6 +4176,27 @@ export class Agenda {
             this.pool.invalidate(id);
             await this.pool.refresh([id], true);
         }
+    }
+
+    /**
+     * Keeps the current price lists of the enabled harnesses observed, in the background: a download is never a
+     * prerequisite of work, and an unavailable list only leaves usage unpriced.
+     */
+    private maintainPriceLists(): void {
+        const now = Date.now();
+        if (this.observingPrices || now < this.nextPriceCheck) return;
+        this.observingPrices = true;
+        this.nextPriceCheck = now + PRICE_CHECK_SPACING_MS;
+        const plugins = this.pool.enabled().flatMap((id) => this.pool.plugin(id) ?? []);
+        void observePriceLists(this.options.project, plugins, { env: this.options.env })
+            .then((outcome) => {
+                if (outcome.kind === 'unavailable') this.logOnce(`Current model prices could not be read (${outcome.reason}). Usage is kept and its cost stays unknown; ptbk tries again later.`, 'info');
+                else if (outcome.kind === 'observed' && outcome.recorded.length) this.log(`Observed the current model prices of ${outcome.recorded.join(', ')}.`);
+            })
+            .catch((error: unknown) => this.logOnce(`Current model prices could not be saved: ${errorMessage(error)}`, 'info'))
+            .finally(() => {
+                this.observingPrices = false;
+            });
     }
 
     /** Whether the pre-work check already passed in this process. */

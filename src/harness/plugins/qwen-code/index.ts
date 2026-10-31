@@ -44,6 +44,7 @@ export const plugin: HarnessPlugin = {
     modelCatalog: 'partial',
     endpoints: { official: 'https://dashscope.aliyuncs.com/compatible-mode/v1', local: 'http://localhost:11434/v1', custom: true },
     capabilities: { mcp: false, readOnly: true },
+    priceList: { providers: [{ catalog: 'dashscope' }] },
     loginHint: 'Start `qwen` once and complete its login, or set DASHSCOPE_API_KEY.',
     inspect,
     buildInvocation,

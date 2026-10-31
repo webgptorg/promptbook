@@ -45,6 +45,7 @@ export const plugin: HarnessPlugin = {
     modelCatalog: 'partial',
     endpoints: { official: 'https://generativelanguage.googleapis.com', custom: false },
     capabilities: { mcp: false, readOnly: true },
+    priceList: { providers: [{ catalog: 'gemini' }] },
     loginHint: 'Start `gemini` once and choose “Login with Google”, or set GEMINI_API_KEY.',
     inspect,
     buildInvocation,
