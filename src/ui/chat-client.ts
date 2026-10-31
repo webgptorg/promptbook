@@ -6,6 +6,7 @@ import type { ChatAgentChoice, ChatDetail } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
 import { fit, stringWidth, truncate, wrap } from './ansi.js';
 import type { ComposedSegment } from './composer.js';
+import { POINTER_PICK_HINT, windowAround } from './prompts.js';
 import { RichInput, type PointerField } from './rich-input.js';
 import { KeyboardSession, type KeyEvent, type PointerInput } from './keys.js';
 import { renderPanel } from './panels.js';
@@ -79,6 +80,11 @@ const REFRESH_MS = 1500;
 const WHEEL_LINES = 3;
 
 /**
+ * Offered answers shown at once; a longer list scrolls around the focused one.
+ */
+const CHOICE_ROWS = 6;
+
+/**
  * What the chat client opens.
  *
  * @private chat client
@@ -117,8 +123,12 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     /** Where the input was last drawn, for the pointer. */
     let field: PointerField | undefined;
     let attachField: PointerField | undefined;
-    /** The frame row of the first offered answer. */
-    let choicesRow = 0;
+    /** The focused offered answer; otherwise the composer has focus. */
+    let choiceFocus: number | undefined;
+    /** The question the focus belongs to: another question never inherits it, so Enter cannot answer what was not read. */
+    let choiceQuestion: string | undefined;
+    /** Where the offered answers were last drawn: the frame row of the first drawn one and its index. */
+    let choiceRows = { row: 0, first: 0, count: 0 };
 
     const awaited = (): { sender: string; text: string; choices?: readonly string[] } | undefined => (detail?.summary.status === 'waiting-for-user' ? detail.summary.awaiting : undefined);
 
@@ -147,7 +157,22 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         if ((detail?.tasks?.length ?? 0) > cards.length) cards.unshift(style.muted(`${detail!.tasks!.length - cards.length} earlier task(s) on the Tasks page`));
         const top = renderPanel({ title: `${marks.bullet} Chat`, titleRight: options.embedded ? 'Esc back to dashboard' : 'Ctrl+C close', lines: [...header, ...cards], width, tone: detail?.summary.status === 'waiting-for-user' ? 'attention' : 'accent', unicode: terminal.unicode, style });
         const question = awaited();
-        const choiceLines = question?.choices?.length ? [style.muted('Offered answers (press the number with an empty composer):'), ...question.choices.map((choice, index) => `  ${style.accent(`[${index + 1}]`)} ${choice}`)] : [];
+        const choices = question?.choices ?? [];
+        if (question?.text !== choiceQuestion || !editor.empty || input.attaching) choiceFocus = undefined;
+        choiceQuestion = question?.text;
+        const shownChoices = windowAround(choices.length, choiceFocus ?? 0, CHOICE_ROWS);
+        const choiceLines = choices.length
+            ? [
+                  style.muted(editor.empty ? 'Offered answers (↑↓ choose, Enter sends, or write your own):' : 'Offered answers (empty your message to choose one):'),
+                  ...(shownChoices.start > 0 ? [style.muted(`    ↑ ${shownChoices.start} more`)] : []),
+                  ...choices.slice(shownChoices.start, shownChoices.end).map((choice, offset) => {
+                      const index = shownChoices.start + offset;
+                      const focused = index === choiceFocus;
+                      return `${focused ? style.accent(marks.pointer) : ' '} ${style.accent(index < 9 ? `[${index + 1}]` : '   ')} ${focused ? style.bold(choice) : choice}`;
+                  }),
+                  ...(shownChoices.end < choices.length ? [style.muted(`    ↓ ${choices.length - shownChoices.end} more`)] : []),
+              ]
+            : [];
         const layout = editor.layout(width - 6, 5);
         const attaching = input.attaching;
         const status = input.status(width - 6);
@@ -164,8 +189,10 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             style,
         });
         const keys = input.keys().map((key) => key.replace(/^Enter submit$/, 'Enter send').replace(/^Esc cancel$/, options.embedded ? 'Esc back' : 'Ctrl+C close (the service keeps running)'));
-        const legend = style.muted(fit(`  ${[...keys, 'PgUp/PgDn scroll', ...(question?.choices?.length ? ['1-9 answer'] : []), ...(detail?.messages.some((message) => message.phase === 'progress') ? [`Ctrl+R ${showThinking ? 'hide' : 'show'} thinking`] : [])].join(' · ')}${notice ? `   ${marks.arrow} ${notice}` : ''}`, width));
-        const available = Math.max(3, height - top.length - composer.length - 1);
+        const legend = style.muted(fit(`  ${[...keys, 'PgUp/PgDn scroll', ...(choiceFocus !== undefined ? ['Esc back to your message'] : choices.length && editor.empty ? ['↑↓ choose an answer', ...(terminal.pointer ? [POINTER_PICK_HINT] : [])] : []), ...(detail?.messages.some((message) => message.phase === 'progress') ? [`Ctrl+R ${showThinking ? 'hide' : 'show'} thinking`] : [])].join(' · ')}`, width));
+        // On its own line: behind the long legend a failed send would be cut off.
+        const noticeLines = notice ? wrap(`${marks.arrow} ${notice}`, width - 4).map((line) => `  ${line}`) : [];
+        const available = Math.max(3, height - top.length - composer.length - noticeLines.length - 1);
         const body: string[] = [];
         for (const item of collapseThinking(detail?.messages ?? [])) {
             // A final reply's interim progress is one Thinking line (Ctrl+R expands it); the Book keeps it all.
@@ -207,9 +234,10 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         const pathLayout = attaching?.layout(width - 22, 1);
         field = attaching ? undefined : { row: textRow, column: 2, rows: Math.max(1, layout.lines.length), offsetAt: layout.offsetAt };
         attachField = pathLayout && { row: textRow, column: attachColumn, rows: 1, offsetAt: pathLayout.offsetAt };
-        choicesRow = textRow - choiceLines.length + 1;
-        const cursor = pathLayout ? { row: textRow, column: attachColumn + pathLayout.cursor.column } : { row: textRow + (editor.empty ? 0 : layout.cursor.row), column: 2 + (editor.empty ? 0 : layout.cursor.column) };
-        screen.draw([...top, ...visible.map((line) => truncate(line, width)), ...composer, legend], cursor);
+        choiceRows = { row: top.length + visible.length + 2 + (shownChoices.start > 0 ? 1 : 0), first: shownChoices.start, count: shownChoices.end - shownChoices.start };
+        // A focused answer is the focus: the composer's cursor returns with it.
+        const cursor = choiceFocus !== undefined ? undefined : pathLayout ? { row: textRow, column: attachColumn + pathLayout.cursor.column } : { row: textRow + (editor.empty ? 0 : layout.cursor.row), column: 2 + (editor.empty ? 0 : layout.cursor.column) };
+        screen.draw([...top, ...visible.map((line) => truncate(line, width)), ...composer, ...noticeLines, legend], cursor);
     };
 
     const refresh = async (): Promise<void> => {
@@ -261,14 +289,25 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         finish?.();
     };
 
-    /** A press places the cursor or sends an offered answer (like its number, with an empty composer); the wheel scrolls the conversation. */
+    /** A press places the cursor, or focuses an offered answer and sends the focused one (with an empty composer); the wheel scrolls the conversation. */
     const onPointer = (event: PointerInput): void => {
         if (event.action !== 'press') {
             scroll = Math.max(0, scroll + (event.action === 'wheel-up' ? WHEEL_LINES : -WHEEL_LINES));
             return draw();
         }
-        const choice = awaited()?.choices?.[event.row - choicesRow];
-        if (choice !== undefined && editor.empty && !input.attaching) return void submit(choice);
+        const offset = event.row - choiceRows.row;
+        if (offset >= 0 && offset < choiceRows.count) {
+            const index = choiceRows.first + offset;
+            const choice = awaited()?.choices?.[index];
+            if (choice === undefined) return;
+            if (!editor.empty || input.attaching) {
+                notice = 'Your message stays: empty it to choose an offered answer.';
+            } else if (index === choiceFocus) {
+                return void submit(choice);
+            } else choiceFocus = index;
+            return draw();
+        }
+        choiceFocus = undefined;
         input.point(event, field, attachField);
         draw();
     };
@@ -279,6 +318,23 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         if (event.type === 'key' && event.name === 'r' && event.ctrl) {
             showThinking = !showThinking;
             return draw();
+        }
+        // With an empty composer the arrows reach the offered answers: selectable, however many there are.
+        const offered = awaited()?.choices ?? [];
+        if (event.type === 'key' && offered.length && editor.empty && !input.attaching) {
+            if (event.name === 'up' || event.name === 'down') {
+                const step = event.name === 'down' ? 1 : -1;
+                choiceFocus = choiceFocus === undefined ? (step > 0 ? 0 : offered.length - 1) : (choiceFocus + step + offered.length) % offered.length;
+                return draw();
+            }
+            if (choiceFocus !== undefined && event.name === 'enter') {
+                void submit(offered[choiceFocus]!);
+                return;
+            }
+            if (choiceFocus !== undefined && event.name === 'escape') {
+                choiceFocus = undefined;
+                return draw();
+            }
         }
         if (event.type === 'key' && event.name === 'escape' && options.embedded && !input.attaching) return close();
         if (event.type === 'key' && event.name === 'pageup') {

@@ -3,10 +3,12 @@
 ## Pickers and composers: the mouse now works in the terminal
 
 -   Wizard pickers, toggle lists and the dashboard's new-chat picker now take clicks and the wheel. In a single-choice picker, a click focuses an option and a click on the focused option confirms it, so a stray click cannot choose anything. In a checkbox list or toggle list, a click toggles the option. The keyboard works as before
--   Clicking in a composer places the cursor: wizard text steps, chat and the Book editor. A click never submits. In chat, clicking an offered answer sends it, like pressing its number, and only when the composer is empty, so a draft cannot be lost
+-   Clicking in a composer places the cursor: wizard text steps, chat and the Book editor. A click never submits
 -   While one of these has focus, selecting text or scrolling back in the terminal needs a modifier, usually Shift, or Option on macOS. Set `PTBK_TERMINAL_POINTER=off` to keep the terminal's own selection and scrollback. Dashboard pages and tiles do not take the mouse, so selection there works as usual
 -   Windows consoles stay keyboard-only unless you set `PTBK_TERMINAL_POINTER=on`
 -   The chat composer now shows its cursor. Before, it had none, so you could not see where typing would land
+-   Answers an agent offers in terminal chat are now a selectable list: with an empty composer, ↑↓ choose and Enter sends, and a click focuses and a second click sends. Before, only the first nine could be chosen, by number, although an agent may offer up to 50. The number keys still work, and a draft is never lost to a choice
+-   Messages in chat and the Book editor, such as "Not sent: …" or "Not saved: …", now have their own line. Before, they came after the long key legend and were cut off at common terminal widths, so a failed send or save could go unseen
 -   Moving the cursor inside a long text no longer scrolls it. Before, moving up kept the cursor pinned to the bottom row of the field
 
 ## Files: the terminal dashboard shows images where the terminal can

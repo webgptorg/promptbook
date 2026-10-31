@@ -2,7 +2,7 @@ import { errorMessage } from '../common/errors.js';
 import type { BookSaveOutcome } from '../engine/agenda.js';
 import type { BookSource } from '../project/book-sources.js';
 import { highlightKinds, type BookHighlightKind } from '../book/highlight.js';
-import { bookHighlightStyle, fit, truncate } from './ansi.js';
+import { bookHighlightStyle, fit, truncate, wrap } from './ansi.js';
 import type { ComposedSegment } from './composer.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { renderPanel } from './panels.js';
@@ -120,8 +120,10 @@ export async function runBookEditor(
             : [];
         const status = input.status(width - 4);
         const keys = source.editable ? input.keys() : ['↑↓ move', 'Esc leave'];
-        const legend = style.muted(fit(`  ${busy || keys.join(' · ')}${notice ? `   ${marks.arrow} ${notice}` : ''}`, width));
+        const legend = style.muted(fit(`  ${busy || keys.join(' · ')}`, width));
         const statusLines = status ? [status.tone === 'warning' ? style.warning(`  ${status.text}`) : style.muted(`  ${status.text}`)] : [];
+        // On its own line: behind the long legend a failed save would be cut off.
+        if (notice) statusLines.push(...wrap(`${marks.arrow} ${notice}`, width - 4).map((line) => `  ${line}`));
         const attaching = input.attaching;
         const attachLines = attaching ? [`  ${style.bold('Attach file:')} ${attaching.layout(width - 18, 1).lines[0] ?? ''}`] : [];
         const available = Math.max(3, height - header.length - warningPanel.length - statusLines.length - attachLines.length - 3);
