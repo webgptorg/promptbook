@@ -1,5 +1,9 @@
 # Unreleased
 
+## Wallet: adding a website login in the terminal can finish again
+
+-   The dashboard's form for adding a website login could never finish. At its last step, the optional additional fields, leaving the field empty was refused with "A value is required", and Esc discarded the whole login with the typed password. An empty field now finishes the form and saves the login. Logins saved in the browser were not affected
+
 ## Pickers and composers: the mouse now works in the terminal
 
 -   Wizard pickers, toggle lists and the dashboard's new-chat picker now take clicks and the wheel. In a single-choice picker, a click focuses an option and a click on the focused option confirms it, so a stray click cannot choose anything. In a checkbox list or toggle list, a click toggles the option. The keyboard works as before

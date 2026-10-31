@@ -226,7 +226,11 @@ export async function selectOne<T>(terminal: TerminalProfile, options: { frame: 
         (event) => {
             if (event.type === 'pointer') {
                 if (event.action !== 'press') {
-                    if (event.action === 'wheel-up' ? focus > 0 : focus < visible.length - 1) moveFocus(event.action === 'wheel-up' ? -1 : 1);
+                    // Unlike the arrow keys, the wheel stops at the ends: a spinning wheel must not jump around.
+                    const step = event.action === 'wheel-up' ? -1 : 1;
+                    let next = focus + step;
+                    while (visible[next]?.disabled) next += step;
+                    if (visible[next]) focus = next;
                     return undefined;
                 }
                 const index = targets.get(event.row);
@@ -578,13 +582,13 @@ export async function composeText(
 }
 
 /**
- * Single-line text input (folder names, paths) using the same composer.
+ * Single-line text input (folder names, paths) using the same composer. An `optional` one accepts an empty value.
  *
  * @private terminal prompts
  */
-export async function inputLine(terminal: TerminalProfile, options: { frame: WizardFrame; question: string; initial?: string; placeholder?: string; validate?: (value: string) => string | undefined }): Promise<string | typeof CANCELLED> {
+export async function inputLine(terminal: TerminalProfile, options: { frame: WizardFrame; question: string; initial?: string; placeholder?: string; optional?: boolean; validate?: (value: string) => string | undefined }): Promise<string | typeof CANCELLED> {
     for (;;) {
-        const value = await composeText(terminal, { frame: options.frame, question: options.question, initial: options.initial, placeholder: options.placeholder, required: true, singleLine: true });
+        const value = await composeText(terminal, { frame: options.frame, question: options.question, initial: options.initial, placeholder: options.placeholder, required: !options.optional, singleLine: true });
         if (value === CANCELLED) return CANCELLED;
         const single = value.replace(/\s*\n\s*/g, ' ').trim();
         const problem = options.validate?.(single);

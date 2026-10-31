@@ -101,6 +101,7 @@ async function additionalFieldsForm(terminal: TerminalProfile, frame: WizardFram
         const name = await inputLine(terminal, {
             frame: { ...frame, summary: [...(frame.summary ?? []), ...(saved.length ? [`Saved additional fields (kept unless you change them): ${saved.join(', ')}.`] : [])] },
             question: 'Additional login field the website asks for, for example "Date of birth" or "Security answer" (optional; empty to finish):',
+            optional: true,
         });
         if (name === CANCELLED) return undefined;
         if (!name.trim()) return fields;
