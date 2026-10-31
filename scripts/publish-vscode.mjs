@@ -38,6 +38,47 @@ async function marketplaceBytes(version) {
     return Buffer.from(await response.arrayBuffer());
 }
 
+/** Marketplace answers that refuse the token itself (expired, revoked or without Marketplace access). */
+const REFUSED_TOKEN = /expired|Unauthorized\(401\)|Invalid Resource|Access Denied/i;
+
+/** What the owner does when no Marketplace credential works; the npm and GitHub Release outputs need no new version. */
+const TOKEN_REMEDY =
+    'Set a new Azure DevOps Personal Access Token with Marketplace (Manage) access for all accessible organizations as the VSCE_PAT repository secret, or configure trusted publishing for the Promptbook publisher, then rerun this job (no new version is needed).';
+
+/** Runs vsce with the given environment; its complete output either way (GitHub Actions annotations are on stdout). */
+async function runVsce(args, env) {
+    return await execute(process.execPath, [join(root, 'node_modules/@vscode/vsce/vsce'), ...args], { cwd: root, env, maxBuffer: 8 * 1024 * 1024, timeout: 180000 }).then(
+        ({ stdout, stderr }) => ({ ok: true, output: `${stdout}${stderr}` }),
+        (error) => ({ ok: false, output: `${error.stdout ?? ''}${error.stderr ?? ''}` }),
+    );
+}
+
+/**
+ * Publishes a packaged VSIX with vsce: with the `VSCE_PAT` token, and through trusted publishing (OIDC) when there is
+ * no token, or when the Marketplace refused it and GitHub Actions can issue an OIDC token. Every attempt's messages are
+ * logged; an error names the actual remedy when nothing was accepted.
+ */
+export async function vscePublish(path, { env = process.env, run = runVsce, log = (text) => process.stdout.write(text) } = {}) {
+    const publish = ['publish', '--packagePath', path];
+    let refused = false;
+    if (env.VSCE_PAT) {
+        const attempt = await run(publish, env);
+        log(attempt.output);
+        if (attempt.ok) return;
+        refused = REFUSED_TOKEN.test(attempt.output);
+        if (!refused) throw new Error('vsce publish failed; its messages are above.');
+        if (!env.ACTIONS_ID_TOKEN_REQUEST_URL) throw new Error(`The Marketplace refused the VSCE_PAT token (its messages are above). ${TOKEN_REMEDY}`);
+        log('The Marketplace refused the VSCE_PAT token; trying trusted publishing (OIDC) instead.\n');
+    }
+    // vsce refuses --oidc next to a token, so this attempt runs without one.
+    const withoutToken = { ...env };
+    delete withoutToken.VSCE_PAT;
+    const attempt = await run([...publish, '--oidc'], withoutToken);
+    log(attempt.output);
+    if (attempt.ok) return;
+    throw new Error(`${refused ? 'The Marketplace refused the VSCE_PAT token, and trusted publishing (OIDC) failed too' : 'Trusted publishing (OIDC) failed'} (their messages are above). ${TOKEN_REMEDY}`);
+}
+
 /** Publish using the existing Marketplace identity and verify the version users can actually install. */
 async function publishMarketplace(path, bytes, version) {
     const existing = await marketplaceBytes(version);
@@ -46,15 +87,7 @@ async function publishMarketplace(path, bytes, version) {
         process.stdout.write(`Verified existing Promptbook.book-extension ${version}.\n`);
         return;
     }
-    const args = [join(root, 'node_modules/@vscode/vsce/vsce'), 'publish', '--packagePath', path];
-    if (!process.env.VSCE_PAT) args.push('--oidc');
-    // In GitHub Actions vsce reports its errors on stdout (as ::error:: annotations); keep them in the job log.
-    const { stdout } = await execute(process.execPath, args, { cwd: root, maxBuffer: 8 * 1024 * 1024, timeout: 180000 }).catch((error) => {
-        process.stdout.write(error.stdout ?? '');
-        process.stderr.write(error.stderr ?? '');
-        throw new Error(`vsce publish failed${error.code === undefined ? '' : ` (exit code ${error.code})`}; its messages are above.`);
-    });
-    process.stdout.write(stdout);
+    await vscePublish(path);
     for (let attempt = 0; attempt < 6; attempt++) {
         const published = await marketplaceBytes(version);
         if (published) {

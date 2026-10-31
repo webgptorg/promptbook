@@ -1,5 +1,11 @@
 # Unreleased
 
+## Releasing: the VS Code extension uses trusted publishing when the Marketplace token is refused
+
+-   The Publish workflow's `vscode-extension` job could not publish to the VS Code Marketplace because the token it falls back to (the organization's `VSCE_TOKEN`) has expired. The same token already stopped the last publication from the former extension repository (1.0.70, "The Personal Access Token used has expired"). The Marketplace listing therefore stays at 1.0.69 until a working credential is available.
+-   When the Marketplace refuses the token (expired, revoked or without access), the job now tries trusted publishing (OIDC) from GitHub Actions instead; the job already has the `id-token: write` permission. Without any token it uses trusted publishing directly, as before. Other failures, such as a version that already exists, are not retried with another credential.
+-   When nothing is accepted, the job names the remedy: set a new Azure DevOps Personal Access Token with Marketplace (Manage) access as the `VSCE_PAT` repository secret, or configure trusted publishing for the Promptbook publisher, then rerun the job. No new version is needed, because the npm package and the GitHub Release are already complete.
+
 ## Releasing: a failed VS Code Marketplace publication shows its reason
 
 -   When the Publish workflow's `vscode-extension` job cannot publish the Book extension to the VS Code Marketplace, its log now shows `vsce`'s own messages, which also appear as annotations, for example an expired or insufficient access token. Before, `vsce` reported them on its captured output, which was dropped, so the 0.119.0-44 job ended with only "Command failed: … vsce publish …". A successful publication now shows `vsce`'s output too.

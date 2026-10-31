@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import JSZip from 'jszip';
 import { vscodeVersion } from '../../../scripts/vscode-version.mjs';
-import { assertSameExtension } from '../../../scripts/publish-vscode.mjs';
+import { assertSameExtension, vscePublish } from '../../../scripts/publish-vscode.mjs';
 import language from '../../../dist-vscode/test/language.cjs';
 
 test('Marketplace versions update legacy 1.x installations and preserve prerelease/stable ordering', () => {
@@ -47,4 +47,42 @@ test('publication retries compare actual extension bytes rather than only versio
     await assert.rejects(assertSameExtension(a, await make('changed', new Date('2026-02-02'))), /differs/);
     const missing = await new JSZip().file('extension/package.json', '{}').generateAsync({ type: 'nodebuffer' });
     await assert.rejects(assertSameExtension(a, missing), /file list/);
+});
+
+test('Marketplace publication: the token first, trusted publishing (OIDC) when there is none or the Marketplace refused it, and the remedy when nothing works', async () => {
+    const expired = '::error::Access Denied: The Personal Access Token used has expired.\n';
+    /** A vsce double answering each attempt in turn; it records the arguments and whether a token was passed. */
+    const scripted = (...answers) => {
+        const calls = [];
+        const run = async (args, env) => (calls.push({ oidc: args.includes('--oidc'), token: env.VSCE_PAT }), answers.shift());
+        return { calls, run };
+    };
+    const quiet = () => undefined;
+    const actions = { ACTIONS_ID_TOKEN_REQUEST_URL: 'https://token.example/' };
+
+    let vsce = scripted({ ok: true, output: 'DONE Published' });
+    await vscePublish('x.vsix', { env: { VSCE_PAT: 'token' }, run: vsce.run, log: quiet });
+    assert.deepEqual(vsce.calls, [{ oidc: false, token: 'token' }], 'a working token is enough');
+
+    // The expired token of 0.119.0-44: trusted publishing is tried without the token, and both messages are logged.
+    vsce = scripted({ ok: false, output: expired }, { ok: true, output: 'DONE Published' });
+    const logged = [];
+    await vscePublish('x.vsix', { env: { VSCE_PAT: 'token', ...actions }, run: vsce.run, log: (text) => logged.push(text) });
+    assert.deepEqual(vsce.calls, [{ oidc: false, token: 'token' }, { oidc: true, token: undefined }]);
+    assert.match(logged.join(''), /has expired[\s\S]*trying trusted publishing[\s\S]*DONE Published/);
+
+    vsce = scripted({ ok: false, output: expired }, { ok: false, output: '::error::Marketplace OIDC token exchange failed (403)\n' });
+    await assert.rejects(vscePublish('x.vsix', { env: { VSCE_PAT: 'token', ...actions }, run: vsce.run, log: quiet }), /refused the VSCE_PAT token, and trusted publishing \(OIDC\) failed too.*VSCE_PAT repository secret.*no new version is needed/);
+    vsce = scripted({ ok: false, output: expired });
+    await assert.rejects(vscePublish('x.vsix', { env: { VSCE_PAT: 'token' }, run: vsce.run, log: quiet }), /refused the VSCE_PAT token .*VSCE_PAT repository secret/, 'outside GitHub Actions there is no OIDC');
+    assert.equal(vsce.calls.length, 1);
+
+    // Another failure is no credential problem: it is not retried with a different credential.
+    vsce = scripted({ ok: false, output: '::error::Promptbook.book-extension v2.119.44 already exists.\n' });
+    await assert.rejects(vscePublish('x.vsix', { env: { VSCE_PAT: 'token', ...actions }, run: vsce.run, log: quiet }), /vsce publish failed; its messages are above\.$/);
+    assert.equal(vsce.calls.length, 1);
+
+    vsce = scripted({ ok: true, output: 'DONE Published' });
+    await vscePublish('x.vsix', { env: actions, run: vsce.run, log: quiet });
+    assert.deepEqual(vsce.calls, [{ oidc: true, token: undefined }], 'without a token, trusted publishing');
 });
